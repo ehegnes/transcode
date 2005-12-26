@@ -32,7 +32,7 @@
  * module operations and capabilities (given by module class, so shared
  * between all modules) and private data.
  */
-typedef struct tcmodule_ *TCModuleHandle;
+typedef struct tcmodule_ *TCModule;
 struct tcmodule_ {
     const TCModuleClass *klass;
     /* pointer to class data shared between all instances */
@@ -67,14 +67,14 @@ struct tcmodule_ {
     tc_module_info_log((self)->klass->info, verbose)
 
 /* factory data type. */
-typedef struct tcfactory_ *TCFactoryHandle;
+typedef struct tcfactory_ *TCFactory;
 
 /*************************************************************************
  * factory methods                                                       *
  *************************************************************************/
 
 /*
- * tc_factory_init:
+ * tc_new_module_factory:
  *      initialize a module factory. This function will acquire all
  *      needed resources and set all things appropriately to make the
  *      factory ready for create module instances, loading plugins on
@@ -92,7 +92,7 @@ typedef struct tcfactory_ *TCFactoryHandle;
  *        Should be one of TC_INFO, TC_DEBUG... value.
  *
  * Return Value:
- *     A valid TCFactoryHandle if initialization was done
+ *     A valid TCFactory if initialization was done
  *     succesfully, NULL otherwise. In latter case, a informative
  *     message is sent through tc_log*().
  *
@@ -106,10 +106,10 @@ typedef struct tcfactory_ *TCFactoryHandle;
  * Postconditions:
  *     factory initialized and ready to create TCModules.
  */
-TCFactoryHandle tc_factory_init(const char *modpath, int verbose);
+TCFactory tc_new_module_factory(const char *modpath, int verbose);
 
 /*
- * tc_factory_fini:
+ * tc_del_module_factory:
  *     finalize a module factory. Shutdowns the factory completely,
  *     cleaning up everything and unloading plugins.
  *     PLEASE NOTE: this function _CAN_ fail, notably if a plugin
@@ -137,17 +137,17 @@ TCFactoryHandle tc_factory_init(const char *modpath, int verbose);
  *     all resources acquired by factory are released; no modules are
  *     loaded or avalaible, nor module instances are still floating around.
  */
-int tc_factory_fini(TCFactoryHandle factory);
+int tc_del_module_factory(TCFactory factory);
 
 /*
- * tc_factory_create_module:
+ * tc_new_module:
  *      using given factory, create a new module instance of the given type,
  *      belonging to given class, and initialize it with reasonnable
  *      defaults values.
  *      This function may load a plugin implicitely to fullfill the request,
  *      since plugins are loaded on demand of client code.
  *      The returned instance pointer must be released using
- *      tc_factory_destroy_module (see below).
+ *      tc_del_module (see below).
  *      The returned instance is ready to use with above tc_module_* macros,
  *      or in any way you like.
  *
@@ -178,14 +178,13 @@ int tc_factory_fini(TCFactoryHandle factory);
  *      if you want to load the "foobar" plugin, belonging to filter class,
  *      you should use a code like this:
  *
- *      TCModule my_module = tc_factory_create_module("filter", "foobar");
+ *      TCModule my_module = tc_new_module("filter", "foobar");
  */
-TCModuleHandle tc_factory_create_module(TCFactoryHandle factory,
-                                        const char *modclass,
-                                        const char *modname);
+TCModule tc_new_module(TCFactory factory, 
+		       const char *modclass, const char *modname);
 
 /*
- * tc_factory_destroy_module:
+ * tc_del_module:
  *      destroy a module instance using given factory, unloading corrispondent
  *      plugin from factory if needed.
  *      This function release the maximum amount of resources possible
@@ -216,7 +215,7 @@ TCModuleHandle tc_factory_create_module(TCFactoryHandle factory,
  *      At time of writing, factory *CANNOT* detect when this condition
  *      is violated. So be careful.
  *
- *      given module instance was obtained using tc_factory_create_module,
+ *      given module instance was obtained using tc_new_module,
  *      applying this function to a module instances obtained in a
  *      different way causes undefined behaviour, most likely a memory
  *      corruption.
@@ -224,8 +223,7 @@ TCModuleHandle tc_factory_create_module(TCFactoryHandle factory,
  * Postconditions:
  *      resources belonging to instance are released (see above).
  */
-int tc_factory_destroy_module(TCFactoryHandle factory,
-                              TCModuleHandle module);
+int tc_del_module(TCFactory factory, TCModule module);
 
 #ifdef TCMODULE_DEBUG
 
@@ -251,7 +249,7 @@ int tc_factory_destroy_module(TCFactoryHandle factory,
  * Postconditions:
  *      None
  */
-int tc_factory_get_plugin_count(const TCFactoryHandle factory);
+int tc_plugin_count(const TCFactory factory);
 
 /*
  * tc_factory_get_module_count:
@@ -275,7 +273,7 @@ int tc_factory_get_plugin_count(const TCFactoryHandle factory);
  * Postconditions:
  *      None
  */
-int tc_factory_get_instance_count(const TCFactoryHandle factory);
+int tc_instance_count(const TCFactory factory);
 
 /*
  * tc_factory_compare_modules:
@@ -303,8 +301,7 @@ int tc_factory_get_instance_count(const TCFactoryHandle factory);
  * Postconditions:
  *      None
  */
-int tc_factory_compare_modules(const TCModuleHandle amod,
-                               const TCModuleHandle bmod);
+int tc_compare_modules(const TCModule amod, const TCModule bmod);
 
 #endif /* TCMODULE_DEBUG */
 

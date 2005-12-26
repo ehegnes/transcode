@@ -55,70 +55,86 @@
 #define ARG_CONFIG_LEN 8192
 
 /*
- * optstr_lookup: Finds the _exact_ 'needle' in 'haystack'
- *                (naming intentionally identical to the
- *                'strstr' (3) linux man page)
+ * optstr_lookup:
+ *     Finds the _exact_ 'needle' in 'haystack' (naming intentionally 
+ *     identical to the 'strstr' (3) linux man page)
  *
- * Parameters: needle: substring to be searched
- *             haystack: string which is supposed to contain
- *                       the substring
- * Return Value: constant pointer to first substring found, or NULL
- *               if substring isn't found.
- * Side effects: none
- * Preconditions: none
- * Postconditions: none
+ * Parameters:
+ *     needle: substring to be searched
+ *     haystack: string which is supposed to contain the substring
+ * Return Value:
+ *     constant pointer to first substring found, or NULL if substring
+ *     isn't found.
+ * Side effects:
+ *     none
+ * Preconditions:
+ *     none
+ * Postconditions:
+ *     none
  */
 const char * optstr_lookup(const char *haystack, const char *needle);
 
 /*
- * optstr_get: extract values from option string
+ * optstr_get:
+ *     extract values from option string
  *
- * Parameters: options: a null terminated string of options to parse,
- *                      syntax is "opt1=val1:opt_bool:opt2=val1-val2"
- *                      where ':' is the seperator.
- *             name: the name to look for in options; eg "opt2"
- *             fmt: the format to scan values (printf format); eg "%d-%d"
- *             (...): variables to assign; eg &lower, &upper
- * Return value: -2 internal error
- *               -1 `name' is not in `options'
- *                0 `name' is in `options'
- *               >0 number of arguments assigned
- * Side effects: none
- * Preconditions: none
- * Postconditions: none
+ * Parameters:
+ *     options: a null terminated string of options to parse,
+ *              syntax is "opt1=val1:opt_bool:opt2=val1-val2"
+ *              where ':' is the seperator.
+ *     name: the name to look for in options; eg "opt2"
+ *     fmt: the format to scan values (printf format); eg "%d-%d"
+ *     (...): variables to assign; eg &lower, &upper
+ * Return value:
+ *     -2 internal error
+ *     -1 `name' is not in `options'
+ *     0  `name' is in `options'
+ *     >0 number of arguments assigned
+ * Side effects:
+ *     none
+ * Preconditions:
+ *     none
+ * Postconditions:
+ *     none
  */
 int optstr_get(const char *options, const char *name, const char *fmt, ...);
 
 /*
- * optstr_filter_desc: Generate a Description of a filter;
- *                     this description will be a row in CSV format.
- *                     Example:
- *                   "filter_foo", "comment", "0.1", "no@one", "VRY", "1"\n
+ * optstr_filter_desc:
+ *     Generate a Description of a filter; this description will be a row in
+ *     CSV format. Example:
+ *     "filter_foo", "comment", "0.1", "no@one", "VRY", "1"\n
+ *     WARNING: this function will be deprecated soon since new capabilities
+ *     code has more flexibility and expressiveness.
  *
- * Parameters: buf: a write buffer, will contain the result of the
- *                  function. 'buf' must be at least ARG_CONFIG_LEN
- *                  characters large.
- *            filter_(name|comment|version|author):
- *                  obvious, various filter meta data
- *            capabilities: string of filter capabilities.
- *                          "V":  Can do Video
- *                          "A":  Can do Audio
- *                          "R":  Can do RGB
- *                          "Y":  Can do YUV420
- *                          "4":  Can do YUV422
- *                          "M":  Can do Multiple Instances
- *                          "E":  Is a PRE filter
- *                          "O":  Is a POST filter
- *                          Valid examples:
- *                          "VR"  : Video and RGB
- *                          "VRY" : Video and YUV and RGB
+ * Parameters:
+ *     buf: a write buffer, will contain the result of the function. 'buf'
+ *          must be at least ARG_CONFIG_LEN characters large.
+ *     filter_(name|comment|version|author):
+ *          obvious, various filter meta data
+ *     capabilities: string of filter capabilities.
+ *                   "V":  Can do Video
+ *                   "A":  Can do Audio
+ *                   "R":  Can do RGB
+ *                   "Y":  Can do YUV420
+ *                   "4":  Can do YUV422
+ *                   "M":  Can do Multiple Instances
+ *                   "E":  Is a PRE filter
+ *                   "O":  Is a POST filter
+ *                   Valid examples:
+ *                   "VR"  : Video and RGB
+ *                   "VRY" : Video and YUV and RGB
  *            frames_needed: a string of how many frames the filter needs
  *                           to take effect. Usually this is "1".
- * Return value: 1 Not enough space in buf
- *               0 Successfull
- * Side effects: none
- * Preconditions: none
- * Postconditions: none
+ * Return value:
+ *     1 Not enough space in `buf' parameter
+ *     0 Successfull
+ * Side effects:
+ *     none
+ * Preconditions:
+ *     none
+ * Postconditions:
+ *     none
  */
 int optstr_filter_desc(char *buf,
                        const char *filter_name,
@@ -129,41 +145,49 @@ int optstr_filter_desc(char *buf,
                        const char *frames_needed);
 
 /*
- * optstr_frames_needed: extract the how many frames the filter
- *                       needs from an CSV row.
+ * optstr_frames_needed:
+ *     extract the how many frames the filter needs from an CSV row.
  *
- * Parameters: filter_desc: the CSV row
- *             needed_frames: the result will be stored in
- *                            this variable
- * Return value: 1 An error happend
- *               0 Successfull
- * Side effects: none
- * Preconditions: none
- * Postconditions: none
+ * Parameters:
+ *     filter_desc: the CSV row
+ *     needed_frames: the result will be stored in this variable
+ * Return value:
+ *     1 An error happend
+ *     0 Successfull
+ * Side effects:
+ *     none
+ * Preconditions:
+ *     none
+ * Postconditions:
+ *     none
  */
 int optstr_frames_needed(const char *filter_desc, int *needed_frames);
 
 /*
- * optstr_param: Generate a description of one filter parameter.
- *               The output will be in CSV format. Example:
- *               "radius", "Search radius", "%d", "8", "8", "24"\n
+ * optstr_param:
+ *     Generate a description of one filter parameter. The output will be
+ *     in CSV format.
+ *     Example: "radius", "Search radius", "%d", "8", "8", "24"\n
  *
- * Parameters: buf: a write buffer, will contain the result of the
- *                  function. 'buf' must be at least ARG_CONFIG_LEN
- *                  characters large.
- *             name: the name of the parameter (eg "radius")
- *             comment: a short description (eg "Search radius")
- *             fmt: a printf style parse string (eg "%d")
- *             val: current value (eg "8")
- *             (...): always pairs (but this is actually NOT checked):
- *                    legal values for the parameter
- *                    (eg "8", "24" -- meaning, the radius parameter is
- *                    valid from 8 to 24)
- * Return value: 1 An Error happend
- *               0 Successfull
- * Side effects: none
- * Preconditions: none
- * Postconditions: none
+ * Parameters:
+ *     buf: a write buffer, will contain the result of the function. 'buf'
+ *          must be at least ARG_CONFIG_LEN characters large.
+ *     name: the name of the parameter (eg "radius")
+ *     comment: a short description (eg "Search radius")
+ *     fmt: a printf style parse string (eg "%d")
+ *     val: current value (eg "8")
+ *     (...): always pairs (but this is actually NOT checked): legal values 
+ *            for the parameter (eg "8", "24" -- meaning, the radius 
+ *            parameter is valid from 8 to 24).
+ * Return value:
+ *      1 An Error happend
+ *      0 Successfull
+ * Side effects:
+ *      none
+ * Preconditions:
+ *      none
+ * Postconditions:
+ *      none
  *
  * More examples:
  *   "pos", "Position (0-width x 0-height)", "%dx%d", "0x0", "0", "width", "0", "height"

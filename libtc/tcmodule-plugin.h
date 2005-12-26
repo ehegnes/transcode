@@ -23,6 +23,9 @@
 #include "tcmodule-info.h"
 #include "tcmodule-data.h"
 
+/* default size for configure string length */
+#define CONF_STR_SIZE   128
+
 /*
  * plugin entry point prototype
  */

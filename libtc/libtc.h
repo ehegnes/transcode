@@ -154,32 +154,44 @@ int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
     free(ptr);
 
 /*
- * _tc_malloc: do the real work behind tc_malloc macro
+ * _tc_malloc:
+ *     do the real work behind tc_malloc macro
  *
- * Parameters: file: name of the file on which call occurs
- *             line: line of above file on which call occurs
- *             (above two parameters are intended to be, and usually
- *             are, filled by tc_malloc macro)
- *             size: size of desired chunk of memory
- * Return Value: a pointer of acquired memory, or NULL if acquisition fails
- * Side effects: a message is printed on stderr (20051017)
- * Preconditions: file param not null
- * Postconditions: none
+ * Parameters:
+ *     file: name of the file on which call occurs
+ *     line: line of above file on which call occurs
+ *           (above two parameters are intended to be, and usually
+ *           are, filled by tc_malloc macro)
+ *     size: size of desired chunk of memory
+ * Return Value:
+ *     a pointer of acquired memory, or NULL if acquisition fails
+ * Side effects:
+ *     a message is printed on stderr (20051017)
+ * Preconditions:
+ *     file param not null
+ * Postconditions:
+ *     none
  */
 void *_tc_malloc(const char *file, int line, size_t size);
 
 /*
- * _tc_zalloc: do the real work behind tc_zalloc macro
+ * _tc_zalloc:
+ *     do the real work behind tc_zalloc macro
  *
- * Parameters: file: name of the file on which call occurs
- *             line: line of above file on which call occurs
- *             (above two parameters are intended to be, and usually
- *             are, filled by tc_malloc macro)
- *             size: size of desired chunk of memory
- * Return Value: a pointer of acquired memory, or NULL if acquisition fails
- * Side effects: a message is printed on stderr (20051017)
- * Preconditions: file param not null
- * Postconditions: if call succeed, acquired memory contains all '0'
+ * Parameters:
+ *     file: name of the file on which call occurs
+ *     line: line of above file on which call occurs
+ *           (above two parameters are intended to be, and usually
+ *           are, filled by tc_malloc macro)
+ *     size: size of desired chunk of memory
+ * Return Value:
+ *     a pointer of acquired memory, or NULL if acquisition fails
+ * Side effects:
+ *     a message is printed on stderr (20051017)
+ * Preconditions:
+ *     file param not null
+ * Postconditions:
+ *     if call succeed, acquired memory contains all '0'
  */
 void *_tc_zalloc(const char *file, int line, size_t size);
 
@@ -191,20 +203,26 @@ void *_tc_zalloc(const char *file, int line, size_t size);
 #define tc_bufalloc(size) \
     _tc_bufalloc(__FILE__, __LINE__, size)
 
+/* XXX: add docs */
 void *_tc_bufalloc(const char *file, int line, size_t size);
 
 /*
- * tc_buffree: release a memory buffer acquired using tc_bufalloc
+ * tc_buffree:
+ *     release a memory buffer acquired using tc_bufalloc
  *
- * Parameters: ptr: pointer obtained as return value of a succesfull
- *                  tc_bufalloc() call
- * Return Value: none
- * Side effects: none
- * Preconditions: ptr is acquired via tc_bufalloc(). Really BAD things
- *                will happen if a buffer acquired via tc_bufalloc()
- *                is released using anything but tc_buffree(), or
- *                vice versa.
- * Postconditions: none
+ * Parameters:
+ *     ptr: pointer obtained as return value of a succesfull
+ *          tc_bufalloc() call
+ * Return Value:
+ *     none
+ * Side effects:
+ *     none
+ * Preconditions:
+ *     ptr is acquired via tc_bufalloc(). Really BAD things will happen
+ *     if a buffer acquired via tc_bufalloc() is released using anything
+ *     but tc_buffree(), or vice versa.
+ * Postconditions:
+ *     none
  */
 void tc_buffree(void *ptr);
 
@@ -221,87 +239,114 @@ void tc_buffree(void *ptr);
     _tc_strndup(__FILE__, __LINE__, s, n)
 
 /*
- * _tc_strndup: do the real work behind tc_strdup/tc_strndup macro.
- *              this function adds automatically and implicitely a
- *              '\0' terminator at end of copied string.
+ * _tc_strndup:
+ *     do the real work behind tc_strdup/tc_strndup macro. This function
+ *     adds automatically and implicitely a '\0' terminator at end of 
+ *     copied string.
  *
- * Parameters: file: name of the file on which call occurs
- *             line: line of above file on which call occurs
- *             (above two parameters are intended to be, and usually
- *             are, filled by tc_malloc macro)
- *             s: null-terminated string to copy
- *             n: copy at most 'n' characters of original string.
- * Return Value: a pointer to a copy of given string.
- *               this pointer must be freed using tc_free() to avoid
- *               memory leaks
- * Side effects: a message is printed on stderr (20051017)
- * Preconditions: file param not null
- * Postconditions: none
+ * Parameters:
+ *     file: name of the file on which call occurs
+ *     line: line of above file on which call occurs (above two parameters
+ *           are intended to be, and usually are, filled by tc_malloc macro)
+ *     s: null-terminated string to copy
+ *     n: copy at most 'n' characters of original string.
+ * Return Value:
+ *     a pointer to a copy of given string. This pointer must be freed using
+ *     tc_free() to avoid memory leaks
+ * Side effects:
+ *     a message is printed on stderr (20051017)
+ * Preconditions:
+ *     file param not null
+ * Postconditions:
+ *     none
  */
 char *_tc_strndup(const char *file, int line, const char *s, size_t n);
 
 /*
- * tc_file_check: verify the type of a given file (path)
- *                this function will be deprecated very soon,
- *                replaced by a powered tc_probe_path().
+ * tc_file_check:
+ *     verify the type of a given file (path) this function will be
+ *     deprecated very soon, replaced by a powered tc_probe_path().
  *
- * Parameters: file: the file (really: path) to verify.
- * Return Value: -1 if an internal error occur
- *               0 if given path is really a file
- *               1 if given path is a directory
- * Side effects: none
- * Preconditions: none
- * Postconditions: none
+ * Parameters:
+ *     file: the file (really: path) to verify.
+ * Return Value:
+ *     -1 if an internal error occur
+ *     0  if given path is really a file
+ *     1  if given path is a directory
+ * Side effects:
+ *     none
+ * Preconditions:
+ *     none
+ * Postconditions:
+ *     none
  */
 int tc_file_check(const char *file);
 
 /*
- * tc_pread: read an entire buffer from a file descriptor, restarting
- *           automatically if interrupted.
- *           This function is basically a wrapper around posix read(2);
- *           read(2) can be interrupted by a signal, so doesn't guarantee
- *           that all requested bytes are effectively readed when read(2)
- *           returns; this function ensures so, except for critical errors.
- * Parameters: fd: read data from this file descriptor
- *             buf: pointer to a buffer which will hold readed data
- *             len: how much data function must read from fd
- * Return Value: size of effectively readed data
- * Side effects: errno is readed internally
- * Preconditions: none
- * Postconditions: read exactly the requested bytes, if no *critical*
- *                 (tipically I/O related) error occurs.
+ * tc_pread:
+ *     read an entire buffer from a file descriptor, restarting 
+ *     automatically if interrupted. This function is basically a wrapper
+ *     around posix read(2); read(2) can be interrupted by a signal,
+ *     so doesn't guarantee that all requested bytes are effectively readed
+ *     when read(2) returns; this function ensures so, except for critical
+ *     errors.
+ * Parameters:
+ *     fd: read data from this file descriptor
+ *     buf: pointer to a buffer which will hold readed data
+ *     len: how much data function must read from fd
+ * Return Value:
+ *     size of effectively readed data
+ * Side effects:
+ *     errno is readed internally
+ * Preconditions:
+ *     none
+ * Postconditions:
+ *     read exactly the requested bytes, if no *critical*
+ *     (tipically I/O related) error occurs.
  */
 ssize_t tc_pread(int fd, uint8_t *buf, size_t len);
 
 /*
- * tc_pwrite: write an entire buffer from a file descriptor, restarting
- *            automatically if interrupted.
- *            This function is basically a wrapper around posix write(2);
- *            write(2) can be interrupted by a signal, so doesn't guarantee
- *            that all requested bytes are effectively writed when write(2)
- *            returns; this function ensures so, except for critical errors.
- * Parameters: fd: write data on this file descriptor
- *             buf: pointer to a buffer which hold data to be written
- *             len: how much data function must write in fd
- * Return Value: size of effectively written data
- * Side effects: errno is readed internally
- * Preconditions: none
- * Postconditions: write exactly the requested bytes, if no *critical*
- *                 (tipically I/O related) error occurs.
+ * tc_pwrite:
+ *     write an entire buffer from a file descriptor, restarting
+ *     automatically if interrupted. This function is basically a wrapper
+ *     around posix write(2); write(2) can be interrupted by a signal,
+ *     so doesn't guarantee that all requested bytes are effectively writed
+ *     when write(2) returns; this function ensures so, except for critical
+ *     errors.
+ * Parameters:
+ *     fd: write data on this file descriptor
+ *     buf: pointer to a buffer which hold data to be written
+ *     len: how much data function must write in fd
+ * Return Value:
+ *     size of effectively written data
+ * Side effects:
+ *     errno is readed internally
+ * Preconditions:
+ *     none
+ * Postconditions:
+ *     write exactly the requested bytes, if no *critical* (tipically I/O
+ *     related) error occurs.
  */
 ssize_t tc_pwrite(int fd, uint8_t *buf, size_t len);
 
 /*
- * tc_preadwrite: read all data avalaible from a file descriptor, putting
- *                it on the other one.
- * Parameters: in: read data from this file descriptor
- *             out: write readed data on this file descriptor
- * Return Value: -1 if a read error happens
- *               0 if no error happens
- * Side effects: none
- * Preconditions: none
- * Postconditions: move the entire content of 'in' into 'out',
- *                 if no *critical* (tipically I/O related) error occurs.
+ * tc_preadwrite:
+ *     read all data avalaible from a file descriptor, putting it on the
+ *     other one.
+ * Parameters:
+ *     in: read data from this file descriptor
+ *     out: write readed data on this file descriptor
+ * Return Value:
+ *     -1 if a read error happens
+ *     0  if no error happens
+ * Side effects:
+ *     none
+ * Preconditions:
+ *     none
+ * Postconditions:
+ *     move the entire content of 'in' into 'out', if no *critical* 
+ *     (tipically I/O related) error occurs.
  */
 int tc_preadwrite(int in, int out);
 
@@ -317,64 +362,80 @@ int tc_preadwrite(int in, int out);
 #define TC_PROBE_PATH_OSS       9
 
 /*
- * tc_probe_path: verify the type of a given path.
+ * tc_probe_path:
+ *     verify the type of a given path.
  *
- * Parameters: path: the path to probe.
- * Return Value: the probed type of path. Can be
- *               TC_PROBE_PATH_INVALID if given path
- *               doesn't exists or an internal error occur.
- * Side effects: if function fails, one or more debug message
- *               can be issued using tc_log*().
- *               A name resolve request can be issued to system.
- * Preconditions: none
- * Postconditions: none
+ * Parameters:
+ *     path: the path to probe.
+ * Return Value:
+ *     the probed type of path. Can be TC_PROBE_PATH_INVALID if given path
+ *     doesn't exists or an internal error occur.
+ * Side effects:
+ *     if function fails, one or more debug message can be issued using
+ *     tc_log*(). A name resolve request can be issued to system.
+ * Preconditions:
+ *     none
+ * Postconditions:
+ *     none
  */
 int tc_probe_path(const char *name);
 
 /* codec helpers ***********************************************************/
 
 /*
- * tc_codec_to_string: give a string representation of a given codec
- *                     identifier
+ * tc_codec_to_string:
+ *     give a string representation of a given codec identifier
  *
- * Parameters: codec: TC_CODEC_ value to represent
- * Return value: a constant string representing the given codec (there is
- *               no need to free() it
- *               NULL of codec is (yet) unknown
- * Side effects: none
- * Preconditions: none
- * Postconditions: none
+ * Parameters:
+ *     codec: TC_CODEC_ value to represent
+ * Return value:
+ *     a constant string representing the given codec (there is no need to 
+ *     free() it NULL of codec is (yet) unknown
+ * Side effects:
+ *     none
+ * Preconditions:
+ *     none
+ * Postconditions:
+ *     none
  */
 const char* tc_codec_to_string(int codec);
 
 /*
- * tc_codec_from_string: extract codec identifier from it's string
- *                       representation
+ * tc_codec_from_string:
+ *     extract codec identifier from it's string representation
  *
- * Parameters: codec: string representation of codec
- * Return value: the correspinding TC_CODEC_* of given string
- *               representation, or TC_CODEC_ERROR if string
- *               is unknown or wrong.
- * Side effects: none
- * Preconditions: none
- * Postconditions: none
+ * Parameters:
+ *     codec: string representation of codec
+ * Return value:
+ *     the correspinding TC_CODEC_* of given string representation, 
+ *     or TC_CODEC_ERROR if string is unknown or wrong.
+ * Side effects:
+ *     none
+ * Preconditions:
+ *     none
+ * Postconditions:
+ *     none
  */
 int tc_codec_from_string(const char *codec);
 
 /*
- * tc_codec_get_fourcc: extract the FOURCC code for a given codec,
- *                      if exists.
+ * tc_codec_fourcc:
+ *     extract the FOURCC code for a given codec, if exists.
  *
- * Parameters: codec: TC_CODEC_ value to get the FOURCC
- * Return value: a constant string representing the FOURCC for a given
- *               codec (there is no need to free() it
- *               NULL of codec's FOURCC is (yet) unknown or given codec
- *               has _not_ FOURCC (es: audio codec identifiers).
- * Side effects: none
- * Preconditions: none
- * Postconditions: none
+ * Parameters:
+ *     codec: TC_CODEC_ value to get the FOURCC
+ * Return value:
+ *     a constant string representing the FOURCC for a given codec (there 
+ *     is no need to free() it NULL of codec's FOURCC is (yet) unknown or 
+ *     given codec has _not_ FOURCC (es: audio codec identifiers).
+ * Side effects:
+ *     none
+ * Preconditions:
+ *     none
+ * Postconditions:
+ *     none
  */
-const char* tc_codec_get_fourcc(int codec);
+const char* tc_codec_fourcc(int codec);
 
 #ifdef __cplusplus
 }

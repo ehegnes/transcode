@@ -52,86 +52,102 @@ struct tcdirlist_ {
 };
 
 /*
- * tc_dirlist_open: initialize a TCDirList descriptor.
- *                  every TCDirList descriptor refers to a specific
- *                  directory in filesystem, and more descriptors can
- *                  refer to the same directory.
- *                  BIG FAT WARNING:
- *                  all iodir code relies on assumption that target
- *                  directory *WILL NOT CHANGE* when referring
- *                  descriptor is active.
+ * tc_dirlist_open:
+ *     initialize a TCDirList descriptor.
+ *     every TCDirList descriptor refers to a specific directory in 
+ *     filesystem, and more descriptors can refer to the same directory.
+ *     BIG FAT WARNING:
+ *     all iodir code relies on assumption that target directory 
+ *     *WILL NOT CHANGE* when referring descriptor is active.
  *
- * Parameters: tcdir: TCDirList structure (descriptor) to initialize.
- *             dirname: full path of target directory.
- *             sort: boolean flag. If is !0, use buffered mode.
- *                   further calls to tc_dirlist_scan will return
- *                   directory entries in lexicographical order.
- *                   otherwise use unbuffered mode.
- * Return Value: -1 if some parameter is wrong or if target
- *                  directory can't be opened.
- *               0  succesfull.
- * Side effects: none
- * Preconditions: referred directory *MUST NOT CHANGE* until descriptor
- *                will be closed via tc_dirlist_close().
- * Postconditions: none
+ * Parameters:
+ *     tcdir: TCDirList structure (descriptor) to initialize.
+ *     dirname: full path of target directory.
+ *     sort: boolean flag. If is !0, use buffered mode.
+ *           further calls to tc_dirlist_scan will return
+ *           directory entries in lexicographical order.
+ *           otherwise use unbuffered mode.
+ * Return Value:
+ *     -1 if some parameter is wrong or if target
+ *        directory can't be opened.
+ *     0  succesfull.
+ * Side effects:
+ *     none
+ * Preconditions:
+ *     referred directory *MUST NOT CHANGE* until descriptor
+ *     will be closed via tc_dirlist_close().
+ * Postconditions:
+ *     none
  */
 int tc_dirlist_open(TCDirList *tcdir, const char *dirname, int sort);
 
 /*
- * tc_dirlist_scan: give full path of next entry in target directory.
- *                  this function can operate in two modes, returning
- *                  the same values to caller (if preconditions holds)
- *                  but in different order. The first, standard mode
- *                  is the so called 'unbuffered' mode. In this mode,
- *                  this function simply scan the target directory, build
- *                  the full path for each entry and return to the caller
- *                  in filesystem order.
- *                  The other operating mode is the 'buffered' mode, and
- *                  it's triggered using a non-zero value for parameter
- *                  'sort' in tc_dirlist_open (see above).
- *                  When in buffered mode, this function will return
- *                  the full path of each entry in target directory in
- *                  lexicogrpaphical order.
- *                  Otherwise full path is given using filesystem order.
+ * tc_dirlist_scan:
+ *     give full path of next entry in target directory. This function 
+ *     can operate in two modes, returning the same values to caller 
+ *     (if preconditions holds) but in different order. 
+ *     The first, standard mode is the so called 'unbuffered' mode. 
+ *     In this mode, this function simply scan the target directory, build
+ *     the full path for each entry and return to the caller in filesystem
+ *     order. The other operating mode is the 'buffered' mode, and
+ *     it's triggered using a non-zero value for parameter 'sort' in 
+ *     tc_dirlist_open (see above). When in buffered mode, this function 
+ *     will return the full path of each entry in target directory in
+ *     lexicogrpaphical order. Otherwise full path is given using 
+ *     filesystem order.
  *
- * Parameters: tcdir: TCDirList structure (descriptor) to use.
- * Return Value: a constant pointer to full path of next entry
- *               NULL there are no more entries, or if an internal
- *               error occurs.
- * Side effects: in unbuffered mode, target directory will be scanned
- *               one time.
- * Preconditions: referred directory *MUST NOT CHANGE* until descriptor
- *                will be closed via tc_dirlist_close().
- *                'tcdir' was initialized calling tc_dirlist_open().
- * Postconditions: none
+ * Parameters: 
+ *     tcdir: TCDirList structure (descriptor) to use.
+ * Return Value:
+ *     a constant pointer to full path of next entry NULL there are no 
+ *     more entries, or if an internal error occurs.
+ * Side effects:
+ *     in unbuffered mode, target directory will be scanned one time.
+ * Preconditions:
+ *     referred directory *MUST NOT CHANGE* until descriptor
+ *     will be closed via tc_dirlist_close().
+ *     'tcdir' was initialized calling tc_dirlist_open().
+ * Postconditions:
+ *     none
  */
 const char *tc_dirlist_scan(TCDirList *tcdir);
 
 /*
- * tc_dirlist_close: finalize a TCDirList structure (descriptor),
- *                     freeing all acquired resources.
+ * tc_dirlist_close:
+ *     finalize a TCDirList structure (descriptor), freeing all 
+ *     acquired resources.
  *
- * Parameters: tcdir: TCDirList structure (descriptor) to close.
- * Return Value: none
- * Side effects: none
- * Preconditions: referred directory *MUST NOT BE CHANGED* until now.
- *                'tcdir' was initialized calling tc_dirlist_open()
- * Postconditions: none
+ * Parameters:
+ *     tcdir: TCDirList structure (descriptor) to close.
+ * Return Value:
+ *     none
+ * Side effects:
+ *     none
+ * Preconditions:
+ *     referred directory *MUST NOT BE CHANGED* until now.
+ *     'tcdir' was initialized calling tc_dirlist_open()
+ * Postconditions:
+ *     none
  */
 void tc_dirlist_close(TCDirList *tcdir);
 
 /*
- * tc_dirlist_file_count: return the actual count of files in target
- *                        directory.
+ * tc_dirlist_file_count:
+ *     return the actual count of files in target directory.
  *
- * Parameters: tcdir: TCDirList structure (descriptor) to use.
- * Return Value: actual count of files in target directory
- *               -1 if 'tcdir' is an invalid descriptor
- * Side effects: none
- * Preconditions: referred directory *MUST NOT CHANGE* until descriptor
- *                will be closed via tc_dirlist_close().
- *                'tcdir' was initialized calling tc_dirlist_open().
- * Postconditions: none
+ * Parameters:
+ *     tcdir: TCDirList structure (descriptor) to use.
+ * Return Value:
+ *     actual count of files in target directory
+ *     -1 if 'tcdir' is an invalid descriptor
+ * Side effects:
+ *     none
+ * Preconditions:
+ *     referred directory *MUST NOT CHANGE* until descriptor will be closed
+ *     via tc_dirlist_close().
+ *     'tcdir' was initialized calling tc_dirlist_open().
+ * Postconditions:
+ *     none
  */
 int tc_dirlist_file_count(TCDirList *tcdir);
 #endif

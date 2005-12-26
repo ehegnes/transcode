@@ -125,7 +125,7 @@ int tc_codec_from_string(const char *codec)
     return codecs_info[idx].id;
 }
 
-const char* tc_codec_get_fourcc(int codec)
+const char* tc_codec_fourcc(int codec)
 {
     int idx = find_tc_codec(codecs_info, id_finder, &codec);
 
