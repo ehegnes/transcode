@@ -473,7 +473,7 @@ int main(int argc, char *argv[])
     TCModuleHandle module = NULL;
 
     factory = tc_new_module_factory(((newmodpath) ?newmodpath :modpath), verbose);
-    module = tc_create_module(factory, "filter", filename);
+    module = tc_new_module(factory, "filter", filename);
     if (module != NULL) {
         if (verbose >= TC_DEBUG) {
             tc_log_info(__FILE__, "using new module system");
@@ -485,7 +485,7 @@ int main(int argc, char *argv[])
         /* current configuration */
         puts("\ndefault module configuration:");
         puts(tc_module_configure(module, ""));
-        tc_destroy_module(factory, module);        
+        tc_del_module(factory, module);        
         out = 0;
     } else {
         if (verbose >= TC_DEBUG) {
