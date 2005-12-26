@@ -472,8 +472,8 @@ int main(int argc, char *argv[])
     /* first of all, try using new module system */
     TCModuleHandle module = NULL;
 
-    factory = tc_factory_init(((newmodpath) ?newmodpath :modpath), verbose);
-    module = tc_factory_create_module(factory, "filter", filename);
+    factory = tc_new_module_factory(((newmodpath) ?newmodpath :modpath), verbose);
+    module = tc_create_module(factory, "filter", filename);
     if (module != NULL) {
         if (verbose >= TC_DEBUG) {
             tc_log_info(__FILE__, "using new module system");
@@ -485,7 +485,7 @@ int main(int argc, char *argv[])
         /* current configuration */
         puts("\ndefault module configuration:");
         puts(tc_module_configure(module, ""));
-        tc_factory_destroy_module(factory, module);        
+        tc_destroy_module(factory, module);        
         out = 0;
     } else {
         if (verbose >= TC_DEBUG) {
@@ -522,7 +522,7 @@ int main(int argc, char *argv[])
         fputs("END\n", stdout);
     }
       
-    ret = tc_factory_fini(factory);
+    ret = tc_del_module_factory(factory);
     tcv_free(tcv_handle);
     return (out);
   }

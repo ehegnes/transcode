@@ -1,8 +1,13 @@
 2005-12-26 Francesco Romani <fromani at gmail dot com>
+  * tools/tcmodinfo.c
+  update code to conform to last NMS client API.
+
+2005-12-26 Francesco Romani <fromani at gmail dot com>
   * libtc/iodir.h libtc/libtc.h libtc/optstr.h libtc/tccodecs.c
     libtc/tcmodule-core.h libtc/tcmodule-plugin.h libtc/tcmodule.c
-  documentation style updates. Also renamed tc_codec_get_fourcc
-  in tc_codec_fourcc.
+  documentation style updates.
+  Renamed tc_codec_get_fourcc in tc_codec_fourcc.
+  API for NMS renamed, functions name are now simolified.
 
 2005-12-25 Andrew Church <achurch at achurch dot org>
   * export/export_debugppm.c export/export_divx4.c export/export_divx4raw.c
