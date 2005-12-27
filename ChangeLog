@@ -1,4 +1,10 @@
 2005-12-27 Francesco Romani <fromani at gmail dot com>
+  * tools/tcmodinfo.c
+  start to review and simply tcmodinfo. Now code relies more
+  on tcmodule code, and already support filter, encode and multiplex
+  NMS module classes. Also dropped some old unused code.
+
+2005-12-27 Francesco Romani <fromani at gmail dot com>
   * (everything)
   start New Module System branch
 
