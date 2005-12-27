@@ -1,4 +1,16 @@
 2005-12-27 Francesco Romani <fromani at gmail dot com>
+  * Added directories: multiplex, encode
+
+  Added files: multiplex/multiplex_avi.c multiplex/multiplex_raw.c
+  multiplex/multiplex_null.c encode/encode_dv.c
+
+  start the Big Export Layer Split: export layer will be
+  splitted in encode + multiplex layer.
+  WARNING: actual code isn't yet tested and was intentionally
+  left out of module system. This last issue will be corrected
+  very soon.
+
+2005-12-27 Francesco Romani <fromani at gmail dot com>
   * tools/tcmodinfo.c
   start to review and simply tcmodinfo. Now code relies more
   on tcmodule code, and already support filter, encode and multiplex
