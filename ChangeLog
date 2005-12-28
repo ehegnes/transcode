@@ -1,4 +1,8 @@
 2005-12-28 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_dv.c
+  removed stale misleading comment.
+
+2005-12-28 Francesco Romani <fromani at gmail dot com>
   * encode/encode_null.c encode/encode_copy.c
   substitute placeholders with real module code.
 
@@ -7,13 +11,11 @@
 
   added files: encode_null.c, encode_copy.c
 
-  Introruce encode_copy and encode_null module 
-  (both needs more work).
+  Introduce encode_copy and encode_null module (both needs more work).
 
 2005-12-28 Francesco Romani <fromani at gmail dot com>
   * encode/Makefile.am encode/encode_dv.c
-  miscelanous fixes and `configure' operation cleanup
-  in encode_dv.c
+  miscelanous fixes and `configure' operation cleanup in encode_dv.c
 
 2005-12-28 Francesco Romani <fromani at gmail dot com>
   * tools/Makefile.am tools/tcmodinfo.c

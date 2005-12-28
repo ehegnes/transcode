@@ -237,7 +237,6 @@ static const int tcdv_codecs_in[] = {
     TC_CODEC_ERROR
 };
 
-/* a encodeor is at the end of pipeline */
 static const int tcdv_codecs_out[] = { 
     TC_CODEC_DV,
     TC_CODEC_ERROR
