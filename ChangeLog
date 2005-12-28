@@ -1,10 +1,10 @@
 2005-12-28 Francesco Romani <fromani at gmail dot com>
-  * encode/Makefile.am encode/encode_copy.c
+  * encode/Makefile.am
 
-  added file: encode_null.c
+  added files: encode_null.c, encode_copy.c
 
-  encode_copy output capability fix.
-  Introduce encode_null module (needs more work).
+  Introruce encode_copy and encode_null module 
+  (both needs more work).
 
 2005-12-28 Francesco Romani <fromani at gmail dot com>
   * encode/Makefile.am encode/encode_dv.c
