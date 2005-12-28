@@ -27,15 +27,27 @@ typedef struct {
  */
 const TCCodecInfo codecs_info[] = {
     /* video codecs */
+    { TC_CODEC_RGB, "rgb", "RGB" },
     { TC_CODEC_YUV420P, "yuv420p", "I420" },
+    { TC_CODEC_YUV422P, "yuv422p", "UYVY" },
+    { TC_CODEC_YUY2, "yuy2", "YUY2" }, // XXX: right fcc?
     { TC_CODEC_MPEG1, "mpeg1", "mpg1" },
     { TC_CODEC_MPEG2, "mpeg2", "mpg2" },
     { TC_CODEC_XVID, "xvid", "XVID" },
+    { TC_CODEC_DIVX3, "divx3;-)", "DIVX" },
+    { TC_CODEC_DIVX4, "divx4", "DIVX" },
+    { TC_CODEC_DIVX5, "divx5", "DX50" },
+    { TC_CODEC_MJPG, "mjpeg", "MJPG" },
+    { TC_CODEC_DV, "dv", "DVSD" },
+    { TC_CODEC_LZO1, "lzo1", "LZO1" },
+    { TC_CODEC_LZO2, "lzo2", "LZO2" },
     /* FIXME: add more codec informations, on demand */
     
     /* audio codecs */
     { TC_CODEC_PCM, "pcm", NULL },
     { TC_CODEC_MP3, "mp3", NULL },
+    { TC_CODEC_AC3, "ac3", NULL },
+    { TC_CODEC_A52, "a52", NULL },
     /* FIXME: add more codec informations, on demand */
 
     /* special codecs*/

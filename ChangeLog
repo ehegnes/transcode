@@ -1,4 +1,8 @@
 2005-12-28 Francesco Romani <fromani at gmail dot com>
+  * libtc/tccodecs.c
+  more codec descriptions.
+
+2005-12-28 Francesco Romani <fromani at gmail dot com>
   * multiplex/multiplex_avi.c multiplex/multiplex_null,c
     multiplex/multiplex_raw.c
   implemention "dry_run" option (documentation will be
