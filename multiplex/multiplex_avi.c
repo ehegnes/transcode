@@ -34,46 +34,6 @@ typedef struct {
     char conf_str[CONF_STR_SIZE];
 } AVIPrivateData;
 
-static int avi_init(TCModuleInstance *self)
-{
-    if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
-        return -1;
-    }
-    
-    self->userdata = tc_malloc(sizeof(AVIPrivateData));
-    if (!self->userdata) {
-        return -1;
-    }
-        
-    if (verbose) {
-        tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-        if (verbose >= TC_DEBUG) {
-            tc_log_info(MOD_NAME, "max AVI-file size limit = %lu bytes",
-                                  (unsigned long) AVI_max_size());
-        }
-    }
-    
-    return 0;
-}
- 
-static int avi_fini(TCModuleInstance *self)
-{
-    AVIPrivateData *pd = NULL;
-    
-    if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
-        return NULL;
-    }
-
-    avi_stop(self);
-
-    tc_free(self->userdata);
-    self->userdata = NULL;
-
-    return 0;
-}
-
 static const char *avi_configure(TCModuleInstance *self,
                                  const char *options)
 {
@@ -92,7 +52,7 @@ static const char *avi_configure(TCModuleInstance *self,
         return avi_help;
     }
 
-    pd->avifile = AVI_open_output(vob->video_out_file);
+    pd->avifile = AVI_open_output_file(vob->video_out_file);
     if(!pd->avifile) {
 	    AVI_print_error("avi open error");
         return NULL;
@@ -110,9 +70,11 @@ static const char *avi_configure(TCModuleInstance *self,
 		          vob->ex_fps, fcc);
 
 	AVI_set_audio_track(pd->avifile, vob->a_track);
+/*    
     AVI_set_audio(pd->avifile, avi_aud_chan, avi_aud_rate,
                   avi_aud_bits, avi_aud_codec, avi_aud_bitrate);
-    AVI_set_audio_vbr(avifile, vob->a_vbr);
+*/                  
+    AVI_set_audio_vbr(pd->avifile, vob->a_vbr);
     
     tc_snprintf(pd->conf_str, CONF_STR_SIZE, "help");
     return pd->conf_str;
@@ -124,7 +86,7 @@ static int avi_stop(TCModuleInstance *self)
     
     if (!self) {
         tc_log_error(MOD_NAME, "init: bad instance data reference");
-        return NULL;
+        return TC_EXPORT_ERROR;
     }
 
     pd = self->userdata;
@@ -134,7 +96,7 @@ static int avi_stop(TCModuleInstance *self)
         pd->avifile = NULL;
     }
 
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 static int avi_multiplex(TCModuleInstance *self,
@@ -147,7 +109,7 @@ static int avi_multiplex(TCModuleInstance *self,
      
     if (!self) {
         tc_log_error(MOD_NAME, "init: bad instance data reference");
-        return NULL;
+        return TC_EXPORT_ERROR;
     }
 
     pd = self->userdata;
@@ -158,27 +120,65 @@ static int avi_multiplex(TCModuleInstance *self,
                         || pd->force_kf) ?1 :0;
 
         ret = AVI_write_frame(pd->avifile, vframe->video_buf, 
-                              vframe->size, key);
+                              vframe->video_size, key);
 
         if(ret < 0) {
             AVI_print_error("avi video write error");
 
-            return(TC_EXPORT_ERROR);
+            return TC_EXPORT_ERROR;
         }
     }
 
     if (aframe != NULL) {
  		ret = AVI_write_audio(pd->avifile, aframe->audio_buf, 
-                              aframe->size);
+                              aframe->audio_size);
  		if (ret < 0) {
 			AVI_print_error("AVI file audio write error");
-			return(TC_EXPORT_ERROR);
+			return TC_EXPORT_ERROR;
 		}
     }
     
     size_after = AVI_bytes_written(pd->avifile);
     
-    return size_after - size_before;
+    return (size_after - size_before);
+}
+
+static int avi_init(TCModuleInstance *self)
+{
+    if (!self) {
+        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        return TC_EXPORT_ERROR;
+    }
+    
+    self->userdata = tc_malloc(sizeof(AVIPrivateData));
+    if (!self->userdata) {
+        return TC_EXPORT_ERROR;
+    }
+        
+    if (verbose) {
+        tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
+        if (verbose >= TC_DEBUG) {
+            tc_log_info(MOD_NAME, "max AVI-file size limit = %lu bytes",
+                                  (unsigned long) AVI_max_size());
+        }
+    }
+    
+    return TC_EXPORT_OK;
+}
+ 
+static int avi_fini(TCModuleInstance *self)
+{
+    if (!self) {
+        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        return TC_EXPORT_ERROR;
+    }
+
+    avi_stop(self);
+
+    tc_free(self->userdata);
+    self->userdata = NULL;
+
+    return TC_EXPORT_OK;
 }
 
 /*************************************************************************/

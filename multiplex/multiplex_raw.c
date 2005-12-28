@@ -42,47 +42,6 @@ typedef struct {
     char conf_str[CONF_STR_SIZE];
 } RawPrivateData;
 
-static int raw_init(TCModuleInstance *self)
-{
-    RawPrivateData *pd = NULL;
-    if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
-    
-    pd = tc_malloc(sizeof(RawPrivateData));
-    if (!pd) {
-        return TC_EXPORT_ERROR;
-    }
-    
-    pd->fd_aud = -1;
-    pd->fd_vid = -1;
-        
-    if (verbose) {
-        tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-    }
-    self->userdata = pd;
-    
-    return 0;
-}
- 
-static int raw_fini(TCModuleInstance *self)
-{
-    RawPrivateData *pd = NULL;
-    
-    if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
-
-    raw_stop(self);
-    
-    tc_free(self->userdata);
-    self->userdata = NULL;
-
-    return 0;
-}
-
 static const char *raw_configure(TCModuleInstance *self,
                                  const char *options)
 {
@@ -175,7 +134,6 @@ static int raw_multiplex(TCModuleInstance *self,
                          vframe_list_t *vframe, aframe_list_t *aframe)
 {
     ssize_t w_aud = 0, w_vid = 0;
-    int ret;
  
     RawPrivateData *pd = NULL;
      
@@ -186,14 +144,14 @@ static int raw_multiplex(TCModuleInstance *self,
     pd = self->userdata;
 
     if (vframe != NULL) {
-        w_vid = pwrite(pd->fd_vid, vframe->video_buf, vframe->size);
+        w_vid = tc_pwrite(pd->fd_vid, vframe->video_buf, vframe->video_size);
         if(w_vid < 0) {
             return TC_EXPORT_ERROR;
         }
     }
 
     if (aframe != NULL) {
-        w_aud = pwrite(pd->fd_aud, aframe->audio_buf, aframe->size);
+        w_aud = tc_pwrite(pd->fd_aud, aframe->audio_buf, aframe->audio_size);
  		if (w_aud < 0) {
 			return TC_EXPORT_ERROR;
 		}
@@ -201,6 +159,46 @@ static int raw_multiplex(TCModuleInstance *self,
     
     return (int)(w_vid + w_aud);
 }
+
+static int raw_init(TCModuleInstance *self)
+{
+    RawPrivateData *pd = NULL;
+    if (!self) {
+        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        return TC_EXPORT_ERROR;
+    }
+    
+    pd = tc_malloc(sizeof(RawPrivateData));
+    if (!pd) {
+        return TC_EXPORT_ERROR;
+    }
+    
+    pd->fd_aud = -1;
+    pd->fd_vid = -1;
+        
+    if (verbose) {
+        tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
+    }
+    self->userdata = pd;
+    
+    return 0;
+}
+ 
+static int raw_fini(TCModuleInstance *self)
+{
+    if (!self) {
+        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        return TC_EXPORT_ERROR;
+    }
+
+    raw_stop(self);
+    
+    tc_free(self->userdata);
+    self->userdata = NULL;
+
+    return 0;
+}
+
 
 /*************************************************************************/
 

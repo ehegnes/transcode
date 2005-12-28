@@ -85,11 +85,11 @@ static int null_multiplex(TCModuleInstance *self,
     }
 
     if (vframe != NULL) {
-        vsize = vframe->size;
+        vsize = vframe->video_size;
     }
 
     if (aframe != NULL) {
-        asize = aframe->size;
+        asize = aframe->audio_size;
     }
     
     return vsize + asize;

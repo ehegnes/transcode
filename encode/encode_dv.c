@@ -38,15 +38,6 @@ static const char *tcdv_help = ""
 #include "transcode.h"
 #include "aclib/imgconvert.h"
 
-static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AC3;
-
-static int frame_size=0, is_yuv=0;
-
-static int dv_yuy2_mode=0;
-
-static dv_encoder_t *encoder = NULL;
-static uint8_t *tmp_buf;
-
 typedef struct {
     int frame_size;
     int is_yuv;
@@ -56,7 +47,6 @@ typedef struct {
     dv_encoder_t *dvenc;
     uint8_t *conv_buf;
 } DVPrivateData;
-
 
 static int tcdv_init(TCModuleInstance *self)
 {
@@ -74,8 +64,8 @@ static int tcdv_init(TCModuleInstance *self)
         return TC_EXPORT_ERROR;
     }
 
-    pd->dv_enc = dv_encoder_new(FALSE, FALSE, FALSE);
-    if (!pd->dv_enc) {
+    pd->dvenc = dv_encoder_new(FALSE, FALSE, FALSE);
+    if (!pd->dvenc) {
         tc_log_error(MOD_NAME, "init: can't allocate encoder data");
         goto failed_alloc_dvenc;
     }
@@ -87,7 +77,6 @@ static int tcdv_init(TCModuleInstance *self)
             goto failed_alloc_privbuf;
         }
         pd->dv_yuy2_mode = 1;
-      }
     } else {
         pd->conv_buf = NULL;
         pd->dv_yuy2_mode = 0;
@@ -104,7 +93,7 @@ static int tcdv_init(TCModuleInstance *self)
     return TC_EXPORT_OK;
 
 failed_alloc_privbuf:
-    dv_encoder_free(pd->dv_enc);
+    dv_encoder_free(pd->dvenc);
 failed_alloc_dvenc:    
     tc_free(pd);    
     return TC_EXPORT_ERROR;
@@ -123,7 +112,7 @@ static int tcdv_fini(TCModuleInstance *self)
     if (pd->conv_buf != NULL) {
         tc_free(pd->conv_buf);
     }
-    dv_encoder_free(pd->dv_enc);
+    dv_encoder_free(pd->dvenc);
     tc_free(pd);
 
     self->userdata = NULL;
@@ -149,10 +138,10 @@ static const char *tcdv_configure(TCModuleInstance *self,
 
     switch (vob->im_v_codec) {
       case CODEC_RGB:
-        is_yuv=0;
+        pd->is_yuv = 0;
         break;
       case CODEC_YUV:
-        is_yuv=1;
+        pd->is_yuv = 1;
         break;
       default:
         tc_log_error(MOD_NAME, "codec not supported");
@@ -163,11 +152,11 @@ static const char *tcdv_configure(TCModuleInstance *self,
     pd->frame_size = (vob->ex_v_height==PAL_H) 
                         ?TC_FRAME_DV_PAL :TC_FRAME_DV_NTSC;
 
-    pd->dv_enc->isPAL = (vob->ex_v_height == PAL_H) ?1 :0;
-    pd->dv_enc->is16x9 = FALSE;
-    pd->dv_enc->vlc_encode_passes = 3;
-    pd->dv_enc->static_qno = 0;
-    pd->dv_enc->force_dct = DV_DCT_AUTO;
+    pd->dvenc->isPAL = (vob->ex_v_height == PAL_H) ?1 :0;
+    pd->dvenc->is16x9 = FALSE;
+    pd->dvenc->vlc_encode_passes = 3;
+    pd->dvenc->static_qno = 0;
+    pd->dvenc->force_dct = DV_DCT_AUTO;
 
     return "help";
 }
@@ -198,33 +187,33 @@ static int tcdv_encode_video(TCModuleInstance *self,
     }
 
     pd = self->userdata;
-    w = (pd->dv_enc->isPAL) ?PAL_W :NTSC_W;
-    h = (pd->dv_enc->isPAL) ?PAL_H :NTSC_H;
+    w = (pd->dvenc->isPAL) ?PAL_W :NTSC_W;
+    h = (pd->dvenc->isPAL) ?PAL_H :NTSC_H;
     
     DV_INIT_PLANES(pixels, inframe->video_buf, w, h);
 
     if (pd->dv_yuy2_mode) {
-        uint8_t *conv_pixels;
+        uint8_t *conv_pixels[3];
         DV_INIT_PLANES(conv_pixels, pd->conv_buf, w, h);
         
         ac_imgconvert(pixels, IMG_YUV420P, conv_pixels, IMG_YUY2,
-		              PAL_W, (encoder->isPAL)? PAL_H : NTSC_H);
+		              PAL_W, (pd->dvenc->isPAL)? PAL_H : NTSC_H);
 
         /* adjust main pointers */
         DV_INIT_PLANES(pixels, pd->conv_buf, w, h);
     }
 
-    dv_encode_full_frame(pd->dv_enc, pixels,
+    dv_encode_full_frame(pd->dvenc, pixels,
                          (pd->is_yuv) ?e_dv_color_yuv :e_dv_color_rgb,
                          outframe->video_buf);
     outframe->video_size = pd->frame_size;
 
-    dv_encode_metadata(outframe->video_buf, pd->dv_enc->isPAL,
-                       pd->dv_enc->is16x9, &now, 0);
-    dv_encode_timecode(outframe->video_buf, pd->dv_enc->isPAL, 0);
+    dv_encode_metadata(outframe->video_buf, pd->dvenc->isPAL,
+                       pd->dvenc->is16x9, &now, 0);
+    dv_encode_timecode(outframe->video_buf, pd->dvenc->isPAL, 0);
 
     // only keyframes
-    key = 1;
+    // XXX
 
     // invalid flag
     return TC_EXPORT_OK;
