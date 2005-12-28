@@ -1,4 +1,8 @@
 2005-12-28 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_null.c encode/encode_copy.c
+  substitute placeholders with real module code.
+
+2005-12-28 Francesco Romani <fromani at gmail dot com>
   * encode/Makefile.am
 
   added files: encode_null.c, encode_copy.c

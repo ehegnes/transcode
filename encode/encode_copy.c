@@ -1,5 +1,5 @@
 /*
- *  XXX - XXX
+ *  encode_copy.c - passthrough A/V frames through deep copy.
  *  (C) Francesco Romani <fromani at gmail dot com> - December 2005
  *
  * This file is part of transcode, a video stream processing tool.
@@ -13,17 +13,19 @@
 
 #include "libtc/tcmodule-plugin.h"
 
-#define MOD_NAME    "encode_XXX.so"
-#define MOD_VERSION "v0.0.1 (2005-12-26)"
-#define MOD_CAP     "XXX"
+#define MOD_NAME    "encode_copy.so"
+#define MOD_VERSION "v0.0.1 (2005-12-28)"
+#define MOD_CAP     "copy"
 
-static const char *dummy_help = ""
+static const char *copy_help = ""
     "Overview:\n"
-    "\tXXX.\n"
+    "\tthis module passthrough A/V frames copying them from input\n"
+    "\tto output.\n"
+    "\tFor a faster passthrough consider to use 'null' module.\n"
     "Options:\n"
     "\tHelp\tproduce module overview and options explanations\n";
 
-static int dummy_init(TCModuleInstance *self)
+static int copy_init(TCModuleInstance *self)
 {
     if (!self) {
         tc_log_error(MOD_NAME, "init: bad instance data reference");
@@ -38,7 +40,7 @@ static int dummy_init(TCModuleInstance *self)
     return 0;
 }
  
-static int dummy_fini(TCModuleInstance *self)
+static int copy_fini(TCModuleInstance *self)
 {
     if (!self) {
         tc_log_error(MOD_NAME, "init: bad instance data reference");
@@ -48,7 +50,7 @@ static int dummy_fini(TCModuleInstance *self)
     return 0;
 }
 
-static const char *dummy_configure(TCModuleInstance *self,
+static const char *copy_configure(TCModuleInstance *self,
                                  const char *options)
 {
     if (!self) {
@@ -57,13 +59,13 @@ static const char *dummy_configure(TCModuleInstance *self,
     }
     
     if (optstr_lookup(options, "help")) {
-        return dummy_help;
+        return copy_help;
     }
 
-    return "help";
+    return "";
 }
 
-static int dummy_stop(TCModuleInstance *self) 
+static int copy_stop(TCModuleInstance *self) 
 {
     if (!self) {
         tc_log_error(MOD_NAME, "init: bad instance data reference");
@@ -73,7 +75,7 @@ static int dummy_stop(TCModuleInstance *self)
     return 0;
 }
 
-static int dummy_encode_video(TCModuleInstance *self,
+static int copy_encode_video(TCModuleInstance *self,
                               vframe_list_t *inframe, vframe_list_t *outframe)
 {
     if (!self) {
@@ -81,10 +83,16 @@ static int dummy_encode_video(TCModuleInstance *self,
         return TC_EXPORT_ERROR;
     }
 
+    /* 
+     * XXX 
+     * implement hardcopy
+     * (this needs some changes at framebuffer handling code).
+     */
+    
     return 0;
 }
 
-static int dummy_encode_audio(TCModuleInstance *self,
+static int copy_encode_audio(TCModuleInstance *self,
                               aframe_list_t *inframe, aframe_list_t *outframe)
 {
     if (!self) {
@@ -92,42 +100,47 @@ static int dummy_encode_audio(TCModuleInstance *self,
         return TC_EXPORT_ERROR;
     }
 
+    /* 
+     * XXX 
+     * implement hardcopy
+     * (this needs some changes at framebuffer handling code).
+     */
+
     return 0;
 }
 
 
 /*************************************************************************/
 
-static const int dummy_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static const int copy_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
 
-/* a encodeor is at the end of pipeline */
-static const int dummy_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static const int copy_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
 
-static const TCModuleInfo dummy_info = {
+static const TCModuleInfo copy_info = {
     .features    = TC_MODULE_FEATURE_ENCODE|TC_MODULE_FEATURE_VIDEO
                    |TC_MODULE_FEATURE_AUDIO,
     .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,
-    .codecs_in   = dummy_codecs_in,
-    .codecs_out  = dummy_codecs_out
+    .codecs_in   = copy_codecs_in,
+    .codecs_out  = copy_codecs_out
 };
 
-static const TCModuleClass dummy_class = {
-    .info         = &dummy_info,
+static const TCModuleClass copy_class = {
+    .info         = &copy_info,
 
-    .init         = dummy_init,
-    .fini         = dummy_fini,
-    .configure    = dummy_configure,
-    .stop         = dummy_stop,
+    .init         = copy_init,
+    .fini         = copy_fini,
+    .configure    = copy_configure,
+    .stop         = copy_stop,
     
-    .encode_video = dummy_encode_video,
-    .encode_audio = dummy_encode_audio,
+    .encode_video = copy_encode_video,
+    .encode_audio = copy_encode_audio,
 };
 
 extern const TCModuleClass *tc_plugin_setup(void)
 {
-    return &dummy_class;
+    return &copy_class;
 }
 

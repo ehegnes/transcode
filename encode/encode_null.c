@@ -1,5 +1,5 @@
 /*
- *  XXX - XXX
+ *  encode_null.c - fast (softcopy) passthrough of A/V frames
  *  (C) Francesco Romani <fromani at gmail dot com> - December 2005
  *
  * This file is part of transcode, a video stream processing tool.
@@ -13,13 +13,14 @@
 
 #include "libtc/tcmodule-plugin.h"
 
-#define MOD_NAME    "encode_XXX.so"
-#define MOD_VERSION "v0.0.1 (2005-12-26)"
-#define MOD_CAP     "XXX"
+#define MOD_NAME    "encode_null.so"
+#define MOD_VERSION "v0.0.1 (2005-12-28)"
+#define MOD_CAP     "null"
 
 static const char *null_help = ""
     "Overview:\n"
-    "\tXXX.\n"
+    "\tthis module perform a fast passthrough of A/V frames.\n"
+    "\tSwitch to (slower) 'copy' module if this one produces weird results\n"
     "Options:\n"
     "\tHelp\tproduce module overview and options explanations\n";
 
@@ -60,7 +61,7 @@ static const char *null_configure(TCModuleInstance *self,
         return null_help;
     }
 
-    return "help";
+    return "";
 }
 
 static int null_stop(TCModuleInstance *self) 
@@ -81,6 +82,12 @@ static int null_encode_video(TCModuleInstance *self,
         return TC_EXPORT_ERROR;
     }
 
+    /* 
+     * XXX 
+     * implement softcopy
+     * (this needs some changes at framebuffer handling code).
+     */
+
     return 0;
 }
 
@@ -92,6 +99,12 @@ static int null_encode_audio(TCModuleInstance *self,
         return TC_EXPORT_ERROR;
     }
 
+    /* 
+     * XXX 
+     * implement softcopy
+     * (this needs some changes at framebuffer handling code).
+     */
+
     return 0;
 }
 
@@ -100,7 +113,6 @@ static int null_encode_audio(TCModuleInstance *self,
 
 static const int null_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
 
-/* a encodeor is at the end of pipeline */
 static const int null_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
 
 static const TCModuleInfo null_info = {
