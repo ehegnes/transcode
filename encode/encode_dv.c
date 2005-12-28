@@ -26,8 +26,8 @@
 
 static const char *tcdv_help = ""
     "Overview:\n"
-    "\tthis module is capable to encode raw RGB/YUV video frames.\n"
-    "\tinto a DV encoded stream using libdv\n"
+    "\tthis module is capable to encode raw RGB/YUV video frames\n"
+    "\tinto a DV encoded stream using libdv.\n"
     "Options:\n"
     "\tHelp\tproduce module overview and options explanations\n";
 
@@ -158,7 +158,7 @@ static const char *tcdv_configure(TCModuleInstance *self,
     pd->dvenc->static_qno = 0;
     pd->dvenc->force_dct = DV_DCT_AUTO;
 
-    return "help";
+    return "";
 }
 
 
@@ -212,10 +212,9 @@ static int tcdv_encode_video(TCModuleInstance *self,
                        pd->dvenc->is16x9, &now, 0);
     dv_encode_timecode(outframe->video_buf, pd->dvenc->isPAL, 0);
 
-    // only keyframes
-    // XXX
+    /* only keyframes */
+    outframe->attributes |= TC_FRAME_IS_KEYFRAME;
 
-    // invalid flag
     return TC_EXPORT_OK;
 }
 
