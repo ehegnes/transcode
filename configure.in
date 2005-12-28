@@ -1396,6 +1396,7 @@ AC_OUTPUT([
 	docs/html/Makefile
 	docs/man/Makefile
 	docs/release-notes/Makefile
+	encode/Makefile
 	export/Makefile
 	filter/Makefile
 	filter/divxkey/Makefile
@@ -1416,6 +1417,7 @@ AC_OUTPUT([
 	libtcaudio/Makefile
 	libtcvideo/Makefile
 	libxio/Makefile
+	multiplex/Makefile
 	pvm3/Makefile
 	src/Makefile
 	testsuite/Makefile

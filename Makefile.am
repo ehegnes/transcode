@@ -17,9 +17,11 @@ SUBDIRS = \
 	libtcaudio \
 	libtcvideo \
 	libxio \
+	encode \
 	export \
 	filter \
 	import \
+	multiplex \
 	$(PVM3) \
 	src \
 	testsuite \
