@@ -39,7 +39,6 @@ static const char *raw_help = ""
 typedef struct {
     int fd_aud;
     int fd_vid;
-    char conf_str[CONF_STR_SIZE];
 } RawPrivateData;
 
 static const char *raw_configure(TCModuleInstance *self,
@@ -60,40 +59,41 @@ static const char *raw_configure(TCModuleInstance *self,
         return raw_help;
     }
 
-    if (vob->audio_out_file == NULL) {
-        /* use affine names */
-        tc_snprintf(vid_name, PATH_MAX, "%s.%s",
-                    vob->video_out_file, RAW_VID_EXT);
-        tc_snprintf(aud_name, PATH_MAX, "%s.%s",
-                    vob->video_out_file, RAW_AUD_EXT);
-    } else {
-        /* copy names verbatim */
-        strlcpy(vid_name, vob->video_out_file, PATH_MAX);
-        strlcpy(aud_name, vob->audio_out_file, PATH_MAX);
-    }
+    if (!optstr_lookup(options, "dry_run")) {
+        if (vob->audio_out_file == NULL) {
+            /* use affine names */
+            tc_snprintf(vid_name, PATH_MAX, "%s.%s",
+                        vob->video_out_file, RAW_VID_EXT);
+            tc_snprintf(aud_name, PATH_MAX, "%s.%s",
+                        vob->video_out_file, RAW_AUD_EXT);
+        } else {
+            /* copy names verbatim */
+            strlcpy(vid_name, vob->video_out_file, PATH_MAX);
+            strlcpy(aud_name, vob->audio_out_file, PATH_MAX);
+        }
 
-    /* avoid fd loss in case of failed configuration */
-    if (pd->fd_vid == -1) {
-        pd->fd_vid = open(vob->video_out_file, O_RDWR|O_CREAT|O_TRUNC,
-                          S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+        /* avoid fd loss in case of failed configuration */
         if (pd->fd_vid == -1) {
-            tc_log_error(MOD_NAME, "failed to open video stream file");
-            return NULL;
+            pd->fd_vid = open(vob->video_out_file, O_RDWR|O_CREAT|O_TRUNC,
+                              S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+            if (pd->fd_vid == -1) {
+                tc_log_error(MOD_NAME, "failed to open video stream file");
+                return NULL;
+            }
+        }
+
+        /* avoid fd loss in case of failed configuration */
+        if (pd->fd_aud == -1) {
+            pd->fd_aud = open(vob->audio_out_file, O_RDWR|O_CREAT|O_TRUNC,
+                              S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
+            if (pd->fd_aud == -1) {
+                tc_log_error(MOD_NAME, "failed to open audio stream file");
+                return NULL;
+            }
         }
     }
 
-    /* avoid fd loss in case of failed configuration */
-    if (pd->fd_aud == -1) {
-        pd->fd_aud = open(vob->audio_out_file, O_RDWR|O_CREAT|O_TRUNC,
-                          S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-        if (pd->fd_aud == -1) {
-            tc_log_error(MOD_NAME, "failed to open audio stream file");
-            return NULL;
-        }
-    }
-    
-    tc_snprintf(pd->conf_str, CONF_STR_SIZE, "help");
-    return pd->conf_str;
+    return "";
 }
 
 static int raw_stop(TCModuleInstance *self) 
@@ -179,8 +179,8 @@ static int raw_init(TCModuleInstance *self)
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     }
+
     self->userdata = pd;
-    
     return 0;
 }
  

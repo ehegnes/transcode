@@ -61,7 +61,7 @@ static const char *null_configure(TCModuleInstance *self,
         return null_help;
     }
 
-    return "help";
+    return "";
 }
 
 static int null_stop(TCModuleInstance *self) 

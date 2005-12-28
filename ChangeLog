@@ -1,4 +1,10 @@
 2005-12-28 Francesco Romani <fromani at gmail dot com>
+  * multiplex/multiplex_avi.c multiplex/multiplex_null,c
+    multiplex/multiplex_raw.c
+  implemention "dry_run" option (documentation will be
+  updated soon) and some misc bugfixes.
+
+2005-12-28 Francesco Romani <fromani at gmail dot com>
   * configure.in Makefile.am
 
   Added files: encode/Makefile.am multiplex/Makefile.am
