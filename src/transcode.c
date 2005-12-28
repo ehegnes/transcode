@@ -4673,31 +4673,15 @@ int main(int argc, char *argv[]) {
 // it is just there to trick the linker to not remove
 // unneeded object files from a .a file.
 
-#include "avilib/avilib.h"
-void dummy_avilib(void);
-void dummy_avilib(void) {
-  avi_t *file;
-  file = AVI_open_input_file((char *)NULL, 1);
-  AVI_close(file);
-  AVI_dump((char *)NULL, 0);
-  AVI_info(file);
-}
+#include "libtc/static_optstr.h"
+
+#include "avilib/static_avilib.h"
 
 #include "libioaux/configs.h"
 void dummy_libioaux(void);
 void dummy_libioaux(void) {
   module_read_config(NULL, NULL, NULL, NULL, NULL);
   append_fc_time( NULL, NULL);
-}
-
-#include "libtc/optstr.h"
-void dummy_optstr(void);
-void dummy_optstr(void) {
-  optstr_lookup(NULL, NULL);
-  optstr_get(NULL, NULL, NULL);
-  optstr_filter_desc(NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-  optstr_frames_needed(NULL, NULL);
-  optstr_param(NULL, NULL, NULL, NULL, NULL);
 }
 
 /* vim: sw=2 ts=8
