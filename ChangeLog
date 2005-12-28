@@ -1,6 +1,6 @@
 2005-12-28 Francesco Romani <fromani at gmail dot com>
   * encode/Makefile.am encode/encode_dv.c
-  miscelnaous fixes and `configure' operation cleanup
+  miscelanous fixes and `configure' operation cleanup
   in encode_dv.c
 
 2005-12-28 Francesco Romani <fromani at gmail dot com>
@@ -9,7 +9,7 @@
 
 2005-12-28 Francesco Romani <fromani at gmail dot com>
   * src/transcode.c
-  use static linkage helpers in transcode.c
+  use static linkage helpers in transcode.c.
 
 2005-12-28 Francesco Romani <fromani at gmail dot com>
   * added file: avilib/static_avilib.h
