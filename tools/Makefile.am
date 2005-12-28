@@ -78,6 +78,7 @@ tcmodinfo_SOURCES = tcmodinfo.c
 tcmodinfo_LDADD = \
 	$(DLDARWINLIB) \
 	$(ACLIB_LIBS) \
+	$(AVILIB_LIBS) \
 	$(LIBTC_LIBS) \
 	$(LIBTCVIDEO_LIBS) \
 	-lm

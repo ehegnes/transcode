@@ -380,7 +380,7 @@ int main(int argc, char *argv[])
         tc_module_show_info(module, verbose);
         /* current configuration */
         puts("\ndefault module configuration:");
-        puts(tc_module_configure(module, ""));
+        puts(tc_module_configure(module, "dry_run"));
         tc_del_module(factory, module);        
         out = 0;
     } else if (!strcmp(modtype, "filter")) {
@@ -421,6 +421,8 @@ int main(int argc, char *argv[])
 }
 
 #include "libtc/static_optstr.h"
+
+#include "avilib/static_avilib.h"
 
 /* vim: sw=4
  */
