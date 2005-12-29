@@ -46,7 +46,6 @@
 # endif
 #endif
 
-#include "dl_loader.h"
 #include "framebuffer.h"
 #include "transcode.h"
 #include "filter.h"
@@ -55,41 +54,40 @@
 #include "tcmodule-core.h"
 
 #define EXE "tcmodinfo"
-#define SIZE 8192 //Buffersize
+#define OPTS_SIZE 8192 //Buffersize
+#define NAME_LEN 256
 
-#define TYPE_UN 0x0
-#define TYPE_IM 0x1
-#define TYPE_FI 0x2
-#define TYPE_EX 0x4
+static filter_t filter[MAX_FILTER];
+static vob_t vob;
 
 void version(void)
 {
-    printf("%s (%s v%s) (C) 2001-2003 Tilmann Bitterberg\n", EXE, PACKAGE, VERSION);
+    printf("%s (%s v%s) (C) 2001-2005 Tilmann Bitterberg, "
+           "transcode team\n", EXE, PACKAGE, VERSION);
 }
 
 static void usage(int status)
 {
     version();
-    fprintf(stderr, "\nUsage: %s [options]\n", EXE);
+    tc_log_info(EXE, "Usage: %s [options]");
     fprintf(stderr, "\t -i name           Module name information (like \'smooth\')\n");
     fprintf(stderr, "\t -p                Print the compiled-in MOD_PATH\n");
     fprintf(stderr, "\t -d verbosity      verbosity mode [0]\n");
     fprintf(stderr, "\t -m path           Use PATH as MOD_PATH\n");
     fprintf(stderr, "\t -s socket         Connect to transcode socket\n");
-    //fprintf(stderr, "\t -t type           Type of module (filter, import, export)\n");
-    //fprintf(stderr, "\t -f flavour        Flavour of module (video, audio)\n");
+    fprintf(stderr, "\t -t type           Type of module (filter, encode, multiplex)\n");
     fprintf(stderr, "\n");
     exit(status);
 }
 
-
-static char module[TC_BUF_MAX];
-filter_t filter[MAX_FILTER];
-vob_t vob;
-
 // dependencies
 // Yeah, this sucks
-vob_t *tc_get_vob() {return(&vob);}
+vob_t *tc_get_vob()
+{
+    return &vob;
+}
+
+/* symbols nbeeded by modules */
 int verbose  = 0;
 int rgbswap  = 0;
 int tc_accel = -1;    //acceleration code
@@ -115,158 +113,61 @@ void tc_socket_load(void) {}
 void tc_socket_parameter(void) {}
 void tc_socket_preview(void) {}
 
-#ifndef HAVE_STRLCPY
-size_t strlcpy(char *dst, const char *src, size_t size) { return(0); }
+static int load_plugin(const char *path, int id)
+{
+#ifdef SYS_BSD
+    const
 #endif
+    char *error;
+    char module[TC_BUF_MAX];
+    int n;
 
-int (*TCV_export)(int opt, void *para1, void *para2);
-int (*TCA_export)(int opt, void *para1, void *para2);
-int (*TCV_import)(int opt, void *para1, void *para2);
-int (*TCA_import)(int opt, void *para1, void *para2);
+    if (!filter[id].name) {
+        return -1;
+    }
 
-int tcv_import(int a, void *b, void *c) {
+    filter[id].options=NULL;
+
+    /* replace "=" by "/0" in filter name */
+    for (n = 0; n < strlen(filter[id].name); ++n) {
+        if (filter[id].name[n] == '=') {
+            filter[id].name[n] = '\0';
+            filter[id].options = filter[id].name + n + 1;
+            break;
+        }
+    }
+
+    tc_snprintf(module, sizeof(module), "%s/filter_%s.so", path, filter[id].name);
+
+    /* try transcode's module directory */
+    filter[id].handle = dlopen(module, RTLD_LAZY);
+
+    if (!filter[id].handle) {
+        tc_log_error(EXE, "loading filter module '%s' failed",module);
+        if ((error = dlerror()) != NULL) {
+            fputs(error, stderr);
+        }
+        fputs("\n", stderr);
+        return -1;
+    } else {
+        filter[id].entry = dlsym(filter[id].handle, "tc_filter");
+    }
+
+    if ((error = dlerror()) != NULL)  {
+        fputs(error, stderr);
+        fputs("\n", stderr);
+        return -1;
+    }
+
     return 0;
 }
 
-static void *tcmodinfo_load_module(char *mod_name, char *mod_path, int mode)
-{
-#ifdef SYS_BSD
-  const
-#endif
-  char *error;
-  void *handle;
-
-  if(mode & TC_EXPORT) {
-
-    tc_snprintf(module, sizeof(module), "%s/export_%s.so", ((mod_path==NULL)? TC_DEFAULT_MOD_PATH:mod_path), mod_name);
-
-    if(verbose & TC_DEBUG)
-      printf("loading %s export module %s\n", ((mode & TC_VIDEO)? "video": "audio"), module);
-
-    handle = dlopen(module, RTLD_GLOBAL| RTLD_LAZY);
-
-    if (!handle) {
-      fputs (dlerror(), stderr);
-      fprintf(stderr, "\n(%s) loading \"%s\" failed\n", __FILE__, module);
-      return(NULL);
-    }
-
-    if(mode & TC_VIDEO) {
-      TCV_export = dlsym(handle, "tc_export");
-      if ((error = dlerror()) != NULL)  {
-	fputs(error, stderr);
-	return(NULL);
-      }
-    }
-
-    if(mode & TC_AUDIO) {
-      TCA_export = dlsym(handle, "tc_export");
-      if ((error = dlerror()) != NULL)  {
-	fputs(error, stderr);
-	return(NULL);
-      }
-    }
-
-    return(handle);
-  }
-
-
-  if(mode & TC_IMPORT) {
-
-    tc_snprintf(module, sizeof(module), "%s/import_%s.so", ((mod_path==NULL)? TC_DEFAULT_MOD_PATH:mod_path), mod_name);
-
-    //if(verbose & TC_DEBUG)
-      printf("loading %s import module %s\n", ((mode & TC_VIDEO)? "video": "audio"), module);
-
-    handle = dlopen(module, RTLD_GLOBAL| RTLD_LAZY);
-
-    if (!handle) {
-      fputs (dlerror(), stderr);
-      fputs ("\n", stderr);
-      return(NULL);
-    }
-
-    if(mode & TC_VIDEO) {
-      TCV_import = dlsym(handle, "tc_import");
-      if ((error = dlerror()) != NULL)  {
-	fputs(error, stderr);
-	fputs ("\n", stderr);
-	return(NULL);
-      }
-    }
-
-
-    if(mode & TC_AUDIO) {
-      TCA_import = dlsym(handle, "tc_import");
-      if ((error = dlerror()) != NULL)  {
-	fputs(error, stderr);
-	fputs ("\n", stderr);
-	return(NULL);
-      }
-    }
-
-    return(handle);
-  }
-
-  // wrong mode?
-  return(NULL);
-}
-
-
-static int load_plugin(char *path, int id) {
-#ifdef SYS_BSD
-  const
-#endif
-  char *error;
-
-  int n;
-
-  //replace "=" by "/0" in filter name
-
-  if(!filter[id].name) return(-1);
-
-  filter[id].options=NULL;
-
-  for(n=0; n<strlen(filter[id].name); ++n) {
-    if(filter[id].name[n]=='=') {
-      filter[id].name[n]='\0';
-      filter[id].options=filter[id].name+n+1;
-      break;
-    }
-  }
-
-  tc_snprintf(module, sizeof(module), "%s/filter_%s.so", path, filter[id].name);
-
-  // try transcode's module directory
-
-  filter[id].handle = dlopen(module, RTLD_LAZY);
-
-  if (!filter[id].handle) {
-    fprintf(stderr, "[%s] loading filter module %s failed\n", EXE, module);
-    if ((error = dlerror()) != NULL) fputs(error, stderr);
-    fputs("\n", stderr);
-    return(-1);
-
-  } else
-    //fprintf(stderr, "[%s] loading filter module (%d) %s\n", EXE, id, module);
-
-  filter[id].entry = dlsym(filter[id].handle, "tc_filter");
-
-  if ((error = dlerror()) != NULL)  {
-    fputs(error, stderr);
-    fputs("\n", stderr);
-    return(-1);
-  }
-
-  return(0);
-}
-
-static void do_connect_socket (char *socketfile)
+static void do_connect_socket(const char *socketfile)
 {
 #ifdef NET_STREAM
     int sock, retval;
     struct sockaddr_un server;
-    char buf[SIZE];
+    char buf[OPTS_SIZE];
     fd_set rfds;
     struct timeval tv;
     ssize_t n;
@@ -302,10 +203,10 @@ static void do_connect_socket (char *socketfile)
 
 	if (retval>0) {
 	    if (FD_ISSET(0, &rfds)) {
-		fgets(buf, SIZE, stdin);
+		fgets(buf, OPTS_SIZE, stdin);
 	    }
 	    if (FD_ISSET(sock, &rfds)) {
-		if ( (n = read(sock, buf, SIZE)) < 0) {
+		if ( (n = read(sock, buf, OPTS_SIZE)) < 0) {
 		    perror("reading on stream socket");
 		    break;
 		} else if (n == 0) { // EOF
@@ -322,7 +223,7 @@ static void do_connect_socket (char *socketfile)
 
 	memset(buf, 0, sizeof (buf));
 
-	if (read(sock, buf, SIZE) < 0)
+	if (read(sock, buf, OPTS_SIZE) < 0)
 	    perror("reading on stream socket");
 
 	printf("%s", buf);
@@ -333,147 +234,142 @@ static void do_connect_socket (char *socketfile)
 
     close(sock);
 #else
-    fprintf(stderr, "No support for Netstreams compiled in\n");
-    fflush (stderr);
+    tc_log_error(EXE, "No support for Netstreams compiled in");
 #endif
 }
 
 int main(int argc, char *argv[])
 {
-
     int ch;
-    char *filename=NULL;
-    char modpath[]=MOD_PATH;
-    char *options = malloc (8192);
+    const char *filename = NULL;
+    const char *modpath = MOD_PATH;
+    const char *modtype = "filter";
+    const char *socketfile = NULL;
+    char options[OPTS_SIZE] = { '\0', };
     int print_mod = 0;
     int connect_socket = 0;
-    char *socketfile = NULL;
-    char *newmodpath = NULL;
-    int mod_type = TYPE_FI;
-    int flags = TC_VIDEO;
-
-    vframe_list_t ptr;
-
-    memset (options, 0, 8192);
-    memset (&vob, 0, sizeof(vob));
-    memset (&ptr, 0, sizeof(ptr));
-
-    ac_init(AC_ALL);
-
-    if(argc==1) usage(1);
-
-    while ((ch = getopt(argc, argv, "d:i:?vhpm:s:t:f:")) != -1)
-    {
-
-	switch (ch) {
-
-    case 'd':
-	    if(optarg[0]=='-') usage(1);
-        verbose = atoi(optarg);
-        break;
-
-	case 'i':
-
-	    if(optarg[0]=='-') usage(1);
-	    filename = optarg;
-	    break;
-
-	case 'm':
-	    newmodpath=optarg;
-	    break;
-
-	case 'f':
-	    if (!optarg) { usage(1); }
-
-	    if      (!strcmp(optarg, "audio"))
-		flags = TC_AUDIO;
-	    else if (!strcmp(optarg, "video"))
-		flags = TC_VIDEO;
-	    else
-		flags = 0;
-	    break;
-
-	case 't':
-	    if (!optarg) { usage(1); }
-
-	    if      (!strcmp(optarg, "filter"))
-		mod_type = TYPE_FI;
-	    else if (!strcmp(optarg, "import"))
-		mod_type = TYPE_IM;
-	    else if (!strcmp(optarg, "export"))
-		mod_type = TYPE_EX;
-	    else
-		mod_type = TYPE_UN;
-	    break;
-
-	case 's':
-	    if(optarg[0]=='-') usage(1);
-	    connect_socket = 1;
-	    socketfile = optarg;
-	    break;
-
-	case 'p':
-	    print_mod = 1;
-	    break;
-
-	case 'v':
-
-	    version();
-	    exit(0);
-
-	case '?':
-	case 'h':
-	default:
-	    usage(0);
-	    exit(0);
-	}
-    }
-
-
-  if (print_mod) {
-      printf("%s\n", modpath);
-      exit (0);
-  }
-
-  if (connect_socket) {
-      do_connect_socket(socketfile);
-      exit (0);
-  }
-
-  if (mod_type == TYPE_UN) {
-      fprintf(stderr, "[%s] Unknown Type (not in filter, import, export)\n", EXE);
-  }
-
-  if (filename==NULL) usage(1);
-
-  // some arbitrary values for the filters
-  vob.fps        = 25.0;
-  vob.im_v_width = 32;
-  vob.ex_v_width = 32;
-  vob.im_v_height= 32;
-  vob.ex_v_height= 32;
-  vob.im_v_codec = CODEC_YUV;
-
-  vob.a_rate          = 44100;
-  vob.mp3frequency    = 44100;
-  vob.a_chan          = 2;
-  vob.a_bits          = 16;
-  vob.video_in_file   = "/dev/zero";
-
-  //fprintf(stderr, "Module is (%s/filter_%s) (%d)\n", modpath, filename, getpid());
-
-  if (mod_type & TYPE_FI) {
     int ret = 0, out = 0;
-    TCFactory factory = NULL;
 
     /* needed by filter modules */
     TCVHandle tcv_handle = tcv_init();
-
-    /* first of all, try using new module system */
+    TCFactory factory = NULL;
     TCModule module = NULL;
 
-    factory = tc_new_module_factory(((newmodpath) ?newmodpath :modpath), verbose);
-    module = tc_new_module(factory, "filter", filename);
+    vframe_list_t ptr;
+
+    memset(&ptr, 0, sizeof(ptr));
+
+    ac_init(AC_ALL);
+
+    if (argc == 1) {
+        usage(1);
+    }
+
+    while(1) {
+        ch = getopt(argc, argv, "d:i:?vhpm:s:t:");
+	if (ch == -1) {
+	    break;
+	}
+
+        switch (ch) {
+          case 'd':
+	        if (optarg[0] == '-') {
+                usage(1);
+            }
+            verbose = atoi(optarg);
+            break;
+
+          case 'i':
+            if (optarg[0] == '-') {
+                usage(1);
+            }
+            filename = optarg;
+    	    break;
+
+          case 'm':
+            modpath = optarg;
+            break;
+
+          case 't':
+            if (!optarg) {
+                usage(1);
+            }
+
+            if (!strcmp(optarg, "filter")
+             || !strcmp(optarg, "encode")
+             || !strcmp(optarg, "multiplex")) {
+                modtype = optarg;
+            } else {
+                modtype = NULL;
+            }
+	    break;
+
+          case 's':
+	        if (optarg[0] == '-') {
+                usage(1);
+            }
+
+            connect_socket = 1;
+            socketfile = optarg;
+            break;
+
+          case 'p':
+            print_mod = 1;
+            break;
+
+          case 'v':
+            version();
+            exit(0);
+
+          case '?': /* fallthrough */
+          case 'h': /* fallthrough */
+          default:
+            usage(0);
+            exit(0);
+        }
+    }
+
+    if (print_mod) {
+        printf("%s\n", modpath);
+        exit(0);
+    }
+
+    if (connect_socket) {
+        do_connect_socket(socketfile);
+        exit(0);
+    }
+
+    if (!modtype) {
+        tc_log_error(EXE, "Unknown module type (not in filter, encode, multiplex)");
+        exit(1);
+    }
+    if (!strcmp(modtype, "import")) {
+        tc_log_error(EXE, "module type 'import' not yet handled");
+        exit(1);
+    }
+
+    if (!filename) {
+        usage(1);
+    }
+
+    // some arbitrary values for the filters
+    vob.fps        = 25.0;
+    vob.im_v_width = 32;
+    vob.ex_v_width = 32;
+    vob.im_v_height= 32;
+    vob.ex_v_height= 32;
+    vob.im_v_codec = CODEC_YUV;
+
+    vob.a_rate          = 44100;
+    vob.mp3frequency    = 44100;
+    vob.a_chan          = 2;
+    vob.a_bits          = 16;
+    vob.video_in_file   = "/dev/zero";
+
+    /* first of all, try using new module system */
+    factory = tc_new_module_factory(modpath, verbose);
+    module = tc_new_module(factory, modtype, filename);
+
     if (module != NULL) {
         if (verbose >= TC_DEBUG) {
             tc_log_info(__FILE__, "using new module system");
@@ -484,32 +380,29 @@ int main(int argc, char *argv[])
         tc_module_show_info(module, verbose);
         /* current configuration */
         puts("\ndefault module configuration:");
-        puts(tc_module_configure(module, ""));
+        puts(tc_module_configure(module, "dry_run"));
         tc_del_module(factory, module);
         out = 0;
-    } else {
+    } else if (!strcmp(modtype, "filter")) {
+        char namebuf[NAME_LEN];
+        /* compatibility support only for filters */
         if (verbose >= TC_DEBUG) {
             tc_log_info(__FILE__, "using old module system");
         }
         /* ok, fallback to old module system */
-        filter[0].name = malloc(256);
-        tc_snprintf (filter[0].name, 256, "%s", filename);
+        filter[0].name = namebuf;
+        tc_snprintf(filter[0].name, NAME_LEN, "%s", filename);
 
-        if (load_plugin ( (newmodpath?newmodpath:modpath), 0) == 0) {
-            options[0] = 'h';
-            options[1] = 'e';
-            options[2] = 'l';
-            options[3] = 'p';
+        if (load_plugin(modpath, 0) == 0) {
+            strlcpy(options, "help", OPTS_SIZE);
             ptr.tag = TC_FILTER_INIT;
-            if ( (ret = filter[0].entry(&ptr, options))) {
-                out=1;
+            if ((ret = filter[0].entry(&ptr, options))) {
+                out = 1;
             }
-            //fprintf(stderr, "[%s]: (INIT) Filter %s returned (%d)\n", EXE, filename, ret);
 
-            memset (options, 0, 8192);
+            memset(options, 0, OPTS_SIZE);
             ptr.tag = TC_FILTER_GET_CONFIG;
             ret = filter[0].entry(&ptr, options);
-            //fprintf(stderr, "[%s]: (CONF) Filter %s returned (%d)\n", EXE, filename, ret);
         }
 
         fputs("START\n", stdout);
@@ -520,45 +413,16 @@ int main(int argc, char *argv[])
             out = 2;
         }
         fputs("END\n", stdout);
-    }
+   }
 
-    ret = tc_del_module_factory(factory);
-    tcv_free(tcv_handle);
-    return (out);
-  }
-
-  if (mod_type & TYPE_IM) {
-      void *handle = NULL;
-
-      transfer_t import_para;
-
-      memset(&import_para, 0, sizeof(transfer_t));
-
-      // start audio stream
-      import_para.flag=flags;
-
-      if ( (handle = tcmodinfo_load_module( filename, (newmodpath?newmodpath:modpath), TC_IMPORT | flags)) == 0){
-	  return 1;
-      } else
-	  printf("Na hallo -- ok\n");
-
-      if (flags & TC_VIDEO) {
-	  if(TCV_import(TC_IMPORT_OPEN, &import_para, &vob)<0) {
-	      fprintf(stderr, "video import module error: OPEN failed\n");
-	      return(-1);
-	  }
-	  fputs("END\n", stdout);
-      } else if (flags & TC_AUDIO) {
-      }
-
-
-  }
-
-
-  return(1);
+   ret = tc_del_module_factory(factory);
+   tcv_free(tcv_handle);
+   return out;
 }
 
 #include "libtc/static_optstr.h"
+
+#include "avilib/static_avilib.h"
 
 /* vim: sw=4
  */
