@@ -86,7 +86,7 @@ typedef struct tcfactory_ *TCFactory;
  *        transcode plugins to load if needed starting from this
  *        directory.
  *        Note that this must be a single directory.
- *    verbose: 
+ *    verbose:
  *        verbosiness level of factory. Control the quantity
  *        of informative messates to print out.
  *        Should be one of TC_INFO, TC_DEBUG... value.
@@ -180,7 +180,7 @@ int tc_del_module_factory(TCFactory factory);
  *
  *      TCModule my_module = tc_new_module("filter", "foobar");
  */
-TCModule tc_new_module(TCFactory factory, 
+TCModule tc_new_module(TCFactory factory,
 		       const char *modclass, const char *modname);
 
 /*

@@ -58,22 +58,22 @@ static int is_identify_line(const char *line)
     if (!line) {
         return 0;
     }
-    
+
     len = strlen(line);
     if (len < LINE_MIN_LEN) {
         return 0;
     }
-    
+
     if (line[0] == 'I' && line[1] == 'D' && line[2] == '_') {
         return 1;
     }
     return 0;
-}    
+}
 
 static void parse_identify_line(const char *line, ProbeInfo *info)
 {
     int do_audio = 0;
-    
+
     if (!line || !info) {
         return;
     }
@@ -97,7 +97,7 @@ static void parse_identify_line(const char *line, ProbeInfo *info)
         info->track[0].samplerate = fetch_val_int(line);
         do_audio = 1;
     }
-    
+
     if(do_audio) {
         /* common audio settings */
         info->track[0].bits = BITS; /* mplayer doesn't provide this, yet */
@@ -117,27 +117,27 @@ void probe_mplayer(info_t *ipipe)
         /* should never happen */
         return;
     }
-   
+
     if(tc_test_program("mplayer") != 0) {
         tc_log_error(__FILE__, "probe aborted: mplayer binary not found.");
         return;
     }
-    
+
     ipipe->probe_info->codec = TC_CODEC_UNKNOWN;
     /* otherwise we don't use mplayer... */
-    
-    ret = tc_snprintf(probe_cmd_buf, P_BUF_SIZE, 
+
+    ret = tc_snprintf(probe_cmd_buf, P_BUF_SIZE,
                 "mplayer -quiet -identify -ao null "
                 "-vo null -frames 0 %s 2> /dev/null",
                 ipipe->name);
     if (ret < 0) {
         return;
     }
-    
+
     pipefd = popen(probe_cmd_buf, "r");
     if (pipefd != NULL) {
         char line_buf[LINE_SIZE] = { 0, };
-        
+
         /* if mplayer runs, we are pretty confident to get right results */
         while(fgets(line_buf, LINE_SIZE, pipefd) != NULL) {
             line_buf[LINE_SIZE -  1] = '\0';
@@ -146,7 +146,7 @@ void probe_mplayer(info_t *ipipe)
             }
         }
         pclose(pipefd);
-        
+
         /* final adjustement */
         ipipe->probe_info->magic = TC_MAGIC_MPLAYER;
     } else {

@@ -241,7 +241,7 @@ void tc_buffree(void *ptr);
 /*
  * _tc_strndup:
  *     do the real work behind tc_strdup/tc_strndup macro. This function
- *     adds automatically and implicitely a '\0' terminator at end of 
+ *     adds automatically and implicitely a '\0' terminator at end of
  *     copied string.
  *
  * Parameters:
@@ -284,7 +284,7 @@ int tc_file_check(const char *file);
 
 /*
  * tc_pread:
- *     read an entire buffer from a file descriptor, restarting 
+ *     read an entire buffer from a file descriptor, restarting
  *     automatically if interrupted. This function is basically a wrapper
  *     around posix read(2); read(2) can be interrupted by a signal,
  *     so doesn't guarantee that all requested bytes are effectively readed
@@ -345,7 +345,7 @@ ssize_t tc_pwrite(int fd, uint8_t *buf, size_t len);
  * Preconditions:
  *     none
  * Postconditions:
- *     move the entire content of 'in' into 'out', if no *critical* 
+ *     move the entire content of 'in' into 'out', if no *critical*
  *     (tipically I/O related) error occurs.
  */
 int tc_preadwrite(int in, int out);
@@ -389,7 +389,7 @@ int tc_probe_path(const char *name);
  * Parameters:
  *     codec: TC_CODEC_ value to represent
  * Return value:
- *     a constant string representing the given codec (there is no need to 
+ *     a constant string representing the given codec (there is no need to
  *     free() it NULL of codec is (yet) unknown
  * Side effects:
  *     none
@@ -407,7 +407,7 @@ const char* tc_codec_to_string(int codec);
  * Parameters:
  *     codec: string representation of codec
  * Return value:
- *     the correspinding TC_CODEC_* of given string representation, 
+ *     the correspinding TC_CODEC_* of given string representation,
  *     or TC_CODEC_ERROR if string is unknown or wrong.
  * Side effects:
  *     none
@@ -425,8 +425,8 @@ int tc_codec_from_string(const char *codec);
  * Parameters:
  *     codec: TC_CODEC_ value to get the FOURCC
  * Return value:
- *     a constant string representing the FOURCC for a given codec (there 
- *     is no need to free() it NULL of codec's FOURCC is (yet) unknown or 
+ *     a constant string representing the FOURCC for a given codec (there
+ *     is no need to free() it NULL of codec's FOURCC is (yet) unknown or
  *     given codec has _not_ FOURCC (es: audio codec identifiers).
  * Side effects:
  *     none

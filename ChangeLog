@@ -1,4 +1,10 @@
 2005-12-29 Francesco Romani <fromani at gmail dot com>
+  * filter/filter_levels.c filter/filter_null.c import/probe_mplayer.c
+    libtc/iodir.h libtc/libtc.h libtc/tcmodule-core.h libtc/tcmodule-data.h
+    tools/tcmodinfo.c
+  traling whitespaces remove roundup (2).
+
+2005-12-29 Francesco Romani <fromani at gmail dot com>
   * encode/encode_dv.c libtc/tccodecs.c libtc/tcmodule.c
     multiplex/multiplex_avi.c multiplex/multiplex_null.c
     multiplex/multiplex_raw.c
