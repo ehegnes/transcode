@@ -468,7 +468,7 @@ int main(int argc, char *argv[])
 
     /* needed by filter modules */
     TCVHandle tcv_handle = tcv_init();
-    
+
     /* first of all, try using new module system */
     TCModule module = NULL;
 
@@ -485,7 +485,7 @@ int main(int argc, char *argv[])
         /* current configuration */
         puts("\ndefault module configuration:");
         puts(tc_module_configure(module, ""));
-        tc_del_module(factory, module);        
+        tc_del_module(factory, module);
         out = 0;
     } else {
         if (verbose >= TC_DEBUG) {
@@ -511,7 +511,7 @@ int main(int argc, char *argv[])
             ret = filter[0].entry(&ptr, options);
             //fprintf(stderr, "[%s]: (CONF) Filter %s returned (%d)\n", EXE, filename, ret);
         }
-    
+
         fputs("START\n", stdout);
         if (ret == 0) {
             fputs(options, stdout);
@@ -521,7 +521,7 @@ int main(int argc, char *argv[])
         }
         fputs("END\n", stdout);
     }
-      
+
     ret = tc_del_module_factory(factory);
     tcv_free(tcv_handle);
     return (out);

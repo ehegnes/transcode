@@ -75,7 +75,7 @@ static const char *null_help = ""
 static void help_optstr(void)
 {
   tc_log_info(MOD_NAME, "help : * Overview");
-  tc_log_msg(MOD_NAME, 
+  tc_log_msg(MOD_NAME,
              "help :     This exists for demonstration purposes only. "
              "It does NOTHING!");
   tc_log_msg(MOD_NAME, "help :");
@@ -86,7 +86,7 @@ static void help_optstr(void)
 static int null_init(TCModuleInstance *self)
 {
     vob_t *vob = tc_get_vob();
-    
+
     if (vob ==NULL) {
         return -1;
     }
@@ -98,7 +98,7 @@ static int null_init(TCModuleInstance *self)
 
     return 0;
 }
- 
+
 static int null_fini(TCModuleInstance *self)
 {
     return 0;
@@ -118,7 +118,7 @@ static int null_stop(TCModuleInstance *self)
     return 0;
 }
 
-static int null_filter(TCModuleInstance *self, 
+static int null_filter(TCModuleInstance *self,
                        vframe_list_t *frame)
 {
     int pre = TC_FALSE, vid = TC_FALSE;
@@ -126,14 +126,14 @@ static int null_filter(TCModuleInstance *self,
     if (!frame) {
         return -1;
     }
-    
+
     if (verbose & TC_STATS) {
         /*
          * tag variable indicates, if we are called before
          * transcodes internal video/audo frame processing routines
          * or after and determines video/audio context
          */
-    
+
         if (frame->tag & TC_PRE_PROCESS) {
             pre = TC_TRUE;
         }
@@ -141,12 +141,12 @@ static int null_filter(TCModuleInstance *self,
         if (frame->tag & TC_VIDEO) {
             vid = TC_TRUE;
         }
-    
+
         tc_log_info(MOD_NAME, "frame [%06d] %s %16s call",
                     frame->id, (vid) ?"(video)" :"(audio)",
                     (pre) ?"pre-process filter" :"post-process filter");
     }
-       
+
     return 0;
 }
 

@@ -62,7 +62,7 @@ typedef struct
 
     uint8_t lumamap[MAP_SIZE];
     int is_prefilter;
-    
+
     char conf_str[CONF_STR_SIZE];
 } LevelsPrivateData;
 
@@ -115,7 +115,7 @@ static void levels_process(LevelsPrivateData *pd, uint8_t *data,
 {
     int y_size = width * height;
     uint8_t *map = pd->lumamap;
-    
+
     while (y_size--)  {
         *data = map[*data];
         data++;
@@ -125,47 +125,47 @@ static void levels_process(LevelsPrivateData *pd, uint8_t *data,
 static void levels_show_config(char *options, int optsize)
 {
     char buf[OPTION_BUF_SIZE];
-    
+
     /* optsize actually unused dued to optstr limitations*/
     (void)optsize;
-    
-    optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION, 
+
+    optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION,
                        MOD_AUTHOR, "VYMEO", "1");
 
-    tc_snprintf(buf, sizeof(buf), "%d-%d", DEFAULT_IN_BLACK, 
+    tc_snprintf(buf, sizeof(buf), "%d-%d", DEFAULT_IN_BLACK,
                 DEFAULT_IN_WHITE );
-    optstr_param(options, "input", "input luma range (black-white)", 
+    optstr_param(options, "input", "input luma range (black-white)",
                  "%d-%d", buf, "0", "255", "0", "255" );
 
     tc_snprintf(buf, sizeof(buf), "%f", DEFAULT_IN_GAMMA );
-    optstr_param(options, "gamma", "input luma gamma", 
+    optstr_param(options, "gamma", "input luma gamma",
                  "%f", buf, "0.5", "3.5" );
 
-    tc_snprintf(buf, sizeof(buf), "%d-%d", 
+    tc_snprintf(buf, sizeof(buf), "%d-%d",
                 DEFAULT_OUT_BLACK, DEFAULT_OUT_WHITE );
-    optstr_param(options, "output", "output luma range (black-white)", 
+    optstr_param(options, "output", "output luma range (black-white)",
                  "%d-%d", buf, "0", "255", "0", "255" );
 
     tc_snprintf(buf, sizeof(buf), "%i", DEFAULT_PREFILTER );
-    optstr_param(options, "pre", "pre processing filter", 
+    optstr_param(options, "pre", "pre processing filter",
                  "%i", buf, "0", "1" );
 }
 
 static int levels_init_data(LevelsPrivateData *pd, const vob_t *vob,
-                       const char *options, int id) 
+                       const char *options, int id)
 {
     if(!pd || !vob) {
         /* should never happen */
         return -1;
     }
-    
+
     pd->parameter.in_black = DEFAULT_IN_BLACK;
     pd->parameter.in_white = DEFAULT_IN_WHITE;
     pd->parameter.in_gamma = DEFAULT_IN_GAMMA;
     pd->parameter.out_black = DEFAULT_OUT_BLACK;
     pd->parameter.out_white = DEFAULT_OUT_WHITE;
     pd->is_prefilter = DEFAULT_PREFILTER;
-    
+
     if (options != NULL) {
         if (optstr_lookup(options, "help")) {
             help_optstr();
@@ -202,7 +202,7 @@ static const char *levels_configure(TCModuleInstance *self,
                                     const char *options)
 {
     LevelsPrivateData *pd = NULL;
-    
+
     if (!self) {
        return NULL;
     }
@@ -211,17 +211,17 @@ static const char *levels_configure(TCModuleInstance *self,
     if (optstr_lookup(options, "help")) {
         return levels_help;
     }
-    
+
     optstr_get(options, "input", "%d-%d", &pd->parameter.in_black, &pd->parameter.in_white);
     optstr_get(options, "gamma", "%f", &pd->parameter.in_gamma);
     optstr_get(options, "output", "%d-%d", &pd->parameter.out_black, &pd->parameter.out_white);
     optstr_get(options, "pre", "%d", &pd->is_prefilter);
-    
-    build_map(pd->lumamap, pd->parameter.in_black, pd->parameter.in_white, 
+
+    build_map(pd->lumamap, pd->parameter.in_black, pd->parameter.in_white,
               pd->parameter.in_gamma,
               pd->parameter.out_black, pd->parameter.out_white);
-    
-    tc_snprintf(pd->conf_str, CONF_STR_SIZE, 
+
+    tc_snprintf(pd->conf_str, CONF_STR_SIZE,
                 "input=%i-%i:gamma=%.3f:output=%i-%i:pre=%i",
                 pd->parameter.in_black, pd->parameter.in_white,
                 pd->parameter.in_gamma,
@@ -239,24 +239,24 @@ static int levels_init(TCModuleInstance *self)
         tc_log_error(MOD_NAME, "init: bad instance data reference");
         return -1;
     }
-    
+
     if(vob->im_v_codec != CODEC_YUV) {
         tc_log_error(MOD_NAME, "This filter is only capable of YUV mode");
         return -1;
     }
 
     self->userdata = tc_malloc(sizeof(LevelsPrivateData));
-    
+
     /* default configuration! */
     levels_configure(self, "input=0-255:gamma=1.0:output=0-255:pre=0");
-    
+
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     }
-    
+
     return 0;
 }
- 
+
 static int levels_fini(TCModuleInstance *self)
 {
     if (!self) {
@@ -281,16 +281,16 @@ static int levels_filter(TCModuleInstance *self,
 {
     vframe_list_t *vframe = (vframe_list_t*)frame;
     LevelsPrivateData *pd = NULL;
-    
+
     if (!self || !frame) {
        return -1;
     }
     pd = self->userdata;
 
     if (!(vframe->attributes & TC_FRAME_IS_SKIPPED)
-       && (((vframe->tag & TC_POST_PROCESS) && !pd->is_prefilter) 
+       && (((vframe->tag & TC_POST_PROCESS) && !pd->is_prefilter)
          || ((vframe->tag & TC_PRE_PROCESS) && pd->is_prefilter))) {
-        
+
         levels_process(pd, vframe->video_buf,
                        vframe->v_width, vframe->v_height);
     }
@@ -306,7 +306,7 @@ int tc_filter(frame_list_t *vframe_, char *options)
     if (tag & TC_AUDIO) {
         return 0;
     }
-        
+
     pd = &levels_private_data[vframe->filter_id];
 
     if (tag & TC_FILTER_GET_CONFIG) {
@@ -320,7 +320,7 @@ int tc_filter(frame_list_t *vframe_, char *options)
         if (vob == NULL) {
             return -1;
         }
-    
+
         ret = levels_init_data(pd, vob, options, vframe->filter_id);
         if (ret != 0) {
             return ret;
@@ -328,12 +328,12 @@ int tc_filter(frame_list_t *vframe_, char *options)
     }  /* if INIT */
 
     if (!(vframe->attributes & TC_FRAME_IS_SKIPPED)
-       && (((tag & TC_POST_PROCESS) && !pd->is_prefilter) 
+       && (((tag & TC_POST_PROCESS) && !pd->is_prefilter)
          || ((tag & TC_PRE_PROCESS) && pd->is_prefilter))) {
-        levels_process(pd, vframe->video_buf, 
+        levels_process(pd, vframe->video_buf,
                        vframe->v_width, vframe->v_height);
     }
-    
+
     return 0;
 }
 
@@ -363,7 +363,7 @@ static const TCModuleClass levels_class = {
 
     .filter_video = levels_filter,
 };
-    
+
 extern const TCModuleClass *tc_plugin_setup(void)
 {
     return &levels_class;

@@ -54,10 +54,10 @@ struct tcdirlist_ {
 /*
  * tc_dirlist_open:
  *     initialize a TCDirList descriptor.
- *     every TCDirList descriptor refers to a specific directory in 
+ *     every TCDirList descriptor refers to a specific directory in
  *     filesystem, and more descriptors can refer to the same directory.
  *     BIG FAT WARNING:
- *     all iodir code relies on assumption that target directory 
+ *     all iodir code relies on assumption that target directory
  *     *WILL NOT CHANGE* when referring descriptor is active.
  *
  * Parameters:
@@ -83,23 +83,23 @@ int tc_dirlist_open(TCDirList *tcdir, const char *dirname, int sort);
 
 /*
  * tc_dirlist_scan:
- *     give full path of next entry in target directory. This function 
- *     can operate in two modes, returning the same values to caller 
- *     (if preconditions holds) but in different order. 
- *     The first, standard mode is the so called 'unbuffered' mode. 
+ *     give full path of next entry in target directory. This function
+ *     can operate in two modes, returning the same values to caller
+ *     (if preconditions holds) but in different order.
+ *     The first, standard mode is the so called 'unbuffered' mode.
  *     In this mode, this function simply scan the target directory, build
  *     the full path for each entry and return to the caller in filesystem
  *     order. The other operating mode is the 'buffered' mode, and
- *     it's triggered using a non-zero value for parameter 'sort' in 
- *     tc_dirlist_open (see above). When in buffered mode, this function 
+ *     it's triggered using a non-zero value for parameter 'sort' in
+ *     tc_dirlist_open (see above). When in buffered mode, this function
  *     will return the full path of each entry in target directory in
- *     lexicogrpaphical order. Otherwise full path is given using 
+ *     lexicogrpaphical order. Otherwise full path is given using
  *     filesystem order.
  *
- * Parameters: 
+ * Parameters:
  *     tcdir: TCDirList structure (descriptor) to use.
  * Return Value:
- *     a constant pointer to full path of next entry NULL there are no 
+ *     a constant pointer to full path of next entry NULL there are no
  *     more entries, or if an internal error occurs.
  * Side effects:
  *     in unbuffered mode, target directory will be scanned one time.
@@ -114,7 +114,7 @@ const char *tc_dirlist_scan(TCDirList *tcdir);
 
 /*
  * tc_dirlist_close:
- *     finalize a TCDirList structure (descriptor), freeing all 
+ *     finalize a TCDirList structure (descriptor), freeing all
  *     acquired resources.
  *
  * Parameters:

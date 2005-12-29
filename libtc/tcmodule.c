@@ -202,14 +202,14 @@ static const TCModuleClass dummy_class = {
     .fini         = dummy_fini,
     .configure    = dummy_configure,
     .stop         = dummy_stop,
-    
+
     .encode_audio = dummy_encode_audio,
     .encode_video = dummy_encode_video,
     .decode_audio = dummy_decode_audio,
     .decode_video = dummy_decode_video,
     .filter_audio = dummy_filter_audio,
     .filter_video = dummy_filter_video,
-    
+
     .multiplex    = dummy_multiplex,
     .demultiplex  = dummy_demultiplex
 };
@@ -262,9 +262,9 @@ static int is_known_modclass(const char *modclass)
 /*
  * TCModuleDescriptorIter:
  *     generic iterator function on factory descriptors.
- *     In some different contexts, a iterator can be applied on all module 
- *     descriptors in a given factory. Specific iterator functions can do 
- *     arbitrary actions on descriptor data. 
+ *     In some different contexts, a iterator can be applied on all module
+ *     descriptors in a given factory. Specific iterator functions can do
+ *     arbitrary actions on descriptor data.
  *     See below to get some usage examples.
  *
  * Parameters:
@@ -305,7 +305,7 @@ typedef int (*TCModuleDescriptorIter)(TCModuleDescriptor *desc, void *userdata);
  *     If return value is 0, given iteratr wass applied to *all*
  *     descriptors in factory.
  */
-static int tc_foreach_descriptor(TCFactory factory, 
+static int tc_foreach_descriptor(TCFactory factory,
                                  TCModuleDescriptorIter iterator,
                                  void *userdata,
                                  int *index)
@@ -342,7 +342,7 @@ static int tc_foreach_descriptor(TCFactory factory,
  *     modtype_: module type to look for.
  * Return Value:
  *     1  if given descriptor has given module type,
- *     0  succesfull. 
+ *     0  succesfull.
  *     -1 if a given parameter is bogus.
  * Side effects:
  *     None.
@@ -376,7 +376,7 @@ static int descriptor_match_modtype(TCModuleDescriptor *desc,
  *     unused: dummy parameter to achieve API conformancy.
  * Return Value:
  *     1  if given descriptor is a free one (uninitialized),
- *     0  succesfull. 
+ *     0  succesfull.
  *     -1 if a given parameter is bogus.
  * Side effects:
  *     None.
@@ -512,7 +512,7 @@ static void make_modtype(char *buf, size_t bufsize,
  * Parameters:
  *     klass: source class to be copied.
  *     nklass: class destionation of copy.
- *     soft_copy: boolean flag: if !0 do a soft copy, 
+ *     soft_copy: boolean flag: if !0 do a soft copy,
  *                do an hard one otherwise.
  * Return Value:
  *     0  successfull
@@ -805,7 +805,7 @@ TCModule tc_new_module(TCFactory factory,
     }
     if (factory->verbose >= TC_STATS) {
         tc_log_info(__FILE__, "descriptor ref_count=(%i) instances so far=(%i)",
-                    factory->descriptors[id].ref_count, 
+                    factory->descriptors[id].ref_count,
                     factory->instance_count);
     }
 

@@ -153,7 +153,7 @@ struct tcmoduleclass_ {
  * Postconditions:
  *      Given module is ready to perform any supported operation.
  *
- * 
+ *
  * stop:
  *      reset a module and prepare for reconfiguration or finalization.
  *      This means to flush buffers, close open files and so on,
@@ -176,8 +176,8 @@ struct tcmoduleclass_ {
  *      Module doesn't need to be configured before to be stooped.
  * Postconditions:
  *      Given module is ready to be reconfigure safely.
- *  
- *       
+ *
+ *
  * filter_{audio,video}:
  *      apply an in-place transformation to a given audio/video frame.
  *      Specific module loaded determines the action performend on
@@ -197,7 +197,7 @@ struct tcmoduleclass_ {
  * Postconditions:
  *      None
  *
- * 
+ *
  *
  * multiplex:
  *      merge given encoded frames in output stream.
@@ -210,7 +210,7 @@ struct tcmoduleclass_ {
  * Return value:
  *      -1 error occurred. A proper message should be sent to user using
  *         tc_log*().
- *      >0 number of bytes writed for multiplexed frame(s). Can be 
+ *      >0 number of bytes writed for multiplexed frame(s). Can be
  *         (and usually is) different from the plain sum of sizes of
  *         encoded frames.
  * Side effects:
@@ -232,7 +232,7 @@ struct tcmoduleclass_ {
  * Return value:
  *      -1 error occurred. A proper message should be sent to user using
  *         tc_log*().
- *      >0 number of bytes readed for demultiplexed frame(s). Can be 
+ *      >0 number of bytes readed for demultiplexed frame(s). Can be
  *         (and usually is) different from the plain sum of sizes of
  *         encoded frames.
  * Side effects:
