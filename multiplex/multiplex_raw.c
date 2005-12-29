@@ -48,13 +48,13 @@ static const char *raw_configure(TCModuleInstance *self,
     char vid_name[PATH_MAX];
     char aud_name[PATH_MAX];
     RawPrivateData *pd = NULL;
-     
+
     if (!self) {
         tc_log_error(MOD_NAME, "init: bad instance data reference");
         return NULL;
     }
     pd = self->userdata;
-    
+
     if (optstr_lookup(options, "help")) {
         return raw_help;
     }
@@ -96,11 +96,11 @@ static const char *raw_configure(TCModuleInstance *self,
     return "";
 }
 
-static int raw_stop(TCModuleInstance *self) 
+static int raw_stop(TCModuleInstance *self)
 {
     RawPrivateData *pd = NULL;
     int verr, aerr;
-    
+
     if (!self) {
         tc_log_error(MOD_NAME, "init: bad instance data reference");
         return TC_EXPORT_ERROR;
@@ -110,22 +110,22 @@ static int raw_stop(TCModuleInstance *self)
     if (pd->fd_vid != -1) {
         verr = close(pd->fd_vid);
         if (verr) {
-            tc_log_error(MOD_NAME, "closing video file: %s", 
+            tc_log_error(MOD_NAME, "closing video file: %s",
                                    strerror(errno));
             return TC_EXPORT_ERROR;
         }
         pd->fd_vid = -1;
-    }        
+    }
 
     if (pd->fd_aud != -1) {
         aerr = close(pd->fd_aud);
         if (aerr) {
-            tc_log_error(MOD_NAME, "closing audio file: %s", 
+            tc_log_error(MOD_NAME, "closing audio file: %s",
                                    strerror(errno));
             return TC_EXPORT_ERROR;
         }
         pd->fd_aud = -1;
-    }        
+    }
 
     return 0;
 }
@@ -134,9 +134,9 @@ static int raw_multiplex(TCModuleInstance *self,
                          vframe_list_t *vframe, aframe_list_t *aframe)
 {
     ssize_t w_aud = 0, w_vid = 0;
- 
+
     RawPrivateData *pd = NULL;
-     
+
     if (!self) {
         tc_log_error(MOD_NAME, "init: bad instance data reference");
         return TC_EXPORT_ERROR;
@@ -156,7 +156,7 @@ static int raw_multiplex(TCModuleInstance *self,
 			return TC_EXPORT_ERROR;
 		}
     }
-    
+
     return (int)(w_vid + w_aud);
 }
 
@@ -167,15 +167,15 @@ static int raw_init(TCModuleInstance *self)
         tc_log_error(MOD_NAME, "init: bad instance data reference");
         return TC_EXPORT_ERROR;
     }
-    
+
     pd = tc_malloc(sizeof(RawPrivateData));
     if (!pd) {
         return TC_EXPORT_ERROR;
     }
-    
+
     pd->fd_aud = -1;
     pd->fd_vid = -1;
-        
+
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     }
@@ -183,7 +183,7 @@ static int raw_init(TCModuleInstance *self)
     self->userdata = pd;
     return 0;
 }
- 
+
 static int raw_fini(TCModuleInstance *self)
 {
     if (!self) {
@@ -192,7 +192,7 @@ static int raw_fini(TCModuleInstance *self)
     }
 
     raw_stop(self);
-    
+
     tc_free(self->userdata);
     self->userdata = NULL;
 
@@ -225,7 +225,7 @@ static const TCModuleClass raw_class = {
     .fini         = raw_fini,
     .configure    = raw_configure,
     .stop         = raw_stop,
-    
+
     .multiplex    = raw_multiplex,
 };
 

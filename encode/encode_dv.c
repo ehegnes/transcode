@@ -52,7 +52,7 @@ static int tcdv_init(TCModuleInstance *self)
 {
     DVPrivateData *pd = NULL;
     vob_t *vob = tc_get_vob();
-    
+
     if (!self) {
         tc_log_error(MOD_NAME, "init: bad instance data reference");
         return TC_EXPORT_ERROR;
@@ -69,7 +69,7 @@ static int tcdv_init(TCModuleInstance *self)
         tc_log_error(MOD_NAME, "init: can't allocate encoder data");
         goto failed_alloc_dvenc;
     }
-    
+
     if(vob->dv_yuy2_mode) {
         pd->conv_buf = tc_bufalloc(PAL_W * PAL_H * 2); /* max framne size */
         if (!pd->conv_buf) {
@@ -84,25 +84,25 @@ static int tcdv_init(TCModuleInstance *self)
 
     pd->frame_size = 0;
     pd->is_yuv = -1; /* invalid value */
-    
+
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     }
     self->userdata = pd;
-    
+
     return TC_EXPORT_OK;
 
 failed_alloc_privbuf:
     dv_encoder_free(pd->dvenc);
-failed_alloc_dvenc:    
-    tc_free(pd);    
+failed_alloc_dvenc:
+    tc_free(pd);
     return TC_EXPORT_ERROR;
 }
 
 static int tcdv_fini(TCModuleInstance *self)
 {
     DVPrivateData *pd = NULL;
-    
+
     if (!self) {
         tc_log_error(MOD_NAME, "init: bad instance data reference");
         return TC_EXPORT_ERROR;
@@ -124,14 +124,14 @@ static const char *tcdv_configure(TCModuleInstance *self,
 {
     DVPrivateData *pd = NULL;
     vob_t *vob = tc_get_vob();
-    
+
     if (!self) {
         tc_log_error(MOD_NAME, "init: bad instance data reference");
         return NULL;
     }
 
     pd = self->userdata;
-    
+
     if (optstr_lookup(options, "help")) {
         return tcdv_help;
     }
@@ -149,7 +149,7 @@ static const char *tcdv_configure(TCModuleInstance *self,
     }
 
     // for reading
-    pd->frame_size = (vob->ex_v_height==PAL_H) 
+    pd->frame_size = (vob->ex_v_height==PAL_H)
                         ?TC_FRAME_DV_PAL :TC_FRAME_DV_NTSC;
 
     pd->dvenc->isPAL = (vob->ex_v_height == PAL_H) ?1 :0;
@@ -189,13 +189,13 @@ static int tcdv_encode_video(TCModuleInstance *self,
     pd = self->userdata;
     w = (pd->dvenc->isPAL) ?PAL_W :NTSC_W;
     h = (pd->dvenc->isPAL) ?PAL_H :NTSC_H;
-    
+
     DV_INIT_PLANES(pixels, inframe->video_buf, w, h);
 
     if (pd->dv_yuy2_mode) {
         uint8_t *conv_pixels[3];
         DV_INIT_PLANES(conv_pixels, pd->conv_buf, w, h);
-        
+
         ac_imgconvert(pixels, IMG_YUV420P, conv_pixels, IMG_YUY2,
 		              PAL_W, (pd->dvenc->isPAL)? PAL_H : NTSC_H);
 
@@ -218,7 +218,7 @@ static int tcdv_encode_video(TCModuleInstance *self,
     return TC_EXPORT_OK;
 }
 
-static int tcdv_stop(TCModuleInstance *self) 
+static int tcdv_stop(TCModuleInstance *self)
 {
     if (!self) {
         tc_log_error(MOD_NAME, "init: bad instance data reference");
@@ -226,18 +226,18 @@ static int tcdv_stop(TCModuleInstance *self)
     }
 
     /* we don't need to do anything here */
-    
+
     return 0;
 }
 
 /*************************************************************************/
 
-static const int tcdv_codecs_in[] = { 
-    TC_CODEC_YUY2, TC_CODEC_RGB, TC_CODEC_YUV420P, 
+static const int tcdv_codecs_in[] = {
+    TC_CODEC_YUY2, TC_CODEC_RGB, TC_CODEC_YUV420P,
     TC_CODEC_ERROR
 };
 
-static const int tcdv_codecs_out[] = { 
+static const int tcdv_codecs_out[] = {
     TC_CODEC_DV,
     TC_CODEC_ERROR
 };
@@ -250,7 +250,7 @@ static const TCModuleInfo tcdv_info = {
     .version     = MOD_VERSION,
     .description = MOD_CAP,
     .codecs_in   = tcdv_codecs_in,
-    .codecs_out  = tcdv_codecs_out
+    .codecs_out  = tcdv_codecs_out,
 };
 
 static const TCModuleClass tcdv_class = {
@@ -260,8 +260,8 @@ static const TCModuleClass tcdv_class = {
     .fini         = tcdv_fini,
     .configure    = tcdv_configure,
     .stop         = tcdv_stop,
-    
-    .encode_video = tcdv_encode_video
+
+    .encode_video = tcdv_encode_video,
 };
 
 extern const TCModuleClass *tc_plugin_setup(void)

@@ -21,7 +21,7 @@ typedef struct {
     const char *fourcc;
 } TCCodecInfo;
 
-/* 
+/*
  * this table is *always* accessed in RO mode, so there is no need
  * to protect it with threading locks
  */
@@ -42,7 +42,7 @@ const TCCodecInfo codecs_info[] = {
     { TC_CODEC_LZO1, "lzo1", "LZO1" },
     { TC_CODEC_LZO2, "lzo2", "LZO2" },
     /* FIXME: add more codec informations, on demand */
-    
+
     /* audio codecs */
     { TC_CODEC_PCM, "pcm", NULL },
     { TC_CODEC_MP3, "mp3", NULL },
@@ -52,7 +52,7 @@ const TCCodecInfo codecs_info[] = {
 
     /* special codecs*/
     { TC_CODEC_ANY, "everything", NULL },
-    { TC_CODEC_UNKNOWN, "unknown", NULL }, 
+    { TC_CODEC_UNKNOWN, "unknown", NULL },
     { TC_CODEC_ERROR, "error", NULL }, // XXX
                                             /* this MUST be the last one */
 };
@@ -66,7 +66,7 @@ static int id_finder(const TCCodecInfo *info, const void *userdata)
     if (!info || !userdata) {
         return TC_FALSE;
     }
-    
+
     return (*(int*)userdata == info->id) ?TC_TRUE :TC_FALSE;
 }
 
@@ -97,11 +97,11 @@ static int fourcc_finder(const TCCodecInfo *info, const void *userdata)
 static int find_tc_codec(const TCCodecInfo *infos, TCCodecFinder finder, const void *userdata)
 {
     int found = TC_FALSE, i = 0;
-    
+
     if (!infos) {
         return TC_CODEC_NOT_FOUND;
     }
-    
+
     for (i = 0; infos[i].id != TC_CODEC_ERROR; i++) {
         found = finder(&infos[i], userdata);
         if (found) {
@@ -111,7 +111,7 @@ static int find_tc_codec(const TCCodecInfo *infos, TCCodecFinder finder, const v
     if (!found) {
         i = TC_CODEC_NOT_FOUND; /* special index, meaning 'not found' */
     }
-    
+
     return i;
 }
 

@@ -1,3 +1,9 @@
+2005-12-29 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_dv.c libtc/tccodecs.c libtc/tcmodule.c
+    multiplex/multiplex_avi.c multiplex/multiplex_null.c
+    multiplex/multiplex_raw.c
+  traling whitespaces remove roundup.
+
 2005-12-28 Francesco Romani <fromani at gmail dot com>
   * encode/encode_dv.c
   removed stale misleading comment.

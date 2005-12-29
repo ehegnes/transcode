@@ -30,15 +30,15 @@ static int null_init(TCModuleInstance *self)
         tc_log_error(MOD_NAME, "init: bad instance data reference");
         return TC_EXPORT_ERROR;
     }
-    
+
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     }
     self->userdata = NULL;
-    
+
     return 0;
 }
- 
+
 static int null_fini(TCModuleInstance *self)
 {
     if (!self) {
@@ -56,7 +56,7 @@ static const char *null_configure(TCModuleInstance *self,
         tc_log_error(MOD_NAME, "init: bad instance data reference");
         return NULL;
     }
-    
+
     if (optstr_lookup(options, "help")) {
         return null_help;
     }
@@ -64,13 +64,13 @@ static const char *null_configure(TCModuleInstance *self,
     return "";
 }
 
-static int null_stop(TCModuleInstance *self) 
+static int null_stop(TCModuleInstance *self)
 {
     if (!self) {
         tc_log_error(MOD_NAME, "init: bad instance data reference");
         return TC_EXPORT_ERROR;
     }
-    
+
     return 0;
 }
 
@@ -78,7 +78,7 @@ static int null_multiplex(TCModuleInstance *self,
                          vframe_list_t *vframe, aframe_list_t *aframe)
 {
     int asize = 0, vsize = 0;
- 
+
     if (!self) {
         tc_log_error(MOD_NAME, "init: bad instance data reference");
         return TC_EXPORT_ERROR;
@@ -91,7 +91,7 @@ static int null_multiplex(TCModuleInstance *self,
     if (aframe != NULL) {
         asize = aframe->audio_size;
     }
-    
+
     return vsize + asize;
 }
 
@@ -120,7 +120,7 @@ static const TCModuleClass null_class = {
     .fini         = null_fini,
     .configure    = null_configure,
     .stop         = null_stop,
-    
+
     .multiplex    = null_multiplex,
 };
 
