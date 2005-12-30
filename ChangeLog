@@ -1,4 +1,13 @@
 2005-12-30 Francesco Romani <fromani at gmail dot com>
+  * src/transcode.c
+  
+  added file: avilib/static_avilib.h
+
+  introduce static linkage helper header for avilib.
+  Start to use such helper header and the one for optstr already on
+  libtc in transcode.c.
+
+2005-12-30 Francesco Romani <fromani at gmail dot com>
   * export/export_divx4.c export/export_divx4raw.c export/export_divx5raw.c
     export/export_fame.c export/export_xvid2.c export/export_xvid3.c
     import/import_af6.c import/import_ffbin.c import/import_fraps.c
