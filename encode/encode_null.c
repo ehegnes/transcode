@@ -9,12 +9,13 @@
  */
 
 #include "transcode.h"
+#include "framebuffer.h"
 #include "libtc/optstr.h"
 
 #include "libtc/tcmodule-plugin.h"
 
 #define MOD_NAME    "encode_null.so"
-#define MOD_VERSION "v0.0.1 (2005-12-28)"
+#define MOD_VERSION "v0.0.2 (2005-12-29)"
 #define MOD_CAP     "null"
 
 static const char *null_help = ""
@@ -30,15 +31,15 @@ static int null_init(TCModuleInstance *self)
         tc_log_error(MOD_NAME, "init: bad instance data reference");
         return TC_EXPORT_ERROR;
     }
-    
+
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     }
     self->userdata = NULL;
-    
+
     return 0;
 }
- 
+
 static int null_fini(TCModuleInstance *self)
 {
     if (!self) {
@@ -49,28 +50,39 @@ static int null_fini(TCModuleInstance *self)
     return 0;
 }
 
-static const char *null_configure(TCModuleInstance *self,
-                                 const char *options)
+static int null_configure(TCModuleInstance *self,
+                          const char *options, vob_t *vob)
+{
+    if (!self) {
+        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        return TC_EXPORT_ERROR;
+    }
+
+    return TC_EXPORT_OK;
+}
+
+static const char *null_inspect(TCModuleInstance *self,
+                                const char *param)
 {
     if (!self) {
         tc_log_error(MOD_NAME, "init: bad instance data reference");
         return NULL;
     }
-    
-    if (optstr_lookup(options, "help")) {
+
+    if (optstr_lookup(param, "help")) {
         return null_help;
     }
 
     return "";
 }
 
-static int null_stop(TCModuleInstance *self) 
+static int null_stop(TCModuleInstance *self)
 {
     if (!self) {
         tc_log_error(MOD_NAME, "init: bad instance data reference");
         return TC_EXPORT_ERROR;
     }
-    
+
     return 0;
 }
 
@@ -82,11 +94,7 @@ static int null_encode_video(TCModuleInstance *self,
         return TC_EXPORT_ERROR;
     }
 
-    /* 
-     * XXX 
-     * implement softcopy
-     * (this needs some changes at framebuffer handling code).
-     */
+    vframe_copy(outframe, inframe, 0);
 
     return 0;
 }
@@ -99,11 +107,7 @@ static int null_encode_audio(TCModuleInstance *self,
         return TC_EXPORT_ERROR;
     }
 
-    /* 
-     * XXX 
-     * implement softcopy
-     * (this needs some changes at framebuffer handling code).
-     */
+    aframe_copy(outframe, inframe, 0);
 
     return 0;
 }
@@ -133,7 +137,8 @@ static const TCModuleClass null_class = {
     .fini         = null_fini,
     .configure    = null_configure,
     .stop         = null_stop,
-    
+    .inspect      = null_inspect,
+
     .encode_video = null_encode_video,
     .encode_audio = null_encode_audio,
 };

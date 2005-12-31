@@ -1,4 +1,9 @@
 2005-12-31 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_null.c encode/encode_copy.c
+  port modules to last API (one step closer to the freeze) and
+  use new frame copy functions.
+
+2005-12-31 Francesco Romani <fromani at gmail dot com>
   * src/framebuffer.h src/audio_buffer.c src/video_buffer.c
   extend and export copy operation. Now both soft (reference)
   and hard (full) copy are supported. softcopy is needed
