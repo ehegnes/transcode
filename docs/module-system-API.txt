@@ -2,9 +2,9 @@
                 Module System for Transcode 1.1.0 and later
                 ===========================================
 
- Francesco Romani <fromani@gmail.com>, Andrew Church <achurch@achurch.org 
+ Francesco Romani <fromani@gmail.com>, Andrew Church <achurch@achurch.org> 
                                      -
-                        Revision 0.2, 18 December 2005
+                        Revision 0.3, 31 December 2005
 
  Index:
 ---------------------------------------------------------------------------
@@ -25,11 +25,10 @@ This document provides basic informations about the new module system
 introduced in transcode 1.1.0. New system is API, ABI and semanticly 
 incompatible with old one. This breakage was needed to address the 
 recognized problems of old model. We (designers and coders) hope that new
-one will serve better our purposes. New model hasn't any claim of 
-generality or effectiveness outside transcode use cases. 
-It was designed to be the simplest and cleanest thing that work in
-transcode environment, and it doesn't provide any guarantee outside this
-field.
+one will serve better our purposes. Anyway, new model hasn't any claim of 
+generality or effectiveness outside transcode use cases: new API was 
+designed to be the simplest and cleanest thing that work in transcode 
+environment, and it doesn't provide any guarantee outside this field.
 I (Francesco) have chosen to reimplement our module system from scratch, 
 despite the fact that well-known libraries such glib provides own ones,
 to lower as much as possible the dependencies count for transcode itself.
@@ -47,7 +46,7 @@ rather than code, and I will apply as soon as is possible :)
 
 Quick terminology overview:
 - NMS: (transcode's) New Module System
-- plugin: the real shared object on disk.
+- plugin: the real shared object (usually) on disk.
 - module: the central abstract object handled by NMS.
 - module instance: maybe couter-intuitive; part of a module (see above),
   contains private, un-shared data of a module instance. For comparison,
@@ -98,18 +97,18 @@ NMS has quite different usage from old module system.
 A piece of code that want to use a transcode plugin through NMS should
 roughly:
 
-- start the module factory: this will initialize the subsystem; the
+- start a module factory: this will initialize the subsystem; the
   most important parameter is the module search path, that is no longer
   hardcoded into code.
-- ask to module factory to create a given module. This will trasparently
+- ask to a module factory to create a given module. This will trasparently
   load a plugin if needed, resolve needed symbols, initialize it and
   finally pass back as a reference to client code. In short, module factory
   does all black magic for you ;)
 - use the module exposed functions as you wish.
   Above module classes requires roughly the implementation of one module
   for each one plus some mandatory support methods. For example, filter 
-  class requires the implementation of 'filter' operation,
-  (WARNING: as in transcode 1.1.0, this is not enforced, yet)
+  class requires the implementation of 'filter_video' or 'filter_audio'
+  operation, (WARNING: as in transcode 1.1.0, this is not enforced, yet)
   but a given module can implement more than one class simply providing
   more methods implementation. As an user of a module, just request the
   operation and check the returned code :)
@@ -143,9 +142,9 @@ This registration happen, as well as other needed intialization code,
 into new entry point.
 
 So, NMS requires that each module provides (roughly) a single function
-for implemented operation. Formerly, this was already a good module
-writing pratice, but isn't required by module system which used a single
-function interface to do everything.
+for each implemented operation. Formerly, this was already a good module
+writing pratice, but was not required by former old module system which 
+used a single function interface to do everything.
 
 NMS has also explicit support for module instance data. Each module
 descriptor provide an opaque pointer to module-defined data, which is
@@ -155,7 +154,8 @@ To summarize, a NMS-compliant module will
 
 - provide a separate function for each implemented operation, plus
   a few function for support routines (initialization, shutdown, 
-  configuration) which must conform to a give signature. 
+  configuration, stop, introspection) which must conform to a 
+  give signature. 
   Each method will handle explicitely private (instance) data.
 - provide a single uniform entry point for registration process.
   core uses module specific methods via some function pointers,
@@ -222,7 +222,7 @@ more (pseudo)code examples.
 
 You can also want to look NMS bundled test (in testsuite/ and or libtc/, in
 latter case test is embedded, as a comment in tcmodule.c) to get some more
-examples
+examples.
 
 
 3.3. The module factory
@@ -236,14 +236,14 @@ plugin code) if needed, unloading them if no longer need, accounting,
 and create instances. In short, factory does all the dirty work.
 
 In order to obtain, and release, a factory handler, you must use the 
-tc_factory_init and tc_factory_fini functions.
+tc_new_module_factory and tc_del_module_factory functions.
 Arguments and syntax of this functions is documented on tcmodule-core.h
 header file.
 
 Client code can theorically request an arbitrary number of factories,
 but each factory can handle ONLY modules created by herself. To
-request a factory to do an operation on a module NOT builded by her
-will cause a undefined behaviour (expect crash or weird behaviours).
+request a factory to do an operation on a module NOT built by herself
+will cause a undefined behaviour (expect crash or some other weird things).
 In a just few words: DON'T DO THIS! :)
 In the common case, "one factory will be enough for everyone".
 
@@ -253,20 +253,21 @@ In the common case, "one factory will be enough for everyone".
 
 It's really simple. Just ask to your factory to create a brand new module
 belonging to a given class and from a given name.
-When the module is builded, you can configure it passing some options
-packed in a string using the configure functuion (tc_module_configure).
-Unconfigured modules have a sensible default configuration; some
+When the module is built, you can configure it passing some options
+packed in a string using the configure function (tc_module_configure).
+Unconfigured modules will have a sensible default configuration; some
 modules can be reconfigured multiple times, some other can be reconfigured
-just the first time; this behaviour is fully module-dependent.
+just the first time; some other modules (notably multiplexors and 
+demultiplexors) needs to be configured explicitely at least one time.
+before to be used. This behaviour is fully module-(class-)dependent.
 Options are specific to a module, and there is no way to describe they
-in a general fashion. Using 'help' should provide a usage summary via
-tc_log*() to (real) user, but this isn't mandatory. So, you must to 
-know what option you must send to a module: actual NMS hasn't still
-enough introspection capabilities to query a runtime this things.
-The avalaibity of module type depends on transcode installation.
-Really basic modules should be always available. A rough list follow:
-
-XXX: writeme.
+in a general fashion.
+Since a module can be (or must be, for multiplexors) reconfigured
+a run time, the need for inspecting module settings arise.
+NMS provide an explicit operation for inquiry the actual settings of
+a module, the 'inspect' operation. Client code can request to know
+the status each and/or all module configurable parameters using this
+operation.
 
 Please note that NMS *NOT* know _before_ to loading what every module
 is capable to do, nor the class of a given module. Everything
@@ -279,23 +280,17 @@ tightly binded and can't be handled separately.
 
 Known module classes as in transcode 1.1.0:
 
-	name		synonim
-	.......................
-	demultiplex	demux
-	decode		-
-	filter		-
-	encode		-
-	multiplex	mplex
+	demultiplex, decode, filter, encode, multiplex
 
 Destroying a module is really simple. Just invoke the destruction
 function using your factory and the module, and the latter will be 
 destroyed. But remember that real originating plugin will be 
 unloaded only with all spawned modules are destroyed.
-In facts, destruction of last module trigger plugin
+In facts, destruction of last module triggers plugin
 unloading. The factory can detect at any time if a given module is
 the last one or not. You should'nt worry about this.
 
-Take care of check the return code of tc_module_destroy, since it
+Take care of check the return code of tc_del_module, since it
 triggers plugin unloading it can fail. Some debug messages are
 sent to (real) users using tc_log*().
 Future releases perhaps will add some detailed error codes than 
@@ -306,11 +301,10 @@ actual ones, which just carries a "failed/succeeded" information.
 ---------------
 
 The reader might also take a look at tcmodule-data.h.
-The `TCModule' data structure represent a module instance. (XXX Maybe
-with a suboptimal name decision...).
-It is composed by two main components: the module class data, comprehending
-function pointers to real module and capabilities information, and 
-the module instance section, private for each module.
+The `TCModule' data structure represent a module instance. 
+It is composed by two main components: the module class data, 
+comprehending function pointers to real module and capabilities 
+information, and the module instance section, private for each module.
 
 You can see the declarations in tcmodule-data.h for more details.
 Most of details are handled by NMS code, so you normally don't need
@@ -318,11 +312,10 @@ to access neither module class or module private instance data.
 In facts, instance data should be accessed only by module code, and
 should be opaque both for NMS and for client code.
 
-It's almost always safe to access (in read-only) the class data,
-and this is also needed to effectively use a module, since function
-pointers to module methods are embedded in class data.
-For this purpose a few commodities macro are provided. Direct access
-is also possible.
+It's safe to access (in read-only) the class data, and this is also 
+needed to effectively use a module, since function pointers to module 
+methods are embedded in class data. For this purpose a few commodities
+macro are provided. Direct access is also possible.
 The only 'critical' field in a class structure is the 'id' one.
 This field is used internally by NMS (see code) and should not be even
 considered by client code.
@@ -331,30 +324,40 @@ You can notice that both module instance data and module class data
 have a 'id' field. These two fields are in fact independent, and both
 must be considered opaque by client code.
 
-(XXX: something more?)
 
-
-3.6 Using modules
+3.6 Using modules.
 -----------------
 
 Usage of a module, if we want to ignore the internals and the gory details,
 should be really easy and straightforwarded. 
 For each possibile module operation, there is a convenience macro for
-easier usage and to avoid clumsy module->some_op(module, ... ) notation.
+easier usage and to avoid clumsy module->operation(module, ... ) syntax.
 
-The list follows:
-tc_module_configure(module, options)
-        (re)configure a module, changing it's internal setting; return
-	current settings.
+The list of supported operations follows:
 
-tc_module_encode(module, inframe, outframe)
-	encode a give frame and store data in another given frame
+tc_module_configure(module, options, vob)
+        (re)configure a module, changing it's internal settings;
+        Some kind of modules ([de]multiplexors) *requires* to be
+        configure()d _explicitely_ before the usage.
+
+tc_module_stop(module)
+	stop a module and prepare it for a new safe (re)configuration.
+        this means flushing all buffers, closing files.
+
+tc_module_inspect(module, param)
+        query about the actual value of a given parameter.
+
+tc_module_encode_video(module, inframe, outframe)
+tc_module_encode_audio(module, inframe, outframe)
+	encode a give video or audio frame and store data in another one.
 	
-tc_module_decode(module, inframe, outframe) 
-	decode a give frame and store data in another given frame
+tc_module_decode_video(module, inframe, outframe)
+tc_module_decode_audio(module, inframe, outframe)
+	decode a give video or audio frame and store data in another one.
 
-tc_module_filter(module, frame)
-	apply a filter in place to a frame
+tc_module_filter_video(module, frame)
+tc_module_filter_audio(module, frame)
+	apply a filter in place to a video or audio frame.
 
 tc_module_multiplex(module, vframe, aframe)
 	pack given encoded audio and video frame (both at once or just one)
@@ -363,7 +366,28 @@ tc_module_demultiplex(module, vframe, aframe)
 	unpack encoded audio and video frame (both or just one)
 
 Just use any of above macro in your code. Do not forget to check the
-return code
+return code.
+
+A few special parameters exists both for 'configure' and 'inspect'
+operations.
+
+for 'configure':
+* "dry_run" option will force the module to suppress any side effect of
+  configuration operation. This option is intended to be used with,
+  [de]multiplexors, since they really open the input/output file when
+  explicitely configure()d (this explains why [de]multiplexors needs to
+  be configure()d explicitely before to be used).
+  Giving "dry_run" negate this behaviour.
+
+for 'inspect':
+* "all" option will force the module to return to calling environment
+  a representation of /all/ internal parameters, packed in a single
+  string. This string will be packed in the same format accepted by
+  module option string
+* "help" option will force the module to return a textual, huma readable
+  overview of the module, along with an explanation of name, value range
+  and meaning of accepted parameters. Special parameters will not be
+  present in this description.
 
 
 4. Plugin API
@@ -394,9 +418,8 @@ Of course, your plugin must be compiles as shared object.
 4.2. Example code
 -----------------
 
-You can take a look to filter/filter_null.c. Is the simpliest 
-implementation of a NMS plugin; such plugin can do nothing, accepts 
-everything and already succeed.
+You can take a look to filter/filter_null.c multiplex/multiplex_null.c
+or encode/encode_null.c. 
 
 Future releases of this document will perhaps add more (pseudo)code 
 examples.
@@ -427,7 +450,9 @@ a reference to some private variables. This is the preferred way
 since it seems the most simple one.
 
 To see a simple skeleton of a NMS plugin, take a look at 
-filter/filter_null.c.
+filter/filter_null.c or multiplex/multiplex_null.c or 
+encode/encode_null.c
+
 
 4.4. The registration process
 -----------------------------
@@ -472,9 +497,30 @@ filled with all descriptive informations for plugin, and
 MUST hold function pointers to all operations implemented,
 or NULL for operations NOT implemented.
 
-In facts, the purpose beyond the tc_plugin-setup function is to give
+In facts, the purpose beyond the tc_plugin_setup function is to give
 back to core the right data without expose too much data in plugins, 
 and without let the core to do extensive symbol search in plugin itself.
+
+
+4.6. Intialization and finalization of a module
+------------------------------------------------
+
+There is a couple of mandatory operations that a module must implement
+still not covered in this document. Those operations are the 'init' 
+intialization operation and the 'fini' finalization operation.
+Those operations WILL NOT be exported to client code, and are used
+*only* trasparently by NMS code.
+'init' operation take care of initializing the part of a module that
+isn't changed by configure() operation and sets defaults.
+'fini' operation must cleanup everything and release *all* resources
+acquired by a module. Is the 'one and true' finalization routine, the
+last that is executed during the module life.
+
+
+4.7. Differences between module classes
+---------------------------------------
+
+(WRITEME)
 
 
 5. Plugin-Writing-HOWTO
@@ -494,13 +540,29 @@ to see the gory details.
 6.1. Why the factory?
 ---------------------
 
-FIXME: writeme
+The factory descriptor was make explicite for generality and extendability.
+Having explicit factory descriptor make it possible to use more than
+one factory at time, even if this should be unlikely.
+There are some use cases for this on actual codebase at time of writing.
+Anyway, it's trivial to force code to use just one factory:
+
+/* sometcheader.h */
+
+extern TCModuleFactory main_factory;
+
+#define tc_load_module(type, name) \
+	tc_new_module(main_factory, type, name)
+#define tc_unload_module(type, name) \
+	tc_del_module(main_factory, mod)
 
 
 6.2. About multithreading safeness
 ----------------------------------
 
-FIXME: re-writeme
+Multiple thread CANNOT execute operations concurrently on the same factory
+descriptor.
+It is safe to execute concurrently operations if each module
+operate on it's own descriptor.
 
 
 6.3. On explicit reference counting
@@ -522,8 +584,34 @@ be a change totally transparent to client code.
 Needs a careful review and a bit of discussion on transcode-devel.
 
 
+6.5. init VS configure, fini VS stop
+------------------------------------
+
+This section will higlight and summarize the differences between the
+init/configure and the stop/fini couple.
+
+init: ALWAYS executed BEFORE 'configure'.
+      Runs one and only one time during the life of a module.
+configure: ALWAYS executed AFTER 'init'.
+      Can run zero or more times during the life of a module.
+      Some modules ([de]multiplexors) REQUIRES that configure is
+      runned at least once.
+      It is possible that invokations of configures after the first
+      will be ignored by a given module.
+      It is possible that this function will do not anything useful.
+
+fini: ALWAYS executed AFTER 'stop'.
+      Runs one and only one time during the life of a module.
+      it is possible (and usually happens) that fini invokes 'stop'.
+stop: ALWAYS executed BEFORE 'fini'.
+      Can run zero or more times during the life of a module.
+      Some modules ([de]multiplexors) REQUIRES that stop is
+      runned before to be re-configure()d.
+      It is possible that this function will do not anything useful.
+     
+
 7. Final notes
 ---------------------------------------------------------------------------
 
 send any comment to <fromani@gmail.com>. Thanks for reading this.
-Corrections about english welcomes.
+Corrections about english are welcome.

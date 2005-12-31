@@ -1,3 +1,7 @@
+2005-12-31 Francesco Romani <fromani at gmail dot com>
+  * docs/module-system-API.txt
+  sync doc with last code/API.
+
 2005-12-29 Francesco Romani <fromani at gmail dot com>
   * tools/tcmodinfo.c
   during previous trailing whitespaces remove roundup
