@@ -104,17 +104,24 @@ static int dummy_fini(TCModuleInstance *self)
     return -1;
 }
 
-static const char *dummy_configure(TCModuleInstance *self,
-                                   const char *options)
+static int dummy_configure(TCModuleInstance *self,
+                            const char *options, vob_t *vob)
 {
     DUMMY_HEAVY_CHECK(self, "configuration");
-    return "";
+    return -1;
 }
 
 static int dummy_stop(TCModuleInstance *self)
 {
     DUMMY_HEAVY_CHECK(self, "stopping");
     return -1;
+}
+
+static const char* dummy_inspect(TCModuleInstance *self,
+                                 const char *param)
+{
+    DUMMY_HEAVY_CHECK(self, "inspection");
+    return NULL;
 }
 
 static int dummy_encode_video(TCModuleInstance *self,
@@ -201,6 +208,7 @@ static const TCModuleClass dummy_class = {
     .init         = dummy_init,
     .fini         = dummy_fini,
     .configure    = dummy_configure,
+    .inspect      = dummy_inspect,
     .stop         = dummy_stop,
 
     .encode_audio = dummy_encode_audio,
@@ -539,7 +547,8 @@ static int tc_module_class_copy(const TCModuleClass *klass,
     }
 
     if (!klass->init || !klass->fini
-     || !klass->configure || !klass->stop) {
+     || !klass->configure || !klass->stop
+     || !klass->inspect) {
         tc_log_error(__FILE__, "can't setup a module class without "
                                "one or more mandatory methods");
         return -1;
@@ -550,6 +559,7 @@ static int tc_module_class_copy(const TCModuleClass *klass,
     nklass->fini = klass->fini;
     nklass->configure = klass->configure;
     nklass->stop = klass->stop;
+    nklass->inspect = klass->inspect;
 
     if (klass->encode_audio != NULL) {
         nklass->encode_audio = klass->encode_audio;

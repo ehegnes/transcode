@@ -27,6 +27,7 @@
 #include <stdlib.h>
 
 #include "framebuffer.h"
+#include "transcode.h"
 #include "tcmodule-info.h"
 
 /*
@@ -60,8 +61,9 @@ struct tcmoduleclass_ {
     /* mandatory operations: */
     int (*init)(TCModuleInstance *self);
     int (*fini)(TCModuleInstance *self);
-    const char* (*configure)(TCModuleInstance *self, const char *options);
+    int (*configure)(TCModuleInstance *self, const char *options, vob_t *vob);
     int (*stop)(TCModuleInstance *self);
+    const char* (*inspect)(TCModuleInstance *self, const char *param);
 
     /*
      * not-mandatory operations, a module doing something useful implements

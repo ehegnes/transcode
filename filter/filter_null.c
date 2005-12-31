@@ -40,7 +40,7 @@
 #define MOD_NAME    "filter_null.so"
 
 /// Version of the filter
-#define MOD_VERSION "v0.4.1 (2005-12-09)"
+#define MOD_VERSION "v0.4.2 (2005-12-29)"
 
 /// A short description
 #define MOD_CAP     "demo filter plugin; does nothing"
@@ -107,7 +107,13 @@ static int null_fini(TCModuleInstance *self)
 static const char *null_configure(TCModuleInstance *self,
                                    const char *options)
 {
-    if (optstr_lookup(options, "help")) {
+    return 0;
+}
+
+static const char *null_inspect(TCModuleInstance*self,
+                                   const char *param)
+{
+    if (optstr_lookup(param, "help")) {
         return null_help;
     }
     return "";
@@ -291,6 +297,7 @@ static const TCModuleClass null_class = {
     .fini         = null_fini,
     .configure    = null_configure,
     .stop         = null_stop,
+    .inspect      = null_inspect,
 
     .filter_video = null_filter,
 };

@@ -14,7 +14,7 @@
 #include "libtc/tcmodule-plugin.h"
 
 #define MOD_NAME    "multiplex_null.so"
-#define MOD_VERSION "v0.0.1 (2005-12-26)"
+#define MOD_VERSION "v0.0.2 (2005-12-29)"
 #define MOD_CAP     "discard each encoded frame"
 
 static const char *null_help = ""
@@ -49,15 +49,26 @@ static int null_fini(TCModuleInstance *self)
     return 0;
 }
 
-static const char *null_configure(TCModuleInstance *self,
-                                 const char *options)
+static int null_configure(TCModuleInstance *self,
+                          const char *options, vob_t *vob)
+{
+    if (!self) {
+        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        return TC_EXPORT_ERROR;
+    }
+    
+    return TC_EXPORT_OK;
+}
+
+static const char *null_inspect(TCModuleInstance *self,
+                                const char *param)
 {
     if (!self) {
         tc_log_error(MOD_NAME, "init: bad instance data reference");
         return NULL;
     }
 
-    if (optstr_lookup(options, "help")) {
+    if (optstr_lookup(param, "help")) {
         return null_help;
     }
 
@@ -120,6 +131,7 @@ static const TCModuleClass null_class = {
     .fini         = null_fini,
     .configure    = null_configure,
     .stop         = null_stop,
+    .inspect      = null_inspect,
 
     .multiplex    = null_multiplex,
 };

@@ -1,4 +1,16 @@
 2005-12-31 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_dv.c filter/filter_levels.c filter/filter_null.c
+    libtc/tcmodule-core.h libtc/tcmodule-data.h libtc/tcmodule.c
+    multiplex/multiplex_avi.c multiplex/multiplex_null.c
+    multiplex/multiplex_raw.c tools/tcmodinfo.c
+  It was silly to have just a single operation for two different
+  tasks like configuring and quering status of a module.
+  So, since API/ABI wasn't yet freezed, introduce a new operation
+  to query the status of a module, and let 'configure' do only
+  configuration job.
+  Update the code to use such new operation.
+
+2005-12-31 Francesco Romani <fromani at gmail dot com>
   * encode/encode_null.c encode/encode_copy.c
   port modules to last API (one step closer to the freeze) and
   use new frame copy functions.

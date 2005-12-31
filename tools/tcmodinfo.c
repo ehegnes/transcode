@@ -375,12 +375,12 @@ int main(int argc, char *argv[])
             tc_log_info(__FILE__, "using new module system");
         }
         /* overview and options */
-        puts(tc_module_configure(module, "help"));
+        puts(tc_module_inspect(module, "help"));
         /* module capabilities */
         tc_module_show_info(module, verbose);
         /* current configuration */
         puts("\ndefault module configuration:");
-        puts(tc_module_configure(module, "dry_run"));
+        puts(tc_module_inspect(module, "all"));
         tc_del_module(factory, module);
         out = 0;
     } else if (!strcmp(modtype, "filter")) {

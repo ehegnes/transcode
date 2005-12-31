@@ -23,7 +23,7 @@
 extern int errno;
 
 #define MOD_NAME    "multiplex_raw.so"
-#define MOD_VERSION "v0.0.1 (2005-12-23)"
+#define MOD_VERSION "v0.0.2 (2005-12-29)"
 #define MOD_CAP     "write each stream in a separate file"
 
 #define RAW_VID_EXT ".vid"
@@ -41,23 +41,33 @@ typedef struct {
     int fd_vid;
 } RawPrivateData;
 
-static const char *raw_configure(TCModuleInstance *self,
-                                 const char *options)
+static const char *raw_inspect(TCModuleInstance *self,
+                               const char *options)
 {
-    vob_t *vob = tc_get_vob();
+    if (!self) {
+        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        return NULL;
+    }
+    
+    if (optstr_lookup(options, "help")) {
+        return raw_help;
+    }
+
+    return "";
+}
+
+static int raw_configure(TCModuleInstance *self,
+                         const char *options, vob_t *vob)
+{
     char vid_name[PATH_MAX];
     char aud_name[PATH_MAX];
     RawPrivateData *pd = NULL;
 
     if (!self) {
         tc_log_error(MOD_NAME, "init: bad instance data reference");
-        return NULL;
+        return TC_EXPORT_ERROR;
     }
     pd = self->userdata;
-
-    if (optstr_lookup(options, "help")) {
-        return raw_help;
-    }
 
     if (!optstr_lookup(options, "dry_run")) {
         if (vob->audio_out_file == NULL) {
@@ -78,7 +88,7 @@ static const char *raw_configure(TCModuleInstance *self,
                               S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
             if (pd->fd_vid == -1) {
                 tc_log_error(MOD_NAME, "failed to open video stream file");
-                return NULL;
+                return TC_EXPORT_ERROR;
             }
         }
 
@@ -88,12 +98,12 @@ static const char *raw_configure(TCModuleInstance *self,
                               S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
             if (pd->fd_aud == -1) {
                 tc_log_error(MOD_NAME, "failed to open audio stream file");
-                return NULL;
+                return TC_EXPORT_ERROR;
             }
         }
     }
 
-    return "";
+    return TC_EXPORT_OK;
 }
 
 static int raw_stop(TCModuleInstance *self)
@@ -225,6 +235,7 @@ static const TCModuleClass raw_class = {
     .fini         = raw_fini,
     .configure    = raw_configure,
     .stop         = raw_stop,
+    .inspect      = raw_inspect,
 
     .multiplex    = raw_multiplex,
 };

@@ -21,7 +21,7 @@
 #include "libtc/tcmodule-plugin.h"
 
 #define MOD_NAME    "encode_dv.so"
-#define MOD_VERSION "v0.0.1 (2005-12-26)"
+#define MOD_VERSION "v0.0.2 (2005-12-29)"
 #define MOD_CAP     "Digital Video encoder"
 
 static const char *tcdv_help = ""
@@ -47,6 +47,43 @@ typedef struct {
     dv_encoder_t *dvenc;
     uint8_t *conv_buf;
 } DVPrivateData;
+
+static int tcdv_configure(TCModuleInstance *self,
+                          const char *options, vob_t *vob)
+{
+    DVPrivateData *pd = NULL;
+
+    if (!self) {
+        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        return TC_EXPORT_ERROR;
+    }
+
+    pd = self->userdata;
+
+    switch (vob->im_v_codec) {
+      case CODEC_RGB:
+        pd->is_yuv = 0;
+        break;
+      case CODEC_YUV:
+        pd->is_yuv = 1;
+        break;
+      default:
+        tc_log_error(MOD_NAME, "codec not supported");
+        return TC_EXPORT_ERROR;
+    }
+
+    // for reading
+    pd->frame_size = (vob->ex_v_height==PAL_H)
+                        ?TC_FRAME_DV_PAL :TC_FRAME_DV_NTSC;
+
+    pd->dvenc->isPAL = (vob->ex_v_height == PAL_H) ?1 :0;
+    pd->dvenc->is16x9 = FALSE;
+    pd->dvenc->vlc_encode_passes = 3;
+    pd->dvenc->static_qno = 0;
+    pd->dvenc->force_dct = DV_DCT_AUTO;
+
+    return TC_EXPORT_OK;
+}
 
 static int tcdv_init(TCModuleInstance *self)
 {
@@ -85,10 +122,13 @@ static int tcdv_init(TCModuleInstance *self)
     pd->frame_size = 0;
     pd->is_yuv = -1; /* invalid value */
 
+    self->userdata = pd;
+    /* can't fail, here */
+    tcdv_configure(self, "", vob);
+    
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     }
-    self->userdata = pd;
 
     return TC_EXPORT_OK;
 
@@ -119,11 +159,10 @@ static int tcdv_fini(TCModuleInstance *self)
     return 0;
 }
 
-static const char *tcdv_configure(TCModuleInstance *self,
-                                 const char *options)
+static const char *tcdv_inspect(TCModuleInstance *self,
+                                const char *param)
 {
     DVPrivateData *pd = NULL;
-    vob_t *vob = tc_get_vob();
 
     if (!self) {
         tc_log_error(MOD_NAME, "init: bad instance data reference");
@@ -132,35 +171,12 @@ static const char *tcdv_configure(TCModuleInstance *self,
 
     pd = self->userdata;
 
-    if (optstr_lookup(options, "help")) {
+    if (optstr_lookup(param, "help")) {
         return tcdv_help;
     }
 
-    switch (vob->im_v_codec) {
-      case CODEC_RGB:
-        pd->is_yuv = 0;
-        break;
-      case CODEC_YUV:
-        pd->is_yuv = 1;
-        break;
-      default:
-        tc_log_error(MOD_NAME, "codec not supported");
-        return NULL;
-    }
-
-    // for reading
-    pd->frame_size = (vob->ex_v_height==PAL_H)
-                        ?TC_FRAME_DV_PAL :TC_FRAME_DV_NTSC;
-
-    pd->dvenc->isPAL = (vob->ex_v_height == PAL_H) ?1 :0;
-    pd->dvenc->is16x9 = FALSE;
-    pd->dvenc->vlc_encode_passes = 3;
-    pd->dvenc->static_qno = 0;
-    pd->dvenc->force_dct = DV_DCT_AUTO;
-
     return "";
 }
-
 
 /* ------------------------------------------------------------
  *
@@ -260,6 +276,7 @@ static const TCModuleClass tcdv_class = {
     .fini         = tcdv_fini,
     .configure    = tcdv_configure,
     .stop         = tcdv_stop,
+    .inspect      = tcdv_inspect,
 
     .encode_video = tcdv_encode_video,
 };

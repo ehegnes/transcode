@@ -45,16 +45,36 @@ struct tcmodule_ {
  * interface helpers, using shortened notation                           *
  *************************************************************************/
 
-#define tc_module_configure(handle, options) \
-    (handle)->klass->configure(&((handle)->instance), options)
-#define tc_module_encode(handle, inframe, outframe) \
-    (handle)->klass->encode(&((handle)->instance), inframe, outframe)
-#define tc_module_decode(handle, inframe, outframe) \
-    (handle)->klass->decode(&((handle)->instance), inframe, outframe)
-#define tc_module_filter(handle, frame) \
-    (handle)->klass->filter(&((handle)->instance), frame)
+#define tc_module_configure(handle, options, vob) \
+    (handle)->klass->configure(&((handle)->instance), options, vob)
+
+#define tc_module_stop(handle) \
+    (handle)->klass->stop(&((handle)->instance))
+
+#define tc_module_inspect(handle, param) \
+    (handle)->klass->inspect(&((handle)->instance), param)
+
+#define tc_module_encode_video(handle, inframe, outframe) \
+    (handle)->klass->encode_video(&((handle)->instance), inframe, outframe)
+
+#define tc_module_encode_audio(handle, inframe, outframe) \
+    (handle)->klass->encode_audio(&((handle)->instance), inframe, outframe)
+
+#define tc_module_decode_video(handle, inframe, outframe) \
+    (handle)->klass->decode_video(&((handle)->instance), inframe, outframe)
+
+#define tc_module_decode_audio(handle, inframe, outframe) \
+    (handle)->klass->decode_audio(&((handle)->instance), inframe, outframe)
+
+#define tc_module_filter_video(handle, frame) \
+    (handle)->klass->filter_video(&((handle)->instance), frame)
+
+#define tc_module_filter_audio(handle, frame) \
+    (handle)->klass->filter_audio(&((handle)->instance), frame)
+
 #define tc_module_multiplex(handle, vframe, aframe) \
     (handle)->klass->multiplex(&((handle)->instance), vframe, aframe)
+
 #define tc_module_demultiplex(handle, vframe, aframe) \
     (handle)->klass->demultiplex(&((handle)->instance), vframe, aframe)
 
