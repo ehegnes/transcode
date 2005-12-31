@@ -285,13 +285,16 @@ aframe_list_t *aframe_register(int id)
 
 /* ------------------------------------------------------------------ */
 
-static void aframe_copy_payload(aframe_list_t *dst, aframe_list_t *src)
+void aframe_copy(aframe_list_t *dst, aframe_list_t *src, int copy_data)
 {
-    if (!dst || !src)
-	return;
+    if (!dst || !src) {
+    	return;
+    }
 
-    // we can't use memcpy here because we don't want
-    // to overwrite the pointers to alloc'ed mem
+    /*
+     * we can't use memcpy here because we don't want
+     * to overwrite the pointers to alloc'ed mem
+     */
 
     dst->bufid = src->bufid;
     dst->tag = src->tag;
@@ -306,8 +309,13 @@ static void aframe_copy_payload(aframe_list_t *dst, aframe_list_t *src)
     dst->a_chan = src->a_chan;
     dst->audio_size = src->audio_size;
 
-    // copy video data
-    ac_memcpy(dst->audio_buf, src->audio_buf, dst->audio_size);
+    if (copy_data == 1) {
+        /* really copy video data */
+        ac_memcpy(dst->audio_buf, src->audio_buf, dst->audio_size);
+    } else {
+        /* soft copy, new frame points to old audio data */
+        dst->audio_buf = src->audio_buf;
+    }
 }
 
 /* ------------------------------------------------------------------ */
@@ -359,7 +367,7 @@ aframe_list_t *aframe_dup(aframe_list_t *f)
   }
 #endif
 
-  aframe_copy_payload (ptr, f);
+  aframe_copy (ptr, f, 1);
 
   ptr->status = FRAME_WAIT;
   ++aud_buf_wait;
