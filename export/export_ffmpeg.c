@@ -197,27 +197,6 @@ static struct ffmpeg_codec *find_ffmpeg_codec(char *name)
     return NULL;
 }
 
-static void strip(char *s) {
-    char *start;
-
-    if (s == NULL)
-        return;
-
-    start = s;
-    while ((*start != 0) && isspace(*start))
-        start++;
-
-    memmove(s, start, strlen(start) + 1);
-    if (strlen(s) == 0)
-        return;
-
-    start = &s[strlen(s) - 1];
-    while ((start != s) && isspace(*start)) {
-        *start = 0;
-        start--;
-    }
-}
-
 static double psnr(double d) {
     if (d == 0)
         return INFINITY;
@@ -242,7 +221,7 @@ MOD_init {
 
         if (vob->ex_v_fcc) {
             user_codec_string = tc_strdup(vob->ex_v_fcc);
-            strip(user_codec_string);
+            tc_strstrip(user_codec_string);
         } else
             user_codec_string = 0;
 
@@ -1214,7 +1193,7 @@ MOD_init {
         if(vob->ex_v_fcc)
         {
             user_codec_string = tc_strdup(vob->ex_v_fcc);
-            strip(user_codec_string);
+            tc_strstrip(user_codec_string);
         }
         else
             user_codec_string = 0;

@@ -114,13 +114,19 @@ size_t strlcat(char *dst, const char *src, size_t size);
 #endif
 
 /*
+ * FIXME: documentation
+ */
+void tc_strstrip(char *s);
+
+/*
  * Check the return value of snprintf, strlcpy, and strlcat.
  *   return value < 0 is an internal error.
  *   return value >= limit means characters were truncated.
  * Returns 0 if not problems, 1 if error.
  * If error, prints reason.
  */
-int tc_test_string(const char *file, int line, int limit, long ret, int errnum);
+int tc_test_string(const char *file, int line, int limit,
+		   long ret, int errnum);
 
 
 /*
@@ -133,9 +139,9 @@ int tc_test_string(const char *file, int line, int limit, long ret, int errnum);
     _tc_snprintf(__FILE__, __LINE__, buf, limit, format , ## args)
 
 int _tc_vsnprintf(const char *file, int line, char *buf, size_t limit,
-          const char *format, va_list args);
+                  const char *format, va_list args);
 int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
-         const char *format, ...);
+                 const char *format, ...);
 
 /*
  * tc_malloc: just a simple wrapper on libc's malloc(), with emits

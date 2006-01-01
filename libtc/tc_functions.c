@@ -29,6 +29,7 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <errno.h>
+#include <ctype.h>
 
 #include "libxio/xio.h"
 
@@ -534,6 +535,33 @@ int tc_probe_path(const char *name)
     }
 
     return TC_PROBE_PATH_INVALID;
+}
+
+/*************************************************************************/
+
+void tc_strstrip(char *s) 
+{
+    char *start;
+
+    if (s == NULL) {
+        return;
+    }
+    
+    start = s;
+    while ((*start != 0) && isspace(*start)) {
+        start++;
+    }
+    
+    memmove(s, start, strlen(start) + 1);
+    if (strlen(s) == 0) {
+        return;
+    }
+    
+    start = &s[strlen(s) - 1];
+    while ((start != s) && isspace(*start)) {
+        *start = 0;
+        start--;
+    }
 }
 
 /*************************************************************************/
