@@ -1,8 +1,12 @@
 2006-01-01 Francesco Romani <fromani at gmail dot com>
+  * libtc/tccodecs.c libtc/tccodecs.h
+  a few more codecs, with descriptions.
+
+2006-01-01 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmoduleinfo.c libtc/tcmodule-info.h
     multiplex/multiplex_avi.c multiplex/multiplex_raw.c
     multiplex/multiplex_null.c
-  Add a new module flag to notify if a module ([de]multiplexor)
+  add a new module flag to notify if a module ([de]multiplexor)
   *needs* to be configure()d before the usage.
   Update multiplexors enabling such flag.
   Update module capabilities support code as well.
@@ -20,7 +24,7 @@
 
   Added files: encode/encode_xvid.c encode/xvid4.h
 
-  Introduce highly experimental NMS XviD encoder, based
+  introduce highly experimental NMS XviD encoder, based
   on export_xvid4 old-style module.
 
 2005-12-31 Francesco Romani <fromani at gmail dot com>
@@ -28,7 +32,7 @@
     libtc/tcmodule-core.h libtc/tcmodule-data.h libtc/tcmodule.c
     multiplex/multiplex_avi.c multiplex/multiplex_null.c
     multiplex/multiplex_raw.c tools/tcmodinfo.c
-  It was silly to have just a single operation for two different
+  it was silly to have just a single operation for two different
   tasks like configuring and quering status of a module.
   So, since API/ABI wasn't yet freezed, introduce a new operation
   to query the status of a module, and let 'configure' do only

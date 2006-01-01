@@ -41,6 +41,19 @@ const TCCodecInfo codecs_info[] = {
     { TC_CODEC_DV, "dv", "DVSD" },
     { TC_CODEC_LZO1, "lzo1", "LZO1" },
     { TC_CODEC_LZO2, "lzo2", "LZO2" },
+    { TC_CODEC_MPEG1VIDEO, "MPEG1video", "MPG1" },
+    { TC_CODEC_MPEG2VIDEO, "MPEG2video", "MPG2" },
+    { TC_CODEC_MP42, "MSmpeg4v2", "MP42" },
+    { TC_CODEC_RV10, "RealVideo10", "RV10" },
+    { TC_CODEC_WMV1, "wmv1", "WMV1" },
+    { TC_CODEC_WMV2, "wmv2", "WMV2" },
+    { TC_CODEC_HFYU, "HuffYUV", "HFYU" },
+    { TC_CODEC_H263P, "h.263+", "H263" }, // XXX: right fcc?
+    { TC_CODEC_H263I, "h.263", "H263" }, // XXX: right fcc?
+    { TC_CODEC_FFV1, "FFMpegV1", "FFV1" },
+    { TC_CODEC_ASV1, "AsusVideo1", "ASV1" },
+    { TC_CODEC_ASV2, "AsusVideo2", "ASV2" },
+    { TC_CODEC_H264, "h.264", "H264" },
     /* FIXME: add more codec informations, on demand */
 
     /* audio codecs */
