@@ -1,3 +1,11 @@
+2006-01-01 Francesco Romani <fromani at gmail dot com>
+  * encode/Makefile.am
+
+  Added files: encode/encode_xvid.c encode/xvid4.h
+
+  Introduce highly experimental NMS XviD encoder, based
+  on export_xvid4 old-style module.
+
 2005-12-31 Francesco Romani <fromani at gmail dot com>
   * encode/encode_dv.c filter/filter_levels.c filter/filter_null.c
     libtc/tcmodule-core.h libtc/tcmodule-data.h libtc/tcmodule.c
