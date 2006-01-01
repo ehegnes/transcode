@@ -1,4 +1,13 @@
 2006-01-01 Francesco Romani <fromani at gmail dot com>
+  * libtc/tcmoduleinfo.c libtc/tcmodule-info.h
+    multiplex/multiplex_avi.c multiplex/multiplex_raw.c
+    multiplex/multiplex_null.c
+  Add a new module flag to notify if a module ([de]multiplexor)
+  *needs* to be configure()d before the usage.
+  Update multiplexors enabling such flag.
+  Update module capabilities support code as well.
+
+2006-01-01 Francesco Romani <fromani at gmail dot com>
   * encode/encode_dv.c
   help message minor fixes.
 
