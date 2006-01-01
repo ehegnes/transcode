@@ -1,4 +1,9 @@
 2006-01-01 Francesco Romani <fromani at gmail dot com>
+  * libtc/tc_functions.c libtc/libtc.h
+  enter tc_strstrip support function, taken form export_ffmpeg.c
+  HEAD was already updated. Documentation still missing.
+
+2006-01-01 Francesco Romani <fromani at gmail dot com>
   * libtc/tccodecs.c libtc/tccodecs.h
   a few more codecs, with descriptions.
 
