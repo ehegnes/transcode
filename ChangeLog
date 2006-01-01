@@ -1,4 +1,8 @@
 2006-01-01 Francesco Romani <fromani at gmail dot com>
+  * tools/tcmodinfo.c
+  add more fake symbols to make encode_xvid load cleanly.
+
+2006-01-01 Francesco Romani <fromani at gmail dot com>
   * encode/Makefile.am
 
   Added files: encode/encode_xvid.c encode/xvid4.h

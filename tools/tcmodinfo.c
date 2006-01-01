@@ -37,6 +37,7 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <pthread.h>
 
 #ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
@@ -88,6 +89,9 @@ vob_t *tc_get_vob()
 }
 
 /* symbols nbeeded by modules */
+pthread_mutex_t delay_video_frames_lock = PTHREAD_MUTEX_INITIALIZER;
+int video_frames_delay = 0;
+const char *tc_config_dir = NULL;
 int verbose  = 0;
 int rgbswap  = 0;
 int tc_accel = -1;    //acceleration code
@@ -112,6 +116,10 @@ void tc_socket_list(void) {}
 void tc_socket_load(void) {}
 void tc_socket_parameter(void) {}
 void tc_socket_preview(void) {}
+
+int module_read_config(char *section, char *prefix, char *module,
+	               void *conf, char *configdir) { return 0; }
+int module_print_config(char *prefix, void *conf) { return 0; }
 
 static int load_plugin(const char *path, int id)
 {
