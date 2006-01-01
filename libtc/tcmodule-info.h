@@ -34,7 +34,12 @@
 
 #define TC_MODULE_FLAG_NONE             0x00000000
 #define TC_MODULE_FLAG_RECONFIGURABLE   0x00000001
-/* module can be reconfigured multiple times safely? */
+/* module can be reconfigured multiple times */
+#define TC_MODULE_FLAG_REQUIRE_CONFIG   0x00000002
+/*
+ * module require at least an explicit configuration
+ * to work properly
+ */
 
 /*
  * this structure will hold all the interesting informations

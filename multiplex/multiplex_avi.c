@@ -26,7 +26,7 @@ static const char *avi_help = ""
     "\tmaximum of one audio and video track.\n"
     "\tYou can add more tracks with further processing.\n"
     "Options:\n"
-    "\tHelp\tproduce module overview and options explanations\n";
+    "\thelp\tproduce module overview and options explanations\n";
 
 typedef struct {
     avi_t *avifile;
@@ -215,7 +215,8 @@ static const int avi_codecs_out[] = { TC_CODEC_ERROR };
 static const TCModuleInfo avi_info = {
     .features    = TC_MODULE_FEATURE_MULTIPLEX|TC_MODULE_FEATURE_VIDEO
                    |TC_MODULE_FEATURE_AUDIO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .flags       = TC_MODULE_FLAG_RECONFIGURABLE
+                   |TC_MODULE_FLAG_REQUIRE_CONFIG,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,

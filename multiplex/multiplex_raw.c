@@ -34,7 +34,7 @@ static const char *raw_help = ""
     "\tthis module simply write audio and video streams in\n"
     "\ta separate plain file for each stream.\n"
     "Options:\n"
-    "\tHelp\tproduce module overview and options explanations\n";
+    "\thelp\tproduce module overview and options explanations\n";
 
 typedef struct {
     int fd_aud;
@@ -220,7 +220,8 @@ static const int raw_codecs_out[] = { TC_CODEC_ERROR };
 static const TCModuleInfo raw_info = {
     .features    = TC_MODULE_FEATURE_MULTIPLEX|TC_MODULE_FEATURE_VIDEO
                    |TC_MODULE_FEATURE_AUDIO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .flags       = TC_MODULE_FLAG_RECONFIGURABLE
+                   |TC_MODULE_FLAG_REQUIRE_CONFIG,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,

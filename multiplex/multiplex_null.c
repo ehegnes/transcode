@@ -22,7 +22,7 @@ static const char *null_help = ""
     "\tthis module simply discard given encoded write audio and video frames.\n"
     "\tIs used for test, benchmark and debug purposes.\n"
     "Options:\n"
-    "\tHelp\tproduce module overview and options explanations\n";
+    "\thelp\tproduce module overview and options explanations\n";
 
 static int null_init(TCModuleInstance *self)
 {
@@ -116,7 +116,8 @@ static const int null_codecs_out[] = { TC_CODEC_ERROR };
 static const TCModuleInfo null_info = {
     .features    = TC_MODULE_FEATURE_MULTIPLEX|TC_MODULE_FEATURE_VIDEO
                    |TC_MODULE_FEATURE_AUDIO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .flags       = TC_MODULE_FLAG_RECONFIGURABLE
+                   |TC_MODULE_FLAG_REQUIRE_CONFIG,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,
