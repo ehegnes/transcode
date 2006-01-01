@@ -1,4 +1,8 @@
 2006-01-01 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_dv.c
+  help message minor fixes.
+
+2006-01-01 Francesco Romani <fromani at gmail dot com>
   * tools/tcmodinfo.c
   add more fake symbols to make encode_xvid load cleanly.
 
