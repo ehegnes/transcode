@@ -28,7 +28,7 @@ static const char *tcdv_help = ""
     "Overview:\n"
     "\tthis module encodes raw RGB/YUV video frames in DV, using libdv.\n"
     "Options:\n"
-    "\tHelp\tproduce module overview and options explanations\n";
+    "\thelp\tproduce module overview and options explanations\n";
 
 
 #include <stdio.h>

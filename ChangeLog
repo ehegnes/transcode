@@ -1,4 +1,14 @@
 2006-01-01 Francesco Romani <fromani at gmail dot com>
+  * encode/Makefile.am encode/encode_copy.c encode/encode_dv.c
+    encode/encode_null.c encode/encode_xvid.c
+
+  Added file: encode/xvid.cfg
+
+  Import template configuration file for encode_xvid
+  (was export/xvid4.cfg renamed).
+  Small updates for other enbcoders.
+
+2006-01-01 Francesco Romani <fromani at gmail dot com>
   * libtc/tc_functions.c libtc/libtc.h
   enter tc_strstrip support function, taken form export_ffmpeg.c
   HEAD was already updated. Documentation still missing.

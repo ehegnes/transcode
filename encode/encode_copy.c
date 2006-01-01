@@ -16,7 +16,7 @@
 
 #define MOD_NAME    "encode_copy.so"
 #define MOD_VERSION "v0.0.2 (2005-12-29)"
-#define MOD_CAP     "copy"
+#define MOD_CAP     "copy (passthrough) A/V frames"
 
 static const char *copy_help = ""
     "Overview:\n"
@@ -24,7 +24,7 @@ static const char *copy_help = ""
     "\tto output.\n"
     "\tFor a faster passthrough consider to use 'null' module.\n"
     "Options:\n"
-    "\tHelp\tproduce module overview and options explanations\n";
+    "\thelp\tproduce module overview and options explanations\n";
 
 static int copy_init(TCModuleInstance *self)
 {

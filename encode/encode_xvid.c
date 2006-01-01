@@ -83,14 +83,14 @@
 #else
 #define XVID_SHARED_LIB_SUFX "so"
 #endif
-#define XVID_CONFIG_FILE "xvid4.cfg"
+#define XVID_CONFIG_FILE "xvid.cfg"
 
 static const char *xvid_help = ""
     "Overview:\n"
     "\tthis module encodes raw RGB/YUV video frames in MPEG4, using XviD.\n"
     "\tXviD is a high quality/performance ISO MPEG4 codec.\n"
     "Options:\n"
-    "\tHelp\tproduce module overview and options explanations\n";
+    "\thelp\tproduce module overview and options explanations\n";
 
 /*****************************************************************************
  * Local data
@@ -668,7 +668,7 @@ static void read_config_file(XviDPrivateData *mod)
         };
 
     /* Read the values */
-    module_read_config(NULL, MOD_NAME, "xvid4", complete_config, tc_config_dir);
+    module_read_config(NULL, MOD_NAME, "xvid", complete_config, tc_config_dir);
 
     /* Print the values */
     if (verbose & TC_DEBUG) {

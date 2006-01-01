@@ -16,14 +16,14 @@
 
 #define MOD_NAME    "encode_null.so"
 #define MOD_VERSION "v0.0.2 (2005-12-29)"
-#define MOD_CAP     "null"
+#define MOD_CAP     "null (passthrough) A/V encoder"
 
 static const char *null_help = ""
     "Overview:\n"
     "\tthis module perform a fast passthrough of A/V frames.\n"
     "\tSwitch to (slower) 'copy' module if this one produces weird results\n"
     "Options:\n"
-    "\tHelp\tproduce module overview and options explanations\n";
+    "\thelp\tproduce module overview and options explanations\n";
 
 static int null_init(TCModuleInstance *self)
 {
