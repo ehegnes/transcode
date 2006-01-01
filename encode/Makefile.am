@@ -19,6 +19,7 @@ endif
 pkg_LTLIBRARIES = \
 	encode_copy.la \
 	encode_null.la \
+	encode_xvid.la \
 	$(MOD_LIBDV)
 
 encode_copy_la_SOURCES = encode_copy.c
@@ -26,6 +27,9 @@ encode_copy_la_LDFLAGS = -module -avoid-version
 
 encode_null_la_SOURCES = encode_null.c
 encode_null_la_LDFLAGS = -module -avoid-version
+
+encode_xvid_la_SOURCES = encode_xvid.c
+encode_xvid_la_LDFLAGS = -module -avoid-version
 
 ## MODS_LIBDV
 encode_dv_la_SOURCES = encode_dv.c 
