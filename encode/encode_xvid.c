@@ -106,8 +106,7 @@ extern char* tc_config_dir;
 
 typedef int (*xvid_function_t)(void *handle, int opt, void *param1, void *param2);
 
-typedef struct _xvid_module_t
-{
+typedef struct {
     void *so;
     xvid_function_t global;
     xvid_function_t encore;
@@ -124,8 +123,7 @@ static int unload_xvid(xvid_module_t *xvid);
  * Transcode module private data
  ****************************************************************************/
 
-typedef struct _XviDPrivateData
-{
+typedef struct {
     /* XviD lib functions */
     xvid_module_t xvid;
 
