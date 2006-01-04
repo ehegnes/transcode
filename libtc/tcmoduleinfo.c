@@ -48,7 +48,7 @@ int tc_module_info_match(const TCModuleInfo *head, const TCModuleInfo *tail)
     return found;
 }
 
-#define DATA_BUF_SIZE   128
+#define DATA_BUF_SIZE   256
 
 static void codecs_to_string(const int *codecs, char *buffer,
                              size_t bufsize, const char *fallback_string)
