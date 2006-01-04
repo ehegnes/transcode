@@ -1,3 +1,8 @@
+2006-01-04 Francesco Romani <fromani at gmail dot com>
+  * tools/tcmodinfo.c
+  allow the inspection of an arbitrary user-defined element of
+  a module using direct passthriugh.
+
 2006-01-01 Francesco Romani <fromani at gmail dot com>
   * encode/Makefile.am encode/encode_copy.c encode/encode_dv.c
     encode/encode_null.c encode/encode_xvid.c

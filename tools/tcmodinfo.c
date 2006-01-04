@@ -73,8 +73,9 @@ static void usage(int status)
     tc_log_info(EXE, "Usage: %s [options]");
     fprintf(stderr, "\t -i name           Module name information (like \'smooth\')\n");
     fprintf(stderr, "\t -p                Print the compiled-in MOD_PATH\n");
-    fprintf(stderr, "\t -d verbosity      verbosity mode [0]\n");
+    fprintf(stderr, "\t -d verbosity      Verbosity mode [0]\n");
     fprintf(stderr, "\t -m path           Use PATH as MOD_PATH\n");
+    fprintf(stderr, "\t -M element        Request to module informations about <element>\n");
     fprintf(stderr, "\t -s socket         Connect to transcode socket\n");
     fprintf(stderr, "\t -t type           Type of module (filter, encode, multiplex)\n");
     fprintf(stderr, "\n");
@@ -252,6 +253,7 @@ int main(int argc, char *argv[])
     const char *filename = NULL;
     const char *modpath = MOD_PATH;
     const char *modtype = "filter";
+    const char *modarg = NULL;
     const char *socketfile = NULL;
     char options[OPTS_SIZE] = { '\0', };
     int print_mod = 0;
@@ -274,7 +276,7 @@ int main(int argc, char *argv[])
     }
 
     while(1) {
-        ch = getopt(argc, argv, "d:i:?vhpm:s:t:");
+        ch = getopt(argc, argv, "d:i:?vhpm:M:s:t:");
 	if (ch == -1) {
 	    break;
 	}
@@ -296,6 +298,10 @@ int main(int argc, char *argv[])
 
           case 'm':
             modpath = optarg;
+            break;
+
+          case 'M':
+            modarg = optarg;
             break;
 
           case 't':
@@ -389,6 +395,10 @@ int main(int argc, char *argv[])
         /* current configuration */
         puts("\ndefault module configuration:");
         puts(tc_module_inspect(module, "all"));
+        if (modarg != NULL) {
+            tc_log_info(__FILE__, "informations about '%s' for module:\n", modarg);
+            puts(tc_module_inspect(module, modarg));
+        }
         tc_del_module(factory, module);
         out = 0;
     } else if (!strcmp(modtype, "filter")) {
