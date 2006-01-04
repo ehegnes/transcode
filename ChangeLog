@@ -1,5 +1,9 @@
 2006-01-04 Francesco Romani <fromani at gmail dot com>
   * tools/tcmodinfo.c
+  fixed silly bug.
+
+2006-01-04 Francesco Romani <fromani at gmail dot com>
+  * tools/tcmodinfo.c
   allow the inspection of an arbitrary user-defined element of
   a module using direct passthriugh.
 

@@ -70,7 +70,7 @@ void version(void)
 static void usage(int status)
 {
     version();
-    tc_log_info(EXE, "Usage: %s [options]");
+    tc_log_info(EXE, "Usage: %s [options]", EXE);
     fprintf(stderr, "\t -i name           Module name information (like \'smooth\')\n");
     fprintf(stderr, "\t -p                Print the compiled-in MOD_PATH\n");
     fprintf(stderr, "\t -d verbosity      Verbosity mode [0]\n");
