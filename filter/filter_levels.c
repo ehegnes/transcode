@@ -46,8 +46,6 @@
 #define OPTION_BUF_SIZE    64
 #define MAP_SIZE           256
 
-#define CONF_STR_SIZE      64
-
 typedef struct
 {
     struct

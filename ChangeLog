@@ -1,3 +1,7 @@
+2006-01-05 Andrew Church <achurch at achurch dot org>
+  * filter/filter_levels.c
+  Fix redefinition of CONF_STR_SIZE.
+
 2006-01-01 Francesco Romani <fromani at gmail dot com>
   * export/export_ffmpeg.c libtc/libtc.h libtc/tc_functions.c
   move 'strip' helper function from export_ffmpeg to libtc,
