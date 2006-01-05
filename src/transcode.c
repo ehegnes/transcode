@@ -2940,14 +2940,33 @@ int main(int argc, char *argv[]) {
 
       // shall we really go this far?
       // If yes, there can be much more settings adjusted.
-      if (ex_vid_mod == NULL || !strcmp(ex_vid_mod, "mpeg2enc")) {
+      if (ex_vid_mod == NULL || !strcmp(ex_vid_mod, "ffmpeg")) {
+	if (!ex_aud_mod)
+	  ex_aud_mod = "ffmpeg";
+	switch (vob->mpeg_profile) {
+	  case(VCD):            vob->ex_v_fcc = "vcd";          break;
+	  case(VCD_PAL):        vob->ex_v_fcc = "vcd-pal";      break;
+	  case(VCD_NTSC):       vob->ex_v_fcc = "vcd-ntsc";     break;
+	  case(SVCD):           vob->ex_v_fcc = "svcd";         break;
+	  case(SVCD_PAL):       vob->ex_v_fcc = "svcd-pal";     break;
+	  case(SVCD_NTSC):      vob->ex_v_fcc = "svcd-ntsc";    break;
+	  case(XVCD):           vob->ex_v_fcc = "xvcd";         break;
+	  case(XVCD_PAL):       vob->ex_v_fcc = "xvcd-pal";     break;
+	  case(XVCD_NTSC):      vob->ex_v_fcc = "xvcd-ntsc";    break;
+	  case(DVD):            vob->ex_v_fcc = "dvd";          break;
+	  case(DVD_PAL):        vob->ex_v_fcc = "dvd-pal";      break;
+	  case(DVD_NTSC):       vob->ex_v_fcc = "dvd-ntsc";     break;
+	  case(PROF_NONE):                                      break;
+	}
+      } // ffmpeg
 #ifdef HAVE_MJPEGTOOLS
-	if(!ex_aud_mod)
+      else if (!strcmp(ex_vid_mod, "mpeg2enc")) {
+	if (!ex_aud_mod)
 	    ex_aud_mod = "mp2enc";
 	no_v_out_codec=0;
 	ex_vid_mod = "mpeg2enc";
 	//FIXME this should be in export_mpeg2enc.c
-	if(!vob->ex_v_fcc) {
+	if (!vob->ex_v_fcc) {
 	  switch (vob->mpeg_profile) {
 	    case VCD_PAL: case VCD_NTSC: case VCD:
 	      vob->ex_v_fcc = "1";
@@ -2962,36 +2981,13 @@ int main(int argc, char *argv[]) {
 	    default: break;
 	  }
 	}
+      } // mpeg2enc
 #endif
-      } else if(!strcmp(ex_vid_mod, "ffmpeg")) {
-
-	if(!ex_aud_mod)
-	  ex_aud_mod = "ffmpeg";
-
-	switch(vob->mpeg_profile)
-	{
-	  case(VCD):		vob->ex_v_fcc = "vcd";		break;
-	  case(VCD_PAL):	vob->ex_v_fcc = "vcd-pal";	break;
-	  case(VCD_NTSC):	vob->ex_v_fcc = "vcd-ntsc";	break;
-	  case(SVCD):		vob->ex_v_fcc = "svcd";		break;
-	  case(SVCD_PAL):	vob->ex_v_fcc = "svcd-pal";	break;
-	  case(SVCD_NTSC):	vob->ex_v_fcc = "svcd-ntsc";break;
-	  case(XVCD):		vob->ex_v_fcc = "xvcd";		break;
-	  case(XVCD_PAL):	vob->ex_v_fcc = "xvcd-pal";	break;
-	  case(XVCD_NTSC):	vob->ex_v_fcc = "xvcd-ntsc";break;
-	  case(DVD):		vob->ex_v_fcc = "dvd";		break;
-	  case(DVD_PAL):	vob->ex_v_fcc = "dvd-pal";	break;
-	  case(DVD_NTSC):	vob->ex_v_fcc = "dvd-ntsc";	break;
-	  case(PROF_NONE):					break;
-	}
-      } // ffmpeg
 
       if (ex_aud_mod == NULL) {
-#ifdef HAVE_MJPEGTOOLS
-	  no_a_out_codec=0;
-	  ex_aud_mod = "mp2enc";
-#endif
-	}
+        no_a_out_codec=0;
+        ex_aud_mod = "ffmpeg";
+      }
     } // mpeg_profile != PROF_NONE
 
 
