@@ -1,4 +1,9 @@
 2006-01-06 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_xvid.c
+  misc bugfixes: enforce stop at shutdown (fini), avoid a memory
+  leak, and more.
+
+2006-01-06 Francesco Romani <fromani at gmail dot com>
   * encode/encode_copy.c encode/encode_null.c encode/encode_dv.c
   use constants instead of magic numbers.
 

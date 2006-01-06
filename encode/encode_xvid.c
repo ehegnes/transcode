@@ -198,7 +198,7 @@ static int xvid_configure(TCModuleInstance *self,
     int ret;	
     XviDPrivateData *pd = NULL;
 
-    if (!self) {
+    if (!self || !vob) {
         tc_log_error(MOD_NAME, "init: bad instance data reference");
         return TC_EXPORT_ERROR;
     }
@@ -256,7 +256,7 @@ static int xvid_init(TCModuleInstance *self)
         return TC_EXPORT_ERROR;
     }
 
-    pd = tc_zalloc(sizeof(XviDPrivateData));
+    pd = tc_malloc(sizeof(XviDPrivateData));
     if (!pd) {
         tc_log_error(MOD_NAME, "init: can't allocate XviD private data");
         return TC_EXPORT_ERROR;
@@ -456,7 +456,8 @@ static int xvid_fini(TCModuleInstance *self)
         tc_log_error(MOD_NAME, "init: bad instance data reference");
         return TC_EXPORT_ERROR;
     }
-
+    xvid_stop(self);
+    
     pd = self->userdata;
     xvid = &pd->xvid;
 
@@ -470,6 +471,9 @@ static int xvid_fini(TCModuleInstance *self)
      * this should be safe to reset the module structure */
     reset_module(pd);
 
+    tc_free(self->userdata);
+    self->userdata = NULL;
+    
     return TC_EXPORT_OK;
 }
 
@@ -606,8 +610,7 @@ static void read_config_file(XviDPrivateData *mod)
     xvid_enc_create_t    *create  = &mod->cfg_create;
     xvid_enc_frame_t     *frame   = &mod->cfg_frame;
 
-    struct config complete_config[] =
-        {
+    struct config xvid_config[] = {
             /* Section [features] */
             {"features", "Feature settings", CONF_TYPE_SECTION, 0, 0, 0, NULL},
             {"quant_type", &mod->cfg_quant_method, CONF_TYPE_STRING, 0, 0, 0, NULL},
@@ -663,14 +666,14 @@ static void read_config_file(XviDPrivateData *mod)
 
             /* End of the config file */
             {NULL, 0, 0, 0, 0, 0, NULL}
-        };
+    };
 
     /* Read the values */
-    module_read_config(NULL, MOD_NAME, "xvid", complete_config, tc_config_dir);
+    module_read_config(NULL, MOD_NAME, "xvid", xvid_config, tc_config_dir);
 
     /* Print the values */
     if (verbose & TC_DEBUG) {
-        module_print_config("["MOD_NAME"] ", complete_config);
+        module_print_config("["MOD_NAME"] ", xvid_config);
     }
         
     return;
