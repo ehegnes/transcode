@@ -152,7 +152,7 @@ static int load_plugin(const char *path, int id)
     filter[id].handle = dlopen(module, RTLD_LAZY);
 
     if (!filter[id].handle) {
-        tc_log_error(EXE, "loading filter module '%s' failed",module);
+        tc_log_error(EXE, "loading filter module '%s' failed", module);
         if ((error = dlerror()) != NULL) {
             fputs(error, stderr);
         }
@@ -396,7 +396,7 @@ int main(int argc, char *argv[])
         puts("\ndefault module configuration:");
         puts(tc_module_inspect(module, "all"));
         if (modarg != NULL) {
-            tc_log_info(__FILE__, "informations about '%s' for module:\n", modarg);
+            tc_log_info(__FILE__, "informations about '%s' for module:", modarg);
             puts(tc_module_inspect(module, modarg));
         }
         tc_del_module(factory, module);

@@ -1,3 +1,7 @@
+2006-01-06 Francesco Romani <fromani at gmail dot com>
+  * tools/tcmodinfo.c
+  small cosmetic and style fixes
+
 2006-01-04 Francesco Romani <fromani at gmail dot com>
   * tools/tcmodinfo.c
   fixed silly bug.
