@@ -1,4 +1,14 @@
 2006-01-06 Francesco Romani <fromani at gmail dot com>
+  * encode/Makefile.am
+
+  Added file: encode/encode_ffmpeg.c
+
+  Add to distributed files right xvid sample configuration file.
+  Introduce placeholder for ffmpeg encoder module.
+  Warning: this module is still under heavy development, and
+  is incomplete at this moment.
+
+2006-01-06 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h libtc/tccodecs.h libtc/tccodecs.c
   more informations in internal codec database: comment and
   multipass flag.

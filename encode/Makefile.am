@@ -20,6 +20,7 @@ pkg_LTLIBRARIES = \
 	encode_copy.la \
 	encode_null.la \
 	encode_xvid.la \
+	encode_ffmpeg.la \
 	$(MOD_LIBDV)
 
 encode_copy_la_SOURCES = encode_copy.c
@@ -31,16 +32,16 @@ encode_null_la_LDFLAGS = -module -avoid-version
 encode_xvid_la_SOURCES = encode_xvid.c
 encode_xvid_la_LDFLAGS = -module -avoid-version
 
-#encode_ffmpeg_la_SOURCES = encode_ffmpeg.c
-#encode_ffmpeg_la_LDFLAGS = -module -avoid-version
-#encode_ffmpeg_la_LIBADD = $(LIBAVCODEC_LIBS)
+encode_ffmpeg_la_SOURCES = encode_ffmpeg.c
+encode_ffmpeg_la_LDFLAGS = -module -avoid-version
+encode_ffmpeg_la_LIBADD = $(LIBAVCODEC_LIBS)
 
-## MODS_LIBDV
+## MOD_LIBDV
 encode_dv_la_SOURCES = encode_dv.c 
 encode_dv_la_LDFLAGS = -module -avoid-version
 encode_dv_la_LIBADD = $(LIBDV_LIBS)
 
-pkg_DATA = xvid4.cfg
+pkg_DATA = xvid.cfg
 
 EXTRA_DIST = \
-	xvid4.cfg
+	xvid.cfg
