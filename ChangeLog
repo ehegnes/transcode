@@ -1,4 +1,13 @@
 2006-01-06 Francesco Romani <fromani at gmail dot com>
+  * libtc/libtc.h libtc/tccodecs.h libtc/tccodecs.c
+  more informations in internal codec database: comment and
+  multipass flag.
+  Also remove some unused code, and add a new function to provide
+  a textual description of a given codec.
+  Documentation will follow as soon as possible.
+  Added identifier for MPEG4 video, removed an unused pair.
+
+2006-01-06 Francesco Romani <fromani at gmail dot com>
   * encode/encode_xvid.c
   misc bugfixes: enforce stop at shutdown (fini), avoid a memory
   leak, and more.
@@ -9,7 +18,7 @@
 
 2006-01-06 Francesco Romani <fromani at gmail dot com>
   * tools/tcmodinfo.c
-  small cosmetic and style fixes
+  small cosmetic and style fixes.
 
 2006-01-04 Francesco Romani <fromani at gmail dot com>
   * tools/tcmodinfo.c

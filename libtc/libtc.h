@@ -443,6 +443,9 @@ int tc_codec_from_string(const char *codec);
  */
 const char* tc_codec_fourcc(int codec);
 
+/* XXX*/
+int tc_codec_description(int codec, char *buf, size_t bufsize);
+
 #ifdef __cplusplus
 }
 #endif

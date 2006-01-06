@@ -46,11 +46,10 @@
 #define TC_CODEC_M2V                   0x000001b3
 #define TC_CODEC_MPEG                  0x01000000
 #define TC_CODEC_MPEG1                 0x00100000
-#define TC_CODEC_MPEG1AUDIO            0x00100001
 #define TC_CODEC_MPEG1VIDEO            0x00100002
 #define TC_CODEC_MPEG2                 0x00010000
-#define TC_CODEC_MPEG2AUDIO            0x00010001
 #define TC_CODEC_MPEG2VIDEO            0x00010002
+#define TC_CODEC_MPEG4VIDEO            0x00001002
 #define TC_CODEC_DV                    0x00001000
 #define TC_CODEC_MP3                   0x00000055
 #define TC_CODEC_NUV                   0x4e757070
