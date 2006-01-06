@@ -38,7 +38,7 @@ static int copy_init(TCModuleInstance *self)
     }
     self->userdata = NULL;
 
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 static int copy_fini(TCModuleInstance *self)
@@ -48,7 +48,7 @@ static int copy_fini(TCModuleInstance *self)
         return TC_EXPORT_ERROR;
     }
 
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 static const char *copy_inspect(TCModuleInstance *self,
@@ -84,7 +84,7 @@ static int copy_stop(TCModuleInstance *self)
         return TC_EXPORT_ERROR;
     }
 
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 static int copy_encode_video(TCModuleInstance *self,
@@ -97,7 +97,7 @@ static int copy_encode_video(TCModuleInstance *self,
 
     vframe_copy(outframe, inframe, 1);
 
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 static int copy_encode_audio(TCModuleInstance *self,
@@ -115,7 +115,7 @@ static int copy_encode_audio(TCModuleInstance *self,
      */
     aframe_copy(outframe, inframe, 1);
 
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 

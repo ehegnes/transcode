@@ -37,7 +37,7 @@ static int null_init(TCModuleInstance *self)
     }
     self->userdata = NULL;
 
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 static int null_fini(TCModuleInstance *self)
@@ -47,7 +47,7 @@ static int null_fini(TCModuleInstance *self)
         return TC_EXPORT_ERROR;
     }
 
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 static int null_configure(TCModuleInstance *self,
@@ -83,7 +83,7 @@ static int null_stop(TCModuleInstance *self)
         return TC_EXPORT_ERROR;
     }
 
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 static int null_encode_video(TCModuleInstance *self,
@@ -96,7 +96,7 @@ static int null_encode_video(TCModuleInstance *self,
 
     vframe_copy(outframe, inframe, 0);
 
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 static int null_encode_audio(TCModuleInstance *self,
@@ -109,7 +109,7 @@ static int null_encode_audio(TCModuleInstance *self,
 
     aframe_copy(outframe, inframe, 0);
 
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 

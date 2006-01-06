@@ -155,7 +155,7 @@ static int tcdv_fini(TCModuleInstance *self)
     tc_free(pd);
 
     self->userdata = NULL;
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 static const char *tcdv_inspect(TCModuleInstance *self,
@@ -242,7 +242,7 @@ static int tcdv_stop(TCModuleInstance *self)
 
     /* we don't need to do anything here */
 
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 /*************************************************************************/
