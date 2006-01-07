@@ -1,3 +1,8 @@
+2006-01-07 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_ffmpeg.c
+  updated ffmpeg encpder module (still incomplete, untested...
+  just broken).
+
 2006-01-06 Francesco Romani <fromani at gmail dot com>
   * encode/Makefile.am
 
