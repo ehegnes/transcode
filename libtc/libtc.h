@@ -446,6 +446,15 @@ const char* tc_codec_fourcc(int codec);
 /* XXX*/
 int tc_codec_description(int codec, char *buf, size_t bufsize);
 
+/* XXX */
+#define TC_MATRIX_SIZE     64
+
+/* XXX */
+int tc_read_matrix(const char *filename, uint8_t *m8, uint16_t *m16);
+
+/* XXX */
+void tc_print_matrix(uint8_t *m8, uint16_t *m16);
+
 #ifdef __cplusplus
 }
 #endif

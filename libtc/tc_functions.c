@@ -566,6 +566,86 @@ void tc_strstrip(char *s)
 
 /*************************************************************************/
 
+static int32_t clamp(int32_t value, uint8_t bitsize)
+{
+    value = (value < 1) ?1 :value;
+    value = (value > (1 << bitsize)) ?(1 << bitsize) :value;
+    return value;
+}
+
+int tc_read_matrix(const char *filename, uint8_t *m8, uint16_t *m16)
+{
+    int i = 0;
+    FILE *input = NULL;
+
+    /* Open the matrix file */
+    input = fopen(filename, "rb");
+    if (!input) {
+        tc_log_warn("read_matrix",
+            "Error opening the matrix file %s",
+            filename);
+        return -1;
+    }
+
+    /* Read the matrix */
+    for(i = 0; i < TC_MATRIX_SIZE; i++) {
+        int value;
+
+        /* If fscanf fails then get out of the loop */
+        if(fscanf(input, "%d", &value) != 1) {
+            tc_log_warn("read_matrix",
+                "Error reading the matrix file %s",
+                filename);
+            fclose(input);
+            return 1;
+        }
+
+        if (m8 != NULL) {
+            m8[i] = clamp(value, 8);
+        } else {
+            m16[i] = clamp(value, 16);
+        }
+    }
+
+    /* We're done */
+    fclose(input);
+
+    return 0;
+}
+
+void tc_print_matrix(uint8_t *m8, uint16_t *m16)
+{
+    int i;
+
+    if (!m8 && !m16) {
+        tc_log_warn("print_matrix", "bad matrix reference!");
+        return;
+    }
+    
+    for(i = 0; i < TC_MATRIX_SIZE; i += 8) {
+        if (m8 != NULL) {
+            tc_log_info("print_matrix",
+                        "%3d %3d %3d %3d "
+                        "%3d %3d %3d %3d",
+                        (int)m8[i],   (int)m8[i+1],
+                        (int)m8[i+2], (int)m8[i+3],
+                        (int)m8[i+4], (int)m8[i+5],
+                        (int)m8[i+6], (int)m8[i+7]);
+        } else {
+            tc_log_info("print_matrix",
+                        "%3d %3d %3d %3d "
+                        "%3d %3d %3d %3d",
+                        (int)m16[i],   (int)m16[i+1],
+                        (int)m16[i+2], (int)m16[i+3],
+                        (int)m16[i+4], (int)m16[i+5],
+                        (int)m16[i+6], (int)m16[i+7]);
+        }
+    }
+    return;
+}
+
+/*************************************************************************/
+
 /* embedded simple test for tc_log()
 
 BEGIN_TEST_CODE

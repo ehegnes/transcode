@@ -603,6 +603,46 @@ static void cleanup_module(XviDPrivateData *mod)
  *  - set_frame_struct same as above for a xvid_enc_frame_t struct.
  ****************************************************************************/
 
+#define INTRA_MATRIX    0
+#define INTER_MATRIX    1
+
+static void load_matrix(XviDPrivateData *mod, int type) 
+{
+    xvid_enc_frame_t  *frame  = &mod->cfg_frame;
+    const char *filename = (type == INTER_MATRIX)
+                                    ?mod->cfg_inter_matrix_file
+                                    :mod->cfg_intra_matrix_file;
+    uint8_t *matrix = NULL;
+
+    if (!filename) {
+        return;
+    }
+
+    matrix = tc_malloc(TC_MATRIX_SIZE);
+    if (matrix != NULL) {
+        int ret =  tc_read_matrix(filename, matrix, NULL);
+        
+        if (ret == 0) {
+            tc_log_info(MOD_NAME, "Loaded %s matrix (switching to "
+                                  "mpeg quantization type)",
+                                  (type == INTER_MATRIX) ?"Inter" :"Intra");
+                print_matrix(matrix, NULL);
+                //free(mod->cfg_quant_method);
+                mod->cfg_quant_method = "mpeg";
+            } else {
+                tc_free(matrix);
+                matrix = NULL;
+            }
+        }
+    }
+
+    if (type == INTER_MATRIX) {
+        frame_quant_inter_matrix = matrix;
+    } else {
+        frame_quant_intra_matrix = matrix;
+    }
+}
+
 static void read_config_file(XviDPrivateData *mod)
 {
     xvid_plugin_single_t *onepass = &mod->cfg_onepass;
@@ -679,9 +719,6 @@ static void read_config_file(XviDPrivateData *mod)
     return;
 }
 
-static void *read_matrix(const char *filename);
-static void print_matrix(unsigned char *matrix);
-
 static void dispatch_settings(XviDPrivateData *mod)
 {
 
@@ -732,24 +769,9 @@ static void dispatch_settings(XviDPrivateData *mod)
         frame->motion |= XVID_ME_DETECT_STATIC_MOTION;
     }
 
-    if (mod->cfg_intra_matrix_file) {
-        frame->quant_intra_matrix = (unsigned char*)read_matrix(mod->cfg_intra_matrix_file);
-        if (frame->quant_intra_matrix != NULL) {
-            tc_log_info(MOD_NAME, "Loaded Intra matrix (switching to mpeg quantization type)");
-            print_matrix(frame->quant_intra_matrix);
-            free(mod->cfg_quant_method);
-            mod->cfg_quant_method = "mpeg";
-        }
-    }
-    if (mod->cfg_inter_matrix_file) {
-        frame->quant_inter_matrix = read_matrix(mod->cfg_inter_matrix_file);
-        if (frame->quant_inter_matrix) {
-            tc_log_info(MOD_NAME, "Loaded Inter matrix (switching to mpeg quantization type)");
-            print_matrix(frame->quant_inter_matrix);
-            free(mod->cfg_quant_method);
-            mod->cfg_quant_method = "mpeg";
-        }
-    }
+    load_matrix(mod, INTRA_MATRIX);
+    load_matrix(mod, INTER_MATRIX);
+    
     if (!strcasecmp(mod->cfg_quant_method, "mpeg")) {
         frame->vol_flags |= XVID_VOL_MPEGQUANT;
     }
