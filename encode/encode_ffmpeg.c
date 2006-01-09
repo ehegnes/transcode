@@ -86,9 +86,9 @@ typedef struct {
     
     AVFrame *lavc_convert_frame;
 
-    AVCodec *lavc_venc_codec;
+    AVCodec *vid_codec;
     AVFrame *lavc_venc_frame;
-    AVCodecContext *lavc_vid_ctx;
+    AVCodecContext *vid_ctx;
     
     int pix_fmt;
     
@@ -189,16 +189,16 @@ static int ffmpeg_configure(TCModuleInstance *self,
         }
     }
     
-    ret = avcodec_open(pd->lavc_vid_ctx, pd->lavc_venc_codec);
+    ret = avcodec_open(pd->vid_ctx, pd->vid_codec);
     if (ret < 0) {
         tc_log_error(MOD_NAME, "could not open FFMPEG codec");
         return TC_EXPORT_ERROR;
     }
 
-    if (pd->lavc_vid_ctx->codec->encode == NULL) {
-      tc_log_error(MOD_NAME, "could not open FFMPEG codec "
-              "(lavc_vid_ctx->codec->encode == NULL)");
-      return TC_EXPORT_ERROR;
+    if (pd->vid_ctx->codec->encode == NULL) {
+        tc_log_error(MOD_NAME, "could not open FFMPEG codec "
+                     "(vid_ctx->codec->encode == NULL)");
+        return TC_EXPORT_ERROR;
     }
 
     if ((pd->threads < 1) || (pd->threads > 7)) {
@@ -208,7 +208,7 @@ static int ffmpeg_configure(TCModuleInstance *self,
     }
 
     tc_log_info(MOD_NAME, "Starting %d thread(s)", pd->threads);
-    avcodec_thread_init(pd->lavc_vid_ctx, pd->threads);
+    avcodec_thread_init(pd->vid_ctx, pd->threads);
 
     if (verbose) {
         config_summary(pd);
@@ -250,10 +250,10 @@ static int ffmpeg_init(TCModuleInstance *self)
     avcodec_register_all();
     pthread_mutex_unlock(&init_avcodec_lock);
 
-    pd->lavc_vid_ctx = avcodec_alloc_context();
+    pd->vid_ctx = avcodec_alloc_context();
     pd->lavc_venc_frame = avcodec_alloc_frame();
 
-    if (!pd->lavc_vid_ctx || !pd->lavc_venc_frame) {
+    if (!pd->vid_ctx || !pd->lavc_venc_frame) {
         fprintf(stderr, "[%s] Could not allocate enough memory.\n", MOD_NAME);
         return TC_EXPORT_ERROR;
     }
@@ -290,9 +290,9 @@ static int ffmpeg_fini(TCModuleInstance *self)
       pd->lavc_venc_frame = NULL;
     }
 
-    if (pd->lavc_vid_ctx != NULL) {
-      free(pd->lavc_vid_ctx);
-      pd->lavc_vid_ctx = NULL;
+    if (pd->vid_ctx != NULL) {
+      free(pd->vid_ctx);
+      pd->vid_ctx = NULL;
     }
 
     if (pd->codecs_desc) {
@@ -447,54 +447,54 @@ static char* describe_out_codecs(void)
 
 static void setup_frc(FFmpegPrivateData *pd, int fr_code)
 {
-    if (!pd || !pd->lavc_vid_ctx) {
+    if (!pd || !pd->vid_ctx) {
         return;
     }
     
     switch (fr_code) {
       case 1: /* 23.976 */
-        pd->lavc_vid_ctx->time_base.den = 24000;
-        pd->lavc_vid_ctx->time_base.num = 1001;
+        pd->vid_ctx->time_base.den = 24000;
+        pd->vid_ctx->time_base.num = 1001;
         break;
       case 2: /* 24.000 */
-        pd->lavc_vid_ctx->time_base.den = 24000;
-        pd->lavc_vid_ctx->time_base.num = 1000;
+        pd->vid_ctx->time_base.den = 24000;
+        pd->vid_ctx->time_base.num = 1000;
         break;
       case 3: /* 25.000 */
-        pd->lavc_vid_ctx->time_base.den = 25000;
-        pd->lavc_vid_ctx->time_base.num = 1000;
+        pd->vid_ctx->time_base.den = 25000;
+        pd->vid_ctx->time_base.num = 1000;
         break;
       case 4: /* 29.970 */
-        pd->lavc_vid_ctx->time_base.den = 30000;
-        pd->lavc_vid_ctx->time_base.num = 1001;
+        pd->vid_ctx->time_base.den = 30000;
+        pd->vid_ctx->time_base.num = 1001;
         break;
       case 5: /* 30.000 */
-        pd->lavc_vid_ctx->time_base.den = 30000;
-        pd->lavc_vid_ctx->time_base.num = 1000;
+        pd->vid_ctx->time_base.den = 30000;
+        pd->vid_ctx->time_base.num = 1000;
         break;
       case 6: /* 50.000 */
-        pd->lavc_vid_ctx->time_base.den = 50000;
-        pd->lavc_vid_ctx->time_base.num = 1000;
+        pd->vid_ctx->time_base.den = 50000;
+        pd->vid_ctx->time_base.num = 1000;
         break;
       case 7: /* 59.940 */
-        pd->lavc_vid_ctx->time_base.den = 60000;
-        pd->lavc_vid_ctx->time_base.num = 1001;
+        pd->vid_ctx->time_base.den = 60000;
+        pd->vid_ctx->time_base.num = 1001;
         break;
       case 8: /* 60.000 */
-        pd->lavc_vid_ctx->time_base.den = 60000;
-        pd->lavc_vid_ctx->time_base.num = 1000;
+        pd->vid_ctx->time_base.den = 60000;
+        pd->vid_ctx->time_base.num = 1000;
         break;
       case 0: /* not set */
       default:
         /* FIXME
         if ((vob->ex_fps > 29) && (vob->ex_fps < 30)) {
-            pd->lavc_vid_ctx->time_base.den = 30000;
-            pd->lavc_vid_ctx->time_base.num = 1001;
+            pd->vid_ctx->time_base.den = 30000;
+            pd->vid_ctx->time_base.num = 1001;
         }
         */
         /* XXX */
-        pd->lavc_vid_ctx->time_base.den = (int)(vob->ex_fps * 1000.0);
-        pd->lavc_vid_ctx->time_base.num = 1000;
+        pd->vid_ctx->time_base.den = (int)(vob->ex_fps * 1000.0);
+        pd->vid_ctx->time_base.num = 1000;
         break;
     }
 }
@@ -502,47 +502,47 @@ static void setup_frc(FFmpegPrivateData *pd, int fr_code)
 // XXX
 static void setup_ex_par(FFmpegPrivateData *pd, vob_t *vob)
 {
-    if (!pd || !pd->lavc_vid_ctx || !vob) {
+    if (!pd || !pd->vid_ctx || !vob) {
         return;
     }
     
     if (vob->ex_par > 0) {
         switch(vob->ex_par) {
           case 1:
-            pd->lavc_vid_ctx->sample_aspect_ratio.num = 1;
-            pd->lavc_vid_ctx->sample_aspect_ratio.den = 1;
+            pd->vid_ctx->sample_aspect_ratio.num = 1;
+            pd->vid_ctx->sample_aspect_ratio.den = 1;
             break;
           case 2:
-            pd->lavc_vid_ctx->sample_aspect_ratio.num = 1200;
-            pd->lavc_vid_ctx->sample_aspect_ratio.den = 1100;
+            pd->vid_ctx->sample_aspect_ratio.num = 1200;
+            pd->vid_ctx->sample_aspect_ratio.den = 1100;
             break;
           case 3:
-            pd->lavc_vid_ctx->sample_aspect_ratio.num = 1000;
-            pd->lavc_vid_ctx->sample_aspect_ratio.den = 1100;
+            pd->vid_ctx->sample_aspect_ratio.num = 1000;
+            pd->vid_ctx->sample_aspect_ratio.den = 1100;
             break;
           case 4:
-            pd->lavc_vid_ctx->sample_aspect_ratio.num = 1600;
-            pd->lavc_vid_ctx->sample_aspect_ratio.den = 1100;
+            pd->vid_ctx->sample_aspect_ratio.num = 1600;
+            pd->vid_ctx->sample_aspect_ratio.den = 1100;
             break;
           case 5:
-            pd->lavc_vid_ctx->sample_aspect_ratio.num = 4000;
-            pd->lavc_vid_ctx->sample_aspect_ratio.den = 3300;
+            pd->vid_ctx->sample_aspect_ratio.num = 4000;
+            pd->vid_ctx->sample_aspect_ratio.den = 3300;
             break;
           default:
             tc_log_warn(MOD_NAME, "unknown PAR code (not in [1..5]),"
                                   " defaulting to 1/1");
-            pd->lavc_vid_ctx->sample_aspect_ratio.num = 1;
-            pd->lavc_vid_ctx->sample_aspect_ratio.den = 1;
+            pd->vid_ctx->sample_aspect_ratio.num = 1;
+            pd->vid_ctx->sample_aspect_ratio.den = 1;
         }
     } else {
         if (vob->ex_par_width > 0 && vob->ex_par_height > 0) {
-            pd->lavc_vid_ctx->sample_aspect_ratio.num = vob->ex_par_width;
-            pd->lavc_vid_ctx->sample_aspect_ratio.den = vob->ex_par_height;
+            pd->vid_ctx->sample_aspect_ratio.num = vob->ex_par_width;
+            pd->vid_ctx->sample_aspect_ratio.den = vob->ex_par_height;
         } else {
             tc_log_warn(MOD_NAME, "bad PAR values (not [>0]/[>0]),"
                                   " defaulting to 1/1");
-            pd->lavc_vid_ctx->sample_aspect_ratio.num = 1;
-            pd->lavc_vid_ctx->sample_aspect_ratio.den = 1;
+            pd->vid_ctx->sample_aspect_ratio.num = 1;
+            pd->vid_ctx->sample_aspect_ratio.den = 1;
         }
     }
 }
@@ -551,7 +551,7 @@ static void setup_dar_sar(FFmpegPrivateData *pd, vob_t *vob)
 {
     double dar, sar;
 
-    if (!pd || !pd->lavc_vid_ctx || !vob) {
+    if (!pd || !pd->vid_ctx || !vob) {
         return;
     }
 
@@ -568,8 +568,8 @@ static void setup_dar_sar(FFmpegPrivateData *pd, vob_t *vob)
             tc_log_info(MOD_NAME, "Display aspect ratio calculated as %f", dar);
                 sar = dar * ((double)vob->ex_v_height / (double)vob->ex_v_width);
                 tc_log_info(MOD_NAME, "Sample aspect ratio calculated as %f", sar);
-                lavc_vid_ctx->sample_aspect_ratio.num = (int)(sar * 1000);
-                lavc_vid_ctx->sample_aspect_ratio.den = 1000;
+                vid_ctx->sample_aspect_ratio.num = (int)(sar * 1000);
+                vid_ctx->sample_aspect_ratio.den = 1000;
             } else {
                 tc_log_warn(MOD_NAME, "Parameter value to --export_asr out of range (allowed: [1-4])");
         		return(TC_EXPORT_ERROR);
@@ -578,11 +578,11 @@ static void setup_dar_sar(FFmpegPrivateData *pd, vob_t *vob)
             tc_log_info(MOD_NAME, "Set display aspect ratio to input");
             /*
              * sar = (4.0 * ((double)vob->ex_v_height) / (3.0 * (double)vob->ex_v_width));
-             * lavc_vid_ctx->sample_aspect_ratio.num = (int)(sar * 1000);
-             * lavc_vid_ctx->sample_aspect_ratio.den = 1000;
+             * vid_ctx->sample_aspect_ratio.num = (int)(sar * 1000);
+             * vid_ctx->sample_aspect_ratio.den = 1000;
              */
-            lavc_vid_ctx->sample_aspect_ratio.num = 1;
-            lavc_vid_ctx->sample_aspect_ratio.den = 1;
+            vid_ctx->sample_aspect_ratio.num = 1;
+            vid_ctx->sample_aspect_ratio.den = 1;
         }
 }
 
@@ -594,11 +594,11 @@ static int parse_options(FFmpegPrivateData *pd, const char *options, vob_t *vob)
     int tc_codec_id;
     int ret;
     
-    pd->lavc_vid_ctx->bit_rate = vob->divxbitrate * 1000;
-    pd->lavc_vid_ctx->width = vob->ex_v_width;
-    pd->lavc_vid_ctx->height = vob->ex_v_height;
-    pd->lavc_vid_ctx->qmin = vob->min_quantizer;
-    pd->lavc_vid_ctx->qmax = vob->max_quantizer;
+    pd->vid_ctx->bit_rate = vob->divxbitrate * 1000;
+    pd->vid_ctx->width = vob->ex_v_width;
+    pd->vid_ctx->height = vob->ex_v_height;
+    pd->vid_ctx->qmin = vob->min_quantizer;
+    pd->vid_ctx->qmax = vob->max_quantizer;
     setup_frc(pd, vob->ex_frc); 
 
     pd->pix_fmt = vob->im_v_codec;
@@ -623,9 +623,9 @@ static int parse_options(FFmpegPrivateData *pd, const char *options, vob_t *vob)
         break;
     }
 
-    pd->lavc_vid_ctx->flags |= interlacing_active ?
+    pd->vid_ctx->flags |= interlacing_active ?
         CODEC_FLAG_INTERLACED_DCT : 0;
-    pd->lavc_vid_ctx->flags |= interlacing_active ?
+    pd->vid_ctx->flags |= interlacing_active ?
         CODEC_FLAG_INTERLACED_ME : 0;
 
     ret = optstr_get(options, "vcodec", "%20[^:]", user_codec);
@@ -650,8 +650,8 @@ static int parse_options(FFmpegPrivateData *pd, const char *options, vob_t *vob)
         }
     }
 
-    pd->lavc_venc_codec = avcodec_find_encoder_by_name(codec_name);
-    if (!lavc_venc_codec) {
+    pd->vid_codec = avcodec_find_encoder_by_name(codec_name);
+    if (!vid_codec) {
         tc_log_error(MOD_NAME, "Could not find a FFMPEG codec for '%s'",
                      user_codec);
         return TC_EXPORT_ERROR;
@@ -662,13 +662,13 @@ static int parse_options(FFmpegPrivateData *pd, const char *options, vob_t *vob)
     }
 
     if (probe_export_attributes & TC_PROBE_NO_EXPORT_GOP) {
-        pd->lavc_vid_ctx->gop_size = vob->divxkeyframes;
+        pd->vid_ctx->gop_size = vob->divxkeyframes;
     } else {
         if (tc_codec_id == TC_CODEC_MPEG1VIDEO
          || tc_codec_id == TC_CODEC_MPEG2VIDEO) {
-            lavc_vid_ctx->gop_size = 15; /* conservative default for mpeg1/2 svcd/dvd */
+            vid_ctx->gop_size = 15; /* conservative default for mpeg1/2 svcd/dvd */
         } else {
-            lavc_vid_ctx->gop_size = 250; /* reasonable default for mpeg4 (and others) */
+            vid_ctx->gop_size = 250; /* reasonable default for mpeg4 (and others) */
         }
     }
 
@@ -698,9 +698,9 @@ static void reset_module(FFmpegPrivateData *pd)
     pd->tmp_buffer = NULL
     pd->yuv42xP_buffer = NULL;
     pd->lavc_convert_frame = NULL;
-    pd->lavc_venc_codec = NULL;
+    pd->vid_codec = NULL;
     pd->lavc_venc_frame = NULL;
-    pd->lavc_vid_ctx = NULL;
+    pd->vid_ctx = NULL;
     pd->pix_fmt = CODEC_YUV;
     pd->stats_file = NULL;
     pd->size = 0;
@@ -729,12 +729,12 @@ static void set_conf_defaults(FFmpegConfig *cfg)
 static void set_lavc_defaults(FFMpegPrivateData *pd)
 {
     AVCodecContext *ff_ctx = NULL; /* shortcut */
-    if (!pd || !pd->lavc_vid_ctx) {
+    if (!pd || !pd->vid_ctx) {
         /* can't happen */
         tc_log_error(MOD_NAME, "BAD ffmpeg context when setting defaults");
         return;
     }
-    ff_ctx = pd->lavc_vid_ctx;
+    ff_ctx = pd->vid_ctx;
 
     ff_ctx->flags = 0;
     ff_ctx->mpeg_quant = 0;
@@ -806,7 +806,7 @@ static void set_lavc_defaults(FFMpegPrivateData *pd)
 
 static int read_config_file(FFmpegPrivateData *pd)
 {
-    AVCodecContext *ff_ctx = pd->lavc_vid_ctx; /* shortcut */
+    AVCodecContext *ff_ctx = pd->vid_ctx; /* shortcut */
     FFmpegConfig aux_cfg;
     
     static struct config ffmpeg_config[] = {

@@ -1,4 +1,8 @@
 2006-01-09 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_ffmpeg.c
+  enshortned some fields of private structure.
+
+2006-01-09 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h libtc/tc_functions.c encode/encode_xvid.c
   generalize code to load custom matrix for encoder, moving
   it in libtc, in order to reuse it in xvid and libavcodec
