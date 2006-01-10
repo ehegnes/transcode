@@ -75,7 +75,7 @@
 #define TC_CODEC_4XM                   0x0006FFFE
 #define TC_CODEC_WMV1                  0x0007FFFE
 #define TC_CODEC_WMV2                  0x0008FFFE
-#define TC_CODEC_HFYU                  0x0009FFFE
+#define TC_CODEC_HUFFYUV               0x0009FFFE
 #define TC_CODEC_INDEO3                0x000AFFFE
 #define TC_CODEC_H263P                 0x000BFFFE
 #define TC_CODEC_H263I                 0x000CFFFE

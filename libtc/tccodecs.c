@@ -56,7 +56,7 @@ const TCCodecInfo tc_codecs_info[] = {
     { TC_CODEC_RV10, "realvideo10", "RV10", "old RealVideo", 0 },
     { TC_CODEC_WMV1, "wmv1", "WMV1", "Windows Media Video v1", 1 },
     { TC_CODEC_WMV2, "wmv2", "WMV2", "Windows Media Video v2", 1 },
-    { TC_CODEC_HFYU, "huffyuv", "HFYU", "Lossless video", 1 },
+    { TC_CODEC_HUFFYUV, "huffyuv", "HFYU", "Lossless video", 1 },
     { TC_CODEC_H263P, "h.263+", "H263", "h.263 plus video ", 1 },
     // XXX: right fcc?
     { TC_CODEC_H263I, "h.263", "H263", "h.263 video", 0 },
