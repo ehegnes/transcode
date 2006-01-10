@@ -626,7 +626,7 @@ static void load_matrix(XviDPrivateData *mod, int type)
             tc_log_info(MOD_NAME, "Loaded %s matrix (switching to "
                                   "mpeg quantization type)",
                                   (type == INTER_MATRIX) ?"Inter" :"Intra");
-                print_matrix(matrix, NULL);
+                //print_matrix(matrix, NULL);
                 //free(mod->cfg_quant_method);
                 mod->cfg_quant_method = "mpeg";
             } else {

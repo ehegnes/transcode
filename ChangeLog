@@ -1,4 +1,8 @@
 2006-01-10 Francesco Romani <fromani at gmail dot com>
+  * enncode/encode_xvid.c
+  don't print custom matrix when loaded.
+
+2006-01-10 Francesco Romani <fromani at gmail dot com>
   * import/decode_lavc.c libtc/tccodecs.c libtc/tccodecs.h
   TC_CODEC_HFYU -> TC_CODEC_HUFFYUV, for clarity
 
