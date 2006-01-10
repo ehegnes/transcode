@@ -32,6 +32,9 @@
 
 #define LINE_LEN  128
 
+#define INTRA_MATRIX    0
+#define INTER_MATRIX    1
+
 static const char *ffmpeg_help = ""
     "Overview:\n"
     "\tthis module provides access to ffmpeg codec library, libavcodec.\n"
@@ -55,11 +58,10 @@ static const int ffmpeg_codecs_in[] = {
 };
 
 static const int ffmpeg_codecs_out[] = {
-    TC_CODEC_MPEG1VIDEO, TC_CODEC_MPEG2VIDEO, TC_CODEC_DV, TC_CODEC_DIVX3,
-    TC_CODEC_MP42, TC_CODEC_MPEG4,
-    TC_CODEC_DIVX5, /* XXX */
+    TC_CODEC_MPEG1VIDEO, TC_CODEC_MPEG2VIDEO, TC_CODEC_MPEG4VIDEO,
+    TC_CODEC_DV, TC_CODEC_DIVX3, TC_CODEC_MP42,
     TC_CODEC_MJPG, TC_CODEC_RV10, TC_CODEC_WMV1, TC_CODEC_WMV2,
-    TC_CODEC_HFYU, TC_CODEC_H263P, TC_CODEC_H263I, TC_CODEC_FFV1,
+    TC_CODEC_HUFFYUV, TC_CODEC_H263P, TC_CODEC_H263I, TC_CODEC_FFV1,
     TC_CODEC_ASV1, TC_CODEC_ASV2, TC_CODEC_H264,
     TC_CODEC_ERROR
 };
@@ -87,7 +89,7 @@ typedef struct {
     AVFrame *lavc_convert_frame;
 
     AVCodec *vid_codec;
-    AVFrame *lavc_venc_frame;
+    AVFrame *venc_frame;
     AVCodecContext *vid_ctx;
     
     int pix_fmt;
@@ -123,6 +125,9 @@ typedef struct {
     int rc_buffer_size;
     int packet_size;
    
+    char *intra_matrix_file;
+    char *inter_matrix_file;
+    
     /* flags */
     int v4mv_flag;
     int vdpart_flag;
@@ -144,16 +149,22 @@ typedef struct {
     int soff_flag;
 } FFmpegConfig;
 
+
 /* helpers used by helpers :) */
 static int have_out_codec(int codec);
 static double psnr(double d); 
 static const char *lavc_codec_name(const char *tc_name);
 static char* describe_out_codecs(void);
+static int setup_lavc_pix_fmt(FFmpegPrivateData *pd, int tc_codec_id);
 static void setup_frc(FFmpegPrivateData *pd, int fr_code);
+static void setup_encode_fields(FFmpegPrivateData *pd, vob_t *vob);
 static void setup_ex_par(FFmpegPrivateData *pd, vob_t *vob);
 static void setup_dar_sar(FFmpegPrivateData *pd, vob_t *vob);
+static void setup_rc_override(FFmpegPrivateData *pd, FFmpegConfig *cfg);
 
 /* main helpers */
+static int startup_libavcodec(FFmpegPrivateData *pd);
+static int setup_multipass(FFmpegPrivateData *pd, vob_t *vob);
 static void reset_module(FFmpegPrivateData *pd);
 static void set_lavc_defaults(FFmpegPrivateData *pd);
 static void set_conf_defaults(FFmpegConfig *cfg);
@@ -161,6 +172,8 @@ static int parse_options(FFmpegPrivateData *pd,
                          const char *options, vob_t *vob);
 static int read_config_file(FFmpegPrivateData *pd);
 static void config_summary(FFmpegPrivateData *pd);
+
+
 
 static int ffmpeg_configure(TCModuleInstance *self,
                             const char *options, vob_t *vob)
@@ -188,28 +201,18 @@ static int ffmpeg_configure(TCModuleInstance *self,
             return TC_EXPORT_ERROR;
         }
     }
+    ret = setup_multipass(pd, vob);
+    if (ret == TC_EXPORT_ERROR) {
+        tc_log_error(MOD_NAME, "failed to setup multipass settings");
+        return TC_EXPORT_ERROR;
+    }
     
-    ret = avcodec_open(pd->vid_ctx, pd->vid_codec);
-    if (ret < 0) {
-        tc_log_error(MOD_NAME, "could not open FFMPEG codec");
+    ret = startup_libavcodec(pd);
+    if (ret == TC_EXPORT_ERROR) {
+        tc_log_error(MOD_NAME, "failed to startup libavcodec");
         return TC_EXPORT_ERROR;
     }
-
-    if (pd->vid_ctx->codec->encode == NULL) {
-        tc_log_error(MOD_NAME, "could not open FFMPEG codec "
-                     "(vid_ctx->codec->encode == NULL)");
-        return TC_EXPORT_ERROR;
-    }
-
-    if ((pd->threads < 1) || (pd->threads > 7)) {
-        tc_log_warn(MOD_NAME, "Thread count out of range "
-                              "(should be [0-7]), reset to 1");
-        pd->threads = 1;
-    }
-
-    tc_log_info(MOD_NAME, "Starting %d thread(s)", pd->threads);
-    avcodec_thread_init(pd->vid_ctx, pd->threads);
-
+    
     if (verbose) {
         config_summary(pd);
     }
@@ -251,9 +254,9 @@ static int ffmpeg_init(TCModuleInstance *self)
     pthread_mutex_unlock(&init_avcodec_lock);
 
     pd->vid_ctx = avcodec_alloc_context();
-    pd->lavc_venc_frame = avcodec_alloc_frame();
+    pd->venc_frame = avcodec_alloc_frame();
 
-    if (!pd->vid_ctx || !pd->lavc_venc_frame) {
+    if (!pd->vid_ctx || !pd->venc_frame) {
         fprintf(stderr, "[%s] Could not allocate enough memory.\n", MOD_NAME);
         return TC_EXPORT_ERROR;
     }
@@ -285,9 +288,9 @@ static int ffmpeg_fini(TCModuleInstance *self)
     
     pd = self->userdata;
 
-    if (pd->lavc_venc_frame) {
-      free(pd->lavc_venc_frame);
-      pd->lavc_venc_frame = NULL;
+    if (pd->venc_frame) {
+      free(pd->venc_frame);
+      pd->venc_frame = NULL;
     }
 
     if (pd->vid_ctx != NULL) {
@@ -445,6 +448,39 @@ static char* describe_out_codecs(void)
     return buffer;
 }
 
+static int startup_libavcodec(FFmpegPrivateData *pd)
+{
+    int ret = 0;
+    
+    // XXX
+    
+    ret = avcodec_open(pd->vid_ctx, pd->vid_codec);
+    if (ret < 0) {
+        tc_log_error(MOD_NAME, "could not open FFMPEG codec");
+        return TC_EXPORT_ERROR;
+    }
+
+    if (pd->vid_ctx->codec->encode == NULL) {
+        tc_log_error(MOD_NAME, "could not open FFMPEG codec "
+                     "(vid_ctx->codec->encode == NULL)");
+        return TC_EXPORT_ERROR;
+    }
+
+    if ((pd->threads < 1) || (pd->threads > 7)) {
+        tc_log_warn(MOD_NAME, "Thread count out of range "
+                              "(should be [0-7]), reset to 1");
+        pd->threads = 1;
+    }
+
+    /* XXX: right place? I'm not convinced */
+    /* free second pass buffer, its not needed anymore */
+    if (vid_ctx->stats_in != NULL) {
+      tc_free(vid_ctx->stats_in);
+      vid_ctx->stats_in = NULL;
+    }
+    return TC_EXPORT_OK;
+}
+
 static void setup_frc(FFmpegPrivateData *pd, int fr_code)
 {
     if (!pd || !pd->vid_ctx) {
@@ -547,6 +583,7 @@ static void setup_ex_par(FFmpegPrivateData *pd, vob_t *vob)
     }
 }
 
+// XXX
 static void setup_dar_sar(FFmpegPrivateData *pd, vob_t *vob)
 {
     double dar, sar;
@@ -556,36 +593,133 @@ static void setup_dar_sar(FFmpegPrivateData *pd, vob_t *vob)
     }
 
     if (vob->ex_asr > 0) {
-                switch(vob->ex_asr) {
-                case 1: dar = 1.0; break;
-                case 2: dar = 4.0/3.0; break;
-                case 3: dar = 16.0/9.0; break;
-                case 4: dar = 221.0/100.0; break;
-                default:
-                    tc_log_warn(MOD_NAME, "Parameter value to --export_asr out of range (allowed: [1-4])");
-		            return(TC_EXPORT_ERROR);
-
-            tc_log_info(MOD_NAME, "Display aspect ratio calculated as %f", dar);
-                sar = dar * ((double)vob->ex_v_height / (double)vob->ex_v_width);
-                tc_log_info(MOD_NAME, "Sample aspect ratio calculated as %f", sar);
-                vid_ctx->sample_aspect_ratio.num = (int)(sar * 1000);
-                vid_ctx->sample_aspect_ratio.den = 1000;
-            } else {
-                tc_log_warn(MOD_NAME, "Parameter value to --export_asr out of range (allowed: [1-4])");
-        		return(TC_EXPORT_ERROR);
-	        }
-        } else { /* user did not specify asr at all, assume no change */
-            tc_log_info(MOD_NAME, "Set display aspect ratio to input");
-            /*
-             * sar = (4.0 * ((double)vob->ex_v_height) / (3.0 * (double)vob->ex_v_width));
-             * vid_ctx->sample_aspect_ratio.num = (int)(sar * 1000);
-             * vid_ctx->sample_aspect_ratio.den = 1000;
-             */
-            vid_ctx->sample_aspect_ratio.num = 1;
-            vid_ctx->sample_aspect_ratio.den = 1;
+        switch (vob->ex_asr) {
+          case 1:
+            dar = 1.0;
+            break;
+          case 2:
+            dar = 4.0/3.0;
+            break;
+          case 3:
+            dar = 16.0/9.0;
+            break;
+          case 4:
+            dar = 221.0/100.0;
+            break;
+          default:
+            tc_log_warn(MOD_NAME, "Bad parameter value for ASR (not in [1-4]),"
+                                  " resetting DAR to 1/1")
+            dar = 1.0;
         }
+
+        sar = dar * ((double)vob->ex_v_height / (double)vob->ex_v_width);
+        tc_log_info(MOD_NAME, "Display aspect ratio calculated as %f", dar);
+        tc_log_info(MOD_NAME, "Sample aspect ratio calculated as %f", sar);
+        pd->vid_ctx->sample_aspect_ratio.num = (int)(sar * 1000);
+        pd->vid_ctx->sample_aspect_ratio.den = 1000;
+    } else {
+        tc_log_info(MOD_NAME, "Set DAR to input (1/1)");
+        pd->vid_ctx->sample_aspect_ratio.num = 1;
+        pd->vid_ctx->sample_aspect_ratio.den = 1;
+    }
 }
 
+static int setup_lavc_pix_fmt(FFmpegPrivateData *pd, int tc_codec_id);
+{
+    if (tc_codec_id == TC_CODEC_HUFFYUV) {
+        pd->vid_ctx->pix_fmt = PIX_FMT_YUV422P;
+    } else {
+        switch (pd->pix_fmt) {
+          case CODEC_YUV:
+          case CODEC_RGB:
+            if (tc_codec_id == TC_CODEC_MJPG) {
+                pd->vid_ctx->pix_fmt = PIX_FMT_YUVJ420P;
+            } else {
+                pd->vid_ctx->pix_fmt = PIX_FMT_YUV420P;
+            }
+            break;
+
+          case CODEC_YUV422:
+            if (tc_codec_id == TC_CODEC_MJPG) {
+                pd->vid_ctx->pix_fmt = PIX_FMT_YUVJ422P;
+            } else {
+                pd->vid_ctx->pix_fmt = PIX_FMT_YUV422P;
+            }
+            break;
+
+          default:
+            tc_log_warn(MOD_NAME, "Unknown pixel format %d.", pix_fmt);
+            return -1;
+        }
+    }
+    return 0;
+}
+
+static void setup_encode_fields(FFmpegPrivateData *pd, vob_t *vob)
+{
+    switch(vob->encode_fields) {
+      case 1:
+        pd->interlacing_active = 1;
+        pd->interlacing_top_first = 1;
+        break;
+      case 2:
+        pd->interlacing_active = 1;
+        pd->interlacing_top_first = 0;
+        break;
+      default: /* progressive / unknown */
+        pd->interlacing_active = 0;
+        pd->interlacing_top_first = 0;
+        break;
+    }
+
+    pd->vid_ctx->flags |= interlacing_active ?
+                            CODEC_FLAG_INTERLACED_DCT :0;
+    pd->vid_ctx->flags |= interlacing_active ?
+                            CODEC_FLAG_INTERLACED_ME :0;
+}
+
+static uint16_t *load_matrix(const char *filename, int type)
+{        
+    uint16_t *matrix = NULL;
+    
+    if (filename != NULL) {
+        matrix = tc_malloc(sizeof(uint16_t) * TC_MATRIX_SIZE);
+        int ret = tc_read_matrix(filename, NULL, matrix);
+        
+        if (ret == 0) {
+            tc_log_info(MOD_NAME, "Using user specified %s matrix",
+                        (type == INTER_MATRIX) ?"inter" :"intra");
+        } else {
+            tc_free(matrix);
+            matrix = NULL;
+        }
+    }
+    return matrix;
+}
+
+static void config_summary(FFmpegPrivateData *pd, vob_t *vob)
+{
+    if (vob->divxmultipass == 3) {
+        tc_log_info(MOD_NAME, "    single-pass session: 3 (VBR)");
+        tc_log_info(MOD_NAME, "          VBR-quantizer: %d",
+                              vob->divxbitrate);
+    } else {
+        tc_log_info(MOD_NAME, "     multi-pass session: %d",
+                              vob->divxmultipass);
+        tc_log_info(MOD_NAME, "      bitrate [kBits/s]: %d",
+                              pd->vid_ctx->bit_rate/1000);
+    }
+
+    tc_log_info(MOD_NAME, "  max keyframe interval: %d\n",
+                          vob->divxkeyframes);
+    tc_log_info(MOD_NAME, "             frame rate: %.2f\n",
+                          vob->ex_fps);
+    tc_log_info(MOD_NAME, "            color space: %s\n",
+                         (pd->pix_fmt == CODEC_RGB) ?"RGB24":
+                        ((pd->pix_fmt == CODEC_YUV) ?"YUV420P" :"YUV422"));
+    tc_log_info(MOD_NAME, "             quantizers: %d/%d\n",
+                          pd->vid_ctx->qmin, pd->vid_ctx->qmax);
+}
 
 static int parse_options(FFmpegPrivateData *pd, const char *options, vob_t *vob)
 {
@@ -599,34 +733,9 @@ static int parse_options(FFmpegPrivateData *pd, const char *options, vob_t *vob)
     pd->vid_ctx->height = vob->ex_v_height;
     pd->vid_ctx->qmin = vob->min_quantizer;
     pd->vid_ctx->qmax = vob->max_quantizer;
-    setup_frc(pd, vob->ex_frc); 
-
+    setup_frc(pd, vob->ex_frc);
+    setup_encode_fields(pd, vob);
     pd->pix_fmt = vob->im_v_codec;
-    if (pd->pix_fmt != CODEC_RGB && pd->pix_fmt != CODEC_YUV
-     && pd->pix_fmt != CODEC_YUV422) {
-        tc_log_error(MOD_NAME, "Unknown color space %d.", pix_fmt);
-        return TC_EXPORT_ERROR;
-    }
-
-    switch(vob->encode_fields) {
-    case 1:
-        pd->interlacing_active = 1;
-        pd->interlacing_top_first = 1;
-        break;
-    case 2:
-        pd->interlacing_active = 1;
-        pd->interlacing_top_first = 0;
-        break;
-    default: /* progressive / unknown */
-        pd->interlacing_active = 0;
-        pd->interlacing_top_first = 0;
-        break;
-    }
-
-    pd->vid_ctx->flags |= interlacing_active ?
-        CODEC_FLAG_INTERLACED_DCT : 0;
-    pd->vid_ctx->flags |= interlacing_active ?
-        CODEC_FLAG_INTERLACED_ME : 0;
 
     ret = optstr_get(options, "vcodec", "%20[^:]", user_codec);
     if (ret > 0) {
@@ -637,6 +746,12 @@ static int parse_options(FFmpegPrivateData *pd, const char *options, vob_t *vob)
     tc_codec_id = tc_codec_from_string(codec_name);
     if (!have_out_codec(pd->tc_codec_id)) {
         tc_log_error(MOD_NAME, "unknown '%s' codec", user_codec);
+        return TC_EXPORT_ERROR;
+    }
+
+    ret = setup_lavc_pix_fmt(pd, tc_codec_id); 
+    if (ret != 0) {
+        tc_log_error(MOD_NAME, "Unknown color space %d.", pix_fmt);
         return TC_EXPORT_ERROR;
     }
 
@@ -686,6 +801,125 @@ static int parse_options(FFmpegPrivateData *pd, const char *options, vob_t *vob)
     return TC_EXPORT_OK;
 }
 
+static int setup_multipass(FFmpegPrivateData *pd, vob_t *vob)
+{
+    size_t fsize;
+    
+    if ((!pd || !pd->vid_ctx) || !vob) {
+        tc_log_warn(MOD_NAME, "multipass: bad references for parsing");
+        return TC_EXPORT_ERROR;
+    }
+    if ((vob->divxmultipass == 1 || vob->divxmultipass == 2)
+      && !pd->multipass) {
+        tc_log_warn(MOD_NAME, "This codec does not support multipass "
+                              "encoding.");
+        return TC_EXPORT_ERROR;
+    }
+
+    switch (vob->divxmultipass) {
+      case 1:
+        pd->vid_ctx->flags |= CODEC_FLAG_PASS1;
+        pd->stats_file = fopen(vob->divxlogfile, "w");
+        if (!pd->stats_file) {
+          tc_log_warn(MOD_NAME, "Could not open 2pass log file \"%s\" for "
+                                "writing.", vob->divxlogfile);
+          return TC_EXPORT_ERROR;
+        }
+        break;
+      case 2:
+        pd->vid_ctx->flags |= CODEC_FLAG_PASS2;
+        pd->stats_file = fopen(vob->divxlogfile, "r");
+        if (!pd->stats_file) {
+          tc_log_warn(MOD_NAME, "Could not open 2pass log file \"%s\" for "
+                                "reading.", vob->divxlogfile);
+          return TC_EXPORT_ERROR;
+        }
+        fseek(pd->stats_file, 0, SEEK_END);
+        fsize = ftell(pd->stats_file);
+        fseek(pd->stats_file, 0, SEEK_SET);
+
+        pd->vid_ctx->stats_in = tc_malloc(fsize + 1);
+        pd->vid_ctx->stats_in[fsize] = 0;
+
+        if (fread(pd->vid_ctx->stats_in, fsize, 1, pd->stats_file) < 1){
+          tc_log_warn(MOD_NAME, "Could not read the complete 2pass log file "
+                                "\"%s\".", vob->divxlogfile);
+          return TC_EXPORT_ERROR;
+        }
+        break;
+      case 3:
+        /* fixed qscale :p */
+        pd->vid_ctx->flags |= CODEC_FLAG_QSCALE;
+        pd->venc_frame->quality = vob->divxbitrate;
+        break;
+    }
+    
+    return TC_EXPORT_OK;
+}
+
+
+static void setup_rc_override(FFmpegPrivateData *pd, FFmpegConfig *cfg)
+{
+    int i = 0, e = 0, q = 0, start = 0, end = 0;
+    int error = 0;
+    const char *p = NULL;
+    AVCodecContext *ff_ctx = NULL; /* shortcut */
+    
+    if ((pd != NULL && pd->vid_ctx != NULL)
+      && cfg != NULL) {
+        ff_ctx = pd->vid_ctx;
+        p = cfg->rc_override_string;
+    
+        for (i = 0; p != NULL; i++) {
+            int start, end, q;
+            int e = sscanf(p, "%d,%d,%d", &start, &end, &q);
+
+            if (e != 3) {
+                tc_log_warn(MOD_NAME, "Error parsing vrc_override.");
+                error = 1;
+                break;
+            }
+            ff_ctx->rc_override =
+                realloc(ff_ctx->rc_override, sizeof(RcOverride) * (i + 1));
+            if (!pd->vid_ctx->rc_override) {
+                tc_log_warn(MOD_NAME, "can't reallocate "
+                                      "rc_override structure");
+                error = 1;
+                break;
+            }
+        
+            ff_ctx->rc_override[i].start_frame = start;
+            ff_ctx->rc_override[i].end_frame   = end;
+            if (q > 0) {
+                ff_ctx->rc_override[i].qscale = q;
+                ff_ctx->rc_override[i].quality_factor = 1.0;
+            } else {
+                ff_ctx->rc_override[i].qscale = 0;
+                ff_ctx->rc_override[i].quality_factor = -q / 100.0;
+            }
+            p = strchr(p, '/');
+            if (p != NULL) { 
+                p++;
+            }
+        }
+    } else {
+        tc_log_warn(MOD_NAME, "rc_override: bad references for parsing");
+        error = 1;
+    }
+    
+    if (error) {
+        if (ff_ctx->rc_override != NULL) {
+            tc_free(ff_ctx->rc_override);
+            ff_ctx->rc_override = NULL;
+        }
+        ff_ctx->rc_override_count = 0;
+    } else {
+        ff_ctx->rc_override_count = i;
+    }
+    
+    return TC_EXPORT_OK;
+}
+
 static void reset_module(FFmpegPrivateData *pd)
 {
     if (!pd) {
@@ -699,7 +933,7 @@ static void reset_module(FFmpegPrivateData *pd)
     pd->yuv42xP_buffer = NULL;
     pd->lavc_convert_frame = NULL;
     pd->vid_codec = NULL;
-    pd->lavc_venc_frame = NULL;
+    pd->venc_frame = NULL;
     pd->vid_ctx = NULL;
     pd->pix_fmt = CODEC_YUV;
     pd->stats_file = NULL;
@@ -802,6 +1036,8 @@ static void set_lavc_defaults(FFMpegPrivateData *pd)
     ff-ctx->threads = 1;
     ff_ctx->intra_dc_precision = 0;
     ff_ctx->top= -1;
+    ff_ctx->inter_matrix_file = NULL;
+    ff_ctx->intra_matrix_file = NULL;
 }
 
 static int read_config_file(FFmpegPrivateData *pd)
@@ -855,8 +1091,8 @@ static int read_config_file(FFmpegPrivateData *pd)
         {"vqsquish", &ff_ctx->rc_qsquish, CONF_TYPE_FLOAT, CONF_RANGE, 0.0, 99.0, NULL},
         {"vqmod_amp", &ff_ctx->rc_qmod_amp, CONF_TYPE_FLOAT, CONF_RANGE, 0.0, 99.0, NULL},
         {"vqmod_freq", &ff_ctx->rc_qmod_freq, CONF_TYPE_INT, 0, 0, 0, NULL},
+        {"vrc_eq", &ff_ctx->rc_eq, CONF_TYPE_STRING, 0, 0, 0, NULL},
         // XXX
-        // {"vrc_eq", &ff_ctx->rc_eq, CONF_TYPE_STRING, 0, 0, 0, NULL},
         // {"vrc_override", &lavc_param_rc_override_string, CONF_TYPE_STRING, 0, 0, 0, NULL},
         // XXX
         {"vrc_maxrate", &aux_cfg.rc_max_rate, CONF_TYPE_INT, CONF_RANGE, 0, 24000000, NULL},
@@ -888,10 +1124,8 @@ static int read_config_file(FFmpegPrivateData *pd)
         {"pbias", &ff_ctx->inter_quant_bias, CONF_TYPE_INT, CONF_RANGE, -512, 512, NULL},
         {"coder", &ff_ctx->coder_type, CONF_TYPE_INT, CONF_RANGE, 0, 10, NULL},
         {"context", &ff_ctx->context_model, CONF_TYPE_INT, CONF_RANGE, 0, 10, NULL},
-        // XXX
-        //{"intra_matrix", &lavc_param_intra_matrix, CONF_TYPE_STRING, 0, 0, 0, NULL},
-        //{"inter_matrix", &lavc_param_inter_matrix, CONF_TYPE_STRING, 0, 0, 0, NULL},
-        // XXX
+        {"intra_matrix_file", &aux_cfg.intra_matrix_file, CONF_TYPE_STRING, 0, 0, 0, NULL},
+        {"inter_matrix_file", &aux_cfg.inter_matrix_file, CONF_TYPE_STRING, 0, 0, 0, NULL},
         {"nr", &ff_ctx->noise_reduction, CONF_TYPE_INT, CONF_RANGE, 0, 1000000, NULL},
         {"sc_threshold", &ff_ctx->scenechange_threshold, CONF_TYPE_INT, CONF_RANGE, -1000000, 1000000, NULL},
         {"inter_threshold", &ff_ctx->inter_threshold, CONF_TYPE_INT, CONF_RANGE, -1000000, 1000000, NULL},
@@ -951,6 +1185,14 @@ static int read_config_file(FFmpegPrivateData *pd)
         ff_ctx->rtp_mode = 1;
     }
     pd->do_psnr = aux_cfg.psnr_flag;
-                
+    
+    ff_ctx->intra_matrix = load_matrix(aux_cfg.intra_matrix_file,
+                                       INTRA_MATRIX);
+    ff_ctx->inter_matrix = load_matrix(aux_cfg.inter_matrix_file,
+                                       INTER_MATRIX);
+    
+    setup_rc_override(pd, &aux_cfg);
+    
     return TC_EXPORT_OK;
 }
+
