@@ -43,15 +43,18 @@ static const char *ffmpeg_help = ""
     "\tlibavcodec can encode audio or video using a wide range of codecs,\n"
     "\tis fast and delivers high quality streams.\n"
     "Options:\n"
-    "\thelp     tproduce module overview and options explanations\n"
-    "\tlist     show all supported codecs\n"
-    "\tvcodec   select video codec to use\n"
-    "\tskipfile do not parse configuration file\n";
+    "\thelp      produce module overview and options explanations\n"
+    "\tlist      show all supported codecs\n"
+    "\tvcodec    select video codec to use\n"
+    "\tnofilecfg do not parse configuration file\n";
 
 /*
  * FIXME:
- * - we can merge reset_module and set_lavc_defaults?
+ * - pix_fmt crazyness
+ * - reduce fields and rednundancy
+ * 
  *
+ * - restore missing features
  */
 
 static const int ffmpeg_codecs_in[] = {
@@ -81,13 +84,14 @@ extern char *tc_config_dir;
  */
 extern pthread_mutex_t init_avcodec_lock;
 
+/* FIXME: add comments */
 typedef struct {
     int multipass;
     int threads;
     
+    /* FXIME: drop? */
     uint8_t *tmp_buffer;
     uint8_t *yuv42xP_buffer;
-    
     AVFrame *lavc_convert_frame;
 
     AVCodec *vid_codec;
@@ -160,6 +164,7 @@ typedef struct {
 /* helpers used by helpers :) */
 static int have_out_codec(int codec);
 static double psnr(double d); 
+static void log_psnr(FFmpegPrivateData *pd);
 static const char *lavc_codec_name(const char *tc_name);
 static char* describe_out_codecs(void);
 static int setup_lavc_pix_fmt(FFmpegPrivateData *pd, int tc_codec_id);
@@ -189,7 +194,7 @@ static int ffmpeg_configure(TCModuleInstance *self,
     int ret;
     
     if (!self || !options || !vob) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        tc_log_error(MOD_NAME, "configure: bad instance data reference");
         return TC_EXPORT_ERROR;
     }
     pd = self->userdata;
@@ -201,10 +206,10 @@ static int ffmpeg_configure(TCModuleInstance *self,
         tc_log_error(MOD_NAME, "failed to setup user configuration");
         return TC_EXPORT_ERROR;
     }
-    if (!optstr_lookup(options, "skipfile")) {
+    if (!optstr_lookup(options, "nofilecfg")) {
         ret = read_config_file(pd);
         if (ret == TC_EXPORT_ERROR) {
-            tc_log_error(MOD_NAME, "failed to setup configuration from file");
+            tc_log_error(MOD_NAME, "failed to read configuration from file");
             return TC_EXPORT_ERROR;
         }
     }
@@ -228,11 +233,42 @@ static int ffmpeg_configure(TCModuleInstance *self,
 
 static int ffmpeg_stop(TCModuleInstance *self)
 {
+    FFmpegPrivateData *pd = NULL;
     if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        tc_log_error(MOD_NAME, "stop: bad instance data reference");
         return TC_EXPORT_ERROR;
     }
+    pd = self->userdata;
 
+    log_psnr(pd);
+    
+    if (pd->vid_codec != NULL) {
+        avcodec_close(pd->vid_ctx);
+    }
+
+    if (pd->vid_ctx != NULL) {
+        if (pd->vid_ctx->rc_override != NULL) {
+            tc_free(pd->vid_ctx->rc_override);
+            pd->vid_ctx->rc_override = NULL;
+        }
+        if (pd->vid_ctx->intra_matrix != NULL) {
+            tc_free(pd->vid_ctx->intra_matrix);
+            pd->vid_ctx->intra_matrix = NULL;
+        }
+        if (pd->vid_ctx->inter_matrix != NULL) {
+            tc_free(pd->vid_ctx->inter_matrix);
+            pd->vid_ctx->inter_matrix = NULL;
+        }
+    }
+
+    if (pd->stats_file) {
+        fclose(pd->stats_file);
+    }
+    if (pd->codec_name) {
+        tc_free(pd->codec_name);
+    }
+    
+    reset_module(pd);
     return TC_EXPORT_OK;
 }
 
@@ -264,13 +300,13 @@ static int ffmpeg_init(TCModuleInstance *self)
     pd->venc_frame = avcodec_alloc_frame();
 
     if (!pd->vid_ctx || !pd->venc_frame) {
-        fprintf(stderr, "[%s] Could not allocate enough memory.\n", MOD_NAME);
+        fprintf(stderr, "[%s] could not allocate enough memory.\n", MOD_NAME);
         return TC_EXPORT_ERROR;
     }
 
     self->userdata = pd;
     /* can't fail, here */
-    ffmpeg_configure(self, "vcodec=mpeg4:skipfile", vob);
+    ffmpeg_configure(self, "vcodec=mpeg4:nofilecfg", vob);
 
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
@@ -282,7 +318,7 @@ static int ffmpeg_fini(TCModuleInstance *self)
 {
     FFmpegPrivateData *pd = NULL;
     if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        tc_log_error(MOD_NAME, "fini: bad instance data reference");
         return TC_EXPORT_ERROR;
     }
 
@@ -296,7 +332,7 @@ static int ffmpeg_fini(TCModuleInstance *self)
     }
 
     if (pd->vid_ctx != NULL) {
-      free(pd->vid_ctx);
+      tc_free(pd->vid_ctx);
       pd->vid_ctx = NULL;
     }
 
@@ -320,7 +356,7 @@ static const char *ffmpeg_inspect(TCModuleInstance *self,
 {
     FFmpegPrivateData *pd = NULL;
     if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        tc_log_error(MOD_NAME, "inspect: bad instance data reference");
         return NULL;
     }
     pd = self->userdata;
@@ -347,7 +383,7 @@ static const char *ffmpeg_inspect(TCModuleInstance *self,
         /* direct answer */
         return pd->codec_name;
     }
-    if (optstr_lookup(param, "skipfile")) {
+    if (optstr_lookup(param, "nofilecfg")) {
         return "0";
     }
     
@@ -359,10 +395,19 @@ static const char *ffmpeg_inspect(TCModuleInstance *self,
 static int ffmpeg_encode_video(TCModuleInstance *self,
                               vframe_list_t *inframe, vframe_list_t *outframe)
 {
+    int out_size;
+    const char pict_type_char[5]= {'?', 'I', 'P', 'B', 'S'};
+    FFmpegPrivateData *pd = NULL;
+
     if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        tc_log_error(MOD_NAME, "encode_video: bad instance data reference");
         return TC_EXPORT_ERROR;
     }
+    pd = self->userdata;
+
+    pd->venc_frame->interlaced_frame = pd->interlacing_active;
+    pd->venc_frame->top_field_first = pd->interlacing_top_first;
+
 
     return TC_EXPORT_OK;
 }
@@ -419,6 +464,24 @@ static double psnr(double d)
     return -10.0 * log(d) / log(10);
 }
 
+static void log_psnr(FFmpegPrivateData *pd)
+{
+    if(pd != NULL && pd->do_psnr) {
+        double f = pd->vid_ctx->width * pd->vid_ctx->height * 255.0 * 255.0;
+
+        f *= pd->vid_ctx->coded_frame->coded_picture_number;
+
+        tc_log_info(MOD_NAME, "PSNR: Y:%2.2f, Cb:%2.2f, Cr:%2.2f, All:%2.2f",
+                              psnr(vid_ctx->error[0]/f),
+                              psnr(vid_ctx->error[1]*4/f),
+                              psnr(vid_ctx->error[2]*4/f),
+                              psnr((vid_ctx->error[0]
+                                  + vid_ctx->error[1]
+                                  + vid_ctx->error[2])
+                                  / (f*1.5)));
+    }
+}
+
 static const char *lavc_codec_name(const char *tc_name)
 {
     if (!strcasecmp(tc_name, "dv")) {
@@ -458,27 +521,27 @@ static int startup_libavcodec(FFmpegPrivateData *pd)
     
     ret = avcodec_open(pd->vid_ctx, pd->vid_codec);
     if (ret < 0) {
-        tc_log_error(MOD_NAME, "could not open FFMPEG codec");
+        tc_log_error(MOD_NAME, "startup: could not open FFMPEG codec");
         return TC_EXPORT_ERROR;
     }
 
     if (pd->vid_ctx->codec->encode == NULL) {
-        tc_log_error(MOD_NAME, "could not open FFMPEG codec "
-                     "(vid_ctx->codec->encode == NULL)");
+        tc_log_error(MOD_NAME, "startup: could not open FFMPEG codec"
+                               " (codec->encode == NULL)");
         return TC_EXPORT_ERROR;
     }
 
     if ((pd->threads < 1) || (pd->threads > 7)) {
-        tc_log_warn(MOD_NAME, "Thread count out of range "
-                              "(should be [0-7]), reset to 1");
+        tc_log_warn(MOD_NAME, "startup: thread count out of range"
+                              " (should be [0-7]), reset to 1");
         pd->threads = 1;
     }
 
     /* XXX: right place? I'm not convinced */
     /* free second pass buffer, its not needed anymore */
     if (pd->vid_ctx->stats_in != NULL) {
-      tc_free(pd->vid_ctx->stats_in);
-      pd->vid_ctx->stats_in = NULL;
+        tc_free(pd->vid_ctx->stats_in);
+        pd->vid_ctx->stats_in = NULL;
     }
     return TC_EXPORT_OK;
 }
@@ -487,6 +550,7 @@ static void setup_frc(FFmpegPrivateData *pd, int fr_code)
 {
     vob_t *vob = tc_get_vob(); /* can't fail */ 
     if (!pd || !pd->vid_ctx) {
+        tc_log_error(MOD_NAME, "setup_frc: bad instance data reference");
         return;
     }
     
@@ -542,6 +606,7 @@ static void setup_frc(FFmpegPrivateData *pd, int fr_code)
 static void setup_ex_par(FFmpegPrivateData *pd, vob_t *vob)
 {
     if (!pd || !pd->vid_ctx || !vob) {
+        tc_log_error(MOD_NAME, "setup_ex_par: bad instance data reference");
         return;
     }
     
@@ -592,6 +657,7 @@ static void setup_dar_sar(FFmpegPrivateData *pd, vob_t *vob)
     double dar, sar;
 
     if (!pd || !pd->vid_ctx || !vob) {
+        tc_log_error(MOD_NAME, "setup_dar_sar: bad instance data reference");
         return;
     }
 
@@ -690,7 +756,7 @@ static uint16_t *load_matrix(const char *filename, int type)
         int ret = tc_read_matrix(filename, NULL, matrix);
         
         if (ret == 0) {
-            tc_log_info(MOD_NAME, "Using user specified %s matrix",
+            tc_log_info(MOD_NAME, "using user specified %s matrix",
                         (type == INTER_MATRIX) ?"inter" :"intra");
         } else {
             tc_free(matrix);
@@ -731,6 +797,13 @@ static int parse_options(FFmpegPrivateData *pd, const char *options, vob_t *vob)
     int tc_codec_id;
     int ret;
     
+    // FIXME: remove me
+    if (vob->im_v_codec != CODEC_YUV) {
+        tc_log_error(MOD_NAME, "sorry, only YUV420 supported, yet");
+        return TC_LOG_ERROR;
+    }
+    
+    pd->pix_fmt = vob->im_v_codec;
     pd->vid_ctx->bit_rate = vob->divxbitrate * 1000;
     pd->vid_ctx->width = vob->ex_v_width;
     pd->vid_ctx->height = vob->ex_v_height;
@@ -738,7 +811,6 @@ static int parse_options(FFmpegPrivateData *pd, const char *options, vob_t *vob)
     pd->vid_ctx->qmax = vob->max_quantizer;
     setup_frc(pd, vob->ex_frc);
     setup_encode_fields(pd, vob);
-    pd->pix_fmt = vob->im_v_codec;
 
     ret = optstr_get(options, "vcodec", "%20[^:]", user_codec);
     if (ret > 0) {
@@ -754,7 +826,7 @@ static int parse_options(FFmpegPrivateData *pd, const char *options, vob_t *vob)
 
     ret = setup_lavc_pix_fmt(pd, tc_codec_id); 
     if (ret != 0) {
-        tc_log_error(MOD_NAME, "Unknown color space %d.", pd->pix_fmt);
+        tc_log_error(MOD_NAME, "unknown color space %d.", pd->pix_fmt);
         return TC_EXPORT_ERROR;
     }
 
@@ -770,12 +842,12 @@ static int parse_options(FFmpegPrivateData *pd, const char *options, vob_t *vob)
 
     pd->vid_codec = avcodec_find_encoder_by_name(codec_name);
     if (!pd->vid_codec) {
-        tc_log_error(MOD_NAME, "Could not find a FFMPEG codec for '%s'",
+        tc_log_error(MOD_NAME, "could not find a FFMPEG codec for '%s'",
                      user_codec);
         return TC_EXPORT_ERROR;
     } else {
         if (verbose) {
-            tc_log_info(MOD_NAME, "Using FFMPEG codec '%s'", user_codec);
+            tc_log_info(MOD_NAME, "using FFMPEG codec '%s'", user_codec);
         }
     }
 
@@ -814,7 +886,7 @@ static int setup_multipass(FFmpegPrivateData *pd, vob_t *vob)
     }
     if ((vob->divxmultipass == 1 || vob->divxmultipass == 2)
       && !pd->multipass) {
-        tc_log_warn(MOD_NAME, "This codec does not support multipass "
+        tc_log_warn(MOD_NAME, "this codec does not support multipass "
                               "encoding.");
         return TC_EXPORT_ERROR;
     }
@@ -824,7 +896,7 @@ static int setup_multipass(FFmpegPrivateData *pd, vob_t *vob)
         pd->vid_ctx->flags |= CODEC_FLAG_PASS1;
         pd->stats_file = fopen(vob->divxlogfile, "w");
         if (!pd->stats_file) {
-          tc_log_warn(MOD_NAME, "Could not open 2pass log file \"%s\" for "
+          tc_log_warn(MOD_NAME, "could not open 2pass log file \"%s\" for "
                                 "writing.", vob->divxlogfile);
           return TC_EXPORT_ERROR;
         }
@@ -833,7 +905,7 @@ static int setup_multipass(FFmpegPrivateData *pd, vob_t *vob)
         pd->vid_ctx->flags |= CODEC_FLAG_PASS2;
         pd->stats_file = fopen(vob->divxlogfile, "r");
         if (!pd->stats_file) {
-          tc_log_warn(MOD_NAME, "Could not open 2pass log file \"%s\" for "
+          tc_log_warn(MOD_NAME, "could not open 2pass log file \"%s\" for "
                                 "reading.", vob->divxlogfile);
           return TC_EXPORT_ERROR;
         }
@@ -845,7 +917,7 @@ static int setup_multipass(FFmpegPrivateData *pd, vob_t *vob)
         pd->vid_ctx->stats_in[fsize] = 0;
 
         if (fread(pd->vid_ctx->stats_in, fsize, 1, pd->stats_file) < 1){
-          tc_log_warn(MOD_NAME, "Could not read the complete 2pass log file "
+          tc_log_warn(MOD_NAME, "could not read the complete 2pass log file "
                                 "\"%s\".", vob->divxlogfile);
           return TC_EXPORT_ERROR;
         }
@@ -878,7 +950,7 @@ static void setup_rc_override(FFmpegPrivateData *pd, FFmpegConfig *cfg)
             int e = sscanf(p, "%d,%d,%d", &start, &end, &q);
 
             if (e != 3) {
-                tc_log_warn(MOD_NAME, "Error parsing vrc_override.");
+                tc_log_warn(MOD_NAME, "error parsing rc_override string");
                 error = 1;
                 break;
             }
@@ -924,6 +996,7 @@ static void setup_rc_override(FFmpegPrivateData *pd, FFmpegConfig *cfg)
 static void reset_module(FFmpegPrivateData *pd)
 {
     if (!pd) {
+        tc_log_error(MOD_NAME, "reset_module: bad instance data reference");
         return;
     }
    
@@ -953,6 +1026,8 @@ static void reset_module(FFmpegPrivateData *pd)
 static void set_conf_defaults(FFmpegConfig *cfg)
 {
     if (!cfg) {
+        tc_log_error(MOD_NAME, "config_defaults: bad instance "
+                               "data reference");
         return;
     }
     memset(cfg, 0, sizeof(FFmpegConfig));
@@ -971,7 +1046,8 @@ static void set_lavc_defaults(FFmpegPrivateData *pd)
     AVCodecContext *ff_ctx = NULL; /* shortcut */
     if (!pd || !pd->vid_ctx) {
         /* can't happen */
-        tc_log_error(MOD_NAME, "BAD ffmpeg context when setting defaults");
+        tc_log_error(MOD_NAME, "libavcodec_defaults: bad instance "
+                               "data reference");
         return;
     }
     ff_ctx = pd->vid_ctx;
@@ -1068,7 +1144,7 @@ static int read_config_file(FFmpegPrivateData *pd)
         {"svcd_sof", &(aux_cfg.soff_flag), CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_SVCD_SCAN_OFFSET, 0},
         {"psnr", &(aux_cfg.psnr_flag), CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_PSNR, NULL}, // XXX
         
-    {"mpeg_quant", &ff_ctx->mpeg_quant, CONF_TYPE_FLAG, 0, 0, 1, NULL}, /* boolean, not flag */
+        {"mpeg_quant", &ff_ctx->mpeg_quant, CONF_TYPE_FLAG, 0, 0, 1, NULL}, /* boolean, not flag */
         {"vratetol", &aux_cfg.vrate_tolerance, CONF_TYPE_INT, CONF_RANGE, 4, 24000000, NULL},
         {"mbd", &ff_ctx->mb_decision, CONF_TYPE_INT, CONF_RANGE, 0, 9, NULL},
         {"vme", &ff_ctx->me_method, CONF_TYPE_INT, CONF_RANGE, 1, 9, NULL}, // XXX
@@ -1094,9 +1170,7 @@ static int read_config_file(FFmpegPrivateData *pd)
         {"vqmod_amp", &ff_ctx->rc_qmod_amp, CONF_TYPE_FLOAT, CONF_RANGE, 0.0, 99.0, NULL},
         {"vqmod_freq", &ff_ctx->rc_qmod_freq, CONF_TYPE_INT, 0, 0, 0, NULL},
         {"vrc_eq", &ff_ctx->rc_eq, CONF_TYPE_STRING, 0, 0, 0, NULL},
-        // XXX
-        // {"vrc_override", &lavc_param_rc_override_string, CONF_TYPE_STRING, 0, 0, 0, NULL},
-        // XXX
+        {"vrc_override", &aux_cfg.rc_override_string, CONF_TYPE_STRING, 0, 0, 0, NULL},
         {"vrc_maxrate", &aux_cfg.rc_max_rate, CONF_TYPE_INT, CONF_RANGE, 0, 24000000, NULL},
         {"vrc_minrate", &aux_cfg.rc_min_rate, CONF_TYPE_INT, CONF_RANGE, 0, 24000000, NULL},
         {"vrc_buf_size", &aux_cfg.rc_buffer_size, CONF_TYPE_INT, CONF_RANGE, 4, 24000000, NULL},
@@ -1133,7 +1207,7 @@ static int read_config_file(FFmpegPrivateData *pd)
         {"inter_threshold", &ff_ctx->inter_threshold, CONF_TYPE_INT, CONF_RANGE, -1000000, 1000000, NULL},
         {"intra_dc_precision", &ff_ctx->intra_dc_precision, CONF_TYPE_INT, CONF_RANGE, 0, 16, NULL},
         
-    {"threads", &pd->threads, CONF_TYPE_INT, CONF_RANGE, 1, 7, NULL},
+       {"threads", &pd->threads, CONF_TYPE_INT, CONF_RANGE, 1, 7, NULL},
         {NULL, NULL, 0, 0, 0, 0, NULL},
     };        
 

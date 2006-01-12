@@ -1,4 +1,9 @@
 2006-01-12 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_ffmpeg.c
+  bunch of fixes and implementation (almost complete) of
+  stop() operation.
+
+2006-01-12 Francesco Romani <fromani at gmail dot com>
   * encode/encode_xvid.c encode/encode_ffmpeg.c
   bunch of fixes. More to come.
 
