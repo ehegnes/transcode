@@ -195,7 +195,7 @@ static int xvid_configure(TCModuleInstance *self,
                           const char *options,
                           vob_t *vob)
 {
-    int ret;	
+    int ret;    
     XviDPrivateData *pd = NULL;
 
     if (!self || !vob) {
@@ -374,7 +374,7 @@ static int xvid_encode_video(TCModuleInstance *self,
     /* XviD Core rame buffering handling
     * We must make sure audio A/V is still good and does not run away */
     if (bytes == 0) {
-	/* XXX */
+    /* XXX */
         extern pthread_mutex_t delay_video_frames_lock;
         extern int video_frames_delay;
         pthread_mutex_lock(&delay_video_frames_lock);
@@ -608,7 +608,7 @@ static void cleanup_module(XviDPrivateData *mod)
 
 static void load_matrix(XviDPrivateData *mod, int type) 
 {
-    xvid_enc_frame_t  *frame  = &mod->cfg_frame;
+    xvid_enc_frame_t *frame = &mod->cfg_frame;
     const char *filename = (type == INTER_MATRIX)
                                     ?mod->cfg_inter_matrix_file
                                     :mod->cfg_intra_matrix_file;
@@ -629,17 +629,16 @@ static void load_matrix(XviDPrivateData *mod, int type)
                 //print_matrix(matrix, NULL);
                 //free(mod->cfg_quant_method);
                 mod->cfg_quant_method = "mpeg";
-            } else {
-                tc_free(matrix);
-                matrix = NULL;
-            }
+        } else {
+            tc_free(matrix);
+            matrix = NULL;
         }
     }
 
     if (type == INTER_MATRIX) {
-        frame_quant_inter_matrix = matrix;
+        frame->quant_inter_matrix = matrix;
     } else {
-        frame_quant_intra_matrix = matrix;
+        frame->quant_intra_matrix = matrix;
     }
 }
 
@@ -1085,78 +1084,6 @@ static const char *errorstring(int err)
     }
 
     return (const char *)error;
-}
-
-/*****************************************************************************
- * Read and print a matrix file
- ****************************************************************************/
-
-static void *read_matrix(const char *filename)
-{
-    int i;
-    unsigned char *matrix;
-    FILE *input;
-
-    /* Allocate matrix space */
-    matrix = tc_malloc(64 * sizeof(unsigned char));
-    if (!matrix) {
-       return NULL;
-    }
-    /* Open the matrix file */
-    input = fopen(filename, "rb");
-    if (!input) {
-        tc_log_warn(MOD_NAME,
-            "Error opening the matrix file %s",
-            filename);
-        free(matrix);
-        return NULL;
-    }
-
-    /* Read the matrix */
-    for(i = 0; i < 64; i++) {
-        int value;
-
-        /* If fscanf fails then get out of the loop */
-        if(fscanf(input, "%d", &value) != 1) {
-            tc_log_warn(MOD_NAME,
-                "Error reading the matrix file %s",
-                filename);
-            free(matrix);
-            fclose(input);
-            return NULL;
-        }
-
-        /* Clamp the value to safe range */
-        value     = (value<  1)?1  :value;
-        value     = (value>255)?255:value;
-        matrix[i] = value;
-    }
-
-    /* Fills the rest with 1 */
-    while(i < 64) {
-        matrix[i++] = 1;
-    }
-
-    /* We're done */
-    fclose(input);
-
-    return matrix;
-}
-
-static void print_matrix(unsigned char *matrix)
-{
-    int i;
-    for(i = 0; i < 64; i += 8) {
-        tc_log_info(MOD_NAME,
-            "%3d %3d %3d %3d "
-            "%3d %3d %3d %3d",
-            (int)matrix[i], (int)matrix[i+1],
-            (int)matrix[i+2], (int)matrix[i+3],
-            (int)matrix[i+4], (int)matrix[i+5],
-            (int)matrix[i+6], (int)matrix[i+7]);
-    }
-
-    return;
 }
 
 /*****************************************************************************

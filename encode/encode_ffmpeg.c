@@ -13,6 +13,8 @@
 #include "transcode.h"
 #include "framebuffer.h"
 #include "filter.h"
+#include "probe_export.h"
+#include "libioaux/configs.h"
 #include "libtc/optstr.h"
 
 #include "libtc/tcmodule-plugin.h"
@@ -105,6 +107,8 @@ typedef struct {
     const char *codec_name;
     char *codecs_desc; /* rarely used, so dynamically created if needed */
     char conf_str[CONF_STR_SIZE]; /* will be always avalaible */
+
+    int levels_handle;
 } FFmpegPrivateData;
 
 /* 
@@ -127,6 +131,8 @@ typedef struct {
    
     char *intra_matrix_file;
     char *inter_matrix_file;
+   
+    char *rc_override_string;
     
     /* flags */
     int v4mv_flag;
@@ -147,6 +153,7 @@ typedef struct {
     int alt_flag;
     int ilme_flag;
     int soff_flag;
+    int trunc_flag;
 } FFmpegConfig;
 
 
@@ -171,7 +178,7 @@ static void set_conf_defaults(FFmpegConfig *cfg);
 static int parse_options(FFmpegPrivateData *pd,
                          const char *options, vob_t *vob);
 static int read_config_file(FFmpegPrivateData *pd);
-static void config_summary(FFmpegPrivateData *pd);
+static void config_summary(FFmpegPrivateData *pd, vob_t *vob);
 
 
 
@@ -214,7 +221,7 @@ static int ffmpeg_configure(TCModuleInstance *self,
     }
     
     if (verbose) {
-        config_summary(pd);
+        config_summary(pd, vob);
     }
     return TC_EXPORT_OK;
 }
@@ -269,11 +276,6 @@ static int ffmpeg_init(TCModuleInstance *self)
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     }
     return TC_EXPORT_OK;
-    
-init_failed:
-    tc_free(pd);
-    self->userdata = NULL; /* paranoia */
-    return TC_EXPORT_ERROR;
 }
 
 static int ffmpeg_fini(TCModuleInstance *self)
@@ -303,13 +305,13 @@ static int ffmpeg_fini(TCModuleInstance *self)
         pd->codecs_desc = NULL;
     }
     if (pd->codec_name) {
-        tc_free(pd->codec_name);
+        tc_free((void*)pd->codec_name); /* avoid const warning */
         pd->codec_name = NULL;
     } 
 
     tc_free(self->userdata);
     self->userdata = NULL;
-    return TC_EXPORT_OK
+    return TC_EXPORT_OK;
 }
 
 
@@ -474,15 +476,16 @@ static int startup_libavcodec(FFmpegPrivateData *pd)
 
     /* XXX: right place? I'm not convinced */
     /* free second pass buffer, its not needed anymore */
-    if (vid_ctx->stats_in != NULL) {
-      tc_free(vid_ctx->stats_in);
-      vid_ctx->stats_in = NULL;
+    if (pd->vid_ctx->stats_in != NULL) {
+      tc_free(pd->vid_ctx->stats_in);
+      pd->vid_ctx->stats_in = NULL;
     }
     return TC_EXPORT_OK;
 }
 
 static void setup_frc(FFmpegPrivateData *pd, int fr_code)
 {
+    vob_t *vob = tc_get_vob(); /* can't fail */ 
     if (!pd || !pd->vid_ctx) {
         return;
     }
@@ -608,7 +611,7 @@ static void setup_dar_sar(FFmpegPrivateData *pd, vob_t *vob)
             break;
           default:
             tc_log_warn(MOD_NAME, "Bad parameter value for ASR (not in [1-4]),"
-                                  " resetting DAR to 1/1")
+                                  " resetting DAR to 1/1");
             dar = 1.0;
         }
 
@@ -624,7 +627,7 @@ static void setup_dar_sar(FFmpegPrivateData *pd, vob_t *vob)
     }
 }
 
-static int setup_lavc_pix_fmt(FFmpegPrivateData *pd, int tc_codec_id);
+static int setup_lavc_pix_fmt(FFmpegPrivateData *pd, int tc_codec_id)
 {
     if (tc_codec_id == TC_CODEC_HUFFYUV) {
         pd->vid_ctx->pix_fmt = PIX_FMT_YUV422P;
@@ -648,7 +651,7 @@ static int setup_lavc_pix_fmt(FFmpegPrivateData *pd, int tc_codec_id);
             break;
 
           default:
-            tc_log_warn(MOD_NAME, "Unknown pixel format %d.", pix_fmt);
+            tc_log_warn(MOD_NAME, "Unknown pixel format %d.", pd->pix_fmt);
             return -1;
         }
     }
@@ -672,9 +675,9 @@ static void setup_encode_fields(FFmpegPrivateData *pd, vob_t *vob)
         break;
     }
 
-    pd->vid_ctx->flags |= interlacing_active ?
+    pd->vid_ctx->flags |= pd->interlacing_active ?
                             CODEC_FLAG_INTERLACED_DCT :0;
-    pd->vid_ctx->flags |= interlacing_active ?
+    pd->vid_ctx->flags |= pd->interlacing_active ?
                             CODEC_FLAG_INTERLACED_ME :0;
 }
 
@@ -744,20 +747,20 @@ static int parse_options(FFmpegPrivateData *pd, const char *options, vob_t *vob)
     }    
     
     tc_codec_id = tc_codec_from_string(codec_name);
-    if (!have_out_codec(pd->tc_codec_id)) {
+    if (!have_out_codec(tc_codec_id)) {
         tc_log_error(MOD_NAME, "unknown '%s' codec", user_codec);
         return TC_EXPORT_ERROR;
     }
 
     ret = setup_lavc_pix_fmt(pd, tc_codec_id); 
     if (ret != 0) {
-        tc_log_error(MOD_NAME, "Unknown color space %d.", pix_fmt);
+        tc_log_error(MOD_NAME, "Unknown color space %d.", pd->pix_fmt);
         return TC_EXPORT_ERROR;
     }
 
     if (tc_codec_id == TC_CODEC_MJPG && pd->levels_handle == -1) {
         tc_log_info(MOD_NAME, "output is mjpeg, extending range from "
-		                      "YUV420P to YUVJ420P (full range)");
+                              "YUV420P to YUVJ420P (full range)");
 
         pd->levels_handle = plugin_get_handle("levels=input=16-240");
         if(pd->levels_handle == -1) {
@@ -766,7 +769,7 @@ static int parse_options(FFmpegPrivateData *pd, const char *options, vob_t *vob)
     }
 
     pd->vid_codec = avcodec_find_encoder_by_name(codec_name);
-    if (!vid_codec) {
+    if (!pd->vid_codec) {
         tc_log_error(MOD_NAME, "Could not find a FFMPEG codec for '%s'",
                      user_codec);
         return TC_EXPORT_ERROR;
@@ -781,9 +784,9 @@ static int parse_options(FFmpegPrivateData *pd, const char *options, vob_t *vob)
     } else {
         if (tc_codec_id == TC_CODEC_MPEG1VIDEO
          || tc_codec_id == TC_CODEC_MPEG2VIDEO) {
-            vid_ctx->gop_size = 15; /* conservative default for mpeg1/2 svcd/dvd */
+            pd->vid_ctx->gop_size = 15; /* conservative default for mpeg1/2 svcd/dvd */
         } else {
-            vid_ctx->gop_size = 250; /* reasonable default for mpeg4 (and others) */
+            pd->vid_ctx->gop_size = 250; /* reasonable default for mpeg4 (and others) */
         }
     }
 
@@ -860,7 +863,7 @@ static int setup_multipass(FFmpegPrivateData *pd, vob_t *vob)
 
 static void setup_rc_override(FFmpegPrivateData *pd, FFmpegConfig *cfg)
 {
-    int i = 0, e = 0, q = 0, start = 0, end = 0;
+    int i = 0;
     int error = 0;
     const char *p = NULL;
     AVCodecContext *ff_ctx = NULL; /* shortcut */
@@ -916,8 +919,6 @@ static void setup_rc_override(FFmpegPrivateData *pd, FFmpegConfig *cfg)
     } else {
         ff_ctx->rc_override_count = i;
     }
-    
-    return TC_EXPORT_OK;
 }
 
 static void reset_module(FFmpegPrivateData *pd)
@@ -929,7 +930,7 @@ static void reset_module(FFmpegPrivateData *pd)
     pd->levels_handle = -1;
     pd->threads = 1;
     pd->multipass = 0;
-    pd->tmp_buffer = NULL
+    pd->tmp_buffer = NULL;
     pd->yuv42xP_buffer = NULL;
     pd->lavc_convert_frame = NULL;
     pd->vid_codec = NULL;
@@ -946,6 +947,7 @@ static void reset_module(FFmpegPrivateData *pd)
     pd->codec_name = "mpeg4";
     pd->codecs_desc = NULL;
     pd->conf_str[0] = '\0';
+    pd->levels_handle = -1;
 }
 
 static void set_conf_defaults(FFmpegConfig *cfg)
@@ -958,9 +960,13 @@ static void set_conf_defaults(FFmpegConfig *cfg)
     cfg->vrate_tolerance = 1000*8;
     cfg->lmin = 2;
     cfg->lmax = 31;
+    
+    cfg->inter_matrix_file = NULL;
+    cfg->intra_matrix_file = NULL;
+    cfg->rc_override_string = NULL;
 }
 
-static void set_lavc_defaults(FFMpegPrivateData *pd)
+static void set_lavc_defaults(FFmpegPrivateData *pd)
 {
     AVCodecContext *ff_ctx = NULL; /* shortcut */
     if (!pd || !pd->vid_ctx) {
@@ -972,16 +978,16 @@ static void set_lavc_defaults(FFMpegPrivateData *pd)
 
     ff_ctx->flags = 0;
     ff_ctx->mpeg_quant = 0;
-    ff_ctx->vrate_tolerance = 1000*8;
+    ff_ctx->bit_rate_tolerance = 1000*8;
     ff_ctx->mb_decision = 0;
     ff_ctx->me_method = 4;
     ff_ctx->mb_qmin = 2;
     ff_ctx->mb_qmax = 31;
     ff_ctx->lmin = 2;
     ff_ctx->lmax = 31;
-    ff_ctx->vqdiff = 3;
-    ff_ctx->vqcompress = 0.5;
-    ff_ctx->vqblur = 0.5;
+    ff_ctx->max_qdiff = 3;
+    ff_ctx->qcompress = 0.5;
+    ff_ctx->qblur = 0.5;
     ff_ctx->max_b_frames = 0;
     ff_ctx->b_quant_factor = 1.25;
     ff_ctx->b_frame_strategy = 0;
@@ -989,23 +995,22 @@ static void set_lavc_defaults(FFMpegPrivateData *pd)
     ff_ctx->rc_strategy = 2;
     ff_ctx->luma_elim_threshold = 0;
     ff_ctx->chroma_elim_threshold = 0;
-    ff_ctx->packet_size = 0;
+    ff_ctx->rtp_payload_size = 0;
     ff_ctx->strict_std_compliance = 0;
-    ff_ctx->vi_qfactor = 0.8;
-    ff_ctx->vi_qoffset = 0.0;
+    ff_ctx->i_quant_factor = 0.8;
+    ff_ctx->i_quant_offset = 0.0;
     ff_ctx->rc_qsquish = 1.0;
     ff_ctx->rc_qmod_amp = 0.0;
     ff_ctx->rc_qmod_freq = 0;
-    ff_ctx->rc_override_string = NULL;
-    ff_ctx->lavc_param_rc_eq = "tex^qComp";
+    ff_ctx->rc_eq = "tex^qComp";
     ff_ctx->rc_buffer_size = 0;
     ff_ctx->rc_buffer_aggressivity = 1.0;
     ff_ctx->rc_max_rate = 0;
     ff_ctx->rc_min_rate = 0;
     ff_ctx->rc_initial_cplx = 0.0;
     ff_ctx->mpeg_quant = 0;
-    ff_ctx->fdct = 0;
-    ff_ctx->idct = 0;
+    ff_ctx->dct_algo = 0;
+    ff_ctx->idct_algo = 0;
     ff_ctx->lumi_masking = 0.0;
     ff_ctx->dark_masking = 0.0;
     ff_ctx->temporal_cplx_masking = 0.0;
@@ -1024,8 +1029,8 @@ static void set_lavc_defaults(FFMpegPrivateData *pd)
     ff_ctx->pre_me = 1;
     ff_ctx->me_subpel_quality = 8;
     ff_ctx->me_range = 0;
-    ff_ctx->ibias = FF_DEFAULT_QUANT_BIAS;
-    ff_ctx->pbias = FF_DEFAULT_QUANT_BIAS;
+    ff_ctx->intra_quant_bias = FF_DEFAULT_QUANT_BIAS;
+    ff_ctx->inter_quant_bias = FF_DEFAULT_QUANT_BIAS;
     ff_ctx->coder_type = 0;
     ff_ctx->context_model = 0;
     ff_ctx->intra_matrix = NULL;
@@ -1033,40 +1038,37 @@ static void set_lavc_defaults(FFMpegPrivateData *pd)
     ff_ctx->noise_reduction = 0;
     ff_ctx->inter_threshold = 0;
     ff_ctx->scenechange_threshold= 0;
-    ff-ctx->threads = 1;
+    ff_ctx->thread_count = 1;
     ff_ctx->intra_dc_precision = 0;
-    ff_ctx->top= -1;
-    ff_ctx->inter_matrix_file = NULL;
-    ff_ctx->intra_matrix_file = NULL;
 }
 
 static int read_config_file(FFmpegPrivateData *pd)
 {
     AVCodecContext *ff_ctx = pd->vid_ctx; /* shortcut */
     FFmpegConfig aux_cfg;
-    
-    static struct config ffmpeg_config[] = {
-        {"v4mv", &aux_cfg.v4mv_flag, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_4MV, 0},
-        {"vdpart", &aux_cfg.vdpart_flag, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_PART, NULL},
-        {"gray", &aux_cfg.gray_flag, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_PART, NULL},
-        {"naq", &aux_cfg.norm_aqp_flag, CONF_TYPE_FLAG, 0, 0, 1, NULL},
-        {"qpel", &aux_cfg.qpel_flag, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_QPEL, NULL},
-        {"trell", &aux_cfg.trell_flag, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_TRELLIS_QUANT, NULL},
-        {"aic", &aux_cfg.aic_flag, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_H263P_AIC, NULL},
-        {"umv", &aux_cfg.umv_flag, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_H263P_UMV, NULL},
-        {"cbp", &aux_cfg.cbp_flag, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_CBP_RD, NULL},
-        {"mv0", &aux_cfg.mv0_flag, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_MV0, NULL},
-        {"qprd", &aux_cfg.qp_rd_flag, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_QP_RD, NULL},
-        {"gmc", &aux_cfg.gmc_flag, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_GMC, NULL},
-        {"trunc", &aux_cfg.trunc_flag, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_TRUNCATED, NULL},
-        {"closedgop", &aux_cfg.closed_gop_flag, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_CLOSED_GOP, NULL},
-        {"ss", &aux_cfg.ss_flag, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_H263P_SLICE_STRUCT, NULL},
-        {"alt", &aux_cfg.alt_flag, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_ALT_SCAN, NULL},
-        {"ilme", &aux_cfg.ilme_flag, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_INTERLACED_ME, NULL}
-        {"svcd_sof", &aux_cfg.soff_flag, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_SVCD_SCAN_OFFSET, 0},
-        {"psnr", &aux_cfg.psnr_flag, CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_PSNR, NULL}, // XXX
+   
+    struct config ffmpeg_config[] = {
+        {"v4mv", &(aux_cfg.v4mv_flag), CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_4MV, 0},
+        {"vdpart", &(aux_cfg.vdpart_flag), CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_PART, NULL},
+        {"gray", &(aux_cfg.gray_flag), CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_PART, NULL},
+        {"naq", &(aux_cfg.norm_aqp_flag), CONF_TYPE_FLAG, 0, 0, 1, NULL},
+        {"qpel", &(aux_cfg.qpel_flag), CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_QPEL, NULL},
+        {"trell", &(aux_cfg.trell_flag), CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_TRELLIS_QUANT, NULL},
+        {"aic", &(aux_cfg.aic_flag), CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_H263P_AIC, NULL},
+        {"umv", &(aux_cfg.umv_flag), CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_H263P_UMV, NULL},
+        {"cbp", &(aux_cfg.cbp_flag), CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_CBP_RD, NULL},
+        {"mv0", &(aux_cfg.mv0_flag), CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_MV0, NULL},
+        {"qprd", &(aux_cfg.qp_rd_flag), CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_QP_RD, NULL},
+        {"gmc", &(aux_cfg.gmc_flag), CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_GMC, NULL},
+        {"trunc", &(aux_cfg.trunc_flag), CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_TRUNCATED, NULL},
+        {"closedgop", &(aux_cfg.closed_gop_flag), CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_CLOSED_GOP, NULL},
+        {"ss", &(aux_cfg.ss_flag), CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_H263P_SLICE_STRUCT, NULL},
+        {"alt", &(aux_cfg.alt_flag), CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_ALT_SCAN, NULL},
+        {"ilme", &(aux_cfg.ilme_flag), CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_INTERLACED_ME, NULL},
+        {"svcd_sof", &(aux_cfg.soff_flag), CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_SVCD_SCAN_OFFSET, 0},
+        {"psnr", &(aux_cfg.psnr_flag), CONF_TYPE_FLAG, 0, 0, CODEC_FLAG_PSNR, NULL}, // XXX
         
-        {"mpeg_quant", &ff_ctx->mpeg_quant, CONF_TYPE_FLAG, 0, 0, 1, NULL}, /* boolean, not flag */
+    {"mpeg_quant", &ff_ctx->mpeg_quant, CONF_TYPE_FLAG, 0, 0, 1, NULL}, /* boolean, not flag */
         {"vratetol", &aux_cfg.vrate_tolerance, CONF_TYPE_INT, CONF_RANGE, 4, 24000000, NULL},
         {"mbd", &ff_ctx->mb_decision, CONF_TYPE_INT, CONF_RANGE, 0, 9, NULL},
         {"vme", &ff_ctx->me_method, CONF_TYPE_INT, CONF_RANGE, 1, 9, NULL}, // XXX
@@ -1086,8 +1088,8 @@ static int read_config_file(FFmpegPrivateData *pd)
         {"vcelim", &ff_ctx->chroma_elim_threshold, CONF_TYPE_INT, CONF_RANGE, -99, 99, NULL},
         {"vpsize", &aux_cfg.packet_size, CONF_TYPE_INT, CONF_RANGE, 0, 100000000, NULL},
         {"vstrict", &ff_ctx->strict_std_compliance, CONF_TYPE_INT, CONF_RANGE, -99, 99, NULL },
-        {"vi_qfactor", &ff_ctx->vi_qfactor, CONF_TYPE_FLOAT, CONF_RANGE, -31.0, 31.0, NULL},
-        {"vi_qoffset", &ff_ctx->vi_qoffset, CONF_TYPE_FLOAT, CONF_RANGE, 0.0, 31.0, NULL},
+        {"vi_qfactor", &ff_ctx->i_quant_factor, CONF_TYPE_FLOAT, CONF_RANGE, -31.0, 31.0, NULL},
+        {"vi_qoffset", &ff_ctx->i_quant_offset, CONF_TYPE_FLOAT, CONF_RANGE, 0.0, 31.0, NULL},
         {"vqsquish", &ff_ctx->rc_qsquish, CONF_TYPE_FLOAT, CONF_RANGE, 0.0, 99.0, NULL},
         {"vqmod_amp", &ff_ctx->rc_qmod_amp, CONF_TYPE_FLOAT, CONF_RANGE, 0.0, 99.0, NULL},
         {"vqmod_freq", &ff_ctx->rc_qmod_freq, CONF_TYPE_INT, 0, 0, 0, NULL},
@@ -1131,12 +1133,14 @@ static int read_config_file(FFmpegPrivateData *pd)
         {"inter_threshold", &ff_ctx->inter_threshold, CONF_TYPE_INT, CONF_RANGE, -1000000, 1000000, NULL},
         {"intra_dc_precision", &ff_ctx->intra_dc_precision, CONF_TYPE_INT, CONF_RANGE, 0, 16, NULL},
         
-        {"threads", &pd->threads, CONF_TYPE_INT, CONF_RANGE, 1, 7, NULL}, // XXX
+    {"threads", &pd->threads, CONF_TYPE_INT, CONF_RANGE, 1, 7, NULL},
         {NULL, NULL, 0, 0, 0, 0, NULL},
     };        
 
-    module_read_config(pd->codec_name, MOD_NAME, "ffmpeg", ffmpeg_config, tc_config_dir);
-    if (verbose_flag & TC_DEBUG) {
+    set_conf_defaults(&aux_cfg);
+    
+    module_read_config((char*)pd->codec_name, MOD_NAME, "ffmpeg", ffmpeg_config, tc_config_dir);
+    if (verbose & TC_DEBUG) {
         tc_log_info(MOD_NAME, "Using the following FFMPEG parameters:");
         module_print_config("["MOD_NAME"] ", ffmpeg_config);
     }
@@ -1180,7 +1184,7 @@ static int read_config_file(FFmpegPrivateData *pd)
         ff_ctx->scenechange_threshold = 1000000000;
     }
  
-    ff_ctx->->rtp_payload_size = aux_cfg.packet_size;
+    ff_ctx->rtp_payload_size = aux_cfg.packet_size;
     if (aux_cfg.packet_size > 0) {
         ff_ctx->rtp_mode = 1;
     }
