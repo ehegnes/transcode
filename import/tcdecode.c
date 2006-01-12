@@ -256,7 +256,7 @@ int main(int argc, char *argv[])
 	else if (!strcmp(codec, "4xm")) decode.codec = TC_CODEC_4XM;
 	else if (!strcmp(codec, "wmv1")) decode.codec = TC_CODEC_WMV1;
 	else if (!strcmp(codec, "wmv2")) decode.codec = TC_CODEC_WMV2;
-	else if (!strcmp(codec, "hfyu")) decode.codec = TC_CODEC_HFYU;
+	else if (!strcmp(codec, "hfyu")) decode.codec = TC_CODEC_HUFFYUV;
 	else if (!strcmp(codec, "indeo3")) decode.codec = TC_CODEC_INDEO3;
 	else if (!strcmp(codec, "h263p")) decode.codec = TC_CODEC_H263P;
 	else if (!strcmp(codec, "h263i")) decode.codec = TC_CODEC_H263I;

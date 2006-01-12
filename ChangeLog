@@ -1,3 +1,7 @@
+2006-01-12 Francesco Romani <fromani at gmail dot com>
+  * import/import_ffmpeg.c import/decode_lavc.c
+  update code to use TC_CODEC_HUFFYUV.
+
 2006-01-10 Francesco Romani <fromani at gmail dot com>
   * encode/encode_ffmpeg.c
   another update (at least two more will follow).
