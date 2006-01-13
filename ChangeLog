@@ -1,3 +1,7 @@
+2006-01-13 Andrew Church <achurch at achurch dot org>
+  * import/decode_dv.c
+  Rewrite into a more legible (and more robust) form.
+
 2006-01-13 Francesco Romani <fromani at gmail dot com>
   * libtc/tc_functions.c
   make tc_log() backend to not abort when going out of memory,
