@@ -292,7 +292,7 @@ MOD_open
 			if (vob->dv_yuy2_mode == 1)
 		    		s_v_codec=CODEC_YUY2;
 			else if (vob->dv_yuy2_mode == 0)
-				s_v_codec=CODEC_YUV420P;
+				s_v_codec=CODEC_YUV;
 			else
 				s_v_codec=vob->im_v_codec;
 		}
@@ -676,7 +676,7 @@ MOD_decode
 					if (vob->dv_yuy2_mode == 1)
 		    				s_v_codec=CODEC_YUY2;
 					else if (vob->dv_yuy2_mode == 0)
-		    				s_v_codec=CODEC_YV12;
+		    				s_v_codec=CODEC_YUV;
 					else
 						s_v_codec=vob->im_v_codec;
 				}
