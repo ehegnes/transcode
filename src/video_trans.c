@@ -227,7 +227,8 @@ static int do_process_frame(vob_t *vob, vframe_list_t *ptr)
             if (mode == 3) {
                 int w = ptr->v_width, h = ptr->v_height*2;
                 preadjust_frame_size(&vtd, w, h);
-                PROCESS_FRAME(tcv_zoom, &vtd, w, h, vob->zoom_filter);
+                PROCESS_FRAME(tcv_zoom, &vtd, w / vtd.width_div[i],
+                              h / vtd.height_div[i], vob->zoom_filter);
             }
         } else if (mode == 5) {
             /* Linear blend */

@@ -1,3 +1,7 @@
+2006-01-13 Andrew Church <achurch at achurch dot org>
+  * src/video_trans.c
+  Fix a regression causing -I 3 to lose color information in YUV mode.
+
 2006-01-05 Andrew Church <achurch at achurch dot org>
   * src/transcode.c
   Default to ffmpeg instead of mpeg2enc/mp2enc if no import module is
