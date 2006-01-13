@@ -1,3 +1,18 @@
+2006-01-13 Andrew Church <achurch at achurch dot org>
+  * import/decode_dv.c
+  Add automatic detection of libdv PAL decoder mode (YUY2 or planar YUV).
+
+  * import/tcdecode.c
+  Add -V option to force YV12 mode for libdv, and default to automatic
+  detection.
+
+  * docs/README.dv docs/man/transcode.1 import/import_xml.c src/transcode.c
+  Add --dv_yv12_mode to force YV12 mode for libdv, and default to automatic
+  detection.
+
+  * export/export_dv.c export/export_dvraw.c
+  Accommodate new usage of vob->dv_yuy2_mode.
+
 2006-01-13 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h
   documentation update.

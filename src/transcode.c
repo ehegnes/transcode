@@ -161,6 +161,7 @@ enum {
   AVI_LIMIT,
   SOCKET_FILE,
   DV_YUY2_MODE,
+  DV_YV12_MODE,
   LAME_PRESET,
   COLOR_LEVEL,
   VIDEO_MAX_BITRATE,
@@ -405,7 +406,8 @@ static void usage(int status)
   printf("--accel type[,...]   override CPU acceleration flags (for debugging)\n");
 #endif
   printf("--socket file        socket file for run-time control [no file]\n");
-  printf("--dv_yuy2_mode       libdv YUY2 mode (default is YV12) [off]\n");
+  printf("--dv_yuy2_mode       force libdv YUY2 mode for PAL [autodetect]\n");
+  printf("--dv_yv12_mode       force libdv YV12 mode for PAL [autodetect]\n");
   printf("--config_dir dir     Assume config files are in this dir [off]\n");
   printf("--export_prof S      Export profile {vcd, svcd, xvcd,  dvd}[-pal|-ntsc|-secam]\n");
   printf("--mplayer_probe      use (external) mplayer for probing source [off]\n");
@@ -769,6 +771,7 @@ int main(int argc, char *argv[]) {
       {"ts_pid", required_argument, NULL, TS_PID},
       {"socket", required_argument, NULL, SOCKET_FILE},
       {"dv_yuy2_mode", no_argument, NULL, DV_YUY2_MODE},
+      {"dv_yv12_mode", no_argument, NULL, DV_YV12_MODE},
       {"lame_preset", required_argument, NULL, LAME_PRESET},
       {"color", required_argument, NULL, COLOR_LEVEL},
       {"colour", required_argument, NULL, COLOR_LEVEL},
@@ -996,7 +999,7 @@ int main(int argc, char *argv[]) {
 
     vob->video_frames_delay = 0;
 
-    vob->dv_yuy2_mode     = 0;
+    vob->dv_yuy2_mode     = -1;
     vob->hard_fps_flag    = 0;
     vob->mpeg_profile     = PROF_NONE;
 
@@ -2004,7 +2007,11 @@ int main(int argc, char *argv[]) {
 	  break;
 
 	case DV_YUY2_MODE:
-	  vob->dv_yuy2_mode = TC_TRUE;
+	  vob->dv_yuy2_mode = 1;
+	  break;
+
+	case DV_YV12_MODE:
+	  vob->dv_yuy2_mode = 0;
 	  break;
 
 	case TS_PID:

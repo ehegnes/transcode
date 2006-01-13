@@ -289,8 +289,10 @@ MOD_open
 		}
 		if(p_video->s_v_codec == TC_CODEC_UNKNOWN)
 		{
-			if (vob->dv_yuy2_mode == TC_TRUE)
+			if (vob->dv_yuy2_mode == 1)
 		    		s_v_codec=CODEC_YUY2;
+			else if (vob->dv_yuy2_mode == 0)
+				s_v_codec=CODEC_YUV420P;
 			else
 				s_v_codec=vob->im_v_codec;
 		}
@@ -671,8 +673,10 @@ MOD_decode
 			{
 				if(p_video->s_v_codec == TC_CODEC_UNKNOWN)
 				{
-					if (vob->dv_yuy2_mode == TC_TRUE)
+					if (vob->dv_yuy2_mode == 1)
 		    				s_v_codec=CODEC_YUY2;
+					else if (vob->dv_yuy2_mode == 0)
+		    				s_v_codec=CODEC_YV12;
 					else
 						s_v_codec=vob->im_v_codec;
 				}

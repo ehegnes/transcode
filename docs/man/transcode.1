@@ -132,6 +132,7 @@ transcode \- LINUX video stream processing tool
 [ --socket file ]
 .br
 [ --dv_yuy2_mode ]
+[ --dv_yv12_mode ]
 [ --config_dir dir ]
 .br
 [ --export_prof S ]
@@ -2218,10 +2219,11 @@ bottom-field first
 .RE
 
 .TP
-.B \-\-dv_yuy2_mode
-decoded Digital Video (raw) YUV frame is in YUY2 (packet) format using libdv.
-Downsample frame to YV12. PAL users should compile libdv with
---with-pal-yuv=YV12 to avoid this option [off]
+.B \-\-dv_yuy2_mode, \-\-dv_yv12_mode
+Indicates that libdv decodes Digital Video frames in YUY2 (packed) or YV12
+(planar) mode, respectively. Normally transcode figures out the correct
+mode automatically, but if you try to transcode PAL DV files and the
+results look strange, try one of these options.
 
 .TP
 .B \-\-write_pid \fIfile\fP

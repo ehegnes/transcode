@@ -1,28 +1,28 @@
 By Peter Chiocchetti <pch14 at myzel dot net>
 
 DV only supports two resolutions: 720x576 for PAL, and 720x480
-for NTSC. possibly, there is also 1920x1080.
+for NTSC. Possibly, there is also 1920x1080.
 
 transcode allows other frame sizes too; playing these back in
 other applications will show as split images, or rolling
 seemingly random colours.
 
-transcode may also encode the planes of the video in a
-nonstandard way: this shows as a green screen. this depends on
-how the installed version of libdv is compiled - if its
-compiled with defaults, you need to add --uyvy or
---dv_yuy2_mode on the transcode line - on older versions, only
-if you use -V, which is always advised.
+libdv can be compiled to use either YUY2 or YV12 modes for PAL
+video, but there is no function for libdv to tell you which
+one it's using... so transcode runs a test frame through the
+decoder and tries to guess based on the result. If it gets it
+wrong, you can use either --dv_yuy2_mode or --dv_yv12_mode to
+force one or the other. The libdv default is YUY2.
 
-if the bar is only some pixels wide, you should be able to
+If the bar is only some pixels wide, you should be able to
 crop the image, and uncrop it again, adding black borders,
-instead of green ones - be sure, the frame stays the above
-sizes. such a bar may be the result of a sampling error in the
+instead of green ones - be sure the frame stays at the above
+sizes. Such a bar may be the result of a sampling error in the
 capture card or even in signal transmission.
 
-if you want to display on tv, you need not care of few green
+If you want to display on TV, you need not care of few green
 pixels at the bottom at all, as about 0 - 10% of the image
-will be offscreen anyways - the region tv sets and beamers
+will be offscreen anyways - the region TV sets and beamers
 display is closer to 640x480 than to 720x576 for PAL systems
 - see eg. the title-safe region in editing software.
 

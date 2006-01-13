@@ -75,6 +75,7 @@ static void usage(int status)
   fprintf(stderr,"\t -A n              A52 decoder flag [0]\n");
   fprintf(stderr,"\t -C s,e            decode only from start to end ((V) frames/(A) bytes) [all]\n");
   fprintf(stderr,"\t -Y                use libdv YUY2 decoder mode\n");
+  fprintf(stderr,"\t -V                use libdv YV12 decoder mode\n");
   fprintf(stderr,"\t -z r              convert zero padding to silence\n");
   fprintf(stderr,"\t -v                print version\n");
 
@@ -102,6 +103,7 @@ int main(int argc, char *argv[])
     decode.ac3_gain[0] = decode.ac3_gain[1] = decode.ac3_gain[2] = 1.0;
     decode.frame_limit[0]=0;
     decode.frame_limit[1]=LONG_MAX;
+    decode.dv_yuy2_mode = -1;
 
     while ((ch = getopt(argc, argv, "Q:t:d:x:i:a:g:vy:s:YC:A:z:?h")) != -1) {
 	switch (ch) {
@@ -153,6 +155,10 @@ int main(int argc, char *argv[])
 
 	case 'Y':
 	  decode.dv_yuy2_mode=1;
+	  break;
+
+	case 'V':
+	  decode.dv_yuy2_mode=0;
 	  break;
 
 	case 's':

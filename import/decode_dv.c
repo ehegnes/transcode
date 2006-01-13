@@ -42,7 +42,150 @@
 
 static int check_yuy2(void)
 {
-    /* Not yet implemented */
+    static uint8_t dv_frame[12][150][80]; /* Input DV frame (generated) */
+    static uint8_t Y[720*576*2];          /* Output Y/YUY2 plane */
+    static uint8_t U[(720/2)*(576/2)];    /* Output U plane */
+    static uint8_t V[(720/2)*(576/2)];    /* Output V plane */
+    uint8_t *video[3] = {Y, U, V};
+    int linesize[3] = {720*2, 720/2, 720/2};
+    dv_decoder_t *decoder;
+    int i, j, k;
+
+    /* Generate an off-white PAL DV frame (Y=0xD0 U/V=0x80) */
+    for (i = 0; i < 12; i++) {
+        dv_frame[i][0][0] = 0x1F;
+        dv_frame[i][0][1] = i<<4 | 0x07;
+        dv_frame[i][0][2] = 0x00;
+        dv_frame[i][0][3] = 0xBF;
+        dv_frame[i][0][4] = 0x68;
+        dv_frame[i][0][5] = 0x78;
+        dv_frame[i][0][6] = 0x78;
+        dv_frame[i][0][7] = 0x78;
+        memset(&dv_frame[i][0][8], 0xFF, 72);
+        for (j = 0; j < 2; j++) {
+            dv_frame[i][j+1][0] = 0x3F;
+            dv_frame[i][j+1][1] = i<<4 | 0x07;
+            dv_frame[i][j+1][2] = j;
+            dv_frame[i][j+1][3] = (i>=6 ? 0x80 : 0) | ((i+12) >> 3);
+            dv_frame[i][j+1][4] = ((i+12) << 5) | (j*6);
+            memset(&dv_frame[i][j+1][5], 0xFF, 75);
+        }
+        for (j = 0; j < 3; j++) {
+            dv_frame[i][j+3][0] = 0x5F;
+            dv_frame[i][j+3][1] = i<<4 | 0x07;
+            dv_frame[i][j+3][2] = j;
+            memset(&dv_frame[i][j+3][3], 0xFF, 77);
+            if (i == 0 && j == 0) {
+                dv_frame[i][j+3][ 3] = 0x70;
+                dv_frame[i][j+3][ 4] = 0xC5;
+                dv_frame[i][j+3][ 5] = 0x41;
+                dv_frame[i][j+3][ 6] = 0x20;
+                dv_frame[i][j+3][ 7] = 0xFF;
+                dv_frame[i][j+3][ 8] = 0x71;
+                dv_frame[i][j+3][ 9] = 0xFF;
+                dv_frame[i][j+3][10] = 0x7F;
+                dv_frame[i][j+3][11] = 0xFF;
+                dv_frame[i][j+3][12] = 0xFF;
+                dv_frame[i][j+3][13] = 0x7F;
+                dv_frame[i][j+3][14] = 0xFF;
+                dv_frame[i][j+3][15] = 0xFF;
+                dv_frame[i][j+3][16] = 0x38;
+                dv_frame[i][j+3][17] = 0x81;
+            } else if (j == 2) {
+                dv_frame[i][j+3][48] = 0x60;
+                dv_frame[i][j+3][48] = 0xFF;
+                dv_frame[i][j+3][48] = 0xFF;
+                dv_frame[i][j+3][48] = 0x20;
+                dv_frame[i][j+3][48] = 0xFF;
+                dv_frame[i][j+3][48] = 0x61;
+                dv_frame[i][j+3][48] = 0x33;
+                dv_frame[i][j+3][48] = 0xC8;
+                dv_frame[i][j+3][48] = 0xFD;
+                dv_frame[i][j+3][48] = 0xFF;
+            }
+        }
+        for (j = 0; j < 9; j++) {
+            dv_frame[i][j*16+6][0] = 0x7B;
+            dv_frame[i][j*16+6][1] = i<<4 | 0x07;
+            dv_frame[i][j*16+6][2] = j;
+            if (j == 0) {
+                dv_frame[i][j*16+6][3] = 0x50;
+                dv_frame[i][j*16+6][4] = 0xD8;
+                dv_frame[i][j*16+6][5] = i>=6 ? 0x01 : 0x00;
+                dv_frame[i][j*16+6][6] = 0xE0;
+                dv_frame[i][j*16+6][7] = 0xC0;
+            } else if (j == 1) {
+                dv_frame[i][j*16+6][3] = 0x51;
+                dv_frame[i][j*16+6][4] = 0x33;
+                dv_frame[i][j*16+6][5] = 0xCF;
+                dv_frame[i][j*16+6][6] = 0xA0;
+                dv_frame[i][j*16+6][7] = 0xFF;
+            } else {
+                dv_frame[i][j*16+6][3] = 0xFF;
+                dv_frame[i][j*16+6][4] = 0xFF;
+                dv_frame[i][j*16+6][5] = 0xFF;
+                dv_frame[i][j*16+6][6] = 0xFF;
+                dv_frame[i][j*16+6][7] = 0xFF;
+            }
+            memset(&dv_frame[i][j*16+6][8], 0, 72);
+            for (k = 0; k < 15; k++) {
+                dv_frame[i][j*16+k+7][0] = 0x9B;
+                dv_frame[i][j*16+k+7][1] = i<<4 | 0x07;
+                dv_frame[i][j*16+k+7][2] = j*15 + k;
+                dv_frame[i][j*16+k+7][3] = 0x0F;
+                memset(&dv_frame[i][4], 0, 76);
+                dv_frame[i][j*16+k+7][ 4] = 0x50;
+                dv_frame[i][j*16+k+7][ 5] = 0x06;
+                dv_frame[i][j*16+k+7][18] = 0x50;
+                dv_frame[i][j*16+k+7][19] = 0x06;
+                dv_frame[i][j*16+k+7][32] = 0x50;
+                dv_frame[i][j*16+k+7][33] = 0x06;
+                dv_frame[i][j*16+k+7][46] = 0x50;
+                dv_frame[i][j*16+k+7][47] = 0x06;
+                dv_frame[i][j*16+k+7][61] = 0x16;
+                dv_frame[i][j*16+k+7][71] = 0x26;
+            }
+        }
+    }
+
+    /* Decode the generated frame */
+    decoder = dv_decoder_new(1, 0, 0);
+    if (!decoder) {
+        if (verbose & TC_DEBUG) {
+            tc_log_warn(__FILE__,
+                        "check_yuy2: Unable to initialize DV decoder");
+        }
+        return -1;
+    }
+    decoder->quality = DV_QUALITY_BEST;
+    if (dv_parse_header(decoder, (uint8_t *)dv_frame) < 0) {
+        if (verbose & TC_DEBUG) {
+            tc_log_warn(__FILE__,
+                        "check_yuy2: Parsing test DV frame header failed");
+        }
+        return -1;
+    }
+    dv_decode_full_frame(decoder, (uint8_t *)dv_frame, DV_COLOR_YUV,
+                         video, linesize);
+    dv_decoder_free(decoder);
+
+    /* Return whether the frame is YUY2-encoded or not */
+    if (Y[0] >= 0xCF && Y[0] <= 0xD1) {
+        if (Y[1] >= 0xCF && Y[1] <= 0xD1) {
+            /* Planar YUV data */
+            return 0;
+        } else if (Y[1] >= 0x7F && Y[1] <= 0x81) {
+            /* Packed YUY2 data */
+            return 1;
+        }
+    }
+    /* Else a buggy library? */
+    if (verbose & TC_DEBUG) {
+        tc_log_warn(__FILE__,
+                    "check_yuy2: Bad video data (Y=%02X %02X %02X %02X,"
+                    " U=%02X %02X, V=%02X %02X)", Y[0], Y[1], Y[2], Y[3],
+                    U[0], U[1], V[0], V[1]);
+    }
     return -1;
 }
 
@@ -233,16 +376,19 @@ void decode_dv(decode_t *decode)
         return;
     }
 
-    /**** Determine whether YUV data is YUY2 or YV12 ****/
+    /**** Determine whether YUV data is YUY2 or YV12 (really I420??) ****/
 
     if (ispal) {
-        int result = check_yuy2();
-        if (result == 1)
-            yuy2_mode = 1;
-        else if (result == 0)
-            yuy2_mode = 0;
-        else /* we don't know, let the user decide */
+        if (decode->dv_yuy2_mode != -1) {
+            /* User specified --dv_yuy2_mode or --dv_yv12_mode */
             yuy2_mode = decode->dv_yuy2_mode;
+        } else {
+            int result = check_yuy2();
+            if (result >= 1)
+                yuy2_mode = result;
+            else /* we don't know, use the libdv default of YUY2 as a guess */
+                yuy2_mode = 1;
+        }
     } else {
         /* NTSC is always returned in YUY2 format */
         yuy2_mode = 1;
