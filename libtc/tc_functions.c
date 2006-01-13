@@ -62,9 +62,9 @@ void tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
 {
     char buf[TC_MSG_BUF_SIZE];
     char *msg = buf;
+    size_t size = 0;
     int dynbuf = 0;
     /* flag: we must use a dynamic (larger than static) buffer? */
-    size_t size = 0;
     va_list ap;
 
     /* sanity check, avoid {under,over}flow; */
@@ -75,13 +75,20 @@ void tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
            + strlen(tag) + strlen(fmt) + 1;
 
     if (size > TC_MSG_BUF_SIZE) {
-        dynbuf = 1;
+        /* 
+         * we use malloc/fprintf instead of tc_malloc because
+         * we want custom error messages
+         */
         msg = malloc(size);
-        if (msg == NULL) {
+        if (msg != NULL) {
+            dynbuf = 1;
+        } else {
             fprintf(stderr, "(%s) CRITICAL: can't get memory in "
-                    "tc_log(); tag='%s'\n", __FILE__,
-                    tag);
-            return;
+                    "tc_log() output will be truncated.\n",
+                    __FILE__);
+            /* force reset to default values */
+            msg = buf;
+            size = TC_MSG_BUF_SIZE - 1;
         }
     } else {
         size = TC_MSG_BUF_SIZE - 1;
@@ -99,7 +106,6 @@ void tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
 
     /* ensure that all *other* messages are written */
     fflush(stdout);
-
     return;
 }
 

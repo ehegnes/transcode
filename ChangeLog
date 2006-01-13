@@ -1,3 +1,8 @@
+2006-01-13 Francesco Romani <fromani at gmail dot com>
+  * libtc/tc_functions.c
+  make tc_log() backend to not abort when going out of memory,
+  truncate output instead.
+
 2006-01-13 Andrew Church <achurch at achurch dot org>
   * src/video_trans.c
   Fix a regression causing -I 3 to lose color information in YUV mode.
