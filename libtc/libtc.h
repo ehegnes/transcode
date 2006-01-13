@@ -114,7 +114,19 @@ size_t strlcat(char *dst, const char *src, size_t size);
 #endif
 
 /*
- * FIXME: documentation
+ * tc_strstrip:
+ *     remove in-place heading and trailing whitespaces from a string.
+ *
+ * Parameters:
+ *     s: string to strip
+ * Return value:
+ *     None
+ * Side effects:
+ *     none
+ * Preconditions:
+ *     none
+ * Postconditions:
+ *     none
  */
 void tc_strstrip(char *s);
 
@@ -205,11 +217,31 @@ void *_tc_zalloc(const char *file, int line, size_t size);
  * Allocate a buffer aligned to the machine's page size, if known.  The
  * buffer must be freed with buffree() (not free()).
  */
-
 #define tc_bufalloc(size) \
     _tc_bufalloc(__FILE__, __LINE__, size)
 
-/* XXX: add docs */
+/*
+ * _tc_bufalloc:
+ *     do the real work under 'tc_bufalloc' macro.
+ *
+ * Parameters:
+ *     file: name of the file on which call occurs
+ *     line: line of above file on which call occurs (above two parameters
+ *           are intended to be, and usually are, filled by tc_malloc
+ *           macro).
+ *     size: size in bytes of page-aligned buffer to allocate.
+ *           The memory effectively allocated may be _more_ than expected,
+ *           for alignement constraints.
+ * Return Value:
+ *     a pointer to a valid region of memory, NULL if failed.
+ * Side effects:
+ *     none
+ * Preconditions:
+ *     none
+ * Postconditions:
+ *     return value points to a page-aligned memory chunk large at least
+ *     'size' bytes.
+ */
 void *_tc_bufalloc(const char *file, int line, size_t size);
 
 /*

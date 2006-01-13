@@ -1,3 +1,7 @@
+2006-01-13 Francesco Romani <fromani at gmail dot com>
+  * libtc/libtc.h
+  documentation update.
+
 2006-01-13 Andrew Church <achurch at achurch dot org>
   * import/decode_dv.c
   Rewrite into a more legible (and more robust) form.
