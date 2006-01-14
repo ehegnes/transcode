@@ -757,6 +757,7 @@ static inline void sse2_load_yuy2(uint8_t *src);
 static inline void sse2_load_uyvy(uint8_t *src);
 static inline void sse2_load_yvyu(uint8_t *src);
 static inline void sse2_yuv_to_rgb(void);
+static inline void sse2_yuv444_to_rgb(void);
 static inline void sse2_store_rgb24(uint8_t *dest);
 static inline void sse2_load_rgb24(uint8_t *src);
 static inline void sse2_rgb_to_yuv420p_yu(uint8_t *destY, uint8_t *destU);
@@ -840,7 +841,7 @@ static int yuv444p_rgb24_sse2(uint8_t **src, uint8_t **dest, int width, int heig
         for (x = 0; x < (width & ~15); x += 16) {
             sse2_load_yuv444p(src[0]+y*width+x, src[1]+y*width+x,
                               src[2]+y*width+x);
-            sse2_yuv_to_rgb();
+            sse2_yuv444_to_rgb();
             sse2_store_rgb24(dest[0]+(y*width+x)*3);
         }
         while (x < width) {

@@ -1,4 +1,8 @@
 2006-01-14 Andrew Church <achurch at achurch dot org>
+  * aclib/img_yuv_rgb.c
+  Fix bug in SSE2-accelerated YUV444P->RGB24 conversion routine.
+
+2006-01-14 Andrew Church <achurch at achurch dot org>
   * testsuite/newtest.pl
   Add YUV support to video core tests, and test frame padding for -j and -Y.
 
