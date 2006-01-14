@@ -588,12 +588,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	    if (flip) {
 		vbuf = ptr->video_buf + (height-1)*width;
-		Bpl = (-height);
+		Bpl = (-width);
 		U = ptr->video_buf + ptr->v_width*ptr->v_height
 		                   + ((height/2)-1)*(width/2);
 	    } else {
 		vbuf = ptr->video_buf;
-		Bpl = height;
+		Bpl = width;
 		U = ptr->video_buf + ptr->v_width*ptr->v_height;
 	    }
 	    p = vbuf + mfd->posy*Bpl   + mfd->posx;
@@ -630,10 +630,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	    if (flip) {
 		vbuf = ptr->video_buf + (height-1)*width*3;
-		Bpl = (-height)*3;
+		Bpl = (-width)*3;
 	    } else {
 		vbuf = ptr->video_buf;
-		Bpl = height*3;
+		Bpl = width*3;
 	    }
 
 	    p = vbuf +   (height-mfd->posy)*Bpl   + 3*mfd->posx;
