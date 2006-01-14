@@ -110,8 +110,22 @@ foreach $cspset ([CSP_YUV,"yuv","YUV420P"], [CSP_RGB,"rgb","RGB24"]) {
               "Test -j with four parameters ($cspname)",
               \&test_vidcore, $cspid, ["-j", "10,20,30,40",
                                \&vidcore_crop, 10, 20, 30, 40]);
+    &add_test("-j -N,-N,-N,-N:$csp", ["raw"],
+              "Test -j with padding ($cspname)",
+              \&test_vidcore, $cspid, ["-j", "-10,-20,-30,-40",
+                               \&vidcore_crop, -10, -20, -30, -40]);
+    &add_test("-j N,-N,N,-N:$csp", ["raw"],
+              "Test -j with V crop / H pad ($cspname)",
+              \&test_vidcore, $cspid, ["-j", "10,-20,30,-40",
+                               \&vidcore_crop, 10, -20, 30, -40]);
+    &add_test("-j -N,N,-N,N:$csp", ["raw"],
+              "Test -j with V pad / H crop ($cspname)",
+              \&test_vidcore, $cspid, ["-j", "-10,20,-30,40",
+                               \&vidcore_crop, -10, 20, -30, 40]);
     &add_test("-j:$csp",
-              ["-j N:$csp", "-j N,N:$csp", "-j N,N,N:$csp", "-j N,N,N,N:$csp"],
+              ["-j N:$csp", "-j N,N:$csp", "-j N,N,N:$csp", "-j N,N,N,N:$csp",
+               "-j -N,-N,-N,-N:$csp", "-j N,-N,N,-N:$csp",
+               "-j -N,N,-N,N:$csp"],
               "Test -j ($cspname)");
 
     &add_test("-I 1:$csp", ["raw"],
@@ -205,8 +219,22 @@ foreach $cspset ([CSP_YUV,"yuv","YUV420P"], [CSP_RGB,"rgb","RGB24"]) {
               "Test -Y with four parameters ($cspname)",
               \&test_vidcore, $cspid, ["-Y", "10,20,30,40",
                                \&vidcore_crop, 10, 20, 30, 40]);
+    &add_test("-Y -N,-N,-N,-N:$csp", ["raw"],
+              "Test -Y with padding ($cspname)",
+              \&test_vidcore, $cspid, ["-Y", "-10,-20,-30,-40",
+                               \&vidcore_crop, -10, -20, -30, -40]);
+    &add_test("-Y N,-N,N,-N:$csp", ["raw"],
+              "Test -Y with V crop / H pad ($cspname)",
+              \&test_vidcore, $cspid, ["-Y", "10,-20,30,-40",
+                               \&vidcore_crop, 10, -20, 30, -40]);
+    &add_test("-Y -N,N,-N,N:$csp", ["raw"],
+              "Test -Y with V pad / H crop ($cspname)",
+              \&test_vidcore, $cspid, ["-Y", "-10,20,-30,40",
+                               \&vidcore_crop, -10, 20, -30, 40]);
     &add_test("-Y:$csp",
-              ["-Y N:$csp", "-Y N,N:$csp", "-Y N,N,N:$csp", "-Y N,N,N,N:$csp"],
+              ["-Y N:$csp", "-Y N,N:$csp", "-Y N,N,N:$csp", "-Y N,N,N,N:$csp",
+               "-Y -N,-N,-N,-N:$csp", "-Y N,-N,N,-N:$csp",
+               "-Y -N,N,-N,N:$csp"],
               "Test -Y ($cspname)");
 
     &add_test("-r n:$csp", ["raw"],

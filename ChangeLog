@@ -1,6 +1,6 @@
 2006-01-14 Andrew Church <achurch at achurch dot org>
   * testsuite/newtest.pl
-  Add YUV support to video core tests.
+  Add YUV support to video core tests, and test frame padding for -j and -Y.
 
   * src/video_trans.c
   Fix regressions in -I 1 and -I 5 in YUV mode.
