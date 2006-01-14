@@ -219,7 +219,20 @@ static int do_process_frame(vob_t *vob, vframe_list_t *ptr)
         int mode = (vob->deinterlace>0 ? vob->deinterlace : ptr->deinter_flag);
         if (mode == 1) {
             /* Simple linear interpolation */
-            PROCESS_FRAME(tcv_deinterlace, &vtd, TCV_DEINTERLACE_INTERPOLATE);
+            /* Note that for YUV, we can just leave U and V alone, since
+             * they already cover pairs of lines; thus instead of using
+             * PROCESS_FRAME, we just call tcv_deinterlace() on the Y/RGB
+             * plane, then copy the other two planes and swap_buffers(). */
+            int i;
+            tcv_deinterlace(handle, vtd.planes[0], vtd.tmpplanes[0],
+                            ptr->v_width, ptr->v_height, vtd.Bpp,
+                            TCV_DEINTERLACE_INTERPOLATE);
+            for (i = 1; i < vtd.nplanes; i++) {
+                ac_memcpy(vtd.tmpplanes[i], vtd.planes[i],
+                          (ptr->v_width/vtd.width_div[i])
+                          * (ptr->v_height/vtd.height_div[i]));
+            }
+            swap_buffers(&vtd);
         } else if (mode == 3 || mode == 4) {
             /* Drop every other line (and zoom back out in mode 3) */
             preadjust_frame_size(&vtd, ptr->v_width, ptr->v_height/2);
@@ -231,8 +244,17 @@ static int do_process_frame(vob_t *vob, vframe_list_t *ptr)
                               h / vtd.height_div[i], vob->zoom_filter);
             }
         } else if (mode == 5) {
-            /* Linear blend */
-            PROCESS_FRAME(tcv_deinterlace, &vtd, TCV_DEINTERLACE_LINEAR_BLEND);
+            /* Linear blend; as for -I 1, only Y is processed in YUV mode */
+            int i;
+            tcv_deinterlace(handle, vtd.planes[0], vtd.tmpplanes[0],
+                            ptr->v_width, ptr->v_height, vtd.Bpp,
+                            TCV_DEINTERLACE_LINEAR_BLEND);
+            for (i = 1; i < vtd.nplanes; i++) {
+                ac_memcpy(vtd.tmpplanes[i], vtd.planes[i],
+                          (ptr->v_width/vtd.width_div[i])
+                          * (ptr->v_height/vtd.height_div[i]));
+            }
+            swap_buffers(&vtd);
         }
         /* else mode 2 (handled by encoder) or unknown: do nothing */
         ptr->attributes &= ~TC_FRAME_IS_INTERLACED;

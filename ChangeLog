@@ -2,6 +2,9 @@
   * testsuite/newtest.pl
   Add YUV support to video core tests.
 
+  * src/video_trans.c
+  Fix regressions in -I 1 and -I 5 in YUV mode.
+
 2006-01-13 Andrew Church <achurch at achurch dot org>
   * import/decode_dv.c
   Add automatic detection of libdv PAL decoder mode (YUY2 or planar YUV).
