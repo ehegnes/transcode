@@ -1,3 +1,7 @@
+2006-01-14 Andrew Church <achurch at achurch dot org>
+  * testsuite/newtest.pl
+  Add YUV support to video core tests.
+
 2006-01-13 Andrew Church <achurch at achurch dot org>
   * import/decode_dv.c
   Add automatic detection of libdv PAL decoder mode (YUY2 or planar YUV).

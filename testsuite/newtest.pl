@@ -85,136 +85,183 @@ my %VideoData;        # for saving raw output data to compare against
 
 # Test the core video operations
 
-&add_test("-j N", ["raw"],
-          "Test -j with one parameter",
-          \&test_vidcore, ["-j", "10", \&vidcore_crop, 10, 0, 10, 0]);
-&add_test("-j N,N", ["raw"],
-          "Test -j with two parameters",
-          \&test_vidcore, ["-j", "10,20", \&vidcore_crop, 10, 20, 10, 20]);
-&add_test("-j N,N,N", ["raw"],
-          "Test -j with three parameters",
-          \&test_vidcore, ["-j", "10,20,30", \&vidcore_crop, 10, 20, 30, 20]);
-&add_test("-j N,N,N,N", ["raw"],
-          "Test -j with four parameters",
-          \&test_vidcore, ["-j", "10,20,30,40", \&vidcore_crop, 10,20,30,40]);
-&add_test("-j", ["-j N", "-j N,N", "-j N,N,N", "-j N,N,N,N"],
-          "Test -j");
+@csplist = ();
+@vidcore_tests = ("-j", "-I", "-X", "-B", "-Z", "-Y", "-r", "-z",
+                  "-l", "-k", "-K", "-G", "-C");
 
-&add_test("-I 1", ["raw"],
-          "Test -I in interpolation mode",
-          \&test_vidcore, ["-I", "1", \&vidcore_deint_interpolate]);
-&add_test("-I 3", ["raw"],
-          "Test -I in drop-field-and-zoom mode",
-          \&test_vidcore, ["-I", "3", \&vidcore_deint_dropzoom]);
-&add_test("-I 4", ["raw"],
-          "Test -I in drop-field mode",
-          \&test_vidcore, ["-I", "4", \&vidcore_deint_dropfield]);
-&add_test("-I 5", ["raw"],
-          "Test -I in linear-blend mode",
-          \&test_vidcore, ["-I", "5", \&vidcore_deint_linear_blend]);
-&add_test("-I", ["-I 1", "-I 3", "-I 4", "-I 5"],
-          "Test -I");
+foreach $cspset ([CSP_YUV,"yuv","YUV420P"], [CSP_RGB,"rgb","RGB24"]) {
 
-# Be careful with values here!  Truncation by accelerated rescale() during
-# vertical resize can cause false errors (cases where the byte value is off
-# by 1 because rounding went the other way).  -X 6 seems to be safe.
-&add_test("-X y", ["raw"],
-          "Test -X with height only",
-          \&test_vidcore, ["-X", "6", \&vidcore_resize, 6*32, 0]);
-&add_test("-X 0,x", ["raw"],
-          "Test -X with width only",
-          \&test_vidcore, ["-X", "0,11", \&vidcore_resize, 0, 11*32]);
-&add_test("-X y,x", ["raw"],
-          "Test -X with width and height",
-          \&test_vidcore, ["-X", "6,11", \&vidcore_resize, 6*32, 11*32]);
-&add_test("-X y,x,M", ["raw"],
-          "Test -X with width, height, and multiplier",
-          \&test_vidcore, ["-X", "24,44,8", \&vidcore_resize, 24*8, 44*8]);
-&add_test("-X", ["-X y", "-X 0,x", "-X y,x", "-X y,x,M"],
-          "Test -X");
+    my ($cspid,$csp,$cspname) = @$cspset;
+    push @csplist, $csp;
 
-&add_test("-B y", ["raw"],
-          "Test -B with height only",
-          \&test_vidcore, ["-B", "6", \&vidcore_resize, -6*32, 0]);
-&add_test("-B 0,x", ["raw"],
-          "Test -B with width only",
-          \&test_vidcore, ["-B", "0,11", \&vidcore_resize, 0, -11*32]);
-&add_test("-B y,x", ["raw"],
-          "Test -B with width and height",
-          \&test_vidcore, ["-B", "6,11", \&vidcore_resize, -6*32, -11*32]);
-&add_test("-B y,x,M", ["raw"],
-          "Test -B with width, height, and multiplier",
-          \&test_vidcore, ["-B", "24,44,8", \&vidcore_resize, -24*8, -44*8]);
-&add_test("-B", ["-B y", "-B 0,x", "-B y,x", "-B y,x,M"],
-          "Test -B");
+    &add_test("-j N:$csp", ["raw"],
+              "Test -j with one parameter ($cspname)",
+              \&test_vidcore, $cspid, ["-j", "10",
+                               \&vidcore_crop, 10, 0, 10, 0]);
+    &add_test("-j N,N:$csp", ["raw"],
+              "Test -j with two parameters ($cspname)",
+              \&test_vidcore, $cspid, ["-j", "10,20",
+                               \&vidcore_crop, 10, 20, 10, 20]);
+    &add_test("-j N,N,N:$csp", ["raw"],
+              "Test -j with three parameters ($cspname)",
+              \&test_vidcore, $cspid, ["-j", "10,20,30",
+                               \&vidcore_crop, 10, 20, 30, 20]);
+    &add_test("-j N,N,N,N:$csp", ["raw"],
+              "Test -j with four parameters ($cspname)",
+              \&test_vidcore, $cspid, ["-j", "10,20,30,40",
+                               \&vidcore_crop, 10, 20, 30, 40]);
+    &add_test("-j:$csp",
+              ["-j N:$csp", "-j N,N:$csp", "-j N,N,N:$csp", "-j N,N,N,N:$csp"],
+              "Test -j ($cspname)");
 
-&add_test("-Z WxH,fast", ["raw"],
-          "Test -Z (fast mode)",
-          \&test_vidcore, ["-Z", ((WIDTH-11*32)."x".(HEIGHT+6*32).",fast"),
-                           \&vidcore_resize, 6*32, -11*32]);
-&add_test("-Z WxH", ["raw"],
-          "Test -Z (slow mode)",
-          \&test_vidcore, ["-Z", ((WIDTH-76)."x".(HEIGHT+76)),
-                           \&vidcore_zoom, WIDTH-76, HEIGHT+76]);
-&add_test("-Z", ["-Z WxH,fast", "-Z WxH"],
-          "Test -Z");
+    &add_test("-I 1:$csp", ["raw"],
+              "Test -I in interpolation mode ($cspname)",
+              \&test_vidcore, $cspid, ["-I", "1",
+                               \&vidcore_deint_interpolate]);
+    &add_test("-I 3:$csp", ["raw"],
+              "Test -I in drop-field-and-zoom mode ($cspname)",
+              \&test_vidcore, $cspid, ["-I", "3",
+                               \&vidcore_deint_dropzoom]);
+    &add_test("-I 4:$csp", ["raw"],
+              "Test -I in drop-field mode ($cspname)",
+              \&test_vidcore, $cspid, ["-I", "4",
+                               \&vidcore_deint_dropfield]);
+    &add_test("-I 5:$csp", ["raw"],
+              "Test -I in linear-blend mode ($cspname)",
+              \&test_vidcore, $cspid, ["-I", "5",
+                               \&vidcore_deint_linear_blend]);
+    &add_test("-I:$csp", ["-I 1:$csp", "-I 3:$csp", "-I 4:$csp", "-I 5:$csp"],
+              "Test -I ($cspname)");
 
-&add_test("-Y N", ["raw"],
-          "Test -Y with one parameter",
-          \&test_vidcore, ["-Y", "10", \&vidcore_crop, 10, 0, 10, 0]);
-&add_test("-Y N,N", ["raw"],
-          "Test -Y with two parameters",
-          \&test_vidcore, ["-Y", "10,20", \&vidcore_crop, 10, 20, 10, 20]);
-&add_test("-Y N,N,N", ["raw"],
-          "Test -Y with three parameters",
-          \&test_vidcore, ["-Y", "10,20,30", \&vidcore_crop, 10, 20, 30, 20]);
-&add_test("-Y N,N,N,N", ["raw"],
-          "Test -Y with four parameters",
-          \&test_vidcore, ["-Y", "10,20,30,40", \&vidcore_crop, 10,20,30,40]);
-&add_test("-Y", ["-Y N", "-Y N,N", "-Y N,N,N", "-Y N,N,N,N"],
-          "Test -Y");
+    # Be careful with values here!  Truncation by accelerated rescale()
+    # during vertical resize can cause false errors (cases where the byte
+    # value is off by 1 because rounding went the other way).  -X 6 seems
+    # to be safe.
+    &add_test("-X y:$csp", ["raw"],
+              "Test -X with height only ($cspname)",
+              \&test_vidcore, $cspid, ["-X", "6",
+                               \&vidcore_resize, 6*32, 0]);
+    &add_test("-X 0,x:$csp", ["raw"],
+              "Test -X with width only ($cspname)",
+              \&test_vidcore, $cspid, ["-X", "0,11",
+                               \&vidcore_resize, 0, 11*32]);
+    &add_test("-X y,x:$csp", ["raw"],
+              "Test -X with width and height ($cspname)",
+              \&test_vidcore, $cspid, ["-X", "6,11",
+                               \&vidcore_resize, 6*32, 11*32]);
+    &add_test("-X y,x,M:$csp", ["raw"],
+              "Test -X with width, height, and multiplier ($cspname)",
+              \&test_vidcore, $cspid, ["-X", "24,44,8",
+                               \&vidcore_resize, 24*8, 44*8]);
+    &add_test("-X:$csp",
+              ["-X y:$csp", "-X 0,x:$csp", "-X y,x:$csp", "-X y,x,M:$csp"],
+              "Test -X ($cspname)");
 
-&add_test("-r n", ["raw"],
-          "Test -r with one parameter",
-          \&test_vidcore, ["-r", "2", \&vidcore_reduce, 2, 2]);
-&add_test("-r y,x", ["raw"],
-          "Test -r with two parameters",
-          \&test_vidcore, ["-r", "2,5", \&vidcore_reduce, 2, 5]);
-&add_test("-r y,1", ["raw"],
-          "Test -r with width reduction == 1",
-          \&test_vidcore, ["-r", "2,1", \&vidcore_reduce, 2, 1]);
-&add_test("-r 1,x", ["raw"],
-          "Test -r with height reduction == 1",
-          \&test_vidcore, ["-r", "1,5", \&vidcore_reduce, 1, 5]);
-&add_test("-r 1,1", ["raw"],
-          "Test -r with width/height reduction == 1 (no-op)",
-          \&test_vidcore, ["-r", "1,1"]);
-&add_test("-r", ["-r n", "-r y,x", "-r y,1", "-r 1,x", "-r 1,1"],
-          "Test -r");
+    &add_test("-B y:$csp", ["raw"],
+              "Test -B with height only ($cspname)",
+              \&test_vidcore, $cspid, ["-B", "6",
+                               \&vidcore_resize, -6*32, 0]);
+    &add_test("-B 0,x:$csp", ["raw"],
+              "Test -B with width only ($cspname)",
+              \&test_vidcore, $cspid, ["-B", "0,11",
+                               \&vidcore_resize, 0, -11*32]);
+    &add_test("-B y,x:$csp", ["raw"],
+              "Test -B with width and height ($cspname)",
+              \&test_vidcore, $cspid, ["-B", "6,11",
+                               \&vidcore_resize, -6*32, -11*32]);
+    &add_test("-B y,x,M:$csp", ["raw"],
+              "Test -B with width, height, and multiplier ($cspname)",
+              \&test_vidcore, $cspid, ["-B", "24,44,8",
+                               \&vidcore_resize, -24*8, -44*8]);
+    &add_test("-B:$csp",
+              ["-B y:$csp", "-B 0,x:$csp", "-B y,x:$csp", "-B y,x,M:$csp"],
+              "Test -B ($cspname)");
 
-&add_test("-z", ["raw"],
-          "Test -z",
-          \&test_vidcore, ["-z", undef, \&vidcore_flip_v]),
-&add_test("-l", ["raw"],
-          "Test -l",
-          \&test_vidcore, ["-l", undef, \&vidcore_flip_h]),
-&add_test("-k", ["raw"],
-          "Test -k",
-          \&test_vidcore, ["-k", undef, \&vidcore_rgbswap]),
-&add_test("-K", ["raw"],
-          "Test -K",
-          \&test_vidcore, ["-K", undef, \&vidcore_grayscale]),
-&add_test("-G", ["raw"],
-          "Test -G",
-          \&test_vidcore, ["-G", "1.2", \&vidcore_gamma_adjust, 1.2]),
-&add_test("-C", ["raw"],
-          "Test -C",
-          \&test_vidcore, ["-C", "3", \&vidcore_antialias, 1/3, 1/2],
-                          ["--antialias_para", ((1/3).",".(1/2))]),
+    &add_test("-Z WxH,fast:$csp", ["raw"],
+              "Test -Z (fast mode) ($cspname)",
+              \&test_vidcore, $cspid, ["-Z",
+                               ((WIDTH-11*32)."x".(HEIGHT+6*32).",fast"),
+                               \&vidcore_resize, 6*32, -11*32]);
+    &add_test("-Z WxH:$csp", ["raw"],
+              "Test -Z (slow mode) ($cspname)",
+              \&test_vidcore, $cspid, ["-Z", ((WIDTH-76)."x".(HEIGHT+76)),
+                               \&vidcore_zoom, WIDTH-76, HEIGHT+76]);
+    &add_test("-Z:$csp", ["-Z WxH,fast:$csp", "-Z WxH:$csp"],
+              "Test -Z ($cspname)");
 
-&add_test("vidcore", ["-j", "-I", "-X", "-B", "-Z", "-Y", "-r", "-z",
-                      "-l", "-k", "-K", "-G", "-C"],
-          "Test all video core operations");
+    &add_test("-Y N:$csp", ["raw"],
+              "Test -Y with one parameter ($cspname)",
+              \&test_vidcore, $cspid, ["-Y", "10",
+                               \&vidcore_crop, 10, 0, 10, 0]);
+    &add_test("-Y N,N:$csp", ["raw"],
+              "Test -Y with two parameters ($cspname)",
+              \&test_vidcore, $cspid, ["-Y", "10,20",
+                               \&vidcore_crop, 10, 20, 10, 20]);
+    &add_test("-Y N,N,N:$csp", ["raw"],
+              "Test -Y with three parameters ($cspname)",
+              \&test_vidcore, $cspid, ["-Y", "10,20,30",
+                               \&vidcore_crop, 10, 20, 30, 20]);
+    &add_test("-Y N,N,N,N:$csp", ["raw"],
+              "Test -Y with four parameters ($cspname)",
+              \&test_vidcore, $cspid, ["-Y", "10,20,30,40",
+                               \&vidcore_crop, 10, 20, 30, 40]);
+    &add_test("-Y:$csp",
+              ["-Y N:$csp", "-Y N,N:$csp", "-Y N,N,N:$csp", "-Y N,N,N,N:$csp"],
+              "Test -Y ($cspname)");
+
+    &add_test("-r n:$csp", ["raw"],
+              "Test -r with one parameter ($cspname)",
+              \&test_vidcore, $cspid, ["-r", "2", \&vidcore_reduce, 2, 2]);
+    &add_test("-r y,x:$csp", ["raw"],
+              "Test -r with two parameters ($cspname)",
+              \&test_vidcore, $cspid, ["-r", "2,5", \&vidcore_reduce, 2, 5]);
+    &add_test("-r y,1:$csp", ["raw"],
+              "Test -r with width reduction == 1 ($cspname)",
+              \&test_vidcore, $cspid, ["-r", "2,1", \&vidcore_reduce, 2, 1]);
+    &add_test("-r 1,x:$csp", ["raw"],
+              "Test -r with height reduction == 1 ($cspname)",
+              \&test_vidcore, $cspid, ["-r", "1,5", \&vidcore_reduce, 1, 5]);
+    &add_test("-r 1,1:$csp", ["raw"],
+              "Test -r with width/height reduction == 1 (no-op) ($cspname)",
+              \&test_vidcore, $cspid, ["-r", "1,1"]);
+    &add_test("-r:$csp", ["-r n:$csp", "-r y,x:$csp", "-r y,1:$csp",
+                     "-r 1,x:$csp", "-r 1,1:$csp"],
+              "Test -r ($cspname)");
+
+    &add_test("-z:$csp", ["raw"],
+              "Test -z ($cspname)",
+              \&test_vidcore, $cspid, ["-z", undef, \&vidcore_flip_v]),
+    &add_test("-l:$csp", ["raw"],
+              "Test -l ($cspname)",
+              \&test_vidcore, $cspid, ["-l", undef, \&vidcore_flip_h]),
+    &add_test("-k:$csp", ["raw"],
+              "Test -k ($cspname)",
+              \&test_vidcore, $cspid, ["-k", undef, \&vidcore_rgbswap]),
+    &add_test("-K:$csp", ["raw"],
+              "Test -K ($cspname)",
+              \&test_vidcore, $cspid, ["-K", undef, \&vidcore_grayscale]),
+    &add_test("-G:$csp", ["raw"],
+              "Test -G ($cspname)",
+              \&test_vidcore, $cspid, ["-G", "1.2",
+                               \&vidcore_gamma_adjust, 1.2]),
+    &add_test("-C:$csp", ["raw"],
+              "Test -C ($cspname)",
+              \&test_vidcore, $cspid, ["-C", "3",
+                               \&vidcore_antialias, 1/3, 1/2],
+                              ["--antialias_para", ((1/3).",".(1/2))]),
+
+    &add_test("vidcore:$csp", [map {"$_:$csp"} @vidcore_tests],
+              "Test all video core operations ($cspname)");
+
+}  # for each colorspace
+
+foreach $test (@vidcore_tests) {
+    &add_test($test, [map {"$test:$_"} @csplist],
+              "Test $test (all colorspaces)");
+}
+
+&add_test("vidcore", [map {"vidcore:$_"} @csplist],
+          "Test all video core operations (all colorspaces)");
 
 ########
 # Run all (or specified) tests
@@ -548,35 +595,66 @@ sub test_export_x_ffmpeg
 
 sub test_vidcore
 {
-    my @cmdline = ("-x", "raw,null", "-y", "raw,null", "--use_rgb");
+    my $colorspace = shift @_;
+    my @cmdline = ("-x", "raw,null", "-y", "raw,null");
+    push @cmdline, "--use_rgb" if $colorspace == CSP_RGB;
+    my $bpp = $colorspace==CSP_RGB ? 24 : 12;  # total bits per pixel
 
     # Diagonalize the test frame, to try and catch more bugs
-    if (!$vidcore_in_frame) {
-        $vidcore_in_frame = &gen_rgb_frame(WIDTH,HEIGHT);
-        for (my $y = 1; $y < HEIGHT; $y++) {
-            $vidcore_in_frame = substr($vidcore_in_frame, 0, $y*WIDTH*3)
-                . substr($vidcore_in_frame, $y*WIDTH*3-3, 3)
-                . substr($vidcore_in_frame, $y*WIDTH*3, (HEIGHT-$y)*WIDTH*3-3);
+    if (!$vidcore_in_frame{$colorspace}) {
+        my $frame = $colorspace==CSP_RGB ? &gen_rgb_frame(WIDTH,HEIGHT)
+                                         : &gen_yuv_frame(WIDTH,HEIGHT);
+        my $Bpp = $colorspace==CSP_RGB ? 3 : 1;
+        my $Bp2 = $Bpp*2;
+        for (my $y = 2; $y < HEIGHT; $y += 2) {
+            $frame = substr($frame, 0, $y*WIDTH*$Bpp)
+                   . substr($frame, $y*WIDTH*$Bpp-$Bp2, $Bp2)
+                   . substr($frame, $y*WIDTH*$Bpp,
+                            (HEIGHT-$y)*WIDTH*$Bpp-$Bp2)
+                   . substr($frame, HEIGHT*WIDTH*$Bpp);
         }
+        if ($colorspace == CSP_YUV) {
+            my $ofs = HEIGHT*WIDTH*$Bpp;
+            my $w2 = int(WIDTH/2);
+            my $h2 = int(HEIGHT/2);
+            for (my $y = 1; $y < $h2; $y++) {
+                $frame = substr($frame, 0, $ofs+$y*$w2)
+                       . substr($frame, $ofs+$y*$w2-1, 1)
+                       . substr($frame, $ofs+$y*$w2, ($h2-$y)*$w2-1)
+                       . substr($frame, $ofs+$h2*$w2);
+            }
+            $ofs += $h2*$w2*$Bpp;
+            for (my $y = 1; $y < $h2; $y++) {
+                $frame = substr($frame, 0, $ofs+$y*$w2)
+                       . substr($frame, $ofs+$y*$w2-1, 1)
+                       . substr($frame, $ofs+$y*$w2, ($h2-$y)*$w2-1);
+            }
+        }
+        $vidcore_in_frame{$colorspace} = $frame;
     }
 
     # Generate command line and expected output frame
-    my $out_frame = $vidcore_in_frame;
+    my $out_frame = $vidcore_in_frame{$colorspace};
     my $out_w = WIDTH;
     my $out_h = HEIGHT;
     foreach $op (@_) {
         push @cmdline, $$op[0];
         push @cmdline, $$op[1] if defined($$op[1]);
         if ($$op[2]) {
-            if (!&{$$op[2]}(\$out_frame, \$out_w, \$out_h, @$op[3..$#$op])) {
+            if (!&{$$op[2]}($colorspace, \$out_frame, \$out_w, \$out_h,
+                            @$op[3..$#$op])) {
                 return "Video operation for $$op[0] not implemented";
+            }
+            if (length($out_frame) != $out_w * $out_h * $bpp / 8) {
+                return "Video operation for $$op[0] gave wrong size result"
+                     . " (tester bug)";
             }
         }
     }
 
     # Run transcode
-    my $in_avi = &gen_raw_avi(WIDTH, HEIGHT, NFRAMES, CSP_RGB,
-                              $vidcore_in_frame);
+    my $in_avi = &gen_raw_avi(WIDTH, HEIGHT, NFRAMES, $colorspace,
+                              $vidcore_in_frame{$colorspace});
     my $out_avi = &transcode($in_avi, @cmdline);
 
     # Check output data
@@ -587,9 +665,9 @@ sub test_vidcore
             return "Can't find video data in transcode output";
         }
         my $len = unpack("V", substr($out_avi, $pos+4, 4));
-        if ($len != $out_w*$out_h*3) {
+        if ($len != length($out_frame)) {
             return "Video frame has bad size ($len, expected "
-                . ($out_w*$out_h*3) . ")";
+                . length($out_frame) . ")";
         }
         if (substr($out_avi, $pos+8, $len) ne $out_frame) {
 #open F,">/tmp/t";print F $out_frame;close F;open F,">/tmp/u";print F substr($out_avi,$pos+8,$len);close F;
@@ -605,31 +683,56 @@ sub test_vidcore
 # -j/-Y
 sub vidcore_crop
 {
-    my ($frameref, $widthref, $heightref, $top, $left, $bottom, $right) = @_;
+    my ($csp, $frameref, $widthref, $heightref,
+        $top, $left, $bottom, $right) = @_;
+    my $Bpp = $csp==CSP_RGB ? 3 : 1;
+    my $black = $csp==-2 ? "\x80" : "\0";
+
+    if ($csp == CSP_YUV) {
+        my $w2 = int($$widthref/2);
+        my $h2 = int($$heightref/2);
+        my $Y = substr($$frameref, 0, $$widthref*$$heightref);
+        my $U = substr($$frameref, $$widthref*$$heightref, $w2*$h2);
+        my $V = substr($$frameref, $$widthref*$$heightref + $w2*$h2, $w2*$h2);
+        return 0 if !&vidcore_crop(-1, \$Y, $widthref, $heightref,
+                                   $top, $left, $bottom, $right);
+        my $wdummy = $w2;
+        my $hdummy = $h2;
+        return 0 if !&vidcore_crop(-2, \$U, \$wdummy, \$hdummy,
+                                   int($top/2), int($left/2),
+                                   int($bottom/2), int($right/2));
+        return 0 if !&vidcore_crop(-2, \$V, \$w2, \$h2,
+                                   int($top/2), int($left/2),
+                                   int($bottom/2), int($right/2));
+        $$frameref = $Y . $U . $V;
+        return 1;
+    }
+
     if ($top > 0) {
-        $$frameref = substr($$frameref, $top*$$widthref*3);
+        $$frameref = substr($$frameref, $top*$$widthref*$Bpp);
     } elsif ($top < 0) {
-        $$frameref = ("\0" x (-$top*$$widthref*3)) . $$frameref;
+        $$frameref = ($black x (-$top*$$widthref*$Bpp)) . $$frameref;
     }
     $$heightref -= $top;
     if ($bottom > 0) {
-        $$frameref = substr($$frameref, 0, ($$heightref-$bottom)*$$widthref*3);
+        $$frameref = substr($$frameref, 0,
+                            ($$heightref-$bottom)*$$widthref*$Bpp);
     } elsif ($bottom < 0) {
-        $$frameref .= "\0" x (-$bottom*$$widthref*3);
+        $$frameref .= $black x (-$bottom*$$widthref*$Bpp);
     }
     $$heightref -= $bottom;
     my $newframe = "";
     for (my $y = 0; $y < $$heightref; $y++) {
-        my $row = substr($$frameref, $y*$$widthref*3, $$widthref*3);
+        my $row = substr($$frameref, $y*$$widthref*$Bpp, $$widthref*$Bpp);
         if ($left > 0) {
-            $row = substr($row, $left*3);
+            $row = substr($row, $left*$Bpp);
         } elsif ($left < 0) {
-            $row = ("\0" x (-$left*3)) . $row;
+            $row = ($black x (-$left*$Bpp)) . $row;
         }
         if ($right > 0) {
-            $row = substr($row, 0, length($row) - $right*3);
+            $row = substr($row, 0, length($row) - $right*$Bpp);
         } elsif ($right < 0) {
-            $row .= "\0" x (-$right*3);
+            $row .= $black x (-$right*$Bpp);
         }
         $newframe .= $row;
     }
@@ -643,8 +746,9 @@ sub vidcore_crop
 # -I 1
 sub vidcore_deint_interpolate
 {
-    my ($frameref, $widthref, $heightref) = @_;
-    my $Bpl = $$widthref*3;
+    my ($csp, $frameref, $widthref, $heightref) = @_;
+    my $Bpp = $csp==CSP_RGB ? 3 : 1;
+    my $Bpl = $$widthref * $Bpp;
 
     my $newframe = "";
     for (my $y = 0; $y < $$heightref; $y++) {
@@ -660,6 +764,7 @@ sub vidcore_deint_interpolate
             }
         }
     }
+    $newframe .= substr($$frameref, $$heightref*$Bpl);
     $$frameref = $newframe;
     return 1;
 }
@@ -668,23 +773,36 @@ sub vidcore_deint_interpolate
 # -I 3
 sub vidcore_deint_dropzoom
 {
-    my ($frameref, $widthref, $heightref) = @_;
+    my ($csp, $frameref, $widthref, $heightref) = @_;
 
     my $oldheight = $$heightref;
-    &vidcore_deint_dropfield($frameref, $widthref, $heightref);
-    &vidcore_zoom($frameref, $widthref, $heightref, $$widthref, $oldheight);
+    &vidcore_deint_dropfield($csp, $frameref, $widthref, $heightref);
+    return &vidcore_zoom($csp, $frameref, $widthref, $heightref, $$widthref,
+                         $oldheight);
 }
 
 
 # -I 4
 sub vidcore_deint_dropfield
 {
-    my ($frameref, $widthref, $heightref) = @_;
-    my $Bpl = $$widthref*3;
+    my ($csp, $frameref, $widthref, $heightref) = @_;
+    my $Bpp = $csp==CSP_RGB ? 3 : 1;
+    my $Bpl = $$widthref*$Bpp;
 
     my $newframe = "";
     for (my $y = 0; $y < int($$heightref/2); $y++) {
         $newframe .= substr($$frameref, ($y*2)*$Bpl, $Bpl);
+    }
+    if ($csp == CSP_YUV) {
+        my $ofs = $$widthref * $$heightref;
+        $Bpl = int($Bpl/2);
+        for (my $y = 0; $y < int($$heightref/2/2); $y++) {
+            $newframe .= substr($$frameref, $ofs + ($y*2)*$Bpl, $Bpl);
+        }
+        $ofs += int($$widthref/2) * int($$heightref/2);
+        for (my $y = 0; $y < int($$heightref/2/2); $y++) {
+            $newframe .= substr($$frameref, $ofs + ($y*2)*$Bpl, $Bpl);
+        }
     }
     $$frameref = $newframe;
     $$heightref = int($$heightref/2);
@@ -695,8 +813,9 @@ sub vidcore_deint_dropfield
 # -I 5
 sub vidcore_deint_linear_blend
 {
-    my ($frameref, $widthref, $heightref) = @_;
-    my $Bpl = $$widthref*3;
+    my ($csp, $frameref, $widthref, $heightref) = @_;
+    my $Bpp = $csp==CSP_RGB ? 3 : 1;
+    my $Bpl = $$widthref * $Bpp;
 
     my $evenframe = "";
     for (my $y = 0; $y < $$heightref; $y++) {
@@ -736,6 +855,7 @@ sub vidcore_deint_linear_blend
         my $c2 = ord(substr($oddframe, $i, 1));
         $newframe .= chr(int(($c1+$c2+1)/2));
     }
+    $newframe .= substr($$frameref, $$heightref*$Bpl);
 
     $$frameref = $newframe;
     return 1;
@@ -746,16 +866,36 @@ sub vidcore_deint_linear_blend
 # -B/-X
 sub vidcore_resize
 {
-    my ($frameref, $widthref, $heightref, $resize_h, $resize_w) = @_;
+    my ($csp, $frameref, $widthref, $heightref, $resize_h, $resize_w) = @_;
+    my $Bpp = $csp==CSP_RGB ? 3 : 1;
+    my $mult = $csp==-2 ? 4 : 8;
+
+    if ($csp == CSP_YUV) {
+        my $w2 = int($$widthref/2);
+        my $h2 = int($$heightref/2);
+        my $Y = substr($$frameref, 0, $$widthref*$$heightref);
+        my $U = substr($$frameref, $$widthref*$$heightref, $w2*$h2);
+        my $V = substr($$frameref, $$widthref*$$heightref + $w2*$h2, $w2*$h2);
+        return 0 if !&vidcore_resize(-1, \$Y, $widthref, $heightref,
+                                     $resize_h, $resize_w);
+        my $wdummy = $w2;
+        my $hdummy = $h2;
+        return 0 if !&vidcore_resize(-2, \$U, \$wdummy, \$hdummy,
+                                     int($resize_h/2), int($resize_w/2));
+        return 0 if !&vidcore_resize(-2, \$V, \$w2, \$h2,
+                                     int($resize_h/2), int($resize_w/2));
+        $$frameref = $Y . $U . $V;
+        return 1;
+    }
 
     my $newframe = $$frameref;
 
     if ($resize_h) {
-        my $Bpl = $$widthref*3;
+        my $Bpl = $$widthref*$Bpp;
         my $new_h = $$heightref + $resize_h;
         my $ratio = $$heightref / $new_h;
-        my $oldy_block = int($$heightref/8);
-        my $y_block = int($new_h/8);
+        my $oldy_block = int($$heightref/$mult);
+        my $y_block = int($new_h/$mult);
         my (@source, @weight1, @weight2);
         for (my $i = 0; $i < $y_block; $i++) {
             my $oldi = $i * $$heightref / $new_h;
@@ -792,8 +932,8 @@ sub vidcore_resize
     if ($resize_w) {
         my $new_w = $$widthref + $resize_w;
         my $ratio = $$widthref / $new_w;
-        my $oldx_block = int($$widthref/8);
-        my $x_block = int($new_w/8);
+        my $oldx_block = int($$widthref/$mult);
+        my $x_block = int($new_w/$mult);
         my (@source, @weight1, @weight2);
         for (my $i = 0; $i < $x_block; $i++) {
             my $oldi = $i * $$widthref / $new_w;
@@ -808,19 +948,21 @@ sub vidcore_resize
             }
         }
         $newframe = "";
-        for (my $block = 0; $block < $$heightref * 8; $block++) {
-            my $y = int($block/8);
+        for (my $block = 0; $block < $$heightref * $mult; $block++) {
+            my $y = int($block/$mult);
             for (my $i = 0; $i < $x_block; $i++) {
-                my $oldx = ($block%8) * $oldx_block + $source[$i];
+                my $oldx = ($block%$mult) * $oldx_block + $source[$i];
                 if ($weight1[$i] == 0x10000) {
-                    $newframe .= substr($$frameref, ($y*$$widthref+$oldx)*3,
-                                        3);
+                    $newframe .= substr($$frameref, ($y*$$widthref+$oldx)*$Bpp,
+                                        $Bpp);
                 } else {
-                    for (my $j = 0; $j < 3; $j++) {
+                    for (my $j = 0; $j < $Bpp; $j++) {
                         my $c1 = ord(substr($$frameref,
-                                            ($y*$$widthref+$oldx)*3+$j, 1));
+                                            ($y*$$widthref+$oldx)*$Bpp+$j,
+                                            1));
                         my $c2 = ord(substr($$frameref,
-                                            ($y*$$widthref+$oldx+1)*3+$j, 1));
+                                            ($y*$$widthref+$oldx+1)*$Bpp+$j,
+                                            1));
                         my $c = $c1*$weight1[$i] + $c2*$weight2[$i] + 32768;
                         $newframe .= chr($c>>16);
                     }
@@ -840,9 +982,27 @@ sub vidcore_resize
 # Implemented using triangle filter
 sub vidcore_zoom
 {
-    my ($frameref, $widthref, $heightref, $newwidth, $newheight) = @_;
-    my $Bpp = 3;
+    my ($csp, $frameref, $widthref, $heightref, $newwidth, $newheight) = @_;
+    my $Bpp = $csp<0 ? -$csp : $csp==CSP_RGB ? 3 : 1;
     my $Bpl = $$widthref*$Bpp;
+
+    if ($csp == CSP_YUV) {
+        my $w2 = int($$widthref/2);
+        my $h2 = int($$heightref/2);
+        my $Y = substr($$frameref, 0, $$widthref*$$heightref);
+        my $U = substr($$frameref, $$widthref*$$heightref, $w2*$h2);
+        my $V = substr($$frameref, $$widthref*$$heightref + $w2*$h2, $w2*$h2);
+        return 0 if !&vidcore_zoom(-1, \$Y, $widthref, $heightref,
+                                   $newwidth, $newheight);
+        my $wdummy = $w2;
+        my $hdummy = $h2;
+        return 0 if !&vidcore_zoom(-1, \$U, \$wdummy, \$hdummy,
+                                   int($newwidth/2), int($newheight/2));
+        return 0 if !&vidcore_zoom(-1, \$V, \$w2, \$h2,
+                                   int($newwidth/2), int($newheight/2));
+        $$frameref = $Y . $U . $V;
+        return 1;
+    }
 
     my @x_contrib = ();
     my $xscale = $newwidth / $$widthref;
@@ -934,14 +1094,32 @@ sub vidcore_zoom
 # -r
 sub vidcore_reduce
 {
-    my ($frameref, $widthref, $heightref, $reduce_h, $reduce_w) = @_;
+    my ($csp, $frameref, $widthref, $heightref, $reduce_h, $reduce_w) = @_;
+    my $Bpp = $csp==CSP_RGB ? 3 : 1;
 
     my $newframe = "";
     for (my $y = 0; $y < int($$heightref/$reduce_h); $y++) {
         for (my $x = 0; $x < int($$widthref/$reduce_w); $x++) {
-            $newframe .= substr($$frameref,
-                                (($y*$reduce_h)*$$widthref+($x*$reduce_w))*3,
-                                3);
+            $newframe .= substr($$frameref, (($y*$reduce_h)*$$widthref
+                                             +($x*$reduce_w))*$Bpp, $Bpp);
+        }
+    }
+    if ($csp == CSP_YUV) {
+        my $ofs = $$widthref * $$heightref;
+        for (my $y = 0; $y < int($$heightref/2/$reduce_h); $y++) {
+            for (my $x = 0; $x < int($$widthref/2/$reduce_w); $x++) {
+                $newframe .= substr($$frameref,
+                                    $ofs + (($y*$reduce_h)*int($$widthref/2)
+                                            +($x*$reduce_w)), 1);
+            }
+        }
+        $ofs += int($$widthref/2) * int($$heightref/2);
+        for (my $y = 0; $y < int($$heightref/2/$reduce_h); $y++) {
+            for (my $x = 0; $x < int($$widthref/2/$reduce_w); $x++) {
+                $newframe .= substr($$frameref,
+                                    $ofs + (($y*$reduce_h)*int($$widthref/2)
+                                            +($x*$reduce_w)), 1);
+            }
         }
     }
     $$frameref = $newframe;
@@ -955,12 +1133,24 @@ sub vidcore_reduce
 # -z
 sub vidcore_flip_v
 {
-    my ($frameref, $widthref, $heightref) = @_;
-    my $Bpl = $$widthref*3;
+    my ($csp, $frameref, $widthref, $heightref) = @_;
+    my $Bpp = $csp==CSP_RGB ? 3 : 1;
+    my $Bpl = $$widthref * $Bpp;
 
     my $newframe = "";
     for (my $y = $$heightref-1; $y >= 0; $y--) {
         $newframe .= substr($$frameref, $y*$Bpl, $Bpl);
+    }
+    if ($csp == CSP_YUV) {
+        my $ofs = $$widthref * $$heightref;
+        $Bpl = int($Bpl/2);
+        for (my $y = int($$heightref/2)-1; $y >= 0; $y--) {
+            $newframe .= substr($$frameref, $ofs + $y*$Bpl, $Bpl);
+        }
+        $ofs += int($$heightref/2) * $Bpl;
+        for (my $y = int($$heightref/2)-1; $y >= 0; $y--) {
+            $newframe .= substr($$frameref, $ofs + $y*$Bpl, $Bpl);
+        }
     }
     $$frameref = $newframe;
     return 1;
@@ -971,12 +1161,22 @@ sub vidcore_flip_v
 # -l
 sub vidcore_flip_h
 {
-    my ($frameref, $widthref, $heightref) = @_;
+    my ($csp, $frameref, $widthref, $heightref) = @_;
+    my $Bpp = $csp==CSP_RGB ? 3 : 1;
 
     my $newframe = "";
     for (my $y = 0; $y < $$heightref; $y++) {
         for (my $x = $$widthref-1; $x >= 0; $x--) {
-            $newframe .= substr($$frameref, ($y*$$widthref+$x)*3, 3);
+            $newframe .= substr($$frameref, ($y*$$widthref+$x)*$Bpp, $Bpp);
+        }
+    }
+    if ($csp == CSP_YUV) {
+        my $ofs = $$widthref * $$heightref;
+        my $Bpl = int($$widthref/2);
+        for (my $y = 0; $y < int($$heightref/2) * 2; $y++) {
+            for (my $x = $Bpl-1; $x >= 0; $x--) {
+                $newframe .= substr($$frameref, $ofs+($y*$Bpl+$x), 1);
+            }
         }
     }
     $$frameref = $newframe;
@@ -988,13 +1188,23 @@ sub vidcore_flip_h
 # -k
 sub vidcore_rgbswap
 {
-    my ($frameref, $widthref, $heightref) = @_;
+    my ($csp, $frameref, $widthref, $heightref) = @_;
 
     my $newframe = "";
-    for (my $i = 0; $i < $$widthref*$$heightref; $i++) {
-        $newframe .= substr($$frameref, $i*3+2, 1);
-        $newframe .= substr($$frameref, $i*3+1, 1);
-        $newframe .= substr($$frameref, $i*3  , 1);
+    if ($csp == CSP_RGB) {
+        for (my $i = 0; $i < $$widthref*$$heightref; $i++) {
+            $newframe .= substr($$frameref, $i*3+2, 1);
+            $newframe .= substr($$frameref, $i*3+1, 1);
+            $newframe .= substr($$frameref, $i*3  , 1);
+        }
+    } elsif ($csp == CSP_YUV) {
+        my $Ysize = $$widthref * $$heightref;
+        my $UVsize = int($$widthref/2) * int($$heightref/2);
+        $newframe = substr($$frameref, 0, $Ysize)
+                  . substr($$frameref, $Ysize+$UVsize, $UVsize)
+                  . substr($$frameref, $Ysize, $UVsize);
+    } else {
+        return 0;
     }
     $$frameref = $newframe;
     return 1;
@@ -1005,15 +1215,22 @@ sub vidcore_rgbswap
 # -K
 sub vidcore_grayscale
 {
-    my ($frameref, $widthref, $heightref) = @_;
+    my ($csp, $frameref, $widthref, $heightref) = @_;
 
     my $newframe = "";
-    for (my $i = 0; $i < $$widthref * $$heightref; $i++) {
-        my $r = ord(substr($$frameref, $i*3  , 1));
-        my $g = ord(substr($$frameref, $i*3+1, 1));
-        my $b = ord(substr($$frameref, $i*3+2, 1));
-        my $c = (19595*$r + 38470*$g + 7471*$b + 32768) >> 16;
-        $newframe .= chr($c) x 3;
+    if ($csp == CSP_RGB) {
+        for (my $i = 0; $i < $$widthref * $$heightref; $i++) {
+            my $r = ord(substr($$frameref, $i*3  , 1));
+            my $g = ord(substr($$frameref, $i*3+1, 1));
+            my $b = ord(substr($$frameref, $i*3+2, 1));
+            my $c = (19595*$r + 38470*$g + 7471*$b + 32768) >> 16;
+            $newframe .= chr($c) x 3;
+        }
+    } elsif ($csp == CSP_YUV) {
+        $newframe = substr($$frameref, 0, $$widthref * $$heightref)
+                  . ("\x80" x (int($$widthref/2) * int($$heightref/2) * 2));
+    } else {
+        return 0;
     }
     $$frameref = $newframe;
     return 1;
@@ -1024,7 +1241,8 @@ sub vidcore_grayscale
 # -G
 sub vidcore_gamma_adjust
 {
-    my ($frameref, $widthref, $heightref, $gamma) = @_;
+    my ($csp, $frameref, $widthref, $heightref, $gamma) = @_;
+    my $Bpp = ($csp==CSP_RGB ? 3 : 1);
 
     my @table = ();
     for (my $i = 0; $i < 256; $i++) {
@@ -1032,8 +1250,11 @@ sub vidcore_gamma_adjust
     }
 
     my $newframe = "";
-    for (my $i = 0; $i < $$widthref*$$heightref*3; $i++) {
+    for (my $i = 0; $i < $$widthref*$$heightref*$Bpp; $i++) {
         $newframe .= chr($table[ord(substr($$frameref, $i, 1))]);
+    }
+    if ($csp != CSP_RGB) {
+        $newframe .= substr($$frameref, $$widthref*$$heightref*$Bpp);
     }
     $$frameref = $newframe;
     return 1;
@@ -1044,8 +1265,9 @@ sub vidcore_gamma_adjust
 # -C
 sub vidcore_antialias
 {
-    my ($frameref, $widthref, $heightref, $aa_weight, $aa_bias) = @_;
-    my $Bpl = $$widthref*3;
+    my ($csp, $frameref, $widthref, $heightref, $aa_weight, $aa_bias) = @_;
+    my $Bpp = $csp==CSP_RGB ? 3 : 1;
+    my $Bpl = $$widthref * $Bpp;
     my (@table_c, @table_x, @table_y, @table_d);
 
     for (my $i = 0; $i < 256; $i++) {
@@ -1057,23 +1279,23 @@ sub vidcore_antialias
 
     my $newframe = substr($$frameref, 0, $Bpl);
     for (my $y = 1; $y < $$heightref-1; $y++) {
-        $newframe .= substr($$frameref, $y*$Bpl, 3);
+        $newframe .= substr($$frameref, $y*$Bpl, $Bpp);
         for (my $x = 1; $x < $$widthref-1; $x++) {
-            my $UL = substr($$frameref, (($y-1)*$$widthref+($x-1))*3, 3);
-            my $U  = substr($$frameref, (($y-1)*$$widthref+($x  ))*3, 3);
-            my $UR = substr($$frameref, (($y-1)*$$widthref+($x+1))*3, 3);
-            my $L  = substr($$frameref, (($y  )*$$widthref+($x-1))*3, 3);
-            my $C  = substr($$frameref, (($y  )*$$widthref+($x  ))*3, 3);
-            my $R  = substr($$frameref, (($y  )*$$widthref+($x+1))*3, 3);
-            my $DL = substr($$frameref, (($y+1)*$$widthref+($x-1))*3, 3);
-            my $D  = substr($$frameref, (($y+1)*$$widthref+($x  ))*3, 3);
-            my $DR = substr($$frameref, (($y+1)*$$widthref+($x+1))*3, 3);
+            my $UL = substr($$frameref, (($y-1)*$$widthref+($x-1))*$Bpp, $Bpp);
+            my $U  = substr($$frameref, (($y-1)*$$widthref+($x  ))*$Bpp, $Bpp);
+            my $UR = substr($$frameref, (($y-1)*$$widthref+($x+1))*$Bpp, $Bpp);
+            my $L  = substr($$frameref, (($y  )*$$widthref+($x-1))*$Bpp, $Bpp);
+            my $C  = substr($$frameref, (($y  )*$$widthref+($x  ))*$Bpp, $Bpp);
+            my $R  = substr($$frameref, (($y  )*$$widthref+($x+1))*$Bpp, $Bpp);
+            my $DL = substr($$frameref, (($y+1)*$$widthref+($x-1))*$Bpp, $Bpp);
+            my $D  = substr($$frameref, (($y+1)*$$widthref+($x  ))*$Bpp, $Bpp);
+            my $DR = substr($$frameref, (($y+1)*$$widthref+($x+1))*$Bpp, $Bpp);
             if ((&SAME($L,$U) && &DIFF($L,$D) && &DIFF($L,$R))
              || (&SAME($L,$D) && &DIFF($L,$U) && &DIFF($L,$R))
              || (&SAME($R,$U) && &DIFF($R,$D) && &DIFF($R,$L))
              || (&SAME($R,$D) && &DIFF($R,$U) && &DIFF($R,$L))
             ) {
-                for (my $i = 0; $i < 3; $i++) {
+                for (my $i = 0; $i < $Bpp; $i++) {
                     my $c = $table_d[ord(substr($UL,$i,1))]
                           + $table_y[ord(substr($U ,$i,1))]
                           + $table_d[ord(substr($UR,$i,1))]
@@ -1090,21 +1312,25 @@ sub vidcore_antialias
                 $newframe .= $C;
             }
         }
-        $newframe .= substr($$frameref, $y*$Bpl+($Bpl-3), 3);
+        $newframe .= substr($$frameref, $y*$Bpl+($Bpl-$Bpp), $Bpp);
     }
-    $$frameref = $newframe . substr($$frameref, ($$heightref-1)*$Bpl, $Bpl);
+    $newframe .= substr($$frameref, ($$heightref-1)*$Bpl, $Bpl);
+    if ($csp != CSP_RGB) {
+        $newframe .= substr($$frameref, $$widthref*$$heightref*$Bpp);
+    }
+    $$frameref = $newframe;
     return 1;
 }
 
 sub SAME {
-    my @pixel1 = unpack("CCC", $_[0]);
-    my @pixel2 = unpack("CCC", $_[1]);
-    my $diff0 = abs($pixel2[0] - $pixel1[0]);
-    my $diff1 = abs($pixel2[1] - $pixel1[1]);
-    my $diff2 = abs($pixel2[2] - $pixel1[2]);
-    $diff1 = $diff2 if $diff2 > $diff1;
-    $diff0 = $diff1 if $diff1 > $diff0;
-    return $diff0 < 25;
+    my @pixel1 = unpack("C*", $_[0]);
+    my @pixel2 = unpack("C*", $_[1]);
+    my $diff = 0;
+    for (my $i = 0; $i < @pixel1; $i++) {
+        my $thisdiff = abs($pixel2[$i] - $pixel1[$i]);
+        $diff = $thisdiff if $diff < $thisdiff;
+    }
+    return $diff < 25;
 }
 
 sub DIFF { return !&SAME(@_); }
