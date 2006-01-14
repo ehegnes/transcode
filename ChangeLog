@@ -1,5 +1,10 @@
 2006-01-14 Baptiste COUDURIER <baptiste.coudurier at smartjog dot com>
   * filter/filter_text.c
+  Add support for rendering text in YUV422 mode.  (Modified patch applied
+  by Andrew Church)
+
+2006-01-14 Baptiste COUDURIER <baptiste.coudurier at smartjog dot com>
+  * filter/filter_text.c
   Fix position of rendered text in frame.  (Modified patch applied by
   Andrew Church)
 

@@ -120,12 +120,12 @@ static void help_optstr(void)
    printf ("        'tstamp' add timestamp to each frame (overrides string)\n");
 }
 
-static void font_render(int width, int height, int size, int codec, int w, int h, int i, uint8_t *p, uint8_t *q, uint8_t *buf)
+static void font_render(int width, int height, int codec, int w, int h, int i, uint8_t *p, uint8_t *q, uint8_t *buf)
 {
     int error;
 
     //render into temp buffer
-    if (codec == CODEC_YUV) {
+    if (codec == CODEC_YUV || codec == CODEC_YUV422) {
 
         memset (buf, 16, height*width);
         memset (buf+height*width, 128, height*width/2);
@@ -165,7 +165,7 @@ static void font_render(int width, int height, int size, int codec, int w, int h
 
     } else if (codec == CODEC_RGB) {
 
-        memset (buf, 0, height*size);
+        memset (buf, 0, height*width*3);
 	p = buf + 3*(height-mfd->posy)*width + 3*mfd->posx;
 
 	for (i=0; i<strlen(mfd->string); i++) {
@@ -209,7 +209,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   static vob_t *vob=NULL;
 
   static int width=0, height=0;
-  static int size, codec=0;
+  static int codec=0;
   static int w, h, i;
   int error;
   static time_t mytime=0;
@@ -388,19 +388,21 @@ int tc_filter(frame_list_t *ptr_, char *options)
     codec  = vob->im_v_codec;
 
     if (codec == CODEC_RGB)
-      size = width*3;
+	buf = tc_malloc(width*height*3);
+    else if (codec == CODEC_YUV422)
+	buf = tc_malloc(width*height + ((width/2)*height)*2);
     else
-      size = width*3/2;
+	buf = tc_malloc(width*height + ((width/2)*(height/2))*2);
 
-    buf = tc_malloc (height*size);
     if(buf == NULL)
         return (-1);
 
     if (codec == CODEC_RGB)
-	memset (buf, 0, height*size);
+	memset(buf, 0, height*width*3);
     else {
-	memset (buf, 16, height*width);
-	memset (buf+height*width, 128, height*width/2);
+	memset(buf, 16, height*width);
+	memset(buf + height*width, 128,
+	       (codec==CODEC_YUV422 ? height : height/2) * (width/2) * 2);
     }
 
     // init lib
@@ -496,7 +498,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	return (-1);
     }
 
-    font_render(width,height,size,codec,w,h,i,p,q,buf);
+    font_render(width,height,codec,w,h,i,p,q,buf);
 
     // filter init ok.
     if (verbose) tc_log_info(MOD_NAME, "%s %s %dx%d-%d", MOD_VERSION, MOD_CAP,
@@ -553,7 +555,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    mytime = time(NULL);
 	    mfd->string = ctime(&mytime);
 	    mfd->string[strlen(mfd->string)-1] = '\0';
-	    font_render(width,height,size,codec,w,h,i,p,q,buf);
+	    font_render(width,height,codec,w,h,i,p,q,buf);
 	}
 
 	else if (mfd->tstamp) {
@@ -565,7 +567,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    tc_snprintf(tstampbuf, sizeof(tstampbuf),
 			"%02i:%02i:%02i.%02i", hh, mm, ss, ss_frame);
 	    mfd->string = tstampbuf;
-	    font_render(width,height,size,codec,w,h,i,p,q,buf);
+	    font_render(width,height,codec,w,h,i,p,q,buf);
 	}
 
 	if (mfd->start == ptr->id && mfd->fade) {
@@ -620,6 +622,48 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 		    U[(h/2)*(Bpl/2)+w/2] = mfd->U&0xff;
 		    V[(h/2)*(Bpl/2)+w/2] = mfd->V&0xff;
+		}
+	    }
+
+
+	} else if (codec == CODEC_YUV422) { // FIXME untested
+	    uint8_t *vbuf, *U, *V;
+	    int Bpl;
+
+	    if (flip) {
+		vbuf = ptr->video_buf + (height-1)*width;
+		Bpl = (-width);
+		U = ptr->video_buf + ptr->v_width*ptr->v_height
+		                   + (height-1)*(width/2);
+	    } else {
+		vbuf = ptr->video_buf;
+		Bpl = width;
+		U = ptr->video_buf + ptr->v_width*ptr->v_height;
+	    }
+	    p = vbuf + mfd->posy*Bpl   + mfd->posx;
+	    q =  buf + mfd->posy*width + mfd->posx;
+	    U = U + (mfd->posy)*(Bpl/2) + mfd->posx/2;
+	    V = U + (ptr->v_width/2)*(ptr->v_height/2);
+
+	    for (h=0; h<mfd->boundY; h++) {
+		for (w=0; w<mfd->boundX; w++)  {
+
+		    unsigned int c = q[h*width+w]&0xff;
+		    unsigned int d = p[h*Bpl+w]&0xff;
+		    unsigned int e = 0;
+
+		    // transparency
+		    if (mfd->transparent && (c <= 16)) continue;
+
+		    // opacity
+		    e = ((MAX_OPACITY-mfd->opaque)*d + mfd->opaque*c)/MAX_OPACITY;
+		    //e &= (mfd->Y&0xff);
+
+		    // write to image
+		    p[h*width+w] = e&0xff;
+
+		    U[h*(Bpl/2)+w/2] = mfd->U&0xff;
+		    V[h*(Bpl/2)+w/2] = mfd->V&0xff;
 		}
 	    }
 
