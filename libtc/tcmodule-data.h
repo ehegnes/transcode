@@ -1,5 +1,5 @@
 /*
- * tcmodule-common.h - transcode module system, take two: data types
+ * tcmodule-data.h - transcode module system, take two: data types
  * (C) 2005 - Francesco Romani <fromani -at- gmail -dot- com>
  *
  * This file is part of transcode, a video stream processing tool.
@@ -30,29 +30,25 @@
 #include "transcode.h"
 #include "tcmodule-info.h"
 
-/* 
+/*
  * allowed status transition chart:
  *
  *                     init                 configure
  *  +--------------+ -----> +-----------+ ------------> +--------------+
  *  | module limbo |        | [created] |               | [configured] |
  *  +--------------+ <----- +-----------+ <-----------  +--------------+
- *                    fini   A                stop          |
- *                           |                              |
- *                           |      any specific operation: |
- *                           |          encode_*, filter_*, |
- *                           |               multiplex, ... |
- *                           |                              V
- *                           `----------------- +-----------+
- *                                     stop     | [running] |
- *                                              +-----------+
+ *                    fini  A                stop       |
+ *                          |                           |
+ *                          |                           |
+ *                          |   any specific operation: |
+ *                          |       encode_*, filter_*, |
+ *                          |            multiplex, ... |
+ *                          |                           V
+ *                          `-------------- +-----------+
+ *                                 stop     | [running] |
+ *                                          +-----------+
  *
  */
-typedef enum {
-    TC_MODULE_CREATED = 0,
-    TC_MODULE_CONFIGURED,
-    TC_MODULE_RUNNING,
-} TCModuleStatus;
 
 /*
  * Data structure private for each instance.
@@ -223,7 +219,7 @@ struct tcmoduleclass_ {
  *      represented as a string.
  *      Every module MUST support two special options:
  *      'all': will return a packed, human-readable representation
- *             of ALL tunable parameters in a given module, or an 
+ *             of ALL tunable parameters in a given module, or an
  *             empty string if module hasn't any tunable option.
  *             This string must be in the same form accepted by
  *             `configure' operation.
@@ -242,6 +238,30 @@ struct tcmoduleclass_ {
  *      module was already initialized.
  *      Inspecting a uninitialized module will cause an
  *      undefined behaviour.
+ *
+ *
+ * decode_{audio,video}:
+ * encode_{audio,video}:
+ *      decode or encode a given audio/video frame, storing
+ *      (de)compressed data into another frame.
+ *      Specific module loaded implements various codecs.
+ * Parameters:
+ *      self: pointer to module instance to use.
+ *      inframe: pointer to {audio,video} frame data to decode/encode.
+ *      outframe: pointer to {audio,videp} frame which will hold
+ *                (un)compressed data.
+ * Return Value:
+ *      0  succesfull.
+ *      -1 error occurred. A proper message should be sent to user using
+ *         tc_log*()
+ * Side effects:
+ *      None.
+ * Preconditions:
+ *      module was already initialized AND configured.
+ *      To use a uninitialized and/or unconfigured module
+ *      for decoding/encoding will cause an undefined behaviour.
+ * Postconditions:
+ *      None
  *
  *
  * filter_{audio,video}:
