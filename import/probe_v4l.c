@@ -47,7 +47,6 @@ void probe_v4l(info_t *ipipe)
   struct v4l2_capability caps; // v4l2
   struct video_capability  capability; // v4l1
 
-  printf("xxx name");
   close(ipipe->fd_in);
   ipipe->fd_in = open(ipipe->name, O_RDWR, 0);
   if (ipipe->fd_in < 0) {

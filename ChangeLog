@@ -1,6 +1,14 @@
 2006-01-15 Francesco Romani <fromani at gmail dot com>
+  * src/tc_functions.c
+  change file probing policy. Char major 14 is an OSS
+  device on Linux, no longer V4L audio.
+
+2006-01-15 Francesco Romani <fromani at gmail dot com>
   * src/probe.c
   typo.
+
+  * import/probe_v4l.c
+  remove useless output.
 
   * src/transcode.c
   make default import modules "null", for clarity.
