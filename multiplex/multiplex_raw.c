@@ -45,7 +45,7 @@ static const char *raw_inspect(TCModuleInstance *self,
                                const char *options)
 {
     if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        tc_log_error(MOD_NAME, "inspect: bad instance data reference");
         return NULL;
     }
     
@@ -64,42 +64,40 @@ static int raw_configure(TCModuleInstance *self,
     RawPrivateData *pd = NULL;
 
     if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        tc_log_error(MOD_NAME, "configure: bad instance data reference");
         return TC_EXPORT_ERROR;
     }
     pd = self->userdata;
 
-    if (!optstr_lookup(options, "dry_run")) {
-        if (vob->audio_out_file == NULL) {
-            /* use affine names */
-            tc_snprintf(vid_name, PATH_MAX, "%s.%s",
-                        vob->video_out_file, RAW_VID_EXT);
-            tc_snprintf(aud_name, PATH_MAX, "%s.%s",
-                        vob->video_out_file, RAW_AUD_EXT);
-        } else {
-            /* copy names verbatim */
-            strlcpy(vid_name, vob->video_out_file, PATH_MAX);
-            strlcpy(aud_name, vob->audio_out_file, PATH_MAX);
-        }
+    if (vob->audio_out_file == NULL) {
+        /* use affine names */
+        tc_snprintf(vid_name, PATH_MAX, "%s.%s",
+                    vob->video_out_file, RAW_VID_EXT);
+        tc_snprintf(aud_name, PATH_MAX, "%s.%s",
+                    vob->video_out_file, RAW_AUD_EXT);
+    } else {
+        /* copy names verbatim */
+        strlcpy(vid_name, vob->video_out_file, PATH_MAX);
+        strlcpy(aud_name, vob->audio_out_file, PATH_MAX);
+    }
 
-        /* avoid fd loss in case of failed configuration */
+    /* avoid fd loss in case of failed configuration */
+    if (pd->fd_vid == -1) {
+        pd->fd_vid = open(vob->video_out_file, O_RDWR|O_CREAT|O_TRUNC,
+                          S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
         if (pd->fd_vid == -1) {
-            pd->fd_vid = open(vob->video_out_file, O_RDWR|O_CREAT|O_TRUNC,
-                              S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-            if (pd->fd_vid == -1) {
-                tc_log_error(MOD_NAME, "failed to open video stream file");
-                return TC_EXPORT_ERROR;
-            }
+            tc_log_error(MOD_NAME, "failed to open video stream file");
+            return TC_EXPORT_ERROR;
         }
+    }
 
-        /* avoid fd loss in case of failed configuration */
+    /* avoid fd loss in case of failed configuration */
+    if (pd->fd_aud == -1) {
+        pd->fd_aud = open(vob->audio_out_file, O_RDWR|O_CREAT|O_TRUNC,
+                          S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
         if (pd->fd_aud == -1) {
-            pd->fd_aud = open(vob->audio_out_file, O_RDWR|O_CREAT|O_TRUNC,
-                              S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
-            if (pd->fd_aud == -1) {
-                tc_log_error(MOD_NAME, "failed to open audio stream file");
-                return TC_EXPORT_ERROR;
-            }
+            tc_log_error(MOD_NAME, "failed to open audio stream file");
+            return TC_EXPORT_ERROR;
         }
     }
 
@@ -112,7 +110,7 @@ static int raw_stop(TCModuleInstance *self)
     int verr, aerr;
 
     if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        tc_log_error(MOD_NAME, "stop: bad instance data reference");
         return TC_EXPORT_ERROR;
     }
     pd = self->userdata;
@@ -148,7 +146,7 @@ static int raw_multiplex(TCModuleInstance *self,
     RawPrivateData *pd = NULL;
 
     if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        tc_log_error(MOD_NAME, "multiplex: bad instance data reference");
         return TC_EXPORT_ERROR;
     }
     pd = self->userdata;
@@ -197,7 +195,7 @@ static int raw_init(TCModuleInstance *self)
 static int raw_fini(TCModuleInstance *self)
 {
     if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        tc_log_error(MOD_NAME, "fini: bad instance data reference");
         return TC_EXPORT_ERROR;
     }
 
@@ -220,8 +218,7 @@ static const int raw_codecs_out[] = { TC_CODEC_ERROR };
 static const TCModuleInfo raw_info = {
     .features    = TC_MODULE_FEATURE_MULTIPLEX|TC_MODULE_FEATURE_VIDEO
                    |TC_MODULE_FEATURE_AUDIO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE
-                   |TC_MODULE_FLAG_REQUIRE_CONFIG,
+    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,

@@ -37,7 +37,7 @@ static const char *avi_inspect(TCModuleInstance *self,
                                 const char *param)
 {
     if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        tc_log_error(MOD_NAME, "inspect: bad instance data reference");
         return NULL;
     }
 
@@ -59,7 +59,7 @@ static int avi_configure(TCModuleInstance *self,
                     ?(vob->a_rate*4)/1000*8 :vob->mp3bitrate;
 
     if (!self || !vob) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        tc_log_error(MOD_NAME, "configure: bad instance data reference");
         return TC_EXPORT_ERROR;
     }
 
@@ -67,28 +67,26 @@ static int avi_configure(TCModuleInstance *self,
     fcc = tc_codec_fourcc(vob->ex_v_codec);
 
     switch (vob->im_v_codec) {
-        case CODEC_RGB: /* fallthrough */
-        case CODEC_YUV:
-             pd->force_kf = 1;
-        default:
-             pd->force_kf = 0;
+      case CODEC_RGB: /* fallthrough */
+      case CODEC_YUV:
+        pd->force_kf = 1;
+      default:
+        pd->force_kf = 0;
     }
 
-    if (!optstr_lookup(options, "dry_run")) {
-        pd->avifile = AVI_open_output_file(vob->video_out_file);
-        if(!pd->avifile) {
-            tc_log_error(MOD_NAME, "avilib error: %s", AVI_strerror());
-            return TC_EXPORT_ERROR;
-        }
-
-	    AVI_set_video(pd->avifile, vob->ex_v_width, vob->ex_v_height,
-		              vob->ex_fps, fcc);
-
-    	AVI_set_audio_track(pd->avifile, vob->a_track);
-        AVI_set_audio(pd->avifile, vob->dm_chan, arate, vob->dm_bits,
-                      vob->ex_a_codec, abitrate);
-        AVI_set_audio_vbr(pd->avifile, vob->a_vbr);
+    pd->avifile = AVI_open_output_file(vob->video_out_file);
+    if(!pd->avifile) {
+        tc_log_error(MOD_NAME, "avilib error: %s", AVI_strerror());
+        return TC_EXPORT_ERROR;
     }
+
+	AVI_set_video(pd->avifile, vob->ex_v_width, vob->ex_v_height,
+	              vob->ex_fps, fcc);
+
+    AVI_set_audio_track(pd->avifile, vob->a_track);
+    AVI_set_audio(pd->avifile, vob->dm_chan, arate, vob->dm_bits,
+                  vob->ex_a_codec, abitrate);
+    AVI_set_audio_vbr(pd->avifile, vob->a_vbr);
 
     return TC_EXPORT_OK;
 }
@@ -98,13 +96,13 @@ static int avi_stop(TCModuleInstance *self)
     AVIPrivateData *pd = NULL;
 
     if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        tc_log_error(MOD_NAME, "stop: bad instance data reference");
         return TC_EXPORT_ERROR;
     }
 
     pd = self->userdata;
 
-    if (pd->avifile) {
+    if (pd->avifile != NULL) {
         AVI_close(pd->avifile);
         pd->avifile = NULL;
     }
@@ -121,7 +119,7 @@ static int avi_multiplex(TCModuleInstance *self,
     AVIPrivateData *pd = NULL;
 
     if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        tc_log_error(MOD_NAME, "multiplex: bad instance data reference");
         return TC_EXPORT_ERROR;
     }
 
@@ -187,7 +185,7 @@ static int avi_init(TCModuleInstance *self)
 static int avi_fini(TCModuleInstance *self)
 {
     if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        tc_log_error(MOD_NAME, "fini: bad instance data reference");
         return TC_EXPORT_ERROR;
     }
 
@@ -215,8 +213,7 @@ static const int avi_codecs_out[] = { TC_CODEC_ERROR };
 static const TCModuleInfo avi_info = {
     .features    = TC_MODULE_FEATURE_MULTIPLEX|TC_MODULE_FEATURE_VIDEO
                    |TC_MODULE_FEATURE_AUDIO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE
-                   |TC_MODULE_FLAG_REQUIRE_CONFIG,
+    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,

@@ -42,7 +42,7 @@ static int null_init(TCModuleInstance *self)
 static int null_fini(TCModuleInstance *self)
 {
     if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        tc_log_error(MOD_NAME, "fini: bad instance data reference");
         return TC_EXPORT_ERROR;
     }
 
@@ -53,7 +53,7 @@ static int null_configure(TCModuleInstance *self,
                           const char *options, vob_t *vob)
 {
     if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        tc_log_error(MOD_NAME, "fini: bad instance data reference");
         return TC_EXPORT_ERROR;
     }
     
@@ -64,7 +64,7 @@ static const char *null_inspect(TCModuleInstance *self,
                                 const char *param)
 {
     if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        tc_log_error(MOD_NAME, "inspect: bad instance data reference");
         return NULL;
     }
 
@@ -78,7 +78,7 @@ static const char *null_inspect(TCModuleInstance *self,
 static int null_stop(TCModuleInstance *self)
 {
     if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        tc_log_error(MOD_NAME, "stop: bad instance data reference");
         return TC_EXPORT_ERROR;
     }
 
@@ -91,7 +91,7 @@ static int null_multiplex(TCModuleInstance *self,
     int asize = 0, vsize = 0;
 
     if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
+        tc_log_error(MOD_NAME, "multiplex: bad instance data reference");
         return TC_EXPORT_ERROR;
     }
 
@@ -116,8 +116,7 @@ static const int null_codecs_out[] = { TC_CODEC_ERROR };
 static const TCModuleInfo null_info = {
     .features    = TC_MODULE_FEATURE_MULTIPLEX|TC_MODULE_FEATURE_VIDEO
                    |TC_MODULE_FEATURE_AUDIO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE
-                   |TC_MODULE_FLAG_REQUIRE_CONFIG,
+    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,

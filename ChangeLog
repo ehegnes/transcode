@@ -1,4 +1,9 @@
 2006-01-16 Francesco Romani <fromani at gmail dot com>
+  * multiplex/multiplex_raw.c multiplex/multiplex_null.c
+    multiplex/multiplex_avi.c
+  multiplex update (to last API) roundup.
+
+2006-01-16 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule-core.h libtc/tcmodule-data.h libtc/tcmodule-info.h
     libtc/tcmoduleinfo.c
   API refinement and start the long-waited documentation update.
