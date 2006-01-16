@@ -30,6 +30,30 @@
 #include "transcode.h"
 #include "tcmodule-info.h"
 
+/* 
+ * allowed status transition chart:
+ *
+ *                     init                 configure
+ *  +--------------+ -----> +-----------+ ------------> +--------------+
+ *  | module limbo |        | [created] |               | [configured] |
+ *  +--------------+ <----- +-----------+ <-----------  +--------------+
+ *                    fini   A                stop          |
+ *                           |                              |
+ *                           |      any specific operation: |
+ *                           |          encode_*, filter_*, |
+ *                           |               multiplex, ... |
+ *                           |                              V
+ *                           `----------------- +-----------+
+ *                                     stop     | [running] |
+ *                                              +-----------+
+ *
+ */
+typedef enum {
+    TC_MODULE_CREATED = 0,
+    TC_MODULE_CONFIGURED,
+    TC_MODULE_RUNNING,
+} TCModuleStatus;
+
 /*
  * Data structure private for each instance.
  * This is an almost-opaque structure.
@@ -49,6 +73,21 @@ struct tcmoduleinstance_ {
     const char *type; /* packed class + name of module */
 
     void *userdata; /* opaque to factory, used by each module */
+
+    void *extradata;
+    size_t extradata_size;
+    /*
+     * extradata:
+     * opaque data needed by a module that should'nt be private.
+     * Used mainly into encoder->multiplexor communication.
+     * NOTE:
+     * I'don't see a better way to handle extradata (see encode_ffmpeg
+     * module) in current architecture. I don't want to stack modules
+     * (if encoder drives multiplexor can handle itself the extradata)
+     * nor add more operations and/or accessors. This way looks as the
+     * cleanest and cheapest to me. Suggestions welcome. -- FRomani.
+     */
+    // FIXME: add status to enforce correct operation sequence?
 };
 
 /* can be shared between _all_ instances */
@@ -67,7 +106,7 @@ struct tcmoduleclass_ {
 
     /*
      * not-mandatory operations, a module doing something useful implements
-     * at least one.
+     * at least one of following.
      */
     int (*encode_audio)(TCModuleInstance *self,
                         aframe_list_t *inframe, aframe_list_t *outframe);
@@ -91,10 +130,11 @@ struct tcmoduleclass_ {
  *
  * init:
  *      initialize a module, acquiring all needed resources.
- *      If module have options, init operation MUST set sensible defaults;
- *      an initialized, but unconfigured, module MUST be give
+ *      A module must also be configure()d before to be used.
+ *      An initialized, but unconfigured, module CAN'T DELIVER
  *      a proper result when a specific operation (encode, demultiplex)
- *      is requested.
+ *      is requested. Request an operation in a initialized but unconfigured
+ *      module will result in an undefined behaviour.
  * Parameters:
  *      self: pointer to module instance to initialize.
  * Return Value:
@@ -106,7 +146,7 @@ struct tcmoduleclass_ {
  * Preconditions:
  *      None
  * Postconditions:
- *      Given module is ready to perform any supported operation.
+ *      Given module is ready to be configured.
  *
  *
  * fini:
@@ -123,26 +163,23 @@ struct tcmoduleclass_ {
  * Preconditions:
  *      module was already initialized. To finalize a uninitialized module
  *      will cause an undefined behaviour.
+ *      An unconfigured module can be finalized safely.
  * Postconditions:
  *      all resources acquired by given module are released.
  *
  *
  * configure:
- *      change settings for current initialized module, and return current
- *      ones.
- *      All module classes MUST support a special "help" option. If this
- *      option is given, this operation must return a textual,
- *      human-readable description of module parameters. An overview
- *      of what module can do SHOULD also be returned.
- *      After reconfiguration, a module MUST be able to perform
- *      any supported operation immediately.
- *      If reconfiguration doesn't make sense for a module, the module
- *      should ignore the novel parameter (accpeting it but without
- *      changing it's state) and should send a proper message to user
- *      via tc_log*().
+ *      setup a module using module specific options and required data
+ *      (via `vob' structure). It is requested to configure a module
+ *      before to be used safely to perform any specific operation.
+ *      Trying to configure a non-initialized module will cause an
+ *      undefined behaviour.
  * Parameters:
  *      self: pointer to module instance to configure.
- *      options: string contaning module options
+ *      options: string contaning module options.
+ *               Syntax is fixed (see optstr),
+ *               semantic is module-dependent.
+ *      vob: pointer to vob structure.
  * Return Value:
  *      0  succesfull.
  *      -1 error occurred. A proper message should be sent to user using
@@ -150,8 +187,9 @@ struct tcmoduleclass_ {
  * Side effects:
  *      None.
  * Preconditions:
- *      Given module was already initialized. Try to (re)configure
- *      an unitialized module will cause an undefined behaviour.
+ *      Given module was already initialized AND stopped.
+ *      A module MUST be stop()ped before to be configured again, otherwise
+ *      an undefined behaviour will occur (expect at least resource leaks).
  * Postconditions:
  *      Given module is ready to perform any supported operation.
  *
@@ -175,9 +213,35 @@ struct tcmoduleclass_ {
  * Preconditions:
  *      Given module was already initialized. Try to (re)stop
  *      an unitialized module will cause an undefined behaviour.
- *      Module doesn't need to be configured before to be stooped.
+ *      It's safe to stop an unconfigured module.
  * Postconditions:
- *      Given module is ready to be reconfigure safely.
+ *      Given module is ready to be reconfigured safely.
+ *
+ *
+ * inspect:
+ *      expose the current value of an a tunable option in a module,
+ *      represented as a string.
+ *      Every module MUST support two special options:
+ *      'all': will return a packed, human-readable representation
+ *             of ALL tunable parameters in a given module, or an 
+ *             empty string if module hasn't any tunable option.
+ *             This string must be in the same form accepted by
+ *             `configure' operation.
+ *      'help': will return a formatted, human-readable string
+ *              with module overview, tunable options and explanation.
+ * Parameters:
+ *      self: pointer to module instance to inspect.
+ *      param: name of parameter to inspect
+ * Return value:
+ *      a string containing the answer, or NULL if parameter requested
+ *      isn't known, or if an error occurr. In latter case a message
+ *      will be emitted using tc_log*().
+ * Side effects:
+ *      none
+ * Preconditions:
+ *      module was already initialized.
+ *      Inspecting a uninitialized module will cause an
+ *      undefined behaviour.
  *
  *
  * filter_{audio,video}:
@@ -194,11 +258,11 @@ struct tcmoduleclass_ {
  * Side effects:
  *      None.
  * Preconditions:
- *      module was already initialized. To use a uninitialized module
+ *      module was already initialized AND configured.
+ *      To use a uninitialized and/or unconfigured module
  *      for filter will cause an undefined behaviour.
  * Postconditions:
  *      None
- *
  *
  *
  * multiplex:
@@ -218,10 +282,12 @@ struct tcmoduleclass_ {
  * Side effects:
  *      None
  * Preconditions:
- *      module was already initialized. To use a uninitialized module
+ *      module was already initialized AND configured.
+ *      To use a uninitialized and/or unconfigured module
  *      for multiplex will cause an undefined behaviour.
  * Postconditions:
  *      None
+ *
  *
  * demultiplex:
  *      extract given encoded frames from input stream.
@@ -240,7 +306,8 @@ struct tcmoduleclass_ {
  * Side effects:
  *      None
  * Preconditions:
- *      module was already initialized. To use a uninitialized module
+ *      module was already initialized AND configured.
+ *      To use a uninitialized and/or unconfigured module
  *      for demultiplex will cause an undefined behaviour.
  * Postconditions:
  *      None

@@ -1,3 +1,15 @@
+2006-01-16 Francesco Romani <fromani at gmail dot com>
+  * libtc/tcmodule-core.h libtc/tcmodule-data.h libtc/tcmodule-info.h
+    libtc/tcmoduleinfo.c
+  API refinement and start the long-waited documentation update.
+  API change highlights:
+  - introduce extradata for modules (pushed by encode_ffmpeg)
+  - init operation will no longer run configure operation
+    trasparently, it must be run explictely; drop NEED_CONFIG flag
+  - add (EXPERIMENTAL!) status flag in module instances, to enforce
+    correct operation order (f.ex: avoid init->filter->... or
+    init->configure->configure->...)
+
 2006-01-13 Francesco Romani <fromani at gmail dot com>
   * libtc/tc_functions.c
   make tc_log() backend to not abort when going out of memory,

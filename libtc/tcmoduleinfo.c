@@ -121,9 +121,7 @@ void tc_module_info_log(const TCModuleInfo *info, int verbose)
         } else {
             tc_snprintf(buffer, DATA_BUF_SIZE, "%s%s",
                         (info->flags & TC_MODULE_FLAG_RECONFIGURABLE)
-                            ?"reconfigurable " :"",
-                        (info->flags & TC_MODULE_FLAG_REQUIRE_CONFIG)
-                            ?"require_config " :"");
+                            ?"reconfigurable " :"");
         }
         tc_log_info(info->name, "flags      : %s", buffer);
 

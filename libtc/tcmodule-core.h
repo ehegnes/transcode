@@ -81,10 +81,16 @@ struct tcmodule_ {
 #define tc_module_get_info(handle) \
     (const TCModuleInfo*)((handle)->klass->info)
 
-#define tc_module_match(self, other) \
-    tc_module_info_match((self)->klass->info, (other)->klass->info)
-#define tc_module_show_info(self, verbose) \
-    tc_module_info_log((self)->klass->info, verbose)
+#define tc_module_match(handle, other) \
+    tc_module_info_match((handle)->klass->info, (other)->klass->info)
+
+#define tc_module_show_info(handle, verbose) \
+    tc_module_info_log((handle)->klass->info, verbose)
+
+// XXX
+#define tc_module_pass_extradata(handle_s, handle_d) \
+    handle_d->instance.extradata = handle_s->instance.extradata; \
+    handle_d->instance.extradata_size = handle_s->instance.extradata_size;
 
 /* factory data type. */
 typedef struct tcfactory_ *TCFactory;
@@ -246,9 +252,8 @@ TCModule tc_new_module(TCFactory factory,
 int tc_del_module(TCFactory factory, TCModule module);
 
 #ifdef TCMODULE_DEBUG
-
 /*
- * tc_factory_get_plugin_count:
+ * tc_plugin_count:
  *      get the number of loaded plugins in a given factory.
  *      Used mainly for debug purposes.
  *
@@ -272,7 +277,7 @@ int tc_del_module(TCFactory factory, TCModule module);
 int tc_plugin_count(const TCFactory factory);
 
 /*
- * tc_factory_get_module_count:
+ * tc_module_count:
  *      get the number of module created and still valid by a given
  *      factory. Used mainly for debug purposes.
  *
@@ -296,7 +301,7 @@ int tc_plugin_count(const TCFactory factory);
 int tc_instance_count(const TCFactory factory);
 
 /*
- * tc_factory_compare_modules:
+ * tc_compare_modules:
  *      compare two module (through it's handler) supposed to be the same
  *      type (class + name). Used mainly for debug purposes.
  *
