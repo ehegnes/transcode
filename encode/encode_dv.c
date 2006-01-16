@@ -122,13 +122,10 @@ static int tcdv_init(TCModuleInstance *self)
     pd->is_yuv = -1; /* invalid value */
 
     self->userdata = pd;
-    /* can't fail, here */
-    tcdv_configure(self, "", vob);
     
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     }
-
     return TC_EXPORT_OK;
 
 failed_alloc_privbuf:

@@ -32,10 +32,10 @@
 #define MOD_VERSION "v0.0.1 (2006-01-01)"
 #define MOD_CAP     "ffmpeg A/V encoder " LIBAVCODEC_IDENT
 
-#define LINE_LEN  128
+#define LINE_LEN 128
 
-#define INTRA_MATRIX    0
-#define INTER_MATRIX    1
+#define INTRA_MATRIX 0
+#define INTER_MATRIX 1
 
 static const char *ffmpeg_help = ""
     "Overview:\n"
@@ -305,8 +305,6 @@ static int ffmpeg_init(TCModuleInstance *self)
     }
 
     self->userdata = pd;
-    /* can't fail, here */
-    ffmpeg_configure(self, "vcodec=mpeg4:nofilecfg", vob);
 
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
@@ -518,7 +516,6 @@ static int startup_libavcodec(FFmpegPrivateData *pd)
     int ret = 0;
     
     // XXX
-    
     ret = avcodec_open(pd->vid_ctx, pd->vid_codec);
     if (ret < 0) {
         tc_log_error(MOD_NAME, "startup: could not open FFMPEG codec");

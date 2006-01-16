@@ -286,8 +286,6 @@ static int xvid_init(TCModuleInstance *self)
     }
 
     self->userdata = pd;
-    /* can't fail, here */
-    xvid_configure(self, "", vob);
 
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
