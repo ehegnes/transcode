@@ -947,8 +947,8 @@ int main(int argc, char *argv[]) {
     vob->ex_par_width     = 0;
     vob->ex_par_height    = 0;
     vob->quality          = VQUALITY;
-    vob->amod_probed      = NULL;
-    vob->vmod_probed      = NULL;
+    vob->amod_probed      = "null";
+    vob->vmod_probed      = "null";
     vob->amod_probed_xml  = NULL;
     vob->vmod_probed_xml  = NULL;
     vob->a_vbr            = 0;

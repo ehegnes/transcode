@@ -443,8 +443,8 @@ static void probe_to_vob(ProbeInfo *vinfo, ProbeInfo *ainfo, int flags,
 /*************************************************************************/
 
 /**
- * probe_to_vob:  Use the results of probing the input files to set global
- * parameters.
+ * select_modules:  Use the results of probing the input files to set 
+ * global parameters.
  *
  * Parameters: flags: TC_PROBE_NO_xxx flags.
  *               vob: Pointer to global data structure.
