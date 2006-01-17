@@ -50,6 +50,7 @@ static const char *ffmpeg_help = ""
 
 /*
  * FIXME:
+ * - vob* -> const vob* roundup
  * - pix_fmt crazyness
  * - reduce fields and rednundancy
  * 
@@ -57,6 +58,7 @@ static const char *ffmpeg_help = ""
  * - restore missing features
  */
 
+// XXX generalize
 static const double asr_table[8] = {
     1.0,
 
@@ -97,6 +99,7 @@ static const int ffmpeg_codecs_out[] = {
     TC_CODEC_ERROR
 };
 
+#define IS_MJPEG(pd) (((pd)->tc_codec_id == TC_CODEC_MJPG) ?1 :0)
 #define CODECS_OUT_COUNT \
         (sizeof(ffmpeg_codecs_out) / sizeof(ffmpeg_codecs_out[0]))
 #define DESC_LEN   (LINE_LEN * CODECS_OUT_COUNT)
@@ -197,7 +200,7 @@ static double psnr(double d);
 static void log_psnr(FFmpegPrivateData *pd);
 static const char *lavc_codec_name(const char *tc_name);
 static char* describe_out_codecs(void);
-static int setup_lavc_pix_fmt(FFmpegPrivateData *pd); // XXX generalize
+static int setup_pix_fmt(FFmpegPrivateData *pd);
 static void setup_frc(FFmpegPrivateData *pd, int fr_code);
 static void setup_encode_fields(FFmpegPrivateData *pd, vob_t *vob);
 static void setup_ex_par(FFmpegPrivateData *pd, vob_t *vob);
@@ -270,24 +273,13 @@ static int ffmpeg_configure(TCModuleInstance *self,
     self->extradata = pd->vid_ctx->extradata;
     self->extradata_size = pd->vid_ctx->extradata_size;
     
-    switch (pd->pix_fmt) {
-      case CODEC_YUV:
-        prepare->encode = prepare_encode_yuv420;
-        break;
-      case CODEC_YUV422:
-        pd->prepare_encode = prepare_encode_yuv422;
-        break;
-      case CODEC_RGB:
-        pd->prepare_encode = prepare_encode_rgb;
-        break;
-    }
-
     if (verbose) {
         config_summary(pd, vob);
     }
     return TC_EXPORT_OK;
 }
 
+/* DO NOT FREE EXTRADATA! Is handled by libavcodec! */
 static int ffmpeg_stop(TCModuleInstance *self)
 {
     FFmpegPrivateData *pd = NULL;
@@ -405,6 +397,7 @@ static int ffmpeg_fini(TCModuleInstance *self)
         pd->codec_name = NULL;
     } 
 
+    /* DO NOT FREE EXTRADATA! Is handled by libavcodec! */
     tc_free(self->userdata);
     self->userdata = NULL;
     return TC_EXPORT_OK;
@@ -431,7 +424,7 @@ static const char *ffmpeg_inspect(TCModuleInstance *self,
         }
         if (!pd->codecs_desc) {
             /* 
-             * describe_out_codecs() failes:
+             * describe_out_codecs() failed:
              * temporary (we hope) error...
              */
             return "internal error";
@@ -479,7 +472,7 @@ static int ffmpeg_encode_video(TCModuleInstance *self,
         return TC_EXPORT_ERROR;
     }
 
-    outframe->video_size = out_size;
+    outframe->video_size = out_size; // XXX: correct?
     if (pd->vid_ctx->coded_frame->key_frame) {
         outframe->attributes |= TC_FRAME_IS_KEYFRAME;
     }
@@ -558,7 +551,7 @@ static void log_psnr(FFmpegPrivateData *pd)
                               psnr((vid_ctx->error[0]
                                   + vid_ctx->error[1]
                                   + vid_ctx->error[2])
-                                  / (f*1.5)));
+                                  / (f * 1.5)));
     }
 }
 
@@ -767,29 +760,28 @@ static void setup_dar_sar(FFmpegPrivateData *pd, vob_t *vob)
     }
 }
 
-static int setup_lavc_pix_fmt(FFmpegPrivateData *pd)
+
+static int setup_pix_fmt(FFmpegPrivateData *pd)
 {
     if (pd->tc_codec_id == TC_CODEC_HUFFYUV) {
         pd->vid_ctx->pix_fmt = PIX_FMT_YUV422P;
     } else {
         switch (pd->pix_fmt) {
           case CODEC_YUV:
-          case CODEC_RGB:
-            if (pd->tc_codec_id == TC_CODEC_MJPG) {
-                pd->vid_ctx->pix_fmt = PIX_FMT_YUVJ420P;
-            } else {
-                pd->vid_ctx->pix_fmt = PIX_FMT_YUV420P;
-            }
+            pd->prepare_encode = prepare_encode_yuv420;
+            pd->vid_ctx->pix_fmt == (IS_MJPEG(pd))
+                                    ?PIX_FMT_YUVJ420P :PIX_FMT_YUV420P;
             break;
-
           case CODEC_YUV422:
-            if (pd->tc_codec_id == TC_CODEC_MJPG) {
-                pd->vid_ctx->pix_fmt = PIX_FMT_YUVJ422P;
-            } else {
-                pd->vid_ctx->pix_fmt = PIX_FMT_YUV422P;
-            }
+            pd->prepare_encode = prepare_encode_yuv422;
+            pd->vid_ctx->pix_fmt == (IS_MJPEG(pd))
+                                    ?PIX_FMT_YUVJ422P :PIX_FMT_YUV422P;
             break;
-
+          case CODEC_RGB:
+            pd->prepare_encode = prepare_encode_rgb;
+            pd->vid_ctx->pix_fmt == (IS_MJPEG(pd))
+                                    ?PIX_FMT_YUVJ420P :PIX_FMT_YUV420P;
+            break;
           default:
             tc_log_warn(MOD_NAME, "Unknown pixel format %d.", pd->pix_fmt);
             return -1;
@@ -896,13 +888,14 @@ static int parse_options(FFmpegPrivateData *pd, const char *options, vob_t *vob)
         return TC_EXPORT_ERROR;
     }
 
-    ret = setup_lavc_pix_fmt(pd); 
+    ret = setup_pix_fmt(pd); 
     if (ret != 0) {
-        tc_log_error(MOD_NAME, "unknown color space %d.", pd->pix_fmt);
+        tc_log_error(MOD_NAME, "unable to setup for color space %d.",
+                     pd->pix_fmt);
         return TC_EXPORT_ERROR;
     }
 
-    if (pd->tc_codec_id == TC_CODEC_MJPG && pd->levels_handle == -1) {
+    if (IS_MJPEG(pd) && pd->levels_handle == -1) {
         tc_log_info(MOD_NAME, "output is mjpeg, extending range from "
                               "YUV420P to YUVJ420P (full range)");
 
@@ -1012,7 +1005,7 @@ static int setup_conv_buf(FFmpegPrivateData *pd, vob_t *vob)
         return TC_EXPORT_ERROR;
     }
    
-    if (pd->pix_fmt == CODEC_YUV422 || pd->codec_id == TC_CODEC_MJPG) {
+    if (pd->pix_fmt == CODEC_YUV422 || IS_MJPEG(pd)) {
         pd->conv_buf_size = avpicture_get_size(PIX_FMT_RGB24,
                                                vob->ex_v_width,
                                                vob->ex_v_height);
