@@ -1,5 +1,12 @@
 2006-01-17 Francesco Romani <fromani at gmail dot com>
   * src/frc_table.h
+  renamed a support table (anyone has a better name?).
+
+  * encode/encode_ffmpeg.c
+  fixes roundup. Code is still pre-alpha.
+
+2006-01-17 Francesco Romani <fromani at gmail dot com>
+  * src/frc_table.h
   move frc codes from encode_ffmpeg into frc_table.h
   (should go in upstream?).
 

@@ -11,6 +11,7 @@
 #include <math.h>
 
 #include "transcode.h"
+#include "frc_table.h"
 #include "framebuffer.h"
 #include "filter.h"
 #include "probe_export.h"
@@ -50,11 +51,7 @@ static const char *ffmpeg_help = ""
 
 /*
  * FIXME:
- * - vob* -> const vob* roundup
- * - pix_fmt crazyness
  * - reduce fields and rednundancy
- * 
- *
  * - restore missing features
  */
 
@@ -113,11 +110,12 @@ extern char *tc_config_dir;
  */
 extern pthread_mutex_t init_avcodec_lock;
 
-static void (*prepare_encode_fn)(FFmpegPrivateData *pd,
-                                vframe_list_t *inframe,
-                                vframe_list_t *outframe);
+typedef struct ffmpegprivatedata_ FFmpegPrivateData;
+typedef void (*prepare_encode_fn)(FFmpegPrivateData *pd,
+                                  vframe_list_t *inframe,
+                                  vframe_list_t *outframe);
 /* FIXME: add comments */
-typedef struct {
+struct ffmpegprivatedata_ {
     int multipass;
     int threads;
     
@@ -146,7 +144,7 @@ typedef struct {
 
     int levels_handle;
     prepare_encode_fn prepare_encode;
-} FFmpegPrivateData;
+};
 
 /* 
  * while parsing the configuration file, sometimes isn't possible to
@@ -202,11 +200,11 @@ static const char *lavc_codec_name(const char *tc_name);
 static char* describe_out_codecs(void);
 static int setup_pix_fmt(FFmpegPrivateData *pd);
 static void setup_frc(FFmpegPrivateData *pd, int fr_code);
-static void setup_encode_fields(FFmpegPrivateData *pd, vob_t *vob);
-static void setup_ex_par(FFmpegPrivateData *pd, vob_t *vob);
-static void setup_dar_sar(FFmpegPrivateData *pd, vob_t *vob);
+static void setup_encode_fields(FFmpegPrivateData *pd, const vob_t *vob);
+static void setup_ex_par(FFmpegPrivateData *pd, const vob_t *vob);
+static void setup_dar_sar(FFmpegPrivateData *pd, const vob_t *vob);
 static void setup_rc_override(FFmpegPrivateData *pd, FFmpegConfig *cfg);
-static int setup_conv_buf(FFmpegPrivateData *pd, vob_t *vob);
+static int setup_conv_buf(FFmpegPrivateData *pd, const vob_t *vob);
 
 
 static void prepare_encode_yuv420(FFmpegPrivateData *pd,
@@ -221,14 +219,14 @@ static void prepare_encode_rgb(FFmpegPrivateData *pd,
 
 /* main helpers */
 static int startup_libavcodec(FFmpegPrivateData *pd);
-static int setup_multipass(FFmpegPrivateData *pd, vob_t *vob);
+static int setup_multipass(FFmpegPrivateData *pd, const vob_t *vob);
 static void reset_module(FFmpegPrivateData *pd);
 static void set_lavc_defaults(FFmpegPrivateData *pd);
 static void set_conf_defaults(FFmpegConfig *cfg);
 static int parse_options(FFmpegPrivateData *pd,
-                         const char *options, vob_t *vob);
+                         const char *options, const vob_t *vob);
 static int read_config_file(FFmpegPrivateData *pd);
-static void config_summary(FFmpegPrivateData *pd, vob_t *vob);
+static void config_summary(FFmpegPrivateData *pd, const vob_t *vob);
 
 
 
@@ -319,7 +317,7 @@ static int ffmpeg_stop(TCModuleInstance *self)
         fclose(pd->stats_file);
     }
     if (pd->codec_name) {
-        tc_free(pd->codec_name);
+        tc_free((char*)pd->codec_name); /* avoid const warning */
     }
     
     reset_module(pd);
@@ -330,7 +328,6 @@ static int ffmpeg_stop(TCModuleInstance *self)
 static int ffmpeg_init(TCModuleInstance *self)
 {
     FFmpegPrivateData *pd = NULL;
-    vob_t *vob = tc_get_vob();
     
     if (!self) {
         tc_log_error(MOD_NAME, "init: bad instance data reference");
@@ -545,12 +542,12 @@ static void log_psnr(FFmpegPrivateData *pd)
         f *= pd->vid_ctx->coded_frame->coded_picture_number;
 
         tc_log_info(MOD_NAME, "PSNR: Y:%2.2f, Cb:%2.2f, Cr:%2.2f, All:%2.2f",
-                              psnr(vid_ctx->error[0]/f),
-                              psnr(vid_ctx->error[1]*4/f),
-                              psnr(vid_ctx->error[2]*4/f),
-                              psnr((vid_ctx->error[0]
-                                  + vid_ctx->error[1]
-                                  + vid_ctx->error[2])
+                              psnr(pd->vid_ctx->error[0]/f),
+                              psnr(pd->vid_ctx->error[1]*4/f),
+                              psnr(pd->vid_ctx->error[2]*4/f),
+                              psnr((pd->vid_ctx->error[0]
+                                  + pd->vid_ctx->error[1]
+                                  + pd->vid_ctx->error[2])
                                   / (f * 1.5)));
     }
 }
@@ -586,8 +583,11 @@ static char* describe_out_codecs(void)
     return buffer;
 }
 
-static void prepare_encode_yuv420(FFmpegPrivateData *pd)
+static void prepare_encode_yuv420(FFmpegPrivateData *pd,
+                                  vframe_list_t *inframe,
+                                  vframe_list_t *outframe)
 {
+    // XXX
     pd->venc_frame->linesize[0] = pd->vid_ctx->width;
     pd->venc_frame->linesize[1] = pd->vid_ctx->width / 2;
     pd->venc_frame->linesize[2] = pd->vid_ctx->width / 2;
@@ -609,8 +609,11 @@ static void prepare_encode_yuv420(FFmpegPrivateData *pd)
     }
 }
 
-static void prepare_encode_yuv422(FFmpegPrivateData *pd)
+static void prepare_encode_yuv422(FFmpegPrivateData *pd,
+                                  vframe_list_t *inframe,
+                                  vframe_list_t *outframe)
 {
+    // XXX
     if (pd->tc_codec_id == TC_CODEC_HUFFYUV) {
         YUV_INIT_PLANES(pd->venc_frame->data, inframe->video_buf,
                         IMG_YUV422P,
@@ -629,7 +632,9 @@ static void prepare_encode_yuv422(FFmpegPrivateData *pd)
     }
 }
 
-static void prepare_encode_rgb(FFmpegPrivateData *pd)
+static void prepare_encode_rgb(FFmpegPrivateData *pd,
+                               vframe_list_t *inframe,
+                               vframe_list_t *outframe)
 {
     // XXX
     avpicture_fill((AVPicture *)pd->venc_frame, outframe->video_buf,
@@ -675,14 +680,15 @@ static int startup_libavcodec(FFmpegPrivateData *pd)
 
 static void setup_frc(FFmpegPrivateData *pd, int fr_code)
 {
-    vob_t *vob = tc_get_vob(); /* can't fail */ 
+    vob_t *vob = tc_get_vob(); // can't fail 
     if (!pd || !pd->vid_ctx) {
         tc_log_error(MOD_NAME, "setup_frc: bad instance data reference");
         return;
     }
   
     if (fr_code >= 1 && fr_code <= 8) {
-        pd->vid_ctx->time_base = frc_codes[fr_code];
+        pd->vid_ctx->time_base.num = frc_values[fr_code][0];
+        pd->vid_ctx->time_base.den = frc_values[fr_code][1];
     } else {
         /* FIXME
         if ((vob->ex_fps > 29) && (vob->ex_fps < 30)) {
@@ -697,7 +703,7 @@ static void setup_frc(FFmpegPrivateData *pd, int fr_code)
 }
 
 // XXX
-static void setup_ex_par(FFmpegPrivateData *pd, vob_t *vob)
+static void setup_ex_par(FFmpegPrivateData *pd, const vob_t *vob)
 {
     int code;
     if (!pd || !pd->vid_ctx || !vob) {
@@ -713,7 +719,8 @@ static void setup_ex_par(FFmpegPrivateData *pd, vob_t *vob)
                                   " defaulting to 1/1");
             code = 1;
         }
-        pd->vid_ctx->sample_aspect_ratio = par_table[code];
+        pd->vid_ctx->sample_aspect_ratio.num = par_table[code][0];
+        pd->vid_ctx->sample_aspect_ratio.den = par_table[code][1];
     } else {
         if (vob->ex_par_width > 0 && vob->ex_par_height > 0) {
             pd->vid_ctx->sample_aspect_ratio.num = vob->ex_par_width;
@@ -728,7 +735,7 @@ static void setup_ex_par(FFmpegPrivateData *pd, vob_t *vob)
 }
 
 // XXX
-static void setup_dar_sar(FFmpegPrivateData *pd, vob_t *vob)
+static void setup_dar_sar(FFmpegPrivateData *pd, const vob_t *vob)
 {
     int asr_code;
     double dar, sar;
@@ -769,18 +776,18 @@ static int setup_pix_fmt(FFmpegPrivateData *pd)
         switch (pd->pix_fmt) {
           case CODEC_YUV:
             pd->prepare_encode = prepare_encode_yuv420;
-            pd->vid_ctx->pix_fmt == (IS_MJPEG(pd))
-                                    ?PIX_FMT_YUVJ420P :PIX_FMT_YUV420P;
+            pd->vid_ctx->pix_fmt = (IS_MJPEG(pd)
+                                    ?PIX_FMT_YUVJ420P :PIX_FMT_YUV420P);
             break;
           case CODEC_YUV422:
             pd->prepare_encode = prepare_encode_yuv422;
-            pd->vid_ctx->pix_fmt == (IS_MJPEG(pd))
-                                    ?PIX_FMT_YUVJ422P :PIX_FMT_YUV422P;
+            pd->vid_ctx->pix_fmt = (IS_MJPEG(pd)
+                                    ?PIX_FMT_YUVJ422P :PIX_FMT_YUV422P);
             break;
           case CODEC_RGB:
             pd->prepare_encode = prepare_encode_rgb;
-            pd->vid_ctx->pix_fmt == (IS_MJPEG(pd))
-                                    ?PIX_FMT_YUVJ420P :PIX_FMT_YUV420P;
+            pd->vid_ctx->pix_fmt = (IS_MJPEG(pd)
+                                    ?PIX_FMT_YUVJ420P :PIX_FMT_YUV420P);
             break;
           default:
             tc_log_warn(MOD_NAME, "Unknown pixel format %d.", pd->pix_fmt);
@@ -790,7 +797,7 @@ static int setup_pix_fmt(FFmpegPrivateData *pd)
     return 0;
 }
 
-static void setup_encode_fields(FFmpegPrivateData *pd, vob_t *vob)
+static void setup_encode_fields(FFmpegPrivateData *pd, const vob_t *vob)
 {
     switch(vob->encode_fields) {
       case 1:
@@ -832,7 +839,7 @@ static uint16_t *load_matrix(const char *filename, int type)
     return matrix;
 }
 
-static void config_summary(FFmpegPrivateData *pd, vob_t *vob)
+static void config_summary(FFmpegPrivateData *pd, const vob_t *vob)
 {
     if (vob->divxmultipass == 3) {
         tc_log_info(MOD_NAME, "    single-pass session: 3 (VBR)");
@@ -856,7 +863,8 @@ static void config_summary(FFmpegPrivateData *pd, vob_t *vob)
                           pd->vid_ctx->qmin, pd->vid_ctx->qmax);
 }
 
-static int parse_options(FFmpegPrivateData *pd, const char *options, vob_t *vob)
+static int parse_options(FFmpegPrivateData *pd, const char *options,
+                         const vob_t *vob)
 {
     char user_codec[21] = { 'm', 'p', 'e', 'g', '4', '\0' }; // XXX
     const char *codec_name = user_codec;
@@ -921,9 +929,11 @@ static int parse_options(FFmpegPrivateData *pd, const char *options, vob_t *vob)
     } else {
         if (pd->tc_codec_id == TC_CODEC_MPEG1VIDEO
          || pd->tc_codec_id == TC_CODEC_MPEG2VIDEO) {
-            pd->vid_ctx->gop_size = 15; /* conservative default for mpeg1/2 svcd/dvd */
+            pd->vid_ctx->gop_size = 15;
+            /* conservative default for mpeg1/2 svcd/dvd */
         } else {
-            pd->vid_ctx->gop_size = 250; /* reasonable default for mpeg4 (and others) */
+            pd->vid_ctx->gop_size = 250;
+            /* reasonable default for mpeg4 (and others) */
         }
     }
 
@@ -941,7 +951,7 @@ static int parse_options(FFmpegPrivateData *pd, const char *options, vob_t *vob)
     return TC_EXPORT_OK;
 }
 
-static int setup_multipass(FFmpegPrivateData *pd, vob_t *vob)
+static int setup_multipass(FFmpegPrivateData *pd, const vob_t *vob)
 {
     size_t fsize;
     
@@ -997,7 +1007,7 @@ static int setup_multipass(FFmpegPrivateData *pd, vob_t *vob)
     return TC_EXPORT_OK;
 }
 
-static int setup_conv_buf(FFmpegPrivateData *pd, vob_t *vob)
+static int setup_conv_buf(FFmpegPrivateData *pd, const vob_t *vob)
 {
     if (!pd || !vob) {
         tc_log_error(MOD_NAME, "conversion_buffer: bad instance"

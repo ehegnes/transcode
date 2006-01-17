@@ -17,7 +17,7 @@ static const double frc_table[16] = {0,
 				     1, 5, 10, 12, 15,
 				     0, 0};
 
-static const int frc_codes[16][2] = {
+static const int frc_values[16][2] = {
     { 0, 0 },
     { 24000, 1001 },
     { 24000, 1000 },
