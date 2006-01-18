@@ -1,3 +1,7 @@
+2006-01-18 Andrew Church <achurch at achurch dot org>
+  * import/decode_dv.c
+  Add a missing #ifdef HAVE_LIBDV to fix compilation when libdv is disabled.
+
 2006-01-15 Francesco Romani <fromani at gmail dot com>
   * src/tc_functions.c
   change file probing policy. Char major 14 is an OSS

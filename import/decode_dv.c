@@ -42,6 +42,9 @@
 
 static int check_yuy2(void)
 {
+
+#ifdef HAVE_LIBDV
+
     static uint8_t dv_frame[12][150][80]; /* Input DV frame (generated) */
     static uint8_t Y[720*576*2];          /* Output Y/YUY2 plane */
     static uint8_t U[(720/2)*(576/2)];    /* Output U plane */
@@ -186,6 +189,9 @@ static int check_yuy2(void)
                     " U=%02X %02X, V=%02X %02X)", Y[0], Y[1], Y[2], Y[3],
                     U[0], U[1], V[0], V[1]);
     }
+
+#endif  // HAVE_LIBDV
+
     return -1;
 }
 
