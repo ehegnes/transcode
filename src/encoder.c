@@ -302,23 +302,24 @@ void export_shutdown()
  *
  * ------------------------------------------------------------*/
 
-int encoder_init(transfer_t *export_para, vob_t *vob)
+int encoder_init(vob_t *vob)
 {
     int ret;
+    transfer_t export_para;
   
     pthread_mutex_lock(&export_lock);
     export = TC_ON;   
     pthread_mutex_unlock(&export_lock);
   
-    export_para->flag = TC_VIDEO;
-    ret = tcv_export(TC_EXPORT_INIT, export_para, vob);
+    export_para.flag = TC_VIDEO;
+    ret = tcv_export(TC_EXPORT_INIT, &export_para, vob);
     if (ret == TC_EXPORT_ERROR) {
         tc_log_warn(__FILE__, "video export module error: init failed");
         return -1;
     }
   
-    export_para->flag = TC_AUDIO;
-    ret = tca_export(TC_EXPORT_INIT, export_para, vob);
+    export_para.flag = TC_AUDIO;
+    ret = tca_export(TC_EXPORT_INIT, &export_para, vob);
     if (ret == TC_EXPORT_ERROR) {
         tc_log_warn(__FILE__, "audio export module error: init failed");
         return -1;
@@ -334,19 +335,20 @@ int encoder_init(transfer_t *export_para, vob_t *vob)
  *
  * ------------------------------------------------------------*/
 
-int encoder_open(transfer_t *export_para, vob_t *vob)
+int encoder_open(vob_t *vob)
 {
     int ret;
+    transfer_t export_para;
   
-    export_para->flag = TC_VIDEO; 
-    ret = tcv_export(TC_EXPORT_OPEN, export_para, vob);
+    export_para.flag = TC_VIDEO; 
+    ret = tcv_export(TC_EXPORT_OPEN, &export_para, vob);
     if (ret == TC_EXPORT_ERROR) {
         tc_log_warn(__FILE__, "video export module error: open failed");
         return -1;
     }
   
-    export_para->flag = TC_AUDIO;
-    ret = tca_export(TC_EXPORT_OPEN, export_para, vob);
+    export_para.flag = TC_AUDIO;
+    ret = tca_export(TC_EXPORT_OPEN, &export_para, vob);
     if (ret == TC_EXPORT_ERROR) {
         tc_log_warn(__FILE__, "audio export module error: open failed");
         return -1;
@@ -362,15 +364,16 @@ int encoder_open(transfer_t *export_para, vob_t *vob)
  *
  * ------------------------------------------------------------*/
 
-int encoder_close(transfer_t *export_para)
+int encoder_close(void)
 {
+    transfer_t export_para;
     /* close, errors not fatal */
 
-    export_para->flag = TC_AUDIO;
-    tca_export(TC_EXPORT_CLOSE, export_para, NULL);
+    export_para.flag = TC_AUDIO;
+    tca_export(TC_EXPORT_CLOSE, &export_para, NULL);
 
-    export_para->flag = TC_VIDEO;
-    tcv_export(TC_EXPORT_CLOSE, export_para, NULL);
+    export_para.flag = TC_VIDEO;
+    tcv_export(TC_EXPORT_CLOSE, &export_para, NULL);
   
     pthread_mutex_lock(&export_lock);
     export = TC_OFF;  
@@ -390,19 +393,20 @@ int encoder_close(transfer_t *export_para)
  *
  * ------------------------------------------------------------*/
 
-int encoder_stop(transfer_t *export_para)
+int encoder_stop(void)
 {
     int ret;
+    transfer_t export_para;
 
-    export_para->flag = TC_VIDEO;
-    ret = tcv_export(TC_EXPORT_STOP, export_para, NULL);
+    export_para.flag = TC_VIDEO;
+    ret = tcv_export(TC_EXPORT_STOP, &export_para, NULL);
     if (ret == TC_EXPORT_ERROR) {
         tc_log_warn(__FILE__, "video export module error: stop failed");
         return -1;
     }
   
-    export_para->flag = TC_AUDIO;
-    ret = tca_export(TC_EXPORT_STOP, export_para, NULL);
+    export_para.flag = TC_AUDIO;
+    ret = tca_export(TC_EXPORT_STOP, &export_para, NULL);
     if (ret == TC_EXPORT_ERROR) {
         tc_log_warn(__FILE__, "audio export module error: stop failed");
         return -1;
@@ -514,7 +518,7 @@ static void encoder_apply_afilters(aframe_list_t *aptr, vob_t *vob)
 #ifndef ENCODER_EXPORT
 static
 #endif
-int encoder_wait_vframe(TcEncoderData *data)
+int encoder_wait_vframe(TCEncoderData *data)
 {     
     int ready = TC_FALSE;
     int have_frame = TC_FALSE;
@@ -572,7 +576,7 @@ int encoder_wait_vframe(TcEncoderData *data)
 #ifndef ENCODER_EXPORT
 static
 #endif
-int encoder_acquire_vframe(TcEncoderData *data, vob_t *vob)
+int encoder_acquire_vframe(TCEncoderData *data, vob_t *vob)
 {
     int err = 0;
     int got_frame = TC_TRUE;
@@ -597,10 +601,10 @@ int encoder_acquire_vframe(TcEncoderData *data, vob_t *vob)
          * the "-t" split option, we'll see this frame again.
          */
 
-        if (data->fid >= data->frame_b) {
+        if (data->fid >= data->frame_last) {
             if (verbose & TC_DEBUG) {
                 tc_log_info(__FILE__, "encoder last frame finished (%d/%d)",
-                                      data->fid, data->frame_b);
+                                      data->fid, data->frame_last);
             }
             return 1;
         }
@@ -689,7 +693,7 @@ int encoder_acquire_vframe(TcEncoderData *data, vob_t *vob)
 #ifndef ENCODER_EXPORT
 static
 #endif
-int encoder_wait_aframe(TcEncoderData *data)
+int encoder_wait_aframe(TCEncoderData *data)
 {
     int ready = TC_FALSE;
     int have_frame = TC_FALSE;
@@ -744,7 +748,7 @@ int encoder_wait_aframe(TcEncoderData *data)
 #ifndef ENCODER_EXPORT
 static
 #endif
-int encoder_acquire_aframe(TcEncoderData *data, vob_t *vob)
+int encoder_acquire_aframe(TCEncoderData *data, vob_t *vob)
 {
     int err = 0;
     int got_frame = TC_TRUE;
@@ -822,7 +826,7 @@ int encoder_acquire_aframe(TcEncoderData *data, vob_t *vob)
 #ifndef ENCODER_EXPORT
 static
 #endif
-int encoder_export(TcEncoderData *data, vob_t *vob)
+int encoder_export(TCEncoderData *data, vob_t *vob)
 {
     /* encode and export video frame */
     data->export_para.buffer = data->vptr->video_buf;
@@ -872,11 +876,11 @@ int encoder_export(TcEncoderData *data, vob_t *vob)
     DEC_ABUF_COUNTER(ex);
 
     if (verbose & TC_INFO) {
-        int last = (data->frame_b == TC_FRAME_LAST) ?(-1) :data->frame_b;
+        int last = (data->frame_last == TC_FRAME_LAST) ?(-1) :data->frame_last;
         if (!data->fill_flag) {
             data->fill_flag = 1;
         }
-        counter_print(1, data->fid, data->frame_a, last);
+        counter_print(1, data->fid, data->frame_first, last);
     }
     
     /* on success, increase global frame counter */
@@ -893,13 +897,13 @@ int encoder_export(TcEncoderData *data, vob_t *vob)
 #ifndef ENCODER_EXPORT
 static
 #endif
-void encoder_skip(TcEncoderData *data)
+void encoder_skip(TCEncoderData *data)
 {
     if (verbose & TC_INFO) {
         if (!data->fill_flag) {
             data->fill_flag = 1;
         }
-        counter_print(0, data->fid, data->last_frame_b, data->frame_a-1);
+        counter_print(0, data->fid, data->saved_frame_last, data->frame_first-1);
     }
     
     /*
@@ -925,7 +929,7 @@ void encoder_skip(TcEncoderData *data)
 #ifndef ENCODER_EXPORT
 static
 #endif
-void encoder_dispose_vframe(TcEncoderData *data)
+void encoder_dispose_vframe(TCEncoderData *data)
 {
     if (data->vptr != NULL 
       && (data->vptr->attributes & TC_FRAME_WAS_CLONED)
@@ -977,7 +981,7 @@ void encoder_dispose_vframe(TcEncoderData *data)
 #ifndef ENCODER_EXPORT
 static
 #endif
-void encoder_dispose_aframe(TcEncoderData *data)
+void encoder_dispose_aframe(TCEncoderData *data)
 {
     if (data->aptr != NULL 
       && !(data->aptr->attributes & TC_FRAME_IS_CLONED)
@@ -1019,24 +1023,24 @@ void encoder_dispose_aframe(TcEncoderData *data)
  * ------------------------------------------------------------*/
 
 
-void encoder(vob_t *vob, int frame_a, int frame_b)
+void encoder(vob_t *vob, int frame_first, int frame_last)
 {
     int err = 0;
-    TcEncoderData data;
+    TCEncoderData data;
 
-    static int this_frame_b=0;
-    static int last_frame_b=0;
+    static int this_frame_last=0;
+    static int saved_frame_last=0;
 
-    if (this_frame_b != frame_b) {
-        last_frame_b = this_frame_b;
-        this_frame_b = frame_b;
+    if (this_frame_last != frame_last) {
+        saved_frame_last = this_frame_last;
+        this_frame_last = frame_last;
     }
 
     TC_ENCODER_DATA_INIT(&data);
 
-    data.frame_a = frame_a;
-    data.frame_b = frame_b;
-    data.last_frame_b = last_frame_b;
+    data.frame_first = frame_first;
+    data.frame_last = frame_last;
+    data.saved_frame_last = saved_frame_last;
     
     do {
         /* check for ^C signal */
@@ -1063,12 +1067,12 @@ void encoder(vob_t *vob, int frame_a, int frame_b)
       
         /* cluster mode must take dropped frames into account */
         if (tc_cluster_mode 
-          && (data.fid - tc_get_frames_dropped()) == frame_b) {
+          && (data.fid - tc_get_frames_dropped()) == frame_last) {
             return;
         }
       
         /* check frame id */
-        if (frame_a <= data.fid && data.fid < frame_b) {
+        if (frame_first <= data.fid && data.fid < frame_last) {
             encoder_export(&data, vob);
         } else { /* frame not in range */
             encoder_skip(&data);

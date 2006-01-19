@@ -32,7 +32,7 @@
  * there is no need to export it to client code
  * fromani -- 20051111
  */
-typedef struct tcencoderdata_ TcEncoderData;
+typedef struct tcencoderdata_ TCEncoderData;
 struct tcencoderdata_ {
 	/* references to current frames */
 	vframe_list_t *vptr;
@@ -42,17 +42,14 @@ struct tcencoderdata_ {
 	int fid;
 
 	/* flags */
-	int exit_on_encoder_error;
+	int error_flag;
 	int fill_flag;
 
 	/* frame boundaries */
-	int frame_a;
-	int frame_b;
+	int frame_first;
+	int frame_last;
 	/* needed by encoder_skip */
-	int last_frame_b;
-	
-	/* used for communications with modules */
-	transfer_t export_para;
+	int saved_frame_last;
 };
 
 #define TC_ENCODER_DATA_INIT(data) \
@@ -60,30 +57,28 @@ struct tcencoderdata_ {
 		(data)->vptr = NULL; \
 		(data)->aptr = NULL; \
 		(data)->fid = 0; \
-		(data)->exit_on_encoder_error = 0; \
+		(data)->error_flag = 0; \
 		(data)->fill_flag = 0; \
 	} while(0)
 
 int export_init(vob_t *vob_ptr, char *a_mod, char *v_mod);
 
 #ifdef ENCODER_EXPORT
-int encoder_wait_vframe(TcEncoderData *data);
-int encoder_wait_aframe(TcEncoderData *data);
-int encoder_acquire_vframe(TcEncoderData *data, vob_t *vob);
-int encoder_acquire_aframe(TcEncoderData *data, vob_t *vob);
+int encoder_acquire_vframe(TCEncoderData *data, vob_t *vob);
+int encoder_acquire_aframe(TCEncoderData *data, vob_t *vob);
 
-int encoder_export(TcEncoderData *data, vob_t *vob);
-void encoder_skip(TcEncoderData *data);
+int encoder_export(TCEncoderData *data, vob_t *vob);
+void encoder_skip(TCEncoderData *data);
 
-void encoder_dispose_vframe(TcEncoderData *data);
-void encoder_dispose_aframe(TcEncoderData *data);
+void encoder_dispose_vframe(TCEncoderData *data);
+void encoder_dispose_aframe(TCEncoderData *data);
 #endif
 
-int encoder_init(transfer_t *export_para, vob_t *vob);
-void encoder(vob_t *vob_ptr, int frame_a, int frame_b);
-int encoder_stop(transfer_t *export_para);
-int encoder_open(transfer_t *export_para, vob_t *vob);
-int encoder_close(transfer_t *export_para);
+int encoder_init(vob_t *vob);
+void encoder(vob_t *vob, int frame_first, int frame_last);
+int encoder_stop(void);
+int encoder_open(vob_t *vob);
+int encoder_close(void);
 
 int export_status(void);
 void export_shutdown(void);
