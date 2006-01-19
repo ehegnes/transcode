@@ -35,16 +35,23 @@
 static void *export_ahandle = NULL;
 static void *export_vhandle = NULL;
 
-long frames_encoded = 0;
-long frames_dropped = 0;
-long frames_skipped = 0;
-long frames_cloned = 0;
+static long frames_encoded = 0;
+static long frames_dropped = 0;
+static long frames_skipped = 0;
+static long frames_cloned = 0;
 static pthread_mutex_t frame_counter_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static volatile int force_exit = TC_FALSE;
 
-pthread_mutex_t delay_video_frames_lock = PTHREAD_MUTEX_INITIALIZER;
-int video_frames_delay = 0;
+static pthread_mutex_t delay_video_frames_lock = PTHREAD_MUTEX_INITIALIZER;
+static int video_frames_delay = 0;
+
+void tc_export_request_video_delay(void)
+{
+    pthread_mutex_lock(&delay_video_frames_lock);
+    video_frames_delay++;
+    pthread_mutex_unlock(&delay_video_frames_lock);
+}
 
 void tc_export_stop_nolock(void)
 {

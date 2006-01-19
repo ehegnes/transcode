@@ -91,9 +91,6 @@ static int capability_flag = TC_CAP_PCM |
 #define MOD_PRE xvid3_
 #include "export_def.h"
 
-extern pthread_mutex_t delay_video_frames_lock;
-extern int video_frames_delay;
-
 /*****************************************************************************
  * Local data
  ****************************************************************************/
@@ -516,9 +513,7 @@ MOD_encode
 	}
 
 	if(xframe.intra == 5) { // skipped frame
-	    pthread_mutex_lock(&delay_video_frames_lock);
-	    video_frames_delay++;
-	    pthread_mutex_unlock(&delay_video_frames_lock);
+        tc_export_request_video_delay();
 	} else {
 		/* Write bitstream */
 		if(rawfd < 0) {
