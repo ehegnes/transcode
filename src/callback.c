@@ -76,7 +76,7 @@ void tc_outstream_rotate(void)
   if(base==NULL) return;
 
   // close output
-  if(encoder_close(&export_para)<0)
+  if(encoder_close()<0)
     tc_error("failed to close output");
 
   // create new filename
@@ -86,7 +86,7 @@ void tc_outstream_rotate(void)
   if(xio_rename(base, buf)<0) tc_error("failed to rename output file\n");
 
   // reopen output
-  if(encoder_open(&export_para, vob)<0)
+  if(encoder_open(vob)<0)
     tc_error("failed to open output");
 
   fprintf(stderr, "\n(%s) outfile %s saved to %s\n", __FILE__, base, buf);

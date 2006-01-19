@@ -232,7 +232,6 @@ static int tc_socket_dump_vob(char *buf)
     P(im_a_string, "%s");
     P(ex_v_string, "%s");
     P(ex_a_string, "%s");
-    P(video_frames_delay, "%d");
     P(m2v_requant, "%f");
 
     return 0;

@@ -796,7 +796,7 @@ int encoder_export(TCEncoderData *data, vob_t *vob)
 
     if(tcv_export(TC_EXPORT_ENCODE, &data->export_para, vob) < 0) {
         tc_log_warn(__FILE__, "error encoding video frame");
-        data->exit_on_encoder_error = 1;
+        data->error_flag = 1;
     }
 
     /* maybe clone? */
@@ -816,12 +816,11 @@ int encoder_export(TCEncoderData *data, vob_t *vob)
         --video_frames_delay;
         pthread_mutex_unlock(&delay_video_frames_lock);
         data->aptr->attributes |= TC_FRAME_IS_CLONED; 
-        tc_log_info(__FILE__, "Delaying audio (%d)", 
-                              vob->video_frames_delay);
+        tc_log_info(__FILE__, "Delaying audio (%d)", video_frames_delay);
     } else {
         if (tca_export(TC_EXPORT_ENCODE, &data->export_para, vob) < 0) {
             tc_log_warn(__FILE__, "error encoding audio frame");
-            data->exit_on_encoder_error = 1;
+            data->error_flag = 1;
         }
  
         /* maybe clone? */
@@ -840,7 +839,7 @@ int encoder_export(TCEncoderData *data, vob_t *vob)
     
     /* on success, increase global frame counter */
     tc_update_frames_encoded(1); 
-    return data->exit_on_encoder_error;
+    return data->error_flag;
 }
 
 
@@ -1037,7 +1036,7 @@ void encoder(vob_t *vob, int frame_first, int frame_last)
         encoder_dispose_vframe(&data);
         encoder_dispose_aframe(&data);
       
-    } while (import_status() && !data.exit_on_encoder_error);
+    } while (import_status() && !data.error_flag);
     /* main frame decoding loop */
     
     if (verbose & TC_DEBUG) {

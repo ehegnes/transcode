@@ -4062,10 +4062,10 @@ int main(int argc, char *argv[]) {
       import_threads_create(vob);
 
       // init encoder
-      if(encoder_init(&export_para, vob)<0) tc_error("failed to init encoder");
+      if(encoder_init(vob)<0) tc_error("failed to init encoder");
 
       // open output files
-      if(encoder_open(&export_para, vob)<0) tc_error("failed to open output");
+      if(encoder_open(vob)<0) tc_error("failed to open output");
 
       // tell counter about all encoding ranges
       counter_reset_ranges();
@@ -4117,10 +4117,10 @@ int main(int argc, char *argv[]) {
       }
 
       // close output files
-      encoder_close(&export_para);
+      encoder_close();
 
       // stop encoder
-      encoder_stop(&export_para);
+      encoder_stop();
 
       // cancel import threads
       import_threads_cancel();
@@ -4146,7 +4146,7 @@ int main(int argc, char *argv[]) {
       import_threads_create(vob);
 
       // encoder init
-      if(encoder_init(&export_para, vob)<0) tc_error("failed to init encoder");
+      if(encoder_init(vob)<0) tc_error("failed to init encoder");
 
       // need to loop for this option
 
@@ -4165,7 +4165,7 @@ int main(int argc, char *argv[]) {
 	vob->audio_out_file = buf;
 
 	// open output
-	if(encoder_open(&export_para, vob)<0)
+	if(encoder_open(vob)<0)
 	  tc_error("failed to open output");
 
 	fa = frame_a;
@@ -4174,7 +4174,7 @@ int main(int argc, char *argv[]) {
 	encoder(vob, fa, ((fb > frame_b) ? frame_b : fb));
 
 	// close output
-	encoder_close(&export_para);
+	encoder_close();
 
 	// restart
 	frame_a += splitavi_frames;
@@ -4187,7 +4187,7 @@ int main(int argc, char *argv[]) {
 
       } while(import_status());
 
-      encoder_stop(&export_para);
+      encoder_stop();
 
       // cancel import threads
       import_threads_cancel();
@@ -4206,7 +4206,7 @@ int main(int argc, char *argv[]) {
        * --------------------------------------------------------------*/
 
       // encoder init
-      if(encoder_init(&export_para, vob)<0)
+      if(encoder_init(vob)<0)
 	tc_error("failed to init encoder");
 
       // open output
@@ -4214,7 +4214,7 @@ int main(int argc, char *argv[]) {
 
 	vob->video_out_file = psubase;
 
-	if(encoder_open(&export_para, vob)<0)
+	if(encoder_open(vob)<0)
 	  tc_error("failed to open output");
       }
 
@@ -4266,7 +4266,7 @@ int main(int argc, char *argv[]) {
 
 	  // open new output file
 	  if(!no_split) {
-	    if(encoder_open(&export_para, vob)<0)
+	    if(encoder_open(vob)<0)
 	      tc_error("failed to open output");
 	  }
 
@@ -4278,7 +4278,7 @@ int main(int argc, char *argv[]) {
 
 	  // close output file
 	  if(!no_split) {
-	    if(encoder_close(&export_para)<0)
+	    if(encoder_close()<0)
 	      tc_warn("failed to close encoder - non fatal");
 	  } else printf("\n");
 
@@ -4308,11 +4308,11 @@ int main(int argc, char *argv[]) {
 
       // close output
       if(no_split) {
-	if(encoder_close(&export_para)<0)
+	if(encoder_close()<0)
 	  tc_warn("failed to close encoder - non fatal");
       }
 
-      encoder_stop(&export_para);
+      encoder_stop();
 
       break;
 
@@ -4346,7 +4346,7 @@ int main(int argc, char *argv[]) {
       dir_fcnt=0;
 
       // encoder init
-      if(encoder_init(&export_para, vob)<0)
+      if(encoder_init(vob)<0)
 	tc_error("failed to init encoder");
 
       // open output
@@ -4371,7 +4371,7 @@ int main(int argc, char *argv[]) {
 	  vob->video_out_file = buf;
 	}
 
-	if(encoder_open(&export_para, vob)<0)
+	if(encoder_open(vob)<0)
 	  tc_error("failed to open output");
       }
 
@@ -4416,7 +4416,7 @@ int main(int argc, char *argv[]) {
 
 	// open output
 	if(!no_split) {
-	  if(encoder_open(&export_para, vob)<0)
+	  if(encoder_open(vob)<0)
 	    tc_error("failed to open output");
 	}
 
@@ -4437,7 +4437,7 @@ int main(int argc, char *argv[]) {
 
 	// close output
 	if(!no_split) {
-	  if(encoder_close(&export_para)<0)
+	  if(encoder_close()<0)
 	    tc_warn("failed to close encoder - non fatal");
 	}
 
@@ -4461,11 +4461,11 @@ int main(int argc, char *argv[]) {
 
       // close output
       if(no_split) {
-	if(encoder_close(&export_para)<0)
+	if(encoder_close()<0)
 	  tc_warn("failed to close encoder - non fatal");
       }
 
-      encoder_stop(&export_para);
+      encoder_stop();
 
       break;
 
@@ -4485,7 +4485,7 @@ int main(int argc, char *argv[]) {
       // given DVD title
 
       // encoder init
-      if(encoder_init(&export_para, vob)<0)
+      if(encoder_init(vob)<0)
 	tc_error("failed to init encoder");
 
       // open output
@@ -4498,7 +4498,7 @@ int main(int argc, char *argv[]) {
 	vob->video_out_file = buf;
 	vob->audio_out_file = buf;
 
-	if(encoder_open(&export_para, vob)<0)
+	if(encoder_open(vob)<0)
 	  tc_error("failed to open output");
       }
 
@@ -4538,7 +4538,7 @@ int main(int argc, char *argv[]) {
 
 	// encode
 	if(!no_split) {
-	  if(encoder_open(&export_para, vob)<0)
+	  if(encoder_open(vob)<0)
 	    tc_error("failed to init encoder");
 	}
 
@@ -4546,7 +4546,7 @@ int main(int argc, char *argv[]) {
 	encoder(vob, frame_a, frame_b);
 
 	if(!no_split) {
-	  if(encoder_close(&export_para)<0)
+	  if(encoder_close()<0)
 	    tc_warn("failed to close encoder - non fatal");
 	}
 
@@ -4569,11 +4569,11 @@ int main(int argc, char *argv[]) {
       }
 
       if(no_split) {
-	if(encoder_close(&export_para)<0)
+	if(encoder_close()<0)
 	  tc_warn("failed to close encoder - non fatal");
       }
 
-      encoder_stop(&export_para);
+      encoder_stop();
 
 #endif
       break;
