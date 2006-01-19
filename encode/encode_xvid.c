@@ -183,17 +183,15 @@ static void reset_module(XviDPrivateData *mod);
 static void cleanup_module(XviDPrivateData *mod);
 static void read_config_file(XviDPrivateData *mod);
 static void dispatch_settings(XviDPrivateData *mod);
-static void set_create_struct(XviDPrivateData *mod, vob_t *vob);
-static void set_frame_struct(XviDPrivateData *mod,
-                             vob_t *vob,
+static void set_create_struct(XviDPrivateData *mod, const vob_t *vob);
+static void set_frame_struct(XviDPrivateData *mod, vob_t *vob,
                              const vframe_list_t *inframe,
                              vframe_list_t *outframe);
 
 /***************************************************************************/
 
 static int xvid_configure(TCModuleInstance *self,
-                          const char *options,
-                          vob_t *vob)
+                          const char *options, vob_t *vob)
 {
     int ret;    
     XviDPrivateData *pd = NULL;
@@ -330,8 +328,10 @@ static int xvid_encode_video(TCModuleInstance *self,
     pd = self->userdata;
     xvid = &pd->xvid;
     
-    /* Video encoding */
-
+    /* 
+     * FIXME: don't use tcv_convert (to save an ac_memcpy) 
+     * here unless is strictly needed
+     */
     if(vob->im_v_codec == CODEC_YUV422) {
         /* Convert to UYVY */
         tcv_convert(pd->tcvhandle, inframe->video_buf, vob->ex_v_width,
@@ -831,7 +831,7 @@ static void dispatch_settings(XviDPrivateData *mod)
     return;
 }
 
-static void set_create_struct(XviDPrivateData *mod, vob_t *vob)
+static void set_create_struct(XviDPrivateData *mod, const vob_t *vob)
 {
     xvid_enc_create_t *x    = &mod->xvid_enc_create;
     xvid_enc_create_t *xcfg = &mod->cfg_create;
@@ -1043,11 +1043,11 @@ static void set_frame_struct(XviDPrivateData *mod, vob_t *vob,
 
     /* pixel aspect ratio
      * transcode.c uses 0 for EXT instead of 15 */
-    if ((vob->ex_par==0) &&
-        (vob->ex_par_width==1) && (vob->ex_par_height==1)) {
+    if ((vob->ex_par == 0) &&
+        (vob->ex_par_width == 1) && (vob->ex_par_height == 1)) {
         vob->ex_par = 1;
     }
-    x->par = (vob->ex_par==0)? XVID_PAR_EXT: vob->ex_par;
+    x->par = (vob->ex_par == 0)? XVID_PAR_EXT: vob->ex_par;
     x->par_width = vob->ex_par_width;
     x->par_height = vob->ex_par_height;
 

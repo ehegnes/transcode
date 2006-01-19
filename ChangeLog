@@ -1,4 +1,8 @@
 2006-01-19 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_dv.c encode/encode_xvid.c encode/encode_ffmpeg.c
+  encoders update roundup (small fixes).
+
+2006-01-19 Francesco Romani <fromani at gmail dot com>
   * tools/tcmodinfo.c
   more fake symbols to load encode_ffmpeg.c cleanly
 

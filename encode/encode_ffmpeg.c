@@ -52,6 +52,7 @@ static const char *ffmpeg_help = ""
 /*
  * FIXME:
  * - reduce fields and rednundancy
+ * - CODEC_* vs TC_CODEC_*
  * - restore missing features
  */
 
@@ -289,13 +290,14 @@ static int ffmpeg_stop(TCModuleInstance *self)
 
     log_psnr(pd);
     
-    if (pd->conv_buf) {
+    if (pd->conv_buf != NULL) {
         tc_free(pd->conv_buf);
         pd->conv_buf = NULL;
         pd->conv_buf_size = 0;
     }
     if (pd->vid_codec != NULL) {
         avcodec_close(pd->vid_ctx);
+        pd->vid_codec = NULL;
     }
 
     if (pd->vid_ctx != NULL) {
@@ -315,9 +317,11 @@ static int ffmpeg_stop(TCModuleInstance *self)
 
     if (pd->stats_file) {
         fclose(pd->stats_file);
+        pd->stats_file = NULL;
     }
     if (pd->codec_name) {
         tc_free((char*)pd->codec_name); /* avoid const warning */
+        pd->codec_name = NULL;
     }
     
     reset_module(pd);
@@ -583,29 +587,28 @@ static char* describe_out_codecs(void)
     return buffer;
 }
 
+/*
+ * I use avpicture_fill instead of YUV_INIT_PLANES because the former
+ * also set linesize[] and friends in AVFrame data
+ */
 static void prepare_encode_yuv420(FFmpegPrivateData *pd,
                                   vframe_list_t *inframe,
                                   vframe_list_t *outframe)
 {
-    // XXX
-    pd->venc_frame->linesize[0] = pd->vid_ctx->width;
-    pd->venc_frame->linesize[1] = pd->vid_ctx->width / 2;
-    pd->venc_frame->linesize[2] = pd->vid_ctx->width / 2;
-
     if (pd->tc_codec_id == TC_CODEC_HUFFYUV) {
         uint8_t *src[3];
         YUV_INIT_PLANES(src, inframe->video_buf, IMG_YUV_DEFAULT,
                         pd->vid_ctx->width, pd->vid_ctx->height);
-        avpicture_fill((AVPicture *)pd->venc_frame, pd->conv_buf,
+        avpicture_fill((AVPicture*)pd->venc_frame, pd->conv_buf,
                        PIX_FMT_YUV422P,
                        pd->vid_ctx->width, pd->vid_ctx->height);
         ac_imgconvert(src, IMG_YUV_DEFAULT, pd->venc_frame->data,
                       IMG_YUV422P,
                       pd->vid_ctx->width, pd->vid_ctx->height);
     } else {
-        YUV_INIT_PLANES(pd->venc_frame->data, inframe->video_buf,
-                        IMG_YUV420P,
-                        pd->vid_ctx->width, pd->vid_ctx->height);
+        avpicture_fill((AVPicture*)pd->venc_frame, inframe->video_buf,
+                       PIX_FMT_YUV420P,
+                       pd->vid_ctx->width, pd->vid_ctx->height);
     }
 }
 
@@ -632,16 +635,20 @@ static void prepare_encode_yuv422(FFmpegPrivateData *pd,
     }
 }
 
+// XXX
 static void prepare_encode_rgb(FFmpegPrivateData *pd,
                                vframe_list_t *inframe,
                                vframe_list_t *outframe)
 {
-    // XXX
-    avpicture_fill((AVPicture *)pd->venc_frame, outframe->video_buf,
+    uint8_t *src[3];
+    YUV_INIT_PLANES(src, inframe->video_buf,
+                    IMG_RGB_DEFAULT,
+                    pd->vid_ctx->width, pd->vid_ctx->height);
+    avpicture_fill((AVPicture *)pd->venc_frame, pd->conv_buf,
                    PIX_FMT_YUV420P,
                    pd->vid_ctx->width, pd->vid_ctx->height);
-    ac_imgconvert(&inframe->video_buf, IMG_RGB_DEFAULT,
-                  pd->venc_frame->data, IMG_YUV420P,
+    ac_imgconvert(src, IMG_RGB_DEFAULT, pd->venc_frame->data,
+                  IMG_YUV420P,
                   pd->vid_ctx->width, pd->vid_ctx->height);
 }
 
@@ -1015,7 +1022,8 @@ static int setup_conv_buf(FFmpegPrivateData *pd, const vob_t *vob)
         return TC_EXPORT_ERROR;
     }
    
-    if (pd->pix_fmt == CODEC_YUV422 || IS_MJPEG(pd)) {
+    if ((pd->pix_fmt == CODEC_YUV422 || pd->pix_fmt == CODEC_RGB)
+      || IS_MJPEG(pd)) {
         pd->conv_buf_size = avpicture_get_size(PIX_FMT_RGB24,
                                                vob->ex_v_width,
                                                vob->ex_v_height);

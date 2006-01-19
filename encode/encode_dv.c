@@ -205,6 +205,11 @@ static int tcdv_encode_video(TCModuleInstance *self,
     DV_INIT_PLANES(pixels, inframe->video_buf, w, h);
 
     if (pd->dv_yuy2_mode) {
+        /* 
+         * tcv_convert is handy, but since operates in place
+         * it requires an extra ac_memcpy that I should be able
+         * to avoid doing as follows:
+         */
         uint8_t *conv_pixels[3];
         DV_INIT_PLANES(conv_pixels, pd->conv_buf, w, h);
 
