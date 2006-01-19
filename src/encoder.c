@@ -42,16 +42,14 @@ long frames_cloned = 0;
 static pthread_mutex_t frame_counter_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static volatile int force_exit = TC_FALSE;
-static pthread_mutex_t force_exit_lock = PTHREAD_MUTEX_INITIALIZER;
 
 pthread_mutex_t delay_video_frames_lock = PTHREAD_MUTEX_INITIALIZER;
 int video_frames_delay = 0;
 
 void tc_export_stop_nolock(void)
 {
-    force_exit=1;
+    force_exit = TC_TRUE;
 }
-
 
 long tc_get_frames_encoded(void)
 {
@@ -135,25 +133,6 @@ static long tc_get_frames_skipped_cloned(void)
     pthread_mutex_unlock(&frame_counter_lock);
     
     return(-cc + cc2);
-}
-
-
-void tc_set_force_exit(void)
-{
-    pthread_mutex_lock(&force_exit_lock);
-    force_exit = 1;
-    pthread_mutex_unlock(&force_exit_lock);
-}
-
-int tc_get_force_exit(void)
-{
-    int cc = 0;
-
-    pthread_mutex_lock(&force_exit_lock);
-    cc = force_exit;
-    pthread_mutex_unlock(&force_exit_lock);
-
-    return cc;
 }
 
 /* ------------------------------------------------------------ 
@@ -514,7 +493,7 @@ int encoder_wait_vframe(TCEncoderData *data)
             }
         } else { /* !ready */
             /* check import status */
-            if (!vimport_status() || tc_get_force_exit())  {
+            if (!vimport_status() || force_exit)  {
                 if (verbose & TC_DEBUG) {
                     tc_log_warn(__FILE__, "import closed - buffer empty (V)");
                 }
@@ -688,7 +667,7 @@ int encoder_wait_aframe(TCEncoderData *data)
             }
         } else { /* !ready */
             /* check import status */
-            if (!aimport_status() || tc_get_force_exit()) {
+            if (!aimport_status() || force_exit) {
                 if (verbose & TC_DEBUG) {
                     tc_log_warn(__FILE__, "import closed - buffer empty (A)");
                 }
@@ -1020,7 +999,7 @@ void encoder(vob_t *vob, int frame_first, int frame_last)
     
     do {
         /* check for ^C signal */
-        if (tc_get_force_exit()) {
+        if (force_exit) {
             if (verbose & TC_DEBUG) {
                 tc_log_warn(__FILE__, "export canceled on user request");
             }

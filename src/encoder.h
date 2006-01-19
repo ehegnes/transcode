@@ -69,8 +69,6 @@ void tc_update_frames_dropped(long cc);
 void tc_update_frames_skipped(long cc);
 void tc_update_frames_encoded(long cc);
 void tc_update_frames_cloned(long cc);
-void tc_set_force_exit(void);
-int tc_get_force_exit(void);
 
 int export_init(vob_t *vob_ptr, char *a_mod, char *v_mod);
 
