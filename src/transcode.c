@@ -994,8 +994,6 @@ int main(int argc, char *argv[]) {
     vob->ts_pid1          = 0x0;
     vob->ts_pid2          = 0x0;
 
-    vob->video_frames_delay = 0;
-
     vob->dv_yuy2_mode     = 0;
     vob->hard_fps_flag    = 0;
     vob->mpeg_profile     = PROF_NONE;

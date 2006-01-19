@@ -41,9 +41,6 @@ long frames_skipped = 0;
 long frames_cloned = 0;
 static pthread_mutex_t frame_counter_lock = PTHREAD_MUTEX_INITIALIZER;
 
-static int export = 0;
-static pthread_mutex_t export_lock = PTHREAD_MUTEX_INITIALIZER;
-
 static volatile int force_exit = TC_FALSE;
 static pthread_mutex_t force_exit_lock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -55,19 +52,6 @@ void tc_export_stop_nolock(void)
     force_exit=1;
 }
 
-
-int export_status(void)
-{
-    int ret = 0;
-    
-    pthread_mutex_lock(&export_lock);
-    if (export == TC_ON) {
-        ret = 1;
-    }
-    pthread_mutex_unlock(&export_lock);
-    
-    return ret;
-}
 
 long tc_get_frames_encoded(void)
 {
@@ -307,10 +291,6 @@ int encoder_init(vob_t *vob)
     int ret;
     transfer_t export_para;
   
-    pthread_mutex_lock(&export_lock);
-    export = TC_ON;   
-    pthread_mutex_unlock(&export_lock);
-  
     export_para.flag = TC_VIDEO;
     ret = tcv_export(TC_EXPORT_INIT, &export_para, vob);
     if (ret == TC_EXPORT_ERROR) {
@@ -375,10 +355,6 @@ int encoder_close(void)
     export_para.flag = TC_VIDEO;
     tcv_export(TC_EXPORT_CLOSE, &export_para, NULL);
   
-    pthread_mutex_lock(&export_lock);
-    export = TC_OFF;  
-    pthread_mutex_unlock(&export_lock);
-
     if(verbose & TC_DEBUG) {
         tc_log_info(__FILE__, "encoder closed");
     }

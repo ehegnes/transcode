@@ -61,6 +61,17 @@ struct tcencoderdata_ {
 		(data)->fill_flag = 0; \
 	} while(0)
 
+long tc_get_frames_dropped(void);
+long tc_get_frames_skipped(void);
+long tc_get_frames_encoded(void);
+long tc_get_frames_cloned(void);
+void tc_update_frames_dropped(long cc);
+void tc_update_frames_skipped(long cc);
+void tc_update_frames_encoded(long cc);
+void tc_update_frames_cloned(long cc);
+void tc_set_force_exit(void);
+int tc_get_force_exit(void);
+
 int export_init(vob_t *vob_ptr, char *a_mod, char *v_mod);
 
 #ifdef ENCODER_EXPORT
@@ -80,7 +91,6 @@ int encoder_stop(void);
 int encoder_open(vob_t *vob);
 int encoder_close(void);
 
-int export_status(void);
 void export_shutdown(void);
 
 #endif
