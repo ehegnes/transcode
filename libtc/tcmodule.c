@@ -472,6 +472,7 @@ static int descriptor_fini(TCModuleDescriptor *desc, void *unused)
         tc_module_info_free(&(desc->info));
         if (desc->type != NULL) {
             tc_free((void*)desc->type);  /* avoid const warning */
+            desc->type = NULL;
         }
         if (desc->so_handle != NULL) {
             dlclose(desc->so_handle);

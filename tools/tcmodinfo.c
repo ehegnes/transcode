@@ -89,8 +89,15 @@ vob_t *tc_get_vob()
     return &vob;
 }
 
+int plugin_get_handle(char *name)
+{
+    return 0;
+}
+
 /* symbols nbeeded by modules */
 pthread_mutex_t delay_video_frames_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t init_avcodec_lock = PTHREAD_MUTEX_INITIALIZER;
+int probe_export_attributes = 0;
 int video_frames_delay = 0;
 const char *tc_config_dir = NULL;
 int verbose  = 0;
