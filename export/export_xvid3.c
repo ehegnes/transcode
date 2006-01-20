@@ -513,7 +513,7 @@ MOD_encode
 	}
 
 	if(xframe.intra == 5) { // skipped frame
-        tc_export_request_video_delay();
+        param->attributes |= TC_FRAME_IS_DELAYED;
 	} else {
 		/* Write bitstream */
 		if(rawfd < 0) {

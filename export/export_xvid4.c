@@ -413,7 +413,7 @@ MOD_encode
 	/* XviD Core rame buffering handling
 	* We must make sure audio A/V is still good and does not run away */
 	if(bytes == 0) {
-        tc_export_request_video_delay();
+        param->attributes |= TC_FRAME_IS_DELAYED;
 		return(TC_EXPORT_OK);
 	}
 

@@ -1,5 +1,11 @@
 2006-01-20 Francesco Romani <fromani at gmail dot com>
   * encode/encode_xvid.c export/export_xvid3.c export/export_xvid4.c
+    src/encoder.c src/tc_defaults.h
+  highly experimental new (Xvid) A/V sync encoder code, using
+  a new frame flag and using a few less symbols.
+
+2006-01-20 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_xvid.c export/export_xvid3.c export/export_xvid4.c
     src/encoder.c
   make private a few more symbols and update client code
   accordingly.

@@ -46,13 +46,6 @@ static volatile int force_exit = TC_FALSE;
 static pthread_mutex_t delay_video_frames_lock = PTHREAD_MUTEX_INITIALIZER;
 static int video_frames_delay = 0;
 
-void tc_export_request_video_delay(void)
-{
-    pthread_mutex_lock(&delay_video_frames_lock);
-    video_frames_delay++;
-    pthread_mutex_unlock(&delay_video_frames_lock);
-}
-
 void tc_export_stop_nolock(void)
 {
     force_exit = TC_TRUE;
@@ -790,6 +783,8 @@ static
 #endif
 int encoder_export(TCEncoderData *data, vob_t *vob)
 {
+    int video_delayed = 0;
+    
     /* encode and export video frame */
     data->export_para.buffer = data->vptr->video_buf;
     data->export_para.size   = data->vptr->video_size;
@@ -806,6 +801,10 @@ int encoder_export(TCEncoderData *data, vob_t *vob)
         data->error_flag = 1;
     }
 
+    if (data->export_para.attributes == TC_FRAME_IS_DELAYED) {
+        data->export_para.attributes &= ~TC_FRAME_IS_DELAYED;
+        video_delayed = 1;
+    }
     /* maybe clone? */
     data->vptr->attributes = data->export_para.attributes;
 
@@ -818,12 +817,10 @@ int encoder_export(TCEncoderData *data, vob_t *vob)
     
     data->export_para.flag   = TC_AUDIO;
     
-    if(video_frames_delay > 0) {
-        pthread_mutex_lock(&delay_video_frames_lock);
-        --video_frames_delay;
-        pthread_mutex_unlock(&delay_video_frames_lock);
+    // XXX
+    if(vido_delayed) {
         data->aptr->attributes |= TC_FRAME_IS_CLONED; 
-        tc_log_info(__FILE__, "Delaying audio (%d)", video_frames_delay);
+        tc_log_info(__FILE__, "Delaying audio");
     } else {
         if (tca_export(TC_EXPORT_ENCODE, &data->export_para, vob) < 0) {
             tc_log_warn(__FILE__, "error encoding audio frame");

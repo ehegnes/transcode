@@ -372,7 +372,7 @@ static int xvid_encode_video(TCModuleInstance *self,
     /* XviD Core rame buffering handling
     * We must make sure audio A/V is still good and does not run away */
     if (bytes == 0) {
-        tc_export_request_video_delay();
+        outframe->attributes |= TC_FRAME_IS_DELAYED;
         outframe->video_size = 0; /* paranoia */
         return TC_EXPORT_OK;
     }
