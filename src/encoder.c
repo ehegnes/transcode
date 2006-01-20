@@ -74,12 +74,14 @@ struct tcencoderdata_ {
     pthread_mutex_t frame_counter_lock;
 
     volatile int exit_flag;
+
+    transfer_t export_para;
 };
 
 static TCEncoderData encdata;
 
 
-static void tc_encoder_data_init(int frame_first, int frame_last)
+static void tc_encoder_data_init(void)
 {
     memset(&encdata, 0, sizeof(TCEncoderData));
     
@@ -96,7 +98,7 @@ static void tc_encoder_data_init(int frame_first, int frame_last)
 
     encdata.exit_flag = TC_FALSE;
 
-    pthread_mutex_init(&encdata.encdata.frame_counter_lock, NULL);
+    pthread_mutex_init(&encdata.frame_counter_lock, NULL);
 }
 
 
@@ -490,9 +492,9 @@ static void apply_video_filters(vframe_list_t *vptr, vob_t *vob)
     }
     
     /* second stage post-processing - (synchronous) */
-    data->vptr->tag = TC_VIDEO|TC_POST_S_PROCESS;
-    process_vid_plugins(data->vptr);
-    postprocess_vid_frame(vob, data->vptr);
+    vptr->tag = TC_VIDEO|TC_POST_S_PROCESS;
+    process_vid_plugins(vptr);
+    postprocess_vid_frame(vob, vptr);
 }
 
 /*
@@ -521,13 +523,11 @@ static void apply_audio_filters(aframe_list_t *aptr, vob_t *vob)
 
         DEC_ABUF_COUNTER(xx);
         INC_ABUF_COUNTER(ex);
-       
-        apply_audio_filters(data->aptr, vob);
     }
     
     /* second stage post-processing - (synchronous) */
-    data->aptr->tag = TC_AUDIO|TC_POST_S_PROCESS;
-    process_aud_plugins(data->aptr);
+    aptr->tag = TC_AUDIO|TC_POST_S_PROCESS;
+    process_aud_plugins(aptr);
 }
 
 /*

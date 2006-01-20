@@ -27,14 +27,14 @@
 #include "transcode.h"
 #include "filter.h"
 
-long tc_get_frames_dropped(void);
-long tc_get_frames_skipped(void);
-long tc_get_frames_encoded(void);
-long tc_get_frames_cloned(void);
-void tc_update_frames_dropped(long cc);
-void tc_update_frames_skipped(long cc);
-void tc_update_frames_encoded(long cc);
-void tc_update_frames_cloned(long cc);
+uint32_t tc_get_frames_dropped(void);
+uint32_t tc_get_frames_skipped(void);
+uint32_t tc_get_frames_encoded(void);
+uint32_t tc_get_frames_cloned(void);
+void tc_update_frames_dropped(uint32_t val);
+void tc_update_frames_skipped(uint32_t val);
+void tc_update_frames_encoded(uint32_t val);
+void tc_update_frames_cloned(uint32_t val);
 
 int export_init(vob_t *vob, char *a_mod, char *v_mod);
 void export_shutdown(void);

@@ -1,4 +1,8 @@
 2006-01-20 Francesco Romani <fromani at gmail dot com>
+  * src/encoder.h src/encoder.c
+  fixed a few silly bugs.
+
+2006-01-20 Francesco Romani <fromani at gmail dot com>
   * src/encoder.c src/encoder.h
   pack fields in a (private) structure and review filters handling.
   Don't export private functions.
