@@ -1,4 +1,11 @@
 2006-01-20 Francesco Romani <fromani at gmail dot com>
+  * import/probe_v4l.c libtc/tc_functions.c src/probe.c src/transcode.c
+  backport of last v4l updates from HEAD branch.
+  
+  * src/encoder.c
+  typos.
+
+2006-01-20 Francesco Romani <fromani at gmail dot com>
   * encode/encode_xvid.c export/export_xvid3.c export/export_xvid4.c
     src/encoder.c src/tc_defaults.h
   highly experimental new (Xvid) A/V sync encoder code, using

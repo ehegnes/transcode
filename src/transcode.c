@@ -646,8 +646,6 @@ int main(int argc, char *argv[]) {
     const char *dir_name, *dir_fname;
     int dir_fcnt=0, dir_audio=0;
 
-    transfer_t export_para;
-
     double fch, asr;
     int leap_bytes1, leap_bytes2;
 
@@ -944,8 +942,8 @@ int main(int argc, char *argv[]) {
     vob->ex_par_width     = 0;
     vob->ex_par_height    = 0;
     vob->quality          = VQUALITY;
-    vob->amod_probed      = NULL;
-    vob->vmod_probed      = NULL;
+    vob->amod_probed      = "null";
+    vob->vmod_probed      = "null";
     vob->amod_probed_xml  = NULL;
     vob->vmod_probed_xml  = NULL;
     vob->a_vbr            = 0;

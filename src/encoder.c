@@ -815,7 +815,7 @@ int encoder_export(TCEncoderData *data, vob_t *vob)
     data->export_para.flag   = TC_AUDIO;
     
     // XXX
-    if(vido_delayed) {
+    if(video_delayed) {
         data->aptr->attributes |= TC_FRAME_IS_CLONED; 
         tc_log_info(__FILE__, "Delaying audio");
     } else {

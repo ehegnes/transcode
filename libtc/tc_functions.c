@@ -504,13 +504,8 @@ int tc_probe_path(const char *name)
 #else
                 case 81: /* v4l (Linux) */
                     return TC_PROBE_PATH_V4L_VIDEO;
-#ifdef HAVE_V4L
-                case 14: /* dsp (Linux) */
-                    return TC_PROBE_PATH_V4L_AUDIO;
-#else
                 case 14: /* OSS */
                     return TC_PROBE_PATH_OSS;
-#endif
                 default:
                     break;
 #endif
