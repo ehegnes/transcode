@@ -43,9 +43,6 @@ static pthread_mutex_t frame_counter_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static volatile int force_exit = TC_FALSE;
 
-static pthread_mutex_t delay_video_frames_lock = PTHREAD_MUTEX_INITIALIZER;
-static int video_frames_delay = 0;
-
 void tc_export_stop_nolock(void)
 {
     force_exit = TC_TRUE;
