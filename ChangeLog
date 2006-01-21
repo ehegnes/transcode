@@ -1,3 +1,7 @@
+2006-01-21 Francesco Romani <fromani at gmail dot com>
+  * src/encoder.c
+  reviewed internal initialization and frame acquisition code.
+
 2006-01-20 Francesco Romani <fromani at gmail dot com>
   * src/encoder.h src/encoder.c
   fixed a few silly bugs.
