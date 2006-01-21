@@ -95,6 +95,8 @@ static TCEncoderData encdata = {
     0,
     0,
     0,
+    0,
+    0,
     NULL,
     NULL,
     0,
@@ -581,6 +583,52 @@ static vframe_list_t *encoder_wait_vframe(TCEncoderData *data)
 }
 
 /*
+ * wait until a new audio frame is avalaible for encoding
+ * in frame buffer.
+ * When a new frame is avalaible update the encoding context
+ * adjusting video frame buffer, and returns 0.
+ * Return -1 if no more frames are avalaible. This usually
+ * means that video stream is ended.
+ */
+static aframe_list_t *encoder_wait_aframe(TCEncoderData *data)
+{
+    int ready = TC_FALSE;
+    aframe_list_t *aptr = NULL;
+ 
+    while (1) {
+        /* check buffer fill level */
+        pthread_mutex_lock(&aframe_list_lock);
+        ready = aframe_fill_level(TC_BUFFER_READY);
+        pthread_mutex_unlock(&aframe_list_lock);
+      
+        if (ready) {
+            aptr = aframe_retrieve();
+            if (aptr != NULL) {
+                break;
+            }
+        } else { /* !ready */
+            /* check import status */
+            if (!aimport_status() || data->exit_flag) {
+                if (verbose & TC_DEBUG) {
+                    tc_log_warn(__FILE__, "import closed - buffer empty (A)");
+                }
+                aptr = NULL;
+                break;
+            }
+            if (verbose & TC_STATS) {
+                tc_log_info(__FILE__, "waiting for audio frames");
+            }
+        }
+        /* 
+         * no frame available at this time
+         * pthread_yield is probably a cleaner solution, but it's a GNU extension
+         */
+        usleep(tc_buffer_delay_enc);
+    }
+    return aptr;
+}
+
+/*
  * get a new video frame for encoding. This means:
  * 1. to wait for a new frame avalaible for encoder using encoder_wait_vframe
  * 2. apply the filters if no frame threads are avalaible
@@ -595,7 +643,6 @@ static vframe_list_t *encoder_wait_vframe(TCEncoderData *data)
  */   
 static int encoder_acquire_vframe(TCEncoderData *data, vob_t *vob)
 {
-    int err = 0;
     int got_frame = TC_TRUE;
   
     do {
@@ -690,52 +737,6 @@ static int encoder_acquire_vframe(TCEncoderData *data, vob_t *vob)
 }
 
 /*
- * wait until a new audio frame is avalaible for encoding
- * in frame buffer.
- * When a new frame is avalaible update the encoding context
- * adjusting video frame buffer, and returns 0.
- * Return -1 if no more frames are avalaible. This usually
- * means that video stream is ended.
- */
-static aframe_list_t *encoder_wait_aframe(TCEncoderData *data)
-{
-    int ready = TC_FALSE;
-    aframe_list_t *aptr = NULL;
- 
-    while (1) {
-        /* check buffer fill level */
-        pthread_mutex_lock(&aframe_list_lock);
-        ready = aframe_fill_level(TC_BUFFER_READY);
-        pthread_mutex_unlock(&aframe_list_lock);
-      
-        if (ready) {
-            aptr = aframe_retrieve();
-            if (aptr != NULL) {
-                break;
-            }
-        } else { /* !ready */
-            /* check import status */
-            if (!aimport_status() || data->exit_flag) {
-                if (verbose & TC_DEBUG) {
-                    tc_log_warn(__FILE__, "import closed - buffer empty (A)");
-                }
-                aptr = NULL;
-                break;
-            }
-            if (verbose & TC_STATS) {
-                tc_log_info(__FILE__, "waiting for audio frames");
-            }
-        }
-        /* 
-         * no frame available at this time
-         * pthread_yield is probably a cleaner solution, but it's a GNU extension
-         */
-        usleep(tc_buffer_delay_enc);
-    }
-    return aptr;
-}
-
-/*
  * get a new audio frame for encoding. This means:
  * 1. to wait for a new frame avalaible for encoder using encoder_wait_aframe
  * 2. apply the filters if no frame threads are avalaible
@@ -749,7 +750,6 @@ static aframe_list_t *encoder_wait_aframe(TCEncoderData *data)
  */   
 static int encoder_acquire_aframe(TCEncoderData *data, vob_t *vob)
 {
-    int err = 0;
     int got_frame = TC_TRUE;
   
     do {
@@ -1037,7 +1037,7 @@ void encoder(vob_t *vob, int frame_first, int frame_last)
       
         /* cluster mode must take dropped frames into account */
         if (tc_cluster_mode 
-          && (data.fid - tc_get_frames_dropped()) == frame_last) {
+          && (encdata.fid - tc_get_frames_dropped()) == frame_last) {
             return;
         }
       
