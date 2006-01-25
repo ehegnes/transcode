@@ -1818,7 +1818,7 @@ values for mpeg export. When you don't specify an export module with -y,
 mpeg2enc will be used.
 
 .nf
-   transcode -i vob/ -V --export_prof svcd -Z fast -o test
+   transcode -i vob/ --export_prof svcd -Z fast -o test
 .fi
 
 The ffmpeg export module `-y ffmpeg' does support profiles as well. The module
@@ -1826,7 +1826,7 @@ tries to be smart and sets internal ffmpeg parameters which are otherwise quite
 tricky to find out. Usage is similar to the above
 
 .nf
-   transcode -i vob/ -V --export_prof dvd -y ffmpeg -o test -m test.ac3
+   transcode -i vob/ --export_prof dvd -y ffmpeg -o test -m test.ac3
    tcmplex -m d -i test.m2v -p test.ac3 -o test.mpg
 .fi
 
@@ -2827,7 +2827,7 @@ The following options are supported for this filter
 
 Note: the 'shift' function may produce slight color
 discrepancies if YV12 is used as the internal transcode
-video format (-V flag).  This is because YV12 does not
+video format (default).  This is because YV12 does not
 contain enough information to do field shifting cleanly. For
 best (but slower) results, use RGB mode for field shifting.
 .RE
@@ -3404,7 +3404,7 @@ example) cache=20 you can talk to transcode and the pv filter at runtime using
 the socket.
 
 .nf
-transcode -i file.avi -V -J pv=cache=30 --socket /tmp/sock
+transcode -i file.avi -J pv=cache=30 --socket /tmp/sock
 .fi
 
 .RS
@@ -4287,16 +4287,11 @@ the DVD medium.  The output files will be named
 .PD 0
 .RS
 .nf
-\fBtranscode -i /dev/dvd/ -x dvd -V -j 16,0 -B 5,0 \\\fP
+\fBtranscode -i /dev/dvd/ -x dvd -j 16,0 -B 5,0 \\\fP
 .B -Y 40,8 -s 4.47 -U my_movie -y xvid -w 1618
 .fi
 .RE
 .PD 1
-.LP
-Option
-.B -V
-tells \fItranscode\fP to use YUV as internal video
-colorspace, which saves a lot of CPU/PCI bandwidth.
 .LP
 Option
 .B -j 16,0

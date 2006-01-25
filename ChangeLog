@@ -1,3 +1,8 @@
+2006-01-25 Francesco Romani <fromani at gmail dot com>
+  * docs/man/transcode.1
+  removed no longer needed -V option from a few examples into
+  manpage.
+
 2006-01-18 Andrew Church <achurch at achurch dot org>
   * import/decode_dv.c
   Add a missing #ifdef HAVE_LIBDV to fix compilation when libdv is disabled.
