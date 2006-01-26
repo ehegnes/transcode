@@ -541,6 +541,7 @@ static int tc_module_class_copy(const TCModuleClass *klass,
     int ret;
 
     if (!klass || !nklass) {
+        /* 'impossible' condition */
         tc_log_error(__FILE__, "bad module class reference for setup: %s%s",
                                 (!klass) ?"plugin class" :"",
                                 (!nklass) ?"core class" :"");
@@ -550,6 +551,7 @@ static int tc_module_class_copy(const TCModuleClass *klass,
     if (!klass->init || !klass->fini
      || !klass->configure || !klass->stop
      || !klass->inspect) {
+        /* should'nt happen */
         tc_log_error(__FILE__, "can't setup a module class without "
                                "one or more mandatory methods");
         return -1;
@@ -614,6 +616,7 @@ static int tc_load_module(TCFactory factory,
     TCModuleDescriptor *desc = NULL;
     const TCModuleClass *nclass;
 
+    /* 'impossible' conditions */
     if (!modclass || !strlen(modclass)) {
         tc_log_error(__FILE__, "empty module class");
         return -1;
@@ -622,12 +625,14 @@ static int tc_load_module(TCFactory factory,
         tc_log_error(__FILE__, "empty module name");
         return -1;
     }
+    
     make_modtype(modtype, PATH_MAX, modclass, modname);
     tc_snprintf(full_modpath, PATH_MAX, "%s/%s_%s.so",
                 factory->mod_path, modclass, modname);
 
     id = find_first_free_descriptor(factory);
     if (id == -1) {
+        /* should'nt happen */
         tc_log_error(__FILE__, "already loaded the maximum number "
                                "of modules (%i)", TC_FACTORY_MAX_HANDLERS);
         return -1;
@@ -637,8 +642,10 @@ static int tc_load_module(TCFactory factory,
 
     desc->so_handle = dlopen(full_modpath, RTLD_GLOBAL | RTLD_NOW);
     if (!desc->so_handle) {
-        tc_log_error(__FILE__, "can't load module '%s'; reason: %s",
-                               modtype, dlerror());
+        if (factory->verbose >= TC_INFO) {
+            tc_log_error(__FILE__, "can't load module '%s'; reason: %s",
+                                   modtype, dlerror());
+        }
         goto failed_dlopen;
     }
     desc->type = tc_strdup(modtype);
@@ -652,8 +659,10 @@ static int tc_load_module(TCFactory factory,
 
     modentry = dlsym(desc->so_handle, "tc_plugin_setup");
     if (!modentry) {
-        tc_log_error(__FILE__, "module '%s' doesn't have new style entry"
-                               " point", modtype);
+        if (factory->verbose >= TC_INFO) {
+            tc_log_error(__FILE__, "module '%s' doesn't have new style entry"
+                                   " point", modtype);
+        }
         goto failed_setup;
     }
     nclass = modentry();
@@ -661,7 +670,7 @@ static int tc_load_module(TCFactory factory,
     ret = tc_module_class_copy(nclass, &(desc->klass), TC_FALSE);
 
     if (ret !=  0) {
-        /* tc_module_register_class failed or just not ivoked! */
+        /* should'nt happen */
         tc_log_error(__FILE__, "failed class registration for module '%s'",
                                modtype);
         goto failed_setup;
@@ -752,6 +761,7 @@ int tc_del_module_factory(TCFactory factory)
     tc_foreach_descriptor(factory, descriptor_fini, NULL, NULL);
 
     if (factory->descriptor_count > 0) {
+        /* should'nt happpen */
         tc_log_warn(__FILE__, "left out %i module descriptors",
                               factory->descriptor_count);
         return -1;
@@ -773,7 +783,9 @@ TCModule tc_new_module(TCFactory factory,
     }
 
     if (!is_known_modclass(modclass)) {
-        tc_log_error(__FILE__, "unknown module class '%s'", modclass);
+        if (factory->verbose >= TC_INFO) {
+            tc_log_error(__FILE__, "unknown module class '%s'", modclass);
+        }
         return NULL;
     }
 
@@ -802,8 +814,10 @@ TCModule tc_new_module(TCFactory factory,
 
     ret = tc_module_init(module);
     if (ret != 0) {
-        tc_log_error(__FILE__, "initialization of '%s' failed (code=%i)",
-                               modtype, ret);
+        if (factory->verbose >= TC_DEBUG) {
+            tc_log_error(__FILE__, "initialization of '%s' failed"
+                                   " (code=%i)", modtype, ret);
+        }
         tc_free(module);
         return NULL;
     }
@@ -840,8 +854,10 @@ int tc_del_module(TCFactory factory, TCModule module)
 
     ret = tc_module_fini(module);
     if (ret != 0) {
-        tc_log_error(__FILE__, "finalization of '%s' failed",
-                     module->instance.type);
+        if (factory->verbose >= TC_DEBUG) {
+            tc_log_error(__FILE__, "finalization of '%s' failed (code=%i)",
+                         module->instance.type, ret);
+        }
         return ret;
     }
     tc_free(module);

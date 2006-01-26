@@ -1,4 +1,8 @@
 2006-01-26 Francesco Romani <fromani at gmail dot com>
+  * libtc/tcmodule.c
+  verbosiness guards around tc_log() calls.
+
+2006-01-26 Francesco Romani <fromani at gmail dot com>
   * libtc/tccodecs.c libtc/tccodecs.h
   add mp2 (audio) codec.
 
