@@ -65,6 +65,19 @@ prints the socket help text and exits.
 .B tcmodinfo \-s /tmp/tc\-socket
 .PP
 Will drop you into an interactive "shell" where you can talk to the socket.
+.SH RETURN VALUE
+0   succesfull
+.br
+1   bad option or bad parameter fromm command line
+.br
+2   requested module not found in module path
+.br
+4   error loading or initializing requested module
+.br
+8   can't find socket to connect
+.br
+16  error connecting to socket
+.br
 .SH AUTHORS
 .B tcmodinfo
 was written by Tilmann Bitterberg

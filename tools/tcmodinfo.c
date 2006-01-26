@@ -2,6 +2,8 @@
  *  tcmodinfo.c
  *
  *  Copyright (C) Tilmann Bitterberg - August 2002
+ *  updated and partially rewritten by
+ *  Copyright (C) Francesco Romani - January 2006
  *
  *  This file is part of transcode, a video stream processing tool
  *
@@ -58,28 +60,51 @@
 #define OPTS_SIZE 8192 //Buffersize
 #define NAME_LEN 256
 
+#define STATUS_OK            0
+#define STATUS_BAD_PARAM     1
+#define STATUS_NO_MODULE     2
+#define STATUS_MODULE_ERROR  4
+#define STATUS_NO_SOCKET     8
+#define STATUS_SOCKET_ERROR  16
+
 static filter_t filter[MAX_FILTER];
-static vob_t vob;
+static vob_t vob = {
+    // some arbitrary values for the modules
+    .fps = 25.0,
+    .im_v_width = 32,
+    .ex_v_width = 32,
+    .im_v_height= 32,
+    .ex_v_height= 32,
+    .im_v_codec = CODEC_YUV,
+
+    .a_rate = 44100,
+    .mp3frequency = 44100,
+    .a_chan = 2,
+    .a_bits = 16,
+
+    .video_in_file = "/dev/zero",
+    .audio_in_file = "/dev/zero",
+};
 
 void version(void)
 {
-    printf("%s (%s v%s) (C) 2001-2005 Tilmann Bitterberg, "
+    printf("%s (%s v%s) (C) 2001-2006 Tilmann Bitterberg, "
            "transcode team\n", EXE, PACKAGE, VERSION);
 }
 
-static void usage(int status)
+static void usage(void)
 {
     version();
     tc_log_info(EXE, "Usage: %s [options]", EXE);
     fprintf(stderr, "\t -i name           Module name information (like \'smooth\')\n");
     fprintf(stderr, "\t -p                Print the compiled-in MOD_PATH\n");
-    fprintf(stderr, "\t -d verbosity      Verbosity mode [0]\n");
-    fprintf(stderr, "\t -m path           Use PATH as MOD_PATH\n");
+    fprintf(stderr, "\t -d verbosity      Verbosity mode [1 == TC_INFO]\n");
+    fprintf(stderr, "\t -D                dry run, only loads module (used for testing)\n");
+    fprintf(stderr, "\t -m path           Use PATH as module path\n");
     fprintf(stderr, "\t -M element        Request to module informations about <element>\n");
     fprintf(stderr, "\t -s socket         Connect to transcode socket\n");
     fprintf(stderr, "\t -t type           Type of module (filter, encode, multiplex)\n");
     fprintf(stderr, "\n");
-    exit(status);
 }
 
 // dependencies
@@ -95,12 +120,10 @@ int plugin_get_handle(char *name)
 }
 
 /* symbols nbeeded by modules */
-pthread_mutex_t delay_video_frames_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t init_avcodec_lock = PTHREAD_MUTEX_INITIALIZER;
 int probe_export_attributes = 0;
-int video_frames_delay = 0;
 const char *tc_config_dir = NULL;
-int verbose  = 0;
+int verbose  = TC_INFO;
 int rgbswap  = 0;
 int tc_accel = -1;    //acceleration code
 int flip = 0;
@@ -110,6 +133,7 @@ int tc_y_preview = 32;
 int gamma_table_flag = 0;
 int tc_socket_msgchar;
 int tc_socket_msg_lock;
+
 void tc_socket_config(void);
 void tc_socket_disable(void);
 void tc_socket_enable(void);
@@ -126,15 +150,12 @@ void tc_socket_parameter(void) {}
 void tc_socket_preview(void) {}
 
 int module_read_config(char *section, char *prefix, char *module,
-	               void *conf, char *configdir) { return 0; }
+                       void *conf, char *configdir) { return 0; }
 int module_print_config(char *prefix, void *conf) { return 0; }
 
-static int load_plugin(const char *path, int id)
+static int load_plugin(const char *path, int id, int verbose)
 {
-#ifdef SYS_BSD
-    const
-#endif
-    char *error;
+    const char *error;
     char module[TC_BUF_MAX];
     int n;
 
@@ -159,26 +180,26 @@ static int load_plugin(const char *path, int id)
     filter[id].handle = dlopen(module, RTLD_LAZY);
 
     if (!filter[id].handle) {
-        tc_log_error(EXE, "loading filter module '%s' failed", module);
-        if ((error = dlerror()) != NULL) {
-            fputs(error, stderr);
+        if (verbose) {
+            tc_log_error(EXE, "loading filter module '%s' failed (reason: %s)",
+                         module, dlerror());
         }
-        fputs("\n", stderr);
         return -1;
     } else {
         filter[id].entry = dlsym(filter[id].handle, "tc_filter");
     }
 
     if ((error = dlerror()) != NULL)  {
-        fputs(error, stderr);
-        fputs("\n", stderr);
+        if (verbose) {
+            tc_log_error(EXE, "error while loading '%s': %s\n",
+                         module, error);
+        }
         return -1;
     }
-
     return 0;
 }
 
-static void do_connect_socket(const char *socketfile)
+static int do_connect_socket(const char *socketfile)
 {
 #ifdef NET_STREAM
     int sock, retval;
@@ -190,67 +211,69 @@ static void do_connect_socket(const char *socketfile)
 
     sock = socket(AF_UNIX, SOCK_STREAM, 0);
     if (sock < 0) {
-	perror("opening stream socket");
-	exit(1);
+        perror("opening stream socket");
+        return STATUS_NO_SOCKET;
     }
     server.sun_family = AF_UNIX;
     strlcpy(server.sun_path, socketfile, sizeof(server.sun_path));
 
-    if (connect(sock, (struct sockaddr *) &server, sizeof(struct sockaddr_un)) < 0)
-    {
-	close(sock);
-	perror("connecting stream socket");
-	exit(1);
+    if (connect(sock, (struct sockaddr *) &server,
+                sizeof(struct sockaddr_un)) < 0) {
+        close(sock);
+        perror("connecting stream socket");
+        return STATUS_NO_SOCKET;
     }
 
     while (1) {
-	/* Watch stdin (fd 0) to see when it has input. */
-	FD_ZERO(&rfds);
-	FD_SET(0, &rfds); // stdin
-	FD_SET(sock, &rfds);
-	/* Wait up to five seconds. */
-	tv.tv_sec = 5;
-	tv.tv_usec = 0;
+    /* Watch stdin (fd 0) to see when it has input. */
+    FD_ZERO(&rfds);
+    FD_SET(0, &rfds); // stdin
+    FD_SET(sock, &rfds);
+    /* Wait up to five seconds. */
+    tv.tv_sec = 5;
+    tv.tv_usec = 0;
 
-	retval = select(sock+1, &rfds, NULL, NULL, NULL);
-	/* Don't rely on the value of tv now! */
+    retval = select(sock+1, &rfds, NULL, NULL, NULL);
+    /* Don't rely on the value of tv now! */
 
-	memset(buf, 0, sizeof (buf));
+    memset(buf, 0, sizeof (buf));
 
-	if (retval>0) {
-	    if (FD_ISSET(0, &rfds)) {
-		fgets(buf, OPTS_SIZE, stdin);
-	    }
-	    if (FD_ISSET(sock, &rfds)) {
-		if ( (n = read(sock, buf, OPTS_SIZE)) < 0) {
-		    perror("reading on stream socket");
-		    break;
-		} else if (n == 0) { // EOF
-		    fprintf (stderr, "Server closed connection\n");
-		    break;
-		}
-		printf("%s", buf);
-		continue;
-	    }
-	}
+    if (retval>0) {
+        if (FD_ISSET(0, &rfds)) {
+        fgets(buf, OPTS_SIZE, stdin);
+        }
+        if (FD_ISSET(sock, &rfds)) {
+        if ( (n = read(sock, buf, OPTS_SIZE)) < 0) {
+            perror("reading on stream socket");
+            break;
+        } else if (n == 0) { // EOF
+            fprintf (stderr, "Server closed connection\n");
+            break;
+        }
+        printf("%s", buf);
+        continue;
+        }
+    }
 
-	if (write(sock, buf, sizeof(buf)) < 0)
-	    perror("writing on stream socket");
+    if (write(sock, buf, sizeof(buf)) < 0)
+        perror("writing on stream socket");
 
-	memset(buf, 0, sizeof (buf));
+    memset(buf, 0, sizeof (buf));
 
-	if (read(sock, buf, OPTS_SIZE) < 0)
-	    perror("reading on stream socket");
+    if (read(sock, buf, OPTS_SIZE) < 0)
+        perror("reading on stream socket");
 
-	printf("%s", buf);
+    printf("%s", buf);
 
-	if (!isatty(0))
-	    break;
+    if (!isatty(0))
+        break;
     }
 
     close(sock);
+    return STATUS_OK;
 #else
     tc_log_error(EXE, "No support for Netstreams compiled in");
+    return STATUS_NO_SOCKET;
 #endif
 }
 
@@ -265,7 +288,8 @@ int main(int argc, char *argv[])
     char options[OPTS_SIZE] = { '\0', };
     int print_mod = 0;
     int connect_socket = 0;
-    int ret = 0, out = 0;
+    int ret = 0;
+    int status = STATUS_NO_MODULE;
 
     /* needed by filter modules */
     TCVHandle tcv_handle = tcv_init();
@@ -279,41 +303,41 @@ int main(int argc, char *argv[])
     ac_init(AC_ALL);
 
     if (argc == 1) {
-        usage(1);
+        usage();
+        return STATUS_BAD_PARAM;
     }
 
     while(1) {
         ch = getopt(argc, argv, "d:i:?vhpm:M:s:t:");
-	if (ch == -1) {
-	    break;
-	}
+        if (ch == -1) {
+            break;
+        }
 
         switch (ch) {
           case 'd':
-	        if (optarg[0] == '-') {
-                usage(1);
+            if (optarg[0] == '-') {
+                usage();
+                return STATUS_BAD_PARAM;
             }
             verbose = atoi(optarg);
             break;
-
           case 'i':
             if (optarg[0] == '-') {
-                usage(1);
+                usage();
+                return STATUS_BAD_PARAM;
             }
             filename = optarg;
-    	    break;
-
+            break;
           case 'm':
             modpath = optarg;
             break;
-
           case 'M':
             modarg = optarg;
             break;
-
           case 't':
             if (!optarg) {
-                usage(1);
+                usage();
+                return STATUS_BAD_PARAM;
             }
 
             if (!strcmp(optarg, "filter")
@@ -323,130 +347,113 @@ int main(int argc, char *argv[])
             } else {
                 modtype = NULL;
             }
-	    break;
-
+            break;
           case 's':
-	        if (optarg[0] == '-') {
-                usage(1);
+            if (optarg[0] == '-') {
+                usage();
+                return STATUS_BAD_PARAM;
             }
-
             connect_socket = 1;
             socketfile = optarg;
             break;
-
           case 'p':
             print_mod = 1;
             break;
-
           case 'v':
             version();
-            exit(0);
-
+            return STATUS_OK;
           case '?': /* fallthrough */
           case 'h': /* fallthrough */
           default:
-            usage(0);
-            exit(0);
+            usage();
+            return STATUS_OK;
         }
     }
 
     if (print_mod) {
         printf("%s\n", modpath);
-        exit(0);
+        return STATUS_OK;
     }
 
     if (connect_socket) {
         do_connect_socket(socketfile);
-        exit(0);
+        return STATUS_OK;
     }
 
-    if (!modtype) {
+    if (!modtype || !strcmp(modtype, "import")) {
         tc_log_error(EXE, "Unknown module type (not in filter, encode, multiplex)");
-        exit(1);
-    }
-    if (!strcmp(modtype, "import")) {
-        tc_log_error(EXE, "module type 'import' not yet handled");
-        exit(1);
+        return STATUS_BAD_PARAM;
     }
 
     if (!filename) {
-        usage(1);
+        usage();
+        return STATUS_BAD_PARAM;
     }
 
-    // some arbitrary values for the filters
-    vob.fps        = 25.0;
-    vob.im_v_width = 32;
-    vob.ex_v_width = 32;
-    vob.im_v_height= 32;
-    vob.ex_v_height= 32;
-    vob.im_v_codec = CODEC_YUV;
-
-    vob.a_rate          = 44100;
-    vob.mp3frequency    = 44100;
-    vob.a_chan          = 2;
-    vob.a_bits          = 16;
-    vob.video_in_file   = "/dev/zero";
-
-    /* first of all, try using new module system */
+    /* 
+     * we can't distinguish from OMS and NMS modules at glance, so try
+     * first using new module system
+     */
     factory = tc_new_module_factory(modpath, verbose);
     module = tc_new_module(factory, modtype, filename);
 
     if (module != NULL) {
         if (verbose >= TC_DEBUG) {
-            tc_log_info(__FILE__, "using new module system");
+            tc_log_info(EXE, "using new module system");
         }
-        /* overview and options */
-        puts(tc_module_inspect(module, "help"));
-        /* module capabilities */
-        tc_module_show_info(module, verbose);
-        /* current configuration */
-        puts("\ndefault module configuration:");
-        puts(tc_module_inspect(module, "all"));
+        if (verbose >= TC_INFO) {
+            /* overview and options */
+            puts(tc_module_inspect(module, "help"));
+            /* module capabilities */
+            tc_module_show_info(module, verbose);
+            /* current configuration */
+            puts("\ndefault module configuration:");
+            puts(tc_module_inspect(module, "all"));
+        }
         if (modarg != NULL) {
-            tc_log_info(__FILE__, "informations about '%s' for module:", modarg);
+            tc_log_info(EXE, "informations about '%s' for "
+                             "module:", modarg);
             puts(tc_module_inspect(module, modarg));
         }
         tc_del_module(factory, module);
-        out = 0;
+        status = STATUS_OK;
     } else if (!strcmp(modtype, "filter")) {
         char namebuf[NAME_LEN];
         /* compatibility support only for filters */
         if (verbose >= TC_DEBUG) {
-            tc_log_info(__FILE__, "using old module system");
+            tc_log_info(EXE, "using old module system");
         }
         /* ok, fallback to old module system */
         filter[0].name = namebuf;
         tc_snprintf(filter[0].name, NAME_LEN, "%s", filename);
-
-        if (load_plugin(modpath, 0) == 0) {
+    
+        ret = load_plugin(modpath, 0, verbose);
+        if (ret == 0) {
             strlcpy(options, "help", OPTS_SIZE);
             ptr.tag = TC_FILTER_INIT;
-            if ((ret = filter[0].entry(&ptr, options))) {
-                out = 1;
+            if ((ret = filter[0].entry(&ptr, options)) != 0) {
+                status = STATUS_MODULE_ERROR;
+            } else {
+                memset(options, 0, OPTS_SIZE);
+                ptr.tag = TC_FILTER_GET_CONFIG;
+                ret = filter[0].entry(&ptr, options);
+
+                if (ret == 0) {
+                    if (verbose >= TC_INFO) {
+                        fputs(options, stdout);
+                    }
+                    status = STATUS_OK;
+                }
             }
-
-            memset(options, 0, OPTS_SIZE);
-            ptr.tag = TC_FILTER_GET_CONFIG;
-            ret = filter[0].entry(&ptr, options);
         }
-
-        fputs("START\n", stdout);
-        if (ret == 0) {
-            fputs(options, stdout);
-            out = 0;
-        } else {
-            out = 2;
-        }
-        fputs("END\n", stdout);
    }
 
    ret = tc_del_module_factory(factory);
    tcv_free(tcv_handle);
-   return out;
+   return status;
 }
 
 #include "libtc/static_optstr.h"
-
 #include "avilib/static_avilib.h"
 
 /* vim: sw=4

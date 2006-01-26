@@ -1,4 +1,9 @@
 2006-01-26 Francesco Romani <fromani at gmail dot com>
+  * tools/tcmodinfo.c docs/man/tcmodinfo.1
+  new return code policy, and enforce verbosiness settings.
+  manual page updated accordingly.
+
+2006-01-26 Francesco Romani <fromani at gmail dot com>
   * src/encoder.c src/encoder.h
   C99 initializers and switch from char* to const char* in
   export_init signature.
