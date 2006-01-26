@@ -34,6 +34,10 @@
 #define MOD_CAP     "ffmpeg A/V encoder " LIBAVCODEC_IDENT
 
 #define LINE_LEN 128
+#define CODEC_NAME_LEN 16
+
+#define VCODEC_DEFAULT "mpeg4"
+#define ACODEC_DEFAULT "ac3"
 
 #define INTRA_MATRIX 0
 #define INTER_MATRIX 1
@@ -46,12 +50,14 @@ static const char *ffmpeg_help = ""
     "Options:\n"
     "\thelp      produce module overview and options explanations\n"
     "\tlist      show all supported codecs\n"
-    "\tvcodec    select video codec to use\n"
+    "\tvcodec    select video codec to use to encode video\n"
+    "\tacodec    select video codec to use to encode audio\n"
     "\tnofilecfg do not parse configuration file\n";
 
 /*
  * FIXME:
- * - reduce fields and rednundancy
+ * - codec naming issues
+ * - aud buffer audit
  * - CODEC_* vs TC_CODEC_*
  * - restore missing features
  */
@@ -85,6 +91,7 @@ static const int par_table[8][2] = {
     
 static const int ffmpeg_codecs_in[] = {
     TC_CODEC_RGB, TC_CODEC_YUV422P, TC_CODEC_YUV420P,
+    TC_CODEC_PCM,
     TC_CODEC_ERROR
 };
 
@@ -94,10 +101,11 @@ static const int ffmpeg_codecs_out[] = {
     TC_CODEC_MJPG, TC_CODEC_RV10, TC_CODEC_WMV1, TC_CODEC_WMV2,
     TC_CODEC_HUFFYUV, TC_CODEC_H263P, TC_CODEC_H263I, TC_CODEC_FFV1,
     TC_CODEC_ASV1, TC_CODEC_ASV2, TC_CODEC_H264,
+    TC_CODEC_MP2, TC_CODEC_AC3,
     TC_CODEC_ERROR
 };
 
-#define IS_MJPEG(pd) (((pd)->tc_codec_id == TC_CODEC_MJPG) ?1 :0)
+#define IS_MJPEG(pd) (((pd)->tc_vcodec_id == TC_CODEC_MJPG) ?1 :0)
 #define CODECS_OUT_COUNT \
         (sizeof(ffmpeg_codecs_out) / sizeof(ffmpeg_codecs_out[0]))
 #define DESC_LEN   (LINE_LEN * CODECS_OUT_COUNT)
@@ -124,11 +132,18 @@ struct ffmpegprivatedata_ {
     uint8_t *conv_buf;
     size_t conv_buf_size;
 
+    uint8_t *aud_buf;
+    size_t aud_buf_size;
+    
     AVCodec *vid_codec;
     AVFrame *venc_frame;
     AVCodecContext *vid_ctx;
+   
+    AVCodec *aud_codec;
+    AVCodecContext *aud_ctx;
     
     int pix_fmt;
+    int aud_fmt;
     
     FILE *stats_file;
     size_t size;
@@ -138,8 +153,11 @@ struct ffmpegprivatedata_ {
     int interlacing_top_first;
     int do_psnr;
 
-    int tc_codec_id;
-    const char *codec_name;
+    int tc_vcodec_id;
+    int tc_acodec_id;
+    char vcodec_name[CODEC_NAME_LEN];
+    char acodec_name[CODEC_NAME_LEN];
+    
     char *codecs_desc; /* rarely used, so dynamically created if needed */
     char conf_str[CONF_STR_SIZE]; /* will be always avalaible */
 
@@ -197,15 +215,16 @@ typedef struct {
 static int have_out_codec(int codec);
 static double psnr(double d); 
 static void log_psnr(FFmpegPrivateData *pd);
-static const char *lavc_codec_name(const char *tc_name);
+static void translate_codec_name(const char *user_name, char *lavc_name,
+                                 size_t len);
 static char* describe_out_codecs(void);
+static void translate_settings(FFMpegPrivateData *pd, const vob_t *vob);
+static int setup_codec(FFMpegPrivateData *pd, const char *options, int what);
 static int setup_pix_fmt(FFmpegPrivateData *pd);
-static void setup_frc(FFmpegPrivateData *pd, int fr_code);
-static void setup_encode_fields(FFmpegPrivateData *pd, const vob_t *vob);
 static void setup_ex_par(FFmpegPrivateData *pd, const vob_t *vob);
 static void setup_dar_sar(FFmpegPrivateData *pd, const vob_t *vob);
 static void setup_rc_override(FFmpegPrivateData *pd, FFmpegConfig *cfg);
-static int setup_conv_buf(FFmpegPrivateData *pd, const vob_t *vob);
+static int setup_buffers(FFmpegPrivateData *pd, const vob_t *vob);
 
 
 static void prepare_encode_yuv420(FFmpegPrivateData *pd,
@@ -230,44 +249,47 @@ static int read_config_file(FFmpegPrivateData *pd);
 static void config_summary(FFmpegPrivateData *pd, const vob_t *vob);
 
 
+#define RETURN_IF_ERROR(ret, msg) \
+    if (ret == TC_EXPORT_ERROR) { \
+        tc_log_error(MOD_NAME, msg); \
+        return TC_EXPORT_ERROR; \
+    }
+
+#define RETURN_IF_VERIFIED(condition, msg) \
+    if (condition) { \
+        tc_log_error(MOD_NAME, msg); \
+        return TC_EXPORT_ERROR; \
+    }
 
 static int ffmpeg_configure(TCModuleInstance *self,
                             const char *options, vob_t *vob)
 {
     FFmpegPrivateData *pd = NULL;
     int ret;
-    
-    if (!self || !options || !vob) {
-        tc_log_error(MOD_NAME, "configure: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+   
+    RETURN_IF_VERIFIED((!self || !options || !vob), 
+                        "configure: bad instance data reference");
     pd = self->userdata;
   
     set_lavc_defaults(pd);
 
     ret = parse_options(pd, options, vob);
-    if (ret == TC_EXPORT_ERROR) {
-        tc_log_error(MOD_NAME, "failed to setup user configuration");
-        return TC_EXPORT_ERROR;
-    }
+    RETURN_IF_ERROR(ret, "failed to setup user configuration");
+    
+    ret = setup_buffers(pd, vob);
+    RETURN_IF_ERROR(ret, "can't allocate internal buffers.");
+    
     if (!optstr_lookup(options, "nofilecfg")) {
         ret = read_config_file(pd);
-        if (ret == TC_EXPORT_ERROR) {
-            tc_log_error(MOD_NAME, "failed to read configuration from file");
-            return TC_EXPORT_ERROR;
-        }
-    }
-    ret = setup_multipass(pd, vob);
-    if (ret == TC_EXPORT_ERROR) {
-        tc_log_error(MOD_NAME, "failed to setup multipass settings");
-        return TC_EXPORT_ERROR;
+        RETURN_IF_ERROR(ret, "failed to read configuration from file");
     }
     
+    ret = setup_multipass(pd, vob);
+    RETURN_IF_ERROR(ret, "failed to setup multipass settings");
+    
     ret = startup_libavcodec(pd);
-    if (ret == TC_EXPORT_ERROR) {
-        tc_log_error(MOD_NAME, "failed to startup libavcodec");
-        return TC_EXPORT_ERROR;
-    }
+    RETURN_IF_ERROR(ret, "failed to startup libavcodec");
+    
     /* propagate extradata */
     self->extradata = pd->vid_ctx->extradata;
     self->extradata_size = pd->vid_ctx->extradata_size;
@@ -282,10 +304,9 @@ static int ffmpeg_configure(TCModuleInstance *self,
 static int ffmpeg_stop(TCModuleInstance *self)
 {
     FFmpegPrivateData *pd = NULL;
-    if (!self) {
-        tc_log_error(MOD_NAME, "stop: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    
+    RETURN_IF_VERIFIED((!self), "stop: bad instance data reference");
+    
     pd = self->userdata;
 
     log_psnr(pd);
@@ -295,9 +316,15 @@ static int ffmpeg_stop(TCModuleInstance *self)
         pd->conv_buf = NULL;
         pd->conv_buf_size = 0;
     }
+    /* video */
     if (pd->vid_codec != NULL) {
         avcodec_close(pd->vid_ctx);
         pd->vid_codec = NULL;
+    }
+    /* audio */
+    if (pd->aud_codec != NULL) {
+        avcodec_close(pd->aud_ctx);
+        pd->aud_codec = NULL;
     }
 
     if (pd->vid_ctx != NULL) {
@@ -319,10 +346,6 @@ static int ffmpeg_stop(TCModuleInstance *self)
         fclose(pd->stats_file);
         pd->stats_file = NULL;
     }
-    if (pd->codec_name) {
-        tc_free((char*)pd->codec_name); /* avoid const warning */
-        pd->codec_name = NULL;
-    }
     
     reset_module(pd);
     return TC_EXPORT_OK;
@@ -332,17 +355,12 @@ static int ffmpeg_stop(TCModuleInstance *self)
 static int ffmpeg_init(TCModuleInstance *self)
 {
     FFmpegPrivateData *pd = NULL;
+   
+    RETURN_IF_VERIFIED((!self), "init: bad instance data reference");
     
-    if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
-
     pd = tc_malloc(sizeof(FFmpegPrivateData));
-    if (!pd) {
-        tc_log_error(MOD_NAME, "init: can't allocate FFmpeg private data");
-        return TC_EXPORT_ERROR;
-    }
+    
+    RETURN_IF_VERIFIED((!pd), "init: can't allocate FFmpeg private data");
 
     reset_module(pd);
 
@@ -352,9 +370,10 @@ static int ffmpeg_init(TCModuleInstance *self)
     pthread_mutex_unlock(&init_avcodec_lock);
 
     pd->vid_ctx = avcodec_alloc_context();
+    pd->aud_ctx = avcodec_alloc_context();
     pd->venc_frame = avcodec_alloc_frame();
 
-    if (!pd->vid_ctx || !pd->venc_frame) {
+    if ((!pd->vid_ctx || !pd->aud_ctx) || !pd->venc_frame) {
         fprintf(stderr, "[%s] could not allocate enough memory.\n", MOD_NAME);
         return TC_EXPORT_ERROR;
     }
@@ -370,10 +389,8 @@ static int ffmpeg_init(TCModuleInstance *self)
 static int ffmpeg_fini(TCModuleInstance *self)
 {
     FFmpegPrivateData *pd = NULL;
-    if (!self) {
-        tc_log_error(MOD_NAME, "fini: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+
+    RETURN_IF_VERIFIED((!self), "fini: bad instance data reference");
 
     ffmpeg_stop(self);
     
@@ -393,10 +410,6 @@ static int ffmpeg_fini(TCModuleInstance *self)
         tc_free(pd->codecs_desc);
         pd->codecs_desc = NULL;
     }
-    if (pd->codec_name) {
-        tc_free((void*)pd->codec_name); /* avoid const warning */
-        pd->codec_name = NULL;
-    } 
 
     /* DO NOT FREE EXTRADATA! Is handled by libavcodec! */
     tc_free(self->userdata);
@@ -435,14 +448,18 @@ static const char *ffmpeg_inspect(TCModuleInstance *self,
 
     if (optstr_lookup(param, "vcodec")) {
         /* direct answer */
-        return pd->codec_name;
+        return pd->vcodec_name;
+    }
+    if (optstr_lookup(param, "acodec")) {
+        /* direct answer */
+        return pd->acodec_name;
     }
     if (optstr_lookup(param, "nofilecfg")) {
         return "0";
     }
     
-    tc_snprintf(pd->conf_str, CONF_STR_SIZE, "vcodec=%s",
-                pd->codec_name); 
+    tc_snprintf(pd->conf_str, CONF_STR_SIZE, "vcodec=%s:acodec=%s",
+                pd->vcodec_name, pd->acodec_name); 
     return pd->conf_str;
 }
 
@@ -452,10 +469,8 @@ static int ffmpeg_encode_video(TCModuleInstance *self,
     int out_size;
     FFmpegPrivateData *pd = NULL;
 
-    if (!self) {
-        tc_log_error(MOD_NAME, "encode_video: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    RETURN_IF_VERIFIED((!self), "encode_video: bad instance data reference");
+    
     pd = self->userdata;
 
     pd->venc_frame->interlaced_frame = pd->interlacing_active;
@@ -486,10 +501,25 @@ static int ffmpeg_encode_video(TCModuleInstance *self,
     return TC_EXPORT_OK;
 }
 
+static int ffmpeg_encode_audio(TCModuleInstance *self,
+                               aframe_list_t *inframe, aframe_list_t *outframe)
+{
+    int out_size;
+    FFmpegPrivateData *pd = NULL;
+
+    RETURN_IF_VERIFIED((!self), "encode_audio: bad instance data reference");
+    
+    pd = self->userdata;
+
+    return TC_EXPORT_OK;
+}
+
+
 /*************************************************************************/
 
 static const TCModuleInfo ffmpeg_info = {
-    .features    = TC_MODULE_FEATURE_ENCODE|TC_MODULE_FEATURE_VIDEO,
+    .features    = TC_MODULE_FEATURE_ENCODE|TC_MODULE_FEATURE_VIDEO
+                   |TC_MODULE_FEATURE_AUDIO,
     .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
@@ -508,6 +538,7 @@ static const TCModuleClass ffmpeg_class = {
     .inspect      = ffmpeg_inspect,
 
     .encode_video = ffmpeg_encode_video,
+    .encode_audio = ffmpeg_encode_audio,
 };
 
 extern const TCModuleClass *tc_plugin_setup(void)
@@ -518,6 +549,16 @@ extern const TCModuleClass *tc_plugin_setup(void)
 /*************************************************************************
  * support functions: implementation                                     *
  *************************************************************************/
+
+static void translate_codec_name(const char *user_name, char *lavc_name,
+                                 size_t len)
+{
+    const char *name = user_name;
+    if (!strcmp(user_name, "dv")) {
+        name = "dvvideo";
+    }
+    strlcpy(lavc_name, name, len);
+}
 
 static int have_out_codec(int codec)
 {
@@ -556,14 +597,6 @@ static void log_psnr(FFmpegPrivateData *pd)
     }
 }
 
-static const char *lavc_codec_name(const char *tc_name)
-{
-    if (!strcasecmp(tc_name, "dv")) {
-        return "dvvideo";
-    }
-    return tc_name;
-}
-
 static char* describe_out_codecs(void)
 {
     char *buffer = tc_malloc(DESC_LEN);
@@ -595,7 +628,7 @@ static void prepare_encode_yuv420(FFmpegPrivateData *pd,
                                   vframe_list_t *inframe,
                                   vframe_list_t *outframe)
 {
-    if (pd->tc_codec_id == TC_CODEC_HUFFYUV) {
+    if (pd->tc_vcodec_id == TC_CODEC_HUFFYUV) {
         uint8_t *src[3];
         YUV_INIT_PLANES(src, inframe->video_buf, IMG_YUV_DEFAULT,
                         pd->vid_ctx->width, pd->vid_ctx->height);
@@ -617,7 +650,7 @@ static void prepare_encode_yuv422(FFmpegPrivateData *pd,
                                   vframe_list_t *outframe)
 {
     // XXX
-    if (pd->tc_codec_id == TC_CODEC_HUFFYUV) {
+    if (pd->tc_vcodec_id == TC_CODEC_HUFFYUV) {
         YUV_INIT_PLANES(pd->venc_frame->data, inframe->video_buf,
                         IMG_YUV422P,
                         pd->vid_ctx->width, pd->vid_ctx->height);
@@ -656,18 +689,11 @@ static int startup_libavcodec(FFmpegPrivateData *pd)
 {
     int ret = 0;
     
-    // XXX
     ret = avcodec_open(pd->vid_ctx, pd->vid_codec);
-    if (ret < 0) {
-        tc_log_error(MOD_NAME, "startup: could not open FFMPEG codec");
-        return TC_EXPORT_ERROR;
-    }
-
-    if (pd->vid_ctx->codec->encode == NULL) {
-        tc_log_error(MOD_NAME, "startup: could not open FFMPEG codec"
-                               " (codec->encode == NULL)");
-        return TC_EXPORT_ERROR;
-    }
+    RETURN_IF_VERIFIED((ret < 0), "startup: could not open FFMPEG video codec");
+    
+    ret = avcodec_open(pd->aud_ctx, pd->aud_codec);
+    RETURN_IF_VERIFIED((ret < 0), "startup: could not open FFMPEG audio codec");
 
     if ((pd->threads < 1) || (pd->threads > 7)) {
         tc_log_warn(MOD_NAME, "startup: thread count out of range"
@@ -683,30 +709,6 @@ static int startup_libavcodec(FFmpegPrivateData *pd)
     }
 
     return TC_EXPORT_OK;
-}
-
-static void setup_frc(FFmpegPrivateData *pd, int fr_code)
-{
-    vob_t *vob = tc_get_vob(); // can't fail 
-    if (!pd || !pd->vid_ctx) {
-        tc_log_error(MOD_NAME, "setup_frc: bad instance data reference");
-        return;
-    }
-  
-    if (fr_code >= 1 && fr_code <= 8) {
-        pd->vid_ctx->time_base.num = frc_values[fr_code][0];
-        pd->vid_ctx->time_base.den = frc_values[fr_code][1];
-    } else {
-        /* FIXME
-        if ((vob->ex_fps > 29) && (vob->ex_fps < 30)) {
-            pd->vid_ctx->time_base.den = 30000;
-            pd->vid_ctx->time_base.num = 1001;
-        }
-        */
-        /* XXX */
-        pd->vid_ctx->time_base.den = (int)(vob->ex_fps * 1000.0);
-        pd->vid_ctx->time_base.num = 1000;
-    }
 }
 
 // XXX
@@ -777,7 +779,7 @@ static void setup_dar_sar(FFmpegPrivateData *pd, const vob_t *vob)
 
 static int setup_pix_fmt(FFmpegPrivateData *pd)
 {
-    if (pd->tc_codec_id == TC_CODEC_HUFFYUV) {
+    if (pd->tc_vcodec_id == TC_CODEC_HUFFYUV) {
         pd->vid_ctx->pix_fmt = PIX_FMT_YUV422P;
     } else {
         switch (pd->pix_fmt) {
@@ -802,29 +804,6 @@ static int setup_pix_fmt(FFmpegPrivateData *pd)
         }
     }
     return 0;
-}
-
-static void setup_encode_fields(FFmpegPrivateData *pd, const vob_t *vob)
-{
-    switch(vob->encode_fields) {
-      case 1:
-        pd->interlacing_active = 1;
-        pd->interlacing_top_first = 1;
-        break;
-      case 2:
-        pd->interlacing_active = 1;
-        pd->interlacing_top_first = 0;
-        break;
-      default: /* progressive / unknown */
-        pd->interlacing_active = 0;
-        pd->interlacing_top_first = 0;
-        break;
-    }
-
-    pd->vid_ctx->flags |= pd->interlacing_active ?
-                            CODEC_FLAG_INTERLACED_DCT :0;
-    pd->vid_ctx->flags |= pd->interlacing_active ?
-                            CODEC_FLAG_INTERLACED_ME :0;
 }
 
 static uint16_t *load_matrix(const char *filename, int type)
@@ -870,12 +849,18 @@ static void config_summary(FFmpegPrivateData *pd, const vob_t *vob)
                           pd->vid_ctx->qmin, pd->vid_ctx->qmax);
 }
 
-static int parse_options(FFmpegPrivateData *pd, const char *options,
-                         const vob_t *vob)
+static void translate_settings(FFMpegPrivateData *pd, const vob_t *vob)
 {
-    char user_codec[21] = { 'm', 'p', 'e', 'g', '4', '\0' }; // XXX
-    const char *codec_name = user_codec;
-    int ret;
+    if ((!pd || !pd->vid_ctx) || !vob) {
+        tc_log_error(MOD_NAME, "translate_settings: "
+                               "bad instance data reference");
+        return;
+    }
+  
+    pd->aud_fmt = vob->ex_a_codec;
+    pd->aud_ctx->bit_rate = vob->mp3bitrate * 1000;
+    pd->aud_ctx->channels = vob->dm_chan;
+    pd->aud_ctx->sample_rate = vob->a_rate;
     
     pd->pix_fmt = vob->im_v_codec;
     pd->vid_ctx->bit_rate = vob->divxbitrate * 1000;
@@ -883,23 +868,88 @@ static int parse_options(FFmpegPrivateData *pd, const char *options,
     pd->vid_ctx->height = vob->ex_v_height;
     pd->vid_ctx->qmin = vob->min_quantizer;
     pd->vid_ctx->qmax = vob->max_quantizer;
-    setup_frc(pd, vob->ex_frc);
-    setup_encode_fields(pd, vob);
+   
+    if (vob->ex_frc >= 1 && vob->ex_frc <= 8) {
+        pd->vid_ctx->time_base.num = frc_values[vob->ex_frc][0];
+        pd->vid_ctx->time_base.den = frc_values[vob->ex_frc][1];
+    } else {
+        /* XXX */
+        pd->vid_ctx->time_base.den = (int)(vob->ex_fps * 1000.0);
+        pd->vid_ctx->time_base.num = 1000;
+    }
 
-    ret = optstr_get(options, "vcodec", "%20[^:]", user_codec);
+    switch(vob->encode_fields) {
+      case 1:
+        pd->interlacing_active = 1;
+        pd->interlacing_top_first = 1;
+        break;
+      case 2:
+        pd->interlacing_active = 1;
+        pd->interlacing_top_first = 0;
+        break;
+      default: /* progressive / unknown */
+        pd->interlacing_active = 0;
+        pd->interlacing_top_first = 0;
+        break;
+    }
+
+    pd->vid_ctx->flags |= pd->interlacing_active ?
+                            CODEC_FLAG_INTERLACED_DCT :0;
+    pd->vid_ctx->flags |= pd->interlacing_active ?
+                            CODEC_FLAG_INTERLACED_ME :0;
+}
+
+#define WANT_VIDEO (what == TC_VIDEO)
+#define WANT_AUDIO (what == TC_AUDIO)
+
+static int setup_codec(FFMpegPrivateData *pd, const char *options, int what)
+{
+    int ret;
+    char user_codec[CODEC_NAME_LEN];
+    char *codec_name = WANT_VIDEO ?pd->vcodec_name :pd->acodec_name;
+    int *codec_id = WANT_VIDEO ?&(pd->tc_vcodec_id) :&(pd->tc_acodec_id);
+    AVCodec **codec = WANT_VIDEO ?&(pd->vid_codec) :&(pd->aud_codec);
+    
+    ret = optstr_get(options, WANT_VIDEO ?"vcodec" :"acodec", "%20[^:]",
+                     user_codec);
     if (ret > 0) {
         tc_strstrip(user_codec);
-        codec_name = lavc_codec_name(user_codec);
+        translate_codec_name(user_codec, codec_name, CODEC_NAME_LEN);
     }    
     
-    pd->tc_codec_id = tc_codec_from_string(codec_name);
-    if (!have_out_codec(pd->tc_codec_id)) {
-        tc_log_error(MOD_NAME, "unknown '%s' codec", user_codec);
+    *codec_id = tc_codec_from_string(codec_name);
+    if (!have_out_codec(*codec_id)) {
+        tc_log_error(MOD_NAME, "unknown %s codec: '%s'",
+                     WANT_VIDEO ?"video" :"audio", user_codec);
         return TC_EXPORT_ERROR;
     }
-    ret = setup_conv_buf(pd, vob);
-    if (ret != TC_EXPORT_OK) {
-        tc_log_error(MOD_NAME, "can't allocate conversion.");
+    *codec = avcodec_find_encoder_by_name(codec_name);
+    if (*codec) {
+        tc_log_error(MOD_NAME, "could not find a FFMPEG %s codec for '%s'",
+                     WANT_VIDEO ?"video" :"audio", user_codec);
+        return TC_EXPORT_ERROR;
+    } else {
+        if (verbose) {
+            tc_log_info(MOD_NAME, "using FFMPEG %s codec '%s'",
+                        WANT_VIDEO ?"video" :"audio", user_codec);
+        }
+    }
+    return TC_EXPORT_OK;
+}
+
+#undef WANT_VIDEO
+#undef WANT_AUDIO
+
+static int parse_options(FFmpegPrivateData *pd, const char *options,
+                         const vob_t *vob)
+{
+    int ret;
+
+    translate_settings(pd, vob);
+
+    if ((setup_codec(pd, options, 1) != TC_EXPORT_OK)
+     || (setup_codec(pd, options, 0) != TC_EXPORT_OK)) {
+        /* error message already print'd out by setup_codec */
         return TC_EXPORT_ERROR;
     }
 
@@ -909,7 +959,6 @@ static int parse_options(FFmpegPrivateData *pd, const char *options,
                      pd->pix_fmt);
         return TC_EXPORT_ERROR;
     }
-
     if (IS_MJPEG(pd) && pd->levels_handle == -1) {
         tc_log_info(MOD_NAME, "output is mjpeg, extending range from "
                               "YUV420P to YUVJ420P (full range)");
@@ -920,22 +969,11 @@ static int parse_options(FFmpegPrivateData *pd, const char *options,
         }
     }
 
-    pd->vid_codec = avcodec_find_encoder_by_name(codec_name);
-    if (!pd->vid_codec) {
-        tc_log_error(MOD_NAME, "could not find a FFMPEG codec for '%s'",
-                     user_codec);
-        return TC_EXPORT_ERROR;
-    } else {
-        if (verbose) {
-            tc_log_info(MOD_NAME, "using FFMPEG codec '%s'", user_codec);
-        }
-    }
-
     if (probe_export_attributes & TC_PROBE_NO_EXPORT_GOP) {
         pd->vid_ctx->gop_size = vob->divxkeyframes;
     } else {
-        if (pd->tc_codec_id == TC_CODEC_MPEG1VIDEO
-         || pd->tc_codec_id == TC_CODEC_MPEG2VIDEO) {
+        if (pd->tc_vcodec_id == TC_CODEC_MPEG1VIDEO
+         || pd->tc_vcodec_id == TC_CODEC_MPEG2VIDEO) {
             pd->vid_ctx->gop_size = 15;
             /* conservative default for mpeg1/2 svcd/dvd */
         } else {
@@ -954,7 +992,6 @@ static int parse_options(FFmpegPrivateData *pd, const char *options,
         }
     }
 
-    pd->codec_name = tc_strdup(codec_name);
     return TC_EXPORT_OK;
 }
 
@@ -1014,14 +1051,21 @@ static int setup_multipass(FFmpegPrivateData *pd, const vob_t *vob)
     return TC_EXPORT_OK;
 }
 
-static int setup_conv_buf(FFmpegPrivateData *pd, const vob_t *vob)
+static int setup_buffers(FFmpegPrivateData *pd, const vob_t *vob)
 {
     if (!pd || !vob) {
         tc_log_error(MOD_NAME, "conversion_buffer: bad instance"
                                " data reference");
         return TC_EXPORT_ERROR;
     }
-   
+ 
+    pd->aud_buf_size = (vob->dm_bits/8) * vob->dm_chan * pd->aud_ctx->frame_size;
+    pd->aud_buf = tc_malloc(pd->aud_buf_size);
+    if (!pd->conv_buf) {
+        tc_log_error(MOD_NAME, "audio_buffer: can't allocate data");
+        return TC_EXPORT_ERROR;
+    }
+    
     if ((pd->pix_fmt == CODEC_YUV422 || pd->pix_fmt == CODEC_RGB)
       || IS_MJPEG(pd)) {
         pd->conv_buf_size = avpicture_get_size(PIX_FMT_RGB24,
@@ -1112,8 +1156,10 @@ static void reset_module(FFmpegPrivateData *pd)
     pd->conv_buf = NULL;
     pd->conv_buf_size = 0;
     pd->vid_codec = NULL;
+    pd->aud_codec = NULL;
     pd->venc_frame = NULL;
     pd->vid_ctx = NULL;
+    pd->aud_ctx = NULL;
     pd->pix_fmt = CODEC_YUV;
     pd->stats_file = NULL;
     pd->size = 0;
@@ -1122,10 +1168,11 @@ static void reset_module(FFmpegPrivateData *pd)
     pd->interlacing_active = 0;
     pd->interlacing_top_first = 0;
     pd->do_psnr = 0;
-    pd->codec_name = "mpeg4";
     pd->codecs_desc = NULL;
     pd->conf_str[0] = '\0';
-    pd->levels_handle = -1;
+    
+    strlcpy(pd->vcodec_name, VCODEC_DEFAULT, CODEC_NAME_LEN);
+    strlcpy(pd->acodec_name, ACODEC_DEFAULT, CODEC_NAME_LEN);
 }
 
 static void set_conf_defaults(FFmpegConfig *cfg)
@@ -1318,7 +1365,7 @@ static int read_config_file(FFmpegPrivateData *pd)
 
     set_conf_defaults(&aux_cfg);
     
-    module_read_config((char*)pd->codec_name, MOD_NAME, "ffmpeg", ffmpeg_config, tc_config_dir);
+    module_read_config((char*)pd->vcodec_name, MOD_NAME, "ffmpeg", ffmpeg_config, tc_config_dir);
     if (verbose & TC_DEBUG) {
         tc_log_info(MOD_NAME, "Using the following FFMPEG parameters:");
         module_print_config("["MOD_NAME"] ", ffmpeg_config);
