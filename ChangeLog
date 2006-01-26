@@ -1,3 +1,8 @@
+2006-01-26 Francesco Romani <fromani at gmail dot com>
+  * src/encoder.c src/encoder.h
+  C99 initializers and switch from char* to const char* in
+  export_init signature.
+
 2006-01-25 Francesco Romani <fromani at gmail dot com>
   * docs/man/transcode.1
   removed no longer needed -V option from a few examples into

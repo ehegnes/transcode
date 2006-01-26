@@ -87,24 +87,24 @@ struct tcencoderdata_ {
 };
 
 static TCEncoderData encdata = {
-    NULL,
-    NULL,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    NULL,
-    NULL,
-    0,
-    0,
-    0,
-    0,
-    PTHREAD_MUTEX_INITIALIZER,
-    0,
+    .vptr = NULL,
+    .aptr = NULL,
+    .fid = 0,
+    .error_flag = 0,
+    .fill_flag = 0,
+    .frame_first = 0,
+    .frame_last = 0,
+    .saved_frame_last = 0,
+    .this_frame_last = 0,
+    .old_frame_last = 0,
+    .export_vhandle = NULL,
+    .export_ahandle = NULL,
+    .frames_encoded = 0,
+    .frames_dropped = 0,
+    .frames_skipped = 0,
+    .frames_cloned = 0,
+    .frame_counter_lock = PTHREAD_MUTEX_INITIALIZER,
+    .exit_flag = 0,
 };
 
 void tc_export_stop_nolock(void)
@@ -202,7 +202,7 @@ static uint32_t tc_get_frames_skipped_cloned(void)
  *
  * ------------------------------------------------------------*/
 
-int export_init(vob_t *vob, char *a_mod, char *v_mod)
+int export_init(vob_t *vob, const char *a_mod, const char *v_mod);
 {
     char *mod_name = NULL;
     transfer_t export_para;

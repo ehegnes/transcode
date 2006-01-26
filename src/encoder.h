@@ -36,7 +36,7 @@ void tc_update_frames_skipped(uint32_t val);
 void tc_update_frames_encoded(uint32_t val);
 void tc_update_frames_cloned(uint32_t val);
 
-int export_init(vob_t *vob, char *a_mod, char *v_mod);
+int export_init(vob_t *vob, const char *a_mod, const char *v_mod);
 void export_shutdown(void);
 
 int encoder_init(vob_t *vob);
