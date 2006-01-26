@@ -1,4 +1,8 @@
 2006-01-26 Francesco Romani <fromani at gmail dot com>
+  * libtc/tccodecs.c libtc/tccodecs.h
+  add mp2 (audio) codec.
+
+2006-01-26 Francesco Romani <fromani at gmail dot com>
   * tools/tcmodinfo.c docs/man/tcmodinfo.1
   new return code policy, and enforce verbosiness settings.
   manual page updated accordingly.
