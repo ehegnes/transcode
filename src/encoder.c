@@ -202,7 +202,7 @@ static uint32_t tc_get_frames_skipped_cloned(void)
  *
  * ------------------------------------------------------------*/
 
-int export_init(vob_t *vob, const char *a_mod, const char *v_mod);
+int export_init(vob_t *vob, const char *a_mod, const char *v_mod)
 {
     char *mod_name = NULL;
     transfer_t export_para;
