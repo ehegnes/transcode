@@ -97,7 +97,7 @@ static void usage(void)
     version();
     tc_log_info(EXE, "Usage: %s [options]", EXE);
     fprintf(stderr, "\t -i name           Module name information (like \'smooth\')\n");
-    fprintf(stderr, "\t -p                Print the compiled-in MOD_PATH\n");
+    fprintf(stderr, "\t -p                Print the compiled-in module path\n");
     fprintf(stderr, "\t -d verbosity      Verbosity mode [1 == TC_INFO]\n");
     fprintf(stderr, "\t -D                dry run, only loads module (used for testing)\n");
     fprintf(stderr, "\t -m path           Use PATH as module path\n");
