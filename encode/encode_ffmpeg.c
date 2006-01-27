@@ -133,6 +133,7 @@ struct ffmpegprivatedata_ {
     size_t conv_buf_size;
 
     uint8_t *aud_buf;
+    size_t aud_buf_idx;
     size_t aud_buf_size;
     
     AVCodec *vid_codec;
@@ -218,8 +219,8 @@ static void log_psnr(FFmpegPrivateData *pd);
 static void translate_codec_name(const char *user_name, char *lavc_name,
                                  size_t len);
 static char* describe_out_codecs(void);
-static void translate_settings(FFMpegPrivateData *pd, const vob_t *vob);
-static int setup_codec(FFMpegPrivateData *pd, const char *options, int what);
+static void translate_settings(FFmpegPrivateData *pd, const vob_t *vob);
+static int setup_codec(FFmpegPrivateData *pd, const char *options, int what);
 static int setup_pix_fmt(FFmpegPrivateData *pd);
 static void setup_ex_par(FFmpegPrivateData *pd, const vob_t *vob);
 static void setup_dar_sar(FFmpegPrivateData *pd, const vob_t *vob);
@@ -504,12 +505,68 @@ static int ffmpeg_encode_video(TCModuleInstance *self,
 static int ffmpeg_encode_audio(TCModuleInstance *self,
                                aframe_list_t *inframe, aframe_list_t *outframe)
 {
-    int out_size;
+    int out_size; /* input buffer and amount of bytes */
+    const uint8_t *in_buf = inframe->audio_buf;
+    size_t aud_size = inframe->audio_size;
     FFmpegPrivateData *pd = NULL;
 
     RETURN_IF_VERIFIED((!self), "encode_audio: bad instance data reference");
     
     pd = self->userdata;
+
+    /* any byte in mpa-buffer left from past call ? */
+    if (pd->aud_buf_idx > 0) {
+        int bytes_needed = pd->aud_buf_size - pd->aud_buf_idx;
+        /* room left into buffer */
+
+        /* complete frame -> encode */
+        if (aud_size >= bytes_needed ) {
+            ac_memcpy(&(pd->aud_buf[pd->aud_buf_idx]), in_buf, bytes_needed);
+
+            pthread_mutex_lock(&init_avcodec_lock);
+            out_size = avcodec_encode_audio(pd->aud_ctx, outframe->audio_buf,
+			                        		outframe->audio_size,
+                                            (short *)pd->aud_buf);
+            pthread_mutex_unlock(&init_avcodec_lock);
+
+            if (out_size > 0) {
+                outframe->audio_size = out_size; // XXX
+            }
+
+            aud_size -= bytes_needed;
+            in_buf  += bytes_needed;
+
+            pd->aud_buf_idx = 0;
+        } else { /* aud_size < bytes_needed -> we have room into buffer */
+            /* incomplete frame -> append bytes to our buffer and return */
+            ac_memcpy(&(pd->aud_buf[pd->aud_buf_idx]),
+                      inframe->audio_buf, inframe->audio_size);
+            pd->aud_buf_idx += inframe->audio_size;
+            return TC_EXPORT_OK;
+        }
+    }
+
+    /* encode only as much "full" frames as available */
+    if (aud_size >= pd->aud_buf_size) {
+        pthread_mutex_lock(&init_avcodec_lock);
+        out_size = avcodec_encode_audio(pd->aud_ctx, outframe->audio_buf,
+	                    		        outframe->audio_size,
+                                        (short *)in_buf);
+        pthread_mutex_unlock(&init_avcodec_lock);
+
+        if (out_size > 0) {
+            outframe->audio_size = out_size; // XXX
+        }
+
+        aud_size -= pd->aud_buf_size;
+        in_buf += pd->aud_buf_size;
+    }
+
+    /* hold rest of bytes in out buffer */
+    if (aud_size > 0) {
+        pd->aud_buf_idx = aud_size;
+        ac_memcpy(pd->aud_buf, in_buf, pd->aud_buf_idx);
+    }
 
     return TC_EXPORT_OK;
 }
@@ -849,7 +906,7 @@ static void config_summary(FFmpegPrivateData *pd, const vob_t *vob)
                           pd->vid_ctx->qmin, pd->vid_ctx->qmax);
 }
 
-static void translate_settings(FFMpegPrivateData *pd, const vob_t *vob)
+static void translate_settings(FFmpegPrivateData *pd, const vob_t *vob)
 {
     if ((!pd || !pd->vid_ctx) || !vob) {
         tc_log_error(MOD_NAME, "translate_settings: "
@@ -902,7 +959,7 @@ static void translate_settings(FFMpegPrivateData *pd, const vob_t *vob)
 #define WANT_VIDEO (what == TC_VIDEO)
 #define WANT_AUDIO (what == TC_AUDIO)
 
-static int setup_codec(FFMpegPrivateData *pd, const char *options, int what)
+static int setup_codec(FFmpegPrivateData *pd, const char *options, int what)
 {
     int ret;
     char user_codec[CODEC_NAME_LEN];
@@ -1058,7 +1115,8 @@ static int setup_buffers(FFmpegPrivateData *pd, const vob_t *vob)
                                " data reference");
         return TC_EXPORT_ERROR;
     }
- 
+
+    pd->aud_buf_idx = 0;
     pd->aud_buf_size = (vob->dm_bits/8) * vob->dm_chan * pd->aud_ctx->frame_size;
     pd->aud_buf = tc_malloc(pd->aud_buf_size);
     if (!pd->conv_buf) {

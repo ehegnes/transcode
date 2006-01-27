@@ -1,3 +1,7 @@
+2006-01-27 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_ffmpeg.c
+  audio support placeholder.
+
 2006-01-26 Francesco Romani <fromani at gmail dot com>
   * encode/encode_ffmpeg.c
   initial unstable audio support and small internal refactoring.
