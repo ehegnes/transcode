@@ -1,3 +1,10 @@
+2006-02-20 Francesco Romani <fromani at gmail dot com>
+  * src/encoder.c
+  using filter_modfps trigger a nasty bug in new encoder code
+  that results in an infinite loop.
+  This patch start to fix this issue, but more investigation and
+  testing is needed.
+
 2006-01-25 Francesco Romani <fromani at gmail dot com>
   * docs/man/transcode.1
   removed no longer needed -V option from a few examples into

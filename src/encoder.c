@@ -582,6 +582,7 @@ int encoder_acquire_vframe(TcEncoderData *data, vob_t *vob)
         if (err) {
             return -1; /* can't acquire video frame */
         }
+        got_frame = TC_TRUE;
       
         if (verbose & TC_STATS) {
             tc_log_info(__FILE__, "got frame 0x%lux (%d)", 
@@ -754,6 +755,7 @@ int encoder_acquire_aframe(TcEncoderData *data, vob_t *vob)
         if (err) {
             return -1;
         }
+        got_frame = TC_TRUE;
       
         if (verbose & TC_STATS) {
             tc_log_info(__FILE__, "got audio frame (%d)", data->aptr->id );
@@ -901,11 +903,12 @@ void encoder_skip(TcEncoderData *data)
         }
         counter_print(0, data->fid, data->last_frame_b, data->frame_a-1);
     }
-    
+
     /*
      * we know we're not finished yet, because we did a quick
      * check before processing the frame
      */
+    /* XXX: drop the following? */
     if (!have_aframe_threads) {
         DEC_VBUF_COUNTER(im);
         DEC_ABUF_COUNTER(im);
