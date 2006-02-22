@@ -24,6 +24,7 @@
 #ifndef _FILTER_H
 #define _FILTER_H
 
+#include "transcode.h"
 #include "framebuffer.h"
 
 #define MAX_FILTER 16
