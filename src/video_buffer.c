@@ -94,28 +94,9 @@ static int vid_buf_alloc(int ex_num)
 	    return(-1);
 	}
 
-	//RGB
-	vid_buf_ptr[n]->video_buf_RGB[0]=vid_buf_ptr[n]->internal_video_buf_0;
-	vid_buf_ptr[n]->video_buf_RGB[1]=vid_buf_ptr[n]->internal_video_buf_1;
-
-	//YUV
-	vid_buf_ptr[n]->video_buf_Y[0] = vid_buf_ptr[n]->internal_video_buf_0;
-	vid_buf_ptr[n]->video_buf_Y[1] = vid_buf_ptr[n]->internal_video_buf_1;
-
-	vid_buf_ptr[n]->video_buf_U[0] = vid_buf_ptr[n]->video_buf_Y[0]
-	  + tc_frame_width_max * tc_frame_height_max;
-	vid_buf_ptr[n]->video_buf_U[1] = vid_buf_ptr[n]->video_buf_Y[1]
-	  + tc_frame_width_max * tc_frame_height_max;
-
-	vid_buf_ptr[n]->video_buf_V[0] = vid_buf_ptr[n]->video_buf_U[0]
-	  + (tc_frame_width_max * tc_frame_height_max)/4;
-	vid_buf_ptr[n]->video_buf_V[1] = vid_buf_ptr[n]->video_buf_U[1]
-	  + (tc_frame_width_max * tc_frame_height_max)/4;
-
-	//default pointer
-	vid_buf_ptr[n]->video_buf  = vid_buf_ptr[n]->internal_video_buf_0;
-	vid_buf_ptr[n]->video_buf2 = vid_buf_ptr[n]->internal_video_buf_1;
-	vid_buf_ptr[n]->free=1;
+    VFRAME_INIT(vid_buf_ptr[n]);
+	
+    vid_buf_ptr[n]->free=1;
     }
 
     // assign to static

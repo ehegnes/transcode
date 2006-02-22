@@ -142,6 +142,26 @@ typedef struct vframe_list {
 
 } vframe_list_t;
 
+#define VFRAME_INIT(vptr) \
+do { \
+        (vptr)->video_buf_RGB[0] = (vptr)->internal_video_buf_0; \
+        (vptr)->video_buf_RGB[1] = (vptr)->internal_video_buf_1; \
+\
+        (vptr)->video_buf_Y[0] = (vptr)->internal_video_buf_0; \
+        (vptr)->video_buf_Y[1] = (vptr)->internal_video_buf_1; \
+        (vptr)->video_buf_U[0] = (vptr)->video_buf_Y[0] \
+            + tc_frame_width_max * tc_frame_height_max; \
+        (vptr)->video_buf_U[1] = (vptr)->video_buf_Y[1] \
+            + tc_frame_width_max * tc_frame_height_max; \
+        (vptr)->video_buf_V[0] = (vptr)->video_buf_U[0] \
+            + (tc_frame_width_max * tc_frame_height_max)/4; \
+        (vptr)->video_buf_V[1] = (vptr)->video_buf_U[1] \
+            + (tc_frame_width_max * tc_frame_height_max)/4; \
+\
+        (vptr)->video_buf  = (vptr)->internal_video_buf_0; \
+        (vptr)->video_buf2 = (vptr)->internal_video_buf_1; \
+} while(0)
+
 vframe_list_t *vframe_register(int id);
 void vframe_remove(vframe_list_t *ptr);
 vframe_list_t *vframe_retrieve(void);
@@ -189,13 +209,20 @@ typedef struct aframe_list {
   struct aframe_list *next;
   struct aframe_list *prev;
 
-#ifdef STATBUFFER
   uint8_t *audio_buf;
+
+#ifdef STATBUFFER
+  uint8_t *internal_audio_buf;
 #else
-  uint8_t audio_buf[SIZE_PCM_FRAME<<2];
+  uint8_t internal_audio_buf[SIZE_PCM_FRAME<<2];
 #endif
 
 } aframe_list_t;
+
+#define AFRAME_INIT(ptr) \
+do { \
+        ptr->audio_buf  = ptr->internal_audio_buf; \
+} while(0)
 
 aframe_list_t *aframe_register(int id);
 void aframe_remove(aframe_list_t *ptr);

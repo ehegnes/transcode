@@ -1,3 +1,13 @@
+2006-02-22 Francesco Romani <fromani at gmail dot com>
+  * src/framebuffer.h src/video_buffer.c serc/audio_buffer.c
+  small internal changes in order to achieave smooth integration
+  with new encoder.
+
+  - move {a,v}frame_list_t initialization code in an (exported)
+    macro
+  - slightly rearranged audio frame buffer handling introducing
+    a shadow buffer, to make it like video frame buffer.
+
 2006-01-27 Francesco Romani <fromani at gmail dot com>
   * encode/encode_ffmpeg.c
   audio support placeholder.
