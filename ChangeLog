@@ -1,4 +1,7 @@
 2006-02-22 Francesco Romani <fromani at gmail dot com>
+  * src/tc_defaults.h
+  introduce default multiplexor module.
+
   * src/framebuffer.h src/video_buffer.c serc/audio_buffer.c
   small internal changes in order to achieave smooth integration
   with new encoder.

@@ -145,6 +145,7 @@
 #define TC_DEFAULT_IMPORT_VIDEO "null"
 #define TC_DEFAULT_EXPORT_AUDIO "null"
 #define TC_DEFAULT_EXPORT_VIDEO "null"
+#define TC_DEFAULT_EXPORT_MPLEX "null"
 
 #define TC_FRAME_BUFFER        10
 #define TC_FRAME_THREADS        1
