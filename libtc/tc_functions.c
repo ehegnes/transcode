@@ -406,16 +406,20 @@ ssize_t tc_pwrite(int fd, uint8_t *buf, size_t len)
     return r;
 }
 
+#ifdef PIPE_BUF
+# define BLOCKSIZE PIPE_BUF /* 4096 on linux-x86 */
+#else
+# define BLOCKSIZE 4096
+#endif
 
-#define MAX_BUF 4096
 int tc_preadwrite(int fd_in, int fd_out)
 {
-    uint8_t buffer[MAX_BUF];
+    uint8_t buffer[BLOCKSIZE];
     ssize_t bytes;
     int error = 0;
 
     do {
-        bytes = tc_pread(fd_in, buffer, MAX_BUF);
+        bytes = tc_pread(fd_in, buffer, BLOCKSIZE);
 
         /* error on read? */
         if (bytes < 0) {
@@ -423,7 +427,7 @@ int tc_preadwrite(int fd_in, int fd_out)
         }
 
         /* read stream end? */
-        if (bytes != MAX_BUF) {
+        if (bytes != BLOCKSIZE) {
             error = 1;
         }
 
@@ -437,7 +441,6 @@ int tc_preadwrite(int fd_in, int fd_out)
 
     return 0;
 }
-
 
 int tc_file_check(const char *name)
 {

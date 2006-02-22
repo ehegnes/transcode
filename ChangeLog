@@ -1,4 +1,14 @@
 2006-02-22 Francesco Romani <fromani at gmail dot com>
+  * libtc/tc_functions.c
+  use PIPE_BUF if avalaible as blocksize in tc_preadwrite.
+
+  * libtc/tccodecs.h
+  add YV12 identificator.
+
+  * libtc/tcmodule-core.h
+  rewrite macro commodity to pass extradata.
+
+2006-02-22 Francesco Romani <fromani at gmail dot com>
   * src/tc_defaults.h
   introduce default multiplexor module.
 

@@ -88,9 +88,11 @@ struct tcmodule_ {
     tc_module_info_log((handle)->klass->info, verbose)
 
 // XXX
-#define tc_module_pass_extradata(handle_s, handle_d) \
-    handle_d->instance.extradata = handle_s->instance.extradata; \
-    handle_d->instance.extradata_size = handle_s->instance.extradata_size;
+#define tc_module_pass_extradata(hs, hd) \
+    do { \
+        hd->instance.extradata = hs->instance.extradata; \
+        hd->instance.extradata_size = hs->instance.extradata_size; \
+    } while(0)
 
 /* factory data type. */
 typedef struct tcfactory_ *TCFactory;
