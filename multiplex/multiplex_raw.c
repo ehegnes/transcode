@@ -83,7 +83,8 @@ static int raw_configure(TCModuleInstance *self,
 
     /* avoid fd loss in case of failed configuration */
     if (pd->fd_vid == -1) {
-        pd->fd_vid = open(vob->video_out_file, O_RDWR|O_CREAT|O_TRUNC,
+        pd->fd_vid = open(vob->video_out_file,
+                          O_RDWR|O_CREAT|O_TRUNC,
                           S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
         if (pd->fd_vid == -1) {
             tc_log_error(MOD_NAME, "failed to open video stream file");
@@ -93,7 +94,8 @@ static int raw_configure(TCModuleInstance *self,
 
     /* avoid fd loss in case of failed configuration */
     if (pd->fd_aud == -1) {
-        pd->fd_aud = open(vob->audio_out_file, O_RDWR|O_CREAT|O_TRUNC,
+        pd->fd_aud = open(vob->audio_out_file,
+                          O_RDWR|O_CREAT|O_TRUNC,
                           S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
         if (pd->fd_aud == -1) {
             tc_log_error(MOD_NAME, "failed to open audio stream file");
