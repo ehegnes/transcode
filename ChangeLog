@@ -1,4 +1,14 @@
 2006-02-23 Francesco Romani <fromani at gmail dot com>
+  * libtc/tcmodule.c
+  always compile, but conditinally export, introspection helpers.
+
+  * testsuite/Makefile.am
+  rules to build tests.
+
+  * testsuite/test-tcmoduleinfo.c
+  typo.
+
+2006-02-23 Francesco Romani <fromani at gmail dot com>
   * libtc/iodir.c libtc/optstr.c libtc/tc_functions.c
     libtc/tcmoduleinfo.c testsuite/test-bufalloc.c
     testsuite/test-tcmodule.c

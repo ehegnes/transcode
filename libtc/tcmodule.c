@@ -874,8 +874,6 @@ int tc_del_module(TCFactory factory, TCModule module)
  * Debug helpers.                                                        *
  *************************************************************************/
 
-#ifdef TCMODULE_DEBUG
-
 int tc_plugin_count(const TCFactory factory)
 {
     if (!factory) {
@@ -918,8 +916,6 @@ int tc_compare_modules(const TCModule amod, const TCModule bmod)
     }
     return -1;
 }
-
-#endif  // TCMODULE_DEBUG
 
 /*************************************************************************/
 

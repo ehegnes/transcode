@@ -55,7 +55,7 @@ static const int fake_mpeg_codecs_in[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
 static const int fake_mpeg_codecs_out[] = { TC_CODEC_MPEG1, TC_CODEC_MPEG2, TC_CODEC_XVID, TC_CODEC_ERROR };
 static TCModuleInfo fake_mpeg_enc = {
     TC_MODULE_FEATURE_ENCODE | TC_MODULE_FEATURE_VIDEO,
-    TC_MODULE_FLAG_NONE
+    TC_MODULE_FLAG_NONE,
     "encode_mpeg.so",
     "0.0.1 (2005-11-14)",
     "fake YUV420P -> MPEG video encoder",
