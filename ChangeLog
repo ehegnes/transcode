@@ -10,7 +10,7 @@
   testing code adding our standard header and trailer.
 
   * libtc/tccodecs.c
-  add out standard formmating hint trailer.
+  add our standard formatting hint trailer.
 
 2006-02-22 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule.c
