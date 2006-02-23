@@ -605,7 +605,42 @@ static int tc_module_class_copy(const TCModuleClass *klass,
  * main private helpers: _load and _unload                               *
  *************************************************************************/
 
+#define RETURN_IF_INVALID_STRING(str, msg, errval) \
+    if (!str || !strlen(str)) { \
+        tc_log_error(__FILE__, msg); \
+        return (errval); \
+    }
 
+#define RETURN_IF_INVALID_QUIET(val, errval) \
+    if (!(val)) { \
+        return (errval); \
+    }
+
+#define TC_LOG_DEBUG(fp, level, format, ...) \
+    if ((fp)->verbose >= level) { \
+        tc_log_info(__FILE__, format, __VA_ARGS__); \
+    }
+
+
+/* XXX
+ * tc_load_module:
+ *     load a plugin needed for a given module.
+ *
+ * Parameters:
+ *     klass: source class to be copied.
+ *     nklass: class destionation of copy.
+ *     soft_copy: boolean flag: if !0 do a soft copy,
+ *                do an hard one otherwise.
+ * Return Value:
+ *     >= 0 identifier (slot) of newly loaded plugin
+ *     -1   error occcurred (and notified via tc_log*())
+ * Side effects:
+ *     none.
+ * Preconditions:
+ *     none.
+ * Postconditions:
+ *     none
+ */
 static int tc_load_module(TCFactory factory,
                           const char *modclass, const char *modname)
 {
@@ -617,14 +652,8 @@ static int tc_load_module(TCFactory factory,
     const TCModuleClass *nclass;
 
     /* 'impossible' conditions */
-    if (!modclass || !strlen(modclass)) {
-        tc_log_error(__FILE__, "empty module class");
-        return -1;
-    }
-    if (!modname || !strlen(modname)) {
-        tc_log_error(__FILE__, "empty module name");
-        return -1;
-    }
+    RETURN_IF_INVALID_STRING(modclass, "empty module class", -1);
+    RETURN_IF_INVALID_STRING(modname, "empty module name", -1);
     
     make_modtype(modtype, PATH_MAX, modclass, modname);
     tc_snprintf(full_modpath, PATH_MAX, "%s/%s_%s.so",
@@ -637,15 +666,15 @@ static int tc_load_module(TCFactory factory,
                                "of modules (%i)", TC_FACTORY_MAX_HANDLERS);
         return -1;
     }
+    TC_LOG_DEBUG(factory, TC_DEBUG, "using slot %i for plugin '%s'",
+                 id, modtype);
     desc = &(factory->descriptors[id]);
     desc->ref_count = 0;
 
     desc->so_handle = dlopen(full_modpath, RTLD_GLOBAL | RTLD_NOW);
     if (!desc->so_handle) {
-        if (factory->verbose >= TC_INFO) {
-            tc_log_error(__FILE__, "can't load module '%s'; reason: %s",
-                                   modtype, dlerror());
-        }
+        TC_LOG_DEBUG(factory, TC_INFO, "can't load module '%s'; reason: %s",
+                     modtype, dlerror());
         goto failed_dlopen;
     }
     desc->type = tc_strdup(modtype);
@@ -659,10 +688,8 @@ static int tc_load_module(TCFactory factory,
 
     modentry = dlsym(desc->so_handle, "tc_plugin_setup");
     if (!modentry) {
-        if (factory->verbose >= TC_INFO) {
-            tc_log_error(__FILE__, "module '%s' doesn't have new style entry"
-                                   " point", modtype);
-        }
+        TC_LOG_DEBUG(factory, TC_INFO, "module '%s' doesn't have new style"
+                     " entry point", modtype);
         goto failed_setup;
     }
     nclass = modentry();
@@ -680,7 +707,7 @@ static int tc_load_module(TCFactory factory,
     desc->status = TC_DESCRIPTOR_DONE;
     factory->descriptor_count++;
 
-    return 0;
+    return id;
 
 failed_setup:
     desc->status = TC_DESCRIPTOR_FREE;
@@ -709,11 +736,9 @@ static int tc_unload_module(TCFactory factory, int id)
     desc = &(factory->descriptors[id]);
 
     if (desc->ref_count > 0) {
-        if (factory->verbose >= TC_DEBUG) {
-            tc_log_error(__FILE__, "can't unload a module with active "
-                                   "ref_count (id=%i, ref_count=%i)",
-                                   desc->klass.id, desc->ref_count);
-        }
+        TC_LOG_DEBUG(factory, TC_DEBUG, "can't unload a module with active"
+                     " ref_count (id=%i, ref_count=%i)",
+                     desc->klass.id, desc->ref_count);
         return 1;
     }
 
@@ -732,18 +757,13 @@ static int tc_unload_module(TCFactory factory, int id)
 TCFactory tc_new_module_factory(const char *modpath, int verbose)
 {
     TCFactory factory = NULL;
-    if (!modpath || !strlen(modpath)) {
-        return NULL;
-    }
+    RETURN_IF_INVALID_STRING(modpath, "empty module path", NULL);
 
     factory = tc_zalloc(sizeof(struct tcfactory_));
-    if (!factory) {
-        return NULL;
-    }
+    RETURN_IF_INVALID_QUIET(factory, NULL);
 
     factory->mod_path = modpath;
     factory->verbose = verbose;
-
     factory->descriptor_count = 0;
     factory->instance_count = 0;
 
@@ -754,9 +774,7 @@ TCFactory tc_new_module_factory(const char *modpath, int verbose)
 
 int tc_del_module_factory(TCFactory factory)
 {
-    if (!factory) {
-        return 1;
-    }
+    RETURN_IF_INVALID_QUIET(factory, 1);
 
     tc_foreach_descriptor(factory, descriptor_fini, NULL, NULL);
 
@@ -778,33 +796,28 @@ TCModule tc_new_module(TCFactory factory,
     int id = -1, ret;
     TCModule module = NULL;
 
-    if (!factory) {
-        return NULL;
-    }
+    RETURN_IF_INVALID_QUIET(factory, NULL);
 
     if (!is_known_modclass(modclass)) {
-        if (factory->verbose >= TC_INFO) {
-            tc_log_error(__FILE__, "unknown module class '%s'", modclass);
-        }
+        TC_LOG_DEBUG(factory, TC_INFO, "unknown module class '%s'",
+                      modclass);
         return NULL;
     }
 
     make_modtype(modtype, MOD_TYPE_MAX_LEN, modclass, modname);
-    if (factory->verbose >= TC_DEBUG) {
-        tc_log_info(__FILE__, "trying to load '%s'", modtype);
-    }
+    TC_LOG_DEBUG(factory, TC_DEBUG, "trying to load '%s'", modtype);
     id = find_by_modtype(factory, modtype);
     if (id == -1) {
-        /* module type not known */
+        /* module type not already known */
+        TC_LOG_DEBUG(factory, TC_STATS, "plugin not found for '%s',"
+                     " loading...", modtype);
         id = tc_load_module(factory, modclass, modname);
         if (id == -1) {
             /* load failed, give up */
             return NULL;
         }
     }
-    if (factory->verbose >= TC_DEBUG) {
-        tc_log_info(__FILE__, "module descriptor found at id (%i)", id);
-    }
+    TC_LOG_DEBUG(factory, TC_DEBUG, "module descriptor found: id %i", id);
 
     module = tc_zalloc(sizeof(struct tcmodule_));
 
@@ -814,25 +827,20 @@ TCModule tc_new_module(TCFactory factory,
 
     ret = tc_module_init(module);
     if (ret != 0) {
-        if (factory->verbose >= TC_DEBUG) {
-            tc_log_error(__FILE__, "initialization of '%s' failed"
-                                   " (code=%i)", modtype, ret);
-        }
+        TC_LOG_DEBUG(factory, TC_DEBUG, "initialization of '%s' failed"
+                     " (code=%i)", modtype, ret);
         tc_free(module);
         return NULL;
     }
 
     factory->descriptors[id].ref_count++;
     factory->instance_count++;
-    if (factory->verbose >= TC_DEBUG) {
-        tc_log_info(__FILE__, "module created: type='%s' instance id=(%i)",
-                    module->instance.type, module->instance.id);
-    }
-    if (factory->verbose >= TC_STATS) {
-        tc_log_info(__FILE__, "descriptor ref_count=(%i) instances so far=(%i)",
-                    factory->descriptors[id].ref_count,
-                    factory->instance_count);
-    }
+    TC_LOG_DEBUG(factory, TC_DEBUG, "module created: type='%s'"
+                 " instance id=(%i)", module->instance.type,
+                 module->instance.id);
+    TC_LOG_DEBUG(factory, TC_STATS, "descriptor ref_count=(%i) instances"
+                 " so far=(%i)", factory->descriptors[id].ref_count,
+                 factory->instance_count);
 
     return module;
 }
@@ -841,23 +849,17 @@ int tc_del_module(TCFactory factory, TCModule module)
 {
     int ret = 0, id = -1;
 
-    if (!factory) {
-        return 1;
-    }
-
-    if (!module) {
-        return -1;
-    }
+    RETURN_IF_INVALID_QUIET(factory, 1);
+    RETURN_IF_INVALID_QUIET(module, -1);
+    
     id = module->klass->id;
 
     CHECK_VALID_ID(id, "tc_del_module");
 
     ret = tc_module_fini(module);
     if (ret != 0) {
-        if (factory->verbose >= TC_DEBUG) {
-            tc_log_error(__FILE__, "finalization of '%s' failed (code=%i)",
-                         module->instance.type, ret);
-        }
+        TC_LOG_DEBUG(factory, TC_DEBUG, "finalization of '%s' failed"
+                     " (code=%i)", module->instance.type, ret);
         return ret;
     }
     tc_free(module);
@@ -876,17 +878,13 @@ int tc_del_module(TCFactory factory, TCModule module)
 
 int tc_plugin_count(const TCFactory factory)
 {
-    if (!factory) {
-        return -1;
-    }
+    RETURN_IF_INVALID_QUIET(factory, -1);
     return factory->descriptor_count;
 }
 
 int tc_instance_count(const TCFactory factory)
 {
-    if (!factory) {
-        return -1;
-    }
+    RETURN_IF_INVALID_QUIET(factory, -1);
     return factory->instance_count;
 }
 

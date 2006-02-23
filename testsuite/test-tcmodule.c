@@ -29,8 +29,12 @@ static vob_t *vob = NULL;
 
 static TCFactory factory;
 
+// dependencies
 vob_t *tc_get_vob(void) { return vob; }
 
+
+void aframe_copy(aframe_list_t *dst, aframe_list_t *src, int copy_data) { ; }
+void vframe_copy(vframe_list_t *dst, vframe_list_t *src, int copy_data) { ; }
 
 // partial line length: I don't bother with full line length,
 // it's just a naif padding
@@ -49,8 +53,9 @@ static void test_result_helper(const char *name, int ret, int expected)
     }
 
     if (ret != expected) {
-        tc_log_error(__FILE__, "'%s'%s%sFAILED%s",
-                     name, spaces, COL_RED, COL_GRAY);
+        tc_log_error(__FILE__, "'%s'%s%sFAILED%s (%i|%i)",
+                     name, spaces, COL_RED, COL_GRAY,
+                     ret, expected);
     } else {
         tc_log_info(__FILE__, "'%s'%s%sOK%s",
                     name, spaces, COL_GREEN, COL_GRAY);
@@ -274,6 +279,76 @@ int test_stress_load(const char *modpath)
     return 0;
 }
 
+int test_load_filter_encode(const char *modpath)
+{
+    TCModule module1 = NULL, module2 = NULL;
+    factory = tc_new_module_factory(modpath, verbose);
+    err = (factory == NULL) ?-1 :0;
+
+    test_result_helper("load_filter_encode::init", err, 0);
+    module1 = tc_new_module(factory, "filter", "null");
+    if (module1 == NULL) {
+        tc_log_error(__FILE__, "can't load filter_null (1)");
+    }
+    module2 = tc_new_module(factory, "encode", "null");
+    if (module2 == NULL) {
+        tc_log_error(__FILE__, "can't load encode_null (1)");
+    }
+
+    test_result_helper("load_filter_encode::check",
+                       tc_compare_modules(module1, module2),
+                       -1);
+    test_result_helper("load_filter_encode::instances",
+                       tc_instance_count(factory),
+                       2);
+    test_result_helper("load_filter_encode::descriptors",
+                       tc_plugin_count(factory),
+                       2);
+    if (module1) {
+        tc_del_module(factory, module1);
+    }
+    if (module2) {
+        tc_del_module(factory, module2);
+    }
+    test_result_helper("load_filter_encode::fini", tc_del_module_factory(factory), 0);
+    return 0;
+}
+
+int test_load_encode_multiplex(const char *modpath)
+{
+    TCModule module1 = NULL, module2 = NULL;
+    factory = tc_new_module_factory(modpath, verbose);
+    err = (factory == NULL) ?-1 :0;
+
+    test_result_helper("load_encode_multiplex::init", err, 0);
+    module1 = tc_new_module(factory, "encode", "null");
+    if (module1 == NULL) {
+        tc_log_error(__FILE__, "can't load encode_null (1)");
+    }
+    module2 = tc_new_module(factory, "multiplex", "null");
+    if (module2 == NULL) {
+        tc_log_error(__FILE__, "can't load multiplex_null (1)");
+    }
+
+    test_result_helper("load_encode_multiplex::check",
+                       tc_compare_modules(module1, module2),
+                       -1);
+    test_result_helper("load_encode_multiplex::instances",
+                       tc_instance_count(factory),
+                       2);
+    test_result_helper("load_encode_multiplex::descriptors",
+                       tc_plugin_count(factory),
+                       2);
+    if (module1) {
+        tc_del_module(factory, module1);
+    }
+    if (module2) {
+        tc_del_module(factory, module2);
+    }
+    test_result_helper("load_encode_multiplex::fini", tc_del_module_factory(factory), 0);
+    return 0;
+}
+
 int main(int argc, char* argv[])
 {
     if(argc != 2) {
@@ -297,6 +372,10 @@ int main(int argc, char* argv[])
     test_stress_create(argv[1]);
     putchar('\n');
     test_stress_load(argv[1]);
+    putchar('\n');
+    test_load_filter_encode(argv[1]);
+    putchar('\n');
+    test_load_encode_multiplex(argv[1]);
 
     tc_free(vob);
 

@@ -1,3 +1,11 @@
+2006-02-24 Francesco Romani <fromani at gmail dot com>
+  * libtc/tcmodule.c
+  correct a silly but nasty bug in internal module loader;
+  small internal cleanup.
+
+  * testsuite/test-tcmodule.c
+  a couple more tests.
+
 2006-02-23 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule.c
   always compile, but conditinally export, introspection helpers.
