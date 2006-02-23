@@ -1,3 +1,23 @@
+2006-02-23 Francesco Romani <fromani at gmail dot com>
+  * libtc/iodir.c libtc/optstr.c libtc/tc_functions.c
+    libtc/tcmoduleinfo.c testsuite/test-bufalloc.c
+    testsuite/test-tcmodule.c
+
+  Added files: testsuite/test-iodir.c testsuite/test-tcmoduleinfo.c
+               testsuite/test-tcstrdup.c
+
+  move test code outside from source file; also beautify a bit
+  testing code adding our standard header and trailer.
+
+  * libtc/tccodecs.c
+  add out standard formmating hint trailer.
+
+2006-02-22 Francesco Romani <fromani at gmail dot com>
+  * libtc/tcmodule.c
+  
+  * added file: testsuite/test-tcmodule.c
+  separate test code for tcmodule from source file.
+
 2006-02-22 Francesco Romani <fromani at gmail dot com>
   * multiplex/multiplex_raw.c
   use better flags for open(2) output files.

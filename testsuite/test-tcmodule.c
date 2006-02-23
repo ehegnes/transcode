@@ -1,3 +1,14 @@
+/*
+ * test-tcmodule.c - testsuite for tcmodule functions 
+ *                   everyone feel free to add more tests and improve
+ *                   existing ones.
+ * (C) 2006 - Francesco Romani <fromani -at- gmail -dot- com>
+ *
+ * This file is part of transcode, a video stream processing tool.
+ * transcode is free software, distributable under the terms of the GNU
+ * General Public License (version 2 or later).  See the file COPYING
+ * for details.
+ */
 
 // compile command:
 // gcc -Wall -g -O -I. -I.. -I../src/ source.c path/to/libtc.a -ldl -rdynamic
@@ -294,3 +305,14 @@ int main(int argc, char* argv[])
 
 #include "static_optstr.h"
 
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */
