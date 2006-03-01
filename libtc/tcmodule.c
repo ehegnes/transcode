@@ -622,20 +622,27 @@ static int tc_module_class_copy(const TCModuleClass *klass,
     }
 
 
-/* XXX
+/*
  * tc_load_module:
- *     load a plugin needed for a given module.
+ *     load in a given factory a plugin needed for a given module.
+ *     please note that here 'plugin' and 'module' terms are used
+ *     interchangeably since a given module name from a given module
+ *     class usually (almost always, even if such constraint doesn't
+ *     exist) originates from a plugin with same class and same name.
+ *
+ *     In other words, doesn't exist (yet, nor is planned) a plugin
+ *     that can generate more than one module and/or more than one
+ *     module class
  *
  * Parameters:
- *     klass: source class to be copied.
- *     nklass: class destionation of copy.
- *     soft_copy: boolean flag: if !0 do a soft copy,
- *                do an hard one otherwise.
+ *     factory: module factory to loads module in
+ *     modclass: class of plugin to load
+ *     modname: name of plugin to load
  * Return Value:
  *     >= 0 identifier (slot) of newly loaded plugin
  *     -1   error occcurred (and notified via tc_log*())
  * Side effects:
- *     none.
+ *     a plugin (.so) is loaded into process
  * Preconditions:
  *     none.
  * Postconditions:
@@ -726,7 +733,28 @@ failed_dlopen:
         return -1; \
     }
 
-
+/*
+ * tc_unload_module:
+ *     unload a given (by id) plugin from given factory.
+ *     This means that module belonging to such plugin is no longer
+ *     avalaible from given factory, unless, of course, reloading such
+ *     plugin.
+ *
+ * Parameters:
+ *     factory: a module factory
+ *     id: id of plugin to unload
+ * Return Value:
+ *     0      plugin unloaded correctly
+ *     != 0   error occcurred (and notified via tc_log*())
+ * Side effects:
+ *     a plugin (.so) is UNloaded from process
+ * Preconditions:
+ *     reference count for given plugin is zero.
+ *     This means that no modules instances created by such plugin are
+ *     still active.
+ * Postconditions:
+ *     none
+ */
 static int tc_unload_module(TCFactory factory, int id)
 {
     int ret = 0;
@@ -797,7 +825,6 @@ TCModule tc_new_module(TCFactory factory,
     TCModule module = NULL;
 
     RETURN_IF_INVALID_QUIET(factory, NULL);
-
     if (!is_known_modclass(modclass)) {
         TC_LOG_DEBUG(factory, TC_INFO, "unknown module class '%s'",
                       modclass);
@@ -820,7 +847,6 @@ TCModule tc_new_module(TCFactory factory,
     TC_LOG_DEBUG(factory, TC_DEBUG, "module descriptor found: id %i", id);
 
     module = tc_zalloc(sizeof(struct tcmodule_));
-
     module->instance.type = factory->descriptors[id].type;
     module->instance.id = factory->instance_count + 1;
     module->klass = &(factory->descriptors[id].klass);
@@ -853,7 +879,6 @@ int tc_del_module(TCFactory factory, TCModule module)
     RETURN_IF_INVALID_QUIET(module, -1);
     
     id = module->klass->id;
-
     CHECK_VALID_ID(id, "tc_del_module");
 
     ret = tc_module_fini(module);
