@@ -2,6 +2,9 @@
   * testsuite/Makefile.am
   do not install testing programs
 
+  src/probe.c
+  a couple of cosmetic fixes
+
 2006-03-05 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h libtc/tc_functions.c
   Documentation update.
