@@ -34,6 +34,7 @@
 #include "libxio/xio.h"
 
 #include "libtc.h"
+#include "tc_defaults.h"
 
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
@@ -41,6 +42,8 @@
 #if defined(HAVE_ALLOCA_H)
 #include <alloca.h>
 #endif
+
+#include "framebuffer.h"
 
 /*************************************************************************/
 
@@ -232,6 +235,24 @@ int tc_guess_frc(double fps)
     return -1;
 }
 #undef DELTA
+
+int tc_detect_asr(int n, int d)
+{
+    int asr = 0;
+    
+    if (n > 0 && d > 0) {
+        if (n == 1 && d == 1) {
+            asr = 1;
+        } else if (n == 4 && d == 3) {
+		    asr = 2;
+        } else if (n == 16 && d == 9) {
+    	    asr = 3;
+        } else if ((double)n/(double)d >= 2.21) {
+    	    asr = 4;
+        }
+    }
+    return asr;
+} 
 
 /*************************************************************************/
 
@@ -590,6 +611,10 @@ int tc_read_matrix(const char *filename, uint8_t *m8, uint16_t *m16)
             filename);
         return -1;
     }
+    if (!m8 && !m16) {
+        tc_log_warn("read_matrix", "bad matrix reference");
+        return -1;
+    }
 
     /* Read the matrix */
     for(i = 0; i < TC_MATRIX_SIZE; i++) {
@@ -622,10 +647,11 @@ void tc_print_matrix(uint8_t *m8, uint16_t *m16)
     int i;
 
     if (!m8 && !m16) {
-        tc_log_warn("print_matrix", "bad matrix reference!");
+        tc_log_warn("print_matrix", "bad matrix reference");
         return;
     }
-    
+   
+    // XXX: magic number
     for(i = 0; i < TC_MATRIX_SIZE; i += 8) {
         if (m8 != NULL) {
             tc_log_info("print_matrix",
@@ -646,6 +672,73 @@ void tc_print_matrix(uint8_t *m8, uint16_t *m16)
         }
     }
     return;
+}
+
+/*************************************************************************/
+
+void *vframe_new(int width, int height)
+{
+    vframe_list_t *vptr = tc_malloc(sizeof(vframe_list_t));
+
+    // XXX XXX XXX
+
+    if (vptr != NULL) {
+#ifdef STATBUFFER
+        vptr->internal_video_buf_0 = tc_bufalloc(width * height * BPP/8);
+        vptr->internal_video_buf_1 = vptr->internal_video_buf_0;
+        if (!vptr->internal_video_buf_0) {
+            tc_free(vptr);
+            return NULL;
+        }
+        vptr->video_size = SIZE_RGB_FRAME;
+#endif /* STATBUFFER */
+        VFRAME_INIT(vptr, width, height);
+    }
+    return vptr;
+}
+
+void *aframe_new(void)
+{
+    aframe_list_t *aptr = tc_malloc(sizeof(aframe_list_t));
+
+    if (aptr != NULL) {
+#ifdef STATBUFFER
+        // XXX XXX XXX
+
+        aptr->internal_audio_buf = tc_bufalloc(SIZE_PCM_FRAME << 2);
+        if (!aptr->internal_audio_buf) {
+            tc_free(aptr);
+            return NULL;
+        }
+        aptr->audio_size = SIZE_PCM_FRAME << 2;
+#endif /* STATBUFFER */
+        AFRAME_INIT(aptr);
+    }
+    return aptr;
+}
+
+void vframe_del(void *_vptr)
+{
+    vframe_list_t *vptr = _vptr;
+    
+    if (vptr != NULL) {
+#ifdef STATBUFFER
+        tc_buffree(vptr->internal_video_buf_0);
+#endif
+        tc_free(vptr);
+    }
+}
+
+void aframe_del(void *_aptr)
+{
+    aframe_list_t *aptr = _aptr;
+    
+    if (aptr != NULL) {
+#ifdef STATBUFFER
+        tc_buffree(aptr->internal_audio_buf);
+#endif
+        tc_free(aptr);
+    }
 }
 
 /*************************************************************************/

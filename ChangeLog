@@ -1,3 +1,11 @@
+2006-03-05 Francesco Romani <fromani at gmail dot com>
+  * libtc/libtc.h libtc/tc_functions.c
+  Documentation update.
+
+  New support functions:
+  - {a,v}frame_{new,del}: single frame allocators/deallocators
+  - tc_detect_asr: find asr code given frame specs
+
 2006-03-01 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule.c
   documentation update.
