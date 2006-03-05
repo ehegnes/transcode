@@ -13,7 +13,7 @@ AM_CPPFLAGS = \
 	$(TCIOAUX_CFLAGS) \
 	$(XIO_CFLAGS)
 
-bin_PROGRAMS = \
+noinst_PROGRAMS = \
 	test_bufalloc \
 	test_iodir \
 	test_tcmoduleinfo \
