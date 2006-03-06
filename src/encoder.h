@@ -2,6 +2,8 @@
  *  encoder.h
  *
  *  Copyright (C) Thomas Östreich - June 2001
+ *  Updated and partially rewritten by
+ *  Francesco Romani -January 2006
  *
  *  This file is part of transcode, a video stream  processing tool
  *
@@ -25,18 +27,31 @@
 #define _ENCODER_H 
 
 #include "transcode.h"
-#include "filter.h"
+#include "framebuffer.h"
 
-uint32_t tc_get_frames_dropped(void);
-uint32_t tc_get_frames_skipped(void);
-uint32_t tc_get_frames_encoded(void);
-uint32_t tc_get_frames_cloned(void);
-void tc_update_frames_dropped(uint32_t val);
-void tc_update_frames_skipped(uint32_t val);
-void tc_update_frames_encoded(uint32_t val);
-void tc_update_frames_cloned(uint32_t val);
+#include "tcmodule-core.h"
+#include "encoder-common.h"
 
-int export_init(vob_t *vob, const char *a_mod, const char *v_mod);
+typedef struct tcencoderbuffer_ TCEncoderBuffer;
+struct tcencoderbuffer_ {
+    int frame_id;
+    int frame_num;
+
+    vob_t *vob;
+    
+    vframe_list_t *vptr;
+    aframe_list_t *aptr;
+
+    int (*acquire_video_frame)(TCEncoderBuffer *buf);
+    int (*acquire_audio_frame)(TCEncoderBuffer *buf);
+    int (*dispose_video_frame)(TCEncoderBuffer *buf);
+    int (*dispose_audio_frame)(TCEncoderBuffer *buf);
+
+    int (*have_data)(TCEncoderBuffer *buf);
+};
+
+int export_init(TCEncoderBuffer *buffer, TCFactory factory);
+int export_setup(const char *a_mod, const char *v_mod, const char *m_mod);
 void export_shutdown(void);
 
 int encoder_init(vob_t *vob);

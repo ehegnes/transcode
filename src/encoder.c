@@ -23,12 +23,17 @@
  *
  */
 
-#include "dl_loader.h"
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "framebuffer.h"
+#include "filter.h"
 #include "counter.h"
 #include "video_trans.h"
 #include "audio_trans.h"
 #include "decoder.h"
+
 #include "encoder.h"
 
 #include "frame_threads.h"
@@ -47,15 +52,14 @@
  * 3) new encoder will be monothread, like the old one
  */
 
+/*
+ * FIXME: STILL MISSING
+ * - outstream rotation support
+ * - interface updates
+ */
+
 typedef struct tcencoderdata_ TCEncoderData;
 struct tcencoderdata_ {
-    /* references to current frames */
-    vframe_list_t *vptr; // XXX
-    aframe_list_t *aptr; // XXX
-
-    /* (video) frame identifier */
-    int fid; // XXX
-
     /* flags, used internally */
     int error_flag;
     int fill_flag;
@@ -69,27 +73,21 @@ struct tcencoderdata_ {
     int this_frame_last; // XXX
     int old_frame_last; // XXX
 
-    void *export_ahandle;
-    void *export_vhandle;
-
-    /* counter, for stats and more */
-    uint32_t frames_encoded;
-    uint32_t frames_dropped;
-    uint32_t frames_skipped;
-    uint32_t frames_cloned;
-    /* counters can be accessed by other (ex: import) threads */
-    pthread_mutex_t frame_counter_lock;
-
     /* can be set'd by other threads */
-    volatile int exit_flag;
 
-    transfer_t export_para;
+    vframe_list_t *venc_ptr;
+    aframe_list_t *aenc_ptr;
+    
+    TCEncoderBuffer *buffer;
+
+    TCFactory factory;
+
+    TCModule vid_mod;
+    TCModule aud_mod;
+    TCModule mplex_mod;
 };
 
 static TCEncoderData encdata = {
-    .vptr = NULL,
-    .aptr = NULL,
-    .fid = 0,
     .error_flag = 0,
     .fill_flag = 0,
     .frame_first = 0,
@@ -97,104 +95,27 @@ static TCEncoderData encdata = {
     .saved_frame_last = 0,
     .this_frame_last = 0,
     .old_frame_last = 0,
-    .export_vhandle = NULL,
-    .export_ahandle = NULL,
-    .frames_encoded = 0,
-    .frames_dropped = 0,
-    .frames_skipped = 0,
-    .frames_cloned = 0,
-    .frame_counter_lock = PTHREAD_MUTEX_INITIALIZER,
-    .exit_flag = 0,
+    .venc_ptr = NULL,
+    .aenc_ptr = NULL,
+    .buffer = NULL,
+    .factory = NULL,
+    .vid_mod = NULL,
+    .aud_mod = NULL,
+    .mplex_mod = NULL,
 };
 
-void tc_export_stop_nolock(void)
-{
-    encdata.exit_flag = TC_TRUE;
-}
+#define ACQUIRE_VID_FRAME(encp, vob, last) \
+    (encp)->buffer->acquire_video_frame((encp)->buffer)
+#define ACQUIRE_AUD_FRAME(encp, vob, last) \
+    (encp)->buffer->acquire_audio_frame((encp)->buffer)
 
-uint32_t tc_get_frames_encoded(void)
-{
-    uint32_t val;
-    
-    pthread_mutex_lock(&encdata.frame_counter_lock);
-    val = encdata.frames_encoded;
-    pthread_mutex_unlock(&encdata.frame_counter_lock);
+#define DISPOSE_VID_FRAME(encp) \
+    (encp)->buffer->dispose_video_frame((encp)->buffer)
+#define DISPOSE_AUD_FRAME(encp) \
+    (encp)->buffer->dispose_audio_frame((encp)->buffer)
 
-    return val;
-}
-
-void tc_update_frames_encoded(uint32_t val)
-{
-    pthread_mutex_lock(&encdata.frame_counter_lock);
-    encdata.frames_encoded += val;
-    pthread_mutex_unlock(&encdata.frame_counter_lock);
-}
-
-uint32_t tc_get_frames_dropped(void)
-{
-    uint32_t val;
-    
-    pthread_mutex_lock(&encdata.frame_counter_lock);
-    val = encdata.frames_dropped;
-    pthread_mutex_unlock(&encdata.frame_counter_lock);
-    
-    return val;
-}
-
-void tc_update_frames_dropped(uint32_t val)
-{
-    pthread_mutex_lock(&encdata.frame_counter_lock);
-    encdata.frames_dropped += val;
-    pthread_mutex_unlock(&encdata.frame_counter_lock);
-}
-
-uint32_t tc_get_frames_skipped(void)
-{
-    uint32_t val;
-    
-    pthread_mutex_lock(&encdata.frame_counter_lock);
-    val = encdata.frames_skipped;
-    pthread_mutex_unlock(&encdata.frame_counter_lock);
-    
-    return val;
-}
-
-void tc_update_frames_skipped(uint32_t val)
-{
-    pthread_mutex_lock(&encdata.frame_counter_lock);
-    encdata.frames_skipped += val;
-    pthread_mutex_unlock(&encdata.frame_counter_lock);
-}
-
-uint32_t tc_get_frames_cloned(void)
-{
-    uint32_t val;
-    
-    pthread_mutex_lock(&encdata.frame_counter_lock);
-    val = encdata.frames_cloned;
-    pthread_mutex_unlock(&encdata.frame_counter_lock);
-    
-    return val;
-}
-
-void tc_update_frames_cloned(uint32_t val)
-{
-    pthread_mutex_lock(&encdata.frame_counter_lock);
-    encdata.frames_cloned += val;
-    pthread_mutex_unlock(&encdata.frame_counter_lock);
-}
-
-static uint32_t tc_get_frames_skipped_cloned(void)
-{
-    uint32_t s, c;
-    
-    pthread_mutex_lock(&encdata.frame_counter_lock);
-    s = encdata.frames_skipped;
-    c = encdata.frames_cloned;
-    pthread_mutex_unlock(&encdata.frame_counter_lock);
-    
-    return(c - s);
-}
+#define HAVE_DATA(encp) \
+    (encp)->buffer->have_data(encp)
 
 /* ------------------------------------------------------------ 
  *
@@ -202,104 +123,63 @@ static uint32_t tc_get_frames_skipped_cloned(void)
  *
  * ------------------------------------------------------------*/
 
-int export_init(vob_t *vob, const char *a_mod, const char *v_mod)
+int export_init(TCEncoderBuffer *buffer, TCFactory factory)
 {
-    char *mod_name = NULL;
-    transfer_t export_para;
+    if (!buffer) {
+        tc_log_error(__FILE__, "missing encoder buffer reference");
+        return 1;
+    }
+    encdata.buffer = buffer;
 
-    // load export modules
+    if (!factory) {
+        tc_log_error(__FILE__, "missing factory reference");
+        return 1;
+    }
+    encdata.factory = factory;
+    return 0;
+}
+
+int export_setup(const char *a_mod, const char *v_mod, const char *m_mod)
+{
+    int match = 0;
+    const char *mod_name = NULL;
+
+    if (verbose & TC_DEBUG) {
+        tc_log_info(__FILE__, "loading export modules");
+    }
+    
     mod_name = (a_mod == NULL) ?TC_DEFAULT_EXPORT_AUDIO :a_mod;
-    encdata.export_ahandle = load_module(mod_name, TC_EXPORT + TC_AUDIO);
-    if (encdata.export_ahandle == NULL) {
-        tc_log_warn(__FILE__, "loading audio export module failed");
-        return -1;
-   }
-
-    mod_name = (v_mod==NULL) ?TC_DEFAULT_EXPORT_VIDEO :v_mod;
-    encdata.export_vhandle = load_module(mod_name, TC_EXPORT + TC_VIDEO);
-    if (encdata.export_vhandle == NULL) {
-        tc_log_warn(__FILE__, "loading video export module failed");
+    encdata.aud_mod = tc_new_module(encdata.factory, "encode", mod_name);
+    if (!encdata.aud_mod) {
+        tc_log_error(__FILE__, "can't load audio encoder");
         return -1;
     }
-
-    export_para.flag = verbose;
-    tca_export(TC_EXPORT_NAME, &export_para, NULL); 
-
-    if(export_para.flag != verbose) {
-        // module returned capability flag
-        int cc=0;
-    
-        if (verbose & TC_DEBUG) {
-            tc_log_info(__FILE__, "audio capability flag 0x%x | 0x%x", 
-                                  export_para.flag, vob->im_a_codec);
-        }
-    
-        switch (vob->im_a_codec) {
-          case CODEC_PCM: 
-            cc = (export_para.flag & TC_CAP_PCM);
-            break;
-          case CODEC_AC3: 
-            cc = (export_para.flag & TC_CAP_AC3);
-            break;
-          case CODEC_RAW: 
-            cc = (export_para.flag & TC_CAP_AUD);
-            break;
-          default:
-            cc = 0;
-        }
-    
-        if (cc == 0) {
-            tc_log_warn(__FILE__, "audio codec not supported by export module");
-            return -1;
-        }
-    } else { /* export_para.flag == verbose */
-        if (vob->im_a_codec != CODEC_PCM) {
-            tc_log_warn(__FILE__, "audio codec not supported by export module");
-            return -1;
-        }
+    mod_name = (v_mod == NULL) ?TC_DEFAULT_EXPORT_VIDEO :v_mod;
+    encdata.vid_mod = tc_new_module(encdata.factory, "encode", mod_name);
+    if (!encdata.vid_mod) {
+        tc_log_error(__FILE__, "can't load video encoder");
+        return -1;
     }
-  
-    export_para.flag = verbose;
-    tcv_export(TC_EXPORT_NAME, &export_para, NULL);
-
-    if (export_para.flag != verbose) {
-        // module returned capability flag
-        int cc = 0;
-    
-        if (verbose & TC_DEBUG) {
-            tc_log_info(__FILE__, "video capability flag 0x%x | 0x%x", 
-                                  export_para.flag, vob->im_v_codec);
-        }
-    
-        switch (vob->im_v_codec) {
-          case CODEC_RGB: 
-            cc = (export_para.flag & TC_CAP_RGB);
-            break;
-          case CODEC_YUV: 
-            cc = (export_para.flag & TC_CAP_YUV);
-            break;
-          case CODEC_YUV422: 
-            cc = (export_para.flag & TC_CAP_YUV422);
-            break;
-          case CODEC_RAW: 
-          case CODEC_RAW_YUV: /* fallthrough */
-            cc = (export_para.flag & TC_CAP_VID);
-            break;
-          default:
-            cc = 0;
-        }
-    
-        if (cc == 0) {
-            tc_log_warn(__FILE__, "video codec not supported by export module"); 
-            return -1;
-        }
-    } else { /* export_para.flag == verbose */
-        if (vob->im_v_codec != CODEC_RGB) {
-            tc_log_warn(__FILE__, "video codec not supported by export module"); 
-            return -1;
-        }
+    mod_name = (m_mod == NULL) ?TC_DEFAULT_EXPORT_MPLEX :m_mod;
+    encdata.mplex_mod = tc_new_module(encdata.factory, "multiplex", mod_name);
+    if (!encdata.mplex_mod) {
+        tc_log_error(__FILE__, "can't load multiplexor");
+        return -1;
     }
-    
+   
+    match = tc_module_match(encdata.aud_mod, encdata.mplex_mod);
+    if (!match) {
+        tc_log_error(__FILE__, "audio encoder incompatible "
+                               "with multiplexor");
+        return -1;
+    }
+    match = tc_module_match(encdata.vid_mod, encdata.mplex_mod);
+    if (!match) {
+        tc_log_error(__FILE__, "video encoder incompatible "
+                               "with multiplexor");
+        return -1;
+    }
+
     return 0;
 }  
 
@@ -309,14 +189,15 @@ int export_init(vob_t *vob, const char *a_mod, const char *v_mod)
  *
  * ------------------------------------------------------------*/
 
-void export_shutdown()
+void export_shutdown(void)
 {
     if (verbose & TC_DEBUG) {
         tc_log_info(__FILE__, "unloading export modules");
     }
 
-    unload_module(encdata.export_ahandle);
-    unload_module(encdata.export_vhandle);
+    tc_del_module(encdata.factory, encdata.mplex_mod);
+    tc_del_module(encdata.factory, encdata.vid_mod);
+    tc_del_module(encdata.factory, encdata.aud_mod);
 }
 
 
@@ -329,17 +210,17 @@ void export_shutdown()
 int encoder_init(vob_t *vob)
 {
     int ret;
-    transfer_t export_para;
-  
-    export_para.flag = TC_VIDEO;
-    ret = tcv_export(TC_EXPORT_INIT, &export_para, vob);
+    const char *options = NULL;
+ 
+    options = (vob->ex_v_string) ?vob->ex_v_string :""; 
+    ret = tc_module_configure(encdata.vid_mod, options, vob);
     if (ret == TC_EXPORT_ERROR) {
         tc_log_warn(__FILE__, "video export module error: init failed");
         return -1;
     }
   
-    export_para.flag = TC_AUDIO;
-    ret = tca_export(TC_EXPORT_INIT, &export_para, vob);
+    options = (vob->ex_a_string) ?vob->ex_a_string :""; 
+    ret = tc_module_configure(encdata.aud_mod, options, vob);
     if (ret == TC_EXPORT_ERROR) {
         tc_log_warn(__FILE__, "audio export module error: init failed");
         return -1;
@@ -358,22 +239,18 @@ int encoder_init(vob_t *vob)
 int encoder_open(vob_t *vob)
 {
     int ret;
-    transfer_t export_para;
-  
-    export_para.flag = TC_VIDEO; 
-    ret = tcv_export(TC_EXPORT_OPEN, &export_para, vob);
+    const char *options = NULL;
+ 
+    options = (vob->ex_m_string) ?vob->ex_m_string :""; 
+    ret = tc_module_configure(encdata.mplex_mod, options, vob);
     if (ret == TC_EXPORT_ERROR) {
-        tc_log_warn(__FILE__, "video export module error: open failed");
+        tc_log_warn(__FILE__, "multiplexor module error: init failed");
         return -1;
     }
-  
-    export_para.flag = TC_AUDIO;
-    ret = tca_export(TC_EXPORT_OPEN, &export_para, vob);
-    if (ret == TC_EXPORT_ERROR) {
-        tc_log_warn(__FILE__, "audio export module error: open failed");
-        return -1;
-    }
-  
+
+    // XXX
+    tc_module_pass_extradata(encdata.vid_mod, encdata.mplex_mod);
+    
     return 0;
 }
 
@@ -386,19 +263,15 @@ int encoder_open(vob_t *vob)
 
 int encoder_close(void)
 {
-    transfer_t export_para;
-    /* close, errors not fatal */
+    int ret = tc_module_stop(encdata.mplex_mod);
+    if (ret == TC_EXPORT_ERROR) {
+        tc_log_warn(__FILE__, "multiplexor module error: stop failed");
+        return -1;
+    }
 
-    export_para.flag = TC_AUDIO;
-    tca_export(TC_EXPORT_CLOSE, &export_para, NULL);
-
-    export_para.flag = TC_VIDEO;
-    tcv_export(TC_EXPORT_CLOSE, &export_para, NULL);
-  
     if(verbose & TC_DEBUG) {
         tc_log_info(__FILE__, "encoder closed");
     }
-    
     return 0;
 }
 
@@ -412,22 +285,22 @@ int encoder_close(void)
 int encoder_stop(void)
 {
     int ret;
-    transfer_t export_para;
 
-    export_para.flag = TC_VIDEO;
-    ret = tcv_export(TC_EXPORT_STOP, &export_para, NULL);
+    ret = tc_module_stop(encdata.vid_mod);
     if (ret == TC_EXPORT_ERROR) {
         tc_log_warn(__FILE__, "video export module error: stop failed");
         return -1;
     }
   
-    export_para.flag = TC_AUDIO;
-    ret = tca_export(TC_EXPORT_STOP, &export_para, NULL);
+    ret = tc_module_stop(encdata.aud_mod);
     if (ret == TC_EXPORT_ERROR) {
         tc_log_warn(__FILE__, "audio export module error: stop failed");
         return -1;
     }
-  
+ 
+    if(verbose & TC_DEBUG) {
+        tc_log_info(__FILE__, "encoder stopped");
+    }
     return 0;
 }
 
@@ -436,6 +309,49 @@ int encoder_stop(void)
  * encoder main loop helpers
  *
  * ------------------------------------------------------------*/
+
+static int alloc_buffers(TCEncoderData *data)
+{
+    data->venc_ptr = tc_malloc(sizeof(vframe_list_t));
+    if (!data->venc_ptr) {
+        goto no_vptr;
+    }
+    data->aenc_ptr = tc_malloc(sizeof(aframe_list_t));
+    if (!data->aenc_ptr) {
+        goto no_aptr;
+    }
+#ifdef STATBUFFER
+    data->venc_ptr->internal_video_buf_0 = tc_bufalloc(SIZE_RGB_FRAME);
+    data->venc_ptr->internal_video_buf_1 = data->venc_ptr->internal_video_buf_0;
+    if (!data->venc_ptr->internal_video_buf_0) {
+        goto no_vmem;
+    }
+    data->aenc_ptr->internal_audio_buf = tc_bufalloc(SIZE_PCM_FRAME);
+    if (!data->aenc_ptr->internal_audio_buf) {
+        goto no_amem;
+    }
+#endif /* STATBUFFER */
+    return 0;
+
+no_amem:
+    tc_buffree(data->venc_ptr->internal_video_buf_0);
+no_vmem:
+    tc_free(data->aenc_ptr);
+no_aptr:
+    tc_free(data->venc_ptr);
+no_vptr:
+    return -1;
+}
+
+static void free_buffers(TCEncoderData *data)
+{
+#ifdef STATBUFFER
+    tc_buffree(data->venc_ptr->internal_video_buf_0);
+    tc_buffree(data->aenc_ptr->internal_audio_buf);
+#endif /* STATBUFFER */
+    tc_free(data->venc_ptr);
+    tc_free(data->aenc_ptr);
+}
 
 /*
  * NOTE about counter/condition/mutex handling inside various 
@@ -447,433 +363,54 @@ int encoder_stop(void)
  * We need stil more cleanup and refactoring for future releases.
  */
 
-/* more macro magic ;) */
-
-#define DEC_VBUF_COUNTER(BUFID) \
-    pthread_mutex_lock(&vbuffer_ ## BUFID ## _fill_lock); \
-    --vbuffer_ ## BUFID ## _fill_ctr; \
-    pthread_mutex_unlock(&vbuffer_ ## BUFID ## _fill_lock)
-
-#define INC_VBUF_COUNTER(BUFID) \
-    pthread_mutex_lock(&vbuffer_## BUFID ## _fill_lock); \
-    ++vbuffer_ ## BUFID ## _fill_ctr; \
-    pthread_mutex_unlock(&vbuffer_ ## BUFID ## _fill_lock)
-
-#define DEC_ABUF_COUNTER(BUFID) \
-    pthread_mutex_lock(&abuffer_ ## BUFID ## _fill_lock); \
-    --abuffer_ ## BUFID ## _fill_ctr; \
-    pthread_mutex_unlock(&abuffer_ ## BUFID ## _fill_lock)
-  
-#define INC_ABUF_COUNTER(BUFID) \
-    pthread_mutex_lock(&abuffer_ ## BUFID ## _fill_lock); \
-    ++abuffer_ ## BUFID ## _fill_ctr; \
-    pthread_mutex_unlock(&abuffer_ ## BUFID ## _fill_lock)
-
-/*
- * Apply the filter chain to current video frame.
- * Used if no frame threads are avalaible.
- * this function should be never exported.
- */
-static void apply_video_filters(vframe_list_t *vptr, vob_t *vob)
-{
-    if (!have_vframe_threads) {
-        DEC_VBUF_COUNTER(im);
-        INC_VBUF_COUNTER(xx);
-
-        /* external plugin pre-processing */
-        vptr->tag = TC_VIDEO|TC_PRE_M_PROCESS;
-        process_vid_plugins(vptr);
-  
-        /* internal processing of video */
-        vptr->tag = TC_VIDEO;
-        process_vid_frame(vob, vptr);
-      
-        /* external plugin post-processing */
-        vptr->tag = TC_VIDEO|TC_POST_M_PROCESS;
-        process_vid_plugins(vptr);
-  
-        DEC_VBUF_COUNTER(xx);
-        INC_VBUF_COUNTER(ex);
-    }
-    
-    /* second stage post-processing - (synchronous) */
-    vptr->tag = TC_VIDEO|TC_POST_S_PROCESS;
-    process_vid_plugins(vptr);
-    postprocess_vid_frame(vob, vptr);
-}
-
-/*
- * Apply the filter chain to current audio frame.
- * Used if no frame threads are avalaible.
- * this function should be never exported.
- */
-static void apply_audio_filters(aframe_list_t *aptr, vob_t *vob)
-{
-    /* now we try to process the audio frame */
-    if (!have_aframe_threads) {
-        DEC_ABUF_COUNTER(im);
-        INC_ABUF_COUNTER(xx);
-
-        /* external plugin pre-processing */
-        aptr->tag = TC_AUDIO|TC_PRE_PROCESS;
-        process_aud_plugins(aptr);
-      
-        /* internal processing of audio */
-        aptr->tag = TC_AUDIO;
-        process_aud_frame(vob, aptr);
-      
-        /* external plugin post-processing */
-        aptr->tag = TC_AUDIO|TC_POST_PROCESS;
-        process_aud_plugins(aptr);
-
-        DEC_ABUF_COUNTER(xx);
-        INC_ABUF_COUNTER(ex);
-    }
-    
-    /* second stage post-processing - (synchronous) */
-    aptr->tag = TC_AUDIO|TC_POST_S_PROCESS;
-    process_aud_plugins(aptr);
-}
-
-/*
- * wait until a new audio frame is avalaible for encoding
- * in frame buffer.
- * When a new frame is avalaible update the encoding context
- * adjusting video frame buffer, and returns 0.
- * Return -1 if no more frames are avalaible. 
- * This usually happens when video stream ends.
- */
-static vframe_list_t *encoder_wait_vframe(TCEncoderData *data)
-{     
-    int ready = TC_FALSE;
-    vframe_list_t *vptr = NULL;
-  
-    while (1) {
-        /* check buffer fill level */
-        pthread_mutex_lock(&vframe_list_lock);
-        ready = vframe_fill_level(TC_BUFFER_READY);
-        pthread_mutex_unlock(&vframe_list_lock);
-  
-        if (ready) {
-            vptr = vframe_retrieve();
-            if (vptr != NULL) {
-                break;
-            }
-        } else { /* not ready */
-            /* check import status */
-            if (!vimport_status() || data->exit_flag)  {
-                if (verbose & TC_DEBUG) {
-                    tc_log_warn(__FILE__, "import closed - buffer empty (V)");
-                }
-                vptr = NULL;
-                break;
-            }
-            if (verbose & TC_STATS) {
-                tc_log_info(__FILE__, "waiting for video frames");
-            }
-        }
-      
-        /* 
-         * no frame available at this time
-         * pthread_yield is probably a cleaner solution, but it's a GNU extension
-         */
-        usleep(tc_buffer_delay_enc);
-    }
-    return vptr;
-}
-
-/*
- * wait until a new audio frame is avalaible for encoding
- * in frame buffer.
- * When a new frame is avalaible update the encoding context
- * adjusting video frame buffer, and returns 0.
- * Return -1 if no more frames are avalaible. This usually
- * means that video stream is ended.
- */
-static aframe_list_t *encoder_wait_aframe(TCEncoderData *data)
-{
-    int ready = TC_FALSE;
-    aframe_list_t *aptr = NULL;
- 
-    while (1) {
-        /* check buffer fill level */
-        pthread_mutex_lock(&aframe_list_lock);
-        ready = aframe_fill_level(TC_BUFFER_READY);
-        pthread_mutex_unlock(&aframe_list_lock);
-      
-        if (ready) {
-            aptr = aframe_retrieve();
-            if (aptr != NULL) {
-                break;
-            }
-        } else { /* !ready */
-            /* check import status */
-            if (!aimport_status() || data->exit_flag) {
-                if (verbose & TC_DEBUG) {
-                    tc_log_warn(__FILE__, "import closed - buffer empty (A)");
-                }
-                aptr = NULL;
-                break;
-            }
-            if (verbose & TC_STATS) {
-                tc_log_info(__FILE__, "waiting for audio frames");
-            }
-        }
-        /* 
-         * no frame available at this time
-         * pthread_yield is probably a cleaner solution, but it's a GNU extension
-         */
-        usleep(tc_buffer_delay_enc);
-    }
-    return aptr;
-}
-
-/*
- * get a new video frame for encoding. This means:
- * 1. to wait for a new frame avalaible for encoder using encoder_wait_vframe
- * 2. apply the filters if no frame threads are avalaible
- * 3. apply the encoder filters (POST_S_PROCESS)
- * 4. verify the status of video frame after all filtering.
- *    if acquired video frame is skipped, we must acquire a new one before
- *    continue with encoding, so we must restart from step 1.
- * returns 0 when a new frame is avalaible for encoding, or <0 if no more
- * video frames are avalaible. As for encoder_wait_vframe, this usually happens
- * when video stream ends.
- * returns >0 if frame id exceed the desired frame range
- */   
-static int encoder_acquire_vframe(TCEncoderData *data, vob_t *vob)
-{
-    int got_frame = TC_TRUE;
-  
-    do {
-        data->vptr = encoder_wait_vframe(data);
-        if (data->vptr == NULL) {
-            return -1; /* can't acquire video frame */
-        }
-      
-        data->fid = data->vptr->id + tc_get_frames_skipped_cloned();
-        if (verbose & TC_STATS) {
-            tc_log_info(__FILE__, "got video frame (%i|%i)",
-                                  data->vptr->id, data->fid);
-        }
-      
-        /*
-         * now we do the post processing ... this way, if just a video frame is
-         * skipped, we'll know.
-         *
-         * we have to check to make sure that before we do any processing
-         * that this frame isn't out of range (if it is, and one is using
-         * the "-t" split option, we'll see this frame again.
-         */
-
-        if (data->fid >= data->frame_last) {
-            if (verbose & TC_DEBUG) {
-                tc_log_info(__FILE__, "encoder last frame finished (%i/%i)",
-                                      data->fid, data->frame_last);
-            }
-            return 1;
-        }
-
-        apply_video_filters(data->vptr, vob);
-
-        if (data->vptr->attributes & TC_FRAME_IS_SKIPPED){
-            if (!have_vframe_threads) {
-                DEC_VBUF_COUNTER(im);
-            } else {
-                DEC_VBUF_COUNTER(ex);
-            }
-    
-            if (data->vptr != NULL 
-              && (data->vptr->attributes & TC_FRAME_WAS_CLONED)
-            ) {
-                /* XXX do we want to track skipped cloned flags? */
-                tc_update_frames_cloned(1);
-            }
-
-            if (data->vptr != NULL 
-              && (data->vptr->attributes & TC_FRAME_IS_CLONED)
-            ) {
-                /* XXX what to do when a frame is cloned and skipped? */
-                /*
-                 * I'd like to say they cancel, but perhaps they will end
-                 * up also skipping the clone?  or perhaps they'll keep,
-                 * but modify the clone?  Best to do the whole drill :/
-                 */
-                if (verbose & TC_DEBUG) {
-                    tc_log_info (__FILE__, "(%i) V pointer done. "
-                                           "Skipped and Cloned: (%i)", 
-                                           data->vptr->id, 
-                                           (data->vptr->attributes));
-                }
-
-                /* update flags */
-                data->vptr->attributes &= ~TC_FRAME_IS_CLONED;
-                data->vptr->attributes |= TC_FRAME_WAS_CLONED;
-                /*
-                 * this has to be done here, 
-                 * frame_threads.c won't see the frame again
-                 */
-                INC_VBUF_COUNTER(ex);
-            }
-            if (data->vptr != NULL 
-              && !(data->vptr->attributes & TC_FRAME_IS_CLONED)
-            ) {
-                vframe_remove(data->vptr);
-
-                /* notify sleeping import thread */
-                pthread_mutex_lock(&vframe_list_lock);
-                pthread_cond_signal(&vframe_list_full_cv);
-                pthread_mutex_unlock(&vframe_list_lock);
-
-                /* reset pointer for next retrieve */
-                data->vptr = NULL;
-            }
-            // tc_update_frames_skipped(1);
-            got_frame = TC_FALSE;
-        }
-    } while (!got_frame);
-
-    return 0;
-}
-
-/*
- * get a new audio frame for encoding. This means:
- * 1. to wait for a new frame avalaible for encoder using encoder_wait_aframe
- * 2. apply the filters if no frame threads are avalaible
- * 3. apply the encoder filters (POST_S_PROCESS)
- * 4. verify the status of audio frame after all filtering.
- *    if acquired audio frame is skipped, we must acquire a new one before
- *    continue with encoding, so we must restart from step 1.
- * returns 0 when a new frame is avalaible for encoding, or <0 if no more
- * video frames are avalaible. As for encoder_wait_aframe, this usually happens
- * when audio stream ends.
- */   
-static int encoder_acquire_aframe(TCEncoderData *data, vob_t *vob)
-{
-    int got_frame = TC_TRUE;
-  
-    do {
-        data->aptr = encoder_wait_aframe(data);
-        if (data->aptr == NULL) {
-            return -1;
-        }
-      
-        if (verbose & TC_STATS) {
-            tc_log_info(__FILE__, "got audio frame (%i)", data->aptr->id);
-        }
-      
-        apply_audio_filters(data->aptr, vob);
-
-        if (data->aptr->attributes & TC_FRAME_IS_SKIPPED) {
-            if (!have_aframe_threads) {
-                DEC_ABUF_COUNTER(im);
-            } else {
-                DEC_ABUF_COUNTER(ex);
-            }
-
-            if (data->aptr != NULL 
-              && !(data->aptr->attributes & TC_FRAME_IS_CLONED)
-            ) {
-                aframe_remove(data->aptr);  
-
-                /* notify sleeping import thread */
-                pthread_mutex_lock(&aframe_list_lock);
-                pthread_cond_signal(&aframe_list_full_cv);
-                pthread_mutex_unlock(&aframe_list_lock);
-
-                /* reset pointer for next retrieve */
-                data->aptr = NULL;
-            }
-
-            if (data->aptr != NULL 
-              && (data->aptr->attributes & TC_FRAME_IS_CLONED)
-            ) {
-                if (verbose & TC_DEBUG) {
-                    tc_log_info(__FILE__, "(%i) A pointer done. Skipped and Cloned: (%i)", 
-                                        data->aptr->id, (data->aptr->attributes));
-                }
- 
-                /* adjust clone flags */
-                data->aptr->attributes &= ~TC_FRAME_IS_CLONED;
-                data->aptr->attributes |= TC_FRAME_WAS_CLONED;
-
-                /* 
-                 * this has to be done here, 
-                 * frame_threads.c won't see the frame again
-                 */
-                INC_ABUF_COUNTER(ex);
-            }
-            got_frame = TC_FALSE;
-        }
-    } while (!got_frame);
-
-    return 0;
-}
 
 /*
  * dispatch the acquired frames to encoder modules, and adjust frame counters
  */
-static int encoder_export(TCEncoderData *data, vob_t *vob)
+static int encoder_export(TCEncoderData *data)
 {
     int video_delayed = 0;
+    int ret;
     
-    /* encode and export video frame */
-    data->export_para.buffer = data->vptr->video_buf;
-    data->export_para.size   = data->vptr->video_size;
-    data->export_para.attributes = data->vptr->attributes;
-    
-    if (data->vptr->attributes & TC_FRAME_IS_KEYFRAME) {
-        data->export_para.attributes |= TC_FRAME_IS_KEYFRAME;
-    }    
-    
-    data->export_para.flag   = TC_VIDEO;
-
-    if(tcv_export(TC_EXPORT_ENCODE, &data->export_para, vob) < 0) {
-        tc_log_warn(__FILE__, "error encoding video frame");
+    ret = tc_module_encode_video(data->vid_mod,
+                                 data->buffer->vptr, data->venc_ptr);
+    if (ret != TC_EXPORT_OK) {
+        tc_log_error(__FILE__, "error encoding video frame");
         data->error_flag = 1;
     }
 
-    if (data->export_para.attributes == TC_FRAME_IS_DELAYED) {
-        data->export_para.attributes &= ~TC_FRAME_IS_DELAYED;
+    if (data->venc_ptr->attributes == TC_FRAME_IS_DELAYED) {
+        data->venc_ptr->attributes &= ~TC_FRAME_IS_DELAYED;
         video_delayed = 1;
     }
-    /* maybe clone? */
-    data->vptr->attributes = data->export_para.attributes;
 
-    DEC_VBUF_COUNTER(ex);
-
-    /* encode and export audio frame */
-    data->export_para.buffer = data->aptr->audio_buf;
-    data->export_para.size   = data->aptr->audio_size;
-    data->export_para.attributes = data->aptr->attributes;
-    
-    data->export_para.flag   = TC_AUDIO;
-    
-    // XXX
     if(video_delayed) {
-        data->aptr->attributes |= TC_FRAME_IS_CLONED; 
+        data->buffer->aptr->attributes |= TC_FRAME_IS_CLONED; 
         tc_log_info(__FILE__, "Delaying audio");
     } else {
-        if (tca_export(TC_EXPORT_ENCODE, &data->export_para, vob) < 0) {
-            tc_log_warn(__FILE__, "error encoding audio frame");
+        ret = tc_module_encode_audio(data->aud_mod,
+                                     data->buffer->aptr, data->aenc_ptr);
+        if (ret != TC_EXPORT_OK) {
+            tc_log_error(__FILE__, "error encoding audio frame");
             data->error_flag = 1;
         }
- 
-        /* maybe clone? */
-        data->aptr->attributes = data->export_para.attributes;
     }
 
-    DEC_ABUF_COUNTER(ex);
-
+    ret = tc_module_multiplex(data->mplex_mod,
+                              data->venc_ptr, data->aenc_ptr);
+    if (ret < 0) {
+        tc_log_error(__FILE__, "error multiplexing encoded frames");
+        data->error_flag = 1;
+    }
+    
     if (verbose & TC_INFO) {
         int last = (data->frame_last == TC_FRAME_LAST) ?(-1) :data->frame_last;
         if (!data->fill_flag) {
             data->fill_flag = 1;
         }
-        counter_print(1, data->fid, data->frame_first, last);
+        counter_print(1, data->buffer->frame_id, data->frame_first, last);
     }
     
-    /* on success, increase global frame counter */
     tc_update_frames_encoded(1); 
     return data->error_flag;
 }
@@ -888,106 +425,8 @@ static void encoder_skip(TCEncoderData *data)
         if (!data->fill_flag) {
             data->fill_flag = 1;
         }
-        counter_print(0, data->fid, data->saved_frame_last, data->frame_first-1);
-    }
-    
-    /*
-     * we know we're not finished yet, because we did a quick
-     * check before processing the frame
-     */
-    if (!have_aframe_threads) {
-        DEC_VBUF_COUNTER(im);
-        DEC_ABUF_COUNTER(im);
-    } else {
-        DEC_VBUF_COUNTER(ex);
-        DEC_ABUF_COUNTER(ex);
-    }
-    return;
-}
-
-
-/*
- * put back to frame buffer an acquired video frame.
- */
-static void encoder_dispose_vframe(TCEncoderData *data)
-{
-    if (data->vptr != NULL 
-      && (data->vptr->attributes & TC_FRAME_WAS_CLONED)
-    ) {
-        tc_update_frames_cloned(1);
-    }
-      
-    if (data->vptr != NULL 
-      && !(data->vptr->attributes & TC_FRAME_IS_CLONED)
-    ) {
-        vframe_remove(data->vptr);  
-    
-        /* notify sleeping import thread */
-        pthread_mutex_lock(&vframe_list_lock);
-        pthread_cond_signal(&vframe_list_full_cv);
-        pthread_mutex_unlock(&vframe_list_lock);
-    
-        /* reset pointer for next retrieve */
-        data->vptr = NULL;           
-    }
-      
-    if (data->vptr != NULL 
-      && (data->vptr->attributes & TC_FRAME_IS_CLONED)
-    ) {
-        if(verbose & TC_DEBUG) {
-            tc_log_info(__FILE__, "(%i) V pointer done. Cloned: (%i)", 
-                                data->vptr->id, (data->vptr->attributes));
-        }   
-        data->vptr->attributes &= ~TC_FRAME_IS_CLONED;
-        data->vptr->attributes |= TC_FRAME_WAS_CLONED;
-
-        /*
-         * this has to be done here, 
-         * frame_threads.c won't see the frame again
-         */
-        INC_VBUF_COUNTER(ex);
-    
-        // update counter
-        //tc_update_frames_cloned(1);
-    }
-}
-
-   
-/*
- * put back to frame buffer an acquired audio frame
- */
-static void encoder_dispose_aframe(TCEncoderData *data)
-{
-    if (data->aptr != NULL 
-      && !(data->aptr->attributes & TC_FRAME_IS_CLONED)
-    ) {
-        aframe_remove(data->aptr);
-    
-        /* notify sleeping import thread */
-        pthread_mutex_lock(&aframe_list_lock);
-        pthread_cond_signal(&aframe_list_full_cv);
-        pthread_mutex_unlock(&aframe_list_lock);
-    
-        /* reset pointer for next retrieve */
-        data->aptr=NULL;
-    }           
-
-    if (data->aptr!=NULL 
-      && (data->aptr->attributes & TC_FRAME_IS_CLONED)
-    ) {
-        if (verbose & TC_DEBUG) {
-            tc_log_info(__FILE__, "(%i) A pointer done. Cloned: (%i)", 
-                                 data->aptr->id, (data->aptr->attributes));
-        }
-    
-        data->aptr->attributes &= ~TC_FRAME_IS_CLONED;
-        data->aptr->attributes |= TC_FRAME_WAS_CLONED;
-
-        /*
-         * this has to be done here, 
-         * frame_threads.c won't see the frame again
-         */
-        INC_ABUF_COUNTER(ex);
+        counter_print(0, data->buffer->frame_id, data->saved_frame_last,
+                      data->frame_first-1);
     }
 }
 
@@ -997,6 +436,8 @@ static void encoder_dispose_aframe(TCEncoderData *data)
  *
  * ------------------------------------------------------------*/
 
+#define IS_LAST_FRAME(fid) \
+    (((fid) - tc_get_frames_dropped()) == frame_last)
 
 void encoder(vob_t *vob, int frame_first, int frame_last)
 {
@@ -1011,9 +452,15 @@ void encoder(vob_t *vob, int frame_first, int frame_last)
     encdata.frame_last = frame_last;
     encdata.saved_frame_last = encdata.old_frame_last;
     
+    err = alloc_buffers(&encdata);
+    if (err) {
+        tc_log_error(__FILE__, "can't allocate encoder buffers");
+        return;
+    }
+    
     do {
         /* check for ^C signal */
-        if (encdata.exit_flag) {
+        if (tc_export_stop_requested()) {
             if (verbose & TC_DEBUG) {
                 tc_log_warn(__FILE__, "export canceled on user request");
             }
@@ -1021,12 +468,12 @@ void encoder(vob_t *vob, int frame_first, int frame_last)
         }
         tc_pause();
         
-        err = encoder_acquire_vframe(&encdata, vob);
+        err = ACQUIRE_VID_FRAME(&encdata, vob, frame_last);
         if (err) {
             return; /* can't acquire video frame */
         }
       
-        err = encoder_acquire_aframe(&encdata, vob);
+        err = ACQUIRE_AUD_FRAME(&encdata, vob, frame_last);
         if (err) {
             return;  /* can't acquire frame */
         }
@@ -1037,26 +484,44 @@ void encoder(vob_t *vob, int frame_first, int frame_last)
       
         /* cluster mode must take dropped frames into account */
         if (tc_cluster_mode 
-          && (encdata.fid - tc_get_frames_dropped()) == frame_last) {
+          && IS_LAST_FRAME(encdata.buffer->frame_id)) {
             return;
         }
       
         /* check frame id */
-        if (frame_first <= encdata.fid && encdata.fid < frame_last) {
-            encoder_export(&encdata, vob);
+        if (frame_first <= encdata.buffer->frame_id
+          && encdata.buffer->frame_id < frame_last) {
+            // XXX
+            VFRAME_INIT(encdata.venc_ptr,
+                        tc_frame_width_max, tc_frame_height_max);
+            AFRAME_INIT(encdata.aenc_ptr);
+            encoder_export(&encdata);
         } else { /* frame not in range */
             encoder_skip(&encdata);
         } /* frame processing loop */
       
         /* release frame buffer memory */
-        encoder_dispose_vframe(&encdata);
-        encoder_dispose_aframe(&encdata);
+        DISPOSE_VID_FRAME(&encdata);
+        DISPOSE_AUD_FRAME(&encdata);
       
-    } while (import_status() && !encdata.error_flag);
+    } while (HAVE_DATA(&encdata) && !encdata.error_flag);
     /* main frame decoding loop */
+    
+    free_buffers(&encdata);
     
     if (verbose & TC_DEBUG) {
         tc_log_info(__FILE__, "export terminated - buffer(s) empty");
     }
 }
 
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */

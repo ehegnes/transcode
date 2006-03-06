@@ -1,4 +1,22 @@
 2006-03-07 Francesco Romani <fromani at gmail dot com>
+  * src/Makefile.am src/encoder-buffer.c src/encoder-buffer.h
+    src/encoder-common.c src/encoder-common.h src/encoder.c
+    src/encoder.h src/transcode.c
+  Encoder modularization take two. 
+  Now the real encoding code (modules handling, muxing decision
+  and so on) is separated by frame handling code. This step
+  will cause a little speed loss due to use of some function
+  pointers in encoder loop, but we really need a serious
+  modularization and code separation here.
+  This step also enable us to test new encoder (and so new module
+  system) separately form main transcode binary.
+
+  *WARNING* *WARNING* *WARNING*
+  new encoder, as well as new module system code, is yet
+  *highly experimental*. Transcode main binary is *KNOWN BROKEN*.
+  This will be fixed very soon.
+
+2006-03-07 Francesco Romani <fromani at gmail dot com>
   * src/framebuffer.h src/video_buffer.c
   new vframe_list_t initialization macro, to setup
   vframe.video_buf_? to something useful.
@@ -12,7 +30,7 @@
 
   * src/transcode.h src/transcode.c src/framebuffer.h src/video_buffer.c
   Cleaning up/reorganization/module interdependencies reduction:
-  move tc_frame_{width,height}_max declarationns from transcode.h to
+  move tc_frame_{width,height}_max declarations from transcode.h to
   framebuffer.h, and definition from transcode.c to video_buffer.c.
   move tc_adjust_frame_buffer() declaration from transcode.h to
   framebuffer.h

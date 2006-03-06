@@ -27,6 +27,7 @@
 #include "transcode.h"
 #include "decoder.h"
 #include "encoder.h"
+#include "encoder-buffer.h"
 #include "dl_loader.h"
 #include "framebuffer.h"
 #include "counter.h"
@@ -543,8 +544,12 @@ static int transcoder(int mode, vob_t *vob)
       if(ex_vid_mod && strcmp(ex_vid_mod,"null") != 0) tc_encode_stream|=TC_VIDEO;
 
       // load export modules and check capabilities
-      if(export_init(vob, ex_aud_mod, ex_vid_mod)<0) {
-      	tc_warn("failed to init export modules");
+      if(export_init(tc_builtin_buffer(vob, -1), NULL)<0) {
+      	tc_error("failed to init export layer");
+	return(-1);
+      }
+      if(export_setup(ex_aud_mod, ex_vid_mod, NULL)<0) {
+      	tc_error("failed to init export modules");
 	return(-1);
       }
 

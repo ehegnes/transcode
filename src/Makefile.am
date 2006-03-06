@@ -6,6 +6,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/export \
 	-I$(top_srcdir)/import \
+	-I$(top_srcdir)/libtc \
 	$(XIO_CFLAGS) \
 	$(ACLIB_CFLAGS) \
 	$(LIBAVCODEC_CFLAGS) \
@@ -36,6 +37,8 @@ EXTRA_DIST = \
 	decoder.h \
 	dl_loader.h \
 	encoder.h \
+	encoder-common.h \
+	encoder-buffer.h \
 	filter.h \
 	frame_threads.h \
 	framebuffer.h \
@@ -57,6 +60,8 @@ transcode_SOURCES = \
 	decoder.c \
 	dl_loader.c \
 	encoder.c \
+	encoder-common.c \
+	encoder-buffer.c \
 	filter.c \
 	frame_threads.c \
 	info_server.c \
