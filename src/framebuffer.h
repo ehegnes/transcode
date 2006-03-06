@@ -147,21 +147,19 @@ typedef struct vframe_list {
 
 } vframe_list_t;
 
-#define VFRAME_INIT(vptr) \
+
+#define VFRAME_INIT(vptr, W, H) \
 do { \
         (vptr)->video_buf_RGB[0] = (vptr)->internal_video_buf_0; \
         (vptr)->video_buf_RGB[1] = (vptr)->internal_video_buf_1; \
 \
         (vptr)->video_buf_Y[0] = (vptr)->internal_video_buf_0; \
+        (vptr)->video_buf_U[0] = (vptr)->video_buf_Y[0] + W * H; \
+        (vptr)->video_buf_V[0] = (vptr)->video_buf_U[0] + W * H; \
+\
         (vptr)->video_buf_Y[1] = (vptr)->internal_video_buf_1; \
-        (vptr)->video_buf_U[0] = (vptr)->video_buf_Y[0] \
-            + tc_frame_width_max * tc_frame_height_max; \
-        (vptr)->video_buf_U[1] = (vptr)->video_buf_Y[1] \
-            + tc_frame_width_max * tc_frame_height_max; \
-        (vptr)->video_buf_V[0] = (vptr)->video_buf_U[0] \
-            + (tc_frame_width_max * tc_frame_height_max)/4; \
-        (vptr)->video_buf_V[1] = (vptr)->video_buf_U[1] \
-            + (tc_frame_width_max * tc_frame_height_max)/4; \
+        (vptr)->video_buf_U[1] = (vptr)->video_buf_Y[1] + W * H; \
+        (vptr)->video_buf_V[1] = (vptr)->video_buf_U[1] + W * H; \
 \
         (vptr)->video_buf  = (vptr)->internal_video_buf_0; \
         (vptr)->video_buf2 = (vptr)->internal_video_buf_1; \

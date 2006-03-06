@@ -1,4 +1,9 @@
 2006-03-07 Francesco Romani <fromani at gmail dot com>
+  * src/framebuffer.h src/video_buffer.c
+  new vframe_list_t initialization macro, to setup
+  vframe.video_buf_? to something useful.
+
+2006-03-07 Francesco Romani <fromani at gmail dot com>
   * src/video_buffer.c
   simplify (for now) internal frame size calculus.
 

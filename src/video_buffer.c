@@ -34,7 +34,7 @@ pthread_cond_t vframe_list_full_cv=PTHREAD_COND_INITIALIZER;
 vframe_list_t *vframe_list_head;
 vframe_list_t *vframe_list_tail;
 
-static int vid_buf_max = 0;
+static int vid_buf_max  = 0;
 static int vid_buf_next = 0;
 
 static int vid_buf_fill  =0;
@@ -96,7 +96,7 @@ static int vid_buf_alloc(int ex_num)
 	    return(-1);
 	}
 
-    VFRAME_INIT(vid_buf_ptr[n]);
+    VFRAME_INIT(vid_buf_ptr[n], tc_frame_width_max, tc_frame_height_max);
 	
     vid_buf_ptr[n]->free=1;
     }
