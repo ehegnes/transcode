@@ -63,6 +63,11 @@
  *          -- tibit
  */
 
+extern int tc_frame_width_max;
+extern int tc_frame_height_max;
+
+void tc_adjust_frame_buffer(int height, int width);
+
 typedef struct frame_list {
 
   int bufid;     // buffer id

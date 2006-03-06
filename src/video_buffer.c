@@ -25,6 +25,9 @@
 #include "framebuffer.h"
 #include "frame_threads.h"
 
+int tc_frame_width_max   = 0;
+int tc_frame_height_max  = 0;
+
 pthread_mutex_t vframe_list_lock=PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t vframe_list_full_cv=PTHREAD_COND_INITIALIZER;
 
