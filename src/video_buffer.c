@@ -62,8 +62,7 @@ static int vid_buf_alloc(int ex_num)
     int n, num;
 
 
-    int frame_size_max = (tc_frame_width_max + tc_frame_width_max%32) *
-	                 (tc_frame_height_max+ tc_frame_height_max%32) * BPP/8;
+    int frame_size_max = (tc_frame_width_max + tc_frame_height_max) * BPP/8;
 
     if(ex_num < 0) return(-1);
 

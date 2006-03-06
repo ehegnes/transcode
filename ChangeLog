@@ -1,4 +1,7 @@
 2006-03-07 Francesco Romani <fromani at gmail dot com>
+  * src/video_buffer.c
+  simplify (for now) internal frame size calculus.
+
   * src/transcode.h
   add multiplexor module string in vob_t structure.
 
