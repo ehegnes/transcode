@@ -1,4 +1,11 @@
 2006-03-07 Francesco Romani <fromani at gmail dot com>
+  * src/transcode.c
+  switch back to old style encoder (and update API accordingly).
+
+  * tools/Makefile.am
+  enable new style code.
+
+2006-03-07 Francesco Romani <fromani at gmail dot com>
   * src/encoder.h src/encoder.c
   reintroduce (temporary) old style encoder until new one
   is ready.

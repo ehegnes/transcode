@@ -3,6 +3,7 @@
 AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
 	-DMOD_PATH=\"$(MOD_PATH)\" \
+	-DTC_ENCODER_NG=1 \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/libtc \
