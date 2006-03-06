@@ -1,4 +1,12 @@
 2006-03-07 Francesco Romani <fromani at gmail dot com>
+  * src/encoder.h src/encoder.c
+  reintroduce (temporary) old style encoder until new one
+  is ready.
+
+  *WARNING* *WARNING* *WARNING*
+  this code is STILL broken. I'm working to solve problems.
+
+2006-03-07 Francesco Romani <fromani at gmail dot com>
   * src/audio_buffer.c src/callback.c src/decoder.c
     src/video_buffer.c
   remove some warning sin compilation.

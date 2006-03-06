@@ -51,7 +51,11 @@ struct tcencoderbuffer_ {
 };
 
 int export_init(TCEncoderBuffer *buffer, TCFactory factory);
+#ifdef TC_ENCODER_NG
 int export_setup(const char *a_mod, const char *v_mod, const char *m_mod);
+#else
+int export_setup(vob_t *vob, const char *a_mod, const char *v_mod);
+#endif
 void export_shutdown(void);
 
 int encoder_init(vob_t *vob);
