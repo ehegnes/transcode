@@ -6,6 +6,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/libtc \
+	-I$(top_srcdir)/aclib \
 	$(AC3_CFLAGS) \
 	$(AVILIB_CFLAGS) \
 	$(DLDARWININCL) \
@@ -19,6 +20,7 @@ bin_PROGRAMS = \
 	avisplit \
 	avisync \
 	tcmodinfo \
+	tcexport \
 	tcmp3cut
 
 avisync_SOURCES = \
@@ -83,6 +85,30 @@ tcmodinfo_LDADD = \
 	$(LIBTCVIDEO_LIBS) \
 	-lm
 tcmodinfo_LDFLAGS = -export-dynamic
+
+tcexport_SOURCES = tcexport.c \
+	rawsource.c \
+	rawsource.h \
+	../src/probe.c \
+	../src/dl_loader.c \
+	../src/audio_buffer.c \
+	../src/video_buffer.c \
+	../src/counter.c \
+	../src/encoder.c \
+	../src/encoder-common.c
+tcexport_LDADD = \
+	$(DLDARWINLIB) \
+	$(ACLIB_LIBS) \
+	$(AVILIB_LIBS) \
+	$(WAVLIB_LIBS) \
+	$(LIBTC_LIBS) \
+	$(LIBTCVIDEO_LIBS) \
+	$(LIBTCAUDIO_LIBS) \
+	$(SUPPORT_LIBS) \
+	$(TCIOAUX_LIBS) \
+	$(XIO_LIBS) \
+	-lm
+tcexport_LDFLAGS = -export-dynamic
 
 tcmp3cut_SOURCES = tcmp3cut.c
 tcmp3cut_LDADD = \

@@ -1,4 +1,13 @@
 2006-03-07 Francesco Romani <fromani at gmail dot com>
+  * Added files: tools/rawsource.c tools/rawsource.h tools/tcexport.c
+
+  * tools/Makefile.am
+  new helper tool: tcexport.
+  tcexport is a direct and simple interface of transcode's encoder
+  code: no filters, no threads, no frame mangling at all.
+  It's intended mainly for testing purposes.
+
+2006-03-07 Francesco Romani <fromani at gmail dot com>
   * src/Makefile.am src/encoder-buffer.c src/encoder-buffer.h
     src/encoder-common.c src/encoder-common.h src/encoder.c
     src/encoder.h src/transcode.c
