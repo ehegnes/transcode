@@ -372,6 +372,7 @@ typedef struct _vob_t {
     char *im_a_string;          // Extra options for import audio module
     char *ex_v_string;          // Extra options for export video module
     char *ex_a_string;          // Extra options for export audio module
+    char *ex_m_string;          // Extra options for multiplexor module
 
     float m2v_requant;          // Requantize factor for mpeg2 video streams
 

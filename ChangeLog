@@ -1,4 +1,7 @@
 2006-03-07 Francesco Romani <fromani at gmail dot com>
+  * src/transcode.h
+  add multiplexor module string in vob_t structure.
+
   * src/transcode.h src/transcode.c src/framebuffer.h src/video_buffer.c
   Cleaning up/reorganization/module interdependencies reduction:
   move tc_frame_{width,height}_max declarationns from transcode.h to
