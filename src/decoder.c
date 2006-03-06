@@ -451,7 +451,7 @@ static int vimport_test_shutdown(void)
 #define BLOCKSIZE 4096
 #endif
 
-static int mfread(char *buf, int size, int nelem, FILE *f)
+static int mfread(uint8_t *buf, int size, int nelem, FILE *f)
 {
   int fd = fileno(f);
   int n=0, r1 = 0, r2 = 0;

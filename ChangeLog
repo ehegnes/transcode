@@ -1,4 +1,9 @@
 2006-03-07 Francesco Romani <fromani at gmail dot com>
+  * src/audio_buffer.c src/callback.c src/decoder.c
+    src/video_buffer.c
+  remove some warning sin compilation.
+
+2006-03-07 Francesco Romani <fromani at gmail dot com>
   * Added files: tools/rawsource.c tools/rawsource.h tools/tcexport.c
 
   * tools/Makefile.am

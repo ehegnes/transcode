@@ -67,7 +67,7 @@ static int aud_buf_alloc(int ex_num)
       return(-1);
     }
 
-    if((aud_buf_mem = (char *) calloc(num, sizeof(aframe_list_t)))==NULL) {
+    if((aud_buf_mem = calloc(num, sizeof(aframe_list_t)))==NULL) {
       perror("out of memory");
       return(-1);
     }

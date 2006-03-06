@@ -73,7 +73,7 @@ static int vid_buf_alloc(int ex_num)
       return(-1);
     }
 
-    if((vid_buf_mem = (char *) calloc(num, sizeof(vframe_list_t)))==NULL) {
+    if((vid_buf_mem = calloc(num, sizeof(vframe_list_t)))==NULL) {
       perror("out of memory");
       return(-1);
     }

@@ -59,8 +59,6 @@ void tc_outstream_rotate(void)
   char buf[TC_BUF_MAX];
   vob_t *vob=tc_get_vob();
 
-  transfer_t export_para;
-
   if(!rotate_flag) return;
 
   //reset flag to avoid re-entry
