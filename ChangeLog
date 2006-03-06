@@ -1,17 +1,26 @@
+2006-03-07 Francesco Romani <fromani at gmail dot com>
+  * Added files: avilib/wavlib.h avilib/wavlib.c
+
+  * configure.in avilib/Makefile,am
+
+  Enter new support library: wavlib for dealing with (simple)
+  WAV files. It's putted into avilib/ directory for legacy
+  reasons, but this can change before release.
+
 2006-03-05 Francesco Romani <fromani at gmail dot com>
   * testsuite/Makefile.am
-  do not install testing programs
+  do not install testing programs.
 
   src/probe.c
-  a couple of cosmetic fixes
+  a couple of cosmetic fixes.
 
 2006-03-05 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h libtc/tc_functions.c
   Documentation update.
 
   New support functions:
-  - {a,v}frame_{new,del}: single frame allocators/deallocators
-  - tc_detect_asr: find asr code given frame specs
+  - {a,v}frame_{new,del}: single frame allocators/deallocators.
+  - tc_detect_asr: find asr code given frame specs.
 
 2006-03-01 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule.c
