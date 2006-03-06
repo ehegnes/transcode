@@ -23,11 +23,11 @@
 extern int errno;
 
 #define MOD_NAME    "multiplex_raw.so"
-#define MOD_VERSION "v0.0.2 (2005-12-29)"
+#define MOD_VERSION "v0.0.3 (2006-03-06)"
 #define MOD_CAP     "write each stream in a separate file"
 
-#define RAW_VID_EXT ".vid"
-#define RAW_AUD_EXT ".aud"
+#define RAW_VID_EXT "vid"
+#define RAW_AUD_EXT "aud"
 
 static const char *raw_help = ""
     "Overview:\n"
@@ -69,7 +69,9 @@ static int raw_configure(TCModuleInstance *self,
     }
     pd = self->userdata;
 
-    if (vob->audio_out_file == NULL) {
+    // XXX
+    if (vob->audio_out_file == NULL
+      || !strcmp(vob->audio_out_file, "/dev/null")) {
         /* use affine names */
         tc_snprintf(vid_name, PATH_MAX, "%s.%s",
                     vob->video_out_file, RAW_VID_EXT);
@@ -80,10 +82,10 @@ static int raw_configure(TCModuleInstance *self,
         strlcpy(vid_name, vob->video_out_file, PATH_MAX);
         strlcpy(aud_name, vob->audio_out_file, PATH_MAX);
     }
-
+    
     /* avoid fd loss in case of failed configuration */
     if (pd->fd_vid == -1) {
-        pd->fd_vid = open(vob->video_out_file,
+        pd->fd_vid = open(vid_name,
                           O_RDWR|O_CREAT|O_TRUNC,
                           S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
         if (pd->fd_vid == -1) {
@@ -94,7 +96,7 @@ static int raw_configure(TCModuleInstance *self,
 
     /* avoid fd loss in case of failed configuration */
     if (pd->fd_aud == -1) {
-        pd->fd_aud = open(vob->audio_out_file,
+        pd->fd_aud = open(aud_name,
                           O_RDWR|O_CREAT|O_TRUNC,
                           S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
         if (pd->fd_aud == -1) {
@@ -102,7 +104,12 @@ static int raw_configure(TCModuleInstance *self,
             return TC_EXPORT_ERROR;
         }
     }
-
+    if (vob->verbose >= TC_DEBUG) {
+        tc_log_info(MOD_NAME, "video output: %s (%s)",
+                    vid_name, (pd->fd_vid == -1) ?"FAILED" :"OK");
+        tc_log_info(MOD_NAME, "audio output: %s (%s)",
+                    aud_name, (pd->fd_aud == -1) ?"FAILED" :"OK");
+    }
     return TC_EXPORT_OK;
 }
 
