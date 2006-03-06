@@ -2,6 +2,7 @@
  *  import_yuv4mpeg.c
  *
  *  Copyright (C) Thomas Östreich - June 2001
+ *  Copyright (C) Francesco Romani - March 2006
  *
  *  This file is part of transcode, a video stream processing tool
  *
@@ -22,128 +23,253 @@
  */
 
 #define MOD_NAME    "import_yuv4mpeg.so"
-#define MOD_VERSION "v0.2.4 (2002-01-20)"
-#define MOD_CODEC   "(video) YUV4MPEGx | (audio) WAVE"
+#define MOD_VERSION "v0.3.0 (2006-03-03)"
+#define MOD_CODEC   "(video) YUV4MPEG2 | (audio) WAVE"
 
+#include "config.h"
+
+#if defined(HAVE_MJPEGTOOLS_INC)
+#include "yuv4mpeg.h"
+#include "mpegconsts.h"
+#else
+#include "mjpegtools/yuv4mpeg.h"
+#include "mjpegtools/mpegconsts.h"
+#endif
+
+#include "libtcvideo/tcvideo.h"
 #include "transcode.h"
+#include "wavlib.h"
 
 static int verbose_flag = TC_QUIET;
-static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_PCM;
+static int capability_flag = TC_CAP_RGB|TC_CAP_YUV|TC_CAP_PCM;
 
 #define MOD_PRE yuv4mpeg
 #include "import_def.h"
 
+typedef struct {
+    int fd_vid;
+    WAV wav;
 
-#define MAX_BUF 1024
-char import_cmd_buf[MAX_BUF];
+    y4m_frame_info_t frameinfo;
+    y4m_stream_info_t streaminfo;
+
+    TCVHandle tcvhandle;
+    ImageFormat dstfmt;
+
+    int width;
+    int height;
+    
+    uint8_t *planes[3];
+} YWPrivateData;
+
+static YWPrivateData pd = {
+    .fd_vid = -1,
+    .wav = NULL,
+
+    .tcvhandle = NULL,
+
+    .width = 0,
+    .height = 0,
+};
+
+extern int errno;
 
 /* ------------------------------------------------------------
- *
- * open stream
- *
+ * helpers: declarations
  * ------------------------------------------------------------*/
+
+static int yw_open_video(YWPrivateData *pd, vob_t *vob);
+static int yw_open_audio(YWPrivateData *pd, vob_t *vob);
+static int yw_decode_video(YWPrivateData *pd, transfer_t *param);
+static int yw_decode_audio(YWPrivateData *pd, transfer_t *param);
+static int yw_close_video(YWPrivateData *pd);
+static int yw_close_audio(YWPrivateData *pd);
 
 MOD_open
 {
-	if(param->flag == TC_VIDEO)
-	{
-		switch(vob->im_v_codec)
-		{
-			case CODEC_RGB:
-			{
-				if(tc_snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" | tcextract -x yuv420p -t yuv4mpeg | tcdecode -x yuv420p -g %dx%d", vob->video_in_file, vob->im_v_width, vob->im_v_height) < 0)
-				{
-					perror("cmd buffer overflow");
-					return(TC_IMPORT_ERROR);
-      			}
-
-      			break;
-			}
-
-			case CODEC_YUV:
-			{
-				if(tc_snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" | tcextract -x yuv420p -t yuv4mpeg", vob->video_in_file) < 0)
-				{
-					perror("cmd buffer overflow");
-					return(TC_IMPORT_ERROR);
-				}
-
-      			break;
-			}
-		}
-
-    // print out
-    if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
-
-    param->fd = NULL;
-
-    // popen
-    if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
-      perror("popen RGB stream");
-      return(TC_IMPORT_ERROR);
+    if(param->flag == TC_VIDEO) {
+        return yw_open_video(&pd, vob);
     }
-
-    return(0);
-  }
-
-  if(param->flag == TC_AUDIO)
-  {
-    // need to check if audio and video file are identical, which is
-    // not desired
-
-      if(strcmp(vob->audio_in_file, vob->video_in_file) == 0) {
-
-      // user error, print warnig and exit
-      tc_log_warn(MOD_NAME, "audio/video files are identical");
-      tc_log_warn(MOD_NAME, "unable to read pcm data from yuv stream");
-      tc_log_warn(MOD_NAME, "use \"-x yuv4mpeg,null\" for dummy audio input");
-
-      return(TC_IMPORT_ERROR);
+    if(param->flag == TC_AUDIO) {
+        return yw_open_audio(&pd, vob);
     }
-
-
-      if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcextract -x pcm -t wav -i \"%s\"", vob->audio_in_file) < 0) {
-      perror("cmd buffer overflow");
-      return(TC_IMPORT_ERROR);
-    }
-
-    // print out
-    if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
-
-    param->fd = NULL;
-
-    // popen
-    if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
-      perror("popen PCM stream");
-      return(TC_IMPORT_ERROR);
-    }
-
-    return(0);
-  }
-
-  return(TC_IMPORT_ERROR);
+    return(TC_IMPORT_ERROR);
 }
 
-/* ------------------------------------------------------------
- *
- * decode  stream
- *
- * ------------------------------------------------------------*/
 
-MOD_decode{return(0);}
+MOD_decode
+{
+    if(param->flag == TC_VIDEO) {
+        return yw_decode_video(&pd, param);
+    }
+    if(param->flag == TC_AUDIO) {
+        return yw_decode_audio(&pd, param);
+    }
+    return(TC_IMPORT_ERROR);
+}
 
-/* ------------------------------------------------------------
- *
- * close stream
- *
- * ------------------------------------------------------------*/
 
 MOD_close
 {
-
-  if(param->fd != NULL) pclose(param->fd);
-
-  return(0);
+    if(param->flag == TC_VIDEO) {
+        return yw_close_video(&pd);
+    }
+    if(param->flag == TC_AUDIO) {
+        return yw_close_audio(&pd);
+    }
+    return(TC_IMPORT_ERROR);
 }
 
+/* ------------------------------------------------------------
+ * helpers: implementations
+ * ------------------------------------------------------------*/
+
+static int yw_open_video(YWPrivateData *pd, vob_t *vob)
+{
+    int errnum = Y4M_OK;
+    int ch_mode = 0;
+        
+    /* initialize stream-information */
+    y4m_accept_extensions(1);
+    y4m_init_stream_info(&pd->streaminfo);
+    y4m_init_frame_info(&pd->frameinfo);
+    
+    if (vob->im_v_codec == CODEC_YUV) {
+	    pd->dstfmt = IMG_YUV_DEFAULT;
+    } else if (vob->im_v_codec == CODEC_RGB) {
+	    pd->dstfmt = IMG_RGB_DEFAULT;
+    } else {
+	    tc_log_error(MOD_NAME, "unsupported video format %d",
+		            vob->im_v_codec);
+        return(TC_EXPORT_ERROR);
+    }
+
+    /* we trust autoprobing */
+    pd->width = vob->im_v_width;
+    pd->height = vob->im_v_height;
+    
+    pd->fd_vid = open(vob->video_in_file, O_RDONLY|O_LARGEFILE);
+    if (pd->fd_vid == -1) {
+        tc_log_error(MOD_NAME, "can't open video source '%s'"
+                               " (reason: %s)", vob->video_in_file,
+                               strerror(errno));
+    } else {
+        tc_log_info(MOD_NAME, "using video source: %s",
+                              vob->video_in_file);
+    }
+    
+	pd->tcvhandle = tcv_init();
+    if (!pd->tcvhandle) {
+	    tc_log_error(MOD_NAME, "image conversion init failed");
+        return(TC_EXPORT_ERROR);
+    }
+
+    errnum = y4m_read_stream_header(pd->fd_vid, &pd->streaminfo);
+    if (errnum != Y4M_OK) {
+        tc_log_error(MOD_NAME, "Couldn't read YUV4MPEG header: %s!",
+                     y4m_strerr(errnum));
+        tcv_free(pd->tcvhandle);
+        close(pd->fd_vid);
+        return(TC_IMPORT_ERROR);
+    }
+    
+    if (y4m_si_get_plane_count(&pd->streaminfo) != 3) {
+        tc_log_error(MOD_NAME, "Only 3-plane formats supported");
+        close(pd->fd_vid);
+        return(TC_IMPORT_ERROR);
+    }
+    ch_mode = y4m_si_get_chroma(&pd->streaminfo);
+    if (ch_mode != Y4M_CHROMA_420JPEG
+     && ch_mode != Y4M_CHROMA_420MPEG2
+     && ch_mode != Y4M_CHROMA_420PALDV) {
+        tc_log_error(MOD_NAME, "sorry, chroma mode `%s' (%i) not supported",
+                     y4m_chroma_description(ch_mode), ch_mode);
+        tcv_free(pd->tcvhandle);
+        close(pd->fd_vid);
+        return(TC_IMPORT_ERROR);
+    }
+
+    if (verbose) {
+        tc_log_info(MOD_NAME, "chroma mode: %s",
+                    y4m_chroma_description(ch_mode));
+    }
+    return(TC_IMPORT_OK);
+}
+
+static int yw_open_audio(YWPrivateData *pd, vob_t *vob)
+{
+    WAVError err;
+
+    if (!vob->audio_in_file
+      || !strcmp(vob->video_in_file, vob->audio_in_file)) {
+        tc_log_error(MOD_NAME, "missing or bad audio source file,"
+                               " please specify it");
+        return(TC_IMPORT_ERROR);
+    }
+        
+    pd->wav = wav_open(vob->audio_in_file, WAV_READ, &err);
+    if (!pd->wav) {
+        tc_log_error(MOD_NAME, "can't open audio source '%s'"
+                               " (reason: %s)", vob->audio_in_file,
+                               wav_strerror(err));
+    } else {
+        tc_log_info(MOD_NAME, "using audio source: %s",
+                              vob->audio_in_file);
+    }
+    return(TC_IMPORT_OK);
+}
+
+static int yw_decode_video(YWPrivateData *pd, transfer_t *param)
+{
+    int errnum = 0;
+    YUV_INIT_PLANES(pd->planes, param->buffer, pd->dstfmt,
+                    pd->width, pd->height);
+    
+    errnum = y4m_read_frame(pd->fd_vid, &pd->streaminfo,
+                            &pd->frameinfo, pd->planes);
+    if (errnum != Y4M_OK) {
+        if (verbose & TC_DEBUG) {
+            tc_log_warn(MOD_NAME, "YUV4MPEG2 video read failed: %s",
+                        y4m_strerr(errnum));
+        }
+        return(TC_IMPORT_ERROR);
+    }
+    return(TC_IMPORT_OK);
+}
+        
+static int yw_decode_audio(YWPrivateData *pd, transfer_t *param)
+{
+    ssize_t r = wav_read_data(pd->wav, param->buffer, param->size);
+    
+    if (r <= 0 || (int)r < param->size) {
+        if (verbose & TC_DEBUG) {
+            tc_log_warn(MOD_NAME, "WAV audio read failed");
+        }
+        return(TC_IMPORT_ERROR);
+    }
+    return(TC_IMPORT_OK);
+}
+
+/* errors not fatal (silently ignored) */
+static int yw_close_video(YWPrivateData *pd)
+{
+    if (pd->fd_vid != -1) {
+        y4m_fini_frame_info(&pd->frameinfo);
+        y4m_fini_stream_info(&pd->streaminfo);
+   
+        close(pd->fd_vid);
+        pd->fd_vid = -1;
+    }
+    return(TC_IMPORT_OK);
+}
+
+/* errors not fatal (silently ignored) */
+static int yw_close_audio(YWPrivateData *pd)
+{
+    if (pd->wav != NULL) {
+        wav_close(pd->wav);
+        pd->wav = NULL;
+    }
+    return(TC_IMPORT_OK);
+}
 

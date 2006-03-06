@@ -1,4 +1,7 @@
 2006-03-07 Francesco Romani <fromani at gmail dot com>
+  * import/Makefile.am import/extract_yuv.c import/import_yuv4mpeg.c
+  switch to mjpegtools yuv4mpeg library.
+
   * import/probe_wav.c import/Makefile.am
   switch to wavlib.
 
