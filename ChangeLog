@@ -1,4 +1,20 @@
 2006-03-07 Francesco Romani <fromani at gmail dot com>
+  * src/encoder-buffer.h src/encoder-buffer.c src/encoder.h
+  revert last API changes since they doesn't improve much
+  the situation. encoder buffer API will be sanitized later,
+  encoder buffer code now passes (my) basic testsuite.
+
+  fix in frame disposal routines, previously some counters
+  are handled incorrectly.
+
+  tc_pause() is back in video frame acquisition routines,
+  since pausing policy is still unclean and deserv deeper
+  investigation.
+
+  *WARNING*
+  encoder.c is out of sync, it still used previous API.
+
+2006-03-07 Francesco Romani <fromani at gmail dot com>
   * src/transcode.c
   switch back to old style encoder (and update API accordingly).
 

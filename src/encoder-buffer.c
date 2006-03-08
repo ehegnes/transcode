@@ -1,5 +1,5 @@
 /*
- *  encoder_buffer.c
+ *  encoder-buffer.c
  *
  *  Copyright (C) Thomas Östreich - June 2001
  *  Updated and partially rewritten by
@@ -28,13 +28,13 @@
 #endif
 
 #include "encoder.h"
-
 #include "filter.h"
+#include "dl_loader.h"
+#include "framebuffer.h"
 #include "counter.h"
 #include "video_trans.h"
 #include "audio_trans.h"
 #include "decoder.h"
-
 #include "frame_threads.h"
 
 #ifdef HAVE_STDINT_H
@@ -52,6 +52,24 @@
  * - wrapper on exit_flag check -> harmless?
  */
 
+/* ------------------------------------------------------------
+ *
+ * encoder main loop helpers
+ *
+ * ------------------------------------------------------------*/
+
+/*
+ * NOTE about counter/condition/mutex handling inside various
+ * encoder helpers.
+ *
+ * Code are still a little bit confusing since things aren't
+ * updated or used at the same function level.
+ * Code works, but isn't still well readable.
+ * We need stil more cleanup and refactoring for future releases.
+ */
+
+/* more macro magic ;) */
+
 #define DEC_VBUF_COUNTER(BUFID) \
     pthread_mutex_lock(&vbuffer_ ## BUFID ## _fill_lock); \
     --vbuffer_ ## BUFID ## _fill_ctr; \
@@ -66,7 +84,7 @@
     pthread_mutex_lock(&abuffer_ ## BUFID ## _fill_lock); \
     --abuffer_ ## BUFID ## _fill_ctr; \
     pthread_mutex_unlock(&abuffer_ ## BUFID ## _fill_lock)
-  
+
 #define INC_ABUF_COUNTER(BUFID) \
     pthread_mutex_lock(&abuffer_ ## BUFID ## _fill_lock); \
     ++abuffer_ ## BUFID ## _fill_ctr; \
@@ -86,19 +104,19 @@ static void apply_video_filters(vframe_list_t *vptr, vob_t *vob)
         /* external plugin pre-processing */
         vptr->tag = TC_VIDEO|TC_PRE_M_PROCESS;
         process_vid_plugins(vptr);
-  
+
         /* internal processing of video */
         vptr->tag = TC_VIDEO;
         process_vid_frame(vob, vptr);
-      
+
         /* external plugin post-processing */
         vptr->tag = TC_VIDEO|TC_POST_M_PROCESS;
         process_vid_plugins(vptr);
-  
+
         DEC_VBUF_COUNTER(xx);
         INC_VBUF_COUNTER(ex);
     }
-    
+
     /* second stage post-processing - (synchronous) */
     vptr->tag = TC_VIDEO|TC_POST_S_PROCESS;
     process_vid_plugins(vptr);
@@ -120,11 +138,11 @@ static void apply_audio_filters(aframe_list_t *aptr, vob_t *vob)
         /* external plugin pre-processing */
         aptr->tag = TC_AUDIO|TC_PRE_PROCESS;
         process_aud_plugins(aptr);
-      
+
         /* internal processing of audio */
         aptr->tag = TC_AUDIO;
         process_aud_frame(vob, aptr);
-      
+
         /* external plugin post-processing */
         aptr->tag = TC_AUDIO|TC_POST_PROCESS;
         process_aud_plugins(aptr);
@@ -132,7 +150,7 @@ static void apply_audio_filters(aframe_list_t *aptr, vob_t *vob)
         DEC_ABUF_COUNTER(xx);
         INC_ABUF_COUNTER(ex);
     }
-    
+
     /* second stage post-processing - (synchronous) */
     aptr->tag = TC_AUDIO|TC_POST_S_PROCESS;
     process_aud_plugins(aptr);
@@ -143,46 +161,46 @@ static void apply_audio_filters(aframe_list_t *aptr, vob_t *vob)
  * in frame buffer.
  * When a new frame is avalaible update the encoding context
  * adjusting video frame buffer, and returns 0.
- * Return -1 if no more frames are avalaible. 
+ * Return -1 if no more frames are avalaible.
  * This usually happens when video stream ends.
  */
-static vframe_list_t *encoder_wait_vframe(TCEncoderBuffer *buf)
-{     
+static int encoder_wait_vframe(TCEncoderBuffer *buf)
+{
     int ready = TC_FALSE;
-    vframe_list_t *vptr = NULL;
-  
-    while (1) {
+    int have_frame = TC_FALSE;
+
+    while (!have_frame) {
         /* check buffer fill level */
         pthread_mutex_lock(&vframe_list_lock);
         ready = vframe_fill_level(TC_BUFFER_READY);
         pthread_mutex_unlock(&vframe_list_lock);
-  
+
         if (ready) {
-            vptr = vframe_retrieve();
-            if (vptr != NULL) {
+            buf->vptr = vframe_retrieve();
+            if (buf->vptr != NULL) {
+                have_frame = TC_TRUE;
                 break;
             }
-        } else { /* not ready */
+        } else { /* !ready */
             /* check import status */
             if (!vimport_status() || tc_export_stop_requested())  {
                 if (verbose & TC_DEBUG) {
                     tc_log_warn(__FILE__, "import closed - buffer empty (V)");
                 }
-                vptr = NULL;
-                break;
+                return -1;
             }
             if (verbose & TC_STATS) {
                 tc_log_info(__FILE__, "waiting for video frames");
             }
         }
-      
-        /* 
+
+        /*
          * no frame available at this time
          * pthread_yield is probably a cleaner solution, but it's a GNU extension
          */
         usleep(tc_buffer_delay_enc);
     }
-    return vptr;
+    return 0;
 }
 
 /*
@@ -193,20 +211,21 @@ static vframe_list_t *encoder_wait_vframe(TCEncoderBuffer *buf)
  * Return -1 if no more frames are avalaible. This usually
  * means that video stream is ended.
  */
-static aframe_list_t *encoder_wait_aframe(TCEncoderBuffer *buf)
+static int encoder_wait_aframe(TCEncoderBuffer *buf)
 {
     int ready = TC_FALSE;
-    aframe_list_t *aptr = NULL;
- 
-    while (1) {
+    int have_frame = TC_FALSE;
+
+    while (!have_frame) {
         /* check buffer fill level */
         pthread_mutex_lock(&aframe_list_lock);
         ready = aframe_fill_level(TC_BUFFER_READY);
         pthread_mutex_unlock(&aframe_list_lock);
-      
+
         if (ready) {
-            aptr = aframe_retrieve();
-            if (aptr != NULL) {
+            buf->aptr = aframe_retrieve();
+            if (buf->aptr != NULL) {
+                have_frame = 1;
                 break;
             }
         } else { /* !ready */
@@ -215,20 +234,19 @@ static aframe_list_t *encoder_wait_aframe(TCEncoderBuffer *buf)
                 if (verbose & TC_DEBUG) {
                     tc_log_warn(__FILE__, "import closed - buffer empty (A)");
                 }
-                aptr = NULL;
-                break;
+                return -1;
             }
             if (verbose & TC_STATS) {
                 tc_log_info(__FILE__, "waiting for audio frames");
             }
         }
-        /* 
+        /*
          * no frame available at this time
          * pthread_yield is probably a cleaner solution, but it's a GNU extension
          */
         usleep(tc_buffer_delay_enc);
     }
-    return aptr;
+    return 0;
 }
 
 /*
@@ -243,24 +261,25 @@ static aframe_list_t *encoder_wait_aframe(TCEncoderBuffer *buf)
  * video frames are avalaible. As for encoder_wait_vframe, this usually happens
  * when video stream ends.
  * returns >0 if frame id exceed the desired frame range
- */   
-static int encoder_acquire_vframe(TCEncoderBuffer *buf)
+ */
+static int encoder_acquire_vframe(TCEncoderBuffer *buf, vob_t *vob)
 {
+    int err = 0;
     int got_frame = TC_TRUE;
-  
+
     do {
-        buf->vptr = encoder_wait_vframe(buf);
-        if (buf->vptr == NULL) {
+        err = encoder_wait_vframe(buf);
+        if (err) {
             return -1; /* can't acquire video frame */
         }
         got_frame = TC_TRUE;
-      
         buf->frame_id = buf->vptr->id + tc_get_frames_skipped_cloned();
+
         if (verbose & TC_STATS) {
-            tc_log_info(__FILE__, "got video frame (%i|%i)",
-                                  buf->vptr->id, buf->frame_id);
+            tc_log_info(__FILE__, "got frame 0x%lux (%i)",
+                                  (unsigned long) buf->vptr, buf->frame_id);
         }
-      
+
         /*
          * now we do the post processing ... this way, if just a video frame is
          * skipped, we'll know.
@@ -278,7 +297,9 @@ static int encoder_acquire_vframe(TCEncoderBuffer *buf)
             return 1;
         }
 
-        apply_video_filters(buf->vptr, buf->vob);
+        tc_pause();
+
+        apply_video_filters(buf->vptr, vob);
 
         if (buf->vptr->attributes & TC_FRAME_IS_SKIPPED){
             if (!have_vframe_threads) {
@@ -286,15 +307,15 @@ static int encoder_acquire_vframe(TCEncoderBuffer *buf)
             } else {
                 DEC_VBUF_COUNTER(ex);
             }
-    
-            if (buf->vptr != NULL 
+
+            if (buf->vptr != NULL
               && (buf->vptr->attributes & TC_FRAME_WAS_CLONED)
             ) {
                 /* XXX do we want to track skipped cloned flags? */
                 tc_update_frames_cloned(1);
             }
 
-            if (buf->vptr != NULL 
+            if (buf->vptr != NULL
               && (buf->vptr->attributes & TC_FRAME_IS_CLONED)
             ) {
                 /* XXX what to do when a frame is cloned and skipped? */
@@ -305,8 +326,8 @@ static int encoder_acquire_vframe(TCEncoderBuffer *buf)
                  */
                 if (verbose & TC_DEBUG) {
                     tc_log_info (__FILE__, "(%i) V pointer done. "
-                                           "Skipped and Cloned: (%i)", 
-                                           buf->vptr->id, 
+                                           "Skipped and Cloned: (%i)",
+                                           buf->vptr->id,
                                            (buf->vptr->attributes));
                 }
 
@@ -314,12 +335,12 @@ static int encoder_acquire_vframe(TCEncoderBuffer *buf)
                 buf->vptr->attributes &= ~TC_FRAME_IS_CLONED;
                 buf->vptr->attributes |= TC_FRAME_WAS_CLONED;
                 /*
-                 * this has to be done here, 
+                 * this has to be done here,
                  * frame_threads.c won't see the frame again
                  */
                 INC_VBUF_COUNTER(ex);
             }
-            if (buf->vptr != NULL 
+            if (buf->vptr != NULL
               && !(buf->vptr->attributes & TC_FRAME_IS_CLONED)
             ) {
                 vframe_remove(buf->vptr);
@@ -351,23 +372,24 @@ static int encoder_acquire_vframe(TCEncoderBuffer *buf)
  * returns 0 when a new frame is avalaible for encoding, or <0 if no more
  * video frames are avalaible. As for encoder_wait_aframe, this usually happens
  * when audio stream ends.
- */   
-static int encoder_acquire_aframe(TCEncoderBuffer *buf)
+ */
+static int encoder_acquire_aframe(TCEncoderBuffer *buf, vob_t *vob)
 {
+    int err = 0;
     int got_frame = TC_TRUE;
-  
+
     do {
-        buf->aptr = encoder_wait_aframe(buf);
-        if (buf->aptr == NULL) {
+        err = encoder_wait_aframe(buf);
+        if (err) {
             return -1;
         }
         got_frame = TC_TRUE;
-      
+
         if (verbose & TC_STATS) {
-            tc_log_info(__FILE__, "got audio frame (%i)", buf->aptr->id);
+            tc_log_info(__FILE__, "got audio frame (%i)", buf->aptr->id );
         }
-      
-        apply_audio_filters(buf->aptr, buf->vob);
+
+        apply_audio_filters(buf->aptr, vob);
 
         if (buf->aptr->attributes & TC_FRAME_IS_SKIPPED) {
             if (!have_aframe_threads) {
@@ -376,10 +398,10 @@ static int encoder_acquire_aframe(TCEncoderBuffer *buf)
                 DEC_ABUF_COUNTER(ex);
             }
 
-            if (buf->aptr != NULL 
+            if (buf->aptr != NULL
               && !(buf->aptr->attributes & TC_FRAME_IS_CLONED)
             ) {
-                aframe_remove(buf->aptr);  
+                aframe_remove(buf->aptr);
 
                 /* notify sleeping import thread */
                 pthread_mutex_lock(&aframe_list_lock);
@@ -390,20 +412,20 @@ static int encoder_acquire_aframe(TCEncoderBuffer *buf)
                 buf->aptr = NULL;
             }
 
-            if (buf->aptr != NULL 
+            if (buf->aptr != NULL
               && (buf->aptr->attributes & TC_FRAME_IS_CLONED)
             ) {
                 if (verbose & TC_DEBUG) {
-                    tc_log_info(__FILE__, "(%i) A pointer done. Skipped and Cloned: (%i)", 
+                    tc_log_info(__FILE__, "(%i) A pointer done. Skipped and Cloned: (%i)",
                                         buf->aptr->id, (buf->aptr->attributes));
                 }
- 
+
                 /* adjust clone flags */
                 buf->aptr->attributes &= ~TC_FRAME_IS_CLONED;
                 buf->aptr->attributes |= TC_FRAME_WAS_CLONED;
 
-                /* 
-                 * this has to be done here, 
+                /*
+                 * this has to be done here,
                  * frame_threads.c won't see the frame again
                  */
                 INC_ABUF_COUNTER(ex);
@@ -415,112 +437,114 @@ static int encoder_acquire_aframe(TCEncoderBuffer *buf)
     return 0;
 }
 
-static int encoder_dispose_vframe(TCEncoderBuffer *buf)
+/*
+ * put back to frame buffer an acquired video frame.
+ */
+static void encoder_dispose_vframe(TCEncoderBuffer *buf, int was_skipped)
 {
-    if (!have_vframe_threads) {
-        DEC_VBUF_COUNTER(im);
+    if (was_skipped) {
+        if (!have_vframe_threads) {
+            DEC_VBUF_COUNTER(im);
+        } else {
+            DEC_VBUF_COUNTER(ex);
+        }
     } else {
         DEC_VBUF_COUNTER(ex);
     }
 
-    if (buf->vptr != NULL 
+    if (buf->vptr != NULL
       && (buf->vptr->attributes & TC_FRAME_WAS_CLONED)
     ) {
         tc_update_frames_cloned(1);
     }
-      
-    if (buf->vptr != NULL 
+
+    if (buf->vptr != NULL
       && !(buf->vptr->attributes & TC_FRAME_IS_CLONED)
     ) {
-        vframe_remove(buf->vptr);  
-    
+        vframe_remove(buf->vptr);
+
         /* notify sleeping import thread */
         pthread_mutex_lock(&vframe_list_lock);
         pthread_cond_signal(&vframe_list_full_cv);
         pthread_mutex_unlock(&vframe_list_lock);
-    
+
         /* reset pointer for next retrieve */
-        buf->vptr = NULL;           
+        buf->vptr = NULL;
     }
-      
-    if (buf->vptr != NULL 
+
+    if (buf->vptr != NULL
       && (buf->vptr->attributes & TC_FRAME_IS_CLONED)
     ) {
         if(verbose & TC_DEBUG) {
-            tc_log_info(__FILE__, "(%i) V pointer done. Cloned: (%i)", 
+            tc_log_info(__FILE__, "(%i) V pointer done. Cloned: (%i)",
                                 buf->vptr->id, (buf->vptr->attributes));
-        }   
+        }
         buf->vptr->attributes &= ~TC_FRAME_IS_CLONED;
         buf->vptr->attributes |= TC_FRAME_WAS_CLONED;
 
         /*
-         * this has to be done here, 
+         * this has to be done here,
          * frame_threads.c won't see the frame again
          */
         INC_VBUF_COUNTER(ex);
-    
+
         // update counter
         //tc_update_frames_cloned(1);
     }
-    return 0;
 }
 
-   
+
 /*
  * put back to frame buffer an acquired audio frame
  */
-static int encoder_dispose_aframe(TCEncoderBuffer *buf)
+static void encoder_dispose_aframe(TCEncoderBuffer *buf, int was_skipped)
 {
-    if (!have_aframe_threads) {
-        DEC_ABUF_COUNTER(im);
+    if (was_skipped) {
+        if (!have_aframe_threads) {
+            DEC_ABUF_COUNTER(im);
+        } else {
+            DEC_ABUF_COUNTER(ex);
+        }
     } else {
         DEC_ABUF_COUNTER(ex);
     }
 
-    if (buf->aptr != NULL 
+    if (buf->aptr != NULL
       && !(buf->aptr->attributes & TC_FRAME_IS_CLONED)
     ) {
         aframe_remove(buf->aptr);
-    
+
         /* notify sleeping import thread */
         pthread_mutex_lock(&aframe_list_lock);
         pthread_cond_signal(&aframe_list_full_cv);
         pthread_mutex_unlock(&aframe_list_lock);
-    
-        /* reset pointer for next retrieve */
-        buf->aptr=NULL;
-    }           
 
-    if (buf->aptr!=NULL 
+        /* reset pointer for next retrieve */
+        buf->aptr = NULL;
+    }
+
+    if (buf->aptr != NULL
       && (buf->aptr->attributes & TC_FRAME_IS_CLONED)
     ) {
         if (verbose & TC_DEBUG) {
-            tc_log_info(__FILE__, "(%i) A pointer done. Cloned: (%i)", 
+            tc_log_info(__FILE__, "(%i) A pointer done. Cloned: (%i)",
                                  buf->aptr->id, (buf->aptr->attributes));
         }
-    
+
         buf->aptr->attributes &= ~TC_FRAME_IS_CLONED;
         buf->aptr->attributes |= TC_FRAME_WAS_CLONED;
 
         /*
-         * this has to be done here, 
+         * this has to be done here,
          * frame_threads.c won't see the frame again
          */
         INC_ABUF_COUNTER(ex);
     }
-    return 0;
-}
-
-static int encoder_have_data(TCEncoderBuffer *buf)
-{
-    return import_status();
 }
 
 static TCEncoderBuffer tc_buffer = {
     .frame_id = 0,
     .frame_num = 0,
-
-    .vob = NULL,
 
     .vptr = NULL,
     .aptr = NULL,
@@ -530,16 +554,16 @@ static TCEncoderBuffer tc_buffer = {
     .dispose_video_frame = encoder_dispose_vframe,
     .dispose_audio_frame = encoder_dispose_aframe,
 
-    .have_data = encoder_have_data,
+    .have_data = NULL,
 };
-            
-TCEncoderBuffer *tc_builtin_buffer(vob_t *vob, int frame_num)
+
+
+TCEncoderBuffer *tc_builtin_buffer(int frame_num)
 {
-    if (!vob || frame_num < 0) {
+    if (frame_num < 0) {
         return NULL;
     }
 
-    tc_buffer.vob = vob;
     tc_buffer.frame_num = frame_num;
 
     return &tc_buffer;

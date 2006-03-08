@@ -26,6 +26,6 @@
 #ifndef _ENCODER_BUFFER_H
 #define _ENCODER_BUFFER_H 
 
-TCEncoderBuffer *tc_builtin_buffer(vob_t *vob, int frame_num);
+TCEncoderBuffer *tc_builtin_buffer(int frame_num);
 
 #endif

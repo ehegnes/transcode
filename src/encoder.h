@@ -37,15 +37,13 @@ struct tcencoderbuffer_ {
     int frame_id;
     int frame_num;
 
-    vob_t *vob;
-    
     vframe_list_t *vptr;
     aframe_list_t *aptr;
 
-    int (*acquire_video_frame)(TCEncoderBuffer *buf);
-    int (*acquire_audio_frame)(TCEncoderBuffer *buf);
-    int (*dispose_video_frame)(TCEncoderBuffer *buf);
-    int (*dispose_audio_frame)(TCEncoderBuffer *buf);
+    int (*acquire_video_frame)(TCEncoderBuffer *buf, vob_t *vob);
+    int (*acquire_audio_frame)(TCEncoderBuffer *buf, vob_t *vob);
+    void (*dispose_video_frame)(TCEncoderBuffer *buf, int was_skipped);
+    void (*dispose_audio_frame)(TCEncoderBuffer *buf, int was_skipped);
 
     int (*have_data)(TCEncoderBuffer *buf);
 };
