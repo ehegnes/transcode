@@ -21,6 +21,7 @@ bin_PROGRAMS = \
 	avisplit \
 	avisync \
 	tcmodinfo \
+	tcexport \
 	tcmp3cut
 
 avisync_SOURCES = \

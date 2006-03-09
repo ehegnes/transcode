@@ -25,10 +25,10 @@
 
 extern int errno;
 
-static int rawsource_read_video(TCEncoderBuffer *buf);
-static int rawsource_read_audio(TCEncoderBuffer *buf);
+static int rawsource_read_video(TCEncoderBuffer *buf, vob_t *vob);
+static int rawsource_read_audio(TCEncoderBuffer *buf, vob_t *vob);
 static int rawsource_have_data(TCEncoderBuffer *buf);
-static int rawsource_dummy(TCEncoderBuffer *buf);
+static void rawsource_dummy(TCEncoderBuffer *buf, int useless);
 
 
 typedef struct tcrawsource_ {
@@ -56,8 +56,6 @@ static TCEncoderBuffer rawsource_buffer = {
     .frame_id = 0,
     .frame_num = 0,
 
-    .vob = NULL,
-
     .vptr = NULL,
     .aptr = NULL,
 
@@ -69,7 +67,7 @@ static TCEncoderBuffer rawsource_buffer = {
     .have_data = rawsource_have_data,
 };
 
-static int rawsource_read_video(TCEncoderBuffer *buf)
+static int rawsource_read_video(TCEncoderBuffer *buf, vob_t *vob)
 {
     int ret;
 
@@ -77,7 +75,7 @@ static int rawsource_read_video(TCEncoderBuffer *buf)
         /* paranoia */
         return -1;
     }
-    if (buf->vob->im_v_size > rawsource.vframe->video_size) {
+    if (vob->im_v_size > rawsource.vframe->video_size) {
         /* paranoia */
         tc_log_warn(__FILE__, "video buffer too small"
                               " (this should'nt happen)");
@@ -92,10 +90,10 @@ static int rawsource_read_video(TCEncoderBuffer *buf)
     
     rawsource.im_para.buffer  = rawsource.vframe->video_buf;
     rawsource.im_para.buffer2 = NULL;
-    rawsource.im_para.size    = buf->vob->im_v_size;
+    rawsource.im_para.size    = vob->im_v_size;
     rawsource.im_para.flag    = TC_VIDEO;
 
-    ret = tcv_import(TC_IMPORT_DECODE, &rawsource.im_para, buf->vob);
+    ret = tcv_import(TC_IMPORT_DECODE, &rawsource.im_para, vob);
     if (ret != TC_IMPORT_OK) {
         /* read failed */
         rawsource.eof_flag = TC_TRUE;
@@ -109,7 +107,7 @@ static int rawsource_read_video(TCEncoderBuffer *buf)
     return 0;
 }
 
-static int rawsource_read_audio(TCEncoderBuffer *buf)
+static int rawsource_read_audio(TCEncoderBuffer *buf, vob_t *vob)
 {
     int ret = 0;
 
@@ -117,7 +115,7 @@ static int rawsource_read_audio(TCEncoderBuffer *buf)
         /* paranoia */
         return -1;
     }
-    if (buf->vob->im_a_size > rawsource.aframe->audio_size) {
+    if (vob->im_a_size > rawsource.aframe->audio_size) {
         /* paranoia */
         tc_log_warn(__FILE__, "audio buffer too small"
                               " (this should'nt happen)");
@@ -126,10 +124,10 @@ static int rawsource_read_audio(TCEncoderBuffer *buf)
 
     rawsource.im_para.buffer  = rawsource.aframe->audio_buf;
     rawsource.im_para.buffer2 = NULL;
-    rawsource.im_para.size    = buf->vob->im_a_size;
+    rawsource.im_para.size    = vob->im_a_size;
     rawsource.im_para.flag    = TC_AUDIO;
 
-    ret = tca_import(TC_IMPORT_DECODE, &rawsource.im_para, buf->vob);
+    ret = tca_import(TC_IMPORT_DECODE, &rawsource.im_para, vob);
     if (ret != TC_IMPORT_OK) {
         /* read failed */
         rawsource.eof_flag = TC_TRUE;
@@ -153,12 +151,9 @@ static int rawsource_have_data(TCEncoderBuffer *buf)
     return 1;
 }
 
-static int rawsource_dummy(TCEncoderBuffer *buf)
+static void rawsource_dummy(TCEncoderBuffer *buf, int useless)
 {
-    if (!buf) {
-        return -1;
-    }
-    return 0;
+    return;
 }
 
 TCEncoderBuffer *tc_rawsource_buffer(vob_t *vob, int frame_num)
@@ -179,7 +174,6 @@ TCEncoderBuffer *tc_rawsource_buffer(vob_t *vob, int frame_num)
         return NULL;
     }
     
-    rawsource_buffer.vob = vob;
     rawsource_buffer.frame_num = frame_num;
 
     return &rawsource_buffer;
