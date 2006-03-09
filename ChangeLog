@@ -1,11 +1,15 @@
 2006-03-09 Francesco Romani <fromani at gmail dot com>
+  * src/encoder-buffer.c src/encoder.c src/transcode.c
+  fix obvious stupid typos left in.
+
+2006-03-09 Francesco Romani <fromani at gmail dot com>
   * src/encoder-buffer.c
-  have_data() method is back
+  have_data() method is back.
 
   * src/encoder.c
   resync API with last encoder-buffer.c commit.
   (of course encoder-buffer.c will be seriously polished when
-  code start to work nicely and when it passes tests.)
+  code start to work nicely and when it passes tests).
 
   * tools/Makefile.am
   temporary disable tcexport build.

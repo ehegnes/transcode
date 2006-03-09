@@ -98,10 +98,10 @@ static TCEncoderData encdata = {
     .saved_frame_last = 0,
     .this_frame_last = 0,
     .old_frame_last = 0,
-    .venc_ptr = NULL,
-    .aenc_ptr = NULL,
     .buffer = NULL,
 #ifdef TC_ENCODER_NG
+    .venc_ptr = NULL,
+    .aenc_ptr = NULL,
     .factory = NULL,
     .vid_mod = NULL,
     .aud_mod = NULL,
@@ -679,7 +679,7 @@ static int encoder_export(TCEncoderData *data, vob_t *vob)
     if (data->buffer->vptr->attributes & TC_FRAME_IS_KEYFRAME) {
         data->export_para.attributes |= TC_FRAME_IS_KEYFRAME;
     }    
-    export_para.flag = TC_VIDEO;
+    data->export_para.flag = TC_VIDEO;
 
     if(tcv_export(TC_EXPORT_ENCODE, &data->export_para, vob) < 0) {
         tc_log_warn(__FILE__, "error encoding video frame");
@@ -702,13 +702,13 @@ static int encoder_export(TCEncoderData *data, vob_t *vob)
         data->buffer->aptr->attributes |= TC_FRAME_IS_CLONED; 
         tc_log_info(__FILE__, "Delaying audio");
     } else {
-        if (tca_export(TC_EXPORT_ENCODE, &export_para, vob) < 0) {
+        if (tca_export(TC_EXPORT_ENCODE, &data->export_para, vob) < 0) {
             tc_log_warn(__FILE__, "error encoding audio frame");
             data->error_flag = 1;
         }
  
         /* maybe clone? */
-        data->buffer->aptr->attributes = export_para.attributes;
+        data->buffer->aptr->attributes = data->export_para.attributes;
     }
 
     if (verbose & TC_INFO) {
@@ -780,12 +780,12 @@ void encoder(vob_t *vob, int frame_first, int frame_last)
         }
         tc_pause();
         
-        err = encdata.buffer->acquire_video_frame(encdata->buffer, vob);
+        err = encdata.buffer->acquire_video_frame(encdata.buffer, vob);
         if (err) {
             return; /* can't acquire video frame */
         }
       
-        err = encdata.buffer->acquire_audio_frame(encdata->buffer, vob);
+        err = encdata.buffer->acquire_audio_frame(encdata.buffer, vob);
         if (err) {
             return;  /* can't acquire frame */
         }

@@ -27,6 +27,7 @@
 #include "config.h"
 #endif
 
+#include "transcode.h"
 #include "decoder.h"
 #include "encoder.h"
 #include "filter.h"
