@@ -27,6 +27,7 @@
 #include "config.h"
 #endif
 
+#include "decoder.h"
 #include "encoder.h"
 #include "filter.h"
 #include "dl_loader.h"
@@ -34,7 +35,6 @@
 #include "counter.h"
 #include "video_trans.h"
 #include "audio_trans.h"
-#include "decoder.h"
 #include "frame_threads.h"
 
 #ifdef HAVE_STDINT_H
@@ -542,6 +542,12 @@ static void encoder_dispose_aframe(TCEncoderBuffer *buf, int was_skipped)
     }
 }
 
+static int encoder_have_data(TCEncoderBuffer *buf)
+{
+    return import_status();    
+}
+
+    
 static TCEncoderBuffer tc_buffer = {
     .frame_id = 0,
     .frame_num = 0,
@@ -554,7 +560,7 @@ static TCEncoderBuffer tc_buffer = {
     .dispose_video_frame = encoder_dispose_vframe,
     .dispose_audio_frame = encoder_dispose_aframe,
 
-    .have_data = NULL,
+    .have_data = encoder_have_data,
 };
 
 

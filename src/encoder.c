@@ -33,9 +33,7 @@
 #include "video_trans.h"
 #include "audio_trans.h"
 #include "decoder.h"
-
 #include "encoder.h"
-
 #include "frame_threads.h"
 
 #ifdef HAVE_STDINT_H
@@ -44,7 +42,6 @@
 #ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif
-
 
 /*
  * new encoder module design principles
@@ -74,20 +71,20 @@ struct tcencoderdata_ {
     int this_frame_last; // XXX
     int old_frame_last; // XXX
 
-    /* can be set'd by other threads */
-
-    vframe_list_t *venc_ptr;
-    aframe_list_t *aenc_ptr;
-    
     TCEncoderBuffer *buffer;
 
 #ifdef TC_ENCODER_NG
+    vframe_list_t *venc_ptr;
+    aframe_list_t *aenc_ptr;
+    
     TCFactory factory;
 
     TCModule vid_mod;
     TCModule aud_mod;
     TCModule mplex_mod;
 #else /* not defined TC_ENCODER_NG */
+    transfer_t export_para;
+
     void *ex_a_handle;
     void *ex_v_handle;
 #endif
@@ -114,19 +111,6 @@ static TCEncoderData encdata = {
     .ex_v_handle = NULL,
 #endif
 };
-
-#define ACQUIRE_VID_FRAME(encp, vob, last) \
-    (encp)->buffer->acquire_video_frame((encp)->buffer)
-#define ACQUIRE_AUD_FRAME(encp, vob, last) \
-    (encp)->buffer->acquire_audio_frame((encp)->buffer)
-
-#define DISPOSE_VID_FRAME(encp) \
-    (encp)->buffer->dispose_video_frame((encp)->buffer)
-#define DISPOSE_AUD_FRAME(encp) \
-    (encp)->buffer->dispose_audio_frame((encp)->buffer)
-
-#define HAVE_DATA(encp) \
-    (encp)->buffer->have_data((encp)->buffer)
 
 #ifdef TC_ENCODER_NG
 
@@ -462,7 +446,6 @@ int export_init(TCEncoderBuffer *buffer, TCFactory factory)
 int export_setup(vob_t *vob, const char *a_mod, const char *v_mod)
 {
     const char *mod_name = NULL;
-    transfer_t export_para;
 
     // load export modules
     mod_name = (a_mod == NULL) ?TC_DEFAULT_EXPORT_AUDIO :a_mod;
@@ -479,27 +462,27 @@ int export_setup(vob_t *vob, const char *a_mod, const char *v_mod)
         return -1;
     }
 
-    export_para.flag = verbose;
-    tca_export(TC_EXPORT_NAME, &export_para, NULL); 
+    encdata.export_para.flag = verbose;
+    tca_export(TC_EXPORT_NAME, &encdata.export_para, NULL); 
 
-    if(export_para.flag != verbose) {
+    if(encdata.export_para.flag != verbose) {
         // module returned capability flag
         int cc=0;
     
         if (verbose & TC_DEBUG) {
             tc_log_info(__FILE__, "audio capability flag 0x%x | 0x%x", 
-                                  export_para.flag, vob->im_a_codec);
+                                  encdata.export_para.flag, vob->im_a_codec);
         }
     
         switch (vob->im_a_codec) {
           case CODEC_PCM: 
-            cc = (export_para.flag & TC_CAP_PCM);
+            cc = (encdata.export_para.flag & TC_CAP_PCM);
             break;
           case CODEC_AC3: 
-            cc = (export_para.flag & TC_CAP_AC3);
+            cc = (encdata.export_para.flag & TC_CAP_AC3);
             break;
           case CODEC_RAW: 
-            cc = (export_para.flag & TC_CAP_AUD);
+            cc = (encdata.export_para.flag & TC_CAP_AUD);
             break;
           default:
             cc = 0;
@@ -509,38 +492,38 @@ int export_setup(vob_t *vob, const char *a_mod, const char *v_mod)
             tc_log_warn(__FILE__, "audio codec not supported by export module");
             return -1;
         }
-    } else { /* export_para.flag == verbose */
+    } else { /* encdata.export_para.flag == verbose */
         if (vob->im_a_codec != CODEC_PCM) {
             tc_log_warn(__FILE__, "audio codec not supported by export module");
             return -1;
         }
     }
   
-    export_para.flag = verbose;
-    tcv_export(TC_EXPORT_NAME, &export_para, NULL);
+    encdata.export_para.flag = verbose;
+    tcv_export(TC_EXPORT_NAME, &encdata.export_para, NULL);
 
-    if (export_para.flag != verbose) {
+    if (encdata.export_para.flag != verbose) {
         // module returned capability flag
         int cc = 0;
     
         if (verbose & TC_DEBUG) {
             tc_log_info(__FILE__, "video capability flag 0x%x | 0x%x", 
-                                  export_para.flag, vob->im_v_codec);
+                                  encdata.export_para.flag, vob->im_v_codec);
         }
     
         switch (vob->im_v_codec) {
           case CODEC_RGB: 
-            cc = (export_para.flag & TC_CAP_RGB);
+            cc = (encdata.export_para.flag & TC_CAP_RGB);
             break;
           case CODEC_YUV: 
-            cc = (export_para.flag & TC_CAP_YUV);
+            cc = (encdata.export_para.flag & TC_CAP_YUV);
             break;
           case CODEC_YUV422: 
-            cc = (export_para.flag & TC_CAP_YUV422);
+            cc = (encdata.export_para.flag & TC_CAP_YUV422);
             break;
           case CODEC_RAW: 
           case CODEC_RAW_YUV: /* fallthrough */
-            cc = (export_para.flag & TC_CAP_VID);
+            cc = (encdata.export_para.flag & TC_CAP_VID);
             break;
           default:
             cc = 0;
@@ -550,7 +533,7 @@ int export_setup(vob_t *vob, const char *a_mod, const char *v_mod)
             tc_log_warn(__FILE__, "video codec not supported by export module"); 
             return -1;
         }
-    } else { /* export_para.flag == verbose */
+    } else { /* encdata.export_para.flag == verbose */
         if (vob->im_v_codec != CODEC_RGB) {
             tc_log_warn(__FILE__, "video codec not supported by export module"); 
             return -1;
@@ -586,17 +569,16 @@ void export_shutdown(void)
 int encoder_init(vob_t *vob)
 {
     int ret;
-    transfer_t export_para;
   
-    export_para.flag = TC_VIDEO;
-    ret = tcv_export(TC_EXPORT_INIT, &export_para, vob);
+    encdata.export_para.flag = TC_VIDEO;
+    ret = tcv_export(TC_EXPORT_INIT, &encdata.export_para, vob);
     if (ret == TC_EXPORT_ERROR) {
         tc_log_warn(__FILE__, "video export module error: init failed");
         return -1;
     }
   
-    export_para.flag = TC_AUDIO;
-    ret = tca_export(TC_EXPORT_INIT, &export_para, vob);
+    encdata.export_para.flag = TC_AUDIO;
+    ret = tca_export(TC_EXPORT_INIT, &encdata.export_para, vob);
     if (ret == TC_EXPORT_ERROR) {
         tc_log_warn(__FILE__, "audio export module error: init failed");
         return -1;
@@ -614,18 +596,17 @@ int encoder_init(vob_t *vob)
 
 int encoder_open(vob_t *vob)
 {
-    transfer_t export_para;
     int ret;
   
-    export_para.flag = TC_VIDEO; 
-    ret = tcv_export(TC_EXPORT_OPEN, &export_para, vob);
+    encdata.export_para.flag = TC_VIDEO; 
+    ret = tcv_export(TC_EXPORT_OPEN, &encdata.export_para, vob);
     if (ret == TC_EXPORT_ERROR) {
         tc_log_warn(__FILE__, "video export module error: open failed");
         return -1;
     }
   
-    export_para.flag = TC_AUDIO;
-    ret = tca_export(TC_EXPORT_OPEN, &export_para, vob);
+    encdata.export_para.flag = TC_AUDIO;
+    ret = tca_export(TC_EXPORT_OPEN, &encdata.export_para, vob);
     if (ret == TC_EXPORT_ERROR) {
         tc_log_warn(__FILE__, "audio export module error: open failed");
         return -1;
@@ -643,14 +624,13 @@ int encoder_open(vob_t *vob)
 
 int encoder_close(void)
 {
-    transfer_t export_para;
     /* close, errors not fatal */
 
-    export_para.flag = TC_AUDIO;
-    tca_export(TC_EXPORT_CLOSE, &export_para, NULL);
+    encdata.export_para.flag = TC_AUDIO;
+    tca_export(TC_EXPORT_CLOSE, &encdata.export_para, NULL);
 
-    export_para.flag = TC_VIDEO;
-    tcv_export(TC_EXPORT_CLOSE, &export_para, NULL);
+    encdata.export_para.flag = TC_VIDEO;
+    tcv_export(TC_EXPORT_CLOSE, &encdata.export_para, NULL);
   
     if(verbose & TC_DEBUG) {
         tc_log_info(__FILE__, "encoder closed");
@@ -667,70 +647,58 @@ int encoder_close(void)
 
 int encoder_stop(void)
 {
-    transfer_t export_para;
     int ret;
 
-    export_para.flag = TC_VIDEO;
-    ret = tcv_export(TC_EXPORT_STOP, &export_para, NULL);
+    encdata.export_para.flag = TC_VIDEO;
+    ret = tcv_export(TC_EXPORT_STOP, &encdata.export_para, NULL);
     if (ret == TC_EXPORT_ERROR) {
         tc_log_warn(__FILE__, "video export module error: stop failed");
         return -1;
     }
   
-    export_para.flag = TC_AUDIO;
-    ret = tca_export(TC_EXPORT_STOP, &export_para, NULL);
+    encdata.export_para.flag = TC_AUDIO;
+    ret = tca_export(TC_EXPORT_STOP, &encdata.export_para, NULL);
     if (ret == TC_EXPORT_ERROR) {
         tc_log_warn(__FILE__, "audio export module error: stop failed");
         return -1;
     }
-  
     return 0;
 }
 
-/* ------------------------------------------------------------ 
- *
- * encoder main loop helpers
- *
- * ------------------------------------------------------------*/
-
-
-static int encoder_export(TCEncoderData *data)
+/*
+ * dispatch the acquired frames to encoder modules
+ */
+static int encoder_export(TCEncoderData *data, vob_t *vob)
 {
-    transfer_t export_para;
-    vframe_list_t *v_ptr = data->buffer->vptr;
-    aframe_list_t *a_ptr = data->buffer->aptr;
     int video_delayed = 0;
-    vob_t *vob = tc_get_vob();
 
     /* encode and export video frame */
-    export_para.buffer = v_ptr->video_buf;
-    export_para.size   = v_ptr->video_size;
-    export_para.attributes = v_ptr->attributes;
-    if (v_ptr->attributes & TC_FRAME_IS_KEYFRAME) {
-        export_para.attributes |= TC_FRAME_IS_KEYFRAME;
+    data->export_para.buffer = data->buffer->vptr->video_buf;
+    data->export_para.size = data->buffer->vptr->video_size;
+    data->export_para.attributes = data->buffer->vptr->attributes;
+    if (data->buffer->vptr->attributes & TC_FRAME_IS_KEYFRAME) {
+        data->export_para.attributes |= TC_FRAME_IS_KEYFRAME;
     }    
-    export_para.flag   = TC_VIDEO;
+    export_para.flag = TC_VIDEO;
 
-    if(tcv_export(TC_EXPORT_ENCODE, &export_para, vob) < 0) {
+    if(tcv_export(TC_EXPORT_ENCODE, &data->export_para, vob) < 0) {
         tc_log_warn(__FILE__, "error encoding video frame");
         data->error_flag = 1;
     }
     /* maybe clone? */
-    v_ptr->attributes = export_para.attributes;
-
-    if (v_ptr->attributes & TC_FRAME_IS_DELAYED) {
-        v_ptr->attributes &= ~TC_FRAME_IS_DELAYED;
+    data->buffer->vptr->attributes = data->export_para.attributes;
+    if (data->buffer->vptr->attributes & TC_FRAME_IS_DELAYED) {
+        data->buffer->vptr->attributes &= ~TC_FRAME_IS_DELAYED;
         video_delayed = 1;
     }
 
     /* encode and export audio frame */
-    export_para.buffer = a_ptr->audio_buf;
-    export_para.size   = a_ptr->audio_size;
-    export_para.attributes = a_ptr->attributes;
+    data->export_para.buffer = data->buffer->aptr->audio_buf;
+    data->export_para.size = data->buffer->aptr->audio_size;
+    data->export_para.attributes = data->buffer->aptr->attributes;
+    data->export_para.flag = TC_AUDIO;
     
-    export_para.flag   = TC_AUDIO;
-    
-    if(video_delayed) {
+    if(video_delayed > 0) {
         data->buffer->aptr->attributes |= TC_FRAME_IS_CLONED; 
         tc_log_info(__FILE__, "Delaying audio");
     } else {
@@ -740,7 +708,7 @@ static int encoder_export(TCEncoderData *data)
         }
  
         /* maybe clone? */
-        a_ptr->attributes = export_para.attributes;
+        data->buffer->aptr->attributes = export_para.attributes;
     }
 
     if (verbose & TC_INFO) {
@@ -751,6 +719,7 @@ static int encoder_export(TCEncoderData *data)
         counter_print(1, data->buffer->frame_id, data->frame_first, last);
     }
     
+    // XXX: _always_ update?
     tc_update_frames_encoded(1); 
     return data->error_flag;
 }
@@ -784,6 +753,7 @@ static void encoder_skip(TCEncoderData *data)
 void encoder(vob_t *vob, int frame_first, int frame_last)
 {
     int err = 0;
+    int skipped = 0;
 
     if (encdata.this_frame_last != frame_last) {
         encdata.old_frame_last = encdata.this_frame_last;
@@ -810,12 +780,12 @@ void encoder(vob_t *vob, int frame_first, int frame_last)
         }
         tc_pause();
         
-        err = ACQUIRE_VID_FRAME(&encdata, vob, frame_last);
+        err = encdata.buffer->acquire_video_frame(encdata->buffer, vob);
         if (err) {
             return; /* can't acquire video frame */
         }
       
-        err = ACQUIRE_AUD_FRAME(&encdata, vob, frame_last);
+        err = encdata.buffer->acquire_audio_frame(encdata->buffer, vob);
         if (err) {
             return;  /* can't acquire frame */
         }
@@ -833,20 +803,23 @@ void encoder(vob_t *vob, int frame_first, int frame_last)
         /* check frame id */
         if (frame_first <= encdata.buffer->frame_id
           && encdata.buffer->frame_id < frame_last) {
+#ifdef TC_ENCODER_NG        
             // XXX
             VFRAME_INIT(encdata.venc_ptr,
                         tc_frame_width_max, tc_frame_height_max);
             AFRAME_INIT(encdata.aenc_ptr);
-            encoder_export(&encdata);
+#endif            
+            encoder_export(&encdata, vob);
         } else { /* frame not in range */
             encoder_skip(&encdata);
+            skipped = 1;
         } /* frame processing loop */
       
         /* release frame buffer memory */
-        DISPOSE_VID_FRAME(&encdata);
-        DISPOSE_AUD_FRAME(&encdata);
+        encdata.buffer->dispose_video_frame(encdata.buffer, skipped);
+        encdata.buffer->dispose_audio_frame(encdata.buffer, skipped);
       
-    } while (HAVE_DATA(&encdata) && !encdata.error_flag);
+    } while (encdata.buffer->have_data(encdata.buffer) && !encdata.error_flag);
     /* main frame decoding loop */
     
     free_buffers(&encdata);
