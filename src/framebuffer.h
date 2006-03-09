@@ -48,6 +48,11 @@
 #define TC_BUFFER_READY  2
 #define TC_BUFFER_LOCKED 3
 
+extern int tc_frame_width_max;
+extern int tc_frame_height_max;
+
+void tc_adjust_frame_buffer(int height, int width);
+
 /*
  * BIG FAT WARNING:
  *
@@ -62,11 +67,6 @@
  *
  *          -- tibit
  */
-
-extern int tc_frame_width_max;
-extern int tc_frame_height_max;
-
-void tc_adjust_frame_buffer(int height, int width);
 
 typedef struct frame_list {
 
@@ -147,32 +147,31 @@ typedef struct vframe_list {
 
 } vframe_list_t;
 
-
 #define VFRAME_INIT(vptr, W, H) \
-do { \
+    do { \
         (vptr)->video_buf_RGB[0] = (vptr)->internal_video_buf_0; \
         (vptr)->video_buf_RGB[1] = (vptr)->internal_video_buf_1; \
-\
+        \
         (vptr)->video_buf_Y[0] = (vptr)->internal_video_buf_0; \
-        (vptr)->video_buf_U[0] = (vptr)->video_buf_Y[0] + W * H; \
-        (vptr)->video_buf_V[0] = (vptr)->video_buf_U[0] + W * H; \
-\
+        (vptr)->video_buf_U[0] = (vptr)->video_buf_Y[0] + (W) * (H); \
+        (vptr)->video_buf_V[0] = (vptr)->video_buf_U[0] + ((W) * (H)); \
+        \
         (vptr)->video_buf_Y[1] = (vptr)->internal_video_buf_1; \
-        (vptr)->video_buf_U[1] = (vptr)->video_buf_Y[1] + W * H; \
-        (vptr)->video_buf_V[1] = (vptr)->video_buf_U[1] + W * H; \
-\
+        (vptr)->video_buf_U[1] = (vptr)->video_buf_Y[1] + (W) * (H); \
+        (vptr)->video_buf_V[1] = (vptr)->video_buf_U[1] + ((W) * (H)); \
+        \
         (vptr)->video_buf  = (vptr)->internal_video_buf_0; \
         (vptr)->video_buf2 = (vptr)->internal_video_buf_1; \
-} while(0)
+    } while(0)
 
 vframe_list_t *vframe_register(int id);
 void vframe_remove(vframe_list_t *ptr);
 vframe_list_t *vframe_retrieve(void);
 vframe_list_t *vframe_dup(vframe_list_t *f);
+void vframe_copy(vframe_list_t *dst, vframe_list_t *src, int copy_data);
 vframe_list_t *vframe_retrieve_status(int old_status, int new_status);
 void vframe_set_status(vframe_list_t *ptr, int status);
 int vframe_alloc(int num);
-void vframe_copy(vframe_list_t *dst, vframe_list_t *src, int copy_data);
 void vframe_free(void);
 void vframe_flush(void);
 int vframe_fill_level(int status);
@@ -231,10 +230,10 @@ aframe_list_t *aframe_register(int id);
 void aframe_remove(aframe_list_t *ptr);
 aframe_list_t *aframe_retrieve(void);
 aframe_list_t *aframe_dup(aframe_list_t *f);
+void aframe_copy(aframe_list_t *dst, aframe_list_t *src, int copy_data);
 aframe_list_t *aframe_retrieve_status(int old_status, int new_status);
 void aframe_set_status(aframe_list_t *ptr, int status);
 int aframe_alloc(int num);
-void aframe_copy(aframe_list_t *dst, aframe_list_t *src, int copy_data);
 void aframe_free(void);
 void aframe_flush(void);
 int aframe_fill_level(int status);

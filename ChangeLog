@@ -1,4 +1,12 @@
 2006-03-09 Francesco Romani <fromani at gmail dot com>
+  * src/encoder-buffer.c src/framebuffer.h src/video_buffer.c
+  fixed more (stupid) bugs.
+  Fixed dumbest bug ever (src/video_buffer.c).
+
+  transcode should work now using new encoder support code
+  but old style encoder.
+
+2006-03-09 Francesco Romani <fromani at gmail dot com>
   * src/encoder-buffer.c src/encoder.c src/transcode.c
   fix obvious stupid typos left in.
 

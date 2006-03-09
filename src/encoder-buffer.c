@@ -298,8 +298,6 @@ static int encoder_acquire_vframe(TCEncoderBuffer *buf, vob_t *vob)
             return 1;
         }
 
-        tc_pause();
-
         apply_video_filters(buf->vptr, vob);
 
         if (buf->vptr->attributes & TC_FRAME_IS_SKIPPED){
@@ -568,6 +566,8 @@ static TCEncoderBuffer tc_buffer = {
 TCEncoderBuffer *tc_builtin_buffer(int frame_num)
 {
     if (frame_num < 0) {
+        tc_log_error(__FILE__, "negative frame number for encoder"
+                               " frame source");
         return NULL;
     }
 

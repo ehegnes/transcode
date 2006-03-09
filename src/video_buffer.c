@@ -34,7 +34,7 @@ pthread_cond_t vframe_list_full_cv=PTHREAD_COND_INITIALIZER;
 vframe_list_t *vframe_list_head;
 vframe_list_t *vframe_list_tail;
 
-static int vid_buf_max  = 0;
+static int vid_buf_max = 0;
 static int vid_buf_next = 0;
 
 static int vid_buf_fill  =0;
@@ -62,13 +62,13 @@ static int vid_buf_alloc(int ex_num)
     int n, num;
 
 
-    int frame_size_max = (tc_frame_width_max + tc_frame_height_max) * BPP/8;
+    int frame_size_max = (tc_frame_width_max * tc_frame_height_max) * BPP/8;
 
     if(ex_num < 0) return(-1);
 
     num = ex_num + 1; //alloc at least one buffer
 
-    if((vid_buf_ptr = (vframe_list_t **) calloc(num, sizeof(vframe_list_t *)))==NULL) {
+    if((vid_buf_ptr = calloc(num, sizeof(vframe_list_t *)))==NULL) {
       perror("out of memory");
       return(-1);
     }
@@ -97,8 +97,8 @@ static int vid_buf_alloc(int ex_num)
 	}
 
     VFRAME_INIT(vid_buf_ptr[n], tc_frame_width_max, tc_frame_height_max);
-	
-    vid_buf_ptr[n]->free=1;
+
+	vid_buf_ptr[n]->free=1;
     }
 
     // assign to static
