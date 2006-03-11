@@ -124,9 +124,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     int instance = ptr->filter_id;
     MyFilterData  *mfd = mfd_all[ptr->filter_id];
 
-    PixelPacket   *pixel_packet;
-
-    int column, row;
+    unsigned long r_off, g_off, b_off;
 
     if (mfd != NULL) {
         vob = mfd->vob;
@@ -310,52 +308,39 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
             /* convert Magick RGB format to 24bit RGB */
             if (!(rgbswap || mfd->rgbswap)) {
-                mfd->images = mfd->image;
-
-                for (i=0; i<mfd->nr_of_images; i++) {
-                    pixel_packet = GetImagePixels(mfd->images, 0, 0,
-                                                  mfd->images->columns,
-                                                  mfd->images->rows);
-                    for (row = 0; row < mfd->image->rows; row++) {
-                        for (column = 0; column < mfd->image->columns; column++) {
-                            mfd->yuv[i][(row * mfd->image->columns + column) * 3 + 0] =
-                                pixel_packet[mfd->image->columns*row + column].red;
-
-                            mfd->yuv[i][(row * mfd->image->columns + column) * 3 + 1] =
-                                pixel_packet[mfd->image->columns*row + column].green;
-
-                            mfd->yuv[i][(row * mfd->image->columns + column) * 3 + 2] =
-                                pixel_packet[mfd->image->columns*row + column].blue;
-                        }
-                    }
-                    mfd->images = mfd->images->next;
-                }
-
+                r_off = 0;
+                b_off = 2;
             } else {
-                mfd->images = mfd->image;
-
-                for (i=0; i<mfd->nr_of_images; i++) {
-                    pixel_packet = GetImagePixels(mfd->images, 0, 0,
-                                                                                                                                        mfd->images->columns,
-                                                                                                                                        mfd->images->rows);
-                    for (row = 0; row < mfd->image->rows; row++) {
-                        for (column = 0; column < mfd->image->columns; column++) {
-
-                            mfd->yuv[i][(row * mfd->image->columns + column) * 3 + 0] =
-                                pixel_packet[mfd->image->columns*row + column].blue;
-
-                            mfd->yuv[i][(row * mfd->image->columns + column) * 3 + 1] =
-                                pixel_packet[mfd->image->columns*row + column].green;
-
-                            mfd->yuv[i][(row * mfd->image->columns + column) * 3 + 2] =
-                                pixel_packet[mfd->image->columns*row + column].red;
-                        }
-                    }
-                    mfd->images = mfd->images->next;
-                }
+                r_off = 2;
+                b_off = 0;
             }
+            g_off = 1;
 
+            mfd->images = mfd->image;
 
+            for (i=0; i<mfd->nr_of_images; i++) {
+                char *yuv_cur = mfd->yuv[i];
+
+                int row, col;
+                int row_max = mfd->image->rows;
+                int col_max = mfd->image->columns;
+
+                PixelPacket *pixel_packet = GetImagePixels(mfd->images, 0, 0,
+                                                           col_max, row_max);
+
+                for (row = 0; row < row_max; row++) {
+                    for (col = 0; col < col_max; col++) {
+                        *(yuv_cur + r_off) = pixel_packet->red;
+                        *(yuv_cur + g_off) = pixel_packet->green;
+                        *(yuv_cur + b_off) = pixel_packet->blue;
+
+                        yuv_cur += 3;
+                        pixel_packet++;
+                    }
+
+                }
+                mfd->images = mfd->images->next;
+            }
 
             for (i=0; i<mfd->nr_of_images; i++) {
                 if (!tcv_convert(mfd->tcvhandle, mfd->yuv[i],
@@ -470,17 +455,22 @@ int tc_filter(frame_list_t *ptr_, char *options)
         && (ptr->tag & TC_VIDEO)
         && !(ptr->attributes & TC_FRAME_IS_SKIPPED)
     ) {
-        int seq;
+        PixelPacket *pixel_packet;
+        char        *video_buf;
+
+        int row, col;
 
         if (ptr->id < mfd->start || ptr->id > mfd->end)
             return 0;
 
-        if (!strcmp(mfd->file, "/dev/null"))
+        if (strcmp(mfd->file, "/dev/null") == 0)
             return 0;
 
         mfd->cur_delay--;
 
         if (mfd->cur_delay < 0 || mfd->ignoredelay) {
+            int seq;
+
             mfd->cur_seq = (mfd->cur_seq + 1) % mfd->nr_of_images;
 
             mfd->images = mfd->image;
@@ -495,74 +485,66 @@ int tc_filter(frame_list_t *ptr_, char *options)
                                       mfd->images->rows);
 
         if (vob->im_v_codec == CODEC_RGB) {
-            if (rgbswap || mfd->rgbswap) {
-                for (row = 0; row < mfd->image->rows; row++) {
-                    for (column = 0; column < mfd->image->columns; column++) {
-                        if (pixel_packet[(mfd->images->rows - row - 1) * mfd->images->columns + column].opacity == 0) {
-                            int packet_off = (mfd->images->rows - row - 1) * mfd->images->columns + column;
-                            int ptr_off    = ((row+mfd->posy)* vob->ex_v_width + column+mfd->posx) * 3;
+            if (!(rgbswap || mfd->rgbswap)) {
+                r_off = 0;
+                b_off = 2;
+            } else {
+                r_off = 2;
+                b_off = 0;
+            }
+            g_off = 1;
 
-                            ptr->video_buf[ptr_off + 0] = pixel_packet[packet_off].blue;
-                            ptr->video_buf[ptr_off + 1] = pixel_packet[packet_off].green;
-                            ptr->video_buf[ptr_off + 2] = pixel_packet[packet_off].red;
-                        } /* !opaque */
-                    }
-                }
-            } else { /* !rgbswap */
-                for (row = 0; row < mfd->images->rows; row++) {
-                    for (column = 0; column < mfd->images->columns; column++) {
-                        if (pixel_packet[(mfd->images->rows - row - 1) * mfd->images->columns + column].opacity == 0) {
-                            int packet_off = (mfd->images->rows - row - 1) * mfd->images->columns + column;
-                            int ptr_off    = ((row+mfd->posy)* vob->ex_v_width + column+mfd->posx) * 3;
+            for (row = 0; row < mfd->image->rows; row++) {
+                video_buf = ptr->video_buf + 3 * ((row + mfd->posy) * vob->ex_v_width + mfd->posx);
 
-                            ptr->video_buf[ptr_off + 0] = pixel_packet[packet_off].red;
-                            ptr->video_buf[ptr_off + 1] = pixel_packet[packet_off].green;
-                            ptr->video_buf[ptr_off + 2] = pixel_packet[packet_off].blue;
-                        } /* !opaque */
-                    }
+                for (col = 0; col < mfd->image->columns; col++) {
+                    if (pixel_packet->opacity == 0) {
+                        *(video_buf + r_off) = pixel_packet->red;
+                        *(video_buf + g_off) = pixel_packet->green;
+                        *(video_buf + b_off) = pixel_packet->blue;
+                    } /* !opaque */
+
+                    video_buf += 3;
+                    pixel_packet++;
                 }
             }
-
         } else { /* !RGB */
-            int size  = vob->ex_v_width * vob->ex_v_height;
-            int block = mfd->images->columns * mfd->images->rows;
-            char *p1, *p2;
-            char *y1, *y2;
+            int vid_size = vob->ex_v_width * vob->ex_v_height;
+            int img_size = mfd->images->columns * mfd->images->rows;
 
-            /* Y' */
+            char *img_pixel_Y, *img_pixel_U, *img_pixel_V;
+            char *vid_pixel_Y, *vid_pixel_U, *vid_pixel_V;
+
+            img_pixel_Y = mfd->yuv[mfd->cur_seq];
+            img_pixel_U = img_pixel_Y + img_size;
+            img_pixel_V = img_pixel_U + img_size/4;
+
             for (row = 0; row < mfd->images->rows; row++) {
-                for (column = 0; column < mfd->images->columns; column++) {
-                    if (pixel_packet[mfd->images->columns*row + column].opacity == 0) {
-                        *(ptr->video_buf + (row+mfd->posy)*vob->ex_v_width + column + mfd->posx) =
-                            mfd->yuv[mfd->cur_seq][mfd->images->columns*row + column];
+                vid_pixel_Y = ptr->video_buf + (row + mfd->posy)*mfd->vob->ex_v_width + mfd->posx;
+                vid_pixel_U = ptr->video_buf + vid_size + (row/2 + mfd->posy/2)*(mfd->vob->ex_v_width/2) + mfd->posx/2;
+                vid_pixel_V = vid_pixel_U + vid_size/4;
+                for (col = 0; col < mfd->images->columns; col++) {
+                    int do_UV_pixels = (mfd->grayout == 0 && !(row % 2) && !(col % 2)) ? 1 : 0;
+                    if (pixel_packet->opacity == 0) {
+                        *vid_pixel_Y = *img_pixel_Y;
+
+                        if (do_UV_pixels) {
+                            *vid_pixel_U = *img_pixel_U;
+                            *vid_pixel_V = *img_pixel_V;
+                        }
                     }
+
+                    vid_pixel_Y++;
+                    img_pixel_Y++;
+                    if (do_UV_pixels) {
+                        vid_pixel_U++;
+                        img_pixel_U++;
+                        vid_pixel_V++;
+                        img_pixel_V++;
+                    }
+                    pixel_packet++;
                 }
             }
-
-            if (mfd->grayout)
-                return 0;
-
-            /* Cb, Cr */
-            p1 = ptr->video_buf + size + mfd->posy*vob->ex_v_width/4 + mfd->posx/2;
-            y1 = &(mfd->yuv[mfd->cur_seq][block]);
-            p2 = ptr->video_buf + 5*size/4 + mfd->posy*vob->ex_v_width/4 + mfd->posx/2;
-            y2 = &mfd->yuv[mfd->cur_seq][5*block/4];
-
-            for (row = 0; row < mfd->images->rows/2; row++) {
-                for (column = 0; column < mfd->images->columns/2; column++) {
-                    if (pixel_packet[mfd->images->columns*row*2 + column*2].opacity == 0) {
-                        p1[column] = y1[column];
-                        p2[column] = y2[column];
-                    }
-                }
-
-                p1 += vob->ex_v_width/2;
-                y1 += mfd->images->columns/2;
-
-                p2 += vob->ex_v_width/2;
-                y2 += mfd->images->columns/2;
-            }
-
         }
     }
 
