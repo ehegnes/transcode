@@ -1,3 +1,20 @@
+2006-03-11 Sebastian Kun <seb at sarolta dot com>
+  * filter/filter_logo.c
+  cleanup and enhancements for `logo' filter.
+  Highlights:
+  - cleanup the code and conform to new transcode style guideline.
+  - allow multiple instances of filter.
+  - simplified loop variable calculation.
+    Merged rgbswap and !rgbswap loops. Merged Y and UV loops.
+  - added support for alpha transparency; added an optional
+    parameter 'fade:x-y' that makes the image fade in for x
+    frames and fade out for y frames.
+    Fixed some type usage (char -> uint8_t).
+  - add new UV rescale algorhytm to achieve better results.
+    added a new parameter 'hqconv' to control this behavior
+    (default off).
+  (patched applied on CVS by Francesco Romani)
+
 2006-02-20 Francesco Romani <fromani at gmail dot com>
   * src/encoder.c
   using filter_modfps trigger a nasty bug in new encoder code
