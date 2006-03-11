@@ -49,6 +49,7 @@
 
 #include "libtcvideo/tcvideo.h"
 
+#define MAX_UINT8_VAL   ((uint8_t)(-1))
 
 // basic parameter
 
@@ -65,12 +66,14 @@ typedef struct MyFilterData {
     int          rgbswap;        /* bool if swap colors             */
     int          grayout;        /* only render lume values         */
     unsigned int start, end;     /* ranges                          */
+    unsigned int fadein;         /* No. of frames to fade in        */
+    unsigned int fadeout;        /* No. of frames to fade out       */
 
     /* private */
     unsigned int nr_of_images;   /* animated: number of images      */
     unsigned int cur_seq;        /* animated: current image         */
     int          cur_delay;      /* animated: current delay         */
-    char       **yuv;            /* buffer for RGB->YUV conversion  */
+    uint8_t    **yuv;            /* buffer for RGB->YUV conversion  */
 
     TCVHandle    tcvhandle;      /* handle for RGB->YUV conversion  */
 
@@ -84,6 +87,12 @@ static MyFilterData *mfd_all[MAX_FILTER] = {NULL};
 
 /* Only one instance of the module needs to initialize ImageMagick */
 static int magick_usecount = 0;
+
+/* Coefficients used for transparency calculations. Pre-generating these
+ * in a lookup table provides a small speed boost.
+ */
+static float img_coeff_lookup[MAX_UINT8_VAL + 1] = {-1.0};
+static float vid_coeff_lookup[MAX_UINT8_VAL + 1] = {-1.0};
 
 /* from /src/transcode.c */
 extern int rgbswap;
@@ -110,6 +119,7 @@ static void help_optstr(void)
     printf("         'pos' Position (0-width x 0-height) [0x0]\n");
     printf("      'posdef' Position (0=None, 1=TopL, 2=TopR, 3=BotL, 4=BotR, 5=Center) [0]\n");
     printf("       'range' Restrict rendering to framerange (0-oo) [0-end]\n");
+    printf("        'fade' Fade image in/out (# of frames) (0-oo) [0-0]\n");
     printf("        'flip' Mirror image (0=off, 1=on) [0]\n");
     printf("     'rgbswap' Swap colors [0]\n");
     printf("     'grayout' YUV only: don't write Cb and Cr, makes a nice effect [0]\n");
@@ -125,6 +135,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     MyFilterData  *mfd = mfd_all[ptr->filter_id];
 
     unsigned long r_off, g_off, b_off;
+
 
     if (mfd != NULL) {
         vob = mfd->vob;
@@ -144,7 +155,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
         optstr_param(options, "posdef", "Position (0=None, 1=TopL, 2=TopR, 3=BotL, 4=BotR, 5=Center)",  "%d", "0", "0", "5");
         optstr_param(options, "pos",    "Position (0-width x 0-height)",  "%dx%d", "0x0", "0", "width", "0", "height");
         optstr_param(options, "range",  "Restrict rendering to framerange",  "%u-%u", "0-0", "0", "oo", "0", "oo");
-
+        optstr_param(options, "fade",   "Fade image in/out (# of frames)",  "%u-%u", "0-0", "0", "oo", "0", "oo");
         // bools
         optstr_param(options, "ignoredelay", "Ignore delay specified in animations", "", "0");
         optstr_param(options, "rgbswap", "Swap red/blue colors", "", "0");
@@ -186,6 +197,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
             optstr_get(options, "posdef",   "%d",    &mfd->pos);
             optstr_get(options, "pos",      "%dx%d", &mfd->posx,  &mfd->posy);
             optstr_get(options, "range",    "%u-%u", &mfd->start, &mfd->end);
+            optstr_get(options, "fade",     "%u-%u", &mfd->fadein, &mfd->fadeout);
 
             if (optstr_get(options, "ignoredelay", "") >= 0)
                 mfd->ignoredelay = !mfd->ignoredelay;
@@ -208,9 +220,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
                                                            mfd->posy);
             tc_log_info(MOD_NAME, "        range = %u-%u", mfd->start,
                                                            mfd->end);
+            tc_log_info(MOD_NAME, "         fade = %u-%u", mfd->fadein,
+                                                           mfd->fadeout);
             tc_log_info(MOD_NAME, "         flip = %d",    mfd->flip);
             tc_log_info(MOD_NAME, "  ignoredelay = %d",    mfd->ignoredelay);
             tc_log_info(MOD_NAME, "      rgbswap = %d",    mfd->rgbswap);
+            tc_log_info(MOD_NAME, "      grayout = %d",    mfd->grayout);
         }
 
         /* Transcode serializes module execution, so this does not need a
@@ -284,13 +299,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
             int i;
 
             if (!mfd->yuv) {
-                mfd->yuv = tc_malloc(sizeof(char *) * mfd->nr_of_images);
+                mfd->yuv = tc_malloc(sizeof(uint8_t *) * mfd->nr_of_images);
                 if (!mfd->yuv) {
                     tc_log_error(MOD_NAME, "(%d) out of memory\n", __LINE__);
                     return -1;
                 }
                 for (i=0; i<mfd->nr_of_images; i++) {
-                    mfd->yuv[i] = tc_malloc(sizeof(char) * mfd->image->columns
+                    mfd->yuv[i] = tc_malloc(sizeof(uint8_t) * mfd->image->columns
                                             * mfd->image->rows * 3);
                     if (!mfd->yuv[i]) {
                         tc_log_error(MOD_NAME, "(%d) out of memory\n",
@@ -319,7 +334,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
             mfd->images = mfd->image;
 
             for (i=0; i<mfd->nr_of_images; i++) {
-                char *yuv_cur = mfd->yuv[i];
+                uint8_t *yuv_cur = mfd->yuv[i];
 
                 int row, col;
                 int row_max = mfd->image->rows;
@@ -330,9 +345,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
                 for (row = 0; row < row_max; row++) {
                     for (col = 0; col < col_max; col++) {
-                        *(yuv_cur + r_off) = pixel_packet->red;
-                        *(yuv_cur + g_off) = pixel_packet->green;
-                        *(yuv_cur + b_off) = pixel_packet->blue;
+                        *(yuv_cur + r_off) = (uint8_t)ScaleQuantumToChar(pixel_packet->red);
+                        *(yuv_cur + g_off) = (uint8_t)ScaleQuantumToChar(pixel_packet->green);
+                        *(yuv_cur + b_off) = (uint8_t)ScaleQuantumToChar(pixel_packet->blue);
 
                         yuv_cur += 3;
                         pixel_packet++;
@@ -396,6 +411,24 @@ int tc_filter(frame_list_t *ptr_, char *options)
         /* for running through image sequence */
         mfd->images = mfd->image;
 
+
+        /* Set up image/video coefficient lookup tables */
+        if (img_coeff_lookup[0] < 0) {
+            int i;
+            float maxrgbval = (float)MaxRGB; // from ImageMagick
+
+            for (i = 0; i <= MAX_UINT8_VAL; i++) {
+                float x = (float)ScaleCharToQuantum(i);
+
+                /* Alternatively:
+                 *  img_coeff = (maxrgbval - x) / maxrgbval;
+                 *  vid_coeff = x / maxrgbval;
+                 */
+                img_coeff_lookup[i] = 1.0 - (x / maxrgbval);
+                vid_coeff_lookup[i] = 1.0 - img_coeff_lookup[i];
+            }
+        }
+
         // filter init ok.
         if (verbose)
             tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
@@ -456,7 +489,16 @@ int tc_filter(frame_list_t *ptr_, char *options)
         && !(ptr->attributes & TC_FRAME_IS_SKIPPED)
     ) {
         PixelPacket *pixel_packet;
-        char        *video_buf;
+        uint8_t     *video_buf;
+
+        int   do_fade    = 0;
+        float fade_coeff = 0.0;
+        float img_coeff, vid_coeff;
+
+        /* Note: ImageMagick defines opacity = 0 as fully visible, and
+         * opacity = MaxRGB as fully transparent.
+         */
+        Quantum opacity;
 
         int row, col;
 
@@ -465,6 +507,16 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
         if (strcmp(mfd->file, "/dev/null") == 0)
             return 0;
+
+        if (ptr->id - mfd->start < mfd->fadein) {
+            // fading-in
+            fade_coeff = (float)(mfd->start - ptr->id + mfd->fadein) / (float)(mfd->fadein);
+            do_fade = 1;
+        } else if (mfd->end - ptr->id < mfd->fadeout) {
+            // fading-out
+            fade_coeff = (float)(ptr->id - mfd->end + mfd->fadeout) / (float)(mfd->fadeout);
+            do_fade = 1;
+        }
 
         mfd->cur_delay--;
 
@@ -498,22 +550,38 @@ int tc_filter(frame_list_t *ptr_, char *options)
                 video_buf = ptr->video_buf + 3 * ((row + mfd->posy) * vob->ex_v_width + mfd->posx);
 
                 for (col = 0; col < mfd->image->columns; col++) {
-                    if (pixel_packet->opacity == 0) {
-                        *(video_buf + r_off) = pixel_packet->red;
-                        *(video_buf + g_off) = pixel_packet->green;
-                        *(video_buf + b_off) = pixel_packet->blue;
-                    } /* !opaque */
+                    opacity = pixel_packet->opacity;
+
+                    if (do_fade)
+                        opacity += (Quantum)((MaxRGB - opacity) * fade_coeff);
+
+                    if (opacity == 0) {
+                        *(video_buf + r_off) = ScaleQuantumToChar(pixel_packet->red);
+                        *(video_buf + g_off) = ScaleQuantumToChar(pixel_packet->green);
+                        *(video_buf + b_off) = ScaleQuantumToChar(pixel_packet->blue);
+                    } else if (opacity < MaxRGB) {
+                        unsigned char opacity_uchar = ScaleQuantumToChar(opacity);
+                        img_coeff = img_coeff_lookup[opacity_uchar];
+                        vid_coeff = vid_coeff_lookup[opacity_uchar];
+
+                        *(video_buf + r_off) = (uint8_t)((*(video_buf + r_off)) * vid_coeff)
+                                                + (uint8_t)(ScaleQuantumToChar(pixel_packet->red)   * img_coeff);
+                        *(video_buf + g_off) = (uint8_t)((*(video_buf + g_off)) * vid_coeff)
+                                                + (uint8_t)(ScaleQuantumToChar(pixel_packet->green) * img_coeff);
+                        *(video_buf + b_off) = (uint8_t)((*(video_buf + b_off)) * vid_coeff)
+                                                + (uint8_t)(ScaleQuantumToChar(pixel_packet->blue)  * img_coeff);
+                    }
 
                     video_buf += 3;
                     pixel_packet++;
                 }
             }
         } else { /* !RGB */
-            int vid_size = vob->ex_v_width * vob->ex_v_height;
-            int img_size = mfd->images->columns * mfd->images->rows;
+            unsigned long vid_size = vob->ex_v_width * vob->ex_v_height;
+            unsigned long img_size = mfd->images->columns * mfd->images->rows;
 
-            char *img_pixel_Y, *img_pixel_U, *img_pixel_V;
-            char *vid_pixel_Y, *vid_pixel_U, *vid_pixel_V;
+            uint8_t *img_pixel_Y, *img_pixel_U, *img_pixel_V;
+            uint8_t *vid_pixel_Y, *vid_pixel_U, *vid_pixel_V;
 
             img_pixel_Y = mfd->yuv[mfd->cur_seq];
             img_pixel_U = img_pixel_Y + img_size;
@@ -525,12 +593,27 @@ int tc_filter(frame_list_t *ptr_, char *options)
                 vid_pixel_V = vid_pixel_U + vid_size/4;
                 for (col = 0; col < mfd->images->columns; col++) {
                     int do_UV_pixels = (mfd->grayout == 0 && !(row % 2) && !(col % 2)) ? 1 : 0;
-                    if (pixel_packet->opacity == 0) {
+                    opacity = pixel_packet->opacity;
+
+                    if (do_fade)
+                        opacity += (Quantum)((MaxRGB - opacity) * fade_coeff);
+
+                    if (opacity == 0) {
                         *vid_pixel_Y = *img_pixel_Y;
+                        if (do_UV_pixels) {
+                                *vid_pixel_U = *img_pixel_U;
+                                *vid_pixel_V = *img_pixel_V;
+                        }
+                    } else if (opacity < MaxRGB) {
+                        unsigned char opacity_uchar = ScaleQuantumToChar(opacity);
+                        img_coeff = img_coeff_lookup[opacity_uchar];
+                        vid_coeff = vid_coeff_lookup[opacity_uchar];
+
+                        *vid_pixel_Y = (uint8_t)(*vid_pixel_Y * vid_coeff) + (uint8_t)(*img_pixel_Y * img_coeff);
 
                         if (do_UV_pixels) {
-                            *vid_pixel_U = *img_pixel_U;
-                            *vid_pixel_V = *img_pixel_V;
+                            *vid_pixel_U = (uint8_t)(*vid_pixel_U * vid_coeff) + (uint8_t)(*img_pixel_U * img_coeff);
+                            *vid_pixel_V = (uint8_t)(*vid_pixel_V * vid_coeff) + (uint8_t)(*img_pixel_V * img_coeff);
                         }
                     }
 
@@ -550,4 +633,3 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     return 0;
 }
-
