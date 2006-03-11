@@ -65,6 +65,7 @@ typedef struct MyFilterData {
     int          ignoredelay;    /* allow the user to ignore delays */
     int          rgbswap;        /* bool if swap colors             */
     int          grayout;        /* only render lume values         */
+    int          hqconv;         /* do high quality rgb->yuv conv.  */
     unsigned int start, end;     /* ranges                          */
     unsigned int fadein;         /* No. of frames to fade in        */
     unsigned int fadeout;        /* No. of frames to fade out       */
@@ -105,7 +106,7 @@ extern int flip;
  *
  *-------------------------------------------------*/
 
-static void help_optstr(void)
+static void flogo_help_optstr(void)
 {
     tc_log_info(MOD_NAME, "(%s) help", MOD_CAP);
     printf("* Overview\n");
@@ -123,8 +124,132 @@ static void help_optstr(void)
     printf("        'flip' Mirror image (0=off, 1=on) [0]\n");
     printf("     'rgbswap' Swap colors [0]\n");
     printf("     'grayout' YUV only: don't write Cb and Cr, makes a nice effect [0]\n");
+    printf("      'hqconv' YUV only: do high quality rgb->yuv img conversion [0]\n");
     printf(" 'ignoredelay' Ignore delay specified in animations [0]\n");
 }
+
+
+/**
+ * flogo_yuvbuf_free: Frees a set of YUV frame buffers allocated with
+ *                    flogo_yuvbuf_alloc().
+ * Parameters:     yuv: a pointer to a set of YUV frames
+ *                 num: the number of frames to free
+ * Return value:   N/A
+ * Preconditions:  yuv was allocated with flogo_yuvbuf_alloc
+ *                 num > 0
+ * Postconditions: N/A
+ */
+void flogo_yuvbuf_free(uint8_t **yuv, int num) {
+    int i;
+
+    if (yuv) {
+        for (i = 0; i < num; i++) {
+            if (yuv[i] != NULL)
+                tc_free(yuv[i]);
+        }
+        tc_free(yuv);
+    }
+
+    return;
+}
+
+
+/**
+ * flogo_yuvbuf_alloc: Allocates a set of zeroed YUV frame buffers.
+ *
+ * Parameters:     size: the size of each frame
+ *                 num:  the number of frames to allocate.
+ * Return value:   An array of pointers to zeroed YUV buffers.
+ * Preconditions:  size > 0
+ *                 num > 0
+ * Postconditions: The returned pointer should be freed with
+ *                 flogo_yuvbuf_free.
+ */
+static uint8_t **flogo_yuvbuf_alloc(size_t size, int num) {
+    uint8_t **yuv;
+    int i;
+
+    yuv = tc_zalloc(sizeof(uint8_t *) * num);
+    if (yuv == NULL)
+        return NULL;
+
+    for (i = 0; i < num; i++) {
+        yuv[i] = tc_malloc(sizeof(uint8_t) * size);
+        if (yuv[i] == NULL) {
+            // free what's already been allocated
+            flogo_yuvbuf_free(yuv, i-1);
+            return NULL;
+        }
+    }
+
+    return yuv;
+}
+
+
+/**
+ * flogo_convert_image: Converts a single ImageMagick RGB image into a format
+ *                      usable by transcode.
+ *
+ * Parameters:     tcvhandle:  Opaque libtcvideo handle
+ *                 src:        An ImageMagick handle (the source image)
+ *                 dst:        A pointer to the output buffer
+ *                 ifmt:       The output format (see aclib/imgconvert.h)
+ *                 do_rgbswap: zero for no swap, nonzero to swap red and blue
+ *                             pixel positions
+ * Return value:   1 on success, 0 on failure
+ * Preconditions:  tcvhandle != null, was returned by a call to tcv_init()
+ *                 src is a valid ImageMagick RGB image handle
+ *                 dst buffer is large enough to hold the result of the
+ *                   requested conversion
+ * Postconditions: dst get overwritten with the result of the conversion
+ */
+static int flogo_convert_image(TCVHandle    tcvhandle,
+                               Image       *src,
+                               uint8_t     *dst,
+                               ImageFormat  ifmt,
+                               int          do_rgbswap)
+{
+    PixelPacket *pixel_packet;
+    uint8_t *dst_ptr = dst;
+
+    int row, col;
+    int height = src->rows;
+    int width  = src->columns;
+    int ret;
+
+    unsigned long r_off, g_off, b_off;
+
+    if (!do_rgbswap) {
+        r_off = 0;
+        b_off = 2;
+    } else {
+        r_off = 2;
+        b_off = 0;
+    }
+    g_off = 1;
+
+    pixel_packet = GetImagePixels(src, 0, 0, width, height);
+
+    for (row = 0; row < height; row++) {
+        for (col = 0; col < width; col++) {
+            *(dst_ptr + r_off) = (uint8_t)ScaleQuantumToChar(pixel_packet->red);
+            *(dst_ptr + g_off) = (uint8_t)ScaleQuantumToChar(pixel_packet->green);
+            *(dst_ptr + b_off) = (uint8_t)ScaleQuantumToChar(pixel_packet->blue);
+
+            dst_ptr += 3;
+            pixel_packet++;
+        }
+    }
+
+    ret = tcv_convert(tcvhandle, dst, width, height, IMG_RGB24, ifmt);
+    if (ret == 0) {
+        tc_log_error(MOD_NAME, "RGB->YUV conversion failed");
+        return 0;
+    }
+
+    return 1;
+}
+
 
 int tc_filter(frame_list_t *ptr_, char *options)
 {
@@ -132,10 +257,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     vob_t         *vob = NULL;
 
     int instance = ptr->filter_id;
-    MyFilterData  *mfd = mfd_all[ptr->filter_id];
-
-    unsigned long r_off, g_off, b_off;
-
+    MyFilterData  *mfd = mfd_all[instance];
 
     if (mfd != NULL) {
         vob = mfd->vob;
@@ -160,7 +282,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
         optstr_param(options, "ignoredelay", "Ignore delay specified in animations", "", "0");
         optstr_param(options, "rgbswap", "Swap red/blue colors", "", "0");
         optstr_param(options, "grayout", "YUV only: don't write Cb and Cr, makes a nice effect", "",  "0");
-        optstr_param(options, "flip",   "Mirror image",  "", "0");
+        optstr_param(options, "hqconv",  "YUV only: do high quality rgb->yuv img conversion", "",  "0");
+        optstr_param(options, "flip",    "Mirror image",  "", "0");
 
         return 0;
     }
@@ -207,9 +330,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
                 mfd->rgbswap = !mfd->rgbswap;
             if (optstr_get(options, "grayout", "") >= 0)
                 mfd->grayout = !mfd->grayout;
+            if (optstr_get(options, "hqconv",  "") >= 0)
+                mfd->hqconv  = !mfd->hqconv;
 
             if (optstr_get (options, "help",   "") >= 0)
-                help_optstr();
+                flogo_help_optstr();
         }
 
         if (verbose > 1) {
@@ -226,6 +351,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
             tc_log_info(MOD_NAME, "  ignoredelay = %d",    mfd->ignoredelay);
             tc_log_info(MOD_NAME, "      rgbswap = %d",    mfd->rgbswap);
             tc_log_info(MOD_NAME, "      grayout = %d",    mfd->grayout);
+            tc_log_info(MOD_NAME, "       hqconv = %d",    mfd->hqconv);
         }
 
         /* Transcode serializes module execution, so this does not need a
@@ -248,6 +374,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
             strlcpy(mfd->file, "/dev/null", PATH_MAX);
             return 0;
         }
+        DestroyImageInfo(image_info);
 
         if (mfd->image->columns > vob->ex_v_width
          || mfd->image->rows    > vob->ex_v_height
@@ -296,22 +423,34 @@ int tc_filter(frame_list_t *ptr_, char *options)
                         mfd->nr_of_images, mfd->cur_delay, mfd->image->delay);
 
         if (vob->im_v_codec == CODEC_YUV) {
+            /* convert Magick RGB image format to YUV */
+            /* todo: convert the magick image if it's not rgb! (e.g. cmyk) */
+            Image   *image;
+            uint8_t *yuv_hqbuf = NULL;
+
+            /* Round up for odd-size images */
+            unsigned long width  = mfd->image->columns;
+            unsigned long height = mfd->image->rows;
+            int do_rgbswap  = (rgbswap || mfd->rgbswap);
             int i;
 
-            if (!mfd->yuv) {
-                mfd->yuv = tc_malloc(sizeof(uint8_t *) * mfd->nr_of_images);
-                if (!mfd->yuv) {
+            /* Allocate buffers for the YUV420P frames. mfd->nr_of_images
+             * will be 1 unless this is an animated GIF or MNG.
+             * This buffer needs to be large enough to store a temporary
+             * 24-bit RGB image (extracted from the ImageMagick handle).
+             */
+            mfd->yuv = flogo_yuvbuf_alloc(width*height * 3, mfd->nr_of_images);
+            if (mfd->yuv == NULL) {
+                tc_log_error(MOD_NAME, "(%d) out of memory\n", __LINE__);
+                return -1;
+            }
+
+            if (mfd->hqconv) {
+                /* One temporary buffer, to hold full Y, U, and V planes. */
+                yuv_hqbuf = tc_malloc(width*height * 3);
+                if (yuv_hqbuf == NULL) {
                     tc_log_error(MOD_NAME, "(%d) out of memory\n", __LINE__);
                     return -1;
-                }
-                for (i=0; i<mfd->nr_of_images; i++) {
-                    mfd->yuv[i] = tc_malloc(sizeof(uint8_t) * mfd->image->columns
-                                            * mfd->image->rows * 3);
-                    if (!mfd->yuv[i]) {
-                        tc_log_error(MOD_NAME, "(%d) out of memory\n",
-                                     __LINE__);
-                        return -1;
-                    }
                 }
             }
 
@@ -321,53 +460,54 @@ int tc_filter(frame_list_t *ptr_, char *options)
                 return -1;
             }
 
-            /* convert Magick RGB format to 24bit RGB */
-            if (!(rgbswap || mfd->rgbswap)) {
-                r_off = 0;
-                b_off = 2;
-            } else {
-                r_off = 2;
-                b_off = 0;
-            }
-            g_off = 1;
+            image = GetFirstImageInList(mfd->image);
 
-            mfd->images = mfd->image;
+            for (i = 0; i < mfd->nr_of_images; i++) {
+                if (!mfd->hqconv) {
+                    flogo_convert_image(mfd->tcvhandle, image, mfd->yuv[i],
+                                        IMG_YUV420P, do_rgbswap);
+                } else {
+                    flogo_convert_image(mfd->tcvhandle, image, yuv_hqbuf,
+                                        IMG_YUV444P, do_rgbswap);
 
-            for (i=0; i<mfd->nr_of_images; i++) {
-                uint8_t *yuv_cur = mfd->yuv[i];
+                    // Copy over Y data from the 444 image
+                    ac_memcpy(mfd->yuv[i], yuv_hqbuf, width * height);
 
-                int row, col;
-                int row_max = mfd->image->rows;
-                int col_max = mfd->image->columns;
+                    // Resize U plane by 1/2 in each dimension, into the
+                    // mfd YUV buffer
+                    tcv_zoom(mfd->tcvhandle,
+                             yuv_hqbuf + (width * height),
+                             mfd->yuv[i] + (width * height),
+                             width,
+                             height,
+                             1,
+                             width / 2,
+                             height / 2,
+                             TCV_ZOOM_LANCZOS3
+                    );
 
-                PixelPacket *pixel_packet = GetImagePixels(mfd->images, 0, 0,
-                                                           col_max, row_max);
-
-                for (row = 0; row < row_max; row++) {
-                    for (col = 0; col < col_max; col++) {
-                        *(yuv_cur + r_off) = (uint8_t)ScaleQuantumToChar(pixel_packet->red);
-                        *(yuv_cur + g_off) = (uint8_t)ScaleQuantumToChar(pixel_packet->green);
-                        *(yuv_cur + b_off) = (uint8_t)ScaleQuantumToChar(pixel_packet->blue);
-
-                        yuv_cur += 3;
-                        pixel_packet++;
-                    }
-
+                    // Do the same with the V plane
+                    tcv_zoom(mfd->tcvhandle,
+                             yuv_hqbuf + 2*width*height,
+                             mfd->yuv[i] + width*height + (width/2)*(height/2),
+                             width,
+                             height,
+                             1,
+                             width / 2,
+                             height / 2,
+                             TCV_ZOOM_LANCZOS3
+                    );
                 }
-                mfd->images = mfd->images->next;
+                image = GetNextImageInList(image);
             }
 
-            for (i=0; i<mfd->nr_of_images; i++) {
-                if (!tcv_convert(mfd->tcvhandle, mfd->yuv[i],
-                                 mfd->image->columns, mfd->image->rows,
-                                 IMG_RGB24, IMG_YUV_DEFAULT)) {
-                    tc_log_error(MOD_NAME, "RGB->YUV conversion failed");
-                    return -1;
-                }
-            }
+            if (mfd->hqconv)
+                tc_free(yuv_hqbuf);
 
+            tcv_free(mfd->tcvhandle);
         } else {
             /* for RGB format is origin bottom left */
+            /* for RGB, rgbswap is done in the frame routine */
             rgb_off = vob->ex_v_height - mfd->image->rows;
             mfd->posy = rgb_off - mfd->posy;
         }
@@ -444,16 +584,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
     //----------------------------------
     if (ptr->tag & TC_FILTER_CLOSE) {
         if (mfd) {
-            int i;
-            if (mfd->yuv) {
-                for (i=0; i<mfd->nr_of_images; i++)
-                    if (mfd->yuv[i]) {
-                        free(mfd->yuv[i]);
-                        mfd->yuv[i] = NULL;
-                    }
-                free(mfd->yuv);
-                mfd->yuv = NULL;
-            }
+            flogo_yuvbuf_free(mfd->yuv, mfd->nr_of_images);
+            mfd->yuv = NULL;
 
             if (mfd->image) {
                 DestroyImage(mfd->image);
@@ -537,6 +669,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
                                       mfd->images->rows);
 
         if (vob->im_v_codec == CODEC_RGB) {
+            unsigned long r_off, g_off, b_off;
+
             if (!(rgbswap || mfd->rgbswap)) {
                 r_off = 0;
                 b_off = 2;
