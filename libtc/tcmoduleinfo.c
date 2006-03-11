@@ -68,7 +68,7 @@ static void codecs_to_string(const int *codecs, char *buffer,
     int found = 0;
     int i = 0;
 
-    if (!buffer || bufsize < DATA_BUF_SIZE) {
+    if (buffer == NULL || bufsize < DATA_BUF_SIZE) {
         return;
     }
 
@@ -76,7 +76,7 @@ static void codecs_to_string(const int *codecs, char *buffer,
 
     for (i = 0; codecs[i] != TC_CODEC_ERROR; i++) {
         const char *codec = tc_codec_to_string(codecs[i]);
-        if (!codec) {
+        if (codec == NULL) {
             continue;
         }
         strlcat(buffer, codec, bufsize);
@@ -92,10 +92,11 @@ void tc_module_info_log(const TCModuleInfo *info, int verbose)
 {
     char buffer[DATA_BUF_SIZE];
 
-    if (!info) {
+    if (info == NULL) {
         return;
     }
-    if (!info->name || (!info->version || !info->description)) {
+    if (info->name == NULL
+     || (info->version == NULL || info->description == NULL)) {
         tc_log_error(__FILE__, "missing critical information for module");
         return;
     }
@@ -154,22 +155,22 @@ int tc_module_info_copy(const TCModuleInfo *src, TCModuleInfo *dst)
 {
     int i = 0;
 
-    if (!src || !dst) {
+    if (src == NULL || dst == NULL) {
         return -1;
     }
     dst->features = src->features;
     dst->flags = src->flags;
 
     dst->name = tc_strdup(src->name);
-    if (!dst->name) {
+    if (dst->name == NULL) {
         goto no_mem_name;
     }
     dst->version = tc_strdup(src->version);
-    if (!dst->version) {
+    if (dst->version == NULL) {
         goto no_mem_version;
     }
     dst->description = tc_strdup(src->description);
-    if (!dst->description) {
+    if (dst->description == NULL) {
         goto no_mem_description;
     }
 
@@ -178,7 +179,7 @@ int tc_module_info_copy(const TCModuleInfo *src, TCModuleInfo *dst)
     }
     i++; /* for end mark (TC_CODEC_ERROR) */
     dst->codecs_in = tc_malloc(i * sizeof(int));
-    if (!dst->codecs_in) {
+    if (dst->codecs_in == NULL) {
         goto no_mem_codecs_in;
     }
     memcpy((int *)dst->codecs_in, src->codecs_in, i * sizeof(int));
@@ -188,7 +189,7 @@ int tc_module_info_copy(const TCModuleInfo *src, TCModuleInfo *dst)
     }
     i++; /* for end mark (TC_CODEC_ERROR) */
     dst->codecs_out = tc_malloc(i * sizeof(int));
-    if (!dst->codecs_out) {
+    if (dst->codecs_out == NULL) {
         goto no_mem_codecs_out;
     }
     memcpy((int *)dst->codecs_out, src->codecs_out, i * sizeof(int));

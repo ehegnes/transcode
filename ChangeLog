@@ -11,6 +11,7 @@
 
   * libtc/tcmoduleinfo.c
   partially rewrite module capabilities match functions.
+  STYLE conformancy: (!ptr) ==> (ptr != NULL)
 
 2006-03-11 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule-core.h libtc/tcmodule-info.h libtc/tcmoduleinfo.c
