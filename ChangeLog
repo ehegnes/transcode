@@ -9,6 +9,9 @@
   * testsuite/test-tcmoduleinfo.c
   a few more tests for tcmoduleinfo code.
 
+  * libtc/tcmoduleinfo.c
+  partially rewrite module capabilities match functions.
+
 2006-03-11 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule-core.h libtc/tcmodule-info.h libtc/tcmoduleinfo.c
   change interface for TCModuleInfo matching function.

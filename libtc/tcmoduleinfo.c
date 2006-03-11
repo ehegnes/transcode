@@ -34,17 +34,26 @@ int tc_module_info_match(int tc_codec,
     }
 
     for (i = 0; !found && tail->codecs_in[i] != TC_CODEC_ERROR; i++) {
-        /* TC_CODEC_ANY fit with everything :) */
-        if (tail->codecs_in[i] == TC_CODEC_ANY) {
-            found = 1;
-            break;
-        }
-        for (j = 0; head->codecs_out[j] != TC_CODEC_ERROR; j++) {
-            if (tc_codec == TC_CODEC_ANY
-             || ((head->codecs_out[j] == tail->codecs_in[i])
-              && (head->codecs_out[j] == tc_codec))) {
+        for (j = 0; !found && head->codecs_out[j] != TC_CODEC_ERROR; j++) {
+            if (tc_codec == head->codecs_out[j]
+             && head->codecs_out[j] == tail->codecs_in[i]) {
+                /* triple fit */
                 found = 1;
-                break;
+            }
+            if((head->codecs_out[j] == tail->codecs_in[i]
+              || head->codecs_out[j] == TC_CODEC_ANY)
+               && TC_CODEC_ANY == tc_codec) {
+                found = 1;
+            }
+            if ((tc_codec == head->codecs_out[j]
+              || tc_codec == TC_CODEC_ANY)
+               && TC_CODEC_ANY == tail->codecs_in[i]) {
+                found = 1;
+            }
+            if ((tail->codecs_in[i] == tc_codec
+              || tail->codecs_in[i] == TC_CODEC_ANY)
+               && TC_CODEC_ANY == head->codecs_out[j]) {
+                found = 1;
             }
         }
     }
