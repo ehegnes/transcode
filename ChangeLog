@@ -9,6 +9,7 @@
 
   * libtc/tccodecs.c
   correct name is 'ffv1' not 'ffmpegv1'.
+  add `vorbis' to codecs table.
 
 2006-03-09 Francesco Romani <fromani at gmail dot com>
   * tools/rawsource.c tools/Makefile.am

@@ -74,6 +74,7 @@ const TCCodecInfo tc_codecs_info[] = {
     { TC_CODEC_MP2, "mp2", NULL, NULL, 0 },
     { TC_CODEC_AC3, "ac3", NULL, NULL, 0 },
     { TC_CODEC_A52, "a52", NULL, NULL, 0 },
+    { TC_CODEC_VORBIS, "vorbis", NULL, NULL, 0 },
     /* FIXME: add more codec informations, on demand */
 
     /* special codecs*/
