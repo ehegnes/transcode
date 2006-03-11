@@ -4,6 +4,9 @@
   Do not use a new flag to mark frames skipped by encoder,
   use a predefined TC_FRAME_ attribute.
 
+  * tools/rawsource.c
+  typo.
+
 2006-03-09 Francesco Romani <fromani at gmail dot com>
   * tools/rawsource.c tools/Makefile.am
   update and reenable tcexport.

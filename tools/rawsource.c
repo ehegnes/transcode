@@ -100,7 +100,7 @@ static int rawsource_read_video(TCEncoderBuffer *buf, vob_t *vob)
         return -1;
     }
     rawsource.vframe->video_size = rawsource.im_para.size;
-    rawsource.vframe->attributes |= rawsource.im_para.attributes;
+    rawsource.vframe->attributes = rawsource.im_para.attributes;
 
     rawsource_buffer.vptr = rawsource.vframe;
     rawsource_buffer.frame_id++;
@@ -134,7 +134,7 @@ static int rawsource_read_audio(TCEncoderBuffer *buf, vob_t *vob)
         return -1;
     }
     rawsource.aframe->audio_size = rawsource.im_para.size;
-    rawsource.aframe->attributes |= rawsource.im_para.attributes;
+    rawsource.aframe->attributes = rawsource.im_para.attributes;
 
     rawsource_buffer.aptr = rawsource.aframe;
     return 0;
