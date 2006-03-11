@@ -61,7 +61,7 @@ const TCCodecInfo tc_codecs_info[] = {
     // XXX: right fcc?
     { TC_CODEC_H263I, "h.263", "H263", "h.263 video", 0 },
     // XXX: right fcc?
-    { TC_CODEC_FFV1, "ffmpegv1", "FFV1",
+    { TC_CODEC_FFV1, "ffv1", "FFV1",
                     "Experimental lossless ffmpeg codec", 1 },
     { TC_CODEC_ASV1, "asusvideo1", "ASV1", "ASUS video codec, v1", 0 },
     { TC_CODEC_ASV2, "asusvideo2", "ASV2", "ASUS video codec, v2", 0 },

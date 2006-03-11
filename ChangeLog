@@ -7,6 +7,9 @@
   * tools/rawsource.c
   typo.
 
+  * libtc/tccodecs.c
+  correct name is 'ffv1' not 'ffmpegv1'.
+
 2006-03-09 Francesco Romani <fromani at gmail dot com>
   * tools/rawsource.c tools/Makefile.am
   update and reenable tcexport.
