@@ -51,6 +51,19 @@ static TCModuleInfo fake_mplex = {
     empty_codecs
 };
 
+static const int pcm_pass_codecs[] = { TC_CODEC_PCM, TC_CODEC_ERROR };
+static TCModuleInfo pcm_pass = {
+    TC_MODULE_FEATURE_ENCODE | TC_MODULE_FEATURE_AUDIO | TC_MODULE_FEATURE_EXTRA,
+    TC_MODULE_FLAG_RECONFIGURABLE,
+    "encode_pcm.so",
+    "0.0.1 (2006-03-11)",
+    "passthrough pcm",
+    pcm_pass_codecs,
+    pcm_pass_codecs
+};
+
+
+
 static const int fake_mpeg_codecs_in[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
 static const int fake_mpeg_codecs_out[] = { TC_CODEC_MPEG1VIDEO, TC_CODEC_MPEG2VIDEO, TC_CODEC_XVID, TC_CODEC_ERROR };
 static TCModuleInfo fake_mpeg_enc = {
@@ -75,7 +88,7 @@ static TCModuleInfo fake_vorbis_enc = {
     fake_vorbis_codecs_out
 };
 
-static const int fake_avi_codecs_in[] = { TC_CODEC_MPEG1VIDEO, TC_CODEC_XVID, TC_CODEC_MP3, TC_CODEC_ERROR };
+static const int fake_avi_codecs_in[] = { TC_CODEC_MPEG1VIDEO, TC_CODEC_XVID, TC_CODEC_MP3, TC_CODEC_PCM, TC_CODEC_ERROR };
 static TCModuleInfo fake_avi_mplex = {
     TC_MODULE_FEATURE_MULTIPLEX | TC_MODULE_FEATURE_VIDEO
         | TC_MODULE_FEATURE_AUDIO,
@@ -89,9 +102,9 @@ static TCModuleInfo fake_avi_mplex = {
 
 static const TCModuleInfo *fake_modules[] = {
     &empty, &pass_enc, &fake_mplex, &fake_mpeg_enc,
-    &fake_vorbis_enc, &fake_avi_mplex
+    &fake_vorbis_enc, &fake_avi_mplex, &pcm_pass,
 };
-static const int fake_modules_count = 6;
+static const int fake_modules_count = 7;
 
 void test_module_log(void)
 {
@@ -114,10 +127,10 @@ static int test_match_helper(int codec,
                               int expected)
 {
     int match = tc_module_info_match(codec, m1, m2);
-    const char *str = tc_codec_to_string(codec);
     int err = 0;
-
 #ifdef VERBOSE    
+    const char *str = tc_codec_to_string(codec);
+    
     tc_log_msg(__FILE__, "codec: %s (0x%x)", str, codec);
 #endif
     if (match != expected) {
@@ -145,6 +158,8 @@ int test_module_match(void)
 
     errors += test_match_helper(TC_CODEC_ANY, &pass_enc, &fake_mplex, 1);
     errors += test_match_helper(TC_CODEC_ANY, &pass_enc, &fake_avi_mplex, 1);
+    errors += test_match_helper(TC_CODEC_ANY, &pcm_pass, &fake_avi_mplex, 1);
+    errors += test_match_helper(TC_CODEC_PCM, &pass_enc, &fake_avi_mplex, 1);
  
 //  this is tricky. Should fail since there are two *encoders* chained
 //  and this make no sense *in our current architecture*.

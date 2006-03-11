@@ -6,6 +6,9 @@
   update code to use the new tcmoduleinfo interface.
   add a new option to specify A/V codec to use.
 
+  * testsuite/test-tcmoduleinfo.c
+  a few more tests for tcmoduleinfo code.
+
 2006-03-11 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule-core.h libtc/tcmodule-info.h libtc/tcmoduleinfo.c
   change interface for TCModuleInfo matching function.
