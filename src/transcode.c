@@ -548,7 +548,7 @@ static int transcoder(int mode, vob_t *vob)
       	tc_error("failed to init export layer");
 	return(-1);
       }
-      if(export_setup(vob, ex_aud_mod, ex_vid_mod)<0) {
+      if(export_setup(vob, ex_aud_mod, ex_vid_mod, NULL)<0) {
       	tc_error("failed to init export modules");
 	return(-1);
       }

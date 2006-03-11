@@ -136,7 +136,8 @@ int export_init(TCEncoderBuffer *buffer, TCFactory factory)
     return 0;
 }
 
-int export_setup(const char *a_mod, const char *v_mod, const char *m_mod)
+int export_setup(vob_t *vob, 
+                 const char *a_mod, const char *v_mod, const char *m_mod)
 {
     int match = 0;
     const char *mod_name = NULL;
@@ -164,13 +165,15 @@ int export_setup(const char *a_mod, const char *v_mod, const char *m_mod)
         return -1;
     }
    
-    match = tc_module_match(encdata.aud_mod, encdata.mplex_mod);
+    match = tc_module_match(vob->ex_a_codec,
+                            encdata.aud_mod, encdata.mplex_mod);
     if (!match) {
         tc_log_error(__FILE__, "audio encoder incompatible "
                                "with multiplexor");
         return -1;
     }
-    match = tc_module_match(encdata.vid_mod, encdata.mplex_mod);
+    match = tc_module_match(vob->ex_v_codec,
+                            encdata.vid_mod, encdata.mplex_mod);
     if (!match) {
         tc_log_error(__FILE__, "video encoder incompatible "
                                "with multiplexor");
@@ -443,7 +446,8 @@ int export_init(TCEncoderBuffer *buffer, TCFactory factory)
     return 0;
 }
 
-int export_setup(vob_t *vob, const char *a_mod, const char *v_mod)
+int export_setup(vob_t *vob,
+                 const char *a_mod, const char *v_mod, const char *m_mod)
 {
     const char *mod_name = NULL;
 
