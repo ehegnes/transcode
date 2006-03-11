@@ -14,7 +14,8 @@
 #include "tccodecs.h"
 #include "tcmodule-info.h"
 
-int tc_module_info_match(const TCModuleInfo *head, const TCModuleInfo *tail)
+int tc_module_info_match(int tc_codec,
+                         const TCModuleInfo *head, const TCModuleInfo *tail)
 {
     int found = 0;
     int i = 0, j = 0;
@@ -39,7 +40,9 @@ int tc_module_info_match(const TCModuleInfo *head, const TCModuleInfo *tail)
             break;
         }
         for (j = 0; head->codecs_out[j] != TC_CODEC_ERROR; j++) {
-            if (head->codecs_out[j] == tail->codecs_in[i]) {
+            if (tc_codec == TC_CODEC_ANY
+             || ((head->codecs_out[j] == tail->codecs_in[i])
+              && (head->codecs_out[j] == tc_codec))) {
                 found = 1;
                 break;
             }

@@ -60,9 +60,11 @@ struct tcmoduleinfo_ {
 /*
  * tc_module_info_match:
  *     scan the given informations about two modules, and tell if the
- *     two modules can be chained toghether.
+ *     two modules can be chained together using the given codec.
  *
  * Parameters:
+ *     tc_codec:
+ *         codec_id to be used.
  *     head:
  *         the first given module information structure;
  *         'head' output is supposed to fit in 'tail' input.
@@ -83,7 +85,8 @@ struct tcmoduleinfo_ {
  * Postconditions:
  *     none
  */
-int tc_module_info_match(const TCModuleInfo *head,
+int tc_module_info_match(int tc_codec,
+                         const TCModuleInfo *head,
                          const TCModuleInfo *tail);
 
 /*

@@ -1,4 +1,10 @@
 2006-03-11 Francesco Romani <fromani at gmail dot com>
+  * libtc/tcmodule-core.h libtc/tcmodule-info.h libtc/tcmoduleinfo.c
+  change interface for TCModuleInfo matching function.
+  Now function checks if the two modules can agree *on
+  a given format*.
+
+2006-03-11 Francesco Romani <fromani at gmail dot com>
   * src/encoder-buffer.c src/encoder.c src/encoder.h
     tools/rawsource.c
   Do not use a new flag to mark frames skipped by encoder,

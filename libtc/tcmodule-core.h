@@ -81,8 +81,8 @@ struct tcmodule_ {
 #define tc_module_get_info(handle) \
     (const TCModuleInfo*)((handle)->klass->info)
 
-#define tc_module_match(handle, other) \
-    tc_module_info_match((handle)->klass->info, (other)->klass->info)
+#define tc_module_match(codec, handle, other) \
+    tc_module_info_match(codec, (handle)->klass->info, (other)->klass->info)
 
 #define tc_module_show_info(handle, verbose) \
     tc_module_info_log((handle)->klass->info, verbose)
