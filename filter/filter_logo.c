@@ -73,9 +73,17 @@ typedef struct MyFilterData {
     char       **yuv;            /* buffer for RGB->YUV conversion  */
 
     TCVHandle    tcvhandle;      /* handle for RGB->YUV conversion  */
+
+    /* These used to be static (per-module), but are now per-instance. */
+    vob_t       *vob;            /* video info from transcode       */
+    Image       *image;          /* Magick image handle             */
+    Image       *images;         /* tmp Magick handle (todo:remove) */
 } MyFilterData;
 
-static MyFilterData *mfd = NULL;
+static MyFilterData *mfd_all[MAX_FILTER] = {NULL};
+
+/* Only one instance of the module needs to initialize ImageMagick */
+static int magick_usecount = 0;
 
 /* from /src/transcode.c */
 extern int rgbswap;
@@ -111,19 +119,18 @@ static void help_optstr(void)
 int tc_filter(frame_list_t *ptr_, char *options)
 {
     vframe_list_t *ptr = (vframe_list_t *)ptr_;
-    static vob_t *vob = NULL;
+    vob_t         *vob = NULL;
 
-    static ExceptionInfo exception_info;
-    static ImageInfo *image_info;
-    static Image *image;
-    static Image *images;
-    static PixelPacket *pixel_packet;
+    int instance = ptr->filter_id;
+    MyFilterData  *mfd = mfd_all[ptr->filter_id];
 
-    Image *timg;
-    Image *nimg;
+    PixelPacket   *pixel_packet;
 
     int column, row;
-    int rgb_off = 0;
+
+    if (mfd != NULL) {
+        vob = mfd->vob;
+    }
 
     //----------------------------------
     //
@@ -150,28 +157,28 @@ int tc_filter(frame_list_t *ptr_, char *options)
     }
 
     if (ptr->tag & TC_FILTER_INIT) {
-        vob = tc_get_vob();
-        if (vob == NULL)
+        Image         *timg;
+        Image         *nimg;
+        ImageInfo     *image_info;
+        ExceptionInfo  exception_info;
+
+        int rgb_off = 0;
+
+        vob_t *tmpvob;
+
+        tmpvob = tc_get_vob();
+        if (tmpvob == NULL)
             return -1;
-        mfd = tc_malloc(sizeof(MyFilterData));
-        if (mfd == NULL)
+        mfd_all[instance] = tc_zalloc(sizeof(MyFilterData));
+        if (mfd_all[instance] == NULL)
             return -1;
 
-        //mfd->file = filename;
+        mfd = mfd_all[instance];
+
         strlcpy(mfd->file, "logo.png", PATH_MAX);
-        mfd->yuv          = NULL;
-        mfd->flip         = 0;
-        mfd->pos          = 0;
-        mfd->posx         = 0;
-        mfd->posy         = 0;
-        mfd->start        = 0;
-        mfd->end          = (unsigned int)-1;
-        mfd->ignoredelay  = 0;
-        mfd->rgbswap      = 0;
-        mfd->grayout      = 0;
-
-        mfd->nr_of_images = 0;
-        mfd->cur_seq      = 0;
+        mfd->end = (unsigned int)-1;
+        mfd->vob = tmpvob;
+        vob      = mfd->vob;
 
         if (options != NULL) {
             if (verbose)
@@ -208,14 +215,20 @@ int tc_filter(frame_list_t *ptr_, char *options)
             tc_log_info(MOD_NAME, "      rgbswap = %d",    mfd->rgbswap);
         }
 
-        InitializeMagick("");
+        /* Transcode serializes module execution, so this does not need a
+         * semaphore.
+         */
+        magick_usecount++;
+        if (!IsMagickInstantiated()) {
+            InitializeMagick("");
+        }
 
         GetExceptionInfo(&exception_info);
         image_info = CloneImageInfo((ImageInfo *) NULL);
         strlcpy(image_info->filename, mfd->file, MaxTextExtent);
 
-        image = ReadImage(image_info, &exception_info);
-        if (image == (Image *) NULL) {
+        mfd->image = ReadImage(image_info, &exception_info);
+        if (mfd->image == (Image *) NULL) {
             MagickWarning(exception_info.severity,
                           exception_info.reason,
                           exception_info.description);
@@ -223,24 +236,26 @@ int tc_filter(frame_list_t *ptr_, char *options)
             return 0;
         }
 
-        if (image->columns > vob->ex_v_width || image->rows > vob->ex_v_height) {
+        if (mfd->image->columns > vob->ex_v_width
+         || mfd->image->rows    > vob->ex_v_height
+        ) {
             tc_log_error(MOD_NAME, "\"%s\" is too large", mfd->file);
             return -1;
         }
 
         if (vob->im_v_codec == CODEC_YUV) {
-            if ((image->columns & 1) || (image->rows & 1)) {
+            if ((mfd->image->columns & 1) || (mfd->image->rows & 1)) {
                 tc_log_error(MOD_NAME, "\"%s\" has odd sizes", mfd->file);
                 return -1;
             }
         }
 
-        images = (Image *)GetFirstImageInList(image);
+        mfd->images = (Image *)GetFirstImageInList(mfd->image);
         nimg = NewImageList();
 
-        while (images != (Image *)NULL) {
+        while (mfd->images != (Image *)NULL) {
             if (mfd->flip || flip) {
-                timg = FlipImage(images, &exception_info);
+                timg = FlipImage(mfd->images, &exception_info);
                 if (timg == (Image *) NULL) {
                     MagickError(exception_info.severity,
                                 exception_info.reason,
@@ -250,22 +265,22 @@ int tc_filter(frame_list_t *ptr_, char *options)
                 AppendImageToList(&nimg, timg);
             }
 
-            images = GetNextImageInList(images);
+            mfd->images = GetNextImageInList(mfd->images);
             mfd->nr_of_images++;
         }
 
         // check for memleaks;
         //DestroyImageList(image);
         if (mfd->flip || flip) {
-            image = nimg;
+            mfd->image = nimg;
         }
 
         /* initial delay. real delay = 1/100 sec * delay */
-        mfd->cur_delay = image->delay*vob->fps/100;
+        mfd->cur_delay = mfd->image->delay*vob->fps/100;
 
         if (verbose & TC_DEBUG)
-            tc_log_info(MOD_NAME, "Nr: %d Delay: %d image->del %lu|",
-                        mfd->nr_of_images, mfd->cur_delay, image->delay);
+            tc_log_info(MOD_NAME, "Nr: %d Delay: %d mfd->image->del %lu|",
+                        mfd->nr_of_images, mfd->cur_delay, mfd->image->delay);
 
         if (vob->im_v_codec == CODEC_YUV) {
             int i;
@@ -277,8 +292,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
                     return -1;
                 }
                 for (i=0; i<mfd->nr_of_images; i++) {
-                    mfd->yuv[i] = tc_malloc(sizeof(char) * image->columns
-                                            * image->rows * 3);
+                    mfd->yuv[i] = tc_malloc(sizeof(char) * mfd->image->columns
+                                            * mfd->image->rows * 3);
                     if (!mfd->yuv[i]) {
                         tc_log_error(MOD_NAME, "(%d) out of memory\n",
                                      __LINE__);
@@ -295,50 +310,57 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
             /* convert Magick RGB format to 24bit RGB */
             if (!(rgbswap || mfd->rgbswap)) {
-                images = image;
+                mfd->images = mfd->image;
 
                 for (i=0; i<mfd->nr_of_images; i++) {
-                    pixel_packet = GetImagePixels(images, 0, 0, images->columns, images->rows);
-                    for (row = 0; row < image->rows; row++) {
-                        for (column = 0; column < image->columns; column++) {
-                            mfd->yuv[i][(row * image->columns + column) * 3 + 0] =
-                                pixel_packet[image->columns*row + column].red;
+                    pixel_packet = GetImagePixels(mfd->images, 0, 0,
+                                                  mfd->images->columns,
+                                                  mfd->images->rows);
+                    for (row = 0; row < mfd->image->rows; row++) {
+                        for (column = 0; column < mfd->image->columns; column++) {
+                            mfd->yuv[i][(row * mfd->image->columns + column) * 3 + 0] =
+                                pixel_packet[mfd->image->columns*row + column].red;
 
-                            mfd->yuv[i][(row * image->columns + column) * 3 + 1] =
-                                pixel_packet[image->columns*row + column].green;
+                            mfd->yuv[i][(row * mfd->image->columns + column) * 3 + 1] =
+                                pixel_packet[mfd->image->columns*row + column].green;
 
-                            mfd->yuv[i][(row * image->columns + column) * 3 + 2] =
-                                pixel_packet[image->columns*row + column].blue;
+                            mfd->yuv[i][(row * mfd->image->columns + column) * 3 + 2] =
+                                pixel_packet[mfd->image->columns*row + column].blue;
                         }
                     }
-                    images = images->next;
+                    mfd->images = mfd->images->next;
                 }
 
             } else {
-                images = image;
+                mfd->images = mfd->image;
 
                 for (i=0; i<mfd->nr_of_images; i++) {
-                    pixel_packet = GetImagePixels(images, 0, 0, images->columns, images->rows);
-                    for (row = 0; row < image->rows; row++) {
-                        for (column = 0; column < image->columns; column++) {
+                    pixel_packet = GetImagePixels(mfd->images, 0, 0,
+                                                                                                                                        mfd->images->columns,
+                                                                                                                                        mfd->images->rows);
+                    for (row = 0; row < mfd->image->rows; row++) {
+                        for (column = 0; column < mfd->image->columns; column++) {
 
-                            mfd->yuv[i][(row * image->columns + column) * 3 + 0] =
-                                pixel_packet[image->columns*row + column].blue;
+                            mfd->yuv[i][(row * mfd->image->columns + column) * 3 + 0] =
+                                pixel_packet[mfd->image->columns*row + column].blue;
 
-                            mfd->yuv[i][(row * image->columns + column) * 3 + 1] =
-                                pixel_packet[image->columns*row + column].green;
+                            mfd->yuv[i][(row * mfd->image->columns + column) * 3 + 1] =
+                                pixel_packet[mfd->image->columns*row + column].green;
 
-                            mfd->yuv[i][(row * image->columns + column) * 3 + 2] =
-                                pixel_packet[image->columns*row + column].red;
+                            mfd->yuv[i][(row * mfd->image->columns + column) * 3 + 2] =
+                                pixel_packet[mfd->image->columns*row + column].red;
                         }
                     }
-                    images=images->next;
+                    mfd->images = mfd->images->next;
                 }
             }
 
+
+
             for (i=0; i<mfd->nr_of_images; i++) {
-                if (!tcv_convert(mfd->tcvhandle, mfd->yuv[i], image->columns,
-                                 image->rows, IMG_RGB24, IMG_YUV_DEFAULT)) {
+                if (!tcv_convert(mfd->tcvhandle, mfd->yuv[i],
+                                 mfd->image->columns, mfd->image->rows,
+                                 IMG_RGB24, IMG_YUV_DEFAULT)) {
                     tc_log_error(MOD_NAME, "RGB->YUV conversion failed");
                     return -1;
                 }
@@ -346,7 +368,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
         } else {
             /* for RGB format is origin bottom left */
-            rgb_off = vob->ex_v_height - image->rows;
+            rgb_off = vob->ex_v_height - mfd->image->rows;
             mfd->posy = rgb_off - mfd->posy;
         }
 
@@ -358,18 +380,18 @@ int tc_filter(frame_list_t *ptr_, char *options)
             mfd->posy = rgb_off;
             break;
           case TOP_RIGHT:
-            mfd->posx = vob->ex_v_width  - image->columns;
+            mfd->posx = vob->ex_v_width  - mfd->image->columns;
             break;
           case BOT_LEFT:
-            mfd->posy = vob->ex_v_height - image->rows - rgb_off;
+            mfd->posy = vob->ex_v_height - mfd->image->rows - rgb_off;
             break;
           case BOT_RIGHT:
-            mfd->posx = vob->ex_v_width  - image->columns;
-            mfd->posy = vob->ex_v_height - image->rows - rgb_off;
+            mfd->posx = vob->ex_v_width  - mfd->image->columns;
+            mfd->posy = vob->ex_v_height - mfd->image->rows - rgb_off;
             break;
           case CENTER:
-            mfd->posx = (vob->ex_v_width - image->columns)/2;
-            mfd->posy = (vob->ex_v_height- image->rows)/2;
+            mfd->posx = (vob->ex_v_width - mfd->image->columns)/2;
+            mfd->posy = (vob->ex_v_height- mfd->image->rows)/2;
             /* align to not cause color disruption */
             if (mfd->posx & 1)
                 mfd->posx++;
@@ -380,14 +402,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 
         if (mfd->posy < 0 || mfd->posx < 0
-         || mfd->posx+image->columns > vob->ex_v_width
-         || mfd->posy+image->rows > vob->ex_v_height) {
+         || (mfd->posx + mfd->image->columns) > vob->ex_v_width
+         || (mfd->posy + mfd->image->rows)    > vob->ex_v_height) {
             tc_log_error(MOD_NAME, "invalid position");
             return -1;
         }
 
         /* for running through image sequence */
-        images = image;
+        mfd->images = mfd->image;
 
         // filter init ok.
         if (verbose)
@@ -414,15 +436,20 @@ int tc_filter(frame_list_t *ptr_, char *options)
                 free(mfd->yuv);
                 mfd->yuv = NULL;
             }
-            free(mfd);
+
+            if (mfd->image) {
+                DestroyImage(mfd->image);
+            }
+
+            tc_free(mfd);
             mfd = NULL;
+            mfd_all[instance] = NULL;
         }
 
-        if (image) {
-            DestroyImage(image);
-            DestroyImageInfo(image_info);
+        magick_usecount--;
+        if (magick_usecount == 0 && IsMagickInstantiated()) {
+            DestroyMagick();
         }
-        DestroyMagick();
 
         return 0;
     } /* filter close */
@@ -456,21 +483,23 @@ int tc_filter(frame_list_t *ptr_, char *options)
         if (mfd->cur_delay < 0 || mfd->ignoredelay) {
             mfd->cur_seq = (mfd->cur_seq + 1) % mfd->nr_of_images;
 
-            images = image;
+            mfd->images = mfd->image;
             for (seq=0; seq<mfd->cur_seq; seq++)
-                images = images->next;
+                mfd->images = mfd->images->next;
 
-            mfd->cur_delay = images->delay * vob->fps/100;
+            mfd->cur_delay = mfd->images->delay * vob->fps/100;
         }
 
-        pixel_packet = GetImagePixels(images, 0, 0, images->columns, images->rows);
+        pixel_packet = GetImagePixels(mfd->images, 0, 0,
+                                      mfd->images->columns,
+                                      mfd->images->rows);
 
         if (vob->im_v_codec == CODEC_RGB) {
             if (rgbswap || mfd->rgbswap) {
-                for (row = 0; row < image->rows; row++) {
-                    for (column = 0; column < image->columns; column++) {
-                        if (pixel_packet[(images->rows - row - 1) * images->columns + column].opacity == 0) {
-                            int packet_off = (images->rows - row - 1) * images->columns + column;
+                for (row = 0; row < mfd->image->rows; row++) {
+                    for (column = 0; column < mfd->image->columns; column++) {
+                        if (pixel_packet[(mfd->images->rows - row - 1) * mfd->images->columns + column].opacity == 0) {
+                            int packet_off = (mfd->images->rows - row - 1) * mfd->images->columns + column;
                             int ptr_off    = ((row+mfd->posy)* vob->ex_v_width + column+mfd->posx) * 3;
 
                             ptr->video_buf[ptr_off + 0] = pixel_packet[packet_off].blue;
@@ -480,10 +509,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
                     }
                 }
             } else { /* !rgbswap */
-                for (row = 0; row < images->rows; row++) {
-                    for (column = 0; column < images->columns; column++) {
-                        if (pixel_packet[(images->rows - row - 1) * images->columns + column].opacity == 0) {
-                            int packet_off = (images->rows - row - 1) * images->columns + column;
+                for (row = 0; row < mfd->images->rows; row++) {
+                    for (column = 0; column < mfd->images->columns; column++) {
+                        if (pixel_packet[(mfd->images->rows - row - 1) * mfd->images->columns + column].opacity == 0) {
+                            int packet_off = (mfd->images->rows - row - 1) * mfd->images->columns + column;
                             int ptr_off    = ((row+mfd->posy)* vob->ex_v_width + column+mfd->posx) * 3;
 
                             ptr->video_buf[ptr_off + 0] = pixel_packet[packet_off].red;
@@ -495,17 +524,17 @@ int tc_filter(frame_list_t *ptr_, char *options)
             }
 
         } else { /* !RGB */
-            int size  = vob->ex_v_width*vob->ex_v_height;
-            int block = images->columns*images->rows;
+            int size  = vob->ex_v_width * vob->ex_v_height;
+            int block = mfd->images->columns * mfd->images->rows;
             char *p1, *p2;
             char *y1, *y2;
 
             /* Y' */
-            for (row = 0; row < images->rows; row++) {
-                for (column = 0; column < images->columns; column++) {
-                    if (pixel_packet[images->columns*row + column].opacity == 0) {
+            for (row = 0; row < mfd->images->rows; row++) {
+                for (column = 0; column < mfd->images->columns; column++) {
+                    if (pixel_packet[mfd->images->columns*row + column].opacity == 0) {
                         *(ptr->video_buf + (row+mfd->posy)*vob->ex_v_width + column + mfd->posx) =
-                            mfd->yuv[mfd->cur_seq][images->columns*row + column];
+                            mfd->yuv[mfd->cur_seq][mfd->images->columns*row + column];
                     }
                 }
             }
@@ -519,19 +548,19 @@ int tc_filter(frame_list_t *ptr_, char *options)
             p2 = ptr->video_buf + 5*size/4 + mfd->posy*vob->ex_v_width/4 + mfd->posx/2;
             y2 = &mfd->yuv[mfd->cur_seq][5*block/4];
 
-            for (row = 0; row < images->rows/2; row++) {
-                for (column = 0; column < images->columns/2; column++) {
-                    if (pixel_packet[images->columns*row*2 + column*2].opacity == 0) {
+            for (row = 0; row < mfd->images->rows/2; row++) {
+                for (column = 0; column < mfd->images->columns/2; column++) {
+                    if (pixel_packet[mfd->images->columns*row*2 + column*2].opacity == 0) {
                         p1[column] = y1[column];
                         p2[column] = y2[column];
                     }
                 }
 
                 p1 += vob->ex_v_width/2;
-                y1 += images->columns/2;
+                y1 += mfd->images->columns/2;
 
                 p2 += vob->ex_v_width/2;
-                y2 += images->columns/2;
+                y2 += mfd->images->columns/2;
             }
 
         }
