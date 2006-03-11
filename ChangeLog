@@ -1,6 +1,10 @@
 2006-03-11 Francesco Romani <fromani at gmail dot com>
   * src/encoder.c  src/encoder.h src/transcode.c
   update code to use the new tcmoduleinfo interface.
+  
+  * tools/tcexport.c
+  update code to use the new tcmoduleinfo interface.
+  add a new option to specify A/V codec to use.
 
 2006-03-11 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule-core.h libtc/tcmodule-info.h libtc/tcmoduleinfo.c

@@ -26,7 +26,9 @@
 #include "counter.h"
 #include "probe.h"
 #include "encoder.h"
-#include "tcmodule-core.h"
+#include "libtc/tcmodule-core.h"
+#include "libtc/libtc.h"
+#include "libtc/tccodecs.h"
 #include "frc_table.h"
 
 #include "rawsource.h"
@@ -45,11 +47,17 @@
 #define VIDEO_LOG_FILE       "mpeg4.log"
 #define AUDIO_LOG_FILE       "pcm.log"
 
+#define VIDEO_CODEC          "yuv420p"
+#define AUDIO_CODEC          "pcm"
+
 typedef  struct tcencconf_ TCEncConf;
 
 struct tcencconf_ {
     int dry_run;
     vob_t *vob;
+    
+    char video_codec[TC_BUF_MIN];
+    char audio_codec[TC_BUF_MIN];
     
     char vlogfile[TC_BUF_MIN];
     char alogfile[TC_BUF_MIN];
@@ -73,6 +81,8 @@ static vob_t vob = {
 
     .im_v_codec = CODEC_YUV,
     .im_a_codec = CODEC_PCM,
+    .ex_v_codec = TC_CODEC_ERROR,
+    .ex_a_codec = TC_CODEC_ERROR,
 
     .im_frc = 3,
     
@@ -122,6 +132,8 @@ static void usage(void)
     tc_log_msg(EXE, "\t -i file           video input file name");
     tc_log_msg(EXE, "\t -p file           audio input file name");
     tc_log_msg(EXE, "\t -o file           output file (base)name");
+    tc_log_msg(EXE, "\t -N V,A            Video,Audio output format"
+                    " (encoder) [%s,%s]", VIDEO_CODEC, AUDIO_CODEC);
     tc_log_msg(EXE, "\t -y V,A,M          Video,Audio,Multiplexor export"
                     " modules [%s,%s,%s]", TC_DEFAULT_EXPORT_VIDEO,
                     TC_DEFAULT_EXPORT_AUDIO, TC_DEFAULT_EXPORT_MPLEX);
@@ -182,7 +194,7 @@ static int parse_options(int argc, char** argv, TCEncConf *conf)
     }
 
     while(1) {
-        ch = getopt(argc, argv, "b:Dd:hi:m:o:p:R:y:w:v?");
+        ch = getopt(argc, argv, "b:Dd:hi:m:N:o:p:R:y:w:v?");
         if (ch == -1) {
             break;
         }
@@ -216,6 +228,25 @@ static int parse_options(int argc, char** argv, TCEncConf *conf)
           case 'm':
             VALIDATE_OPTION;
             vob->mod_path = optarg;
+            break;
+          case 'N':
+            VALIDATE_OPTION;
+	        n = sscanf(optarg,"%64[^,],%64s",
+                       conf->video_codec, conf->audio_codec);
+            if (n != 2) {
+                tc_log_error(EXE, "invalid parameter for option -N"
+                                  " (you must specify ALL parameters)");
+                return STATUS_BAD_PARAM;
+            }
+
+            vob->ex_v_codec = tc_codec_from_string(conf->video_codec);
+            vob->ex_a_codec = tc_codec_from_string(conf->audio_codec);
+
+            if (vob->ex_v_codec == TC_CODEC_ERROR
+             || vob->ex_a_codec == TC_CODEC_ERROR) {
+                tc_log_error(EXE, "unknown A/V format");
+                return STATUS_BAD_PARAM;
+            }
             break;
           case 'p':
             VALIDATE_OPTION;
@@ -401,6 +432,11 @@ int main(int argc, char *argv[])
     if (ret != STATUS_OK) {
         return (ret == STATUS_DONE) ?STATUS_OK :ret;
     }
+    if (vob.ex_v_codec == TC_CODEC_ERROR
+     || vob.ex_a_codec == TC_CODEC_ERROR) {
+        tc_log_error(EXE, "bad export codec/format (use -N)");
+        return STATUS_BAD_PARAM;
+    }
     verbose = vob.verbose;
     ret = probe_source(vob.video_in_file, vob.audio_in_file,
                        1, 0, &vob);
@@ -425,7 +461,8 @@ int main(int argc, char *argv[])
     ret = export_init(source, factory);
     EXIT_IF(ret != 0, "can't setup export subsystem", STATUS_MODULE_ERROR);
     
-    ret = export_setup(config.audio_mod, config.video_mod, config.mplex_mod);
+    ret = export_setup(&vob,
+                       config.audio_mod, config.video_mod, config.mplex_mod);
     EXIT_IF(ret != 0, "can't setup export modules", STATUS_MODULE_ERROR);
 
     if (!config.dry_run) {
