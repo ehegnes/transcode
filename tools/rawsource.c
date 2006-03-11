@@ -28,7 +28,7 @@ extern int errno;
 static int rawsource_read_video(TCEncoderBuffer *buf, vob_t *vob);
 static int rawsource_read_audio(TCEncoderBuffer *buf, vob_t *vob);
 static int rawsource_have_data(TCEncoderBuffer *buf);
-static void rawsource_dummy(TCEncoderBuffer *buf, int useless);
+static void rawsource_dummy(TCEncoderBuffer *buf);
 
 
 typedef struct tcrawsource_ {
@@ -151,7 +151,7 @@ static int rawsource_have_data(TCEncoderBuffer *buf)
     return 1;
 }
 
-static void rawsource_dummy(TCEncoderBuffer *buf, int useless)
+static void rawsource_dummy(TCEncoderBuffer *buf)
 {
     return;
 }

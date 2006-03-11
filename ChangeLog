@@ -1,3 +1,9 @@
+2006-03-11 Francesco Romani <fromani at gmail dot com>
+  * src/encoder-buffer.c src/encoder.c src/encoder.h
+    tools/rawsource.c
+  Do not use a new flag to mark frames skipped by encoder,
+  use a predefined TC_FRAME_ attribute.
+
 2006-03-09 Francesco Romani <fromani at gmail dot com>
   * tools/rawsource.c tools/Makefile.am
   update and reenable tcexport.

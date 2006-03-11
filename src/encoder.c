@@ -364,7 +364,7 @@ static void free_buffers(TCEncoderData *data)
 /*
  * dispatch the acquired frames to encoder modules, and adjust frame counters
  */
-static int encoder_export(TCEncoderData *data)
+static int encoder_export(TCEncoderData *data, vob_t *vob)
 {
     int video_delayed = 0;
     int ret;
@@ -739,6 +739,8 @@ static void encoder_skip(TCEncoderData *data)
         counter_print(0, data->buffer->frame_id, data->saved_frame_last,
                       data->frame_first-1);
     }
+    data->buffer->vptr->attributes |= TC_FRAME_IS_OUT_OF_RANGE;
+    data->buffer->aptr->attributes |= TC_FRAME_IS_OUT_OF_RANGE;
 }
 
 /* ------------------------------------------------------------ 
@@ -753,7 +755,6 @@ static void encoder_skip(TCEncoderData *data)
 void encoder(vob_t *vob, int frame_first, int frame_last)
 {
     int err = 0;
-    int skipped = 0;
 
     if (encdata.this_frame_last != frame_last) {
         encdata.old_frame_last = encdata.this_frame_last;
@@ -812,12 +813,11 @@ void encoder(vob_t *vob, int frame_first, int frame_last)
             encoder_export(&encdata, vob);
         } else { /* frame not in range */
             encoder_skip(&encdata);
-            skipped = 1;
         } /* frame processing loop */
       
         /* release frame buffer memory */
-        encdata.buffer->dispose_video_frame(encdata.buffer, skipped);
-        encdata.buffer->dispose_audio_frame(encdata.buffer, skipped);
+        encdata.buffer->dispose_video_frame(encdata.buffer);
+        encdata.buffer->dispose_audio_frame(encdata.buffer);
       
     } while (encdata.buffer->have_data(encdata.buffer) && !encdata.error_flag);
     /* main frame decoding loop */

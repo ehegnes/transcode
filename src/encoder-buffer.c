@@ -439,9 +439,9 @@ static int encoder_acquire_aframe(TCEncoderBuffer *buf, vob_t *vob)
 /*
  * put back to frame buffer an acquired video frame.
  */
-static void encoder_dispose_vframe(TCEncoderBuffer *buf, int was_skipped)
+static void encoder_dispose_vframe(TCEncoderBuffer *buf)
 {
-    if (was_skipped) {
+    if (buf->vptr->attributes & TC_FRAME_IS_OUT_OF_RANGE) {
         if (!have_vframe_threads) {
             DEC_VBUF_COUNTER(im);
         } else {
@@ -496,9 +496,9 @@ static void encoder_dispose_vframe(TCEncoderBuffer *buf, int was_skipped)
 /*
  * put back to frame buffer an acquired audio frame
  */
-static void encoder_dispose_aframe(TCEncoderBuffer *buf, int was_skipped)
+static void encoder_dispose_aframe(TCEncoderBuffer *buf)
 {
-    if (was_skipped) {
+    if (buf->aptr->attributes & TC_FRAME_IS_OUT_OF_RANGE) {
         if (!have_aframe_threads) {
             DEC_ABUF_COUNTER(im);
         } else {
