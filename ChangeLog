@@ -4,6 +4,9 @@
   Now function checks if the two modules can agree *on
   a given format*.
 
+  * testsuite/test-tcmoduleinfo.c
+  update test to use new tcmoduleinfo interface.
+
 2006-03-11 Francesco Romani <fromani at gmail dot com>
   * src/encoder-buffer.c src/encoder.c src/encoder.h
     tools/rawsource.c
