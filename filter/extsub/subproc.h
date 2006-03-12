@@ -34,6 +34,7 @@
 typedef struct sub_info_s {
 
   int time;
+  int forced;
 
   int x, y;
   int w, h;

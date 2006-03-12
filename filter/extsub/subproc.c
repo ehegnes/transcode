@@ -301,6 +301,7 @@ static int parse_ctrl_sequence(unsigned char *data,
       {
         case 0x00:
           parsed[n].forcedisplay=1 ;
+          config.sub.forced=1 ;
           offset++ ;
           break ;
 
@@ -392,6 +393,7 @@ static void process_title(unsigned char *data, unsigned int size, unsigned int d
   unsigned int ctrl_size ;
   parsed_ctrl_sequence parsed[10] ;
 
+  memset(parsed, 0, sizeof(parsed)) ;
   ctrl_size=parse_ctrl_sequence(data+ctrl_offset, ctrl_offset, parsed) ;
   parse_data_sequence(data, parsed) ;
 }
@@ -474,11 +476,13 @@ int subproc_feedme(void *_data, unsigned  int size, int block, double pts, sub_i
 
   int n;
 
+  memset(&config.sub, 0, sizeof(config.sub));
   config.sub.frame = sub->frame;
 
   if(process_sub(data+1, size-1, block, type & 0x1F, pts)<0) return(-1);
 
   sub->time  = config.sub.time;
+  sub->forced = config.sub.forced;
   sub->x     = config.sub.x;
   sub->y     = config.sub.y;
   sub->w     = config.sub.w;

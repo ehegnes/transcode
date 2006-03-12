@@ -1,3 +1,12 @@
+2006-03-12 Allan N. Snider <allansnider at istop dot com>
+  * filter/extsub/subproc.c filter/extsub/subproc.h
+    filter/extsub/filter_extsub.c
+  add a (still experimental) "forced" flag to the extsub filter.
+  If true, then only subtitles that are forced will be rendered.
+  Example: "-J extsub=track=0:forced=1:vertshift=..." etc.
+  The default (is of course) off.
+  (patched applied on CVS by Francesco Romani)
+
 2006-03-11 Sebastian Kun <seb at sarolta dot com>
   * filter/filter_logo.c
   cleanup and enhancements for `logo' filter.

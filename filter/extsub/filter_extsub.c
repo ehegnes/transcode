@@ -59,6 +59,7 @@ static double sub_pts1=-1.0f, sub_pts2=-1.0f;
 static int sub_xpos, sub_ypos;
 static int sub_xlen, sub_ylen;
 static int sub_id=0;
+static int sub_forced=0;
 static int sub_colour[4];
 static int sub_alpha[4];
 
@@ -66,6 +67,7 @@ static int codec;
 static int vshift=0, tshift=0, post=0;
 
 static unsigned int color1=0, color2=255;
+static int forced=0;
 
 static double aa_weight, aa_bias;
 
@@ -127,6 +129,7 @@ static int subtitle_retrieve(void)
   sub_pts1 = sptr->pts * f_time;
   sub_pts2 = sub_pts1 + sub.time/100.0;
 
+  sub_forced = sub.forced;
   sub_xpos = sub.x;
   sub_ypos = sub.y;
   sub_xlen = sub.w;
@@ -139,8 +142,8 @@ static int subtitle_retrieve(void)
   pthread_cond_signal(&sframe_list_full_cv);
 
   if(verbose & TC_STATS)
-    tc_log_info(MOD_NAME, "got SUBTITLE %d with pts=%.3f dtime=%.3f", sub_id, sub_pts1, sub_pts2-sub_pts1);
-
+    tc_log_info(MOD_NAME, "got SUBTITLE %d with forced=%d, pts=%.3f dtime=%.3f",
+	            sub_id, sub_forced, sub_pts1, sub_pts2-sub_pts1); 
   return(0);
 }
 
@@ -393,6 +396,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   if (ptr->tag & TC_FILTER_GET_CONFIG) {
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYOE", "1");
       optstr_param (options, "track",   "Subtitle track to render",    "%d",    "0", "0", "255");
+      optstr_param (options, "forced", "Render only forced subtitles", "%d", "0", "0", "1" );
       optstr_param (options, "vertshift", "offset of subtitle with respect to bottom of frame in rows", "%d",  "0", "0", "height");
       optstr_param (options, "timeshift", "global display start time correction in msec",    "%d",    "0", "0", "-1");
       optstr_param (options, "antialias", "anti-aliasing the rendered text (0=off,1=on)",    "%d",    "1", "0", "1");
@@ -428,6 +432,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    n=sscanf(options,"%d:%d:%d:%d:%d:%d:%d:%d:%d", &vob->s_track, &vshift, &tshift, &skip_anti_alias, &post, &color1, &color2, &ca, &cb);
 	} else { // new options
 	    optstr_get (options, "track", "%d", &vob->s_track);
+	    optstr_get (options, "forced", "%d", &forced);
 	    optstr_get (options, "vertshift", "%d", &vshift);
 	    optstr_get (options, "timeshift", "%d", &tshift);
 	if (optstr_get (options, "antialias", "%d", &skip_anti_alias)>=0) skip_anti_alias = !skip_anti_alias;
@@ -588,7 +593,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
   //overlay now?
   if(sub_pts1 <= f_pts && f_pts <= sub_pts2) {
-    subtitle_overlay(ptr->video_buf, ptr->v_width, ptr->v_height);
+    if(!forced || sub_forced)
+      subtitle_overlay(ptr->video_buf, ptr->v_width, ptr->v_height);
     return(0);
   }
 
@@ -600,13 +606,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
   if(f_pts > sub_pts2) {
     if(subtitle_retrieve()<0) {
       if(verbose & TC_STATS)
-	tc_log_info(MOD_NAME, "no subtitle available at this time");
+        tc_log_info(MOD_NAME, "no subtitle available at this time");
       return(0);
     }
   }
 
   //overlay now?
-  if(sub_pts1 < f_pts && f_pts < sub_pts2) subtitle_overlay(ptr->video_buf, ptr->v_width, ptr->v_height);
-
+  if(sub_pts1 < f_pts && f_pts < sub_pts2)
+    if(!forced || sub_forced)
+      subtitle_overlay(ptr->video_buf, ptr->v_width, ptr->v_height);
   return(0);
 }
