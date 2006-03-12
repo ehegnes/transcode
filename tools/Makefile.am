@@ -84,6 +84,7 @@ tcmodinfo_LDADD = \
 	$(AVILIB_LIBS) \
 	$(LIBTC_LIBS) \
 	$(LIBTCVIDEO_LIBS) \
+	$(PTHREAD_LIBS) \
 	-lm
 tcmodinfo_LDFLAGS = -export-dynamic
 
