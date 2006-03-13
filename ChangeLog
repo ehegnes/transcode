@@ -1,3 +1,9 @@
+2006-03-13 Francesco Romani <fromani at gmail dot com>
+  * avilib/wavlib.h avilib/wavlib.c
+  update to version 0.0.10:
+  fix some silly bugs in wav_fdopen,
+  big endian support in wav_read_data.
+
 2006-03-12 Francesco Romani <fromani at gmail dot com>
   * tools/Makefile.am
   link tcmodinfo to libpthread too.
