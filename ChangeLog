@@ -1,3 +1,7 @@
+2006-03-14 Francesco Romani <fromani at gmail dot com>
+  * src/audio_buffer.c src/video_buffer.c
+  polish, reorganize a little bit and make STYLE compliant.
+
 2006-03-13 Francesco Romani <fromani at gmail dot com>
   * avilib/wavlib.h avilib/wavlib.c
   update to version 0.0.10:
