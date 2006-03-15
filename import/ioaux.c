@@ -23,7 +23,7 @@
 
 
 #include "ioaux.h"
-#include <xio.h>
+#include "xio.h"
 
 void import_info(int code, char *EXE)
 {

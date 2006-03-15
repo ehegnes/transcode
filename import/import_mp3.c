@@ -33,7 +33,7 @@ static int capability_flag = TC_CAP_PCM;
 #define MOD_PRE mp3
 #include "import_def.h"
 
-#include "libxio/xio.h"
+#include "xio.h"
 
 char import_cmd_buf[TC_BUF_MAX];
 

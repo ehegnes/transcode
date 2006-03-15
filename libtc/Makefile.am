@@ -1,9 +1,11 @@
 # # Process this file with automake to produce Makefile.in.
 
 AM_CPPFLAGS = \
-	$(PTHREAD_CFLAGS) -I.. -I../src -I../aclib
-
-#	-I$(top_srcdir)
+	$(PTHREAD_CFLAGS) \
+	$(LIBXML2_CFLAGS) \
+	-I$(top_srcdir) \
+	-I$(top_srcdir)/src \
+	-I$(top_srcdir)/aclib
 
 noinst_LTLIBRARIES = libtc.la
 
@@ -15,7 +17,8 @@ libtc_la_SOURCES = \
 	optstr.c \
 	iodir.c \
 	strlcat.c \
-	strlcpy.c
+	strlcpy.c \
+	libxio.c
 
 EXTRA_DIST = \
 	libtc.h \
@@ -25,4 +28,6 @@ EXTRA_DIST = \
 	tcmodule-info.h \
 	tcmodule-plugin.h \
 	iodir.h \
-	optstr.h 
+	optstr.h \
+	static_xio.h \
+	xio.h

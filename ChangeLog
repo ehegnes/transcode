@@ -1,4 +1,18 @@
 2006-03-15 Francesco Romani <fromani at gmail dot com>
+  * Makefile.am configure.in export/export_raw.c import/fileinfo.c
+    import/import_mp3.c import/ioaux.c import/tccat.c import/tcdecode.c
+    import/tcdemux.c import/tcextract.c import/tcprobe.c import/tcrequant.c
+    import/tcscan.c libtc/Makefile.am libtc/tc_functions.c src/callback.c
+    src/transcode.c
+
+  Added files: libtc/libxio.c libtc/static_xio.h libtc/xio.h
+
+  Removed files: libxio/Makefile.am libxio/libxio.c libxio/static_xio.h
+                 libxio/xio.h
+
+  integrate libxio into libtc.
+
+2006-03-15 Francesco Romani <fromani at gmail dot com>
   * added file: testsuite/test-tclog.c
 
   * libtc/tc_functions.c testsuite/Makefile.am

@@ -37,7 +37,7 @@
 #include "split.h"
 #include "frc_table.h"
 #include "libtc/iodir.h"
-#include "libxio/xio.h"
+#include "libtc/xio.h"
 
 #ifdef HAVE_GETOPT_LONG_ONLY
 #include <getopt.h>

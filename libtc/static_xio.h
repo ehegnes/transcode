@@ -1,7 +1,7 @@
 #ifndef _static_xio_h
 #define _static_xio_h
 
-#include <xio.h>
+#include "xio.h"
 #include <fcntl.h>
 #include <unistd.h>
 

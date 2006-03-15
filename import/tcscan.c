@@ -622,4 +622,4 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate)
     return framesize;
 }
 
-#include "libxio/static_xio.h"
+#include "static_xio.h"
