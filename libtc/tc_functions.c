@@ -73,6 +73,9 @@ void tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
     /* sanity check, avoid {under,over}flow; */
     level = (level < TC_LOG_ERR) ?TC_LOG_ERR :level;
     level = (level > TC_LOG_MSG) ?TC_LOG_MSG :level;
+    /* sanity check, avoid dealing with NULL as much as we can */
+    tag = (tag != NULL) ?tag :"";
+    fmt = (fmt != NULL) ?fmt :"";
 
     size = strlen(tc_log_preambles[level])
            + strlen(tag) + strlen(fmt) + 1;
@@ -97,7 +100,9 @@ void tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
         size = TC_MSG_BUF_SIZE - 1;
     }
 
-    snprintf(msg, size, tc_log_preambles[level], tag, fmt);
+    tc_snprintf(msg, size, tc_log_preambles[level], tag, fmt);
+    msg[size] = '\0';
+    /* `size' value was already scaled for the final '\0' */
 
     va_start(ap, fmt);
     vfprintf(stderr, msg, ap);

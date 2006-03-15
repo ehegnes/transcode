@@ -16,6 +16,7 @@ AM_CPPFLAGS = \
 noinst_PROGRAMS = \
 	test_bufalloc \
 	test_iodir \
+	test_tclog \
 	test_tcmoduleinfo \
 	test_tcstrdup \
 	test_tcmodule
@@ -31,6 +32,9 @@ test_tcmoduleinfo_LDADD = $(LIBTC_LIBS)
 
 test_tcstrdup_SOURCES = test-tcstrdup.c
 test_tcstrdup_LDADD = $(LIBTC_LIBS)
+
+test_tclog_SOURCES = test-tclog.c
+test_tclog_LDADD = $(LIBTC_LIBS)
 
 test_tcmodule_SOURCES = test-tcmodule.c
 test_tcmodule_LDADD = $(LIBTC_LIBS)

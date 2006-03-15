@@ -1,3 +1,9 @@
+2006-03-15 Francesco Romani <fromani at gmail dot com>
+  * added file: testsuite/test-tclog.c
+
+  * libtc/tc_functions.c testsuite/Makefile.am
+  robustness fix for tc_log, and introduce tc_log basic test.
+
 2006-03-14 Francesco Romani <fromani at gmail dot com>
   * src/audio_buffer.c src/video_buffer.c
   polish, reorganize a little bit and make STYLE compliant.
