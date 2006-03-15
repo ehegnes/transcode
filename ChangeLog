@@ -1,4 +1,10 @@
 2006-03-15 Francesco Romani <fromani at gmail dot com>
+  * avilib/wavlib.h avilib/wavlib.c
+  update to version 0.0.11:
+  fix more some silly bugs in write support,
+  preliminary big endian support in wav_write_data.
+
+2006-03-15 Francesco Romani <fromani at gmail dot com>
   * Makefile.am configure.in export/export_raw.c import/fileinfo.c
     import/import_mp3.c import/ioaux.c import/tccat.c import/tcdecode.c
     import/tcdemux.c import/tcextract.c import/tcprobe.c import/tcrequant.c

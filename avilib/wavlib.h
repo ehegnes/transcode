@@ -34,10 +34,10 @@
 #endif
 
 
-#define WAVLIB_VERSION      "0.0.10"
+#define WAVLIB_VERSION      "0.0.11"
 #define WAVLIB_MAJOR        0
 #define WAVLIB_MINOR        0
-#define WAVLIB_PATCH        10
+#define WAVLIB_PATCH        11
 
 typedef enum {
     WAV_READ,           /* open WAV file in read-only mode */

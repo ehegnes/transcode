@@ -35,6 +35,8 @@ extern int errno;
  * utilties                                                              *
  *************************************************************************/
 
+#define WAV_BUF_SIZE        (1024)
+
 #if (!defined HAVE_BYTESWAP && defined WAV_BIG_ENDIAN)
 
 static uint16_t bswap_16(uint16_t x)
@@ -209,7 +211,6 @@ struct wav_ {
     WAVError error;
 
     uint32_t len;
-    uint32_t data_len;
 
     uint32_t bitrate;
     uint16_t bits;
@@ -286,7 +287,7 @@ static int wav_parse_header(WAV handle, WAVError *err)
     handle->block_align = wav_get_bits16(hdr + 32);
     handle->bits = wav_get_bits16(hdr + 34);
     /* skip 'data' tag (4 bytes) */
-    handle->data_len = wav_get_bits32(hdr + 40);
+    handle->len = wav_get_bits32(hdr + 40);
 
     return 0;
 
@@ -295,7 +296,7 @@ bad_wav:
     return 1;
 }
 
-int wav_build_header(WAV handle)
+int wav_write_header(WAV handle)
 {
     uint8_t hdr[WAV_HEADER_LEN];
     uint8_t *ph = hdr;
@@ -319,7 +320,7 @@ int wav_build_header(WAV handle)
     }
 
     ph = wav_put_bits32(ph, make_tag('R', 'I', 'F', 'F'));
-    ph = wav_put_bits32(ph, handle->len);
+    ph = wav_put_bits32(ph, handle->len + WAV_HEADER_LEN - 8);
     ph = wav_put_bits32(ph, make_tag('W', 'A', 'V', 'E'));
 
     ph = wav_put_bits32(ph, make_tag('f', 'm', 't', ' '));
@@ -340,10 +341,10 @@ int wav_build_header(WAV handle)
     /* bits for sample */
 
     ph = wav_put_bits32(ph, make_tag('d', 'a', 't', 'a'));
-    ph = wav_put_bits32(ph, handle->data_len);
+    ph = wav_put_bits32(ph, handle->len);
 
     w = wav_fdwrite(handle->fd, hdr, WAV_HEADER_LEN);
-    ret = lseek(handle->fd, pos, SEEK_SET);
+    ret = lseek(handle->fd, pos, SEEK_CUR);
     if (ret == (off_t)-1) {
         return 1;
     }
@@ -395,7 +396,7 @@ WAV wav_fdopen(int fd, WAVMode mode, WAVError *err)
             }
         } else if (mode == WAV_WRITE) {
             /* reserve space for header by writing a fake one */
-            if (0 != wav_build_header(wav)) {
+            if (0 != wav_write_header(wav)) {
                 WAV_SET_ERROR(err, wav->error);
                 /* only I/O error */
                 DEL_WAV(wav);
@@ -408,6 +409,7 @@ WAV wav_fdopen(int fd, WAVMode mode, WAVError *err)
             DEL_WAV(wav);
         }
     }
+    wav->mode = mode;
     return wav;
 }
 
@@ -427,7 +429,7 @@ int wav_close(WAV handle)
     }
 
     if (!handle->header_done && handle->mode == WAV_WRITE) {
-        ret = wav_build_header(handle);
+        ret = wav_write_header(handle);
         RETURN_IF_IOERROR(ret);
     }
 
@@ -511,12 +513,49 @@ void wav_set_bitrate(WAV handle, uint32_t bitrate)
     }
 }
 
+#ifdef WAV_BIG_ENDIAN
+
+/* assume dlen % 2 == 0 */
+static void bswap_buffer(void *data, size_t bytes)
+{
+    size_t i = 0;
+    uint16_t *ptr = data;
+    
+    for (ptr = data, i = 0; i < bytes; ptr++, i += 2) {
+        *ptr = bswap_16(*ptr);
+    }
+}
+
+#define SWAP_WRITE_CHUNK(data, len) \
+        memcpy(conv_buf, (data), (len)); \
+        bswap_buffer(conv_buf, (len)); \
+        ret = wav_fdwrite(fd, conv_buf, (len))
+
+static ssize_t wav_bswap_fdwrite(int fd, const uint8_t *buf, size_t len)
+{
+    uint8_t conv_buf[WAV_BUF_SIZE];
+    size_t blocks = len / WAV_BUF_SIZE, rest = len % WAV_BUF_SIZE, i = 0;
+    ssize_t ret = 0, tot = 0;
+
+    for (i = 0; i < blocks; i++) {
+        SWAP_WRITE_CHUNK(buf + (i * WAV_BUF_SIZE), WAV_BUF_SIZE);
+        if (ret != WAV_BUF_SIZE) {
+            break;
+        }
+        tot += ret;
+    }
+
+    SWAP_WRITE_CHUNK(buf + (i * WAV_BUF_SIZE), rest);
+    return tot + ret;
+}
+
+#undef SWAP_WRITE_CHUNK
+
+#endif /* WAV_BIG_ENDIAN */
+
 ssize_t wav_read_data(WAV handle, uint8_t *buffer, size_t bufsize)
 {
     ssize_t r = 0;
-#ifdef WAV_BIG_ENDIAN
-    ssize_t i = 0;
-#endif
 
     if (!handle) {
         return -1;
@@ -532,16 +571,15 @@ ssize_t wav_read_data(WAV handle, uint8_t *buffer, size_t bufsize)
     r = wav_fdread(handle->fd, buffer, bufsize);
 
 #ifdef WAV_BIG_ENDIAN
-	for (i = 0; i < r; i += 2) {
-        uint16_t *ptr = (uint16_t*)(buffer + i);
-        *ptr = bswap_16(*ptr);
-    }
+    bswap_buffer(buffer, r);
 #endif
     return r;
 }
 
 ssize_t wav_write_data(WAV handle, const uint8_t *buffer, size_t bufsize)
 {
+    ssize_t w = 0;
+
     if (!handle) {
         return -1;
     }
@@ -553,5 +591,14 @@ ssize_t wav_write_data(WAV handle, const uint8_t *buffer, size_t bufsize)
         WAV_SET_ERROR(&(handle->error), WAV_UNSUPPORTED);
         return -1;
     }
-    return wav_fdwrite(handle->fd, buffer, bufsize);
+#ifdef WAV_BIG_ENDIAN
+    w = wav_bswap_fdwrite(handle->fd, buffer, bufsize);
+#else
+    w = wav_fdwrite(handle->fd, buffer, bufsize);
+#endif
+    if (w == bufsize) {
+        handle->len += w;
+    }
+    return w;
 }
+
