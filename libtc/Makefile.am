@@ -9,7 +9,7 @@ AM_CPPFLAGS = \
 
 noinst_LTLIBRARIES = libtc.la
 
-if HAVE_XIO
+if USE_XIO
 XIO_FILES = libxio.c
 endif
 
