@@ -206,6 +206,8 @@ struct wav_ {
     int fd;
 
     int header_done;
+    int close_fd;
+    int has_pipe;
 
     WAVMode mode;
     WAVError error;
@@ -257,7 +259,7 @@ static int wav_parse_header(WAV handle, WAVError *err)
     uint16_t wav_fmt = 0;
     uint32_t fmt_len = 0;
 
-    if (!handle || handle->fd == -1 || handle->mode != WAV_READ) {
+    if (!handle || handle->fd == -1 || !(handle->mode & WAV_READ)) {
         return -1;
     }
 
@@ -296,7 +298,7 @@ bad_wav:
     return 1;
 }
 
-int wav_write_header(WAV handle)
+int wav_write_header(WAV handle, int force)
 {
     uint8_t hdr[WAV_HEADER_LEN];
     uint8_t *ph = hdr;
@@ -306,6 +308,9 @@ int wav_write_header(WAV handle)
     if (!handle) {
         return -1;
     }
+    if (!force && handle->header_done) {
+        return 0;
+    }
     if (handle->bits != 0
       && (handle->bits != 8 && handle->bits != 16)) {
         /* bits == 0 -> not specified (so it's good) */
@@ -313,12 +318,14 @@ int wav_write_header(WAV handle)
         return -1;
     }
 
-    pos = lseek(handle->fd, 0, SEEK_CUR);
-    ret = lseek(handle->fd, 0, SEEK_SET);
-    if (ret == (off_t)-1) {
-        return 1;
+    if (!handle->has_pipe) {
+        pos = lseek(handle->fd, 0, SEEK_CUR);
+        ret = lseek(handle->fd, 0, SEEK_SET);
+        if (ret == (off_t)-1) {
+            return 1;
+        }
     }
-
+        
     ph = wav_put_bits32(ph, make_tag('R', 'I', 'F', 'F'));
     ph = wav_put_bits32(ph, handle->len + WAV_HEADER_LEN - 8);
     ph = wav_put_bits32(ph, make_tag('W', 'A', 'V', 'E'));
@@ -344,9 +351,12 @@ int wav_write_header(WAV handle)
     ph = wav_put_bits32(ph, handle->len);
 
     w = wav_fdwrite(handle->fd, hdr, WAV_HEADER_LEN);
-    ret = lseek(handle->fd, pos, SEEK_CUR);
-    if (ret == (off_t)-1) {
-        return 1;
+
+    if (!handle->has_pipe) {
+        ret = lseek(handle->fd, pos, SEEK_CUR);
+        if (ret == (off_t)-1) {
+            return 1;
+        }
     }
 
     if (w != WAV_HEADER_LEN) {
@@ -358,7 +368,7 @@ int wav_write_header(WAV handle)
 
 WAV wav_open(const char *filename, WAVMode mode, WAVError *err)
 {
-    int oflags = (mode == WAV_READ) ?O_RDONLY :O_TRUNC|O_CREAT|O_WRONLY;
+    int oflags = (mode & WAV_READ) ?O_RDONLY :O_TRUNC|O_CREAT|O_WRONLY;
     int fd = -1;
     WAV wav = NULL;
 
@@ -371,6 +381,7 @@ WAV wav_open(const char *filename, WAVMode mode, WAVError *err)
         if (!wav) {
             close(fd);
         }
+        wav->close_fd = 1;
     }
     return wav;
 }
@@ -389,27 +400,26 @@ WAV wav_fdopen(int fd, WAVMode mode, WAVError *err)
         WAV_SET_ERROR(err, WAV_NO_MEM);
     } else {
         wav->fd = fd;
+        wav->mode = mode;
+        wav->close_fd = 0;
+        wav->has_pipe = (mode & WAV_PIPE) ?1 :0;
 
-        if (mode == WAV_READ) {
+        if (mode & WAV_READ) {
             if (0 != wav_parse_header(wav, err)) {
                 DEL_WAV(wav);
             }
-        } else if (mode == WAV_WRITE) {
+        } else if (mode & WAV_WRITE && !wav->has_pipe) {
             /* reserve space for header by writing a fake one */
-            if (0 != wav_write_header(wav)) {
+            if (0 != wav_write_header(wav, 1)) {
                 WAV_SET_ERROR(err, wav->error);
                 /* only I/O error */
                 DEL_WAV(wav);
-            } else {
-                /* but reset heder flag */
-                wav->header_done = 0;
             }
         } else {
             WAV_SET_ERROR(err, WAV_BAD_PARAM);
             DEL_WAV(wav);
         }
     }
-    wav->mode = mode;
     return wav;
 }
 
@@ -428,13 +438,15 @@ int wav_close(WAV handle)
         return -1;
     }
 
-    if (!handle->header_done && handle->mode == WAV_WRITE) {
-        ret = wav_write_header(handle);
+    if (!handle->has_pipe && handle->mode & WAV_WRITE) {
+        ret = wav_write_header(handle, 1);
         RETURN_IF_IOERROR(ret);
     }
 
-    ret = close(handle->fd);
-    RETURN_IF_IOERROR(ret);
+    if (handle->close_fd) {
+        ret = close(handle->fd);
+        RETURN_IF_IOERROR(ret);
+    }
     free(handle);
 
     return 0;
@@ -487,28 +499,28 @@ uint8_t wav_get_bits(WAV handle)
 
 void wav_set_rate(WAV handle, uint16_t rate)
 {
-    if (handle && handle->mode == WAV_WRITE) {
+    if (handle && handle->mode & WAV_WRITE) {
         handle->rate = rate;
     }
 }
 
 void wav_set_channels(WAV handle, uint8_t channels)
 {
-    if (handle && handle->mode == WAV_WRITE) {
+    if (handle && handle->mode & WAV_WRITE) {
         handle->channels = channels;
     }
 }
 
 void wav_set_bits(WAV handle, uint8_t bits)
 {
-    if (handle && handle->mode == WAV_WRITE) {
+    if (handle && handle->mode & WAV_WRITE) {
         handle->bits = bits;
     }
 }
 
 void wav_set_bitrate(WAV handle, uint32_t bitrate)
 {
-    if (handle && handle->mode == WAV_WRITE) {
+    if (handle && handle->mode & WAV_WRITE) {
         handle->bitrate = bitrate;
     }
 }
@@ -564,7 +576,7 @@ ssize_t wav_read_data(WAV handle, uint8_t *buffer, size_t bufsize)
         WAV_SET_ERROR(&(handle->error), WAV_BAD_PARAM);
         return -1;
     }
-    if (handle->mode != WAV_READ || (bufsize % 2 != 0)) {
+    if (!(handle->mode & WAV_READ) || (bufsize % 2 != 0)) {
         WAV_SET_ERROR(&(handle->error), WAV_UNSUPPORTED);
         return -1;
     }
@@ -587,8 +599,11 @@ ssize_t wav_write_data(WAV handle, const uint8_t *buffer, size_t bufsize)
         WAV_SET_ERROR(&(handle->error), WAV_BAD_PARAM);
         return -1;
     }
-    if (handle->mode != WAV_WRITE || (bufsize % 2 != 0)) {
+    if (!(handle->mode & WAV_WRITE) || (bufsize % 2 != 0)) {
         WAV_SET_ERROR(&(handle->error), WAV_UNSUPPORTED);
+        return -1;
+    }
+    if (wav_write_header(handle, 0) != 0) {
         return -1;
     }
 #ifdef WAV_BIG_ENDIAN

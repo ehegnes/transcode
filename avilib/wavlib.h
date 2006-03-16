@@ -34,14 +34,15 @@
 #endif
 
 
-#define WAVLIB_VERSION      "0.0.11"
+#define WAVLIB_VERSION      "0.0.12"
 #define WAVLIB_MAJOR        0
 #define WAVLIB_MINOR        0
-#define WAVLIB_PATCH        11
+#define WAVLIB_PATCH        12
 
 typedef enum {
-    WAV_READ,           /* open WAV file in read-only mode */
-    WAV_WRITE,          /* open WAV file in write-only mode */
+    WAV_READ  = 1,           /* open WAV file in read-only mode */
+    WAV_WRITE = 2,           /* open WAV file in write-only mode */
+    WAV_PIPE  = 4,           /* cut SEEEKs */
 } WAVMode;
 
 typedef enum {
@@ -215,7 +216,7 @@ const char *wav_strerror(WAVError err);
  * Preconditions:
  * Postconditions:
  */
-int wav_write_header(WAV handle);
+int wav_write_header(WAV handle, int force);
 
 
 /*

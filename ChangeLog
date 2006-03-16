@@ -1,5 +1,10 @@
 2006-03-15 Francesco Romani <fromani at gmail dot com>
   * avilib/wavlib.h avilib/wavlib.c
+  update to version 0.0.12:
+  more fixes, pipe support.
+
+2006-03-15 Francesco Romani <fromani at gmail dot com>
+  * avilib/wavlib.h avilib/wavlib.c
   update to version 0.0.11:
   fix more some silly bugs in write support,
   preliminary big endian support in wav_write_data.
