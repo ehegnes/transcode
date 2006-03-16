@@ -412,7 +412,6 @@ struct riff_struct
   uint8_t wave_id[4]; /* WAVE */
 };
 
-
 struct chunk_struct
 {
 	uint8_t id[4];
@@ -436,13 +435,6 @@ struct wave_header
 	struct common_struct common;
 	struct chunk_struct  data;
 };
-
-// Simple WAV IO
-int AVI_read_wave_header(int fd, struct wave_header *wave);
-int AVI_write_wave_header(int fd, const struct wave_header *wave);
-size_t AVI_read_wave_pcm_data(int fd, void *buffer, size_t buflen);
-size_t AVI_write_wave_pcm_data(int fd, const void *buffer, size_t buflen);
-
 
 struct AVIStreamHeader {
   long  fccType;
