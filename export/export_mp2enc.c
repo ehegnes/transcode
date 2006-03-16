@@ -30,12 +30,12 @@
 #include <fcntl.h>
 
 #include "transcode.h"
-#include "avilib.h"
+#include "wavlib.h"
 
 #include "probe_export.h"
 
 #define MOD_NAME    "export_mp2enc.so"
-#define MOD_VERSION "v1.0.10 (2004-09-27)"
+#define MOD_VERSION "v1.0.11 (2006-03-16)"
 #define MOD_CODEC   "(audio) MPEG 1/2"
 
 #define CLAMP(x,l,h) x > h ? h : x < l ? l : x
@@ -47,7 +47,7 @@ static int 			capability_flag	= TC_CAP_PCM;
 #include "export_def.h"
 
 static FILE* 			pFile 		= NULL;
-static struct wave_header 	rtf;
+static WAV wav = NULL;
 
 /* ------------------------------------------------------------
  *
@@ -141,11 +141,16 @@ MOD_open
         if((pFile = popen (buf, "w")) == NULL)
 	  return(TC_EXPORT_ERROR);
 
-        if (AVI_write_wave_header (fileno (pFile), &rtf) != 0)
-	{
-      	    perror("write wave header");
-      	    return(TC_EXPORT_ERROR);
+        wav = wav_fdopen(fileno(pFile), WAV_WRITE|WAV_PIPE, NULL);
+        if (wav == NULL) {
+      	    perror("open wave stream");
+      	    return TC_EXPORT_ERROR;
         }
+
+        wav_set_rate(wav, vob->a_rate);
+        wav_set_bitrate(wav, vob->dm_chan*vob->a_rate*vob->dm_bits/8);
+        wav_set_channels(wav, vob->dm_chan);
+        wav_set_bits(wav, vob->dm_bits);
 
         return(0);
     }
@@ -168,26 +173,6 @@ MOD_init
 {
     if(param->flag == TC_AUDIO)
     {
-        memset((char *) &rtf, 0, sizeof(rtf));
-
-        strncpy(rtf.riff.id, "RIFF", 4);
-        rtf.riff.len = sizeof(struct riff_struct)
-	             + sizeof(struct chunk_struct)
-		     + sizeof(struct common_struct);
-        strncpy(rtf.riff.wave_id, "WAVE",4);
-        strncpy(rtf.format.id, "fmt ",4);
-
-        rtf.format.len = sizeof (struct common_struct);
-
-        rtf.common.wFormatTag        = CODEC_PCM;
-        rtf.common.dwSamplesPerSec   = vob->a_rate;
-        rtf.common.dwAvgBytesPerSec  = vob->dm_chan*vob->a_rate*vob->dm_bits/8;
-        rtf.common.wChannels         = vob->dm_chan;
-        rtf.common.wBitsPerSample    = vob->dm_bits;
-        rtf.common.wBlockAlign       = vob->dm_chan*vob->dm_bits/8;
-
-        strncpy(rtf.data.id, "data",4);
-
         tc_log_warn(MOD_NAME, "*** init-v *** !");
 
         return(0);
@@ -211,10 +196,7 @@ MOD_encode
 {
     if(param->flag == TC_AUDIO)
     {
-	if (AVI_write_wave_pcm_data(
-		fileno (pFile),
-		param->buffer, param->size
-		) != param->size)
+	if (wav_write_data(wav, param->buffer, param->size) != param->size)
         {
             perror("write audio frame");
             return(TC_EXPORT_ERROR);
@@ -259,10 +241,14 @@ MOD_close
 
     if (param->flag == TC_AUDIO)
     {
-        if (pFile)
-	  pclose (pFile);
-
-	pFile = NULL;
+        if (wav != NULL) {
+            wav_close(wav);
+            wav = NULL;
+        }
+        if (pFile != NULL) {
+    	    pclose (pFile);
+            pFile = NULL;
+        }
 
         return(0);
     }

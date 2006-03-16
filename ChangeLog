@@ -1,4 +1,8 @@
 2006-03-15 Francesco Romani <fromani at gmail dot com>
+  * export/export_mp1e.c export/export_mp2enc.c export/export_wav.c
+    import/extract_pcm.c
+  port WAVE related code from avilib to wavlib.
+
   * avilib/wavlib.h avilib/wavlib.c
   update to version 0.0.12:
   more fixes, pipe support.
