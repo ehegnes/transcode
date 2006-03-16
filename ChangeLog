@@ -1,4 +1,10 @@
 2006-03-15 Francesco Romani <fromani at gmail dot com>
+  * import/Makefile.am
+  link tcextract against wavlib too.
+
+  * export/export_mp1e.c export/export_wav.c import/extract_pcm.c
+  the obvious typos and silly mistakes.
+
   * avilib/avilib.c avilib/avilib.h
   drop old WAVE code, now replaced by wavlib.
 

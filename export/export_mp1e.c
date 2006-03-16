@@ -87,14 +87,16 @@ return TC_IMPORT_ERROR;
 
     if (do_audio && !audio_open_done) {
         WAVError err;
+        int rate;
+
         wav = wav_open(fifoname, WAV_WRITE, &err);
         if (wav == NULL) {
 	        tc_log_error (MOD_NAME, "open audio file: %s",
                                     wav_strerror(err));
 	        return (TC_EXPORT_ERROR);
     	}
-        wav_set_rate(wav, (vob->mp3frequency != 0)
-                                ?vob->mp3frequency :vob->a_rate);
+        rate = (vob->mp3frequency != 0) ?vob->mp3frequency :vob->a_rate;
+        wav_set_rate(wav, rate);
         wav_set_bitrate(wav, vob->dm_chan * rate * vob->dm_bits/8);
         wav_set_channels(wav, vob->dm_chan);
         wav_set_bits(wav, vob->dm_bits);

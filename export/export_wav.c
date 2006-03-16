@@ -66,15 +66,17 @@ MOD_open
 {
     if (param->flag == TC_AUDIO) {
         WAVError err;
-        wav = wav_open(vob->audio_out_file, WAV_READ< &err);
+        int rate;
+
+        wav = wav_open(vob->audio_out_file, WAV_READ, &err);
         if (wav == NULL) {
             tc_log_error(MOD_NAME, "open file: %s", wav_strerror(err));
             return TC_EXPORT_ERROR;
         }
 
+        rate = (vob->mp3frequency != 0) ?vob->mp3frequency :vob->a_rate;
         wav_set_bits(wav, vob->dm_bits);
-        wav_set_rate(wav, (vob->mp3frequency != 0)
-                                ?vob->mp3frequency :vob->a_rate);
+        wav_set_rate(wav, rate);
         wav_set_bitrate(wav, vob->dm_chan * rate * vob->dm_bits/8);
         wav_set_channels(wav, vob->dm_chan);
 

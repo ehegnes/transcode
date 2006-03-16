@@ -511,6 +511,7 @@ tcextract_SOURCES = \
 tcextract_LDADD = \
 	$(AC3_LIBS) \
 	$(AVILIB_LIBS) \
+	$(WAVLIB_LIBS) \
 	$(MJPEGTOOLS_LIBS) \
 	$(LIBDV_LIBS) \
 	$(THEORA_LIBS) \
