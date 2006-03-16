@@ -9,6 +9,10 @@ AM_CPPFLAGS = \
 
 noinst_LTLIBRARIES = libtc.la
 
+if HAVE_XIO
+XIO_FILES = libxio.c
+endif
+
 libtc_la_SOURCES = \
 	tc_functions.c \
 	tccodecs.c \
@@ -18,7 +22,7 @@ libtc_la_SOURCES = \
 	iodir.c \
 	strlcat.c \
 	strlcpy.c \
-	libxio.c
+	$(XIO_FILES)
 
 EXTRA_DIST = \
 	libtc.h \

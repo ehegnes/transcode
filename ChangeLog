@@ -1,4 +1,7 @@
 2006-03-15 Francesco Romani <fromani at gmail dot com>
+  * configure.in libtc/Makefile.am
+  don't even build libxio unless it's requested using --enable-xio.
+
   * import/Makefile.am
   link tcextract against wavlib too.
 
