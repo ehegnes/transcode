@@ -2,6 +2,11 @@
   * configure.in libtc/Makefile.am libtc/xio.h
   make libxio fully dependant from IBP/LorS presence.
 
+  * libtc/libxio.c
+  more conditional compilation guards for IBP/LorS support.
+  partially rewrite xio interface: drop descriptors, better
+  POSIX compatibility (more details soon).
+
 2006-03-16 Francesco Romani <fromani at gmail dot com>
   * configure.in libtc/Makefile.am
   don't even build libxio unless it's requested using --enable-xio.

@@ -44,26 +44,15 @@ char *strndup(const char *s, size_t n);
 
 #include "xio.h"
 
-struct xio_handle_t {
-
-    ssize_t (*xio_read_v)(void *stream, void *buf, size_t count);
-    ssize_t (*xio_write_v)(void *stream, const void *buf, size_t count);
-    int (*xio_close_v)(void *stream);
-    off_t (*xio_lseek_v)(void *stream, off_t offset, int whence);
-    int (*xio_ftruncate_v)(void *stream, off_t length);
-    int (*xio_fstat_v)(void *stream, struct stat *buf);
-
-    void *data;
-};
-
 #define MAX_HANDLES 256
 
-struct xio_handle_t * _handles[MAX_HANDLES];
-int xio_initialized=0;
+static void * xio_handles[MAX_HANDLES];
+static int xio_initialized = 0;
 pthread_mutex_t xio_lock;
 
 #ifdef HAVE_IBP
 #define IBP_URI "lors://"
+#define IBP_URI_LEN 7
 
 #define BLOCK_SIZE_SHIFT 1024
 
@@ -83,7 +72,7 @@ struct xio_ibp_handle_t {
     off_t           begin;
     off_t       end;
     void        *buffer;
-        char            *filename;
+    char            *filename;
     char        *lbone_server;
     int     lbone_port;
     int     lors_blocksize;
@@ -104,11 +93,11 @@ ibp_open(const char *uri, int mode, int m)
     struct xio_ibp_handle_t *handle;
     int ret;
 
-    if(strncmp(uri, IBP_URI, strlen(IBP_URI)) != 0) {
+    if(strncmp(uri, IBP_URI, IBP_URI_LEN) != 0) {
         errno = EINVAL;
         return (void *)-1;
     }
-    uri += strlen(IBP_URI);
+    uri += IBP_URI_LEN;
 
     handle=(struct xio_ibp_handle_t*)calloc(1,
                                  sizeof(struct xio_ibp_handle_t));
@@ -564,10 +553,10 @@ static char *
 ibp_lorstoname(char *file_name)
 {
     char * uri = file_name;
-    if(strncmp(uri, IBP_URI, strlen(IBP_URI)) != 0) {
+    if(strncmp(uri, IBP_URI, IBP_URI_LEN) != 0) {
         return strdup(uri);
     }
-    uri += strlen(IBP_URI);
+    uri += IBP_URI_LEN;
     uri = (char *)(strchr(uri, '/')+1);
     if(!strchr(uri, '?')) {
         return strdup(uri);
@@ -622,184 +611,149 @@ ibp_fstat(void *stream, struct stat *buf)
 
 #endif
 
-static int
-io_init(void)
+
+
+#define XIO_VALID_FD(fd) \
+        ((fd) > 2 && (fd) < MAX_HANDLES)
+
+#define XIO_HAS_HANDLE(fd) \
+        (XIO_VALID_FD(fd) && (xio_handles[(fd)] != NULL))
+
+#define XIO_CHECK_INIT \
+    if(!xio_initialized) { \
+        xio_init(); \
+        xio_initialized = 1; \
+    }
+
+static void
+xio_init(void)
 {
-        int i;
+    int i;
 
-        for(i = 0; i < 256; i++)
-                _handles[i] = NULL;
+    for (i = 0; i < MAX_HANDLES; i++) {
+        xio_handles[i] = NULL;
+    }
 
-        xio_initialized = 1;
     pthread_mutex_init(&xio_lock, NULL);
-        return 0;
 }
 
 int
 xio_open(const char *pathname, int flags, ...)
 {
     int i;
-    int ret_fd;
-    int mode=0;
+    int hid;
+    int mode = 0;
 
-    if(!xio_initialized && io_init() != 0) {
-        errno = EIO;
-                return -1;
-    }
-
-    pthread_mutex_lock(&xio_lock);
-    // Find free IO handle
-        i=3; // skip stdin, stdout, stderr
-        while(_handles[i] != NULL && i < 256) i++;
-        ret_fd = i;
-    if(i == 256) {
-        // no free io handle
-        pthread_mutex_unlock(&xio_lock);
-        errno = EIO;
-        return -1;
-    }
-
-        _handles[ret_fd] = (struct xio_handle_t*)calloc(1,
-                                    sizeof(struct xio_handle_t));
-    pthread_mutex_unlock(&xio_lock);
-    if(!_handles[ret_fd]) {
-        // not enough free memory
-        return -1;
-    }
+    XIO_CHECK_INIT;
 
     if(flags & O_CREAT) {
         va_list arg;
-            va_start (arg, flags);
-        mode = va_arg (arg, int);
-        va_end (arg);
+        va_start(arg, flags);
+        mode = va_arg(arg, int);
+        va_end(arg);
     }
 
-#ifdef HAVE_IBP
-    if(strncmp(pathname, IBP_URI, strlen(IBP_URI)) == 0) {
-        // IBP uri
-
-        _handles[ret_fd]->xio_read_v = &ibp_read;
-        _handles[ret_fd]->xio_write_v = &ibp_write;
-        _handles[ret_fd]->xio_lseek_v = &ibp_lseek;
-        _handles[ret_fd]->xio_close_v = &ibp_close;
-        _handles[ret_fd]->xio_ftruncate_v = &ibp_ftruncate;
-        _handles[ret_fd]->xio_fstat_v = &ibp_fstat;
-
-        _handles[ret_fd]->data = (void *)ibp_open(pathname, flags, mode);
-        if(!_handles[ret_fd]->data) {
-                    free(_handles[ret_fd]);
-                    _handles[ret_fd] = NULL;
-            errno = EIO;
-                    return -1;
-            }
-        return ret_fd;
+    pthread_mutex_lock(&xio_lock);
+    /* Find free IO handle, skipping stdin, stdout, stderr */
+    for(i = 3; xio_handles[i] != NULL && i < MAX_HANDLES; i++) {
+        ; /* do nothing in loop body */
     }
-#endif
+    hid = (i == MAX_HANDLES) ?-1 :i;
+    pthread_mutex_unlock(&xio_lock);
 
-    // fallback to unix io routine
-
-    _handles[ret_fd]->xio_read_v = (ssize_t(*)(void *, void *, size_t))&read;
-    _handles[ret_fd]->xio_write_v =
-        (ssize_t(*)(void *, const void *, size_t))&write;
-    _handles[ret_fd]->xio_lseek_v = (off_t(*)(void *,off_t,int))&lseek;
-    _handles[ret_fd]->xio_close_v = (int (*)(void *))&close;
-    _handles[ret_fd]->xio_ftruncate_v = (int (*)(void *, off_t))&ftruncate;
-    _handles[ret_fd]->xio_fstat_v = (int (*)(void *, struct stat *))&fstat;
-
-    _handles[ret_fd]->data = (void *)open(pathname, flags, mode);
-
-    if(!_handles[ret_fd]->data) {
-        free(_handles[ret_fd]);
-        _handles[ret_fd] = NULL;
+    if(hid == -1) {
         errno = EIO;
         return -1;
     }
 
-    return ret_fd;
+#ifdef HAVE_IBP
+    if(strncmp(pathname, IBP_URI, IBP_URI_LEN) == 0) {
+        // IBP uri
+        xio_handles[hid] = ibp_open(pathname, flags, mode);
+        if(!xio_handles[hid]) {
+            errno = EIO;
+            return -1;
+        }
+        return hid;
+    }
+#endif
+    return open(pathname, flags, mode);
 }
 
 ssize_t
 xio_read(int fd, void *buf, size_t count)
 {
-    if(!xio_initialized && io_init() != 0) {
-        errno = EIO;
-                return -1;
+    XIO_CHECK_INIT;
+    
+#ifdef HAVE_IBP
+    if(XIO_HAS_HANDLE(fd)) {
+        return ibp_read(xio_handles[fd], buf, count);
     }
-    if(!_handles[fd])
-        return read(fd, buf, count);
-    return _handles[fd]->xio_read_v(_handles[fd]->data, buf, count);
+#endif
+    return read(fd, buf, count);
 }
 
 ssize_t
 xio_write(int fd, const void *buf, size_t count)
 {
-    if(!xio_initialized && io_init() != 0) {
-        errno = EIO;
-                return -1;
+    XIO_CHECK_INIT;
+    
+#ifdef HAVE_IBP
+    if(XIO_HAS_HANDLE(fd)) {
+        return ibp_write(xio_handles[fd], buf, count);
     }
-
-    if(!_handles[fd])
-        return write(fd, buf, count);
-    return _handles[fd]->xio_write_v(_handles[fd]->data, buf, count);
+#endif
+    return write(fd, buf, count);
 }
 
 int
 xio_ftruncate(int fd, off_t length)
 {
-    if(!xio_initialized && io_init() != 0) {
-        errno = EIO;
-        return -1;
+    XIO_CHECK_INIT;
+    
+#ifdef HAVE_IBP
+    if(XIO_HAS_HANDLE(fd)) {
+        return ibp_ftruncate(xio_handles[fd], length)
     }
-    if(!_handles[fd])
-        return ftruncate(fd, length);
-    return _handles[fd]->xio_ftruncate_v(_handles[fd]->data, length);
+#endif
+    return ftruncate(fd, length);
 }
 
 off_t
 xio_lseek(int fd, off_t offset, int whence)
 {
-    if(!xio_initialized && io_init() != 0) {
-        errno = EIO;
-                return -1;
+    XIO_CHECK_INIT;
+    
+#ifdef HAVE_IBP
+    if(XIO_HAS_HANDLE(fd)) {
+        return ibp_lseek(xio_handles[fd], offset, whence);
     }
-
-    if(!_handles[fd])
-        return lseek(fd, offset, whence);
-
-    return _handles[fd]->xio_lseek_v(_handles[fd]->data, offset, whence);
+#endif
+    return lseek(fd, offset, whence);
 }
 
 int
 xio_close(int fd)
 {
-    int ret;
-    if(!xio_initialized && io_init() != 0) {
-        errno = EIO;
-        return -1;
-    }
-    if(fd == -1) {
-        errno = EINVAL;
-        return -1;
-    }
+    XIO_CHECK_INIT;
 
-    if(!_handles[fd])
-        return close(fd);
-    ret = _handles[fd]->xio_close_v(_handles[fd]->data);
-    free(_handles[fd]);
-    _handles[fd]=NULL;
-    return ret;
+#ifdef HAVE_IBP
+    if(XIO_HAS_HANDLE(fd)) {
+        int ret = ibp_close(xio_handles[fd]);
+        xio_handles[fd] = NULL;
+        return ret;
+    }
+#endif
+    return close(fd);
 }
 
 int
 xio_stat(const char *file_name, struct stat *buf)
 {
-    if(!xio_initialized && io_init() != 0) {
-        errno = EIO;
-                return -1;
-    }
+    XIO_CHECK_INIT;
 
 #ifdef HAVE_IBP
-    if(strncmp(file_name, IBP_URI, strlen(IBP_URI)) == 0) {
+    if(strncmp(file_name, IBP_URI, IBP_URI_LEN) == 0) {
         return ibp_stat(file_name, buf);
     }
 #endif
@@ -809,17 +763,14 @@ xio_stat(const char *file_name, struct stat *buf)
 int
 xio_lstat(const char *file_name, struct stat *buf)
 {
-        if(!xio_initialized && io_init() != 0) {
-                errno = EIO;
-                return -1;
-        }
+    XIO_CHECK_INIT;
 
 #ifdef HAVE_IBP
-    if(strncmp(file_name, IBP_URI, strlen(IBP_URI)) == 0) {
+    if(strncmp(file_name, IBP_URI, IBP_URI_LEN) == 0) {
         return ibp_lstat(file_name, buf);
-        }
+    }
 #endif
-        return lstat(file_name, buf);
+    return lstat(file_name, buf);
 }
 
 int
@@ -830,14 +781,14 @@ xio_rename(const char *oldpath, const char *newpath)
     char *newp;
     int ret;
 
-    if(strncmp(IBP_URI, oldpath, strlen(IBP_URI)) == 0) {
+    if(strncmp(IBP_URI, oldpath, IBP_URI_LEN) == 0) {
         old_p = old = strdup(oldpath);
-        old = strchr(old+strlen(IBP_URI),'/')+1;
+        old = strchr(old + IBP_URI_LEN,'/')+1;
         if(strchr(old, '?')) {
             *(strchr(old, '?')) = 0;
         }
 
-        newp = (char*)malloc(strlen(old)+1+4);
+        newp = malloc(strlen(old)+1+4);
         snprintf(newp, strlen(old)+1+4, "%s%s", old, &newpath[strlen(newpath)-4]);
         ret = rename(old, newp);
         free(old_p);
@@ -850,10 +801,12 @@ xio_rename(const char *oldpath, const char *newpath)
 int
 xio_fstat(int fd, struct stat *buf)
 {
-        if(!xio_initialized && io_init() != 0) {
-                errno = EIO;
-                return -1;
-        }
+    XIO_CHECK_INIT;
 
-        return _handles[fd]->xio_fstat_v(_handles[fd]->data, buf);
+#ifdef HAVE_IBP
+    if(XIO_HAS_HANDLE(fd)) {
+        return ibp_fstat(xio_handles[fd], buf)
+    }
+#endif
+    return fstat(fd, buf);
 }
