@@ -24,7 +24,7 @@
 #ifndef __iolib_h
 #define __iolib_h
 
-#ifdef USE_XIO
+#ifdef HAVE_IBP
 
 #include <sys/types.h>
 #include <sys/stat.h>
