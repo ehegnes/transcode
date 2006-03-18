@@ -68,7 +68,7 @@ MOD_open
         WAVError err;
         int rate;
 
-        wav = wav_open(vob->audio_out_file, WAV_READ, &err);
+        wav = wav_open(vob->audio_out_file, WAV_WRITE, &err);
         if (wav == NULL) {
             tc_log_error(MOD_NAME, "open file: %s", wav_strerror(err));
             return TC_EXPORT_ERROR;
