@@ -1,9 +1,14 @@
 2006-03-18 Francesco Romani <fromani at gmail dot com>
+  * added file: avilib/static_wavlib.h
+  introduce static linkage helper for wavlib.
+
   * import/Makefile.am import/extract_pcm.c import/probe_wav.c
   port import layer code to wavlib.
 
 2006-03-18 Francesco Romani <fromani at gmail dot com>
-  * configure.in avilib/Makefile.am avilib/wavlib.h avilib/wavlib.c
+  * configure.in avilib/Makefile.am
+  
+  * added files: avilib/wavlib.h avilib/wavlib.c
   introduce helper library to deal with WAVE files.
   basic documentation is included in header file, and wavlib
   does, at time of writing, all what WAVE support code in avilib do.
