@@ -10,6 +10,7 @@ AM_CPPFLAGS = \
 	$(A52_CFLAGS) \
 	$(AC3_CFLAGS) \
 	$(AVILIB_CFLAGS) \
+	$(WAVLIB_CFLAGS) \
 	$(AVIFILE_CFLAGS) \
 	$(LIBDV_CFLAGS) \
 	$(LIBDVDREAD_CFLAGS) \
@@ -19,6 +20,7 @@ AM_CPPFLAGS = \
 	$(LIBXML2_CFLAGS) \
 	$(LZO_CFLAGS) \
 	$(IMAGEMAGICK_CFLAGS) \
+	$(MJPEGTOOLS_CFLAGS) \
 	$(LIBMPEG2_CFLAGS) \
 	$(OGG_CFLAGS) \
 	$(LIBQUICKTIME_CFLAGS) \
@@ -143,6 +145,7 @@ import_xml_la_LIBADD = $(LIBXML2_LIBS) -lm
 
 import_yuv4mpeg_la_SOURCES = import_yuv4mpeg.c
 import_yuv4mpeg_la_LDFLAGS = -module -avoid-version
+import_yuv4mpeg_la_LIBADD = $(MJPEGTOOLS_LIBS) $(WAVLIB_LIBS)
 
 import_mplayer_la_SOURCES = import_mplayer.c
 import_mplayer_la_LDFLAGS = -module -avoid-version
@@ -462,11 +465,13 @@ tcprobe_SOURCES = \
 tcprobe_LDADD = \
 	$(LAME_LIBS) \
 	$(AVILIB_LIBS) \
+	$(WAVLIB_LIBS) \
 	$(AC3_LIBS) \
 	$(LIBDVDREAD_LIBS) \
 	$(LIBDV_LIBS) \
 	$(IMAGEMAGICK_LIBS) \
 	$(LIBQUICKTIME_LIBS) \
+	$(MJPEGTOOLS_LIBS) \
 	$(VORBIS_LIBS) \
 	$(THEORA_LIBS) \
 	$(OGG_LIBS) \
@@ -506,6 +511,8 @@ tcextract_SOURCES = \
 tcextract_LDADD = \
 	$(AC3_LIBS) \
 	$(AVILIB_LIBS) \
+	$(WAVLIB_LIBS) \
+	$(MJPEGTOOLS_LIBS) \
 	$(LIBDV_LIBS) \
 	$(THEORA_LIBS) \
 	$(OGG_LIBS) \
