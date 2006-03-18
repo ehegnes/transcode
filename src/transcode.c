@@ -4678,6 +4678,8 @@ int main(int argc, char *argv[]) {
 
 #include "avilib/static_avilib.h"
 
+#include "avilib/static_wavlib.h"
+
 #include "libtc/static_optstr.h"
 
 #include "libioaux/configs.h"

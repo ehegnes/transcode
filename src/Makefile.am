@@ -6,8 +6,11 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/export \
 	-I$(top_srcdir)/import \
+	-I$(top_srcdir)/libtc \
 	$(XIO_CFLAGS) \
 	$(ACLIB_CFLAGS) \
+	$(AVILIB_CFLAGS) \
+	$(WAVLIB_CFLAGS) \
 	$(LIBAVCODEC_CFLAGS) \
 	$(DLDARWININCL) \
 	$(SUPPORT_INCLUDES)
@@ -25,6 +28,7 @@ transcode_LDADD = \
 	$(TCIOAUX_LIBS) \
 	$(ACLIB_LIBS) \
 	$(AVILIB_LIBS) \
+	$(WAVLIB_LIBS) \
 	$(XIO_LIBS) \
 	$(LIBXML2_LIBS) \
 	$(PTHREAD_LIBS) \
