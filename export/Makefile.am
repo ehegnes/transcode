@@ -9,6 +9,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/import \
 	$(AC3_CFLAGS) \
 	$(AVILIB_CFLAGS) \
+	$(WAVLIB_CFLAGS) \
 	$(ACLIB_CFLAGS) \
 	$(LIBDV_CFLAGS) \
 	$(LIBAVCODEC_CFLAGS) \

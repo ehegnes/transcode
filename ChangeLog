@@ -1,4 +1,8 @@
 2006-03-18 Francesco Romani <fromani at gmail dot com>
+  * src/Makefile.am import/Mkefile.am export/Makefile.am
+  link wavlib only to main binaries, not to every module
+  that need it.
+
   * src/transcode.c
   include wavlib linakge helper too.
 
