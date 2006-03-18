@@ -56,7 +56,7 @@ int probe_source(const char *vid_file, const char *aud_file, int range,
 
     /* Probe the video file, if present */
     if (vid_file) {
-	if (!do_probe(vid_file, vob->nav_seek_file, vob->dvd_title, range,
+        if (!do_probe(vid_file, vob->nav_seek_file, vob->dvd_title, range,
                       (flags & TC_PROBE_NO_BUILTIN),
                       (verbose >= TC_DEBUG) ? verbose : 0, &vinfo)
         ) {
@@ -72,7 +72,7 @@ int probe_source(const char *vid_file, const char *aud_file, int range,
 
     /* Probe the audio file, if present */
     if (aud_file) {
-	if (!do_probe(aud_file, vob->nav_seek_file, vob->dvd_title, range,
+        if (!do_probe(aud_file, vob->nav_seek_file, vob->dvd_title, range,
                       (flags & TC_PROBE_NO_BUILTIN),
                       (verbose >= TC_DEBUG) ? verbose : 0, &ainfo)
         ) {
@@ -89,11 +89,11 @@ int probe_source(const char *vid_file, const char *aud_file, int range,
                  flags, vob);
     if (verbose & TC_DEBUG) {
         tc_log_info(PACKAGE, "(%s) V magic=0x%lx, A magic=0x%lx,"
-                    " V codec=0x%lx, A codec=0x%lx\n", __FILE__,
+                    " V codec=0x%lx, A codec=0x%lx", __FILE__,
                     vob->v_format_flag, vob->a_format_flag,
                     vob->v_codec_flag, vob->a_codec_flag);
         tc_log_info(PACKAGE, "(%s) V magic=%s, A magic=%s, V codec=%s,"
-                    " A codec=%s\n", __FILE__,
+                    " A codec=%s", __FILE__,
                     mformat2str(vob->v_format_flag),
                     mformat2str(vob->a_format_flag),
                     codec2str(vob->v_codec_flag),
