@@ -380,8 +380,9 @@ WAV wav_open(const char *filename, WAVMode mode, WAVError *err)
         wav = wav_fdopen(fd, mode, err);
         if (!wav) {
             close(fd);
+        } else {
+            wav->close_fd = 1;
         }
-        wav->close_fd = 1;
     }
     return wav;
 }
