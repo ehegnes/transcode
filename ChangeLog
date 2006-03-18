@@ -1,4 +1,9 @@
 2006-03-17 Francesco Romani <fromani at gmail dot com>
+  * avilib/wavlib.h avilib/wavlib.c
+  update to version 0.1.0: wavlib goes beta!
+  big documentation update and two small fixes in wav_fdopen.
+
+2006-03-17 Francesco Romani <fromani at gmail dot com>
   * configure.in libtc/Makefile.am libtc/xio.h
   make libxio fully dependant from IBP/LorS presence.
 

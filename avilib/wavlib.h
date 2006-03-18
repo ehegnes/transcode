@@ -33,11 +33,10 @@
 #define WAV_LITTLE_ENDIAN 1
 #endif
 
-
-#define WAVLIB_VERSION      "0.0.12"
+#define WAVLIB_VERSION      "0.1.0"
 #define WAVLIB_MAJOR        0
-#define WAVLIB_MINOR        0
-#define WAVLIB_PATCH        12
+#define WAVLIB_MINOR        1
+#define WAVLIB_PATCH        0
 
 typedef enum {
     WAV_READ  = 1,           /* open WAV file in read-only mode */
@@ -58,37 +57,76 @@ typedef struct wav_ *WAV;
 
 /*
  * wav_open:
- *
+ *      open a WAVE file in given mode, either read-only or write-only,
+ *      and associate a WAV descriptor to it.
  * 
  * Parameters:
+ *      filename: path of WAVE file to open.
+ *      mode: mode to open WAVE file.
+ *            Can be either WAV_READ (open read-only) 
+ *            or WAV_WRITE (open write only).
+ *            WAV_PIPE can be OR'd with this parameter if given
+ *            filename is a named pipe. This flag is honoured only
+ *            if mode is WAV_READ.
+ *      err: if not NULL, reason for error, if any, will be stored
+ *           on WAVError pointed by this parameter.
+ *      
  * Return Value:
+ *      a valid WAV descriptor if successfull, or NULL otherwise.
  * Side effects:
+ * 	N/A
  * Preconditions:
+ * 	N/A
  * Postconditions:
+ * 	N/A
  */
 WAV wav_open(const char *filename, WAVMode mode, WAVError *err);
 
 /*
  * wav_fdopen:
- *
+ *      attach a WAV descriptor to already open POSIX file descriptor.
  * 
  * Parameters:
+ *      fd: existing file descriptor; WAV descriptor will be attached here.
+ *      mode: mode to open WAVE file.
+ *            Can be either WAV_READ (open read-only) 
+ *            or WAV_WRITE (open write only).
+ *            WAV_PIPE can be OR'd with this parameter if given
+ *            filename is a pipe. 
+ *            value of 'mode' MUST be congruent with mode of given
+ *            file descriptor.
+ *      err: if not NULL, reason for error, if any, will be stored
+ *           on WAVError pointed by this parameter.
+ *      
  * Return Value:
+ *      a valid WAV descriptor if successfull, or NULL otherwise.
  * Side effects:
+ * 	N/A
  * Preconditions:
+ * 	N/A
  * Postconditions:
+ * 	N/A
  */
 WAV wav_fdopen(int fd, WAVMode mode, WAVError *err);
 
 /*
  * wav_close:
- *
+ *	close a WAV descriptor, freeing acquired resources,
  * 
  * Parameters:
+ * 	handle: WAV descriptor to close
  * Return Value:
+ * 	0 if successfull, -1 otherwise
  * Side effects:
+ * 	if error, error code is stored in WAV descritptor, and
+ * 	can be fetched using wav_last_error.
+ * 	If WAV descriptor was open using WAV_WRITE mode, WAVE
+ * 	header will be updated using wav_write_header.
  * Preconditions:
+ *      given wav handle is a valid one obtained as return value of
+ *      wav_open/wav_fdopen.
  * Postconditions:
+ * 	N/A
  */
 int wav_close(WAV handle);
 
@@ -206,15 +244,53 @@ WAVError wav_last_error(WAV handle);
  */
 const char *wav_strerror(WAVError err);
 
-/* XXX
+/*
  * wav_write_header:
+ * 	update header for WAVE file using information stored
+ * 	in attached WAV descriptor.
+ * 	This function MAKE NO SENSE if applied to a WAV
+ * 	descriptor open in WAV_READ mode.
  *
+ * 	IMPORTANT NOTICE:
+ * 	If wav_write_header is applied to a WAV descriptor
+ * 	using WAV_WRITE|WAV_PIPE mode, *it doesn't seek at all*,
+ * 	so it will simply write the full WAVE header into
+ * 	stream at current position.
+ * 	This actually is a *design decision*, the intended usage
+ * 	of this function when dealing with WAV_WRITE|WAV_PIPE
+ * 	descriptor is something like this:
  *
+ * 	WAV wav = wav_fdopen(my_fd, WAV_WRITE|WAV_PIPE, NULL);
+ * 	
+ * 	<set WAVE parameters using multiple wav_set_*>
+ *
+ * 	wav_write_header(wav, 1);
+ *
+ * 	while (1) {
+ * 		bytes = get_data(buffer, bufsize);
+ * 		if(no_more_data()) {
+ * 			break;
+ * 		}
+ * 		if (wav_write_data(wav, buffer, bytes) != 0) {
+ * 			break;
+ * 		}
+ * 	}
+ * 
  * Parameters:
+ * 	handle: update header for WAVE file attached to this
+ * 	        descriptor
+ * 	force: if !0, update header even if isn't needed
  * Return Value:
+ * 	0 successfull, -1 otherwise
  * Side effects:
+ * 	WAVE header is (re)written on file. This usually
+ * 	requires some seeks on file.
+ * 	See above if WAV_PIPE mode is used
  * Preconditions:
+ *     given wav descriptor is a valid one obtained as return value of
+ *     wav_open or wav_fdopen.
  * Postconditions:
+ * 	N/A
  */
 int wav_write_header(WAV handle, int force);
 

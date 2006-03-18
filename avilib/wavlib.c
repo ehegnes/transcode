@@ -408,9 +408,10 @@ WAV wav_fdopen(int fd, WAVMode mode, WAVError *err)
             if (0 != wav_parse_header(wav, err)) {
                 DEL_WAV(wav);
             }
-        } else if (mode & WAV_WRITE && !wav->has_pipe) {
+            handle->header_done = 1; /* skip write_header */
+        } else if (mode & WAV_WRITE) {
             /* reserve space for header by writing a fake one */
-            if (0 != wav_write_header(wav, 1)) {
+            if (!wav->has_pipe && 0 != wav_write_header(wav, 1)) {
                 WAV_SET_ERROR(err, wav->error);
                 /* only I/O error */
                 DEL_WAV(wav);
