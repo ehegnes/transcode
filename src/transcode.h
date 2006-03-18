@@ -422,8 +422,6 @@ void tc_outstream_rotate_request(void);
 void tc_pause(void);
 void tc_pause_request(void);
 
-void tc_adjust_frame_buffer(int height, int width);
-
 extern int verbose;
 extern int pcmswap;
 extern int rescale;
@@ -455,8 +453,6 @@ extern int tc_progress_rate;
 extern pthread_t tc_pthread_main;
 extern int tc_accel;
 extern unsigned int tc_avi_limit;
-extern int tc_frame_width_max;
-extern int tc_frame_height_max;
 extern pid_t tc_probe_pid;
 
 // Various constants

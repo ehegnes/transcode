@@ -1,15 +1,18 @@
 2006-03-18 Francesco Romani <fromani at gmail dot com>
+  * src/framebuffer.h src/transcode.h
+  add helper *frame_list_t initialization macro.
+  move some video framebuffer declarations from transcode.h
+  to framebuffer.h in order to reduce interdependencies.
+
   * libtc/tc_functions.c libtc/libtc.h
   libtc update round 1: add a few more utilities to libtc
   (backport from NMS branch)
 
-2006-03-18 Francesco Romani <fromani at gmail dot com>
   * import/extract_yuv.c import/import_yuv4mpeg.c
   always use yuv4mpeg library from mjpegtools, even
   in import layer.
   import_yuv4mpeg rewritten from scratch.
 
-2006-03-18 Francesco Romani <fromani at gmail dot com>
   * avilib/avilib.h avilib/avilib.c
   drop now unused WAVE support code from avilib.
 
@@ -26,7 +29,6 @@
   * import/Makefile.am import/extract_pcm.c import/probe_wav.c
   port import layer code to wavlib.
 
-2006-03-18 Francesco Romani <fromani at gmail dot com>
   * configure.in avilib/Makefile.am
   
   * added files: avilib/wavlib.h avilib/wavlib.c
@@ -36,7 +38,6 @@
   In the next few commits all WAVE-related code will be ported
   to wavlib, and WAVE code in avilib will be dropped.
 
-2006-03-18 Francesco Romani <fromani at gmail dot com>
   * filter/filter_logo.c
   add credits for Sebastian Kun <seb at sarolta dot com>
 
