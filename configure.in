@@ -1319,6 +1319,14 @@ AC_SUBST(AVILIB_CFLAGS)
 AC_SUBST(AVILIB_LIBS)
 
 dnl
+dnl wavlib
+dnl
+WAVLIB_CFLAGS="-I\$(top_srcdir)/avilib"
+WAVLIB_LIBS="\$(top_builddir)/avilib/libwav.la"
+AC_SUBST(WAVLIB_CFLAGS)
+AC_SUBST(WAVLIB_LIBS)
+
+dnl
 dnl libioaux
 dnl
 TCIOAUX_CFLAGS="-I\$(top_srcdir)/libioaux"

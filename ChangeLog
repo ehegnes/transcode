@@ -1,4 +1,12 @@
 2006-03-18 Francesco Romani <fromani at gmail dot com>
+  * configure.in avilib/Makefile.am avilib/wavlib.h avilib/wavlib.c
+  introduce helper library to deal with WAVE files.
+  basic documentation is included in header file, and wavlib
+  does, at time of writing, all what WAVE support code in avilib do.
+  In the next few commits all WAVE-related code will be ported
+  to wavlib, and WAVE code in avilib will be dropped.
+
+2006-03-18 Francesco Romani <fromani at gmail dot com>
   * filter/filter_logo.c
   add credits for Sebastian Kun <seb at sarolta dot com>
 
