@@ -145,7 +145,7 @@ import_xml_la_LIBADD = $(LIBXML2_LIBS) -lm
 
 import_yuv4mpeg_la_SOURCES = import_yuv4mpeg.c
 import_yuv4mpeg_la_LDFLAGS = -module -avoid-version
-import_yuv4mpeg_la_LIBADD = $(MJPEGTOOLS_LIBS) $(WAVLIB_LIBS)
+import_yuv4mpeg_la_LIBADD = $(MJPEGTOOLS_LIBS)
 
 import_mplayer_la_SOURCES = import_mplayer.c
 import_mplayer_la_LDFLAGS = -module -avoid-version
