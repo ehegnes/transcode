@@ -1,7 +1,8 @@
 /*
- *  libtc.h
+ *  libtc.h - include file for utilities library for transcode
  *
  *  Copyright (C) Thomas Östreich - August 2003
+ *  Copyright (C) Transcode Team - 2005-2006
  *
  *  This file is part of transcode, a video stream processing tool
  *
@@ -60,10 +61,10 @@ extern "C" {
 #define COL_GRAY            "\033[0m"
 
 typedef enum {
-    TC_LOG_ERR = 0, // critical error condition
-    TC_LOG_WARN,    // non-critical error condition
-    TC_LOG_INFO,    // informative highlighted message
-    TC_LOG_MSG,     // regular message
+    TC_LOG_ERR = 0, /* critical error condition */
+    TC_LOG_WARN,    /* non-critical error condition */
+    TC_LOG_INFO,    /* informative highlighted message */
+    TC_LOG_MSG,     /* regular message */
 } TCLogLevel;
 
 void tc_log(TCLogLevel level, const char *tag, const char *fmt, ...);
@@ -87,7 +88,11 @@ void tc_log(TCLogLevel level, const char *tag, const char *fmt, ...);
     tc_log(TC_LOG_MSG, tag, format , ## args)
 
 
-/* Provided by caller */
+/* 
+ * Provided by caller
+ * FIXME: reverse dependencies are BAD, this should go away
+ * -- fromani 20060305
+ */
 extern void version(void);
 
 /*
@@ -99,6 +104,9 @@ int tc_test_program(const char *name);
 
 /* guess the frame rate code from the frames per second */
 int tc_guess_frc(double fps);
+
+/* detect and return ASR code from picture dimensions */
+int tc_detect_asr(int n, int d);
 
 /*
  * Safer string functions from OpenBSD, since these are not in all
@@ -114,19 +122,7 @@ size_t strlcat(char *dst, const char *src, size_t size);
 #endif
 
 /*
- * tc_strstrip:
- *     remove in-place heading and trailing whitespaces from a string.
- *
- * Parameters:
- *     s: string to strip
- * Return value:
- *     None
- * Side effects:
- *     none
- * Preconditions:
- *     none
- * Postconditions:
- *     none
+ * remove IN PLACE heading and trailing whitespaces from a given C-string.
  */
 void tc_strstrip(char *s);
 
@@ -138,7 +134,7 @@ void tc_strstrip(char *s);
  * If error, prints reason.
  */
 int tc_test_string(const char *file, int line, int limit,
-		   long ret, int errnum);
+                   long ret, int errnum);
 
 
 /*
@@ -165,11 +161,11 @@ int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
  * tc_free: the companion memory releasing wrapper.
  */
 #define tc_malloc(size) \
-    _tc_malloc(__FILE__, __LINE__, size)
+            _tc_malloc(__FILE__, __LINE__, size)
 #define tc_zalloc(size) \
-    _tc_zalloc(__FILE__, __LINE__, size)
+            _tc_zalloc(__FILE__, __LINE__, size)
 #define tc_free(ptr) \
-    free(ptr);
+            free(ptr);
 
 /*
  * _tc_malloc:
@@ -217,31 +213,11 @@ void *_tc_zalloc(const char *file, int line, size_t size);
  * Allocate a buffer aligned to the machine's page size, if known.  The
  * buffer must be freed with buffree() (not free()).
  */
-#define tc_bufalloc(size) \
-    _tc_bufalloc(__FILE__, __LINE__, size)
 
-/*
- * _tc_bufalloc:
- *     do the real work under 'tc_bufalloc' macro.
- *
- * Parameters:
- *     file: name of the file on which call occurs
- *     line: line of above file on which call occurs (above two parameters
- *           are intended to be, and usually are, filled by tc_malloc
- *           macro).
- *     size: size in bytes of page-aligned buffer to allocate.
- *           The memory effectively allocated may be _more_ than expected,
- *           for alignement constraints.
- * Return Value:
- *     a pointer to a valid region of memory, NULL if failed.
- * Side effects:
- *     none
- * Preconditions:
- *     none
- * Postconditions:
- *     return value points to a page-aligned memory chunk large at least
- *     'size' bytes.
- */
+#define tc_bufalloc(size) \
+            _tc_bufalloc(__FILE__, __LINE__, size)
+
+/* XXX: add docs */
 void *_tc_bufalloc(const char *file, int line, size_t size);
 
 /*
@@ -272,9 +248,9 @@ void tc_buffree(void *ptr);
  * strdup(3) an strndup(3), but using the libtc's tc_malloc features.
  */
 #define tc_strdup(s) \
-    _tc_strndup(__FILE__, __LINE__, s, strlen(s))
+            _tc_strndup(__FILE__, __LINE__, s, strlen(s))
 #define tc_strndup(s, n) \
-    _tc_strndup(__FILE__, __LINE__, s, n)
+            _tc_strndup(__FILE__, __LINE__, s, n)
 
 /*
  * _tc_strndup:
@@ -461,7 +437,7 @@ int tc_codec_from_string(const char *codec);
  *     extract the FOURCC code for a given codec, if exists.
  *
  * Parameters:
- *     codec: TC_CODEC_ value to get the FOURCC
+ *     codec: TC_CODEC_* value to get the FOURCC for.
  * Return value:
  *     a constant string representing the FOURCC for a given codec (there
  *     is no need to free() it NULL of codec's FOURCC is (yet) unknown or
@@ -474,6 +450,122 @@ int tc_codec_from_string(const char *codec);
  *     none
  */
 const char* tc_codec_fourcc(int codec);
+
+/*
+ * tc_codec_description:
+ *     describe a codec, given it's ID.
+ *
+ * Parameters:
+ *     codec: TC_CODEC_* value to get the description for.
+ *     buf: buffer provided to caller. Description will be stored here.
+ *     bufsize: size of the given buffer.
+ * Return value:
+ *     -1 if requested codec isn't known.
+ *     +1 truncation error (given buffer too small).
+ *     0  no errors.
+ * Side effects:
+ *     none
+ * Preconditions:
+ *     none
+ * Postconditions:
+ *     none
+ */
+int tc_codec_description(int codec, char *buf, size_t bufsize);
+
+/*
+ * XXX: add some general notes about quantization matrices stored
+ * into files (format etc. etc.)
+ *
+ * tc_*_matrix GOTCHA:
+ * Why _two_ allowed elements wideness? Why this mess?
+ * The problem is that XviD and libavcodec wants elements for
+ * quantization matrix in two different wideness. Obviously
+ * we DON'T want to patch such sources, so we must handle in
+ * some way this difference.
+ * Of course we are looking for cleaner solutions.
+ * -- fromani 20060305
+ */
+
+/*
+ * Total size (=number of elements) of quantization matrix 
+ * for following two support functions
+ */
+#define TC_MATRIX_SIZE     (64)
+
+/*
+ * tc_read_matrix:
+ *     read a quantization matrix from given file.
+ *     Can read 8-bit wide or 16-bit wide matrix elements.
+ *     Store readed matrix in a caller-provided buffer.
+ *
+ *     Caller can select the elements wideness just
+ *     providing a not-NULL buffer for corresponding buffer.
+ *     For example, if caller wants to read a quantization matrix
+ *     from 'matrix.txt', and want 16-bit wide elements, it
+ *     will call
+ *
+ *     uint16_t matrix[TC_MATRIX_SIZE];
+ *     tc_read_matrix('matrix.txt', NULL, matrix);
+ *
+ * Parameters:
+ *     filename: read quantization matrix from this file.
+ *     m8: buffer for 8-bit wide elements quantization matrix
+ *     m16: buffer for 16-bit wide elements quantization matrix
+ *
+ *     NOTE: if m8 AND m16 BOTH refers to valid buffers, 8-bit
+ *     wideness is preferred.
+ * Return value:
+ *     -1 filename not found, or neither buffers is valid.
+ *     +1 read error: matrix incomplete or badly formatted.
+ *     0  no errors.
+ * Side effects:
+ *     a file on disk is open, readed, closed.
+ * Preconditions:
+ *     buffer provided by caller MUST be large enough to hold
+ *     TC_MATRIX_SIZE elements of requested wideness.
+ *     At least one buffer is valid.
+ * Postconditions:
+ *     none
+ */
+int tc_read_matrix(const char *filename, uint8_t *m8, uint16_t *m16);
+
+/* 
+ * tc_print_matrix:
+ *     print (using tc_log*) a quantization matrix. 
+ *     Can print 8-bit wide or 16-bit wide matrix elements.
+ *
+ *     Caller must provide a valid pointer correspoinding to
+ *     wideness of elements of matrix to be printed.
+ *     Example: quantization matrix has 8-bit wide elements:
+ *
+ *     uint8_t matrix[TC_MATRIX_SIZE];
+ *     // already filled with something useful
+ *     tc_print_matrix(matrix, NULL);
+ * Parameters:
+ *     m8: pointer to 8-bit wide elements quantization matrix.
+ *     m16: pointer to 16-bit wide elements quantization matrix.
+ *
+ *     NOTE: if m8 AND m16 BOTH refers to valid buffers, 8-bit
+ *     wideness is preferred.
+ * Return value:
+ *     None
+ * Side effects:
+ *     None
+ * Preconditions:
+ *     At least one pointer is valid.
+ * Postconditions:
+ *     None
+ */
+void tc_print_matrix(uint8_t *m8, uint16_t *m16);
+
+
+/* XXX */
+void *vframe_new(int width, int height);
+void *aframe_new(void);
+void vframe_del(void *_vptr);
+void aframe_del(void *_aptr);
+
+
 
 #ifdef __cplusplus
 }

@@ -31,9 +31,9 @@
 #include <errno.h>
 #include <ctype.h>
 
-#include "libxio/xio.h"
-
+#include "xio.h"
 #include "libtc.h"
+#include "tc_defaults.h"
 
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
@@ -41,6 +41,8 @@
 #if defined(HAVE_ALLOCA_H)
 #include <alloca.h>
 #endif
+
+#include "framebuffer.h"
 
 /*************************************************************************/
 
@@ -70,6 +72,9 @@ void tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
     /* sanity check, avoid {under,over}flow; */
     level = (level < TC_LOG_ERR) ?TC_LOG_ERR :level;
     level = (level > TC_LOG_MSG) ?TC_LOG_MSG :level;
+    /* sanity check, avoid dealing with NULL as much as we can */
+    tag = (tag != NULL) ?tag :"";
+    fmt = (fmt != NULL) ?fmt :"";
 
     size = strlen(tc_log_preambles[level])
            + strlen(tag) + strlen(fmt) + 1;
@@ -94,7 +99,9 @@ void tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
         size = TC_MSG_BUF_SIZE - 1;
     }
 
-    snprintf(msg, size, tc_log_preambles[level], tag, fmt);
+    tc_snprintf(msg, size, tc_log_preambles[level], tag, fmt);
+    msg[size] = '\0';
+    /* `size' value was already scaled for the final '\0' */
 
     va_start(ap, fmt);
     vfprintf(stderr, msg, ap);
@@ -232,6 +239,24 @@ int tc_guess_frc(double fps)
     return -1;
 }
 #undef DELTA
+
+int tc_detect_asr(int n, int d)
+{
+    int asr = 0;
+    
+    if (n > 0 && d > 0) {
+        if (n == 1 && d == 1) {
+            asr = 1;
+        } else if (n == 4 && d == 3) {
+		    asr = 2;
+        } else if (n == 16 && d == 9) {
+    	    asr = 3;
+        } else if ((double)n/(double)d >= 2.21) {
+    	    asr = 4;
+        }
+    }
+    return asr;
+} 
 
 /*************************************************************************/
 
@@ -406,16 +431,20 @@ ssize_t tc_pwrite(int fd, uint8_t *buf, size_t len)
     return r;
 }
 
+#ifdef PIPE_BUF
+# define BLOCKSIZE PIPE_BUF /* 4096 on linux-x86 */
+#else
+# define BLOCKSIZE 4096
+#endif
 
-#define MAX_BUF 4096
 int tc_preadwrite(int fd_in, int fd_out)
 {
-    uint8_t buffer[MAX_BUF];
+    uint8_t buffer[BLOCKSIZE];
     ssize_t bytes;
     int error = 0;
 
     do {
-        bytes = tc_pread(fd_in, buffer, MAX_BUF);
+        bytes = tc_pread(fd_in, buffer, BLOCKSIZE);
 
         /* error on read? */
         if (bytes < 0) {
@@ -423,7 +452,7 @@ int tc_preadwrite(int fd_in, int fd_out)
         }
 
         /* read stream end? */
-        if (bytes != MAX_BUF) {
+        if (bytes != BLOCKSIZE) {
             error = 1;
         }
 
@@ -437,7 +466,6 @@ int tc_preadwrite(int fd_in, int fd_out)
 
     return 0;
 }
-
 
 int tc_file_check(const char *name)
 {
@@ -567,134 +595,164 @@ void tc_strstrip(char *s)
 
 /*************************************************************************/
 
-/* embedded simple test for tc_log()
+static int32_t clamp(int32_t value, uint8_t bitsize)
+{
+    value = (value < 1) ?1 :value;
+    value = (value > (1 << bitsize)) ?(1 << bitsize) :value;
+    return value;
+}
 
-BEGIN_TEST_CODE
-#include "config.h"
-#include "libtc.h"
-#include <stdlib.h>
-#include <stdio.h>
-
-int main(void)
+int tc_read_matrix(const char *filename, uint8_t *m8, uint16_t *m16)
 {
     int i = 0;
+    FILE *input = NULL;
 
-    for (i = 0; i < 4; i++) {
-        tc_log(i, __FILE__, "short format");
-        tc_log(i, __FILE__, "a little longer format (%i)", i);
-        tc_log(i, __FILE__, "a really longer format (%i) with additional "
-                            "arg: %s", i, __FILE__);
-        tc_log(i, __FILE__, "a really really long format (%i) with various "
-                            "additional arguments: "
-                            " file='%s' line='%i' date='%s' i=%i &i=%p",
-                            i, __FILE__, __LINE__, __DATE__, i, &i);
-
-#define __TAG__ "tag a bit more longer than FILE standard macro"
-        tc_log(i, __TAG__, "short format");
-        tc_log(i, __TAG__, "a little longer format (%i)", i);
-        tc_log(i, __TAG__, "a really longer format (%i) with additional "
-                            "arg: %s", i, __FILE__);
-        tc_log(i, __TAG__, "a really really long format (%i) with various "
-                           "additional arguments: "
-                           " file='%s' line='%i' date='%s' i=%i &i=%p",
-                           i, __FILE__, __LINE__, __DATE__, i, &i);
-
-
+    /* Open the matrix file */
+    input = fopen(filename, "rb");
+    if (!input) {
+        tc_log_warn("read_matrix",
+            "Error opening the matrix file %s",
+            filename);
+        return -1;
     }
+    if (!m8 && !m16) {
+        tc_log_warn("read_matrix", "bad matrix reference");
+        return -1;
+    }
+
+    /* Read the matrix */
+    for(i = 0; i < TC_MATRIX_SIZE; i++) {
+        int value;
+
+        /* If fscanf fails then get out of the loop */
+        if(fscanf(input, "%d", &value) != 1) {
+            tc_log_warn("read_matrix",
+                "Error reading the matrix file %s",
+                filename);
+            fclose(input);
+            return 1;
+        }
+
+        if (m8 != NULL) {
+            m8[i] = clamp(value, 8);
+        } else {
+            m16[i] = clamp(value, 16);
+        }
+    }
+
+    /* We're done */
+    fclose(input);
 
     return 0;
 }
 
-*/
-
-/* embedded simple test for tc_strdup() / tc_strndup
-
-#include "config.h"
-
-#define _GNU_SOURCE 1
-
-#include "libtc.h"
-#include <stdlib.h>
-#include <stdio.h>
-
-// test case 1
-
-#define TEST_STRING "testing tc_str*dup()"
-
-int test_strdup(void)
+void tc_print_matrix(uint8_t *m8, uint16_t *m16)
 {
-    const char *s1 = TEST_STRING;
-    char *s2 = NULL, *s3 = NULL;
+    int i;
 
-    tc_info("test_strdup() begin");
-
-    s2 = strdup(s1);
-    s3 = tc_strdup(s1);
-
-    if (strlen(s1) != strlen(s2)) {
-        tc_error("string length mismatch: '%s' '%s'", s1, s2);
+    if (!m8 && !m16) {
+        tc_log_warn("print_matrix", "bad matrix reference");
+        return;
     }
-    if (strlen(s1) != strlen(s3)) {
-        tc_error("string length mismatch: '%s' '%s'", s1, s3);
+   
+    // XXX: magic number
+    for(i = 0; i < TC_MATRIX_SIZE; i += 8) {
+        if (m8 != NULL) {
+            tc_log_info("print_matrix",
+                        "%3d %3d %3d %3d "
+                        "%3d %3d %3d %3d",
+                        (int)m8[i],   (int)m8[i+1],
+                        (int)m8[i+2], (int)m8[i+3],
+                        (int)m8[i+4], (int)m8[i+5],
+                        (int)m8[i+6], (int)m8[i+7]);
+        } else {
+            tc_log_info("print_matrix",
+                        "%3d %3d %3d %3d "
+                        "%3d %3d %3d %3d",
+                        (int)m16[i],   (int)m16[i+1],
+                        (int)m16[i+2], (int)m16[i+3],
+                        (int)m16[i+4], (int)m16[i+5],
+                        (int)m16[i+6], (int)m16[i+7]);
+        }
     }
-    if (strlen(s2) != strlen(s3)) {
-        tc_error("string length mismatch: '%s' '%s'", s2, s3);
-    }
-
-    if (strcmp(s1, s2) != 0) {
-        tc_error("string mismatch: '%s' '%s'", s1, s2);
-    }
-    if (strcmp(s1, s3) != 0) {
-        tc_error("string mismatch: '%s' '%s'", s1, s3);
-    }
-    if (strcmp(s2, s3) != 0) {
-        tc_error("string mismatch: '%s' '%s'", s2, s3);
-    }
-
-    free(s2);
-    tc_free(s3);
-
-    tc_info("test_strdup() end");
-    return 0;
+    return;
 }
 
-int test_strndup(size_t n)
+/*************************************************************************/
+
+void *vframe_new(int width, int height)
 {
-    const char *s1 = TEST_STRING;
-    char *s2 = NULL, *s3 = NULL;
+    vframe_list_t *vptr = tc_malloc(sizeof(vframe_list_t));
 
-    tc_info("test_strndup(%lu) begin", (unsigned long)n);
+    // XXX XXX XXX
 
-    s2 = strndup(s1, n);
-    s3 = tc_strndup(s1, n);
-
-    if (strlen(s2) != strlen(s3)) {
-        tc_error("string length mismatch: '%s' '%s'", s2, s3);
+    if (vptr != NULL) {
+#ifdef STATBUFFER
+        vptr->internal_video_buf_0 = tc_bufalloc(width * height * BPP/8);
+        vptr->internal_video_buf_1 = vptr->internal_video_buf_0;
+        if (!vptr->internal_video_buf_0) {
+            tc_free(vptr);
+            return NULL;
+        }
+        vptr->video_size = SIZE_RGB_FRAME;
+#endif /* STATBUFFER */
+        VFRAME_INIT(vptr, width, height);
     }
-
-    if (strcmp(s2, s3) != 0) {
-        tc_error("string mismatch: '%s' '%s'", s2, s3);
-    }
-
-    free(s2);
-    tc_free(s3);
-
-    tc_info("test_strndup() end");
-    return 0;
+    return vptr;
 }
 
-int main(void)
+void *aframe_new(void)
 {
-    test_strdup();
+    aframe_list_t *aptr = tc_malloc(sizeof(aframe_list_t));
 
-    test_strndup(0);
-    test_strndup(1);
-    test_strndup(5);
+    if (aptr != NULL) {
+#ifdef STATBUFFER
+        // XXX XXX XXX
 
-    test_strndup(strlen(TEST_STRING)-2);
-    test_strndup(strlen(TEST_STRING)-1);
-
-    return 0;
+        aptr->internal_audio_buf = tc_bufalloc(SIZE_PCM_FRAME << 2);
+        if (!aptr->internal_audio_buf) {
+            tc_free(aptr);
+            return NULL;
+        }
+        aptr->audio_size = SIZE_PCM_FRAME << 2;
+#endif /* STATBUFFER */
+        AFRAME_INIT(aptr);
+    }
+    return aptr;
 }
-END_TEST_CODE
-*/
+
+void vframe_del(void *_vptr)
+{
+    vframe_list_t *vptr = _vptr;
+    
+    if (vptr != NULL) {
+#ifdef STATBUFFER
+        tc_buffree(vptr->internal_video_buf_0);
+#endif
+        tc_free(vptr);
+    }
+}
+
+void aframe_del(void *_aptr)
+{
+    aframe_list_t *aptr = _aptr;
+    
+    if (aptr != NULL) {
+#ifdef STATBUFFER
+        tc_buffree(aptr->internal_audio_buf);
+#endif
+        tc_free(aptr);
+    }
+}
+
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */

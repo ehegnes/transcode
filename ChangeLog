@@ -1,4 +1,9 @@
 2006-03-18 Francesco Romani <fromani at gmail dot com>
+  * libtc/tc_functions.c libtc/libtc.h
+  libtc update round 1: add a few more utilities to libtc
+  (backport from NMS branch)
+
+2006-03-18 Francesco Romani <fromani at gmail dot com>
   * import/extract_yuv.c import/import_yuv4mpeg.c
   always use yuv4mpeg library from mjpegtools, even
   in import layer.
