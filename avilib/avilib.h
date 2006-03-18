@@ -412,6 +412,7 @@ struct riff_struct
   uint8_t wave_id[4]; /* WAVE */
 };
 
+
 struct chunk_struct
 {
 	uint8_t id[4];
