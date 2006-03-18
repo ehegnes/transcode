@@ -30,9 +30,10 @@
 
 #include "transcode.h"
 #include "libtcvideo/tcvideo.h"
+#include "wavlib.h"
 
 #define MOD_NAME    "export_mp1e.so"
-#define MOD_VERSION "v0.0.1 (2003-12-18)"
+#define MOD_VERSION "v0.0.2 (2006-03-16)"
 #define MOD_CODEC   "(video) MPEG1 video | (audio) MPEG1-Layer2"
 
 static int verbose_flag=TC_QUIET;
@@ -42,7 +43,6 @@ static int capability_flag=TC_CAP_PCM|TC_CAP_YUV|TC_CAP_YUV422|TC_CAP_RGB;
 #include "export_def.h"
 static char export_cmd_buf [PATH_MAX];
 static FILE *pFile = NULL;
-static FILE *pFifo = NULL;
 static struct wave_header rtf;
 const char *fifoname = "audio-mp1e.wav";
 static int audio_open_done = 0;
@@ -53,6 +53,7 @@ static int width = 0;
 static int height = 0;
 static TCVHandle tcvhandle = 0;
 static ImageFormat srcfmt, destfmt;
+static WAV wav = NULL;
 
 
 // mp1e cant handle audio from a pipe, so we write a temporary WAV file.
@@ -85,15 +86,22 @@ return TC_IMPORT_ERROR;
     if (tc_test_program("mp1e") != 0) return (TC_EXPORT_ERROR);
 
     if (do_audio && !audio_open_done) {
-	pFifo = fopen (fifoname, "w");
+        WAVError err;
+        int rate;
 
-	if (!pFifo) {
-	    perror ("fopen audio file");
-	    return (TC_EXPORT_ERROR);
-	}
+        wav = wav_open(fifoname, WAV_WRITE, &err);
+        if (wav == NULL) {
+	        tc_log_error (MOD_NAME, "open audio file: %s",
+                                    wav_strerror(err));
+	        return (TC_EXPORT_ERROR);
+    	}
+        rate = (vob->mp3frequency != 0) ?vob->mp3frequency :vob->a_rate;
+        wav_set_rate(wav, rate);
+        wav_set_bitrate(wav, vob->dm_chan * rate * vob->dm_bits/8);
+        wav_set_channels(wav, vob->dm_chan);
+        wav_set_bits(wav, vob->dm_bits);
 
-	AVI_write_wave_header(fileno(pFifo), &rtf);
-	audio_open_done++;
+	    audio_open_done++;
     }
 
     if (param->flag == TC_VIDEO) {
@@ -249,33 +257,7 @@ return TC_IMPORT_ERROR;
 MOD_init
 {
   if(param->flag == TC_AUDIO) {
-    int rate;
-
-    memset((char *) &rtf, 0, sizeof(rtf));
-    rtf.riff.len = sizeof(struct riff_struct) + sizeof(struct
-	    chunk_struct) + sizeof(struct common_struct);
-    strncpy(rtf.riff.id, "RIFF", 4);
-    strncpy(rtf.riff.wave_id, "WAVE",4);
-    strncpy(rtf.format.id, "fmt ",4);
-
-    rtf.format.len = sizeof(struct common_struct);
-    rtf.common.wFormatTag=CODEC_PCM;
-
-    rate=(vob->mp3frequency != 0) ? vob->mp3frequency : vob->a_rate;
-
-    rtf.common.dwSamplesPerSec = rate;
-    rtf.common.dwAvgBytesPerSec = vob->dm_chan * rate * vob->dm_bits/8;
-    rtf.common.dwAvgBytesPerSec = rate * vob->dm_bits/8;
-    rtf.common.wChannels=vob->dm_chan;
-    rtf.common.wBitsPerSample=vob->dm_bits;
-    rtf.common.wBlockAlign=vob->dm_chan*vob->dm_bits/8;
-
-    rtf.riff.len=0x7FFFFFFF;
-    rtf.data.len=0x7FFFFFFF;
-
-    strncpy(rtf.data.id, "data",4);
-
-    do_audio = 1;
+        do_audio = 1;
   }
 
   return(0);
@@ -327,8 +309,8 @@ MOD_encode
 	}
     }
     if (param->flag == TC_AUDIO)  {
-	fwrite(param->buffer, param->size, 1, pFifo);
-	audio_frames_written++;
+        wav_write_data(wav, param->buffer, param->size);
+        audio_frames_written++;
     }
   return(0);
 }
@@ -356,10 +338,10 @@ MOD_close
 {
   if (pFile) pclose(pFile); pFile=NULL;
 
-  if (pFifo) {
-      fclose(pFifo);
+  if (wav) {
+      wav_close(wav);
       unlink(fifoname);
-      pFifo=NULL;
+      wav=NULL;
   }
   audio_open_done = 0;
   do_audio = 0;

@@ -25,21 +25,19 @@
 #include <stdlib.h>
 
 #include "transcode.h"
-#include "avilib.h"
+#include "wavlib.h"
 
 #define MOD_NAME    "export_wav.so"
-#define MOD_VERSION "v0.2.3 (2003-01-16)"
+#define MOD_VERSION "v0.3.0 (2006-03-16)"
 #define MOD_CODEC   "(audio) WAVE PCM"
 
-static int verbose_flag=TC_QUIET;
-static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;
+static int verbose_flag = TC_QUIET;
+static int capability_flag = TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;
 
 #define MOD_PRE wav
 #include "export_def.h"
 
-static struct wave_header rtf;
-static int fd;
-static long total=0;
+static WAV wav = NULL;
 
 /* ------------------------------------------------------------
  *
@@ -49,40 +47,13 @@ static long total=0;
 
 MOD_init
 {
-
-  int rate;
-
-  if(param->flag == TC_VIDEO) return(0);
-  if(param->flag == TC_AUDIO) {
-
-    memset((char *) &rtf, 0, sizeof(rtf));
-    rtf.riff.len = sizeof(struct riff_struct) + sizeof(struct
-chunk_struct) + sizeof(struct common_struct);
-    strncpy(rtf.riff.id, "RIFF", 4);
-    strncpy(rtf.riff.wave_id, "WAVE",4);
-    strncpy(rtf.format.id, "fmt ",4);
-
-    rtf.format.len = sizeof(struct common_struct);
-    rtf.common.wFormatTag=CODEC_PCM;
-
-    rate=(vob->mp3frequency != 0) ? vob->mp3frequency : vob->a_rate;
-
-    rtf.common.dwSamplesPerSec = rate;
-    rtf.common.dwAvgBytesPerSec = vob->dm_chan * rate * vob->dm_bits/8;
-    rtf.common.dwAvgBytesPerSec = rate * vob->dm_bits/8;
-    rtf.common.wChannels=vob->dm_chan;
-    rtf.common.wBitsPerSample=vob->dm_bits;
-    rtf.common.wBlockAlign=vob->dm_chan*vob->dm_bits/8;
-
-    rtf.riff.len=0x7FFFFFFF;
-    rtf.data.len=0x7FFFFFFF;
-
-    strncpy(rtf.data.id, "data",4);
-
-    return(0);
-  }
-  // invalid flag
-  return(TC_EXPORT_ERROR);
+    if (param->flag == TC_VIDEO) {
+        return TC_EXPORT_OK;
+    }
+    if (param->flag == TC_AUDIO) {
+        return TC_EXPORT_OK;
+    }
+    return TC_EXPORT_ERROR;
 }
 
 /* ------------------------------------------------------------
@@ -93,31 +64,29 @@ chunk_struct) + sizeof(struct common_struct);
 
 MOD_open
 {
+    if (param->flag == TC_AUDIO) {
+        WAVError err;
+        int rate;
 
-  if(param->flag == TC_AUDIO) {
+        wav = wav_open(vob->audio_out_file, WAV_READ, &err);
+        if (wav == NULL) {
+            tc_log_error(MOD_NAME, "open file: %s", wav_strerror(err));
+            return TC_EXPORT_ERROR;
+        }
 
-    if((fd = open(vob->audio_out_file, O_RDWR|O_CREAT|O_TRUNC,
-		  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))<0) {
-      perror("open file");
-      return(TC_EXPORT_ERROR);
+        rate = (vob->mp3frequency != 0) ?vob->mp3frequency :vob->a_rate;
+        wav_set_bits(wav, vob->dm_bits);
+        wav_set_rate(wav, rate);
+        wav_set_bitrate(wav, vob->dm_chan * rate * vob->dm_bits/8);
+        wav_set_channels(wav, vob->dm_chan);
+
+        return TC_EXPORT_OK;
     }
 
-    total=0;
-
-    if(AVI_write_wave_header(fd, &rtf) != 0) {
-      perror("write wave header");
-      return(TC_EXPORT_ERROR);
+    if (param->flag == TC_VIDEO) {
+        return TC_EXPORT_OK;
     }
-
-
-    return(0);
-  }
-
-
-  if(param->flag == TC_VIDEO) return(0);
-
-  // invalid flag
-  return(TC_EXPORT_ERROR);
+    return TC_EXPORT_ERROR;
 }
 
 /* ------------------------------------------------------------
@@ -128,25 +97,19 @@ MOD_open
 
 MOD_encode
 {
-
-  int size = param->size;
-
-  if(param->flag == TC_AUDIO) {
-
-    if(AVI_write_wave_pcm_data(fd,param->buffer, size) != size) {
-      perror("write audio frame");
-      return(TC_EXPORT_ERROR);
+    if (param->flag == TC_AUDIO) {
+        if (wav_write_data(wav, param->buffer, param->size) != param->size) {
+            tc_log_error(MOD_NAME, "write audio frame: %s",
+                                   wav_strerror(wav_last_error(wav)));
+            return TC_EXPORT_ERROR;
+        }
+        return TC_EXPORT_OK;
     }
 
-    total += size;
-
-    return(0);
-  }
-
-  if(param->flag == TC_VIDEO) return(0);
-
-  // invalid flag
-  return(TC_EXPORT_ERROR);
+    if (param->flag == TC_VIDEO) {
+        return TC_EXPORT_OK;
+    }
+    return TC_EXPORT_ERROR;
 }
 
 /* ------------------------------------------------------------
@@ -157,38 +120,18 @@ MOD_encode
 
 MOD_close
 {
-
-  off_t fsize;
-
-  if(param->flag == TC_VIDEO) return(0);
-  if(param->flag == TC_AUDIO) {
-
-    /* If we can't seek then it is most probably a pipe and there is no
-     * way to fix the header. At the same time it is not a problem and we
-     * just return success.
-    */
-    if((fsize = lseek(fd, 0, SEEK_CUR))<0) {
-      tc_log_info(MOD_NAME, "Can't seek to fix header, probably a pipe");
-      return(0);
+    if (param->flag == TC_VIDEO) {
+        return TC_EXPORT_OK;
     }
-
-    rtf.riff.len=fsize-8;
-    rtf.data.len=total;
-
-    //write wave header
-    lseek(fd, 0, SEEK_SET);
-
-    if(AVI_write_wave_header(fd, &rtf) != 0) {
-      perror("write wave header");
-      return(TC_EXPORT_ERROR);
+    if (param->flag == TC_AUDIO) {
+        if (wav_close(wav) != 0) {
+            tc_log_error(MOD_NAME, "closing file: %s",
+                                   wav_strerror(wav_last_error(wav)));
+            return TC_EXPORT_ERROR;
+        }
+        return TC_EXPORT_OK;
     }
-
-    close(fd);
-
-    return(0);
-  }
-  return(TC_EXPORT_ERROR);
-
+    return TC_EXPORT_ERROR;
 }
 
 /* ------------------------------------------------------------
@@ -199,9 +142,12 @@ MOD_close
 
 MOD_stop
 {
-  if(param->flag == TC_VIDEO) return(0);
-  if(param->flag == TC_AUDIO) return(0);
-
-  return(TC_EXPORT_ERROR);
+    if (param->flag == TC_VIDEO) {
+        return TC_EXPORT_OK;
+    }
+    if (param->flag == TC_AUDIO) {
+        return TC_EXPORT_OK;
+    }
+    return TC_EXPORT_ERROR;
 }
 
