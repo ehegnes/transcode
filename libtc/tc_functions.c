@@ -680,6 +680,7 @@ void tc_print_matrix(uint8_t *m8, uint16_t *m16)
 
 /*************************************************************************/
 
+#if 0
 void *vframe_new(int width, int height)
 {
     vframe_list_t *vptr = tc_malloc(sizeof(vframe_list_t));
@@ -744,6 +745,7 @@ void aframe_del(void *_aptr)
         tc_free(aptr);
     }
 }
+#endif
 
 /*************************************************************************/
 
