@@ -2,6 +2,7 @@
  *  extract_yuv.c
  *
  *  Copyright (C) Thomas Östreich - June 2001
+ *  Copyright (C) Francesco Romani - March 2006
  *
  *  This file is part of transcode, a video stream processing tool
  *
@@ -21,120 +22,27 @@
  *
  */
 
+#include "config.h"
+
+#if defined HAVE_MJPEGTOOLS
+/* assert using new code (FIXME?) */
+
 #include "transcode.h"
+#include "framebuffer.h"
 #include "tcinfo.h"
+#include "libtc/libtc.h"
+
+#if defined(HAVE_MJPEGTOOLS_INC)
+#include "yuv4mpeg.h"
+#include "mpegconsts.h"
+#else
+#include "mjpegtools/yuv4mpeg.h"
+#include "mjpegtools/mpegconsts.h"
+#endif
 
 #include "ioaux.h"
 #include "avilib.h"
 #include "tc.h"
-
-#define MAX_BUF 4096
-
-static int yuv_readwrite_frame (int in_fd, int out_fd, char *buffer, int bytes)
-{
-
-    unsigned char magic[7];
-
-    int padding, blocks, n;
-
-    for(;;) {
-      if (tc_pread (in_fd, magic, 5) != 5)
-	return 0;
-
-      // Check for extra header in case input was tccat'ed
-      if (strncmp (magic, "YUV4MP", 5) == 0) {
-	do {
-	  if (tc_pread (in_fd, magic, 1) < 1) return 0;
-	} while(magic[0] != '\n');
-      } else break;
-    }
-
-    if (strncmp (magic, "FRAME", 5) == 0) {
-	do {
-	    if (tc_pread (in_fd, magic, 1) < 1) return 0;
-	} while(magic[0] != '\n');
-    }
-
-    padding = bytes % MAX_BUF;
-    blocks  = bytes / MAX_BUF;
-
-    for (n=0; n<blocks; ++n) {
-
-	if (tc_pread(in_fd, buffer, MAX_BUF) != MAX_BUF)
-	    return 0;
-	if (tc_pwrite(out_fd, buffer, MAX_BUF) != MAX_BUF)
-	    return 0;
-    }
-
-    if (tc_pread(in_fd, buffer, padding) != padding)
-	return 0;
-    if (tc_pwrite(out_fd, buffer, padding) != padding)
-	return 0;
-
-    return 1;
-}
-
-#define PARAM_LINE_MAX 256
-
-static int yuv_read_header (int fd_in, int *horizontal_size, int *vertical_size,
-	int *frame_rate_code, int *divisor, int *is_yuv4mpeg2, int *asr1, int *asr2)
-{
-    int n, nerr;
-    char param_line[PARAM_LINE_MAX];
-
-    for (n = 0; n < PARAM_LINE_MAX; n++) {
-	if ((nerr = read (fd_in, param_line + n, 1)) < 1) {
-	    fprintf (stderr, "Error reading header from stdin\n");
-	    /* set errno if nerr == 0 ? */
-	    return -1;
-	}
-	if (param_line[n] == '\n')
-	    break;
-    }
-    if (n == PARAM_LINE_MAX) {
-	fprintf (stderr,
-		 "Didn't get linefeed in first %d characters of data\n",
-		 PARAM_LINE_MAX);
-	/* set errno to EBADMSG? */
-	return -1;
-    }
-    param_line[n] = 0;           /* Replace linefeed by end of string */
-
-    if (strncmp (param_line, "YUV4MPEG ", 9) &&
-	strncmp (param_line, "YUV4MPEG2 ", 10)) {
-	fprintf (stderr, "Input does not start with \"YUV4MPEG \"\n");
-	fprintf (stderr, "This is not a valid input for me\n");
-	/* set errno to EBADMSG? */
-	return -1;
-    }
-
-    if (param_line[8] == '2'){ // YUV4MPEG2
-	*is_yuv4mpeg2 = 1;
-	sscanf (param_line + 10, "W%d H%d F%d:%d I%*c A%d:%d", horizontal_size, vertical_size,
-	    frame_rate_code, divisor, asr1, asr2);
-
-    } else { // YUV4MPEG
-	*is_yuv4mpeg2 = 0;
-	sscanf (param_line + 9, "%d %d %d", horizontal_size, vertical_size,
-	    frame_rate_code);
-    }
-
-    nerr = 0;
-    if (*horizontal_size <= 0) {
-	fprintf (stderr, "Horizontal size illegal\n");
-	nerr++;
-    }
-    if (*vertical_size <= 0) {
-	fprintf (stderr, "Vertical size illegal\n");
-	nerr++;
-    }
-    if (*frame_rate_code <= 0) {
-	fprintf (stderr, " Frame rate (code) illegal\n");
-	nerr++;
-    }
-
-    return nerr ? -1 : 0;
-}
 
 /* ------------------------------------------------------------
  *
@@ -146,185 +54,204 @@ static int yuv_read_header (int fd_in, int *horizontal_size, int *vertical_size,
  *
  * ------------------------------------------------------------*/
 
-void extract_yuv(info_t *ipipe)
+
+static int extract_yuv_y4m(info_t *ipipe)
 {
+    vframe_list_t *vptr = NULL;
+    uint8_t *planes[3];
+    int planesize[3];
+    int ch_mode, w, h, ret = 0, i = 0, errnum;
 
-  avi_t *avifile=NULL;
-  char *video;
+    y4m_frame_info_t frameinfo;
+    y4m_stream_info_t streaminfo;
 
-  int key, error=0;
+    /* initialize stream-information */
+    y4m_accept_extensions(1);
+    y4m_init_stream_info(&streaminfo);
+    y4m_init_frame_info(&frameinfo);
+    
+    errnum = y4m_read_stream_header(ipipe->fd_in, &streaminfo);
+    if (errnum != Y4M_OK) {
+        tc_log_error(__FILE__, "Couldn't read YUV4MPEG header: %s!",
+                     y4m_strerr (errnum));
+        return 1;
+    }
+    if (y4m_si_get_plane_count(&streaminfo) != 3) {
+        tc_log_error(__FILE__, "Only 3-plane formats supported");
+        return 1;
+    }
+    ch_mode =  y4m_si_get_chroma(&streaminfo);
+    if (ch_mode != Y4M_CHROMA_420JPEG && ch_mode != Y4M_CHROMA_420MPEG2
+      && ch_mode != Y4M_CHROMA_420PALDV) {
+        tc_log_error(__FILE__, "sorry, chroma mode `%s' (%i) not supported",
+                     y4m_chroma_description(ch_mode), ch_mode);
+        return 1;
+    }
+    
+    w = y4m_si_get_width(&streaminfo);
+    h = y4m_si_get_height(&streaminfo);
+    vptr = vframe_new(w, h);
+    if (!vptr) {
+        tc_log_error(__FILE__, "can't allocate buffer (%ix%i)", w, h);
+        return 1;
+    }
+    planes[0] = vptr->video_buf_Y[0];
+    planes[1] = vptr->video_buf_U[0];
+    planes[2] = vptr->video_buf_V[0];
 
-  char *buffer;
-
-  int width=0, height=0, frc=0, div=0, is_yuv4mpeg2=0, asr1=0, asr2=0;
-
-  long frames, bytes, n;
-
-  switch(ipipe->magic) {
-
-  case TC_MAGIC_YUV4MPEG:
-
-    // read mjpeg tools header and dump it
-    if(yuv_read_header(ipipe->fd_in, &width, &height, &frc, &div, &is_yuv4mpeg2, &asr1, &asr2)<0) {
-      error=1;
-      break;
+    planesize[0] = y4m_si_get_plane_length(&streaminfo, 0);
+    planesize[1] = y4m_si_get_plane_length(&streaminfo, 1);
+    planesize[2] = y4m_si_get_plane_length(&streaminfo, 2);
+    
+    while (1) {
+        errnum = y4m_read_frame(ipipe->fd_in, &streaminfo, &frameinfo, planes);
+        if (errnum != Y4M_OK) {
+            break;
+        }
+        for (i = 0; i < 3; i++) {
+            ret = tc_pwrite(ipipe->fd_out, planes[i], planesize[i]);
+            if (ret != planesize[i]) {
+                break;
+            }
+        }
     }
 
-    // allocate space
-    if((buffer = tc_zalloc(MAX_BUF))==NULL) {
-      perror("out of memory");
-      error=1;
-      break;
-    }
+    vframe_del(vptr);
+    y4m_fini_frame_info(&frameinfo);
+    y4m_fini_stream_info(&streaminfo);
 
-    // read frame by frame - decapitate - and pipe to stdout
-    bytes = width*height + 2 * (width/2) * (height/2);
+    return 0;
+}
 
-    do {
-      ;;
-    } while (yuv_readwrite_frame(ipipe->fd_in, ipipe->fd_out, buffer, bytes));
+static int extract_yuv_avi(info_t *ipipe)
+{
+    avi_t *avifile=NULL;
+    char *video;
+    char *buffer;
 
-    free(buffer);
+    int key;
+    long frames, bytes, n;
 
-    break;
-
-  case TC_MAGIC_AVI:
-
-    // scan file
     if (ipipe->nav_seek_file) {
-      if(NULL == (avifile = AVI_open_indexfd(ipipe->fd_in,0,ipipe->nav_seek_file))) {
-	AVI_print_error("AVI open");
-	import_exit(1);
-      }
+        avifile = AVI_open_indexfd(ipipe->fd_in, 0, ipipe->nav_seek_file);
     } else {
-      if(NULL == (avifile = AVI_open_fd(ipipe->fd_in,1))) {
-	AVI_print_error("AVI open");
-	import_exit(1);
-      }
+        avifile = AVI_open_fd(ipipe->fd_in, 1);
+    }
+    if (NULL == avifile) {
+        AVI_print_error("AVI open");
+        return 1;
     }
 
     // read video info;
-
     frames =  AVI_video_frames(avifile);
-    if (ipipe->frame_limit[1] < frames)
-      {
-	frames=ipipe->frame_limit[1];
-      }
+    if (ipipe->frame_limit[1] < frames) {
+        frames=ipipe->frame_limit[1];
+    }
 
-
-    if(ipipe->verbose & TC_STATS) fprintf(stderr, "(%s) %ld video frames\n", __FILE__, frames);
-
+    if (ipipe->verbose & TC_STATS) {
+        tc_log_info(__FILE__, "%ld video frames", frames);
+    }
     // allocate space, assume max buffer size
-    if((video = tc_zalloc(SIZE_RGB_FRAME))==NULL) {
-      fprintf(stderr, "(%s) out of memory", __FILE__);
-      error=1;
-      break;
+    video = tc_bufalloc(SIZE_RGB_FRAME);
+    if (video == NULL) {
+        tc_log_error(__FILE__, "out of memory");
+        return 1;
     }
 
-    (int)AVI_set_video_position(avifile,ipipe->frame_limit[0]);
-    for (n=ipipe->frame_limit[0]; n<=frames; ++n) {
-
-      // video
-      if((bytes = AVI_read_frame(avifile, video, &key))<0) {
-	error=1;
-	break;
-      }
-      if(tc_pwrite(ipipe->fd_out, video, bytes)!=bytes) {
-	error=1;
-	break;
-      }
+    AVI_set_video_position(avifile, ipipe->frame_limit[0]);
+    for (n = ipipe->frame_limit[0]; n <= frames; ++n) {
+        bytes = AVI_read_frame(avifile, video, &key);
+        if (bytes < 0) {
+            return 1;
+        }
+        if (tc_pwrite(ipipe->fd_out, video, bytes) != bytes) {
+            return 1;
+        }
     }
+    tc_buffree(video);
 
-    free(video);
-
-    break;
-
-
-  case TC_MAGIC_RAW:
-  default:
-
-    if(ipipe->magic == TC_MAGIC_UNKNOWN)
-      fprintf(stderr, "(%s) no file type specified, assuming (%s)\n",
-	      __FILE__, filetype(TC_MAGIC_RAW));
-
-
-    error=tc_preadwrite(ipipe->fd_in, ipipe->fd_out);
-
-    break;
-  }
-
-  import_exit(error);
+    return 0;
 }
 
+static int extract_yuv_raw(info_t *ipipe)
+{
+    if (ipipe->magic == TC_MAGIC_UNKNOWN) {
+        tc_log_warn(__FILE__, "no file type specified, assuming (%s)",
+                    filetype(TC_MAGIC_RAW));
+    }
+    return tc_preadwrite(ipipe->fd_in, ipipe->fd_out);
+}
+
+void extract_yuv(info_t *ipipe)
+{
+    int error = 0;
+    
+    switch(ipipe->magic) {
+      case TC_MAGIC_YUV4MPEG:
+        error = extract_yuv_y4m(ipipe);
+        break;
+      case TC_MAGIC_AVI:
+        error = extract_yuv_avi(ipipe);
+        break;
+      case TC_MAGIC_RAW:
+      default:
+        error = extract_yuv_raw(ipipe);
+        break;
+    }
+    import_exit(error);
+}
 
 void probe_yuv(info_t *ipipe)
 {
+    int errnum = Y4M_OK;
+    y4m_frame_info_t frameinfo;
+    y4m_stream_info_t streaminfo;
+    y4m_ratio_t r;
 
-    //only YUV4MPEG supported
-
-    int code=0, div=0, is_yuv4mpeg2=0, asr1=0, asr2=0;
-    float framerates[] = { 0, 23.976, 24.0, 25.0, 29.970, 30.0, 50.0, 59.940, 60.0 };
-
-    yuv_read_header(ipipe->fd_in, &ipipe->probe_info->width,
-	    &ipipe->probe_info->height, &code, &div, &is_yuv4mpeg2, &asr1, &asr2);
-
-    if (is_yuv4mpeg2) {
-	if (!div) { return; } // XXX
-
-	ipipe->probe_info->fps = (double)code/(double)div;
-
-	if (div == 1) {
-	    div  *= 1000;
-	    code *= 1000;
-	}
-
-	if      (code == 24000 && div == 1001)
-	    ipipe->probe_info->frc=1;
-	else if (code == 24000 && div == 1000)
-	    ipipe->probe_info->frc=2;
-	else if (code == 25000 && div == 1000)
-	    ipipe->probe_info->frc=3;
-	else if (code == 30000 && div == 1001)
-	    ipipe->probe_info->frc=4;
-	else if (code == 30000 && div == 1000)
-	    ipipe->probe_info->frc=5;
-	else if (code == 50000 && div == 1000)
-	    ipipe->probe_info->frc=6;
-	else if (code == 60000 && div == 1001)
-	    ipipe->probe_info->frc=7;
-	else if (code == 60000 && div == 1000)
-	    ipipe->probe_info->frc=8;
-	else if (code == 1000  && div == 1000)
-	    ipipe->probe_info->frc=9;
-	else if (code == 5000  && div == 1000)
-	    ipipe->probe_info->frc=10;
-	else if (code == 10000 && div == 1000)
-	    ipipe->probe_info->frc=11;
-	else if (code == 12000 && div == 1000)
-	    ipipe->probe_info->frc=12;
-	else if (code == 15000 && div == 1000)
-	    ipipe->probe_info->frc=13;
-	else
-	    ipipe->probe_info->frc=0;
-
-	if (asr1>0 && asr2>0) {
-
-	    if      (asr1 == 1 && asr2 == 1)
-		ipipe->probe_info->asr = 1;
-	    else if (asr1 == 4 && asr2 == 3)
-		ipipe->probe_info->asr = 2;
-	    else if (asr1 == 16 && asr2 == 9)
-		ipipe->probe_info->asr = 3;
-	    else if ((double)asr1/(double)asr2 >= 2.21)
-		ipipe->probe_info->asr = 4;
-	}
-
-
-    } else {
-	if(code>0 || code <=8) ipipe->probe_info->fps = framerates[code];
-	ipipe->probe_info->frc=code;
+    /* initialize stream-information */
+    y4m_accept_extensions(1);
+    y4m_init_stream_info(&streaminfo);
+    y4m_init_frame_info(&frameinfo);
+    
+    errnum = y4m_read_stream_header(ipipe->fd_in, &streaminfo);
+    if (errnum != Y4M_OK) {
+        fprintf(stderr, "[%s] Couldn't read YUV4MPEG header: %s!",
+                        __FILE__, y4m_strerr(errnum));
+        import_exit(1);
     }
 
+    ipipe->probe_info->width = y4m_si_get_width(&streaminfo);
+    ipipe->probe_info->height = y4m_si_get_height(&streaminfo);
+   
+    r = y4m_si_get_framerate(&streaminfo);
+    ipipe->probe_info->fps = (double)r.n / (double)r.d;
+    ipipe->probe_info->frc = tc_guess_frc(ipipe->probe_info->fps);
+
+    r = y4m_si_get_sampleaspect(&streaminfo);
+    ipipe->probe_info->asr = tc_detect_asr(r.n, r.d);
+   
     ipipe->probe_info->codec=TC_CODEC_YUV420P;
     ipipe->probe_info->magic=TC_MAGIC_YUV4MPEG;
+
+    y4m_fini_frame_info(&frameinfo);
+    y4m_fini_stream_info(&streaminfo);
 }
+
+#else			/* HAVE_MJPEGTOOLS */
+
+void extract_yuv(info_t *ipipe)
+{
+    fprintf(stderr, "No support for YUV4MPEG compiled in.\n");
+    fprintf(stderr, "Recompile with mjpegtools support enabled.\n");
+    import_exit(1);
+}
+        
+void probe_yuv(info_t * ipipe)
+{
+    fprintf(stderr, "No support for YUV4MPEG compiled in.\n");
+    fprintf(stderr, "Recompile with mjpegtools support enabled.\n");
+    ipipe->probe_info->codec = TC_CODEC_UNKNOWN;
+    ipipe->probe_info->magic = TC_MAGIC_UNKNOWN;
+}
+
+#endif /* HAVE_MJPEGTOOLS */
