@@ -2,6 +2,8 @@
  *  filter_logo.c
  *
  *  Copyright (C) Tilmann Bitterberg - April 2002
+ *  filter updates, enhancements and cleanup:
+ *  Copyright (C) Sebastian Kun <seb at sarolta dot com> - March 2006
  *
  *  This file is part of transcode, a video stream processing tool
  *

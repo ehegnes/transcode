@@ -1,3 +1,7 @@
+2006-03-18 Francesco Romani <fromani at gmail dot com>
+  * filter/filter_logo.c
+  add credits for Sebastian Kun <seb at sarolta dot com>
+
 2006-03-12 Francesco Romani <fromani at gmail dot com>
   * tools/Makefile.am
   link tcmodinfo to libpthread too.
