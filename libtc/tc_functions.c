@@ -31,7 +31,7 @@
 #include <errno.h>
 #include <ctype.h>
 
-#include "xio.h"
+#include "libxio/xio.h"
 #include "libtc.h"
 #include "tc_defaults.h"
 
