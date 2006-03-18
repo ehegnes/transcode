@@ -2,9 +2,9 @@
 #ifndef _STATIC_WAVLIB_H_
 #define _STATIC_WAVLIB_H_
 
-#include "avilib/wav.h"
-void dummy_avilib(void);
-void dummy_avilib(void) {
+#include "avilib/wavlib.h"
+void dummy_wavlib(void);
+void dummy_wavlib(void) {
         WAV wav = NULL;
         WAVError err;
 
