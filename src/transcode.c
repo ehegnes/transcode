@@ -4676,6 +4676,8 @@ int main(int argc, char *argv[]) {
 
 #include "avilib/static_avilib.h"
 
+#include "avilib/static_wavlib.h"
+
 #include "libioaux/configs.h"
 void dummy_libioaux(void);
 void dummy_libioaux(void) {
