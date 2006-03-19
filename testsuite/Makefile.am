@@ -17,7 +17,6 @@ noinst_PROGRAMS = \
 	test_bufalloc \
 	test_iodir \
 	test_tclog \
-	test_tcmoduleinfo \
 	test_tcstrdup \
 	test_tcmodule
 
