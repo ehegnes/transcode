@@ -1,4 +1,10 @@
 2006-03-19 Francesco Romani <fromani at gmail dot com>
+  * import/decode_lavc.c import/import_ffmpeg.c import/tcdecode.c
+  update code to use new libtc codecs facilities.
+
+  * libtc/tccodecs.c libtc/tccodecs.h
+  update and extend libtc codec information database.
+
   * tools/Makefile.am tools/tcmodinfo.c
   update tcmodinfo since it's the only piece of code that
   uses new modules code. Yet.

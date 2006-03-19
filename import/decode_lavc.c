@@ -70,7 +70,7 @@ static struct ffmpeg_codec ffmpeg_codecs[] = {
     {"WMV1", ""}},
   {CODEC_ID_WMV2, TC_CODEC_WMV2, "wmv2",
     {"WMV2", ""}},
-  {CODEC_ID_HUFFYUV, TC_CODEC_HFYU, "hfyu",
+  {CODEC_ID_HUFFYUV, TC_CODEC_HUFFYUV, "hfyu",
     {"HFYU", ""}},
   {CODEC_ID_H263I, TC_CODEC_H263I, "h263i",
     {"I263", ""}},

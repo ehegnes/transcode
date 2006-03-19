@@ -29,6 +29,7 @@
  * codecs identifiers.
  * Each one must fit in exactly 32 bits.
  */
+
 #define TC_CODEC_ERROR                 0xFFFFFFFF
 #define TC_CODEC_ANY                   0xFFFFFFFE
 #define TC_CODEC_UNKNOWN               0x00000000
@@ -38,6 +39,7 @@
 #define TC_CODEC_AC3                   0x00002000
 #define TC_CODEC_A52                   0x00002001
 #define TC_CODEC_DTS                   0x0001000f
+#define TC_CODEC_YV12                  0x32315659
 #define TC_CODEC_YUV420P               0x30323449  /* I420 */
 #define TC_CODEC_YUV422P               0x42323459  /* Y42B, see lavc/raw.c */
 #define TC_CODEC_UYVY                  0x59565955
@@ -46,9 +48,13 @@
 #define TC_CODEC_M2V                   0x000001b3
 #define TC_CODEC_MPEG                  0x01000000
 #define TC_CODEC_MPEG1                 0x00100000
+#define TC_CODEC_MPEG1VIDEO            0x00100002
 #define TC_CODEC_MPEG2                 0x00010000
+#define TC_CODEC_MPEG2VIDEO            0x00010002
+#define TC_CODEC_MPEG4VIDEO            0x00001002
 #define TC_CODEC_DV                    0x00001000
 #define TC_CODEC_MP3                   0x00000055
+#define TC_CODEC_MP2                   0x00000050
 #define TC_CODEC_NUV                   0x4e757070
 #define TC_CODEC_PS1                   0x00007001
 #define TC_CODEC_PS2                   0x00007002
@@ -72,7 +78,7 @@
 #define TC_CODEC_4XM                   0x0006FFFE
 #define TC_CODEC_WMV1                  0x0007FFFE
 #define TC_CODEC_WMV2                  0x0008FFFE
-#define TC_CODEC_HFYU                  0x0009FFFE
+#define TC_CODEC_HUFFYUV               0x0009FFFE
 #define TC_CODEC_INDEO3                0x000AFFFE
 #define TC_CODEC_H263P                 0x000BFFFE
 #define TC_CODEC_H263I                 0x000CFFFE
@@ -81,5 +87,6 @@
 #define TC_CODEC_FFV1                  0x000FFFFE
 #define TC_CODEC_ASV1                  0x0010FFFE
 #define TC_CODEC_ASV2                  0x0011FFFE
+#define TC_CODEC_H264                  0x0012FFFE
 
 #endif // TC_CODECS_H

@@ -75,7 +75,6 @@ static void usage(int status)
   fprintf(stderr,"\t -A n              A52 decoder flag [0]\n");
   fprintf(stderr,"\t -C s,e            decode only from start to end ((V) frames/(A) bytes) [all]\n");
   fprintf(stderr,"\t -Y                use libdv YUY2 decoder mode\n");
-  fprintf(stderr,"\t -V                use libdv YV12 decoder mode\n");
   fprintf(stderr,"\t -z r              convert zero padding to silence\n");
   fprintf(stderr,"\t -v                print version\n");
 
@@ -103,7 +102,6 @@ int main(int argc, char *argv[])
     decode.ac3_gain[0] = decode.ac3_gain[1] = decode.ac3_gain[2] = 1.0;
     decode.frame_limit[0]=0;
     decode.frame_limit[1]=LONG_MAX;
-    decode.dv_yuy2_mode = -1;
 
     while ((ch = getopt(argc, argv, "Q:t:d:x:i:a:g:vy:s:YC:A:z:?h")) != -1) {
 	switch (ch) {
@@ -155,10 +153,6 @@ int main(int argc, char *argv[])
 
 	case 'Y':
 	  decode.dv_yuy2_mode=1;
-	  break;
-
-	case 'V':
-	  decode.dv_yuy2_mode=0;
 	  break;
 
 	case 's':
@@ -262,7 +256,7 @@ int main(int argc, char *argv[])
 	else if (!strcmp(codec, "4xm")) decode.codec = TC_CODEC_4XM;
 	else if (!strcmp(codec, "wmv1")) decode.codec = TC_CODEC_WMV1;
 	else if (!strcmp(codec, "wmv2")) decode.codec = TC_CODEC_WMV2;
-	else if (!strcmp(codec, "hfyu")) decode.codec = TC_CODEC_HFYU;
+	else if (!strcmp(codec, "hfyu")) decode.codec = TC_CODEC_HUFFYUV;
 	else if (!strcmp(codec, "indeo3")) decode.codec = TC_CODEC_INDEO3;
 	else if (!strcmp(codec, "h263p")) decode.codec = TC_CODEC_H263P;
 	else if (!strcmp(codec, "h263i")) decode.codec = TC_CODEC_H263I;
@@ -380,4 +374,4 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-#include "libxio/static_xio.h"
+#include "static_xio.h"
