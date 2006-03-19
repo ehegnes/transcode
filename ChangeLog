@@ -1,4 +1,17 @@
 2006-03-19 Francesco Romani <fromani at gmail dot com>
+  * tools/Makefile.am tools/tcmodinfo.c
+  update tcmodinfo since it's the only piece of code that
+  uses new modules code. Yet.
+
+  * testsuite/Makefile.am
+
+  * Added files: testsuite/test-bufalloc.c testsuite/test-iodir.c
+  testsuite/test-tclog.c testsuite/test-tcmodule.c
+  testsuite/test-tcmoduleinfo.c testsuite/test-tcstrdup.c
+
+  Move test code outside of libtc modules.
+  Add a few more tests.
+
   * libtc/iodir.c
   move away test code.
 
