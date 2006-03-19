@@ -194,8 +194,6 @@ int tc_progress_rate     =  1;
 int tc_accel             = AC_ALL;    //acceleration code
 unsigned int tc_avi_limit = (unsigned int)-1;
 pid_t tc_probe_pid       = 0;
-int tc_frame_width_max   = 0;
-int tc_frame_height_max  = 0;
 int tc_niceness          = 0;
 
 // for import_dvd

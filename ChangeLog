@@ -1,3 +1,8 @@
+2006-03-19 Francesco Romani <fromani at gmail dot com>
+  * src/audio_buffer.c src/video_buffer.c src/transcode.c
+  reorganize {audio,video} buffer code: a couple of small fixes
+  and a massive STYLE conformancy update.
+
 2006-03-18 Francesco Romani <fromani at gmail dot com>
   * libtc/tc_functions.c
   enable vframe_list_t (de)allocator.
