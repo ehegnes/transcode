@@ -96,7 +96,8 @@ struct tcmoduleclass_ {
     /* mandatory operations: */
     int (*init)(TCModuleInstance *self);
     int (*fini)(TCModuleInstance *self);
-    int (*configure)(TCModuleInstance *self, const char *options, vob_t *vob);
+    const char *(*configure)(TCModuleInstance *self, const char *options,
+                             vob_t *vob);
     int (*stop)(TCModuleInstance *self);
     const char* (*inspect)(TCModuleInstance *self, const char *param);
 

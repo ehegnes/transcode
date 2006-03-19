@@ -104,11 +104,11 @@ static int dummy_fini(TCModuleInstance *self)
     return -1;
 }
 
-static int dummy_configure(TCModuleInstance *self,
-                            const char *options, vob_t *vob)
+static const char *dummy_configure(TCModuleInstance *self,
+                                   const char *options, vob_t *vob)
 {
     DUMMY_HEAVY_CHECK(self, "configuration");
-    return -1;
+    return NULL;
 }
 
 static int dummy_stop(TCModuleInstance *self)
@@ -901,6 +901,8 @@ int tc_del_module(TCFactory factory, TCModule module)
  * Debug helpers.                                                        *
  *************************************************************************/
 
+#ifdef TCMODULE_DEBUG
+
 int tc_plugin_count(const TCFactory factory)
 {
     RETURN_IF_INVALID_QUIET(factory, -1);
@@ -939,6 +941,8 @@ int tc_compare_modules(const TCModule amod, const TCModule bmod)
     }
     return -1;
 }
+
+#endif  /* TCMODULE_DEBUG */
 
 /*************************************************************************/
 

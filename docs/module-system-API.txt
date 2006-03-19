@@ -343,7 +343,7 @@ For each possibile module operation, there is a convenience macro for
 easier usage and to avoid clumsy module->some_op(module, ... ) notation.
 
 The list follows:
-tc_module_configure(module, options)
+tc_module_configure(module, options, vob)
         (re)configure a module, changing it's internal setting; return
 	current settings.
 

@@ -1,3 +1,9 @@
+2006-03-19 Andrew Church <achurch at achurch dot org>
+  * docs/module-system-API.txt libtc/tcmodule.c libtc/tcmodule-data.h
+  Fixed inconsistencies between NMS API docs, libtc implementation, and
+  module implementations.  (Francesco, please check that these changes are
+  correct!)
+
 2006-03-19 Francesco Romani <fromani at gmail dot com>
   * import/decode_lavc.c import/import_ffmpeg.c import/tcdecode.c
   update code to use new libtc codecs facilities.
