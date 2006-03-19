@@ -484,7 +484,7 @@ MOD_init
                 param[j] = (char)NULL;
                 j=-1; /* set to 0 by for loop above */
 
-                for(i++,k=0;i<=strlen(vob->ex_profile_name), vob->ex_profile_name[i] != (char)NULL;i++,k++) {
+                for(i++,k=0;i<=strlen(vob->ex_profile_name) && vob->ex_profile_name[i] != (char)NULL;i++,k++) {
                     /* try to catch bad input */
                     if (vob->ex_profile_name[i] == '=') {
                         tc_log_warn(MOD_NAME, "bad -F option found, aborting ...");

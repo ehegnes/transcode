@@ -22,7 +22,7 @@
 
 #define TEST_STRING "testing tc_str*dup()"
 
-int test_strdup(void)
+static int test_strdup(void)
 {
     const char *s1 = TEST_STRING;
     char *s2 = NULL, *s3 = NULL;
@@ -59,7 +59,7 @@ int test_strdup(void)
     return 0;
 }
 
-int test_strndup(size_t n)
+static int test_strndup(size_t n)
 {
     const char *s1 = TEST_STRING;
     char *s2 = NULL, *s3 = NULL;

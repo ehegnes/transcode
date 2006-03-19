@@ -149,6 +149,10 @@ void tc_socket_load(void) {}
 void tc_socket_parameter(void) {}
 void tc_socket_preview(void) {}
 
+/* include extern declarations to avoid warnings */
+extern int module_read_config(char *section, char *prefix, char *module,
+                              void *conf, char *configdir);
+extern int module_print_config(char *prefix, void *conf);
 int module_read_config(char *section, char *prefix, char *module,
                        void *conf, char *configdir) { return 0; }
 int module_print_config(char *prefix, void *conf) { return 0; }

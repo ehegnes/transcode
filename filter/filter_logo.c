@@ -141,7 +141,7 @@ static void flogo_help_optstr(void)
  *                 num > 0
  * Postconditions: N/A
  */
-void flogo_yuvbuf_free(uint8_t **yuv, int num) {
+static void flogo_yuvbuf_free(uint8_t **yuv, int num) {
     int i;
 
     if (yuv) {

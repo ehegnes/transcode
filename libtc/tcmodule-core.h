@@ -330,7 +330,12 @@ int tc_instance_count(const TCFactory factory);
  */
 int tc_compare_modules(const TCModule amod, const TCModule bmod);
 
-#endif /* TCMODULE_DEBUG */
+#else /* !TCMODULE_DEBUG */
 
+#define tc_plugin_count(factory) (-1)
+#define tc_instance_count(factory) (-1)
+#define tc_compare_modules(amod,bmod) (-1)
+
+#endif  /* TCMODULE_DEBUG */
 
 #endif /* TCMODULE_CORE_H */

@@ -43,7 +43,6 @@ static int capability_flag=TC_CAP_PCM|TC_CAP_YUV|TC_CAP_YUV422|TC_CAP_RGB;
 #include "export_def.h"
 static char export_cmd_buf [PATH_MAX];
 static FILE *pFile = NULL;
-static struct wave_header rtf;
 const char *fifoname = "audio-mp1e.wav";
 static int audio_open_done = 0;
 static int do_audio = 0;

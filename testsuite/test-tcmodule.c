@@ -18,7 +18,6 @@
 
 #include "config.h"
 #include "libtc.h"
-#define TCMODULE_DEBUG 1
 #include "tcmodule-core.h"
 #include "transcode.h"
 
@@ -63,7 +62,7 @@ static void test_result_helper(const char *name, int ret, int expected)
 }
 
 
-int test_bad_init(const char *modpath)
+static int test_bad_init(const char *modpath)
 {
     factory = tc_new_module_factory("", 0);
     err = (factory == NULL) ?-1 :0;
@@ -72,7 +71,7 @@ int test_bad_init(const char *modpath)
     return 0;
 }
 
-int test_init_fini(const char *modpath)
+static int test_init_fini(const char *modpath)
 {
     factory = tc_new_module_factory(modpath, 0);
     err = (factory == NULL) ?-1 :0;
@@ -82,7 +81,7 @@ int test_init_fini(const char *modpath)
     return 0;
 }
 
-int test_bad_create(const char *modpath)
+static int test_bad_create(const char *modpath)
 {
     TCModule module = NULL;
     factory = tc_new_module_factory(modpath, verbose);
@@ -97,7 +96,7 @@ int test_bad_create(const char *modpath)
     return 0;
 }
 
-int test_create(const char *modpath)
+static int test_create(const char *modpath)
 {
     TCModule module = NULL;
     factory = tc_new_module_factory(modpath, verbose);
@@ -124,7 +123,7 @@ int test_create(const char *modpath)
     return 0;
 }
 
-int test_double_create(const char *modpath)
+static int test_double_create(const char *modpath)
 {
     TCModule module1 = NULL, module2 = NULL;
     factory = tc_new_module_factory(modpath, verbose);
@@ -160,7 +159,7 @@ int test_double_create(const char *modpath)
 }
 
 #define HOW_MUCH_STRESS         (512) // at least 32, 2 to let the things work
-int test_stress_create(const char *modpath)
+static int test_stress_create(const char *modpath)
 {
     TCModule module[HOW_MUCH_STRESS];
     int i, equality;
@@ -222,7 +221,7 @@ int test_stress_create(const char *modpath)
     return 0;
 }
 
-int test_stress_load(const char *modpath)
+static int test_stress_load(const char *modpath)
 {
     TCModule module;
     int i, breakage = 0, instances = 0, descriptors = 0;
@@ -279,7 +278,7 @@ int test_stress_load(const char *modpath)
     return 0;
 }
 
-int test_load_filter_encode(const char *modpath)
+static int test_load_filter_encode(const char *modpath)
 {
     TCModule module1 = NULL, module2 = NULL;
     factory = tc_new_module_factory(modpath, verbose);
@@ -314,7 +313,7 @@ int test_load_filter_encode(const char *modpath)
     return 0;
 }
 
-int test_load_encode_multiplex(const char *modpath)
+static int test_load_encode_multiplex(const char *modpath)
 {
     TCModule module1 = NULL, module2 = NULL;
     factory = tc_new_module_factory(modpath, verbose);

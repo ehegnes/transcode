@@ -197,7 +197,7 @@ static int levels_init_data(LevelsPrivateData *pd, const vob_t *vob,
 }
 
 static const char *levels_configure(TCModuleInstance *self,
-                                    const char *options)
+				    const char *options, vob_t *vob)
 {
     LevelsPrivateData *pd = NULL;
 
@@ -246,7 +246,7 @@ static int levels_init(TCModuleInstance *self)
     self->userdata = tc_malloc(sizeof(LevelsPrivateData));
 
     /* default configuration! */
-    levels_configure(self, "input=0-255:gamma=1.0:output=0-255:pre=0");
+    levels_configure(self, "input=0-255:gamma=1.0:output=0-255:pre=0", vob);
 
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);

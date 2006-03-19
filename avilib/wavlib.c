@@ -29,8 +29,6 @@
 
 #include "wavlib.h"
 
-extern int errno;
-
 /*************************************************************************
  * utilties                                                              *
  *************************************************************************/
@@ -114,7 +112,7 @@ static inline uint32_t make_tag(uint8_t a, uint8_t b, uint8_t c, uint8_t d)
     return (a | (b << 8) | (c << 16) | (d << 24));
 }
 
-ssize_t wav_fdread(int fd, uint8_t *buf, size_t len)
+static ssize_t wav_fdread(int fd, uint8_t *buf, size_t len)
 {
     ssize_t n = 0;
     ssize_t r = 0;
@@ -138,7 +136,7 @@ ssize_t wav_fdread(int fd, uint8_t *buf, size_t len)
 }
 
 
-ssize_t wav_fdwrite(int fd, const uint8_t *buf, size_t len)
+static ssize_t wav_fdwrite(int fd, const uint8_t *buf, size_t len)
 {
     ssize_t n = 0;
     ssize_t r = 0;

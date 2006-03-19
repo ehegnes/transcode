@@ -1,4 +1,13 @@
 2006-03-19 Andrew Church <achurch at achurch dot org>
+  * avilib/wavlib.c export/export_mov.c export/export_mp1e.c
+    filter/filter_levels.c filter/filter_logo.c filter/filter_null.c
+    import/extract_pcm.c import/extract_yuv.c import/import_yuv4mpeg.c
+    libtc/tcmodule-core.h testsuite/test-iodir.c testsuite/test-tcmodule.c
+    testsuite/test-tcstrdup.c tools/tcmodinfo.c
+  Corrected compilation warnings (also fixing an apparent bug in
+  export_mov.c).
+
+2006-03-19 Andrew Church <achurch at achurch dot org>
   * docs/module-system-API.txt libtc/tcmodule.c libtc/tcmodule-data.h
   Fixed inconsistencies between NMS API docs, libtc implementation, and
   module implementations.  (Francesco, please check that these changes are

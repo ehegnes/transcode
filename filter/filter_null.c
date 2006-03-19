@@ -105,7 +105,7 @@ static int null_fini(TCModuleInstance *self)
 }
 
 static const char *null_configure(TCModuleInstance *self,
-                                   const char *options)
+                                   const char *options, vob_t *vob)
 {
     if (optstr_lookup(options, "help")) {
         return null_help;

@@ -253,7 +253,6 @@ void extract_pcm(info_t *ipipe)
   int error=0;
 
   WAV wav = NULL;
-  int sz_wave;
 
 
   /* ------------------------------------------------------------

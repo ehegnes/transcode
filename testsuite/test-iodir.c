@@ -22,7 +22,7 @@
 
 // typical use case #1
 
-int test_simple_scan(void)
+static int test_simple_scan(void)
 {
     TCDirList dir;
     int ret;
@@ -47,7 +47,7 @@ int test_simple_scan(void)
 
 // typical use case #2
 
-int test_sortbuf_scan(void)
+static int test_sortbuf_scan(void)
 {
     TCDirList dir;
     int ret, i, j;
@@ -80,7 +80,7 @@ int test_sortbuf_scan(void)
 
 // some misc expected failures
 
-int test_expected_failures(void)
+static int test_expected_failures(void)
 {
     TCDirList dir;
     int ret;

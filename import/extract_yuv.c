@@ -127,7 +127,6 @@ static int extract_yuv_avi(info_t *ipipe)
 {
     avi_t *avifile=NULL;
     char *video;
-    char *buffer;
 
     int key;
     long frames, bytes, n;
