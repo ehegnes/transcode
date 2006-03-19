@@ -45,26 +45,54 @@ struct tcmodule_ {
  * interface helpers, using shortened notation                           *
  *************************************************************************/
 
-#define tc_module_configure(handle, options) \
-    (handle)->klass->configure(&((handle)->instance), options)
-#define tc_module_encode(handle, inframe, outframe) \
-    (handle)->klass->encode(&((handle)->instance), inframe, outframe)
-#define tc_module_decode(handle, inframe, outframe) \
-    (handle)->klass->decode(&((handle)->instance), inframe, outframe)
-#define tc_module_filter(handle, frame) \
-    (handle)->klass->filter(&((handle)->instance), frame)
+#define tc_module_configure(handle, options, vob) \
+    (handle)->klass->configure(&((handle)->instance), options, vob)
+
+#define tc_module_stop(handle) \
+    (handle)->klass->stop(&((handle)->instance))
+
+#define tc_module_inspect(handle, param) \
+    (handle)->klass->inspect(&((handle)->instance), param)
+
+#define tc_module_encode_video(handle, inframe, outframe) \
+    (handle)->klass->encode_video(&((handle)->instance), inframe, outframe)
+
+#define tc_module_encode_audio(handle, inframe, outframe) \
+    (handle)->klass->encode_audio(&((handle)->instance), inframe, outframe)
+
+#define tc_module_decode_video(handle, inframe, outframe) \
+    (handle)->klass->decode_video(&((handle)->instance), inframe, outframe)
+
+#define tc_module_decode_audio(handle, inframe, outframe) \
+    (handle)->klass->decode_audio(&((handle)->instance), inframe, outframe)
+
+#define tc_module_filter_video(handle, frame) \
+    (handle)->klass->filter_video(&((handle)->instance), frame)
+
+#define tc_module_filter_audio(handle, frame) \
+    (handle)->klass->filter_audio(&((handle)->instance), frame)
+
 #define tc_module_multiplex(handle, vframe, aframe) \
     (handle)->klass->multiplex(&((handle)->instance), vframe, aframe)
+
 #define tc_module_demultiplex(handle, vframe, aframe) \
     (handle)->klass->demultiplex(&((handle)->instance), vframe, aframe)
 
 #define tc_module_get_info(handle) \
     (const TCModuleInfo*)((handle)->klass->info)
 
-#define tc_module_match(self, other) \
-    tc_module_info_match((self)->klass->info, (other)->klass->info)
-#define tc_module_show_info(self, verbose) \
-    tc_module_info_log((self)->klass->info, verbose)
+#define tc_module_match(codec, handle, other) \
+    tc_module_info_match(codec, (handle)->klass->info, (other)->klass->info)
+
+#define tc_module_show_info(handle, verbose) \
+    tc_module_info_log((handle)->klass->info, verbose)
+
+// XXX
+#define tc_module_pass_extradata(hs, hd) \
+    do { \
+        hd->instance.extradata = hs->instance.extradata; \
+        hd->instance.extradata_size = hs->instance.extradata_size; \
+    } while(0)
 
 /* factory data type. */
 typedef struct tcfactory_ *TCFactory;
@@ -226,9 +254,8 @@ TCModule tc_new_module(TCFactory factory,
 int tc_del_module(TCFactory factory, TCModule module);
 
 #ifdef TCMODULE_DEBUG
-
 /*
- * tc_factory_get_plugin_count:
+ * tc_plugin_count:
  *      get the number of loaded plugins in a given factory.
  *      Used mainly for debug purposes.
  *
@@ -252,7 +279,7 @@ int tc_del_module(TCFactory factory, TCModule module);
 int tc_plugin_count(const TCFactory factory);
 
 /*
- * tc_factory_get_module_count:
+ * tc_module_count:
  *      get the number of module created and still valid by a given
  *      factory. Used mainly for debug purposes.
  *
@@ -276,7 +303,7 @@ int tc_plugin_count(const TCFactory factory);
 int tc_instance_count(const TCFactory factory);
 
 /*
- * tc_factory_compare_modules:
+ * tc_compare_modules:
  *      compare two module (through it's handler) supposed to be the same
  *      type (class + name). Used mainly for debug purposes.
  *

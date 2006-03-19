@@ -104,17 +104,24 @@ static int dummy_fini(TCModuleInstance *self)
     return -1;
 }
 
-static const char *dummy_configure(TCModuleInstance *self,
-                                   const char *options)
+static int dummy_configure(TCModuleInstance *self,
+                            const char *options, vob_t *vob)
 {
     DUMMY_HEAVY_CHECK(self, "configuration");
-    return "";
+    return -1;
 }
 
 static int dummy_stop(TCModuleInstance *self)
 {
     DUMMY_HEAVY_CHECK(self, "stopping");
     return -1;
+}
+
+static const char* dummy_inspect(TCModuleInstance *self,
+                                 const char *param)
+{
+    DUMMY_HEAVY_CHECK(self, "inspection");
+    return NULL;
 }
 
 static int dummy_encode_video(TCModuleInstance *self,
@@ -201,6 +208,7 @@ static const TCModuleClass dummy_class = {
     .init         = dummy_init,
     .fini         = dummy_fini,
     .configure    = dummy_configure,
+    .inspect      = dummy_inspect,
     .stop         = dummy_stop,
 
     .encode_audio = dummy_encode_audio,
@@ -464,6 +472,7 @@ static int descriptor_fini(TCModuleDescriptor *desc, void *unused)
         tc_module_info_free(&(desc->info));
         if (desc->type != NULL) {
             tc_free((void*)desc->type);  /* avoid const warning */
+            desc->type = NULL;
         }
         if (desc->so_handle != NULL) {
             dlclose(desc->so_handle);
@@ -532,6 +541,7 @@ static int tc_module_class_copy(const TCModuleClass *klass,
     int ret;
 
     if (!klass || !nklass) {
+        /* 'impossible' condition */
         tc_log_error(__FILE__, "bad module class reference for setup: %s%s",
                                 (!klass) ?"plugin class" :"",
                                 (!nklass) ?"core class" :"");
@@ -539,7 +549,9 @@ static int tc_module_class_copy(const TCModuleClass *klass,
     }
 
     if (!klass->init || !klass->fini
-     || !klass->configure || !klass->stop) {
+     || !klass->configure || !klass->stop
+     || !klass->inspect) {
+        /* should'nt happen */
         tc_log_error(__FILE__, "can't setup a module class without "
                                "one or more mandatory methods");
         return -1;
@@ -550,6 +562,7 @@ static int tc_module_class_copy(const TCModuleClass *klass,
     nklass->fini = klass->fini;
     nklass->configure = klass->configure;
     nklass->stop = klass->stop;
+    nklass->inspect = klass->inspect;
 
     if (klass->encode_audio != NULL) {
         nklass->encode_audio = klass->encode_audio;
@@ -592,7 +605,49 @@ static int tc_module_class_copy(const TCModuleClass *klass,
  * main private helpers: _load and _unload                               *
  *************************************************************************/
 
+#define RETURN_IF_INVALID_STRING(str, msg, errval) \
+    if (!str || !strlen(str)) { \
+        tc_log_error(__FILE__, msg); \
+        return (errval); \
+    }
 
+#define RETURN_IF_INVALID_QUIET(val, errval) \
+    if (!(val)) { \
+        return (errval); \
+    }
+
+#define TC_LOG_DEBUG(fp, level, format, ...) \
+    if ((fp)->verbose >= level) { \
+        tc_log_info(__FILE__, format, __VA_ARGS__); \
+    }
+
+
+/*
+ * tc_load_module:
+ *     load in a given factory a plugin needed for a given module.
+ *     please note that here 'plugin' and 'module' terms are used
+ *     interchangeably since a given module name from a given module
+ *     class usually (almost always, even if such constraint doesn't
+ *     exist) originates from a plugin with same class and same name.
+ *
+ *     In other words, doesn't exist (yet, nor is planned) a plugin
+ *     that can generate more than one module and/or more than one
+ *     module class
+ *
+ * Parameters:
+ *     factory: module factory to loads module in
+ *     modclass: class of plugin to load
+ *     modname: name of plugin to load
+ * Return Value:
+ *     >= 0 identifier (slot) of newly loaded plugin
+ *     -1   error occcurred (and notified via tc_log*())
+ * Side effects:
+ *     a plugin (.so) is loaded into process
+ * Preconditions:
+ *     none.
+ * Postconditions:
+ *     none
+ */
 static int tc_load_module(TCFactory factory,
                           const char *modclass, const char *modname)
 {
@@ -603,31 +658,30 @@ static int tc_load_module(TCFactory factory,
     TCModuleDescriptor *desc = NULL;
     const TCModuleClass *nclass;
 
-    if (!modclass || !strlen(modclass)) {
-        tc_log_error(__FILE__, "empty module class");
-        return -1;
-    }
-    if (!modname || !strlen(modname)) {
-        tc_log_error(__FILE__, "empty module name");
-        return -1;
-    }
+    /* 'impossible' conditions */
+    RETURN_IF_INVALID_STRING(modclass, "empty module class", -1);
+    RETURN_IF_INVALID_STRING(modname, "empty module name", -1);
+    
     make_modtype(modtype, PATH_MAX, modclass, modname);
     tc_snprintf(full_modpath, PATH_MAX, "%s/%s_%s.so",
                 factory->mod_path, modclass, modname);
 
     id = find_first_free_descriptor(factory);
     if (id == -1) {
+        /* should'nt happen */
         tc_log_error(__FILE__, "already loaded the maximum number "
                                "of modules (%i)", TC_FACTORY_MAX_HANDLERS);
         return -1;
     }
+    TC_LOG_DEBUG(factory, TC_DEBUG, "using slot %i for plugin '%s'",
+                 id, modtype);
     desc = &(factory->descriptors[id]);
     desc->ref_count = 0;
 
     desc->so_handle = dlopen(full_modpath, RTLD_GLOBAL | RTLD_NOW);
     if (!desc->so_handle) {
-        tc_log_error(__FILE__, "can't load module '%s'; reason: %s",
-                               modtype, dlerror());
+        TC_LOG_DEBUG(factory, TC_INFO, "can't load module '%s'; reason: %s",
+                     modtype, dlerror());
         goto failed_dlopen;
     }
     desc->type = tc_strdup(modtype);
@@ -641,8 +695,8 @@ static int tc_load_module(TCFactory factory,
 
     modentry = dlsym(desc->so_handle, "tc_plugin_setup");
     if (!modentry) {
-        tc_log_error(__FILE__, "module '%s' doesn't have new style entry"
-                               " point", modtype);
+        TC_LOG_DEBUG(factory, TC_INFO, "module '%s' doesn't have new style"
+                     " entry point", modtype);
         goto failed_setup;
     }
     nclass = modentry();
@@ -650,7 +704,7 @@ static int tc_load_module(TCFactory factory,
     ret = tc_module_class_copy(nclass, &(desc->klass), TC_FALSE);
 
     if (ret !=  0) {
-        /* tc_module_register_class failed or just not ivoked! */
+        /* should'nt happen */
         tc_log_error(__FILE__, "failed class registration for module '%s'",
                                modtype);
         goto failed_setup;
@@ -660,7 +714,7 @@ static int tc_load_module(TCFactory factory,
     desc->status = TC_DESCRIPTOR_DONE;
     factory->descriptor_count++;
 
-    return 0;
+    return id;
 
 failed_setup:
     desc->status = TC_DESCRIPTOR_FREE;
@@ -679,7 +733,28 @@ failed_dlopen:
         return -1; \
     }
 
-
+/*
+ * tc_unload_module:
+ *     unload a given (by id) plugin from given factory.
+ *     This means that module belonging to such plugin is no longer
+ *     avalaible from given factory, unless, of course, reloading such
+ *     plugin.
+ *
+ * Parameters:
+ *     factory: a module factory
+ *     id: id of plugin to unload
+ * Return Value:
+ *     0      plugin unloaded correctly
+ *     != 0   error occcurred (and notified via tc_log*())
+ * Side effects:
+ *     a plugin (.so) is UNloaded from process
+ * Preconditions:
+ *     reference count for given plugin is zero.
+ *     This means that no modules instances created by such plugin are
+ *     still active.
+ * Postconditions:
+ *     none
+ */
 static int tc_unload_module(TCFactory factory, int id)
 {
     int ret = 0;
@@ -689,11 +764,9 @@ static int tc_unload_module(TCFactory factory, int id)
     desc = &(factory->descriptors[id]);
 
     if (desc->ref_count > 0) {
-        if (factory->verbose >= TC_DEBUG) {
-            tc_log_error(__FILE__, "can't unload a module with active "
-                                   "ref_count (id=%i, ref_count=%i)",
-                                   desc->klass.id, desc->ref_count);
-        }
+        TC_LOG_DEBUG(factory, TC_DEBUG, "can't unload a module with active"
+                     " ref_count (id=%i, ref_count=%i)",
+                     desc->klass.id, desc->ref_count);
         return 1;
     }
 
@@ -712,18 +785,13 @@ static int tc_unload_module(TCFactory factory, int id)
 TCFactory tc_new_module_factory(const char *modpath, int verbose)
 {
     TCFactory factory = NULL;
-    if (!modpath || !strlen(modpath)) {
-        return NULL;
-    }
+    RETURN_IF_INVALID_STRING(modpath, "empty module path", NULL);
 
     factory = tc_zalloc(sizeof(struct tcfactory_));
-    if (!factory) {
-        return NULL;
-    }
+    RETURN_IF_INVALID_QUIET(factory, NULL);
 
     factory->mod_path = modpath;
     factory->verbose = verbose;
-
     factory->descriptor_count = 0;
     factory->instance_count = 0;
 
@@ -734,13 +802,12 @@ TCFactory tc_new_module_factory(const char *modpath, int verbose)
 
 int tc_del_module_factory(TCFactory factory)
 {
-    if (!factory) {
-        return 1;
-    }
+    RETURN_IF_INVALID_QUIET(factory, 1);
 
     tc_foreach_descriptor(factory, descriptor_fini, NULL, NULL);
 
     if (factory->descriptor_count > 0) {
+        /* should'nt happpen */
         tc_log_warn(__FILE__, "left out %i module descriptors",
                               factory->descriptor_count);
         return -1;
@@ -757,57 +824,49 @@ TCModule tc_new_module(TCFactory factory,
     int id = -1, ret;
     TCModule module = NULL;
 
-    if (!factory) {
-        return NULL;
-    }
-
+    RETURN_IF_INVALID_QUIET(factory, NULL);
     if (!is_known_modclass(modclass)) {
-        tc_log_error(__FILE__, "unknown module class '%s'", modclass);
+        TC_LOG_DEBUG(factory, TC_INFO, "unknown module class '%s'",
+                      modclass);
         return NULL;
     }
 
     make_modtype(modtype, MOD_TYPE_MAX_LEN, modclass, modname);
-    if (factory->verbose >= TC_DEBUG) {
-        tc_log_info(__FILE__, "trying to load '%s'", modtype);
-    }
+    TC_LOG_DEBUG(factory, TC_DEBUG, "trying to load '%s'", modtype);
     id = find_by_modtype(factory, modtype);
     if (id == -1) {
-        /* module type not known */
+        /* module type not already known */
+        TC_LOG_DEBUG(factory, TC_STATS, "plugin not found for '%s',"
+                     " loading...", modtype);
         id = tc_load_module(factory, modclass, modname);
         if (id == -1) {
             /* load failed, give up */
             return NULL;
         }
     }
-    if (factory->verbose >= TC_DEBUG) {
-        tc_log_info(__FILE__, "module descriptor found at id (%i)", id);
-    }
+    TC_LOG_DEBUG(factory, TC_DEBUG, "module descriptor found: id %i", id);
 
     module = tc_zalloc(sizeof(struct tcmodule_));
-
     module->instance.type = factory->descriptors[id].type;
     module->instance.id = factory->instance_count + 1;
     module->klass = &(factory->descriptors[id].klass);
 
     ret = tc_module_init(module);
     if (ret != 0) {
-        tc_log_error(__FILE__, "initialization of '%s' failed (code=%i)",
-                               modtype, ret);
+        TC_LOG_DEBUG(factory, TC_DEBUG, "initialization of '%s' failed"
+                     " (code=%i)", modtype, ret);
         tc_free(module);
         return NULL;
     }
 
     factory->descriptors[id].ref_count++;
     factory->instance_count++;
-    if (factory->verbose >= TC_DEBUG) {
-        tc_log_info(__FILE__, "module created: type='%s' instance id=(%i)",
-                    module->instance.type, module->instance.id);
-    }
-    if (factory->verbose >= TC_STATS) {
-        tc_log_info(__FILE__, "descriptor ref_count=(%i) instances so far=(%i)",
-                    factory->descriptors[id].ref_count,
-                    factory->instance_count);
-    }
+    TC_LOG_DEBUG(factory, TC_DEBUG, "module created: type='%s'"
+                 " instance id=(%i)", module->instance.type,
+                 module->instance.id);
+    TC_LOG_DEBUG(factory, TC_STATS, "descriptor ref_count=(%i) instances"
+                 " so far=(%i)", factory->descriptors[id].ref_count,
+                 factory->instance_count);
 
     return module;
 }
@@ -816,21 +875,16 @@ int tc_del_module(TCFactory factory, TCModule module)
 {
     int ret = 0, id = -1;
 
-    if (!factory) {
-        return 1;
-    }
-
-    if (!module) {
-        return -1;
-    }
+    RETURN_IF_INVALID_QUIET(factory, 1);
+    RETURN_IF_INVALID_QUIET(module, -1);
+    
     id = module->klass->id;
-
     CHECK_VALID_ID(id, "tc_del_module");
 
     ret = tc_module_fini(module);
     if (ret != 0) {
-        tc_log_error(__FILE__, "finalization of '%s' failed",
-                     module->instance.type);
+        TC_LOG_DEBUG(factory, TC_DEBUG, "finalization of '%s' failed"
+                     " (code=%i)", module->instance.type, ret);
         return ret;
     }
     tc_free(module);
@@ -847,21 +901,15 @@ int tc_del_module(TCFactory factory, TCModule module)
  * Debug helpers.                                                        *
  *************************************************************************/
 
-#ifdef TCMODULE_DEBUG
-
 int tc_plugin_count(const TCFactory factory)
 {
-    if (!factory) {
-        return -1;
-    }
+    RETURN_IF_INVALID_QUIET(factory, -1);
     return factory->descriptor_count;
 }
 
 int tc_instance_count(const TCFactory factory)
 {
-    if (!factory) {
-        return -1;
-    }
+    RETURN_IF_INVALID_QUIET(factory, -1);
     return factory->instance_count;
 }
 
@@ -892,313 +940,7 @@ int tc_compare_modules(const TCModule amod, const TCModule bmod)
     return -1;
 }
 
-#endif  // TCMODULE_DEBUG
-
 /*************************************************************************/
-
-/* embedded simple tests for tc_module*()
-
-BEGIN_TEST_CODE
-
-// compile command:
-// gcc -Wall -g -O -I. -I.. -I../src/ source.c path/to/libtc.a -ldl -rdynamic
-
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "config.h"
-#include "libtc.h"
-#define TCMODULE_DEBUG 1
-#include "tcmodule-core.h"
-#include "transcode.h"
-
-int verbose = TC_QUIET;
-int err;
-
-static vob_t *vob = NULL;
-
-static TCFactory factory;
-
-vob_t *tc_get_vob(void) { return vob; }
-
-
-// partial line length: I don't bother with full line length,
-// it's just a naif padding
-#define ADJUST_TO_COL 60
-static void test_result_helper(const char *name, int ret, int expected)
-{
-    char spaces[ADJUST_TO_COL] = { ' ' };
-    size_t slen = strlen(name);
-    int i = 0, padspace = ADJUST_TO_COL - slen;
-
-    if (padspace > 0) {
-        // do a bit of padding to let the output looks more nice
-        for (i = 0; i < padspace; i++) {
-            spaces[i] = ' ';
-        }
-    }
-
-    if (ret != expected) {
-        tc_log_error(__FILE__, "'%s'%s%sFAILED%s",
-                     name, spaces, COL_RED, COL_GRAY);
-    } else {
-        tc_log_info(__FILE__, "'%s'%s%sOK%s",
-                    name, spaces, COL_GREEN, COL_GRAY);
-    }
-}
-
-
-int test_bad_init(const char *modpath)
-{
-    factory = tc_new_module_factory("", 0);
-    err = (factory == NULL) ?-1 :0;
-
-    test_result_helper("bad_init::init", err, -1);
-    return 0;
-}
-
-int test_init_fini(const char *modpath)
-{
-    factory = tc_new_module_factory(modpath, 0);
-    err = (factory == NULL) ?-1 :0;
-
-    test_result_helper("init_fini::init", err, 0);
-    test_result_helper("init_fini::fini", tc_del_module_factory(factory), 0);
-    return 0;
-}
-
-int test_bad_create(const char *modpath)
-{
-    TCModule module = NULL;
-    factory = tc_new_module_factory(modpath, verbose);
-    err = (factory == NULL) ?-1 :0;
-
-    test_result_helper("bad_create::init", err, 0);
-    module = tc_new_module(factory, "inexistent", "inexistent");
-    if (module != NULL) {
-        tc_log_error(__FILE__, "loaded inexistent module?!?!");
-    }
-    test_result_helper("bad_create::fini", tc_del_module_factory(factory), 0);
-    return 0;
-}
-
-int test_create(const char *modpath)
-{
-    TCModule module = NULL;
-    factory = tc_new_module_factory(modpath, verbose);
-    err = (factory == NULL) ?-1 :0;
-
-    test_result_helper("create::init", err, 0);
-    module = tc_new_module(factory, "filter", "null");
-    if (module == NULL) {
-        tc_log_error(__FILE__, "can't load filter_null");
-    } else {
-        test_result_helper("create::check",
-                            tc_compare_modules(module,
-                                                              module),
-                            1);
-        test_result_helper("create::instances",
-                           tc_instance_count(factory),
-                           1);
-        test_result_helper("create::descriptors",
-                           tc_plugin_count(factory),
-                           1);
-        tc_del_module(factory, module);
-    }
-    test_result_helper("create::fini", tc_del_module_factory(factory), 0);
-    return 0;
-}
-
-int test_double_create(const char *modpath)
-{
-    TCModule module1 = NULL, module2 = NULL;
-    factory = tc_new_module_factory(modpath, verbose);
-    err = (factory == NULL) ?-1 :0;
-
-    test_result_helper("double_create::init", err, 0);
-    module1 = tc_new_module(factory, "filter", "null");
-    if (module1 == NULL) {
-        tc_log_error(__FILE__, "can't load filter_null (1)");
-    }
-    module2 = tc_new_module(factory, "filter", "null");
-    if (module2 == NULL) {
-        tc_log_error(__FILE__, "can't load filter_null (1)");
-    }
-
-    test_result_helper("double_create::check",
-                       tc_compare_modules(module1, module2),
-                       0);
-    test_result_helper("double_create::instances",
-                       tc_instance_count(factory),
-                       2);
-    test_result_helper("double_create::descriptors",
-                       tc_plugin_count(factory),
-                       1);
-    if (module1) {
-        tc_del_module(factory, module1);
-    }
-    if (module2) {
-        tc_del_module(factory, module2);
-    }
-    test_result_helper("double_create::fini", tc_del_module_factory(factory), 0);
-    return 0;
-}
-
-#define HOW_MUCH_STRESS         (512) // at least 32, 2 to let the things work
-int test_stress_create(const char *modpath)
-{
-    TCModule module[HOW_MUCH_STRESS];
-    int i, equality;
-    factory = tc_new_module_factory(modpath, verbose);
-    err = (factory == NULL) ?-1 :0;
-
-    test_result_helper("stress_create::init", err, 0);
-
-    for (i = 0; i < HOW_MUCH_STRESS; i++) {
-        module[i] = tc_new_module(factory, "filter", "null");
-        if (module[i] == NULL) {
-            tc_log_error(__FILE__, "can't load filter_null (%i)", i);
-            break;
-        }
-    }
-
-    test_result_helper("stress_create::create", i, HOW_MUCH_STRESS);
-    if (HOW_MUCH_STRESS != i) {
-        tc_log_error(__FILE__, "halted with i = %i (limit = %i)",
-                     i, HOW_MUCH_STRESS);
-        return 1;
-    }
-
-    // note that we MUST start from 1
-    for (i = 1; i < HOW_MUCH_STRESS; i++) {
-        equality = tc_compare_modules(module[i-1], module[i]);
-        if (equality != 0) {
-            tc_log_error(__FILE__, "diversion! %i | %i", i-1, i);
-            break;
-        }
-    }
-
-    test_result_helper("stress_create::check", i, HOW_MUCH_STRESS);
-    if (HOW_MUCH_STRESS != i) {
-        tc_log_error(__FILE__, "halted with i = %i (limit = %i)",
-                     i, HOW_MUCH_STRESS);
-        return 1;
-    }
-
-    test_result_helper("stress_create::instances",
-                       tc_instance_count(factory),
-                       HOW_MUCH_STRESS);
-    test_result_helper("stress_create::descriptors",
-                       tc_plugin_count(factory), 1);
-
-
-    for (i = 0; i < HOW_MUCH_STRESS; i++) {
-        tc_del_module(factory, module[i]);
-    }
-
-    test_result_helper("stress_create::instances (postnuke)",
-                       tc_instance_count(factory), 0);
-    test_result_helper("stress_create::descriptors (postnuke)",
-                       tc_plugin_count(factory), 0);
-
-
-    test_result_helper("stress_create::fini", tc_del_module_factory(factory), 0);
-
-    return 0;
-}
-
-int test_stress_load(const char *modpath)
-{
-    TCModule module;
-    int i, breakage = 0, instances = 0, descriptors = 0;
-    factory = tc_new_module_factory(modpath, verbose);
-    err = (factory == NULL) ?-1 :0;
-
-    test_result_helper("stress_load::init", err, 0);
-
-    for (i = 0; i < HOW_MUCH_STRESS; i++) {
-        module = tc_new_module(factory, "filter", "null");
-        if (module == NULL) {
-            tc_log_error(__FILE__, "can't load filter_null (%i)", i);
-            break;
-        }
-
-        instances = tc_instance_count(factory);
-        if(instances != 1) {
-            tc_log_error(__FILE__, "wrong instance count: %i, expected %i\n",
-                         instances, 1);
-            breakage = 1;
-            break;
-        }
-
-        descriptors = tc_plugin_count(factory);
-        if(descriptors != 1) {
-            tc_log_error(__FILE__, "wrong descriptor count: %i, expected %i\n",
-                         descriptors, 1);
-            breakage = 1;
-            break;
-        }
-
-        tc_del_module(factory, module);
-
-        instances = tc_instance_count(factory);
-        if(instances != 0) {
-            tc_log_error(__FILE__, "wrong instance count (postnuke): %i, expected %i\n",
-                         instances, 0);
-            breakage = 1;
-            break;
-        }
-
-        descriptors = tc_plugin_count(factory);
-        if(descriptors != 0) {
-            tc_log_error(__FILE__, "wrong descriptor count (postnuke): %i, expected %i\n",
-                         descriptors, 0);
-            breakage = 1;
-            break;
-        }
-    }
-
-    test_result_helper("stress_load::check", breakage, 0);
-    test_result_helper("stress_load::fini", tc_del_module_factory(factory), 0);
-
-    return 0;
-}
-
-int main(int argc, char* argv[])
-{
-    if(argc != 2) {
-        fprintf(stderr, "usage: %s /module/path\n", argv[0]);
-        exit(1);
-    }
-
-    vob = tc_zalloc(sizeof(vob_t));
-
-    putchar('\n');
-    test_bad_init(argv[1]);
-    putchar('\n');
-    test_init_fini(argv[1]);
-    putchar('\n');
-    test_bad_create(argv[1]);
-    putchar('\n');
-    test_create(argv[1]);
-    putchar('\n');
-    test_double_create(argv[1]);
-    putchar('\n');
-    test_stress_create(argv[1]);
-    putchar('\n');
-    test_stress_load(argv[1]);
-
-    tc_free(vob);
-
-    return 0;
-}
-
-#include "static_optstr.h"
-
-END_TEST_CODE
-*/
-
-/**************************************************************************/
 
 /*
  * Local variables:

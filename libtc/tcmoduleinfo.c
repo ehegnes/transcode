@@ -14,7 +14,8 @@
 #include "tccodecs.h"
 #include "tcmodule-info.h"
 
-int tc_module_info_match(const TCModuleInfo *head, const TCModuleInfo *tail)
+int tc_module_info_match(int tc_codec,
+                         const TCModuleInfo *head, const TCModuleInfo *tail)
 {
     int found = 0;
     int i = 0, j = 0;
@@ -33,22 +34,33 @@ int tc_module_info_match(const TCModuleInfo *head, const TCModuleInfo *tail)
     }
 
     for (i = 0; !found && tail->codecs_in[i] != TC_CODEC_ERROR; i++) {
-        /* TC_CODEC_ANY fit with everything :) */
-        if (tail->codecs_in[i] == TC_CODEC_ANY) {
-            found = 1;
-            break;
-        }
-        for (j = 0; head->codecs_out[j] != TC_CODEC_ERROR; j++) {
-            if (head->codecs_out[j] == tail->codecs_in[i]) {
+        for (j = 0; !found && head->codecs_out[j] != TC_CODEC_ERROR; j++) {
+            if (tc_codec == head->codecs_out[j]
+             && head->codecs_out[j] == tail->codecs_in[i]) {
+                /* triple fit */
                 found = 1;
-                break;
+            }
+            if((head->codecs_out[j] == tail->codecs_in[i]
+              || head->codecs_out[j] == TC_CODEC_ANY)
+               && TC_CODEC_ANY == tc_codec) {
+                found = 1;
+            }
+            if ((tc_codec == head->codecs_out[j]
+              || tc_codec == TC_CODEC_ANY)
+               && TC_CODEC_ANY == tail->codecs_in[i]) {
+                found = 1;
+            }
+            if ((tail->codecs_in[i] == tc_codec
+              || tail->codecs_in[i] == TC_CODEC_ANY)
+               && TC_CODEC_ANY == head->codecs_out[j]) {
+                found = 1;
             }
         }
     }
     return found;
 }
 
-#define DATA_BUF_SIZE   128
+#define DATA_BUF_SIZE   256
 
 static void codecs_to_string(const int *codecs, char *buffer,
                              size_t bufsize, const char *fallback_string)
@@ -56,7 +68,7 @@ static void codecs_to_string(const int *codecs, char *buffer,
     int found = 0;
     int i = 0;
 
-    if (!buffer || bufsize < DATA_BUF_SIZE) {
+    if (buffer == NULL || bufsize < DATA_BUF_SIZE) {
         return;
     }
 
@@ -64,7 +76,7 @@ static void codecs_to_string(const int *codecs, char *buffer,
 
     for (i = 0; codecs[i] != TC_CODEC_ERROR; i++) {
         const char *codec = tc_codec_to_string(codecs[i]);
-        if (!codec) {
+        if (codec == NULL) {
             continue;
         }
         strlcat(buffer, codec, bufsize);
@@ -80,10 +92,11 @@ void tc_module_info_log(const TCModuleInfo *info, int verbose)
 {
     char buffer[DATA_BUF_SIZE];
 
-    if (!info) {
+    if (info == NULL) {
         return;
     }
-    if (!info->name || (!info->version || !info->description)) {
+    if (info->name == NULL
+     || (info->version == NULL || info->description == NULL)) {
         tc_log_error(__FILE__, "missing critical information for module");
         return;
     }
@@ -115,6 +128,16 @@ void tc_module_info_log(const TCModuleInfo *info, int verbose)
                             ?"multiplexing" :"");
         }
         tc_log_info(info->name, "can do     : %s", buffer);
+
+        if (info->flags == TC_MODULE_FLAG_NONE) {
+            strlcpy(buffer, "none", DATA_BUF_SIZE);
+        } else {
+            tc_snprintf(buffer, DATA_BUF_SIZE, "%s%s",
+                        (info->flags & TC_MODULE_FLAG_RECONFIGURABLE)
+                            ?"reconfigurable " :"");
+        }
+        tc_log_info(info->name, "flags      : %s", buffer);
+
     }
 
     if (verbose >= TC_INFO) {
@@ -132,22 +155,22 @@ int tc_module_info_copy(const TCModuleInfo *src, TCModuleInfo *dst)
 {
     int i = 0;
 
-    if (!src || !dst) {
+    if (src == NULL || dst == NULL) {
         return -1;
     }
     dst->features = src->features;
     dst->flags = src->flags;
 
     dst->name = tc_strdup(src->name);
-    if (!dst->name) {
+    if (dst->name == NULL) {
         goto no_mem_name;
     }
     dst->version = tc_strdup(src->version);
-    if (!dst->version) {
+    if (dst->version == NULL) {
         goto no_mem_version;
     }
     dst->description = tc_strdup(src->description);
-    if (!dst->description) {
+    if (dst->description == NULL) {
         goto no_mem_description;
     }
 
@@ -156,7 +179,7 @@ int tc_module_info_copy(const TCModuleInfo *src, TCModuleInfo *dst)
     }
     i++; /* for end mark (TC_CODEC_ERROR) */
     dst->codecs_in = tc_malloc(i * sizeof(int));
-    if (!dst->codecs_in) {
+    if (dst->codecs_in == NULL) {
         goto no_mem_codecs_in;
     }
     memcpy((int *)dst->codecs_in, src->codecs_in, i * sizeof(int));
@@ -166,7 +189,7 @@ int tc_module_info_copy(const TCModuleInfo *src, TCModuleInfo *dst)
     }
     i++; /* for end mark (TC_CODEC_ERROR) */
     dst->codecs_out = tc_malloc(i * sizeof(int));
-    if (!dst->codecs_out) {
+    if (dst->codecs_out == NULL) {
         goto no_mem_codecs_out;
     }
     memcpy((int *)dst->codecs_out, src->codecs_out, i * sizeof(int));
@@ -203,155 +226,6 @@ void tc_module_info_free(TCModuleInfo *info)
         tc_free((void*)info->codecs_out);
     }
 }
-
-/*************************************************************************/
-
-/* embedded tests
-BEGIN_TEST_CODE
-
-// compile command: gcc -Wall -g -O -I. -I.. source.c path/to/libtc.a
-#include "src/transcode.h"
-#include "tcmodule-info.h"
-#include "tccodecs.h"
-
-static const int empty_codecs[] = { TC_CODEC_ERROR };
-static TCModuleInfo empty = {
-    TC_MODULE_FEATURE_NONE,
-    TC_MODULE_FLAG_NONE,
-    "",
-    "",
-    "",
-    empty_codecs,
-    empty_codecs
-};
-
-static const int pass_enc_codecs[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
-static TCModuleInfo pass_enc = {
-    TC_MODULE_FEATURE_ENCODE | TC_MODULE_FEATURE_VIDEO
-        | TC_MODULE_FEATURE_AUDIO | TC_MODULE_FEATURE_EXTRA,
-    TC_MODULE_FLAG_RECONFIGURABLE,
-    "encode_pass.so",
-    "0.0.1 (2005-11-14)",
-    "accepts everything, outputs verbatim",
-    pass_enc_codecs,
-    pass_enc_codecs
-};
-
-static const int fake_mplex_codecs[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
-static TCModuleInfo fake_mplex = {
-    TC_MODULE_FEATURE_MULTIPLEX | TC_MODULE_FEATURE_VIDEO
-        | TC_MODULE_FEATURE_AUDIO | TC_MODULE_FEATURE_EXTRA,
-    TC_MODULE_FLAG_RECONFIGURABLE,
-    "mplex_null.so",
-    "0.0.1 (2005-11-14)",
-    "accepts and discards everything",
-    fake_mplex_codecs,
-    empty_codecs
-};
-
-static const int fake_mpeg_codecs_in[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
-static const int fake_mpeg_codecs_out[] = { TC_CODEC_MPEG1, TC_CODEC_MPEG2, TC_CODEC_XVID, TC_CODEC_ERROR };
-static TCModuleInfo fake_mpeg_enc = {
-    TC_MODULE_FEATURE_ENCODE | TC_MODULE_FEATURE_VIDEO,
-    TC_MODULE_FLAG_NONE
-    "encode_mpeg.so",
-    "0.0.1 (2005-11-14)",
-    "fake YUV420P -> MPEG video encoder",
-    fake_mpeg_codecs_in,
-    fake_mpeg_codecs_out
-};
-
-static const int fake_vorbis_codecs_in[] = { TC_CODEC_PCM, TC_CODEC_ERROR };
-static const int fake_vorbis_codecs_out[] = { TC_CODEC_VORBIS, TC_CODEC_ERROR };
-static TCModuleInfo fake_vorbis_enc = {
-    TC_MODULE_FEATURE_ENCODE | TC_MODULE_FEATURE_AUDIO,
-    TC_MODULE_FLAG_NONE,
-    "encode_vorbis.so",
-    "0.0.1 (2005-11-14)",
-    "fake PCM -> Vorbis audio encoder",
-    fake_vorbis_codecs_in,
-    fake_vorbis_codecs_out
-};
-
-static const int fake_avi_codecs_in[] = { TC_CODEC_MPEG1, TC_CODEC_XVID, TC_CODEC_MP3, TC_CODEC_ERROR };
-static TCModuleInfo fake_avi_mplex = {
-    TC_MODULE_FEATURE_MULTIPLEX | TC_MODULE_FEATURE_VIDEO
-        | TC_MODULE_FEATURE_AUDIO,
-    TC_MODULE_FLAG_NONE,
-    "mplex_avi.so",
-    "0.0.1 (2005-11-14)",
-    "fakes an AVI muxer",
-    fake_avi_codecs_in,
-    empty_codecs
- };
-
-static const TCModuleInfo *fake_modules[] = {
-    &empty, &pass_enc, &fake_mplex, &fake_mpeg_enc,
-    &fake_vorbis_enc, &fake_avi_mplex
-};
-static const int fake_modules_count = 6;
-
-void test_module_log(void)
-{
-    int verbosiness[4] = { TC_QUIET, TC_INFO, TC_DEBUG, TC_STATS };
-    int i = 0, j = 0;
-
-    for (i = 0; i < 4; i++) {
-        fprintf(stderr, "*** at verbosiness level %i:\n", verbosiness[i]);
-        fprintf(stderr, "----------------------------\n");
-        for (j = 0; j < fake_modules_count; j++) {
-            tc_module_info_log(fake_modules[j], verbosiness[i]);
-            fputs("\n", stderr);
-        }
-    }
-}
-
-static void test_match_helper(TCModuleInfo *m1, TCModuleInfo *m2, int expected)
-{
-    int match = tc_module_info_match(m1, m2);
-
-    if (match != expected) {
-        tc_log_error(__FILE__, "'%s' <-%c-> '%s' FAILED",
-                        m1->name,
-                        (expected == 1) ?'-' :'!',
-                        m2->name);
-    } else {
-        tc_log_info(__FILE__, "'%s' <-%c-> '%s' OK",
-                        m1->name,
-                        (expected == 1) ?'-' :'!',
-                        m2->name);
-    }
-
-}
-
-void test_module_match(void)
-{
-    test_match_helper(&empty, &empty, 0);
-    test_match_helper(&empty, &fake_mpeg_enc, 0);
-    test_match_helper(&fake_mpeg_enc, &empty, 0);
-
-    test_match_helper(&pass_enc, &fake_mplex, 1);
-    test_match_helper(&pass_enc, &fake_avi_mplex, 0);
-    test_match_helper(&pass_enc, &fake_mpeg_enc, 0);
-
-    test_match_helper(&fake_mpeg_enc, &fake_vorbis_enc, 0);
-    test_match_helper(&fake_mpeg_enc, &fake_mplex, 1);
-    test_match_helper(&fake_mpeg_enc, &fake_avi_mplex, 1);
-
-    test_match_helper(&fake_vorbis_enc, &fake_mpeg_enc, 0);
-    test_match_helper(&fake_vorbis_enc, &fake_mplex, 1);
-    test_match_helper(&fake_vorbis_enc, &fake_avi_mplex, 0);
-}
-
-int main(void)
-{
-    //test_module_log();
-    test_module_match();
-
-    return 0;
-}
-END_TEST_CODE
-*/
 
 /*************************************************************************/
 

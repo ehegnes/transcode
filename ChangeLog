@@ -1,4 +1,8 @@
 2006-03-19 Francesco Romani <fromani at gmail dot com>
+  * libtc/tcmodule-core.h libtc/tcmodule-data.h libtc/tcmodule-info.h
+    libtc/tcmodule.c libtc/tcmoduleinfo.c
+  new module code update from NMS branch.
+
   * libtc/optstr.c
   add formatting hint boilerplate.
 
