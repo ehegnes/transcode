@@ -1,4 +1,7 @@
 2006-03-19 Francesco Romani <fromani at gmail dot com>
+  * libtc/optstr.c
+  add formatting hint boilerplate.
+
   * src/audio_buffer.c src/video_buffer.c src/transcode.c
   reorganize {audio,video} buffer code: a couple of small fixes
   and a massive STYLE conformancy update.
