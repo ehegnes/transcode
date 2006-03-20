@@ -262,7 +262,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 
       if(verbose) {
-	  tc_log_info(MOD_NAME, "%s %s #%d\n", MOD_VERSION, MOD_CAP, instance);
+	  tc_log_info(MOD_NAME, "%s %s #%d", MOD_VERSION, MOD_CAP, instance);
 	  tc_log_info(MOD_NAME, "Settings luma=%.2f chroma=%.2f luma_strength=%.2f chroma_strength=%.2f",
 		  LumSpac, ChromSpac, LumTmp, ChromTmp);
       }
