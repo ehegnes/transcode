@@ -1403,7 +1403,6 @@ AC_OUTPUT([
 	libtc/Makefile
 	libtcaudio/Makefile
 	libtcvideo/Makefile
-	libxio/Makefile
 	pvm3/Makefile
 	src/Makefile
 	testsuite/Makefile
@@ -1423,7 +1422,6 @@ core options
 ----------------------------------------
 static AV-frame buffering      $enable_statbuffer
 network (sockets) streams      $enable_netstream
-experimental xio               $libxio
 Default xvid export            $XVID_DEFAULT
 A52 default decoder            $enable_a52_default_decoder
 
@@ -1444,7 +1442,7 @@ sunau                          $have_sunau
 
 optional package support
 ----------------------------------------
-IBP                            $have_ibp
+IBP (libxio)                   $have_ibp
 X11                            $USE_X11])
 
 TC_PKG_REPORT

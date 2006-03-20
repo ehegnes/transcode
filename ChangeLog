@@ -1,22 +1,26 @@
 2006-03-20 Francesco Romani <fromani at gmail dot com>
- * removed files: libxio/Makefile.am libxio/xio.h libxio/libxio.c
- libxio/static_xio.h libxio/
- libxio->libtc integration step 3/3:
- remove libxio directory.
+  * configure.in
+  _really_ drop last bits of libxio.
+  Re-align correctly last Changelog entries.
 
- * export/export_raw.c import/fileinfo.c import/import_avi.c
-   import/import_dv.c import/import_mp3.c import/ioaux.c
-   import/tccat.c import/tcdecode.c import/tcdemux.c
-   import/tcextract.c import/tcprobe.c import/tcrequant.c
-   import/tcscan.c src/callback.c src/transcode.c
-   libtc/tc_functions.c
- libxio->libtc integration step 2/3:
- update code using libxio.
+  * removed files: libxio/Makefile.am libxio/xio.h libxio/libxio.c
+  libxio/static_xio.h libxio/
+  libxio->libtc integration step 3/3:
+  remove libxio directory.
 
- * added files: libtc/libxio.c libtc/static_xio.h libtc/xio.h
- libtc/Makefile.am Makefile.am configure.in
- libxio->libtc integration step 1/3:
- move code from libxio to libtc, and update build system accordingly.
+  * export/export_raw.c import/fileinfo.c import/import_avi.c
+    import/import_dv.c import/import_mp3.c import/ioaux.c
+    import/tccat.c import/tcdecode.c import/tcdemux.c
+    import/tcextract.c import/tcprobe.c import/tcrequant.c
+    import/tcscan.c src/callback.c src/transcode.c
+    libtc/tc_functions.c
+  libxio->libtc integration step 2/3:
+  update code using libxio.
+
+  * added files: libtc/libxio.c libtc/static_xio.h libtc/xio.h
+  libtc/Makefile.am Makefile.am configure.in
+  libxio->libtc integration step 1/3:
+  move code from libxio to libtc, and update build system accordingly.
 
 2006-03-19 Andrew Church <achurch at achurch dot org>
   * avilib/wavlib.c export/export_mov.c export/export_mp1e.c
