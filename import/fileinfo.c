@@ -28,7 +28,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
-#include <xio.h>
+#include "libtc/xio.h"
 #include "ioaux.h"
 #include "tc.h"
 

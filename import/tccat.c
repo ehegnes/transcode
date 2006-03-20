@@ -24,7 +24,7 @@
 #include "transcode.h"
 #include "tcinfo.h"
 
-#include "xio.h"
+#include "libtc/xio.h"
 #include "ioaux.h"
 #include "tc.h"
 #include "dvd_reader.h"
@@ -450,4 +450,4 @@ int main(int argc, char *argv[])
   return(0);
 }
 
-#include "libxio/static_xio.h"
+#include "libtc/static_xio.h"

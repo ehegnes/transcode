@@ -27,7 +27,7 @@
 
 #include "transcode.h"
 #include "aclib/imgconvert.h"
-#include "xio.h"
+#include "libtc/xio.h"
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_DV |

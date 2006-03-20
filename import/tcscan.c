@@ -31,7 +31,7 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate)
 #include "tcinfo.h"
 #include "frc_table.h"
 
-#include "xio.h"
+#include "libtc/xio.h"
 #include "ioaux.h"
 #include "tc.h"
 #include "ac3.h"
@@ -622,4 +622,4 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate)
     return framesize;
 }
 
-#include "libxio/static_xio.h"
+#include "libtc/static_xio.h"

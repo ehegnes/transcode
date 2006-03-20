@@ -34,7 +34,7 @@ static int capability_flag = TC_CAP_PCM | TC_CAP_RGB | TC_CAP_AUD |
 #define MOD_PRE avi
 #include "import_def.h"
 
-#include "xio.h"
+#include "libtc/xio.h"
 
 
 static avi_t *avifile1=NULL;

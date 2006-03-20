@@ -28,7 +28,7 @@
 
 #include "ioaux.h"
 #include "tc.h"
-#include "xio.h"
+#include "libtc/xio.h"
 
 #define EXE "tcdecode"
 
@@ -374,4 +374,4 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-#include "static_xio.h"
+#include "libtc/static_xio.h"
