@@ -1,4 +1,9 @@
 2006-03-20 Francesco Romani <fromani at gmail dot com>
+ * removed files: libxio/Makefile.am libxio/xio.h libxio/libxio.c
+ libxio/static_xio.h libxio/
+ libxio->libtc integration step 3/3:
+ remove libxio directory.
+
  * export/export_raw.c import/fileinfo.c import/import_avi.c
    import/import_dv.c import/import_mp3.c import/ioaux.c
    import/tccat.c import/tcdecode.c import/tcdemux.c
