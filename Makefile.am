@@ -16,7 +16,6 @@ SUBDIRS = \
 	libtc \
 	libtcaudio \
 	libtcvideo \
-	libxio \
 	export \
 	filter \
 	import \
