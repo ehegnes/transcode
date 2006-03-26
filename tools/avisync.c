@@ -32,6 +32,7 @@
 #include "transcode.h"
 
 #include "aud_scan.h"
+#include "aud_scan_avi.h"
 
 #define EXE "avisync"
 
