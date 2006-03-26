@@ -29,6 +29,7 @@
 #include <inttypes.h>
 
 #include "aud_scan_avi.h"
+#include "aud_scan.h"
 
 // ------------------------
 // You must set the requested audio before entering this function

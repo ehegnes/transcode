@@ -1,6 +1,9 @@
 2006-03-26 Francesco Romani <fromani at gmail dot com>
+  * tools/aud_scan_avi.c
+  avi specific audio scanning code depends on generic one.
+
   * tools/tcmp3cut.c
-  drop included copy of audio scanning code, use aud_scan.c instead
+  drop included copy of audio scanning code, use aud_scan.c instead.
 
   * tools/avimerge.c tools/avisplit.c tools/avisync.c
   add (or replace if needed) specific avi audio scanning code
