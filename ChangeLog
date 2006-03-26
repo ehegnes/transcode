@@ -1,4 +1,7 @@
 2006-03-26 Francesco Romani <fromani at gmail dot com>
+  * tools/Makefile.am
+  update Makefile to use right audio scanning code in right place.
+
   * tools/aud_scan_avi.c
   avi specific audio scanning code depends on generic one.
 

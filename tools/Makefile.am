@@ -49,12 +49,7 @@ avimerge_LDADD = \
 	$(ACLIB_LIBS) \
 	$(LIBTC_LIBS)
 
-avifix_SOURCES = \
-	avifix.c \
-	aud_scan.c \
-	aud_scan_avi.c \
-	aud_scan_avi.h \
-	aud_scan.h
+avifix_SOURCES = avifix.c
 avifix_LDADD = \
 	$(AVILIB_LIBS) \
 	$(XIO_LIBS) \
@@ -64,8 +59,6 @@ avifix_LDADD = \
 aviindex_SOURCES = \
 	aviindex.c \
 	aud_scan.c \
-	aud_scan_avi.c \
-	aud_scan_avi.h \
 	aud_scan.h
 aviindex_LDADD = \
 	$(AVILIB_LIBS) \
@@ -77,8 +70,8 @@ avisplit_SOURCES = \
 	avisplit.c \
 	aud_scan.c \
 	aud_scan_avi.c \
-	aud_scan_avi.h \
 	aud_scan.h
+	aud_scan_avi.h
 avisplit_LDADD = \
 	$(AVILIB_LIBS) \
 	$(TCIOAUX_LIBS) \
