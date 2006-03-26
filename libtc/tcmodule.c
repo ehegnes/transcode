@@ -929,8 +929,8 @@ int tc_compare_modules(const TCModule amod, const TCModule bmod)
     if (strcmp(amod->instance.type, bmod->instance.type) == 0) {
         /* some internal sanity checks.
          * assert()s are used here because those conditions
-         * WILL NOT *NEVER* BE FALSE!
-         * otherwise something _*really*_ evil is going on
+         * WILL *NEVER EVER* BE FALSE!
+         * otherwise something _*really*_ evil is going on.
          */
         assert(amod->klass != NULL && bmod->klass != NULL);
         assert(amod->klass == bmod->klass);

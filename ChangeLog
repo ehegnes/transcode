@@ -1,3 +1,7 @@
+2006-03-26 Francesco Romani <fromani at gmail dot com>
+  * libtc/tcmodule.c
+  english fix. :)
+
 2006-03-20 Francesco Romani <fromani at gmail dot com>
   * configure.in
   _really_ drop last bits of libxio.
