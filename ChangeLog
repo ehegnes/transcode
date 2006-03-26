@@ -1,4 +1,7 @@
 2006-03-26 Francesco Romani <fromani at gmail dot com>
+  * import/import_yuv4mpeg.c
+  make module more silent by default.
+
   * libtc/tcmodule.c
   english fix. :)
 

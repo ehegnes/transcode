@@ -152,8 +152,10 @@ static int yw_open_video(YWPrivateData *pd, vob_t *vob)
                                " (reason: %s)", vob->video_in_file,
                                strerror(errno));
     } else {
-        tc_log_info(MOD_NAME, "using video source: %s",
-                              vob->video_in_file);
+        if (verbose >= TC_DEBUG) {
+            tc_log_info(MOD_NAME, "using video source: %s",
+                                  vob->video_in_file);
+        }
     }
     
 	pd->tcvhandle = tcv_init();
@@ -211,8 +213,10 @@ static int yw_open_audio(YWPrivateData *pd, vob_t *vob)
                                " (reason: %s)", vob->audio_in_file,
                                wav_strerror(err));
     } else {
-        tc_log_info(MOD_NAME, "using audio source: %s",
-                              vob->audio_in_file);
+        if (verbose >= TC_DEBUG) {
+            tc_log_info(MOD_NAME, "using audio source: %s",
+                                  vob->audio_in_file);
+        }
     }
     return(TC_IMPORT_OK);
 }
