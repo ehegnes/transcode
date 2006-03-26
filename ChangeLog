@@ -1,4 +1,8 @@
 2006-03-26 Francesco Romani <fromani at gmail dot com>
+  * import/ioaux.c import/ioaux.h
+  fps2frc is now useless (and replaced by libtc::tc_detect_frc),
+  so it's removed.
+
   * import/extract_avi.c import/probe_lav.c import/probe_mov.c
     import/probe_mplayer.c import/probe_ogg.c
   import/ioaux::fps2frc -> libtc::tc_detect_frc.

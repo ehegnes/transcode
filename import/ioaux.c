@@ -129,29 +129,3 @@ long read_time_stamp_long(unsigned char *s)
   return (clock_ref);
 }
 
-int fps2frc(double _fps)
-{
-
-    float fps=_fps;
-
-    //official
-    if(fps<=0.0f) return(0);
-    if(fps>23.0f && fps<24.0f) return(1);
-    if(fps==24.0f) return(2);
-    if(fps==25.0f) return(3);
-    if(fps>29.0f && fps<30.0f) return(4);
-    if(fps==30.0f) return(5);
-    if(fps==50.0f) return(6);
-    if(fps>59.0f && fps < 60.0f) return(7);
-    if(fps==60.0f) return(8);
-
-    //unofficial
-    if(fps==1.0f) return(9);
-    if(fps==5.0f) return(10);
-    if(fps==10.0f) return(11);
-    if(fps==12.0f) return(12);
-    if(fps==15.0f) return(13);
-
-    return(0);
-}
-

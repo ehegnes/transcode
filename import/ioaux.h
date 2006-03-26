@@ -52,7 +52,6 @@ unsigned int stream_read_int32(unsigned char *s);
 double read_time_stamp(unsigned char *s);
 unsigned int read_tc_time_stamp(char *s);
 long read_time_stamp_long(unsigned char *s);
-int fps2frc(double _fps);
 void import_info(int code, char *EXE);
 
 
