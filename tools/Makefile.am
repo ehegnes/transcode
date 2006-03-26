@@ -28,6 +28,8 @@ avisync_SOURCES = \
 	buffer.c \
 	buffer.h \
 	aud_scan.c \
+	aud_scan_avi.c \
+	aud_scan_avi.h \
 	aud_scan.h
 avisync_LDADD = \
 	$(AVILIB_LIBS) \
@@ -38,6 +40,8 @@ avisync_LDADD = \
 avimerge_SOURCES = \
 	avimerge.c \
 	aud_scan.c \
+	aud_scan_avi.c \
+	aud_scan_avi.h \
 	aud_scan.h
 avimerge_LDADD = \
 	$(AVILIB_LIBS) \
@@ -48,6 +52,8 @@ avimerge_LDADD = \
 avifix_SOURCES = \
 	avifix.c \
 	aud_scan.c \
+	aud_scan_avi.c \
+	aud_scan_avi.h \
 	aud_scan.h
 avifix_LDADD = \
 	$(AVILIB_LIBS) \
@@ -58,6 +64,8 @@ avifix_LDADD = \
 aviindex_SOURCES = \
 	aviindex.c \
 	aud_scan.c \
+	aud_scan_avi.c \
+	aud_scan_avi.h \
 	aud_scan.h
 aviindex_LDADD = \
 	$(AVILIB_LIBS) \
@@ -68,6 +76,8 @@ aviindex_LDADD = \
 avisplit_SOURCES = \
 	avisplit.c \
 	aud_scan.c \
+	aud_scan_avi.c \
+	aud_scan_avi.h \
 	aud_scan.h
 avisplit_LDADD = \
 	$(AVILIB_LIBS) \
@@ -87,6 +97,9 @@ tcmodinfo_LDADD = \
 	-lm
 tcmodinfo_LDFLAGS = -export-dynamic
 
-tcmp3cut_SOURCES = tcmp3cut.c
+tcmp3cut_SOURCES = \
+	tcmp3cut.c \
+	aud_scan.c \
+	aud_scan.h
 tcmp3cut_LDADD = \
 	$(LIBTC_LIBS)

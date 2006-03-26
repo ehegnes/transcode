@@ -1,7 +1,7 @@
 /*
- *  aud_scan.h
+ *  aud_scan_avi.h
  *
- *  Scans the audio track
+ *  Scans the audio track - AVI specific functions
  *
  *  Copyright (C) Tilmann Bitterberg - June 2003
  *
@@ -23,14 +23,12 @@
  *
  */
 
-int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate);
-#define tc_decode_mp3_header(hbuf)  tc_get_mp3_header(hbuf, NULL, NULL, NULL)
-int tc_get_ac3_header(unsigned char* _buf, int len, int* chans, int* srate, int *bitrate);
+#include "avilib.h"
 
-// main entrance
-int tc_get_audio_header(unsigned char* buf, int buflen, int format, int* chans, int* srate, int *bitrate);
-int tc_probe_audio_header(unsigned char* buf, int buflen);
+// ------------------------
+// You must set the requested audio before entering this function
+// the AVI file out must be filled with correct values.
+// ------------------------
 
-int tc_format_ms_supported(int format);
-void tc_format_mute(unsigned char *buf, int buflen, int format);
-
+int sync_audio_video_avi2avi (double vid_ms, double *aud_ms, avi_t *in, avi_t *out);
+int sync_audio_video_avi2avi_ro (double vid_ms, double *aud_ms, avi_t *in);

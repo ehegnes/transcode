@@ -1,4 +1,10 @@
 2006-03-26 Francesco Romani <fromani at gmail dot com>
+  * added files: tools/aud_scan_avi.h tools/aud_scan_avi.c
+
+  * tools/aud_scan.h tools/aud_scan.c tools/Makefile.am
+  splitup avi specific aud scanning code from more generic one,
+  so the latter can be used in more places (tcmp3cut, yet).
+
   * tools/avimerge.c
   switch to libtc file check. Now the avilib one is pretty useless
   since nobody uses it (or at least so say a quick grep -Ri).
