@@ -153,6 +153,4 @@ void probe_avi(info_t *ipipe)
     ipipe->probe_info->magic=TC_MAGIC_AVI;
 
     ipipe->probe_info->frc=fps2frc(ipipe->probe_info->fps);
-
-    AVI_info(avifile);
 }
