@@ -310,7 +310,7 @@ int main(int argc, char *argv[])
 
   while (ch < argc) {
 
-    if(AVI_file_check(argv[ch])) {
+    if(tc_file_check(argv[ch]) != 0) {
       printf("error: file not found\n");
       exit(1);
     }
