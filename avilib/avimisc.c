@@ -88,21 +88,6 @@ void AVI_info(avi_t *avifile)
 }
 
 
-int AVI_file_check(const char *import_file)
-{
-    // check for sane video file
-    struct stat fbuf;
-
-    if(xio_stat(import_file, &fbuf) || import_file==NULL){
-        fprintf(stderr, "(%s) invalid input file \"%s\"\n", __FILE__,
-                import_file);
-        return(1);
-    }
-
-    return(0);
-}
-
-
 char *AVI_codec2str(short cc)
 {
 
