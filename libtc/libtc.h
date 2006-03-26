@@ -102,8 +102,8 @@ extern void version(void);
  */
 int tc_test_program(const char *name);
 
-/* guess the frame rate code from the frames per second */
-int tc_guess_frc(double fps);
+/* get the frame rate code from the frames per second */
+int tc_detect_frc(double fps);
 
 /* detect and return ASR code from picture dimensions */
 int tc_detect_asr(int n, int d);

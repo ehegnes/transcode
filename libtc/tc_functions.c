@@ -206,7 +206,7 @@ int tc_test_program(const char *name)
 /*************************************************************************/
 
 #define DELTA 0.05
-int tc_guess_frc(double fps)
+int tc_detect_frc(double fps)
 {
     if (fps - DELTA < 00.010 && 00.010 < fps + DELTA)
         return 0;

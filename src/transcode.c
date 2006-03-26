@@ -3804,12 +3804,12 @@ int main(int argc, char *argv[]) {
     // set import/export frc/fps
     //printf("XXX: 1 | %f,%d %f,%c\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);
     if (vob->im_frc == 0)
-      vob->im_frc = tc_guess_frc(vob->fps);
+      vob->im_frc = tc_detect_frc(vob->fps);
     //printf("XXX: 2 | %f,%d %f,%c\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);
 
     // ex_fps given, but not ex_frc
     if (vob->ex_frc == 0 && (vob->ex_fps != 0.0))
-      vob->ex_frc = tc_guess_frc(vob->ex_fps);
+      vob->ex_frc = tc_detect_frc(vob->ex_fps);
     //printf("XXX: 3 | %f,%d %f,%c\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);
 
     if (vob->ex_frc == 0 && vob->im_frc != 0)

@@ -224,7 +224,7 @@ void probe_yuv(info_t *ipipe)
    
     r = y4m_si_get_framerate(&streaminfo);
     ipipe->probe_info->fps = (double)r.n / (double)r.d;
-    ipipe->probe_info->frc = tc_guess_frc(ipipe->probe_info->fps);
+    ipipe->probe_info->frc = tc_detect_frc(ipipe->probe_info->fps);
 
     r = y4m_si_get_sampleaspect(&streaminfo);
     ipipe->probe_info->asr = tc_detect_asr(r.n, r.d);
