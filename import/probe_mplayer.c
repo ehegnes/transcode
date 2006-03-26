@@ -11,7 +11,7 @@
 
 #include "transcode.h"
 #include "tcinfo.h"
-#include "libtc.h"
+#include "libtc/libtc.h"
 #include "ioaux.h"
 #include "tc.h"
 
@@ -86,7 +86,7 @@ static void parse_identify_line(const char *line, ProbeInfo *info)
         info->height = fetch_val_int(line);
     } else if (0 == strncmp(TAG_FPS, line, strlen(TAG_FPS))) {
         info->fps = fetch_val_double(line);
-        info->frc = fps2frc(info->fps);
+        info->frc = tc_detect_frc(info->fps);
     } else if (0 == strncmp(TAG_ABITRATE, line, strlen(TAG_ABITRATE))) {
         info->track[0].bitrate = fetch_val_int(line) / 1000;
         do_audio = 1;

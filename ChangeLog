@@ -1,4 +1,8 @@
 2006-03-26 Francesco Romani <fromani at gmail dot com>
+  * import/extract_avi.c import/probe_lav.c import/probe_mov.c
+    import/probe_mplayer.c import/probe_ogg.c
+  import/ioaux::fps2frc -> libtc::tc_detect_frc.
+
   * import/probe_bsdav.c import/extract_yuv.c libtc/libtc.h
     libtc/tc_functions.c src/transcode.c
   rename tc_guess_frc to tc_detect_frc.

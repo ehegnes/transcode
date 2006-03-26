@@ -25,6 +25,7 @@
 #include "tcinfo.h"
 #include "ioaux.h"
 #include "tc.h"
+#include "libtc/libtc.h"
 
 #define LAV_AUDIO_FORMAT TC_CODEC_AC3
 #define LAV_VIDEO_FORMAT TC_CODEC_LAV
@@ -110,7 +111,7 @@ void probe_lav(info_t *ipipe)
     }
     ipipe->probe_info->magic=TC_MAGIC_LAV;
     ipipe->probe_info->codec=LAV_VIDEO_FORMAT;
-    ipipe->probe_info->frc=fps2frc(ipipe->probe_info->fps);
+    ipipe->probe_info->frc=tc_detect_frc(ipipe->probe_info->fps);
 
     pclose(f);
 }

@@ -24,6 +24,7 @@
 #include "transcode.h"
 #include "tcinfo.h"
 
+#include "libtc/libtc.h"
 #include "ioaux.h"
 #include "avilib.h"
 #include "tc.h"
@@ -152,5 +153,5 @@ void probe_avi(info_t *ipipe)
 
     ipipe->probe_info->magic=TC_MAGIC_AVI;
 
-    ipipe->probe_info->frc=fps2frc(ipipe->probe_info->fps);
+    ipipe->probe_info->frc=tc_detect_frc(ipipe->probe_info->fps);
 }
