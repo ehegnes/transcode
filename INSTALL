@@ -238,18 +238,6 @@ Optional packages:
           directory where SDL libraries are installed
     affected modules: filter_preview.so
 
-  libfame  http://fame.sourceforge.net/
-    related options:
-      --enable-libfame (disabled)
-          builds with libfame support for mpeg video encoding
-      --with-libfame-prefix=PFX (/usr)
-          prefix where libfame is installed
-      --with-libfame-includes=DIR (/usr/include)
-          directory where libfame headers are installed
-      --with-libfame-libs=DIR (/usr/lib)
-          directory where libfame libraries are installed
-    affected modules: export_fame.so
-
   lame  http://www.mp3dev.org/
     related options:
       --enable-lame (enabled)
@@ -260,25 +248,10 @@ Optional packages:
           directory where lame headers are installed
       --with-lame-libs=DIR (/usr/lib)
           directory where lame libraries are installed
-    affected modules: export_af6.so, export_dv.so, export_raw.so,
-      export_divx4.so, export_divx4raw.so, export_divx5.so,
-      export_divx5raw.so, export_debugppm.so, export_ppm.so,
-      export_ffmpeg.so, export_lame.so, export_pvn.so,
+    affected modules: export_dv.so, export_raw.so, export_divx5.so,
+      export_ppm.so, export_ffmpeg.so, export_lame.so,
       export_yuv4mpeg.so, export_mpeg2enc.so, export_mp2enc.so,
-      export_mjpeg.so, export_xvid2.so, export_xvid3.so,
       export_xvid4.so, import_mp3.so
-
-  avifile  http://avifile.sourceforge.net/
-    related options:
-      --enable-avifile (disabled)
-          build with avifile support for accessing win32 binary codecs
-      --with-avifile-prefix=PFX (/usr)
-          prefix where avifile is installed
-      --with-avifile-includes=DIR (/usr/include)
-          directory where avifile headers [avifile.h] are installed
-      --with-avifile-libs=DIR (/usr/lib)
-          directory where avifile libraries [libaviplay.so] are installed
-    affected modules: export_af6.so, af6_decore.so
 
   ogg  http://www.xiph.org/ogg/
     related options:
@@ -327,18 +300,6 @@ Optional packages:
       --with-libdvdread-libs=DIR (/usr/lib)
           directory where libdvdread libraries [libdvdread.so] are installed
     affected modules: import_dvd.so
-
-  libmpeg3  http://heroinewarrior.com/libmpeg3.php3
-    related options:
-      --enable-libmpeg3 (disabled)
-          build with libmpeg3 support for accessing mpeg1/2/4 files
-      --with-libmpeg3-prefix=PFX (/usr)
-          prefix where libmpeg3 is installed
-      --with-libmpeg3-includes=DIR (/usr/include)
-          directory where libmpeg3 headers [libmpeg3.h] are installed
-      --with-libmpeg3-libs=DIR (/usr/lib)
-          directory where libmpeg3 libraries [libmpeg3.so] are installed
-    affected modules: import_mpeg3.so
 
   PVM3  http://www.netlib.org/pvm3/
     related options:
@@ -435,7 +396,7 @@ Optional packages:
           directory where libjpeg headers [jpeglib.h] are installed
       --with-libjpeg-libs=DIR (/usr/lib)
           directory where libjpeg libraries [libjpeg.so] are installed
-    affected modules: export_mjpeg.so, export_jpg.so
+    affected modules: export_jpg.so
 
   LoRS/IBP  http://loci.cs.utk.edu/
     related options:

@@ -50,7 +50,6 @@ void tcdemux_thread(info_t *ipipe);
 void tcprobe_thread(info_t *ipipe);
 
 void extract_avi(info_t *ipipe);
-void decode_af6(decode_t *decode);
 
 void decode_lavc(decode_t *decode);
 void decode_xvid(decode_t *decode);
@@ -71,7 +70,6 @@ void probe_tiff(info_t *ipipe);
 void probe_im(info_t *ipipe);
 void probe_mov(info_t *ipipe);
 void probe_xml(info_t *ipipe);
-void probe_lav(info_t *ipipe);
 void probe_ogg(info_t *ipipe);
 void extract_ogm(info_t *ipipe);
 void decode_ogg(decode_t *decode);
@@ -84,8 +82,6 @@ void probe_oss(info_t *ipipe);
 
 void probe_mxf(info_t *ipipe);
 void extract_mxf(info_t *ipipe);
-
-void probe_pvn(info_t *ipipe);
 
 void probe_mplayer(info_t *ipipe);
 

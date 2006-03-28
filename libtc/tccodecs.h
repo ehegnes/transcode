@@ -67,7 +67,6 @@
 #define TC_CODEC_MJPG                  0xA0000010
 #define TC_CODEC_MPG1                  0xA0000012
 #define TC_CODEC_SUB                   0xA0000011
-#define TC_CODEC_LAV                   0xFFFF0023
 #define TC_CODEC_THEORA                0x00001234
 #define TC_CODEC_VORBIS                0x0000FFFE
 #define TC_CODEC_LZO1                  0x0001FFFE

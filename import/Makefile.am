@@ -11,12 +11,10 @@ AM_CPPFLAGS = \
 	$(AC3_CFLAGS) \
 	$(AVILIB_CFLAGS) \
 	$(WAVLIB_CFLAGS) \
-	$(AVIFILE_CFLAGS) \
 	$(LIBDV_CFLAGS) \
 	$(LIBDVDREAD_CFLAGS) \
 	$(LIBAVCODEC_CFLAGS) \
 	$(LAME_CFLAGS) \
-	$(LIBMPEG3_CFLAGS) \
 	$(LIBXML2_CFLAGS) \
 	$(LZO_CFLAGS) \
 	$(IMAGEMAGICK_CFLAGS) \
@@ -41,10 +39,6 @@ endif
 
 if HAVE_LIBDVDREAD
 IMPORT_DVD = import_dvd.la
-endif
-
-if HAVE_LIBMPEG3
-IMPORT_MPEG3 = import_mpeg3.la
 endif
 
 if HAVE_A52
@@ -75,14 +69,6 @@ if HAVE_OSS
 IMPORT_OSS = import_oss.la
 endif
 
-if HAVE_AVIFILE
-IMPORT_AF6 = import_af6.la
-endif
-
-if NET_STREAM
-IMPORT_NET = import_net.la
-endif
-
 IMPORT_BSDAV = import_bsdav.la
 
 
@@ -91,50 +77,33 @@ pkgdir = $(MOD_PATH)
 SUBDIRS = nuv v4l
 
 pkg_LTLIBRARIES = \
-	af6_decore.la \
 	$(IMPORT_A52) \
 	import_ac3.la \
-	$(IMPORT_AF6) \
 	import_avi.la \
 	$(IMPORT_BKTR) \
 	$(IMPORT_BSDAV) \
-	import_divx.la \
 	import_dv.la \
 	$(IMPORT_DVD) \
-	import_ffbin.la \
 	import_ffmpeg.la \
-	import_fraps.la \
 	$(IMPORT_IM) \
-	import_lav.la \
 	$(IMPORT_LZO) \
 	$(IMPORT_MOV) \
 	import_mp3.la \
 	import_mpeg2.la \
-	$(IMPORT_MPEG3) \
 	import_mplayer.la \
-	$(IMPORT_NET) \
 	import_null.la \
-	import_nvrec.la \
 	import_ogg.la \
 	$(IMPORT_OSS) \
-	import_pvn.la \
 	import_raw.la \
-	import_rawlist.la \
-	import_sh.la \
 	$(IMPORT_SUNAU) \
-	import_vdrac3.la \
 	import_vnc.la \
 	import_vob.la \
 	$(IMPORT_XML) \
 	import_xvid.la \
-	import_yuv.la \
 	import_yuv4mpeg.la
 
 import_null_la_SOURCES = import_null.c
 import_null_la_LDFLAGS = -module -avoid-version
-
-import_sh_la_SOURCES = import_sh.c
-import_sh_la_LDFLAGS = -module -avoid-version
 
 import_ogg_la_SOURCES = import_ogg.c
 import_ogg_la_LDFLAGS = -module -avoid-version
@@ -149,13 +118,6 @@ import_yuv4mpeg_la_LIBADD = $(MJPEGTOOLS_LIBS)
 
 import_mplayer_la_SOURCES = import_mplayer.c
 import_mplayer_la_LDFLAGS = -module -avoid-version
-
-import_rawlist_la_SOURCES = import_rawlist.c
-import_rawlist_la_LDFLAGS = -module -avoid-version
-import_rawlist_la_LIBADD = -lm
-
-import_divx_la_SOURCES = import_divx.c
-import_divx_la_LDFLAGS = -module -avoid-version
 
 import_xvid_la_SOURCES = import_xvid.c
 import_xvid_la_LDFLAGS = -module -avoid-version
@@ -176,24 +138,11 @@ import_mov_la_SOURCES = import_mov.c
 import_mov_la_LDFLAGS = -module -avoid-version
 import_mov_la_LIBADD = $(LIBQUICKTIME_LIBS) -lm
 
-import_lav_la_SOURCES = import_lav.c
-import_lav_la_LDFLAGS = -module -avoid-version
-
 import_raw_la_SOURCES = import_raw.c
 import_raw_la_LDFLAGS = -module -avoid-version
 
-import_nvrec_la_SOURCES = import_nvrec.c
-import_nvrec_la_LDFLAGS = -module -avoid-version
-
 import_mpeg2_la_SOURCES = import_mpeg2.c
 import_mpeg2_la_LDFLAGS = -module -avoid-version
-
-import_mpeg3_la_SOURCES = import_mpeg3.c
-import_mpeg3_la_LDFLAGS = -module -avoid-version
-import_mpeg3_la_LIBADD = $(LIBMPEG3_LIBS)
-
-import_fraps_la_SOURCES = import_fraps.c
-import_fraps_la_LDFLAGS = -module -avoid-version
 
 import_avi_la_SOURCES = import_avi.c
 import_avi_la_LDFLAGS = -module -avoid-version
@@ -202,17 +151,9 @@ import_ac3_la_SOURCES = import_ac3.c ac3scan.c
 import_ac3_la_LDFLAGS = -module -avoid-version
 import_ac3_la_LIBADD = $(AC3_LIBS) -lm
 
-import_vdrac3_la_SOURCES = import_vdrac3.c ac3scan.c
-import_vdrac3_la_LDFLAGS = -module -avoid-version
-import_vdrac3_la_LIBADD = $(AC3_LIBS) -lm
-
 a52_decore_la_SOURCES = a52_decore.c
 a52_decore_la_LDFLAGS = -module -avoid-version
 a52_decore_la_LIBADD = $(A52_LIBS) $(XIO_LIBS)
-
-af6_decore_la_SOURCES = af6_decore.cpp
-af6_decore_la_LDFLAGS = -module -avoid-version
-af6_decore_la_LIBADD = $(AVIFILE_LIBS) -lstdc++ -lm
 
 import_mp3_la_SOURCES = import_mp3.c
 import_mp3_la_LDFLAGS = -module -avoid-version
@@ -235,12 +176,6 @@ import_dv_la_LDFLAGS = -module -avoid-version
 import_vnc_la_SOURCES = import_vnc.c
 import_vnc_la_LDFLAGS = -module -avoid-version
 
-import_pvn_la_SOURCES = import_pvn.c pvn.c pvnglobals.c
-import_pvn_la_LDFLAGS = -module -avoid-version
-
-import_ffbin_la_SOURCES = import_ffbin.c
-import_ffbin_la_LDFLAGS = -module -avoid-version
-
 import_bktr_la_SOURCES = import_bktr.c
 import_bktr_la_LDFLAGS = -module -avoid-version
 
@@ -253,22 +188,12 @@ import_oss_la_LDFLAGS = -module -avoid-version
 import_bsdav_la_SOURCES = import_bsdav.c
 import_bsdav_la_LDFLAGS = -module -avoid-version
 
-import_af6_la_SOURCES = import_af6.c
-import_af6_la_LDFLAGS = -module -avoid-version
-
-import_net_la_SOURCES = import_net.c
-import_net_la_LDFLAGS = -module -avoid-version
-
-import_yuv_la_SOURCES = import_yuv.c
-import_yuv_la_LDFLAGS = -module -avoid-version
-
 
 EXTRA_DIST = \
 	ac3scan.h \
 	aux_pes.h \
 	clone.h \
 	demuxer.h \
-	divx_decore.h \
 	dvd_reader.h \
 	frame_info.h \
 	frame_video.h \
@@ -285,8 +210,7 @@ EXTRA_DIST = \
 	putvlc.h \
 	getvlc.h \
 	tc.h \
-	pvn.h \
-	pvnglobals.h
+	xvid3.h
 
 bin_PROGRAMS = \
 	tcextract \
@@ -316,7 +240,6 @@ tcdecode_SOURCES = \
 	scan_dv.c \
 	decode_a52.c \
 	decode_ac3.c \
-	decode_af6.c \
 	decode_dv.c \
 	decode_lavc.c \
 	decode_lzo.c \
@@ -434,8 +357,6 @@ tcprobe_SOURCES = \
 	iodump.c \
 	ioxml.c \
 	mpg123.c \
-	pvn.c \
-	pvnglobals.c \
 	scan_dv.c \
 	scan_pes.c \
 	ts_reader.c \
@@ -447,12 +368,10 @@ tcprobe_SOURCES = \
 	probe_bsdav.c \
 	probe_dvd.c \
 	probe_im.c \
-	probe_lav.c \
 	probe_mov.c \
 	probe_nuv.c \
 	probe_ogg.c \
 	probe_oss.c \
-	probe_pvn.c \
 	probe_socket.c \
 	probe_stream.c \
 	probe_sunau.c \

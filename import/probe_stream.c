@@ -29,7 +29,6 @@
 
 
 static ProbeInfo probe_info;
-void probe_pvn(info_t *ipipe);
 
 /* ------------------------------------------------------------
  *
@@ -82,11 +81,6 @@ void tcprobe_thread(info_t *ipipe)
     case TC_MAGIC_PGM:
     case TC_MAGIC_SGI:
       probe_im(ipipe);
-
-      break;
-
-    case TC_MAGIC_PVN:
-      probe_pvn(ipipe);
 
       break;
 
@@ -201,10 +195,6 @@ void tcprobe_thread(info_t *ipipe)
 
     case TC_MAGIC_XML:
       probe_xml(ipipe);
-      break;
-
-    case TC_MAGIC_LAV:
-      probe_lav(ipipe);
       break;
 
       //case TC_MAGIC_OGG:

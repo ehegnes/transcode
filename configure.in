@@ -753,32 +753,12 @@ dnl
 dnl
 dnl Divx4linux
 dnl
-AC_CHECK_HEADERS([decore.h],
-  [have_divx_decore=yes
-    AC_DEFINE([HAVE_DIVX_DECORE], 1,
-      [Have the Divx4linux decore.h header file])],
-  [have_divx_decore=no])
-AM_CONDITIONAL(HAVE_DIVX_DECORE, test x"$have_divx_decore" = x"yes" )
-
 AC_CHECK_HEADERS([encore2.h],
   [have_divx_encore2=yes
     AC_DEFINE([HAVE_DIVX_ENCORE2], 1,
       [Have the Divx4linux encore2.h header file])],
   [have_divx_encore2=no])
 AM_CONDITIONAL(HAVE_DIVX_ENCORE2, test x"$have_divx_encore2" = x"yes" )
-
-dnl
-dnl xvid
-dnl
-AC_MSG_CHECKING([for default xvid])
-AC_ARG_WITH(default-xvid,
-  AC_HELP_STRING([--with-default-xvid=xvid2/xvid3/xvid4],
-    [Default xvid version (xvid4)]),
-  [default_xvid=$withval],
-  [default_xvid="xvid4"])
-AC_MSG_RESULT($default_xvid)
-XVID_DEFAULT="$default_xvid"
-AC_SUBST(XVID_DEFAULT)
 
 dnl
 dnl libpostproc
@@ -793,25 +773,6 @@ dnl
 TC_PKG_CHECK(freetype2, no, FREETYPE2, freetype-config, ft2build.h,
   freetype, FT_Init_FreeType, freetype, [http://www.freetype.org/])
 TC_PKG_HAVE(freetype2, FREETYPE2)
-
-dnl
-dnl avifile
-dnl
-AVIFILE_EXTRA_LIBS="$AVIFILE_EXTRA_LIBS $X_LIBS $PTHREAD_LIBS"
-AC_LANG_PUSH([C++])
-TC_PKG_CHECK(avifile, no, AVIFILE, avifile-config, avifile.h, aviplay,
- GetAvifileVersion, avifile, [http://avifile.sourceforge.net/])
-if test x"$have_avifile" = x"yes" ; then
-  if echo "$AVIFILE_CFLAGS" | grep -q '/avifile-0\.7' ; then
-    have_avifile_includes=7
-  else
-    have_avifile_includes=0
-  fi
-  AC_DEFINE_UNQUOTED([HAVE_AVIFILE_INCLUDES], $have_avifile_includes,
-    [avifile includes directory version specific])
-fi
-AC_LANG_POP([C++])
-TC_PKG_HAVE(avifile, AVIFILE)
 
 dnl
 dnl lame
@@ -1048,38 +1009,6 @@ fi
 TC_PKG_HAVE(a52, A52)
 
 dnl
-dnl libmpeg3
-dnl
-LIBMPEG3_EXTRA_LIBS="$LIBMPEG3_EXTRA_LIBS $A52_LIBS -lm $PTHREAD_LIBS"
-TC_PKG_CHECK(libmpeg3, no, LIBMPEG3, no, none, mpeg3, mpeg3_open,
- libmpeg3, [http://heroinewarrior.com/libmpeg3/])
-if test x"$have_libmpeg3" = x"yes" ; then
-  libmpeg3_inc="no"
-  save_CPPFLAGS="$CPPFLAGS"
-  CPPFLAGS="$CPPFLAGS $libmpeg3_ii"
-  AC_CHECK_HEADER([libmpeg3/libmpeg3.h],
-    [LIBMPEG3_CFLAGS="$libmpeg3_ii/libmpeg3"
-      libmpeg3_inc="yes"])
-  if test x"$libmpeg3_inc" = x"no" ; then
-    AC_CHECK_HEADER([mpeg3/libmpeg3.h],
-      [LIBMPEG3_CFLAGS="$libmpeg3_ii/mpeg3"
-        libmpeg3_inc="yes"])
-  fi
-  if test x"$libmpeg3_inc" = x"no" ; then
-    AC_CHECK_HEADER([libmpeg3.h],
-      [LIBMPEG3_CFLAGS="$libmpeg3_ii"
-        libmpeg3_inc="yes"])
-  fi
-  CPPFLAGS="$save_CPPFLAGS"
-  if test x"$libmpeg3_inc" = x"no" ; then
-    have_libmpeg3="no"
-    TC_PKG_ERROR(libmpeg3, libmpeg3.h, no, libmpeg3, [http://heroinewarrior.com/libmpeg3/],
-      [cannot compile libmpeg3.h])
-  fi
-fi
-TC_PKG_HAVE(libmpeg3, LIBMPEG3)
-
-dnl
 dnl libxml2
 dnl
 LIBXML2_EXTRA_LIBS="$LIBXML2_EXTRA_LIBS -lz -lm"
@@ -1180,13 +1109,6 @@ dnl
 TC_PKG_CHECK(gtk, no, GTK, gtk-config, [gtk/gtk.h], gtk, gtk_init,
  gtk+, [http://www.gtk.org/])
 TC_PKG_HAVE(gtk, GTK)
-
-dnl
-dnl libfame
-dnl
-TC_PKG_CHECK(libfame, no, LIBFAME, libfame-config, fame.h, fame, fame_init,
-  libfame, [http://fame.sourceforge.net])
-TC_PKG_HAVE(libfame, LIBFAME)
 
 dnl
 dnl ImageMagick
@@ -1422,7 +1344,6 @@ core options
 ----------------------------------------
 static AV-frame buffering      $enable_statbuffer
 network (sockets) streams      $enable_netstream
-Default xvid export            $XVID_DEFAULT
 A52 default decoder            $enable_a52_default_decoder
 
 libavcodec

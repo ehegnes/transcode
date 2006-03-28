@@ -60,13 +60,6 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
 	    YUV from video streams produced by <i>mjpegtools</i> (YUV4MPEG)
 	    and RIFF WAVE pcm audio.
 
-       <li> <a href="sorry.html">import_lav.so</a><br>
-	    interface to  <i>mjpegtools</i> (YUV4MPEG) streams produced
-	    by <i>lav2yuv</i> and <i>lav2wav</i>.
-
-       <li> <a href="sorry.html">import_net.so</a><br>
-	    read raw video/audio streams from sockets.
-
     </ul><p>
     <font size=+2 color=blue>Quicktime4linux API:</font>
     <ul>
@@ -75,14 +68,6 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
 	   Quicktime file format, audio/video codecs supported by
 	   <i>quicktime4linux</i>.
 
-
-      </ul><p>
-      <font size=+2 color=blue>Avifile API:</font>
-      <ul>
-
-	<li> <a href="sorry.html">import_af6.so</a> <br>
-	  interface to <i>avifile</i> library supported codecs and
-	  file formats.
 
       </ul><p>
       <font size=+2 color=blue>FFmpeg API:</font>
@@ -119,19 +104,11 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
        video track from MPEG program streams or raw streams,
        extracted and decoded by <i>mpeg2dec</i>.
 
-  <li> <a href="import_mpeg3.html">import_mpeg3.so</a><br>
-       video track from MPEG program streams or raw streams
-       extracted and decoded by <i>libmpeg3</i>.
-
   <li> <a href="import_vob.html">import_vob.so</a><br>
        MPEG/AC3 program streams in VOB files (found on unencrypted/ripped DVDs).
 
   <li> <a href="import_dvd.html">import_dvd.so</a><br>
        on-the-fly DVD transcoding
-
-  <li> <a href="sorry.html">import_vdrac3.so</a><br>
-       AC3 audio with invalid AC3 audio stream header from MPEG
-       streams produced by digital capture cards.
 
   </ul><p>
   <font size=+2 color=blue>NuppelVideo:</font>
@@ -160,9 +137,6 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
   <li> <a href="sorry.html">import_imlist.so</a><br>
        interface to <i>ImageMagick</i> library supported picture codecs and
        file formats for making animations. Reads images from a list.
-
-  <li> <a href="sorry.html">import_rawlist.so</a><br>
-       reads images from a list. Native support for raw image formats only.
 
 </ul>
 <p>
@@ -252,9 +226,6 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
     <li> <a href="export_raw.html">export_raw.so</a><br>
 	 uncompressed or raw (compressed) frames, RGB, PCM.
 
-    <li> <a href="sorry.html">export_net.so</a><br>
-	 write raw video/audio stream to a socket
-
     <li> <a href="sorry.html">export_wav.so</a>
 	 <br>RIFF WAVE data with PCM audio.
 
@@ -289,54 +260,18 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
   </ul>
   <p>
 
-  <font size=+2 color=blue>Avifile API:</font>
-  <ul>
-
-    all modules have MP3/AC3/PCM audio support.
-
-    <li> <a href="export_af6.html">export_af6.so</a><br>
-	 interface to <i>avifile</i> supported video codecs.
-
-  </ul><p>
   <font size=+2 color=blue>MPEG-4:</font>
 <ul>
 
   all modules have MP3/AC3/PCM audio support.
 
   <li>
-
-      <table cellspacing="4" cellpadding="0" border="0" width=100%>
-	<tr>
-	  <td align=left valign="top" width=30% bgcolor=#e9e9e9>
-	  <a href="export_divx4.php"> <font size=+0>export_divx4.so</font></a>
-	  </td>
-	</tr>
-	<tr>
-	  <td align=left valign="top" width=30% bgcolor=#e9e9e9>
-	  <a href="export_divx4.php"> <font size=+0>export_divx4raw.so</font></a>
-	  </td>
-	</tr>
-	<tr>
-	  <td>DivX version 4 codec.
-	  </td>
-	</tr>
-  </table>
-
-<li>
-
       <table cellspacing="4" cellpadding="0" border="0" width=100%>
 	<tr>
 	  <td align=left valign="top" width=30% bgcolor=#e9e9e9>
 	  <a href="export_divx5.php"> <font size=+0>export_divx5.so</font></a>
 	  </td>
 	</tr>
-
-	<tr>
-	  <td align=left valign="top" width=30% bgcolor=#e9e9e9>
-	  <a href="export_divx5.php"> <font size=+0>export_divx5raw.so</font></a>
-	  </td>
-	</tr>
-
 
 	<tr>
 	</tr>
@@ -351,36 +286,11 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
       <table cellspacing="4" cellpadding="0" border="0" width=100%>
 	<tr>
 	  <td align=left valign="top" width=30% bgcolor=#e9e9e9>
-	  <a href="export_xvid.php"> <font size=+0>export_xvid.so</font></a>
+	  <a href="export_xvid.php"> <font size=+0>export_xvid4.so</font></a>
 	  </td>
 	</tr>
-	<tr>
-	  <td align=left valign="top" width=30% bgcolor=#e9e9e9>
-	  <a href="export_xvid.php"> <font size=+0>export_xvidcvs.so</font></a>
-	  </td>
-	</tr>
-	<tr>
-	  <td align=left valign="top" width=30% bgcolor=#e9e9e9>
-	  <a href="export_xvid.php"> <font size=+0>export_xvidraw.so</font></a>
-	  </td>
-	</tr>
-
 	<tr>
 	  <td>Open-Source XviD codec.
-	  </td>
-	</tr>
-  </table>
-
-    <li>
-
-      <table cellspacing="4" cellpadding="0" border="0" width=100%>
-	<tr>
-	  <td align=left valign="top" width=30% bgcolor=#e9e9e9>
-	  <a href="export_fame.php"> <font size=+0>export_fame.so</font></a>
-	  </td>
-	</tr>
-	<tr>
-	  <td>Open-Source MPEG-4 codec provided by <i>libfame</i>.
 	  </td>
 	</tr>
   </table>
@@ -396,10 +306,6 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
   <li> <a href="sorry.html">export_mp2enc.so</a><br>
        MPEG layer-2 audio frontend for <i>mp2enc</i> from
        <i>mjpegtools</i>.
-
-  <li> <a href="sorry.html">export_mjpeg.so</a><br>
-       native support for AVI-files with JPEG video
-       frames encoded with <i>libjpeg</i>.
 
 </ul><p>
 <font size=+2 color=blue>Digital Video:</font>
@@ -477,9 +383,5 @@ Some modules depend on other binaries/packages (marked red). See module pages fo
 </table>
 </table>
 
-
-<!-- hhmts start -->
-Last modified: Fri Nov 29 15:49:40 Europe/Berlin 2002
-<!-- hhmts end -->
 
 </body> </html>

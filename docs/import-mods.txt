@@ -14,14 +14,6 @@ S: +
 I: decodes AC3 audio from MPEG program streams or raw streams.
 P: audio - PCM AC3, video - none
 
-M: import_af6.c
-D: (video) Win32 dll | (audio) PCM
-C: avifile
-R: avifile, win32codecs
-S: o
-I: interface to avifile library supported codecs and file formats.
-P: audio - PCM, video - RGB YUV
-
 M: import_avi.c
 D: (video) * | (audio) *
 C: none
@@ -37,14 +29,6 @@ R: none
 S: +
 I: grabs video frames from bktr(4) devices on BSD systems
 P: audio - none, video - RGB YUV YUV420
-
-M: import_divx.c
-D: (video) DivX;-)/XviD/OpenDivX/DivX 4.xx/5.xx
-C: none
-R: libdivxencode
-S: -
-I: decoding support for AVI-files with DivX, OpendivX, DivX 4.xx/5.xx, XviD video using the DivX codec.
-P: audio - none, video - RAW (pass-through) RGB YUV
 
 M: import_dv.c
 D: (video) DV | (audio) PCM
@@ -62,14 +46,6 @@ S: +
 I: on-the-fly DVD transcoding.
 P: audio - PCM AC3, video - RGB YUV
 
-M: import_ffbin.c
-D: (video) rendered by ffmpeg binary | (audio) rendered by ffmpeg binary
-C: none
-R: ffmpeg binary
-S: +
-I: audio and video decoded by the ffmpeg binary.
-P: processing modes: audio - PCM, video - RAW (pass-through) RGB YUV
-
 M: import_ffmpeg.c
 D: (video) FFmpeg: MSMPEG/MPEG/MJPEG
 C: none
@@ -77,14 +53,6 @@ R: none
 S: +
 I: interface to ffmpeg library supported video codecs and file formats
 P: audio - none, video - RAW (pass-through) RGB YUV
-
-M: import_fraps.c
-D: (video) *
-C: none
-R: none
-S: -
-I: decodes fraps, FPS1, a packed form of YUV420
-P: audio - none, video - YUV
 
 M: import_im.c
 D: (video) RGB
@@ -101,14 +69,6 @@ R: ImageMagick
 S: o
 I: interface to ImageMagick library supported picture codecs and file formats for making animations. Reads images from a list.
 P: audio - RAW (pass-through), video - RAW (pass-through) RGB
-
-M: import_lav.c
-D: (video) LAV | (audio) WAVE
-C: none
-R: mjpegtools
-S: +
-I: interface to mjpegtools (YUV4MPEG) streams produced by lav2yuv and lav2wav.
-P: audio - PCM, video - RGB YUV
 
 M: import_lve.c
 D: (video/audio) MPEG/VOB/LVE
@@ -150,14 +110,6 @@ S: +
 I: video track from MPEG program streams or raw streams, extracted and decoded by mpeg2dec.
 P: audio - none, video - RAW (pass-through) RGB YUV
 
-M: import_mpeg3.c
-D: (video) MPEG2 | (audio) MPEG/AC3/PCM
-C: libmpeg3
-R: libmpeg3
-S: o
-I: video track from MPEG program streams or raw streams extracted and decoded by libmpeg3.
-P: audio - RAW (pass-through) PCM, video - RGB YUV
-
 M: import_mplayer.c
 D: (video) rendered by mplayer | (audio) rendered by mplayer
 C: none
@@ -165,14 +117,6 @@ R: mplayer
 S: o
 I: interface to Mplayer for decoding unsupported codecs, exotic file formats or more ore less broken sources.
 P: audio - PCM, video - RAW (pass-through) RGB YUV
-
-M: import_net.c
-D: (video) RGB/YUV | (audio) PCM
-C: none
-R: none
-S: -
-I: read raw video/audio streams from sockets.
-P: audio - PCM, video - RGB YUV
 
 M: import_null.c
 D: (video) null | (audio) null
@@ -190,14 +134,6 @@ S: o
 I: interface to NuppelVideo file format.
 P: audio - PCM, video - YUV
 
-M: import_nvrec.c
-D: (video) nvrec | (audio) nvrec
-C: none
-R: nvrec
-S: o
-I: interface to NVrec video recorder program.
-P: audio - PCM, video - YUV
-
 M: import_ogg.c
 D: (video) all | (audio) Ogg Vorbis
 C: none
@@ -206,14 +142,6 @@ S: +
 I: decodes Ogg Vorbis audio streams.
 P: audio - RAW (pass-through) PCM, video - RAW (pass-through) RGB YUV
 
-M: import_pvn.c
-D: (video) PVN
-C: none
-R: none
-S: o
-I: imports video in the PVN format.
-P: audio - RAW (pass-through), video - RAW (pass-through) RGB
-
 M: import_raw.c
 D: (video) RGB/YUV | (audio) PCM
 C: none
@@ -221,22 +149,6 @@ R: none
 S: o
 I: RGB/PCM from RIFF AVI/WAVE files or raw streams.
 P: audio - PCM, video - RGB YUV YUV420
-
-M: import_rawlist.c
-D: (video) YUV/RGB raw frames
-C: none
-R: none
-S: o
-I: reads images from a list. Native support for raw image formats only.
-P: audio - RAW (pass-through), video - RGB YUV YUV420
-
-M: import_sh.c
-D: (video) * | (audio) *
-C: none
-R: none
-S: o
-I: runs commands and reads from stdin.
-P: audio - RAW (pass-through) PCM AC3, video - RAW (pass-through) RGB YUV YUV420
 
 M: import_sunau.c
 D: (audio) pcm
@@ -261,14 +173,6 @@ R: none
 S: +
 I: interface for grabbing sound/video from v4l2 devices on linux systems. prefered over import_v4l.
 P: audio - PCM, video - RGB YUV YUV420
-
-M: import_vdrac3.c
-D: (audio) VDR-AC3
-C: none
-R: none
-S: o
-I: AC3 audio with invalid AC3 audio stream header from MPEG streams produced by digital capture cards.
-P: audio - PCM AC3, video - none
 
 M: import_vnc.c
 D: (video) VNC
@@ -301,14 +205,6 @@ R: libxvidcore
 S: o
 I: decoding support for AVI-files with DivX, OpendivX, DivX 4.xx/5.xx, XviD video using the XviD codec.
 P: audio - none, video - RAW (pass-through) RGB YUV
-
-M: import_yuv.c
-D: (video) YUV files
-C: none
-R: none
-S: o
-I: imports directories of files containing single YUV frames.
-P: audio - none, video - YUV
 
 M: import_yuv4mpeg.c
 D: (video) YUV4MPEGx | (audio) WAVE

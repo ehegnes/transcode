@@ -30,24 +30,18 @@ Video:
 	null	(built in)
 	mpeg2enc
 	mpeg
-	af6
-	divx4
 	divx5
 	ffmpeg
 	xvid
-	xvid2
 
 
 Audio:
 	null	(built in)
 	mp2enc
 	mpeg
-	af6
-	divx4
 	divx5
 	ffmpeg
 	xvid
-	xvid2
 
 
 Support for multipass (standard and built in)
@@ -112,11 +106,10 @@ the module give all the options
 [export_pvm.so]  List of known and supported codecs:
 [export_pvm.so]       Supported Modules
 [export_pvm.so]     --------------------
-[export_pvm.so]     null        af6
-[export_pvm.so]     mpeg2enc    mp2enc
-[export_pvm.so]     mpeg        divx5
-[export_pvm.so]     divx4       ffmpeg
-[export_pvm.so]     xvid        xvid2
+[export_pvm.so]     null        mp2enc
+[export_pvm.so]     mpeg2enc    divx5
+[export_pvm.so]     mpeg        ffmpeg
+[export_pvm.so]     xvid
 [export_pvm.so]     --------------------
 
 where

@@ -19,7 +19,7 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
  *
- * $Id: xvid3.h,v 1.3 2005-11-11 14:46:58 achurch Exp $
+ * $Id: xvid3.h,v 1.1 2006-03-28 20:03:47 achurch Exp $
  *
  ****************************************************************************/
 

@@ -1,3 +1,39 @@
+2006-03-29 Andrew Church <achurch at achurch dot org>
+  * Changed: AUTHORS ChangeLog INSTALL configure.in docs/export-mods.txt
+    docs/export_pvm.txt docs/import-mods.txt docs/import-xml.txt
+    docs/html/dv.html docs/html/dvd.html docs/html/modules.html
+    docs/man/tcdecode.1 docs/man/transcode.1 export/Makefile.am
+    export/export_xvid4.c filter/Makefile.am import/Makefile.am
+    import/decode_xvid.c import/fileinfo.c import/import_xml.c
+    import/import_xvid.c import/ioxml.c import/magic.h import/probe_stream.c
+    import/tc.h import/tcdecode.c libtc/tccodecs.h pvm3/external_codec.c
+    src/probe.c testsuite/newtest.pl
+  * Removed: export/af6_aux.cpp export/af6_aux.h export/divx4_encore2.h
+    export/divx4_encparam.h export/export_af6.conf export/export_af6.cpp
+    export/export_debugppm.c export/export_divx4.c export/export_divx4raw.c
+    export/export_divx5raw.c export/export_fame.c export/export_mjpeg.c
+    export/export_mp1e.c export/export_net.c export/export_pcm.c
+    export/export_pvn.c export/export_xvid2.c export/export_xvid3.c
+    export/xvid2.cfg export/xvid2.h export/xvid3.cfg export/xvid3.h
+    export/xvid_vbr.c export/xvid_vbr.h filter/filter_cshift.c
+    filter/filter_cut.c filter/filter_dilyuvmmx.c filter/filter_nored.c
+    filter/filter_tc_audio.c filter/filter_tc_video.c filter/filter_test.c
+    filter/filter_videocore.c import/af6_decore.cpp import/decode_af6.c
+    import/divx_decore.h import/import_af6.c import/import_divx.c
+    import/import_ffbin.c import/import_fraps.c import/import_lav.c
+    import/import_mpeg3.c import/import_net.c import/import_nvrec.c
+    import/import_pvn.c import/import_rawlist.c import/import_sh.c
+    import/import_vdrac3.c import/import_yuv.c import/probe_lav.c
+    import/probe_pvn.c import/pvn.c import/pvn.h import/pvnglobals.c
+    import/pvnglobals.h
+  Removed the following modules, all previously disabled:
+  -x af6,divx,ffbin,fraps,lav,mpeg3,net,nvrec,pvn,rawlist,sh,vdrac3,yuv
+  -y af6,debugppm,divx4,divx4raw,divx5raw,fame,mjpeg,mp1e,net,pcm,pvn,xvid2,xvid3
+  -J cshift,cut,dilyuvmmx,nored,tc_audio,tc_video,test,videocore
+
+  * Added: import/xvid3.h
+  Added a copy of the former export/xvid3.h for {import,decode}_xvid.c.
+
 2006-03-28 Andrew Church <achurch at achurch dot org>
   * import/import_vnc.c
   Restored the import_vnc module (no longer disabled).
@@ -29,7 +65,7 @@
 
   * tools/avimerge.c tools/avisplit.c tools/avisync.c
   add (or replace if needed) specific avi audio scanning code
-  header. 
+  header.
 
   * added files: tools/aud_scan_avi.h tools/aud_scan_avi.c
 
@@ -159,7 +195,7 @@
   port import layer code to wavlib.
 
   * configure.in avilib/Makefile.am
-  
+ 
   * added files: avilib/wavlib.h avilib/wavlib.c
   introduce helper library to deal with WAVE files.
   basic documentation is included in header file, and wavlib
@@ -303,7 +339,7 @@
 
 2005-12-30 Francesco Romani <fromani at gmail dot com>
   * src/transcode.c
-  
+ 
   added file: avilib/static_avilib.h
 
   introduce static linkage helper header for avilib.
@@ -578,7 +614,7 @@
 
 2005-12-13 Francesco Romani <fromani at gmail dot com>
   * import/Makefile.am import/probe_stream.c import/tc.h import/tcprobe.c
- 
+
   Added file: import/probe_mplayer.c
 
   Add (highly experimental) mplayer probe support in tcprobe.
@@ -614,7 +650,7 @@
 2005-12-12 Francesco Romani <fromani at gmail dot com>
   * libtc/Makefile.am tools/Makefile.am tools/tcmodinfo.c
 
-  added files: libtc/tcmodule-core.h libtc/tcmodule-data.h 
+  added files: libtc/tcmodule-core.h libtc/tcmodule-data.h
   libtc/tcmodule-plugin.h libtc/tcmodule.c
 
   Enter new module system support code. tcmodinfo helper
@@ -627,7 +663,7 @@
 
 2005-12-12 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmoduleinfo.c
-  
+ 
   removed file: libtc/tcmoduleinfo.h
 
   added file: libtc/tcmodule-info.h
@@ -641,12 +677,12 @@
 
 2005-12-10 Francesco Romani <fromani at gmail dot com>
   * added file: docs/module-system-API.txt
-  
+ 
   Documentation for module/plugin system.
 
 2005-12-08 Francesco Romani <fromani at gmail dot com>
   * tools/tcmodinfo.c
-  
+ 
   added file: libtc/static_optstr.h
 
   Introduce helper header like to static_xio.h to make
@@ -688,7 +724,7 @@
 
 2005-11-18 Francesco Romani <fromani at gmail dot com>
   * tools/tcmodinfo.c
-  Make avalaible tcv_init()/tcv_free() to loaded filter 
+  Make avalaible tcv_init()/tcv_free() to loaded filter
   modules.
 
 2005-11-18 Francesco Romani <fromani at gmail dot com>
@@ -706,9 +742,9 @@
 2005-11-18 Francesco Romani <fromani at gmail dot com>
   * import/magic.h libtc/libtc.h
   libtc/Makefile.am
-  
+ 
   Added files:
-  libtc/tccodecs.c libtc/tccodecs.h libtc/tcmoduleinfo.c 
+  libtc/tccodecs.c libtc/tccodecs.h libtc/tcmoduleinfo.c
   libtc/tcmoduleinfo.h
 
   Enter new capabilities handling code in libtc.
@@ -790,7 +826,7 @@
   typo: last ffmpeg formal release was 0.4.9pre1, not 0.9.1pre1.
 
 2005-11-13 Francesco Romani <fromani at gmail dot com>
-  * import/af6_decore.cpp import/clone.c import/decode_ac3.c 
+  * import/af6_decore.cpp import/clone.c import/decode_ac3.c
     import/decode_dv.c import/decode_mov.c import/decode_mp3.c
     import/decode_yuv.c import/demux_pass.c import/demuxer.c
     import/dvd_reader.c import/extract_ac3.c import/extract_dv.c
@@ -811,7 +847,7 @@
 
 2005-11-13 Francesco Romani <fromani at gmail dot com>
   * docs/man/aviindex.1 tools/aviindex.c
-  merge in HEAD an aviindex enhancement patch originally provided 
+  merge in HEAD an aviindex enhancement patch originally provided
   against 1.0.2 by Mark Nauwelaerts (manauw at skynet dot be).
 
 2005-11-12 Francesco Romani <fromani at gmail dot com>

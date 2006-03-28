@@ -224,9 +224,6 @@ encoder parameter strings [module dependent].
 The \-F parameter has different meanings for different export modules.
 .br
 
--y \fIaf6\fP:
-  The codec String for the codec you want to encode to. Example values are -F "Uncompressed I420" or -F "OpenDivX 3.11 compatible decoder". To get a list of valid codecs, use -F invalid.
-
 -y \fIffmpeg\fP:
   The codec String for the codec you want to encode. Example values are -F mpeg4 or -F mpeg1video or -F huffyuv. To get a list of valid codecs, use -F list
 
@@ -244,13 +241,6 @@ The \-F parameter has different meanings for different export modules.
                    to be passed to the codec.
 
 Note: You can use "list" instead of a video/audiocodec or parameter to get a list of supported options.
-
--y \fImp1e\fP:
-  Syntax: -F "<base-profile>[,<options_string>]"
-    <base-profile> can be one of
-      'mpeg1' = Generic MPEG1 (default)
-      'vcd' = Standard VCD
-    <options_string> will be passed down to mp1e untouched by transcode. Have a look at the manpage for mp1e.
 
 -y \fImpeg\fP:
   Syntax: -F "<base-profile>[,<resizer-mode>[,user-profile]]"
@@ -833,17 +823,6 @@ decodes AC3 audio from MPEG program streams or raw streams.
 Supported processing formats: audio - PCM AC3, video - none
 .RE
 .TP 4
-\fBaf6\fP \- (video) Win32 dll | (audio) PCM
-.br
-At compile-time avifile must be available.
-At run-time avifile and win32codecs must be present.
-Support for this module is fair.
-.RS 8
-interface to avifile library supported codecs and file formats.
-.br
-Supported processing formats: audio - PCM, video - RGB YUV
-.RE
-.TP 4
 \fBavi\fP \- (video) * | (audio) *
 .br
 This module has no compile-time dependencies.
@@ -864,17 +843,6 @@ Support for this module is good.
 grabs video frames from bktr(4) devices on BSD systems
 .br
 Supported processing formats: audio - none, video - RGB YUV YUV420
-.RE
-.TP 4
-\fBdivx\fP \- (video) DivX;-)/XviD/OpenDivX/DivX 4.xx/5.xx
-.br
-This module has no compile-time dependencies.
-At run-time libdivxencode must be present.
-Support for this module is poor.
-.RS 8
-decoding support for AVI-files with DivX, OpendivX, DivX 4.xx/5.xx, XviD video using the DivX codec.
-.br
-Supported processing formats: audio - none, video - RAW (pass-through) RGB YUV
 .RE
 .TP 4
 \fBdv\fP \- (video) DV | (audio) PCM
@@ -899,17 +867,6 @@ on-the-fly DVD transcoding.
 Supported processing formats: audio - PCM AC3, video - RGB YUV
 .RE
 .TP 4
-\fBffbin\fP \- (video) rendered by ffmpeg binary | (audio) rendered by ffmpeg binary
-.br
-This module has no compile-time dependencies.
-At run-time ffmpeg binary must be present.
-Support for this module is good.
-.RS 8
-audio and video decoded by the ffmpeg binary.
-.br
-Supported processing formats: processing modes: audio - PCM, video - RAW (pass-through) RGB YUV
-.RE
-.TP 4
 \fBffmpeg\fP \- (video) FFmpeg: MSMPEG/MPEG/MJPEG
 .br
 This module has no compile-time dependencies.
@@ -919,17 +876,6 @@ Support for this module is good.
 interface to ffmpeg library supported video codecs and file formats
 .br
 Supported processing formats: audio - none, video - RAW (pass-through) RGB YUV
-.RE
-.TP 4
-\fBfraps\fP \- (video) *
-.br
-This module has no compile-time dependencies.
-This module has no run-time dependencies.
-Support for this module is poor.
-.RS 8
-decodes fraps, FPS1, a packed form of YUV420
-.br
-Supported processing formats: audio - none, video - YUV
 .RE
 .TP 4
 \fBim\fP \- (video) RGB
@@ -952,17 +898,6 @@ Support for this module is fair.
 interface to ImageMagick library supported picture codecs and file formats for making animations. Reads images from a list.
 .br
 Supported processing formats: audio - RAW (pass-through), video - RAW (pass-through) RGB
-.RE
-.TP 4
-\fBlav\fP \- (video) LAV | (audio) WAVE
-.br
-This module has no compile-time dependencies.
-At run-time mjpegtools must be present.
-Support for this module is good.
-.RS 8
-interface to mjpegtools (YUV4MPEG) streams produced by lav2yuv and lav2wav.
-.br
-Supported processing formats: audio - PCM, video - RGB YUV
 .RE
 .TP 4
 \fBlve\fP \- (video/audio) MPEG/VOB/LVE
@@ -1020,17 +955,6 @@ video track from MPEG program streams or raw streams, extracted and decoded by m
 Supported processing formats: audio - none, video - RAW (pass-through) RGB YUV
 .RE
 .TP 4
-\fBmpeg3\fP \- (video) MPEG2 | (audio) MPEG/AC3/PCM
-.br
-At compile-time libmpeg3 must be available.
-At run-time libmpeg3 must be present.
-Support for this module is fair.
-.RS 8
-video track from MPEG program streams or raw streams extracted and decoded by libmpeg3.
-.br
-Supported processing formats: audio - RAW (pass-through) PCM, video - RGB YUV
-.RE
-.TP 4
 \fBmplayer\fP \- (video) rendered by mplayer | (audio) rendered by mplayer
 .br
 This module has no compile-time dependencies.
@@ -1040,17 +964,6 @@ Support for this module is fair.
 interface to Mplayer for decoding unsupported codecs, exotic file formats or more ore less broken sources.
 .br
 Supported processing formats: audio - PCM, video - RAW (pass-through) RGB YUV
-.RE
-.TP 4
-\fBnet\fP \- (video) RGB/YUV | (audio) PCM
-.br
-This module has no compile-time dependencies.
-This module has no run-time dependencies.
-Support for this module is poor.
-.RS 8
-read raw video/audio streams from sockets.
-.br
-Supported processing formats: audio - PCM, video - RGB YUV
 .RE
 .TP 4
 \fBnull\fP \- (video) null | (audio) null
@@ -1075,17 +988,6 @@ interface to NuppelVideo file format.
 Supported processing formats: audio - PCM, video - YUV
 .RE
 .TP 4
-\fBnvrec\fP \- (video) nvrec | (audio) nvrec
-.br
-This module has no compile-time dependencies.
-At run-time nvrec must be present.
-Support for this module is fair.
-.RS 8
-interface to NVrec video recorder program.
-.br
-Supported processing formats: audio - PCM, video - YUV
-.RE
-.TP 4
 \fBogg\fP \- (video) all | (audio) Ogg Vorbis
 .br
 This module has no compile-time dependencies.
@@ -1097,17 +999,6 @@ decodes Ogg Vorbis audio streams.
 Supported processing formats: audio - RAW (pass-through) PCM, video - RAW (pass-through) RGB YUV
 .RE
 .TP 4
-\fBpvn\fP \- (video) PVN
-.br
-This module has no compile-time dependencies.
-This module has no run-time dependencies.
-Support for this module is fair.
-.RS 8
-imports video in the PVN format.
-.br
-Supported processing formats: audio - RAW (pass-through), video - RAW (pass-through) RGB
-.RE
-.TP 4
 \fBraw\fP \- (video) RGB/YUV | (audio) PCM
 .br
 This module has no compile-time dependencies.
@@ -1117,28 +1008,6 @@ Support for this module is fair.
 RGB/PCM from RIFF AVI/WAVE files or raw streams.
 .br
 Supported processing formats: audio - PCM, video - RGB YUV YUV420
-.RE
-.TP 4
-\fBrawlist\fP \- (video) YUV/RGB raw frames
-.br
-This module has no compile-time dependencies.
-This module has no run-time dependencies.
-Support for this module is fair.
-.RS 8
-reads images from a list. Native support for raw image formats only.
-.br
-Supported processing formats: audio - RAW (pass-through), video - RGB YUV YUV420
-.RE
-.TP 4
-\fBsh\fP \- (video) * | (audio) *
-.br
-This module has no compile-time dependencies.
-This module has no run-time dependencies.
-Support for this module is fair.
-.RS 8
-runs commands and reads from stdin.
-.br
-Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RAW (pass-through) RGB YUV YUV420
 .RE
 .TP 4
 \fBsunau\fP \- (audio) pcm
@@ -1172,17 +1041,6 @@ Support for this module is good.
 interface for grabbing sound/video from v4l2 devices on linux systems. prefered over import_v4l.
 .br
 Supported processing formats: audio - PCM, video - RGB YUV YUV420
-.RE
-.TP 4
-\fBvdrac3\fP \- (audio) VDR-AC3
-.br
-This module has no compile-time dependencies.
-This module has no run-time dependencies.
-Support for this module is fair.
-.RS 8
-AC3 audio with invalid AC3 audio stream header from MPEG streams produced by digital capture cards.
-.br
-Supported processing formats: audio - PCM AC3, video - none
 .RE
 .TP 4
 \fBvnc\fP \- (video) VNC
@@ -1227,17 +1085,6 @@ Support for this module is fair.
 decoding support for AVI-files with DivX, OpendivX, DivX 4.xx/5.xx, XviD video using the XviD codec.
 .br
 Supported processing formats: audio - none, video - RAW (pass-through) RGB YUV
-.RE
-.TP 4
-\fByuv\fP \- (video) YUV files
-.br
-This module has no compile-time dependencies.
-This module has no run-time dependencies.
-Support for this module is fair.
-.RS 8
-imports directories of files containing single YUV frames.
-.br
-Supported processing formats: audio - none, video - YUV
 .RE
 .TP 4
 \fByuv4mpeg\fP \- (video) YUV4MPEGx | (audio) WAVE
@@ -1300,39 +1147,6 @@ Interface to the avifile library which allows the use of win32codec on the linux
 Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RGB YUV
 .RE
 .TP 4
-\fBdebugppm\fP \- (video) debugPPM/PGM | (audio) MPEG/AC3/PCM
-.br
-At compile-time libmp3lame (only for MPEG audio layer III) must be available.
-This module has no run-time dependencies.
-Support for this module is good.
-.RS 8
-Especially usefull when debugging in YUV mode. Encodes the three planes as separate images. In RGB mode, the 3 color planes get encoded separatly.
-.br
-Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RGB YUV
-.RE
-.TP 4
-\fBdivx4\fP \- (video) DivX 4.xx | (audio) MPEG/AC3/PCM
-.br
-At compile-time libmp3lame (only for MPEG audio layer III) must be available.
-At run-time divx4linux (old) libdivxencore.so must be present.
-Support for this module is fair.
-.RS 8
-Encodes MPEG4 video using the closed-source binaries from divx.com to an AVI container.
-.br
-Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RGB YUV
-.RE
-.TP 4
-\fBdivx4raw\fP \- (video) DivX 4.xx (ES) | (audio) MPEG/AC3/PCM
-.br
-At compile-time libmp3lame (only for MPEG audio layer III) must be available.
-At run-time divx4linux (old) libdivxencore.so must be present.
-Support for this module is fair.
-.RS 8
-Encodes MPEG4 video using the closed-source binaries from divx.com into no file container at all. It writes out the raw bitstream.
-.br
-Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RGB YUV
-.RE
-.TP 4
 \fBdivx5\fP \- (video) DivX 5.xx | (audio) MPEG/AC3/PCM
 .br
 At compile-time libmp3lame (only for MPEG audio layer III) must be available.
@@ -1340,17 +1154,6 @@ At run-time divx4linux (new) and libdivxencore.so must be present.
 Support for this module is good.
 .RS 8
 Encodes MPEG4 video using the closed-source binaries from divx.com to an AVI container.
-.br
-Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RGB YUV
-.RE
-.TP 4
-\fBdivx5raw\fP \- (video) DivX 5.xx (ES) | (audio) MPEG/AC3/PCM
-.br
-At compile-time libmp3lame (only for MPEG audio layer III) must be available.
-At run-time divx4linux (new) and libdivxencore.so must be present.
-Support for this module is fair.
-.RS 8
-Encodes MPEG4 video using the closed-source binaries from divx.com into no file container at all. It writes out the raw bitstream.
 .br
 Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RGB YUV
 .RE
@@ -1375,17 +1178,6 @@ Support for this module is good.
 Encodes DV into a DV file. DV is a codec developed by Sony and is often used in digital camcorders. A raw DV file can be played back into the camcorder.
 .br
 Supported processing formats: audio - PCM, video - RAW (pass-through) RGB YUV YUV422
-.RE
-.TP 4
-\fBfame\fP \- (video) MPEG-4 | (audio) MPEG/AC3/PCM
-.br
-At compile-time libfame must be available.
-This module has no run-time dependencies.
-Support for this module is poor.
-.RS 8
-Fame is yet another MPEG4 encoder. It encodes to a raw file.
-.br
-Supported processing formats: audio - RAW (pass-through) PCM AC3, video - YUV
 .RE
 .TP 4
 \fBffmpeg\fP \- (video) * | (audio) MPEG/AC3/PCM
@@ -1443,17 +1235,6 @@ Encodes video using a loss-less real-time LZO codec. This codec is a homegrown i
 Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RAW (pass-through) RGB YUV DV
 .RE
 .TP 4
-\fBmjpeg\fP \- (video) Motion JPEG | (audio) MPEG/AC3/PCM
-.br
-At compile-time libjpeg and libmp3lame (only for MPEG audio layer III) must be available.
-This module has no run-time dependencies.
-Support for this module is poor.
-.RS 8
-Encodes MJPEG based AVI files using a homegrown algorithm based on libjpeg. Using ffmpeg -F mjpeg for this task is a good idea.
-.br
-Supported processing formats: audio - PCM AC3, video - RGB YUV
-.RE
-.TP 4
 \fBmov\fP \- (video) * | (audio) *
 .br
 At compile-time libquicktime must be available.
@@ -1463,17 +1244,6 @@ Support for this module is fair.
 Interface to the quicktime library.
 .br
 Supported processing formats: audio - PCM, video - RAW (pass-through) RGB YUV YUV422 YUY2
-.RE
-.TP 4
-\fBmp1e\fP \- (video) MPEG1 video | (audio) MPEG1-Layer
-.br
-This module has no compile-time dependencies.
-At run-time mp1e must be present.
-Support for this module is good.
-.RS 8
-Drives the mp1e binary and writes an mpeg1 file to disc. It can also encode vcd compliant streams. Note: it writes an intermediate wav file for audio due to a limitation of mp1e.
-.br
-Supported processing formats: audio - PCM, video - RGB YUV YUV422
 .RE
 .TP 4
 \fBmp2\fP \- (video) null | (audio) MPEG 1/2
@@ -1509,17 +1279,6 @@ Drives the mpeg2enc binary. mpeg2enc is a very feature rich MPEG encoder, have a
 Supported processing formats: audio - none, video - RGB YUV
 .RE
 .TP 4
-\fBnet\fP \- (video) RGB/YUV | (audio) PCM/AC3
-.br
-At compile-time net-support must be available.
-This module has no run-time dependencies.
-Support for this module is good.
-.RS 8
-Transfers video data over a network between various transcodes. Useful if you have multiple systems connected via a fast network.
-.br
-Supported processing formats: audio - PCM AC3, video - RGB YUV
-.RE
-.TP 4
 \fBnull\fP \- (video) null | (audio) null
 .br
 This module has no compile-time dependencies.
@@ -1542,17 +1301,6 @@ Drives the oggenc binary. Encodes an Ogg/Vorbis file. Resamples.
 Supported processing formats: audio - PCM, video - none
 .RE
 .TP 4
-\fBpcm\fP \- (audio) PCM (non-interleaved)
-.br
-This module has no compile-time dependencies.
-This module has no run-time dependencies.
-Support for this module is good.
-.RS 8
-Writes each audio channel to a WAVE PCM file.
-.br
-Supported processing formats: audio - PCM, video - RAW (pass-through) RGB YUV
-.RE
-.TP 4
 \fBppm\fP \- (video) PPM/PGM | (audio) MPEG/AC3/PCM
 .br
 This module has no compile-time dependencies.
@@ -1573,17 +1321,6 @@ Support for this module is good.
 Meta module. It allows transcode to be used in a PVM cluster. See docs/export_pvm.txt
 .br
 Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RAW (pass-through) RGB YUV DV YUV422 YUY2
-.RE
-.TP 4
-\fBpvn\fP \- (video) PVN | (audio) MPEG/AC3/PCM
-.br
-This module has no compile-time dependencies.
-At run-time pvm must be present.
-Support for this module is good.
-.RS 8
-Writes PVN video. See contrib/pnmpvn/pvnspecs.html
-.br
-Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RGB YUV
 .RE
 .TP 4
 \fBraw\fP \- (video) * | (audio) MPEG/AC3/PCM
@@ -1617,28 +1354,6 @@ Support for this module is good.
 Creates WAVE PCM files with interleaved audio for stereo.
 .br
 Supported processing formats: audio - PCM, video - RAW (pass-through) RGB YUV
-.RE
-.TP 4
-\fBxvid2\fP \- (video) XviD 0.9.x (aka API 2.1 series)  | (audio) MPEG/AC3/PCM
-.br
-At compile-time libmp3lame (only for MPEG audio layer III) must be available.
-At run-time libxvidencore.so.2 must be present.
-Support for this module is good.
-.RS 8
-Encodes MPEG4 video using the library available from xvid.org. Check out the library from xvidcvs using cvs -d :pserver:anonymous@cvs.xvid.org:/xvid co -rrelease-0_9_2 xvidcore. The output can either be an AVI file or a MPEG4 elementary stream (with -F raw).
-.br
-Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RGB YUV YUV422
-.RE
-.TP 4
-\fBxvid3\fP \- (video) XviD nonumber series (aka API 3.0)  | (audio) MPEG/AC3/PCM
-.br
-At compile-time libmp3lame (only for MPEG audio layer III) must be available.
-At run-time libxvidcore.so.3 must be present.
-Support for this module is good.
-.RS 8
-Encodes MPEG4 video using the library available from xvid.org. Check out the library from xvidcvs using cvs -d :pserver:anonymous@cvs.xvid.org:/xvid co -rHEAD xvidcore. The output can either be an AVI file or a MPEG4 elementary stream (with -F raw).
-.br
-Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RGB YUV YUV422
 .RE
 .TP 4
 \fBxvid4\fP \- (video) XviD 1.0.x series (aka API 4.0) | (audio) MPEG/AC3/PCM
@@ -2066,7 +1781,7 @@ disable lame bitreservoir for MP3 encoding [off]
 .B \-\-config_dir \fIdir\fP
 Assume config files are in this \fIdir\fP
 .br
-This only affects the -y ffmpeg and all -y xvid234 modules. It gives the path
+This only affects the -y ffmpeg and -y xvid4 modules. It gives the path
 where the modules search for their configuration.
 
 .TP
@@ -2465,30 +2180,6 @@ Source channel (l=left, r=right)
 Copies audio from one channel to another
 .RE
 .TP 4
-\fBcshift\fP - \fBchroma-lag shifter\fP
-\fBcshift\fP was written by Thomas Östreich, Chad Page. The version documented here is v0.2.1 (2003-01-21). This is a video filter. It can handle RGB and YUV mode. It is a pre-processing only filter.
-.IP
-.RS
-\(bu
-.I shift
-= \fI%d\fP  [default \fI1\fP]
-.RS 3
-Shift chroma(color) to the left
-.RE
-.RE
-.TP 4
-\fBcut\fP - \fBencode only listed frames\fP
-\fBcut\fP was written by Thomas Oestreich. The version documented here is v0.1.0 (2003-05-03). This is a video and audio filter. It is a pre-processing only filter.
-.IP
-.RS
-\(bu
-.I HH:MM:SS.f-HH:MM:SS.f/step
-= \fI%s\fP
-.RS 3
-apply filter [start-end] frames [0-oo/1]
-.RE
-.RE
-.TP 4
 \fBdecimate\fP - \fBNTSC decimation plugin\fP
 \fBdecimate\fP was written by Thanassis Tsiodras. The version documented here is v0.4 (2003-04-22). This is a video filter. It can handle YUV mode only. It is a post-processing only filter.
 .IP
@@ -2589,9 +2280,6 @@ Detect black regions on top, bottom, left and right of an image.  It is suggeste
 .TP 4
 \fBdetectsilence\fP - \fBaudio silence detection with tcmp3cut commandline generation\fP
 \fBdetectsilence\fP was written by Tilmann Bitterberg. The version documented here is v0.0.1 (2003-07-26). This is a audio filter. It is a pre-processing only filter.
-.TP 4
-\fBdilyuvmmx\fP - \fByuv de-interlace filter plugin\fP
-\fBdilyuvmmx\fP was written by Thomas Oestreich. The version documented here is v0.1.1 (2002-02-21). This is a video filter. It can handle YUV mode only. It is a pre-processing only filter.
 .TP 4
 \fBdivxkey\fP - \fBcheck for DivX 4.xx / OpenDivX / DivX;-) keyframe\fP
 \fBdivxkey\fP was written by Thomas Oestreich. The version documented here is v0.1 (2002-01-15). This is a video filter. It is a pre-processing only filter.
@@ -3215,24 +2903,6 @@ edges without amplifying noise.
     This parameter lets you tradeoff speed for quality of detail detection. Set it to true for the best detail detection. Set it to false for maximum speed.
 .RE
 .TP 4
-\fBnored\fP - \fBnored the image\fP
-\fBnored\fP was written by Tilmann Bitterberg. The version documented here is v0.1.3 (2003-01-26). This is a video filter. It can handle YUV mode only. It is a pre-processing only filter.
-.IP
-.RS
-\(bu
-.I range
-= \fI%u-%u/%d\fP  [default \fI0x4294967295/1\fP]
-.RS 3
-apply filter to [start-end]/step frames
-.RE
-\(bu
-.I subst
-= \fI%d\fP  [default \fI2\fP]
-.RS 3
-substract N red from Cr
-.RE
-.RE
-.TP 4
 \fBnormalize\fP - \fBVolume normalizer\fP
 \fBnormalize\fP was written by pl, Tilmann Bitterberg. The version documented here is v0.1.1 (2002-06-18). This is a audio filter. It is a pre-processing only filter.
 .IP
@@ -3752,10 +3422,6 @@ help                 prints this list and exit.
 .RE
 .RE
 .TP 4
-\fBtc_video\fP - \fBvideo 23.9 -> 29.9 telecide filter\fP
-\fBtc_video\fP was written by Tilmann Bitterberg. The version documented here is v0.2 (2003-06-10). This is a video filter. It can handle YUV mode only. It is a pre-processing only filter.
-.RE
-.TP 4
 \fBtestframe\fP - \fBgenerate stream of testframes\fP
 \fBtestframe\fP was written by Thomas Oestreich. The version documented here is v0.1.3 (2003-09-04). This is a video filter. It can handle RGB and YUV mode. It is a pre-processing only filter.
 .IP
@@ -3928,56 +3594,6 @@ It sometimes makes sense to sharpen the sharpen the
 luma and to blur the chroma. Sample string is:
 
 luma=0.8:luma_matrix=7x5:chroma=-0.2:chroma_matrix=3x3
-.RE
-.TP 4
-\fBvideocore\fP - \fBCore video transformations\fP
-\fBvideocore\fP was written by Thomas, Tilmann. The version documented here is v0.0.4 (2003-02-01). This is a video filter. It can handle RGB and YUV mode. It is a pre-processing only filter.
-
-NOTE: This filter is obsolete and will be removed soon. Do not use it.
-.IP
-.RS
-\(bu
-.I deinterlace
-= \fI%d\fP  [default \fI0\fP]
-.RS 3
-same as -I
-.RE
-\(bu
-.I flip
-(bool)
-.RS 3
-same as -z
-.RE
-\(bu
-.I mirror
-(bool)
-.RS 3
-same as -l
-.RE
-\(bu
-.I rgbswap
-(bool)
-.RS 3
-same as -k
-.RE
-\(bu
-.I decolor
-(bool)
-.RS 3
-same as -K
-.RE
-\(bu
-.I dgamma
-= \fI%f\fP  [default \fI0.000000\fP]
-.RS 3
-same as -G
-.RE
-\(bu
-.I antialias
-= \fI%d/%f/%f\fP  [default \fI0/0.33/0.50\fP]
-.RS 3
-same as -C/weight/bias
-.RE
 .RE
 .TP 4
 \fBwhitebalance\fP - \fBWhite Balance Filter - correct images with a broken white balance\fP

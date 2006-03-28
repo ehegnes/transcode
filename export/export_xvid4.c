@@ -1259,8 +1259,7 @@ static int load_xvid(xvid_module_t *xvid, const char *path)
 		tc_log_warn(MOD_NAME, "Error loading symbol (%s)", error);
 		tc_log_warn(MOD_NAME, "Library \"%s\" looks like an old "
 				      "version of libxvidcore", soname[i]);
-		tc_log_warn(MOD_NAME, "You cannot use this module with this"
-				      " lib; maybe -y xvid2 works");
+		tc_log_warn(MOD_NAME, "You cannot use this library.");
 		return(-1);
 	}
 

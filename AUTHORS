@@ -159,10 +159,6 @@ o avilib
   Original source code
   Copyright (C) 1999 Rainer Johanni <Rainer@Johanni.de>
 
-o af6_aux.cpp
-  code borrowed from "vcr" package:
-  Copyright (C) 2001 Bram Avontuur (bram@avontuur.org)
-
 o export_qt.c (obsolete)
   Copyright (C) ken@hero.com 2001 (Module Author)
 

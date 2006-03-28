@@ -44,7 +44,7 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_VID;
 #include "avilib.h"
 
 /* Decoder API hasn't changed from API2 to API3, so we can use both */
-#include "export/xvid3.h"
+#include "xvid3.h"
 
 
 static int frame_size=0;

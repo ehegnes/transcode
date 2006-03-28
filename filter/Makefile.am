@@ -16,12 +16,6 @@ AM_CPPFLAGS = \
 
 pkgdir = $(MOD_PATH)
 
-if HAVE_MMX
-FILTER_DILYUVMMX = filter_dilyuvmmx.la
-else
-FILTER_DILYUVMMX=
-endif
-
 if HAVE_FREETYPE2
 FILTER_TEXT = filter_text.la
 endif
@@ -68,13 +62,10 @@ pkg_LTLIBRARIES = \
 	filter_clone.la \
 	filter_control.la \
 	filter_cpaudio.la \
-	filter_cshift.la \
-	filter_cut.la \
 	filter_decimate.la \
 	filter_denoise3d.la \
 	filter_detectclipping.la \
 	filter_detectsilence.la \
-	$(FILTER_DILYUVMMX) \
 	filter_dnr.la \
 	filter_doublefps.la \
 	filter_facemask.la \
@@ -90,7 +81,6 @@ pkg_LTLIBRARIES = \
 	filter_mask.la \
 	filter_modfps.la \
 	filter_msharpen.la \
-	filter_nored.la \
 	filter_normalize.la \
 	filter_null.la \
 	filter_resample.la \
@@ -100,13 +90,9 @@ pkg_LTLIBRARIES = \
 	filter_smartdeinter.la \
 	filter_smartyuv.la \
 	filter_smooth.la \
-	filter_tc_audio.la \
-	filter_tc_video.la \
-	filter_test.la \
 	filter_testframe.la \
 	$(FILTER_TEXT) \
 	filter_unsharp.la \
-	filter_videocore.la \
 	filter_whitebalance.la \
 	filter_xsharpen.la
 
@@ -136,12 +122,6 @@ filter_control_la_LDFLAGS = -module -avoid-version
 
 filter_cpaudio_la_SOURCES = filter_cpaudio.c
 filter_cpaudio_la_LDFLAGS = -module -avoid-version
-
-filter_cshift_la_SOURCES = filter_cshift.c
-filter_cshift_la_LDFLAGS = -module -avoid-version
-
-filter_cut_la_SOURCES = filter_cut.c
-filter_cut_la_LDFLAGS = -module -avoid-version
 
 filter_decimate_la_SOURCES = filter_decimate.c
 filter_decimate_la_LDFLAGS = -module -avoid-version
@@ -199,9 +179,6 @@ filter_modfps_la_LIBADD = -lm
 filter_msharpen_la_SOURCES = filter_msharpen.c
 filter_msharpen_la_LDFLAGS = -module -avoid-version
 
-filter_nored_la_SOURCES = filter_nored.c
-filter_nored_la_LDFLAGS = -module -avoid-version
-
 filter_normalize_la_SOURCES = filter_normalize.c
 filter_normalize_la_LDFLAGS = -module -avoid-version
 filter_normalize_la_LIBADD = -lm
@@ -231,23 +208,11 @@ filter_smartyuv_la_LDFLAGS = -module -avoid-version
 filter_smooth_la_SOURCES = filter_smooth.c
 filter_smooth_la_LDFLAGS = -module -avoid-version
 
-filter_tc_audio_la_SOURCES = filter_tc_audio.c
-filter_tc_audio_la_LDFLAGS = -module -avoid-version
-
-filter_tc_video_la_SOURCES = filter_tc_video.c
-filter_tc_video_la_LDFLAGS = -module -avoid-version
-
-filter_test_la_SOURCES = filter_test.c
-filter_test_la_LDFLAGS = -module -avoid-version
-
 filter_testframe_la_SOURCES = filter_testframe.c
 filter_testframe_la_LDFLAGS = -module -avoid-version
 
 filter_unsharp_la_SOURCES = filter_unsharp.c
 filter_unsharp_la_LDFLAGS = -module -avoid-version
-
-filter_videocore_la_SOURCES = filter_videocore.c
-filter_videocore_la_LDFLAGS = -module -avoid-version
 
 filter_whitebalance_la_SOURCES = filter_whitebalance.c
 filter_whitebalance_la_LDFLAGS = -module -avoid-version
@@ -269,12 +234,6 @@ filter_logoaway_la_LIBADD = $(IMAGEMAGICK_LIBS)
 filter_compare_la_SOURCES = filter_compare.c
 filter_compare_la_LDFLAGS = -module -avoid-version
 filter_compare_la_LIBADD = $(IMAGEMAGICK_LIBS)
-
-
-# FILTER_DILYUVMMX = filter_dilyuvmmx.la
-
-filter_dilyuvmmx_la_SOURCES = filter_dilyuvmmx.c deinterlace.c
-filter_dilyuvmmx_la_LDFLAGS = -module -avoid-version
 
 
 # FILTER_TEXT = filter_text.la

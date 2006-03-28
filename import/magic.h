@@ -41,9 +41,7 @@
 #define TC_MAGIC_CDXA                  0x00000020
 #define TC_MAGIC_VDR                   0x00000021
 #define TC_MAGIC_XML                   0x00000022
-#define TC_MAGIC_LAV                   0x00000023
 #define TC_MAGIC_OGG                   0x00000024
-#define TC_MAGIC_AF6                   0x00000025
 #define TC_MAGIC_VNC                   0x00000026
 #define TC_MAGIC_MXF                   0x00000027
 
@@ -89,7 +87,6 @@
 #define TC_MAGIC_SGI                   0x000001DA
 #define TC_MAGIC_PNG                   0x89504e47
 #define TC_MAGIC_GIF                   0x00474946
-#define TC_MAGIC_PVN                   0x00005037
 #define TC_MAGIC_PPM                   0x00005036
 #define TC_MAGIC_PGM                   0x00005035
 #define TC_MAGIC_ID3                   0x49443303

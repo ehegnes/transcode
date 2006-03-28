@@ -140,7 +140,6 @@ const char *codec2str(int flag)
         case TC_CODEC_YUV2:    return "YUV2";
         case TC_CODEC_NUV:     return "RTjpeg";
         case TC_CODEC_RGB:     return "RGB/BGR";
-        case TC_CODEC_LAV:     return "LAV";
         case TC_CODEC_PCM:     return "PCM";
     }
     return "unknown";
@@ -176,7 +175,6 @@ const char *mformat2str(int flag)
         case TC_MAGIC_AVI:       return "RIFF data, AVI";
         case TC_MAGIC_MOV:       return "QuickTime";
         case TC_MAGIC_XML:       return "XML file";
-        case TC_MAGIC_LAV:       return "Edit list";
         case TC_MAGIC_TIFF1:     return "TIFF image";
         case TC_MAGIC_TIFF2:     return "TIFF image";
         case TC_MAGIC_JPEG:      return "JPEG image";

@@ -370,8 +370,6 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 							p_audiovideo->s_v_magic=TC_MAGIC_AVI;
 						else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"mov") == 0)
 							p_audiovideo->s_v_magic=TC_MAGIC_AVI;
-						else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"af6") == 0)
-							p_audiovideo->s_v_magic=TC_MAGIC_AF6;
 						else
 						{
 							fprintf(stderr,"(%s) The in-video-magic %s parameter isn't yet supported.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
@@ -385,8 +383,6 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 							p_audiovideo->s_a_magic=TC_MAGIC_AVI;
 						else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"mov") == 0)
 							p_audiovideo->s_a_magic=TC_MAGIC_AVI;
-						else if (xmlStrcmp((char *)p_node->xmlChildrenNode->content, (const xmlChar*)"af6") == 0)
-							p_audiovideo->s_a_magic=TC_MAGIC_AF6;
 						else
 						{
 							fprintf(stderr,"(%s) The in-audio-magic %s parameter isn't yet supported.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);

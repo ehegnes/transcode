@@ -32,17 +32,12 @@
 
 static char *p_supported_modules[] = {
 				"null",
-				"af6",
 				"mpeg2enc",
 				"mp2enc",
 				"mpeg",
 				"divx5",
-				"divx4",
 				"ffmpeg",
 				"xvid",
-				"xvid2",
-//				"xvid3",
-//				"xvid4",
 				 NULL
 			};
 

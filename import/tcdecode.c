@@ -322,20 +322,6 @@ int main(int argc, char *argv[])
 	done = 1;
     }
 
-    // AF6 audio
-    if (!strcmp(codec, "af6audio")) {
-      decode.select = TC_AUDIO;
-      decode_af6(&decode);
-      done = 1;
-    }
-
-    // AF6 video
-    if (!strcmp(codec, "af6video")) {
-      decode.select = TC_VIDEO;
-      decode_af6(&decode);
-      done = 1;
-    }
-
 #if 0
     // DivX Video
     if (!strcmp(codec, "divx")) {

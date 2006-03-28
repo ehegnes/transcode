@@ -36,8 +36,6 @@ unsigned char asfhdrguid[16]={0x30,0x26,0xB2,0x75,0x8E,0x66,0xCF,0x11,0xA6,0xD9,
 
 unsigned char mxfmagic[]={0x06,0x0e,0x2b,0x34,0x02,0x05,0x01,0x01};
 
-unsigned char lavheader[14]="LAV Edit List\n";
-
 unsigned char zero_pad[4]={0,0,0,0};
 
 static int cmp_32_bits(char *buf, long x)
@@ -257,13 +255,6 @@ long fileinfo(int fdes, int skip)
 
   if (strncmp (buf, "P5", 2)==0) {
       id = TC_MAGIC_PGM;
-      goto exit;
-  }
-
-  // PVN image
-
-  if (strncmp (buf, "PV", 2)==0) {
-      id = TC_MAGIC_PVN;
       goto exit;
   }
 
@@ -532,12 +523,6 @@ long fileinfo(int fdes, int skip)
     goto exit;
   }
 
-  //LAV Edit List
-  if(memcmp(lavheader,buf,14)==0) {
-    id = TC_MAGIC_LAV;
-    goto exit;
-  }
-
   //MXF
   if(memcmp(mxfmagic,buf,sizeof(mxfmagic))==0) {
     id = TC_MAGIC_MXF;
@@ -791,12 +776,6 @@ long streaminfo(int fdes)
     goto exit;
   }
 
-  //LAV Edit List
-  if(memcmp(lavheader,buf,14)==0) {
-    id = TC_MAGIC_LAV;
-    goto exit;
-  }
-
   //MXF
   if(memcmp(mxfmagic,buf,sizeof(mxfmagic))==0) {
     id = TC_MAGIC_MXF;
@@ -836,11 +815,9 @@ char *filetype(long magic)
   case TC_MAGIC_GIF:          return("GIF image");
   case TC_MAGIC_PPM:          return("PPM image");
   case TC_MAGIC_PGM:          return("PGM image");
-  case TC_MAGIC_PVN:          return("PVN video");
   case TC_MAGIC_SGI:          return("SGI image");
   case TC_MAGIC_RMF:          return("Real Media");
   case TC_MAGIC_XML:          return("XML file, need to analyze the content");
-  case TC_MAGIC_LAV:          return("LAV Edit List");
   case TC_MAGIC_MXF:          return("The Material eXchange Format");
   case TC_MAGIC_OGG:          return("OGG Multimedia Container");
 
@@ -900,7 +877,6 @@ char *filemagic(long magic)
   case TC_MAGIC_DV_NTSC:  return("dv");
   case TC_MAGIC_YUV4MPEG: return("yuv4mpeg");
   case TC_MAGIC_XML:      return("xml");
-  case TC_MAGIC_LAV:      return("lav");
   case TC_MAGIC_OGG:      return("ogg");
   case TC_MAGIC_BSDAV:    return("bsdav");
   case TC_MAGIC_ERROR:    return("error");

@@ -35,7 +35,7 @@
 #include "ioaux.h"
 #include "tc.h"
 
-#include "export/xvid2.h"
+#include "xvid3.h"
 
 #define MOD_NAME    "decode_xvid"
 
