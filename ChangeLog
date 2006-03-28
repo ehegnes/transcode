@@ -1,3 +1,7 @@
+2006-03-28 Andrew Church <achurch at achurch dot org>
+  * import/import_vnc.c
+  Restored the import_vnc module (no longer disabled).
+
 2006-03-26 Francesco Romani <fromani at gmail dot com>
   * avilib/avimisc.c
   drop AVI_file_check (unused, replaced by libtc::tc_file_check).

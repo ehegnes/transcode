@@ -29,13 +29,6 @@ static char fifo[256];
 
 MOD_open
 {
-tc_log_error(MOD_NAME, "****************** NOTICE ******************");
-tc_log_error(MOD_NAME, "This module is disabled, probably because it");
-tc_log_error(MOD_NAME, "is considered obsolete or redundant.");
-tc_log_error(MOD_NAME, "If you still need this module, please");
-tc_log_error(MOD_NAME, "contact the transcode-users mailing list.");
-return TC_IMPORT_ERROR;
-
     if (param->flag == TC_VIDEO) {
 	char fps[32];
 	char cmdbuf[1024];
