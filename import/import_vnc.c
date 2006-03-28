@@ -1,5 +1,3 @@
-/******* NOTICE: this module is disabled *******/
-
 #define MOD_NAME    "import_vnc.so"
 #define MOD_VERSION "v0.0.2 (2003-11-29)"
 #define MOD_CODEC   "(video) VNC"
