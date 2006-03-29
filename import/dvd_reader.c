@@ -1026,14 +1026,17 @@ static long startusec;
 
 static void rip_counter_init(long int *t1, long int *t2)
 {
+#ifdef HAVE_GETTIMEOFDAY
   struct timeval tv;
   struct timezone tz={0,0};
 
   gettimeofday(&tv,&tz);
-
   *t1=tv.tv_sec;
   *t2=tv.tv_usec;
-
+#else
+  *t1 = time(NULL);
+  *t2 = 0;
+#endif
 }
 
 static void rip_counter_close(void)
@@ -1052,12 +1055,17 @@ static void rip_counter_set_range(long from, long to)
 
 static void counter_print(long int pida, long int pidn, long int t1, long int t2)
 {
-  struct timeval tv;
-  struct timezone tz={0,0};
-
   double fps;
 
+#ifdef HAVE_GETTIMEOFDAY
+  struct timeval tv;
+  struct timezone tz={0,0};
   if(gettimeofday(&tv,&tz)<0) return;
+#else
+  struct {long tv_sec, tv_usec;} tv;
+  tv.tv_sec = time(NULL);
+  tv.tv_usec = 0;
+#endif
 
   fps=(pidn-pida)/((tv.tv_sec+tv.tv_usec/1000000.0)-(t1+t2/1000000.0));
 

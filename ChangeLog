@@ -1,4 +1,7 @@
 2006-03-29 Andrew Church <achurch at achurch dot org>
+  * import/dvd_reader.c src/counter.c
+  Add #ifdef HAVE_GETTIMEOFDAY around gettimeofday() calls.
+
   * configure.in
   Remove unused autoconf tests.
 

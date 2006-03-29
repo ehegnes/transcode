@@ -156,6 +156,7 @@ void counter_print(int encoding, int frame, int first, int last)
         return;
     }
 
+#ifdef HAVE_GETTIMEOFDAY
     if (gettimeofday(&tv, &dummy_tz) != 0) {
         static int warned = 0;
         if (!warned) {
@@ -165,6 +166,9 @@ void counter_print(int encoding, int frame, int first, int last)
         return;
     }
     now = tv.tv_sec + (double)tv.tv_usec/1000000.0;
+#else
+    now = time(NULL);
+#endif
 
     timediff = now - old_time;
     old_time = now;
@@ -188,7 +192,12 @@ void counter_print(int encoding, int frame, int first, int last)
     /* Note that we don't add 1 to the numerator here, since start_time is
      * the time we were called for the first frame, so frame first+1 is one
      * one frame later than start_time, not two. */
-    fps = (frame - first) / (now - start_time);
+    if (now > start_time) {
+        fps = (frame - first) / (now - start_time);
+    } else {
+        /* No time has passed (maybe we don't have gettimeofday()) */
+        fps = 0;
+    }
 
     pthread_mutex_lock(&vbuffer_im_fill_lock);
     buf1 = vbuffer_im_fill_ctr;
@@ -212,7 +221,7 @@ void counter_print(int encoding, int frame, int first, int last)
     } else if (frames_to_encode == 0) {
         /* Total number of frames unknown, just display for current range */
         double done = (double)(frame - first + 1) / (double)(last+1 - first);
-        int secleft = (last+1 - frame) / fps;
+        int secleft = fps>0 ? ((last+1)-frame) / fps : -1;
         print_counter_line(encoding, frame, first, last, fps, done, time,
                            secleft, buf1, buf2, buf3);
 
@@ -238,8 +247,8 @@ void counter_print(int encoding, int frame, int first, int last)
         } else {
             double encode_fps, skip_fps, total_time;
             /* Find the processing speed for encoding and skipping */
-            encode_fps = encoded_frames / encoded_time;
-            if (skipped_frames > 0) {
+            encode_fps = encoded_time ? encoded_frames / encoded_time : 0;
+            if (skipped_frames > 0 && skipped_time > 0) {
                 skip_fps = skipped_frames / skipped_time;
             } else {
                 /* Just assume the same FPS for skipping as for encoding.
@@ -248,11 +257,16 @@ void counter_print(int encoding, int frame, int first, int last)
                  * entire encoding range. */
                 skip_fps = encode_fps;
             }
-            /* Estimate the total processing time required */
-            total_time = (frames_to_encode / encode_fps)
-                       + (frames_to_skip / skip_fps);
-            /* Determine time left (round up) and convert to string */
-            secleft = ceil(total_time - (encoded_time + skipped_time));
+            if (encode_fps > 0) {
+                /* Estimate the total processing time required */
+                total_time = (frames_to_encode / encode_fps)
+                           + (frames_to_skip / skip_fps);
+                /* Determine time left (round up) */
+                secleft = ceil(total_time - (encoded_time + skipped_time));
+            } else {
+                total_time = -1;
+                secleft = -1;
+            }
             /* Use the proper overall FPS in the status line */
             fps = encoding ? encode_fps : skip_fps;
         }
