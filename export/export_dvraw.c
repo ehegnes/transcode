@@ -282,9 +282,7 @@ MOD_encode
       dv_encode_full_frame(encoder, pixels, (format)?e_dv_color_yuv:e_dv_color_rgb, target);
 
     }//no pass-through
-#ifdef LIBDV_099
       encoder->samples_this_frame=param->size;
-#endif
       dv_encode_metadata(target, encoder->isPAL, encoder->is16x9, &now, 0);
       dv_encode_timecode(target, encoder->isPAL, 0);
 

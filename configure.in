@@ -908,25 +908,6 @@ dnl
 LIBDV_EXTRA_LIBS="$LIBDV_EXTRA_LIBS $PTHREAD_LIBS -lm"
 TC_PKG_CHECK(libdv, no, LIBDV, no, [libdv/dv.h], dv, dv_encoder_new,
  libdv, [http://libdv.sourceforge.net/])
-if test x"$have_libdv" = x"yes" ; then
-  save_LDFLAGS="$LDFLAGS"
-  LDFLAGS="$LDFLAGS $LIBDV_LIBS"
-  save_CPPFLAGS="$CPPFLAGS"
-  CPPFLAGS="$CPPFLAGS $LIBDV_CFLAGS"
-  dnl check for libdv version >= 0.99
-  AC_CHECK_LIB(dv, dv_calculate_samples,
-    [AC_DEFINE([LIBDV_099], [1], [Have libdv 0.99 or newer])],
-    [],
-    [$LIBDV_EXTRA_LIBS])
-dnl  dnl check for libdv version >= 0.103
-dnl  AC_TRY_COMPILE([#include <libdv/dv_types.h>
-dnl      #include <stdio.h>],
-dnl    [printf("header_size = %d\n", header_size);],
-dnl    [],
-dnl    [AC_DEFINE([LIBDV_0103], [1], [Have libdv 0.103 or newer])])
-  LDFLAGS="$save_LDFLAGS"
-  CPPFLAGS="$save_CPPFLAGS"
-fi
 TC_PKG_HAVE(libdv, LIBDV)
 
 dnl

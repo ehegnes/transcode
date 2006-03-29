@@ -6,6 +6,10 @@
   a dummy module directing users to use -x ffmpeg instead.
 
 2006-03-29 Andrew Church <achurch at achurch dot org>
+  * configure.in export/export_dvraw.c
+  Assume at least libdv 0.99 (2003/1 release), and remove libdv version
+  checks in configure.
+
   * configure.in import/nuv/st.h
   Remove unused strerror() prototype, and corresponding configure test.
 
