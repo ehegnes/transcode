@@ -1,4 +1,8 @@
 2006-03-29 Andrew Church <achurch at achurch dot org>
+  * filter/preview/display.c
+  Removed unused atexit() code.
+
+2006-03-29 Andrew Church <achurch at achurch dot org>
   * Changed: AUTHORS ChangeLog INSTALL configure.in docs/export-mods.txt
     docs/export_pvm.txt docs/import-mods.txt docs/import-xml.txt
     docs/html/dv.html docs/html/dvd.html docs/html/modules.html
