@@ -22,9 +22,9 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_VID;
 
 MOD_open
 {
-    tc_log_error("**************** NOTICE ****************");
-    tc_log_error("This module is obsolete.  Please use the");
-    tc_log_error("ffmpeg module (-x ffmpeg) for XviD video.");
+    tc_log_error(MOD_NAME, "**************** NOTICE ****************");
+    tc_log_error(MOD_NAME, "This module is obsolete.  Please use the");
+    tc_log_error(MOD_NAME, "ffmpeg module (-x ffmpeg) for XviD video.");
     return TC_IMPORT_ERROR;
 }
 
