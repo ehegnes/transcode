@@ -6,6 +6,9 @@
   a dummy module directing users to use -x ffmpeg instead.
 
 2006-03-29 Andrew Church <achurch at achurch dot org>
+  * configure.in import/nuv/st.h
+  Remove unused strerror() prototype, and corresponding configure test.
+
   * configure.in filter/filter_modfps.c
   Avoid use of (and configure test for) lrint(), since rint() was already
   being used.

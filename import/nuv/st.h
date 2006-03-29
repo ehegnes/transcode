@@ -287,10 +287,6 @@ extern void srand(P1(unsigned int seed));
 #endif
 extern void st_initrand(P0);
 
-#ifndef HAVE_STRERROR
-char *strerror(P1(int errorcode));
-#endif
-
 /* Read and write basic data types from "ft" stream.  Uses ft->swap for
  * possible byte swapping.
  */

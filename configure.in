@@ -108,8 +108,7 @@ AC_C_ATTRIBUTE_ALIGNED
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_TYPE_SIGNAL
-AC_CHECK_FUNCS([getpagesize gettimeofday memmove memset strerror])
-AC_CHECK_FUNCS([strlcat strlcpy vsscanf])
+AC_CHECK_FUNCS([getpagesize gettimeofday memmove memset strlcat strlcpy vsscanf])
 
 # Checks if support lib is needed
 enable_supportlib="no"
