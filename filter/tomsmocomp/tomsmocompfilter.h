@@ -63,9 +63,9 @@ static inline int Fieldcopy(void *dest, const void *src, size_t count,
  * gcc-3.2.3 does work -- tibit
  */
 #if defined(PIC) && (__GNUC__ == 2)
-#undef HAVE_MMX
-#undef HAVE_MMX2
-#undef HAVE_SSE
-#undef HAVE_3DNOW
+#undef HAVE_ASM_MMX
+#undef HAVE_ASM_MMX2
+#undef HAVE_ASM_SSE
+#undef HAVE_ASM_3DNOW
 #warning All optimizations disabled because of gcc-2.95
 #endif

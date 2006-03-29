@@ -82,7 +82,7 @@ void decode_ac3(decode_t *decode)
     ac3_config.ac3_gain[0] = decode->ac3_gain[0];
     ac3_config.ac3_gain[1] = decode->ac3_gain[1];
     ac3_config.ac3_gain[2] = decode->ac3_gain[2];
-#ifdef HAVE_MMX
+#ifdef HAVE_ASM_MMX
     ac3_config.flags |= AC3_MMX_ENABLE;
 #endif
 #ifdef HAVE_ASM_3DNOW

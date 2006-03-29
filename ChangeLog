@@ -6,6 +6,21 @@
   a dummy module directing users to use -x ffmpeg instead.
 
 2006-03-29 Andrew Church <achurch at achurch dot org>
+  * configure.in filter/Makefile.am filter/filter_smartyuv.c
+    filter/tomsmocomp/dscaler_interface.h
+    filter/tomsmocomp/filter_tomsmocomp.c
+    filter/tomsmocomp/tomsmocompfilter.h
+    filter/tomsmocomp/tomsmocompfilter_3dnow.c
+    filter/tomsmocomp/tomsmocompfilter_mmx.c
+    filter/tomsmocomp/tomsmocompfilter_sse.c
+    import/a52_decore.c import/decode_ac3.c
+  Unify names of inline assembly support ifdefs:
+    - {HAVE_ASM_MMX,HAVE_MMX}     -> HAVE_ASM_MMX
+    - {HAVE_ASM_3DNOW,HAVE_3DNOW} -> HAVE_ASM_3DNOW
+    - {HAVE_ASM_SSE,HAVE_SSE}     -> HAVE_ASM_SSE
+    - {HAVE_ASM_SSE2,HAVE_SSE2}   -> HAVE_ASM_SSE2
+    - HAVE_PPC_ALTIVEC            -> HAVE_ASM_ALTIVEC]
+
   * configure.in export/export_dvraw.c
   Assume at least libdv 0.99 (2003/1 release), and remove libdv version
   checks in configure.

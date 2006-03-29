@@ -112,19 +112,19 @@ static void do_deinterlace (tomsmocomp_t *tmc) {
     }
 
     /* Call dscaler code */
-#ifdef HAVE_SSE
+#ifdef HAVE_ASM_SSE
     if (tmc->cpuflags & AC_SSE) {
 	filterDScaler_SSE (&tmc->DSinfo,
 			   tmc->SearchEffort, tmc->UseStrangeBob);
     } else
 #endif
-#ifdef HAVE_3DNOW
+#ifdef HAVE_ASM_3DNOW
     if (tmc->cpuflags & AC_3DNOW) {
 	filterDScaler_3DNOW (&tmc->DSinfo,
 			     tmc->SearchEffort, tmc->UseStrangeBob);
     } else
 #endif
-#ifdef HAVE_MMX
+#ifdef HAVE_ASM_MMX
     if (tmc->cpuflags & AC_MMX) {
 	filterDScaler_MMX (&tmc->DSinfo,
 			   tmc->SearchEffort, tmc->UseStrangeBob);

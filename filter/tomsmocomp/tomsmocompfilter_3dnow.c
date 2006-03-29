@@ -20,7 +20,7 @@
 
 #include "tomsmocompfilter.h"
 
-#ifdef HAVE_3DNOW
+#ifdef HAVE_ASM_3DNOW
 #define IS_3DNOW
 #define SSE_TYPE 3DNOW
 #define FUNCT_NAME filterDScaler_3DNOW

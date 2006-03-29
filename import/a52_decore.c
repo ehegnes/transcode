@@ -93,7 +93,7 @@ int a52_decore(decode_t *decode) {
   uint32_t accel = MM_ACCEL_DJBFFT;
 
 
-#ifdef HAVE_MMX
+#ifdef HAVE_ASM_MMX
   if (ac_cpuinfo() & AC_MMX)
     accel |= MM_ACCEL_X86_MMX;
 #endif

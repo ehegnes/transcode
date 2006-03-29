@@ -29,7 +29,7 @@
 #include "filter.h"
 #include "optstr.h"
 
-//#undef HAVE_MMX
+//#undef HAVE_ASM_MMX
 //#undef CAN_COMPILE_C_ALTIVEC
 
 // mmx gives a speedup of about 3 fps

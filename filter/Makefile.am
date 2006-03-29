@@ -39,9 +39,9 @@ if HAVE_GCC4
 F_TOMSMOCOMP =
 else
 if ARCH_X86
-if HAVE_MMX
-if HAVE_SSE
-if HAVE_3DNOW
+if HAVE_ASM_MMX
+if HAVE_ASM_SSE
+if HAVE_ASM_3DNOW
 F_TOMSMOCOMP = tomsmocomp
 endif
 endif

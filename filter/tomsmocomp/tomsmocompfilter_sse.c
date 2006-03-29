@@ -20,7 +20,7 @@
 
 #include "tomsmocompfilter.h"
 
-#ifdef HAVE_SSE
+#ifdef HAVE_ASM_SSE
 #define IS_SSE
 #define SSE_TYPE SSE
 #define FUNCT_NAME filterDScaler_SSE
