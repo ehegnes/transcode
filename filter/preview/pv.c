@@ -35,11 +35,6 @@
 #include <math.h>
 
 
-// FIXME: Use autoconf for this!!
-#ifdef SYS_BSD /* We don't have on_exit() */
-xv_display_t 	*xv_dpy_on_exit_hack = NULL;
-#endif
-
 #define XV_FORMAT_MASK		0x03
 #define XV_FORMAT_ASIS		0x00
 #define XV_FORMAT_NORMAL	0x01
@@ -124,9 +119,6 @@ void xv_display_exit(xv_display_t *dv_dpy) {
 
   free(dv_dpy);
   dv_dpy = NULL;
-#ifdef SYS_BSD /* We don't have on_exit() */
-  xv_dpy_on_exit_hack = NULL;
-#endif
 } // xv_display_exit
 
 static int xv_pause=0;
@@ -651,23 +643,6 @@ static int xv_display_Xv_init(xv_display_t *dv_dpy, char *w_name, char *i_name,
   return 1;
 } // xv_display_Xv_init
 
-#if 0  // unused
-#ifndef SYS_BSD /* We don't have on_exit() */
-static void xv_display_exit_handler(int code, void *arg)
-{
-  if(code && arg) xv_display_exit(arg);
-} // dv_display_exit_handler
-#else
-static void
-xv_display_on_exit_hack_handler()
-{
-  if(xv_dpy_on_exit_hack != NULL) {
-    xv_display_exit(xv_dpy_on_exit_hack);
-  } /* if */
-} // xv_display_exit_handler
-#endif  // ! SYS_BSD
-#endif  // unused
-
 int xv_display_init(xv_display_t *dv_dpy, int *argc, char ***argv, int width, int height, char *w_name, char *i_name, int yuv422) {
 
   dv_dpy->width = width;
@@ -710,15 +685,6 @@ int xv_display_init(xv_display_t *dv_dpy, int *argc, char ***argv, int width, in
     dv_dpy->pitches[2] = width / 2;
     break;
   }
-#if 0
-
-#ifdef SYS_BSD /* We don't have on_exit() */
-  xv_dpy_on_exit_hack = dv_dpy;
-  atexit(xv_display_on_exit_hack_handler);
-#else
-  on_exit(xv_display_exit_handler, dv_dpy);
-#endif
-#endif
 
   return(0);
 

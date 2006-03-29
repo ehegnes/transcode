@@ -53,11 +53,6 @@
 #undef HAVE_SDL
 #endif
 
-// FIXME: Use autoconf for this!!
-#ifdef SYS_BSD /* We don't have on_exit() */
-dv_display_t 	*dv_dpy_on_exit_hack = NULL;
-#endif
-
 static int      dv_display_SDL_init(dv_display_t *dv_dpy, char *w_name, char   *i_name           );
 static int      dv_display_gdk_init(dv_display_t *dv_dpy, int  *argc,   char ***argv             );
 
@@ -215,9 +210,6 @@ dv_display_exit(dv_display_t *dv_dpy) {
 
   free(dv_dpy);
   dv_dpy = NULL;
-#ifdef SYS_BSD /* We don't have on_exit() */
-  dv_dpy_on_exit_hack = NULL;
-#endif
 } /* dv_display_exit */
 
 static int
@@ -664,26 +656,6 @@ dv_display_SDL_init(dv_display_t *dv_dpy, char *w_name, char *i_name) {
 
 #endif /* HAVE_SDL */
 
-#if 0 // unused
-#ifndef SYS_BSD /* We don't have on_exit() */
-static void
-dv_display_exit_handler(int code, void *arg)
-{
-  if(code && arg) {
-    dv_display_exit(arg);
-  } /* if */
-} /* dv_display_exit_handler */
-#else
-static void
-dv_display_on_exit_hack_handler()
-{
-  if(dv_dpy_on_exit_hack != NULL) {
-    dv_display_exit(dv_dpy_on_exit_hack);
-  } /* if */
-} /* dv_display_exit_handler */
-#endif  // ! SYS_BSD
-#endif  // unused
-
 int
 dv_display_init(dv_display_t *dv_dpy, int *argc, char ***argv, int width, int height,
 		dv_sample_t sampling, char *w_name, char *i_name) {
@@ -800,14 +772,6 @@ dv_display_init(dv_display_t *dv_dpy, int *argc, char ***argv, int width, int he
   fprintf(stderr, " Using gtk for display\n");
 
  ok:
-#if 0 /* disabled because it does not seem to be needed any more */
-#ifdef SYS_BSD /* We don't have on_exit() */
-  dv_dpy_on_exit_hack = dv_dpy;
-  atexit(dv_display_on_exit_hack_handler);
-#else
-  on_exit(dv_display_exit_handler, dv_dpy);
-#endif
-#endif
   return(TRUE);
 
  fail:

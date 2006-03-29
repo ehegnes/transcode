@@ -1,5 +1,5 @@
 2006-03-29 Andrew Church <achurch at achurch dot org>
-  * filter/preview/display.c
+  * filter/preview/display.c filter/preview/pv.c
   Removed unused atexit() code.
 
 2006-03-29 Andrew Church <achurch at achurch dot org>
