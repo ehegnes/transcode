@@ -1,29 +1,16 @@
 /*
- *  import_xvid.c
+ * import_xvid.c -- dummy module to direct users to ffmpeg module
+ * Written by Andrew Church <achurch@achurch.org>
  *
- *  Copyright (C) Thomas Östreich - January 2002
- *
- *  This file is part of transcode, a video stream processing tool
- *
- *  transcode is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2, or (at your option)
- *  any later version.
- *
- *  transcode is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
- *
+ * This file is part of transcode, a video stream processing tool.
+ * transcode is free software, distributable under the terms of the GNU
+ * General Public License (version 2 or later).  See the file COPYING
+ * for details.
  */
 
 #define MOD_NAME    "import_xvid.so"
-#define MOD_VERSION "v0.0.3 (2003-11-29)"
-#define MOD_CODEC   "(video) XviD/OpenDivX/DivX 4.xx/5.xx"
+#define MOD_VERSION "v0.1.0 (2006-03-29)"
+#define MOD_CODEC   "(video) none/obsolete"
 
 #include "transcode.h"
 
@@ -33,343 +20,30 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_VID;
 #define MOD_PRE xvid
 #include "import_def.h"
 
-#ifdef HAVE_DLFCN_H
-#include <dlfcn.h>
-#else
-# ifdef SYSTEM_DARWIN
-#  include "libdldarwin/dlfcn.h"
-# endif
-#endif
-
-#include "avilib.h"
-
-/* Decoder API hasn't changed from API2 to API3, so we can use both */
-#include "xvid3.h"
-
-
-static int frame_size=0;
-
-static int (*XviD_decore)(void *para0, int opt, void *para1, void *para2);
-static int (*XviD_init)(void *para0, int opt, void *para1, void *para2);
-static void *XviD_decore_handle=NULL;
-static void *handle=NULL;
-
-static int global_colorspace;
-static int done_seek=0;
-
-static int x_dim, y_dim;
-
-#define XVID_SHARED_LIB_BASE "libxvidcore"
-#ifdef SYSTEM_DARWIN
-#define XVID_SHARED_LIB_SUFX "dylib"
-#else
-#define XVID_SHARED_LIB_SUFX "so"
-#endif
-
-static int xvid2_init(const char *path) {
-	const char *error;
-	char modules[6][TC_BUF_MAX];
-	char *module;
-	int i;
-
-
-	/* First we build all lib names we will try to load
-	 *  - xvid3 decoders to have bframe support
-	 *  - then xvid2 decoders
-	 *  - bare soname as a fallback */
-#ifdef SYSTEM_DARWIN
-	tc_snprintf(modules[0], sizeof(modules[0]), "%s/%s.%d.%s", path,
-	            XVID_SHARED_LIB_BASE, 3, XVID_SHARED_LIB_SUFX);
-#else
-	tc_snprintf(modules[0], sizeof(modules[0]), "%s/%s.%s.%d", path,
-	            XVID_SHARED_LIB_BASE, XVID_SHARED_LIB_SUFX, 3);
-#endif
-#ifdef SYSTEM_DARWIN
-	tc_snprintf(modules[1], sizeof(modules[1]), "%s.%d.%s",
-	            XVID_SHARED_LIB_BASE, 3, XVID_SHARED_LIB_SUFX);
-#else
-	tc_snprintf(modules[1], sizeof(modules[1]), "%s.%s.%d",
-	            XVID_SHARED_LIB_BASE, XVID_SHARED_LIB_SUFX, 3);
-#endif
-#ifdef SYSTEM_DARWIN
-	tc_snprintf(modules[2], sizeof(modules[2]), "%s/%s.%d.%s", path,
-	            XVID_SHARED_LIB_BASE, 2, XVID_SHARED_LIB_SUFX);
-#else
-	tc_snprintf(modules[2], sizeof(modules[2]), "%s/%s.%s.%d", path,
-	            XVID_SHARED_LIB_BASE, XVID_SHARED_LIB_SUFX, 2);
-#endif
-#ifdef SYSTEM_DARWIN
-	tc_snprintf(modules[3], sizeof(modules[3]), "%s.%d.%s",
-	            XVID_SHARED_LIB_BASE, 2, XVID_SHARED_LIB_SUFX);
-#else
-	tc_snprintf(modules[3], sizeof(modules[3]), "%s.%s.%d",
-	            XVID_SHARED_LIB_BASE, XVID_SHARED_LIB_SUFX, 2);
-#endif
-	tc_snprintf(modules[4], sizeof(modules[4]), "%s/%s.%s", path,
-	            XVID_SHARED_LIB_BASE, XVID_SHARED_LIB_SUFX);
-	tc_snprintf(modules[5], sizeof(modules[5]), "%s.%s",
-	            XVID_SHARED_LIB_BASE, XVID_SHARED_LIB_SUFX);
-
-	for(i=0; i<6; i++) {
-		module = modules[i];
-
-		if(verbose_flag & TC_DEBUG)
-			tc_log_info(MOD_NAME, "Trying to load shared lib %s",
-				module);
-
-		/* Try loading the shared lib */
-		handle = dlopen(modules[i], RTLD_GLOBAL| RTLD_LAZY);
-
-		/* We need to fetch every dlerror() */
-		error = dlerror();
-
-		/* Test wether loading succeeded */
-		if(handle != NULL)
-			goto so_loaded;
-	}
-
-	/* None of the modules were available */
-	tc_log_warn(MOD_NAME, "dlopen: %s", error);
-	return(-1);
-
- so_loaded:
-	if(verbose_flag & TC_DEBUG)
-		tc_log_info(MOD_NAME, "Using shared lib %s",
-			module);
-
-	/* Import the XviD init entry point */
-	XviD_init   = dlsym(handle, "xvid_init");
-
-	/* Something went wrong */
-	error = dlerror();
-	if(error != NULL)  {
-		tc_log_warn(MOD_NAME, "XviD_init: %s", error);
-		return(-1);
-	}
-
-	/* Import the XviD encoder entry point */
-	XviD_decore = dlsym(handle, "xvid_decore");
-
-	error = dlerror();
-	/* Something went wrong */
-	if(error != NULL)  {
-		tc_log_warn(MOD_NAME, "XviD_decore: %s", error);
-		return(-1);
-	}
-
-	return(0);
-}
-
-static avi_t *avifile=NULL;
-
-static int pass_through=0;
-
-//temporary video buffer
-static char *buffer;
-
-
-/* ------------------------------------------------------------
- *
- * open stream
- *
- * ------------------------------------------------------------*/
-
 MOD_open
 {
-  XVID_INIT_PARAM xinit;
-  XVID_DEC_PARAM xparam;
-  int xerr;
-  char *codec_str;
-
-  if(param->flag == TC_VIDEO) {
-
-    if(avifile==NULL)  {
-      if(vob->nav_seek_file) {
-	if(NULL == (avifile = AVI_open_input_indexfile(vob->video_in_file,0,vob->nav_seek_file))){
-	  AVI_print_error("avi open error");
-	  return(TC_IMPORT_ERROR);
-	}
-      } else {
-	if(NULL == (avifile = AVI_open_input_file(vob->video_in_file,1))){
-	  AVI_print_error("avi open error");
-	  return(TC_IMPORT_ERROR);
-	}
-      }
-    }
-
-    // vob->offset contains the last keyframe
-    if (!done_seek && vob->vob_offset>0) {
-	AVI_set_video_position(avifile, vob->vob_offset);
-	done_seek=1;
-    }
-
-
-    codec_str = AVI_video_compressor(avifile);
-    if(strlen(codec_str)==0) {
-      tc_log_warn(MOD_NAME, "invalid AVI file codec");
-      return(TC_IMPORT_ERROR);
-    }
-    if (!strcasecmp(codec_str, "DIV3") ||
-        !strcasecmp(codec_str, "MP43") ||
-        !strcasecmp(codec_str, "MPG3") ||
-        !strcasecmp(codec_str, "AP41")) {
-      tc_log_warn(MOD_NAME, "The XviD codec does not support MS-MPEG4v3 " \
-              "(aka DivX ;-) aka DivX3).");
-      return(TC_IMPORT_ERROR);
-    }
-
-    //load the codec
-    //if(xvid2_init("/data/scr/comp/video/xvid/xvid_20030610/xvidcore/build/generic")<0) {
-    if(xvid2_init(vob->mod_path)<0) {
-      tc_log_warn(MOD_NAME, "failed to init Xvid codec");
-      return(TC_IMPORT_ERROR);
-    }
-
-    xinit.cpu_flags = 0;
-    XviD_init(NULL, 0, &xinit, NULL);
-
-    //important parameter
-    xparam.width = AVI_video_width(avifile);
-    xparam.height = AVI_video_height(avifile);
-    x_dim = xparam.width;
-    y_dim = xparam.height;
-
-    xerr = XviD_decore(NULL, XVID_DEC_CREATE, &xparam, NULL);
-
-    if(xerr == XVID_ERR_FAIL) {
-      tc_log_warn(MOD_NAME, "codec open error");
-      return(TC_EXPORT_ERROR);
-    }
-    XviD_decore_handle=xparam.handle;
-
-    frame_size = xparam.width * xparam.height * 3;
-    switch(vob->im_v_codec) {
-      case CODEC_RGB:
-        global_colorspace = XVID_CSP_RGB24 | XVID_CSP_VFLIP;
-        frame_size = xparam.width * xparam.height * 3;
-        break;
-      case CODEC_YUV:
-        global_colorspace = XVID_CSP_YV12;
-	frame_size = (xparam.width * xparam.height * 3)/2;
-	break;
-      case CODEC_RAW:
-      case CODEC_RAW_YUV:
-	pass_through=1;
-	break;
-    }
-
-    if ((buffer = tc_bufalloc(frame_size))==NULL) {
-      perror("out of memory");
-      return(TC_EXPORT_ERROR);
-    } else
-      memset(buffer, 0, frame_size);
-
-    param->fd = NULL;
-
-    return(0);
-  }
-
-  return(TC_IMPORT_ERROR);
+    tc_log_error("**************** NOTICE ****************");
+    tc_log_error("This module is obsolete.  Please use the");
+    tc_log_error("ffmpeg module (-x ffmpeg) for XviD video.");
+    return TC_IMPORT_ERROR;
 }
 
-// Determine of the compressed frame is a keyframe for direct copy
-static int divx4_is_key(unsigned char *data, long size)
+MOD_decode
 {
-        int result = 0;
-        int i;
-
-        for(i = 0; i < size - 5; i++)
-        {
-                if( data[i]     == 0x00 &&
-                        data[i + 1] == 0x00 &&
-                        data[i + 2] == 0x01 &&
-                        data[i + 3] == 0xb6)
-                {
-                        if((data[i + 4] & 0xc0) == 0x0)
-                                return 1;
-                        else
-                                return 0;
-                }
-        }
-
-        return result;
+    return TC_IMPORT_ERROR;
 }
-
-/* ------------------------------------------------------------
- *
- * decode  stream
- *
- * ------------------------------------------------------------*/
-
-MOD_decode {
-  XVID_DEC_FRAME xframe;
-  int key, xerr;
-  long bytes_read;
-
-  if(param->flag == TC_VIDEO) {
-    bytes_read = (pass_through) ?
-                 AVI_read_frame(avifile, param->buffer, &key) :
-                 AVI_read_frame(avifile, buffer, &key);
-
-    if( bytes_read < 0)
-      return(TC_IMPORT_ERROR);
-
-    if (key)
-      param->attributes |= TC_FRAME_IS_KEYFRAME;
-
-    // PASS_THROUGH MODE
-    if(pass_through) {
-      if (divx4_is_key((unsigned char *)param->buffer, (long) param->size))
-	  param->attributes |= TC_FRAME_IS_KEYFRAME;
-      param->size = (int) bytes_read;
-      ac_memcpy(param->buffer, buffer, bytes_read);
-
-      return(0);
-    }
-
-    xframe.bitstream = buffer;
-    xframe.length = bytes_read;
-    xframe.stride = x_dim;
-    xframe.image = param->buffer;
-    xframe.colorspace = global_colorspace;
-    xframe.general = 0;
-    param->size = frame_size;
-
-    xerr = XviD_decore(XviD_decore_handle, XVID_DEC_DECODE, &xframe, NULL);
-    if (xerr != XVID_ERR_OK) {
-      tc_log_warn(MOD_NAME, "frame decoding failed. Perhaps you're trying to " \
-             "decode MS-MPEG4v3 (aka DivX ;-) aka DivX3)?");
-      return(TC_IMPORT_ERROR);
-    }
-
-    return(0);
-  }
-
-  return(TC_IMPORT_ERROR);
-}
-
-/* ------------------------------------------------------------
- *
- * close stream
- *
- * ------------------------------------------------------------*/
 
 MOD_close
 {
-  if(param->flag == TC_VIDEO) {
-    int xerr;
-
-    xerr = XviD_decore(XviD_decore_handle, XVID_DEC_DESTROY, NULL, NULL);
-    if (xerr == XVID_ERR_FAIL)
-      tc_log_warn(MOD_NAME, "encoder close error");
-
-    //remove codec
-    dlclose(handle);
-    done_seek=0;
-
-    return(0);
-  }
-
-  return(TC_IMPORT_ERROR);
+    return TC_IMPORT_ERROR;
 }
 
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */

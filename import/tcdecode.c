@@ -331,13 +331,6 @@ int main(int argc, char *argv[])
     }
 #endif
 
-    // XviD Video
-    if (!strcmp(codec, "xvid")) {
-      decode.select = TC_VIDEO;
-      decode_xvid(&decode);
-      done = 1;
-    }
-
     // MOV
     if (!strcmp(codec, "mov")) {
       decode_mov(&decode);

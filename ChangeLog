@@ -1,4 +1,11 @@
 2006-03-29 Andrew Church <achurch at achurch dot org>
+  * Changed: docs/import-mods.txt docs/man/transcode.1 import/Makefile.am
+        import/import_xvid.c import/tc.h import/tcdecode.c
+  * Removed: import/decode_xvid.c import/xvid3.h
+  Remove the broken/obsolete import_xvid module (-x xvid), and replace with
+  a dummy module directing users to use -x ffmpeg instead.
+
+2006-03-29 Andrew Church <achurch at achurch dot org>
   * import/dvd_reader.c src/counter.c
   Add #ifdef HAVE_GETTIMEOFDAY around gettimeofday() calls.
 
@@ -20,32 +27,33 @@
 
 2006-03-29 Andrew Church <achurch at achurch dot org>
   * Changed: AUTHORS ChangeLog INSTALL configure.in docs/export-mods.txt
-    docs/export_pvm.txt docs/import-mods.txt docs/import-xml.txt
-    docs/html/dv.html docs/html/dvd.html docs/html/modules.html
-    docs/man/tcdecode.1 docs/man/transcode.1 export/Makefile.am
-    export/export_xvid4.c filter/Makefile.am import/Makefile.am
-    import/decode_xvid.c import/fileinfo.c import/import_xml.c
-    import/import_xvid.c import/ioxml.c import/magic.h import/probe_stream.c
-    import/tc.h import/tcdecode.c libtc/tccodecs.h pvm3/external_codec.c
-    src/probe.c testsuite/newtest.pl
-  * Removed: export/af6_aux.cpp export/af6_aux.h export/divx4_encore2.h
-    export/divx4_encparam.h export/export_af6.conf export/export_af6.cpp
-    export/export_debugppm.c export/export_divx4.c export/export_divx4raw.c
-    export/export_divx5raw.c export/export_fame.c export/export_mjpeg.c
-    export/export_mp1e.c export/export_net.c export/export_pcm.c
-    export/export_pvn.c export/export_xvid2.c export/export_xvid3.c
-    export/xvid2.cfg export/xvid2.h export/xvid3.cfg export/xvid3.h
-    export/xvid_vbr.c export/xvid_vbr.h filter/filter_cshift.c
-    filter/filter_cut.c filter/filter_dilyuvmmx.c filter/filter_nored.c
-    filter/filter_tc_audio.c filter/filter_tc_video.c filter/filter_test.c
-    filter/filter_videocore.c import/af6_decore.cpp import/decode_af6.c
-    import/divx_decore.h import/import_af6.c import/import_divx.c
-    import/import_ffbin.c import/import_fraps.c import/import_lav.c
-    import/import_mpeg3.c import/import_net.c import/import_nvrec.c
-    import/import_pvn.c import/import_rawlist.c import/import_sh.c
-    import/import_vdrac3.c import/import_yuv.c import/probe_lav.c
-    import/probe_pvn.c import/pvn.c import/pvn.h import/pvnglobals.c
-    import/pvnglobals.h
+        docs/export_pvm.txt docs/import-mods.txt docs/import-xml.txt
+        docs/html/dv.html docs/html/dvd.html docs/html/modules.html
+        docs/man/tcdecode.1 docs/man/transcode.1 export/Makefile.am
+        export/export_xvid4.c filter/Makefile.am import/Makefile.am
+        import/decode_xvid.c import/fileinfo.c import/import_xml.c
+        import/import_xvid.c import/ioxml.c import/magic.h
+        import/probe_stream.c import/tc.h import/tcdecode.c
+        libtc/tccodecs.h pvm3/external_codec.c src/probe.c
+        testsuite/newtest.pl
+    Removed: export/af6_aux.cpp export/af6_aux.h export/divx4_encore2.h
+        export/divx4_encparam.h export/export_af6.conf export/export_af6.cpp
+        export/export_debugppm.c export/export_divx4.c export/export_divx4raw.c
+        export/export_divx5raw.c export/export_fame.c export/export_mjpeg.c
+        export/export_mp1e.c export/export_net.c export/export_pcm.c
+        export/export_pvn.c export/export_xvid2.c export/export_xvid3.c
+        export/xvid2.cfg export/xvid2.h export/xvid3.cfg export/xvid3.h
+        export/xvid_vbr.c export/xvid_vbr.h filter/filter_cshift.c
+        filter/filter_cut.c filter/filter_dilyuvmmx.c filter/filter_nored.c
+        filter/filter_tc_audio.c filter/filter_tc_video.c filter/filter_test.c
+        filter/filter_videocore.c import/af6_decore.cpp import/decode_af6.c
+        import/divx_decore.h import/import_af6.c import/import_divx.c
+        import/import_ffbin.c import/import_fraps.c import/import_lav.c
+        import/import_mpeg3.c import/import_net.c import/import_nvrec.c
+        import/import_pvn.c import/import_rawlist.c import/import_sh.c
+        import/import_vdrac3.c import/import_yuv.c import/probe_lav.c
+        import/probe_pvn.c import/pvn.c import/pvn.h import/pvnglobals.c
+        import/pvnglobals.h
   Remove the following modules, all previously disabled:
   -x af6,divx,ffbin,fraps,lav,mpeg3,net,nvrec,pvn,rawlist,sh,vdrac3,yuv
   -y af6,debugppm,divx4,divx4raw,divx5raw,fame,mjpeg,mp1e,net,pcm,pvn,xvid2,xvid3

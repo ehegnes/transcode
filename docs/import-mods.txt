@@ -198,14 +198,6 @@ S: o
 I: interface to XML files with file listing and frame range produced by kino.
 P: audio - RAW (pass-through) PCM, video - RAW (pass-through) RGB YUV DV
 
-M: import_xvid.c
-D: (video) XviD/OpenDivX/DivX 4.xx/5.xx
-C: none
-R: libxvidcore
-S: o
-I: decoding support for AVI-files with DivX, OpendivX, DivX 4.xx/5.xx, XviD video using the XviD codec.
-P: audio - none, video - RAW (pass-through) RGB YUV
-
 M: import_yuv4mpeg.c
 D: (video) YUV4MPEGx | (audio) WAVE
 C: none

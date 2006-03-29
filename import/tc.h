@@ -52,7 +52,6 @@ void tcprobe_thread(info_t *ipipe);
 void extract_avi(info_t *ipipe);
 
 void decode_lavc(decode_t *decode);
-void decode_xvid(decode_t *decode);
 void decode_mov(decode_t *decode);
 
 void extract_lzo(info_t *ipipe);

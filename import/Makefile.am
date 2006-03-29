@@ -209,8 +209,7 @@ EXTRA_DIST = \
 	seqinfo.h \
 	putvlc.h \
 	getvlc.h \
-	tc.h \
-	xvid3.h
+	tc.h
 
 bin_PROGRAMS = \
 	tcextract \
@@ -247,7 +246,6 @@ tcdecode_SOURCES = \
 	decode_mp3.c \
 	decode_mpeg2.c \
 	decode_ogg.c \
-	decode_xvid.c \
 	decode_yuv.c
 
 tcdecode_LDADD = \
