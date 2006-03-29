@@ -1,13 +1,16 @@
 2006-03-29 Andrew Church <achurch at achurch dot org>
-  * filter/preview/display.c filter/preview/pv.c
-  Remove unused atexit() code.
+  * filter/preview/filter_pv.c
+  Use tc_bufalloc() instead of private aligned allocation function.
+
+  * filter/filter_fps.c libtc/tc_functions.c
+  Avoid use of alloca() where optimization is not required.
 
   * filter/preview/filter_pv.c import/decode_a52.c import/decode_xvid.c
     pvm3/pvm_interface.c pvm3/tcpvmexportd.c src/dl_loader.c
   Remove unneeded "#ifdef SYS_BSD" in "const char *error" declarations.
 
-  * filter/filter_fps.c libtc/tc_functions.c
-  Avoid use of alloca() where optimization is not required.
+  * filter/preview/display.c filter/preview/pv.c
+  Remove unused atexit() code.
 
 2006-03-29 Andrew Church <achurch at achurch dot org>
   * Changed: AUTHORS ChangeLog INSTALL configure.in docs/export-mods.txt

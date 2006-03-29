@@ -102,29 +102,6 @@ void preview_toggle_skip(void)
   preview_skip = (preview_skip>0) ? 0: preview_skip_num;
 }
 
-static char * preview_alloc_align_buffer(size_t size)
-{
-#ifdef HAVE_GETPAGESIZE
-   long buffer_align=getpagesize();
-#else
-   long buffer_align=0;
-#endif
-   char *buf = malloc(size + buffer_align);
-
-   long adjust;
-
-   if (buf == NULL) {
-       fprintf(stderr, "(%s) out of memory", __FILE__);
-   }
-
-   adjust = buffer_align - ((long) buf) % buffer_align;
-
-   if (adjust == buffer_align)
-      adjust = 0;
-
-   return (buf + adjust);
-}
-
 /*-------------------------------------------------
  *
  * single function interface
@@ -242,17 +219,18 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if (cache_num) {
       if(preview_cache_init()<0) return(-1);
 
-      if ((undo_buffer = preview_alloc_align_buffer(SIZE_RGB_FRAME)) == NULL)
+      /* FIXME: these are never freed! */
+      if ((undo_buffer = tc_bufalloc(SIZE_RGB_FRAME)) == NULL)
 	  return (-1);
-      if ((run_buffer[0] = preview_alloc_align_buffer (SIZE_RGB_FRAME)) == NULL)
+      if ((run_buffer[0] = tc_bufalloc (SIZE_RGB_FRAME)) == NULL)
 	  return (-1);
-      if ((run_buffer[1] = preview_alloc_align_buffer (SIZE_RGB_FRAME)) == NULL)
+      if ((run_buffer[1] = tc_bufalloc (SIZE_RGB_FRAME)) == NULL)
 	  return (-1);
-      if ((process_buffer[0] = preview_alloc_align_buffer (SIZE_RGB_FRAME)) == NULL)
+      if ((process_buffer[0] = tc_bufalloc (SIZE_RGB_FRAME)) == NULL)
 	  return (-1);
-      if ((process_buffer[1] = preview_alloc_align_buffer (SIZE_RGB_FRAME)) == NULL)
+      if ((process_buffer[1] = tc_bufalloc (SIZE_RGB_FRAME)) == NULL)
 	  return (-1);
-      if ((process_buffer[2] = preview_alloc_align_buffer (SIZE_RGB_FRAME)) == NULL)
+      if ((process_buffer[2] = tc_bufalloc (SIZE_RGB_FRAME)) == NULL)
 	  return (-1);
 
     }
