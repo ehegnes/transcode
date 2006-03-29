@@ -43,7 +43,7 @@
 
 #ifndef SYS_BSD
 # ifdef HAVE_MALLOC_H
-# include <malloc.h>
+#  include <malloc.h>
 # endif
 #endif
 
