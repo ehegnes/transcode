@@ -1,4 +1,7 @@
 2006-03-29 Andrew Church <achurch at achurch dot org>
+  * configure.in
+  Remove unused autoconf tests.
+
   * filter/preview/filter_pv.c
   Use tc_bufalloc() instead of private aligned allocation function.
 
