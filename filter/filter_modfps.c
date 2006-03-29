@@ -62,9 +62,6 @@
 
 //#define DEBUG 1
 
-// FIXME
-extern long int lrint(double x);
-
 static int show_results=0;
 
 /*-------------------------------------------------
@@ -192,18 +189,9 @@ static void clone_phosphor_average(unsigned char *clone, unsigned char *next, vf
     return;
   } // else
   for(i=0;i<(ptr->v_width*ptr->v_height);i++){
-    //ptr->video_buf[i] = (unsigned char)lrint(pow( ( pow((double)clone[i], 3.0) +
-    //					      pow((double)next[i],  3.0) ) / 2.0,
-    //					      1.0/3.0));
-#ifdef HAVE_LIBM_LRINT
-    ptr->video_buf[i] = (unsigned char)lrint(pow((double) (( clone[i]*clone[i]*clone[i] +
-    					      next[i]*next[i]*next[i]) >> 1),
-					      1.0/3.0));
-#else
     ptr->video_buf[i] = (unsigned char)(long)rint(pow((double) (( clone[i]*clone[i]*clone[i] +
     					      next[i]*next[i]*next[i]) >> 1),
 					      1.0/3.0));
-#endif
   }
   for(; i<ptr->video_size; i++){
     ptr->video_buf[i] = (unsigned char)( ((short int)clone[i] + (short int)next[i]) >> 1);

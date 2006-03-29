@@ -6,6 +6,10 @@
   a dummy module directing users to use -x ffmpeg instead.
 
 2006-03-29 Andrew Church <achurch at achurch dot org>
+  * configure.in filter/filter_modfps.c
+  Avoid use of (and configure test for) lrint(), since rint() was already
+  being used.
+
   * import/dvd_reader.c src/counter.c
   Add #ifdef HAVE_GETTIMEOFDAY around gettimeofday() calls.
 

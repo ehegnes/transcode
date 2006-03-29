@@ -111,10 +111,6 @@ AC_TYPE_SIGNAL
 AC_CHECK_FUNCS([getpagesize gettimeofday memmove memset strerror])
 AC_CHECK_FUNCS([strlcat strlcpy vsscanf])
 
-AC_CHECK_LIB(m, lrint,
-  AC_DEFINE([HAVE_LIBM_LRINT], 1,
-    [Define if the lrint() function is in libm on your system]))
-
 # Checks if support lib is needed
 enable_supportlib="no"
 AC_CHECK_FUNCS(getopt_long_only, [], [enable_supportlib="yes"
