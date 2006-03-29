@@ -6,6 +6,9 @@
     pvm3/pvm_interface.c pvm3/tcpvmexportd.c src/dl_loader.c
   Remove unneeded "#ifdef SYS_BSD" in "const char *error" declarations.
 
+  * filter/filter_fps.c libtc/tc_functions.c
+  Avoid use of alloca() where optimization is not required.
+
 2006-03-29 Andrew Church <achurch at achurch dot org>
   * Changed: AUTHORS ChangeLog INSTALL configure.in docs/export-mods.txt
     docs/export_pvm.txt docs/import-mods.txt docs/import-xml.txt

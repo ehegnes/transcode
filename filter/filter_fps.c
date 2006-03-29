@@ -34,7 +34,7 @@
 static int
 parse_options(char *options, int *pre, double *infps, double *outfps)
 {
-	char	*p, *q, *r;
+	char	*p, *pbase, *q, *r;
 	size_t	len;
 	vob_t	*vob;
 	int	default_pre, i;
@@ -65,7 +65,7 @@ parse_options(char *options, int *pre, double *infps, double *outfps)
 	}
 
 	len = strlen(options);
-	p = alloca(len + 1);
+	p = pbase = malloc(len + 1);
 	ac_memcpy(p, options, len);
 	p[len] = '\0';
 
@@ -98,6 +98,8 @@ parse_options(char *options, int *pre, double *infps, double *outfps)
 			i++;
 		}
 	} while (q && (p = q));
+
+	free(pbase);
 
 	if (default_pre) {
 		if (*infps > *outfps) *pre = 1;

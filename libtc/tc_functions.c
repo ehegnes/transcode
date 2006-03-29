@@ -118,14 +118,6 @@ void tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
 
 /*************************************************************************/
 
-#if defined(HAVE_ALLOCA)
-#define local_alloc(s) alloca(s)
-#define local_free(s) do { (void)0; } while(0)
-#else
-#define local_alloc(s) malloc(s)
-#define local_free(s) free(s)
-#endif
-
 int tc_test_program(const char *name)
 {
 #ifndef NON_POSIX_PATH
@@ -151,8 +143,8 @@ int tc_test_program(const char *name)
     }
 
     pathlen = strlen(path) + 1;
-    tmp_path = local_alloc(pathlen * sizeof(char));
-    strtokbuf = local_alloc(pathlen * sizeof(char));
+    tmp_path = malloc(pathlen * sizeof(char));
+    strtokbuf = malloc(pathlen * sizeof(char));
 
     sret = strlcpy(tmp_path, path, pathlen);
     tc_test_string(__FILE__, __LINE__, pathlen, sret, errno);
@@ -162,7 +154,7 @@ int tc_test_program(const char *name)
             !done && tok_path;
             tok_path = strtok_r((char *)0, ":", strtokbuf)) {
         pathlen = strlen(tok_path) + strlen(name) + 2;
-        compl_path = local_alloc(pathlen * sizeof(char));
+        compl_path = malloc(pathlen * sizeof(char));
         sret = snprintf(compl_path, pathlen, "%s/%s", tok_path, name);
         tc_test_string(__FILE__, __LINE__, pathlen, sret, errno);
 
@@ -176,11 +168,11 @@ int tc_test_program(const char *name)
             }
         }
 
-        local_free(compl_path);
+        free(compl_path);
     }
 
-    local_free(tmp_path);
-    local_free(strtokbuf);
+    free(tmp_path);
+    free(strtokbuf);
 
     if (!done) {
         tc_warn("The '%s' program could not be found. \n", name);
@@ -199,9 +191,6 @@ int tc_test_program(const char *name)
 
     return 0;
 }
-
-#undef local_alloc
-#undef local_free
 
 /*************************************************************************/
 
