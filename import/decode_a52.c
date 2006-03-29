@@ -45,10 +45,7 @@ static void *handle;
 static char module[TC_BUF_MAX];
 
 static int a52_do_init(char *path) {
-#ifdef SYS_BSD
-    const
-#endif
-    char *error;
+    const char *error;
 
     tc_snprintf(module, sizeof(module), "%s/%s", path, MODULE);
 

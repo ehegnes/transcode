@@ -133,10 +133,7 @@ int tca_import(int opt, void *para1, void *para2)
 
 void *load_module(char *mod_name, int mode)
 {
-#ifdef SYS_BSD
-  const
-#endif
-  char *error;
+  const char *error;
   void *handle;
 
   if(mode & TC_EXPORT) {

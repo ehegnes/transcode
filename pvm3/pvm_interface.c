@@ -43,10 +43,7 @@
 
 void *f_init_pvm_func(char *p_option,void *p_ret_handle)
 {
-#ifdef SYS_BSD
-	const
-#endif
-	char *p_error;
+	const char *p_error;
 	char s_module[MAX_BUF];
 	void *p_handle;
 

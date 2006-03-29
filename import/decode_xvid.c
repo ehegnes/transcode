@@ -60,10 +60,7 @@ static int x_dim, y_dim;
 
 static int xvid2_init(char *path) {
 
-#ifdef SYS_BSD
-	const
-#endif
-		char *error;
+	const char *error;
 	char modules[6][TC_BUF_MAX];
 	char *module;
 	int i;

@@ -1,6 +1,10 @@
 2006-03-29 Andrew Church <achurch at achurch dot org>
   * filter/preview/display.c filter/preview/pv.c
-  Removed unused atexit() code.
+  Remove unused atexit() code.
+
+  * filter/preview/filter_pv.c import/decode_a52.c import/decode_xvid.c
+    pvm3/pvm_interface.c pvm3/tcpvmexportd.c src/dl_loader.c
+  Remove unneeded "#ifdef SYS_BSD" in "const char *error" declarations.
 
 2006-03-29 Andrew Church <achurch at achurch dot org>
   * Changed: AUTHORS ChangeLog INSTALL configure.in docs/export-mods.txt
@@ -30,13 +34,13 @@
     import/import_vdrac3.c import/import_yuv.c import/probe_lav.c
     import/probe_pvn.c import/pvn.c import/pvn.h import/pvnglobals.c
     import/pvnglobals.h
-  Removed the following modules, all previously disabled:
+  Remove the following modules, all previously disabled:
   -x af6,divx,ffbin,fraps,lav,mpeg3,net,nvrec,pvn,rawlist,sh,vdrac3,yuv
   -y af6,debugppm,divx4,divx4raw,divx5raw,fame,mjpeg,mp1e,net,pcm,pvn,xvid2,xvid3
   -J cshift,cut,dilyuvmmx,nored,tc_audio,tc_video,test,videocore
 
   * Added: import/xvid3.h
-  Added a copy of the former export/xvid3.h for {import,decode}_xvid.c.
+  Add a copy of the former export/xvid3.h for {import,decode}_xvid.c.
 
 2006-03-28 Andrew Church <achurch at achurch dot org>
   * import/import_vnc.c

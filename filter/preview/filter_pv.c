@@ -813,10 +813,7 @@ char **char2bmp(char c) {
 
 int preview_grab_jpeg(void)
 {
-#ifdef SYS_BSD
-    const
-#endif
-    char *error;
+    const char *error;
     char *prefix = "preview_grab-";
     vob_t *vob = tc_get_vob();
     static vob_t *mvob;
