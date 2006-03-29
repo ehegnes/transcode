@@ -1,3 +1,7 @@
+2006-03-29 Francesco Romani <fromani at gmail dot com>
+  * TODO
+  finally delete outdated content.
+
 2006-03-29 Andrew Church <achurch at achurch dot org>
   * Changed: docs/import-mods.txt docs/man/transcode.1 import/Makefile.am
         import/import_xvid.c import/tc.h import/tcdecode.c
