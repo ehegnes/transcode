@@ -81,29 +81,6 @@ double read_time_stamp(unsigned char *s)
   return (double)(clock_ref + clock_ref_ext / 300) / 90000;
 }
 
-unsigned int read_tc_time_stamp(char *s)
-{
-
-  unsigned long i, j;
-  unsigned long clock_ref=0, clock_ref_ext=0;
-
-  if(s[0] & 0x40) {
-
-    i = stream_read_int32(s);
-    j = stream_read_int16(s+4);
-
-    if(i & 0x40000000 || (i >> 28) == 2) {
-      clock_ref  = ((i & 0x31000000) << 3);
-      clock_ref |= ((i & 0x03fff800) << 4);
-      clock_ref |= ((i & 0x000003ff) << 5);
-      clock_ref |= ((j & 0xf800) >> 11);
-      clock_ref_ext = (j >> 1) & 0x1ff;
-    }
-  }
-
-  return ((unsigned int) (clock_ref * 300 + clock_ref_ext));
-}
-
 
 long read_time_stamp_long(unsigned char *s)
 {

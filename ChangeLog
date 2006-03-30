@@ -1,3 +1,8 @@
+2006-03-30 Francesco Romani <fromani at gmail dot com>
+  * import/ioaux.h import/ioaux.c import/extract_ac3.c
+  move read_tc_time_stamp into extract_ac3.c, and make it private
+  (static), since it's the only code that use such function.
+
 2006-03-29 Francesco Romani <fromani at gmail dot com>
   * TODO
   finally delete outdated content.

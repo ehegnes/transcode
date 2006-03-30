@@ -50,7 +50,6 @@ unsigned int stream_read_int16(unsigned char *s);
 unsigned int stream_read_int32(unsigned char *s);
 
 double read_time_stamp(unsigned char *s);
-unsigned int read_tc_time_stamp(char *s);
 long read_time_stamp_long(unsigned char *s);
 void import_info(int code, char *EXE);
 
