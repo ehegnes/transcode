@@ -24,13 +24,17 @@
 
 #include "config.h"
 
-#if defined HAVE_MJPEGTOOLS
-/* assert using new code (FIXME?) */
-
 #include "transcode.h"
 #include "framebuffer.h"
 #include "tcinfo.h"
 #include "libtc/libtc.h"
+
+#include "ioaux.h"
+#include "avilib.h"
+#include "tc.h"
+
+#if defined HAVE_MJPEGTOOLS
+/* assert using new code (FIXME?) */
 
 #if defined(HAVE_MJPEGTOOLS_INC)
 #include "yuv4mpeg.h"
@@ -39,10 +43,6 @@
 #include "mjpegtools/yuv4mpeg.h"
 #include "mjpegtools/mpegconsts.h"
 #endif
-
-#include "ioaux.h"
-#include "avilib.h"
-#include "tc.h"
 
 /* ------------------------------------------------------------
  *

@@ -69,6 +69,10 @@ if HAVE_OSS
 IMPORT_OSS = import_oss.la
 endif
 
+if HAVE_MJPEGTOOLS
+IMPORT_YUV4MPEG = import_yuv4mpeg.la
+endif
+
 IMPORT_BSDAV = import_bsdav.la
 
 
@@ -100,7 +104,7 @@ pkg_LTLIBRARIES = \
 	import_vob.la \
 	$(IMPORT_XML) \
 	import_xvid.la \
-	import_yuv4mpeg.la
+	$(IMPORT_YUV4MPEG)
 
 import_null_la_SOURCES = import_null.c
 import_null_la_LDFLAGS = -module -avoid-version

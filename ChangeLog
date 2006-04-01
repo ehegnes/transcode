@@ -1,3 +1,7 @@
+2006-04-31 Francesco Romani <fromani at gmail dot com>
+  * import/Makefile.am import/extract_yuv.c
+  Fix compilation if mjpegtools not avalaible.
+
 2006-03-30 Francesco Romani <fromani at gmail dot com>
   * import/ioaux.h import/ioaux.c import/extract_ac3.c
   move read_tc_time_stamp into extract_ac3.c, and make it private
