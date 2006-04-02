@@ -96,8 +96,7 @@ struct tcmoduleclass_ {
     /* mandatory operations: */
     int (*init)(TCModuleInstance *self);
     int (*fini)(TCModuleInstance *self);
-    const char *(*configure)(TCModuleInstance *self, const char *options,
-                             vob_t *vob);
+    int (*configure)(TCModuleInstance *self, const char *options, vob_t *vob);
     int (*stop)(TCModuleInstance *self);
     const char* (*inspect)(TCModuleInstance *self, const char *param);
 
@@ -233,6 +232,7 @@ struct tcmoduleclass_ {
  *      a string containing the answer, or NULL if parameter requested
  *      isn't known, or if an error occurr. In latter case a message
  *      will be emitted using tc_log*().
+ *      There is no need to tc_free() returned string.
  * Side effects:
  *      none
  * Preconditions:

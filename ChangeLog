@@ -2,6 +2,9 @@
   * docs/module-system-api.txt
   update NMS companion documentation.
 
+  * libtc/tcmodule-core.h libtc/tcmodule-data.h libtc/tcmodule.c
+  resync with last NMS code.
+
 2006-04-02 Francesco Romani <fromani at gmail dot com>
   * tools/Makefile.am
   link tcmodinfo to wavlib too.

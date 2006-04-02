@@ -253,7 +253,6 @@ TCModule tc_new_module(TCFactory factory,
  */
 int tc_del_module(TCFactory factory, TCModule module);
 
-#ifdef TCMODULE_DEBUG
 /*
  * tc_plugin_count:
  *      get the number of loaded plugins in a given factory.
@@ -329,13 +328,5 @@ int tc_instance_count(const TCFactory factory);
  *      None
  */
 int tc_compare_modules(const TCModule amod, const TCModule bmod);
-
-#else /* !TCMODULE_DEBUG */
-
-#define tc_plugin_count(factory) (-1)
-#define tc_instance_count(factory) (-1)
-#define tc_compare_modules(amod,bmod) (-1)
-
-#endif  /* TCMODULE_DEBUG */
 
 #endif /* TCMODULE_CORE_H */
