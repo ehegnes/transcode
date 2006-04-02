@@ -49,7 +49,8 @@ avimerge_LDADD = \
 	$(ACLIB_LIBS) \
 	$(LIBTC_LIBS)
 
-avifix_SOURCES = avifix.c
+avifix_SOURCES = \
+	avifix.c
 avifix_LDADD = \
 	$(AVILIB_LIBS) \
 	$(XIO_LIBS) \
@@ -84,6 +85,7 @@ tcmodinfo_LDADD = \
 	$(DLDARWINLIB) \
 	$(ACLIB_LIBS) \
 	$(AVILIB_LIBS) \
+	$(WAVLIB_LIBS) \
 	$(LIBTC_LIBS) \
 	$(LIBTCVIDEO_LIBS) \
 	$(PTHREAD_LIBS) \
