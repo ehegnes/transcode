@@ -105,7 +105,7 @@ static int null_fini(TCModuleInstance *self)
 }
 
 static const char *null_configure(TCModuleInstance *self,
-                                   const char *options)
+                                   const char *options, vob_t *vob)
 {
     return 0;
 }
