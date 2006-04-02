@@ -5,6 +5,9 @@
   * libtc/tcmodule-core.h libtc/tcmodule-data.h libtc/tcmodule.c
   resync with last NMS code.
 
+  * filter/filter_levels.c filter/filter_null.c
+  update NMS testing/example filters.
+
 2006-04-02 Francesco Romani <fromani at gmail dot com>
   * tools/Makefile.am
   link tcmodinfo to wavlib too.

@@ -18,7 +18,7 @@
 */
 
 #define MOD_NAME    "filter_levels.so"
-#define MOD_VERSION "v1.1.1 (2005-12-09)"
+#define MOD_VERSION "v1.1.2 (2005-12-29)"
 #define MOD_CAP     "Luminosity level scaler"
 #define MOD_AUTHOR  "Bryan Mayland"
 
@@ -45,6 +45,8 @@
 
 #define OPTION_BUF_SIZE    64
 #define MAP_SIZE           256
+
+#define CONF_STR_SIZE      64
 
 typedef struct
 {
@@ -196,19 +198,44 @@ static int levels_init_data(LevelsPrivateData *pd, const vob_t *vob,
     return 0;
 }
 
-static const char *levels_configure(TCModuleInstance *self,
-				    const char *options, vob_t *vob)
+static const char *levels_inspect(TCModuleInstance *self,
+                                  const char *param)
 {
     LevelsPrivateData *pd = NULL;
 
-    if (!self) {
+    if (!param) {
        return NULL;
     }
     pd = self->userdata;
 
-    if (optstr_lookup(options, "help")) {
+    if (optstr_lookup(param, "help")) {
         return levels_help;
     }
+
+    if (optstr_lookup(param, "all")) {
+        tc_snprintf(pd->conf_str, CONF_STR_SIZE,
+                    "input=%i-%i:gamma=%.3f:output=%i-%i:pre=%i",
+                    pd->parameter.in_black, pd->parameter.in_white,
+                    pd->parameter.in_gamma,
+                    pd->parameter.out_black, pd->parameter.out_white,
+                    pd->is_prefilter);
+    } else {
+        /* reset configuration string */
+        pd->conf_str[0] = '\0';
+    }
+
+    return pd->conf_str;
+}
+
+static int *levels_configure(TCModuleInstance *self,
+                             const char *options, vob_t *vob)
+{
+    LevelsPrivateData *pd = NULL;
+
+    if (!self) {
+       return -1;
+    }
+    pd = self->userdata;
 
     optstr_get(options, "input", "%d-%d", &pd->parameter.in_black, &pd->parameter.in_white);
     optstr_get(options, "gamma", "%f", &pd->parameter.in_gamma);
@@ -219,14 +246,7 @@ static const char *levels_configure(TCModuleInstance *self,
               pd->parameter.in_gamma,
               pd->parameter.out_black, pd->parameter.out_white);
 
-    tc_snprintf(pd->conf_str, CONF_STR_SIZE,
-                "input=%i-%i:gamma=%.3f:output=%i-%i:pre=%i",
-                pd->parameter.in_black, pd->parameter.in_white,
-                pd->parameter.in_gamma,
-                pd->parameter.out_black, pd->parameter.out_white,
-                pd->is_prefilter);
-
-    return pd->conf_str;
+    return 0;
 }
 
 static int levels_init(TCModuleInstance *self)
@@ -246,7 +266,8 @@ static int levels_init(TCModuleInstance *self)
     self->userdata = tc_malloc(sizeof(LevelsPrivateData));
 
     /* default configuration! */
-    levels_configure(self, "input=0-255:gamma=1.0:output=0-255:pre=0", vob);
+    levels_configure(self, "input=0-255:gamma=1.0:output=0-255:pre=0",
+                           vob);
 
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
@@ -358,6 +379,7 @@ static const TCModuleClass levels_class = {
     .fini         = levels_fini,
     .configure    = levels_configure,
     .stop         = levels_stop,
+    .inspect      = levels_inspect,
 
     .filter_video = levels_filter,
 };
