@@ -1,3 +1,7 @@
+2006-04-02 Francesco Romani <fromani at gmail dot com>
+  * docs/module-system-API.txt
+  update documentation.
+
 2006-03-18 Francesco Romani <fromani at gmail dot com>
   * src/Makefile.am import/Mkefile.am export/Makefile.am
   link wavlib only to main binaries, not to every module
