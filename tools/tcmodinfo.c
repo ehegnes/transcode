@@ -99,7 +99,6 @@ static void usage(void)
     fprintf(stderr, "\t -i name           Module name information (like \'smooth\')\n");
     fprintf(stderr, "\t -p                Print the compiled-in module path\n");
     fprintf(stderr, "\t -d verbosity      Verbosity mode [1 == TC_INFO]\n");
-    fprintf(stderr, "\t -D                dry run, only loads module (used for testing)\n");
     fprintf(stderr, "\t -m path           Use PATH as module path\n");
     fprintf(stderr, "\t -M element        Request to module informations about <element>\n");
     fprintf(stderr, "\t -s socket         Connect to transcode socket\n");
@@ -148,14 +147,6 @@ void tc_socket_list(void) {}
 void tc_socket_load(void) {}
 void tc_socket_parameter(void) {}
 void tc_socket_preview(void) {}
-
-/* include extern declarations to avoid warnings */
-extern int module_read_config(char *section, char *prefix, char *module,
-                              void *conf, char *configdir);
-extern int module_print_config(char *prefix, void *conf);
-int module_read_config(char *section, char *prefix, char *module,
-                       void *conf, char *configdir) { return 0; }
-int module_print_config(char *prefix, void *conf) { return 0; }
 
 static int load_plugin(const char *path, int id, int verbose)
 {
@@ -457,8 +448,10 @@ int main(int argc, char *argv[])
    return status;
 }
 
+#include "libioaux/static_libioaux.h"
 #include "libtc/static_optstr.h"
 #include "avilib/static_avilib.h"
+#include "avilib/static_wavlib.h"
 
 /* vim: sw=4
  */
