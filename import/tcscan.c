@@ -423,7 +423,7 @@ int main(int argc, char *argv[])
 	  pos++;
 	  lseek(ipipe.fd_in, pos, SEEK_SET);
       }
-      printf("POS %lld\n", pos);
+      printf("POS %lld\n", (unsigned long long)pos);
 
       // Example for _1_ mp3 chunk
       //
