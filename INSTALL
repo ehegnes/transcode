@@ -214,6 +214,7 @@ Optional packages:
     affected modules: a52_decore.so
 
   mjpegtools  http://mjpeg.sourceforge.net/
+  You need version >= 1.8.0 of mjpegtools.
     related options:
       --enable-mjpegtools (disabled)
           build with mjpegtools support for YUV4MPEG video streams
@@ -223,8 +224,8 @@ Optional packages:
           directory where mjpegtools headers are installed
       --with-mjpegtools-libs=DIR (/usr/lib)
           directory where mjpegtools libraries are installed
-    affected modules: export_yuv4mpeg.so, export_mpeg2enc.so,
-      export_mp2enc.so
+    affected modules: import_yuv4mpeg.so export_yuv4mpeg.so,
+      export_mpeg2enc.so, export_mp2enc.so
 
   SDL  http://www.libsdl.org/
     related options:
