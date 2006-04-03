@@ -46,8 +46,6 @@
 #define OPTION_BUF_SIZE    64
 #define MAP_SIZE           256
 
-#define CONF_STR_SIZE      64
-
 typedef struct
 {
     struct
@@ -227,8 +225,8 @@ static const char *levels_inspect(TCModuleInstance *self,
     return pd->conf_str;
 }
 
-static int *levels_configure(TCModuleInstance *self,
-                             const char *options, vob_t *vob)
+static int levels_configure(TCModuleInstance *self,
+			    const char *options, vob_t *vob)
 {
     LevelsPrivateData *pd = NULL;
 

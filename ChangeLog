@@ -1,3 +1,11 @@
+2006-04-02 Andrew Church <achurch at achurch dot org>
+  * filter/filter_levels.c filter/filter_null.c
+  Fix compilation warnings.
+
+  * tools/tcmodinfo.c
+  Remove #include "libioaux/static_libioaux.h", since libioaux is not
+  linked into tcmodinfo.
+
 2006-04-02 Francesco Romani <fromani at gmail dot com>
   * docs/module-system-api.txt
   update NMS companion documentation.

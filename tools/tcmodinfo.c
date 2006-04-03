@@ -448,7 +448,6 @@ int main(int argc, char *argv[])
    return status;
 }
 
-#include "libioaux/static_libioaux.h"
 #include "libtc/static_optstr.h"
 #include "avilib/static_avilib.h"
 #include "avilib/static_wavlib.h"
