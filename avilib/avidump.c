@@ -337,7 +337,7 @@ static void dump_vals(int fd, int count, struct VAL *names)
 	case INT64:
 	    xio_read(fd, &val64, 8);
 	    val64 = SWAP8(val64);
-	    printf("\t%-12s = 0x%016llx\n",names[i].name,val64);
+	    printf("\t%-12s = 0x%016llx\n",names[i].name, (unsigned long long)val64);
 	    break;
 	case INT32:
 	    xio_read(fd, &val32, 4);
@@ -625,7 +625,7 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
 	    duration = SWAP4(duration);
 	    if (size!=0)
 	    printf("\t\t [%6d] 0x%016llx 0x%08lx %8d\n", u++,
-		    offset, (long)size, (int)duration);
+		    (unsigned long long)offset, (long)size, (int)duration);
 	    datapos += 16;
 	}
 	break;

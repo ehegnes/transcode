@@ -1,4 +1,14 @@
 2006-04-03 Francesco Romani <fromani at gmail dot com>
+  * avilib/avidump.c avilib/avilib.c export/divx4_vbr.c
+    src/transcode.c tools/tcmp3cut.c tools/aviindex.c
+  Fix compilation warnings on amd64, like the following
+  example.c: In function 'something':
+  example.c:6: warning: format '%llu' expects type 'long long unsigned
+               int', but argument 2 has type 'off_t'
+  This is a bit weird to me since on amd64 we have
+  sizeof(long long)   = 8
+  sizeof(off_t)       = 8
+
   * tools/Makefile.am tools/tcmodinfo.c
   really link libioaux against tcmodinfo.
 

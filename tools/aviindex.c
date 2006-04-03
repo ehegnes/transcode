@@ -660,7 +660,12 @@ int main(int argc, char *argv[])
 
       //if (index_pos != pos)
       // tag, chunk_nr
-      fprintf(out_fd, "%.4s %d %ld %ld %lld %lld %lld %.2f\n", tag, ret, i, chunk-1, pos, len, key, print_ms);
+      fprintf(out_fd, "%.4s %d %ld %ld %lld %lld %lld %.2f\n",
+              tag, ret, i, chunk-1,
+              (unsigned long long)pos,
+              (unsigned long long)len,
+              (unsigned long long)key,
+              print_ms);
       i++;
 
       // don't update the counter every chunk
@@ -694,7 +699,7 @@ int main(int argc, char *argv[])
 	if (str2ulong(tag+4) && tag[1] == '0') {
 	    int typen, keyn;
 	    long chunkn, chunkptypen;
-	    off_t posn, lenn;
+	    unsigned long long posn, lenn;
 	    char tagn[5];
 	    double msn=0.0;
 
@@ -806,7 +811,7 @@ int main(int argc, char *argv[])
 	pos = str2ulong(avifile1->idx[i]+ 8);
 	pos += ioff;
 	// pos
-	fprintf(out_fd, " %llu", pos);
+	fprintf(out_fd, " %llu", (unsigned long long)pos);
 	// len
 	fprintf(out_fd, " %lu", str2ulong(avifile1->idx[i]+12));
 	// flags (keyframe?);
@@ -872,7 +877,12 @@ int main(int argc, char *argv[])
 
 	// index points to data in chunk, but chunk offset is needed here
 	pos -= 8;
-	fprintf(out_fd, "%.4s %d %ld %ld %lld %lld %lld %.2f\n", tagp, ret, i, chunk, pos, len, key, 0.0);
+	fprintf(out_fd, "%.4s %d %ld %ld %lld %lld %lld %.2f\n",
+                    tagp, ret, i, chunk,
+                    (unsigned long long)pos,
+                    (unsigned long long)len,
+                    (unsigned long long)key,
+                    0.0);
 	i++;
 
       }
