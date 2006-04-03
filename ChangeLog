@@ -1,3 +1,7 @@
+2006-04-03 Francesco Romani <fromani at gmail dot com>
+  * tools/Makefile.am tools/tcmodinfo.c
+  really link libioaux against tcmodinfo.
+
 2006-04-02 Andrew Church <achurch at achurch dot org>
   * filter/filter_levels.c filter/filter_null.c
   Fix compilation warnings.
