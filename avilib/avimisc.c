@@ -38,92 +38,88 @@
 
 void AVI_info(avi_t *avifile)
 {
+    if (avifile == NULL) {
+        fprintf(stderr, "[avilib] bad avi reference\n");
+    } else {
+        long frames = AVI_video_frames(avifile);
+        int width = AVI_video_width(avifile);
+        int height = AVI_video_height(avifile);
+        double fps = AVI_frame_rate(avifile);
+        const char *codec = AVI_video_compressor(avifile);
+        int tracks = AVI_audio_tracks(avifile);
+        int tmp = AVI_get_audio_track(avifile);
+        int j = 0;
 
-  long frames, rate, mp3rate, chunks, tot_bytes;
+        printf("[avilib] V: %6.3f fps, codec=%s, frames=%ld,"
+               " width=%d, height=%d\n",
+               fps, ((strlen(codec)==0)? "RGB": codec), frames,
+               width, height);
 
-  int width, height, format, chan, bits;
+        for (j = 0; j < tracks; j++) {
+            long rate, mp3rate, chunks, tot_bytes;
+            int format, chan, bits;
 
-  int j, tracks, tmp;
+            AVI_set_audio_track(avifile, j);
+            rate = AVI_audio_rate(avifile);
+            format = AVI_audio_format(avifile);
+            chan = AVI_audio_channels(avifile);
+            bits = AVI_audio_bits(avifile);
+            mp3rate = AVI_audio_mp3rate(avifile);
 
-  double fps;
+            chunks = AVI_audio_chunks(avifile);
+            tot_bytes = AVI_audio_bytes(avifile);
 
-  char *codec;
-
-  frames =  AVI_video_frames(avifile);
-   width =  AVI_video_width(avifile);
-  height =  AVI_video_height(avifile);
-
-  fps    =  AVI_frame_rate(avifile);
-  codec  =  AVI_video_compressor(avifile);
-
-  printf("[avilib] V: %6.3f fps, codec=%s, frames=%ld, width=%d, height=%d\n",  fps, ((strlen(codec)==0)? "RGB": codec), frames, width, height);
-
-  tracks=AVI_audio_tracks(avifile);
-
-  tmp=AVI_get_audio_track(avifile);
-
-  for(j=0; j<tracks; ++j) {
-
-      AVI_set_audio_track(avifile, j);
-
-      rate   =  AVI_audio_rate(avifile);
-      format =  AVI_audio_format(avifile);
-      chan   =  AVI_audio_channels(avifile);
-      bits   =  AVI_audio_bits(avifile);
-      mp3rate=  AVI_audio_mp3rate(avifile);
-
-      chunks = AVI_audio_chunks(avifile);
-      tot_bytes = AVI_audio_bytes(avifile);
-
-
-      if(chan>0) {
-	  printf("[avilib] A: %ld Hz, format=0x%02x, bits=%d, channels=%d, bitrate=%ld kbps,\n", rate, format, bits, chan, mp3rate);
-	  printf("[avilib]    %ld chunks, %ld bytes, %s\n", chunks, tot_bytes, (AVI_get_audio_vbr(avifile)?"VBR":"CBR"));
-      } else
-	  printf("[avilib] A: no audio track found\n");
-  }
-
-  AVI_set_audio_track(avifile, tmp); //reset
-
+            if (chan > 0) {
+                printf("[avilib] A: %ld Hz, format=0x%02x, bits=%d,"
+                       " channels=%d, bitrate=%ld kbps,\n",
+                       rate, format, bits,
+                       chan, mp3rate);
+                printf("[avilib]    %ld chunks, %ld bytes, %s\n",
+                       chunks, tot_bytes,
+                       (AVI_get_audio_vbr(avifile)?"VBR":"CBR"));
+            } else {
+                printf("[avilib] A: no audio track found\n");
+            }
+        }
+        AVI_set_audio_track(avifile, tmp); //reset
+    }
 }
 
 
-char *AVI_codec2str(short cc)
+const char *AVI_codec2str(uint32_t codec)
 {
-
-    switch (cc) {
-
-    case 0x1://PCM
-	return("PCM");
-	break;
-    case 0x2://MS ADPCM
-	return("MS ADPCM");
-	break;
-    case 0x11://IMA ADPCM
-	printf("Audio in ADPCM format\n");
-	break;
-    case 0x31://MS GSM 6.10
-    case 0x32://MSN Audio
-	printf("Audio in MS GSM 6.10 format\n");
-	break;
-    case 0x50://MPEG Layer-1,2
-	return("MPEG Layer-1/2");
-	break;
-    case 0x55://MPEG Layer-3
-	return("MPEG Layer-3");
-	break;
-    case 0x160:
-    case 0x161://DivX audio
-	return("DivX WMA");
-	break;
-    case 0x401://Intel Music Coder
-	printf("Audio in IMC format\n");
-	break;
-    case 0x2000://AC3
-	return("AC3");
-	break;
-    default:
-	return("unknown");
+    switch (codec) {
+      case 0x1:
+        return("PCM");
+        break;
+      case 0x2:
+        return("MS ADPCM");
+        break;
+      case 0x11:
+        return("Audio in ADPCM format");
+        break;
+      case 0x31: /* fallthrough */
+      case 0x32:
+        return("Audio in MS GSM 6.10 format\n");
+        break;
+      case 0x50:
+        return("MPEG Layer-1/2");
+        break;
+      case 0x55:
+        return("MPEG Layer-3");
+        break;
+      case 0x160: /* fallthrough */
+      case 0x161:
+        return("DivX WMA");
+        break;
+      case 0x401:
+        return("Audio in IMC format\n");
+        break;
+      case 0x2000:
+        return("AC3");
+        break;
+      default:
+        return("unknown");
     }
     return("unknown");
 }

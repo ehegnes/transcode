@@ -1,4 +1,10 @@
 2006-04-03 Francesco Romani <fromani at gmail dot com>
+  * avilib/avilib.h avilib/avimisc.c
+  mark const as return value for AVI_codec2str.
+  Rearrange avilib/avimisc.c (stylish/cosmetic changes, no
+  functional ones).
+  Maybe avilib/avimisc.c should be merged into avilib/avilib.c.
+
   * INSTALL
   mark mjpegtools 1.8.0 as the minimum supported version
   (released 2005-09-25).
