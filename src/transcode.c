@@ -2639,7 +2639,7 @@ int main(int argc, char *argv[]) {
       while(tmptime){
 	int new_frame_a, type, key;
 	long chunk, chunkptype, last_keyframe=0;
-	unsigned long long pos, len;
+	long long pos, len;
 	char tag[4];
 	double ms=0.0;
         flag=0;

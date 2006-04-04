@@ -343,7 +343,7 @@ int VbrControl_init_2pass_vbr_encoding(const char *filename, int bitrate, double
 		fprintf(m_pFile, "Total frames: %d Avg quantizer: %f\n",
 			iNumFrames, m_fQuant);
 		fprintf(m_pFile, "Expecting %12lld bits\n",
-                         (unsigned long long)desired_bits+non_text_bits);
+                         (long long)desired_bits+(long long)non_text_bits);
 		fflush(m_pFile);
 	}
 	VbrControl_set_quant(m_fQuant*m_vFrames[0].mult);
@@ -423,8 +423,8 @@ void VbrControl_update_2pass_vbr_encoding(int motion_bits, int texture_bits, int
 		dq=1;
 	if(m_pFile)
 		fprintf(m_pFile, "Progress: expected %12lld, achieved %12lld, dq %f",
-            			(unsigned long long)m_lExpectedBits,
-            			(unsigned long long)m_lEncodedBits,
+            			(long long)m_lExpectedBits,
+            			(long long)m_lEncodedBits,
             			dq);
 	q *= dq;
 	VbrControl_set_quant(q);

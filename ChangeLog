@@ -1,3 +1,11 @@
+2006-04-04 Francesco Romani <fromani at gmail dot com>
+  * src/transcode.c tools/tcmp3cut.c tools/aviindex.c
+    avilib/avidump.c avilib/avilib.c export/divx4_vbr.c
+    import/tcscan.c
+  make signedness of some variables more coherent with old code
+  before the off_t -> long long correction.
+  Perhaps The Right Thing To Do (tm) is to switch to (u)int64_t.
+
 2006-04-03 Francesco Romani <fromani at gmail dot com>
   * import/tcscan.c
   oops, forgot to update this one for the off_t VS long long issue.

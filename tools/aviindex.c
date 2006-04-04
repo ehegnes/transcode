@@ -662,9 +662,7 @@ int main(int argc, char *argv[])
       // tag, chunk_nr
       fprintf(out_fd, "%.4s %d %ld %ld %lld %lld %lld %.2f\n",
               tag, ret, i, chunk-1,
-              (unsigned long long)pos,
-              (unsigned long long)len,
-              (unsigned long long)key,
+              (long long)pos, (long long)len, (long long)key,
               print_ms);
       i++;
 
@@ -699,7 +697,7 @@ int main(int argc, char *argv[])
 	if (str2ulong(tag+4) && tag[1] == '0') {
 	    int typen, keyn;
 	    long chunkn, chunkptypen;
-	    unsigned long long posn, lenn;
+	    long long posn, lenn;
 	    char tagn[5];
 	    double msn=0.0;
 
@@ -879,9 +877,7 @@ int main(int argc, char *argv[])
 	pos -= 8;
 	fprintf(out_fd, "%.4s %d %ld %ld %lld %lld %lld %.2f\n",
                     tagp, ret, i, chunk,
-                    (unsigned long long)pos,
-                    (unsigned long long)len,
-                    (unsigned long long)key,
+                    (long long)pos, (long long)len, (long long)key,
                     0.0);
 	i++;
 
