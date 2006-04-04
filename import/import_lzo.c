@@ -113,7 +113,7 @@ MOD_open
       return(TC_IMPORT_ERROR);
     }
 
-    tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d\n",
+    tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d",
 		codec, fps, width, height);
 
     /*
@@ -176,7 +176,7 @@ MOD_decode
       uint8_t *compdata = out + sizeof(*h);
       int compsize = out_len - sizeof(*h);
       if (h->magic != video_codec) {
-	tc_log_warn(MOD_NAME, "frame with invalid magic 0x%08X\n", h->magic);
+	tc_log_warn(MOD_NAME, "frame with invalid magic 0x%08X", h->magic);
 	return (TC_IMPORT_ERROR);
       }
       if (h->flags & TC_LZO_NOT_COMPRESSIBLE) {
@@ -190,12 +190,12 @@ MOD_decode
 
     if (r == LZO_E_OK) {
       if(verbose & TC_DEBUG)
-	  tc_log_info(MOD_NAME, "decompressed %lu bytes into %lu bytes\n",
+	  tc_log_info(MOD_NAME, "decompressed %lu bytes into %lu bytes",
 		      (long) out_len, (long) param->size);
     } else {
 
       /* this should NEVER happen */
-      tc_log_warn(MOD_NAME, "internal error - decompression failed: %d\n", r);
+      tc_log_warn(MOD_NAME, "internal error - decompression failed: %d", r);
       return(TC_IMPORT_ERROR);
     }
 

@@ -1,4 +1,7 @@
 2006-04-04 Francesco Romani <fromani at gmail dot com>
+  * import/import_lzo.c export/export_lzo.c
+  cosmetic fix in tc_log*() usage.
+
   * src/transcode.c tools/tcmp3cut.c tools/aviindex.c
     avilib/avidump.c avilib/avilib.c export/divx4_vbr.c
     import/tcscan.c

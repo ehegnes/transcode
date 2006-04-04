@@ -66,7 +66,7 @@ MOD_init
 {
 
     if(param->flag == TC_VIDEO) {
-      if(verbose & TC_DEBUG) tc_log_info(MOD_NAME, "max AVI-file size limit = %lu bytes\n",
+      if(verbose & TC_DEBUG) tc_log_info(MOD_NAME, "max AVI-file size limit = %lu bytes",
 		                         (unsigned long) AVI_max_size());
 
       /*
