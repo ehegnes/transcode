@@ -1,4 +1,8 @@
 2006-04-07 Francesco Romani <fromani at gmail dot com>
+  * import/clone.c filter/extsub/filter_extsub.c
+  prepare to merge NMS encoder, part 2/3: include main encoder header file
+  where access to frame counters is needed.
+
   * src/tc_defaults.h
   prepare to merge NMS encoder, part 1/3: add some new macros needed by NMS
 

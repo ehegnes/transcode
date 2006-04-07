@@ -25,6 +25,7 @@
 #define USE_FIFO_LOGFILE 1
 
 #include "transcode.h"
+#include "encoder.h"
 #include "ioaux.h"
 #include "clone.h"
 #include "ivtc.h"
