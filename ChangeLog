@@ -1,4 +1,7 @@
 2006-04-07 Francesco Romani <fromani at gmail dot com>
+  * libioaux/static_libioaux.h
+  start to add *fc_time* functions.
+
   * import/clone.c filter/extsub/filter_extsub.c
   prepare to merge NMS encoder, part 2/2: include main encoder header file
   where access to frame counters is needed.
