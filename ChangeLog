@@ -1,4 +1,9 @@
 2006-04-08 Francesco Romani <fromani at gmail dot com>
+  * src/Makefile.am src/transcode.c src/transcode.h src/callback.c
+    src/filter.h src/socket.c
+  update code in src/ to work with NMS-enabled encoder.
+
+2006-04-08 Francesco Romani <fromani at gmail dot com>
   * Added files: encoder-buffer.c encoder-buffer.h
                  encoder-common.c encoder-common.h
  * encoder.c encoder.h

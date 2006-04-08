@@ -27,6 +27,7 @@
 #include "transcode.h"
 #include "decoder.h"
 #include "encoder.h"
+#include "encoder-buffer.h"
 #include "dl_loader.h"
 #include "framebuffer.h"
 #include "counter.h"
@@ -161,7 +162,6 @@ enum {
   AVI_LIMIT,
   SOCKET_FILE,
   DV_YUY2_MODE,
-  DV_YV12_MODE,
   LAME_PRESET,
   COLOR_LEVEL,
   VIDEO_MAX_BITRATE,
@@ -404,8 +404,7 @@ static void usage(int status)
   printf("--accel type[,...]   override CPU acceleration flags (for debugging)\n");
 #endif
   printf("--socket file        socket file for run-time control [no file]\n");
-  printf("--dv_yuy2_mode       force libdv YUY2 mode for PAL [autodetect]\n");
-  printf("--dv_yv12_mode       force libdv YV12 mode for PAL [autodetect]\n");
+  printf("--dv_yuy2_mode       libdv YUY2 mode (default is YV12) [off]\n");
   printf("--config_dir dir     Assume config files are in this dir [off]\n");
   printf("--export_prof S      Export profile {vcd, svcd, xvcd,  dvd}[-pal|-ntsc|-secam]\n");
   printf("--mplayer_probe      use (external) mplayer for probing source [off]\n");
@@ -545,8 +544,12 @@ static int transcoder(int mode, vob_t *vob)
       if(ex_vid_mod && strcmp(ex_vid_mod,"null") != 0) tc_encode_stream|=TC_VIDEO;
 
       // load export modules and check capabilities
-      if(export_init(vob, ex_aud_mod, ex_vid_mod)<0) {
-      	tc_warn("failed to init export modules");
+      if(export_init(tc_builtin_buffer(TC_FRAME_LAST), NULL)<0) {
+      	tc_error("failed to init export layer");
+	return(-1);
+      }
+      if(export_setup(vob, ex_aud_mod, ex_vid_mod, NULL)<0) {
+      	tc_error("failed to init export modules");
 	return(-1);
       }
 
@@ -645,8 +648,6 @@ int main(int argc, char *argv[]) {
 
     const char *dir_name, *dir_fname;
     int dir_fcnt=0, dir_audio=0;
-
-    transfer_t export_para;
 
     double fch, asr;
     int leap_bytes1, leap_bytes2;
@@ -769,7 +770,6 @@ int main(int argc, char *argv[]) {
       {"ts_pid", required_argument, NULL, TS_PID},
       {"socket", required_argument, NULL, SOCKET_FILE},
       {"dv_yuy2_mode", no_argument, NULL, DV_YUY2_MODE},
-      {"dv_yv12_mode", no_argument, NULL, DV_YV12_MODE},
       {"lame_preset", required_argument, NULL, LAME_PRESET},
       {"color", required_argument, NULL, COLOR_LEVEL},
       {"colour", required_argument, NULL, COLOR_LEVEL},
@@ -995,9 +995,7 @@ int main(int argc, char *argv[]) {
     vob->ts_pid1          = 0x0;
     vob->ts_pid2          = 0x0;
 
-    vob->video_frames_delay = 0;
-
-    vob->dv_yuy2_mode     = -1;
+    vob->dv_yuy2_mode     = 0;
     vob->hard_fps_flag    = 0;
     vob->mpeg_profile     = PROF_NONE;
 
@@ -2005,11 +2003,7 @@ int main(int argc, char *argv[]) {
 	  break;
 
 	case DV_YUY2_MODE:
-	  vob->dv_yuy2_mode = 1;
-	  break;
-
-	case DV_YV12_MODE:
-	  vob->dv_yuy2_mode = 0;
+	  vob->dv_yuy2_mode = TC_TRUE;
 	  break;
 
 	case TS_PID:
@@ -2945,33 +2939,14 @@ int main(int argc, char *argv[]) {
 
       // shall we really go this far?
       // If yes, there can be much more settings adjusted.
-      if (ex_vid_mod == NULL || !strcmp(ex_vid_mod, "ffmpeg")) {
-	if (!ex_aud_mod)
-	  ex_aud_mod = "ffmpeg";
-	switch (vob->mpeg_profile) {
-	  case(VCD):            vob->ex_v_fcc = "vcd";          break;
-	  case(VCD_PAL):        vob->ex_v_fcc = "vcd-pal";      break;
-	  case(VCD_NTSC):       vob->ex_v_fcc = "vcd-ntsc";     break;
-	  case(SVCD):           vob->ex_v_fcc = "svcd";         break;
-	  case(SVCD_PAL):       vob->ex_v_fcc = "svcd-pal";     break;
-	  case(SVCD_NTSC):      vob->ex_v_fcc = "svcd-ntsc";    break;
-	  case(XVCD):           vob->ex_v_fcc = "xvcd";         break;
-	  case(XVCD_PAL):       vob->ex_v_fcc = "xvcd-pal";     break;
-	  case(XVCD_NTSC):      vob->ex_v_fcc = "xvcd-ntsc";    break;
-	  case(DVD):            vob->ex_v_fcc = "dvd";          break;
-	  case(DVD_PAL):        vob->ex_v_fcc = "dvd-pal";      break;
-	  case(DVD_NTSC):       vob->ex_v_fcc = "dvd-ntsc";     break;
-	  case(PROF_NONE):                                      break;
-	}
-      } // ffmpeg
+      if (ex_vid_mod == NULL || !strcmp(ex_vid_mod, "mpeg2enc")) {
 #ifdef HAVE_MJPEGTOOLS
-      else if (!strcmp(ex_vid_mod, "mpeg2enc")) {
-	if (!ex_aud_mod)
+	if(!ex_aud_mod)
 	    ex_aud_mod = "mp2enc";
 	no_v_out_codec=0;
 	ex_vid_mod = "mpeg2enc";
 	//FIXME this should be in export_mpeg2enc.c
-	if (!vob->ex_v_fcc) {
+	if(!vob->ex_v_fcc) {
 	  switch (vob->mpeg_profile) {
 	    case VCD_PAL: case VCD_NTSC: case VCD:
 	      vob->ex_v_fcc = "1";
@@ -2986,13 +2961,36 @@ int main(int argc, char *argv[]) {
 	    default: break;
 	  }
 	}
-      } // mpeg2enc
 #endif
+      } else if(!strcmp(ex_vid_mod, "ffmpeg")) {
+
+	if(!ex_aud_mod)
+	  ex_aud_mod = "ffmpeg";
+
+	switch(vob->mpeg_profile)
+	{
+	  case(VCD):		vob->ex_v_fcc = "vcd";		break;
+	  case(VCD_PAL):	vob->ex_v_fcc = "vcd-pal";	break;
+	  case(VCD_NTSC):	vob->ex_v_fcc = "vcd-ntsc";	break;
+	  case(SVCD):		vob->ex_v_fcc = "svcd";		break;
+	  case(SVCD_PAL):	vob->ex_v_fcc = "svcd-pal";	break;
+	  case(SVCD_NTSC):	vob->ex_v_fcc = "svcd-ntsc";break;
+	  case(XVCD):		vob->ex_v_fcc = "xvcd";		break;
+	  case(XVCD_PAL):	vob->ex_v_fcc = "xvcd-pal";	break;
+	  case(XVCD_NTSC):	vob->ex_v_fcc = "xvcd-ntsc";break;
+	  case(DVD):		vob->ex_v_fcc = "dvd";		break;
+	  case(DVD_PAL):	vob->ex_v_fcc = "dvd-pal";	break;
+	  case(DVD_NTSC):	vob->ex_v_fcc = "dvd-ntsc";	break;
+	  case(PROF_NONE):					break;
+	}
+      } // ffmpeg
 
       if (ex_aud_mod == NULL) {
-        no_a_out_codec=0;
-        ex_aud_mod = "ffmpeg";
-      }
+#ifdef HAVE_MJPEGTOOLS
+	  no_a_out_codec=0;
+	  ex_aud_mod = "mp2enc";
+#endif
+	}
     } // mpeg_profile != PROF_NONE
 
 
@@ -4065,10 +4063,10 @@ int main(int argc, char *argv[]) {
       import_threads_create(vob);
 
       // init encoder
-      if(encoder_init(&export_para, vob)<0) tc_error("failed to init encoder");
+      if(encoder_init(vob)<0) tc_error("failed to init encoder");
 
       // open output files
-      if(encoder_open(&export_para, vob)<0) tc_error("failed to open output");
+      if(encoder_open(vob)<0) tc_error("failed to open output");
 
       // tell counter about all encoding ranges
       counter_reset_ranges();
@@ -4098,7 +4096,7 @@ int main(int argc, char *argv[]) {
           frame_b = tstart->etf;
         }
         // main encoding loop, returns when done with all frames
-        encoder(vob, frame_a, frame_b);
+        encoder_loop(vob, frame_a, frame_b);
 
 	// check for user cancelation request
 	if (sig_int || sig_tstp) break;
@@ -4120,10 +4118,10 @@ int main(int argc, char *argv[]) {
       }
 
       // close output files
-      encoder_close(&export_para);
+      encoder_close();
 
       // stop encoder
-      encoder_stop(&export_para);
+      encoder_stop();
 
       // cancel import threads
       import_threads_cancel();
@@ -4149,7 +4147,7 @@ int main(int argc, char *argv[]) {
       import_threads_create(vob);
 
       // encoder init
-      if(encoder_init(&export_para, vob)<0) tc_error("failed to init encoder");
+      if(encoder_init(vob)<0) tc_error("failed to init encoder");
 
       // need to loop for this option
 
@@ -4168,16 +4166,16 @@ int main(int argc, char *argv[]) {
 	vob->audio_out_file = buf;
 
 	// open output
-	if(encoder_open(&export_para, vob)<0)
+	if(encoder_open(vob)<0)
 	  tc_error("failed to open output");
 
 	fa = frame_a;
 	fb = frame_a + splitavi_frames;
 
-	encoder(vob, fa, ((fb > frame_b) ? frame_b : fb));
+	encoder_loop(vob, fa, ((fb > frame_b) ? frame_b : fb));
 
 	// close output
-	encoder_close(&export_para);
+	encoder_close();
 
 	// restart
 	frame_a += splitavi_frames;
@@ -4190,7 +4188,7 @@ int main(int argc, char *argv[]) {
 
       } while(import_status());
 
-      encoder_stop(&export_para);
+      encoder_stop();
 
       // cancel import threads
       import_threads_cancel();
@@ -4209,7 +4207,7 @@ int main(int argc, char *argv[]) {
        * --------------------------------------------------------------*/
 
       // encoder init
-      if(encoder_init(&export_para, vob)<0)
+      if(encoder_init(vob)<0)
 	tc_error("failed to init encoder");
 
       // open output
@@ -4217,7 +4215,7 @@ int main(int argc, char *argv[]) {
 
 	vob->video_out_file = psubase;
 
-	if(encoder_open(&export_para, vob)<0)
+	if(encoder_open(vob)<0)
 	  tc_error("failed to open output");
       }
 
@@ -4269,7 +4267,7 @@ int main(int argc, char *argv[]) {
 
 	  // open new output file
 	  if(!no_split) {
-	    if(encoder_open(&export_para, vob)<0)
+	    if(encoder_open(vob)<0)
 	      tc_error("failed to open output");
 	  }
 
@@ -4277,11 +4275,11 @@ int main(int argc, char *argv[]) {
 	  // we try to encode more frames and let the decoder safely
 	  // drain the queue to avoid threads not stopping
 
-	  encoder(vob, fa, TC_FRAME_LAST);
+	  encoder_loop(vob, fa, TC_FRAME_LAST);
 
 	  // close output file
 	  if(!no_split) {
-	    if(encoder_close(&export_para)<0)
+	    if(encoder_close()<0)
 	      tc_warn("failed to close encoder - non fatal");
 	  } else printf("\n");
 
@@ -4311,11 +4309,11 @@ int main(int argc, char *argv[]) {
 
       // close output
       if(no_split) {
-	if(encoder_close(&export_para)<0)
+	if(encoder_close()<0)
 	  tc_warn("failed to close encoder - non fatal");
       }
 
-      encoder_stop(&export_para);
+      encoder_stop();
 
       break;
 
@@ -4349,7 +4347,7 @@ int main(int argc, char *argv[]) {
       dir_fcnt=0;
 
       // encoder init
-      if(encoder_init(&export_para, vob)<0)
+      if(encoder_init(vob)<0)
 	tc_error("failed to init encoder");
 
       // open output
@@ -4374,7 +4372,7 @@ int main(int argc, char *argv[]) {
 	  vob->video_out_file = buf;
 	}
 
-	if(encoder_open(&export_para, vob)<0)
+	if(encoder_open(vob)<0)
 	  tc_error("failed to open output");
       }
 
@@ -4419,7 +4417,7 @@ int main(int argc, char *argv[]) {
 
 	// open output
 	if(!no_split) {
-	  if(encoder_open(&export_para, vob)<0)
+	  if(encoder_open(vob)<0)
 	    tc_error("failed to open output");
 	}
 
@@ -4429,7 +4427,7 @@ int main(int argc, char *argv[]) {
 	while (tstart) {
 
 	  // main encoding loop, return when done with all frames
-	  encoder(vob, tstart->stf, tstart->etf);
+	  encoder_loop(vob, tstart->stf, tstart->etf);
 
 	  // check for user cancelation request
 	  if (sig_int || sig_tstp) break;
@@ -4440,7 +4438,7 @@ int main(int argc, char *argv[]) {
 
 	// close output
 	if(!no_split) {
-	  if(encoder_close(&export_para)<0)
+	  if(encoder_close()<0)
 	    tc_warn("failed to close encoder - non fatal");
 	}
 
@@ -4464,11 +4462,11 @@ int main(int argc, char *argv[]) {
 
       // close output
       if(no_split) {
-	if(encoder_close(&export_para)<0)
+	if(encoder_close()<0)
 	  tc_warn("failed to close encoder - non fatal");
       }
 
-      encoder_stop(&export_para);
+      encoder_stop();
 
       break;
 
@@ -4488,7 +4486,7 @@ int main(int argc, char *argv[]) {
       // given DVD title
 
       // encoder init
-      if(encoder_init(&export_para, vob)<0)
+      if(encoder_init(vob)<0)
 	tc_error("failed to init encoder");
 
       // open output
@@ -4501,7 +4499,7 @@ int main(int argc, char *argv[]) {
 	vob->video_out_file = buf;
 	vob->audio_out_file = buf;
 
-	if(encoder_open(&export_para, vob)<0)
+	if(encoder_open(vob)<0)
 	  tc_error("failed to open output");
       }
 
@@ -4541,15 +4539,15 @@ int main(int argc, char *argv[]) {
 
 	// encode
 	if(!no_split) {
-	  if(encoder_open(&export_para, vob)<0)
+	  if(encoder_open(vob)<0)
 	    tc_error("failed to init encoder");
 	}
 
 	// main encoding loop, selecting an interval won't work
-	encoder(vob, frame_a, frame_b);
+	encoder_loop(vob, frame_a, frame_b);
 
 	if(!no_split) {
-	  if(encoder_close(&export_para)<0)
+	  if(encoder_close()<0)
 	    tc_warn("failed to close encoder - non fatal");
 	}
 
@@ -4572,11 +4570,11 @@ int main(int argc, char *argv[]) {
       }
 
       if(no_split) {
-	if(encoder_close(&export_para)<0)
+	if(encoder_close()<0)
 	  tc_warn("failed to close encoder - non fatal");
       }
 
-      encoder_stop(&export_para);
+      encoder_stop();
 
 #endif
       break;
@@ -4650,8 +4648,11 @@ int main(int argc, char *argv[]) {
 
       long drop = - tc_get_frames_dropped();
 
-      fprintf(stderr, "[%s] encoded %ld frames (%ld dropped, %ld cloned), clip length %6.2f s\n",
-	      PACKAGE, tc_get_frames_encoded(), drop, tc_get_frames_cloned(), tc_get_frames_encoded()/vob->fps);
+      fprintf(stderr, "[%s] encoded %ld frames (%ld dropped, %ld cloned),"
+                      " clip length %6.2f s\n",
+        	      PACKAGE, (long)tc_get_frames_encoded(), drop,
+                      (long)tc_get_frames_cloned(),
+                      tc_get_frames_encoded()/vob->fps);
     }
 
 #ifdef STATBUFFER
@@ -4674,19 +4675,10 @@ int main(int argc, char *argv[]) {
 // it is just there to trick the linker to not remove
 // unneeded object files from a .a file.
 
-#include "avilib/static_avilib.h"
-
-#include "avilib/static_wavlib.h"
-
 #include "libtc/static_optstr.h"
-
-#include "libioaux/configs.h"
-void dummy_libioaux(void);
-void dummy_libioaux(void) {
-  module_read_config(NULL, NULL, NULL, NULL, NULL);
-  append_fc_time( NULL, NULL);
-}
-
+#include "avilib/static_avilib.h"
+#include "avilib/static_wavlib.h"
+#include "libioaux/static_libioaux.h"
 
 /* vim: sw=2 ts=8
  */

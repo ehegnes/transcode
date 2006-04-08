@@ -40,6 +40,8 @@ EXTRA_DIST = \
 	decoder.h \
 	dl_loader.h \
 	encoder.h \
+	encoder-common.h \
+	encoder-buffer.h \
 	filter.h \
 	frame_threads.h \
 	framebuffer.h \
@@ -61,6 +63,8 @@ transcode_SOURCES = \
 	decoder.c \
 	dl_loader.c \
 	encoder.c \
+	encoder-common.c \
+	encoder-buffer.c \
 	filter.c \
 	frame_threads.c \
 	info_server.c \

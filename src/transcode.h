@@ -372,8 +372,8 @@ typedef struct _vob_t {
     char *im_a_string;          // Extra options for import audio module
     char *ex_v_string;          // Extra options for export video module
     char *ex_a_string;          // Extra options for export audio module
+    char *ex_m_string;          // Extra options for multiplexor module
 
-    int video_frames_delay;     // Delay audio by N frames (video is late)
     float m2v_requant;          // Requantize factor for mpeg2 video streams
 
     mpeg_profile_t mpeg_profile;
@@ -404,21 +404,11 @@ int tc_export(int opt, void *para1, void *para2);
 // Some functions exported by transcode
 
 void tc_import_stop_nolock(void);
-void tc_export_stop_nolock(void);
 vob_t *tc_get_vob(void);
-long tc_get_frames_dropped(void);
-long tc_get_frames_skipped(void);
-long tc_get_frames_encoded(void);
-long tc_get_frames_cloned(void);
-void tc_update_frames_dropped(long cc);
-void tc_update_frames_skipped(long cc);
-void tc_update_frames_encoded(long cc);
-void tc_update_frames_cloned(long cc);
-void tc_set_force_exit(void);
-int tc_get_force_exit(void);
 
 void tc_outstream_rotate(void);
 void tc_outstream_rotate_request(void);
+
 void tc_pause(void);
 void tc_pause_request(void);
 
