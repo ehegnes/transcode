@@ -1,4 +1,13 @@
 2006-04-08 Francesco Romani <fromani at gmail dot com>
+  * Added files: multiplex/multiplex_avi.c multiplex/multiplex_y4m.c
+  introduce other missing multiplexors avalaible.
+  Those two multiplexors are still experimental and still needs
+  some further work, test and debug.
+
+  * multiplex/multiplex_raw.c
+  we don't need to declare errno.
+
+2006-04-08 Francesco Romani <fromani at gmail dot com>
   * Makefile.am configure.in
   add new encode/ and multiplex/ directories to build system.
 

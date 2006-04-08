@@ -20,8 +20,6 @@
 #include <string.h>
 #include <errno.h>
 
-extern int errno;
-
 #define MOD_NAME    "multiplex_raw.so"
 #define MOD_VERSION "v0.0.3 (2006-03-06)"
 #define MOD_CAP     "write each stream in a separate file"
