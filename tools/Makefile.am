@@ -20,6 +20,7 @@ bin_PROGRAMS = \
 	avimerge \
 	avisplit \
 	avisync \
+	tcexport \
 	tcmodinfo \
 	tcmp3cut
 
@@ -92,6 +93,30 @@ tcmodinfo_LDADD = \
 	$(PTHREAD_LIBS) \
 	-lm
 tcmodinfo_LDFLAGS = -export-dynamic
+
+tcexport_SOURCES = tcexport.c \
+	rawsource.c \
+	rawsource.h \
+	../src/probe.c \
+	../src/dl_loader.c \
+	../src/audio_buffer.c \
+	../src/video_buffer.c \
+	../src/counter.c \
+	../src/encoder.c \
+	../src/encoder-common.c
+tcexport_LDADD = \
+	$(DLDARWINLIB) \
+	$(ACLIB_LIBS) \
+	$(AVILIB_LIBS) \
+	$(WAVLIB_LIBS) \
+	$(LIBTC_LIBS) \
+	$(LIBTCVIDEO_LIBS) \
+	$(LIBTCAUDIO_LIBS) \
+	$(SUPPORT_LIBS) \
+	$(TCIOAUX_LIBS) \
+	$(XIO_LIBS) \
+	-lm
+tcexport_LDFLAGS = -export-dynamic
 
 tcmp3cut_SOURCES = \
 	tcmp3cut.c \

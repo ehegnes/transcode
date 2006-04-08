@@ -1,4 +1,19 @@
 2006-04-08 Francesco Romani <fromani at gmail dot com>
+  * Added files: tools/rawsource.c tools/rawsource.h
+                 tools/tcexport.c
+  * tools/Makefile,am
+  enter new helper tool: tcexport.
+  tcexport is a the-simplest-thing-that-works style frontend for
+  new encoder code. It acts as testbed for new NMS encoder code
+  and features until all interested export module are ported,
+  and so we can start using new-style encoder code even into
+  transcode main binary.
+
+  The biggest flaw of tcexport at this time is the lack of a
+  manpage. I'll take care ASAP as part of documentation
+  writing/update effort.
+
+2006-04-08 Francesco Romani <fromani at gmail dot com>
   * export/export_xvid4.c
   update export_xvid4 module to work with enhanced old-style encoder
   provided by new NMS-enabled encoder.
