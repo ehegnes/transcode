@@ -50,7 +50,7 @@
 
 #ifndef SYS_BSD
 # ifdef HAVE_MALLOC_H
-#  include <malloc.h>
+# include <malloc.h>
 # endif
 #endif
 
@@ -413,11 +413,7 @@ MOD_encode
 	/* XviD Core rame buffering handling
 	* We must make sure audio A/V is still good and does not run away */
 	if(bytes == 0) {
-		extern pthread_mutex_t delay_video_frames_lock;
-		extern int video_frames_delay;
-		pthread_mutex_lock(&delay_video_frames_lock);
-		video_frames_delay++;
-		pthread_mutex_unlock(&delay_video_frames_lock);
+        param->attributes |= TC_FRAME_IS_DELAYED;
 		return(TC_EXPORT_OK);
 	}
 
@@ -1259,7 +1255,8 @@ static int load_xvid(xvid_module_t *xvid, const char *path)
 		tc_log_warn(MOD_NAME, "Error loading symbol (%s)", error);
 		tc_log_warn(MOD_NAME, "Library \"%s\" looks like an old "
 				      "version of libxvidcore", soname[i]);
-		tc_log_warn(MOD_NAME, "You cannot use this library.");
+		tc_log_warn(MOD_NAME, "You cannot use this module with this"
+				      " lib; maybe -y xvid2 works");
 		return(-1);
 	}
 

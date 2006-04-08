@@ -1,4 +1,8 @@
 2006-04-08 Francesco Romani <fromani at gmail dot com>
+  * export/export_xvid4.c
+  update export_xvid4 module to work with enhanced old-style encoder
+  provided by new NMS-enabled encoder.
+
   * src/Makefile.am src/transcode.c src/transcode.h src/callback.c
     src/filter.h src/socket.c
   update code in src/ to work with NMS-enabled encoder.
