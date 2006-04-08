@@ -1243,6 +1243,7 @@ AC_OUTPUT([
 	docs/html/Makefile
 	docs/man/Makefile
 	docs/release-notes/Makefile
+	encode/Makefile
 	export/Makefile
 	filter/Makefile
 	filter/divxkey/Makefile
@@ -1255,6 +1256,7 @@ AC_OUTPUT([
 	import/Makefile
 	import/nuv/Makefile
 	import/v4l/Makefile
+	multiplex/Makefile
 	libac3/Makefile
 	libdldarwin/Makefile
 	libioaux/Makefile

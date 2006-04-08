@@ -1,4 +1,8 @@
 2006-04-08 Francesco Romani <fromani at gmail dot com>
+  * Makefile.am configure.in
+  add new encode/ and multiplex/ directories to build system.
+
+2006-04-08 Francesco Romani <fromani at gmail dot com>
   * Added files: encode/encode_null.c encode/encode_copy.c
                  encode/Makefile.am multiplex/multiplex_null.c
 		 multiplex/multiplex_raw.c multiplex/Makefile.am

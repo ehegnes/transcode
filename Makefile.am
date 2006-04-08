@@ -16,9 +16,11 @@ SUBDIRS = \
 	libtc \
 	libtcaudio \
 	libtcvideo \
+	encode \
 	export \
 	filter \
 	import \
+	multiplex \
 	$(PVM3) \
 	src \
 	testsuite \
