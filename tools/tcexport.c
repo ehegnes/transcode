@@ -536,7 +536,7 @@ int main(int argc, char *argv[])
     ret = tc_rawsource_open(&vob);
     EXIT_IF(ret != 2, "can't open input sources", STATUS_IO_ERROR);
     
-    source = tc_rawsource_buffer(&vob, TC_FRAME_LAST);
+    source = tc_rawsource_buffer(&vob);
     EXIT_IF(!source, "can't get rawsource handle", STATUS_IO_ERROR);
     
     ret = export_init(source, factory);

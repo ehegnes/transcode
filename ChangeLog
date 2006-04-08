@@ -1,4 +1,9 @@
 2006-04-08 Francesco Romani <fromani at gmail dot com>
+  * tools/rawsource.c tools/rawsource.h tools/tcexport.c
+  update rawsource code (and client code) to the very
+  last revision, that builds and works with current code in CVS.
+
+2006-04-08 Francesco Romani <fromani at gmail dot com>
   * Added files: tools/rawsource.c tools/rawsource.h
                  tools/tcexport.c
   * tools/Makefile,am

@@ -15,7 +15,7 @@
 #include "transcode.h"
 #include "encoder.h"
 
-TCEncoderBuffer *tc_rawsource_buffer(vob_t *vob, int frame_num);
+TCEncoderBuffer *tc_rawsource_buffer(vob_t *vob);
 
 int tc_rawsource_open(vob_t *vob);
 int tc_rawsource_close(void);

@@ -55,7 +55,6 @@ static TCFileSource rawsource = {
 
 static TCEncoderBuffer rawsource_buffer = {
     .frame_id = 0,
-    .frame_num = 0,
 
     .vptr = NULL,
     .aptr = NULL,
@@ -80,12 +79,6 @@ static int rawsource_read_video(TCEncoderBuffer *buf, vob_t *vob)
         /* paranoia */
         tc_log_warn(__FILE__, "video buffer too small"
                               " (this should'nt happen)");
-        return -1;
-    }
-    if (buf->frame_id >= buf->frame_num) {
-        /* readed all required frames */
-        tc_log_info(__FILE__, "readed %i frames, exiting",
-                    buf->frame_num);
         return -1;
     }
     
@@ -165,7 +158,7 @@ static void rawsource_dummy(TCEncoderBuffer *buf)
     return;
 }
 
-TCEncoderBuffer *tc_rawsource_buffer(vob_t *vob, int frame_num)
+TCEncoderBuffer *tc_rawsource_buffer(vob_t *vob)
 {
     if (!vob) {
         return NULL;
@@ -183,8 +176,6 @@ TCEncoderBuffer *tc_rawsource_buffer(vob_t *vob, int frame_num)
         return NULL;
     }
     
-    rawsource_buffer.frame_num = frame_num;
-
     return &rawsource_buffer;
 }
 
