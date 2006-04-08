@@ -290,7 +290,7 @@ static int yw_multiplex(TCModuleInstance *self,
 
     if (vframe != NULL) {
         uint8_t *planes[3];
-        int ret = 0, i;
+        int ret = 0;
         y4m_init_frame_info(&pd->frameinfo);
         YUV_INIT_PLANES(planes, vframe->video_buf, IMG_YUV420P,
                         pd->width, pd->height);
