@@ -1,3 +1,18 @@
+2006-04-08 Francesco Romani <fromani at gmail dot com>
+  * Added files: encoder-buffer.c encoder-buffer.h
+                 encoder-common.c encoder-common.h
+ * encoder.c encoder.h
+ Enter NMS-enabled encoder. New encoder provides compatibility code
+ that largely uses (an enhannced version of) old-style encoder and
+ old style export modules.
+
+ This code basically works (I've used for some time on my system
+ for every-day transcode usage), but it's still a work-in progress.
+ It needs documentation, a cleanup and a reimplementation of 
+ frame boundaries and output rotation handling code.
+
+ I'll take care fixing missing things above ASAP.
+
 2006-04-07 Francesco Romani <fromani at gmail dot com>
   * libioaux/static_libioaux.h
   start to add *fc_time* functions.
