@@ -1,3 +1,7 @@
+2006-04-09 Francesco Romani <fromani at gmail dot com>
+  * Added file: docs/man/tcexport.1
+  add a basic tcexport manpage.
+
 2006-04-08 Francesco Romani <fromani at gmail dot com>
   * Added files: multiplex/multiplex_avi.c multiplex/multiplex_y4m.c
   introduce other missing multiplexors avalaible.
