@@ -24,7 +24,7 @@
  */
 
 #ifndef _ENCODER_BUFFER_H
-#define _ENCODER_BUFFER_H 
+#define _ENCODER_BUFFER_H
 
 TCEncoderBuffer *tc_builtin_buffer(void);
 

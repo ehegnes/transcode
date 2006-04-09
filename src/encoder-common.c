@@ -60,7 +60,7 @@ static pthread_mutex_t frame_counter_lock = PTHREAD_MUTEX_INITIALIZER;
 uint32_t tc_get_frames_encoded(void)
 {
     uint32_t val;
-    
+
     pthread_mutex_lock(&frame_counter_lock);
     val = frames_encoded;
     pthread_mutex_unlock(&frame_counter_lock);
@@ -78,11 +78,11 @@ void tc_update_frames_encoded(uint32_t val)
 uint32_t tc_get_frames_dropped(void)
 {
     uint32_t val;
-    
+
     pthread_mutex_lock(&frame_counter_lock);
     val = frames_dropped;
     pthread_mutex_unlock(&frame_counter_lock);
-    
+
     return val;
 }
 
@@ -96,11 +96,11 @@ void tc_update_frames_dropped(uint32_t val)
 uint32_t tc_get_frames_skipped(void)
 {
     uint32_t val;
-    
+
     pthread_mutex_lock(&frame_counter_lock);
     val = frames_skipped;
     pthread_mutex_unlock(&frame_counter_lock);
-    
+
     return val;
 }
 
@@ -114,11 +114,11 @@ void tc_update_frames_skipped(uint32_t val)
 uint32_t tc_get_frames_cloned(void)
 {
     uint32_t val;
-    
+
     pthread_mutex_lock(&frame_counter_lock);
     val = frames_cloned;
     pthread_mutex_unlock(&frame_counter_lock);
-    
+
     return val;
 }
 
@@ -132,12 +132,12 @@ void tc_update_frames_cloned(uint32_t val)
 uint32_t tc_get_frames_skipped_cloned(void)
 {
     uint32_t s, c;
-    
+
     pthread_mutex_lock(&frame_counter_lock);
     s = frames_skipped;
     c = frames_cloned;
     pthread_mutex_unlock(&frame_counter_lock);
-    
+
     return(c - s);
 }
 

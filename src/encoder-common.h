@@ -24,7 +24,7 @@
  */
 
 #ifndef _ENCODER_COMMON_H
-#define _ENCODER_COMMON_H 
+#define _ENCODER_COMMON_H
 
 /*
  * tc_get_frames_{dropped,skipped,encoded,cloned,skipped_cloned}:
@@ -72,7 +72,7 @@ void tc_update_frames_cloned(uint32_t val);
  * tc_export_stop_nolock():
  *     (asynchronously) request to encoder to exit from an encoding loop
  *     as soon as is possible.
- *     
+ *
  *     multithread safe: a thread different from encoder thread can
  *                       safely use this function to stop the encoder.
  *
@@ -94,7 +94,7 @@ void tc_export_stop_nolock(void);
  * tc_export_stop_requested():
  *     check if encoder has received a stop request
  *     (via tc_export_stop_nolock)
- *     
+ *
  *     multithread safe: a thread different from encoder thread can
  *                       safely use this function to stop the encoder.
  *

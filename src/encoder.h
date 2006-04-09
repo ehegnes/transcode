@@ -24,7 +24,7 @@
  */
 
 #ifndef _ENCODER_H
-#define _ENCODER_H 
+#define _ENCODER_H
 
 #include "transcode.h"
 #include "framebuffer.h"
