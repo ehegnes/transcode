@@ -14,11 +14,15 @@ pkgdir = $(MOD_PATH)
 
 pkg_LTLIBRARIES = \
 	encode_copy.la \
-	encode_null.la 
+	encode_null.la \
+	encode_xvid.la 
 
 encode_copy_la_SOURCES = encode_copy.c
 encode_copy_la_LDFLAGS = -module -avoid-version
 
 encode_null_la_SOURCES = encode_null.c
 encode_null_la_LDFLAGS = -module -avoid-version
+
+encode_xvid_la_SOURCES = encode_xvid.c
+encode_xvid_la_LDFLAGS = -module -avoid-version
 
