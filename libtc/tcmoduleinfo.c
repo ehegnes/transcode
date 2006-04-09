@@ -132,7 +132,7 @@ void tc_module_info_log(const TCModuleInfo *info, int verbose)
         if (info->flags == TC_MODULE_FLAG_NONE) {
             strlcpy(buffer, "none", DATA_BUF_SIZE);
         } else {
-            tc_snprintf(buffer, DATA_BUF_SIZE, "%s%s",
+            tc_snprintf(buffer, DATA_BUF_SIZE, "%s",
                         (info->flags & TC_MODULE_FLAG_RECONFIGURABLE)
                             ?"reconfigurable " :"");
         }

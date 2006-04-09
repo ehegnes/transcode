@@ -1,4 +1,7 @@
 2006-04-09 Francesco Romani <fromani at gmail dot com>
+  * libtc/tcmoduleinfo.c
+  fix a format string error.
+
   * libtc/tc_lzo.h
   add missing TC_LZO_HDR_SIZE macro; also force fields
   of tc_lzo_header structure to given size (should be the
