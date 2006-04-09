@@ -173,8 +173,6 @@ MOD_init
 {
     if(param->flag == TC_AUDIO)
     {
-        tc_log_warn(MOD_NAME, "*** init-v *** !");
-
         return(0);
     }
 

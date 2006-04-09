@@ -345,7 +345,6 @@ MOD_init
   if(param->flag == TC_VIDEO)
   {
     int prof = 0;
-    tc_log_info(MOD_NAME, "*** init-v *** !");
 
     sa_width  = vob->ex_v_width;
     sa_height = vob->ex_v_height;
