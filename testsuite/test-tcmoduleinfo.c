@@ -104,9 +104,10 @@ static const TCModuleInfo *fake_modules[] = {
     &empty, &pass_enc, &fake_mplex, &fake_mpeg_enc,
     &fake_vorbis_enc, &fake_avi_mplex, &pcm_pass,
 };
-static const int fake_modules_count = 7;
+static const int fake_modules_count = sizeof(fake_modules)/sizeof(*fake_modules);
 
-void test_module_log(void)
+#if 0  // not used --AC
+static void test_module_log(void)
 {
     int verbosiness[4] = { TC_QUIET, TC_INFO, TC_DEBUG, TC_STATS };
     int i = 0, j = 0;
@@ -120,6 +121,7 @@ void test_module_log(void)
         }
     }
 }
+#endif
 
 static int test_match_helper(int codec,
                               TCModuleInfo *m1,
@@ -148,7 +150,7 @@ static int test_match_helper(int codec,
     return err;
 }
 
-int test_module_match(void)
+static int test_module_match(void)
 {
     int errors = 0;
 

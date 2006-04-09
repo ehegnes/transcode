@@ -16,8 +16,9 @@ AM_CPPFLAGS = \
 noinst_PROGRAMS = \
 	test_bufalloc \
 	test_iodir \
-	test_tclog \
+	test_tcmoduleinfo \
 	test_tcstrdup \
+	test_tclog \
 	test_tcmodule
 
 test_bufalloc_SOURCES = test-bufalloc.c

@@ -1,3 +1,7 @@
+2006-04-09 Andrew Church <achurch at achurch dot org>
+  * export/export_mov.c testsuite/Makefile.am testsuite/test-tcmoduleinfo.c
+  Fix autoconf/compilation warnings and errors.
+
 2006-04-09 Francesco Romani <fromani at gmail dot com>
   * encode/Makefile.am encode/encode_xvid.c
   add EXPERIMENTAL NMS XviD encoder module.

@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include "import/magic.h"
 #include "transcode.h"
+#include "encoder.h"
 #include "aclib/imgconvert.h"
 
 #define MOD_NAME    "export_mov.so"
@@ -608,7 +609,7 @@ MOD_encode
     /* raw mode is easy */
     if(rawVideo) {
         /* add divx keyframes if needed */
-        if(quicktime_divx_is_key(param->buffer, param->size) == 1) quicktime_insert_keyframe(qtfile, (int)tc_get_frames_encoded, 0);
+        if(quicktime_divx_is_key(param->buffer, param->size) == 1) quicktime_insert_keyframe(qtfile, (int)tc_get_frames_encoded(), 0);
         if(quicktime_write_frame(qtfile,param->buffer,param->size,0)<0) {
             tc_log_warn(MOD_NAME, "error writing raw video frame");
             return(TC_EXPORT_ERROR);
