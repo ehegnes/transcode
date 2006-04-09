@@ -29,9 +29,6 @@
 #include "aud_aux.h"
 #include "import/magic.h"
 
-#include <lzo/lzo1x.h>
-#include <lzo/lzoutil.h>
-
 #include "tc_lzo.h"
 
 #define MOD_NAME    "export_lzo.so"

@@ -1,6 +1,9 @@
 #ifndef TC_LZO_H
 #define TC_LZO_H
 
+#include <lzo/lzo1x.h>
+#include <lzo/lzoutil.h>
+
 /* flags */
 #define TC_LZO_FORMAT_YV12    1  /* obsolete */
 #define TC_LZO_FORMAT_RGB24   2

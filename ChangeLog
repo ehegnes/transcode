@@ -1,3 +1,13 @@
+2006-04-09 Francesco Romani <fromani at gmail dot com>
+  * Added file: libtc/tc_lzo.h
+
+  * Removed file: export/tc_lzo.h
+  Move tc_lzo header to libtc since it's used even outside of export
+  layer. Also extend it a little bit.
+
+  * import/decode_lzo.c import/import_lzo.c export/export_lzo.c
+  update code to new header.
+
 2006-04-09 Andrew Church <achurch at achurch dot org>
   * export/export_mp2enc.c export/export_mpeg2enc.c
   Remove useless "init-v" info messages.

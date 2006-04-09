@@ -27,7 +27,7 @@
 
 #include "transcode.h"
 #include "magic.h"
-#include "export/tc_lzo.h"
+#include "tc_lzo.h"
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_PCM | TC_CAP_YUV | TC_CAP_RGB |
@@ -35,9 +35,6 @@ static int capability_flag = TC_CAP_PCM | TC_CAP_YUV | TC_CAP_RGB |
 
 #define MOD_PRE lzo
 #include "import_def.h"
-
-#include <lzo/lzo1x.h>
-#include <lzo/lzoutil.h>
 
 
 static avi_t *avifile1=NULL;

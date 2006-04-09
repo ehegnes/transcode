@@ -30,10 +30,7 @@
 
 #ifdef HAVE_LZO
 
-#include <lzo/lzo1x.h>
-#include <lzo/lzoutil.h>
-
-#include "export/tc_lzo.h"
+#include "tc_lzo.h"
 
 #define MOD_NAME    "decode_lzo"
 
