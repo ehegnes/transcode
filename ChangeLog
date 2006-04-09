@@ -1,4 +1,16 @@
 2006-04-09 Francesco Romani <fromani at gmail dot com>
+  * libtc/tc_lzo.h
+  add missing TC_LZO_HDR_SIZE macro; also force fields
+  of tc_lzo_header structure to given size (should be the
+  same size implicitely adopted on i386, but more tests are
+  needed).
+
+  * Added file: encode/encode_lzo.c
+
+  * encode/Makefile.am
+  add EXPERIMENTAL NMS lzo2 encoder module.
+
+2006-04-09 Francesco Romani <fromani at gmail dot com>
   * Added file: libtc/tc_lzo.h
 
   * Removed file: export/tc_lzo.h
