@@ -4,6 +4,7 @@ man_MANS = \
 	tcprobe.1 \
 	tcdemux.1 \
 	tcscan.1 \
+	tcexport.1 \
 	tcextract.1 \
 	tcdecode.1 \
 	tcmodinfo.1 \
