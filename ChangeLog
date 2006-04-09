@@ -1,4 +1,7 @@
 2006-04-09 Francesco Romani <fromani at gmail dot com>
+  * tools/tceport.c tools/rawsource.c tools/rawsource.h
+  trailing spaces removal roundup and minor review.
+
   * docs/man/Makefile.am
   install tcexport manpage.
 

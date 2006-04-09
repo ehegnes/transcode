@@ -47,7 +47,7 @@ static TCFileSource rawsource = {
 
     .eof_flag = TC_FALSE,
     .sources = 0,
-    
+
     .vframe = NULL,
     .aframe = NULL,
     .acount = 0,
@@ -81,7 +81,7 @@ static int rawsource_read_video(TCEncoderBuffer *buf, vob_t *vob)
                               " (this should'nt happen)");
         return -1;
     }
-    
+
     rawsource.im_para.buffer  = rawsource.vframe->video_buf;
     rawsource.im_para.buffer2 = NULL;
     rawsource.im_para.size    = vob->im_v_size;
@@ -175,7 +175,7 @@ TCEncoderBuffer *tc_rawsource_buffer(vob_t *vob)
         tc_log_warn(__FILE__, "can't allocate audio frame buffer");
         return NULL;
     }
-    
+
     return &rawsource_buffer;
 }
 
