@@ -12,10 +12,15 @@ AM_CPPFLAGS = \
 
 pkgdir = $(MOD_PATH)
 
+if HAVE_LZO
+MOD_LZO = encode_lzo.la
+endif
+
 pkg_LTLIBRARIES = \
 	encode_copy.la \
 	encode_null.la \
-	encode_xvid.la 
+	encode_xvid.la \
+	$(MOD_LZO)
 
 encode_copy_la_SOURCES = encode_copy.c
 encode_copy_la_LDFLAGS = -module -avoid-version
@@ -25,4 +30,9 @@ encode_null_la_LDFLAGS = -module -avoid-version
 
 encode_xvid_la_SOURCES = encode_xvid.c
 encode_xvid_la_LDFLAGS = -module -avoid-version
+
+# MODS_LZO
+encode_lzo_la_SOURCES = encode_lzo.c
+encode_lzo_la_LDFLAGS = -module -avoid-version
+encode_lzo_la_LIBADD = $(LZO_LIBS)
 
