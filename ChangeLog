@@ -1,3 +1,14 @@
+2006-04-10 Andrew Church <achurch at achurch dot org>
+  * libtc/framecode.c libtc/framecode.h
+  Write new framecode handling code.
+
+  * filter/filter_skip.c libioaux/Makefile.am libioaux/static_libioaux.h
+    libtc/Makefile.am src/transcode.h tools/avisplit.c
+  Use new framecode handling code.
+
+  * libioaux/framecode.c libioaux/framecode.h libioaux/framecode.l
+  Remove old framcode handling code.
+
 2006-04-09 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmoduleinfo.c
   fix a format string error.

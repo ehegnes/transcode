@@ -18,8 +18,9 @@ libtc_la_SOURCES = \
 	tccodecs.c \
 	tcmodule.c \
 	tcmoduleinfo.c \
-	optstr.c \
+	framecode.c \
 	iodir.c \
+	optstr.c \
 	strlcat.c \
 	strlcpy.c \
 	$(XIO_FILES)
@@ -31,6 +32,7 @@ EXTRA_DIST = \
 	tcmodule-data.h \
 	tcmodule-info.h \
 	tcmodule-plugin.h \
+	framecode.h \
 	iodir.h \
 	optstr.h \
 	static_xio.h \

@@ -8,8 +8,6 @@ noinst_LTLIBRARIES = libtcioaux.la
 
 libtcioaux_la_SOURCES = \
 	configs.c \
-	configs.h \
-	framecode.c \
-	framecode.h
+	configs.h
 
 EXTRA_DIST = framecode.l

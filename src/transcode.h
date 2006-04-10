@@ -70,7 +70,7 @@ extern int errno;
 
 #include "avilib/avilib.h"
 #include "aclib/ac.h"
-#include "libioaux/framecode.h"
+#include "libtc/framecode.h"
 #include "libtcvideo/tcvideo.h"
 
 

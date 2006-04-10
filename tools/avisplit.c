@@ -30,7 +30,7 @@
 #include "avilib.h"
 #include "config.h"
 #include "transcode.h"
-#include "framecode.h"
+#include "libtc/framecode.h"
 #include "aud_scan_avi.h"
 
 #define EXE "avisplit"
