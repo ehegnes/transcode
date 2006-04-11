@@ -46,6 +46,7 @@
 
 /*************************************************************************/
 
+/* XXX: move to a TC_BUF_* ? */
 #define TC_MSG_BUF_SIZE     (256)
 
 /* WARNING: we MUST keep in sync preambles order with TC_LOG* macros */

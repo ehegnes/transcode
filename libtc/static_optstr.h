@@ -1,6 +1,14 @@
+/*
+ * static_optstr.h - static linkage helper for optstr.
+ *
+ * This file is part of transcode, a video stream processing tool.
+ * transcode is free software, distributable under the terms of the GNU
+ * General Public License (version 2 or later).  See the file COPYING
+ * for details.
+ */
 
-#ifndef _STATIC_OPTSTR_H_
-#define _STATIC_OPTSTR_H_
+#ifndef STATIC_OPTSTR_H
+#define STATIC_OPTSTR_H
 
 #include "libtc/optstr.h"
 void dummy_optstr(void);
@@ -12,4 +20,4 @@ void dummy_optstr(void) {
   optstr_param(NULL, NULL, NULL, NULL, NULL);
 }
 
-#endif /* _STATIC_OPTSTR_H_ */
+#endif /* STATIC_OPTSTR_H */

@@ -25,8 +25,8 @@
 
 #include "config.h"
 
-#ifndef _IODIR_H
-#define _IODIR_H
+#ifndef IODIR_H
+#define IODIR_H
 
 #include <dirent.h>
 
@@ -150,4 +150,5 @@ void tc_dirlist_close(TCDirList *tcdir);
  *     none
  */
 int tc_dirlist_file_count(TCDirList *tcdir);
-#endif
+
+#endif /* IODIR_H */

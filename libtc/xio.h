@@ -21,8 +21,8 @@
  *
  */
 
-#ifndef __iolib_h
-#define __iolib_h
+#ifndef LIBTC_XIO_H
+#define LIBTC_XIO_H
 
 #ifdef HAVE_IBP
 
@@ -39,7 +39,7 @@ int xio_fstat(int fd, struct stat *buf);
 int xio_lstat(const char *filename, struct stat *buf);
 int xio_stat(const char *filename, struct stat *buf);
 int xio_rename(const char *oldpath, const char *newpath);
-#else
+#else /* not HAVE_IBP */
 #define xio_open open
 #define xio_read read
 #define xio_write write
@@ -50,5 +50,6 @@ int xio_rename(const char *oldpath, const char *newpath);
 #define xio_lstat lstat
 #define xio_stat stat
 #define xio_rename rename
-#endif
-#endif
+#endif /* HAVE_IBP */
+
+#endif /* LIBTC_XIO_H */

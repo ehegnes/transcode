@@ -1,12 +1,21 @@
-#ifndef _static_xio_h
-#define _static_xio_h
+/*
+ * static_xio.h - static linkage helper for (lib)xio.
+ *
+ * This file is part of transcode, a video stream processing tool.
+ * transcode is free software, distributable under the terms of the GNU
+ * General Public License (version 2 or later).  See the file COPYING
+ * for details.
+ */
+
+#ifndef STATIC_XIO_H
+#define STATIC_XIO_H
 
 #include "xio.h"
 #include <fcntl.h>
 #include <unistd.h>
 
-void dummy(void);
-void dummy(void)
+void dummy_xio(void);
+void dummy_xio(void)
 {
 	int i;
 	struct stat tmp;
@@ -23,4 +32,4 @@ void dummy(void)
 	xio_close(i);
 }
 
-#endif
+#endif /* STATIC_XIO_H */

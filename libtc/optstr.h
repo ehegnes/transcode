@@ -47,8 +47,8 @@
  *
  */
 
-#ifndef __OPTSTR_H
-#define __OPTSTR_H
+#ifndef OPTSTR_H
+#define OPTSTR_H
 
 #define ARG_MAXIMUM (16)
 #define ARG_SEP ':'
@@ -180,7 +180,7 @@ int optstr_frames_needed(const char *filter_desc, int *needed_frames);
  *            for the parameter (eg "8", "24" -- meaning, the radius 
  *            parameter is valid from 8 to 24).
  * Return value:
- *      1 An Error happend
+ *      1 An Error happened
  *      0 Successfull
  * Side effects:
  *      none
@@ -206,4 +206,4 @@ int optstr_param(char *buf,
                  const char *val,
                  ...); /* char *valid_from1, char *valid_to1 */
 
-#endif /* __OPTSTR_H */
+#endif /* OPTSTR_H */

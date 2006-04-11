@@ -1,3 +1,9 @@
+2006-04-11 Francesco Romani <fromani at gmail dot com>
+  * libtc/iodir.c libtc/iodir.c libtc/optstr.h libtc/static_xio.h
+    libtc/static_optstr.h libtc/tc_lzo.h libtc/tcmodule-plugin.h
+    libtc/xio.h libtc/tc_functions.c
+  Minor cleanup.
+
 2006-04-10 Andrew Church <achurch at achurch dot org>
   * libtc/framecode.c libtc/framecode.h
   Write new framecode handling code.
