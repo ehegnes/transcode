@@ -23,7 +23,7 @@
 
 #include "transcode.h"
 #include "probe.h"
-#include "frc_table.h"
+#include "libtc/ratiocodes.h"
 
 #include <math.h>
 
@@ -215,7 +215,7 @@ int probe_sequence(uint8_t *buffer, ProbeInfo *probe_info)
   probe_info->asr = aspect_ratio_information;
   probe_info->frc = frame_rate_code;
   probe_info->bitrate = bit_rate_value * 400.0 / 1000.0;
-  probe_info->fps = frc_table[frame_rate_code];
+  tc_frc_code_to_value(frame_rate_code, &probe_info->fps);
 
   return(0);
 

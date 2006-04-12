@@ -30,7 +30,6 @@
 #include "libtc/tcmodule-core.h"
 #include "libtc/libtc.h"
 #include "libtc/tccodecs.h"
-#include "frc_table.h"
 
 #include "rawsource.h"
 

@@ -29,9 +29,9 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate)
 
 #include "transcode.h"
 #include "tcinfo.h"
-#include "frc_table.h"
 
 #include "libtc/xio.h"
+#include "libtc/ratiocodes.h"
 #include "ioaux.h"
 #include "tc.h"
 #include "ac3.h"
@@ -205,7 +205,7 @@ int main(int argc, char *argv[])
       n = sscanf(optarg,"%lf,%d", &fps, &frc);
 
       if (n == 2 && (frc > 0 && frc <= 0x10))
-	  fps = frc_table[frc];
+        tc_frc_code_to_value(frc, &fps);
 
       if(fps<=0) {
 	fprintf(stderr,"invalid frame rate for option -f\n");

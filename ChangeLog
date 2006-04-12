@@ -1,4 +1,11 @@
 2006-04-12 Francesco Romani <fromani at gmail dot com>
+  * filter/filter_modfps.c import/aux_pes.c import/extract_avi.c
+    import/extract_yuv.c import/probe_bsdav.c import/probe_mov.c
+    import/probe_mplayer.c import/probe_ogg.c import/tcscan.c
+    src/probe.c src/transcode.c tools/tcexport.c
+  switch to tc_detect_{asr,frc}/frc_table to new ratiocodes
+  functions.
+
   * libtc/tc_functions.c
   minor cleanup: move to malloc/free to tc_* counterparts in
   tc_test_program; also remove dead alloca.h include.

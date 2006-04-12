@@ -28,6 +28,7 @@
 #include "ioaux.h"
 #include "tc.h"
 #include "libtc/libtc.h"
+#include "libtc/ratiocodes.h"
 
 #include <sys/mman.h>
 
@@ -183,7 +184,8 @@ void probe_ogg(info_t *ipipe)
 		    ipipe->probe_info->width  =  ti.width;
 		    ipipe->probe_info->height =  ti.height;
 		    ipipe->probe_info->fps    =  (double)ti.fps_numerator/ti.fps_denominator;
-		    ipipe->probe_info->frc    =  tc_detect_frc(ipipe->probe_info->fps);
+		    tc_frc_code_from_ratio(&(ipipe->probe_info->frc),
+		    	    		   ti.fps_numerator, ti.fps_denominator);
 
 		    ipipe->probe_info->codec=TC_CODEC_THEORA;
 
@@ -234,7 +236,8 @@ void probe_ogg(info_t *ipipe)
 			ipipe->probe_info->width  =  sth->sh.video.width;
 			ipipe->probe_info->height =  sth->sh.video.height;
 			ipipe->probe_info->fps    =  (double)10000000 / (double)sth->time_unit;
-			ipipe->probe_info->frc    =  tc_detect_frc(ipipe->probe_info->fps);
+			tc_frc_code_from_value(&(ipipe->probe_info->frc),
+  						  ipipe->probe_info->fps);
 
 			ipipe->probe_info->codec=TC_CODEC_UNKNOWN; // gets rewritten
 

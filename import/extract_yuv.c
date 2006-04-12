@@ -28,6 +28,7 @@
 #include "framebuffer.h"
 #include "tcinfo.h"
 #include "libtc/libtc.h"
+#include "libtc/ratiocodes.h"
 
 #include "ioaux.h"
 #include "avilib.h"
@@ -224,10 +225,10 @@ void probe_yuv(info_t *ipipe)
    
     r = y4m_si_get_framerate(&streaminfo);
     ipipe->probe_info->fps = (double)r.n / (double)r.d;
-    ipipe->probe_info->frc = tc_detect_frc(ipipe->probe_info->fps);
+    tc_frc_code_from_ratio(&(ipipe->probe_info->frc), r.n, r.d);
 
     r = y4m_si_get_sampleaspect(&streaminfo);
-    ipipe->probe_info->asr = tc_detect_asr(r.n, r.d);
+    tc_asr_code_from_ratio(&(ipipe->probe_info->asr), r.n, r.d);
    
     ipipe->probe_info->codec=TC_CODEC_YUV420P;
     ipipe->probe_info->magic=TC_MAGIC_YUV4MPEG;

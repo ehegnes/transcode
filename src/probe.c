@@ -10,7 +10,7 @@
 
 #include "transcode.h"
 #include "probe.h"
-#include "frc_table.h"
+#include "libtc/ratiocodes.h"
 #include "import/magic.h"
 
 /*************************************************************************/
@@ -307,7 +307,7 @@ static void probe_to_vob(ProbeInfo *vinfo, ProbeInfo *ainfo, int flags,
         if (MAY_SET(FPS)) {
             if (vinfo->frc > 0) {
                 vob->im_frc = vinfo->frc;
-                vob->fps = frc_table[vob->im_frc];
+                tc_frc_code_to_value(vob->im_frc, &vob->fps);
             } else if (vinfo->fps > 0)
                 vob->fps = vinfo->fps;
         }

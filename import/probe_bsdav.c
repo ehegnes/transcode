@@ -25,6 +25,7 @@
 #include "tcinfo.h"
 #include "ioaux.h"
 #include "tc.h"
+#include "libtc/ratiocodes.h"
 
 #ifdef HAVE_BSDAV
 
@@ -84,7 +85,8 @@ void probe_bsdav(info_t *ipipe)
     ipipe->probe_info->fps = bsdav_probe_frame_rate(file,
       ipipe->factor * 1024 * 1024);
 
-    ipipe->probe_info->frc = tc_detect_frc(ipipe->probe_info->fps);
+    tc_frc_code_from_value(&(ipipe->probe_info->frc),
+                           ipipe->probe_info->fps);
 
     return;
 }

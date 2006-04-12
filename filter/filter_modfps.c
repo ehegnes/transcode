@@ -56,7 +56,7 @@
 #include "transcode.h"
 #include "filter.h"
 #include "optstr.h"
-#include "frc_table.h"
+#include "libtc/ratiocodes.h"
 
 #include <math.h>
 
@@ -453,7 +453,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	}
 
 	if (infrc>0 && infrc < 16){
-	  infps = frc_table[infrc];
+	  tc_frc_code_to_value(infrc, &infps);
 	}
 
 	if (verbose){

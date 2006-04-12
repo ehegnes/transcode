@@ -35,7 +35,7 @@
 #include "filter.h"
 #include "probe.h"
 #include "split.h"
-#include "frc_table.h"
+#include "libtc/ratiocodes.h"
 #include "libtc/iodir.h"
 #include "libtc/xio.h"
 
@@ -1309,7 +1309,7 @@ int main(int argc, char *argv[]) {
 	if (n == 2) {
 	    if (vob->im_frc < 0 || vob->im_frc > 15)
 		tc_error("invalid frame rate code for option -f");
-	    vob->fps = frc_table[vob->im_frc];
+	    tc_frc_code_to_value(vob->im_frc, &vob->fps);
 	} else {
 	    if (n < 1 || vob->fps < MIN_FPS)
 		tc_error("invalid frame rate for option -f");
@@ -1881,7 +1881,7 @@ int main(int argc, char *argv[]) {
 
 	      probe_export_attributes |= TC_PROBE_NO_EXPORT_FRC;
 
-	      vob->ex_fps = frc_table[vob->ex_frc];
+	      tc_frc_code_to_value(vob->ex_frc, &vob->ex_fps);
 	    }
 
 	    break;
@@ -3802,12 +3802,12 @@ int main(int argc, char *argv[]) {
     // set import/export frc/fps
     //printf("XXX: 1 | %f,%d %f,%c\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);
     if (vob->im_frc == 0)
-      vob->im_frc = tc_detect_frc(vob->fps);
+      tc_frc_code_from_value(&vob->im_frc, vob->fps);
     //printf("XXX: 2 | %f,%d %f,%c\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);
 
     // ex_fps given, but not ex_frc
     if (vob->ex_frc == 0 && (vob->ex_fps != 0.0))
-      vob->ex_frc = tc_detect_frc(vob->ex_fps);
+      tc_frc_code_from_value(&vob->ex_frc, vob->ex_fps);
     //printf("XXX: 3 | %f,%d %f,%c\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);
 
     if (vob->ex_frc == 0 && vob->im_frc != 0)
@@ -3816,7 +3816,7 @@ int main(int argc, char *argv[]) {
 
     // ex_frc always overwrites ex_fps
     if (vob->ex_frc > 0) {
-      vob->ex_fps  = frc_table[vob->ex_frc];
+      tc_frc_code_to_value(vob->ex_frc, &vob->ex_fps);
     }
 
     //printf("XXX: 4 | %f,%d %f,%c\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);

@@ -26,6 +26,7 @@
 #include "ioaux.h"
 #include "tc.h"
 #include "libtc/libtc.h"
+#include "libtc/ratiocodes.h"
 
 #ifdef HAVE_LIBQUICKTIME
 
@@ -130,7 +131,8 @@ void probe_mov(info_t *ipipe)
   if (! binary_dump)
   	fprintf(stderr, "[%s] video codec=%s\n", __FILE__, codec);
   ipipe->probe_info->magic=TC_MAGIC_MOV;
-  ipipe->probe_info->frc=tc_detect_frc(ipipe->probe_info->fps);
+  tc_frc_code_from_value(&(ipipe->probe_info->frc),
+                         ipipe->probe_info->fps);
 
   return;
 }
