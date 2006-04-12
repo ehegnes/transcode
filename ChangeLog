@@ -1,4 +1,10 @@
 2006-04-12 Francesco Romani <fromani at gmail dot com>
+  * libtc/libtc.h src/tc_defaults.h src/transcode.h
+  documentation roundup in libtc.h;
+  move TC_BUF_* macro declarations from tc_defaults to libtc since
+  they are utilities rather than core constants.
+  move version() declaration in transcode.h.
+
   * Added files: libtc/ratiocodes.h libtc/ratiocodes.c
     testsuite/test-ratiocodes.c
   * libtc/Makefile.am testsuite/Makefile.am

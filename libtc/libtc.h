@@ -22,8 +22,8 @@
  *
  */
 
-#ifndef _LIBTC_H
-#define _LIBTC_H
+#ifndef LIBTC_H
+#define LIBTC_H
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -52,6 +52,9 @@
 extern "C" {
 #endif
 
+#define TC_BUF_MAX            1024
+#define TC_BUF_MIN             128
+
 /* colors macros */
 #define COL(x)              "\033[" #x ";1m"
 #define COL_RED             COL(31)
@@ -68,6 +71,32 @@ typedef enum {
     TC_LOG_MSG,     /* regular message */
 } TCLogLevel;
 
+/*
+ * tc_log:
+ *     main libtc logging function. Log arbitrary messages according
+ *     to a printf-like format chosen by the caller.
+ *
+ * Parameters:
+ *     level: priority of message to log; see TCLogLevel definition
+ *            above.
+ *       tag: header of message, to identify subsystem originating
+ *            the message. It's suggested to use __FILE__ as 
+ *            fallback default tag.
+ *       fmt: printf-like format string. You must provide enough
+ *            further arguments to fullfill format string, doing
+ *            otherwise will cause an undefined behaviour, most
+ *            likely a crash.
+ * Return Value:
+ *      0 if message succesfully logged
+ *     -1 if there is failure, and so message was dropped.
+ * Side effects:
+ *     this function store final message in an intermediate string
+ *     before to log it to destination. If such intermediate string
+ *     is wider than a given amount (TC_BUF_MIN * 2 at moment
+ *     of writing), tc_log needs to dinamically allocate some memory.
+ *     This allocation can fail, and as result log message will be 
+ *     dropped.
+ */
 void tc_log(TCLogLevel level, const char *tag, const char *fmt, ...);
 
 /* compatibility macros */
@@ -89,17 +118,19 @@ void tc_log(TCLogLevel level, const char *tag, const char *fmt, ...);
     tc_log(TC_LOG_MSG, tag, format , ## args)
 
 
-/* 
- * Provided by caller
- * FIXME: reverse dependencies are BAD, this should go away
- * -- fromani 20060305
- */
-extern void version(void);
-
 /*
- * Find program <name> in $PATH
- * returns 0 if found, ENOENT if not and the value of errno of the first
- * occurance if found but not accessible.
+ * tc_test_program:
+ *     check if a given program is avalaible in current PATH.
+ *     This function of course needs to read (and copy) the PATH
+ *     environment variable
+ *
+ * Parameters:
+ *     name: name of program to look for.
+ * Return Value:
+ *     0 if program was found in PATH.
+ *     ENOENT if program was not fount in PATH
+ *     value of errno if program was found in PATH but it wasn't accessible
+ *     for some reason.
  */
 int tc_test_program(const char *name);
 
@@ -123,16 +154,37 @@ size_t strlcat(char *dst, const char *src, size_t size);
 #endif
 
 /*
- * remove IN PLACE heading and trailing whitespaces from a given C-string.
+ * tc_strstrip:
+ * 	remove IN PLACE heading and trailing whitespaces from a given
+ * 	C-string. This means that given string will be mangled to
+ * 	remove such whitespace while moving pointer to first element
+ * 	and terminating '\0'.
+ * 	It's safe to supply a NULL string.
+ * Parameters:
+ *      s: string to strip.
+ * Return Value:
+ *      None
  */
 void tc_strstrip(char *s);
 
 /*
- * Check the return value of snprintf, strlcpy, and strlcat.
- *   return value < 0 is an internal error.
- *   return value >= limit means characters were truncated.
- * Returns 0 if not problems, 1 if error.
- * If error, prints reason.
+ * tc_test_string:
+ *	check the return value of snprintf, strlcpy, and strlcat.
+ *      If an error is detected, prints reason.
+ *
+ * Parameters:
+ *        file: name of source code file on which this function is called
+ *              (this parameter is usually equal to __FILE__).
+ *        line: line of source code file on which this function is called
+ *              (this parameter is usually equal to __LINE__).
+ *       limit: maximum size of char buffer previously used.
+ *         ret: return code of one of above function.
+ *      errnum: error code (this parameter is usually equal to errno)
+ * Return Value:
+ * 	< 0 is an internal error.
+ *      >= limit means characters were truncated.
+ *      0 if not problems.
+ *      1 if error.
  */
 int tc_test_string(const char *file, int line, int limit,
                    long ret, int errnum);
@@ -154,7 +206,7 @@ int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
 
 /*
  * tc_malloc: just a simple wrapper on libc's malloc(), with emits
- *            an additionalwarning, specifying calling context,
+ *            an additional warning, specifying calling context,
  *            if allocation fails
  * tc_zalloc: like tc_malloc, but zeroes all acquired memory before
  *             returning to the caller (this is quite common in
@@ -184,8 +236,6 @@ int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
  *     a message is printed on stderr (20051017)
  * Preconditions:
  *     file param not null
- * Postconditions:
- *     none
  */
 void *_tc_malloc(const char *file, int line, size_t size);
 
@@ -218,7 +268,24 @@ void *_tc_zalloc(const char *file, int line, size_t size);
 #define tc_bufalloc(size) \
             _tc_bufalloc(__FILE__, __LINE__, size)
 
-/* XXX: add docs */
+/*
+ * _tc_malloc:
+ *     do the real work behind _tc_bufalloc macro
+ *
+ * Parameters:
+ *     file: name of the file on which call occurs
+ *     line: line of above file on which call occurs
+ *           (above two parameters are intended to be, and usually
+ *           are, filled by tc_malloc macro)
+ *     size: size of desired chunk of memory
+ * Return Value:
+ *     a pointer of acquired, aligned, memory, or NULL if acquisition fails
+ * Side effects:
+ *     a message is printed on stderr (20051017)
+ * Preconditions:
+ *     file param not null
+ */
+
 void *_tc_bufalloc(const char *file, int line, size_t size);
 
 /*
@@ -236,8 +303,6 @@ void *_tc_bufalloc(const char *file, int line, size_t size);
  *     ptr is acquired via tc_bufalloc(). Really BAD things will happen
  *     if a buffer acquired via tc_bufalloc() is released using anything
  *     but tc_buffree(), or vice versa.
- * Postconditions:
- *     none
  */
 void tc_buffree(void *ptr);
 
@@ -263,8 +328,8 @@ void tc_buffree(void *ptr);
  *     file: name of the file on which call occurs
  *     line: line of above file on which call occurs (above two parameters
  *           are intended to be, and usually are, filled by tc_malloc macro)
- *     s: null-terminated string to copy
- *     n: copy at most 'n' characters of original string.
+ *        s: null-terminated string to copy
+ *        n: copy at most 'n' characters of original string.
  * Return Value:
  *     a pointer to a copy of given string. This pointer must be freed using
  *     tc_free() to avoid memory leaks
@@ -306,15 +371,13 @@ int tc_file_check(const char *file);
  *     when read(2) returns; this function ensures so, except for critical
  *     errors.
  * Parameters:
- *     fd: read data from this file descriptor
+ *      fd: read data from this file descriptor
  *     buf: pointer to a buffer which will hold readed data
  *     len: how much data function must read from fd
  * Return Value:
  *     size of effectively readed data
  * Side effects:
  *     errno is readed internally
- * Preconditions:
- *     none
  * Postconditions:
  *     read exactly the requested bytes, if no *critical*
  *     (tipically I/O related) error occurs.
@@ -330,15 +393,13 @@ ssize_t tc_pread(int fd, uint8_t *buf, size_t len);
  *     when write(2) returns; this function ensures so, except for critical
  *     errors.
  * Parameters:
- *     fd: write data on this file descriptor
+ *      fd: write data on this file descriptor
  *     buf: pointer to a buffer which hold data to be written
  *     len: how much data function must write in fd
  * Return Value:
  *     size of effectively written data
  * Side effects:
  *     errno is readed internally
- * Preconditions:
- *     none
  * Postconditions:
  *     write exactly the requested bytes, if no *critical* (tipically I/O
  *     related) error occurs.
@@ -350,15 +411,11 @@ ssize_t tc_pwrite(int fd, uint8_t *buf, size_t len);
  *     read all data avalaible from a file descriptor, putting it on the
  *     other one.
  * Parameters:
- *     in: read data from this file descriptor
+ *      in: read data from this file descriptor
  *     out: write readed data on this file descriptor
  * Return Value:
  *     -1 if a read error happens
  *     0  if no error happens
- * Side effects:
- *     none
- * Preconditions:
- *     none
  * Postconditions:
  *     move the entire content of 'in' into 'out', if no *critical*
  *     (tipically I/O related) error occurs.
@@ -388,10 +445,6 @@ int tc_preadwrite(int in, int out);
  * Side effects:
  *     if function fails, one or more debug message can be issued using
  *     tc_log*(). A name resolve request can be issued to system.
- * Preconditions:
- *     none
- * Postconditions:
- *     none
  */
 int tc_probe_path(const char *name);
 
@@ -406,12 +459,6 @@ int tc_probe_path(const char *name);
  * Return value:
  *     a constant string representing the given codec (there is no need to
  *     free() it NULL of codec is (yet) unknown
- * Side effects:
- *     none
- * Preconditions:
- *     none
- * Postconditions:
- *     none
  */
 const char* tc_codec_to_string(int codec);
 
@@ -424,12 +471,6 @@ const char* tc_codec_to_string(int codec);
  * Return value:
  *     the correspinding TC_CODEC_* of given string representation,
  *     or TC_CODEC_ERROR if string is unknown or wrong.
- * Side effects:
- *     none
- * Preconditions:
- *     none
- * Postconditions:
- *     none
  */
 int tc_codec_from_string(const char *codec);
 
@@ -443,12 +484,6 @@ int tc_codec_from_string(const char *codec);
  *     a constant string representing the FOURCC for a given codec (there
  *     is no need to free() it NULL of codec's FOURCC is (yet) unknown or
  *     given codec has _not_ FOURCC (es: audio codec identifiers).
- * Side effects:
- *     none
- * Preconditions:
- *     none
- * Postconditions:
- *     none
  */
 const char* tc_codec_fourcc(int codec);
 
@@ -464,12 +499,6 @@ const char* tc_codec_fourcc(int codec);
  *     -1 if requested codec isn't known.
  *     +1 truncation error (given buffer too small).
  *     0  no errors.
- * Side effects:
- *     none
- * Preconditions:
- *     none
- * Postconditions:
- *     none
  */
 int tc_codec_description(int codec, char *buf, size_t bufsize);
 
@@ -510,8 +539,8 @@ int tc_codec_description(int codec, char *buf, size_t bufsize);
  *
  * Parameters:
  *     filename: read quantization matrix from this file.
- *     m8: buffer for 8-bit wide elements quantization matrix
- *     m16: buffer for 16-bit wide elements quantization matrix
+ *           m8: buffer for 8-bit wide elements quantization matrix
+ *          m16: buffer for 16-bit wide elements quantization matrix
  *
  *     NOTE: if m8 AND m16 BOTH refers to valid buffers, 8-bit
  *     wideness is preferred.
@@ -524,9 +553,7 @@ int tc_codec_description(int codec, char *buf, size_t bufsize);
  * Preconditions:
  *     buffer provided by caller MUST be large enough to hold
  *     TC_MATRIX_SIZE elements of requested wideness.
- *     At least one buffer is valid.
- * Postconditions:
- *     none
+ *     At least one given buffer is valid.
  */
 int tc_read_matrix(const char *filename, uint8_t *m8, uint16_t *m16);
 
@@ -548,14 +575,8 @@ int tc_read_matrix(const char *filename, uint8_t *m8, uint16_t *m16);
  *
  *     NOTE: if m8 AND m16 BOTH refers to valid buffers, 8-bit
  *     wideness is preferred.
- * Return value:
- *     None
- * Side effects:
- *     None
  * Preconditions:
- *     At least one pointer is valid.
- * Postconditions:
- *     None
+ *     At least one given pointer is valid.
  */
 void tc_print_matrix(uint8_t *m8, uint16_t *m16);
 

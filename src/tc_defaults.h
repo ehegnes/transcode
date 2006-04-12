@@ -138,9 +138,6 @@
 #define TC_DELAY_MAX         40000
 #define TC_DELAY_MIN         10000
 
-#define TC_BUF_MAX            1024
-#define TC_BUF_MIN             128
-
 #define TC_DEFAULT_IMPORT_AUDIO "null"
 #define TC_DEFAULT_IMPORT_VIDEO "null"
 #define TC_DEFAULT_EXPORT_AUDIO "null"

@@ -412,6 +412,8 @@ void tc_outstream_rotate_request(void);
 void tc_pause(void);
 void tc_pause_request(void);
 
+void version(void);
+
 extern int verbose;
 extern int pcmswap;
 extern int rescale;
