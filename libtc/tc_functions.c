@@ -38,16 +38,12 @@
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
-#if defined(HAVE_ALLOCA_H)
-#include <alloca.h>
-#endif
 
 #include "framebuffer.h"
 
 /*************************************************************************/
 
-/* XXX: move to a TC_BUF_* ? */
-#define TC_MSG_BUF_SIZE     (256)
+#define TC_MSG_BUF_SIZE     (TC_BUF_MIN * 2)
 
 /* WARNING: we MUST keep in sync preambles order with TC_LOG* macros */
 static const char *tc_log_preambles[] = {
@@ -144,8 +140,8 @@ int tc_test_program(const char *name)
     }
 
     pathlen = strlen(path) + 1;
-    tmp_path = malloc(pathlen * sizeof(char));
-    strtokbuf = malloc(pathlen * sizeof(char));
+    tmp_path = tc_malloc(pathlen);
+    strtokbuf = tc_malloc(pathlen);
 
     sret = strlcpy(tmp_path, path, pathlen);
     tc_test_string(__FILE__, __LINE__, pathlen, sret, errno);
@@ -155,9 +151,8 @@ int tc_test_program(const char *name)
             !done && tok_path;
             tok_path = strtok_r((char *)0, ":", strtokbuf)) {
         pathlen = strlen(tok_path) + strlen(name) + 2;
-        compl_path = malloc(pathlen * sizeof(char));
-        sret = snprintf(compl_path, pathlen, "%s/%s", tok_path, name);
-        tc_test_string(__FILE__, __LINE__, pathlen, sret, errno);
+        compl_path = tc_malloc(pathlen * sizeof(char));
+        sret = tc_snprintf(compl_path, pathlen, "%s/%s", tok_path, name);
 
         if (access(compl_path, X_OK) == 0) {
             error   = 0;
@@ -169,11 +164,11 @@ int tc_test_program(const char *name)
             }
         }
 
-        free(compl_path);
+        tc_free(compl_path);
     }
 
-    free(tmp_path);
-    free(strtokbuf);
+    tc_free(tmp_path);
+    tc_free(strtokbuf);
 
     if (!done) {
         tc_warn("The '%s' program could not be found. \n", name);
@@ -466,7 +461,7 @@ int tc_file_check(const char *name)
         return -1;
     }
 
-    // file or directory?
+    /* file or directory? */
     if(S_ISDIR(fbuf.st_mode)) {
         return 1;
     }
@@ -585,6 +580,10 @@ void tc_strstrip(char *s)
 
 /*************************************************************************/
 
+/* 
+ * clamp an unsigned value so it can be safely (without any loss) in
+ * an another unsigned integer of <butsize> bits.
+ */
 static int32_t clamp(int32_t value, uint8_t bitsize)
 {
     value = (value < 1) ?1 :value;
