@@ -15,6 +15,7 @@ endif
 
 libtc_la_SOURCES = \
 	tc_functions.c \
+	ratiocodes.c \
 	tccodecs.c \
 	tcmodule.c \
 	tcmoduleinfo.c \
@@ -28,6 +29,7 @@ libtc_la_SOURCES = \
 EXTRA_DIST = \
 	libtc.h \
 	tccodecs.h \
+	ratiocodes.h \
 	tcmodule-core.h \
 	tcmodule-data.h \
 	tcmodule-info.h \
@@ -36,4 +38,5 @@ EXTRA_DIST = \
 	iodir.h \
 	optstr.h \
 	static_xio.h \
+	tc_lzo.h
 	xio.h

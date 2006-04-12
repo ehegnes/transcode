@@ -1,3 +1,10 @@
+2006-04-12 Francesco Romani <fromani at gmail dot com>
+  * Added files: libtc/ratiocodes.h libtc/ratiocodes.c
+    testsuite/test-ratiocodes.c
+  * libtc/Makefile.am testsuite/Makefile.am
+  Add unified ratio/code handling code (will replace
+  tc_detect_{asr,frc}), frc_table and co. 
+
 2006-04-11 Francesco Romani <fromani at gmail dot com>
   * libtc/iodir.c libtc/iodir.c libtc/optstr.h libtc/static_xio.h
     libtc/static_optstr.h libtc/tc_lzo.h libtc/tcmodule-plugin.h

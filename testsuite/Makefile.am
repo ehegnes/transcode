@@ -16,10 +16,14 @@ AM_CPPFLAGS = \
 noinst_PROGRAMS = \
 	test_bufalloc \
 	test_iodir \
+	test_ratiocodes \
 	test_tcmoduleinfo \
 	test_tcstrdup \
 	test_tclog \
 	test_tcmodule
+
+test_ratiocodes_SOURCES = test-ratiocodes.c
+test_ratiocodes_LDADD = $(LIBTC_LIBS)
 
 test_bufalloc_SOURCES = test-bufalloc.c
 test_bufalloc_LDADD = $(LIBTC_LIBS)
