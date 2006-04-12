@@ -134,12 +134,6 @@ void tc_log(TCLogLevel level, const char *tag, const char *fmt, ...);
  */
 int tc_test_program(const char *name);
 
-/* get the frame rate code from the frames per second */
-int tc_detect_frc(double fps);
-
-/* detect and return ASR code from picture dimensions */
-int tc_detect_asr(int n, int d);
-
 /*
  * Safer string functions from OpenBSD, since these are not in all
  * libc implementations.

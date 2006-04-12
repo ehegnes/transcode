@@ -1,4 +1,9 @@
 2006-04-12 Francesco Romani <fromani at gmail dot com>
+  * Removed file: src/frc_table.h
+  * libtc/libtc.h libtc/tc_functions.c
+  removed tc_detect_{frc,asr} functions and src/frc_table.h since
+  are now useless.
+  
   * filter/filter_modfps.c import/aux_pes.c import/extract_avi.c
     import/extract_yuv.c import/probe_bsdav.c import/probe_mov.c
     import/probe_mplayer.c import/probe_ogg.c import/tcscan.c
