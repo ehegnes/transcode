@@ -61,7 +61,7 @@ typedef struct
     uint8_t lumamap[MAP_SIZE];
     int is_prefilter;
 
-    char conf_str[CONF_STR_SIZE];
+    char conf_str[TC_BUF_MIN];
 } LevelsPrivateData;
 
 static LevelsPrivateData levels_private_data[MAX_FILTER];
@@ -211,7 +211,7 @@ static const char *levels_inspect(TCModuleInstance *self,
     }
 
     if (optstr_lookup(param, "all")) {
-        tc_snprintf(pd->conf_str, CONF_STR_SIZE,
+        tc_snprintf(pd->conf_str, TC_BUF_MIN,
                     "input=%i-%i:gamma=%.3f:output=%i-%i:pre=%i",
                     pd->parameter.in_black, pd->parameter.in_white,
                     pd->parameter.in_gamma,

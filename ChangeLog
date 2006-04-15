@@ -1,4 +1,8 @@
 2006-04-15 Francesco Romani <fromani at gmail dot com>
+  * libtc/tcmodule-plugin.h filter/filter_levels.c
+  symbol reduction: CONF_STR_SIZE is gone (rednundant), can be
+  safely replaced by TC_BUF_MIN.
+
   * import/extract_yuv.c libtc/libtc.h libtc/tc_functions.c
     tools/rawsource.c
   prepend "tc_" to {a,v}frame_{new,del} for conformancy with libtc
