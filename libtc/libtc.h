@@ -578,16 +578,16 @@ void tc_print_matrix(uint8_t *m8, uint16_t *m16);
 
 
 /*
- * vframe_new:
+ * tc_vframe_new:
  *     allocate enough memory to safely hold a vframe_list_t for a frame of
  *     given size. Such frame will be independent respect to all other frames,
- *     either allocated with vframe_new or by transcode's default frame ringbuffer.
+ *     either allocated with tc_vframe_new or by transcode's default frame ringbuffer.
  *
  *     This function is usually used by some code that needs, for some reasons,
  *     to have a private vframe_list_t.
  *
  *     PLEASE NOTE: it's UNSAFE to free() memory acquired with this function
- *     using any function different from vframe_del. Expect undefined behaviours
+ *     using any function different from tc_vframe_del. Expect undefined behaviours
  *     (memory leaks, subtle corruptions, even crashes) if you do so.
  *
  * Parameters:
@@ -596,20 +596,20 @@ void tc_print_matrix(uint8_t *m8, uint16_t *m16);
  * Return Value:
  *      NULL if some error happens, a valid pointer otherwise.
  */
-void *vframe_new(int width, int height);
+void *tc_vframe_new(int width, int height);
 
 /*
- * aframe_new:
+ * tc_aframe_new:
  *     allocate enough memory to safely hold an aframe_list_t for a frame of
  *     standard size in transcode environment.
  *     Such frame will be independent respect to all other frames, either
- *     allocated with aframe_new or by transcode's default frame ringbuffer.
+ *     allocated with tc_aframe_new or by transcode's default frame ringbuffer.
  *
  *     This function is usually used by some code that needs, for some reasons,
  *     to have a private aframe_list_t.
  *
  *     PLEASE NOTE: it's UNSAFE to free() memory acquired with this function
- *     using any function different from aframe_del. Expect undefined behaviours
+ *     using any function different from tc_aframe_del. Expect undefined behaviours
  *     (memory leaks, subtle corruptions, even crashes) if you do so.
  *
  * Parameters:
@@ -617,29 +617,29 @@ void *vframe_new(int width, int height);
  * Return Value:
  *      NULL if some error happens, a valid pointer otherwise.
  */
-void *aframe_new(void);
+void *tc_aframe_new(void);
 
 /*
- * vframe_del:
- *     safely deallocate memory obtained with vframe_new.
+ * tc_vframe_del:
+ *     safely deallocate memory obtained with tc_vframe_new.
  *
  * Parameters:
- *     _vptr: a pointer obtained by calling vframe_new.
+ *     _vptr: a pointer obtained by calling tc_vframe_new.
  * Return Value:
  *     None
  */
-void vframe_del(void *_vptr);
+void tc_vframe_del(void *_vptr);
 
 /*
- * aframe_del:
- *     safely deallocate memory obtained with aframe_new.
+ * tc_aframe_del:
+ *     safely deallocate memory obtained with tc_aframe_new.
  *
  * Parameters:
- *     _aptr: a pointer obtained by calling aframe_new.
+ *     _aptr: a pointer obtained by calling tc_aframe_new.
  * Return Value:
  *     None
  */
-void aframe_del(void *_aptr);
+void tc_aframe_del(void *_aptr);
 
 
 

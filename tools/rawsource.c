@@ -164,14 +164,14 @@ TCEncoderBuffer *tc_rawsource_buffer(vob_t *vob)
         return NULL;
     }
 
-    rawsource.vframe = vframe_new(vob->im_v_width, vob->im_v_height);
+    rawsource.vframe = tc_vframe_new(vob->im_v_width, vob->im_v_height);
     if (!rawsource.vframe) {
         tc_log_warn(__FILE__, "can't allocate video frame buffer");
         return NULL;
     }
-    rawsource.aframe = aframe_new();
+    rawsource.aframe = tc_aframe_new();
     if (!rawsource.aframe) {
-        vframe_del(rawsource.vframe);
+        tc_vframe_del(rawsource.vframe);
         tc_log_warn(__FILE__, "can't allocate audio frame buffer");
         return NULL;
     }
@@ -221,11 +221,11 @@ int tc_rawsource_open(vob_t *vob)
 static void tc_rawsource_free(void)
 {
     if (rawsource.vframe != NULL) {
-        vframe_del(rawsource.vframe);
+        tc_vframe_del(rawsource.vframe);
         rawsource.vframe = NULL;
     }
     if (rawsource.aframe != NULL) {
-        aframe_del(rawsource.aframe);
+        tc_aframe_del(rawsource.aframe);
         rawsource.aframe = NULL;
     }
 }

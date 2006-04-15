@@ -1,4 +1,9 @@
 2006-04-15 Francesco Romani <fromani at gmail dot com>
+  * import/extract_yuv.c libtc/libtc.h libtc/tc_functions.c
+    tools/rawsource.c
+  prepend "tc_" to {a,v}frame_{new,del} for conformancy with libtc
+  style.
+
   * libtc/libtc.h
   more documentation.
 
