@@ -1,3 +1,7 @@
+2006-04-15 Francesco Romani <fromani at gmail dot com>
+  * libtc/libtc.h
+  more documentation.
+
 2006-04-12 Francesco Romani <fromani at gmail dot com>
   * Removed file: src/frc_table.h
   * libtc/libtc.h libtc/tc_functions.c

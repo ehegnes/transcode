@@ -80,7 +80,7 @@ typedef enum {
  *     level: priority of message to log; see TCLogLevel definition
  *            above.
  *       tag: header of message, to identify subsystem originating
- *            the message. It's suggested to use __FILE__ as 
+ *            the message. It's suggested to use __FILE__ as
  *            fallback default tag.
  *       fmt: printf-like format string. You must provide enough
  *            further arguments to fullfill format string, doing
@@ -94,7 +94,7 @@ typedef enum {
  *     before to log it to destination. If such intermediate string
  *     is wider than a given amount (TC_BUF_MIN * 2 at moment
  *     of writing), tc_log needs to dinamically allocate some memory.
- *     This allocation can fail, and as result log message will be 
+ *     This allocation can fail, and as result log message will be
  *     dropped.
  */
 void tc_log(TCLogLevel level, const char *tag, const char *fmt, ...);
@@ -291,8 +291,6 @@ void *_tc_bufalloc(const char *file, int line, size_t size);
  *          tc_bufalloc() call
  * Return Value:
  *     none
- * Side effects:
- *     none
  * Preconditions:
  *     ptr is acquired via tc_bufalloc(). Really BAD things will happen
  *     if a buffer acquired via tc_bufalloc() is released using anything
@@ -416,16 +414,19 @@ ssize_t tc_pwrite(int fd, uint8_t *buf, size_t len);
  */
 int tc_preadwrite(int in, int out);
 
-#define TC_PROBE_PATH_INVALID   0
-#define TC_PROBE_PATH_ABSPATH   1
-#define TC_PROBE_PATH_RELDIR    2
-#define TC_PROBE_PATH_FILE      3
-#define TC_PROBE_PATH_NET       4
-#define TC_PROBE_PATH_BKTR      5
-#define TC_PROBE_PATH_SUNAU     6
-#define TC_PROBE_PATH_V4L_VIDEO 7
-#define TC_PROBE_PATH_V4L_AUDIO 8
-#define TC_PROBE_PATH_OSS       9
+enum {
+    TC_PROBE_PATH_INVALID = 0,
+    TC_PROBE_PATH_ABSPATH,
+    TC_PROBE_PATH_RELDIR,
+    TC_PROBE_PATH_FILE,
+    TC_PROBE_PATH_NET,
+    TC_PROBE_PATH_BKTR,
+    TC_PROBE_PATH_SUNAU,
+    TC_PROBE_PATH_V4L_VIDEO,
+    TC_PROBE_PATH_V4L_AUDIO,
+    TC_PROBE_PATH_OSS,
+    /* add more elements here */
+};
 
 /*
  * tc_probe_path:
@@ -511,7 +512,7 @@ int tc_codec_description(int codec, char *buf, size_t bufsize);
  */
 
 /*
- * Total size (=number of elements) of quantization matrix 
+ * Total size (=number of elements) of quantization matrix
  * for following two support functions
  */
 #define TC_MATRIX_SIZE     (64)
@@ -551,9 +552,9 @@ int tc_codec_description(int codec, char *buf, size_t bufsize);
  */
 int tc_read_matrix(const char *filename, uint8_t *m8, uint16_t *m16);
 
-/* 
+/*
  * tc_print_matrix:
- *     print (using tc_log*) a quantization matrix. 
+ *     print (using tc_log*) a quantization matrix.
  *     Can print 8-bit wide or 16-bit wide matrix elements.
  *
  *     Caller must provide a valid pointer correspoinding to
@@ -563,6 +564,7 @@ int tc_read_matrix(const char *filename, uint8_t *m8, uint16_t *m16);
  *     uint8_t matrix[TC_MATRIX_SIZE];
  *     // already filled with something useful
  *     tc_print_matrix(matrix, NULL);
+ *
  * Parameters:
  *     m8: pointer to 8-bit wide elements quantization matrix.
  *     m16: pointer to 16-bit wide elements quantization matrix.
@@ -575,10 +577,68 @@ int tc_read_matrix(const char *filename, uint8_t *m8, uint16_t *m16);
 void tc_print_matrix(uint8_t *m8, uint16_t *m16);
 
 
-/* XXX */
+/*
+ * vframe_new:
+ *     allocate enough memory to safely hold a vframe_list_t for a frame of
+ *     given size. Such frame will be independent respect to all other frames,
+ *     either allocated with vframe_new or by transcode's default frame ringbuffer.
+ *
+ *     This function is usually used by some code that needs, for some reasons,
+ *     to have a private vframe_list_t.
+ *
+ *     PLEASE NOTE: it's UNSAFE to free() memory acquired with this function
+ *     using any function different from vframe_del. Expect undefined behaviours
+ *     (memory leaks, subtle corruptions, even crashes) if you do so.
+ *
+ * Parameters:
+ *     width: maximum width of video frame that can be contained.
+ *    height: maximum height of video frame that can be contained.
+ * Return Value:
+ *      NULL if some error happens, a valid pointer otherwise.
+ */
 void *vframe_new(int width, int height);
+
+/*
+ * aframe_new:
+ *     allocate enough memory to safely hold an aframe_list_t for a frame of
+ *     standard size in transcode environment.
+ *     Such frame will be independent respect to all other frames, either
+ *     allocated with aframe_new or by transcode's default frame ringbuffer.
+ *
+ *     This function is usually used by some code that needs, for some reasons,
+ *     to have a private aframe_list_t.
+ *
+ *     PLEASE NOTE: it's UNSAFE to free() memory acquired with this function
+ *     using any function different from aframe_del. Expect undefined behaviours
+ *     (memory leaks, subtle corruptions, even crashes) if you do so.
+ *
+ * Parameters:
+ *      None
+ * Return Value:
+ *      NULL if some error happens, a valid pointer otherwise.
+ */
 void *aframe_new(void);
+
+/*
+ * vframe_del:
+ *     safely deallocate memory obtained with vframe_new.
+ *
+ * Parameters:
+ *     _vptr: a pointer obtained by calling vframe_new.
+ * Return Value:
+ *     None
+ */
 void vframe_del(void *_vptr);
+
+/*
+ * aframe_del:
+ *     safely deallocate memory obtained with aframe_new.
+ *
+ * Parameters:
+ *     _aptr: a pointer obtained by calling aframe_new.
+ * Return Value:
+ *     None
+ */
 void aframe_del(void *_aptr);
 
 
