@@ -1,4 +1,8 @@
-2006-04-16Francesco Romani <fromani at gmail dot com>
+2006-04-16 Francesco Romani <fromani at gmail dot com>
+  * tools/tcexport.c
+  move some #defines to a enum, fix a typo and update interface to
+  last rawsource changes.
+
   * tools/rawsource.c tools/rawsource.h
   conform rawsource interface to last changes to encoder buffer handling.
 

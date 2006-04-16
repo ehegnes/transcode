@@ -35,14 +35,16 @@
 
 #define EXE "tcexport"
 
-#define STATUS_OK               0
-#define STATUS_DONE             1
-#define STATUS_BAD_PARAM        2
-#define STATUS_IO_ERROR         4
-#define STATUS_NO_MODULE        8
-#define STATUS_MODULE_ERROR     16
-#define STATUS_INTERNAL_ERROR   32
-#define STATUS_PROBE_FAILED     64
+enum {
+    STATUS_OK = 0,
+    STATUS_DONE,
+    STATUS_BAD_PARAM,
+    STATUS_IO_ERROR,
+    STATUS_NO_MODULE,
+    STATUS_MODULE_ERROR,
+    STATUS_INTERNAL_ERROR,
+    STATUS_PROBE_FAILED,
+};
 
 #define VIDEO_LOG_FILE       "mpeg4.log"
 #define AUDIO_LOG_FILE       "pcm.log"
@@ -478,7 +480,7 @@ uint32_t vbuffer_xx_fill_ctr = 0;
 int tc_progress_meter = 1;
 int tc_progress_rate = 1;
 
-/* more symbols nbeeded by modules ***************************************/
+/* more symbols needed by modules ***************************************/
 
 pthread_mutex_t init_avcodec_lock = PTHREAD_MUTEX_INITIALIZER;
 int probe_export_attributes = 0;
@@ -498,7 +500,6 @@ int main(int argc, char *argv[])
 {
     int ret = 0;
     int status = STATUS_OK;
-    TCEncoderBuffer *source = NULL;
     /* needed by some modules */
     TCVHandle tcv_handle = tcv_init();
     TCFactory factory = NULL;
@@ -543,10 +544,9 @@ int main(int argc, char *argv[])
     ret = tc_rawsource_open(&vob);
     EXIT_IF(ret != 2, "can't open input sources", STATUS_IO_ERROR);
 
-    source = tc_rawsource_buffer(&vob);
-    EXIT_IF(!source, "can't get rawsource handle", STATUS_IO_ERROR);
-
-    ret = export_init(source, factory);
+    EXIT_IF(tc_rawsource_buffer == NULL, "can't get rawsource handle",
+            STATUS_IO_ERROR);
+    ret = export_init(tc_rawsource_buffer, factory);
     EXIT_IF(ret != 0, "can't setup export subsystem", STATUS_MODULE_ERROR);
 
     ret = export_setup(&vob,
