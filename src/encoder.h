@@ -48,6 +48,9 @@ struct tcencoderbuffer_ {
     int (*have_data)(TCEncoderBuffer *buf);
 };
 
+/* default main transcode buffer */
+extern TCEncoderBuffer *tc_ringbuffer;
+
 int export_init(TCEncoderBuffer *buffer, TCFactory factory);
 int export_setup(vob_t *vob,
 		 const char *a_mod, const char *v_mod, const char *m_mod);

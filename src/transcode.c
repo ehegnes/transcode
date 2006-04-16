@@ -27,7 +27,6 @@
 #include "transcode.h"
 #include "decoder.h"
 #include "encoder.h"
-#include "encoder-buffer.h"
 #include "dl_loader.h"
 #include "framebuffer.h"
 #include "counter.h"
@@ -543,8 +542,11 @@ static int transcoder(int mode, vob_t *vob)
       if(ex_aud_mod && strcmp(ex_aud_mod,"null") != 0) tc_encode_stream|=TC_AUDIO;
       if(ex_vid_mod && strcmp(ex_vid_mod,"null") != 0) tc_encode_stream|=TC_VIDEO;
 
-      // load export modules and check capabilities
-      if(export_init(tc_builtin_buffer(), NULL)<0) {
+      /*
+       * load export modules and check capabilities using OLD code
+       * (so we DON'T need a fTCModule actory)
+       */
+      if(export_init(tc_ringbuffer, NULL) < 0) {
       	tc_error("failed to init export layer");
 	return(-1);
       }

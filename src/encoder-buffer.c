@@ -37,7 +37,6 @@
 #include "video_trans.h"
 #include "audio_trans.h"
 #include "frame_threads.h"
-#include "encoder-buffer.h"
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
@@ -539,7 +538,7 @@ static int encoder_have_data(TCEncoderBuffer *buf)
 }
 
 
-static TCEncoderBuffer tc_buffer = {
+static TCEncoderBuffer tc_builtin_buffer = {
     .frame_id = 0,
 
     .vptr = NULL,
@@ -552,12 +551,7 @@ static TCEncoderBuffer tc_buffer = {
 
     .have_data = encoder_have_data,
 };
-
-
-TCEncoderBuffer *tc_builtin_buffer()
-{
-    return &tc_buffer;
-}
+TCEncoderBuffer *tc_ringbuffer = &tc_builtin_buffer;
 
 /*************************************************************************/
 

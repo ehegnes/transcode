@@ -1,3 +1,11 @@
+2006-04-16Francesco Romani <fromani at gmail dot com>
+  * Removed file: src/encoder-buffer.h
+  * src/encoder-buffer.c src/encoder.h src/transcode.c
+  Simplify handling of encoder buffer reference; encoder-buffer.h is gone
+
+  * src/encoder-common.h
+  strip function header documentation.
+
 2006-04-15 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule-plugin.h filter/filter_levels.c
   symbol reduction: CONF_STR_SIZE is gone (rednundant), can be
