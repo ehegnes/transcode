@@ -250,7 +250,7 @@ struct tcmoduleclass_ {
  *      self: pointer to module instance to use.
  *      inframe: pointer to {audio,video} frame data to decode/encode.
  *      outframe: pointer to {audio,videp} frame which will hold
- *                (un)compressed data.
+ *                (un)compressed data. Must be != NULL
  * Return Value:
  *      0  succesfull.
  *      -1 error occurred. A proper message should be sent to user using
@@ -261,6 +261,7 @@ struct tcmoduleclass_ {
  *      module was already initialized AND configured.
  *      To use a uninitialized and/or unconfigured module
  *      for decoding/encoding will cause an undefined behaviour.
+ *      outframe != NULL.
  * Postconditions:
  *      None
  *
