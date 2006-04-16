@@ -53,7 +53,7 @@ static TCFileSource rawsource = {
     .acount = 0,
 };
 
-static TCEncoderBuffer rawsource_buffer = {
+static TCEncoderBuffer raw_buffer = {
     .frame_id = 0,
 
     .vptr = NULL,
@@ -66,6 +66,7 @@ static TCEncoderBuffer rawsource_buffer = {
 
     .have_data = rawsource_have_data,
 };
+TCEncoderBuffer *tc_rawsource_buffer = NULL;
 
 static int rawsource_read_video(TCEncoderBuffer *buf, vob_t *vob)
 {
@@ -77,8 +78,8 @@ static int rawsource_read_video(TCEncoderBuffer *buf, vob_t *vob)
     }
     if (vob->im_v_size > rawsource.vframe->video_size) {
         /* paranoia */
-        tc_log_warn(__FILE__, "video buffer too small"
-                              " (this should'nt happen)");
+        tc_log_error(__FILE__, "video buffer too small"
+                               " (this should'nt happen)");
         return -1;
     }
 
@@ -96,8 +97,8 @@ static int rawsource_read_video(TCEncoderBuffer *buf, vob_t *vob)
     rawsource.vframe->video_size = rawsource.im_para.size;
     rawsource.vframe->attributes = rawsource.im_para.attributes;
 
-    rawsource_buffer.vptr = rawsource.vframe;
-    rawsource_buffer.frame_id++;
+    raw_buffer.vptr = rawsource.vframe;
+    raw_buffer.frame_id++;
     return 0;
 }
 
@@ -118,8 +119,8 @@ static int rawsource_read_audio(TCEncoderBuffer *buf, vob_t *vob)
     }
     if (abytes > rawsource.aframe->audio_size) {
         /* paranoia */
-        tc_log_warn(__FILE__, "audio buffer too small"
-                              " (this should'nt happen)");
+        tc_log_error(__FILE__, "audio buffer too small"
+                               " (this should'nt happen)");
         return -1;
     }
 
@@ -138,7 +139,7 @@ static int rawsource_read_audio(TCEncoderBuffer *buf, vob_t *vob)
     rawsource.aframe->audio_size = rawsource.im_para.size;
     rawsource.aframe->attributes = rawsource.im_para.attributes;
 
-    rawsource_buffer.aptr = rawsource.aframe;
+    raw_buffer.aptr = rawsource.aframe;
     return 0;
 }
 
@@ -158,35 +159,30 @@ static void rawsource_dummy(TCEncoderBuffer *buf)
     return;
 }
 
-TCEncoderBuffer *tc_rawsource_buffer(vob_t *vob)
-{
-    if (!vob) {
-        return NULL;
-    }
-
-    rawsource.vframe = tc_vframe_new(vob->im_v_width, vob->im_v_height);
-    if (!rawsource.vframe) {
-        tc_log_warn(__FILE__, "can't allocate video frame buffer");
-        return NULL;
-    }
-    rawsource.aframe = tc_aframe_new();
-    if (!rawsource.aframe) {
-        tc_vframe_del(rawsource.vframe);
-        tc_log_warn(__FILE__, "can't allocate audio frame buffer");
-        return NULL;
-    }
-
-    return &rawsource_buffer;
-}
-
 int tc_rawsource_open(vob_t *vob)
 {
     int ret = 0;
     int num_sources = 0;
 
+    if (!vob) {
+        goto vframe_failed;
+    }
+
+    rawsource.vframe = tc_vframe_new(vob->im_v_width, vob->im_v_height);
+    if (!rawsource.vframe) {
+        tc_log_error(__FILE__, "can't allocate video frame buffer");
+        goto vframe_failed;
+    }
+    rawsource.aframe = tc_aframe_new();
+    if (!rawsource.aframe) {
+        tc_log_error(__FILE__, "can't allocate audio frame buffer");
+        goto aframe_failed;
+    }
+
 	rawsource.im_handle = load_module(RAWSOURCE_IM_MOD, TC_IMPORT|TC_AUDIO|TC_VIDEO);
 	if (!rawsource.im_handle) {
-        return -1;
+        tc_log_error(__FILE__, "can't load import module");
+        goto load_failed;
     }
 
     /* hello, module! */
@@ -215,7 +211,17 @@ int tc_rawsource_open(vob_t *vob)
         rawsource.sources |= TC_VIDEO;
     }
 
+    if (num_sources > 0) {
+        tc_rawsource_buffer = &raw_buffer;
+    }
     return num_sources;
+
+load_failed:
+    tc_aframe_del(rawsource.aframe);
+aframe_failed:
+    tc_vframe_del(rawsource.vframe);
+vframe_failed:
+    return -1;
 }
 
 static void tc_rawsource_free(void)

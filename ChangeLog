@@ -1,4 +1,7 @@
 2006-04-16Francesco Romani <fromani at gmail dot com>
+  * tools/rawsource.c tools/rawsource.h
+  conform rawsource interface to last changes to encoder buffer handling.
+
   * Removed file: src/encoder-buffer.h
   * src/encoder-buffer.c src/encoder.h src/transcode.c
   Simplify handling of encoder buffer reference; encoder-buffer.h is gone
