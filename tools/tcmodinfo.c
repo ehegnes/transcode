@@ -60,27 +60,30 @@
 #define OPTS_SIZE 8192 //Buffersize
 #define NAME_LEN 256
 
-#define STATUS_OK            0
-#define STATUS_BAD_PARAM     1
-#define STATUS_NO_MODULE     2
-#define STATUS_MODULE_ERROR  4
-#define STATUS_NO_SOCKET     8
-#define STATUS_SOCKET_ERROR  16
+enum {
+    STATUS_OK = 0,
+    STATUS_BAD_PARAM,
+    STATUS_NO_MODULE,
+    STATUS_MODULE_ERROR,
+    STATUS_NO_SOCKET,
+    STATUS_SOCKET_ERROR,
+};
 
 static filter_t filter[MAX_FILTER];
 static vob_t vob = {
     // some arbitrary values for the modules
-    .fps = 25.0,
+    .fps = PAL_FPS,
     .im_v_width = 32,
     .ex_v_width = 32,
     .im_v_height= 32,
     .ex_v_height= 32,
     .im_v_codec = CODEC_YUV,
 
-    .a_rate = 44100,
-    .mp3frequency = 44100,
-    .a_chan = 2,
-    .a_bits = 16,
+    .mp3frequency = RATE,
+    .a_rate = RATE,
+    .a_chan = CHANNELS,
+    .a_bits = BITS,
+    .a_vbr = AVBR,
 
     .video_in_file = "/dev/zero",
     .audio_in_file = "/dev/zero",
@@ -118,7 +121,7 @@ int plugin_get_handle(char *name)
     return 0;
 }
 
-/* symbols nbeeded by modules */
+/* symbols needed by modules */
 pthread_mutex_t init_avcodec_lock = PTHREAD_MUTEX_INITIALIZER;
 int probe_export_attributes = 0;
 const char *tc_config_dir = NULL;
