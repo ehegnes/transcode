@@ -34,12 +34,6 @@
  *     None
  * Return Value:
  *     the current value of requested counter
- * Side effects:
- *     None
- * Preconditions:
- *     None
- * Postconditions:
- *     None
  */
 uint32_t tc_get_frames_dropped(void);
 uint32_t tc_get_frames_skipped(void);
@@ -55,12 +49,6 @@ uint32_t tc_get_frames_skipped_cloned(void);
  *     val: value to be added to the current value of requested counter.
  *     This parameter is usually just '1' (one)
  * Return Value:
- *     None
- * Side effects:
- *     None
- * Preconditions:
- *     None
- * Postconditions:
  *     None
  */
 void tc_update_frames_dropped(uint32_t val);
@@ -80,13 +68,9 @@ void tc_update_frames_cloned(uint32_t val);
  *     None
  * Return Value:
  *     None
- * Side effects:
- *     None
  * Preconditions:
  *     Calling this function _outside_ of an encoding loop
  *     make very little (or no) sense, but it will not harm anything.
- * Postconditions:
- *     None
  */
 void tc_export_stop_nolock(void);
 
@@ -105,13 +89,9 @@ void tc_export_stop_nolock(void);
  * Return Value:
  *     1 if encoder stop was requested
  *     0 otherwise
- * Side effects:
- *     None
  * Preconditions:
  *     Calling this function _outside_ of an encoding loop
  *     make very little (or no) sense, but it will not harm anything.
- * Postconditions:
- *     None
  */
 int tc_export_stop_requested(void);
 
