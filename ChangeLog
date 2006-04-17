@@ -1,7 +1,7 @@
 2006-04-17 Andrew Church <achurch at achurch dot org>
   * Changed: configure.in filter/Makefile.am
   * Added: filter/filter_pp.c
-  * Removed: filter/pp/*
+  * Removed: filter/pp/* 
   Move filter_pp from filter/pp subdirectory to main filter directory.
 
 2006-04-17 Andrew Church <achurch at achurch dot org>

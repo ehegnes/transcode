@@ -24,6 +24,10 @@ if HAVE_IMAGEMAGICK
 FILTER_LOGO = filter_logo.la filter_logoaway.la filter_compare.la
 endif
 
+if HAVE_LIBPOSTPROC
+FILTER_PP = filter_pp.la
+endif
+
 if CAN_COMPILE_C_ALTIVEC
 if SYSTEM_DARWIN
 ALTIVEC = -faltivec
@@ -83,6 +87,7 @@ pkg_LTLIBRARIES = \
 	filter_msharpen.la \
 	filter_normalize.la \
 	filter_null.la \
+	$(FILTER_PP) \
 	filter_resample.la \
 	filter_skip.la \
 	filter_slowmo.la \
@@ -186,6 +191,11 @@ filter_normalize_la_LIBADD = -lm
 filter_null_la_SOURCES = filter_null.c
 filter_null_la_LDFLAGS = -module -avoid-version
 
+filter_pp_la_SOURCES = filter_pp.c
+filter_pp_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBPOSTPROC_CFLAGS)
+filter_pp_la_LIBADD = $(LIBPOSTPROC_LIBS)
+filter_pp_la_LDFLAGS = -module -avoid-version
+
 filter_skip_la_SOURCES = filter_skip.c
 filter_skip_la_LDFLAGS = -module -avoid-version
 
@@ -258,17 +268,10 @@ endif
 endif
 endif
 
-if HAVE_LIBPOSTPROC
-PP = pp
-else
-PP =
-endif
-
 if HAVE_X11
 SUBDIRS = \
 	divxkey \
 	extsub \
-	$(PP) \
 	preview \
 	$(ADD2) \
 	$(F_TOMSMOCOMP) \
@@ -277,7 +280,6 @@ else
 SUBDIRS = \
 	divxkey \
 	extsub \
-	$(PP) \
 	$(F_TOMSMOCOMP) \
 	yuvdenoise
 endif
