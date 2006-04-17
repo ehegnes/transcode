@@ -1,4 +1,8 @@
 2006-04-17 Andrew Church <achurch at achurch dot org>
+  * testsuite/Makefile.am
+  Rename executables from "test_*" to "test-*" to match source file names.
+
+2006-04-17 Andrew Church <achurch at achurch dot org>
   * libtc/framecode.c
   Fix several critical bugs in framecode handling, and allow error messages
   from new_fc_time_from_string() to be suppressed.

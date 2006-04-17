@@ -14,14 +14,14 @@ AM_CPPFLAGS = \
 	$(XIO_CFLAGS)
 
 noinst_PROGRAMS = \
-	test_bufalloc \
+	test-bufalloc \
 	test-framecode \
-	test_iodir \
-	test_ratiocodes \
-	test_tclog \
-	test_tcmodule \
-	test_tcmoduleinfo \
-	test_tcstrdup
+	test-iodir \
+	test-ratiocodes \
+	test-tclog \
+	test-tcmodule \
+	test-tcmoduleinfo \
+	test-tcstrdup
 
 test_bufalloc_SOURCES = test-bufalloc.c
 test_bufalloc_LDADD = $(LIBTC_LIBS)
