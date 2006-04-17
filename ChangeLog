@@ -1,8 +1,14 @@
 2006-04-17 Andrew Church <achurch at achurch dot org>
+  * Changed: configure.in filter/Makefile.am
+  * Added: filter/filter_pp.c
+  * Removed: filter/pp/*
+  Move filter_pp from filter/pp subdirectory to main filter directory.
+
+2006-04-17 Andrew Church <achurch at achurch dot org>
   * Changed: libtc/Makefile.am src/Makefile.am src/transcode.c
   * Added: libtc/getopt.c libtc/getopt.h libtc/getopt1.c
   * Removed: libsupport/getopt.c libsupport/getopt.h libsupport/getopt1.c
-  Moved getopt_long() repalcement code from libsupport to libtc.
+  Move getopt_long() repalcement code from libsupport to libtc.
 
   * Changed: Makefile.am configure.in tools/Makefile.am
   * Removed: libsupport/*

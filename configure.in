@@ -1227,7 +1227,6 @@ AC_OUTPUT([
 	filter/Makefile
 	filter/divxkey/Makefile
 	filter/extsub/Makefile
-	filter/pp/Makefile
 	filter/preview/Makefile
 	filter/subtitler/Makefile
 	filter/tomsmocomp/Makefile
