@@ -4,29 +4,13 @@ AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
-	-I$(top_srcdir)/libtc \
 	$(LIBTC_CFLAGS) \
 	$(AVILIB_CFLAGS) \
-	$(AVIFILE_CFLAGS) \
 	$(LAME_CFLAGS) \
 	$(AC3_CFLAGS) \
-	$(IMAGEMAGICK_CFLAGS) \
-	$(FREETYPE2_CFLAGS) \
 	$(LIBAVCODEC_CFLAGS)
 
 pkgdir = $(MOD_PATH)
-
-if HAVE_FREETYPE2
-FILTER_TEXT = filter_text.la
-endif
-
-if HAVE_IMAGEMAGICK
-FILTER_LOGO = filter_logo.la filter_logoaway.la filter_compare.la
-endif
-
-if HAVE_LIBPOSTPROC
-FILTER_PP = filter_pp.la
-endif
 
 if CAN_COMPILE_C_ALTIVEC
 if SYSTEM_DARWIN
@@ -34,6 +18,20 @@ ALTIVEC = -faltivec
 else
 ALTIVEC = -maltivec -mabi=altivec
 endif
+endif
+
+if HAVE_IMAGEMAGICK
+FILTER_COMPARE = filter_compare.la
+FILTER_LOGO = filter_logo.la
+FILTER_LOGOAWAY = filter_logoaway.la
+endif
+
+if HAVE_LIBPOSTPROC
+FILTER_PP = filter_pp.la
+endif
+
+if HAVE_FREETYPE2
+FILTER_TEXT = filter_text.la
 endif
 
 if HAVE_GCC2
@@ -64,6 +62,7 @@ pkg_LTLIBRARIES = \
 	filter_ascii.la \
 	filter_astat.la \
 	filter_clone.la \
+	$(FILTER_COMPARE) \
 	filter_control.la \
 	filter_cpaudio.la \
 	filter_decimate.la \
@@ -81,6 +80,7 @@ pkg_LTLIBRARIES = \
 	filter_ivtc.la \
 	filter_levels.la \
 	$(FILTER_LOGO) \
+	$(FILTER_LOGOAWAY) \
 	filter_lowpass.la \
 	filter_mask.la \
 	filter_modfps.la \
@@ -121,6 +121,11 @@ filter_astat_la_LDFLAGS = -module -avoid-version
 
 filter_clone_la_SOURCES = filter_clone.c
 filter_clone_la_LDFLAGS = -module -avoid-version
+
+filter_compare_la_SOURCES = filter_compare.c
+filter_compare_la_CPPFLAGS = $(AM_CPPFLAGS) $(IMAGEMAGICK_CFLAGS)
+filter_compare_la_LDFLAGS = -module -avoid-version
+filter_compare_la_LIBADD = $(IMAGEMAGICK_LIBS)
 
 filter_control_la_SOURCES = filter_control.c
 filter_control_la_LDFLAGS = -module -avoid-version
@@ -170,6 +175,16 @@ filter_invert_la_LDFLAGS = -module -avoid-version
 
 filter_levels_la_SOURCES = filter_levels.c
 filter_levels_la_LDFLAGS = -module -avoid-version
+
+filter_logo_la_SOURCES = filter_logo.c
+filter_logo_la_CPPFLAGS = $(AM_CPPFLAGS) $(IMAGEMAGICK_CFLAGS)
+filter_logo_la_LDFLAGS = -module -avoid-version
+filter_logo_la_LIBADD = $(IMAGEMAGICK_LIBS)
+
+filter_logoaway_la_SOURCES = filter_logoaway.c
+filter_logoaway_la_CPPFLAGS = $(AM_CPPFLAGS) $(IMAGEMAGICK_CFLAGS)
+filter_logoaway_la_LDFLAGS = -module -avoid-version
+filter_logoaway_la_LIBADD = $(IMAGEMAGICK_LIBS)
 
 filter_lowpass_la_SOURCES = filter_lowpass.c
 filter_lowpass_la_LDFLAGS = -module -avoid-version
@@ -221,6 +236,11 @@ filter_smooth_la_LDFLAGS = -module -avoid-version
 filter_testframe_la_SOURCES = filter_testframe.c
 filter_testframe_la_LDFLAGS = -module -avoid-version
 
+filter_text_la_SOURCES = filter_text.c
+filter_text_la_CPPFLAGS = $(AM_CPPFLAGS) $(FREETYPE2_CFLAGS)
+filter_text_la_LDFLAGS = -module -avoid-version
+filter_text_la_LIBADD  = $(FREETYPE2_LIBS)
+
 filter_unsharp_la_SOURCES = filter_unsharp.c
 filter_unsharp_la_LDFLAGS = -module -avoid-version
 
@@ -231,58 +251,33 @@ filter_xsharpen_la_SOURCES = filter_xsharpen.c
 filter_xsharpen_la_LDFLAGS = -module -avoid-version
 
 
-# FILTER_LOGO = filter_logo.la filter_logoaway.la filter_compare.la
-
-filter_logo_la_SOURCES = filter_logo.c
-filter_logo_la_LDFLAGS = -module -avoid-version
-filter_logo_la_LIBADD = $(IMAGEMAGICK_LIBS)
-
-filter_logoaway_la_SOURCES = filter_logoaway.c
-filter_logoaway_la_LDFLAGS = -module -avoid-version
-filter_logoaway_la_LIBADD = $(IMAGEMAGICK_LIBS)
-
-filter_compare_la_SOURCES = filter_compare.c
-filter_compare_la_LDFLAGS = -module -avoid-version
-filter_compare_la_LIBADD = $(IMAGEMAGICK_LIBS)
-
-
-# FILTER_TEXT = filter_text.la
-
-filter_text_la_SOURCES = filter_text.c
-filter_text_la_LDFLAGS = -module -avoid-version
-filter_text_la_LIBADD  = $(FREETYPE2_LIBS)
-
-
 EXTRA_DIST =  \
 	parse_csv.awk.in \
 	filter_list.awk.in \
 	mmx.h
 
+if HAVE_X11
+PREVIEW = preview
+
 if HAVE_FREETYPE2
 if HAVE_XAW_SIMPLE
 if HAVE_LIBXPM
 if HAVE_ICONV
-ADD2 = subtitler
+SUBTITLER = subtitler
 endif
 endif
 endif
 endif
 
-if HAVE_X11
-SUBDIRS = \
-	divxkey \
-	extsub \
-	preview \
-	$(ADD2) \
-	$(F_TOMSMOCOMP) \
-	yuvdenoise
-else
-SUBDIRS = \
-	divxkey \
-	extsub \
-	$(F_TOMSMOCOMP) \
-	yuvdenoise
 endif
+
+SUBDIRS = \
+	divxkey \
+	extsub \
+	$(PREVIEW) \
+	$(SUBTITLER) \
+	$(F_TOMSMOCOMP) \
+	yuvdenoise
 
 pkg_SCRIPTS = \
 	filter_list.awk \

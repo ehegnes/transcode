@@ -431,15 +431,6 @@ dnl gcc stuff
 dnl
 AM_CONDITIONAL(HAVE_GCC, test x"$GCC" = x"yes")
 
-dnl XXX hack! filter/pp needs -fomit-frame-pointer with gcc
-have_fomit_fp="no"
-if test x"$GCC" = x"yes" ; then
-  if echo "$CFLAGS" | grep -vq -- '-fomit-frame-pointer' ; then
-    AC_TRY_CFLAGS([-fomit-frame-pointer], [have_fomit_fp="yes"])
-  fi
-fi
-AM_CONDITIONAL(HAVE_FOMIT_FP, test x"$have_fomit_fp" = x"yes")
-
 dnl Check for gcc2, which doesn't seem to handle asm templates
 dnl And check for gcc4, which also has problems with filter_tomsmocomp
 dnl
@@ -656,7 +647,6 @@ AC_MSG_RESULT($enable_netstream)
 if test x"$enable_netstream" = x"yes" ; then
   AC_DEFINE([NET_STREAM], 1, [Enable network functionality])
 fi
-AM_CONDITIONAL(NET_STREAM, test x"$enable_netstream" = x"yes")
 
 
 dnl
@@ -700,7 +690,6 @@ AC_CHECK_HEADERS([encore2.h],
     AC_DEFINE([HAVE_DIVX_ENCORE2], 1,
       [Have the Divx4linux encore2.h header file])],
   [have_divx_encore2=no])
-AM_CONDITIONAL(HAVE_DIVX_ENCORE2, test x"$have_divx_encore2" = x"yes" )
 
 dnl
 dnl libpostproc

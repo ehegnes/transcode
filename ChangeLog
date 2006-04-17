@@ -1,7 +1,17 @@
 2006-04-17 Andrew Church <achurch at achurch dot org>
+  * configure.in
+  Remove unused automake variables: HAVE_FOMIT_FP, NET_STREAM, and
+  HAVE_DIVX_ENCORE2.
+
+  * export/Makefile.am filter/Makefile.am import/Makefile.am
+    src/Makefile.am
+  Clean up, sorting targets alphabetically and removing unneeded variables.
+  Also make use of target_CPPFLAGS to shorten the compilation command line.
+
+2006-04-17 Andrew Church <achurch at achurch dot org>
   * Changed: configure.in filter/Makefile.am
   * Added: filter/filter_pp.c
-  * Removed: filter/pp/* 
+  * Removed: filter/pp/*
   Move filter_pp from filter/pp subdirectory to main filter directory.
 
 2006-04-17 Andrew Church <achurch at achurch dot org>

@@ -5,27 +5,13 @@ AM_CPPFLAGS = \
 	-DMOD_PATH=\"$(MOD_PATH)\" \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
-	-I$(top_srcdir)/libtc \
 	$(LIBTC_CFLAGS) \
-	$(A52_CFLAGS) \
 	$(AC3_CFLAGS) \
 	$(AVILIB_CFLAGS) \
 	$(WAVLIB_CFLAGS) \
-	$(LIBDV_CFLAGS) \
-	$(LIBDVDREAD_CFLAGS) \
 	$(LIBAVCODEC_CFLAGS) \
 	$(LAME_CFLAGS) \
-	$(LIBXML2_CFLAGS) \
-	$(LZO_CFLAGS) \
-	$(IMAGEMAGICK_CFLAGS) \
-	$(MJPEGTOOLS_CFLAGS) \
-	$(LIBMPEG2_CFLAGS) \
-	$(OGG_CFLAGS) \
-	$(LIBQUICKTIME_CFLAGS) \
-	$(THEORA_CFLAGS) \
-	$(VORBIS_CFLAGS) \
-	$(XIO_CFLAGS) \
-	$(BSDAV_CFLAGS)
+	$(LIBMPEG2_CFLAGS)
 
 if HAVE_OGG
 if HAVE_VORBIS
@@ -33,48 +19,48 @@ VORBISFILE = -lvorbisfile
 endif
 endif
 
-if HAVE_LIBQUICKTIME
-IMPORT_MOV = import_mov.la
-endif
-
-if HAVE_LIBDVDREAD
-IMPORT_DVD = import_dvd.la
-endif
-
 if HAVE_A52
 IMPORT_A52 = a52_decore.la
-endif
-
-if HAVE_LZO
-IMPORT_LZO = import_lzo.la
-endif
-
-if HAVE_IMAGEMAGICK
-IMPORT_IM = import_im.la import_imlist.la
-endif
-
-if HAVE_LIBXML2
-IMPORT_XML = import_xml.la
 endif
 
 if HAVE_BKTR
 IMPORT_BKTR = import_bktr.la
 endif
 
-if HAVE_SUNAU
-IMPORT_SUNAU = import_sunau.la
+IMPORT_BSDAV = import_bsdav.la
+
+if HAVE_LIBDVDREAD
+IMPORT_DVD = import_dvd.la
+endif
+
+if HAVE_IMAGEMAGICK
+IMPORT_IM = import_im.la
+IMPORT_IMLIST = import_imlist.la
+endif
+
+if HAVE_LZO
+IMPORT_LZO = import_lzo.la
+endif
+
+if HAVE_LIBQUICKTIME
+IMPORT_MOV = import_mov.la
 endif
 
 if HAVE_OSS
 IMPORT_OSS = import_oss.la
 endif
 
+if HAVE_SUNAU
+IMPORT_SUNAU = import_sunau.la
+endif
+
+if HAVE_LIBXML2
+IMPORT_XML = import_xml.la
+endif
+
 if HAVE_MJPEGTOOLS
 IMPORT_YUV4MPEG = import_yuv4mpeg.la
 endif
-
-IMPORT_BSDAV = import_bsdav.la
-
 
 pkgdir = $(MOD_PATH)
 
@@ -90,6 +76,7 @@ pkg_LTLIBRARIES = \
 	$(IMPORT_DVD) \
 	import_ffmpeg.la \
 	$(IMPORT_IM) \
+	$(IMPORT_IMLIST) \
 	$(IMPORT_LZO) \
 	$(IMPORT_MOV) \
 	import_mp3.la \
@@ -106,91 +93,102 @@ pkg_LTLIBRARIES = \
 	import_xvid.la \
 	$(IMPORT_YUV4MPEG)
 
-import_null_la_SOURCES = import_null.c
-import_null_la_LDFLAGS = -module -avoid-version
+a52_decore_la_SOURCES = a52_decore.c
+a52_decode_la_CPPFLAGS = $(AM_CPPFLAGS) $(A52_CFLAGS)
+a52_decore_la_LDFLAGS = -module -avoid-version
+a52_decore_la_LIBADD = $(A52_LIBS) $(XIO_LIBS)
 
-import_ogg_la_SOURCES = import_ogg.c
-import_ogg_la_LDFLAGS = -module -avoid-version
+import_ac3_la_SOURCES = import_ac3.c ac3scan.c
+import_ac3_la_LDFLAGS = -module -avoid-version
+import_ac3_la_LIBADD = $(AC3_LIBS) -lm
 
-import_xml_la_SOURCES = import_xml.c ioxml.c probe_xml.c
-import_xml_la_LDFLAGS = -module -avoid-version
-import_xml_la_LIBADD = $(LIBXML2_LIBS) -lm
+import_avi_la_SOURCES = import_avi.c
+import_avi_la_LDFLAGS = -module -avoid-version
 
-import_yuv4mpeg_la_SOURCES = import_yuv4mpeg.c
-import_yuv4mpeg_la_LDFLAGS = -module -avoid-version
-import_yuv4mpeg_la_LIBADD = $(MJPEGTOOLS_LIBS)
+import_bktr_la_SOURCES = import_bktr.c
+import_bktr_la_LDFLAGS = -module -avoid-version
 
-import_mplayer_la_SOURCES = import_mplayer.c
-import_mplayer_la_LDFLAGS = -module -avoid-version
+import_bsdav_la_SOURCES = import_bsdav.c
+import_bsdav_la_CPPFLAGS = $(AM_CPPFLAGS) $(BSDAV_CFLAGS)
+import_bsdav_la_LDFLAGS = -module -avoid-version
 
-import_xvid_la_SOURCES = import_xvid.c
-import_xvid_la_LDFLAGS = -module -avoid-version
+import_dv_la_SOURCES = import_dv.c
+import_dv_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBDV_CFLAGS)
+import_dv_la_LDFLAGS = -module -avoid-version
+
+import_dvd_la_SOURCES = import_dvd.c ac3scan.c dvd_reader.c clone.c ioaux.c frame_info.c ivtc.c
+import_dvd_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBDVDREAD_CFLAGS)
+import_dvd_la_LDFLAGS = -module -avoid-version
+import_dvd_la_LIBADD = $(LIBDVDREAD_LIBS) $(AC3_LIBS)
 
 import_ffmpeg_la_SOURCES = import_ffmpeg.c
 import_ffmpeg_la_LDFLAGS = -module -avoid-version
 import_ffmpeg_la_LIBADD = $(LIBAVCODEC_LIBS)
 
 import_im_la_SOURCES = import_im.c
+import_im_la_CPPFLAGS = $(AM_CPPFLAGS) $(IMAGEMAGICK_CFLAGS)
 import_im_la_LDFLAGS = -module -avoid-version
 import_im_la_LIBADD = $(IMAGEMAGICK_LIBS) -lm
 
 import_imlist_la_SOURCES = import_imlist.c
+import_imlist_la_CPPFLAGS = $(AM_CPPFLAGS) $(IMAGEMAGICK_CFLAGS)
 import_imlist_la_LDFLAGS = -module -avoid-version
 import_imlist_la_LIBADD = $(IMAGEMAGICK_LIBS) -lm
 
+import_lzo_la_SOURCES = import_lzo.c
+import_lzo_la_CPPFLAGS = $(AM_CPPFLAGS) $(LZO_CFLAGS)
+import_lzo_la_LDFLAGS = -module -avoid-version
+import_lzo_la_LIBADD  = $(LZO_LIBS) -lm
+
 import_mov_la_SOURCES = import_mov.c
+import_mov_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBQUICKTIME_CFLAGS)
 import_mov_la_LDFLAGS = -module -avoid-version
 import_mov_la_LIBADD = $(LIBQUICKTIME_LIBS) -lm
-
-import_raw_la_SOURCES = import_raw.c
-import_raw_la_LDFLAGS = -module -avoid-version
-
-import_mpeg2_la_SOURCES = import_mpeg2.c
-import_mpeg2_la_LDFLAGS = -module -avoid-version
-
-import_avi_la_SOURCES = import_avi.c
-import_avi_la_LDFLAGS = -module -avoid-version
-
-import_ac3_la_SOURCES = import_ac3.c ac3scan.c
-import_ac3_la_LDFLAGS = -module -avoid-version
-import_ac3_la_LIBADD = $(AC3_LIBS) -lm
-
-a52_decore_la_SOURCES = a52_decore.c
-a52_decore_la_LDFLAGS = -module -avoid-version
-a52_decore_la_LIBADD = $(A52_LIBS) $(XIO_LIBS)
 
 import_mp3_la_SOURCES = import_mp3.c
 import_mp3_la_LDFLAGS = -module -avoid-version
 
-import_lzo_la_SOURCES = import_lzo.c
-import_lzo_la_LDFLAGS = -module -avoid-version
-import_lzo_la_LIBADD  = $(LZO_LIBS) -lm
+import_mpeg2_la_SOURCES = import_mpeg2.c
+import_mpeg2_la_LDFLAGS = -module -avoid-version
+
+import_mplayer_la_SOURCES = import_mplayer.c
+import_mplayer_la_LDFLAGS = -module -avoid-version
+
+import_null_la_SOURCES = import_null.c
+import_null_la_LDFLAGS = -module -avoid-version
+
+import_ogg_la_SOURCES = import_ogg.c
+import_ogg_la_CPPFLAGS = $(AM_CPPFLAGS) $(OGG_CFLAGS) $(THEORA_CFLAGS) $(VORBIS_CFLAGS)
+import_ogg_la_LDFLAGS = -module -avoid-version
+
+import_oss_la_SOURCES = import_oss.c
+import_oss_la_LDFLAGS = -module -avoid-version
+
+import_raw_la_SOURCES = import_raw.c
+import_raw_la_LDFLAGS = -module -avoid-version
+
+import_sunau_la_SOURCES = import_sunau.c
+import_sunau_la_LDFLAGS = -module -avoid-version
+
+import_vnc_la_SOURCES = import_vnc.c
+import_vnc_la_LDFLAGS = -module -avoid-version
 
 import_vob_la_SOURCES = import_vob.c ac3scan.c clone.c ioaux.c frame_info.c ivtc.c
 import_vob_la_LDFLAGS =	-module -avoid-version
 import_vob_la_LIBADD = $(AC3_LIBS)
 
-import_dvd_la_SOURCES = import_dvd.c ac3scan.c dvd_reader.c clone.c ioaux.c frame_info.c ivtc.c
-import_dvd_la_LDFLAGS = -module -avoid-version
-import_dvd_la_LIBADD = $(LIBDVDREAD_LIBS) $(AC3_LIBS)
+import_xml_la_SOURCES = import_xml.c ioxml.c probe_xml.c
+import_xml_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBXML2_CFLAGS)
+import_xml_la_LDFLAGS = -module -avoid-version
+import_xml_la_LIBADD = $(LIBXML2_LIBS) -lm
 
-import_dv_la_SOURCES = import_dv.c
-import_dv_la_LDFLAGS = -module -avoid-version
+import_xvid_la_SOURCES = import_xvid.c
+import_xvid_la_LDFLAGS = -module -avoid-version
 
-import_vnc_la_SOURCES = import_vnc.c
-import_vnc_la_LDFLAGS = -module -avoid-version
-
-import_bktr_la_SOURCES = import_bktr.c
-import_bktr_la_LDFLAGS = -module -avoid-version
-
-import_sunau_la_SOURCES = import_sunau.c
-import_sunau_la_LDFLAGS = -module -avoid-version
-
-import_oss_la_SOURCES = import_oss.c
-import_oss_la_LDFLAGS = -module -avoid-version
-
-import_bsdav_la_SOURCES = import_bsdav.c
-import_bsdav_la_LDFLAGS = -module -avoid-version
+import_yuv4mpeg_la_SOURCES = import_yuv4mpeg.c
+import_yuv4mpeg_la_CPPFLAGS = $(AM_CPPFLAGS) $(MJPEGTOOLS_CFLAGS)
+import_yuv4mpeg_la_LDFLAGS = -module -avoid-version
+import_yuv4mpeg_la_LIBADD = $(MJPEGTOOLS_LIBS)
 
 
 EXTRA_DIST = \
@@ -216,20 +214,52 @@ EXTRA_DIST = \
 	tc.h
 
 bin_PROGRAMS = \
-	tcextract \
-	tcdecode \
-	tcscan \
-	tcdemux \
 	tccat \
+	tcdecode \
+	tcdemux \
+	tcextract \
 	tcprobe \
+	tcrequant \
+	tcscan \
 	tcxmlcheck \
-	tcxpm2rgb \
-	tcrequant
+	tcxpm2rgb
 
 
 #  The _CFLAGS lines below keep libtool from overwriting
 #  objects that have been compiled with flags for shared
 #  objects with objects that were compiled for executables.
+
+# --------- #
+# T C C A T #
+# --------- #
+
+tccat_SOURCES = \
+	tccat.c \
+	dvd_reader.c \
+	extract_avi.c \
+	fileinfo.c \
+	ioaux.c \
+	iodump.c \
+	ioxml.c \
+	scan_dv.c \
+	ts_reader.c
+
+tccat_LDADD = \
+	$(AVILIB_LIBS) \
+	$(LIBDV_LIBS) \
+	$(LIBDVDREAD_LIBS) \
+	$(XIO_LIBS) \
+	$(LIBXML2_LIBS) \
+	$(DLDARWINLIB) \
+	$(ACLIB_LIBS) \
+	$(LIBTC_LIBS) \
+	-lm
+
+tccat_CFLAGS = $(AM_CFLAGS) \
+	$(LIBDV_CFLAGS) \
+	$(LIBDVDREAD_CFLAGS) \
+	$(LIBXML2_CFLAGS)
+
 
 # --------------- #
 # T C D E C O D E #
@@ -258,90 +288,105 @@ tcdecode_LDADD = \
 	$(LAME_LIBS) \
 	$(AC3_LIBS) \
 	$(LIBDV_LIBS) \
-	$(VORBISFILE) \
+	$(LZO_LIBS) \
+	$(LIBQUICKTIME_LIBS) \
+	$(OGG_LIBS) \
 	$(THEORA_LIBS) \
 	$(VORBIS_LIBS) \
-	$(OGG_LIBS) \
-	$(DLDARWINLIB) \
-	$(LIBQUICKTIME_LIBS) \
-	$(LZO_LIBS) \
+	$(VORBISFILE) \
 	$(XIO_LIBS) \
+	$(DLDARWINLIB) \
 	$(ACLIB_LIBS) \
 	$(LIBTC_LIBS) \
 	$(LIBTCVIDEO_LIBS)
 
-tcdecode_CFLAGS = $(AM_CFLAGS)
+tcdecode_CFLAGS = $(AM_CFLAGS) \
+	$(LIBDV_CFLAGS) \
+	$(LZO_CFLAGS) \
+	$(LIBQUICKTIME_CFLAGS) \
+	$(OGG_CFLAGS) \
+	$(THEORA_CFLAGS) \
+	$(VORBIS_CFLAGS)
+
 tcdecode_LDFLAGS = -export-dynamic
 
-# ----------------- #
-# T C R E Q U A N T #
-# ----------------- #
 
-tcrequant_SOURCES = tcrequant.c
-tcrequant_LDADD = \
-	$(XIO_LIBS) \
-	$(ACLIB_LIBS) \
-	$(LIBTC_LIBS) \
-	-lm
+# ------------- #
+# T C D E M U X #
+# ------------- #
 
-tcrequant_CFLAGS = $(AM_CFLAGS)
-
-
-# --------- #
-# T C C A T #
-# --------- #
-
-tccat_SOURCES = \
-	tccat.c \
-	dvd_reader.c \
-	extract_avi.c \
-	fileinfo.c \
-	ioaux.c \
-	iodump.c \
-	ioxml.c \
-	scan_dv.c \
-	ts_reader.c
-
-tccat_LDADD = \
-	$(AVILIB_LIBS) \
-	$(LIBDVDREAD_LIBS) \
-	$(LIBDV_LIBS) \
-	$(DLDARWINLIB) \
-	$(XIO_LIBS) \
-	$(LIBXML2_LIBS) \
-	$(ACLIB_LIBS) \
-	$(LIBTC_LIBS) \
-	-lm
-
-tccat_CFLAGS = $(AM_CFLAGS)
-
-
-# ----------- #
-# T C S C A N #
-# ----------- #
-
-tcscan_SOURCES = \
-	tcscan.c \
-	ac3scan.c \
+tcdemux_SOURCES = \
 	aux_pes.c \
-	bitrate.c \
+	tcdemux.c \
+	demux_pass.c \
+	demuxer.c \
+	dvd_reader.c \
 	fileinfo.c \
 	ioaux.c \
-	mpg123.c \
+	packets.c \
 	scan_dv.c \
-	scan_pes.c
+	scan_pack.c \
+	seqinfo.c
 
-tcscan_LDADD = \
-	$(LAME_LIBS) \
+tcdemux_LDADD = \
 	$(AC3_LIBS) \
 	$(AVILIB_LIBS) \
 	$(LIBDV_LIBS) \
+	$(LIBDVDREAD_LIBS) \
+	$(DLDARWINLIB) \
+	$(XIO_LIBS) \
+	$(ACLIB_LIBS) \
+	$(LIBTC_LIBS) \
+	$(PTHREAD_LIBS) \
+	-lm
+
+tcdemux_CFLAGS = $(AM_CFLAGS) \
+	$(LIBDV_CFLAGS) \
+	$(LIBDVDREAD_CFLAGS)
+
+
+# ----------------- #
+# T C E X T R A C T #
+# ----------------- #
+
+tcextract_SOURCES = \
+	tcextract.c \
+	aux_pes.c \
+	fileinfo.c \
+	ioaux.c \
+	scan_dv.c \
+	extract_ac3.c \
+	extract_avi.c \
+	extract_dv.c \
+	extract_lzo.c \
+	extract_mp3.c \
+	extract_mpeg2.c \
+	extract_mxf.c \
+	extract_ogm.c \
+	extract_pcm.c \
+	extract_rgb.c \
+	extract_yuv.c
+
+tcextract_LDADD = \
+	$(AC3_LIBS) \
+	$(AVILIB_LIBS) \
+	$(WAVLIB_LIBS) \
+	$(LIBDV_LIBS) \
+	$(MJPEGTOOLS_LIBS) \
+	$(OGG_LIBS) \
+	$(THEORA_LIBS) \
+	$(VORBIS_LIBS) \
 	$(XIO_LIBS) \
 	$(ACLIB_LIBS) \
 	$(LIBTC_LIBS) \
 	-lm
 
-tcscan_CFLAGS = $(AM_CFLAGS)
+tcextract_CFLAGS = $(AM_CFLAGS) \
+	$(LIBDV_CFLAGS) \
+	$(MJPEGTOOLS_CFLAGS) \
+	$(OGG_CFLAGS) \
+	$(THEORA_CFLAGS) \
+	$(VORBIS_CFLAGS)
 
 
 # ------------- #
@@ -388,94 +433,76 @@ tcprobe_LDADD = \
 	$(AVILIB_LIBS) \
 	$(WAVLIB_LIBS) \
 	$(AC3_LIBS) \
-	$(LIBDVDREAD_LIBS) \
 	$(LIBDV_LIBS) \
+	$(LIBDVDREAD_LIBS) \
 	$(IMAGEMAGICK_LIBS) \
 	$(LIBQUICKTIME_LIBS) \
 	$(MJPEGTOOLS_LIBS) \
-	$(VORBIS_LIBS) \
-	$(THEORA_LIBS) \
 	$(OGG_LIBS) \
-	$(DLDARWINLIB) \
+	$(THEORA_LIBS) \
+	$(VORBIS_LIBS) \
 	$(XIO_LIBS) \
 	$(LIBXML2_LIBS) \
 	$(BSDAV_LIBS) \
-	$(ACLIB_LIBS) \
-	$(LIBTC_LIBS) \
-	-lm
-
-tcprobe_CFLAGS = $(AM_CFLAGS)
-
-
-# ----------------- #
-# T C E X T R A C T #
-# ----------------- #
-
-tcextract_SOURCES = \
-	tcextract.c \
-	aux_pes.c \
-	fileinfo.c \
-	ioaux.c \
-	scan_dv.c \
-	extract_ac3.c \
-	extract_avi.c \
-	extract_dv.c \
-	extract_lzo.c \
-	extract_mp3.c \
-	extract_mpeg2.c \
-	extract_mxf.c \
-	extract_ogm.c \
-	extract_pcm.c \
-	extract_rgb.c \
-	extract_yuv.c
-
-tcextract_LDADD = \
-	$(AC3_LIBS) \
-	$(AVILIB_LIBS) \
-	$(WAVLIB_LIBS) \
-	$(MJPEGTOOLS_LIBS) \
-	$(LIBDV_LIBS) \
-	$(THEORA_LIBS) \
-	$(OGG_LIBS) \
-	$(VORBIS_LIBS) \
-	$(XIO_LIBS) \
-	$(ACLIB_LIBS) \
-	$(LIBTC_LIBS) \
-	-lm
-
-tcextract_CFLAGS = $(AM_CFLAGS)
-
-
-# ------------- #
-# T C D E M U X #
-# ------------- #
-
-tcdemux_SOURCES = \
-	aux_pes.c \
-	tcdemux.c \
-	demux_pass.c \
-	demuxer.c \
-	dvd_reader.c \
-	fileinfo.c \
-	ioaux.c \
-	packets.c \
-	scan_dv.c \
-	scan_pack.c \
-	seqinfo.c
-
-tcdemux_LDADD = \
-	$(AC3_LIBS) \
-	$(AVILIB_LIBS) \
-	$(LIBDVDREAD_LIBS) \
-	$(LIBDV_LIBS) \
 	$(DLDARWINLIB) \
+	$(ACLIB_LIBS) \
+	$(LIBTC_LIBS) \
+	-lm
+
+tcprobe_CFLAGS = $(AM_CFLAGS) \
+	$(LIBDV_CFLAGS) \
+	$(LIBDVDREAD_CFLAGS) \
+	$(IMAGEMAGICK_CFLAGS) \
+	$(LIBQUICKTIME_CFLAGS) \
+	$(MJPEGTOOLS_CFLAGS) \
+	$(OGG_CFLAGS) \
+	$(THEORA_CFLAGS) \
+	$(VORBIS_CFLAGS) \
+	$(LIBXML2_CFLAGS) \
+	$(BSDAV_CFLAGS)
+
+
+# ----------------- #
+# T C R E Q U A N T #
+# ----------------- #
+
+tcrequant_SOURCES = tcrequant.c
+tcrequant_LDADD = \
 	$(XIO_LIBS) \
 	$(ACLIB_LIBS) \
 	$(LIBTC_LIBS) \
-	$(PTHREAD_LIBS) \
 	-lm
 
-tcdemux_CFLAGS = $(AM_CFLAGS)
+tcrequant_CFLAGS = $(AM_CFLAGS)
+
+
+# ----------- #
+# T C S C A N #
+# ----------- #
+
+tcscan_SOURCES = \
+	tcscan.c \
+	ac3scan.c \
+	aux_pes.c \
+	bitrate.c \
+	fileinfo.c \
+	ioaux.c \
+	mpg123.c \
+	scan_dv.c \
+	scan_pes.c
+
+tcscan_LDADD = \
+	$(LAME_LIBS) \
+	$(AC3_LIBS) \
+	$(AVILIB_LIBS) \
+	$(LIBDV_LIBS) \
+	$(XIO_LIBS) \
+	$(ACLIB_LIBS) \
+	$(LIBTC_LIBS) \
+	-lm
+
+tcscan_CFLAGS = $(AM_CFLAGS) \
+	$(LIBDV_CFLAGS)
 
 
 # ------------------- #
@@ -498,7 +525,9 @@ tcxmlcheck_LDADD = \
 	$(LIBTC_LIBS) \
 	-lm
 
-tcxmlcheck_CFLAGS = $(AM_CFLAGS)
+tcxmlcheck_CFLAGS = $(AM_CFLAGS) \
+	$(LIBDV_CFLAGS) \
+	$(LIBXML2_CFLAGS)
 
 
 # ----------------- #
