@@ -47,16 +47,27 @@ Coding style guidelines for transcode
  * function_name:  The purpose/behavior of the function, in detail.
  * (Replace "function_name" by the function's name.)
  *
- * Parameters:  param: Description of `param'.
- *             param2: Description of `param2'.  Note that parameters are
- *                     right-aligned to the colon.
- * Return value: A description of the value returned by the function.  If
- *               the function's return type is void, write "None."
- * Preconditions: A list of everything the function assumes to be true.
- *                Use C-style expressions ("ptr != NULL") where possible.
- *                If there are no preconditions, write "None."
- * Postconditions: A list of everything the function guarantees to be true
- *                 when it returns, or "None."
+ * Parameters:
+ *      param: Description of `param'.
+ *     param2: Description of `param2'.  Note that parameters are
+ *             right-aligned to the colon.
+ * Return value:
+ *     A description of the value returned by the function.  If the
+ *     the function's return type is void, write "None."
+ * Preconditions:
+ *     A list of everything the function assumes to be true.  Use C-style
+ *     expressions (such as "ptr != NULL") where possible.  If there are no
+ *     preconditions, write "None."  This section may be omitted if there
+ *     are no preconditions.
+ * Postconditions:
+ *     A list of everything the function guarantees to be true when it
+ *     returns, or "None."  This section may be omitted if no
+ *     postconditions are specified.
+ * Side effects:
+ *     Any effects the function has that are not mentioned in the function
+ *     description (such as the effect of strtok() destroying its source
+ *     string), or "None."  This section may be omitted if there are no
+ *     side effects.
  */
 
 * Only one statement is allowed per line.  Statements (including the empty
