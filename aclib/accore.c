@@ -23,22 +23,18 @@ static int cpuinfo_x86(void);
 
 /* Library initialization function.  Determines CPU features, then calls
  * all initialization subfunctions with appropriate flags.  Returns 1 on
- * success, 0 on failure. */
+ * success, 0 on failure.  This function can be called multiple times to
+ * change the set of acceleration features to be used. */
 
 int ac_init(int accel)
 {
-    static int initted = 0;
-
-    if (!initted) {
-        accel &= ac_cpuinfo();
-        if (!ac_average_init(accel)
-         || !ac_imgconvert_init(accel)
-         || !ac_memcpy_init(accel)
-         || !ac_rescale_init(accel)
-        ) {
-            return 0;
-        }
-        initted = 1;
+    accel &= ac_cpuinfo();
+    if (!ac_average_init(accel)
+     || !ac_imgconvert_init(accel)
+     || !ac_memcpy_init(accel)
+     || !ac_rescale_init(accel)
+    ) {
+        return 0;
     }
     return 1;
 }

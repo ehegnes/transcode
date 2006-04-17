@@ -33,14 +33,8 @@ exit $?
 #include <sys/resource.h>
 
 #include "config.h"
-
-#include "imgconvert.c"
-#include "img_rgb_packed.c"
-#include "img_yuv_mixed.c"
-#include "img_yuv_packed.c"
-#include "img_yuv_planar.c"
-#include "img_yuv_rgb.c"
-#include "memcpy.c"  /* used by some conversion functions */
+#include "aclib/ac.h"
+#include "aclib/imgconvert.h"
 
 #ifndef LINUX
 typedef void (*sighandler_t)(int);
@@ -97,8 +91,8 @@ static void clear_signals(void)
 
 /* Return value: >=0 is time/iteration in usec, <0 is error
  *   -1: unknown error
- *   -2: ac_imgconvert_init(0) failed
- *   -3: ac_imgconvert_init(accel) failed
+ *   -2: ac_init(0) failed
+ *   -3: ac_init(accel) failed
  *   -4: ac_imgconvert(0) failed
  *   -5: ac_imgconvert(accel) failed
  *   -6: compare failed
@@ -127,8 +121,7 @@ static int testit(uint8_t *srcimage, ImageFormat srcfmt, ImageFormat destfmt,
         return sigsave==SIGILL ? -8 : -7;
     }
 
-    ac_memcpy_init(0);
-    if (!ac_imgconvert_init(0))
+    if (!ac_init(0))
         return -2;
     ac_memcpy(srcbuf, srcimage, sizeof(srcbuf));
     src[0] = srcbuf;
@@ -140,8 +133,7 @@ static int testit(uint8_t *srcimage, ImageFormat srcfmt, ImageFormat destfmt,
     if (!ac_imgconvert(src, srcfmt, dest, destfmt, width, height))
         return -4;
 
-    ac_memcpy_init(accel);
-    if (!ac_imgconvert_init(accel))
+    if (!ac_init(accel))
         return -3;
     // currently src can get destroyed--see img_yuv_mixed.c
     ac_memcpy(srcbuf, srcimage, sizeof(srcbuf));
@@ -192,42 +184,51 @@ static int testit(uint8_t *srcimage, ImageFormat srcfmt, ImageFormat destfmt,
 
 /*************************************************************************/
 
-/* Check all routines, and return 0 (no failures) or 1 (some failures) */
+/* Check all routines, and return 1 (no failures) or 0 (some failures) */
 
 #define TRYIT(w,h) \
             if (testit(srcimage, fmtlist[i].fmt, fmtlist[j].fmt,        \
                        (w), (h), accel, 1, 1) < -5                      \
             ) {                                                         \
-                printf("FAIL: %s -> %s @ %dx%d\n",                      \
+                printf("FAILED: %s -> %s @ %dx%d\n",                    \
                        fmtlist[i].name, fmtlist[j].name, (w), (h));     \
                 failures++;                                             \
             }
 
-static int checkall(uint8_t *srcimage, int accel)
+static int checkall(uint8_t *srcimage, int accel, const char *name)
 {
     int i, j;
     int failures = 0;
 
     for (i = 0; fmtlist[i].fmt != IMG_NONE; i++) {
         for (j = 0; fmtlist[j].fmt != IMG_NONE; j++) {
+            int oldfail = failures;
             int width_unit  = fmtlist[i].width_unit;
             int height_unit = fmtlist[i].height_unit;
             if (fmtlist[j].width_unit  > width_unit)
                 width_unit  = fmtlist[j].width_unit;
             if (fmtlist[j].height_unit > height_unit)
                 height_unit = fmtlist[j].height_unit;
+            if (name) {
+                printf("%s/%s-%s...", name, fmtlist[i].name, fmtlist[j].name);
+                fflush(stdout);
+            }
             TRYIT(WIDTH,            HEIGHT);
             TRYIT(WIDTH-width_unit, HEIGHT);
             TRYIT(WIDTH,            HEIGHT-height_unit);
             TRYIT(WIDTH-width_unit, HEIGHT-height_unit);
+            if (name && failures == oldfail)
+                printf("ok\n");
         }
     }
     if (failures) {
-        printf("%d conversions failed.\n", failures);
-        return 1;
-    } else {
-        printf("All conversions succeeded.\n");
+        if (name)
+            printf("%s: %d conversions failed.\n", name, failures);
         return 0;
+    } else {
+        if (name)
+            printf("%s: All conversions succeeded.\n", name);
+        return 1;
     }
 }
 
@@ -240,14 +241,18 @@ int main(int argc, char **argv)
         height = HEIGHT;
     int i, j;
 
+    accel = ac_cpuinfo();
     while (argc > 1) {
         if (strcmp(argv[--argc],"-h") == 0) {
-            fprintf(stderr, "Usage: %s [-C] [-c] [-v] [=fmt-name[,fmt-name...]] [@WIDTHxHEIGHT] [accel-name...]\n", argv[0]);
-            fprintf(stderr, "-C: check all testable accelerated routines and exit with success/failure\n");
-            fprintf(stderr, "-c: compare with non-accelerated versions and report percentage speedup\n");
-            fprintf(stderr, "-v: verbose (report details of comparison failures)\n");
-            fprintf(stderr, "=: select formats to test");
-            fprintf(stderr, "   fmt-name can be:");
+            fprintf(stderr,
+"Usage: %s [-C] [-c] [-v] [=fmt-name[,fmt-name...]] [@WIDTHxHEIGHT] [accel-name...]\n",
+                    argv[0]);
+            fprintf(stderr,
+"-C: check all testable accelerated routines and exit with success/failure\n"
+"-c: compare with non-accelerated versions and report percentage speedup\n"
+"-v: verbose (report details of comparison failures; with -C, print test names)\n"
+"=: select formats to test\n"
+"   fmt-name can be:");
             for (i = 0; fmtlist[i].fmt != IMG_NONE; i++) {
                 char buf[16], *s;
                 snprintf(buf, sizeof(buf), "%s", fmtlist[i].name);
@@ -338,8 +343,25 @@ int main(int argc, char **argv)
     for (i = 0; i < sizeof(srcbuf); i++)
         srcbuf[i] = random();
 
-    if (check)
-        return checkall(srcbuf, accel);
+    if (check) {
+        if (ac_cpuinfo() & (AC_IA32ASM | AC_AMD64ASM)) {
+            if (!checkall(srcbuf, AC_IA32ASM | AC_AMD64ASM,
+                          verbose ? "asm" : NULL))
+                return 1;
+        }
+        if (ac_cpuinfo() & AC_MMX) {
+            if (!checkall(srcbuf, AC_IA32ASM | AC_AMD64ASM | AC_MMX,
+                          verbose ? "mmx" : NULL))
+                return 1;
+        }
+        if (ac_cpuinfo() & AC_SSE2) {
+            if (!checkall(srcbuf, AC_IA32ASM | AC_AMD64ASM | AC_CMOVE
+                                | AC_MMX | AC_SSE | AC_SSE2,
+                          verbose ? "sse2" : NULL))
+                return 1;
+        }
+        return 0;
+    }
 
     printf("Acceleration flags:%s%s%s%s%s%s%s%s%s%s\n",
            !accel                ? " none"     : "",

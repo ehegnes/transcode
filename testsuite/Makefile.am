@@ -14,8 +14,11 @@ AM_CPPFLAGS = \
 	$(XIO_CFLAGS)
 
 noinst_PROGRAMS = \
+	test-acmemcpy \
+	test-acmemcpy-speed \
 	test-bufalloc \
 	test-framecode \
+	test-imgconvert \
 	test-iodir \
 	test-ratiocodes \
 	test-tclog \
@@ -23,11 +26,20 @@ noinst_PROGRAMS = \
 	test-tcmoduleinfo \
 	test-tcstrdup
 
+test_acmemcpy_SOURCES = test-acmemcpy.c
+test_acmemcpy_LDADD = $(ACLIB_LIBS)
+
+test_acmemcpy_speed_SOURCES = test-acmemcpy-speed.c
+test_acmemcpy_speed_LDADD = $(ACLIB_LIBS)
+
 test_bufalloc_SOURCES = test-bufalloc.c
 test_bufalloc_LDADD = $(LIBTC_LIBS)
 
 test_framecode_SOURCES = test-framecode.c
 test_framecode_LDADD = $(LIBTC_LIBS)
+
+test_imgconvert_SOURCES = test-imgconvert.c
+test_imgconvert_LDADD = $(ACLIB_LIBS)
 
 test_iodir_SOURCES = test-iodir.c
 test_iodir_LDADD = $(LIBTC_LIBS)

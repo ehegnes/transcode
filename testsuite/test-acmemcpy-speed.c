@@ -5,7 +5,7 @@ exit $?
 */
 
 /*
- * test-memcpy.c - time all memcpy() implementations
+ * test-acmemcpy-speed.c - time all accelerated memcpy() implementations
  * Written by Andrew Church <achurch@achurch.org>
  *
  * This file is part of transcode, a video stream processing tool.
@@ -14,163 +14,240 @@ exit $?
  * for details.
  */
 
-#define TESTSIZE        0x10000
-#define ITERATIONS      ((1<<28) / TESTSIZE)
-
-
-#define _GNU_SOURCE
-
+#define _GNU_SOURCE  /* for strsignal */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 #include <setjmp.h>
 #include <signal.h>
 #include <sys/time.h>
-#include <sys/resource.h>
 
 #include "config.h"
-
-#include "memcpy.c"
-
-static const int spill = 8;  // extra bytes to check for memcpy overrun
-
-#ifndef LINUX
-typedef void (*sighandler_t)(int);
+#ifdef HAVE_STDINT_H
+# include <stdint.h>
 #endif
-static sighandler_t old_SIGSEGV, old_SIGILL;
+
+#define ac_memcpy local_ac_memcpy  /* to avoid clash with libac.a */
+#define ac_memcpy_init local_ac_memcpy_init  /* to avoid clash with libac.a */
+#include "aclib/ac.h"
+
+/* Include memcpy.c directly to get access to the particular implementations */
+#include "../aclib/memcpy.c"
+#undef ac_memcpy
+/* Make sure all names are available, to simplify function table */
+#if !defined(ARCH_X86)
+# define memcpy_mmx memcpy
+# define memcpy_sse memcpy
+#endif
+#if !defined(ARCH_X86_64)
+# define memcpy_amd64 memcpy
+#endif
+
+/* Default copy size and test length */
+#define DEF_BLOCKSIZE    0x10000
+#define DEF_TESTTIME  2000  /* milliseconds */
+
+/*************************************************************************/
+
+static void *old_SIGSEGV = NULL, *old_SIGILL = NULL, *old_SIGVTALRM = NULL;
 static sigjmp_buf env;
+
 
 static void sighandler(int sig)
 {
-    printf("*** %s\n", strsignal(sig));
-    siglongjmp(env, 1);
+    if (sig != SIGVTALRM)
+        printf("*** %s\n", strsignal(sig));
+    siglongjmp(env, sig);
 }
 
 static void set_signals(void)
 {
-    old_SIGSEGV = signal(SIGSEGV, sighandler);
-    old_SIGILL  = signal(SIGILL , sighandler);
+    old_SIGSEGV   = signal(SIGSEGV  , sighandler);
+    old_SIGILL    = signal(SIGILL   , sighandler);
+    old_SIGVTALRM = signal(SIGVTALRM, sighandler);
 }
 
 static void clear_signals(void)
 {
-    signal(SIGSEGV, old_SIGSEGV);
-    signal(SIGILL , old_SIGILL );
+    signal(SIGSEGV  , old_SIGSEGV  );
+    signal(SIGILL   , old_SIGILL   );
+    signal(SIGVTALRM, old_SIGVTALRM);
 }
 
+/*************************************************************************/
+
 /* align1 and align2 are 0..63 */
-void testit(void *(*func)(void *, const void *, size_t),
-            int align1, int align2, int length, int *msecs, int *ok)
+static void testit(void *(*func)(void *, const void *, size_t), int size,
+                   int align1, int align2, int msec, uint64_t *iterations)
 {
     char *chunk1, *chunk1_base;
     char *chunk2, *chunk2_base;
-    char *chunkT;
-    int result;
+    int sig;
+    volatile uint64_t iter = 0;
 
-    chunk1_base = malloc(length+128+spill);
-    chunk2_base = malloc(length+128+spill);
-    chunk1 = (char *)((long)chunk1_base+63 & -64) + align1;
-    chunk2 = (char *)((long)chunk2_base+63 & -64) + align2;
-    memset(chunk1, 0x11, length+spill);
-    memset(chunk2, 0x22, length+spill);
-    chunkT = malloc(length+spill);
-    memset(chunkT, 0x11, length);
-    memset(chunkT+length, 0x22, spill);
+    chunk1_base = malloc(size+128);
+    chunk2_base = malloc(size+128);
+    chunk1 = (char *)(((long)chunk1_base+63) & -64) + align1;
+    chunk2 = (char *)(((long)chunk2_base+63) & -64) + align2;
+    memset(chunk1, 0x11, size);
+    memset(chunk2, 0x22, size);
 
     set_signals();
-    if (sigsetjmp(env, 1)) {
-        *ok = 0;
-        *msecs = -1;
+    if ((sig = sigsetjmp(env, 1)) != 0) {
+        if (sig == SIGVTALRM)
+            *iterations = iter;
+        else
+            *iterations = 0;
     } else {
-        int ix;
-        unsigned long long start, stop;
-        struct rusage ru;
+        struct itimerval timer;
 
-        getrusage(RUSAGE_SELF, &ru);
-        start = ru.ru_utime.tv_sec * 1000 + ru.ru_utime.tv_usec / 1000;
-        for (ix = 0; ix < ITERATIONS; ix++)
-            (*func)(chunk2, chunk1, length);
-        getrusage(RUSAGE_SELF, &ru);
-        stop = ru.ru_utime.tv_sec * 1000 + ru.ru_utime.tv_usec / 1000;
-        if (stop == start)
-            stop++;
-        *msecs = stop - start;
-
-        *ok = (memcmp(chunk2, chunkT, length+spill) == 0);
+        timer.it_interval.tv_sec = 0;
+        timer.it_interval.tv_usec = 0;
+        timer.it_value.tv_sec = msec/1000;
+        timer.it_value.tv_usec = msec%1000;
+        if (setitimer(ITIMER_VIRTUAL, &timer, NULL) < 0) {
+            perror("setitimer");
+            exit(1);
+        }
+        for (;;) {
+            (*func)(chunk2, chunk1, size);
+            iter++;
+        }
     }
     clear_signals();
 
     free(chunk1_base);
     free(chunk2_base);
-    free(chunkT);
 }
+
+/*************************************************************************/
+
+/* Turn presence/absence of #define into a number */
+#if defined(ARCH_X86)
+# define defined_ARCH_X86 1
+#else
+# define defined_ARCH_X86 0
+#endif
+#if defined(ARCH_X86_64)
+# define defined_ARCH_X86_64 1
+#else
+# define defined_ARCH_X86_64 0
+#endif
+
+/* List of routines to test, NULL-terminated */
+static struct {
+    const char *name;  /* centered in 5 chars */
+    int arch_ok;       /* defined(ARCH_xxx) */
+    int acflags;       /* required ac_cpuinfo() flags */
+    void *(*func)(void *, const void *, size_t);
+} testfuncs[] = {
+    { "libc ", 1,                   0,                memcpy },
+    { " mmx ", defined_ARCH_X86,    AC_MMX,           memcpy_mmx },
+    { " sse ", defined_ARCH_X86,    AC_CMOVE|AC_SSE,  memcpy_sse },
+    { "amd64", defined_ARCH_X86_64, AC_CMOVE|AC_SSE2, memcpy_amd64 },
+    { NULL }
+};
 
 /* Alignments/sizes to test */
 static struct {
-    int align1, align2, length;
+    int align1, align2;
 } tests[] = {
-    {  0,  0, TESTSIZE },
-    {  0,  1, TESTSIZE },
-    {  0,  4, TESTSIZE },
-    {  0,  8, TESTSIZE },
-    {  0, 63, TESTSIZE },
-    {  1,  0, TESTSIZE },
-    {  1,  1, TESTSIZE },
-    {  1,  4, TESTSIZE },
-    {  1,  8, TESTSIZE },
-    {  1, 63, TESTSIZE },
-    {  4,  0, TESTSIZE },
-    {  4,  1, TESTSIZE },
-    {  8,  0, TESTSIZE },
-    {  8,  1, TESTSIZE },
-    { 63,  0, TESTSIZE },
-    { 63,  1, TESTSIZE },
-    {  0,  0, TESTSIZE|63 },
-    {  0,  1, TESTSIZE|63 },
-    {  0,  4, TESTSIZE|63 },
-    {  0,  8, TESTSIZE|63 },
-    {  0, 63, TESTSIZE|63 },
-    {  1,  0, TESTSIZE|63 },
-    {  1,  1, TESTSIZE|63 },
-    {  1,  4, TESTSIZE|63 },
-    {  1,  8, TESTSIZE|63 },
-    {  1, 63, TESTSIZE|63 },
-    { -1, -1, -1 }
+    {  0,  0 },
+    {  0,  1 },
+    {  0,  4 },
+    {  0,  8 },
+    {  0, 63 },
+    {  1,  0 },
+    {  1,  1 },
+    {  1,  4 },
+    {  1,  8 },
+    {  1, 63 },
+    {  4,  0 },
+    {  4,  1 },
+    {  8,  0 },
+    {  8,  1 },
+    { 63,  0 },
+    { 63,  1 },
+    {  0,  0 },
+    {  0,  1 },
+    {  0,  4 },
+    {  0,  8 },
+    {  0, 63 },
+    {  1,  0 },
+    {  1,  1 },
+    {  1,  4 },
+    {  1,  8 },
+    {  1, 63 },
+    { -1, -1 }
 };
 
-int main(int argc, char ** argv)
+int main(int argc, char *argv[])
 {
-    int msecs, ok, i;
+    int size = DEF_BLOCKSIZE, testtime = DEF_TESTTIME;
+    int ch, i;
 
-    printf("method     ok   msecs  iterations/sec\n");
+    while ((ch = getopt(argc, argv, "hs:t:")) != EOF) {
+        if (ch == 's') {
+            size = atoi(optarg);
+        } else if (ch == 't') {
+            testtime = atoi(optarg);
+        } else {
+          usage:
+            fprintf(stderr,
+                    "Usage: %s [-s blocksize] [-t msec-per-test]\n"
+                    "Defaults: -s %d -t %d\n",
+                    argv[0], DEF_BLOCKSIZE, DEF_TESTTIME);
+            return 1;
+        }
+    }
+    if (size <= 0 || testtime <= 0)
+        goto usage;
+
+    for (i = 0; testfuncs[i].name; i++) {
+        if ((ac_cpuinfo() & testfuncs[i].acflags) != testfuncs[i].acflags)
+            testfuncs[i].arch_ok = 0;
+    }
+
+    printf("Size: %d  msec/test: %d    Table entries in MB/s\n",
+           size, testtime);
+    printf("Align ");
+    for (i = 0; testfuncs[i].name; i++) {
+        if (testfuncs[i].arch_ok)
+            printf("|%s", testfuncs[i].name);
+    }
+    printf("\n------");
+    for (i = 0; testfuncs[i].name; i++) {
+        if (testfuncs[i].arch_ok)
+            printf("+-----");
+    }
+    printf("\n");
 
     for (i = 0; tests[i].align1 >= 0; i++) {
-        printf("[%d/%d/%#x]\n", tests[i].align1, tests[i].align2,
-               tests[i].length);
-        testit(memcpy, tests[i].align1, tests[i].align2,
-               tests[i].length, &msecs, &ok);
-        printf("* libc    %-3s %6d  %d\n", ok ? "yes" : "no ",
-               msecs, ITERATIONS / msecs);
-#ifdef ARCH_X86
-        testit(memcpy_mmx, tests[i].align1, tests[i].align2,
-               tests[i].length, &msecs, &ok);
-        printf("* mmx     %-3s %6d  %d\n", ok ? "yes" : "no ",
-               msecs, ITERATIONS / msecs);
-        testit(memcpy_sse, tests[i].align1, tests[i].align2,
-               tests[i].length, &msecs, &ok);
-        printf("* sse     %-3s %6d  %d\n", ok ? "yes" : "no ",
-               msecs, ITERATIONS / msecs);
-#endif
-#if defined(ARCH_X86_64)
-        testit(memcpy_amd64, tests[i].align1, tests[i].align2,
-               tests[i].length, &msecs, &ok);
-        printf("* amd64   %-3s %6d  %d\n", ok ? "yes" : "no ",
-               msecs, ITERATIONS / msecs);
-#endif
+        int j;
+        printf("%2d/%2d ", tests[i].align1, tests[i].align2);
+        fflush(stdout);
+        for (j = 0; testfuncs[j].name; j++) {
+            if (testfuncs[j].arch_ok) {
+                uint64_t iterations;
+                testit(testfuncs[j].func, size,
+                       tests[i].align1, tests[i].align2, testtime,
+                       &iterations);
+                if (iterations == 0)
+                    printf("|-ERR-");
+                else
+                    printf("|%5d",
+                           (int)(iterations*size*1000 / testtime / (1<<20)));
+                fflush(stdout);
+            }
+        }
+        printf("\n");
     }
     return 0;
 }
+
+/*************************************************************************/
 
 /*
  * Local variables:

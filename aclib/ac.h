@@ -53,7 +53,8 @@
  * AC_NONE, AC_ALL, or a combination of the other AC_* flags above.  The
  * value will always be masked to the acceleration options available on the
  * actual CPU, as returned by ac_cpuinfo().  Returns 1 on success, 0 on
- * failure. */
+ * failure.  This function can be called multiple times to change the set
+ * of acceleration features to be used. */
 extern int ac_init(int accel);
 
 /* Returns the set of acceleration features supported by this CPU. */

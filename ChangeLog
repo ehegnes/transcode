@@ -1,4 +1,25 @@
 2006-04-17 Andrew Church <achurch at achurch dot org>
+  * testsuite/Makefile.am
+  Add aclib test programs as Makefile targets.
+
+  * testsuite/test-acmemcpy.c
+  Rewrite to test all available functions at once, and to limit the block
+  sizes tested to useful ranges; also optimize the testing routine.
+
+  * testsuite/test-acmemcpy-speed.c
+  Rewrite to use a constant test time rather than a constant number of
+  iterations (requires setitimer()); output results in a MB/sec chart.
+
+  * testsuite/test-imgconvert.c
+  Rewrite to use the linked-in aclib rather than including the relevant
+  source files directly; check all available acceleration types at once
+  when -C is used, and print test names with -C -v.
+
+  * aclib/ac.h aclib/accore.c
+  Allow calling ac_init() multiple times to change the set of acceleration
+  features to be used.
+
+2006-04-17 Andrew Church <achurch at achurch dot org>
   * Added: testsuite/test-acmemcpy.c testsuite/test-acmemcpy-speed.c
            testsuite/test-imgconvert.c
     Removed: aclib/test-memcpy.c aclib/test-memcpy-speed.c
