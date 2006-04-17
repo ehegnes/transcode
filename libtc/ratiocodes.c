@@ -12,6 +12,7 @@
 #include <math.h>
 
 #include "ratiocodes.h"
+#include "libtc.h"
 
 
 #define TABLE_LEN(tab) (sizeof((tab))/sizeof((tab)[0]))

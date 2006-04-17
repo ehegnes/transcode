@@ -2,7 +2,7 @@
   * libtc/tccodecs.c libtc/tccodecs.h
   small STYLE conformancy update and documentation add.
 
-  * libtc/ratiocodes.h libtc/libtc.h
+  * libtc/ratiocodes.h libtc/libtc.h libtc/ratiocodes.c
   move TC_NULL_MATCH macro to libtc.h since it's of general
   interest.
 
