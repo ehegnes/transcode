@@ -15,27 +15,25 @@ AM_CPPFLAGS = \
 
 noinst_PROGRAMS = \
 	test_bufalloc \
+	test-framecode \
 	test_iodir \
 	test_ratiocodes \
-	test_tcmoduleinfo \
-	test_tcstrdup \
 	test_tclog \
-	test_tcmodule
-
-test_ratiocodes_SOURCES = test-ratiocodes.c
-test_ratiocodes_LDADD = $(LIBTC_LIBS)
+	test_tcmodule \
+	test_tcmoduleinfo \
+	test_tcstrdup
 
 test_bufalloc_SOURCES = test-bufalloc.c
 test_bufalloc_LDADD = $(LIBTC_LIBS)
 
+test_framecode_SOURCES = test-framecode.c
+test_framecode_LDADD = $(LIBTC_LIBS)
+
 test_iodir_SOURCES = test-iodir.c
 test_iodir_LDADD = $(LIBTC_LIBS)
 
-test_tcmoduleinfo_SOURCES = test-tcmoduleinfo.c
-test_tcmoduleinfo_LDADD = $(LIBTC_LIBS)
-
-test_tcstrdup_SOURCES = test-tcstrdup.c
-test_tcstrdup_LDADD = $(LIBTC_LIBS)
+test_ratiocodes_SOURCES = test-ratiocodes.c
+test_ratiocodes_LDADD = $(LIBTC_LIBS)
 
 test_tclog_SOURCES = test-tclog.c
 test_tclog_LDADD = $(LIBTC_LIBS)
@@ -44,3 +42,8 @@ test_tcmodule_SOURCES = test-tcmodule.c
 test_tcmodule_LDADD = $(LIBTC_LIBS)
 test_tcmodule_LDFLAGS = -export-dynamic
 
+test_tcmoduleinfo_SOURCES = test-tcmoduleinfo.c
+test_tcmoduleinfo_LDADD = $(LIBTC_LIBS)
+
+test_tcstrdup_SOURCES = test-tcstrdup.c
+test_tcstrdup_LDADD = $(LIBTC_LIBS)

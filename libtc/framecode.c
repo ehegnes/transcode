@@ -66,7 +66,7 @@ struct fc_time *new_fc_time(void)
 void free_fc_time(struct fc_time *list)
 {
     while (list) {
-        struct fc_time *temp = list;
+        struct fc_time *temp = list->next;
         free(list);
         list = temp;
     }
@@ -97,9 +97,9 @@ void set_fc_time(struct fc_time *range, int start, int end)
         range->sf = start;
     }
     if (end >= 0) {
-        range->sh = 0;
-        range->sm = 0;
-        range->ss = 0;
+        range->eh = 0;
+        range->em = 0;
+        range->es = 0;
         range->ef = end;
     }
     normalize_fc_time(range);
@@ -122,6 +122,7 @@ int fc_time_contains(const struct fc_time *list, unsigned int frame)
 {
     while (list) {
         if (frame >= list->stf && frame < list->etf)
+            return 1;
         list = list->next;
     }
     return 0;
@@ -138,11 +139,12 @@ int fc_time_contains(const struct fc_time *list, unsigned int frame)
  *     separator: A string containing separators for distinct ranges
  *                within `string'.
  *           fps: The value to store in each range's `fps' field.
- *       verbose: If nonzero, each range will be printed as it is parsed.
+ *       verbose: If positive, each range will be printed as it is parsed.
+ *                If negative, error messages will be suppressed.
  * Return value:
  *     The list of fc_time structures on success, NULL on failure.
  * Side effects:
- *     Prints an error message if parsing fails.
+ *     Prints an error message if parsing fails, unless verbose < 0.
  */
 
 struct fc_time *new_fc_time_from_string(const char *string,
@@ -155,17 +157,23 @@ struct fc_time *new_fc_time_from_string(const char *string,
 
     /* Sanity checks first */
     if (!string) {
-        tc_log_error(__FILE__,
-                     "new_fc_time_from_string(): string is NULL!");
+        if (verbose >= 0) {
+            tc_log_error(__FILE__,
+                         "new_fc_time_from_string(): string is NULL!");
+        }
         return NULL;
     }
     if (!separator) {
-        tc_log_error(__FILE__,
-                     "new_fc_time_from_string(): separator is NULL!");
+        if (verbose >= 0) {
+            tc_log_error(__FILE__,
+                         "new_fc_time_from_string(): separator is NULL!");
+        }
         return NULL;
     }
     if (fps <= 0) {
-        tc_log_error(__FILE__, "new_fc_time_from_string(): fps <= 0!");
+        if (verbose >= 0) {
+            tc_log_error(__FILE__, "new_fc_time_from_string(): fps <= 0!");
+        }
         return NULL;
     }
 
@@ -180,12 +188,14 @@ struct fc_time *new_fc_time_from_string(const char *string,
 
         t = s + strcspn(s,separator);
         if (t-s > sizeof(rangebuf)-1) {
-            tc_log_error(__FILE__, "new_fc_time_from_string():"
-                         " range string too long! (%d/%d)",
-                         t-s, sizeof(rangebuf)-1);
-            /* Print out the string and the location of the error */
-            tc_log_error(__FILE__, "%s", string);
-            tc_log_error(__FILE__, "%*s", (s-string)+1, "^");
+            if (verbose >= 0) {
+                tc_log_error(__FILE__, "new_fc_time_from_string():"
+                             " range string too long! (%d/%d)",
+                             t-s, sizeof(rangebuf)-1);
+                /* Print out the string and the location of the error */
+                tc_log_error(__FILE__, "%s", string);
+                tc_log_error(__FILE__, "%*s", (s-string)+1, "^");
+            }
             /* Don't forget to free anything we already parsed */
             free_fc_time(list);
             return NULL;
@@ -196,13 +206,16 @@ struct fc_time *new_fc_time_from_string(const char *string,
         errpos = 0;
         range = parse_one_range(rangebuf, fps, &errmsg, &errpos);
         if (!range) {
-            tc_log_error(__FILE__, "Error parsing framecode range: %s", errmsg);
-            tc_log_error(__FILE__, "%s", string);
-            tc_log_error(__FILE__, "%*s", (s-string+errpos)+1, "^");
+            if (verbose >= 0) {
+                tc_log_error(__FILE__, "Error parsing framecode range: %s",
+                             errmsg);
+                tc_log_error(__FILE__, "%s", string);
+                tc_log_error(__FILE__, "%*s", (s-string+errpos)+1, "^");
+            }
             free_fc_time(list);
             return NULL;
         }
-        if (verbose) {
+        if (verbose > 0) {
             tc_log_info(__FILE__, "Range: %u:%02u:%02u.%u (%u)"
                         " - %u:%02u:%02u.%u (%u)",
                         range->sh, range->sm, range->ss, range->sf,
@@ -247,26 +260,24 @@ struct fc_time *new_fc_time_from_string(const char *string,
 static void normalize_fc_time(struct fc_time *range)
 {
     /* Calculate frame index from time parameters (round down) */
-    range->stf = ((range->sh
-                   * 60 + range->sm)
-                  * 60 + range->ss)
-                 * range->fps + range->sf;
+    range->stf = floor(((range->sh * 60 + range->sm) * 60 + range->ss)
+                       * range->fps)
+                 + range->sf;
     /* Calculate total number of seconds */
     range->ss = (unsigned int)floor(range->stf / range->fps);
     /* Calculate frame remainder */
-    range->sf = range->stf - (unsigned int)floor(range->ss * range->fps);
+    range->sf = (unsigned int)floor(range->stf - (range->ss * range->fps));
     /* Calculate normalized hours, minutes, and seconds */
     range->sh = range->ss / 3600;
     range->sm = (range->ss/60) % 60;
     range->ss %= 60;
 
     /* Repeat for end time */
-    range->etf = ((range->eh
-                   * 60 + range->em)
-                  * 60 + range->es)
-                 * range->fps + range->ef;
+    range->etf = floor(((range->eh * 60 + range->em) * 60 + range->es)
+                       * range->fps)
+                 + range->ef;
     range->es = (unsigned int)floor(range->etf / range->fps);
-    range->ef = range->etf - (unsigned int)floor(range->es * range->fps);
+    range->ef = (unsigned int)floor(range->etf - (range->es * range->fps));
     range->eh = range->es / 3600;
     range->em = (range->es/60) % 60;
     range->es %= 60;
@@ -314,6 +325,7 @@ static struct fc_time *parse_one_range(const char *string, double fps,
         return NULL;
     }
     range->fps = fps;
+    range->stepf = 1;
 
     /* Parse start time */
     if (!parse_one_time(&s, &range->sh, &range->sm, &range->ss, &range->sf,
@@ -331,6 +343,19 @@ static struct fc_time *parse_one_range(const char *string, double fps,
     if (!parse_one_time(&s, &range->eh, &range->em, &range->es, &range->ef,
                         errmsg_ret))
         goto error;
+
+    /* Parse step value, if present */
+    if (*s == '/') {
+        s++;
+        if (!parse_one_value(&s, &range->stepf, errmsg_ret))
+            goto error;
+    }
+
+    /* Make sure we're at the end of the string */
+    if (*s) {
+        *errmsg_ret = "garbage at end of range";
+        goto error;
+    }
 
     /* Successfully parsed: normalize values and return */
     normalize_fc_time(range);

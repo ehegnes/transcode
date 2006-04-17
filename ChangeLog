@@ -1,3 +1,12 @@
+2006-04-17 Andrew Church <achurch at achurch dot org>
+  * libtc/framecode.c
+  Fix several critical bugs in framecode handling, and allow error messages
+  from new_fc_time_from_string() to be suppressed.
+
+  * testsuite/Makefile.am
+    Added: testsuite/test-framecode.c
+  Add test program for libtc framecode handling.
+
 2006-04-16 Francesco Romani <fromani at gmail dot com>
   * tools/tcmodinfo.c
   #defines -> enum, better defaults for vob_t fields.
