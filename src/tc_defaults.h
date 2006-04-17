@@ -25,7 +25,7 @@
 #include "config.h"
 #endif
 
-#include "limits.h"
+#include <limits.h>
 
 #ifndef _TC_DEFAULTS_H
 #define _TC_DEFAULTS_H

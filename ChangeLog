@@ -1,3 +1,25 @@
+2006-04-17 Andrew Church <achurch at achurch dot org>
+  * Added: libtc/cfgfile.c libtc/cfgfile.h
+  Add new configuration file processing code to libtc.
+
+  * encode/encode_xvid.c export/Makefile.am export/export_ffmpeg.c
+    export/export_xvid4.c export/ffmpeg_cfg.c export/ffmpeg_cfg.h
+    libtc/Makefile.am
+    pvm3/Makefile.am pvm3/tcpvmexportd.c src/Makefile.am src/tc_defaults.h
+    src/transcode.c tools/Makefile.am tools/tcexport.c tools/tcmodinfo.c
+  Use the new code in place of the old libioaux code.
+
+  * import/v4l/Makefile.am import/v4l/video.c 
+  Remove dependency on libioaux; temporarily disable the .xawtv parsing
+  code, which used it.  Change code to not modify brightness/etc. settings
+  if no specific values are available.
+
+  * Makefile.am
+  Remove libioaux from the list of directories to process.
+
+  * configure.in
+  Remove libioaux-related stuff, add a check for the presence of strtof().
+
 2006-04-17 Francesco Romani <fromani at gmail dot com>
   * testsuite/test-framecode.c
   tiny compilation fix for amd64.

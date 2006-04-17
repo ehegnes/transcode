@@ -11,7 +11,6 @@ AM_CPPFLAGS = \
 	$(AC3_CFLAGS) \
 	$(AVILIB_CFLAGS) \
 	$(DLDARWININCL) \
-	$(TCIOAUX_CFLAGS) \
 	$(XIO_CFLAGS)
 
 bin_PROGRAMS = \
@@ -76,7 +75,6 @@ avisplit_SOURCES = \
 	aud_scan_avi.h
 avisplit_LDADD = \
 	$(AVILIB_LIBS) \
-	$(TCIOAUX_LIBS) \
 	$(XIO_LIBS) \
 	$(ACLIB_LIBS) \
 	$(LIBTC_LIBS)
@@ -89,7 +87,6 @@ tcmodinfo_LDADD = \
 	$(WAVLIB_LIBS) \
 	$(LIBTC_LIBS) \
 	$(LIBTCVIDEO_LIBS) \
-	$(TCIOAUX_LIBS) \
 	$(PTHREAD_LIBS) \
 	-lm
 tcmodinfo_LDFLAGS = -export-dynamic
@@ -113,7 +110,6 @@ tcexport_LDADD = \
 	$(LIBTCVIDEO_LIBS) \
 	$(LIBTCAUDIO_LIBS) \
 	$(SUPPORT_LIBS) \
-	$(TCIOAUX_LIBS) \
 	$(XIO_LIBS) \
 	-lm
 tcexport_LDFLAGS = -export-dynamic

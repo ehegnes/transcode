@@ -96,7 +96,6 @@ static int capability_flag = TC_CAP_YUV|TC_CAP_RGB|TC_CAP_PCM|TC_CAP_AC3|
 #include "probe_export.h"
 #include "ffmpeg_cfg.h"
 
-extern char *tc_config_dir;
 
 /*
  * libavcodec is not thread-safe. We must protect concurrent access to it.
@@ -663,10 +662,10 @@ MOD_init {
     }
 #endif
 
-    module_read_config(codec->name, MOD_NAME, "ffmpeg", lavcopts_conf, tc_config_dir);
+    module_read_config("ffmpeg.cfg", codec->name, lavcopts_conf, MOD_NAME);
     if (verbose_flag & TC_DEBUG) {
         tc_log_info(MOD_NAME, "Using the following FFMPEG parameters:");
-        module_print_config("", lavcopts_conf);
+        module_print_config(lavcopts_conf, MOD_NAME);
     }
 
     /* this overrides transcode settings */

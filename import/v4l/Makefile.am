@@ -4,8 +4,7 @@ AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
-	-I$(top_srcdir)/import \
-	$(TCIOAUX_CFLAGS)
+	-I$(top_srcdir)/import
 
 pkgdir = $(MOD_PATH)
 

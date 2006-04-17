@@ -61,7 +61,7 @@
 
 #include "libtcvideo/tcvideo.h"
 
-#include "libioaux/configs.h"
+#include "libtc/cfgfile.h"
 
 #include "transcode.h"
 #include "libtc/optstr.h"
@@ -102,12 +102,6 @@ static const char *xvid_help = ""
     "\tXviD is a high quality/performance ISO MPEG4 codec.\n"
     "Options:\n"
     "\thelp\tproduce module overview and options explanations\n";
-
-/*****************************************************************************
- * Local data
- ****************************************************************************/
-
-extern char *tc_config_dir;
 
 /*****************************************************************************
  * XviD symbols grouped in a nice struct.
@@ -651,70 +645,70 @@ static void read_config_file(XviDPrivateData *mod)
     xvid_enc_create_t    *create  = &mod->cfg_create;
     xvid_enc_frame_t     *frame   = &mod->cfg_frame;
 
-    struct config xvid_config[] = {
+    TCConfigEntry xvid_config[] = {
             /* Section [features] */
-            {"features", "Feature settings", CONF_TYPE_SECTION, 0, 0, 0, NULL},
-            {"quant_type", &mod->cfg_quant_method, CONF_TYPE_STRING, 0, 0, 0, NULL},
-            {"motion", &mod->cfg_motion, CONF_TYPE_INT, CONF_RANGE, 0, 6, NULL},
-            {"chromame", &mod->cfg_chromame, CONF_TYPE_FLAG, 0, 0, 1, NULL},
-            {"vhq", &mod->cfg_vhq, CONF_TYPE_INT, CONF_RANGE, 0, 4, NULL},
-            {"max_bframes", &create->max_bframes, CONF_TYPE_INT, CONF_RANGE, 0, 20, NULL},
-            {"bquant_ratio", &create->bquant_ratio, CONF_TYPE_INT, CONF_RANGE, 0, 200, NULL},
-            {"bquant_offset", &create->bquant_offset, CONF_TYPE_INT, CONF_RANGE, 0, 200, NULL},
-            {"bframe_threshold", &frame->bframe_threshold, CONF_TYPE_INT, CONF_RANGE, -255, 255, NULL},
-            {"quarterpel", &mod->cfg_quarterpel, CONF_TYPE_FLAG, 0, 0, 1, NULL},
-            {"gmc", &mod->cfg_gmc, CONF_TYPE_FLAG, 0, 0, 1, NULL},
-            {"trellis", &mod->cfg_trellis, CONF_TYPE_FLAG, 0, 0, 1, NULL},
-            {"packed", &mod->cfg_packed, CONF_TYPE_FLAG, 0, 0, 1, NULL},
-            {"closed_gop", &mod->cfg_closed_gop, CONF_TYPE_FLAG, 0, 0, 1, NULL},
-            {"interlaced", &mod->cfg_interlaced, CONF_TYPE_FLAG, 0, 0, 1, NULL},
-            {"cartoon", &mod->cfg_cartoon, CONF_TYPE_FLAG, 0, 0, 1, NULL},
-            {"hqacpred", &mod->cfg_hqacpred, CONF_TYPE_FLAG, 0, 0, 1, NULL},
-            {"frame_drop_ratio", &create->frame_drop_ratio, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
-            {"stats", &mod->cfg_stats, CONF_TYPE_FLAG, 0, 0, 1, NULL},
-            {"greyscale", &mod->cfg_greyscale, CONF_TYPE_FLAG, 0, 0, 1, NULL},
-            {"turbo", &mod->cfg_turbo, CONF_TYPE_FLAG, 0, 0, 1, NULL},
-            {"full1pass", &mod->cfg_full1pass, CONF_TYPE_FLAG, 0, 0, 1, NULL},
+//            {"features", "Feature settings", TCCONF_TYPE_SECTION, 0, 0, 0},
+            {"quant_type", &mod->cfg_quant_method, TCCONF_TYPE_STRING, 0, 0, 0},
+            {"motion", &mod->cfg_motion, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 6},
+            {"chromame", &mod->cfg_chromame, TCCONF_TYPE_FLAG, 0, 0, 1},
+            {"vhq", &mod->cfg_vhq, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 4},
+            {"max_bframes", &create->max_bframes, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 20},
+            {"bquant_ratio", &create->bquant_ratio, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 200},
+            {"bquant_offset", &create->bquant_offset, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 200},
+            {"bframe_threshold", &frame->bframe_threshold, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, -255, 255},
+            {"quarterpel", &mod->cfg_quarterpel, TCCONF_TYPE_FLAG, 0, 0, 1},
+            {"gmc", &mod->cfg_gmc, TCCONF_TYPE_FLAG, 0, 0, 1},
+            {"trellis", &mod->cfg_trellis, TCCONF_TYPE_FLAG, 0, 0, 1},
+            {"packed", &mod->cfg_packed, TCCONF_TYPE_FLAG, 0, 0, 1},
+            {"closed_gop", &mod->cfg_closed_gop, TCCONF_TYPE_FLAG, 0, 0, 1},
+            {"interlaced", &mod->cfg_interlaced, TCCONF_TYPE_FLAG, 0, 0, 1},
+            {"cartoon", &mod->cfg_cartoon, TCCONF_TYPE_FLAG, 0, 0, 1},
+            {"hqacpred", &mod->cfg_hqacpred, TCCONF_TYPE_FLAG, 0, 0, 1},
+            {"frame_drop_ratio", &create->frame_drop_ratio, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 100},
+            {"stats", &mod->cfg_stats, TCCONF_TYPE_FLAG, 0, 0, 1},
+            {"greyscale", &mod->cfg_greyscale, TCCONF_TYPE_FLAG, 0, 0, 1},
+            {"turbo", &mod->cfg_turbo, TCCONF_TYPE_FLAG, 0, 0, 1},
+            {"full1pass", &mod->cfg_full1pass, TCCONF_TYPE_FLAG, 0, 0, 1},
 
             /* section [quantizer] */
-            {"quantizer", "Quantizer settings", CONF_TYPE_SECTION, 0, 0, 0, NULL},
-            {"min_iquant", &create->min_quant[0], CONF_TYPE_INT, CONF_RANGE, 1, 31, NULL},
-            {"max_iquant", &create->max_quant[0], CONF_TYPE_INT, CONF_RANGE, 1, 31, NULL},
-            {"min_pquant", &create->min_quant[1], CONF_TYPE_INT, CONF_RANGE, 1, 31, NULL},
-            {"max_pquant", &create->max_quant[1], CONF_TYPE_INT, CONF_RANGE, 1, 31, NULL},
-            {"min_bquant", &create->min_quant[2], CONF_TYPE_INT, CONF_RANGE, 1, 31, NULL},
-            {"max_bquant", &create->max_quant[2], CONF_TYPE_INT, CONF_RANGE, 1, 31, NULL},
-            {"quant_intra_matrix", &mod->cfg_intra_matrix_file, CONF_TYPE_STRING, 0, 0, 100, NULL},
-            {"quant_inter_matrix", &mod->cfg_inter_matrix_file, CONF_TYPE_STRING, 0, 0, 100, NULL},
+//            {"quantizer", "Quantizer settings", TCCONF_TYPE_SECTION, 0, 0, 0},
+            {"min_iquant", &create->min_quant[0], TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 1, 31},
+            {"max_iquant", &create->max_quant[0], TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 1, 31},
+            {"min_pquant", &create->min_quant[1], TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 1, 31},
+            {"max_pquant", &create->max_quant[1], TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 1, 31},
+            {"min_bquant", &create->min_quant[2], TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 1, 31},
+            {"max_bquant", &create->max_quant[2], TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 1, 31},
+            {"quant_intra_matrix", &mod->cfg_intra_matrix_file, TCCONF_TYPE_STRING, 0, 0, 100},
+            {"quant_inter_matrix", &mod->cfg_inter_matrix_file, TCCONF_TYPE_STRING, 0, 0, 100},
 
             /* section [cbr] */
-            {"cbr", "CBR settings", CONF_TYPE_SECTION, 0, 0, 0, NULL},
-            {"reaction_delay_factor", &onepass->reaction_delay_factor, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
-            {"averaging_period", &onepass->averaging_period, CONF_TYPE_INT, CONF_MIN, 0, 0, NULL},
-            {"buffer", &onepass->buffer, CONF_TYPE_INT, CONF_MIN, 0, 0, NULL},
+//            {"cbr", "CBR settings", TCCONF_TYPE_SECTION, 0, 0, 0},
+            {"reaction_delay_factor", &onepass->reaction_delay_factor, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 100},
+            {"averaging_period", &onepass->averaging_period, TCCONF_TYPE_INT, TCCONF_FLAG_MIN, 0, 0},
+            {"buffer", &onepass->buffer, TCCONF_TYPE_INT, TCCONF_FLAG_MIN, 0, 0},
 
-            /* section [cbr] */
-            {"vbr", "VBR settings", CONF_TYPE_SECTION, 0, 0, 0, NULL},
-            {"keyframe_boost", &pass2->keyframe_boost, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
-            {"curve_compression_high", &pass2->curve_compression_high, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
-            {"curve_compression_low", &pass2->curve_compression_low, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
-            {"overflow_control_strength", &pass2->overflow_control_strength, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
-            {"max_overflow_improvement", &pass2->max_overflow_improvement, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
-            {"max_overflow_degradation", &pass2->max_overflow_degradation, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
-            {"kfreduction", &pass2->kfreduction, CONF_TYPE_INT, CONF_RANGE, 0, 100, NULL},
-            {"kfthreshold", &pass2->kfthreshold, CONF_TYPE_INT, CONF_MIN, 0, 0, NULL},
-            {"container_frame_overhead", &pass2->container_frame_overhead, CONF_TYPE_INT, CONF_MIN, 0, 0, NULL},
+            /* section [vbr] */
+//            {"vbr", "VBR settings", TCCONF_TYPE_SECTION, 0, 0, 0},
+            {"keyframe_boost", &pass2->keyframe_boost, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 100},
+            {"curve_compression_high", &pass2->curve_compression_high, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 100},
+            {"curve_compression_low", &pass2->curve_compression_low, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 100},
+            {"overflow_control_strength", &pass2->overflow_control_strength, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 100},
+            {"max_overflow_improvement", &pass2->max_overflow_improvement, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 100},
+            {"max_overflow_degradation", &pass2->max_overflow_degradation, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 100},
+            {"kfreduction", &pass2->kfreduction, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 100},
+            {"kfthreshold", &pass2->kfthreshold, TCCONF_TYPE_INT, TCCONF_FLAG_MIN, 0, 0},
+            {"container_frame_overhead", &pass2->container_frame_overhead, TCCONF_TYPE_INT, TCCONF_FLAG_MIN, 0, 0},
 
             /* End of the config file */
-            {NULL, 0, 0, 0, 0, 0, NULL}
+            {NULL, 0, 0, 0, 0, 0}
     };
 
     /* Read the values */
-    module_read_config(NULL, MOD_NAME, "xvid", xvid_config, tc_config_dir);
+    module_read_config("xvid4.cfg", NULL, xvid_config, MOD_NAME);
 
     /* Print the values */
     if (verbose & TC_DEBUG) {
-        module_print_config("["MOD_NAME"] ", xvid_config);
+        module_print_config(xvid_config, MOD_NAME);
     }
 
     return;

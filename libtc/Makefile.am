@@ -14,29 +14,31 @@ XIO_FILES = libxio.c
 endif
 
 libtc_la_SOURCES = \
-	tc_functions.c \
-	ratiocodes.c \
-	tccodecs.c \
-	tcmodule.c \
-	tcmoduleinfo.c \
+	cfgfile.c \
 	framecode.c \
 	iodir.c \
 	optstr.c \
+	ratiocodes.c \
 	strlcat.c \
 	strlcpy.c \
+	tc_functions.c \
+	tccodecs.c \
+	tcmodule.c \
+	tcmoduleinfo.c \
 	$(XIO_FILES)
 
 EXTRA_DIST = \
+	cfgfile.h \
+	framecode.h \
+	iodir.h \
 	libtc.h \
-	tccodecs.h \
+	optstr.h \
 	ratiocodes.h \
+	static_xio.h \
+	tc_lzo.h \
+	tccodecs.h \
 	tcmodule-core.h \
 	tcmodule-data.h \
 	tcmodule-info.h \
 	tcmodule-plugin.h \
-	framecode.h \
-	iodir.h \
-	optstr.h \
-	static_xio.h \
-	tc_lzo.h
 	xio.h

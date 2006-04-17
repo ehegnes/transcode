@@ -1,7 +1,7 @@
 #ifndef __FFMPEG_CFG_H
 #define __FFMPEG_CFG_H
 
-#include "libioaux/configs.h"
+#include "libtc/cfgfile.h"
 #include <ffmpeg/avcodec.h>
 
 //char *lavc_param_vcodec = "mpeg4";
@@ -100,6 +100,6 @@ extern int lavc_param_intra_dc_precision;
 extern int lavc_param_skip_top;
 extern int lavc_param_skip_bottom;
 
-extern struct config lavcopts_conf[];
+extern TCConfigEntry lavcopts_conf[];
 
 #endif

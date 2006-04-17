@@ -124,7 +124,6 @@ int plugin_get_handle(char *name)
 /* symbols needed by modules */
 pthread_mutex_t init_avcodec_lock = PTHREAD_MUTEX_INITIALIZER;
 int probe_export_attributes = 0;
-const char *tc_config_dir = NULL;
 int verbose  = TC_INFO;
 int rgbswap  = 0;
 int tc_accel = -1;    //acceleration code
@@ -451,7 +450,6 @@ int main(int argc, char *argv[])
    return status;
 }
 
-#include "libioaux/static_libioaux.h"
 #include "libtc/static_optstr.h"
 #include "avilib/static_avilib.h"
 #include "avilib/static_wavlib.h"

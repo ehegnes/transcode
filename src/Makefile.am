@@ -25,7 +25,6 @@ transcode_LDADD = \
 	$(LIBTCAUDIO_LIBS) \
 	$(LIBTCVIDEO_LIBS) \
 	$(SUPPORT_LIBS) \
-	$(TCIOAUX_LIBS) \
 	$(ACLIB_LIBS) \
 	$(AVILIB_LIBS) \
 	$(WAVLIB_LIBS) \

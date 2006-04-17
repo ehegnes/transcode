@@ -12,7 +12,6 @@ SUBDIRS = \
 	libac3 \
 	libdldarwin \
 	libsupport \
-	libioaux \
 	libtc \
 	libtcaudio \
 	libtcvideo \

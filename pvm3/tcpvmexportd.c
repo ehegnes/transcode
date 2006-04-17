@@ -62,7 +62,6 @@ char *p_hostname=NULL;
 int verbose=TC_QUIET;
 char *p_merge_cmd=NULL;
 unsigned int tc_avi_limit=AVI_FILE_LIMIT;	/*NEED TO CHECK*/
-char *tc_config_dir=NULL;	/*NEED TO CHECK*/
 int s_divxmultipass=0,s_internal_multipass=0;
 
 void version()

@@ -6,8 +6,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
 	$(PVM3_CFLAGS) \
-	$(ACLIB_CFLAGS) \
-	$(TCIOAUX_CFLAGS)
+	$(ACLIB_CFLAGS)
 
 AM_LDFLAGS = -export-dynamic
 
@@ -29,7 +28,6 @@ tcpvmexportd_SOURCES = \
 	vob_pack_unpack.c
 
 tcpvmexportd_LDADD = \
-	$(TCIOAUX_LIBS) \
 	$(ACLIB_LIBS) \
 	$(LIBTC_LIBS) \
 	-lm

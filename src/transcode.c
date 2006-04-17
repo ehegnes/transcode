@@ -34,6 +34,7 @@
 #include "filter.h"
 #include "probe.h"
 #include "split.h"
+#include "libtc/cfgfile.h"
 #include "libtc/ratiocodes.h"
 #include "libtc/iodir.h"
 #include "libtc/xio.h"
@@ -109,7 +110,6 @@ void socket_thread(void); // socket.c
 char *socket_file = NULL;
 char *plugins_string = NULL;
 size_t size_plugstr = 0;
-char *tc_config_dir = NULL;
 pid_t writepid = 0;
 pthread_mutex_t writepid_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t writepid_cond = PTHREAD_COND_INITIALIZER;
@@ -1963,7 +1963,7 @@ int main(int argc, char *argv[]) {
 	  break;
 
 	case CONFIG_DIR:
-	  tc_config_dir = optarg;
+	  tc_set_config_dir(optarg);
 	  break;
 
 	case PULLDOWN:
@@ -4680,7 +4680,6 @@ int main(int argc, char *argv[]) {
 #include "libtc/static_optstr.h"
 #include "avilib/static_avilib.h"
 #include "avilib/static_wavlib.h"
-#include "libioaux/static_libioaux.h"
 
 /* vim: sw=2 ts=8
  */

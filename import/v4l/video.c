@@ -26,13 +26,13 @@
 
 #include "vcr.h"
 #include "video.h"
-#include "configs.h"
 #include "counter.h"
 #include "frequencies.h"
 
 #include "src/filter.h"
 
 #include "transcode.h"
+#include "libtc/cfgfile.h"
 #include "aclib/imgconvert.h"
 
 struct fgdevice fg;
@@ -53,84 +53,24 @@ int do_audio = 0;
 
 #define cf_get_named_key(x,y,z) cf_get_named_section_value_of_key(x,y,z)
 
-int
-video_grab_init (const char *device,  // device the video/audio comes from [/dev/video0, etc]
-                 int chanid,    // channel on that device [composit, s-video, tuner, etc] (-1 == don't touch)
-                 const char *station_id,      // if tuner, staion to tune ["11", "E3", "PBS", "ARD", etc]
-                 int w,         // image width
-                 int h,         // image height
-                 int fmt,       // pixel format
-                 int verb,      // verbosity flag
-                 int _do_audio  // init audio or not?
-  )
+static int read_xawtv_config(char *pStation, char *pNorm,
+                             unsigned long *tfreq_ret,
+                             int *bright_ret, int *contrast_ret,
+                             int *color_ret, int *hue_ret)
 {
-  int i, j, channel_has_tuner = 0;
-  char *pHome, pConfig[TC_BUF_MIN], pNorm[TC_BUF_MIN], pStation[TC_BUF_MIN], pChannel[8], *pTemp;
-  int fine = 0, bright = 32768, contrast = 32768, color = 32768, hue = 32768;
+  int found_station = 0;
+#if 0  /* FIXME: rewrite to use libtc/cfgfile.c (AC) */
+  int j;
+  char *pHome, pConfig[TC_BUF_MIN], pChannel[8], *pTemp;
+  unsigned long tfreq = *tfreq_ret;
+  int fine = 0, bright = *bright_ret, contrast = *contrast_ret,
+      color = *color_ret, hue = *hue_ret;
   CF_ROOT_TYPE *pRoot;
   CF_SECTION_TYPE *pSection;
   extern struct STRTAB chanlist_names[];
   extern struct CHANLISTS chanlists[];
   struct STRTAB channame;
   struct CHANLIST *pChanlist;
-
-  unsigned long tfreq = 0;
-
-  int found_station = 0;
-
-  do_audio = _do_audio;
-
-  tc_snprintf (pNorm, TC_BUF_MIN - 1, "%s", "don't touch");
-
-  // open video device
-  if ((fh = open (device, O_RDWR)) == -1) {
-    perror ("grab device open");
-    return (-1);
-  }
-
-  // get grabber caps
-  if (-1 == ioctl (fh, VIDIOCGCAP, &capability)) {
-    perror ("query capabilities");
-    return (-1);
-  }
-
-  if (chanid < 0)
-    goto dont_touch;
-
-  if (!channels) {
-    channels = tc_malloc (sizeof (struct video_channel) * capability.channels);
-  }
-
-  channels[chanid].channel = chanid;
-
-  if (-1 == ioctl (fh, VIDIOCGCHAN, &channels[chanid])) {
-    perror ("invalid channel");
-    return (-1);
-  }
-
-  tc_snprintf (pNorm, TC_BUF_MIN - 1, "%s", channels[chanid].name);
-
-  if (channels[chanid].flags & VIDEO_VC_TUNER) {
-    channel_has_tuner = 1;
-    // get tuner caps
-    if (-1 == ioctl (fh, VIDIOCGTUNER, &tuner)) {
-      perror ("query tuner");
-      return (-1);
-    }
-
-    // print tuner capability
-    if (verb)
-      printf ("(%s) %s: has[ %s%s%s%s%s] is[ %s%s%s%s]\n", __FILE__, tuner.name,
-              (tuner.flags & VIDEO_TUNER_PAL) ? "PAL " : "",
-              (tuner.flags & VIDEO_TUNER_NTSC) ? "NTSC " : "",
-              (tuner.flags & VIDEO_TUNER_SECAM) ? "SECAM " : "",
-              (tuner.flags & VIDEO_TUNER_LOW) ? "USE-KHZ " : "",
-              (tuner.flags & VIDEO_TUNER_NORM) ? "AGILE " : "",
-              (tuner.mode == VIDEO_MODE_PAL) ? "PAL " : "",
-              (tuner.mode == VIDEO_MODE_NTSC) ? "NTSC " : "",
-              (tuner.mode == VIDEO_MODE_SECAM) ? "SECAM " : "",
-              (tuner.mode == VIDEO_MODE_AUTO) ? "AUTO " : "");
-  }
 
   /*
    * let's see if we can find a .xawtv
@@ -349,7 +289,89 @@ video_grab_init (const char *device,  // device the video/audio comes from [/dev
       }
     }
   }
+  *bright_ret = bright;
+  *contrast_ret = contrast;
+  *color_ret = color;
+  *hue_ret = hue;
+  *tfreq_ret = tfreq;
+#endif  // #if 0
+  return found_station;
+}
 
+int
+video_grab_init (const char *device,  // device the video/audio comes from [/dev/video0, etc]
+                 int chanid,    // channel on that device [composit, s-video, tuner, etc] (-1 == don't touch)
+                 const char *station_id,      // if tuner, staion to tune ["11", "E3", "PBS", "ARD", etc]
+                 int w,         // image width
+                 int h,         // image height
+                 int fmt,       // pixel format
+                 int verb,      // verbosity flag
+                 int _do_audio  // init audio or not?
+  )
+{
+  int i, channel_has_tuner = 0;
+  char pNorm[TC_BUF_MIN], pStation[TC_BUF_MIN];
+  unsigned long tfreq = 0;
+  int bright = -1, contrast = -1, color = -1, hue = -1;
+  int found_station = 0;
+
+  do_audio = _do_audio;
+
+  tc_snprintf (pNorm, TC_BUF_MIN - 1, "%s", "don't touch");
+
+  // open video device
+  if ((fh = open (device, O_RDWR)) == -1) {
+    perror ("grab device open");
+    return (-1);
+  }
+
+  // get grabber caps
+  if (-1 == ioctl (fh, VIDIOCGCAP, &capability)) {
+    perror ("query capabilities");
+    return (-1);
+  }
+
+  if (chanid < 0)
+    goto dont_touch;
+
+  if (!channels) {
+    channels = tc_malloc (sizeof (struct video_channel) * capability.channels);
+  }
+
+  channels[chanid].channel = chanid;
+
+  if (-1 == ioctl (fh, VIDIOCGCHAN, &channels[chanid])) {
+    perror ("invalid channel");
+    return (-1);
+  }
+
+  tc_snprintf (pNorm, TC_BUF_MIN - 1, "%s", channels[chanid].name);
+
+  if (channels[chanid].flags & VIDEO_VC_TUNER) {
+    channel_has_tuner = 1;
+    // get tuner caps
+    if (-1 == ioctl (fh, VIDIOCGTUNER, &tuner)) {
+      perror ("query tuner");
+      return (-1);
+    }
+
+    // print tuner capability
+    if (verb)
+      printf ("(%s) %s: has[ %s%s%s%s%s] is[ %s%s%s%s]\n", __FILE__, tuner.name,
+              (tuner.flags & VIDEO_TUNER_PAL) ? "PAL " : "",
+              (tuner.flags & VIDEO_TUNER_NTSC) ? "NTSC " : "",
+              (tuner.flags & VIDEO_TUNER_SECAM) ? "SECAM " : "",
+              (tuner.flags & VIDEO_TUNER_LOW) ? "USE-KHZ " : "",
+              (tuner.flags & VIDEO_TUNER_NORM) ? "AGILE " : "",
+              (tuner.mode == VIDEO_MODE_PAL) ? "PAL " : "",
+              (tuner.mode == VIDEO_MODE_NTSC) ? "NTSC " : "",
+              (tuner.mode == VIDEO_MODE_SECAM) ? "SECAM " : "",
+              (tuner.mode == VIDEO_MODE_AUTO) ? "AUTO " : "");
+  }
+
+  /* FIXME: we shouldn't read other apps' config files */
+  found_station = read_xawtv_config(pStation, pNorm, &tfreq,
+				    &bright, &contrast, &color, &hue);
 
   // print channel capability
   if (verb)
@@ -428,22 +450,34 @@ dont_touch:
       return (-1);
     }
 
-    grab_setattr (GRAB_ATTR_BRIGHT, bright);
-    grab_setattr (GRAB_ATTR_CONTRAST, contrast);
-    grab_setattr (GRAB_ATTR_COLOR, color);
-    grab_setattr (GRAB_ATTR_HUE, hue);
+    if (bright >= 0) {
+      grab_setattr (GRAB_ATTR_BRIGHT, bright);
+      if (verb) {
+        printf ("(%s) setattr: setting bright   to %d (%2.0f%s).\n",
+                __FILE__, bright, (float) bright / 65535.0 * 100.0, "%");
+      }
+    }
+    if (contrast >= 0) {
+      grab_setattr (GRAB_ATTR_CONTRAST, contrast);
+      if (verb) {
+        printf ("(%s) setattr: setting contrast to %d (%2.0f%s).\n",
+                __FILE__, contrast, (float) contrast / 65535.0 * 100.0, "%");
 
-    if (verb) {
-      printf ("(%s) setattr: setting bright   to %d (%2.0f%s).\n",
-              __FILE__, bright, (float) bright / 65535.0 * 100.0, "%");
-
-      printf ("(%s) setattr: setting contrast to %d (%2.0f%s).\n",
-              __FILE__, contrast, (float) contrast / 65535.0 * 100.0, "%");
-
-      printf ("(%s) setattr: setting color    to %d (%2.0f%s).\n",
-              __FILE__, color, (float) color / 65535.0 * 100.0, "%");
-
-      printf ("(%s) setattr: setting hue      to %d (%2.0f%s).\n", __FILE__, hue, (float) hue / 65535.0 * 100.0, "%");
+      }
+    }
+    if (color >= 0) {
+      grab_setattr (GRAB_ATTR_COLOR, color);
+      if (verb) {
+        printf ("(%s) setattr: setting color    to %d (%2.0f%s).\n",
+                __FILE__, color, (float) color / 65535.0 * 100.0, "%");
+      }
+    }
+    if (hue >= 0) {
+      grab_setattr (GRAB_ATTR_HUE, hue);
+      if (verb) {
+        printf ("(%s) setattr: setting hue      to %d (%2.0f%s).\n",
+                __FILE__, hue, (float) hue / 65535.0 * 100.0, "%");
+      }
     }
 
     if (channel_has_tuner && found_station) {
