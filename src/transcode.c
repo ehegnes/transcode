@@ -42,7 +42,7 @@
 #ifdef HAVE_GETOPT_LONG_ONLY
 #include <getopt.h>
 #else
-#include "libsupport/getopt.h"
+#include "libtc/getopt.h"
 #endif
 
 #include "usage.h"

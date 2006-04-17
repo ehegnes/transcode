@@ -109,7 +109,6 @@ tcexport_LDADD = \
 	$(LIBTC_LIBS) \
 	$(LIBTCVIDEO_LIBS) \
 	$(LIBTCAUDIO_LIBS) \
-	$(SUPPORT_LIBS) \
 	$(XIO_LIBS) \
 	-lm
 tcexport_LDFLAGS = -export-dynamic

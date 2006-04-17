@@ -9,6 +9,10 @@ AM_CPPFLAGS = \
 
 noinst_LTLIBRARIES = libtc.la
 
+if !HAVE_GETOPT_LONG_ONLY
+GETOPT_FILES = getopt.c getopt1.c
+endif
+
 if HAVE_IBP
 XIO_FILES = libxio.c
 endif
@@ -25,11 +29,13 @@ libtc_la_SOURCES = \
 	tccodecs.c \
 	tcmodule.c \
 	tcmoduleinfo.c \
+	$(GETOPT_FILES) \
 	$(XIO_FILES)
 
 EXTRA_DIST = \
 	cfgfile.h \
 	framecode.h \
+	getopt.h \
 	iodir.h \
 	libtc.h \
 	optstr.h \

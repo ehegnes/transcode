@@ -108,22 +108,8 @@ AC_C_ATTRIBUTE_ALIGNED
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_TYPE_SIGNAL
-AC_CHECK_FUNCS([getpagesize gettimeofday memmove memset strlcat strlcpy strtof vsscanf])
-
-# Checks if support lib is needed
-enable_supportlib="no"
-AC_CHECK_FUNCS(getopt_long_only, [], [enable_supportlib="yes"
-    SUPPORT_OBJECTS="$SUPPORT_OBJECTS getopt.o getopt1.o"])
-SUPPORT_OBJECTS="$SUPPORT_OBJECTS dummy.o"
-AC_MSG_CHECKING([whether support lib is needed])
-AC_MSG_RESULT($enable_supportlib)
-if test x"$enable_supportlib" = x"yes" ; then
-  SUPPORT_LIBS="\$(top_builddir)/libsupport/libsupport.a"
-  SUPPORT_INCLUDES="-I\$(top_srcdir)/libsupport"
-  AC_SUBST(SUPPORT_OBJECTS)
-  AC_SUBST(SUPPORT_LIBS)
-  AC_SUBST(SUPPORT_INCLUDES)
-fi
+AC_CHECK_FUNCS([getopt_long_only getpagesize gettimeofday memmove memset strlcat strlcpy strtof vsscanf])
+AM_CONDITIONAL(HAVE_GETOPT_LONG_ONLY, test x"$have_getopt_long_only" = x"yes")
 
 
 case "$host_os" in
@@ -1252,7 +1238,6 @@ AC_OUTPUT([
 	multiplex/Makefile
 	libac3/Makefile
 	libdldarwin/Makefile
-	libsupport/Makefile
 	libtc/Makefile
 	libtcaudio/Makefile
 	libtcvideo/Makefile

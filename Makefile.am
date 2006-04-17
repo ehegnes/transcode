@@ -11,7 +11,6 @@ SUBDIRS = \
 	avilib \
 	libac3 \
 	libdldarwin \
-	libsupport \
 	libtc \
 	libtcaudio \
 	libtcvideo \
