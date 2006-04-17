@@ -2,6 +2,9 @@
   * Removed: libioaux/*
   Remove now-unused libioaux.
 
+  * configure.in
+  Oops, missed a libioaux reference.
+
 2006-04-17 Andrew Church <achurch at achurch dot org>
   * Added: libtc/cfgfile.c libtc/cfgfile.h
   Add new configuration file processing code to libtc.

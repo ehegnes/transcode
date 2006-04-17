@@ -1252,7 +1252,6 @@ AC_OUTPUT([
 	multiplex/Makefile
 	libac3/Makefile
 	libdldarwin/Makefile
-	libioaux/Makefile
 	libsupport/Makefile
 	libtc/Makefile
 	libtcaudio/Makefile
