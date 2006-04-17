@@ -1,3 +1,11 @@
+2006-04-17 Francesco Romani <fromani at gmail dot com>
+  * libtc/tccodecs.c libtc/tccodecs.h
+  small STYLE conformancy update and documentation add.
+
+  * libtc/ratiocodes.h libtc/libtc.h
+  move TC_NULL_MATCH macro to libtc.h since it's of general
+  interest.
+
 2006-04-17 Andrew Church <achurch at achurch dot org>
   * testsuite/Makefile.am
   Add aclib test programs as Makefile targets.

@@ -17,8 +17,6 @@ struct tcpair_ {
     int b; /* denominator, height... */
 };
 
-#define TC_NULL_MATCH  (-1)
-
 #define TC_FRC_RATIO_FROM_FPS(fps, pn, pd) \
 do { \
     *(pn) = (int)((fps) * 1000.0); \

@@ -28,6 +28,7 @@
 /*
  * codecs identifiers.
  * Each one must fit in exactly 32 bits.
+ * And they should be probably moved to an enum.
  */
 
 #define TC_CODEC_ERROR                 0xFFFFFFFF

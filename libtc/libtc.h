@@ -52,6 +52,8 @@
 extern "C" {
 #endif
 
+#define TC_NULL_MATCH           -1
+
 #define TC_BUF_MAX            1024
 #define TC_BUF_MIN             128
 

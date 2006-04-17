@@ -12,15 +12,16 @@
 #include <strings.h>
 #include "src/transcode.h"
 #include "tccodecs.h"
+#include "libtc.h"
 
 /* internal usage only ***************************************************/
 
 typedef struct {
-    int id;
-    const char *name;
-    const char *fourcc;
+    uint32_t id;         /* a TC_CODEC_* vlaue */
+    const char *name;    /* usually != fourcc */
+    const char *fourcc;  /* real-world fourcc */
     const char *comment;
-    int multipass;
+    int multipass;       /* multipass capable */
 } TCCodecInfo;
 
 /*
@@ -84,22 +85,56 @@ const TCCodecInfo tc_codecs_info[] = {
     /* this MUST be the last one */
 };
 
-#define TC_CODEC_NOT_FOUND     -1
+/*
+ * TCCodecMatcher:
+ *      generic codec finder function family.
+ *      tell if a TCCodecInfo descriptor match certains given criterias
+ *      using a function-dependent method.
+ *      See also 'find_tc_codec' function.
+ *
+ * Parameters:
+ *      info: a pointer to a TCCodecInfo descriptor to be examinated
+ *  userdata: a pointer to data with function-dependent meaning
+ * Return Value:
+ *      TC_TRUE if function succeed,
+ *      TC_FALSE otherwise.
+ */
+typedef int (*TCCodecMatcher)(const TCCodecInfo *info, const void *userdata);
 
-typedef int (*TCCodecFinder)(const TCCodecInfo *info, const void *userdata);
-
-static int id_finder(const TCCodecInfo *info, const void *userdata)
+/*
+ * id_matcher:
+ *      match a TCCodecInfo descriptor on codec's id.
+ *      'userdata' must be an *address* of an uint32_t containing a TC_CODEC_*
+ *      to match.
+ *
+ * Parameters:
+ *      as for TCCodecMatcher
+ * Return Value:
+ *      as for TCCodecMatcher
+ */
+static int id_matcher(const TCCodecInfo *info, const void *userdata)
 {
-    if (!info || !userdata) {
+    if (info == NULL || userdata == NULL) {
         return TC_FALSE;
     }
 
     return (*(int*)userdata == info->id) ?TC_TRUE :TC_FALSE;
 }
 
-static int name_finder(const TCCodecInfo *info, const void *userdata)
+/*
+ * name_matcher:
+ *      match a TCCodecInfo descriptor on codec's name (note: note != fourcc).
+ *      'userdata' must be the C-string to match.
+ *      Note: ignore case.
+ *
+ * Parameters:
+ *      as for TCCodecMatcher
+ * Return Value:
+ *      as for TCCodecMatcher
+ */
+static int name_matcher(const TCCodecInfo *info, const void *userdata)
 {
-    if (!info || !userdata) {
+    if (info == NULL || userdata == NULL) {
         return TC_FALSE;
     }
     if(!info->name || (strcasecmp(info->name, userdata) != 0)) {
@@ -108,22 +143,41 @@ static int name_finder(const TCCodecInfo *info, const void *userdata)
     return TC_TRUE;
 }
 
-static int find_tc_codec(const TCCodecInfo *infos, TCCodecFinder finder, const void *userdata)
+/*
+ * find_tc_codec:
+ *      find a TCCodecInfo descriptor matching certains given criterias.
+ *      It scans the whole TCCodecInfos table applying the given
+ *      matcher with the given data to each element, halting when a match
+ *      is found
+ *
+ * Parameters:
+ *      matcher: a TCCodecMatcher to be applied to find the descriptor.
+ *     userdata: matching data to be passed to matcher together with a table
+ *               entry.
+ *
+ * Return Value:
+ *      >= 0: index of an entry in TCCodecInfo in table if an entry match
+ *            the finding criteria
+ *      TC_NULL_MATCH if no entry matches the given criteria
+ */
+static int find_tc_codec(const TCCodecInfo *infos,
+                         TCCodecMatcher matcher,
+                         const void *userdata)
 {
     int found = TC_FALSE, i = 0;
 
-    if (!infos) {
-        return TC_CODEC_NOT_FOUND;
+    if (infos == NULL) {
+        return TC_NULL_MATCH;
     }
 
     for (i = 0; infos[i].id != TC_CODEC_ERROR; i++) {
-        found = finder(&infos[i], userdata);
+        found = matcher(&infos[i], userdata);
         if (found) {
             break;
         }
     }
     if (!found) {
-        i = TC_CODEC_NOT_FOUND; /* special index, meaning 'not found' */
+        i = TC_NULL_MATCH;
     }
 
     return i;
@@ -133,9 +187,9 @@ static int find_tc_codec(const TCCodecInfo *infos, TCCodecFinder finder, const v
 
 const char* tc_codec_to_string(int codec)
 {
-    int idx = find_tc_codec(tc_codecs_info, id_finder, &codec);
+    int idx = find_tc_codec(tc_codecs_info, id_matcher, &codec);
 
-    if (idx == TC_CODEC_NOT_FOUND) { /* not found */
+    if (idx == TC_NULL_MATCH) { /* not found */
         return NULL;
     }
     return tc_codecs_info[idx].name; /* can be NULL */
@@ -143,9 +197,9 @@ const char* tc_codec_to_string(int codec)
 
 int tc_codec_from_string(const char *codec)
 {
-    int idx = find_tc_codec(tc_codecs_info, name_finder, codec);
+    int idx = find_tc_codec(tc_codecs_info, name_matcher, codec);
 
-    if (idx == TC_CODEC_NOT_FOUND) { /* not found */
+    if (idx == TC_NULL_MATCH) { /* not found */
         return TC_CODEC_ERROR;
     }
     return tc_codecs_info[idx].id;
@@ -153,9 +207,9 @@ int tc_codec_from_string(const char *codec)
 
 const char* tc_codec_fourcc(int codec)
 {
-    int idx = find_tc_codec(tc_codecs_info, id_finder, &codec);
+    int idx = find_tc_codec(tc_codecs_info, id_matcher, &codec);
 
-    if (idx == TC_CODEC_NOT_FOUND) { /* not found */
+    if (idx == TC_NULL_MATCH) { /* not found */
         return NULL;
     }
     return tc_codecs_info[idx].fourcc; /* can be NULL */
@@ -163,13 +217,13 @@ const char* tc_codec_fourcc(int codec)
 
 int tc_codec_description(int codec, char *buf, size_t bufsize)
 {
-    int idx = find_tc_codec(tc_codecs_info, id_finder, &codec);
+    int idx = find_tc_codec(tc_codecs_info, id_matcher, &codec);
     int ret;
 
-    if (idx == TC_CODEC_NOT_FOUND) { /* not found */
+    if (idx == TC_NULL_MATCH) { /* not found */
         return -1;
     }
-    
+
     ret = tc_snprintf(buf, bufsize, "%-12s: (fourcc=%s multipass=%-3s) %s",
                       tc_codecs_info[idx].name,
                       tc_codecs_info[idx].fourcc,
