@@ -1,4 +1,11 @@
 2006-04-17 Andrew Church <achurch at achurch dot org>
+  * Added: testsuite/test-acmemcpy.c testsuite/test-acmemcpy-speed.c
+           testsuite/test-imgconvert.c
+    Removed: aclib/test-memcpy.c aclib/test-memcpy-speed.c
+             aclib/test-imgconvert.c
+  Move aclib test programs to testsuite directory.
+
+2006-04-17 Andrew Church <achurch at achurch dot org>
   * testsuite/Makefile.am
   Rename executables from "test_*" to "test-*" to match source file names.
 
