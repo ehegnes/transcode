@@ -1,4 +1,7 @@
 2006-04-17 Francesco Romani <fromani at gmail dot com>
+  * testsuite/test-framecode.c
+  tiny compilation fix for amd64.
+
   * libtc/tccodecs.c libtc/tccodecs.h
   small STYLE conformancy update and documentation add.
 

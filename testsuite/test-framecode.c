@@ -240,7 +240,7 @@ static int test_new_fc_time_from_string(const char *string,
 
     if (strlen(string) > sizeof(strsave)-1) {
         fprintf(stderr, "*** test_new_fc_time_from_string(): string too long"
-                " (max %d chars)\n", sizeof(strsave)-1);
+                " (max %u chars)\n", (unsigned int)sizeof(strsave)-1);
         return 0;
     }
 
