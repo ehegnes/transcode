@@ -1,4 +1,8 @@
 2006-04-17 Andrew Church <achurch at achurch dot org>
+  * Removed: libioaux/*
+  Remove now-unused libioaux.
+
+2006-04-17 Andrew Church <achurch at achurch dot org>
   * Added: libtc/cfgfile.c libtc/cfgfile.h
   Add new configuration file processing code to libtc.
 
