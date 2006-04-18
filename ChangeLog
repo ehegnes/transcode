@@ -1,4 +1,8 @@
 2006-04-18 Andrew Church <achurch at achurch dot org>
+  * aclib/Makefile.am
+  Remove bizarre -DLINUX from compilation flags.
+
+2006-04-18 Andrew Church <achurch at achurch dot org>
   * configure.in pvm3/pvm_parser.h testsuite/Makefile.am
   Clean up stuff missed in previous updates.
 
