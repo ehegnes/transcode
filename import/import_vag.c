@@ -365,6 +365,7 @@ static int saved_samples_count;
 static int mpeg_mode;  // extracting from program stream?
 static int mpeg_packet_left;  // for xread()
 static int mpeg_check_for_header;
+static int mpeg_stop;
 
 static int verbose_flag;
 static int capability_flag = TC_CAP_PCM;
@@ -430,6 +431,7 @@ MOD_open
         mpeg_mode = 1;
         mpeg_packet_left = 0;
         mpeg_check_for_header = 1;
+        mpeg_stop = 0;
         if ((buf[4] & 0xC0) == 0x40) {  /* mpeg2 */
             if (fread(buf, 9, 1, file) != 1) {
                 tc_log_error(MOD_NAME, "%s: short file!", vob->audio_in_file);
@@ -509,6 +511,8 @@ static size_t xread(uint8_t *buf, size_t elsize, size_t els, FILE *f)
 
     if (!mpeg_mode)
         return fread(buf, elsize, els, f);
+    if (mpeg_stop)
+        return 0;
 
     nread = 0;
     if (mpeg_packet_left > 0) {
@@ -538,6 +542,7 @@ static size_t xread(uint8_t *buf, size_t elsize, size_t els, FILE *f)
         if (readbuf[3] == 0xB9) {  /* program end */
             if (verbose & TC_DEBUG)
                 tc_log_msg(MOD_NAME, "Program end code found");
+            mpeg_stop = 1;
             break;
         } else if (readbuf[3] == 0xBA) {
             if (fread(readbuf, 8, 1, f) != 1)
