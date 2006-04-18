@@ -1,9 +1,3 @@
-/*compile-command
-set -x
-gcc -O3 -I. -I.. -g "$0" -DARCH_X86
-exit $?
-*/
-
 /*
  * test-imgconvert.c - test/time image conversion routines
  * Written by Andrew Church <achurch@achurch.org>
@@ -36,10 +30,7 @@ exit $?
 #include "aclib/ac.h"
 #include "aclib/imgconvert.h"
 
-#ifndef LINUX
-typedef void (*sighandler_t)(int);
-#endif
-static sighandler_t old_SIGSEGV, old_SIGILL;
+static void *old_SIGSEGV, old_SIGILL;
 static int sigsave;
 static sigjmp_buf env;
 
