@@ -1,4 +1,7 @@
 2006-04-18 Andrew Church <achurch at achurch dot org>
+  * export/Makefile.am filter/Makefile.am import/Makefile.am
+  More compilation flag cleanup.
+
   * configure.in avilib/avidump.c avilib/avilib.c avilib/avimisc.c
     encode/Makefile.am export/Makefile.am export/aud_aux.h export/*.c
     filter/Makefile.am filter/*.c filter/divxkey/Makefile.am
@@ -17,8 +20,8 @@
     testsuite/test-tcstrdup.c tools/Makefile.am tools/aud_scan_avi.h
     tools/avifix.c tools/aviindex.c tools/avisplit.c tools/avisync.c
     tools/rawsource.c
-  Added explicit directory names to avilib/wavlib/aclib/libtc includes,
-  and eliminated the relevant CFLAGS variables.
+  Add explicit directory names to avilib/wavlib/aclib/libtc includes, and
+  eliminate the relevant CFLAGS variables.
 
   * aclib/Makefile.am
   Remove bizarre -DLINUX from compilation flags.

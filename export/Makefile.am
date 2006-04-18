@@ -4,10 +4,7 @@ AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
 	-DMOD_PATH=\"$(MOD_PATH)\" \
 	-I$(top_srcdir) \
-	-I$(top_srcdir)/src \
-	$(AC3_CFLAGS) \
-	$(LIBAVCODEC_CFLAGS) \
-	$(LAME_CFLAGS)
+	-I$(top_srcdir)/src
 
 pkgdir = $(MOD_PATH)
 
@@ -70,13 +67,14 @@ export_ac3_la_SOURCES = export_ac3.c
 export_ac3_la_LDFLAGS = -module -avoid-version
 
 export_divx5_la_SOURCES = export_divx5.c aud_aux.c divx4_vbr.c
+export_divx5_la_CPPFLAGS = $(AM_CPPFLAGS) $(AC3_CFLAGS) $(LIBAVCODEC_CFLAGS) $(LAME_CFLAGS)
 export_divx5_la_LDFLAGS = -module -avoid-version
-export_divx5_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
+export_divx5_la_LIBADD = $(AC3_LIBS) $(LIBAVCODEC_LIBS) $(LAME_LIBS)
 
 export_dv_la_SOURCES = export_dv.c aud_aux.c
-export_dv_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBDV_CFLAGS)
+export_dv_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBDV_CFLAGS) $(AC3_CFLAGS) $(LIBAVCODEC_CFLAGS) $(LAME_CFLAGS)
 export_dv_la_LDFLAGS = -module -avoid-version
-export_dv_la_LIBADD = $(LAME_LIBS) $(LIBDV_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
+export_dv_la_LIBADD = $(LIBDV_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS) $(LAME_LIBS)
 
 export_dvraw_la_SOURCES = export_dvraw.c
 export_dvraw_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBDV_CFLAGS)
@@ -84,8 +82,9 @@ export_dvraw_la_LDFLAGS = -module -avoid-version
 export_dvraw_la_LIBADD = $(LIBDV_LIBS) -lm
 
 export_ffmpeg_la_SOURCES = export_ffmpeg.c aud_aux.c ffmpeg_cfg.c
+export_ffmpeg_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBAVCODEC_CFLAGS) $(AC3_CFLAGS) $(LAME_CFLAGS)
 export_ffmpeg_la_LDFLAGS = -module -avoid-version
-export_ffmpeg_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
+export_ffmpeg_la_LIBADD = $(LIBAVCODEC_LIBS) $(AC3_LIBS) $(LAME_LIBS)
 
 export_im_la_SOURCES = export_im.c
 export_im_la_CPPFLAGS = $(AM_CPPFLAGS) $(IMAGEMAGICK_CFLAGS)
@@ -101,9 +100,9 @@ export_lame_la_SOURCES = export_lame.c
 export_lame_la_LDFLAGS = -module -avoid-version
 
 export_lzo_la_SOURCES = export_lzo.c aud_aux.c
-export_lzo_la_CPPFLAGS = $(AM_CPPFLAGS) $(LZO_CFLAGS)
+export_lzo_la_CPPFLAGS = $(AM_CPPFLAGS) $(LZO_CFLAGS) $(AC3_CFLAGS) $(LIBAVCODEC_CFLAGS) $(LAME_CFLAGS)
 export_lzo_la_LDFLAGS = -module -avoid-version
-export_lzo_la_LIBADD = $(LAME_LIBS) $(LZO_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
+export_lzo_la_LIBADD = $(LZO_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS) $(LAME_LIBS)
 
 export_mov_la_SOURCES = export_mov.c
 export_mov_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBQUICKTIME_CFLAGS)
@@ -130,16 +129,18 @@ export_ogg_la_SOURCES = export_ogg.c
 export_ogg_la_LDFLAGS = -module -avoid-version
 
 export_ppm_la_SOURCES = export_ppm.c aud_aux.c
+export_ppm_la_CPPFLAGS = $(AM_CPPFLAGS) $(AC3_CFLAGS) $(LIBAVCODEC_CFLAGS) $(LAME_CFLAGS)
 export_ppm_la_LDFLAGS = -module -avoid-version
-export_ppm_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
+export_ppm_la_LIBADD = $(AC3_LIBS) $(LIBAVCODEC_LIBS) $(LAME_LIBS)
 
 export_pvm_la_SOURCES = export_pvm.c ../pvm3/pvm_interface.c ../pvm3/pvm_parser.c ../pvm3/external_codec.c ../pvm3/vob_pack_unpack.c
 export_pvm_la_CPPFLAGS = $(AM_CPPFLAGS) $(PVM3_CFLAGS)
 export_pvm_la_LDFLAGS = -module -avoid-version
 
 export_raw_la_SOURCES = export_raw.c aud_aux.c
+export_raw_la_CPPFLAGS = $(AM_CPPFLAGS) $(AC3_CFLAGS) $(LIBAVCODEC_CFLAGS) $(LAME_CFLAGS)
 export_raw_la_LDFLAGS = -module -avoid-version
-export_raw_la_LIBADD = $(LAME_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
+export_raw_la_LIBADD = $(AC3_LIBS) $(LIBAVCODEC_LIBS) $(LAME_LIBS)
 
 export_toolame_la_SOURCES = export_toolame.c
 export_toolame_la_LDFLAGS = -module -avoid-version
@@ -149,13 +150,14 @@ export_wav_la_LDFLAGS = -module -avoid-version
 export_wav_la_LIBADD = -lm
 
 export_xvid4_la_SOURCES = export_xvid4.c aud_aux.c
+export_xvid4_la_CPPFLAGS = $(AM_CPPFLAGS) $(AC3_CFLAGS) $(LIBAVCODEC_CFLAGS) $(LAME_CFLAGS)
 export_xvid4_la_LDFLAGS = -module -avoid-version
-export_xvid4_la_LIBADD = $(LIBAVCODEC_LIBS) $(LAME_LIBS) $(AC3_LIBS)
+export_xvid4_la_LIBADD = $(AC3_LIBS) $(LIBAVCODEC_LIBS) $(LAME_LIBS)
 
 export_yuv4mpeg_la_SOURCES = export_yuv4mpeg.c aud_aux.c
-export_yuv4mpeg_la_CPPFLAGS = $(AM_CPPFLAGS) $(MJPEGTOOLS_CFLAGS)
+export_yuv4mpeg_la_CPPFLAGS = $(AM_CPPFLAGS) $(MJPEGTOOLS_CFLAGS) $(AC3_CFLAGS) $(LIBAVCODEC_CFLAGS) $(LAME_CFLAGS)
 export_yuv4mpeg_la_LDFLAGS = -module -avoid-version
-export_yuv4mpeg_la_LIBADD = $(LAME_LIBS) $(MJPEGTOOLS_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
+export_yuv4mpeg_la_LIBADD = $(MJPEGTOOLS_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS) $(LAME_LIBS)
 
 pkg_DATA = xvid4.cfg
 

@@ -3,10 +3,7 @@
 AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
 	-I$(top_srcdir) \
-	-I$(top_srcdir)/src \
-	$(LAME_CFLAGS) \
-	$(AC3_CFLAGS) \
-	$(LIBAVCODEC_CFLAGS)
+	-I$(top_srcdir)/src
 
 pkgdir = $(MOD_PATH)
 
@@ -213,6 +210,7 @@ filter_skip_la_SOURCES = filter_skip.c
 filter_skip_la_LDFLAGS = -module -avoid-version
 
 filter_resample_la_SOURCES = filter_resample.c
+filter_resample_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBAVCODEC_CFLAGS)
 filter_resample_la_LDFLAGS = -module -avoid-version
 filter_resample_la_LIBADD = $(LIBAVCODEC_LIBS)
 
