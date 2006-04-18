@@ -30,6 +30,7 @@
 #include "mpg123.h"
 #include "ac3scan.h"
 #include "demuxer.h"
+#include "libtc/libtc.h"
 
 #define BUFFER_SIZE 262144
 static uint8_t buffer[BUFFER_SIZE];
@@ -76,20 +77,21 @@ static void unit_summary(void)
 
     int pes_total=0;
 
-    fprintf(stderr, "------------- presentation unit [%d] ---------------\n", unit_ctr);
+    tc_log_msg(__FILE__, "------------- presentation unit [%d] ---------------", unit_ctr);
 
     for(n=0; n<256; ++n) {
-	if(stream[n] && n != 0xba) fprintf(stderr, "stream id [0x%x] %6d\n", n, stream[n]);
+	if(stream[n] && n != 0xba)
+	    tc_log_msg(__FILE__, "stream id [0x%x] %6d", n, stream[n]);
 
 	if(n != 0xba) pes_total+=stream[n];
 	stream[n]=0; //reset or next unit
     }
 
-    fprintf(stderr, "%d packetized elementary stream(s) PES packets found\n", pes_total);
+    tc_log_msg(__FILE__, "%d packetized elementary stream(s) PES packets found", pes_total);
 
-    fprintf(stderr, "presentation unit PU [%d] contains %d MPEG video sequence(s)\n", unit_ctr, seq_ctr);
+    tc_log_msg(__FILE__, "presentation unit PU [%d] contains %d MPEG video sequence(s)", unit_ctr, seq_ctr);
     if (seq_ctr) {
-    fprintf(stderr, "Average Bitrate is %u. Min Bitrate is %u, max is %u (%s)\n",
+    tc_log_msg(__FILE__, "Average Bitrate is %u. Min Bitrate is %u, max is %u (%s)",
 	((tot_bitrate*400)/1000)/seq_ctr, min_bitrate*400/1000, max_bitrate*400/1000,
 	(max_bitrate==min_bitrate)?"CBR":"VBR");
     }
@@ -97,7 +99,7 @@ static void unit_summary(void)
     ++tot_unit_ctr;
     tot_seq_ctr+=seq_ctr;
 
-    fprintf(stderr, "---------------------------------------------------\n");
+    tc_log_msg(__FILE__, "---------------------------------------------------");
 
     //reset counters
     seq_ctr=0;
@@ -148,10 +150,10 @@ void scan_pes(int verbose, FILE *in_file)
 	if (buf[0] || buf[1] || (buf[2] != 0x01)) {
 	  if (complain_loudly) {
 
-	    fprintf (stderr, "missing start code at %#lx\n",
-		     ftell (in_file) - (end - buf));
+	    tc_log_warn(__FILE__, "missing start code at %#lx",
+			ftell (in_file) - (end - buf));
 	    if ((buf[0] == 0) && (buf[1] == 0) && (buf[2] == 0))
-	      fprintf (stderr, "incorrect zero-byte padding detected - ignored\n");
+	      tc_log_warn(__FILE__, "incorrect zero-byte padding detected - ignored");
 
 	    complain_loudly = 0;
 	  }
@@ -167,7 +169,7 @@ void scan_pes(int verbose, FILE *in_file)
 
 	case 0xb9:	/* program end code */
 
-	    fprintf(stderr, "found program end code [0x%x]\n", buf[3] & 0xff);
+	    tc_log_msg(__FILE__, "found program end code [0x%x]", buf[3] & 0xff);
 
 	    goto summary;
 
@@ -177,9 +179,10 @@ void scan_pes(int verbose, FILE *in_file)
 	    pack_header_inc = pack_header_pos - pack_header_last;
 
 	    if (pack_header_inc==0) {
-		fprintf(stderr, "found first packet header at stream offset 0x%#x\n", 0);
+		tc_log_msg(__FILE__, "found first packet header at stream offset 0x%#x", 0);
 	    } else {
-		if((pack_header_inc-((pack_header_inc>>11)<<11))) printf ("pack header out of sequence at %#lx (+%#lx)\n", pack_header_ctr, pack_header_inc);
+		if((pack_header_inc-((pack_header_inc>>11)<<11)))
+		    tc_log_msg(__FILE__, "pack header out of sequence at %#lx (+%#lx)", pack_header_ctr, pack_header_inc);
 	    }
 
 	    pack_header_last=pack_header_pos;
@@ -194,7 +197,7 @@ void scan_pes(int verbose, FILE *in_file)
 	    else if (buf + 5 > end)
 		goto copy;
 	    else {
-		fprintf (stderr, "weird pack header\n");
+		tc_log_error(__FILE__, "weird pack header");
 		import_exit(1);
 	    }
 
@@ -206,7 +209,7 @@ void scan_pes(int verbose, FILE *in_file)
 
 	case 0xbd:	/* private stream 1 */
 
-	  if(!stream[id]) fprintf(stderr, "found %s stream [0x%x]\n", "private_stream_1", buf[3] & 0xff);
+	  if(!stream[id]) tc_log_msg(__FILE__, "found %s stream [0x%x]", "private_stream_1", buf[3] & 0xff);
 
 	  ++stream[id];
 
@@ -218,7 +221,7 @@ void scan_pes(int verbose, FILE *in_file)
 	  else {	/* mpeg1 */
 	    for (tmp1 = buf + 6; *tmp1 == 0xff; tmp1++)
 	      if (tmp1 == buf + 6 + 16) {
-		fprintf (stderr, "too much stuffing\n");
+		tc_log_warn(__FILE__, "too much stuffing");
 		buf = tmp2;
 		break;
 	      }
@@ -227,10 +230,11 @@ void scan_pes(int verbose, FILE *in_file)
 	    tmp1 += mpeg1_skip_table [*tmp1 >> 4];
 	  }
 
-	  if(verbose & TC_DEBUG) fprintf(stderr, "[0x%x] (sub_id=0x%02x)\n", buf[3] & 0xff, *tmp1);
+	  if(verbose & TC_DEBUG)
+	    tc_log_msg(__FILE__, "[0x%x] (sub_id=0x%02x)", buf[3] & 0xff, *tmp1);
 
 	  if((*tmp1-0x80) >= 0 && (*tmp1-0x80)<TC_MAX_AUD_TRACKS && !track[*tmp1-0x80] ) {
-	    fprintf(stderr, "found AC3 audio track %d [0x%x]\n", *tmp1-0x80, *tmp1);
+	    tc_log_msg(__FILE__, "found AC3 audio track %d [0x%x]", *tmp1-0x80, *tmp1);
 	    track[*tmp1-0x80]=1;
 	  }
 
@@ -240,7 +244,8 @@ void scan_pes(int verbose, FILE *in_file)
 
 	case 0xbf:
 
-	  if(!stream[id]) fprintf(stderr, "found %s [0x%x]\n", "navigation pack", buf[3] & 0xff);
+	  if(!stream[id])
+	    tc_log_msg(__FILE__, "found %s [0x%x]", "navigation pack", buf[3] & 0xff);
 
 	  ++stream[id];
 
@@ -254,7 +259,8 @@ void scan_pes(int verbose, FILE *in_file)
 
 	case 0xbe:
 
-	  if(!stream[id]) fprintf(stderr, "found %s stream [0x%x]\n", "padding", buf[3] & 0xff);
+	  if(!stream[id])
+	    tc_log_msg(__FILE__, "found %s stream [0x%x]", "padding", buf[3] & 0xff);
 
 	  ++stream[id];
 
@@ -268,7 +274,8 @@ void scan_pes(int verbose, FILE *in_file)
 
 	case 0xbb:
 
-	  if(!stream[id]) fprintf(stderr, "found %s stream [0x%x]\n", "unknown", buf[3] & 0xff);
+	  if(!stream[id])
+	    tc_log_msg(__FILE__, "found %s stream [0x%x]", "unknown", buf[3] & 0xff);
 
 	  ++stream[id];
 
@@ -316,7 +323,8 @@ void scan_pes(int verbose, FILE *in_file)
 	case 0xde:
 	case 0xdf:
 
-	    if(!stream[id]) fprintf(stderr, "found %s track %d [0x%x]\n", "ISO/IEC 13818-3 or 11172-3 MPEG audio", (buf[3] & 0xff) - 0xc0, buf[3] & 0xff);
+	    if(!stream[id])
+		tc_log_msg(__FILE__, "found %s track %d [0x%x]", "ISO/IEC 13818-3 or 11172-3 MPEG audio", (buf[3] & 0xff) - 0xc0, buf[3] & 0xff);
 
 	    ++stream[id];
 
@@ -328,7 +336,7 @@ void scan_pes(int verbose, FILE *in_file)
 	    else {	/* mpeg1 */
 		for (tmp1 = buf + 6; *tmp1 == 0xff; tmp1++)
 		    if (tmp1 == buf + 6 + 16) {
-			fprintf (stderr, "too much stuffing\n");
+			tc_log_warn(__FILE__, "too much stuffing");
 		buf = tmp2;
 		break;
 		    }
@@ -361,7 +369,8 @@ void scan_pes(int verbose, FILE *in_file)
 		/* mpeg2 */
 		tmp1 = buf + 9 + buf[8];
 
-		if(!stream[id]) fprintf(stderr, "found %s stream [0x%x]\n", "ISO/IEC 13818-2 or 11172-2 MPEG video", buf[3] & 0xff);
+		if(!stream[id])
+		    tc_log_msg(__FILE__, "found %s stream [0x%x]", "ISO/IEC 13818-2 or 11172-2 MPEG video", buf[3] & 0xff);
 		++stream[id];
 
 		mpeg_version=2;
@@ -404,7 +413,8 @@ void scan_pes(int verbose, FILE *in_file)
 	    } else {
 	      /* mpeg1 */
 
-	      if(!stream[id]) fprintf(stderr, "found %s stream [0x%x]\n", "MPEG-1 video", buf[3] & 0xff);
+	      if(!stream[id])
+		  tc_log_msg(__FILE__, "found %s stream [0x%x]", "MPEG-1 video", buf[3] & 0xff);
 	      ++stream[id];
 
 	      mpeg_version=1;
@@ -437,7 +447,7 @@ void scan_pes(int verbose, FILE *in_file)
 
 	      for (tmp1 = buf + 6; *tmp1 == 0xff; tmp1++)
 		if (tmp1 == buf + 6 + 16) {
-		  fprintf (stderr, "too much stuffing\n");
+		  tc_log_warn(__FILE__, "too much stuffing");
 		  buf = tmp2;
 		  break;
 		}
@@ -452,8 +462,8 @@ void scan_pes(int verbose, FILE *in_file)
 
 	case 0xb3:
 
-	    fprintf(stderr, "found MPEG sequence start code [0x%x]\n", buf[3] & 0xff);
-	    fprintf(stderr, "(%s) looks like an elementary stream - not program stream\n", __FILE__);
+	    tc_log_msg(__FILE__, "found MPEG sequence start code [0x%x]", buf[3] & 0xff);
+	    tc_log_warn(__FILE__, "looks like an elementary stream - not program stream");
 
 	    stats_sequence(&buf[4], &si);
 
@@ -464,7 +474,7 @@ void scan_pes(int verbose, FILE *in_file)
 
 	default:
 	    if (buf[3] < 0xb9) {
-		fprintf(stderr, "(%s) looks like an elementary stream - not program stream\n", __FILE__);
+		tc_log_warn(__FILE__, "looks like an elementary stream - not program stream");
 
 		return;
 	    }
@@ -488,13 +498,13 @@ void scan_pes(int verbose, FILE *in_file)
 
     } while (end == buffer + BUFFER_SIZE);
 
-    fprintf(stderr, "end of stream reached\n");
+    tc_log_msg(__FILE__, "end of stream reached");
 
  summary:
 
     unit_summary();
 
-    fprintf(stderr, "(%s) detected a total of %d presentation unit(s) PU and %d sequence(s)\n", __FILE__, tot_unit_ctr, tot_seq_ctr);
+    tc_log_msg(__FILE__, "(%s) detected a total of %d presentation unit(s) PU and %d sequence(s)", __FILE__, tot_unit_ctr, tot_seq_ctr);
 
 }
 
@@ -557,10 +567,10 @@ void probe_pes(info_t *ipipe)
 	if (buf[0] || buf[1] || (buf[2] != 0x01)) {
 
 	  if (ipipe->verbose & TC_DEBUG) {
-	    fprintf (stderr, "missing start code at %#lx\n",
-		     ftell (in_file) - (end - buf));
+	    tc_log_warn(__FILE__, "missing start code at %#lx",
+			ftell (in_file) - (end - buf));
 	    if ((buf[0] == 0) && (buf[1] == 0) && (buf[2] == 0))
-	      fprintf (stderr, "incorrect zero-byte padding detected - ignored\n");
+	      tc_log_warn(__FILE__, "incorrect zero-byte padding detected - ignored");
 	  }
 	  ipipe->probe_info->attributes=TC_INFO_NO_DEMUX;
 	  buf++;
@@ -604,7 +614,7 @@ void probe_pes(info_t *ipipe)
 	    } else if (buf + 5 > end)
 		goto copy;
 	    else {
-		fprintf (stderr, "weird pack header\n");
+		tc_log_error(__FILE__, "weird pack header");
 		import_exit(1);
 	    }
 
@@ -615,13 +625,15 @@ void probe_pes(info_t *ipipe)
 	    pack_ppp = read_time_stamp(scan_buf);
 
 	    if(pack_pts_2 == pack_pts_1)
-	      if(ipipe->verbose & TC_DEBUG) fprintf(stderr, "SCR=%8ld (%8ld) unit=%d @ offset %10.4f (sec)\n", pack_pts_2, pack_pts_1, ipipe->probe_info->unit_cnt, pack_pts_1/90000.0);
+	      if(ipipe->verbose & TC_DEBUG)
+		tc_log_msg(__FILE__, "SCR=%8ld (%8ld) unit=%d @ offset %10.4f (sec)", pack_pts_2, pack_pts_1, ipipe->probe_info->unit_cnt, pack_pts_1/90000.0);
 
 	    if(pack_pts_2 < pack_pts_1) {
 
 	      pack_pts_3 += pack_pts_1;
 
-	      if(ipipe->verbose & TC_DEBUG) fprintf(stderr, "SCR=%8ld (%8ld) unit=%d @ offset %10.4f (sec)\n", pack_pts_2, pack_pts_1, ipipe->probe_info->unit_cnt+1, pack_pts_3/90000.0);
+	      if(ipipe->verbose & TC_DEBUG)
+		tc_log_msg(__FILE__, "SCR=%8ld (%8ld) unit=%d @ offset %10.4f (sec)", pack_pts_2, pack_pts_1, ipipe->probe_info->unit_cnt+1, pack_pts_3/90000.0);
 
 	      ++unit_pack_cnt_index;
 
@@ -782,7 +794,7 @@ void probe_pes(info_t *ipipe)
 
 	      for (tmp1 = buf + 6; *tmp1 == 0xff; tmp1++)
 		if (tmp1 == buf + 6 + 16) {
-		  fprintf (stderr, "too much stuffing\n");
+		  tc_log_warn(__FILE__, "too much stuffing");
 		  buf = tmp2;
 		  break;
 		}
@@ -814,7 +826,7 @@ void probe_pes(info_t *ipipe)
 	    else {	/* mpeg1 */
 		for (tmp1 = buf + 6; *tmp1 == 0xff; tmp1++)
 		    if (tmp1 == buf + 6 + 16) {
-		      fprintf (stderr, "too much stuffing\n");
+		      tc_log_warn(__FILE__, "too much stuffing");
 		      buf = tmp2;
 		      break;
 		    }
@@ -998,7 +1010,7 @@ void probe_pes(info_t *ipipe)
 			  break;
 		  case 2: ipipe->probe_info->track[num].bits = 24;
 			  break;
-		  default: fprintf (stderr, "unknown LPCM quantization\n");
+		  default: tc_log_error(__FILE__, "unknown LPCM quantization");
 			  import_exit (1);
 		  }
 		  ipipe->probe_info->track[num].chan = 1 + (tmp1[1] & 7);
@@ -1071,7 +1083,7 @@ void probe_pes(info_t *ipipe)
 	  else {	/* mpeg1 */
 	    for (tmp1 = buf + 6; *tmp1 == 0xff; tmp1++)
 	      if (tmp1 == buf + 6 + 16) {
-		fprintf (stderr, "too much stuffing\n");
+		tc_log_warn(__FILE__, "too much stuffing");
 		buf = tmp2;
 		break;
 	      }
@@ -1125,7 +1137,7 @@ void probe_pes(info_t *ipipe)
 
 	default:
 	  if (buf[3] < 0xb9) {
-	    fprintf(stderr, "(%s) looks like an elementary stream - not program stream\n", __FILE__);
+	    tc_log_warn(__FILE__, "looks like an elementary stream - not program stream");
 	    ipipe->probe_info->codec=TC_CODEC_MPEG;
 	    if ((buf[6] & 0xc0) == 0x80) ipipe->probe_info->codec=TC_CODEC_MPEG2;
 	    return;

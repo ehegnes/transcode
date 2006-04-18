@@ -16,7 +16,7 @@
     import/probe_nuv.c import/probe_ogg.c import/probe_oss.c
     import/probe_socket.c import/probe_stream.c import/probe_sunau.c
     import/probe_v4l.c import/probe_vnc.c import/probe_wav.c
-    import/probe_xml.c import/scan_dv.c import/seqinfo.c
+    import/probe_xml.c import/scan_dv.c import/scan_pes.c import/seqinfo.c
   [f]printf() -> tc_log_XXX() changes.
 
   * libtc/libtc.h
