@@ -417,3 +417,24 @@ Coding style guidelines for transcode
       * s: string
       * t: string or temporary variable
       * x, y, z: integers (usually position variables)
+
+
+== Transcode-specific features ==
+
+* All code which may be called from the main transcode executable
+  (including modules, libraries, the tcdecode/tcextract/etc. subprograms,
+  and their component source files) should use one of the tc_log_XXX()
+  macros from libtc for output intended to be seen by the user, including
+  debugging messages.  There are four log levels available, and they
+  should be used as follows:
+      * tc_log_error()
+            For unrecoverable errors which cause the operation to abort.
+      * tc_log_warn() 
+            For recoverable errors or other situations which may indicate
+            a problem but do not cause the operation to abort.
+      * tc_log_info()
+            For ordinary informational messages.
+      * tc_log_msg()
+            For debugging messages.
+  NEVER use printf() or any other functions which write to stdout for
+  these purposes.

@@ -1,4 +1,9 @@
 2006-04-18 Andrew Church <achurch at achurch dot org>
+  * STYLE
+  Added guidelines on printing messages from transcode (and modules, etc).
+  Comments appreciated.
+
+2006-04-18 Andrew Church <achurch at achurch dot org>
   * export/Makefile.am filter/Makefile.am import/Makefile.am
   More compilation flag cleanup.
 
