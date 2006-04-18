@@ -457,8 +457,7 @@ int audio_init(vob_t *vob, int v)
 	/*
 	 * Sanity checks
 	 */
-	if ((vob->amod_probed != NULL)  &&
-	    (strcmp(vob->amod_probed,"null") == 0))
+	if (!(tc_decode_stream & TC_AUDIO))
 	{
 		tc_warn("No Audio Module probed. Muting.");
 		audio_encode_function=audio_mute;
@@ -468,7 +467,7 @@ int audio_init(vob_t *vob, int v)
 	if((sample_size == 0) &&
 	   (vob->im_a_codec != CODEC_NULL))
 	{
-		tc_warn("Nul sample size detected for audio format `0x%x'. "
+		tc_warn("Zero sample size detected for audio format `0x%x'. "
 		      "Muting.", vob->im_a_codec);
 		audio_encode_function=audio_mute;
 		return(TC_EXPORT_OK);

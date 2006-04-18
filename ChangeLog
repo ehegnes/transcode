@@ -1,3 +1,7 @@
+2006-04-18 Andrew Church <achurch at achurch dot org>
+  * export/aud_aux.c
+  Properly determine whether import audio is available or not.
+
 2006-04-18 Francesco Romani <fromani at gmail dot com>
   * export/aud_aux.c export/export_ffmpeg.c import/import_ffmpeg.c
     pvm3/export_pvm_slave.c src/transcode.c tools/tcexport.c
