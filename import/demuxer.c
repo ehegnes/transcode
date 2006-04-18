@@ -46,7 +46,7 @@ void tcdemux_thread(info_t *ipipe)
 
     int k, id=0, zz=0;
 
-    int j, i, bytes;
+    int j, i, bytes, filesize;
     char *buffer=NULL;
 
     int payload_id=0, select=PACKAGE_ALL;
@@ -84,14 +84,11 @@ void tcdemux_thread(info_t *ipipe)
 
     char buf[256];
     const char *logfile;
-
     unsigned long i_pts, i_dts;
-
     unsigned int packet_size=VOB_PACKET_SIZE;
-
     seq_list_t *ptr=NULL;
-
     double fps;
+
 
     // allocate space
     if((buffer = tc_zalloc(packet_size))==NULL) {
@@ -199,6 +196,7 @@ void tcdemux_thread(info_t *ipipe)
       tc_log_msg(__FILE__, "seeking to sequence %d:%d ...", unit, resync_seq1);
     }
 
+    filesize = 0;
     for(;;) {
 
       /* ------------------------------------------------------------
@@ -225,6 +223,7 @@ void tcdemux_thread(info_t *ipipe)
 
 	break;
       }
+      filesize += bytes;
 
       // do not make any tests in pass-through mode
       if(demux_mode==TC_DEMUX_OFF) goto flush_packet;
