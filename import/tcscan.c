@@ -35,7 +35,7 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate)
 #include "ioaux.h"
 #include "tc.h"
 #include "ac3.h"
-#include "avilib.h"
+#include "avilib/avilib.h"
 
 #define EXE "tcscan"
 

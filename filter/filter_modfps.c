@@ -55,7 +55,7 @@
 
 #include "transcode.h"
 #include "filter.h"
-#include "optstr.h"
+#include "libtc/optstr.h"
 #include "libtc/ratiocodes.h"
 
 #include <math.h>

@@ -25,12 +25,12 @@
 #include "tcinfo.h"
 
 #include "ioaux.h"
-#include "avilib.h"
+#include "avilib/avilib.h"
 #include "tc.h"
 
 #ifdef HAVE_LZO
 
-#include "tc_lzo.h"
+#include "libtc/tc_lzo.h"
 
 #define MOD_NAME    "decode_lzo"
 

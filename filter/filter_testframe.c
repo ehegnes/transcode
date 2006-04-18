@@ -28,7 +28,7 @@
 
 #include "transcode.h"
 #include "filter.h"
-#include "optstr.h"
+#include "libtc/optstr.h"
 
 static int mode=0;
 static vob_t *vob=NULL;

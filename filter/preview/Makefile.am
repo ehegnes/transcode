@@ -4,9 +4,7 @@ AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
 	-DMOD_PATH=\"$(MOD_PATH)\" \
 	-I$(top_srcdir) \
-	-I$(top_srcdir)/filter \
 	-I$(top_srcdir)/src \
-	-I$(top_srcdir)/libtc \
 	$(DLDARWIN_CFLAGS) \
 	$(LIBDV_CFLAGS) \
 	$(X_CFLAGS) \

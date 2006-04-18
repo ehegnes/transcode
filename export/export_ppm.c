@@ -25,7 +25,7 @@
 #include <stdlib.h>
 
 #include "transcode.h"
-#include "avilib.h"
+#include "avilib/avilib.h"
 #include "aud_aux.h"
 #include "aclib/imgconvert.h"
 

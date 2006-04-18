@@ -25,7 +25,7 @@
 #include "tcinfo.h"
 
 #include "ioaux.h"
-#include "avilib.h"
+#include "avilib/avilib.h"
 #include "tc.h"
 
 #ifdef HAVE_LZO

@@ -25,7 +25,7 @@
 #include "transcode.h"
 #include "tcinfo.h"
 
-#include "avilib.h"
+#include "avilib/avilib.h"
 #include "ioaux.h"
 #include "tc.h"
 #include "ac3.h"

@@ -28,7 +28,7 @@
 
 #include "transcode.h"
 #include "filter.h"
-#include "optstr.h"
+#include "libtc/optstr.h"
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>

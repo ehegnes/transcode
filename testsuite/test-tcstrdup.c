@@ -14,7 +14,7 @@
 
 #define _GNU_SOURCE 1
 
-#include "libtc.h"
+#include "libtc/libtc.h"
 #include <stdlib.h>
 #include <stdio.h>
 

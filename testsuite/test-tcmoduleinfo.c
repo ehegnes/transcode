@@ -11,10 +11,9 @@
  */
 
 
-// compile command: gcc -Wall -g -O -I. -I.. source.c path/to/libtc.a
 #include "src/transcode.h"
-#include "tcmodule-info.h"
-#include "tccodecs.h"
+#include "libtc/tcmodule-info.h"
+#include "libtc/tccodecs.h"
 
 static const int empty_codecs[] = { TC_CODEC_ERROR };
 static TCModuleInfo empty = {

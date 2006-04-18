@@ -36,9 +36,9 @@
 #include "mjpegtools/mpegconsts.h"
 #endif
 
-#include "libtcvideo/tcvideo.h"
 #include "transcode.h"
-#include "wavlib.h"
+#include "libtcvideo/tcvideo.h"
+#include "avilib/wavlib.h"
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_RGB|TC_CAP_YUV|TC_CAP_PCM;

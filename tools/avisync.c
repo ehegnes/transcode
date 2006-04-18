@@ -27,7 +27,7 @@
 #include <string.h>
 
 #include "buffer.h"
-#include "avilib.h"
+#include "avilib/avilib.h"
 #include "config.h"
 #include "transcode.h"
 

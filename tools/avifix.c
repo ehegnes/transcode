@@ -31,7 +31,7 @@
 
 #include "transcode.h"
 #include "config.h"
-#include "avilib.h"
+#include "avilib/avilib.h"
 
 #define EXE "avifix"
 

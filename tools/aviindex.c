@@ -31,7 +31,7 @@
 #include <string.h>
 #include <inttypes.h>
 
-#include "xio.h"
+#include "libtc/xio.h"
 
 #include "config.h"
 #include "transcode.h"

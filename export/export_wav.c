@@ -25,7 +25,7 @@
 #include <stdlib.h>
 
 #include "transcode.h"
-#include "wavlib.h"
+#include "avilib/wavlib.h"
 
 #define MOD_NAME    "export_wav.so"
 #define MOD_VERSION "v0.3.0 (2006-03-16)"

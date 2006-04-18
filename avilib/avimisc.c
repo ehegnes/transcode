@@ -34,7 +34,7 @@
 #include <string.h>
 
 #include "avilib.h"
-#include "xio.h"
+#include "libtc/xio.h"
 
 void AVI_info(avi_t *avifile)
 {

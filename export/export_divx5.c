@@ -61,7 +61,7 @@
 #include "divx5_encore2.h"
 #endif
 #include "transcode.h"
-#include "avilib.h"
+#include "avilib/avilib.h"
 #include "aud_aux.h"
 #include "vbr.h"
 

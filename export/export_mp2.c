@@ -51,7 +51,7 @@
 #include <unistd.h>
 
 #include "transcode.h"
-#include "optstr.h"
+#include "libtc/optstr.h"
 
 #define MOD_NAME    "export_mp2.so"
 #define MOD_VERSION "v0.2.1 (2004-08-06)"

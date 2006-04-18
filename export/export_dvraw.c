@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <libdv/dv.h>
 #include "transcode.h"
-#include "optstr.h"
+#include "libtc/optstr.h"
 #include "aclib/imgconvert.h"
 
 #define MOD_NAME    "export_dvraw.so"

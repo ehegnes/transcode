@@ -10,15 +10,13 @@
  * for details.
  */
 
-// compile command: gcc -Wall -g -O -I. -I.. source.c path/to/libtc.a
-
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "config.h"
-#include "libtc.h"
 #include "tc_defaults.h"
-#include "ratiocodes.h"
+#include "libtc/libtc.h"
+#include "libtc/ratiocodes.h"
 
 #ifndef PACKAGE
 #define PACKAGE __FILE__

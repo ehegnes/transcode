@@ -31,7 +31,7 @@
 #include "mjpegtools/mpegconsts.h"
 #endif
 
-#include "wavlib.h"
+#include "avilib/wavlib.h"
 
 #define MOD_NAME    "multiplex_y4m.so"
 #define MOD_VERSION "v0.0.1 (2006-03-22)"

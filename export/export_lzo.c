@@ -25,11 +25,11 @@
 #include <stdlib.h>
 
 #include "transcode.h"
-#include "avilib.h"
+#include "avilib/avilib.h"
 #include "aud_aux.h"
 #include "import/magic.h"
 
-#include "tc_lzo.h"
+#include "libtc/tc_lzo.h"
 
 #define MOD_NAME    "export_lzo.so"
 #define MOD_VERSION "v0.1.0 (2005-10-15)"

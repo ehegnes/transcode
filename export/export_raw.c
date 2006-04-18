@@ -23,13 +23,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "libtc/xio.h"
 #include "transcode.h"
-#include "avilib.h"
 #include "aud_aux.h"
-#include "libtcvideo/tcvideo.h"
+#include "avilib/avilib.h"
 #include "import/magic.h"
-#include "iodir.h"
+#include "libtc/iodir.h"
+#include "libtc/xio.h"
+#include "libtcvideo/tcvideo.h"
 
 #define MOD_NAME    "export_raw.so"
 #define MOD_VERSION "v0.3.12 (2003-08-04)"

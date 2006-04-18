@@ -27,7 +27,7 @@
 
 #include "transcode.h"
 #include "magic.h"
-#include "tc_lzo.h"
+#include "libtc/tc_lzo.h"
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_PCM | TC_CAP_YUV | TC_CAP_RGB |

@@ -10,13 +10,11 @@
  * for details.
  */
 
-// compile command: gcc -Wall -g -O -I. -I.. source.c path/to/libtc.a
-
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "config.h"
-#include "libtc.h"
+#include "libtc/libtc.h"
 
 #ifndef PACKAGE
 #define PACKAGE __FILE__

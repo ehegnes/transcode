@@ -56,9 +56,9 @@
 
 #include "transcode.h"
 #include "filter.h"
-#include "optstr.h"
+#include "libtc/optstr.h"
 
-#include "tcmodule-plugin.h"
+#include "libtc/tcmodule-plugin.h"
 
 
 static const char *null_help = ""

@@ -6,10 +6,7 @@ AM_CPPFLAGS = \
 	-DTC_ENCODER_NG=1 \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
-	-I$(top_srcdir)/libtc \
-	-I$(top_srcdir)/aclib \
 	$(AC3_CFLAGS) \
-	$(AVILIB_CFLAGS) \
 	$(DLDARWIN_CFLAGS) \
 	$(XIO_CFLAGS)
 

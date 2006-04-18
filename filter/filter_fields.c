@@ -32,7 +32,7 @@
 
 #include "transcode.h"
 #include "filter.h"
-#include "optstr.h"
+#include "libtc/optstr.h"
 
 /*****************************************************************************
  *                    Global Filter Variables and Defines                    *

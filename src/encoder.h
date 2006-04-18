@@ -29,7 +29,7 @@
 #include "transcode.h"
 #include "framebuffer.h"
 
-#include "tcmodule-core.h"
+#include "libtc/tcmodule-core.h"
 #include "encoder-common.h"
 
 typedef struct tcencoderbuffer_ TCEncoderBuffer;

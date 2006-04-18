@@ -25,7 +25,7 @@
 #include "tcinfo.h"
 #include "ioaux.h"
 #include "tc.h"
-#include "wavlib.h"
+#include "avilib/wavlib.h"
 
 void probe_wav(info_t *ipipe)
 {

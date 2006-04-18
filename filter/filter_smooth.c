@@ -28,7 +28,7 @@
 
 #include "transcode.h"
 #include "filter.h"
-#include "optstr.h"
+#include "libtc/optstr.h"
 
 static unsigned char *tbuf[MAX_FILTER];
 

@@ -1108,9 +1108,7 @@ dnl
 dnl
 dnl libtc
 dnl
-LIBTC_CFLAGS="-I\$(top_srcdir)/libtc"
 LIBTC_LIBS="\$(top_builddir)/libtc/libtc.la"
-AC_SUBST(LIBTC_CFLAGS)
 AC_SUBST(LIBTC_LIBS)
 
 dnl
@@ -1128,17 +1126,13 @@ AC_SUBST(LIBTCVIDEO_LIBS)
 dnl
 dnl avilib
 dnl
-AVILIB_CFLAGS="-I\$(top_srcdir)/avilib"
 AVILIB_LIBS="\$(top_builddir)/avilib/libavi.la"
-AC_SUBST(AVILIB_CFLAGS)
 AC_SUBST(AVILIB_LIBS)
 
 dnl
 dnl wavlib
 dnl
-WAVLIB_CFLAGS="-I\$(top_srcdir)/avilib"
 WAVLIB_LIBS="\$(top_builddir)/avilib/libwav.la"
-AC_SUBST(WAVLIB_CFLAGS)
 AC_SUBST(WAVLIB_LIBS)
 
 
@@ -1153,9 +1147,7 @@ AC_SUBST(AC3_LIBS)
 dnl
 dnl aclib
 dnl
-ACLIB_CFLAGS="-I\$(top_srcdir)/aclib"
 ACLIB_LIBS="\$(top_builddir)/aclib/libac.la"
-AC_SUBST(ACLIB_CFLAGS)
 AC_SUBST(ACLIB_LIBS)
 
 

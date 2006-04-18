@@ -23,7 +23,7 @@
  *
  */
 
-#include "avilib.h"
+#include "avilib/avilib.h"
 
 // ------------------------
 // You must set the requested audio before entering this function

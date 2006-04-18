@@ -4,11 +4,7 @@ AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
 	-DMOD_PATH=\"$(MOD_PATH)\" \
 	-I$(top_srcdir) \
-	-I$(top_srcdir)/src \
-	-I$(top_srcdir)/libtc \
-	$(MJPEGTOOLS_CFLAGS) \
-	$(ACLIB_CFLAGS) \
-	$(AVILIB_CFLAGS)
+	-I$(top_srcdir)/src
 
 pkgdir = $(MOD_PATH)
 
@@ -33,6 +29,7 @@ multiplex_null_la_SOURCES = multiplex_null.c
 multiplex_null_la_LDFLAGS = -module -avoid-version
 
 multiplex_y4m_la_SOURCES = multiplex_y4m.c
+multiplex_y4m_la_CPPFLAGS = $(AM_CPPFLAGS) $(MJPEGTOOLS_CFLAGS)
 multiplex_y4m_la_LDFLAGS = -module -avoid-version
 multiplex_y4m_la_LIBADD = $(MJPEGTOOLS_LIBS)
 

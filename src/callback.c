@@ -24,7 +24,7 @@
 #include "transcode.h"
 #include "encoder.h"
 
-#include "xio.h"
+#include "libtc/xio.h"
 
 //-----------------------------------------------------------------
 //

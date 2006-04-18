@@ -1,4 +1,25 @@
 2006-04-18 Andrew Church <achurch at achurch dot org>
+  * configure.in avilib/avidump.c avilib/avilib.c avilib/avimisc.c
+    encode/Makefile.am export/Makefile.am export/aud_aux.h export/*.c
+    filter/Makefile.am filter/*.c filter/divxkey/Makefile.am
+    filter/divxkey/filter_divxkey.c filter/extsub/Makefile.am
+    filter/extsub/filter_extsub.c filter/preview/Makefile.am
+    filter/preview/filter_preview.c filter/preview/filter_pv.c
+    filter/subtitler/Makefile.am filter/subtitler/subtitler.h
+    filter/tomsmocomp/Makefile.am filter/tomsmocomp/filter_tomsmocomp.h
+    filter/yuvdenoise/Makefile.am filter/yuvdenoise/filter_yuvdenoise.c
+    filter/yuvdenoise/filter_yuvmedian.c import/Makefile.am import/*.c
+    libtc/Makefile.am multiplex/Makefile.am multiplex/multiplex_y4m.c
+    pvm3/Makefile.am src/Makefile.am src/callback.c src/encoder.h
+    testsuite/Makefile.am testsuite/test-bufalloc.c testsuite/test-iodir.c
+    testsuite/test-ratiocodes.c testsuite/test-tclog.c
+    testsuite/test-tcmodule.c testsuite/test-tcmoduleinfo.c
+    testsuite/test-tcstrdup.c tools/Makefile.am tools/aud_scan_avi.h
+    tools/avifix.c tools/aviindex.c tools/avisplit.c tools/avisync.c
+    tools/rawsource.c
+  Added explicit directory names to avilib/wavlib/aclib/libtc includes,
+  and eliminated the relevant CFLAGS variables.
+
   * aclib/Makefile.am
   Remove bizarre -DLINUX from compilation flags.
 

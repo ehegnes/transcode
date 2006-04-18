@@ -28,7 +28,7 @@
 #define MOD_CODEC	"(video) bktr"
 
 #include "transcode.h"
-#include "optstr.h"
+#include "libtc/optstr.h"
 #include "aclib/imgconvert.h"
 
 static int verbose_flag = TC_QUIET;

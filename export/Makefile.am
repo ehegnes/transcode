@@ -5,12 +5,7 @@ AM_CPPFLAGS = \
 	-DMOD_PATH=\"$(MOD_PATH)\" \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
-	-I$(top_srcdir)/import \
-	$(LIBTC_CFLAGS) \
 	$(AC3_CFLAGS) \
-	$(AVILIB_CFLAGS) \
-	$(WAVLIB_CFLAGS) \
-	$(ACLIB_CFLAGS) \
 	$(LIBAVCODEC_CFLAGS) \
 	$(LAME_CFLAGS)
 

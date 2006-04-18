@@ -24,8 +24,8 @@
 #include "transcode.h"
 #include "tcinfo.h"
 #include "ioaux.h"
-#include "iodir.h"
 #include "tc.h"
+#include "libtc/iodir.h"
 
 #include <sys/types.h>
 

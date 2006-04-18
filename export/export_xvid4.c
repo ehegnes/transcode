@@ -57,7 +57,7 @@
 #include "xvid4.h"
 
 #include "transcode.h"
-#include "avilib.h"
+#include "avilib/avilib.h"
 #include "aud_aux.h"
 #include "libtcvideo/tcvideo.h"
 

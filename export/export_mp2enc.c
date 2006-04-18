@@ -30,7 +30,7 @@
 #include <fcntl.h>
 
 #include "transcode.h"
-#include "wavlib.h"
+#include "avilib/wavlib.h"
 
 #include "probe_export.h"
 

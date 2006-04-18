@@ -3,9 +3,7 @@
 AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
 	-I$(top_srcdir) \
-	-I$(top_srcdir)/src \
-	-I$(top_srcdir)/libtc \
-	$(ACLIB_CFLAGS)
+	-I$(top_srcdir)/src
 
 AM_CFLAGS = -fno-omit-frame-pointer
 

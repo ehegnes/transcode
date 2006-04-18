@@ -38,7 +38,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include "xio.h"
+#include "libtc/xio.h"
 
 #if defined(SYS_UNIX) || defined(COMP_MSC) || defined(SYS_APPLE)
 #define lseek64 lseek

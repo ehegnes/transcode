@@ -19,7 +19,7 @@
 #include "dl_loader.h"
 #include "rawsource.h"
 #include "libtc/libtc.h"
-#include "wavlib.h"
+#include "avilib/wavlib.h"
 #include "rawsource.h"
 
 #define RAWSOURCE_IM_MOD    "yuv4mpeg"

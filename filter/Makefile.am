@@ -4,8 +4,6 @@ AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
-	$(LIBTC_CFLAGS) \
-	$(AVILIB_CFLAGS) \
 	$(LAME_CFLAGS) \
 	$(AC3_CFLAGS) \
 	$(LIBAVCODEC_CFLAGS)

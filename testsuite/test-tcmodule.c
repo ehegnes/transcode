@@ -10,16 +10,13 @@
  * for details.
  */
 
-// compile command:
-// gcc -Wall -g -O -I. -I.. -I../src/ source.c path/to/libtc.a -ldl -rdynamic
-
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "config.h"
-#include "libtc.h"
-#include "tcmodule-core.h"
 #include "transcode.h"
+#include "libtc/libtc.h"
+#include "libtc/tcmodule-core.h"
 
 int verbose = TC_QUIET;
 int err;

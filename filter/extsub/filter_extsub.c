@@ -29,7 +29,7 @@
 #include "transcode.h"
 #include "encoder.h"
 #include "filter.h"
-#include "optstr.h"
+#include "libtc/optstr.h"
 #include "libtcvideo/tcvideo.h"
 
 #ifdef HAVE_STDINT_H

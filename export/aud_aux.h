@@ -26,7 +26,7 @@
 
 #include "config.h"
 #include "transcode.h"
-#include "avilib.h"
+#include "avilib/avilib.h"
 
 #ifdef HAVE_LAME
 #ifdef HAVE_LAME_INC

@@ -31,7 +31,7 @@
 
 #include "transcode.h"
 #include "filter.h"
-#include "avilib.h"
+#include "avilib/avilib.h"
 #include "aud_aux.h"
 #include "aclib/imgconvert.h"
 // FIXME
