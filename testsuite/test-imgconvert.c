@@ -30,7 +30,7 @@
 #include "aclib/ac.h"
 #include "aclib/imgconvert.h"
 
-static void *old_SIGSEGV, old_SIGILL;
+static void *old_SIGSEGV, *old_SIGILL;
 static int sigsave;
 static sigjmp_buf env;
 
