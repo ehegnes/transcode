@@ -26,6 +26,7 @@
 #define MOD_CODEC   "(video) all | (audio) Ogg Vorbis"
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_AUD | TC_CAP_PCM | TC_CAP_VID;
@@ -75,7 +76,7 @@ MOD_open
 	}
 
 	// add more codecs: dv, mjpeg, ..
-	//fprintf(stderr, "CODEC_FLAG = |%lx|\n", vob->v_codec_flag);
+	//tc_log_msg(MOD_NAME, "CODEC_FLAG = |%lx|", vob->v_codec_flag);
 	switch (vob->v_codec_flag) {
 
 	    case TC_CODEC_DIVX5:
@@ -105,14 +106,14 @@ MOD_open
 			"tcdecode %s -g %dx%d -x %s -y %s -d %d",
 			vob->video_in_file, vob->verbose,
 			magic, vob->im_v_width, vob->im_v_height, codec, color, vob->verbose) < 0) {
-	    perror("command buffer overflow");
+	    tc_log_perror(MOD_NAME, "command buffer overflow");
 	    return(TC_IMPORT_ERROR);
 	}
 	// print out
 	if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 
 	if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
-	    perror("popen video stream");
+	    tc_log_perror(MOD_NAME, "popen video stream");
 	    return(TC_IMPORT_ERROR);
 	}
 
@@ -147,7 +148,7 @@ MOD_open
 			"tcextract -i \"%s\" -x %s -a %d -d %d | tcdecode -x %s -d %d",
 			vob->audio_in_file, codec, vob->a_track, vob->verbose,
 			codec, vob->verbose) < 0) {
-	    perror("command buffer overflow");
+	    tc_log_perror(MOD_NAME, "command buffer overflow");
 	    return(TC_IMPORT_ERROR);
 	}
 
@@ -156,7 +157,7 @@ MOD_open
 			"tcextract -i \"%s\" -x %s -a %d -d %d",
 			vob->audio_in_file, codec, vob->a_track,
 			vob->verbose) < 0) {
-		perror("command buffer overflow");
+		tc_log_perror(MOD_NAME, "command buffer overflow");
 		return(TC_IMPORT_ERROR);
 	    }
 	}
@@ -166,7 +167,7 @@ MOD_open
 
 	// popen
 	if((fd = popen(import_cmd_buf, "r"))== NULL) {
-	    perror("popen pcm stream");
+	    tc_log_perror(MOD_NAME, "popen pcm stream");
 	    return(TC_IMPORT_ERROR);
 	}
 

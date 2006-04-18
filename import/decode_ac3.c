@@ -23,6 +23,7 @@
  */
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "tcinfo.h"
 
 #include "ac3.h"
@@ -48,7 +49,8 @@ static void fill_buffer(uint8_t **start, uint8_t **end)
   bytes_read = fread(*start, 1, CHUNK_SIZE, in_file);
 
   if(bytes_read < CHUNK_SIZE) {
-    if(verbose & TC_DEBUG) fprintf (stderr, "(%s@%d) read error (%d/%d)\n", __FILE__, __LINE__, bytes_read, CHUNK_SIZE);
+    if(verbose & TC_DEBUG)
+      tc_log_msg(__FILE__, "read error (%d/%d)", bytes_read, CHUNK_SIZE);
     import_exit(1);
   }
 
@@ -97,13 +99,13 @@ void decode_ac3(decode_t *decode)
             uint8_t tmp[WRITE_BYTES];
             memset(&tmp, 0, WRITE_BYTES);
             if(fwrite(&tmp, WRITE_BYTES, 1, out_file)!=1) {
-                fprintf(stderr, "(%s) write failed\n", __FILE__);
+                tc_log_error(__FILE__, "write failed");
 	        break;
 	    }
             free(tmp);
         }
 	else if(fwrite( ac3_frame->audio_data, WRITE_BYTES, 1, out_file)!=1) {
-	    fprintf(stderr, "(%s) write failed\n", __FILE__);
+	    tc_log_error(__FILE__, "write failed");
 	    break;
 	}
     }

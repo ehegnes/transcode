@@ -22,6 +22,7 @@
  */
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "tcinfo.h"
 
 #include "ioaux.h"
@@ -59,7 +60,7 @@ void decode_lzo(decode_t *decode)
      */
 
     if (lzo_init() != LZO_E_OK) {
-      fprintf(stderr, "[%s] lzo_init() failed\n", MOD_NAME);
+      tc_log_error(__FILE__, "lzo_init() failed");
       goto decoder_error;
     }
 
@@ -68,7 +69,7 @@ void decode_lzo(decode_t *decode)
     inbuf = (lzo_bytep) lzo_malloc(BUFFER_SIZE);
 
     if (wrkmem == NULL || out == NULL) {
-      fprintf(stderr, "[%s] out of memory\n", MOD_NAME);
+      tc_log_error(__FILE__, "out of memory");
       goto decoder_error;
     }
 
@@ -78,13 +79,13 @@ void decode_lzo(decode_t *decode)
 
     for (;;) {
 	if ( (ss=tc_pread (decode->fd_in, (uint8_t *)&h, sizeof(h))) != sizeof(h)) {
-	    //fprintf(stderr," (%s) failed to read frame size: EOF. expected (%ld) got (%d)\n", __FILE__, 4L, ss);
+	    //tc_log_msg(__FILE__, "failed to read frame size: EOF. expected (%ld) got (%d)", 4L, ss);
 	    goto decoder_out;
 	}
 
 	// check magic
 	if (h.magic != TC_CODEC_LZO2) {
-	    fprintf(stderr," (%s) Wrong stream magic: expected (0x%x) got (0x%x)\n", __FILE__, TC_CODEC_LZO2, h.magic);
+	    tc_log_error(__FILE__, "Wrong stream magic: expected (0x%x) got (0x%x)", TC_CODEC_LZO2, h.magic);
 	    goto decoder_error;
 	}
 
@@ -92,9 +93,9 @@ void decode_lzo(decode_t *decode)
 	bytes = h.size;
 
 	if (verbose & TC_DEBUG)
-	    fprintf (stderr, "got bytes (%ld)\n", bytes);
+	    tc_log_msg(__FILE__, "got bytes (%ld)", bytes);
 	if ( (ss=tc_pread (decode->fd_in, inbuf, bytes))!=bytes) {
-	    fprintf(stderr," (%s) failed to read frame: expected (%ld) got (%lu)\n", __FILE__, bytes, (unsigned long)ss);
+	    tc_log_error(__FILE__, "failed to read frame: expected (%ld) got (%lu)", bytes, (unsigned long)ss);
 	    goto decoder_error;
 	}
 
@@ -108,17 +109,17 @@ void decode_lzo(decode_t *decode)
 
 	if (r == LZO_E_OK) {
 	    if(verbose & TC_DEBUG)
-		fprintf(stderr, "decompressed %lu bytes into %lu bytes\n",
-				    (long) bytes, (long) out_len);
+		tc_log_msg(__FILE__, "decompressed %lu bytes into %lu bytes",
+			   (long) bytes, (long) out_len);
 	} else {
 
 	    /* this should NEVER happen */
-	    fprintf(stderr, "[%s] internal error - decompression failed: %d\n", MOD_NAME, r);
+	    tc_log_error(__FILE__, "internal error - decompression failed: %d", r);
 	    goto decoder_error;
 	}
 
 	if ( (ss = tc_pwrite (decode->fd_out, out, out_len)) != out_len) {
-	    fprintf(stderr," (%s) failed to write frame: expected (%ld) wrote (%lu)\n", __FILE__, bytes, (unsigned long)ss);
+	    tc_log_error(__FILE__, "failed to write frame: expected (%ld) wrote (%lu)", bytes, (unsigned long)ss);
 	    goto decoder_error;
 	}
     }
@@ -137,7 +138,7 @@ decoder_error:
 
 void decode_lzo(decode_t *decode)
 {
-    fprintf(stderr, "No support for LZO configured -- exiting\n");
+    tc_log_error(__FILE__, "No support for LZO configured -- exiting");
     import_exit(1);
 }
 

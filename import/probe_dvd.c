@@ -22,6 +22,7 @@
  */
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "tcinfo.h"
 #include "ioaux.h"
 #include "dvd_reader.h"
@@ -33,13 +34,13 @@ int probe_dvd(info_t *ipipe)
   int max_titles;
 
   if(dvd_init(ipipe->name, &max_titles, ipipe->verbose)<0) {
-    fprintf(stderr, "(%s) failed to open DVD %s\n", __FILE__, ipipe->name);
+    tc_log_error(__FILE__, "failed to open DVD %s", ipipe->name);
     ipipe->error=1;
     return(-1);
   }
 
   if(dvd_probe(ipipe->dvd_title, ipipe->probe_info)<0) {
-    fprintf(stderr, "(%s) failed to probe DVD title information\n", __FILE__);
+    tc_log_error(__FILE__, "failed to probe DVD title information");
 
     dvd_close();
     ipipe->error=1;

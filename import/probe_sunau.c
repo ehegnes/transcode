@@ -25,6 +25,7 @@
 #include "tcinfo.h"
 #include "ioaux.h"
 #include "tc.h"
+#include "libtc/libtc.h"
 
 #ifdef HAVE_SUNAU
 
@@ -41,8 +42,7 @@ probe_sunau(info_t * ipipe)
     close(ipipe->fd_in);
     ipipe->fd_in = open(ipipe->name, O_RDONLY, 0);
     if (ipipe->fd_in < 0) {
-	fprintf(stderr, "[probe_sunau] cannot (re)open device\n");
-	perror("[probe_sunau] open sunau device");
+	tc_log_error(__FILE__, "cannot (re)open device: %s", strerror(errno));
 	goto error;
     }
 
@@ -56,7 +56,7 @@ probe_sunau(info_t * ipipe)
     audio_if.mode = AUMODE_RECORD;
 
     if (ipipe->verbose & TC_DEBUG)
-	fprintf(stderr, "[probe_sunau] checking for valid samplerate .. ");
+	tc_log_msg(__FILE__, "checking for valid samplerate...");
     if (ioctl(ipipe->fd_in, AUDIO_SETINFO, &audio_if) < 0) {
         audio_if.record.sample_rate = 44100;
         if (ioctl(ipipe->fd_in, AUDIO_SETINFO, &audio_if) < 0) {
@@ -71,7 +71,7 @@ probe_sunau(info_t * ipipe)
                             audio_if.record.sample_rate = 11025;
                             if (ioctl(ipipe->fd_in, AUDIO_SETINFO, &audio_if) < 0) {
                                 if (ipipe->verbose & TC_DEBUG)
-                                    fprintf(stderr, "not found\n");
+                                    tc_log_msg(__FILE__, "... not found");
                                 goto error;
                             }
                         }
@@ -81,10 +81,10 @@ probe_sunau(info_t * ipipe)
         }
     }
     if (ipipe->verbose & TC_DEBUG)
-        fprintf(stderr, "found %d\n", audio_if.record.sample_rate);
+        tc_log_msg(__FILE__, "... found %d", audio_if.record.sample_rate);
 
     if (ioctl(ipipe->fd_in, AUDIO_GETINFO, &audio_if) < 0) {
-        perror("AUDIO_GETINFO");
+        tc_log_perror(__FILE__, "AUDIO_GETINFO");
 	goto error;
     }
 
@@ -115,7 +115,7 @@ error:
 void
 probe_sunau(info_t * ipipe)
 {
-    fprintf(stderr, "No support for sunau compiled in\n");
+    tc_log_error(__FILE__, "No support for sunau compiled in");
     ipipe->probe_info->codec = TC_CODEC_UNKNOWN;
     ipipe->probe_info->magic = TC_MAGIC_UNKNOWN;
 }

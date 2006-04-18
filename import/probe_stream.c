@@ -26,6 +26,7 @@
 #include "ioaux.h"
 #include "tc.h"
 #include "aux_pes.h"
+#include "libtc/libtc.h"
 
 
 static ProbeInfo probe_info;
@@ -128,7 +129,8 @@ void tcprobe_thread(info_t *ipipe)
       //NTSC video/film
 
 
-      if(verbose & TC_DEBUG) fprintf(stderr, "att0=%d, att1=%d\n", ipipe->probe_info->ext_attributes[0], ipipe->probe_info->ext_attributes[1]);
+      if(verbose & TC_DEBUG)
+        tc_log_msg(__FILE__, "att0=%d, att1=%d", ipipe->probe_info->ext_attributes[0], ipipe->probe_info->ext_attributes[1]);
 
       if(ipipe->probe_info->codec==TC_CODEC_MPEG2
 	 && ipipe->probe_info->height==480 && ipipe->probe_info->width==720) {

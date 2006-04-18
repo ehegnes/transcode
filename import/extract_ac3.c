@@ -31,6 +31,7 @@
 //#define DDBUG
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "tcinfo.h"
 
 #include <sys/mman.h>
@@ -40,7 +41,9 @@
 #include "ioaux.h"
 #include "aux_pes.h"
 #include "tc.h"
-static unsigned int read_tc_time_stamp(char *s)
+
+
+static unsigned int read_tc_time_stamp(const char *s)
 {
 
   unsigned long i, j;
@@ -111,17 +114,18 @@ static void pes_ac3_loop (void)
 	// check for valid start code
 	if (buf[0] || buf[1] || (buf[2] != 0x01)) {
 	  if (complain_loudly && (verbose & TC_DEBUG)) {
-	    fprintf (stderr, "(%s) missing start code at %#lx\n",
-		     __FILE__, ftell (in_file) - (end - buf));
+	    tc_log_warn(__FILE__, "missing start code at %#lx",
+			ftell (in_file) - (end - buf));
 	    if ((buf[0] == 0) && (buf[1] == 0) && (buf[2] == 0))
-	      fprintf (stderr, "(%s) incorrect zero-byte padding detected - ignored\n", __FILE__);
+	      tc_log_warn(__FILE__, "incorrect zero-byte padding detected - ignored");
 	    complain_loudly = 0;
 	  }
 	  buf++;
 	  continue;
 	}// check for valid start code
 
-	if(verbose & TC_STATS) fprintf(stderr, "packet code 0x%x\n", buf[3]);
+	if(verbose & TC_STATS)
+	  tc_log_msg(__FILE__, "packet code 0x%x", buf[3]);
 
 	switch (buf[3]) {
 
@@ -145,7 +149,7 @@ static void pes_ac3_loop (void)
 	    /* mpeg1 */
 	    for (tmp1 = buf + 6; *tmp1 == 0xff; tmp1++)
 	      if (tmp1 == buf + 6 + 16) {
-		fprintf (stderr, "too much stuffing\n");
+		tc_log_warn(__FILE__, "too much stuffing");
 		buf = tmp2;
 		break;
 	      }
@@ -169,7 +173,7 @@ static void pes_ac3_loop (void)
 	    last_rpts=pack_rpts;
 	    abs_rpts=pack_rpts + offset_rpts;
 
-	    //fprintf(stderr, "PTS=%8.3f ABS=%8.3f\n", pack_rpts, abs_rpts);
+	    //tc_log_msg(__FILE__, "PTS=%8.3f ABS=%8.3f", pack_rpts, abs_rpts);
 	  }
 
 	  buf = tmp2;
@@ -190,7 +194,7 @@ static void pes_ac3_loop (void)
 	  else if (buf + 5 > end)
 	    goto copy;
 	  else {
-	    fprintf (stderr, "(%s) weird pack header\n", __FILE__);
+	    tc_log_error(__FILE__, "weird pack header");
 	    import_exit(1);
 	  }
 
@@ -209,7 +213,7 @@ static void pes_ac3_loop (void)
 	  else {	/* mpeg1 */
 	    for (tmp1 = buf + 6; *tmp1 == 0xff; tmp1++)
 	      if (tmp1 == buf + 6 + 16) {
-		fprintf (stderr, "(%s) too much stuffing\n", __FILE__);
+		tc_log_warn(__FILE__, "too much stuffing");
 		buf = tmp2;
 		break;
 	      }
@@ -218,7 +222,8 @@ static void pes_ac3_loop (void)
 	    tmp1 += mpeg1_skip_table [*tmp1 >> 4];
 	  }
 
-	  if(verbose & TC_STATS) fprintf(stderr,"track code 0x%x\n", *tmp1);
+	  if(verbose & TC_STATS)
+	    tc_log_msg(__FILE__, "track code 0x%x", *tmp1);
 
 	  if(vdr_work_around) {
 	    if (tmp1 < tmp2) fwrite (tmp1, tmp2-tmp1, 1, out_file);
@@ -241,7 +246,7 @@ static void pes_ac3_loop (void)
 		    //let's add the video offset to the subs
 		    abs_sub_rpts=pack_sub_rpts + offset_rpts;
 
-		    //fprintf(stderr, "sub PTS=%8.3f ABS=%8.3f\n", pack_rpts, abs_rpts);
+		    //tc_log_msg(__FILE__, "sub PTS=%8.3f ABS=%8.3f", pack_rpts, abs_rpts);
 		  }
 
 		subtitle_header.lpts = pack_lpts;
@@ -252,18 +257,24 @@ static void pes_ac3_loop (void)
 		subtitle_header.payload_length=tmp2-tmp1;
 
 		if(verbose & TC_STATS)
-		  fprintf(stderr,"subtitle=0x%x size=%4d lpts=%d rpts=%f rptsfromvid=%f\n", track_code, subtitle_header.payload_length, subtitle_header.lpts, subtitle_header.rpts,abs_rpts);
+		  tc_log_msg(__FILE__, "subtitle=0x%x size=%4d lpts=%d rpts=%f rptsfromvid=%f",
+			     track_code, subtitle_header.payload_length,
+			     subtitle_header.lpts, subtitle_header.rpts,
+			     abs_rpts);
 
 		if(tc_pwrite(STDOUT_FILENO, (uint8_t*) subtitle_header_str, strlen(subtitle_header_str))<0) {
-		  fprintf(stderr, "error writing subtitle\n");
+		    tc_log_error(__FILE__, "error writing subtitle: %s",
+				 strerror(errno));
 		    import_exit(1);
 		}
 		if(tc_pwrite(STDOUT_FILENO, (uint8_t*) &subtitle_header, sizeof(subtitle_header_t))<0) {
-		    fprintf(stderr, "error writing subtitle\n");
+		    tc_log_error(__FILE__, "error writing subtitle: %s",
+				 strerror(errno));
 		    import_exit(1);
 		}
 		if(tc_pwrite(STDOUT_FILENO, tmp1, tmp2-tmp1)<0) {
-		    fprintf(stderr, "error writing subtitle\n");
+		    tc_log_error(__FILE__, "error writing subtitle: %s",
+				 strerror(errno));
 		    import_exit(1);
 		}
 	      }
@@ -278,7 +289,7 @@ static void pes_ac3_loop (void)
 		if(0) {
 		    ac_memcpy(pack_buf, &buf[6], 16);
 		    get_pts_dts(pack_buf, &i_pts, &i_dts);
-		    fprintf(stderr, "AC3 PTS=%f\n", (double) i_pts/90000.);
+		    tc_log_msg(__FILE__, "AC3 PTS=%f", (double) i_pts/90000.);
 		}
 
 		if (tmp1 < tmp2) fwrite (tmp1, tmp2-tmp1, 1, out_file);
@@ -289,7 +300,8 @@ static void pes_ac3_loop (void)
 	  break;
 
 	default:
-	  if (buf[3] < 0xb9) fprintf (stderr, "(%s) broken stream - skipping data\n", __FILE__);
+	  if (buf[3] < 0xb9)
+	    tc_log_warn(__FILE__, "broken stream - skipping data");
 
 	  /* skip */
 	  tmp1 = buf + 6 + (buf[4] << 8) + buf[5];
@@ -342,7 +354,7 @@ static int ac3scan(int infd, int outfd)
   ssize_t bytes_read;
 
   if (!buffer) {
-    fprintf(stderr, "%s:%d no memory\n", __FILE__, __LINE__);
+    tc_log_error(__FILE__, "%s:%d no memory", __FILE__, __LINE__);
     return 1;
   }
 
@@ -373,7 +385,7 @@ static int ac3scan(int infd, int outfd)
       if(sync_word == 0x0b77) break;
 
       if(k>(1<<20)) {
-	fprintf(stderr, "no AC3 sync frame found within 1024 kB of stream\n");
+	tc_log_error(__FILE__, "no AC3 sync frame found within 1024 kB of stream");
 	free (buffer);
 	return(1);
       }
@@ -382,7 +394,7 @@ static int ac3scan(int infd, int outfd)
     i=i-2;
 
 #ifdef DDBUG
-    fprintf(stderr, "found sync frame at offset %d (%d)\n", i, j);
+    tc_log_msg(__FILE__, "found sync frame at offset %d (%d)", i, j);
 #endif
 
     // read rest of header
@@ -393,7 +405,7 @@ static int ac3scan(int infd, int outfd)
     }
 
     if((frame_size = 2*get_ac3_framesize(&buffer[2])) < 1) {
-      fprintf(stderr, "(%s) ac3 framesize %d invalid\n", __FILE__, frame_size);
+      tc_log_error(__FILE__, "ac3 framesize %d invalid", frame_size);
       free (buffer);
       return(1);
     }
@@ -404,7 +416,7 @@ static int ac3scan(int infd, int outfd)
     pseudo_frame_size = (int) rbytes;
 
     if((bitrate = get_ac3_bitrate(&buffer[2])) < 1) {
-      fprintf(stderr, "(%s) ac3 bitrate invalid\n", __FILE__);
+      tc_log_error(__FILE__, "ac3 bitrate invalid");
       free (buffer);
       return(1);
     }
@@ -412,7 +424,8 @@ static int ac3scan(int infd, int outfd)
     // write out frame header
 
 #ifdef DDBUG
-    fprintf(stderr, "[%05d] %04d bytes, pcm pseudo frame %04d bytes, bitrate %03d kBits/s\n", n++, frame_size, pseudo_frame_size, bitrate);
+    tc_log_msg(__FILE__, "[%05d] %04d bytes, pcm pseudo frame %04d bytes, bitrate %03d kBits/s",
+	       n++, frame_size, pseudo_frame_size, bitrate);
 #endif
 
     // s points directly at first byte of syncword
@@ -489,7 +502,7 @@ void extract_ac3(info_t *ipipe)
 
       } else {
 	if (ipipe->track < 0 || ipipe->track >= TC_MAX_AUD_TRACKS) {
-	  fprintf(stderr, "(%s) invalid track number: %d\n", __FILE__, ipipe->track);
+	  tc_log_error(__FILE__, "invalid track number: %d", ipipe->track);
 	  import_exit(1);
 	}
 
@@ -511,7 +524,7 @@ void extract_ac3(info_t *ipipe)
     case TC_MAGIC_AVI:
 
       if(ipipe->stype == TC_STYPE_STDIN){
-	fprintf(stderr, "(%s) invalid magic/stype - exit\n", __FILE__);
+	tc_log_error(__FILE__, "invalid magic/stype - exit");
 	error=1;
 	break;
       }
@@ -562,8 +575,8 @@ void extract_ac3(info_t *ipipe)
     default:
 
       if(ipipe->magic == TC_MAGIC_UNKNOWN)
-	fprintf(stderr, "(%s) no file type specified, assuming %s\n",
-		__FILE__, filetype(TC_MAGIC_RAW));
+	tc_log_warn(__FILE__, "no file type specified, assuming %s",
+		    filetype(TC_MAGIC_RAW));
 
       error=ac3scan(ipipe->fd_in, ipipe->fd_out);
       break;

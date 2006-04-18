@@ -28,6 +28,7 @@
 #include "ioaux.h"
 #include "magic.h"
 #include "tc.h"
+#include "libtc/libtc.h"
 
 #ifdef HAVE_LAME
 #include "mpg123.h"
@@ -50,8 +51,8 @@ static int fskip(FILE * fp, long offset, int whence)
         return 0;
 
     if (whence != SEEK_CUR || offset < 0) {
-        fprintf(stderr,
-                "fskip problem: Mostly the return status of functions is not evaluate so it is more secure to polute <stderr>.\n");
+        tc_log_warn(__FILE__,
+		    "fskip problem: Mostly the return status of functions is not evaluate so it is more secure to polute <stderr>.");
         return -1;
     }
 
@@ -144,7 +145,7 @@ int lame_decode_initfile(FILE * fd, mp3data_struct * mp3data, int format)
         if (fread(buf, 2, 1, fd) != 1)
             return -1;  /* failed */
         aid_header = (unsigned char) buf[0] + 256 * (unsigned char) buf[1];
-        fprintf(stderr, "Album ID found.  length=%i \n", aid_header);
+        tc_log_msg(__FILE__, "Album ID found.  length=%i", aid_header);
         /* skip rest of AID, except for 6 bytes we have already read */
         fskip(fd, aid_header - 6, SEEK_CUR);
 
@@ -197,7 +198,7 @@ int lame_decode_initfile(FILE * fd, mp3data_struct * mp3data, int format)
     }
 
     if (mp3data->bitrate==0) {
-	fprintf(stderr,"Input file is freeformat.\n");
+	tc_log_msg(__FILE__,"Input file is freeformat.");
     }
 
     if (mp3data->totalframes > 0) {
@@ -269,7 +270,7 @@ int buf_probe_mp3(unsigned char *_buf, int len, ProbeTrackInfo *pcm)
   int type;
 
   if((mp3data = tc_zalloc(sizeof(mp3data_struct)))==NULL) {
-    fprintf(stderr, "(%s) out of memory", __FILE__);
+    tc_log_error(__FILE__, "out of memory");
     exit(1);
   }
 
@@ -294,7 +295,7 @@ int buf_probe_mp3(unsigned char *_buf, int len, ProbeTrackInfo *pcm)
   ret = lame_decode1_headers(buf, len, pcm_l, pcm_r, mp3data);
 
   if (-1 == ret) {
-    //fprintf(stderr, "(%s) failed to probe mp3 header (%d)", __FILE__, len);
+    //tc_log_error(__FILE__, "failed to probe mp3 header (%d)", len);
     return -1;
   }
 
@@ -307,7 +308,7 @@ int buf_probe_mp3(unsigned char *_buf, int len, ProbeTrackInfo *pcm)
   pcm->bitrate = mp3data->bitrate;
 
   if(verbose_flag & TC_DEBUG)
-    fprintf(stderr, "(%s) channels=%d, samplerate=%d Hz, bitrate=%d kbps, (fsize=%d)\n", __FILE__, mp3data->stereo, mp3data->samplerate, mp3data->bitrate, mp3data->framesize);
+    tc_log_msg(__FILE__, "channels=%d, samplerate=%d Hz, bitrate=%d kbps, (fsize=%d)", mp3data->stereo, mp3data->samplerate, mp3data->bitrate, mp3data->framesize);
 
   switch(type) {
 
@@ -362,7 +363,7 @@ void probe_mp3(info_t *ipipe)
 
 void probe_mp3(info_t *ipipe) {
 
-    fprintf(stderr, "(%s) no lame support available\n", __FILE__);
+    tc_log_error(__FILE__, "no lame support available");
     return;
 
 }

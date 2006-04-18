@@ -90,8 +90,7 @@ void probe_ogg(info_t *ipipe)
     fdin = ipipe->fd_in;
 
     if (fdin == -1) {
-	fprintf(stderr, "(%s) Could not open \"%d\".\'", __FILE__,
-		ipipe->fd_in);
+	tc_log_error(__FILE__, "Could not open file.");
 	goto ogg_out;
     }
 
@@ -106,13 +105,13 @@ void probe_ogg(info_t *ipipe)
     while (1) {
 	np = ogg_sync_pageseek(&sync, &page);
 	if (np < 0) {
-	    fprintf(stderr, "(%s) ogg_sync_pageseek failed\n", __FILE__);
+	    tc_log_error(__FILE__, "ogg_sync_pageseek failed");
 	    goto ogg_out;
 	}
 	if (np == 0) {
 	    buf = ogg_sync_buffer(&sync, BLOCK_SIZE);
 	    if (!buf) {
-		fprintf(stderr, "(%s) ogg_sync_buffer failed\n", __FILE__);
+		tc_log_error(__FILE__, "ogg_sync_buffer failed");
 		goto ogg_out;
 	    }
 
@@ -130,12 +129,12 @@ void probe_ogg(info_t *ipipe)
 	    vorbis_comment *com = tc_malloc (sizeof(vorbis_comment));
 
 	    if (!inf || !com) {
-		fprintf(stderr, "(%s) Out of Memory in %d", __FILE__, __LINE__);
+		tc_log_error(__FILE__, "Out of Memory at %d", __LINE__);
 		goto ogg_out;
 	    }
 	    sno = ogg_page_serialno(&page);
 	    if (ogg_stream_init(&sstate, sno)) {
-		fprintf(stderr, "(%s) ogg_stream_init failed\n", __FILE__);
+		tc_log_error(__FILE__, "ogg_stream_init failed");
 		goto ogg_out;
 	    }
 	    ogg_stream_pagein(&sstate, &page);
@@ -148,12 +147,12 @@ void probe_ogg(info_t *ipipe)
 		    vorbis_comment_init(com);
 
 		    if(vorbis_synthesis_headerin(inf, com, &pack) < 0) {
-			fprintf (stderr, "Warning: Could not decode vorbis header "
-				"packet - invalid vorbis stream ()\n");
+			tc_log_warn(__FILE__, "Could not decode vorbis header "
+				    "packet - invalid vorbis stream ()");
 		    } else {
 #ifdef OGM_DEBUG
-			fprintf(stderr, "(%s) (a%d/%d) Vorbis audio; "
-				"rate: %ldHz, channels: %d, bitrate %3.2f kb/s\n", __FILE__,
+			tc_log_msg(__FILE__, "(a%d/%d) Vorbis audio; "
+				"rate: %ldHz, channels: %d, bitrate %3.2f kb/s",
 				natracks + 1, natracks + nvtracks + 1, inf->rate,
 				inf->channels, (double)inf->bitrate_nominal/1000.0);
 #endif
@@ -200,13 +199,13 @@ void probe_ogg(info_t *ipipe)
 		case DirectShow:
 		    if ((*(int32_t*)(pack.packet+96) == 0x05589f80) &&
 			    (pack.bytes >= 184)) {
-			fprintf(stderr, "(%s) (v%d/%d) Found old video header. Not " \
-				"supported.\n", __FILE__, nvtracks + 1,
-				natracks + nvtracks + 1);
+			tc_log_warn(__FILE__, "(v%d/%d) Found old video "
+				    "header. Not supported.", nvtracks + 1,
+				    natracks + nvtracks + 1);
 		    } else if (*(int32_t*)pack.packet+96 == 0x05589F81) {
-			fprintf(stderr, "(%s) (a%d/%d) Found old audio header. Not " \
-				"supported.\n", __FILE__, natracks + 1,
-				natracks + nvtracks + 1);
+			tc_log_warn(__FILE__, "(a%d/%d) Found old audio "
+				    "header. Not supported.", natracks + 1,
+				    natracks + nvtracks + 1);
 		    }
 		    break;
 		case StreamHeader:
@@ -217,8 +216,8 @@ void probe_ogg(info_t *ipipe)
 			unsigned long codec;
 			codec = (sth->subtype[0] << 24) +
 			    (sth->subtype[1] << 16) + (sth->subtype[2] << 8) + sth->subtype[3];
-			fprintf(stderr, "(%s) (v%d/%d) video; fps: %.3f width height: %dx%d " \
-				"codec: %p (%c%c%c%c)\n", __FILE__, nvtracks + 1,
+			tc_log_msg(__FILE__, "(v%d/%d) video; fps: %.3f width height: %dx%d " \
+				"codec: %p (%c%c%c%c)", nvtracks + 1,
 				natracks + nvtracks + 1,
 				(double)10000000 / (double)sth->time_unit,
 				sth->sh.video.width, sth->sh.video.height, (void *)codec,
@@ -276,17 +275,18 @@ void probe_ogg(info_t *ipipe)
 			buf[4] = 0;
 			codec = strtoul(buf, NULL, 16);
 #ifdef OGM_DEBUG
-			fprintf(stderr, "(%s) (a%d/%d) codec: %d (0x%04x) (%s) bits per " \
-				"sample: %d channels: %hd  samples per second: %ld" \
-				, __FILE__, natracks + 1, natracks + nvtracks + 1,
-				codec, codec,
-				codec == 0x1 ? "PCM" : codec == 55 ? "MP3" :
-				codec == 0x55 ? "MP3" :
-				codec == 0x2000 ? "AC3" : "unknown",
-				sth->bits_per_sample, sth->sh.audio.channels,
-				(long)sth->samples_per_unit);
-			fprintf(stderr, " avgbytespersec: %hd blockalign: %d\n",
-				sth->sh.audio.avgbytespersec, sth->sh.audio.blockalign);
+			tc_log_msg(__FILE__, "(a%d/%d) codec: %d (0x%04x) (%s) bits per " \
+				   "sample: %d channels: %hd  samples per second: %ld " \
+				   "avgbytespersec: %hd blockalign: %d",
+				   natracks + 1, natracks + nvtracks + 1,
+				   codec, codec,
+				   codec == 0x1 ? "PCM" : codec == 55 ? "MP3" :
+				   codec == 0x55 ? "MP3" :
+				   codec == 0x2000 ? "AC3" : "unknown",
+				   sth->bits_per_sample, sth->sh.audio.channels,
+				   (long)sth->samples_per_unit,
+				   sth->sh.audio.avgbytespersec,
+				   sth->sh.audio.blockalign);
 #endif
 			idx = natracks;
 
@@ -306,13 +306,13 @@ void probe_ogg(info_t *ipipe)
 			ac_memcpy(&streams[idx].state, &sstate, sizeof(sstate));
 			natracks++;
 		    } else {
-			fprintf(stderr, "(%s) (%d) found new header of unknown/" \
-				"unsupported type\n", __FILE__, nvtracks + natracks + 1);
+			tc_log_warn(__FILE__, "(%d) found new header of unknown/" \
+				"unsupported type\n", nvtracks + natracks + 1);
 		    }
 		    break;
 		case none:
-		    fprintf(stderr, "(%s) OGG stream %d is of an unknown type " \
-			"(bad header?)\n", __FILE__, nvtracks + natracks + 1);
+		    tc_log_warn(__FILE__, "OGG stream %d is of an unknown type " \
+			"(bad header?)", __FILE__, nvtracks + natracks + 1);
 		    break;
 	    } /* switch type */
 	    free(inf);
@@ -329,7 +329,7 @@ ogg_out:
 
 void probe_ogg(info_t *ipipe)
 {
-    fprintf(stderr, "No support for Ogg/Vorbis compiled in\n");
+    tc_log_error(__FILE__, "No support for Ogg/Vorbis compiled in");
     ipipe->probe_info->codec=TC_CODEC_UNKNOWN;
     ipipe->probe_info->magic=TC_MAGIC_UNKNOWN;
 }

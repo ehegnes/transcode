@@ -22,6 +22,7 @@
  */
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "tcinfo.h"
 
 #include "aclib/imgconvert.h"
@@ -82,7 +83,7 @@ static int vo_read_yuv (vo_t *vo, int fd)
    for (i = 0; i < v; i++)
        if ((bytes = tc_pread (fd, vo->yuv[0] + i * h, h)) != h) {
 	   if (bytes < 0)
-	      fprintf(stderr,"(%s) read failed", __FILE__);
+	      tc_log_error(__FILE__, "read failed: %s", strerror(errno));
 	   return 0;
        }
 
@@ -93,15 +94,15 @@ static int vo_read_yuv (vo_t *vo, int fd)
 
    for (i = 0; i < v; i++)
        if ((bytes = tc_pread (fd, vo->yuv[1] + i * h, h)) != h) {
-	  if (bytes < 0)
-	     fprintf(stderr,"(%s) read failed", __FILE__);
-	  return 0;
+	   if (bytes < 0)
+	       tc_log_error(__FILE__, "read failed: %s", strerror(errno));
+	   return 0;
        }
 
    for (i = 0; i < v; i++)
        if ((bytes = tc_pread (fd, vo->yuv[2] + i * h, h)) != h) {
 	   if (bytes < 0)
-	      fprintf(stderr,"(%s) read failed", __FILE__);
+	       tc_log_error(__FILE__, "read failed: %s", strerror(errno));
 	   return 0;
        }
 
@@ -116,14 +117,14 @@ static int vo_read_yuv (vo_t *vo, int fd)
  */
 static int vo_write_rgb (vo_t *vo, int fd)
 {
-   int framesize = vo->width * vo->height * 3, bytes = 0;
-   bytes = tc_pwrite (fd, vo->rgb, framesize);
-   if (bytes != framesize) {
-      if (bytes < 0)
-         fprintf(stderr,"(%s) read failed", __FILE__);
-      return 0;
-   }
-   return 1;
+    int framesize = vo->width * vo->height * 3, bytes = 0;
+    bytes = tc_pwrite (fd, vo->rgb, framesize);
+    if (bytes != framesize) {
+	if (bytes < 0)
+	    tc_log_error(__FILE__, "read failed: %s", strerror(errno));
+	return 0;
+    }
+    return 1;
 }
 
 /*
@@ -153,18 +154,18 @@ static int vo_alloc (vo_t *vo, int width, int height)
 
     vo->yuv[0] = tc_zalloc (width * height);
     if (!vo->yuv[0]) {
-        fprintf (stderr, "(%s) out of memory\n", __FILE__);
+        tc_log_error(__FILE__, "out of memory");
 	return -1;
     }
     vo->yuv[1] = tc_zalloc ((width/2) * (height/2));
     if (!vo->yuv[1]) {
-        fprintf (stderr, "(%s) out of memory\n", __FILE__);
+        tc_log_error(__FILE__, "out of memory");
 	free (vo->yuv[0]);
 	return -1;
     }
     vo->yuv[2] = tc_zalloc ((width/2) * (height/2));
     if(!vo->yuv[2]) {
-        fprintf (stderr, "(%s) out of memory\n", __FILE__);
+        tc_log_error(__FILE__, "out of memory");
 	free (vo->yuv[0]);
 	free (vo->yuv[1]);
 	return -1;
@@ -172,7 +173,7 @@ static int vo_alloc (vo_t *vo, int width, int height)
 
     vo->rgb = tc_zalloc (width * height * 3);
     if(!vo->rgb) {
-        fprintf (stderr, "(%s) out of memory\n", __FILE__);
+        tc_log_error(__FILE__, "out of memory");
 	free (vo->yuv[0]);
 	free (vo->yuv[1]);
 	free (vo->yuv[2]);
@@ -194,8 +195,8 @@ void decode_yuv(decode_t *decode)
   vo_t vo;
 
   if(decode->width <= 0 || decode->height <= 0) {
-     fprintf(stderr,"(%s) invalid frame parameter %dx%d\n",
-		    __FILE__, decode->width, decode->height);
+     tc_log_error(__FILE__, "invalid frame parameter %dx%d",
+                  decode->width, decode->height);
      import_exit(1);
   }
 

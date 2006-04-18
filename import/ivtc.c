@@ -24,6 +24,7 @@
 #include "transcode.h"
 #include "ioaux.h"
 #include "ivtc.h"
+#include "libtc/libtc.h"
 
 // basic parameter
 static int color_diff_threshold1=50;
@@ -256,7 +257,8 @@ int ivtc(int *flag, int pflag, char *buffer, char *pulldown_buffer, int width, i
 
       //copy first frame of pair to tmp buffer
 
-      if(verbose & TC_STATS) printf( "COPY: (%2d)\n", pulldown_frame_ctr);
+      if(verbose & TC_STATS)
+	  tc_log_msg(__FILE__, "COPY: (%2d)", pulldown_frame_ctr);
 
       ac_memcpy(pulldown_buffer, buffer, size);
       pulldown_buffer_flag=1;
@@ -271,7 +273,8 @@ int ivtc(int *flag, int pflag, char *buffer, char *pulldown_buffer, int width, i
       //this means, we need to contruct a new frame from the current
       //and the previous, stored in pulldown_buffer
 
-      if(verbose & TC_STATS) printf("MERGE (%2d)\n", pulldown_frame_ctr);
+      if(verbose & TC_STATS)
+	  tc_log_msg(__FILE__, "MERGE (%2d)", pulldown_frame_ctr);
 
       if(vcodec==CODEC_RGB) {
 	merge_rgb_fields(buffer, pulldown_buffer, width, height);
@@ -287,7 +290,8 @@ int ivtc(int *flag, int pflag, char *buffer, char *pulldown_buffer, int width, i
     //case 3:
     if(pulldown_buffer_flag==1 && interlace_flag==0) {
 
-	if(verbose & TC_STATS) printf("FLUSH: (%2d)\n", pulldown_frame_ctr);
+	if(verbose & TC_STATS)
+	    tc_log_msg(__FILE__, "FLUSH: (%2d)", pulldown_frame_ctr);
 
 	//failed to detect the second interlaced frame of the pair
 	pulldown_buffer_flag=0;  //clear buffer
@@ -300,7 +304,8 @@ int ivtc(int *flag, int pflag, char *buffer, char *pulldown_buffer, int width, i
     //case 4:
     if(pulldown_buffer_flag==0 && interlace_flag==0) {
 
-      if(verbose & TC_STATS) printf("PASS: (%2d)\n", pulldown_frame_ctr);
+      if(verbose & TC_STATS)
+	  tc_log_msg(__FILE__, "PASS: (%2d)", pulldown_frame_ctr);
       clone_flag=1;
       goto resume;
     }
@@ -320,21 +325,24 @@ int ivtc(int *flag, int pflag, char *buffer, char *pulldown_buffer, int width, i
 
 	//force frame drop - no interlaced frames detected at checkpoint 1
 	if(pulldown_frame_ctr==5 && pulldown_drop_ctr == 0) {
-	  if(verbose & TC_STATS) printf("ADJUST\n");
+	    if(verbose & TC_STATS)
+		tc_log_msg(__FILE__, "ADJUST");
 	    clone_flag=0;
 	    ++pulldown_drop_ctr;
 	}
 
 	//force frame drop - no interlaced frames detected at checkpoint 2
 	if(pulldown_frame_ctr==10 && pulldown_drop_ctr < 2) {
-	  if(verbose & TC_STATS) printf("ADJUST\n");
+	    if(verbose & TC_STATS)
+		tc_log_msg(__FILE__, "ADJUST");
 	    clone_flag=0;
 	    ++pulldown_drop_ctr;
 	}
 
 	//force frame drop - no interlaced frames detected at checkpoint 3
 	if(pulldown_frame_ctr==15 && pulldown_drop_ctr < 3) {
-	  if(verbose & TC_STATS) printf("ADJUST\n");
+	    if(verbose & TC_STATS)
+		tc_log_msg(__FILE__, "ADJUST");
 	    clone_flag=0;
 	    ++pulldown_drop_ctr;
 	}
@@ -349,30 +357,34 @@ int ivtc(int *flag, int pflag, char *buffer, char *pulldown_buffer, int width, i
 
 	//force frame drop - no interlaced frames detected at checkpoint 1
 	if(pulldown_frame_ctr==4 && pulldown_drop_ctr == 0) {
-	  if(verbose & TC_STATS) printf("ADJUST\n");
+	    if(verbose & TC_STATS)
+		tc_log_msg(__FILE__, "ADJUST");
 	    clone_flag=0;
 	    ++pulldown_drop_ctr;
 	}
 
 	//force frame drop - no interlaced frames detected at checkpoint 2
 	if(pulldown_frame_ctr==8 && pulldown_drop_ctr < 2) {
-	  if(verbose & TC_STATS) printf("ADJUST\n");
+	    if(verbose & TC_STATS)
+		tc_log_msg(__FILE__, "ADJUST");
 	    clone_flag=0;
 	    ++pulldown_drop_ctr;
 	}
 
 	//force frame drop - no interlaced frames detected at checkpoint 3
 	if(pulldown_frame_ctr==12 && pulldown_drop_ctr < 3) {
-	  if(verbose & TC_STATS) printf("ADJUST\n");
+	    if(verbose & TC_STATS)
+		tc_log_msg(__FILE__, "ADJUST");
 	    clone_flag=0;
 	    ++pulldown_drop_ctr;
 	}
 
 	//force frame drop - no interlaced frames detected at checkpoint 4
 	if(pulldown_frame_ctr==15 && pulldown_drop_ctr < 4) {
-	  if(verbose & TC_STATS) printf("ADJUST\n");
-	  clone_flag=0;
-	  ++pulldown_drop_ctr;
+	    if(verbose & TC_STATS)
+		tc_log_msg(__FILE__, "ADJUST");
+	    clone_flag=0;
+	    ++pulldown_drop_ctr;
 	}
 
 	break;
@@ -384,14 +396,16 @@ int ivtc(int *flag, int pflag, char *buffer, char *pulldown_buffer, int width, i
 
 	//force frame drop - no interlaced frames detected at checkpoint 1
 	if(pulldown_frame_ctr==2 && pulldown_drop_ctr == 0) {
-	  if(verbose & TC_STATS) printf("ADJUST\n");
+	    if(verbose & TC_STATS)
+		tc_log_msg(__FILE__, "ADJUST");
 	    clone_flag=0;
 	    ++pulldown_drop_ctr;
 	}
 
 	//force frame drop - no interlaced frames detected at checkpoint 2
 	if(pulldown_frame_ctr==4 && pulldown_drop_ctr < 2) {
-	  if(verbose & TC_STATS) printf("ADJUST\n");
+	    if(verbose & TC_STATS)
+		tc_log_msg(__FILE__, "ADJUST");
 	    clone_flag=0;
 	    ++pulldown_drop_ctr;
 	}
@@ -405,7 +419,8 @@ int ivtc(int *flag, int pflag, char *buffer, char *pulldown_buffer, int width, i
 
 	//force frame drop - no interlaced frames detected at checkpoint 1
 	if(pulldown_frame_ctr==11 && pulldown_drop_ctr == 0) {
-	  if(verbose & TC_STATS) printf("ADJUST\n");
+	    if(verbose & TC_STATS)
+		tc_log_msg(__FILE__, "ADJUST");
 	    clone_flag=0;
 	    ++pulldown_drop_ctr;
 	}
@@ -434,9 +449,13 @@ int ivtc(int *flag, int pflag, char *buffer, char *pulldown_buffer, int width, i
     //reset
     if(pulldown_frame_ctr==last_frame) {
 
-      if(verbose & TC_STATS) printf( "DROP: (%2d)\n", pulldown_drop_ctr);
+      if(verbose & TC_STATS)
+	  tc_log_msg(__FILE__, "DROP: (%2d)", pulldown_drop_ctr);
       //summary
-      if(verbose & TC_COUNTER) printf("ivtc: frames=(%2d|%d), interlaced=%2d, merged=%2d, flushed=%2d, post=%2d\n", last_frame, must_drop, interlace_ctr, merge_ctr, flush_ctr, post_interlace_ctr);
+      if(verbose & TC_COUNTER)
+	  tc_log_msg(__FILE__, "frames=(%2d|%d), interlaced=%2d, merged=%2d, flushed=%2d, post=%2d",
+		     last_frame, must_drop, interlace_ctr, merge_ctr,
+		     flush_ctr, post_interlace_ctr);
 
       pulldown_frame_ctr = 0;
       pulldown_drop_ctr = 0;

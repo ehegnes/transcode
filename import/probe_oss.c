@@ -25,6 +25,7 @@
 #include "tcinfo.h"
 #include "ioaux.h"
 #include "tc.h"
+#include "libtc/libtc.h"
 
 #ifdef HAVE_OSS
 
@@ -51,8 +52,7 @@ int sample_rate;
     close(ipipe->fd_in);
     ipipe->fd_in = open(ipipe->name, O_RDONLY, 0);
     if (ipipe->fd_in < 0) {
-	fprintf(stderr, "[probe_oss] cannot (re)open device\n");
-	perror("[probe_oss] open oss device");
+	tc_log_error(__FILE__, "cannot (re)open device: %s", strerror(errno));
 	goto error;
     }
 
@@ -63,7 +63,7 @@ int sample_rate;
     sample_rate = 48000;
 
     if (ioctl(ipipe->fd_in, SNDCTL_DSP_GETFMTS, &encodings) < 0) {
-        perror("SNDCTL_DSP_SETFMT");
+        tc_log_perror(__FILE__, "SNDCTL_DSP_SETFMT");
         goto error;
     }
     if (encodings & AFMT_S16_LE) {
@@ -72,7 +72,7 @@ int sample_rate;
                 encoding = AFMT_U8;
                 precision = 8;
                 if (ioctl(ipipe->fd_in, SNDCTL_DSP_SETFMT, &encoding) < 0) {
-                    perror("SNDCTL_DSP_SETFMT");
+                    tc_log_perror(__FILE__, "SNDCTL_DSP_SETFMT");
                     goto error;
                 }
             }
@@ -80,12 +80,12 @@ int sample_rate;
     }
 
     if (ioctl(ipipe->fd_in, SNDCTL_DSP_CHANNELS, &channels) < 0) {
-        perror("SNDCTL_DSP_CHANNELS");
+        tc_log_perror(__FILE__, "SNDCTL_DSP_CHANNELS");
         goto error;
     }
 
     if (ipipe->verbose & TC_DEBUG)
-	fprintf(stderr, "[probe_oss] checking for valid samplerate .. ");
+	tc_log_msg(__FILE__, "checking for valid samplerate...");
     if (ioctl(ipipe->fd_in, SNDCTL_DSP_SPEED, &sample_rate) < 0) {
         sample_rate = 44100;
         if (ioctl(ipipe->fd_in, SNDCTL_DSP_SPEED, &sample_rate) < 0) {
@@ -100,7 +100,7 @@ int sample_rate;
                             sample_rate = 11025;
                             if (ioctl(ipipe->fd_in, SNDCTL_DSP_SPEED, &sample_rate) < 0) {
                                 if (ipipe->verbose & TC_DEBUG)
-                                    fprintf(stderr, "not found\n");
+                                    tc_log_msg(__FILE__, "... not found");
                                 goto error;
                             }
                         }
@@ -110,7 +110,7 @@ int sample_rate;
         }
     }
     if (ipipe->verbose & TC_DEBUG)
-        fprintf(stderr, "found %d\n", sample_rate);
+        tc_log_msg(__FILE__, "... found %d", sample_rate);
 
     ipipe->probe_info->track[0].bits = precision;
     ipipe->probe_info->track[0].chan = channels;
@@ -139,7 +139,7 @@ error:
 void
 probe_oss(info_t * ipipe)
 {
-    fprintf(stderr, "No support for oss compiled in\n");
+    tc_log_error(__FILE__, "No support for oss compiled in");
     ipipe->probe_info->codec = TC_CODEC_UNKNOWN;
     ipipe->probe_info->magic = TC_MAGIC_UNKNOWN;
 }

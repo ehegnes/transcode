@@ -1,4 +1,24 @@
 2006-04-18 Andrew Church <achurch at achurch dot org>
+  * import/a52_decore.c import/ac3scan.c import/aux_pes.c import/clone.c
+    import/decode_a52.c import/decode_ac3.c import/decode_lavc.c
+    import/decode_lzo.c import/decode_mov.c import/decode_mp3.c
+    import/decode_mpeg2.c import/decode_ogg.c import/decode_yuv.c
+    import/demux_pass.c import/demuxer.c import/dvd_reader.c
+    import/extract_ac3.c import/extract_dv.c import/extract_lzo.c
+    import/extract_mp3.c import/extract_mpeg2.c import/extract_ogm.c
+    import/extract_pcm.c import/extract_rgb.c import/extract_yuv.c
+    import/fileinfo.c import/import_avi.c import/import_bktr.c
+    import/import_dv.c import/import_dvd.c import/import_ffmpeg.c
+    import/import_mov.c import/import_ogg.c import/ioaux.c import/ioaux.h
+    import/iodump.c import/ioxml.c import/ivtc.c import/mpg123.c
+    import/packets.c import/probe_bktr.c import/probe_bsdav.c
+    import/probe_dvd.c import/probe_im.c import/probe_mov.c
+    import/probe_nuv.c import/probe_ogg.c import/probe_oss.c
+    import/probe_socket.c import/probe_stream.c import/probe_sunau.c
+    import/probe_v4l.c import/probe_vnc.c import/probe_wav.c
+    import/probe_xml.c import/scan_dv.c import/seqinfo.c
+  [f]printf() -> tc_log_XXX() changes.
+
   * libtc/libtc.h
   Add tc_log_perror() macro, doing the same thing as perror() but via
   tc_log_error().

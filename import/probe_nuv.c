@@ -25,6 +25,7 @@
 #include "tcinfo.h"
 #include "ioaux.h"
 #include "tc.h"
+#include "libtc/libtc.h"
 #include "nuv/nuppelvideo.h"
 
 void probe_nuv(info_t *ipipe)
@@ -34,7 +35,7 @@ void probe_nuv(info_t *ipipe)
   struct rtfileheader *rtf;
 
   if((rtf = tc_zalloc(sizeof(rtfileheader)))==NULL) {
-    fprintf(stderr, "(%s) out of memory\n", __FILE__);
+    tc_log_error(__FILE__, "out of memory");
     ipipe->error=1;
     return;
   }
@@ -42,7 +43,7 @@ void probe_nuv(info_t *ipipe)
   // read min frame (NTSC)
   if((bytes=tc_pread(ipipe->fd_in, (uint8_t*) rtf, sizeof(rtfileheader)))
      != sizeof(rtfileheader)) {
-    fprintf(stderr, "(%s) end of stream\n", __FILE__);
+    tc_log_error(__FILE__, "end of stream");
     ipipe->error=1;
     return;
   }

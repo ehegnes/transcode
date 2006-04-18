@@ -22,6 +22,7 @@
  */
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "tcinfo.h"
 
 #ifdef HAVE_SYS_TYPES_H
@@ -83,17 +84,18 @@ static void pes_lpcm_loop (void)
 	// check for valid start code
 	if (buf[0] || buf[1] || (buf[2] != 0x01)) {
 	  if (complain_loudly && (verbose & TC_DEBUG)) {
-	    fprintf (stderr, "(%s) missing start code at %#lx\n",
-		     __FILE__, ftell (in_file) - (end - buf));
+	    tc_log_warn(__FILE__, "missing start code at %#lx",
+			ftell (in_file) - (end - buf));
 	    if ((buf[0] == 0) && (buf[1] == 0) && (buf[2] == 0))
-	      fprintf (stderr, "(%s) incorrect zero-byte padding detected - ignored\n", __FILE__);
+	      tc_log_warn(__FILE__, "incorrect zero-byte padding detected - ignored");
 	    complain_loudly = 0;
 	  }
 	  buf++;
 	  continue;
 	}// check for valid start code
 
-	if(verbose & TC_STATS) fprintf(stderr,"packet code 0x%x\n", buf[3]);
+	if(verbose & TC_STATS)
+	  tc_log_msg(__FILE__, "packet code 0x%x", buf[3]);
 
 	switch (buf[3]) {
 
@@ -110,7 +112,7 @@ static void pes_lpcm_loop (void)
 	  else if (buf + 5 > end)
 	    goto copy;
 	  else {
-	    fprintf (stderr, "(%s) weird pack header\n", __FILE__);
+	    tc_log_error(__FILE__, "weird pack header");
 	    import_exit(1);
 	  }
 
@@ -129,7 +131,7 @@ static void pes_lpcm_loop (void)
 	  else {	/* mpeg1 */
 	    for (tmp1 = buf + 6; *tmp1 == 0xff; tmp1++)
 	      if (tmp1 == buf + 6 + 16) {
-		fprintf (stderr, "(%s) too much stuffing\n", __FILE__);
+		tc_log_warn(__FILE__, "too much stuffing");
 		buf = tmp2;
 		break;
 	      }
@@ -138,7 +140,8 @@ static void pes_lpcm_loop (void)
 	    tmp1 += mpeg1_skip_table [*tmp1 >> 4];
 	  }
 
-	  if(verbose & TC_STATS) fprintf(stderr,"track code 0x%x\n", *tmp1);
+	  if(verbose & TC_STATS)
+	    tc_log_msg(__FILE__, "track code 0x%x", *tmp1);
 
 	  if (*tmp1 == track_code) {
 
@@ -173,7 +176,7 @@ static void pes_lpcm_loop (void)
 		    extract_order = lpcm_bele24;
 #endif
 		    break;
-            default: fprintf (stderr, "unsupported LPCM quantization\n");
+            default: tc_log_error(__FILE__, "unsupported LPCM quantization");
 		     import_exit (1);
             }
 
@@ -204,7 +207,7 @@ static void pes_lpcm_loop (void)
 
 	default:
 	  if (buf[3] < 0xb9) {
-	    fprintf (stderr, "(%s) looks like a video stream, not program stream\n", __FILE__);
+	    tc_log_error(__FILE__, "looks like a video stream, not program stream");
 	    import_exit(1);
 	  }
 
@@ -268,7 +271,7 @@ void extract_pcm(info_t *ipipe)
   case TC_MAGIC_AVI:
 
     if(ipipe->stype == TC_STYPE_STDIN){
-	fprintf(stderr, "(%s) invalid magic/stype - exit\n", __FILE__);
+      tc_log_error(__FILE__, "invalid magic/stype - exit");
       error=1;
       break;
     }
@@ -380,8 +383,8 @@ void extract_pcm(info_t *ipipe)
   default:
 
       if(ipipe->magic == TC_MAGIC_UNKNOWN)
-	  fprintf(stderr, "(%s) no file type specified, assuming %s\n",
-		  __FILE__, filetype(TC_MAGIC_RAW));
+	  tc_log_warn(__FILE__, "no file type specified, assuming %s",
+		      filetype(TC_MAGIC_RAW));
 
    	bytes=ipipe->frame_limit[1] - ipipe->frame_limit[0];
    	//skip the first ipipe->frame_limit[0] bytes

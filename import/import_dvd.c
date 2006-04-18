@@ -113,7 +113,7 @@ MOD_open
       int max_titles, max_chapters, max_angles;
 
       if(dvd_init(vob->audio_in_file, &max_titles, verbose_flag)<0) {
-	tc_log_warn(MOD_NAME, "failed to open DVD %s\n",
+	tc_log_warn(MOD_NAME, "failed to open DVD %s",
 			vob->video_in_file);
 	return(TC_IMPORT_ERROR);
       }
@@ -604,7 +604,7 @@ MOD_decode
 		((tbuf.d[tbuf.off+5]>>3)&0x7)>1 &&
 		((tbuf.d[tbuf.off+5]>>3)&0x7)<4) {
 		 if (verbose & TC_DEBUG)
-                     tc_log_info(MOD_NAME, "found a P or B frame from %d -> %d\n",
+                     tc_log_info(MOD_NAME, "found a P or B frame from %d -> %d",
 		             start_pic, tbuf.off);
 
 		 param->size = tbuf.off - start_pic;

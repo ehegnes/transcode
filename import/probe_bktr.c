@@ -25,6 +25,7 @@
 #include "tcinfo.h"
 #include "ioaux.h"
 #include "tc.h"
+#include "libtc/libtc.h"
 
 #ifdef HAVE_BKTR
 
@@ -52,32 +53,31 @@ probe_bktr(info_t * ipipe)
     close(ipipe->fd_in);
     ipipe->fd_in = open(ipipe->name, O_RDONLY, 0);
     if (ipipe->fd_in < 0) {
-	fprintf(stderr, "[probe_bktr] cannot open device\n");
-	perror("[probe_bktr] open bktr device");
+	tc_log_error(__FILE__, "cannot open device: %s", strerror(errno));
 	goto error;
     }
 
     /* try a bktr ioctl */
     if (ipipe->verbose & TC_DEBUG)
-	fprintf(stderr, "[probe_bktr] checking if bktr ioctls are supported .. ");
+	tc_log_msg(__FILE__, "checking if bktr ioctls are supported...");
     if (ioctl(ipipe->fd_in, METEORSTATUS, &status) < 0) {
 	if (ipipe->verbose & TC_DEBUG)
-	    fprintf(stderr, "no\n");
+	    tc_log_msg(__FILE__, "... no");
 	goto error;
     } else {
         if (ipipe->verbose & TC_DEBUG)
-            fprintf(stderr, "yes\n");
+            tc_log_msg(__FILE__, "... yes");
     }
 
     if (ioctl(ipipe->fd_in, BT848_GCAPAREA, &caparea) < 0) {
-	perror("BT848_GCAPAREA");
+	tc_log_perror(__FILE__, "BT848_GCAPAREA");
         goto error;
     }
     ipipe->probe_info->width = caparea.x_size;
     ipipe->probe_info->height = caparea.y_size;
 
     if (ioctl(ipipe->fd_in, METEORGFPS, &fps) < 0) {
-	perror("METEORGFPS");
+	tc_log_perror(__FILE__, "METEORGFPS");
         goto error;
     }
     ipipe->probe_info->fps = fps;
@@ -110,7 +110,7 @@ error:
 void
 probe_bktr(info_t * ipipe)
 {
-    fprintf(stderr, "No support for bktr compiled in\n");
+    tc_log_error(__FILE__, "No support for bktr compiled in");
     ipipe->probe_info->codec = TC_CODEC_UNKNOWN;
     ipipe->probe_info->magic = TC_MAGIC_UNKNOWN;
 }

@@ -103,7 +103,7 @@ audiovideo_limit_t f_det_time(char *p_options)
 	}
 	else
 	{
-		fprintf(stderr,"Invalid parameter %s force default",p_options);
+		tc_log_warn(__FILE__,"Invalid parameter %s force default",p_options);
 		s_limit.s_time=-1;
 		s_limit.s_frame=0;
 	}
@@ -341,13 +341,13 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 			if ((s_type==AUDIO_ITEM) && ((s_param==IN_VIDEO_CODEC)||(s_param==IN_VIDEO_MAGIC)||(s_param==OUT_VIDEO_HEIGHT)||(s_param==OUT_VIDEO_WIDTH)))
 			{
 				if (s_param==OUT_VIDEO_HEIGHT)
-					fprintf(stderr,"(%s) The target-height parameter cannot be used in audio item, %s skipped.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
+					tc_log_warn(__FILE__,"The target-height parameter cannot be used in audio item, %s skipped.",__FILE__,(char *)p_node->xmlChildrenNode->content);
 				else if (s_param==OUT_VIDEO_WIDTH)
-					fprintf(stderr,"(%s) The target-width parameter cannot be used in audio item, %s skipped.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
+					tc_log_warn(__FILE__,"The target-width parameter cannot be used in audio item, %s skipped.",(char *)p_node->xmlChildrenNode->content);
 				else if (s_param==IN_VIDEO_MAGIC)
-					fprintf(stderr,"(%s) The in-video-module parameter cannot be used in audio item, %s skipped.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
+					tc_log_warn(__FILE__,"The in-video-module parameter cannot be used in audio item, %s skipped.",(char *)p_node->xmlChildrenNode->content);
 				else if (s_param==IN_VIDEO_CODEC)
-					fprintf(stderr,"(%s) The in-video-codec parameter cannot be used in audio item, %s skipped.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
+					tc_log_warn(__FILE__,"The in-video-codec parameter cannot be used in audio item, %s skipped.",(char *)p_node->xmlChildrenNode->content);
 				s_rc=1;
 			}
 			else
@@ -372,7 +372,7 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 							p_audiovideo->s_v_magic=TC_MAGIC_AVI;
 						else
 						{
-							fprintf(stderr,"(%s) The in-video-magic %s parameter isn't yet supported.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
+							tc_log_warn(__FILE__,"The in-video-magic %s parameter isn't yet supported.",(char *)p_node->xmlChildrenNode->content);
 							s_rc=1;
 						}
 					break;
@@ -385,7 +385,7 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 							p_audiovideo->s_a_magic=TC_MAGIC_AVI;
 						else
 						{
-							fprintf(stderr,"(%s) The in-audio-magic %s parameter isn't yet supported.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
+							tc_log_warn(__FILE__,"The in-audio-magic %s parameter isn't yet supported.",(char *)p_node->xmlChildrenNode->content);
 							s_rc=1;
 						}
 					break;
@@ -404,14 +404,14 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 							p_audiovideo->s_v_codec=CODEC_RAW;
 						else
 						{
-							fprintf(stderr,"(%s) The in-video-codec %s parameter isn't yet supported.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
+							tc_log_warn(__FILE__,"The in-video-codec %s parameter isn't yet supported.",(char *)p_node->xmlChildrenNode->content);
 							s_rc=1;
 						}
 						if (s_video_codec == TC_CODEC_UNKNOWN)
 							s_video_codec=p_audiovideo->s_v_codec;
 						else if (s_video_codec != p_audiovideo->s_v_codec)
 						{
-							fprintf(stderr,"(%s) The XML file must contain the same video codec.\n",__FILE__);
+							tc_log_warn(__FILE__,"The XML file must contain the same video codec.");
 							s_rc=1;
 						}
 					break;
@@ -420,20 +420,20 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 							p_audiovideo->s_a_codec=CODEC_PCM;
 						else
 						{
-							fprintf(stderr,"(%s) The in-audio-codec %s parameter isn't yet supported.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
+							tc_log_warn(__FILE__,"The in-audio-codec %s parameter isn't yet supported.",(char *)p_node->xmlChildrenNode->content);
 							s_rc=1;
 						}
 						if (s_audio_codec == TC_CODEC_UNKNOWN)
 							s_audio_codec=p_audiovideo->s_a_codec;
 						else if (s_audio_codec != p_audiovideo->s_a_codec)
 						{
-							fprintf(stderr,"(%s) The XML file must contain the same audio codec.\n",__FILE__);
+							tc_log_warn(__FILE__,"The XML file must contain the same audio codec.");
 							s_rc=1;
 						}
 					break;
 
 					case UNSUPPORTED_PARAM:
-						fprintf(stderr,"(%s) The %s parameter isn't yet supported.\n",__FILE__,(char *)p_node->xmlChildrenNode->content);
+						tc_log_warn(__FILE__,"The %s parameter isn't yet supported.",(char *)p_node->xmlChildrenNode->content);
 						s_rc=1;
 					break;
 				}
@@ -509,7 +509,7 @@ int f_complete_tree(audiovideo_t *p_audiovideo)
 			{
 				if ((s_video_codec!=TC_CODEC_UNKNOWN) && (p_audiovideo->s_v_codec != s_video_codec))
 				{
-					fprintf(stderr,"(%s) The file must contain the same video codec (found 0x%lx but 0x%x is already define)", __FILE__,p_audiovideo->s_v_codec,s_video_codec);
+					tc_log_error(__FILE__,"The file must contain the same video codec (found 0x%lx but 0x%x is already defined)",p_audiovideo->s_v_codec,s_video_codec);
 					return(1);
 				}
 				s_video_codec=p_audiovideo->s_v_codec;
@@ -531,7 +531,7 @@ int f_complete_tree(audiovideo_t *p_audiovideo)
 			{
 				if ((s_audio_codec!=TC_CODEC_UNKNOWN) && (p_audiovideo->s_a_codec != s_audio_codec))
 				{
-					fprintf(stderr,"(%s) The file must contain the same audio codec (found 0x%lx but 0x%x is already define)", __FILE__,p_audiovideo->s_a_codec,s_audio_codec);
+					tc_log_error(__FILE__,"The file must contain the same audio codec (found 0x%lx but 0x%x is already defined)",p_audiovideo->s_a_codec,s_audio_codec);
 					return(1);
 				}
 				s_audio_codec=p_audiovideo->s_a_codec;
@@ -570,27 +570,27 @@ int f_manage_input_xml(const char *p_name,int s_type,audiovideo_t *p_audiovideo)
         	if (p_node == NULL)
         	{
                 	xmlFreeDoc(p_doc);
-                	fprintf(stderr,"Invalid file format\n");
+                	tc_log_error(__FILE__,"Invalid file format");
 			return(1);
         	}
         	ns = xmlSearchNsByHref(p_doc, p_node, (const xmlChar *) "http://www.w3.org/2001/SMIL20/Language");
         	if (ns == NULL)
         	{
                 	xmlFreeDoc(p_doc);
-                	fprintf(stderr,"Invalid Namespace \n");
+                	tc_log_error(__FILE__,"Invalid Namespace");
 			return(1);
         	}
         	ns = xmlSearchNs(p_doc, p_node, (const xmlChar *) "smil2");
         	if (ns == NULL)
         	{
                 	xmlFreeDoc(p_doc);
-                	fprintf(stderr,"Invalid Namespace \n");
+                	tc_log_error(__FILE__,"Invalid Namespace");
 			return(1);
         	}
         	if (xmlStrcmp(p_node->name, (const xmlChar *) "smil"))
        		{
        		        xmlFreeDoc(p_doc);
-       		        fprintf(stderr,"Invalid Namespace \n");
+       		        tc_log_error(__FILE__,"Invalid Namespace");
 			return(1);
         	}
         	f_delete_unused_node(p_node);

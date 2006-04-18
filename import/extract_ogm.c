@@ -10,6 +10,7 @@
 */
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "tcinfo.h"
 
 #ifdef HAVE_SYS_TYPES_H
@@ -120,8 +121,7 @@ static void flush_pages(stream_t *stream, ogg_packet *op) {
     ih = write(stream->fd, page.header, page.header_len);
     ib = write(stream->fd, page.body, page.body_len);
     if (verbose_flag & TC_DEBUG)
-      fprintf(stderr, "(%s) x/a%d: %d + %d written\n", __FILE__, stream->sno,
-              ih, ib);
+      tc_log_msg(__FILE__, "x/a%d: %d + %d written", stream->sno, ih, ib);
   }
 }
 
@@ -133,8 +133,7 @@ static void write_pages(stream_t *stream, ogg_packet *op) {
     ih = write(stream->fd, page.header, page.header_len);
     ib = write(stream->fd, page.body, page.body_len);
     if (verbose_flag & TC_DEBUG)
-      fprintf(stderr, "(%s) x/a%d: %d + %d written\n", __FILE__, stream->sno,
-              ih, ib);
+      tc_log_msg(__FILE__, "x/a%d: %d + %d written", stream->sno, ih, ib);
   }
 }
 
@@ -145,7 +144,7 @@ static void handle_packet(stream_t *stream, ogg_packet *pack, ogg_page *page) {
   char out[100];
   ogg_int64_t pgp, sst;
 
-  //fprintf(stderr, "Going handle 1\n");
+  //tc_log_msg(__FILE__, "Going handle 1");
   if (pack->e_o_s) {
     stream->eos = 1;
     pack->e_o_s = 1;
@@ -186,7 +185,7 @@ static void handle_packet(stream_t *stream, ogg_packet *pack, ogg_page *page) {
       i = write(stream->fd, (char *)&pack->packet[hdrlen + 1],
 	  pack->bytes - 1 - hdrlen);
       if (verbose_flag & TC_DEBUG)
-        fprintf(stderr, "(%s) x/v%d: %d written\n", __FILE__, stream->sno, i);
+        tc_log_msg(__FILE__, "x/v%d: %d written", stream->sno, i);
       break;
     case 't':
       if (((*pack->packet & 3) == OGM_PACKET_TYPE_HEADER) ||
@@ -197,8 +196,7 @@ static void handle_packet(stream_t *stream, ogg_packet *pack, ogg_page *page) {
         i = write(stream->fd, (char *)&pack->packet[hdrlen + 1],
                   pack->bytes - 1 - hdrlen);
         if (verbose_flag & TC_DEBUG)
-          fprintf(stderr, "(%s) x/t%d: %d written\n", __FILE__,
-                  stream->sno, i);
+          tc_log_msg(__FILE__, "x/t%d: %d written", stream->sno, i);
         return;
       }
 
@@ -226,8 +224,7 @@ static void handle_packet(stream_t *stream, ogg_packet *pack, ogg_page *page) {
         i += write(stream->fd, "\r\n\r\n", 4);
         stream->subnr++;
         if (verbose_flag & TC_DEBUG)
-          fprintf(stderr, "(%s) x/t%d: %d written\n", __FILE__,
-                  stream->sno, i);
+          tc_log_msg(__FILE__, "x/t%d: %d written", stream->sno, i);
       }
       break;
     case 'a':
@@ -240,8 +237,7 @@ static void handle_packet(stream_t *stream, ogg_packet *pack, ogg_page *page) {
               i = write(stream->fd, (char *)&pack->packet[1],
                         pack->bytes - 1);
             if (verbose_flag & TC_DEBUG)
-              fprintf(stderr, "(%s) x/a%d: %d written\n", __FILE__,
-                      stream->sno, i);
+              tc_log_msg(__FILE__, "x/a%d: %d written", stream->sno, i);
             return;
           }
           stream->max_granulepos = (pack->granulepos > stream->max_granulepos ?
@@ -264,8 +260,7 @@ static void handle_packet(stream_t *stream, ogg_packet *pack, ogg_page *page) {
                     pack->bytes - 1 - hdrlen);
           stream->bwritten += i;
           if (verbose_flag & TC_DEBUG)
-            fprintf(stderr, "(%s) x/a%d: %d written\n", __FILE__,
-                    stream->sno, i);
+            tc_log_msg(__FILE__, "x/a%d: %d written", stream->sno, i);
           break;
       }
     break;
@@ -288,18 +283,18 @@ static void process_ogm(int fdin, int fdout)
   while (1) {
     np = ogg_sync_pageseek(&sync, &page);
     if (np < 0) {
-      fprintf(stderr, "(%s) ogg_sync_pageseek failed\n", __FILE__);
+      tc_log_error(__FILE__, "ogg_sync_pageseek failed");
       return;
     }
     if (np == 0) {
       buf = ogg_sync_buffer(&sync, BLOCK_SIZE);
       if (!buf) {
-        fprintf(stderr, "(%s) ogg_sync_buffer failed\n", __FILE__);
+        tc_log_error(__FILE__, "ogg_sync_buffer failed");
         return;
       }
       if ((nread = read(fdin, buf, BLOCK_SIZE)) <= 0) {
         if (verbose_flag & TC_INFO)
-          fprintf(stderr, "(%s) end of stream 1\n", __FILE__);
+          tc_log_info(__FILE__, "end of stream 1");
         return;
       }
       ogg_sync_wrote(&sync, nread);
@@ -312,7 +307,7 @@ static void process_ogm(int fdin, int fdout)
       ogg_stream_state sstate;
       sno = ogg_page_serialno(&page);
       if (ogg_stream_init(&sstate, sno)) {
-        fprintf(stderr, "(%s) ogg_stream_init failed\n", __FILE__);
+        tc_log_error(__FILE__, "ogg_stream_init failed");
         return;
       }
       ogg_stream_pagein(&sstate, &page);
@@ -322,7 +317,7 @@ static void process_ogm(int fdin, int fdout)
 
         stream = tc_malloc(sizeof(stream_t));
         if (stream == NULL) {
-          fprintf(stderr, "malloc failed.\n");
+          tc_log_error(__FILE__, "malloc failed.");
           exit(1);
         }
 
@@ -331,14 +326,14 @@ static void process_ogm(int fdin, int fdout)
           vorbis_info_init(&vi);
           vorbis_comment_init(&vc);
           if (vorbis_synthesis_headerin(&vi, &vc, &pack) >= 0) {
-            fprintf(stderr, "(%s) (a%d/%d) Vorbis audio (channels %d " \
-                    "rate %ld)\n", __FILE__, nastreams + 1, numstreams + 1,
-                    vi.channels, vi.rate);
+            tc_log_info(__FILE__, "(a%d/%d) Vorbis audio (channels %d "
+                        "rate %ld)", nastreams + 1, numstreams + 1,
+                        vi.channels, vi.rate);
             stream->sample_rate = vi.rate;
           } else
-            fprintf(stderr, "(%s) (a%d/%d) Vorbis audio stream indicated " \
-                    "but no Vorbis stream header found.\n", __FILE__,
-                    nastreams + 1, numstreams + 1);
+            tc_log_warn(__FILE__, "(a%d/%d) Vorbis audio stream indicated "
+                        "but no Vorbis stream header found.",
+                        nastreams + 1, numstreams + 1);
         }
         stream->serial = sno;
         stream->acodec = ACVORBIS;
@@ -349,15 +344,15 @@ static void process_ogm(int fdin, int fdout)
         if (extraction_requested(xaudio, nastreams + 1, NOAUDIO)) {
 	  stream->fd = fdout;
           if (stream->fd == -1) {
-            fprintf(stderr, "(%s) Failed to create \"%s\" (%d, %s).\n",
-                    __FILE__, "new_name", errno, strerror(errno));
+            tc_log_error(__FILE__, "Failed to create \"%s\" (%d, %s).",
+                         "new_name", errno, strerror(errno));
             exit(1);
           }
           if (!xraw)
             ogg_stream_init(&stream->outstate, rand());
           if (verbose_flag & TC_INFO)
-            fprintf(stderr, "(%s) Extracting a%d to \"%s\".\n", __FILE__,
-                    nastreams + 1, "new_name");
+            tc_log_info(__FILE__, "Extracting a%d to \"%s\".",
+                        nastreams + 1, "new_name");
           do
             handle_packet(stream, &pack, &page);
           while (ogg_stream_packetout(&stream->instate, &pack) == 1);
@@ -370,15 +365,15 @@ static void process_ogm(int fdin, int fdout)
                           35) ) {
         if ((*(int32_t*)(pack.packet+96) == 0x05589f80) &&
             (pack.bytes >= 184)) {
-           fprintf(stderr, "(%s) (v%d/%d) Found old video header. Not " \
-                   "supported.\n", __FILE__, nvstreams + 1, numstreams + 1);
+          tc_log_warn(__FILE__, "(v%d/%d) Found old video header. Not "
+                      "supported.", nvstreams + 1, numstreams + 1);
         } else if (*(int32_t*)pack.packet+96 == 0x05589F81) {
-          fprintf(stderr, "(%s) (a%d/%d) Found old audio header. Not " \
-                  "supported.\n", __FILE__, nastreams + 1, numstreams + 1);
+          tc_log_warn(__FILE__, "(a%d/%d) Found old audio header. Not "
+                      "supported.", nastreams + 1, numstreams + 1);
         } else {
           if (verbose_flag & TC_INFO)
-            fprintf(stderr, "(%s) OGG stream %d has an old header with an " \
-                    "unknown type.", __FILE__, numstreams + 1);
+            tc_log_warn(__FILE__, "OGG stream %d has an old header with an "
+                        "unknown type.", numstreams + 1);
         }
       }  else if (((*pack.packet & OGM_PACKET_TYPE_BITS ) == OGM_PACKET_TYPE_HEADER) &&
 	          (pack.bytes >= (int)(sizeof(ogm_stream_header) + 1 - sizeof(int)))) {
@@ -391,15 +386,14 @@ static void process_ogm(int fdin, int fdout)
           codec = (sth->subtype[0] << 24) +
             (sth->subtype[1] << 16) + (sth->subtype[2] << 8) + sth->subtype[3];
           if (verbose_flag & TC_INFO)
-            fprintf(stderr, "(%s) (v%d/%d) fps: %.3f width height: %dx%d " \
-                    "codec: %p (%s)\n", __FILE__, nvstreams + 1,
-                    numstreams + 1,
-                    (double)10000000 / (double)sth->time_unit,
-                    sth->sh.video.width, sth->sh.video.height, (void *)codec,
-                    ccodec);
+            tc_log_info(__FILE__, "(v%d/%d) fps: %.3f width height: %dx%d "
+                        "codec: %p (%s)", nvstreams + 1, numstreams + 1,
+                        (double)10000000 / (double)sth->time_unit,
+                        sth->sh.video.width, sth->sh.video.height,
+                        (void *)codec, ccodec);
           stream = tc_malloc(sizeof(stream_t));
           if (stream == NULL) {
-            fprintf(stderr, "malloc failed.\n");
+            tc_log_error(__FILE__, "malloc failed.");
             exit(1);
           }
           stream->stype = 'v';
@@ -411,8 +405,8 @@ static void process_ogm(int fdin, int fdout)
 	    stream->fd = fdout;
 
             if (verbose_flag & TC_INFO)
-              fprintf(stderr, "(%s) Extracting v%d to \"%s\".\n", __FILE__,
-                      nvstreams + 1, "new_name");
+              tc_log_info(__FILE__, "Extracting v%d to \"%s\".",
+                          nvstreams + 1, "new_name");
             do {
               handle_packet(stream, &pack, &page);
 	    } while (ogg_stream_packetout(&stream->instate, &pack) == 1);
@@ -427,20 +421,20 @@ static void process_ogm(int fdin, int fdout)
           buf[4] = 0;
           codec = strtoul(buf, NULL, 16);
           if (verbose_flag & TC_INFO) {
-            fprintf(stderr, "(%s) (a%d/%d) codec: %d (0x%04x) (%s), bits per " \
-                    "sample: %d channels: %hd  samples per second: %lld",
-                    __FILE__, nastreams + 1, numstreams + 1, codec, codec,
-                    codec == ACPCM ? "PCM" : codec == 55 ? "MP3" :
-                    codec == ACMP3 ? "MP3" :
-                    codec == ACAC3 ? "AC3" : "unknown",
-                    sth->bits_per_sample, sth->sh.audio.channels,
-                    (long long)sth->samples_per_unit);
-             fprintf(stderr, " avgbytespersec: %hd blockalign: %d\n",
-                     sth->sh.audio.avgbytespersec, sth->sh.audio.blockalign);
+            tc_log_info(__FILE__, "(a%d/%d) codec: %d (0x%04x) (%s), bits per "
+                        "sample: %d channels: %hd  samples per second: %lld "
+                        " avgbytespersec: %hd blockalign: %d",
+                        nastreams + 1, numstreams + 1, codec, codec,
+                        codec == ACPCM ? "PCM" : codec == 55 ? "MP3" :
+                        codec == ACMP3 ? "MP3" :
+                        codec == ACAC3 ? "AC3" : "unknown",
+                        sth->bits_per_sample, sth->sh.audio.channels,
+                        (long long)sth->samples_per_unit,
+                        sth->sh.audio.avgbytespersec, sth->sh.audio.blockalign);
           }
           stream = tc_malloc(sizeof(stream_t));
           if (stream == NULL) {
-            fprintf(stderr, "malloc failed.\n");
+            tc_log_error(__FILE__, "malloc failed.");
             exit(1);
           }
           stream->sno = nastreams + 1;
@@ -459,8 +453,8 @@ static void process_ogm(int fdin, int fdout)
 		      */
             stream->fd = fdout;
             if (verbose_flag & TC_INFO)
-              fprintf(stderr, "(%s) Extracting a%d to \"%s\".\n", __FILE__,
-                      nastreams + 1, "new_name");
+              tc_log_info(__FILE__, "Extracting a%d to \"%s\".",
+                          nastreams + 1, "new_name");
             do {
               handle_packet(stream, &pack, &page);
 	    } while (ogg_stream_packetout(&stream->instate, &pack) == 1);
@@ -470,11 +464,11 @@ static void process_ogm(int fdin, int fdout)
           numstreams++;
         } else if (!strncmp(sth->streamtype, "text", 4)) {
           if (verbose_flag & TC_INFO)
-            fprintf(stderr, "(%s) (t%d/%d) text/subtitle stream\n", __FILE__,
-                    ntstreams + 1, numstreams + 1);
+            tc_log_info(__FILE__, "(t%d/%d) text/subtitle stream",
+                        ntstreams + 1, numstreams + 1);
           stream = tc_malloc(sizeof(stream_t));
           if (stream == NULL) {
-            fprintf(stderr, "malloc failed.\n");
+            tc_log_error(__FILE__, "malloc failed.");
             exit(1);
           }
           stream->sno = ntstreams + 1;
@@ -485,8 +479,8 @@ static void process_ogm(int fdin, int fdout)
           if (extraction_requested(xtext, ntstreams + 1, NOTEXT)) {
             new_name = tc_malloc(strlen(basename) + 20);
             if (!new_name) {
-              fprintf(stderr, "(%s) Failed to allocate %d bytes.\n", __FILE__,
-                (int)strlen(basename) + 20);
+              tc_log_error(__FILE__, "Failed to allocate %d bytes.",
+                           (int)strlen(basename) + 20);
               exit(1);
             }
             if (!xraw)
@@ -497,13 +491,13 @@ static void process_ogm(int fdin, int fdout)
             //                S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
             stream->fd = fdout;
             if (stream->fd == -1) {
-              fprintf(stderr, "(%s) Failed to create \"%s\" (%d, %s).\n",
-                      __FILE__, new_name, errno, strerror(errno));
+              tc_log_error(__FILE__, "Failed to create \"%s\" (%d, %s).",
+                           new_name, errno, strerror(errno));
               exit(1);
             }
             if (verbose_flag & TC_INFO)
-              fprintf(stderr, "(%s) Extracting t%d to \"%s\".\n", __FILE__,
-                      ntstreams + 1, new_name);
+              tc_log_info(__FILE__, "Extracting t%d to \"%s\".",
+                          ntstreams + 1, new_name);
             do
               handle_packet(stream, &pack, &page);
             while (ogg_stream_packetout(&stream->instate, &pack) == 1);
@@ -512,13 +506,13 @@ static void process_ogm(int fdin, int fdout)
           ntstreams++;
           numstreams++;
         } else {
-          fprintf(stderr, "(%s) (%d) found new header of unknown/" \
-                  "unsupported type\n", __FILE__, numstreams + 1);
+          tc_log_warn(__FILE__, "(%d) found new header of unknown/"
+                      "unsupported type\n", numstreams + 1);
         }
 
       } else {
-        fprintf(stderr, "(%s) OGG stream %d is of an unknown type " \
-                "(bad header?)\n", __FILE__, numstreams + 1);
+	tc_log_warn(__FILE__, "OGG stream %d is of an unknown type "
+                    "(bad header?)\n", numstreams + 1);
       }
     }
   }
@@ -529,12 +523,11 @@ static void process_ogm(int fdin, int fdout)
     stream = find_stream(sno);
     if (stream == NULL) {
       if (verbose_flag & TC_DEBUG)
-        fprintf(stderr, "(%s) Encountered packet for an unknown serial " \
-                "%d !?\n", __FILE__, sno);
+        tc_log_warn(__FILE__, "Encountered packet for an unknown serial "
+                    "%d !?\n", sno);
     } else {
       if (verbose_flag & TC_DEBUG)
-        fprintf(stderr, "(%s) %c%d: NEW PAGE\n",
-                __FILE__, stream->stype, stream->sno);
+        tc_log_msg(__FILE__, "%c%d: NEW PAGE", stream->stype, stream->sno);
 
       ogg_stream_pagein(&stream->instate, &page);
       while (ogg_stream_packetout(&stream->instate, &pack) == 1)
@@ -580,7 +573,7 @@ static void process_ogm(int fdin, int fdout)
           stream = stream->next;
         }
         if (verbose_flag & TC_INFO)
-          fprintf(stderr, "(%s) end of stream\n", __FILE__);
+          tc_log_info(__FILE__, "end of stream");
         endofstream = 1;
         break;
       } else
@@ -627,7 +620,7 @@ void extract_ogm (info_t *ipipe)
 #if (HAVE_OGG && HAVE_VORBIS)
   process_ogm(ipipe->fd_in, ipipe->fd_out);
 #else
-  fprintf(stderr, "No support for Ogg/Vorbis compiled in\n");
+  tc_log_error(__FILE__, "No support for Ogg/Vorbis compiled in");
   import_exit(1);
 #endif
 }

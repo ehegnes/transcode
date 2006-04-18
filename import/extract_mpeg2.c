@@ -23,6 +23,7 @@
  */
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "tcinfo.h"
 
 #include "ioaux.h"
@@ -60,10 +61,10 @@ static void ps_loop (void)
 	// check for valid start code
 	if (buf[0] || buf[1] || (buf[2] != 0x01)) {
 	  if (complain_loudly) {
-	    fprintf (stderr, "(%s) missing start code at %#lx\n",
-		     __FILE__, ftell (in_file) - (end - buf));
+	    tc_log_warn(__FILE__, "missing start code at %#lx",
+			ftell (in_file) - (end - buf));
 	    if ((buf[0] == 0) && (buf[1] == 0) && (buf[2] == 0))
-	      fprintf (stderr, "(%s) incorrect zero-byte padding detected - ignored\n", __FILE__);
+	      tc_log_warn(__FILE__, "incorrect zero-byte padding detected - ignored");
 	    complain_loudly = 0;
 	  }
 	  buf++;
@@ -86,7 +87,7 @@ static void ps_loop (void)
 	  else if (buf + 5 > end)
 	    goto copy;
 	  else {
-	    fprintf (stderr, "(%s) weird pack header\n", __FILE__);
+	    tc_log_error(__FILE__, "weird pack header");
 	    import_exit(1);
 	  }
 
@@ -114,7 +115,7 @@ static void ps_loop (void)
 	  else {	/* mpeg1 */
 	    for (tmp1 = buf + 6; *tmp1 == 0xff; tmp1++)
 	      if (tmp1 == buf + 6 + 16) {
-		fprintf (stderr, "(%s) too much stuffing\n", __FILE__);
+		tc_log_warn(__FILE__, "too much stuffing");
 		buf = tmp2;
 		break;
 	      }
@@ -130,7 +131,8 @@ static void ps_loop (void)
 	  break;
 
 	default:
-	  if (buf[3] < 0xb9) fprintf (stderr, "(%s) broken stream - skipping data\n", __FILE__);
+	  if (buf[3] < 0xb9)
+	    tc_log_warn(__FILE__, "broken stream - skipping data");
 
 	  /* skip */
 	  tmp1 = buf + 6 + (buf[4] << 8) + buf[5];
@@ -197,8 +199,8 @@ void extract_mpeg2(info_t *ipipe)
     default:
 
       if(ipipe->magic == TC_MAGIC_UNKNOWN)
-	fprintf(stderr, "(%s) no file type specified, assuming %s\n",
-		__FILE__, filetype(TC_MAGIC_RAW));
+	tc_log_warn(__FILE__, "no file type specified, assuming %s",
+		    filetype(TC_MAGIC_RAW));
 
 
       error=tc_preadwrite(ipipe->fd_in, ipipe->fd_out);

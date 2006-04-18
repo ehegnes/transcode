@@ -169,7 +169,9 @@ static void seq_flush_thread(void)
 
   if(ptr!=NULL) {
 
-      if(verbose & TC_SYNC) fprintf(stderr, "syncinfo write (%d)\n", ptr->id);
+      if(verbose & TC_SYNC) {
+          tc_log_msg(__FILE__, "syncinfo write (%d)", ptr->id);
+      }
 
       seq_write(ptr);
 
@@ -183,7 +185,8 @@ static void seq_flush_thread(void)
       --seq_ctr;
       pthread_mutex_unlock(&seq_ctr_lock);
 
-  } else fprintf(stderr, "called but no work to do - this shouldn't happen\n");
+  } else
+     tc_log_error(__FILE__, "called but no work to do - this shouldn't happen");
 
   return;
 }
@@ -252,7 +255,7 @@ void seq_write(seq_list_t *ptr)
 
   for(i=0; i<ptr->enc_pics; ++i) {
 
-     //check for pulldown flag
+      //check for pulldown flag
       sync_info.pulldown = ptr->pulldown;
 
       //master flag makes final decision
@@ -263,7 +266,10 @@ void seq_write(seq_list_t *ptr)
       } else
 	  sync_info.drop_seq=0;
 
-      if(verbose & TC_PRIVATE) fprintf(stderr, "[%ld] %d %d %d %ld\n", frame_ctr, ptr->id, i, clone[i], check_ctr);
+      if(verbose & TC_PRIVATE) {
+          tc_log_msg(__FILE__, "[%ld] %d %d %d %ld",
+                     frame_ctr, ptr->id, i, clone[i], check_ctr);
+      }
 
       drop_ctr += (int) (clone[i]-1);
 
@@ -279,16 +285,21 @@ void seq_write(seq_list_t *ptr)
       sync_info.pts = (double) ptr->tot_pts/90000;
 
       if((tmp=tc_pwrite(_sfd, (uint8_t *) &sync_info, sizeof(sync_info_t)))!= sizeof(sync_info_t)) {
-	  fprintf(stderr, "syncinfo write error (%d)\n", tmp);
-	  perror("write");
+          tc_log_warn(__FILE__, "syncinfo write error (%d): %s",
+                      tmp, strerror(errno));
       }
       check_ctr += clone[i];
 
-      if(verbose & TC_SYNC && i==ptr->enc_pics-1) fprintf(stderr,"(%s) sync data for sequence %d flushed [%ld]\n", __FILE__, ptr->id, sync_info.enc_frame);
+      if(verbose & TC_SYNC && i==ptr->enc_pics-1) {
+          tc_log_msg(__FILE__, "sync data for sequence %d flushed [%ld]",
+                     ptr->id, sync_info.enc_frame);
+      }
   }
 
   if(verbose & TC_PRIVATE) {
-      fprintf(stderr, "frames=%6ld seq=%4ld adj=%4d AV=%8.4f [fps] ratio= %.4f PTS= %.2f\n", sync_info.enc_frame, sync_info.sequence, drop_ctr, sync_info.dec_fps-fps, sync_info.enc_fps/fps, sync_info.pts);
+      tc_log_msg(__FILE__, "frames=%6ld seq=%4ld adj=%4d AV=%8.4f [fps] ratio= %.4f PTS= %.2f",
+                 sync_info.enc_frame, sync_info.sequence, drop_ctr,
+                 sync_info.dec_fps-fps, sync_info.enc_fps/fps, sync_info.pts);
   }
 
   return;
@@ -400,14 +411,14 @@ void seq_update(seq_list_t *ptr, int end_pts, int pictures, int packets, int fla
 
   if(verbose & TC_PRIVATE) {
 
-    fprintf(stderr, "---------------------------------------------------------\n");
-    fprintf(stderr, "MPEG sequence: %d (reset=%d)\n", ptr->id, ptr->sync_reset);
-    fprintf(stderr, "2k packets: %d (%d) | stream size %.2f MB\n", ptr->packet_ctr, ptr->tot_packet_ctr, (double) 2*ptr->tot_packet_ctr/(1<<10));
-    fprintf(stderr, "PTS: %f (abs) --> runtime=%f (sec)\n", (double) ptr->pts/90000, ftot_pts);
-    fprintf(stderr, "sequence length: %f | ftime: %.4f (sec)\n", (double) ptr->ptime/90000, (double) ptr->ptime/90000/ptr->seq_pics);
-    fprintf(stderr, "sequence frames: %2d (current=%.3f fps) %ld (average=%.3f fps)\n", ptr->seq_pics, (double) ptr->seq_pics*90000/ptr->ptime, ptr->ptime, (double) ptr->tot_dec_pics/ftot_pts);
-    fprintf(stderr, "3:2 pulldown flag: %d (%f) | master_flag = %d\n", ptr->pulldown, fps * ftot_pts - ptr->tot_dec_pics, flag);
-    fprintf(stderr, "total frames (encoded in sequence 0-%d): %d (requested=%ld) %ld --> adjust: %ld\n", ptr->id, ptr->tot_enc_pics, request_pics, delay, adj);
+    tc_log_msg(__FILE__, "---------------------------------------------------------");
+    tc_log_msg(__FILE__, "MPEG sequence: %d (reset=%d)", ptr->id, ptr->sync_reset);
+    tc_log_msg(__FILE__, "2k packets: %d (%d) | stream size %.2f MB", ptr->packet_ctr, ptr->tot_packet_ctr, (double) 2*ptr->tot_packet_ctr/(1<<10));
+    tc_log_msg(__FILE__, "PTS: %f (abs) --> runtime=%f (sec)", (double) ptr->pts/90000, ftot_pts);
+    tc_log_msg(__FILE__, "sequence length: %f | ftime: %.4f (sec)", (double) ptr->ptime/90000, (double) ptr->ptime/90000/ptr->seq_pics);
+    tc_log_msg(__FILE__, "sequence frames: %2d (current=%.3f fps) %ld (average=%.3f fps)", ptr->seq_pics, (double) ptr->seq_pics*90000/ptr->ptime, ptr->ptime, (double) ptr->tot_dec_pics/ftot_pts);
+    tc_log_msg(__FILE__, "3:2 pulldown flag: %d (%f) | master_flag = %d", ptr->pulldown, fps * ftot_pts - ptr->tot_dec_pics, flag);
+    tc_log_msg(__FILE__, "total frames (encoded in sequence 0-%d): %d (requested=%ld) %ld --> adjust: %ld", ptr->id, ptr->tot_enc_pics, request_pics, delay, adj);
 
   }
 
@@ -422,8 +433,8 @@ void seq_update(seq_list_t *ptr, int end_pts, int pictures, int packets, int fla
 
   if(verbose & TC_PRIVATE) {
 
-    fprintf(stderr, "adjusted frames (decoded in sequence 0-%d): %d --> A-V: %.4f\n", ptr->id, ptr->tot_dec_pics, ptr->av_sync);
-    fprintf(stderr, "---------------------------------------------------------\n");
+    tc_log_msg(__FILE__, "adjusted frames (decoded in sequence 0-%d): %d --> A-V: %.4f", ptr->id, ptr->tot_dec_pics, ptr->av_sync);
+    tc_log_msg(__FILE__, "---------------------------------------------------------");
   }
 
 
@@ -452,7 +463,8 @@ static int seq_offset=0, unit_ctr=-1;
 void seq_list_frames()
 {
   if(unit_ctr==-1) return;
-  fprintf(stderr, "(%s) %8ld video frame(s) in unit %d detected\n", __FILE__, (long) frame_ctr, unit_ctr);
+  tc_log_info(__FILE__, "%8ld video frame(s) in unit %d detected",
+              (long) frame_ctr, unit_ctr);
 }
 
 /* ------------------------------------------------------------------ */
@@ -591,7 +603,7 @@ void seq_list(seq_list_t *ptr, int end_pts, int pictures, int packets, int flag)
 
   }
 
-  //  fprintf(stderr, "--- %d %d %d %d %d %d\n", delay, adj, ptr->seq_pics , ptr->enc_pics, ptr->pics_first_packet, pictures);
+  //  tc_log_msg(__FILE__, "--- %d %d %d %d %d %d", delay, adj, ptr->seq_pics , ptr->enc_pics, ptr->pics_first_packet, pictures);
 
   //
   // first sequence of stream or new unit
@@ -629,7 +641,7 @@ int seq_init(const char *logfile, int _ext_sfd, double _fps, int _verbose)
 
   if(logfile != NULL) {
     if((_sfd = open(logfile, O_WRONLY|O_CREAT, 0666))<0) {
-      perror("open logfile");
+      tc_log_error(__FILE__, "open logfile: %s", strerror(errno));
       return(-1);
     }
   }
@@ -638,7 +650,8 @@ int seq_init(const char *logfile, int _ext_sfd, double _fps, int _verbose)
 
   //done
 
-  if(_verbose & TC_DEBUG) fprintf(stderr, "\n(%s) open %s for frame sync information\n", __FILE__, logfile);
+  if(_verbose & TC_DEBUG)
+      tc_log_msg(__FILE__, "open %s for frame sync information", logfile);
 
   return(0);
 }

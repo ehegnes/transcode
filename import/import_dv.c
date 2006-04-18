@@ -27,6 +27,7 @@
 
 #include "transcode.h"
 #include "aclib/imgconvert.h"
+#include "libtc/libtc.h"
 #include "libtc/xio.h"
 
 static int verbose_flag = TC_QUIET;
@@ -137,7 +138,7 @@ MOD_open
 
       tmpbuf = tc_malloc(frame_size);
       if (!tmpbuf) {
-	fprintf(stderr, "out of memory");
+	tc_log_error(MOD_NAME, "out of memory");
 	return(TC_IMPORT_ERROR);
       }
 
@@ -218,7 +219,7 @@ MOD_open
 
     // popen
     if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
-	perror("popen PCM stream");
+	tc_log_perror(MOD_NAME, "popen PCM stream");
 	return(TC_IMPORT_ERROR);
     }
 

@@ -25,6 +25,7 @@
 #include "tcinfo.h"
 #include "ioaux.h"
 #include "tc.h"
+#include "libtc/libtc.h"
 
 #include <sys/types.h>
 
@@ -59,7 +60,7 @@ static int f_check_video_H_W(audiovideo_t *p_audio_video)
 		{
 			if (p_temp->s_v_tg_height != s_video_tg_height)
 			{
-				fprintf(stderr,"(%s) Warning: setting target height to %d (the target must be the same for all statements)\n",__FILE__,s_video_tg_height);
+				tc_log_warn(__FILE__,"setting target height to %d (the target must be the same for all statements)",s_video_tg_height);
 				p_temp->s_v_tg_height=s_video_tg_height;
 			}
 		}
@@ -69,7 +70,7 @@ static int f_check_video_H_W(audiovideo_t *p_audio_video)
 		{
 			if (p_temp->s_v_tg_width != s_video_tg_width)
 			{
-				fprintf(stderr,"(%s) Warning: setting target width to %d (the target must be the same for all statements)\n",__FILE__,s_video_tg_width);
+				tc_log_warn(__FILE__,"setting target width to %d (the target must be the same for all statements)",s_video_tg_width);
 				p_temp->s_v_tg_width=s_video_tg_width;
 			}
 		}
@@ -78,17 +79,17 @@ static int f_check_video_H_W(audiovideo_t *p_audio_video)
 	{
 		if ((s_rc == 0x03) && (s_video_tg_height == 0) && (s_video_tg_width == 0))
 		{
-			fprintf(stderr,"(%s) error: the height and the width of the video tracks are different. Please specify target-width and target-height if you want to process the xml file\n",__FILE__);
+			tc_log_error(__FILE__,"the height and the width of the video tracks are different. Please specify target-width and target-height if you want to process the xml file");
 			return(1);
 		}
 		else if ((s_rc == 0x01) && (s_video_tg_height == 0))
 		{
-			fprintf(stderr,"(%s) error: the height of the video tracks are different. Please specify target-height if you want to process the xml file\n",__FILE__);
+			tc_log_error(__FILE__,"the height of the video tracks are different. Please specify target-height if you want to process the xml file");
 			return(1);
 		}
 		else if ((s_rc == 0x02) && (s_video_tg_width == 0))
 		{
-			fprintf(stderr,"(%s) error: the width of the video tracks are different. Please specify target-height if you want to process the xml file\n",__FILE__);
+			tc_log_error(__FILE__,"the width of the video tracks are different. Please specify target-height if you want to process the xml file");
 			return(1);
 		}
 	}
@@ -147,7 +148,7 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,ProbeInfo *p_first
 		{
 			if(tc_snprintf(s_probe_cmd_buf, MAX_BUF, "tcprobe -i %s -d %d ",p_audio_video->p_nome_video,ipipe->verbose) < 0)
 			{
-	                	fprintf(stderr,"Buffer overflow\n");
+	                	tc_log_error(__FILE__,"Buffer overflow");
 				ipipe->error=1;
 				break;
 			}
@@ -155,28 +156,28 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,ProbeInfo *p_first
 			{
 				if(tc_snprintf(s_probe_cmd_buf+strlen(s_probe_cmd_buf), MAX_BUF-strlen(s_probe_cmd_buf), "-B ") < 0)
 				{
-	                		fprintf(stderr,"Buffer overflow\n");
+		                	tc_log_error(__FILE__,"Buffer overflow");
 					ipipe->error=1;
 					break;
 				}
 
 				if((p_fd = popen(s_probe_cmd_buf, "r"))== NULL)
 				{
-	                		fprintf(stderr,"Cannot open pipe\n");
+	                		tc_log_error(__FILE__,"Cannot open pipe: %s",strerror(errno));
 					ipipe->error=1;
 					break;
 				}
 
                                 if (fread(&tc_probe_pid, sizeof(pid_t), 1, p_fd) !=1)
                                 {
-                                        fprintf(stderr,"Cannot read pipe\n");
+	                		tc_log_error(__FILE__,"Cannot read pipe");
                                         ipipe->error=1;
                                         break;
                                 }
 
 				if (fread(&s_other_video, sizeof(ProbeInfo), 1, p_fd) !=1)
 				{
-	                		fprintf(stderr,"Cannot read pipe\n");
+	                		tc_log_error(__FILE__,"Cannot read pipe");
 					ipipe->error=1;
 					break;
 				}
@@ -191,10 +192,10 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,ProbeInfo *p_first
 				p_audio_video->s_fps=s_other_video.fps;
 				if(s_other_video.magic == TC_MAGIC_UNKNOWN || s_other_video.magic == TC_MAGIC_PIPE || s_other_video.magic == TC_MAGIC_ERROR)
 				{
-					fprintf(stderr,"\n\nerror: this version of transcode supports only\n");
-					fprintf(stderr,"xml file who containing dv avi or mov file type.\n");
-					fprintf(stderr,"Please clean up the %s file and restart.\n", ipipe->name);
-					fprintf(stderr,"file %s with filetype %s is invalid for this operation mode.\n", p_audio_video->p_nome_video, filetype(s_other_video.magic));
+					tc_log_error(__FILE__,"this version of transcode supports only");
+					tc_log_error(__FILE__,"xml file who containing dv avi or mov file type.");
+					tc_log_error(__FILE__,"Please clean up the %s file and restart.", ipipe->name);
+					tc_log_error(__FILE__,"file %s with filetype %s is invalid for this operation mode.", p_audio_video->p_nome_video, filetype(s_other_video.magic));
 					ipipe->error=1;
 				}
 				if (p_audio_video->s_v_magic == TC_MAGIC_UNKNOWN)	//forced by ioxml.c
@@ -215,7 +216,7 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,ProbeInfo *p_first
 				f_det_totale_video_frame(p_audio_video);
 				if (p_audio_video->s_start_video > p_audio_video->s_end_video)
 				{
-					fprintf(stderr,"\n\nerror: start frame is greater than end frame in file %s\n",p_audio_video->p_nome_video);
+					tc_log_error(__FILE__, "error: start frame is greater than end frame in file %s",p_audio_video->p_nome_video);
 					ipipe->error=1;
 				}
 	                        *s_tot_frames_video+=(p_audio_video->s_end_video - p_audio_video->s_start_video);       //selected frames
@@ -227,7 +228,7 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,ProbeInfo *p_first
 		{
 			if(tc_snprintf(s_probe_cmd_buf, MAX_BUF, "tcprobe -i %s -d %d ",p_audio_video->p_nome_audio,ipipe->verbose) < 0)
 			{
-	                	fprintf(stderr,"Buffer overflow\n");
+	                	tc_log_error(__FILE__,"Buffer overflow");
 				ipipe->error=1;
 				break;
 			}
@@ -235,27 +236,27 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,ProbeInfo *p_first
 			{
 				if(tc_snprintf(s_probe_cmd_buf+strlen(s_probe_cmd_buf), MAX_BUF-strlen(s_probe_cmd_buf), "-B ") < 0)
 				{
-	                		fprintf(stderr,"Buffer overflow\n");
+	                		tc_log_error(__FILE__,"Buffer overflow");
 					ipipe->error=1;
 					break;
 				}
 				if((p_fd = popen(s_probe_cmd_buf, "r"))== NULL)
 				{
-	                		fprintf(stderr,"Cannot open pipe\n");
+	                		tc_log_error(__FILE__,"Cannot open pipe: %s",strerror(errno));
 					ipipe->error=1;
 					break;
 				}
 
                                 if (fread(&tc_probe_pid, sizeof(pid_t), 1, p_fd) !=1)
                                 {
-                                        fprintf(stderr,"Cannot read pipe\n");
+	                		tc_log_error(__FILE__,"Cannot read pipe");
                                         ipipe->error=1;
                                         break;
                                 }
 
 				if (fread(&s_other_audio, sizeof(ProbeInfo), 1, p_fd) !=1)
 				{
-	                		fprintf(stderr,"Cannot read pipe\n");
+	                		tc_log_error(__FILE__,"Cannot read pipe");
 					ipipe->error=1;
 					break;
 				}
@@ -266,10 +267,10 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,ProbeInfo *p_first
 				p_audio_video->s_a_chan=s_other_video.track[0].chan;
 				if(s_other_audio.magic == TC_MAGIC_UNKNOWN || s_other_audio.magic == TC_MAGIC_PIPE || s_other_audio.magic == TC_MAGIC_ERROR)
 				{
-					fprintf(stderr,"\n\nerror: this version of transcode supports only\n");
-					fprintf(stderr,"xml file who containing dv avi or mov file type.\n");
-					fprintf(stderr,"Please clean up the %s file and restart.\n", ipipe->name);
-					fprintf(stderr,"file %s with filetype %s is invalid for this operation mode.\n", p_audio_video->p_nome_audio, filetype(s_other_audio.magic));
+					tc_log_error(__FILE__,"this version of transcode supports only");
+					tc_log_error(__FILE__,"xml file who containing dv avi or mov file type.");
+					tc_log_error(__FILE__,"Please clean up the %s file and restart.", ipipe->name);
+					tc_log_error(__FILE__,"file %s with filetype %s is invalid for this operation mode.", p_audio_video->p_nome_audio, filetype(s_other_audio.magic));
 					ipipe->error=1;
 				}
 				if (p_audio_video->s_a_magic == TC_MAGIC_UNKNOWN)	//forced by ioxml.c
@@ -290,7 +291,7 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,ProbeInfo *p_first
 				f_det_totale_audio_frame(p_audio_video);
 				if (p_audio_video->s_start_audio > p_audio_video->s_end_audio)
 				{
-					fprintf(stderr,"\n\nerror: start frame is greater than end frame in file %s\n",p_audio_video->p_nome_video);
+					tc_log_error(__FILE__,"start frame is greater than end frame in file %s",p_audio_video->p_nome_video);
 					ipipe->error=1;
 				}
 	                        *s_tot_frames_audio+=(p_audio_video->s_end_audio - p_audio_video->s_start_audio);       //selected frames
@@ -351,7 +352,7 @@ void probe_xml(info_t *ipipe)
 
 void probe_xml(info_t *ipipe)
 {
-        fprintf(stderr, "(%s) no support for XML compiled - exit.\n", __FILE__);
+        tc_log_error(__FILE__, "no support for XML compiled - exit.");
         ipipe->error=1;
         return;
 }

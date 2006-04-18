@@ -45,7 +45,7 @@ void probe_mov(info_t *ipipe)
   /* open movie for video probe */
   if(qt_file==NULL)
     if(NULL == (qt_file = quicktime_open((char *)ipipe->name,1,0))){
-      fprintf(stderr,"error: can't open quicktime!\n");
+      tc_log_error(__FILE__,"can't open quicktime!");
       ipipe->error=1;
       return;
     }
@@ -54,7 +54,8 @@ void probe_mov(info_t *ipipe)
   tracks=quicktime_audio_tracks(qt_file);
 
   if(tracks>TC_MAX_AUD_TRACKS) {
-    fprintf(stderr, "(%s) only %d of %d audio tracks scanned\n", __FILE__, TC_MAX_AUD_TRACKS, tracks);
+    tc_log_warn(__FILE__, "only %d of %d audio tracks scanned",
+                TC_MAX_AUD_TRACKS, tracks);
     tracks=TC_MAX_AUD_TRACKS;
   }
 
@@ -75,7 +76,7 @@ void probe_mov(info_t *ipipe)
       ipipe->probe_info->track[j].format = CODEC_PCM;
 
     if (! binary_dump)
-    	fprintf(stderr, "[%s] audio codec=%s\n", __FILE__, codec);
+    	tc_log_info(__FILE__, "audio codec=%s", codec);
 
     if(ipipe->probe_info->track[j].chan>0) ++ipipe->probe_info->num_tracks;
   }
@@ -129,7 +130,7 @@ void probe_mov(info_t *ipipe)
     ipipe->probe_info->codec=TC_CODEC_UNKNOWN;
 
   if (! binary_dump)
-  	fprintf(stderr, "[%s] video codec=%s\n", __FILE__, codec);
+  	tc_log_info(__FILE__, "video codec=%s", codec);
   ipipe->probe_info->magic=TC_MAGIC_MOV;
   tc_frc_code_from_value(&(ipipe->probe_info->frc),
                          ipipe->probe_info->fps);
@@ -141,7 +142,7 @@ void probe_mov(info_t *ipipe)
 
 void probe_mov(info_t *ipipe)
 {
-	fprintf(stderr, "(%s) no support for Quicktime compiled - exit.\n", __FILE__);
+	tc_log_error(__FILE__, "no support for Quicktime compiled - exit.");
 	ipipe->error=1;
 	return;
 }

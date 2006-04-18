@@ -25,6 +25,7 @@
 #include "tcinfo.h"
 #include "ioaux.h"
 #include "tc.h"
+#include "libtc/libtc.h"
 
 
 /* Some VNC constants */
@@ -67,7 +68,7 @@ void probe_vnc(info_t *ipipe)
     int width, height;
 
     if(tc_pread(ipipe->fd_in, buf, sizeof(buf)) != sizeof(buf)) {
-	fprintf(stderr, "(%s) end of stream\n", __FILE__);
+	tc_log_error(__FILE__, "end of stream");
 	ipipe->error=1;
 	return;
     }
@@ -76,8 +77,8 @@ void probe_vnc(info_t *ipipe)
     ac_memcpy(matchingBuffer, &buf[index], VNCREC_MAGIC_SIZE);
     matchingBuffer[VNCREC_MAGIC_SIZE] = 0;
     if(strcmp(matchingBuffer, VNCREC_MAGIC_STRING)) { /* NOT EQUAL */
-	fprintf(stderr, "(%s) unsupported version of vncrec (\"%s\")\n",
-	    __FILE__, matchingBuffer);
+	tc_log_error(__FILE__, "unsupported version of vncrec (\"%s\")",
+	             matchingBuffer);
 	ipipe->error=1;
 	return;
     }
@@ -88,15 +89,17 @@ void probe_vnc(info_t *ipipe)
     ac_memcpy(matchingBuffer, &buf[index], VNC_RFB_PROTO_VERSION_SIZE);
     matchingBuffer[VNC_RFB_PROTO_VERSION_SIZE] = 0;
     if(sscanf(matchingBuffer, VNC_RFB_PROTOCOL_SCANF_FORMAT, &major, &minor) != 2) {
-	fprintf(stderr, "(%s) unknown RFB protocol (\"%s\")\n", __FILE__,
-	    matchingBuffer);
+	tc_log_error(__FILE__, "unknown RFB protocol (\"%s\")",
+	             matchingBuffer);
 	ipipe->error=1;
 	return;
     }
-    if (ipipe->verbose & TC_DEBUG) printf("File recorded as RFB Protocol v%d.%d\n", major, minor);
+    if (ipipe->verbose & TC_DEBUG) {
+	tc_log_msg(__FILE__, "File recorded as RFB Protocol v%d.%d",
+	           major, minor);
+    }
     if(major != 3) {
-	fprintf(stderr, "(%s) unsupported RFB protocol (only support v3)\n",
-	    __FILE__);
+	tc_log_error(__FILE__, "unsupported RFB protocol (only support v3)");
 	ipipe->error=1;
 	return;
     }
@@ -108,7 +111,8 @@ void probe_vnc(info_t *ipipe)
     index += 4;
     switch(authReqs) {
       case VNC33_rfbNoAuth:
-	if (ipipe->verbose & TC_DEBUG) printf("No authorization required.\n");
+	if (ipipe->verbose & TC_DEBUG)
+	    tc_log_msg(__FILE__, "No authorization required.");
 	break;
 
       case VNC33_rfbVncAuth: {
@@ -123,7 +127,7 @@ void probe_vnc(info_t *ipipe)
 
       case VNC33_rfbConnFailed:
       default:
-	fprintf(stderr, "(%s) apparently connection failed?\n", __FILE__);
+	tc_log_error(__FILE__, "apparently connection failed?");
 	ipipe->error=1;
 	return;
     }

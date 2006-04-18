@@ -23,15 +23,16 @@
 
 
 #include "ioaux.h"
+#include "libtc/libtc.h"
 #include "libtc/xio.h"
 
-void import_info(int code, char *EXE)
+void import_info(int code, const char *EXE)
 {
-    fprintf(stderr, "[%s] exit code (%d)\n", EXE, code);
+    tc_log_msg(EXE, "exit code (%d)", code);
 }
 
 
-unsigned int stream_read_int16(unsigned char *s)
+unsigned int stream_read_int16(const unsigned char *s)
 {
   unsigned int a, b, result;
 
@@ -43,7 +44,7 @@ unsigned int stream_read_int16(unsigned char *s)
 }
 
 
-unsigned int stream_read_int32(unsigned char *s)
+unsigned int stream_read_int32(const unsigned char *s)
 {
   unsigned int a, b, c, d, result;
 
@@ -57,7 +58,7 @@ unsigned int stream_read_int32(unsigned char *s)
 }
 
 
-double read_time_stamp(unsigned char *s)
+double read_time_stamp(const unsigned char *s)
 {
 
   unsigned long i, j;
@@ -82,7 +83,7 @@ double read_time_stamp(unsigned char *s)
 }
 
 
-long read_time_stamp_long(unsigned char *s)
+long read_time_stamp_long(const unsigned char *s)
 {
 
   unsigned long i, j;

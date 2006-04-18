@@ -25,6 +25,7 @@
 #include "tcinfo.h"
 #include "ioaux.h"
 #include "tc.h"
+#include "libtc/libtc.h"
 
 #ifdef HAVE_V4L
 
@@ -50,31 +51,37 @@ void probe_v4l(info_t *ipipe)
   close(ipipe->fd_in);
   ipipe->fd_in = open(ipipe->name, O_RDWR, 0);
   if (ipipe->fd_in < 0) {
-      fprintf(stderr, "[probe_v4l] cannot (reopen) device in RW mode\n");
-      perror("[probe_v4l] open video4linux device");
+      tc_log_error(__FILE__, "cannot (reopen) device in RW mode: %s",
+                   strerror(errno));
       goto error;
   }
 
   // try a v4l2 ioctl
-  if (ipipe->verbose & TC_DEBUG) fprintf(stderr, "Checking if v4l2 ioctls are supported .. ");
+  if (ipipe->verbose & TC_DEBUG)
+      tc_log_msg(__FILE__, "Checking if v4l2 ioctls are supported...");
   if(ioctl(ipipe->fd_in, VIDIOC_QUERYCAP, &caps) < 0) {
       is_v4l2 = 0;
-      if (ipipe->verbose & TC_DEBUG) fprintf(stderr, "no\n");
+      if (ipipe->verbose & TC_DEBUG)
+          tc_log_msg(__FILE__, "... no");
   } else {
       is_v4l2 = 1;
       ipipe->probe_info->magic=TC_MAGIC_V4L2_VIDEO;
-      if (ipipe->verbose & TC_DEBUG) fprintf(stderr, "yes\n");
+      if (ipipe->verbose & TC_DEBUG)
+          tc_log_msg(__FILE__, "... yes");
   }
 
   // try v4l1
   if (!is_v4l2) {
-      if (ipipe->verbose & TC_DEBUG) fprintf(stderr, "Checking if v4l1 ioctls are supported .. ");
+      if (ipipe->verbose & TC_DEBUG)
+          fprintf(stderr, "Checking if v4l1 ioctls are supported...");
       if (-1 == ioctl(ipipe->fd_in,VIDIOCGCAP,&capability)) {
-	  if (ipipe->verbose & TC_DEBUG) fprintf(stderr, "no\n");
+	  if (ipipe->verbose & TC_DEBUG)
+	      tc_log_msg(__FILE__, "... no");
 	  goto error;
       } else {
 	  ipipe->probe_info->magic=TC_MAGIC_V4L_VIDEO;
-	  if (ipipe->verbose & TC_DEBUG) fprintf(stderr, "yes\n");
+	  if (ipipe->verbose & TC_DEBUG)
+	      tc_log_msg(__FILE__, "... yes");
       }
   }
 
@@ -131,11 +138,11 @@ error:
 
 }
 
-#else // HAVE_V4l
+#else // HAVE_V4L
 
 void probe_v4l(info_t *ipipe)
 {
-    fprintf(stderr, "No support for video4linux compiled in\n");
+    tc_log_error(__FILE__, "No support for video4linux compiled in");
     ipipe->probe_info->codec=TC_CODEC_UNKNOWN;
     ipipe->probe_info->magic=TC_MAGIC_UNKNOWN;
 }

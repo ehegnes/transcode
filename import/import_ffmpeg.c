@@ -26,6 +26,7 @@
 #define MOD_CODEC   "(video) ffmpeg: MS MPEG4v1-3/MPEG4/MJPEG"
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "filter.h"
 
 static int verbose_flag = TC_QUIET;
@@ -288,7 +289,7 @@ do_avi:
 
     codec = find_ffmpeg_codec(fourCC);
     if (codec == NULL) {
-      tc_log_warn(MOD_NAME, "No codec is known the FOURCC '%s'.",
+      tc_log_warn(MOD_NAME, "No codec is known for the FOURCC '%s'.",
               fourCC);
       return TC_IMPORT_ERROR;
     }
@@ -304,7 +305,7 @@ do_avi:
     // properly detect interlaced input.
     lavc_dec_context = avcodec_alloc_context();
     if (lavc_dec_context == NULL) {
-      fprintf(stderr, "[%s] Could not allocate enough memory.\n", MOD_NAME);
+      tc_log_error(MOD_NAME, "Could not allocate enough memory.");
       return TC_IMPORT_ERROR;
     }
     lavc_dec_context->width  = x_dim;
@@ -333,7 +334,7 @@ do_avi:
     if (extra_data_size) {
       lavc_dec_context->extradata = tc_zalloc(extra_data_size);
       if (!lavc_dec_context->extradata) {
-        fprintf(stderr, "[%s] can't allocate extra_data\n", MOD_NAME);
+        tc_log_error(MOD_NAME, "can't allocate extra_data");
         return TC_IMPORT_ERROR;
       }
       lavc_dec_context->extradata_size = extra_data_size;
@@ -363,7 +364,7 @@ do_avi:
         if (yuv2rgb_buffer == NULL) yuv2rgb_buffer = tc_bufalloc(BUFFER_SIZE);
 
         if (yuv2rgb_buffer == NULL) {
-          perror("out of memory");
+          tc_log_perror(MOD_NAME, "out of memory");
           return TC_IMPORT_ERROR;
         } else
           memset(yuv2rgb_buffer, 0, BUFFER_SIZE);
@@ -378,7 +379,7 @@ do_avi:
     if (!frame) {
         frame = tc_zalloc(frame_size);
         if (!frame) {
-            perror("out of memory");
+            tc_log_perror(MOD_NAME, "out of memory");
             return TC_IMPORT_ERROR;
         }
     }
@@ -392,7 +393,7 @@ do_avi:
     if(buffer == NULL) buffer=tc_bufalloc(frame_size);
 
     if(buffer == NULL) {
-      perror("out of memory");
+      tc_log_perror(MOD_NAME, "out of memory");
       return TC_IMPORT_ERROR;
     }
 
@@ -450,7 +451,7 @@ do_dv:
 
     // popen
     if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
-      perror("popen LAVC stream");
+      tc_log_perror(MOD_NAME, "popen LAVC stream");
       return(TC_IMPORT_ERROR);
     }
 

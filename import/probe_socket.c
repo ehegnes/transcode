@@ -45,7 +45,7 @@ static vob_t *probe_host(char *server)
 
   if(( s = socket(AF_INET, SOCK_STREAM, 0)) <0) {
 
-    perror("socket");
+    tc_log_perror(__FILE__, "socket");
     return(NULL);
   }
 
@@ -56,7 +56,7 @@ static vob_t *probe_host(char *server)
 
 
   if(connect(s, (struct sockaddr *) &sin, sizeof(sin)) < 0) {
-    perror("connect");
+    tc_log_perror(__FILE__, "connect");
     return(NULL);
   }
 
@@ -105,7 +105,7 @@ void probe_net(info_t *ipipe)
 void
 probe_net(info_t * ipipe)
 {
-    fprintf(stderr, "No support for network sockets compiled in\n");
+    tc_log_error(__FILE__, "No support for network sockets compiled in");
     ipipe->probe_info->codec = TC_CODEC_UNKNOWN;
     ipipe->probe_info->magic = TC_MAGIC_UNKNOWN;
 }

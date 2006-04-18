@@ -28,6 +28,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
+#include "libtc/libtc.h"
 #include "libtc/xio.h"
 #include "ioaux.h"
 #include "tc.h"
@@ -42,8 +43,8 @@ static int cmp_32_bits(char *buf, long x)
 {
 
   if(0) {
-    fprintf(stderr, "MAGIC: 0x%02lx 0x%02lx 0x%02lx 0x%02lx %s\n", (x >> 24) & 0xff, ((x >> 16) & 0xff), ((x >>  8) & 0xff), ((x      ) & 0xff), filetype(x));
-    fprintf(stderr, " FILE: 0x%02x 0x%02x 0x%02x 0x%02x\n", buf[0] & 0xff, buf[1] & 0xff, buf[2] & 0xff, buf[3] & 0xff);
+    tc_log_msg(__FILE__, "MAGIC: 0x%02lx 0x%02lx 0x%02lx 0x%02lx %s", (x >> 24) & 0xff, ((x >> 16) & 0xff), ((x >>  8) & 0xff), ((x      ) & 0xff), filetype(x));
+    tc_log_msg(__FILE__, " FILE: 0x%02x 0x%02x 0x%02x 0x%02x", buf[0] & 0xff, buf[1] & 0xff, buf[2] & 0xff, buf[3] & 0xff);
   }
 
   if ((uint8_t)buf[0] != ((x >> 24) & 0xff))
@@ -63,8 +64,8 @@ static int cmp_28_bits(char *buf, long x)
 {
 
   if(0) {
-    fprintf(stderr, "MAGIC: 0x%02lx 0x%02lx 0x%02lx 0x%02lx %s\n", (x >> 24) & 0xff, ((x >> 16) & 0xff), ((x >>  8) & 0xff), ((x      ) & 0xff), filetype(x));
-    fprintf(stderr, " FILE: 0x%02x 0x%02x 0x%02x 0x%02x\n", buf[0] & 0xff, buf[1] & 0xff, buf[2] & 0xff, buf[3] & 0xff);
+    tc_log_msg(__FILE__, "MAGIC: 0x%02lx 0x%02lx 0x%02lx 0x%02lx %s", (x >> 24) & 0xff, ((x >> 16) & 0xff), ((x >>  8) & 0xff), ((x      ) & 0xff), filetype(x));
+    tc_log_msg(__FILE__, " FILE: 0x%02x 0x%02x 0x%02x 0x%02x", buf[0] & 0xff, buf[1] & 0xff, buf[2] & 0xff, buf[3] & 0xff);
   }
 
   if ((uint8_t)buf[0] != ((x >> 24) & 0xff))
@@ -87,8 +88,8 @@ static int cmp_16_bits(char *buf, long x)
   int16_t sync_word=0;
 
   if(0) {
-    fprintf(stderr, "MAGIC: 0x%02lx 0x%02lx 0x%02lx 0x%02lx %s\n", (x >> 24) & 0xff, ((x >> 16) & 0xff), ((x >>  8) & 0xff), ((x      ) & 0xff), filetype(x));
-    fprintf(stderr, " FILE: 0x%02x 0x%02x 0x%02x 0x%02x\n", buf[0] & 0xff, buf[1] & 0xff, buf[2] & 0xff, buf[3] & 0xff);
+    tc_log_msg(__FILE__, "MAGIC: 0x%02lx 0x%02lx 0x%02lx 0x%02lx %s", (x >> 24) & 0xff, ((x >> 16) & 0xff), ((x >>  8) & 0xff), ((x      ) & 0xff), filetype(x));
+    tc_log_msg(__FILE__, " FILE: 0x%02x 0x%02x 0x%02x 0x%02x", buf[0] & 0xff, buf[1] & 0xff, buf[2] & 0xff, buf[3] & 0xff);
   }
 
   sync_word = (sync_word << 8) + (uint8_t) buf[0];
@@ -107,14 +108,14 @@ static int save_read(char *buf, int bytes, off_t offset, int fdes)
 
   // rewind
   if(xio_lseek(fdes, offset, SEEK_SET)<0) {
-    fprintf(stderr, "[%s:%d] ", __FILE__, __LINE__);
-    perror("file seek error");
+    tc_log_warn(__FILE__, "[%s:%d] file seek error: %s",
+		__FILE__, __LINE__, strerror(errno));
     return(1);
   }
 
   if(xio_read(fdes, buf, bytes)<bytes) {
-    fprintf(stderr, "[%s:%d] ", __FILE__, __LINE__);
-    perror("file read error");
+    tc_log_warn(__FILE__, "[%s:%d] file read error: %s",
+		__FILE__, __LINE__, strerror(errno));
     return(1);
   }
 
@@ -144,7 +145,7 @@ long fileinfo(int fdes, int skip)
 
   // refuse to work with a file not at offset 0
   if(offset != skip) {
-    fprintf(stderr, "(%s) file pointer not at requested offset %d - exit\n", __FILE__, skip);
+    tc_log_error(__FILE__, "file pointer not at requested offset %d - exit", skip);
     return(TC_MAGIC_ERROR);
   }
 
@@ -166,7 +167,7 @@ long fileinfo(int fdes, int skip)
 
   if(off<0) goto exit;
 
-  //fprintf(stderr, "off=%d '%c' '%c' '%c' '%c'\n", off, buf[0], buf[1], buf[2], buf[3]);
+  //tc_log_msg(__FILE__, "off=%d '%c' '%c' '%c' '%c'", off, buf[0], buf[1], buf[2], buf[3]);
 
 
   /* -------------------------------------------------------------------
@@ -584,8 +585,10 @@ long streaminfo(int fdes)
   int bytes=16, ret=0;
 
   if( (ret = tc_pread(fdes, buf, bytes))<bytes) {
-    if (ret) fprintf(stderr, "File too short (must be 16 bytes at least)\n");
-    else perror("stream read error");
+    if (ret)
+      tc_log_error(__FILE__, "File too short (must be 16 bytes at least)");
+    else
+      tc_log_error(__FILE__, "stream read error: %s", strerror(errno));
     return(TC_MAGIC_ERROR);
   }
 

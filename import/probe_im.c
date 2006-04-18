@@ -47,6 +47,7 @@
 #include "tcinfo.h"
 #include "ioaux.h"
 #include "tc.h"
+#include "libtc/libtc.h"
 
 #ifdef HAVE_IMAGEMAGICK
 
@@ -90,7 +91,7 @@ void probe_im(info_t *ipipe)
 
 void probe_im(info_t *ipipe)
 {
-	fprintf(stderr, "(%s) no support for ImageMagick compiled - exit.\n", __FILE__);
+	tc_log_error(__FILE__, "no support for ImageMagick compiled - exit.");
 	ipipe->error=1;
 	return;
 }

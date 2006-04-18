@@ -28,6 +28,8 @@
 #include "ioaux.h"
 #include "tc.h"
 
+#include "libtc/libtc.h"
+
 #include <mpeg2dec/mpeg2.h>
 #include <mpeg2dec/mpeg2convert.h>
 
@@ -40,17 +42,13 @@ static uint8_t buffer[BUFFER_SIZE];
  *
  * ------------------------------------------------------------*/
 
-static void
-show_accel(uint32_t mp_ac) {
-	fprintf (stderr, "[%s] libmpeg2 acceleration: ", __FILE__);
-	if (mp_ac & MPEG2_ACCEL_X86_3DNOW)
-		fprintf (stderr, "3dnow\n");
-	else if (mp_ac & MPEG2_ACCEL_X86_MMXEXT)
-		fprintf (stderr, "mmxext\n");
-	else if(mp_ac & MPEG2_ACCEL_X86_MMX)
-		fprintf (stderr, "mmx\n");
-	else
-		fprintf (stderr, "none (plain C)\n");
+static void show_accel(uint32_t mp_ac)
+{
+    tc_log_info(__FILE__, "libmpeg2 acceleration: %s",
+		(mp_ac & MPEG2_ACCEL_X86_3DNOW)  ? "3dnow" :
+		(mp_ac & MPEG2_ACCEL_X86_MMXEXT) ? "mmxext" :
+		(mp_ac & MPEG2_ACCEL_X86_MMX)    ? "mmx" :
+		                                   "none (plain C)");
 }
 
 
@@ -64,8 +62,7 @@ void decode_mpeg2(decode_t *decode)
     int framenum = 0, len = 0;
     uint32_t ac;
 
-    fprintf (stderr, "[%s] libmpeg2 0.4.0b loop decoder\n",
-		    __FILE__);
+    tc_log_info (__FILE__, "libmpeg2 0.4.0b loop decoder");
 
     ac = mpeg2_accel (MPEG2_ACCEL_DETECT);
 
@@ -73,7 +70,7 @@ void decode_mpeg2(decode_t *decode)
 
     decoder = mpeg2_init ();
     if (decoder == NULL) {
-	fprintf (stderr, "Could not allocate a decoder object.\n");
+	tc_log_error (__FILE__, "Could not allocate a decoder object.");
 	import_exit(1);
     }
     info = mpeg2_info (decoder);
@@ -102,16 +99,16 @@ void decode_mpeg2(decode_t *decode)
 		}
 		len = sequence->width * sequence->height;
 		if(len != tc_pwrite (decode->fd_out, info->display_fbuf->buf[0], len)) {
-			fprintf (stderr, "failed to write Y plane of frame");
+			tc_log_error (__FILE__, "failed to write Y plane of frame");
 			import_exit (1);
 		}
 		len = sequence->chroma_width * sequence->chroma_height;
 		if (len != tc_pwrite (decode->fd_out, info->display_fbuf->buf[1], len)) {
-			fprintf (stderr, "failed to write U plane of frame");
+			tc_log_error (__FILE__, "failed to write U plane of frame");
 			import_exit (1);
 		}
 		if (len != tc_pwrite (decode->fd_out, info->display_fbuf->buf[2], len)) {
-			fprintf (stderr, "failed to write V plane of frame");
+			tc_log_error (__FILE__, "failed to write V plane of frame");
 			import_exit (1);
 		}
 	    }

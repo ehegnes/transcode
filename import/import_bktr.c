@@ -28,6 +28,7 @@
 #define MOD_CODEC	"(video) bktr"
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 #include "aclib/imgconvert.h"
 
@@ -122,41 +123,57 @@ void bktr_usage(void)
 {
     int i;
 
-    tc_log_info(MOD_NAME, "help");
+    tc_log_info(MOD_NAME,
+                "* Overview");
+    tc_log_info(MOD_NAME,
+                "    This module grabs video frames from bktr(4) devices");
+    tc_log_info(MOD_NAME,
+                "    found on BSD systems.");
 
-    printf("* Overview\n");
-    printf("    This module grabs video frames from bktr(4) devices\n");
-    printf("    found on BSD systems.\n");
+    tc_log_info(MOD_NAME,
+                "* Options");
 
-    printf("* Options\n");
-
-    printf("   'format=<format>' Video norm, valid arguments:\n");
+    tc_log_info(MOD_NAME,
+                "   'format=<format>' Video norm, valid arguments:");
     for (i = 0; formats[i].name; i++)
-        printf ("      %s\n", formats[i].name);
-    printf("       default: driver default\n");
+        tc_log_info(MOD_NAME, "      %s", formats[i].name);
+    tc_log_info(MOD_NAME,
+                "       default: driver default");
 
-    printf("   'vsource=<vsource>' Video source, valid arguments:\n");
+    tc_log_info(MOD_NAME,
+                "   'vsource=<vsource>' Video source, valid arguments:");
     for (i = 0; vsources[i].name; i++)
-        printf("      %s\n", vsources[i].name);
-    printf("       default: driver default (usually 'composite')\n");
+        tc_log_info(MOD_NAME, "      %s", vsources[i].name);
+    tc_log_info(MOD_NAME,
+                "       default: driver default (usually 'composite')");
 
-    printf("   'asource=<asource>' Audio source, valid arguments:\n");
+    tc_log_info(MOD_NAME,
+                "   'asource=<asource>' Audio source, valid arguments:");
     for (i = 0; asources[i].name; i++)
-        printf("      %s\n", asources[i].name);
-    printf("       default: driver default (usually 'tuner')\n");
+        tc_log_info(MOD_NAME, "      %s", asources[i].name);
+    tc_log_info(MOD_NAME,
+                "       default: driver default (usually 'tuner')");
 
-    printf("   'tunerdev=<tunerdev>' Tuner device, default: %s\n", bktr_tuner);
+    tc_log_info(MOD_NAME,
+                "   'tunerdev=<tunerdev>' Tuner device, default: %s",
+                bktr_tuner);
 
-    printf("   'mute' Mute the bktr device, off by default.\n");
+    tc_log_info(MOD_NAME,
+                "   'mute' Mute the bktr device, off by default.");
 
-    printf("   'hwfps' Set frame rate in hardware, off by default.\n");
-    printf("      It's possible to get smoother captures by using\n");
-    printf("      -f to capture in the highest possible frame rate\n");
-    printf("      along with a frame rate filter to get a lower fps.\n");
+    tc_log_info(MOD_NAME,
+                "   'hwfps' Set frame rate in hardware, off by default.");
+    tc_log_info(MOD_NAME,
+                "      It's possible to get smoother captures by using");
+    tc_log_info(MOD_NAME,
+                "      -f to capture in the highest possible frame rate");
+    tc_log_info(MOD_NAME,
+                "      along with a frame rate filter to get a lower fps.");
 
-    printf("   'help' show this help message");
+    tc_log_info(MOD_NAME,
+                "   'help' Show this help message");
 
-    printf("\n");
+    tc_log_info(MOD_NAME, "");
 }
 
 int bktr_parse_options(char *options)
@@ -276,25 +293,25 @@ int bktr_init(int video_codec, const char *video_device,
 
     bktr_tfd = open(bktr_tuner, O_RDONLY);
     if (bktr_tfd < 0) {
-        perror("open tuner");
+        tc_log_perror(MOD_NAME, "open tuner");
         return(1);
     }
 
     if (ioctl(bktr_tfd, BT848_SAUDIO, &bktr_asource) < 0) {
-        perror("BT848_SAUDIO asource");
+        tc_log_perror(MOD_NAME, "BT848_SAUDIO asource");
         return(1);
     }
 
     if (bktr_mute) {
         i = AUDIO_MUTE;
         if (ioctl(bktr_tfd, BT848_SAUDIO, &i) < 0) {
-            perror("BT848_SAUDIO AUDIO_MUTE");
+            tc_log_perror(MOD_NAME, "BT848_SAUDIO AUDIO_MUTE");
             return(1);
         }
     } else {
         i = AUDIO_UNMUTE;
         if (ioctl(bktr_tfd, BT848_SAUDIO, &i) < 0) {
-            perror("BT848_SAUDIO AUDIO_UNMUTE");
+            tc_log_perror(MOD_NAME, "BT848_SAUDIO AUDIO_UNMUTE");
             return(1);
         }
     }
@@ -303,7 +320,7 @@ int bktr_init(int video_codec, const char *video_device,
 
     bktr_vfd = open(video_device, O_RDONLY);
     if (bktr_vfd < 0) {
-        perror(video_device);
+        tc_log_perror(MOD_NAME, video_device);
         return(1);
     }
 
@@ -366,7 +383,7 @@ int bktr_init(int video_codec, const char *video_device,
     }
 
     if (ioctl(bktr_vfd, METEORSACTPIXFMT, &i) < 0) {
-        perror("METEORSACTPIXFMT");
+        tc_log_perror(MOD_NAME, "METEORSACTPIXFMT");
         return(1);
     }
 
@@ -386,7 +403,7 @@ int bktr_init(int video_codec, const char *video_device,
     }
 
     if (ioctl(bktr_vfd, METEORSETGEO, &geo) < 0) {
-        perror("METEORSETGEO");
+        tc_log_perror(MOD_NAME, "METEORSETGEO");
         return(1);
     }
 
@@ -394,21 +411,21 @@ int bktr_init(int video_codec, const char *video_device,
 
     if (bktr_vsource) {
         if (ioctl(bktr_vfd, METEORSINPUT, &bktr_vsource) < 0) {
-            perror("METEORSINPUT");
+            tc_log_perror(MOD_NAME, "METEORSINPUT");
             return(1);
         }
     }
 
     if (bktr_format) {
         if (ioctl(bktr_vfd, METEORSFMT, &bktr_format) < 0) {
-            perror("METEORSFMT");
+            tc_log_perror(MOD_NAME, "METEORSFMT");
             return(1);
         }
     }
 
     if (bktr_hwfps) {
         if (ioctl(bktr_vfd, METEORSFPS, &fps) < 0) {
-            perror("METEORSFPS");
+            tc_log_perror(MOD_NAME, "METEORSFPS");
             return(1);
         }
     }
@@ -418,7 +435,7 @@ int bktr_init(int video_codec, const char *video_device,
     bktr_buffer = mmap(0, bktr_buffer_size, PROT_READ, MAP_SHARED, bktr_vfd, 0);
 
     if (bktr_buffer == MAP_FAILED) {
-        perror("mmap bktr_buffer");
+        tc_log_perror(MOD_NAME, "mmap bktr_buffer");
         return(1);
     }
 
@@ -437,7 +454,7 @@ int bktr_init(int video_codec, const char *video_device,
 
     i = SIGUSR1;
     if (ioctl(bktr_vfd, METEORSSIGNAL, &i) < 0) {
-        perror("METEORSSIGNAL");
+        tc_log_perror(MOD_NAME, "METEORSSIGNAL");
         return(1);
     }
 
@@ -445,7 +462,7 @@ int bktr_init(int video_codec, const char *video_device,
 
     i = METEOR_CAP_CONTINOUS;
     if (ioctl(bktr_vfd, METEORCAPTUR, &i) < 0) {
-        perror("METEORCAPTUR");
+        tc_log_perror(MOD_NAME, "METEORCAPTUR");
         return(1);
     }
 
@@ -555,7 +572,7 @@ int bktr_stop()
 
     c = AUDIO_MUTE;
     if (ioctl(bktr_tfd, BT848_SAUDIO, &c) < 0) {
-        perror("BT848_SAUDIO AUDIO_MUTE");
+        tc_log_perror(MOD_NAME, "BT848_SAUDIO AUDIO_MUTE");
         return(1);
     }
 

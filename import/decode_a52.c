@@ -22,6 +22,7 @@
  */
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "tcinfo.h"
 
 #ifdef HAVE_DLFCN_H
@@ -50,7 +51,7 @@ static int a52_do_init(char *path) {
     tc_snprintf(module, sizeof(module), "%s/%s", path, MODULE);
 
     if(verbose & TC_DEBUG)
-	fprintf(stderr, "loading external module %s\n", module);
+	tc_log_msg(__FILE__, "loading external module %s", module);
 
     // try transcode's module directory
     handle = dlopen(module, RTLD_NOW);
@@ -87,7 +88,7 @@ void decode_a52(decode_t *decode)
 
   //load the codec
   if(a52_do_init(mod_path)<0) {
-    fprintf(stderr, "failed to init ATSC A-52 stream decoder\n");
+    tc_log_error(__FILE__, "failed to init ATSC A-52 stream decoder");
     import_exit(1);
   }
 

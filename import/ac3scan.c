@@ -30,6 +30,8 @@
 #include "ac3scan.h"
 #include "magic.h"
 
+#include "libtc/libtc.h"
+
 #define MAX_BUF 4096
 static char sbuffer[MAX_BUF];
 
@@ -45,7 +47,7 @@ int ac3scan(FILE *fd, char *buffer, int size, int *ac_off, int *ac_bytes, int *p
     return(TC_IMPORT_ERROR);
 
   if((frame_size = 2*get_ac3_framesize(buffer+2)) < 1) {
-    fprintf(stderr, "(%s) AC3 framesize=%d invalid\n", __FILE__, frame_size);
+    tc_log_error(__FILE__, "AC3 framesize=%d invalid", frame_size);
     return(TC_IMPORT_ERROR);
   }
 
@@ -56,7 +58,10 @@ int ac3scan(FILE *fd, char *buffer, int size, int *ac_off, int *ac_bytes, int *p
   pseudo_frame_size = (int) (rbytes+0.5); // XXX
   bitrate = get_ac3_bitrate(buffer+2);
 
-  if(verbose) fprintf(stderr, "(%s) AC3 frame %d (%d) bytes | bitrate %d kBits/s | depsize %d | rbytes %f\n", __FILE__, frame_size, pseudo_frame_size, bitrate, size, rbytes);
+  if(verbose) {
+    tc_log_msg(__FILE__, "AC3 frame %d (%d) bytes | bitrate %d kBits/s | depsize %d | rbytes %f",
+	       frame_size, pseudo_frame_size, bitrate, size, rbytes);
+  }
 
   // return information
 
@@ -90,7 +95,8 @@ int buf_probe_ac3(unsigned char *_buf, int len, ProbeTrackInfo *pcm)
     if(sync_word == 0x0b77) break;
   }
 
-  if(verbose_flag & TC_DEBUG) fprintf(stderr, "AC3 syncbyte @ %d\n", i);
+  if(verbose_flag & TC_DEBUG)
+    tc_log_msg(__FILE__, "AC3 syncbyte @ %d", i);
 
   if(sync_word != 0x0b77) return(-1);
 
@@ -107,8 +113,10 @@ int buf_probe_ac3(unsigned char *_buf, int len, ProbeTrackInfo *pcm)
   pcm->format = CODEC_AC3;
   pcm->bitrate = bitrate;
 
-  if(verbose_flag & TC_DEBUG)
-      fprintf(stderr, "(%s) samplerate=%d Hz, bitrate=%d kbps, size=%d bytes\n", __FILE__, pcm->samplerate, bitrate, fsize);
+  if(verbose_flag & TC_DEBUG) {
+    tc_log_msg(__FILE__, "samplerate=%d Hz, bitrate=%d kbps, size=%d bytes",
+	       pcm->samplerate, bitrate, fsize);
+  }
 
   return(0);
 }
@@ -161,11 +169,11 @@ int buf_probe_dts (unsigned char *_buf, int len, ProbeTrackInfo *pcm)
     };
 
 
-    //printf("DTS DUMP: "); for (i=0; i<16; i++) printf("%02X", buf[i]); printf("\n");
+    //fprintf(stderr, "DTS DUMP: "); for (i=0; i<16; i++) fprintf(stderr, "%02X", buf[i]); fprintf(stderr, "\n");
 
     for (i=0; i<len-5; i++, buf++) {
 	    if (buf[0]==0x7f && buf[1]==0xfe && buf[2]==0x80 && buf[3]==0x01) {
-		//printf("DTS: found SYNC word at offset 0x%x\n", i);
+		//tc_log_msg(__FILE__, "DTS: found SYNC word at offset 0x%x", i);
 		break;
 	    }
     }
@@ -204,20 +212,20 @@ int buf_probe_dts (unsigned char *_buf, int len, ProbeTrackInfo *pcm)
     pcm->bits = 16;
 
     if (verbose_flag & TC_DEBUG) {
-	fprintf(stderr, " DTS: *** Detailed DTS header analysis ***\n");
-	fprintf(stderr, " DTS: Frametype: %s\n", frame_type?"normal frame":"termination frame");
-	fprintf(stderr, " DTS: Samplecount: %d (%s)\n", sample_count, (sample_count==31?"not short":"short"));
-	fprintf(stderr, " DTS: CRC present: %s\n", has_crc?"yes":"no");
-	fprintf(stderr, " DTS: PCM Samples Count: %d (%s)\n", nrpcm_samples, nrpcm_samples<5?"invalid":"valid");
-	fprintf(stderr, " DTS: Frame Size Bytes: %d (%s)\n", frame_size, frame_size<94?"invalid":"valid");
-	fprintf(stderr, " DTS: Channels: %d\n",channels);
-	fprintf(stderr, " DTS: Frequency: %d Hz\n",frequency );
-	fprintf(stderr, " DTS: Bitrate: %d kbps\n",bitrate );
-	fprintf(stderr, " DTS: Embedded Down Mix Enabled: %s\n", emb_downmix?"yes":"no");
-	fprintf(stderr, " DTS: Embedded Dynamic Range Flag: %s\n", emb_drc?"yes":"no");
-	fprintf(stderr, " DTS: Embedded Time Stamp Flag: %s\n", emb_ts?"yes":"no");
-	fprintf(stderr, " DTS: Auxiliary Data Flag: %s\n", emb_aux?"yes":"no");
-	fprintf(stderr, " DTS: HDCD format: %s\n", hdcd_fmt?"yes":"no");
+	tc_log_info(__FILE__, "DTS: *** Detailed DTS header analysis ***");
+	tc_log_info(__FILE__, "DTS: Frametype: %s", frame_type?"normal frame":"termination frame");
+	tc_log_info(__FILE__, "DTS: Samplecount: %d (%s)", sample_count, (sample_count==31?"not short":"short"));
+	tc_log_info(__FILE__, "DTS: CRC present: %s", has_crc?"yes":"no");
+	tc_log_info(__FILE__, "DTS: PCM Samples Count: %d (%s)", nrpcm_samples, nrpcm_samples<5?"invalid":"valid");
+	tc_log_info(__FILE__, "DTS: Frame Size Bytes: %d (%s)", frame_size, frame_size<94?"invalid":"valid");
+	tc_log_info(__FILE__, "DTS: Channels: %d",channels);
+	tc_log_info(__FILE__, "DTS: Frequency: %d Hz",frequency );
+	tc_log_info(__FILE__, "DTS: Bitrate: %d kbps",bitrate );
+	tc_log_info(__FILE__, "DTS: Embedded Down Mix Enabled: %s", emb_downmix?"yes":"no");
+	tc_log_info(__FILE__, "DTS: Embedded Dynamic Range Flag: %s", emb_drc?"yes":"no");
+	tc_log_info(__FILE__, "DTS: Embedded Time Stamp Flag: %s", emb_ts?"yes":"no");
+	tc_log_info(__FILE__, "DTS: Auxiliary Data Flag: %s", emb_aux?"yes":"no");
+	tc_log_info(__FILE__, "DTS: HDCD format: %s", hdcd_fmt?"yes":"no");
     }
 
 

@@ -22,6 +22,7 @@
  */
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "tcinfo.h"
 
 #include "ioaux.h"
@@ -66,12 +67,12 @@ void decode_mp3(decode_t *decode)
   // init decoder
 
   if((mp3data = tc_zalloc(sizeof(mp3data_struct)))==NULL) {
-    fprintf(stderr, "(%s) out of memory", __FILE__);
+    tc_log_error(__FILE__, "out of memory");
     exit(1);
   }
 
   if(lame_decode_init()<0) {
-    fprintf(stderr, "(%s) failed to init decoder", __FILE__);
+    tc_log_error(__FILE__, "failed to init decoder");
     exit(1);
   }
 
@@ -82,8 +83,11 @@ void decode_mp3(decode_t *decode)
 
   samples=lame_decode_initfile(in_file, mp3data, 0x55);
 
-  if (verbose)
-    fprintf(stderr, "(%s) channels=%d, samplerate=%d Hz, bitrate=%d kbps, (%d)\n", __FILE__, mp3data->stereo, mp3data->samplerate, mp3data->bitrate, mp3data->framesize);
+  if (verbose) {
+    tc_log_info(__FILE__, "channels=%d, samplerate=%d Hz, bitrate=%d kbps, (%d)",
+		mp3data->stereo, mp3data->samplerate, mp3data->bitrate,
+		mp3data->framesize);
+  }
 
   if (decode->padrate > 0) {
     padding = (int)((double)padding / (double)decode->padrate * mp3data->samplerate)
@@ -129,7 +133,7 @@ void decode_mp3(decode_t *decode)
   import_exit(0);
 
 #else  // HAVE_LAME
-  fprintf(stderr, "(%s) no lame support available\n", __FILE__);
+  tc_log_error(__FILE__, "no lame support available");
   import_exit(1);
 #endif
 
@@ -152,12 +156,12 @@ void decode_mp2(decode_t *decode)
   // init decoder
 
   if((mp3data = tc_zalloc(sizeof(mp3data_struct)))==NULL) {
-    fprintf(stderr, "(%s) out of memory", __FILE__);
+    tc_log_error(__FILE__, "out of memory");
     exit(1);
   }
 
   if(lame_decode_init()<0) {
-    fprintf(stderr, "(%s) failed to init decoder", __FILE__);
+    tc_log_error(__FILE__, "failed to init decoder");
     exit(1);
   }
 
@@ -165,8 +169,11 @@ void decode_mp2(decode_t *decode)
 
   samples=lame_decode_initfile(in_file, mp3data, 0x50);
 
-  if (verbose)
-    fprintf(stderr, "(%s) channels=%d, samplerate=%d Hz, bitrate=%d kbps, (%d)\n", __FILE__, mp3data->stereo, mp3data->samplerate, mp3data->bitrate, mp3data->framesize);
+  if (verbose) {
+    tc_log_info(__FILE__, "channels=%d, samplerate=%d Hz, bitrate=%d kbps, (%d)",
+		mp3data->stereo, mp3data->samplerate, mp3data->bitrate,
+		mp3data->framesize);
+  }
 
   // decoder loop
 
@@ -199,7 +206,7 @@ void decode_mp2(decode_t *decode)
   import_exit(0);
 
 #else  // HAVE_LAME
-  fprintf(stderr, "(%s) no lame support available\n", __FILE__);
+  tc_log_error(__FILE__, "no lame support available");
   import_exit(1);
 #endif
 

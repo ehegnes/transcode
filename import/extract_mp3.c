@@ -23,6 +23,7 @@
  */
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "tcinfo.h"
 
 #include "avilib/avilib.h"
@@ -64,10 +65,10 @@ static void ps_loop (void)
 	if (buf[0] || buf[1] || (buf[2] != 0x01)) {
 	  if (complain_loudly) {
 
-	    fprintf (stderr, "(%s) missing start code at %#lx\n",
-		     __FILE__, ftell (in_file) - (end - buf));
+	    tc_log_warn(__FILE__, "missing start code at %#lx",
+			ftell (in_file) - (end - buf));
 	    if ((buf[0] == 0) && (buf[1] == 0) && (buf[2] == 0))
-	      fprintf (stderr, "(%s) incorrect zero-byte padding detected - ignored\n", __FILE__);
+	      tc_log_warn(__FILE__, "incorrect zero-byte padding detected - ignored");
 
 	    complain_loudly = 0;
 	  }
@@ -91,7 +92,7 @@ static void ps_loop (void)
 	  else if (buf + 5 > end)
 	    goto copy;
 	  else {
-	    fprintf (stderr, "(%s) weird pack header\n", __FILE__);
+	    tc_log_error(__FILE__, "weird pack header");
 	    import_exit(1);
 	  }
 
@@ -143,7 +144,7 @@ static void ps_loop (void)
 	  else {	/* mpeg1 */
 	    for (tmp1 = buf + 6; *tmp1 == 0xff; tmp1++)
 	      if (tmp1 == buf + 6 + 16) {
-		fprintf (stderr, "too much stuffing\n");
+		tc_log_warn(__FILE__, "too much stuffing");
 		buf = tmp2;
 		break;
 	      }
@@ -162,7 +163,8 @@ static void ps_loop (void)
 	  break;
 
 	default:
-	  if (buf[3] < 0xb9) fprintf (stderr, "(%s) broken stream - skipping data\n", __FILE__);
+	  if (buf[3] < 0xb9)
+	    tc_log_warn(__FILE__, "broken stream - skipping data");
 
 	  /* skip */
 	  tmp1 = buf + 6 + (buf[4] << 8) + buf[5];
@@ -199,7 +201,7 @@ static int mp3scan(int infd, int outfd)
   // need to find syncbyte:
 
   if (!buffer) {
-      fprintf(stderr, "cannot malloc memory\n");
+      tc_log_error(__FILE__, "cannot malloc memory");
       return 1;
   }
 
@@ -220,7 +222,7 @@ static int mp3scan(int infd, int outfd)
     if(sync_word == 0xfffc || sync_word == 0xfffb || sync_word == 0xfffd) break;
 
     if(k>(1<<20)) {
-      fprintf(stderr, "no MP3 sync byte found within 1024 kB of stream\n");
+      tc_log_error(__FILE__, "no MP3 sync byte found within 1024 kB of stream");
       free (buffer);
       return(1);
     }
@@ -228,7 +230,8 @@ static int mp3scan(int infd, int outfd)
 
   i=i-2;
 
-  if(verbose & TC_DEBUG) fprintf(stderr, "found sync frame at offset %d (%d)\n", i, j);
+  if(verbose & TC_DEBUG)
+    tc_log_msg(__FILE__, "found sync frame at offset %d (%d)", i, j);
 
   // dump the rest
 
@@ -285,7 +288,7 @@ void extract_mp3(info_t *ipipe)
    case TC_MAGIC_AVI:
 
       if(ipipe->stype == TC_STYPE_STDIN){
-	fprintf(stderr, "(%s) invalid magic/stype - exit\n", __FILE__);
+	tc_log_error(__FILE__, "invalid magic/stype - exit");
 	error=1;
 	break;
       }
@@ -335,8 +338,8 @@ void extract_mp3(info_t *ipipe)
     default:
 
 	if(ipipe->magic == TC_MAGIC_UNKNOWN)
-	    fprintf(stderr, "(%s) no file type specified, assuming %s\n",
-		    __FILE__, filetype(TC_MAGIC_RAW));
+	    tc_log_warn(__FILE__, "no file type specified, assuming %s",
+			filetype(TC_MAGIC_RAW));
 
 
 	error=mp3scan(ipipe->fd_in, ipipe->fd_out);

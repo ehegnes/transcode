@@ -22,6 +22,7 @@
  */
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "tcinfo.h"
 
 #include "ioaux.h"
@@ -80,11 +81,12 @@ void extract_lzo(info_t *ipipe)
       }
 
 
-    if(ipipe->verbose & TC_STATS) fprintf(stderr, "(%s) %ld video frames\n", __FILE__, frames);
+    if(ipipe->verbose & TC_STATS)
+      tc_log_msg(__FILE__, "%ld video frames", frames);
 
     // allocate space, assume max buffer size
     if((video = tc_zalloc(SIZE_RGB_FRAME))==NULL) {
-      fprintf(stderr, "(%s) out of memory", __FILE__);
+      tc_log_msg(__FILE__, "out of memory");
       error=1;
       break;
     }
@@ -112,8 +114,8 @@ void extract_lzo(info_t *ipipe)
   default:
 
     if(ipipe->magic == TC_MAGIC_UNKNOWN)
-      fprintf(stderr, "(%s) no file type specified, assuming (%s)\n",
-	      __FILE__, filetype(TC_MAGIC_RAW));
+      tc_log_warn(__FILE__, "no file type specified, assuming %s",
+		  filetype(TC_MAGIC_RAW));
 
 
     error = tc_preadwrite(ipipe->fd_in, ipipe->fd_out);
@@ -129,7 +131,7 @@ void extract_lzo(info_t *ipipe)
 #else
 void extract_lzo(info_t *ipipe)
 {
-    fprintf(stderr, "No support for LZO configured -- exiting\n");
+    tc_log_error(__FILE__, "No support for LZO configured -- exiting");
     import_exit(1);
 }
 #endif

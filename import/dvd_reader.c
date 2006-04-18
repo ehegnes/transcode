@@ -23,6 +23,7 @@
  */
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "probe.h"
 
 #include <assert.h>
@@ -59,7 +60,8 @@ static int lock(void)
 
     while ((fd = open(lock_file, O_EXCL | O_CREAT | O_RDWR, 0644)) < 0) {
 	if (errno != EEXIST) {
-	    fprintf( stderr, "Can't create lock file %s: %m", lock_file);
+	    tc_log_warn(__FILE__, "Can't create lock file %s: %s",
+			lock_file, strerror(errno));
 	    break;
 	}
 
@@ -68,14 +70,16 @@ static int lock(void)
 	if (fd < 0) {
 	    if (errno == ENOENT) /* This is just a timing problem. */
 		continue;
-	    fprintf( stderr, "Can't open existing lock file %s: %m", lock_file);
+	    tc_log_warn(__FILE__, "Can't open existing lock file %s: %s",
+			lock_file, strerror(errno));
 	    break;
 	}
 	n = read(fd, lock_buffer, 11);
 	close(fd);
 	fd = -1;
 	if (n <= 0) {
-	    fprintf( stderr, "Can't read pid from lock file %s", lock_file);
+	    tc_log_warn(__FILE__, "Can't read pid from lock file %s",
+			lock_file);
 	    break;
 	}
 
@@ -87,10 +91,10 @@ static int lock(void)
 	if (pid == 0
 	    || (kill(pid, 0) == -1 && errno == ESRCH)) {
 	    if (unlink (lock_file) == 0) {
-		fprintf( stderr, "Removed stale lock (pid %d)", pid);
+		tc_log_warn(__FILE__, "Removed stale lock (pid %d)", pid);
 		continue;
 	    }
-	    fprintf( stderr, "Couldn't remove stale lock");
+	    tc_log_warn(__FILE__, "Couldn't remove stale lock");
 	}
 	break;
     }
@@ -100,7 +104,7 @@ static int lock(void)
     }
 
     pid = getpid();
-    tc_snprintf(lock_buffer, sizeof(lock_buffer), "%10d\n", pid);
+    tc_snprintf(lock_buffer, sizeof(lock_buffer), "%10d", pid);
     write (fd, lock_buffer, 11);
     close(fd);
     return 0;
@@ -115,53 +119,50 @@ static void unlock(void)
 }
 
 
-static long playtime=0;
-
 /**
  * Returns true if the pack is a NAV pack.  This check is clearly insufficient,
  * and sometimes we incorrectly think that valid other packs are NAV packs.  I
  * need to make this stronger.
  */
-static int is_nav_pack( unsigned char *buffer )
+static int is_nav_pack(unsigned char *buffer)
 {
-    return ( buffer[ 41 ] == 0xbf && buffer[ 1027 ] == 0xbf );
+    return buffer[41] == 0xbf && buffer[1027] == 0xbf;
 }
 
 static dvd_reader_t *dvd=NULL;
 static unsigned char *data=NULL;
 
-static void ifoPrint_time(dvd_time_t *time) {
-  char *rate;
-
+static const char *ifoPrint_time(const dvd_time_t *time, long *playtime_ret)
+{
+  long playtime;
+  const char *rate;
   int i;
+  static char outbuf[TC_BUF_MIN];
+  char *outptr;
 
   assert((time->hour>>4) < 0xa && (time->hour&0xf) < 0xa);
   assert((time->minute>>4) < 0x7 && (time->minute&0xf) < 0xa);
   assert((time->second>>4) < 0x7 && (time->second&0xf) < 0xa);
   assert((time->frame_u&0xf) < 0xa);
 
-  fprintf(stderr,"%02x:%02x:%02x.%02x",
-	 time->hour,
-	 time->minute,
-	 time->second,
-	 time->frame_u & 0x3f);
+  i = tc_snprintf(outbuf, sizeof(outbuf), "%02x:%02x:%02x.%02x",
+                  time->hour,
+                  time->minute,
+                  time->second,
+                  time->frame_u & 0x3f);
+  if (i > 0)
+      outptr = outbuf+i;
 
   i=time->hour>>4;
-
-  playtime = (i*10 + time->hour-(i<<4))*60*60;
-  //fprintf(stderr,"\n%d %d %ld\n", time->hour, i, playtime);
+  playtime =  (i*10 + time->hour-(i<<4))*60*60;
 
   i=(time->minute>>4);
-
-  playtime +=(i*10 + time->minute-(i<<4))*60;
-  //fprintf(stderr,"%d %d %ld\n", time->minute, i, playtime);
+  playtime += (i*10 + time->minute-(i<<4))*60;
 
   i=(time->second>>4);
+  playtime +=  i*10 + time->second-(i<<4);
 
-  playtime +=i*10 + time->second-(i<<4);
-  //fprintf(stderr,"%d %d %ld\n", time->second, i, playtime);
-
-  ++playtime;
+  playtime++;
 
   switch((time->frame_u & 0xc0) >> 6) {
   case 1:
@@ -178,10 +179,16 @@ static void ifoPrint_time(dvd_time_t *time) {
       rate = "(please send a bug report)";
     break;
   }
-  //  fprintf(stderr," @ %s fps", rate);
+  //tc_snprintf(outptr, sizeof(outbuf) - (outptr-outbuf), " @ %s fps", rate);
+  if (playtime_ret)
+    *playtime_ret = playtime;
+  return outbuf;
 }
 
-static void stats_video_attributes(video_attr_t *attr, ProbeInfo *probe_info) {
+static void stats_video_attributes(video_attr_t *attr, ProbeInfo *probe_info)
+{
+  const char *version, *display, *dar, *wide, *ntsc_cc, *lbox, *mode;
+  char unknown1[50], size[50];
 
   /* The following test is shorter but not correct ISO C,
      memcmp(attr,my_friendly_zeros, sizeof(video_attr_t)) */
@@ -195,78 +202,78 @@ static void stats_video_attributes(video_attr_t *attr, ProbeInfo *probe_info) {
      && attr->video_format == 0
      && attr->letterboxed == 0
      && attr->film_mode == 0) {
-    printf("(%s) -- Unspecified Video --\n", __FILE__);
+    tc_log_info(__FILE__, "-- Unspecified Video --");
     return;
   }
 
-  printf("(%s) ", __FILE__);
-
   switch(attr->mpeg_version) {
   case 0:
-    printf("mpeg1 ");
+    version = "mpeg1 ";
     probe_info->codec=TC_CODEC_MPEG1;
     break;
   case 1:
-    printf("mpeg2 ");
+    version = "mpeg2 ";
     probe_info->codec=TC_CODEC_MPEG2;
     break;
   default:
-    printf("(please send a bug report) ");
+    version = "(please send a bug report)";
   }
 
   switch(attr->video_format) {
   case 0:
-    printf("ntsc ");
+    display = "ntsc ";
     probe_info->magic=TC_MAGIC_NTSC;
     break;
   case 1:
-    printf("pal ");
+    display = "pal ";
     probe_info->magic=TC_MAGIC_PAL;
     break;
   default:
-    printf("(please send a bug report) ");
+    display = "(please send a bug report) ";
   }
 
   switch(attr->display_aspect_ratio) {
   case 0:
-    printf("4:3 ");
+    dar = "4:3 ";
     probe_info->asr=2;
     break;
   case 3:
-    printf("16:9 ");
+    dar = "16:9 ";
     probe_info->asr=3;
     break;
   default:
-    printf("(please send a bug report) ");
+    dar = "(please send a bug report) ";
   }
 
   // Wide is allways allowed..!!!
   switch(attr->permitted_df) {
   case 0:
-    printf("pan&scan+letterboxed ");
+    wide = "pan&scan+letterboxed ";
     break;
   case 1:
-    printf("only pan&scan "); //??
+    wide = "only pan&scan ";  //???
     break;
   case 2:
-    printf("only letterboxed ");
+    wide = "only letterboxed ";
     break;
   case 3:
-    // not specified
+    wide = "";  // not specified
     break;
   default:
-    printf("(please send a bug report)");
+    wide = "(please send a bug report) ";
   }
 
-  printf("U%x ", attr->unknown1);
+  tc_snprintf(unknown1, sizeof(unknown1), "U%x ", attr->unknown1);
   assert(!attr->unknown1);
 
-  if(attr->line21_cc_1 || attr->line21_cc_2) {
-    printf("NTSC CC ");
-    if(attr->line21_cc_1)
-      printf("1 ");
-    if(attr->line21_cc_2)
-      printf("2 ");
+  if(attr->line21_cc_1 && attr->line21_cc_2) {
+    ntsc_cc = "NTSC CC 1 2 ";
+  } else if(attr->line21_cc_1) {
+    ntsc_cc = "NTSC CC 1 ";
+  } else if(attr->line21_cc_2) {
+    ntsc_cc = "NTSC CC 2 ";
+  } else {
+    ntsc_cc = "";
   }
 
   {
@@ -275,44 +282,51 @@ static void stats_video_attributes(video_attr_t *attr, ProbeInfo *probe_info) {
       height = 576;
     switch(attr->picture_size) {
     case 0:
-      printf("720x%d ", height);
+      tc_snprintf(size, sizeof(size), "720x%d ", height);
       probe_info->width=720;
       probe_info->height =  height;
       break;
     case 1:
-      printf("704x%d ", height);
+      tc_snprintf(size, sizeof(size), "704x%d ", height);
       probe_info->width=704;
       probe_info->height =  height;
       break;
     case 2:
-      printf("352x%d ", height);
+      tc_snprintf(size, sizeof(size), "352x%d ", height);
       probe_info->width=352;
       probe_info->height =  height;
       break;
     case 3:
-      printf("352x%d ", height/2);
+      tc_snprintf(size, sizeof(size), "352x%d ", height/2);
       probe_info->width=352;
       probe_info->height =  height/2;
       break;
     default:
-      printf("(please send a bug report) ");
+      tc_snprintf(size, sizeof(size), "(please send a bug report) ");
     }
 
   }
 
   if(attr->letterboxed) {
-    printf("letterboxed ");
+    lbox = "letterboxed ";
+  } else {
+    lbox = "";
   }
 
   if(attr->film_mode) {
-    printf("film");
+    mode = "film";
   } else {
-    printf("video"); //camera
+    mode = "video";  //camera
   }
-  printf("\n");
+
+  tc_log_info(__FILE__, "%s%s%s%s%s%s%s%s%s",
+	      version, display, dar, wide, unknown1, ntsc_cc, size, lbox, mode);
 }
 
-static void stats_audio_attributes(audio_attr_t *attr, int track, ProbeInfo *probe_info) {
+static void stats_audio_attributes(audio_attr_t *attr, int track, ProbeInfo *probe_info)
+{
+  const char *format, *mcext, *lang, *appmode, *quant, *freq, *langext;
+  char langbuf[4], channels[50];
 
   if(attr->audio_format == 0
      && attr->multichannel_extension == 0
@@ -324,7 +338,7 @@ static void stats_audio_attributes(audio_attr_t *attr, int track, ProbeInfo *pro
      && attr->lang_extension == 0
      && attr->unknown1 == 0
      && attr->unknown1 == 0) {
-    printf("(%s) -- Unspecified Audio --\n", __FILE__);
+    tc_log_info(__FILE__, "-- Unspecified Audio --");
     return;
   }
 
@@ -334,154 +348,163 @@ static void stats_audio_attributes(audio_attr_t *attr, int track, ProbeInfo *pro
   probe_info->track[track].bits = 16;
   probe_info->track[track].tid = track;
 
-  printf("(%s) ", __FILE__);
   switch(attr->audio_format) {
   case 0:
-    printf("ac3 ");
+    format = "ac3 ";
     probe_info->track[track].format = CODEC_AC3;
     break;
   case 1:
-    printf("(please send a bug report) ");
+    format = "(please send a bug report) ";
     break;
   case 2:
-    printf("mpeg1 ");
+    format = "mpeg1 ";
     probe_info->track[track].format = CODEC_MP2;
     break;
   case 3:
-    printf("mpeg2ext ");
+    format = "mpeg2ext ";
     break;
   case 4:
-    printf("lpcm ");
+    format = "lpcm ";
     probe_info->track[track].format = CODEC_LPCM;
     break;
   case 5:
-    printf("(please send a bug report) ");
+    format = "(please send a bug report) ";
     break;
   case 6:
-    printf("dts ");
+    format = "dts ";
     probe_info->track[track].format = CODEC_DTS;
     break;
   default:
-    printf("(please send a bug report) ");
+    format = "(please send a bug report) ";
   }
 
-  if(attr->multichannel_extension)
-    printf("multichannel_extension ");
+  if(attr->multichannel_extension) {
+    mcext = "multichannel_extension ";
+  } else {
+    mcext = "";
+  }
 
   switch(attr->lang_type) {
   case 0:
-    // not specified
-      probe_info->track[track].lang=0;
-      break;
+    lang = "";  // not specified
+    probe_info->track[track].lang=0;
+    break;
   case 1:
-      printf("%c%c ", attr->lang_code>>8, attr->lang_code & 0xff);
-      probe_info->track[track].lang=attr->lang_code;
-      break;
+    langbuf[0] = attr->lang_code>>8;
+    langbuf[1] = attr->lang_code & 0xff;
+    langbuf[2] = ' ';
+    langbuf[3] = 0;
+    lang = langbuf;
+    probe_info->track[track].lang=attr->lang_code;
+    break;
   default:
-    printf("(please send a bug report) ");
+    lang = "(please send a bug report) ";
   }
 
   switch(attr->application_mode) {
   case 0:
-    // not specified
+    appmode = "";  // not specified
     break;
   case 1:
-    printf("karaoke mode ");
+    appmode = "karaoke mode ";
     break;
   case 2:
-    printf("surround sound mode ");
+    appmode = "surround sound mode ";
     break;
   default:
-    printf("(please send a bug report) ");
+    appmode = "(please send a bug report) ";
   }
 
   switch(attr->quantization) {
   case 0:
-    printf("16bit ");
+    quant = "16bit ";
     probe_info->track[track].bits = 16;
     break;
   case 1:
-    printf("20bit ");
+    quant = "20bit ";
     probe_info->track[track].bits = 20;
     break;
   case 2:
-    printf("24bit ");
+    quant = "24bit ";
     probe_info->track[track].bits = 24;
     break;
   case 3:
-    printf("drc ");
+    quant = "drc ";
     break;
   default:
-    printf("(please send a bug report) ");
+    quant = "(please send a bug report) ";
   }
 
   switch(attr->sample_frequency) {
   case 0:
-    printf("48kHz ");
+    freq = "48kHz ";
     probe_info->track[track].samplerate = 48000;
     break;
   case 1:
-    printf("96kHz ");
+    freq = "96kHz ";
     probe_info->track[track].samplerate = 96000;
     break;
   case 2:
-    printf("44.1kHz ");
+    freq = "44.1kHz ";
     probe_info->track[track].samplerate = 44100;
     break;
   case 3:
-    printf("32kHz ");
+    freq = "32kHz ";
     probe_info->track[track].samplerate = 32000;
     break;
   default:
-    printf("(please send a bug report) ");
+    freq = "(please send a bug report) ";
   }
 
-  printf("%dCh ", attr->channels + 1);
+  tc_snprintf(channels, sizeof(channels), "%dCh ", attr->channels + 1);
 
   switch(attr->lang_extension) {
   case 0:
-    //    printf("Not specified ");
+    langext = "";  // "Not specified ";
     break;
   case 1: // Normal audio
-    printf("Normal Caption ");
+    langext = "Normal Caption ";
     break;
   case 2: // visually imparied
-    printf("Audio for visually impaired ");
+    langext = "Audio for visually impaired ";
     break;
   case 3: // Directors 1
-    printf("Director's comments #1 ");
+    langext = "Director's comments #1 ";
     break;
   case 4: // Directors 2
-    printf("Director's comments #2 ");
+    langext = "Director's comments #2 ";
     break;
-    //case 4: // Music score ?
+  //case 4: // Music score ?
   default:
-    printf("(please send a bug report) ");
+    langext = "(please send a bug report) ";
   }
 
-  printf("\n");
+  tc_log_info(__FILE__, "%s%s%s%s%s%s%s%s",
+	      format, mcext, lang, appmode, quant, freq, channels, langext);
 }
 
-static void stats_subp_attributes(subp_attr_t *attr, int track, ProbeInfo *probe_info) {
+static void stats_subp_attributes(subp_attr_t *attr, int track, ProbeInfo *probe_info)
+{
+  char buf1[50] = {0}, buf2[50] = {0};
 
   if(attr->type == 0
      && attr->zero1 == 0
      && attr->lang_code == 0
      && attr->lang_extension == 0
      && attr->zero2 == 0) {
-    printf("(%s) -- Unspecified Subs --\n", __FILE__);
+    tc_log_info(__FILE__, "-- Unspecified Subs --");
     return;
   }
 
-  printf("(%s) ", __FILE__);
-
 
   if(attr->type) {
-    printf("subtitle %02d=<%c%c> ", track, attr->lang_code>>8, attr->lang_code & 0xff);
-    if(attr->lang_extension) printf("ext=%d", attr->lang_extension);
+    tc_snprintf(buf1, sizeof(buf1), "subtitle %02d=<%c%c> ", track,
+		attr->lang_code>>8, attr->lang_code & 0xff);
+    if(attr->lang_extension)
+      tc_snprintf(buf2, sizeof(buf2), "ext=%d", attr->lang_extension);
   }
 
-  printf("\n");
+  tc_log_info(__FILE__, "%s%s", buf1, buf2);
 }
 
 
@@ -497,7 +520,7 @@ int dvd_query(int title, int *arg_chapter, int *arg_angle)
 
     vmg_file = ifoOpen( dvd, 0 );
     if( !vmg_file ) {
-	fprintf( stderr, "Can't open VMG info.\n" );
+	tc_log_error(__FILE__, "Can't open VMG info.");
 	return -1;
     }
     tt_srpt = vmg_file->tt_srpt;
@@ -509,13 +532,16 @@ int dvd_query(int title, int *arg_chapter, int *arg_angle)
     titleid = title-1;
 
     if( titleid < 0 || titleid >= tt_srpt->nr_of_srpts ) {
-        fprintf( stderr, "Invalid title %d.\n", titleid + 1 );
+        tc_log_error(__FILE__, "Invalid title %d.", titleid + 1);
         ifoClose( vmg_file );
         return -1;
     }
 
     // display title infos
-    if(verbose &TC_DEBUG) fprintf(stderr, "(%s) DVD title %d: %d chapter(s), %d angle(s)\n", __FILE__, title, tt_srpt->title[ titleid ].nr_of_ptts, tt_srpt->title[ titleid ].nr_of_angles);
+    if(verbose &TC_DEBUG)
+	tc_log_msg(__FILE__, "DVD title %d: %d chapter(s), %d angle(s)",
+		   title, tt_srpt->title[ titleid ].nr_of_ptts,
+		   tt_srpt->title[ titleid ].nr_of_angles);
 
     /**
      * Load the VTS information for the title set our title is in.
@@ -523,8 +549,8 @@ int dvd_query(int title, int *arg_chapter, int *arg_angle)
 
     vts_file = ifoOpen( dvd, tt_srpt->title[ titleid ].title_set_nr );
     if( !vts_file ) {
-      fprintf( stderr, "Can't open the title %d info file.\n",
-	       tt_srpt->title[ titleid ].title_set_nr );
+	tc_log_error(__FILE__, "Can't open the title %d info file.",
+		     tt_srpt->title[ titleid ].title_set_nr);
         ifoClose( vmg_file );
         return -1;
     }
@@ -534,10 +560,9 @@ int dvd_query(int title, int *arg_chapter, int *arg_angle)
     pgc_id = vts_ptt_srpt->title[ ttn - 1 ].ptt[0].pgcn;
     cur_pgc = vts_file->vts_pgcit->pgci_srp[ pgc_id - 1 ].pgc;
 
-    if(verbose &TC_DEBUG) {
-	fprintf(stderr, "(%s) DVD playback time: ", __FILE__);
-	ifoPrint_time(&cur_pgc->playback_time);
-	fprintf(stderr, "\n");
+    if(verbose & TC_DEBUG) {
+	tc_log_msg(__FILE__, "DVD playback time: %s",
+		   ifoPrint_time(&cur_pgc->playback_time, NULL));
     }
 
     //return info
@@ -562,7 +587,8 @@ int dvd_probe(int title, ProbeInfo *info)
 
   dvd_time_t     *dt;
   double          fps;
-  long            hour, minute, second, ms, overall_time, cur_time;
+  long            hour, minute, second, ms, overall_time, cur_time, playtime;
+  const char     *s;
 
     vmg_file = ifoOpen( dvd, 0 );
     if( !vmg_file ) {
@@ -577,17 +603,17 @@ int dvd_probe(int title, ProbeInfo *info)
     titleid = title-1;
 
     if( titleid < 0 || titleid >= tt_srpt->nr_of_srpts ) {
-        fprintf( stderr, "Invalid title %d.\n", titleid + 1 );
+        tc_log_error(__FILE__, "Invalid title %d.", titleid + 1);
         ifoClose( vmg_file );
         return -1;
     }
 
     vts_file = ifoOpen( dvd, tt_srpt->title[ titleid ].title_set_nr );
     if( !vts_file ) {
-      fprintf( stderr, "Can't open the title %d info file.\n",
-	       tt_srpt->title[ titleid ].title_set_nr );
-      ifoClose( vmg_file );
-      return -1;
+	tc_log_error(__FILE__, "Can't open the title %d info file.",
+		     tt_srpt->title[ titleid ].title_set_nr );
+	ifoClose( vmg_file );
+	return -1;
     }
 
 
@@ -607,7 +633,8 @@ int dvd_probe(int title, ProbeInfo *info)
       }
 
     } else {
-      fprintf(stderr, "(%s) failed to probe DVD title information\n", __FILE__);
+      tc_log_error(__FILE__, "failed to probe DVD title information");
+      ifoClose( vmg_file );
       return -1;
     }
 
@@ -615,8 +642,8 @@ int dvd_probe(int title, ProbeInfo *info)
 
     vts_file = ifoOpen( dvd, tt_srpt->title[ titleid ].title_set_nr );
     if( !vts_file ) {
-      fprintf( stderr, "Can't open the title %d info file.\n",
-	       tt_srpt->title[ titleid ].title_set_nr );
+      tc_log_error(__FILE__, "Can't open the title %d info file.",
+		   tt_srpt->title[ titleid ].title_set_nr);
       ifoClose( vmg_file );
       return -1;
     }
@@ -640,11 +667,13 @@ int dvd_probe(int title, ProbeInfo *info)
       break;
     }
 
-    fprintf(stderr, "(%s) DVD title %d/%d: %d chapter(s), %d angle(s), title set %d\n", __FILE__, title, tt_srpt->nr_of_srpts, tt_srpt->title[ titleid ].nr_of_ptts, tt_srpt->title[ titleid ].nr_of_angles, tt_srpt->title[ titleid].title_set_nr);
-
-    fprintf(stderr, "(%s) title playback time: ", __FILE__);
-    ifoPrint_time(&cur_pgc->playback_time);
-    fprintf(stderr, "  %ld sec\n", playtime);
+    tc_log_info(__FILE__, "DVD title %d/%d: %d chapter(s), %d angle(s), title set %d",
+		title, tt_srpt->nr_of_srpts,
+		tt_srpt->title[ titleid ].nr_of_ptts,
+		tt_srpt->title[ titleid ].nr_of_angles,
+		tt_srpt->title[ titleid].title_set_nr);
+    s = ifoPrint_time(&cur_pgc->playback_time, &playtime);
+    tc_log_info(__FILE__, "title playback time: %s  %ld sec", s, playtime);
 
     info->time=playtime;
 
@@ -680,13 +709,13 @@ int dvd_probe(int title, ProbeInfo *info)
 	    cur_time += (hour * 60 * 60 * 1000 + minute * 60 * 1000 + second * 1000 +
 		    ms);
 	}
-	fprintf(stderr, "(%s) [Chapter %02d] %02ld:%02ld:%02ld.%03ld , block from %d to %d\n", __FILE__, i + 1,
+	tc_log_info(__FILE__, "[Chapter %02d] %02ld:%02ld:%02ld.%03ld , block from %d to %d", i + 1,
 		overall_time / 60 / 60 / 1000, (overall_time / 60 / 1000) % 60,
 		(overall_time / 1000) % 60, overall_time % 1000,
 		cur_pgc->cell_playback[i].first_sector, cur_pgc->cell_playback[i].last_sector );
 	overall_time += cur_time;
     }
-    fprintf(stderr, "(%s) [Chapter %02d] %02ld:%02ld:%02ld.%03ld , block from %d to %d\n", __FILE__, i + 1,
+    tc_log_info(__FILE__, "[Chapter %02d] %02ld:%02ld:%02ld.%03ld , block from %d to %d", i + 1,
 		overall_time / 60 / 60 / 1000, (overall_time / 60 / 1000) % 60,
 		(overall_time / 1000) % 60, overall_time % 1000,
 		cur_pgc->cell_playback[i].first_sector, cur_pgc->cell_playback[i].last_sector );
@@ -737,7 +766,7 @@ int dvd_init(const char *dvd_path, int *titles, int verb)
 
     if(data==NULL) {
 	if((data = tc_malloc(1024 * DVD_VIDEO_LB_LEN))==NULL) {
-	    fprintf(stderr, "(%s) out of memory\n", __FILE__);
+	    tc_log_error(__FILE__, "out of memory");
 	    DVDClose( dvd );
 	    return(-1);
 	}
@@ -746,7 +775,7 @@ int dvd_init(const char *dvd_path, int *titles, int verb)
 
     vmg_file = ifoOpen( dvd, 0 );
     if( !vmg_file ) {
-      fprintf( stderr, "Can't open VMG info.\n" );
+      tc_log_error(__FILE__, "Can't open VMG info.");
       DVDClose( dvd );
       free(data);
       return -1;
@@ -802,7 +831,7 @@ int dvd_read(int arg_title, int arg_chapter, int arg_angle)
 
     vmg_file = ifoOpen( dvd, 0 );
     if( !vmg_file ) {
-	fprintf( stderr, "Can't open VMG info.\n" );
+	tc_log_error(__FILE__, "Can't open VMG info.");
 	return -1;
     }
 
@@ -813,7 +842,7 @@ int dvd_read(int arg_title, int arg_chapter, int arg_angle)
      * Make sure our title number is valid.
      */
     if( titleid < 0 || titleid >= tt_srpt->nr_of_srpts ) {
-        fprintf( stderr, "Invalid title %d.\n", titleid + 1 );
+        tc_log_error(__FILE__, "Invalid title %d.", titleid + 1);
         ifoClose( vmg_file );
         return -1;
     }
@@ -822,7 +851,7 @@ int dvd_read(int arg_title, int arg_chapter, int arg_angle)
      * Make sure the chapter number is valid for this title.
      */
     if( chapid < 0 || chapid >= tt_srpt->title[ titleid ].nr_of_ptts ) {
-        fprintf( stderr, "Invalid chapter %d\n", chapid + 1 );
+        tc_log_error(__FILE__, "Invalid chapter %d.", chapid + 1);
         ifoClose( vmg_file );
         return -1;
     }
@@ -832,7 +861,7 @@ int dvd_read(int arg_title, int arg_chapter, int arg_angle)
      * Make sure the angle number is valid for this title.
      */
     if( angle < 0 || angle >= tt_srpt->title[ titleid ].nr_of_angles ) {
-        fprintf( stderr, "Invalid angle %d\n", angle + 1 );
+        tc_log_error(__FILE__, "Invalid angle %d.", angle + 1);
         ifoClose( vmg_file );
         return -1;
     }
@@ -842,8 +871,8 @@ int dvd_read(int arg_title, int arg_chapter, int arg_angle)
      */
     vts_file = ifoOpen( dvd, tt_srpt->title[ titleid ].title_set_nr );
     if( !vts_file ) {
-        fprintf( stderr, "Can't open the title %d info file.\n",
-                 tt_srpt->title[ titleid ].title_set_nr );
+        tc_log_error(__FILE__, "Can't open the title %d info file.",
+		     tt_srpt->title[ titleid ].title_set_nr );
         ifoClose( vmg_file );
         return -1;
     }
@@ -880,7 +909,7 @@ int dvd_read(int arg_title, int arg_chapter, int arg_angle)
     }
 
     if( lockretries >= 180 ) {
-        fprintf( stderr, "Can't acquire lock.\n" );
+        tc_log_error(__FILE__, "Can't acquire lock.");
     }
 
     title = DVDOpenFile( dvd, tt_srpt->title[ titleid ].title_set_nr,
@@ -889,8 +918,8 @@ int dvd_read(int arg_title, int arg_chapter, int arg_angle)
     unlock();
 
     if( !title ) {
-        fprintf( stderr, "Can't open title VOBS (VTS_%02d_1.VOB).\n",
-                 tt_srpt->title[ titleid ].title_set_nr );
+        tc_log_error(__FILE__, "Can't open title VOBS (VTS_%02d_1.VOB).",
+		     tt_srpt->title[ titleid ].title_set_nr );
         ifoClose( vts_file );
         ifoClose( vmg_file );
         return -1;
@@ -942,7 +971,7 @@ int dvd_read(int arg_title, int arg_chapter, int arg_angle)
 
 	  len = DVDReadBlocks( title, (int) cur_pack, 1, data );
 	  if( len != 1 ) {
-	    fprintf( stderr, "Read failed for block %d\n", cur_pack );
+	    tc_log_error(__FILE__, "Read failed for block %d", cur_pack);
 	    ifoClose( vts_file );
 	    ifoClose( vmg_file );
 	    DVDCloseFile( title );
@@ -1000,8 +1029,8 @@ int dvd_read(int arg_title, int arg_chapter, int arg_angle)
 	   */
 	  len = DVDReadBlocks( title, (int) cur_pack, cur_output_size, data );
 	  if( len != (int) cur_output_size ) {
-	    fprintf( stderr, "Read failed for %d blocks at %d\n",
-		     cur_output_size, cur_pack );
+	    tc_log_error(__FILE__, "Read failed for %d blocks at %d",
+			 cur_output_size, cur_pack );
 	    ifoClose( vts_file );
 	    ifoClose( vmg_file );
 	    DVDCloseFile( title );
@@ -1010,7 +1039,8 @@ int dvd_read(int arg_title, int arg_chapter, int arg_angle)
 
 	  fwrite( data, cur_output_size, DVD_VIDEO_LB_LEN, stdout );
 
-	  if(verbose & TC_STATS) fprintf( stderr,"%d %d\n", cur_pack, cur_output_size);
+	  if(verbose & TC_STATS)
+	    tc_log_msg(__FILE__, "%d %d", cur_pack, cur_output_size);
 	  cur_pack = next_vobu;
 	}
     }
@@ -1117,7 +1147,7 @@ int dvd_stream(int arg_title,int arg_chapid)
 
     vmg_file = ifoOpen( dvd, 0 );
     if( !vmg_file ) {
-	fprintf( stderr, "Can't open VMG info.\n" );
+	tc_log_error(__FILE__, "Can't open VMG info.");
 	return -1;
     }
 
@@ -1128,7 +1158,7 @@ int dvd_stream(int arg_title,int arg_chapid)
      * Make sure our title number is valid.
      */
     if( titleid < 0 || titleid >= tt_srpt->nr_of_srpts ) {
-        fprintf( stderr, "Invalid title %d.\n", titleid + 1 );
+        tc_log_error(__FILE__, "Invalid title %d.", titleid + 1);
         ifoClose( vmg_file );
         return -1;
     }
@@ -1137,7 +1167,7 @@ int dvd_stream(int arg_title,int arg_chapid)
      * Make sure the chapter number is valid for this title.
      */
     if( chapid < 0 || chapid >= tt_srpt->title[ titleid ].nr_of_ptts ) {
-        fprintf( stderr, "Invalid chapter %d\n", chapid + 1 );
+        tc_log_error(__FILE__, "Invalid chapter %d.", chapid + 1);
         ifoClose( vmg_file );
         return -1;
     }
@@ -1147,7 +1177,7 @@ int dvd_stream(int arg_title,int arg_chapid)
      * Make sure the angle number is valid for this title.
      */
     if( angle < 0 || angle >= tt_srpt->title[ titleid ].nr_of_angles ) {
-        fprintf( stderr, "Invalid angle %d\n", angle + 1 );
+        tc_log_error(__FILE__, "Invalid angle %d.", angle + 1);
         ifoClose( vmg_file );
         return -1;
     }
@@ -1157,8 +1187,8 @@ int dvd_stream(int arg_title,int arg_chapid)
      */
     vts_file = ifoOpen( dvd, tt_srpt->title[ titleid ].title_set_nr );
     if( !vts_file ) {
-        fprintf( stderr, "Can't open the title %d info file.\n",
-                 tt_srpt->title[ titleid ].title_set_nr );
+        tc_log_error(__FILE__, "Can't open the title %d info file.",
+		     tt_srpt->title[ titleid ].title_set_nr);
         ifoClose( vmg_file );
         return -1;
     }
@@ -1194,8 +1224,8 @@ int dvd_stream(int arg_title,int arg_chapid)
                          DVD_READ_TITLE_VOBS);
 
     if( !title ) {
-        fprintf( stderr, "Can't open title VOBS (VTS_%02d_1.VOB).\n",
-                 tt_srpt->title[ titleid ].title_set_nr );
+        tc_log_error(__FILE__, "Can't open title VOBS (VTS_%02d_1.VOB).",
+		     tt_srpt->title[ titleid ].title_set_nr);
         ifoClose( vts_file );
         ifoClose( vmg_file );
         return -1;
@@ -1205,23 +1235,26 @@ int dvd_stream(int arg_title,int arg_chapid)
      * Playback the cells for our title
      */
     if (start_cell==end_cell)
-      fprintf(stderr,"(%s) Title %d in VTS %02d is defined by PGC %d with %d cells, exporting cell %d\n",
-	      __FILE__,titleid+1,tt_srpt->title[ titleid ].title_set_nr,pgc_id,cur_pgc->nr_of_cells,start_cell+1);
+      tc_log_msg(__FILE__, "Title %d in VTS %02d is defined by PGC %d with %d cells, exporting cell %d",
+		 titleid+1,tt_srpt->title[ titleid ].title_set_nr,pgc_id,
+		 cur_pgc->nr_of_cells,start_cell+1);
     else
-      fprintf(stderr,"(%s) Title %d in VTS %02d is defined by PGC %d with %d cells, exporting from cell %d to cell %d\n",
-	      __FILE__,titleid+1,tt_srpt->title[ titleid ].title_set_nr,pgc_id,cur_pgc->nr_of_cells,start_cell+1,end_cell+1);
+      tc_log_msg(__FILE__, "Title %d in VTS %02d is defined by PGC %d with %d cells, exporting from cell %d to cell %d",
+		 titleid+1,tt_srpt->title[ titleid ].title_set_nr,pgc_id,
+		 cur_pgc->nr_of_cells,start_cell+1,end_cell+1);
 
     cur_pack = cur_pgc->cell_playback[start_cell].first_sector;
 
     max_sectors = (long) cur_pgc->cell_playback[end_cell].last_sector;
-    fprintf(stderr,"(%s) From block %ld to block %ld\n",__FILE__,(long)cur_pack,(long)max_sectors);
+    tc_log_msg(__FILE__, "From block %ld to block %ld",
+	       (long)cur_pack,(long)max_sectors);
 
     first_block = cur_pack;
 
-    //fprintf(stderr,"(%s) title %02d, %ld blocks (%ld-%ld)\n", __FILE__, tt_srpt->title[ titleid ].title_set_nr, (long) DVDFileSize(title), (long) cur_pack, (long) max_sectors);
+    //tc_log_msg(__FILE__, "title %02d, %ld blocks (%ld-%ld)", tt_srpt->title[ titleid ].title_set_nr, (long) DVDFileSize(title), (long) cur_pack, (long) max_sectors);
 
     if((long) DVDFileSize(title) <  max_sectors ||  cur_pack < 0)
-      fprintf(stderr, "(%s) internal error\n", __FILE__);
+      tc_log_error(__FILE__, "internal error");
 
     //sanity check
     if(max_sectors <= cur_pack) max_sectors = (long) DVDFileSize(title);
@@ -1233,7 +1266,7 @@ int dvd_stream(int arg_title,int arg_chapid)
     len = DVDReadBlocks( title, (int) cur_pack, 1, data );
 
     if( len != 1 ) {
-      fprintf( stderr, "Read failed for block %ld\n", cur_pack );
+      tc_log_error(__FILE__, "Read failed for block %ld", cur_pack);
       ifoClose( vts_file );
       ifoClose( vmg_file );
       DVDCloseFile( title );
@@ -1246,7 +1279,7 @@ int dvd_stream(int arg_title,int arg_chapid)
     if(data[38]==0 && data[39]==0 && data[40]==1 && data[41]==0xBF &&
        data[1024]==0 && data[1025]==0 && data[1026]==1 && data[1027]==0xBF) {
 
-      fprintf( stderr, "(%s) navigation packet at offset %d\n", __FILE__,  (int) cur_pack);
+      tc_log_msg(__FILE__, "navigation packet at offset %d", (int) cur_pack);
     }
 
     // loop until all packs of title are written
@@ -1266,7 +1299,7 @@ int dvd_stream(int arg_title,int arg_chapid)
 
 	  if(len>=0) {
 	      if(len>0)fwrite(data, len, DVD_VIDEO_LB_LEN, stdout);
-	      fprintf( stderr, "%ld blocks written\n", blocks_written+len);
+	      tc_log_msg(__FILE__, "%ld blocks written", blocks_written+len);
 	  }
 
 	ifoClose( vts_file );
@@ -1284,11 +1317,12 @@ int dvd_stream(int arg_title,int arg_chapid)
       blocks_left -= blocks;
 
 
-      if(verbose & TC_STATS) fprintf(stderr,"%ld %d\n", cur_pack, cur_output_size);
+      if(verbose & TC_STATS)
+	tc_log_msg(__FILE__, "%ld %d", cur_pack, cur_output_size);
     }
     rip_counter_close();
 
-    fprintf(stderr, "(%s) %ld blocks written\n", __FILE__, blocks_written);
+    tc_log_msg(__FILE__, "%ld blocks written", blocks_written);
 
     ifoClose( vts_file );
     ifoClose( vmg_file );
@@ -1299,54 +1333,47 @@ int dvd_stream(int arg_title,int arg_chapid)
 
 
 #else
+
 int dvd_query(int arg_title, int *arg_chapter, int *arg_angle)
 {
-  fprintf(stderr, "(%s) no support for DVD reading configured - exit.\n", __FILE__);
-
+  tc_log_error(__FILE__, "no support for DVD reading configured - exit.");
   return(-1);
 }
 
 int dvd_init(const char *dvd_path, int *arg_title, int verb)
 {
-  fprintf(stderr, "(%s) no support for DVD reading configured - exit.\n", __FILE__);
-
+  tc_log_error(__FILE__, "no support for DVD reading configured - exit.");
   return(-1);
 }
 
 int dvd_read(int arg_title, int arg_chapter, int arg_angle)
 {
-
-  fprintf(stderr, "(%s) no support for DVD reading configured - exit.\n", __FILE__);
-
-return(-1);
+  tc_log_error(__FILE__, "no support for DVD reading configured - exit.");
+  return(-1);
 }
 
 int dvd_stream(int arg_title, int arg_chapid)
 {
-
-  fprintf(stderr, "(%s) no support for DVD reading configured - exit.\n", __FILE__);
-
-return(-1);
+  tc_log_error(__FILE__, "no support for DVD reading configured - exit.");
+  return(-1);
 }
 
 int dvd_close(void)
 {
-
-  fprintf(stderr, "(%s) no support for DVD reading configured - exit.\n", __FILE__);
-
-return(-1);
+  tc_log_error(__FILE__, "no support for DVD reading configured - exit.");
+  return(-1);
 }
+
 int dvd_verify(const char *name)
 {
-
-  fprintf(stderr, "(%s) no support for DVD reading configured - exit.\n", __FILE__);
-
-return(-1);
+  tc_log_error(__FILE__, "no support for DVD reading configured - exit.");
+  return(-1);
 }
+
 int dvd_probe(int title, ProbeInfo *info)
 {
-  fprintf(stderr, "(%s) no support for DVD reading configured - exit.\n", __FILE__);
-
-return(-1);
+  tc_log_error(__FILE__, "no support for DVD reading configured - exit.");
+  return(-1);
 }
+
 #endif

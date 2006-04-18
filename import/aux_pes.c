@@ -23,6 +23,7 @@
 
 #include "transcode.h"
 #include "probe.h"
+#include "libtc/libtc.h"
 #include "libtc/ratiocodes.h"
 
 #include <math.h>
@@ -95,14 +96,14 @@ int stats_sequence_silent(uint8_t * buffer, seq_info_t *seq_info)
   frame_rate_code = buffer[3] & 15;
   bit_rate_value = (buffer[4] << 10) | (buffer[5] << 2) | (buffer[6] >> 6);
   if(aspect_ratio_information < 0 || aspect_ratio_information>15) {
-    fprintf(stderr, "error: ****** invalid MPEG sequence header detected (%d/%d|%d/%d) ******\n",
-	    aspect_ratio_information, 16, frame_rate_code, 16);
+    tc_log_error(__FILE__, "****** invalid MPEG sequence header detected (%d/%d|%d/%d) ******",
+		 aspect_ratio_information, 16, frame_rate_code, 16);
     return(-1);
   }
 
   if(frame_rate_code < 0 || frame_rate_code>15) {
-    fprintf(stderr, "error: ****** invalid MPEG sequence header detected (%d/%d|%d/%d) ******\n",
-	    frame_rate_code, 16, aspect_ratio_information, 8);
+    tc_log_error(__FILE__, "****** invalid MPEG sequence header detected (%d/%d|%d/%d) ******",
+		 frame_rate_code, 16, aspect_ratio_information, 8);
     return(-1);
   }
 
@@ -145,23 +146,27 @@ int stats_sequence(uint8_t * buffer, seq_info_t *seq_info)
   load_non_intra_quantizer_matrix = buffer[7] & 1;
 
   if(aspect_ratio_information < 0 || aspect_ratio_information>15) {
-    printf("error: ****** invalid MPEG sequence header detected (%d/%d|%d/%d) ******\n", aspect_ratio_information, 16, frame_rate_code, 16);
+    tc_log_error(__FILE__, "****** invalid MPEG sequence header detected (%d/%d|%d/%d) ******",
+		 aspect_ratio_information, 16, frame_rate_code, 16);
     return(-1);
   }
 
   if(frame_rate_code < 0 || frame_rate_code>15) {
-    printf("error: ****** invalid MPEG sequence header detected (%d/%d|%d/%d) ******\n", frame_rate_code, 16, aspect_ratio_information, 8);
+    tc_log_error(__FILE__, "****** invalid MPEG sequence header detected (%d/%d|%d/%d) ******",
+		 frame_rate_code, 16, aspect_ratio_information, 8);
     return(-1);
   }
 
-  printf("\tsequence: %dx%d %s, %s fps, %5.0f kbps, VBV %d kB%s%s%s\n", horizontal_size, vertical_size,
-		  aspect_ratio_information_str [aspect_ratio_information],
-		  frame_rate_str [frame_rate_code],
-		  bit_rate_value * 400.0 / 1000.0,
-		  2 * vbv_buffer_size_value,
-		  constrained_parameters_flag ? " , CP":"",
-		  load_intra_quantizer_matrix ? " , Custom Intra Matrix":"",
-		  load_non_intra_quantizer_matrix ? " , Custom Non-Intra Matrix":"");
+  tc_log_msg(__FILE__,
+	     "sequence: %dx%d %s, %s fps, %5.0f kbps, VBV %d kB%s%s%s",
+	     horizontal_size, vertical_size,
+	     aspect_ratio_information_str [aspect_ratio_information],
+	     frame_rate_str [frame_rate_code],
+	     bit_rate_value * 400.0 / 1000.0,
+	     2 * vbv_buffer_size_value,
+	     constrained_parameters_flag ? " , CP":"",
+	     load_intra_quantizer_matrix ? " , Custom Intra Matrix":"",
+	     load_non_intra_quantizer_matrix ? " , Custom Non-Intra Matrix":"");
 
 
   //fill out user structure
@@ -292,8 +297,8 @@ void probe_group(uint8_t *buffer, size_t buflen)
         }
         buf_small_count++;
     } else {
-       printf("%s%s\n", (buffer[4] & 0x40) ? " closed_gop" : "",
-	        (buffer[4] & 0x20) ? " broken_link" : "");
+       tc_log_msg(__FILE__, "%s%s", (buffer[4] & 0x40) ? " closed_gop" : "",
+		  (buffer[4] & 0x20) ? " broken_link" : "");
     }
 }
 

@@ -25,6 +25,7 @@
 #include "tcinfo.h"
 #include "ioaux.h"
 #include "tc.h"
+#include "libtc/libtc.h"
 #include "libtc/ratiocodes.h"
 
 #ifdef HAVE_BSDAV
@@ -37,14 +38,14 @@ void probe_bsdav(info_t *ipipe)
     FILE *file;
 
     if ((file = fdopen(ipipe->fd_in, "r")) == NULL) {
-        fprintf(stderr, "(%s) failed to fdopen bsdav stream\n", __FILE__);
+        tc_log_error(__FILE__, "failed to fdopen bsdav stream");
         ipipe->error = 1;
         return;
     }
 
     /* read stream header */
     if (bsdav_read_stream_header(file, &strhdr) != 0) {
-        fprintf(stderr, "(%s) failed to read bsdav stream header\n", __FILE__);
+        tc_log_error(__FILE__, "failed to read bsdav stream header");
         ipipe->error = 1;
         return;
     }
@@ -77,7 +78,7 @@ void probe_bsdav(info_t *ipipe)
         ipipe->probe_info->num_tracks = 1;
 
     if (fseek(file, 0, SEEK_SET) != 0) {
-        fprintf(stderr, "(%s) failed to fseek bsdav stream\n", __FILE__);
+        tc_log_error(__FILE__, "failed to fseek bsdav stream");
         ipipe->error = 1;
         return;
     }
@@ -96,7 +97,7 @@ void probe_bsdav(info_t *ipipe)
 void
 probe_bsdav(info_t * ipipe)
 {
-    fprintf(stderr, "No support for bsdav compiled in\n");
+    tc_log_error(__FILE__, "No support for bsdav compiled in");
     ipipe->probe_info->codec = TC_CODEC_UNKNOWN;
     ipipe->probe_info->magic = TC_MAGIC_UNKNOWN;
 }

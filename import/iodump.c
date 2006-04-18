@@ -25,6 +25,7 @@
 #include "tcinfo.h"
 #include "ioaux.h"
 #include "tc.h"
+#include "libtc/libtc.h"
 #include "libtc/iodir.h"
 
 #include <sys/types.h>
@@ -88,7 +89,8 @@ void tccat_thread(info_t *ipipe)
   case TC_MAGIC_DVD_PAL:
   case TC_MAGIC_DVD_NTSC:
 
-    if(verbose_flag & TC_DEBUG) fprintf(stderr, "(%s) %s\n", __FILE__, filetype(ipipe->magic));
+    if(verbose_flag & TC_DEBUG)
+      tc_log_msg(__FILE__, "%s", filetype(ipipe->magic));
 
     dvd_read(ipipe->dvd_title, ipipe->dvd_chapter, ipipe->dvd_angle);
     break;
@@ -100,7 +102,8 @@ void tccat_thread(info_t *ipipe)
 
   case TC_MAGIC_RAW:
 
-    if(verbose_flag & TC_DEBUG) fprintf(stderr, "(%s) %s\n", __FILE__, filetype(ipipe->magic));
+    if(verbose_flag & TC_DEBUG)
+      tc_log_msg(__FILE__, "%s", filetype(ipipe->magic));
 
     if(vob_offset>0) {
 
@@ -111,7 +114,7 @@ void tccat_thread(info_t *ipipe)
 		    SEEK_SET);
 
       if( off != ( vob_offset * (int64_t) DVD_VIDEO_LB_LEN ) ) {
-	fprintf(stderr, "unable to seek to block %d\n", vob_offset); //drop this chunk/file
+	tc_log_warn(__FILE__, "unable to seek to block %d", vob_offset); //drop this chunk/file
 	goto vob_skip2;
       }
     }
@@ -128,7 +131,7 @@ void tccat_thread(info_t *ipipe)
 
       if(( hp = gethostbyname(ipipe->name)) == NULL) {
 
-	  fprintf(stderr, "[%s] host %s unknown\n", __FILE__, ipipe->name);
+	  tc_log_error(__FILE__, "[%s] host %s unknown", ipipe->name);
 	  ipipe->error=1;
 	  return;
       }
@@ -137,7 +140,7 @@ void tccat_thread(info_t *ipipe)
 
       if(( vs = socket(AF_INET, SOCK_STREAM, 0)) <0) {
 
-	perror("socket");
+	tc_log_perror(__FILE__, "socket");
 	ipipe->error=1;
 	return;
       }
@@ -150,7 +153,7 @@ void tccat_thread(info_t *ipipe)
 
       if(connect(vs, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
 
-	perror("connect");
+	tc_log_perror(__FILE__, "connect");
 	ipipe->error=1;
 	return;
       }
@@ -158,7 +161,7 @@ void tccat_thread(info_t *ipipe)
       //start streaming
 
       if(!(iobuf = tc_malloc(IO_BUF_SIZE))) {
-	fprintf(stderr, "(%s) out of memory\n", __FILE__);
+	tc_log_error(__FILE__, "out of memory");
 	ipipe->error=1;
 	return;
       }
@@ -192,15 +195,15 @@ void tccat_thread(info_t *ipipe)
     //PASS 1: check file type - file order not important
 
     if(tc_dirlist_open(&tcdir, ipipe->name, 0)<0) {
-      fprintf(stderr, "(%s) unable to open dirlist \"%s\"\n", __FILE__, ipipe->name);
+      tc_log_error(__FILE__, "unable to open dirlist \"%s\"", ipipe->name);
       exit(1);
     } else if(verbose_flag & TC_DEBUG)
-      fprintf(stderr, "(%s) scanning dirlist \"%s\"\n", __FILE__, ipipe->name);
+      tc_log_msg(__FILE__, "scanning dirlist \"%s\"", ipipe->name);
 
     while((name=tc_dirlist_scan(&tcdir))!=NULL) {
 
       if((ipipe->fd_in = open(name, O_RDONLY))<0) {
-	perror("file open");
+	tc_log_perror(__FILE__, "file open");
 	exit(1);
       }
 
@@ -215,11 +218,11 @@ void tccat_thread(info_t *ipipe)
       if(itype == TC_MAGIC_UNKNOWN || itype == TC_MAGIC_PIPE ||
 	 itype == TC_MAGIC_ERROR) {
 
-	fprintf(stderr,"\n\nerror: this version of transcode supports only\n");
-	fprintf(stderr,"directories containing files of identical file type.\n");
-	fprintf(stderr,"Please clean up dirlist %s and restart.\n", ipipe->name);
+	tc_log_error(__FILE__,"this version of transcode supports only");
+	tc_log_error(__FILE__,"directories containing files of identical file type.");
+	tc_log_error(__FILE__,"Please clean up dirlist %s and restart.", ipipe->name);
 
-	fprintf(stderr,"file %s with filetype %s is invalid for dirlist mode.\n", name, filetype(itype));
+	tc_log_error(__FILE__,"file %s with filetype %s is invalid for dirlist mode.", name, filetype(itype));
 
 	exit(1);
       } // error
@@ -239,14 +242,14 @@ void tccat_thread(info_t *ipipe)
 	if(!found) type=itype;
 
 	if(itype!=type) {
-	  fprintf(stderr,"\nerror: multiple filetypes not valid for dirlist mode.\n");
+	  tc_log_error(__FILE__,"multiple filetypes not valid for dirlist mode.");
 	  exit(1);
 	}
 	found=1;
 	break;
 
       default:
-	fprintf(stderr,"\nerror: invalid filetype %s for dirlist mode.\n", filetype(type));
+	tc_log_error(__FILE__, "invalid filetype %s for dirlist mode.", filetype(type));
 	exit(1);
       } // check itype
     } // process files
@@ -254,27 +257,27 @@ void tccat_thread(info_t *ipipe)
     tc_dirlist_close(&tcdir);
 
     if(!found) {
-      fprintf(stderr,"\nerror: no valid files found in %s\n", name);
+      tc_log_error(__FILE__, "no valid files found in %s", name);
       exit(1);
     } else if(verbose_flag & TC_DEBUG)
-      fprintf(stderr, "(%s) %s\n", __FILE__, filetype(type));
+      tc_log_msg(__FILE__, "%s", filetype(type));
 
 
 
     //PASS 2: dump files in correct order
 
     if(tc_dirlist_open(&tcdir, ipipe->name, 1)<0) {
-      fprintf(stderr, "(%s) unable to sort dirlist entries\"%s\"\n", __FILE__, name);
+      tc_log_error(__FILE__, "unable to sort dirlist entries\"%s\"", name);
       exit(1);
     }
 
     while((name=tc_dirlist_scan(&tcdir))!=NULL) {
 
       if((ipipe->fd_in = open(name, O_RDONLY))<0) {
-	perror("file open");
+	tc_log_perror(__FILE__, "file open");
 	exit(1);
       } else if(verbose_flag & TC_STATS)
-	fprintf(stderr, "(%s) processing %s\n", __FILE__, name);
+	tc_log_msg(__FILE__, "processing %s", name);
 
 
       //type determined in pass 1
@@ -333,7 +336,7 @@ void tccat_thread(info_t *ipipe)
 	break;
 
       default:
-	fprintf(stderr,"\nerror: invalid filetype %s for dirlist mode.\n", filetype(type));
+	tc_log_error(__FILE__, "invalid filetype %s for dirlist mode.", filetype(type));
 	exit(1);
       }
 
@@ -356,16 +359,16 @@ int fileinfo_dir(char *dname, int *fd, long *magic)
     //check file type - file order not important
 
     if(tc_dirlist_open(&tcdir, dname, 0)<0) {
-	fprintf(stderr, "(%s) unable to open dirlist \"%s\"\n", __FILE__, dname);
+	tc_log_error(__FILE__, "unable to open dirlist \"%s\"", dname);
 	exit(1);
     } else if(verbose_flag & TC_DEBUG)
 
-	fprintf(stderr, "(%s) scanning dirlist \"%s\"\n", __FILE__, dname);
+	tc_log_error(__FILE__, "scanning dirlist \"%s\"", __FILE__, dname);
 
     if((name=tc_dirlist_scan(&tcdir))==NULL) return(-1);
 
     if((*fd= open(name, O_RDONLY))<0) {
-	perror("open file");
+	tc_log_perror(__FILE__, "open file");
 	return(-1);
     }
 

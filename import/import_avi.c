@@ -162,7 +162,7 @@ MOD_open
     fps    =  AVI_frame_rate(avifile2);
     codec  =  AVI_video_compressor(avifile2);
 
-    tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d\n",
+    tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d",
 	    codec, fps, width, height);
 
     if(strlen(codec)!=0 && vob->im_v_codec == CODEC_RGB) {

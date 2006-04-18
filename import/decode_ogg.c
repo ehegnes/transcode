@@ -22,6 +22,7 @@
  */
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "tcinfo.h"
 
 #include "ioaux.h"
@@ -60,7 +61,7 @@ static int decode_ogg_file(int fdin, int fdout)
     out = fdopen (fdout, "wb");
 
     if(ov_open(in, &vf, NULL, 0) < 0) {
-        fprintf(stderr, "ERROR: Failed to open input as vorbis\n");
+        tc_log_error(__FILE__, "Failed to open input as vorbis");
         fclose(in);
         fclose(out);
         return 1;
@@ -74,17 +75,17 @@ static int decode_ogg_file(int fdin, int fdout)
 
     while((ret = ov_read(&vf, buf, buflen, endian, bits/8, sign, &bs)) != 0) {
         if(bs != 0) {
-            fprintf(stderr, "Only one logical bitstream currently supported\n");
+            tc_log_error(__FILE__, "Only one logical bitstream currently supported");
             break;
         }
 
         if(ret < 0 && !quiet) {
-            fprintf(stderr, "Warning: hole in data\n");
+            tc_log_warn(__FILE__, "hole in data");
             continue;
         }
 
         if(fwrite(buf, 1, ret, out) != ret) {
-            fprintf(stderr, "Error writing to file: %s\n", strerror(errno));
+            tc_log_perror(__FILE__, "Error writing to file");
             ov_clear(&vf);
             fclose(out);
             return 1;
@@ -121,7 +122,7 @@ void decode_ogg(decode_t *decode)
 
 #else
 
-  fprintf(stderr, "(%s) no support for VORBIS decoding configured - exit.\n", __FILE__);
+  tc_log_error(__FILE__, "no support for VORBIS decoding configured - exit.");
   import_exit(1);
 
 #endif

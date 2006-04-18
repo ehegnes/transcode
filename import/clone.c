@@ -25,6 +25,7 @@
 #define USE_FIFO_LOGFILE 1
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "encoder.h"
 #include "ioaux.h"
 #include "clone.h"
@@ -74,16 +75,17 @@ int clone_init(FILE *fd)
   //sync log file
 
   if((sfd = open(logfile, O_RDONLY, 0666))<0) {
-    perror("open file");
+    tc_log_perror(__FILE__, "open file");
     return(-1);
   }
 
-  if(verbose & TC_DEBUG) fprintf(stderr, "\n(%s) reading video frame sync data from %s\n", __FILE__, logfile);
+  if(verbose & TC_DEBUG)
+    tc_log_msg(__FILE__, "reading video frame sync data from %s", logfile);
 
   // allocate space, assume max buffer size
 
   if((video_buffer = tc_zalloc(width*height*3))==NULL) {
-    fprintf(stderr, "(%s) out of memory", __FILE__);
+    tc_log_error(__FILE__, "out of memory");
     sync_disabled_flag=1;
     return(-1);
   }
@@ -91,7 +93,7 @@ int clone_init(FILE *fd)
   // allocate space, assume max buffer size
 
   if((pulldown_buffer = tc_zalloc(width*height*3))==NULL) {
-    fprintf(stderr, "(%s) out of memory", __FILE__);
+    tc_log_error(__FILE__, "out of memory");
     sync_disabled_flag=1;
     return(-1);
   }
@@ -101,7 +103,7 @@ int clone_init(FILE *fd)
   sync_disabled_flag=0;
 
   if(pthread_create(&thread, NULL, (void *) clone_read_thread, NULL)!=0) {
-      fprintf(stderr, "(%s) failed to start frame processing thread", __FILE__);
+      tc_log_error(__FILE__, "failed to start frame processing thread");
       sync_disabled_flag=1;
       return(-1);
   }
@@ -123,7 +125,8 @@ static int buffered_p_read(char *s)
 	return(0);
     }
 
-    if(verbose & TC_SYNC) fprintf(stderr, "WAIT (%d)\n", buffer_fill_ctr);
+    if(verbose & TC_SYNC)
+	tc_log_msg(__FILE__, "WAIT (%d)", buffer_fill_ctr);
 
     while(buffer_fill_ctr == 0) {
       pthread_cond_wait(&buffer_fill_cv, &buffer_fill_lock);
@@ -161,12 +164,13 @@ static int get_next_frame(char *buffer, int size)
 
   if(sync_disabled_flag) goto read_only;
 
-  if(verbose & TC_SYNC) fprintf(stderr, "----------------- reading syncinfo (%d)\n", sync_ctr);
+  if(verbose & TC_SYNC)
+      tc_log_msg(__FILE__, "----------------- reading syncinfo (%d)", sync_ctr);
 
   if((i=buffered_p_read((char *) &ptr)) != sizeof(sync_info_t)) {
 
       if(verbose & TC_DEBUG) {
-	  fprintf(stderr, "read error (%d/%ld)\n", i, (long)sizeof(sync_info_t));
+	  tc_log_msg(__FILE__, "read error (%d/%ld)", i, (long)sizeof(sync_info_t));
       }
 
       //no more frames?
@@ -185,8 +189,13 @@ static int get_next_frame(char *buffer, int size)
 
 	  drift = ptr.dec_fps - fps;
 
-	  printf("frame=%6ld seq=%4ld adj=%4d AV=%8.4f [fps] ratio= %.4f PTS= %.2f\n", ptr.enc_frame, ptr.sequence, drop_ctr, drift, ((fps>0)?ptr.enc_fps/fps:0.0f), ptr.pts);
-	  if(ptr.drop_seq) printf("MPEG sequence (%ld) dropped for AV sync correction\n", ptr.sequence);
+	  tc_log_msg(__FILE__, "frame=%6ld seq=%4ld adj=%4d AV=%8.4f [fps] ratio= %.4f PTS= %.2f",
+		     ptr.enc_frame, ptr.sequence, drop_ctr, drift,
+		     ((fps>0)?ptr.enc_fps/fps:0.0f), ptr.pts);
+	  if(ptr.drop_seq) {
+	      tc_log_msg(__FILE__, "MPEG sequence (%ld) dropped for AV sync correction",
+			 ptr.sequence);
+	  }
 	  seq_dis=ptr.sequence;
       }
   }
@@ -198,7 +207,8 @@ static int get_next_frame(char *buffer, int size)
 
   read_only:
 
-  if(verbose & TC_SYNC) fprintf(stderr, "reading frame (%d)\n", frame_ctr);
+  if(verbose & TC_SYNC)
+      tc_log_msg(__FILE__, "reading frame (%d)", frame_ctr);
   ret = fread(buffer, size, 1, pfd);
 
   if(ret!=1) {
@@ -321,7 +331,7 @@ char *clone_fifo()
 
 #ifdef USE_FIFO_LOGFILE
   if(mkfifo(logfile, 0666)<0) {
-    perror("create FIFO");
+    tc_log_perror(__FILE__, "create FIFO");
     return(NULL);
   }
 #endif
@@ -339,7 +349,7 @@ void clone_read_thread()
 
 	if((ptr = frame_info_register(i))==NULL) {
 
-	    fprintf(stderr, "(%s) could not allocate a frame info buffer\n",  __FILE__);
+	    tc_log_error(__FILE__, "could not allocate a frame info buffer");
 
 	    pthread_mutex_lock(&buffer_fill_lock);
 	    clone_read_thread_flag=0;
@@ -349,19 +359,20 @@ void clone_read_thread()
 	}
 
 	if((ptr->sync_info = tc_zalloc(sizeof(sync_info_t)))==NULL) {
-	    fprintf(stderr, "(%s) out of memory", __FILE__);
+	    tc_log_error(__FILE__, "out of memory");
 	    pthread_mutex_lock(&buffer_fill_lock);
 	    clone_read_thread_flag=0;
 	    pthread_mutex_unlock(&buffer_fill_lock);
 	    pthread_exit(0);
 	}
 
-	if(verbose & TC_SYNC) fprintf(stderr, "READ (%d)\n", i);
+	if(verbose & TC_SYNC)
+	    tc_log_msg(__FILE__, "READ (%d)", i);
 
 	if((j=tc_pread(sfd, (uint8_t *) ptr->sync_info, sizeof(sync_info_t))) != sizeof(sync_info_t)) {
 
 	    if(verbose & TC_DEBUG)
-            fprintf(stderr, "(%s) tc_pread error (%d/%ld)\n",  __FILE__, j, (long)sizeof(sync_info_t));
+		tc_log_msg(__FILE__, "tc_pread error (%d/%ld)", j, (long)sizeof(sync_info_t));
 	    pthread_mutex_lock(&buffer_fill_lock);
 	    clone_read_thread_flag=0;
 	    pthread_mutex_unlock(&buffer_fill_lock);
@@ -373,7 +384,7 @@ void clone_read_thread()
 
 	pthread_mutex_lock(&buffer_fill_lock);
 	++buffer_fill_ctr;
-	//	fprintf(stderr, "(%s) fill (%d)\n",  __FILE__, buffer_fill_ctr);
+	//tc_log_msg(__FILE__, "fill (%d)", buffer_fill_ctr);
 	//notify import thread
 	pthread_cond_signal(&buffer_fill_cv);
 	pthread_mutex_unlock(&buffer_fill_lock);

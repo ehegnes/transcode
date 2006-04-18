@@ -218,7 +218,7 @@ MOD_open
 	      	    /* allocate buffer for row pointers */
 	      	    row_ptr = tc_malloc(h*sizeof(char *));
 	      	    if(row_ptr==0) {
-		        fprintf(stderr,"error: can't alloc row pointers\n");
+		        tc_log_error(MOD_NAME,"can't alloc row pointers");
 			return(TC_IMPORT_ERROR);
 	      	    }
 
@@ -232,7 +232,7 @@ MOD_open
 	      	    /* allocate buffer for row pointers */
 	      	    row_ptr = tc_malloc(3*sizeof(char *));
                     if(row_ptr==0) {
-		        fprintf(stderr,"error: can't alloc row pointers\n");
+		        tc_log_error(MOD_NAME,"can't alloc row pointers");
 			return(TC_IMPORT_ERROR);
 	      	    }
 
@@ -243,7 +243,7 @@ MOD_open
 		    /* allocate buffer for row pointers */
 	      	    row_ptr = tc_malloc(3*sizeof(char *));
                     if(row_ptr==0) {
-		        fprintf(stderr,"error: can't alloc row pointers\n");
+		        tc_log_error(MOD_NAME,"can't alloc row pointers");
 			return(TC_IMPORT_ERROR);
 	      	    }
 

@@ -215,8 +215,8 @@ void probe_yuv(info_t *ipipe)
     
     errnum = y4m_read_stream_header(ipipe->fd_in, &streaminfo);
     if (errnum != Y4M_OK) {
-        fprintf(stderr, "[%s] Couldn't read YUV4MPEG header: %s!",
-                        __FILE__, y4m_strerr(errnum));
+        tc_log_error(__FILE__, "Couldn't read YUV4MPEG header: %s!",
+		     y4m_strerr(errnum));
         import_exit(1);
     }
 
@@ -241,15 +241,15 @@ void probe_yuv(info_t *ipipe)
 
 void extract_yuv(info_t *ipipe)
 {
-    fprintf(stderr, "No support for YUV4MPEG compiled in.\n");
-    fprintf(stderr, "Recompile with mjpegtools support enabled.\n");
+    tc_log_error(__FILE__, "No support for YUV4MPEG compiled in.");
+    tc_log_error(__FILE__, "Recompile with mjpegtools support enabled.");
     import_exit(1);
 }
         
 void probe_yuv(info_t * ipipe)
 {
-    fprintf(stderr, "No support for YUV4MPEG compiled in.\n");
-    fprintf(stderr, "Recompile with mjpegtools support enabled.\n");
+    tc_log_error(__FILE__, "No support for YUV4MPEG compiled in.");
+    tc_log_error(__FILE__, "Recompile with mjpegtools support enabled.");
     ipipe->probe_info->codec = TC_CODEC_UNKNOWN;
     ipipe->probe_info->magic = TC_MAGIC_UNKNOWN;
 }

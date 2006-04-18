@@ -22,6 +22,7 @@
  */
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "tcinfo.h"
 
 #include "ioaux.h"
@@ -85,10 +86,11 @@ void extract_dv(info_t *ipipe)
 		frames=ipipe->frame_limit[1];
 	}
 
-	if(ipipe->verbose & TC_STATS) fprintf(stderr, "(%s) %ld video frames\n", __FILE__, frames);
+	if(ipipe->verbose & TC_STATS)
+	    tc_log_msg(__FILE__, "%ld video frames", frames);
 
 	if((video = tc_zalloc(DV_PAL_FRAME_SIZE))==NULL) {
-	    fprintf(stderr, "(%s) out of memory", __FILE__);
+	    tc_log_error(__FILE__, "out of memory");
 	    error=1;
 	    break;
 	}
@@ -129,8 +131,8 @@ void extract_dv(info_t *ipipe)
         ssize_t size;
 
         if(ipipe->magic == TC_MAGIC_UNKNOWN)
-	    fprintf(stderr, "(%s) no file type specified, assuming %s\n",
-		    __FILE__, filetype(TC_MAGIC_RAW));
+	    tc_log_warn(__FILE__, "no file type specified, assuming %s",
+			filetype(TC_MAGIC_RAW));
 
         /* Skip to the first desired frame. */
         for(n=0; n<ipipe->frame_limit[0]; ++n) {

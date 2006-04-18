@@ -26,6 +26,7 @@
 #include "ioaux.h"
 #include "tc.h"
 #include "avilib/wavlib.h"
+#include "libtc/libtc.h"
 
 void probe_wav(info_t *ipipe)
 {
@@ -35,7 +36,7 @@ void probe_wav(info_t *ipipe)
 
     wav = wav_fdopen(ipipe->fd_in, WAV_READ, &err);
     if (!wav) {
-        fprintf(stderr, "(%s) %s\n", __FILE__, wav_strerror(err));
+        tc_log_error(__FILE__, "%s", wav_strerror(err));
         ipipe->error = 1;
         return;
     }

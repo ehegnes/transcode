@@ -22,6 +22,7 @@
  */
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "tcinfo.h"
 
 #include "ioaux.h"
@@ -94,7 +95,7 @@ void tcdemux_thread(info_t *ipipe)
 
     // allocate space
     if((buffer = tc_zalloc(packet_size))==NULL) {
-      perror("out of memory");
+      tc_log_perror(__FILE__, "out of memory");
       exit(1);
     }
 
@@ -146,13 +147,13 @@ void tcdemux_thread(info_t *ipipe)
 
       //allocate buffer
       if(flush_buffer_init(ipipe->fd_out, ipipe->verbose)<0) {
-	fprintf(stderr, "[%s] flush buffer facility init failed\n", __FILE__);
+	tc_log_error(__FILE__, "flush buffer facility init failed");
 	exit(1);
       }
 
       //need to open the logfile
       if(seq_init(ipipe->name, ipipe->fd_log, ipipe->fps, ipipe->verbose)<0) {
-	fprintf(stderr, "[%s] sync mode init failed\n", __FILE__);
+	tc_log_error(__FILE__, "sync mode init failed");
 	exit(1);
       }
     }
@@ -195,7 +196,7 @@ void tcdemux_thread(info_t *ipipe)
     ++seq_seek;
 
     if(!flag_loop_all) {
-      fprintf(stderr,"(%s) seeking to sequence %d:%d ...\n", __FILE__, unit, resync_seq1);
+      tc_log_msg(__FILE__, "seeking to sequence %d:%d ...", unit, resync_seq1);
     }
 
     for(;;) {
@@ -211,12 +212,16 @@ void tcdemux_thread(info_t *ipipe)
 	//program end code?
 	if(bytes==4) {
 	  if(scan_pack_header(buffer, MPEG_PROGRAM_END_CODE)) {
-	    if(ipipe->verbose & TC_DEBUG) fprintf(stderr,"[%s] (pid=%d) program stream end code detected\n", __FILE__, getpid());
+	    if(ipipe->verbose & TC_DEBUG)
+	      tc_log_msg(__FILE__, "(pid=%d) program stream end code detected",
+			 getpid());
 	    break;
 	  }
 	}
 
-	if(bytes) fprintf(stderr, "(%s) invalid program stream packet size (%d/%d)\n", __FILE__, bytes, packet_size);
+	if(bytes)
+	  tc_log_warn(__FILE__, "invalid program stream packet size (%d/%d)",
+		      bytes, packet_size);
 
 	break;
       }
@@ -233,14 +238,17 @@ void tcdemux_thread(info_t *ipipe)
 
       if(!scan_pack_header(buffer, TC_MAGIC_VOB)) {
 
-	if(flag_notify && (ipipe->verbose & TC_DEBUG)) fprintf(stderr,"[%s] (pid=%d) invalid packet header detected\n", __FILE__, getpid());
+	if(flag_notify && (ipipe->verbose & TC_DEBUG))
+	  tc_log_warn(__FILE__, "(pid=%d) invalid packet header detected",
+		      getpid());
 
 	// something else?
 
 	if(scan_pack_header(buffer, MPEG_VIDEO) | scan_pack_header(buffer, MPEG_AUDIO)) {
 
 	    if(ipipe->verbose & TC_STATS)
-		fprintf(stderr, "[%s] (pid=%d) MPEG system stream detected\n", __FILE__, getpid());
+		tc_log_msg(__FILE__, "(pid=%d) MPEG system stream detected",
+			   getpid());
 
 	    if(scan_pack_header(buffer, MPEG_VIDEO)) payload_id=PACKAGE_VIDEO;
 	    if(scan_pack_header(buffer, MPEG_AUDIO)) payload_id=PACKAGE_AUDIO_MP3;
@@ -249,7 +257,9 @@ void tcdemux_thread(info_t *ipipe)
 	    goto flush_packet;
 	} else {
 
-	    fprintf(stderr, "[%s] (pid=%d) '0x%02x%02x%02x%02x' not yet supported\n", __FILE__, getpid(), buffer[0] & 0xff, buffer[1] & 0xff, buffer[2] & 0xff, buffer[3] & 0xff);
+	    tc_log_warn(__FILE__, "(pid=%d) '0x%02x%02x%02x%02x' not yet supported",
+			getpid(), buffer[0] & 0xff, buffer[1] & 0xff,
+			buffer[2] & 0xff, buffer[3] & 0xff);
 	    break;
 	}
       } else {
@@ -261,7 +271,8 @@ void tcdemux_thread(info_t *ipipe)
 	  flag_flush=1;
 
 	  if(ipipe->verbose & TC_STATS)
-	    fprintf(stderr, "[%s] (pid=%d) MPEG-1 video stream detected\n", __FILE__, getpid());
+	    tc_log_msg(__FILE__, "(pid=%d) MPEG-1 video stream detected",
+		       getpid());
 
 	  // no further processing
 	  goto flush_packet;
@@ -292,7 +303,8 @@ void tcdemux_thread(info_t *ipipe)
 
 	if(ipipe->verbose & TC_STATS) {
 	  //display info only once
-	  fprintf(stderr, "[%s] (pid=%d) MPEG-2 video stream detected\n", __FILE__, getpid());
+	  tc_log_msg(__FILE__, "(pid=%d) MPEG-2 video stream detected",
+		     getpid());
 	}
       } else {
 
@@ -303,14 +315,16 @@ void tcdemux_thread(info_t *ipipe)
 
 	  if(ipipe->verbose & TC_STATS) {
 	    //display info only once
-	    fprintf(stderr, "[%s] (pid=%d) MPEG-1 video stream detected\n", __FILE__, getpid());
+	    tc_log_msg(__FILE__, "(pid=%d) MPEG-1 video stream detected",
+		       getpid());
 	  }
 	} else {
 
 	  payload_id=PACKAGE_PASS;
 
 	  if(ipipe->verbose & TC_DEBUG)
-	    fprintf(stderr, "[%s] (pid=%d) unknown stream packet id detected\n", __FILE__, getpid());
+	    tc_log_warn(__FILE__, "(pid=%d) unknown stream packet id detected",
+			getpid());
 	}
 
 	//flush all MPEG1 stuff
@@ -346,7 +360,7 @@ void tcdemux_thread(info_t *ipipe)
 	is_track = ((*_tmp) == track) ? 1:0;
 
 	if(ipipe->verbose & TC_STATS)
-	  fprintf(stderr, "substream [0x%x] %d\n", *_tmp, is_track);
+	  tc_log_msg(__FILE__, "substream [0x%x] %d", *_tmp, is_track);
 
 	if(is_track==0) {
 	  flag_skip=1;  //drop this packet
@@ -362,7 +376,7 @@ void tcdemux_thread(info_t *ipipe)
 	if(is_track==0) flag_skip=1;  //drop this packet
 
 	if(ipipe->verbose & TC_STATS)
-	  fprintf(stderr, "MPEG audio track [0x%x] %d\n", id, is_track);
+	  tc_log_msg(__FILE__, "MPEG audio track [0x%x] %d", id, is_track);
       }
 
     sync_track:
@@ -431,7 +445,9 @@ void tcdemux_thread(info_t *ipipe)
 	  //diff:
 	  if(flag_av_fine_tune==1) {
 	    av_fine_diff=av_fine_pts2-av_fine_pts1;
-	    if(ipipe->verbose & TC_DEBUG) fprintf(stderr, "[%s] AV fine-tuning: %d ms\n", __FILE__, (int)(av_fine_diff*1000));
+	    if(ipipe->verbose & TC_DEBUG)
+	      tc_log_msg(__FILE__, "AV fine-tuning: %d ms",
+			 (int)(av_fine_diff*1000));
 	  }
 
 	  //sanity check:
@@ -470,12 +486,16 @@ void tcdemux_thread(info_t *ipipe)
 	  if(pts_diff<0) {
 	    flag_skip=1;
 
-	    if(ipipe->verbose & TC_DEBUG) fprintf(stderr, "[%s] (pid=%d) audio packet %06d for PU [%d] skipped (%.4f)\n", __FILE__, getpid(), j, ((k==0)? 0:k-1), pts-resync_pts);
+	    if(ipipe->verbose & TC_DEBUG)
+	      tc_log_msg(__FILE__, "(pid=%d) audio packet %06d for PU [%d] skipped (%.4f)",
+			 getpid(), j, ((k==0)? 0:k-1), pts-resync_pts);
 	  } else {
 	    //reset
 	    flag_skip=0;
 	    flag_avsync=0;
-	    if(ipipe->verbose) fprintf(stderr, "[%s] (pid=%d) AV sync established for PU [%d] at PTS=%.4f (%.4f)\n", __FILE__, getpid(), k-1, pts, pts-resync_pts);
+	    if(ipipe->verbose)
+	      tc_log_msg(__FILE__, "(pid=%d) AV sync established for PU [%d] at PTS=%.4f (%.4f)",
+			 getpid(), k-1, pts, pts-resync_pts);
 	  }
 	}
 
@@ -504,11 +524,15 @@ void tcdemux_thread(info_t *ipipe)
 	    //append this packet
 	    flag_skip=0;
 
-	    if(ipipe->verbose & TC_DEBUG) fprintf(stderr, "[%s] (pid=%d) audio packet %06d for PU [%d] appended (%.4f)\n", __FILE__, getpid(), j, ((k==0)? 0:k-1), pts-resync_pts);
+	    if(ipipe->verbose & TC_DEBUG)
+	      tc_log_msg(__FILE__, "(pid=%d) audio packet %06d for PU [%d] appended (%.4f)",
+			 getpid(), j, ((k==0)? 0:k-1), pts-resync_pts);
 	  } else {
 	    //abort - all done
 	    flag_eos=1;
-	    if(ipipe->verbose) fprintf(stderr, "[%s] (pid=%d) AV sync abandoned for PU [%d] at PTS=%.4f (%.4f)\n", __FILE__, getpid(), k-1, pts, pts-resync_pts);
+	    if(ipipe->verbose)
+	      tc_log_msg(__FILE__, "(pid=%d) AV sync abandoned for PU [%d] at PTS=%.4f (%.4f)",
+			 getpid(), k-1, pts, pts-resync_pts);
 	  }
 	}
       }
@@ -581,7 +605,9 @@ void tcdemux_thread(info_t *ipipe)
 
 	if(has_pts_dts) {
 
-	  if (ipipe->verbose & TC_STATS) fprintf(stderr, "[%s] (pid=%d) PTS-DTS detected in packet [%06d]\n", __FILE__, getpid(), j);
+	  if (ipipe->verbose & TC_STATS)
+	    tc_log_msg(__FILE__, "(pid=%d) PTS-DTS detected in packet [%06d]",
+		       getpid(), j);
 
 	  // default first(=0) unit ?
 	  if(k==0) {
@@ -589,7 +615,9 @@ void tcdemux_thread(info_t *ipipe)
 	    --unit_seek;
 	    flag_sync_reset=1;
 
-	    if(ipipe->verbose & TC_DEBUG) fprintf(stderr, "[%s] (pid=%d) MPEG sequence start code in packet %06d for PU [0]\n", __FILE__, getpid(), j);
+	    if(ipipe->verbose & TC_DEBUG)
+	      tc_log_msg(__FILE__, "(pid=%d) MPEG sequence start code in packet %06d for PU [0]",
+			 getpid(), j);
 
 	    k++;
 	  }
@@ -608,7 +636,9 @@ void tcdemux_thread(info_t *ipipe)
 	    //experimental: try to resync
 	    //flag_avsync = 1;
 
-	    if(ipipe->verbose & TC_DEBUG) fprintf(stderr, "[%s] (pid=%d) PTS reset (%.3f->%.3f) in packet %06d for PU [%d]\n", __FILE__, getpid(), ref_pts, pts, j, k);
+	    if(ipipe->verbose & TC_DEBUG)
+	      tc_log_msg(__FILE__, "(pid=%d) PTS reset (%.3f->%.3f) in packet %06d for PU [%d]",
+			 getpid(), ref_pts, pts, j, k);
 
 	    k++;
 	  }
@@ -639,7 +669,9 @@ void tcdemux_thread(info_t *ipipe)
 	      flag_avsync = 1;
 
 	      // may be a useful info for the user
-	      if(ipipe->verbose) fprintf(stderr, "[%s] (pid=%d) processing PU [%d], on at PTS=%.4f sec\n", __FILE__, getpid(), k-1, resync_pts);
+	      if(ipipe->verbose)
+		tc_log_msg(__FILE__, "(pid=%d) processing PU [%d], on at PTS=%.4f sec",
+			   getpid(), k-1, resync_pts);
 
 	    } else {
 				// finished, all sequences flushed, switch
@@ -648,7 +680,9 @@ void tcdemux_thread(info_t *ipipe)
 	      flag_skip = 1;  //flush mode on, but do not write this one
 
 	      // may be a useful info for the user
-	      if(ipipe->verbose) fprintf(stderr, "[%s] (pid=%d) processing PU [%d], off at PTS=%.4f sec\n", __FILE__, getpid(), k-1, resync_pts);
+	      if(ipipe->verbose)
+		tc_log_msg(__FILE__, "(pid=%d) processing PU [%d], off at PTS=%.4f sec",
+			   getpid(), k-1, resync_pts);
 	    }
 	  }
 
@@ -716,7 +750,8 @@ void tcdemux_thread(info_t *ipipe)
 	  //reset sync pts, if no audio/substream has been found (0.6.0pre4)
 	  if(flag_sync_active==0 && demux_audio) {
 	    resync_pts=(double) i_pts / 90000;
-	    if(ipipe->verbose & TC_DEBUG) fprintf(stderr, "(%s) new initial PTS=%f\n", __FILE__, resync_pts);
+	    if(ipipe->verbose & TC_DEBUG)
+	      tc_log_msg(__FILE__, "new initial PTS=%f", resync_pts);
 	  }
 
 	}// PTS-DTS flag yes
@@ -735,7 +770,8 @@ void tcdemux_thread(info_t *ipipe)
 
 
       if(ipipe->verbose & TC_STATS)
-	fprintf(stderr, "INFO: j=%05d, i=%05d, skip=%d, flush=%d, force=%d, pay=%3d, sid=0x%02x, eos=%d\n", j, i, flag_skip, flag_flush, flag_force, payload_id, id, flag_eos);
+	tc_log_msg(__FILE__, "INFO: j=%05d, i=%05d, skip=%d, flush=%d, force=%d, pay=%3d, sid=0x%02x, eos=%d",
+		   j, i, flag_skip, flag_flush, flag_force, payload_id, id, flag_eos);
 
       //need to rewrite SCR pack header entry based on
       //frame_based_pts information for transcode:
@@ -762,10 +798,11 @@ void tcdemux_thread(info_t *ipipe)
 	  //count current sequence packets to be flushed
 	  ++packet_ctr;
 
-	  if(ipipe->verbose & TC_STATS) fprintf(stderr,"flushing packet (%d/%d)\n", sequence_ctr, j);
+	  if(ipipe->verbose & TC_STATS)
+	    tc_log_msg(__FILE__, "flushing packet (%d/%d)", sequence_ctr, j);
 
 	  if(flush_buffer_write(ipipe->fd_out, buffer, packet_size) != packet_size) {
-	    perror("(" __FILE__ ") write program stream packet");
+	    tc_log_perror(__FILE__, "write program stream packet");
 	    exit(1);
 	  }
 
@@ -781,19 +818,21 @@ void tcdemux_thread(info_t *ipipe)
 	if((flag_flush && !flag_skip && (payload_id & select)) || flag_force) {
 
 	  if(tc_pwrite(ipipe->fd_out, buffer, packet_size) != packet_size) {
-	    perror("(" __FILE__ ") write program stream packet");
+	    tc_log_perror(__FILE__, "write program stream packet");
 	    exit(1);
 	  }
 
 	  //reset
 	  flag_force=0;
 
-	  if(ipipe->verbose & TC_STATS) fprintf(stderr, "writing packet %d\n", j);
+	  if(ipipe->verbose & TC_STATS)
+	    tc_log_msg(__FILE__, "writing packet %d", j);
 
 	} else {
 
 	  ++i;
-	  if(ipipe->verbose & TC_STATS) fprintf(stderr, "skipping packet %d\n", j);
+	  if(ipipe->verbose & TC_STATS)
+	    tc_log_msg(__FILE__, "skipping packet %d", j);
 	}
 
 	break;
@@ -810,11 +849,12 @@ void tcdemux_thread(info_t *ipipe)
       case TC_DEMUX_OFF:
 
 	if(tc_pwrite(ipipe->fd_out, buffer, packet_size) != packet_size) {
-	  perror("(" __FILE__ ") write program stream packet");
+	  tc_log_perror(__FILE__, "write program stream packet");
 	  exit(1);
 	}
 
-	if(ipipe->verbose & TC_STATS) fprintf(stderr, "writing packet %d\n", j);
+	if(ipipe->verbose & TC_STATS)
+	  tc_log_msg(__FILE__, "writing packet %d", j);
 
 	break;
       }
@@ -827,7 +867,8 @@ void tcdemux_thread(info_t *ipipe)
 
     } // process next packet/block
 
-    if(ipipe->verbose & TC_SYNC) fprintf(stderr, "EOS - flushing packet buffer\n");
+    if(ipipe->verbose & TC_SYNC)
+      tc_log_msg(__FILE__, "EOS - flushing packet buffer");
 
     //post processing
 
@@ -856,7 +897,8 @@ void tcdemux_thread(info_t *ipipe)
     }
 
     //summary
-    if(ipipe->verbose & TC_DEBUG) fprintf(stderr, "[%s] (pid=%d) %d/%d packets discarded\n", __FILE__, getpid(), i, j);
+    if(ipipe->verbose & TC_DEBUG)
+      tc_log_msg(__FILE__, "(pid=%d) %d/%d packets discarded", getpid(), i, j);
 
     if(buffer!=NULL) free(buffer);
 

@@ -22,6 +22,7 @@
  */
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "tcinfo.h"
 
 #include "ioaux.h"
@@ -72,7 +73,7 @@ void tcdemux_pass_through(info_t *ipipe, int *pass)
 
     // allocate space
     if((buffer = tc_zalloc(packet_size))==NULL) {
-      perror("out of memory");
+      tc_log_perror(__FILE__, "out of memory");
       exit(1);
     }
 
@@ -110,7 +111,8 @@ void tcdemux_pass_through(info_t *ipipe, int *pass)
     ++unit_seek;
     ++seq_seek;
 
-    fprintf(stderr, "0=0x%x 1=0x%x 2=0x%x 3=0x%x 4=0x%x\n", pass[0], pass[1], pass[2], pass[3], pass[4]);
+    tc_log_msg(__FILE__, "0=0x%x 1=0x%x 2=0x%x 3=0x%x 4=0x%x",
+	       pass[0], pass[1], pass[2], pass[3], pass[4]);
 
     for(;;) {
 
@@ -126,12 +128,16 @@ void tcdemux_pass_through(info_t *ipipe, int *pass)
 	//program end code?
 	if(bytes==4) {
 	  if(scan_pack_header(buffer, MPEG_PROGRAM_END_CODE)) {
-	    if(verbose & TC_DEBUG) fprintf(stderr,"[%s] (pid=%d) program stream end code detected\n", __FILE__, getpid());
+	    if(verbose & TC_DEBUG)
+	      tc_log_msg(__FILE__, "(pid=%d) program stream end code detected",
+			 getpid());
 	    break;
 	  }
 	}
 
-	if(bytes) fprintf(stderr, "(%s) invalid program stream packet size (%d/%d)\n", __FILE__, bytes, packet_size);
+	if(bytes)
+	  tc_log_warn(__FILE__, "invalid program stream packet size (%d/%d)",
+		      bytes, packet_size);
 
 	break;
       }
@@ -145,14 +151,17 @@ void tcdemux_pass_through(info_t *ipipe, int *pass)
 
       if(!scan_pack_header(buffer, TC_MAGIC_VOB)) {
 
-	if(flag_notify && (verbose & TC_DEBUG)) fprintf(stderr,"[%s] (pid=%d) invalid packet header detected\n", __FILE__, getpid());
+	if(flag_notify && (verbose & TC_DEBUG))
+	  tc_log_warn(__FILE__, "(pid=%d) invalid packet header detected",
+		      getpid());
 
 	// something else?
 
 	if(scan_pack_header(buffer, MPEG_VIDEO) | scan_pack_header(buffer, MPEG_AUDIO)) {
 
 	    if(verbose & TC_STATS)
-		fprintf(stderr, "[%s] (pid=%d) MPEG system stream detected\n", __FILE__, getpid());
+		tc_log_msg(__FILE__, "(pid=%d) MPEG system stream detected",
+			   getpid());
 
 	    if(scan_pack_header(buffer, MPEG_VIDEO)) payload_id=PACKAGE_VIDEO;
 	    if(scan_pack_header(buffer, MPEG_AUDIO)) payload_id=PACKAGE_AUDIO_MP3;
@@ -161,7 +170,9 @@ void tcdemux_pass_through(info_t *ipipe, int *pass)
 	    goto flush_packet;
 	} else {
 
-	    fprintf(stderr, "[%s] (pid=%d) '0x%02x%02x%02x%02x' not yet supported\n", __FILE__, getpid(), buffer[0] & 0xff, buffer[1] & 0xff, buffer[2] & 0xff, buffer[3] & 0xff);
+	    tc_log_warn(__FILE__, "(pid=%d) '0x%02x%02x%02x%02x' not yet supported",
+			getpid(), buffer[0] & 0xff, buffer[1] & 0xff,
+			buffer[2] & 0xff, buffer[3] & 0xff);
 	    break;
 	}
       } else {
@@ -173,7 +184,8 @@ void tcdemux_pass_through(info_t *ipipe, int *pass)
 	  flag_flush=1;
 
 	  if(verbose & TC_STATS)
-	    fprintf(stderr, "[%s] (pid=%d) MPEG-1 video stream detected\n", __FILE__, getpid());
+	    tc_log_msg(__FILE__, "(pid=%d) MPEG-1 video stream detected",
+		       getpid());
 
 	  // no further processing
 	  goto flush_packet;
@@ -204,7 +216,8 @@ void tcdemux_pass_through(info_t *ipipe, int *pass)
 
 	if(verbose & TC_STATS) {
 	  //display info only once
-	  fprintf(stderr, "[%s] (pid=%d) MPEG-2 video stream detected\n", __FILE__, getpid());
+	  tc_log_msg(__FILE__, "(pid=%d) MPEG-2 video stream detected",
+		     getpid());
 	}
       } else {
 
@@ -215,14 +228,16 @@ void tcdemux_pass_through(info_t *ipipe, int *pass)
 
 	  if(verbose & TC_STATS) {
 	    //display info only once
-	    fprintf(stderr, "[%s] (pid=%d) MPEG-1 video stream detected\n", __FILE__, getpid());
+	    tc_log_msg(__FILE__, "(pid=%d) MPEG-1 video stream detected",
+		       getpid());
 	  }
 	} else {
 
 	  payload_id=PACKAGE_PASS;
 
 	  if(verbose & TC_DEBUG)
-	    fprintf(stderr, "[%s] (pid=%d) unknown stream packet id detected\n", __FILE__, getpid());
+	    tc_log_warn(__FILE__, "(pid=%d) unknown stream packet id detected",
+			getpid());
 	}
 
 	//flush all MPEG1 stuff
@@ -266,7 +281,7 @@ void tcdemux_pass_through(info_t *ipipe, int *pass)
 	 || is_track == pass[3] || is_track == pass[4] ) {
 
 	  if(tc_pwrite(ipipe->fd_out, buffer, packet_size) != packet_size) {
-	      perror("write program stream packet");
+	      tc_log_perror(__FILE__, "write program stream packet");
 	      exit(1);
 	  }
       }

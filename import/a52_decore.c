@@ -24,6 +24,7 @@
 
 #include "transcode.h"
 #include "tcinfo.h"
+#include "libtc/libtc.h"
 
 #include <limits.h>
 
@@ -134,7 +135,7 @@ int a52_decore(decode_t *decode) {
       if(sync_word == 0x0b77) break;
 
       if(k>(1<<20)) {
-	fprintf(stderr, "no AC3 sync frame found within 1024 kB of stream\n");
+	tc_log_error(__FILE__, "no AC3 sync frame found within 1024 kB of stream");
 	return(-1);
       }
     }
@@ -147,7 +148,8 @@ int a52_decore(decode_t *decode) {
     bytes_read=tc_pread(decode->fd_in, &buf[2], HEADER_LEN-2);
 
     if(bytes_read< HEADER_LEN-2) {
-      if(decode->verbose & TC_DEBUG) fprintf (stderr, "(%s@%d) read error (%d/%d)\n", __FILE__, __LINE__, bytes_read, HEADER_LEN-2);
+      if(decode->verbose & TC_DEBUG)
+	tc_log_msg(__FILE__, "read error (%d/%d)", bytes_read, HEADER_LEN-2);
       return(-1);
     }
 
@@ -160,14 +162,14 @@ int a52_decore(decode_t *decode) {
     frame_size = a52_syncinfo(buf, &flags, &sample_rate, &bit_rate);
 
     if(frame_size==0 || frame_size>= FRAME_SIZE) {
-      fprintf(stderr, "frame size = %d (%d %d)\n", frame_size, sample_rate, bit_rate);
+      tc_log_msg(__FILE__, "frame size = %d (%d %d)", frame_size, sample_rate, bit_rate);
       goto skip_frame;
     }
 
     // read the rest of the frame
     if((bytes_read=tc_pread(decode->fd_in, &buf[HEADER_LEN], frame_size-HEADER_LEN)) < frame_size-HEADER_LEN) {
       if(decode->verbose & TC_DEBUG)
-	fprintf (stderr, "(%s@%d) read error (%d/%d)\n", __FILE__, __LINE__, bytes_read, frame_size-HEADER_LEN);
+	tc_log_msg(__FILE__, "read error (%d/%d)", bytes_read, frame_size-HEADER_LEN);
       return(-1);
     }
 
@@ -209,11 +211,12 @@ int a52_decore(decode_t *decode) {
 
       pcm_size = 256 * sizeof (int16_t)*chans;
 
-      //fprintf (stderr, "(%s@%d) write (%d) bytes\n", __FILE__, __LINE__, pcm_size);
+      //tc_log_msg(__FILE__, "write (%d) bytes", pcm_size);
       (decode->a52_mode & TC_A52_DEMUX) ? float2s16((float *)samples, (int16_t *)&pcm_buf) : float2s16_2((float *)samples, (int16_t *)&pcm_buf);
 
 	if((bytes_wrote=tc_pwrite(decode->fd_out, (char*) pcm_buf, pcm_size)) < pcm_size) {
-	  if(decode->verbose & TC_DEBUG) fprintf (stderr, "(%s@%d) write error (%d/%d)\n", __FILE__, __LINE__, bytes_wrote, pcm_size);
+	  if(decode->verbose & TC_DEBUG)
+	    tc_log_error(__FILE__, "write error (%d/%d)", bytes_wrote, pcm_size);
 	  return(-1);
 	}
     } //end pcm data output
@@ -229,12 +232,12 @@ int a52_decore(decode_t *decode) {
 
       pcm_size = 256 * sizeof (int16_t)*chans;
 
-      //fprintf (stderr, "(%s@%d) write (%d) bytes\n", __FILE__, __LINE__, pcm_size);
+      //tc_log_msg(__FILE__, "write (%d) bytes", pcm_size);
       (decode->a52_mode & TC_A52_DEMUX) ? float2s16((float *)samples, (int16_t *)&pcm_buf) : float2s16_2((float *)samples, (int16_t *)&pcm_buf);
     } //end pcm data output
     if((bytes_wrote=tc_pwrite(decode->fd_out, buf, bytes_read+HEADER_LEN)) < bytes_read+HEADER_LEN) {
-	if(decode->verbose & TC_DEBUG) fprintf (stderr, "(%s@%d) write error (%d/%d)\n",
-	    __FILE__, __LINE__, bytes_wrote, bytes_read+HEADER_LEN);
+	if(decode->verbose & TC_DEBUG)
+	  tc_log_error(__FILE__, "write error (%d/%d)", bytes_wrote, bytes_read+HEADER_LEN);
 	return(-1);
     }
    }

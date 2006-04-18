@@ -40,7 +40,7 @@ int scan_header_dv(char *buf)
     // Initialize DV decoder
 
     if((dv_decoder = dv_decoder_new(TRUE, FALSE, FALSE))==NULL) {
-	fprintf(stderr, "(%s) dv decoder init failed\n", __FILE__);
+	tc_log_error(__FILE__, "dv decoder init failed");
 	return(-1);
     }
 
