@@ -1,18 +1,11 @@
 # # Process this file with automake to produce Makefile.in.
 
 AM_CPPFLAGS = \
-	$(PTHREAD_CFLAGS) \
-	-I$(top_srcdir)
+	$(PTHREAD_CFLAGS)
 
 noinst_LIBRARIES = libdldarwin.a
 
-libdldarwin_a_SOURCES =
-EXTRA_libdldarwin_a_SOURCES = dlfcn_simple.c
-
-libdldarwin_a_DEPENDENCIES = $(DLDARWINOBJECTS)
-libdldarwin_a_LIBADD = $(DLDARWINOBJECTS)
+libdldarwin_a_SOURCES = dlfcn_simple.c
 
 EXTRA_DIST = \
-	dlfcn.h \
-	dlfcn_simple.c \
-	dummy.c
+	dlfcn.h

@@ -2,6 +2,10 @@
 
 AUTOMAKE_OPTIONS = foreign
 
+if USE_DLDARWIN
+LIBDLDARWIN = libdldarwin
+endif
+
 if HAVE_PVM3
 PVM3 = pvm3
 endif
@@ -10,7 +14,7 @@ SUBDIRS = \
 	aclib \
 	avilib \
 	libac3 \
-	libdldarwin \
+	$(LIBDLDARWIN) \
 	libtc \
 	libtcaudio \
 	libtcvideo \

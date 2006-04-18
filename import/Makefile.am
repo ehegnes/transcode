@@ -250,7 +250,7 @@ tccat_LDADD = \
 	$(LIBDVDREAD_LIBS) \
 	$(XIO_LIBS) \
 	$(LIBXML2_LIBS) \
-	$(DLDARWINLIB) \
+	$(DLDARWIN_LIBS) \
 	$(ACLIB_LIBS) \
 	$(LIBTC_LIBS) \
 	-lm
@@ -295,7 +295,7 @@ tcdecode_LDADD = \
 	$(VORBIS_LIBS) \
 	$(VORBISFILE) \
 	$(XIO_LIBS) \
-	$(DLDARWINLIB) \
+	$(DLDARWIN_LIBS) \
 	$(ACLIB_LIBS) \
 	$(LIBTC_LIBS) \
 	$(LIBTCVIDEO_LIBS)
@@ -333,7 +333,7 @@ tcdemux_LDADD = \
 	$(AVILIB_LIBS) \
 	$(LIBDV_LIBS) \
 	$(LIBDVDREAD_LIBS) \
-	$(DLDARWINLIB) \
+	$(DLDARWIN_LIBS) \
 	$(XIO_LIBS) \
 	$(ACLIB_LIBS) \
 	$(LIBTC_LIBS) \
@@ -444,7 +444,7 @@ tcprobe_LDADD = \
 	$(XIO_LIBS) \
 	$(LIBXML2_LIBS) \
 	$(BSDAV_LIBS) \
-	$(DLDARWINLIB) \
+	$(DLDARWIN_LIBS) \
 	$(ACLIB_LIBS) \
 	$(LIBTC_LIBS) \
 	-lm

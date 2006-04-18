@@ -1,4 +1,18 @@
-2006-04-17 Andrew Church <achurch at achurch dot org>
+2006-04-18 Andrew Church <achurch at achurch dot org>
+  * Makefile.am configure.in
+  Don't process the libdldarwin subdirectory if not on a Darwin machine.
+
+  * configure.in filter/preview/Makefile.am import/Makefile.am
+    src/Makefile.am tools/Makefile.am
+  Change DLDARWININCL and DLDARWINLIB to the more standard
+  DLDARWIN_CFLAGS and DLDARWIN_LIBS.
+
+  * Changed: libdldarwin/Makefile.am
+    Removed: libdldarwin/dummy.c
+  Dummy file no longer needed.
+
+2006-04-18 Andrew Church <achurch at achurch dot org>
+  * Changed: docs/Makefile.am
   * Added: docs/RELNOTES-0.6.13
   * Removed: docs/release-notes/README-0.6.13
   Move solitary file into main documentation directory.

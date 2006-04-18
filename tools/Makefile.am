@@ -10,7 +10,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/aclib \
 	$(AC3_CFLAGS) \
 	$(AVILIB_CFLAGS) \
-	$(DLDARWININCL) \
+	$(DLDARWIN_CFLAGS) \
 	$(XIO_CFLAGS)
 
 bin_PROGRAMS = \
@@ -81,7 +81,7 @@ avisplit_LDADD = \
 
 tcmodinfo_SOURCES = tcmodinfo.c
 tcmodinfo_LDADD = \
-	$(DLDARWINLIB) \
+	$(DLDARWIN_LIBS) \
 	$(ACLIB_LIBS) \
 	$(AVILIB_LIBS) \
 	$(WAVLIB_LIBS) \
@@ -102,7 +102,7 @@ tcexport_SOURCES = tcexport.c \
 	../src/encoder.c \
 	../src/encoder-common.c
 tcexport_LDADD = \
-	$(DLDARWINLIB) \
+	$(DLDARWIN_LIBS) \
 	$(ACLIB_LIBS) \
 	$(AVILIB_LIBS) \
 	$(WAVLIB_LIBS) \

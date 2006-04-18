@@ -9,7 +9,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/libtc \
-	$(DLDARWININCL) \
+	$(DLDARWIN_CFLAGS) \
 	$(TCIOAUX_CFLAGS) \
 	$(XIO_CFLAGS)
 

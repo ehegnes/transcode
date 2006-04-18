@@ -74,19 +74,20 @@ if test x"$is_osx" = x"true" ; then
 fi
 AC_DISABLE_STATIC
 
+USE_DLDARWIN=no
 if test x"$ac_cv_lib_dl_dlopen" = x"no" ; then
   case x${target_os} in
     xdarwin*)
-      DLDARWINOBJECTS="$DLDARWINOBJECTS dlfcn_simple.o"
-      DLDARWINLIB="\$(top_builddir)/libdldarwin/libdldarwin.a"
-      DLDARWININCL="-I\$(top_srcdir)/libdldarwin/"
+      USE_DLDARWIN=yes
+      DLDARWIN_CFLAGS="-I\$(top_srcdir)/libdldarwin/"
+      DLDARWIN_LIBS="\$(top_builddir)/libdldarwin/libdldarwin.a"
       ;;
   esac
 fi
-DLDARWINOBJECTS="$DLDARWINOBJECTS dummy.o"
-AC_SUBST(DLDARWINOBJECTS)
-AC_SUBST(DLDARWINLIB)
-AC_SUBST(DLDARWININCL)
+AC_SUBST(USE_DLDARWIN)
+AC_SUBST(DLDARWIN_CFLAGS)
+AC_SUBST(DLDARWIN_LIBS)
+AM_CONDITIONAL(USE_DLDARWIN, test x"$USE_DLDARWIN" = x"yes")
 
 
 # Checks for header files.

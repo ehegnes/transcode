@@ -7,7 +7,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/filter \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/libtc \
-	$(DLDARWININCL) \
+	$(DLDARWIN_CFLAGS) \
 	$(LIBDV_CFLAGS) \
 	$(X_CFLAGS) \
 	$(GTK_CFLAGS) \
@@ -56,7 +56,7 @@ filter_pv_la_LIBADD = \
 	-lXext \
 	-lX11 \
 	$(LIBS_XV) \
-	$(DLDARWINLIB)
+	$(DLDARWIN_LIBS)
 
 EXTRA_DIST = \
 	display.h \
