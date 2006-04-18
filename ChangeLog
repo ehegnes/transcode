@@ -1,4 +1,4 @@
-2006-04-18 Andrew Church <achurch at achurch dot org>
+2006-04-18 Andrew Church <achurch at achurch dot org> 
   * STYLE
   Added guidelines on printing messages from transcode (and modules, etc).
   Comments appreciated.

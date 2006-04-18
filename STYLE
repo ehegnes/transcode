@@ -435,6 +435,7 @@ Coding style guidelines for transcode
       * tc_log_info()
             For ordinary informational messages.
       * tc_log_msg()
-            For debugging messages.
+            For debugging messages and less important informational
+            messages.
   NEVER use printf() or any other functions which write to stdout for
   these purposes.
