@@ -1211,7 +1211,6 @@ AC_OUTPUT([
 	docs/Makefile
 	docs/html/Makefile
 	docs/man/Makefile
-	docs/release-notes/Makefile
 	encode/Makefile
 	export/Makefile
 	filter/Makefile

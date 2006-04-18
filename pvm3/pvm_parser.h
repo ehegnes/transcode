@@ -24,8 +24,7 @@
 #ifndef _PVM_PARSER_H
 #define _PVM_PARSER_H
 
-#include <configs.h>	/*for libioaux*/
-#include <tc_defaults.h>	/*TC_xxxx variables*/
+#include "tc_defaults.h"	/*TC_xxxx variables*/
 
 typedef struct _pvm_config_filelist{
 				char 				*p_codec;

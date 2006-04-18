@@ -1,4 +1,8 @@
 2006-04-18 Andrew Church <achurch at achurch dot org>
+  * configure.in pvm3/pvm_parser.h testsuite/Makefile.am
+  Clean up stuff missed in previous updates.
+
+2006-04-18 Andrew Church <achurch at achurch dot org>
   * Makefile.am configure.in
   Don't process the libdldarwin subdirectory if not on a Darwin machine.
 

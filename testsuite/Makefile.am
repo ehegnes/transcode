@@ -8,9 +8,8 @@ AM_CPPFLAGS = \
 	-DMOD_PATH=\"$(MOD_PATH)\" \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
-	-I$(top_srcdir)/libtc \
+	$(LIBTC_CFLAGS) \
 	$(DLDARWIN_CFLAGS) \
-	$(TCIOAUX_CFLAGS) \
 	$(XIO_CFLAGS)
 
 noinst_PROGRAMS = \
