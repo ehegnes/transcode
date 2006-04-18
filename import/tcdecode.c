@@ -262,6 +262,7 @@ int main(int argc, char *argv[])
 	else if (!strcmp(codec, "h263i")) decode.codec = TC_CODEC_H263I;
 	else if (!strcmp(codec, "dvvideo")) decode.codec = TC_CODEC_DV;
 	else if (!strcmp(codec, "dv")) decode.codec = TC_CODEC_DV;
+	else if (!strcmp(codec, "vag")) decode.codec = TC_CODEC_VAG;
 
 	decode_lavc(&decode);
     }

@@ -1,4 +1,11 @@
 2006-04-18 Andrew Church <achurch at achurch dot org>
+  * Changed: import/Makefile.am import/demuxer.h import/scan_pes.c
+             import/tcdecode.c libtc/tccodecs.h src/probe.c
+             src/tc_defaults.h
+  * Added: import/import_vag.c
+  Add import module for PlayStation/PS2 ("VAG") format audio.
+
+2006-04-18 Andrew Church <achurch at achurch dot org>
   * export/aud_aux.c
   Properly determine whether import audio is available or not.
 

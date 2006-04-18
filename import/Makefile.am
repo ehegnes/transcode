@@ -80,6 +80,7 @@ pkg_LTLIBRARIES = \
 	$(IMPORT_OSS) \
 	import_raw.la \
 	$(IMPORT_SUNAU) \
+	import_vag.la \
 	import_vnc.la \
 	import_vob.la \
 	$(IMPORT_XML) \
@@ -165,6 +166,9 @@ import_raw_la_LDFLAGS = -module -avoid-version
 
 import_sunau_la_SOURCES = import_sunau.c
 import_sunau_la_LDFLAGS = -module -avoid-version
+
+import_vag_la_SOURCES = import_vag.c
+import_vag_la_LDFLAGS = -module -avoid-version
 
 import_vnc_la_SOURCES = import_vnc.c
 import_vnc_la_LDFLAGS = -module -avoid-version

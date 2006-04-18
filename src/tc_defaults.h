@@ -178,6 +178,7 @@
 #define CODEC_LPCM    0x10001
 #define CODEC_DTS     0x1000F     //??
 #define CODEC_VORBIS  0xfffe
+#define CODEC_VAG     0xfeed //me pizza
 
 //import/export frame attributes
 #define TC_FRAME_IS_KEYFRAME         1

@@ -236,6 +236,9 @@ void scan_pes(int verbose, FILE *in_file)
 	  if((*tmp1-0x80) >= 0 && (*tmp1-0x80)<TC_MAX_AUD_TRACKS && !track[*tmp1-0x80] ) {
 	    tc_log_msg(__FILE__, "found AC3 audio track %d [0x%x]", *tmp1-0x80, *tmp1);
 	    track[*tmp1-0x80]=1;
+	  } else if (*tmp1 == 0xFF && memcmp(tmp1+4,"SShd",4) == 0) {
+	    tc_log_msg(__FILE__, "found VAG audio track [0x%x]", *tmp1);
+	    track[0]=1;
 	  }
 
 	  buf = tmp2;
@@ -1019,6 +1022,57 @@ void probe_pes(info_t *ipipe)
 		      * ipipe->probe_info->track[num].bits
 		      * ipipe->probe_info->track[num].chan / 1000;
 		  ipipe->probe_info->track[num].format=CODEC_LPCM;
+
+		  ac_memcpy(scan_buf, &buf[6], 16);
+		  has_pts_dts=get_pts_dts(scan_buf, &i_pts, &i_dts);
+		  ipipe->probe_info->track[num].pts_start=(double) i_pts/90000.;
+		  has_audio=1;
+		  //ipipe->probe_info->track[num].pts_start=pack_ppp;
+		}
+	      }
+	    }
+
+	    //-------------
+	    //
+	    //VAG audio
+	    //
+	    //-------------
+
+	    if(aid == 0xFF && memcmp(tmp1+4,"SShd",4) == 0) {
+	      num=0;
+
+	      if(!(attr[num] & PACKAGE_AUDIO_VAG) && initial_sync) {
+
+		if(!track[num]) {
+		  ++ipipe->probe_info->num_tracks;
+		  track[num]=1;
+		  ipipe->probe_info->track[num].tid=num;
+		}
+
+		if(!(ipipe->probe_info->track[num].attribute &
+		     PACKAGE_AUDIO_VAG)) {
+
+		  tmp1 += 4;  // skip MPEG data
+		  tmp1 += 4;  // skip "SShd" header tag
+		  tmp1 += 4;  // skip file (data+header) size (int32_le)
+		  ipipe->probe_info->track[num].bits = *tmp1;
+		  tmp1 += 4;
+		  ipipe->probe_info->track[num].samplerate = tmp1[0]|tmp1[1]<<8;
+		  tmp1 += 4;
+		  ipipe->probe_info->track[num].chan = *tmp1;
+		  tmp1 += 4;
+		  // next 4 bytes are stereo quantization size
+		  // next 8 bytes are unused?
+		  // next 8 bytes are data block header "SSbd" and int32_le size
+
+		  ipipe->probe_info->track[num].attribute |= PACKAGE_AUDIO_VAG;
+		  ipipe->probe_info->track[num].bitrate
+		    = ipipe->probe_info->track[num].samplerate
+		      * ipipe->probe_info->track[num].chan
+		      * 4        /* bits per sample, encoded */
+		      * 16 / 14  /* overhead ratio */
+                      / 1000;
+		  ipipe->probe_info->track[num].format = CODEC_VAG;
 
 		  ac_memcpy(scan_buf, &buf[6], 16);
 		  has_pts_dts=get_pts_dts(scan_buf, &i_pts, &i_dts);

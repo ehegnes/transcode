@@ -88,5 +88,6 @@
 #define TC_CODEC_ASV1                  0x0010FFFE
 #define TC_CODEC_ASV2                  0x0011FFFE
 #define TC_CODEC_H264                  0x0012FFFE
+#define TC_CODEC_VAG                   0x0000FEED
 
 #endif // TC_CODECS_H
