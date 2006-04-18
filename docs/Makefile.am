@@ -10,8 +10,7 @@ EXTRA_DIST = \
 
 SUBDIRS = \
 	man \
-	html \
-	release-notes
+	html
 
 docsdir = $(datadir)/doc/transcode
 
@@ -26,6 +25,7 @@ docs_DATA = \
 	README.sync \
 	README.vcd \
 	README.xvid-credits \
+	RELNOTES-0.6.13 \
 	architecture.txt \
 	avi_comments.txt \
 	clone.txt \

@@ -1,4 +1,12 @@
 2006-04-17 Andrew Church <achurch at achurch dot org>
+  * Added: docs/RELNOTES-0.6.13
+  * Removed: docs/release-notes/README-0.6.13
+  Move solitary file into main documentation directory.
+
+  * Removed: docs/release-notes/*
+  Remove empty directory.
+
+2006-04-17 Andrew Church <achurch at achurch dot org>
   * configure.in
   Remove unused automake variables: HAVE_FOMIT_FP, NET_STREAM, and
   HAVE_DIVX_ENCORE2.
