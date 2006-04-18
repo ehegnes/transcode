@@ -49,8 +49,6 @@ char import_cmd_buf[TC_BUF_MAX];
 // this is visible (without the mutex of course) with
 // transcode .. -x ffmpeg -y ffmpeg -F mpeg4
 
-extern pthread_mutex_t init_avcodec_lock;
-
 static int done_seek=0;
 static int levels_handle=-1;
 
@@ -221,6 +219,7 @@ MOD_open {
   double  fps = 0;
   int extra_data_size = 0;
   long sret;
+  int ret;
 
   if (param->flag == TC_VIDEO) {
 
@@ -282,10 +281,10 @@ do_avi:
 
     //-- initialization of ffmpeg stuff:          --
     //----------------------------------------------
-    pthread_mutex_lock(&init_avcodec_lock);
+    TC_LOCK_LIBAVCODEC;
     avcodec_init();
     avcodec_register_all();
-    pthread_mutex_unlock(&init_avcodec_lock);
+    TC_UNLOCK_LIBAVCODEC;
 
     codec = find_ffmpeg_codec(fourCC);
     if (codec == NULL) {
@@ -340,7 +339,10 @@ do_avi:
       lavc_dec_context->extradata_size = extra_data_size;
     }
 
-    if (avcodec_open(lavc_dec_context, lavc_dec_codec) < 0) {
+    TC_LOCK_LIBAVCODEC;
+    ret = avcodec_open(lavc_dec_context, lavc_dec_codec);
+    TC_UNLOCK_LIBAVCODEC;
+    if (ret < 0) {
       tc_log_warn(MOD_NAME, "Could not initialize the '%s' codec.",
               codec->name);
       return TC_IMPORT_ERROR;
@@ -536,10 +538,10 @@ MOD_decode {
 
 retry:
     do {
-      pthread_mutex_lock(&init_avcodec_lock);
+      TC_LOCK_LIBAVCODEC;
       len = avcodec_decode_video(lavc_dec_context, &picture,
 			         &got_picture, buffer, bytes_read);
-      pthread_mutex_unlock(&init_avcodec_lock);
+      TC_UNLOCK_LIBAVCODEC;
 
       if (len < 0) {
 	tc_log_warn (MOD_NAME, "frame decoding failed");

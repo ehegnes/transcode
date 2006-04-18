@@ -69,8 +69,6 @@ static vob_t *vob;
 
 /*start function required by some export modules*/
 
-pthread_mutex_t init_avcodec_lock=PTHREAD_MUTEX_INITIALIZER;
-
 vob_t *tc_get_vob() {return(vob);}
 
 void tc_outstream_rotate()

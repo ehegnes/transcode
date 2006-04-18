@@ -482,7 +482,6 @@ int tc_progress_rate = 1;
 
 /* more symbols needed by modules ***************************************/
 
-pthread_mutex_t init_avcodec_lock = PTHREAD_MUTEX_INITIALIZER;
 int probe_export_attributes = 0;
 int verbose  = TC_INFO;
 int tc_accel = -1;    /* acceleration code */

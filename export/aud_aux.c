@@ -32,13 +32,12 @@
 #include <assert.h>
 
 #include <ffmpeg/avcodec.h>
+#include "libtc/libtc.h"
 
 #include "aud_aux.h"
 #include "ac3.h"
 
 #include "transcode.h"
-
-extern pthread_mutex_t init_avcodec_lock;
 
 static AVCodec        *mpa_codec = NULL;
 static AVCodecContext mpa_ctx;
@@ -314,14 +313,15 @@ static int audio_init_lame(vob_t *vob, int o_codec)
 static int audio_init_ffmpeg(vob_t *vob, int o_codec)
 {
     unsigned long codeid = 0;
+    int ret = 0;
 
     // INIT
 
-    pthread_mutex_lock(&init_avcodec_lock);
+    TC_LOCK_LIBAVCODEC;
     avcodec_init();
     register_avcodec(&ac3_encoder);
     register_avcodec(&mp2_encoder);
-    pthread_mutex_unlock(&init_avcodec_lock);
+    TC_UNLOCK_LIBAVCODEC;
 
     switch (o_codec) {
 	case   0x50: codeid = CODEC_ID_MP2; break;
@@ -360,7 +360,10 @@ static int audio_init_ffmpeg(vob_t *vob, int o_codec)
 
       //-- open codec --
       //----------------
-      if (avcodec_open(&mpa_ctx, mpa_codec) < 0)
+      TC_LOCK_LIBAVCODEC;
+      ret = avcodec_open(&mpa_ctx, mpa_codec);
+      TC_UNLOCK_LIBAVCODEC;
+      if (ret < 0)
       {
         tc_warn("encode_ffmpeg", "could not open mpa codec !");
         return(TC_EXPORT_ERROR);
@@ -868,10 +871,10 @@ static int audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile)
 
 	ac_memcpy(&mpa_buf[mpa_buf_ptr], in_buf, bytes_needed);
 
-	pthread_mutex_lock(&init_avcodec_lock);
+	TC_LOCK_LIBAVCODEC;
 	out_size = avcodec_encode_audio(&mpa_ctx, (unsigned char *)output,
 					OUTPUT_SIZE, (short *)mpa_buf);
-	pthread_mutex_unlock(&init_avcodec_lock);
+	TC_UNLOCK_LIBAVCODEC;
 	audio_write(output, out_size, avifile);
 
         in_size -= bytes_needed;
@@ -895,11 +898,10 @@ static int audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile)
     //----------------------------------------------------
 
     while (in_size >= mpa_bytes_pf) {
-
-      pthread_mutex_lock(&init_avcodec_lock);
+      TC_LOCK_LIBAVCODEC;
       out_size = avcodec_encode_audio(&mpa_ctx, (unsigned char *)output,
 				      OUTPUT_SIZE, (short *)in_buf);
-      pthread_mutex_unlock(&init_avcodec_lock);
+      TC_UNLOCK_LIBAVCODEC;
 
       audio_write(output, out_size, avifile);
 

@@ -102,8 +102,6 @@ static int capability_flag = TC_CAP_YUV|TC_CAP_RGB|TC_CAP_PCM|TC_CAP_AC3|
  * this is visible (without the mutex of course) with
  * transcode .. -x ffmpeg -y ffmpeg -F mpeg4
  */
-extern pthread_mutex_t init_avcodec_lock;
-
 struct ffmpeg_codec {
     char *name;
     char *fourCC;
@@ -213,6 +211,7 @@ MOD_init {
     char *p;
     int   i;
     size_t fsize;
+    int ret = 0;
 
     if (param->flag == TC_VIDEO) {
 
@@ -328,10 +327,10 @@ MOD_init {
         return TC_EXPORT_ERROR;
     }
 
-    pthread_mutex_lock(&init_avcodec_lock);
+    TC_LOCK_LIBAVCODEC;
     avcodec_init();
     avcodec_register_all();
-    pthread_mutex_unlock(&init_avcodec_lock);
+    TC_UNLOCK_LIBAVCODEC;
 
     /* -- get it -- */
     lavc_venc_codec = avcodec_find_encoder_by_name(codec->name);
@@ -1139,7 +1138,10 @@ MOD_init {
 
     //-- open codec --
     //----------------
-    if (avcodec_open(lavc_venc_context, lavc_venc_codec) < 0) {
+    TC_LOCK_LIBAVCODEC;
+    ret = avcodec_open(lavc_venc_context, lavc_venc_codec);
+    TC_UNLOCK_LIBAVCODEC;
+    if (ret < 0) {
       tc_log_warn(MOD_NAME, "could not open FFMPEG codec");
       return TC_EXPORT_ERROR;
     }
@@ -1515,11 +1517,11 @@ MOD_encode
     }
 
 
-    pthread_mutex_lock(&init_avcodec_lock);
+    TC_LOCK_LIBAVCODEC;
     out_size = avcodec_encode_video(lavc_venc_context,
                                     (unsigned char *) tmp_buffer, size,
                                     lavc_venc_frame);
-    pthread_mutex_unlock(&init_avcodec_lock);
+    TC_UNLOCK_LIBAVCODEC;
 
     if (out_size < 0) {
       tc_log_warn(MOD_NAME, "encoder error: size (%d)", out_size);

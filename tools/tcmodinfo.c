@@ -122,7 +122,6 @@ int plugin_get_handle(char *name)
 }
 
 /* symbols needed by modules */
-pthread_mutex_t init_avcodec_lock = PTHREAD_MUTEX_INITIALIZER;
 int probe_export_attributes = 0;
 int verbose  = TC_INFO;
 int rgbswap  = 0;

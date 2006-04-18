@@ -1,7 +1,13 @@
 2006-04-18 Francesco Romani <fromani at gmail dot com>
+  * export/aud_aux.c export/export_ffmpeg.c import/import_ffmpeg.c
+    pvm3/export_pvm_slave.c src/transcode.c tools/tcexport.c
+    tools/tcmodinfo.c
+  init_avcodec_lock -> new libtc libavcodec locking.
+  also protect with locking avcodec_open() calls.
+
   * libtc/libtc.h libtc/tc_functions.c
   misc updates;
-  introduce libavcodec lock, will be replace init_avcodec_lock;
+  introduce libavcodec lock, will replace init_avcodec_lock;
   strip documentation of functions according to last STYLE changes;
   correct return value of tc_log and resync function documentation.
 

@@ -100,8 +100,6 @@ static pthread_t thread_signal=(pthread_t)0, thread_server=(pthread_t)0, thread_
 int tc_signal_thread     =  0;
 sigset_t sigs_to_block;
 
-// for initializing libavcodec
-pthread_mutex_t init_avcodec_lock=PTHREAD_MUTEX_INITIALIZER;
 // for initializing export_pvm
 pthread_mutex_t s_channel_lock=PTHREAD_MUTEX_INITIALIZER;
 
