@@ -119,6 +119,12 @@ void tc_log(TCLogLevel level, const char *tag, const char *fmt, ...);
 #define tc_log_msg(tag, format, args...) \
     tc_log(TC_LOG_MSG, tag, format , ## args)
 
+#define tc_log_perror(tag, string) do {                            \
+    const char *__s = (string);  /* watch out for side effects */  \
+    tc_log_error(tag, "%s%s%s", __s ? __s : "",                    \
+                 (__s && *__s) ? ": " : "",  strerror(errno));     \
+} while (0)
+
 
 /*
  * tc_test_program:

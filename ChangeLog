@@ -1,6 +1,10 @@
-2006-04-18 Andrew Church <achurch at achurch dot org> 
+2006-04-18 Andrew Church <achurch at achurch dot org>
+  * libtc/libtc.h
+  Add tc_log_perror() macro, doing the same thing as perror() but via
+  tc_log_error().
+
   * STYLE
-  Added guidelines on printing messages from transcode (and modules, etc).
+  Add guidelines on printing messages from transcode (and modules, etc).
   Comments appreciated.
 
 2006-04-18 Andrew Church <achurch at achurch dot org>
@@ -104,7 +108,7 @@
     src/transcode.c tools/Makefile.am tools/tcexport.c tools/tcmodinfo.c
   Use the new code in place of the old libioaux code.
 
-  * import/v4l/Makefile.am import/v4l/video.c 
+  * import/v4l/Makefile.am import/v4l/video.c
   Remove dependency on libioaux; temporarily disable the .xawtv parsing
   code, which used it.  Change code to not modify brightness/etc. settings
   if no specific values are available.
@@ -170,7 +174,7 @@
 2006-04-16 Francesco Romani <fromani at gmail dot com>
   * tools/tcmodinfo.c
   #defines -> enum, better defaults for vob_t fields.
-  
+
   * tools/tcexport.c
   move some #defines to a enum, fix a typo and update interface to
   last rawsource changes.
@@ -203,7 +207,7 @@
   * libtc/libtc.h libtc/tc_functions.c
   removed tc_detect_{frc,asr} functions and src/frc_table.h since
   they are now useless.
-  
+
   * filter/filter_modfps.c import/aux_pes.c import/extract_avi.c
     import/extract_yuv.c import/probe_bsdav.c import/probe_mov.c
     import/probe_mplayer.c import/probe_ogg.c import/tcscan.c
@@ -225,7 +229,7 @@
     testsuite/test-ratiocodes.c
   * libtc/Makefile.am testsuite/Makefile.am
   Add unified ratio/code handling code (will replace
-  tc_detect_{asr,frc}), frc_table and co. 
+  tc_detect_{asr,frc}), frc_table and co.
 
 2006-04-11 Francesco Romani <fromani at gmail dot com>
   * libtc/iodir.c libtc/iodir.c libtc/optstr.h libtc/static_xio.h
@@ -352,7 +356,7 @@
 
  This code basically works (I've used for some time on my system
  for every-day transcode usage), but it's still a work-in progress.
- It needs documentation, a cleanup and a reimplementation of 
+ It needs documentation, a cleanup and a reimplementation of
  frame boundaries and output rotation handling code.
 
  I'll take care fixing missing things above ASAP.
@@ -702,7 +706,7 @@
   port import layer code to wavlib.
 
   * configure.in avilib/Makefile.am
- 
+
   * added files: avilib/wavlib.h avilib/wavlib.c
   introduce helper library to deal with WAVE files.
   basic documentation is included in header file, and wavlib
@@ -846,7 +850,7 @@
 
 2005-12-30 Francesco Romani <fromani at gmail dot com>
   * src/transcode.c
- 
+
   added file: avilib/static_avilib.h
 
   introduce static linkage helper header for avilib.
@@ -1170,7 +1174,7 @@
 
 2005-12-12 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmoduleinfo.c
- 
+
   removed file: libtc/tcmoduleinfo.h
 
   added file: libtc/tcmodule-info.h
@@ -1184,12 +1188,12 @@
 
 2005-12-10 Francesco Romani <fromani at gmail dot com>
   * added file: docs/module-system-API.txt
- 
+
   Documentation for module/plugin system.
 
 2005-12-08 Francesco Romani <fromani at gmail dot com>
   * tools/tcmodinfo.c
- 
+
   added file: libtc/static_optstr.h
 
   Introduce helper header like to static_xio.h to make
@@ -1249,7 +1253,7 @@
 2005-11-18 Francesco Romani <fromani at gmail dot com>
   * import/magic.h libtc/libtc.h
   libtc/Makefile.am
- 
+
   Added files:
   libtc/tccodecs.c libtc/tccodecs.h libtc/tcmoduleinfo.c
   libtc/tcmoduleinfo.h
