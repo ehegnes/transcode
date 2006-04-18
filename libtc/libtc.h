@@ -89,17 +89,18 @@ typedef enum {
  *            otherwise will cause an undefined behaviour, most
  *            likely a crash.
  * Return Value:
- *      0 if message succesfully logged
- *     -1 if there is failure, and so message was dropped.
+ *      0 if message succesfully logged.
+ *     -1 if message was truncated.
+ *        (message too large and buffer allocation failed).
  * Side effects:
  *     this function store final message in an intermediate string
  *     before to log it to destination. If such intermediate string
  *     is wider than a given amount (TC_BUF_MIN * 2 at moment
  *     of writing), tc_log needs to dinamically allocate some memory.
  *     This allocation can fail, and as result log message will be
- *     dropped.
+ *     truncated to fit in avalaible static buffer.
  */
-void tc_log(TCLogLevel level, const char *tag, const char *fmt, ...);
+int tc_log(TCLogLevel level, const char *tag, const char *fmt, ...);
 
 /* compatibility macros */
 #define tc_error(format, args...) \
@@ -650,6 +651,20 @@ void tc_vframe_del(void *_vptr);
 void tc_aframe_del(void *_aptr);
 
 
+/*
+ * libavcodec lock. Used for serializing initialization/open of library.
+ * Other libavcodec routines (avcodec_{encode,decode}_* should be thread
+ * safe (as ffmpeg crew said) if each thread uses it;s own AVCodecContext,
+ * as we do.
+ */
+extern pthread_mutex_t tc_libavcodec_mutex;
+
+/*
+ * libavcodec locking goodies. It's preferred and encouraged  to use
+ *  macros below, but accessing libavcodec mutex will work too.
+ */
+#define TC_LOCK_LIBAVCODEC	(pthread_mutex_lock(&tc_libavcodec_mutex))
+#define TC_UNLOCK_LIBAVCODEC	(pthread_mutex_unlock(&tc_libavcodec_mutex))
 
 #ifdef __cplusplus
 }

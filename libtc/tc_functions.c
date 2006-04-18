@@ -43,6 +43,10 @@
 
 /*************************************************************************/
 
+pthread_mutex_t tc_libavcodec_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+/*************************************************************************/
+
 #define TC_MSG_BUF_SIZE     (TC_BUF_MIN * 2)
 
 /* WARNING: we MUST keep in sync preambles order with TC_LOG* macros */
@@ -57,12 +61,12 @@ static const char *tc_log_preambles[] = {
     "[%s] %s\n",
 };
 
-void tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
+int tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
 {
     char buf[TC_MSG_BUF_SIZE];
     char *msg = buf;
     size_t size = 0;
-    int dynbuf = 0;
+    int dynbuf = TC_FALSE, truncated = TC_FALSE;
     /* flag: we must use a dynamic (larger than static) buffer? */
     va_list ap;
 
@@ -83,7 +87,7 @@ void tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
          */
         msg = malloc(size);
         if (msg != NULL) {
-            dynbuf = 1;
+            dynbuf = TC_TRUE;
         } else {
             fprintf(stderr, "(%s) CRITICAL: can't get memory in "
                     "tc_log() output will be truncated.\n",
@@ -91,6 +95,7 @@ void tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
             /* force reset to default values */
             msg = buf;
             size = TC_MSG_BUF_SIZE - 1;
+            truncated = TC_TRUE;
         }
     } else {
         size = TC_MSG_BUF_SIZE - 1;
@@ -110,7 +115,7 @@ void tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
 
     /* ensure that all *other* messages are written */
     fflush(stdout);
-    return;
+    return (truncated) ?-1 :0;
 }
 
 /*************************************************************************/

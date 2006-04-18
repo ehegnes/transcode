@@ -1,3 +1,10 @@
+2006-04-18 Francesco Romani <fromani at gmail dot com>
+  * libtc/libtc.h libtc/tc_functions.c
+  misc updates;
+  introduce libavcodec lock, will be replace init_avcodec_lock;
+  strip documentation of functions according to last STYLE changes;
+  correct return value of tc_log and resync function documentation.
+
 2006-04-18 Andrew Church <achurch at achurch dot org>
   * import/a52_decore.c import/ac3scan.c import/aux_pes.c import/clone.c
     import/decode_a52.c import/decode_ac3.c import/decode_lavc.c
