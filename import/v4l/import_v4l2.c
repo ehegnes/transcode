@@ -102,8 +102,6 @@ static int capability_flag	= TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422 | TC_CAP_PC
 
 */
 
-#define module "[" MOD_NAME "] "
-
 typedef enum { resync_none, resync_clone, resync_drop } v4l2_resync_op;
 typedef enum { v4l2_param_int, v4l2_param_string, v4l2_param_fp } v4l2_param_type_t;
 
@@ -237,7 +235,7 @@ static int v4l2_mute(int flag)
 
 	if(ioctl(v4l2_video_fd, VIDIOC_S_CTRL, &control) < 0)
 		if(verbose_flag & TC_INFO)
-			perror(module "VIDIOC_S_CTRL");
+			tc_log_perror(MOD_NAME, "VIDIOC_S_CTRL");
 
 	return(1);
 }
@@ -273,7 +271,7 @@ static int v4l2_video_grab_frame(char * dest, size_t length)
 
 	if(ioctl(v4l2_video_fd, VIDIOC_DQBUF, &buffer) < 0)
 	{
-		perror(module "VIDIOC_DQBUF");
+		tc_log_perror(MOD_NAME, "VIDIOC_DQBUF");
 
 		if(errno != EIO)
 			return(0);
@@ -323,7 +321,7 @@ static int v4l2_video_grab_frame(char * dest, size_t length)
 
 		if(ioctl(v4l2_video_fd, VIDIOC_QBUF, &buffer) < 0)
 		{
-			perror(module "VIDIOC_QBUF");
+			tc_log_perror(MOD_NAME, "VIDIOC_QBUF");
 			return(0);
 		}
 	}
@@ -345,7 +343,7 @@ static int v4l2_video_count_buffers(void)
 
 		if(ioctl(v4l2_video_fd, VIDIOC_QUERYBUF, &buffer) < 0)
 		{
-			perror(module "VIDIOC_QUERYBUF");
+			tc_log_perror(MOD_NAME, "VIDIOC_QUERYBUF");
 			return(-1);
 		}
 
@@ -375,7 +373,7 @@ static void v4l2_parse_options(const char * options_in)
 
 	if(!options || (!(option = tc_malloc(strlen(options) * sizeof(char)))))
 	{
-		fprintf(stderr, module "Cannot malloc - options not parsed\n");
+		tc_log_error(MOD_NAME, "Cannot malloc - options not parsed");
 		return;
 	}
 
@@ -522,7 +520,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 		format.fmt.pix.pixelformat	= fcp[ix].v4l_format;
 
 		if(ioctl(v4l2_video_fd, VIDIOC_S_FMT, &format) < 0)
-			perror(module "VIDIOC_S_FMT: ");
+			tc_log_perror(MOD_NAME, "VIDIOC_S_FMT: ");
 		else
 		{
 			tc_log_info(MOD_NAME, "Pixel format conversion: %s", fcp[ix].description);
@@ -598,7 +596,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 
 		if(ioctl(v4l2_video_fd, VIDIOC_S_STD, &standard.id) < 0)
 		{
-			perror(module "VIDIOC_S_STD");
+			tc_log_perror(MOD_NAME, "VIDIOC_S_STD");
 			return(-1);
 		}
 
@@ -608,7 +606,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 
 	if(ioctl(v4l2_video_fd, VIDIOC_G_STD, &stdid) < 0)
 	{
-		perror(module "VIDIOC_QUERYSTD: ");
+		tc_log_perror(MOD_NAME, "VIDIOC_QUERYSTD: ");
 		return(1);
 	}
 
@@ -636,7 +634,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 				if(errno == EINVAL)
 					break;
 
-				perror("\n" module "VIDIOC_ENUMSTD");
+				tc_log_perror(MOD_NAME, "VIDIOC_ENUMSTD");
 				return(1);
 			}
 
@@ -754,7 +752,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 
 	if(ioctl(v4l2_video_fd, VIDIOC_REQBUFS, &reqbuf) < 0)
 	{
-		perror(module "VIDIOC_REQBUFS");
+		tc_log_perror(MOD_NAME, "VIDIOC_REQBUFS");
 		return(1);
 	}
 
@@ -771,7 +769,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 
 	if(!(v4l2_buffers = tc_zalloc(v4l2_buffers_count * sizeof(*v4l2_buffers))))
 	{
-		fprintf(stderr, module "out of memory\n");
+		tc_log_error(MOD_NAME, "out of memory\n");
 		return(1);
 	}
 
@@ -785,7 +783,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 
 		if(ioctl(v4l2_video_fd, VIDIOC_QUERYBUF, &buffer) < 0)
 		{
-			perror(module "VIDIOC_QUERYBUF");
+			tc_log_perror(MOD_NAME, "VIDIOC_QUERYBUF");
 			return(1);
 		}
 
@@ -794,7 +792,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 
 		if(v4l2_buffers[ix].start == MAP_FAILED)
 		{
-			perror(module "mmap");
+			tc_log_perror(MOD_NAME, "mmap");
 			return(1);
 		}
 	}
@@ -809,7 +807,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 
 		if(ioctl(v4l2_video_fd, VIDIOC_QBUF, &buffer) < 0)
 		{
-			perror(module "VIDIOC_QBUF");
+			tc_log_perror(MOD_NAME, "VIDIOC_QBUF");
 			return(1);
 		}
 	}
@@ -823,7 +821,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 
 	if(ioctl(v4l2_video_fd, VIDIOC_STREAMON, &v4l2_video_fd /* ugh, needs valid memory location */) < 0)
 	{
-		perror(module "VIDIOC_STREAMON");
+		tc_log_perror(MOD_NAME, "VIDIOC_STREAMON");
 		return(1);
 	}
 
@@ -847,7 +845,7 @@ static int v4l2_video_get_frame(size_t size, char * data)
                                    v4l2_buffers_count);
 
 			if(ioctl(v4l2_video_fd, VIDIOC_STREAMOFF, &dummy) < 0)
-				perror(module "VIDIOC_STREAMOFF");
+				tc_log_perror(MOD_NAME, "VIDIOC_STREAMOFF");
 
 			return(1);
 		}
@@ -909,8 +907,7 @@ static int v4l2_video_get_frame(size_t size, char * data)
 
 		if(v4l2_video_resync_op != resync_none && (verbose_flag & TC_INFO))
 		{
-            /* intentionally not ported to tc_log*() -- fromani 20051110 */
-			fprintf(stderr, "\n" module "OP: %s VS/AS: %d/%d C/D: %d/%d\n",
+			tc_log_msg(MOD_NAME, "OP: %s VS/AS: %d/%d C/D: %d/%d",
 					v4l2_video_resync_op == resync_drop ? "drop" : "clone",
 					v4l2_video_sequence,
 					v4l2_audio_sequence,
@@ -935,7 +932,7 @@ static int v4l2_video_grab_stop(void)
 
 	if(ioctl(v4l2_video_fd, VIDIOC_STREAMOFF, &dummy /* ugh */) < 0)
 	{
-		perror(module "VIDIOC_STREAMOFF");
+		tc_log_perror(MOD_NAME, "VIDIOC_STREAMOFF");
 		return(1);
 	}
 
@@ -958,7 +955,7 @@ static int v4l2_audio_init(const char * device, int rate, int bits,
 
 	if((v4l2_audio_fd = open(device, O_RDONLY, 0)) < 0)
 	{
-		perror(module "open audio device");
+		tc_log_perror(MOD_NAME, "open audio device");
 		return(1);
 	}
 
@@ -975,13 +972,13 @@ static int v4l2_audio_init(const char * device, int rate, int bits,
 
 	if(ioctl(v4l2_audio_fd, SNDCTL_DSP_SETFMT, &tmp) < 0)
 	{
-		perror(module "SNDCTL_DSP_SETFMT");
+		tc_log_perror(MOD_NAME, "SNDCTL_DSP_SETFMT");
 		return(1);
 	}
 
 	if(ioctl(v4l2_audio_fd, SNDCTL_DSP_CHANNELS, &channels) < 0)
 	{
-		perror(module "SNDCTL_DSP_CHANNELS");
+		tc_log_perror(MOD_NAME, "SNDCTL_DSP_CHANNELS");
 		return(1);
 	}
 
@@ -996,7 +993,7 @@ static int v4l2_audio_init(const char * device, int rate, int bits,
 	{
 		if(ioctl(v4l2_audio_fd, SOUND_PCM_READ_RATE, &tmp) < 0)
 		{
-			perror(module "SOUND_PCM_READ_RATE");
+			tc_log_perror(MOD_NAME, "SOUND_PCM_READ_RATE");
 			return(1);
 		}
 
@@ -1013,7 +1010,7 @@ static int v4l2_audio_init(const char * device, int rate, int bits,
 	{
 		if(ioctl(v4l2_audio_fd, SOUND_PCM_WRITE_RATE, &rate) < 0)
 		{
-			perror(module "SOUND_PCM_WRITE_RATE");
+			tc_log_perror(MOD_NAME, "SOUND_PCM_WRITE_RATE");
 			return(1);
 		}
 	}
@@ -1040,7 +1037,7 @@ static int v4l2_audio_grab_frame(size_t size, char * buffer)
 				received = 0;
 			else
 			{
-				perror(module "read audio");
+				tc_log_perror(MOD_NAME, "read audio");
 				return(TC_IMPORT_ERROR);
 			}
 		}
@@ -1066,8 +1063,7 @@ static int v4l2_audio_grab_stop(void)
 
 	if(verbose_flag & TC_INFO)
 	{
-        /* intentionally not ported to tc_log*() -- fromani 20051110 */
-		fprintf(stderr, "\n" module "Totals: sequence V/A: %d/%d, frames C/D: %d/%d\n",
+		tc_log_msg(MOD_NAME, "Totals: sequence V/A: %d/%d, frames C/D: %d/%d",
 				v4l2_video_sequence,
 				v4l2_audio_sequence,
 				v4l2_video_cloned,

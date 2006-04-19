@@ -69,7 +69,7 @@ void v4l_counter_print(char *s, long _n, double ini, double *last)
 
   tt = (double) tv.tv_sec + tv.tv_usec/1000000.0;
 
-  printf("%s frame=%6ld  pts=%.6f  diff_pts=%.6f\n", s, _n, tt-ini, tt-(*last));
+  tc_log_msg("import_v4l.so", "%s frame=%6ld  pts=%.6f  diff_pts=%.6f", s, _n, tt-ini, tt-(*last));
 
   *last = tt;
 }

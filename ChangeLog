@@ -33,6 +33,9 @@
     import/seqinfo.c import/tccat.c import/tcdecode.c import/tcdemux.c
     import/tcextract.c import/tcprobe.c import/tcrequant.c import/tcscan.c
     import/tcxmlcheck.c import/tcxpm2rgb.c import/ts_reader.c
+    import/nuv/RTjpegN.c import/nuv/import_nuv.c import/v4l/audio.c
+    import/v4l/common.c import/v4l/import_v4l.c import/v4l/import_v4l2.c
+    import/v4l/video.c
   [f]printf() -> tc_log_XXX() changes.
 
   * filter/subtitler/Makefile.am

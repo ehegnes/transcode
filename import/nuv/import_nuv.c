@@ -69,9 +69,9 @@ static int videoframe = 0;
 
 MOD_open
 {
-  //  fprintf(stderr, "nuv: open\n");
+  //tc_log_msg(MOD_NAME, "nuv: open");
   if(param->flag == TC_VIDEO) {
-    //    fprintf(stderr, "nuv: video\n");
+    //tc_log_msg(MOD_NAME, "nuv: video");
     if(rtjpeg_vid_file == 0) {
       rtjpeg_vid_open(vob->video_in_file);
       param->fd = NULL;
@@ -87,7 +87,7 @@ MOD_open
   }
 
   if(param->flag == TC_AUDIO) {
-    //    fprintf(stderr, "nuv: audio\n");
+    //tc_log_msg(MOD_NAME, "nuv: audio");
     if(rtjpeg_aud_file == 0) {
       rtjpeg_aud_open(vob->audio_in_file);
       param->fd = NULL;
@@ -110,16 +110,16 @@ MOD_open
 MOD_decode
 {
   if(param->flag == TC_VIDEO) {
-    //    fprintf(stderr, "nuv: video\n");
+    //tc_log_msg(MOD_NAME, "nuv: video");
 
     if(rtjpeg_vid_end_of_video()) return(TC_IMPORT_ERROR);
 
-    //fprintf(stderr,"vid: get frame %d\n",videoframe);
+    //tc_log_msg(MOD_NAME, "vid: get frame %d", videoframe);
     videobuf1 = rtjpeg_vid_get_frame(videoframe, &timecode, 1,
 				    &audiobuf1, &audiolen1);
 
     if(videobuf1 == NULL) {
-      // fprintf(stderr, "nuv: video buffer empty\n");
+      //tc_log_msg(MOD_NAME, "nuv: video buffer empty");
       return(TC_IMPORT_ERROR);
     }
 
@@ -138,16 +138,16 @@ MOD_decode
   }
 
   if(param->flag == TC_AUDIO) {
-    //    fprintf(stderr, "nuv: audio\n");
+    //tc_log_msg(MOD_NAME, "nuv: audio");
 
     if(rtjpeg_aud_end_of_video()) return(TC_IMPORT_ERROR);
 
-    //fprintf(stderr,"aud: get frame %d\n",audioframe);
+    //tc_log_msg(MOD_NAME, "aud: get frame %d", audioframe);
     videobuf2 = rtjpeg_aud_get_frame(audioframe, &timecode, 0,
 				     &audiobuf2, &audiolen2);
 
     if(audiobuf2 == NULL) {
-      // fprintf(stderr, "nuv: buffer buffer empty\n");
+      //tc_log_msg(MOD_NAME, "nuv: audio buffer empty");
       return(TC_IMPORT_ERROR);
     }
 

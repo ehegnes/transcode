@@ -69,7 +69,7 @@ int audio_grab_init(const char *dev, int rate, int bits, int chan, int _verb)
   verb=_verb;
 
   if(-1==sound_open(&params)) {
-    fprintf(stderr, "(%s) sound init failed\n", __FILE__);
+    tc_log_warn(__FILE__, "sound init failed");
     return(-1);
   }
 
@@ -140,7 +140,7 @@ int sound_open(struct MOVIE_PARAMS *params)
       ioctl(fd, SNDCTL_DSP_SETFMT, &afmt);
 
       if (afmt != AFMT_S16_LE) {
-	fprintf(stderr,"16 bit sound not supported\n");
+	tc_log_warn(__FILE__, "16 bit sound not supported");
 	goto err;
       }
 
@@ -153,15 +153,14 @@ int sound_open(struct MOVIE_PARAMS *params)
       ioctl(fd, SNDCTL_DSP_SETFMT, &afmt);
 
       if (afmt != AFMT_U8) {
-	fprintf(stderr,"8 bit sound not supported\n");
+	tc_log_warn(__FILE__, "8 bit sound not supported");
 	goto err;
       }
 
       break;
 
     default:
-      fprintf(stderr,"%d bit sound not supported\n",
-	      params->bits);
+      tc_log_warn(__FILE__, "%d bit sound not supported", params->bits);
       goto err;
     }
 
@@ -177,7 +176,7 @@ int sound_open(struct MOVIE_PARAMS *params)
     if (-1 == ioctl(fd, SNDCTL_DSP_GETBLKSIZE, &blocksize))
       goto err;
 
-    if(verb) printf("(%s) audio blocksize %d\n", __FILE__, blocksize);
+    if(verb) tc_log_info(__FILE__, "audio blocksize %d", blocksize);
 
     //start recording
     sound_startrec(0);
@@ -233,11 +232,16 @@ int mixer_open(char *filename, char *device)
 	}
     }
     if (-1 == dev) {
-	fprintf(stderr,"mixer: hav'nt found device '%s'\nmixer: available: ",device);
-	for (i = 0; i < SOUND_MIXER_NRDEVICES; i++)
-	    if ((1<<i) & devmask)
-		fprintf(stderr," '%s'",names[i]);
-	fprintf(stderr,"\n");
+	char buf[1000];
+	*buf = 0;
+	for (i = 0; i < SOUND_MIXER_NRDEVICES; i++) {
+	    if ((1<<i) & devmask) {
+		tc_snprintf(buf+strlen(buf), sizeof(buf)-strlen(buf),
+			    " '%s'", names[i]);
+	    }
+	}
+	tc_log_warn(__FILE__, "mixer: device '%s' not found", device);
+	tc_log_warn(__FILE__, "mixer: available: %s", buf);
     }
     return (-1 != dev) ? 0 : -1;
 }

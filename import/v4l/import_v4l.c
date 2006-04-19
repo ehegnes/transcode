@@ -73,14 +73,14 @@ MOD_open
     //set channel with vob->station or vob->station_id
     //set device with vob->video_in_file
 
-    //printf("vob->amod_probed (%s)\n", vob->amod_probed);
+    //tc_log_msg(MOD_NAME, "vob->amod_probed (%s)", vob->amod_probed);
 
     /* This check is bogus since amod->probed does not contain what the user
      * specified with -x
 
     if ((vob->amod_probed && strlen(vob->amod_probed)>=4 && !strncmp(vob->amod_probed, "null", 4))
 	    || !vob->amod_probed) {
-	printf("NO AUDIO\n");
+	tc_log_msg(MOD_NAME, "NO AUDIO");
 	do_audio = 0;
     }
     */

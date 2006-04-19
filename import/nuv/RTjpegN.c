@@ -144,9 +144,9 @@ static int RTjpeg_b2s(__s16 *data, __s8 *strm, __u8 bt8)
 
   int ii;
   for (ii=0; ii < 64; ii++) {
-    fprintf(stdout, "%d ", data[RTjpeg_ZZ[ii]]);
+    fprintf(stderr, "%d ", data[RTjpeg_ZZ[ii]]);
   }
-  fprintf(stdout, "\n\n");
+  fprintf(stderr, "\n\n");
 
 #endif
 
@@ -288,11 +288,11 @@ BAUCHWEH:
 #ifdef SHOWBLOCK
 {
 int i;
-fprintf(stdout, "\nco = '%d'\n", co);
+fprintf(stderr, "\nco = '%d'\n", co);
  for (i=0; i < co+2; i++) {
-   fprintf(stdout, "%d ", strm[i]);
+   fprintf(stderr, "%d ", strm[i]);
  }
-fprintf(stdout, "\n\n");
+fprintf(stderr, "\n\n");
 }
 #endif
 
@@ -436,11 +436,11 @@ STRASSE:
 AUTOBAHN:
 
 #ifdef SHOWBLOCK
-fprintf(stdout, "\nci = '%d'\n", ci);
+fprintf(stderr, "\nci = '%d'\n", ci);
  for (i=0; i < 64; i++) {
-   fprintf(stdout, "%d ", data[RTjpeg_ZZ[i]]);
+   fprintf(stderr, "%d ", data[RTjpeg_ZZ[i]]);
  }
-fprintf(stdout, "\n\n");
+fprintf(stderr, "\n\n");
 #endif
 
  return ci;
@@ -457,9 +457,9 @@ static int RTjpeg_b2s(__s16 *data, __s8 *strm, __u8 bt8)
 
   int ii;
   for (ii=0; ii < 64; ii++) {
-    fprintf(stdout, "%d ", data[RTjpeg_ZZ[ii]]);
+    fprintf(stderr, "%d ", data[RTjpeg_ZZ[ii]]);
   }
-  fprintf(stdout, "\n\n");
+  fprintf(stderr, "\n\n");
 
 #endif
 
@@ -3182,7 +3182,6 @@ static int RTjpeg_bcomp(__s16 *old, mmx_t *mask)
 //   for(i=0; i<16; i++)((__u64 *)old)[i]=((__u64 *)RTjpeg_block)[i];
   return 0;
  }
-// printf(".");
  return 1;
 }
 
@@ -3368,7 +3367,6 @@ int RTjpeg_mcompressYUV422(__s8 *sp, unsigned char *bp, __u16 lmask, __u16 cmask
   bp2+=RTjpeg_width<<2;
   bp3+=RTjpeg_width<<2;
  }
- printf ("%ld\n", (long)(block - RTjpeg_old));
 #ifdef MMX
  emms();
 #endif
@@ -3401,7 +3399,6 @@ int RTjpeg_mcompress8(__s8 *sp, unsigned char *bp, __u16 lmask)
    if(RTjpeg_bcomp(block, &RTjpeg_lmask))
    {
     *((__u8 *)sp++)=255;
-//    printf("* %d ", sp[-1]);
    } else sp+=RTjpeg_b2s(RTjpeg_block, sp, RTjpeg_lb8);
    block+=64;
   }

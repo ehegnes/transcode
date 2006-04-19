@@ -268,24 +268,24 @@ static int read_xawtv_config(char *pStation, char *pNorm,
                 }
 
                 if (verb)
-                  printf ("(%s) \"%s\": using .xawtv from %s, freq=%.2fMHZ\n",
-                          __FILE__, pStation, pHome, (float) tfreq / 16.0);
+                  tc_log_info(__FILE__, "\"%s\": using .xawtv from %s, freq=%.2fMHZ",
+			      pStation, pHome, (float) tfreq / 16.0);
                 break;
               }
             }
           } while ((pSection = cf_get_next_section (pRoot, pSection)) != NULL);
         }
         if (channel_has_tuner && !found_station && station_id != NULL) {
-          fprintf (stderr, "(%s) : Cannot find channel/name %s in .xawtv from %s\n", __FILE__, station_id, pHome);
+          tc_log_warn(__FILE__, "Cannot find channel/name %s in .xawtv from %s", station_id, pHome);
           return -1;
         }
         CF_FREE_ROOT (pRoot);
 
         if (verb)
-          printf ("(%s) %s: station=%s bright=%2.0f%s contrast=%2.0f%s color=%2.0f%s hue=%2.0f%s\n",
-                  __FILE__, pNorm, station_id == NULL ? "none" : station_id,
-                  (float) bright / 65535 * 100, "%", (float) contrast / 65535 * 100, "%",
-                  (float) color / 65535 * 100, "%", (float) hue / 65535 * 100, "%");
+          tc_log_info(__FILE__, "%s: station=%s bright=%2.0f%% contrast=%2.0f%% color=%2.0f%% hue=%2.0f%%",
+                  pNorm, station_id == NULL ? "none" : station_id,
+                  (float) bright / 65535 * 100, (float) contrast / 65535 * 100,
+                  (float) color / 65535 * 100, (float) hue / 65535 * 100);
       }
     }
   }
@@ -357,16 +357,16 @@ video_grab_init (const char *device,  // device the video/audio comes from [/dev
 
     // print tuner capability
     if (verb)
-      printf ("(%s) %s: has[ %s%s%s%s%s] is[ %s%s%s%s]\n", __FILE__, tuner.name,
-              (tuner.flags & VIDEO_TUNER_PAL) ? "PAL " : "",
-              (tuner.flags & VIDEO_TUNER_NTSC) ? "NTSC " : "",
-              (tuner.flags & VIDEO_TUNER_SECAM) ? "SECAM " : "",
-              (tuner.flags & VIDEO_TUNER_LOW) ? "USE-KHZ " : "",
-              (tuner.flags & VIDEO_TUNER_NORM) ? "AGILE " : "",
-              (tuner.mode == VIDEO_MODE_PAL) ? "PAL " : "",
-              (tuner.mode == VIDEO_MODE_NTSC) ? "NTSC " : "",
-              (tuner.mode == VIDEO_MODE_SECAM) ? "SECAM " : "",
-              (tuner.mode == VIDEO_MODE_AUTO) ? "AUTO " : "");
+      tc_log_info(__FILE__, "%s: has[ %s%s%s%s%s] is[ %s%s%s%s]", tuner.name,
+		  (tuner.flags & VIDEO_TUNER_PAL) ? "PAL " : "",
+		  (tuner.flags & VIDEO_TUNER_NTSC) ? "NTSC " : "",
+		  (tuner.flags & VIDEO_TUNER_SECAM) ? "SECAM " : "",
+		  (tuner.flags & VIDEO_TUNER_LOW) ? "USE-KHZ " : "",
+		  (tuner.flags & VIDEO_TUNER_NORM) ? "AGILE " : "",
+		  (tuner.mode == VIDEO_MODE_PAL) ? "PAL " : "",
+		  (tuner.mode == VIDEO_MODE_NTSC) ? "NTSC " : "",
+		  (tuner.mode == VIDEO_MODE_SECAM) ? "SECAM " : "",
+		  (tuner.mode == VIDEO_MODE_AUTO) ? "AUTO " : "");
   }
 
   /* FIXME: we shouldn't read other apps' config files */
@@ -375,12 +375,12 @@ video_grab_init (const char *device,  // device the video/audio comes from [/dev
 
   // print channel capability
   if (verb)
-    printf ("(%s) %s: input #%d, %s%s%s%s\n", __FILE__,
-            channels[chanid].name, chanid,
-            (channels[chanid].flags & VIDEO_VC_TUNER) ? "tuner " : "",
-            (channels[chanid].flags & VIDEO_VC_AUDIO) ? "audio " : "",
-            (channels[chanid].type & VIDEO_TYPE_TV) ? "tv " : "",
-            (channels[chanid].type & VIDEO_TYPE_CAMERA) ? "camera " : "");
+    tc_log_info(__FILE__, "%s: input #%d, %s%s%s%s",
+		channels[chanid].name, chanid,
+		(channels[chanid].flags & VIDEO_VC_TUNER) ? "tuner " : "",
+		(channels[chanid].flags & VIDEO_VC_AUDIO) ? "audio " : "",
+		(channels[chanid].type & VIDEO_TYPE_TV) ? "tv " : "",
+		(channels[chanid].type & VIDEO_TYPE_CAMERA) ? "camera " : "");
 
 dont_touch:
 
@@ -390,28 +390,28 @@ dont_touch:
       //perror("ioctl VIDIOCGAUDIO");
       //return(-1);
       if (verb)
-        fprintf (stderr, "(%s) device has no audio channel\n", __FILE__);
+        tc_log_info(__FILE__, "device has no audio channel");
       do_audio = 0;             //reset
     }
 
-    if (verb)
-      printf ("(%s) (audio-%s): ", __FILE__, audio.name);
-
-    if (audio.flags & VIDEO_AUDIO_MUTABLE)
-      if (verb)
-        printf ("muted=%s ", (audio.flags & VIDEO_AUDIO_MUTE) ? "yes" : "no");
-
-    if (audio.flags & VIDEO_AUDIO_VOLUME)
-      if (verb)
-        printf ("volume=%2.0f%s ", (float) audio.volume / 65535 * 100, "%");
-
-    if (audio.flags & VIDEO_AUDIO_BASS)
-      if (verb)
-        printf ("bass=%2.0f%s ", (float) audio.bass / 65535 * 100, "%");
-
-    if (audio.flags & VIDEO_AUDIO_TREBLE)
-      if (verb)
-        printf ("treble=%2.0f%s\n", (float) audio.treble / 65535 * 100, "%");
+    if (verb) {
+      char buf1[100], buf2[100], buf3[100], buf4[100];
+      *buf1 = *buf2 = *buf3 = *buf4 = 0;
+      if (audio.flags & VIDEO_AUDIO_MUTABLE)
+        tc_snprintf (buf1, sizeof(buf1), " muted=%s",
+		     (audio.flags & VIDEO_AUDIO_MUTE) ? "yes" : "no");
+      if (audio.flags & VIDEO_AUDIO_VOLUME)
+        tc_snprintf (buf2, sizeof(buf2), " volume=%2.0f%%",
+		     (float) audio.volume / 65535 * 100);
+      if (audio.flags & VIDEO_AUDIO_BASS)
+        tc_snprintf (buf3, sizeof(buf3), " bass=%2.0f%%",
+		     (float) audio.bass / 65535 * 100);
+      if (audio.flags & VIDEO_AUDIO_TREBLE)
+        tc_snprintf (buf4, sizeof(buf4), " treble=%2.0f%%",
+		     (float) audio.treble / 65535 * 100);
+      tc_log_info(__FILE__, "(audio-%s):%s%s%s%s", audio.name,
+		  buf1, buf2, buf3, buf4);
+    }
   }
 
   // picture parameter
@@ -421,10 +421,11 @@ dont_touch:
   }
 
   if (verb)
-    printf ("(%s) picture: brightness=%2.0f%s hue=%2.0f%s colour=%2.0f%s contrast=%2.0f%s\n",
-            __FILE__,
-            (float) pict.brightness / 65535 * 100, "%", (float) pict.hue / 65535 * 100, "%",
-            (float) pict.colour / 65535 * 100, "%", (float) pict.contrast / 65535 * 100, "%");
+    tc_log_info(__FILE__, "picture: brightness=%2.0f%% hue=%2.0f%% colour=%2.0f%% contrast=%2.0f%%",
+		(float) pict.brightness / 65535 * 100,
+		(float) pict.hue / 65535 * 100,
+		(float) pict.colour / 65535 * 100,
+		(float) pict.contrast / 65535 * 100);
 
   /* -------------------------------------------------------------------
    *
@@ -453,30 +454,30 @@ dont_touch:
     if (bright >= 0) {
       grab_setattr (GRAB_ATTR_BRIGHT, bright);
       if (verb) {
-        printf ("(%s) setattr: setting bright   to %d (%2.0f%s).\n",
-                __FILE__, bright, (float) bright / 65535.0 * 100.0, "%");
+        tc_log_info(__FILE__, "setattr: setting bright   to %d (%2.0f%%).",
+		    bright, (float) bright / 65535.0 * 100.0);
       }
     }
     if (contrast >= 0) {
       grab_setattr (GRAB_ATTR_CONTRAST, contrast);
       if (verb) {
-        printf ("(%s) setattr: setting contrast to %d (%2.0f%s).\n",
-                __FILE__, contrast, (float) contrast / 65535.0 * 100.0, "%");
+        tc_log_info(__FILE__, "setattr: setting contrast to %d (%2.0f%%).",
+		    contrast, (float) contrast / 65535.0 * 100.0);
 
       }
     }
     if (color >= 0) {
       grab_setattr (GRAB_ATTR_COLOR, color);
       if (verb) {
-        printf ("(%s) setattr: setting color    to %d (%2.0f%s).\n",
-                __FILE__, color, (float) color / 65535.0 * 100.0, "%");
+        tc_log_info(__FILE__, "setattr: setting color    to %d (%2.0f%%).",
+		    color, (float) color / 65535.0 * 100.0);
       }
     }
     if (hue >= 0) {
       grab_setattr (GRAB_ATTR_HUE, hue);
       if (verb) {
-        printf ("(%s) setattr: setting hue      to %d (%2.0f%s).\n",
-                __FILE__, hue, (float) hue / 65535.0 * 100.0, "%");
+        tc_log_info(__FILE__, "setattr: setting hue      to %d (%2.0f%%).",
+		    hue, (float) hue / 65535.0 * 100.0);
       }
     }
 
@@ -501,28 +502,25 @@ dont_touch:
     pict.palette = fmt;
     pict.depth = 24;
     if (-1 == ioctl (fh, VIDIOCSPICT, &pict)) {
-      printf ("(%s) Cannot not set RGB picture attributes\n", __FILE__);
-      perror ("ioctl VIDIOCSPICT");
+      tc_log_error(__FILE__, "Cannot not set RGB picture attributes. ioctl VIDIOCSPICT: %s", strerror(errno));
       return (-1);
     }
   }
 
   /*
-     if (fmt == VIDEO_PALETTE_YUV420P) {
-     pict.palette = fmt;
-     if (-1 == ioctl(fh, VIDIOCSPICT,&pict)) {
-     printf("(%s) Cannot not set YUV picture attributes\n", __FILE__);
-     perror("ioctl VIDIOCSPICT");
-     return(-1);
-     }
-     }
+  if (fmt == VIDEO_PALETTE_YUV420P) {
+    pict.palette = fmt;
+    if (-1 == ioctl(fh, VIDIOCSPICT,&pict)) {
+      tc_log_error(__FILE__, "Cannot not set YUV picture attributes. ioctl VIDIOCSPICT: %s", strerror(errno));
+      return(-1);
+    }
+  }
    */
 
   if (fmt == VIDEO_PALETTE_YUV422) {
     pict.palette = fmt;
     if (-1 == ioctl (fh, VIDIOCSPICT, &pict)) {
-      printf ("(%s) Cannot not set YUV 2 picture attributes\n", __FILE__);
-      perror ("ioctl VIDIOCSPICT");
+      tc_log_error(__FILE__, "Cannot not set YUV 2 picture attributes. ioctl VIDIOCSPICT: %s", strerror(errno));
       return(-1);
     }
   }
@@ -530,17 +528,17 @@ dont_touch:
   // retrieve buffer size and offsets
 
   if (ioctl (fg.video_dev, VIDIOCGMBUF, &fg.vid_mbuf) == -1) {
-    perror ("ioctl (VIDIOCGMBUF)");
+    tc_log_perror(__FILE__, "ioctl (VIDIOCGMBUF)");
     return (-1);
   }
 
   if (verb)
-    printf ("(%s) %d frame buffer(s) available\n", __FILE__, fg.vid_mbuf.frames);
+    tc_log_info(__FILE__, "%d frame buffer(s) available", fg.vid_mbuf.frames);
 
   v4l_max_buffer = fg.vid_mbuf.frames;
 
   if (!v4l_max_buffer) {
-    fprintf (stderr, "no frame buffer(s) available\n");
+    tc_log_error(__FILE__, "no frame buffer(s) available");
     return (-1);
   }
 
@@ -596,7 +594,7 @@ dont_touch:
       perror ("VIDIOCMCAPTURE");
 
   if (found_station)
-    printf ("(%s) video device OK - recording from [%s]\n", __FILE__, pStation);
+    tc_log_info(__FILE__, "video device OK - recording from [%s]", pStation);
 
   return (0);
 }
