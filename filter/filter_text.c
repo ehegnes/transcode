@@ -320,7 +320,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	memset (font, 0, PATH_MAX);
 	memset (string, 0, PATH_MAX);
 
-	if(verbose) tc_log_info(MOD_NAME, "options=%s", MOD_NAME, options);
+	if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
 	optstr_get (options, "range",  "%u-%u/%d", &mfd->start, &mfd->end, &mfd->step);
 	optstr_get (options, "dpi",    "%u",       &mfd->dpi);

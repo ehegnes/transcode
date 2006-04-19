@@ -596,14 +596,13 @@ int main(int argc, char *argv[])
     free_fc_time(vob.ttime);
 
     if(verbose >= TC_INFO) {
-        long drop = - tc_get_frames_dropped();
+        long encoded = tc_get_frames_encoded();
+        long dropped = - tc_get_frames_dropped();
+	long cloned  = tc_get_frames_cloned();
 
         tc_log_info(EXE, "encoded %ld frames (%ld dropped, %ld cloned),"
-                        " clip length %6.2f s",
-                        tc_get_frames_encoded(),
-                        drop,
-                        tc_get_frames_cloned(),
-                        tc_get_frames_encoded()/vob.fps);
+                         " clip length %6.2f s",
+                    encoded, dropped, cloned, encoded/vob.fps);
     }
     return status;
 }

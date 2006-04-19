@@ -422,12 +422,13 @@ MOD_open
     if (tc_dvd_access_delay) {
       if(verbose_flag && !v_re_entry)
         tc_log_info(MOD_NAME, "delaying DVD access by %d second(s)",
-                MOD_NAME, tc_dvd_access_delay);
+		    tc_dvd_access_delay);
 
       n=tc_dvd_access_delay;
       while(n--) {
 	if(verbose_flag) tc_log_info(MOD_NAME, "waiting...");
-	fflush(stdout); sleep(1);
+	fflush(stdout);
+	sleep(1);
       }
     }
 
@@ -711,7 +712,7 @@ MOD_decode
       break;
 
     default:
-      tc_log_warn(MOD_NAME, "invalid import codec request 0x%x");
+      tc_log_warn(MOD_NAME, "invalid import codec request 0x%x", codec);
       return(TC_IMPORT_ERROR);
 
     }

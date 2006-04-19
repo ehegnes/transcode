@@ -1,3 +1,22 @@
+2006-04-20 Andrew Church <achurch at achurch dot org>
+  * libtc/libtc.h
+  Add __attribute__((format())) to tc_log() declaration to catch format
+  string problems.
+
+  * configure.in
+  Add test to check for availability of __attribute__((format())).
+
+  * export/aud_aux.c export/export_ogg.c export/export_xvid4.c
+    filter/filter_detectclipping.c filter/filter_lowpass.c
+    filter/filter_modfps.c filter/filter_text.c
+    filter/filter_whitebalance.c filter/subtitler/object_list.c
+    import/decode_dv.c import/import_dvd.c import/import_vag.c
+    import/iodump.c import/ioxml.c import/probe_ogg.c
+    import/v4l/import_v4l2.c libtc/cfgfile.c libtc/tcmodule.c
+    libtcvideo/tcvideo.c src/video_buffer.c testsuite/Makefile.am
+    tools/tcexport.c
+  Fix bugs in tc_log_XXX() calls.
+
 2006-04-19 Andrew Church <achurch at achurch dot org>
   * export/* filter/* import/*
   [f]printf() -> tc_log_XXX() and perror() -> tc_log_perror() changes.

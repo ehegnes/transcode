@@ -451,6 +451,13 @@ fi
 AM_CONDITIONAL(HAVE_GCC2, test x"$gcc2" = x"yes")
 AM_CONDITIONAL(HAVE_GCC4, test x"$gcc4" = x"yes")
 
+dnl See if __attribute__((format(...))) is available.
+AC_TRY_COMPILE([],
+    [extern int foo(char *,...) __attribute__((format(printf,1,2)));],
+    [AC_DEFINE([HAVE_ATTRIBUTE_FORMAT], 1,
+               [Compiler understands __attribute__((format(...)))])])
+
+
 AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
 

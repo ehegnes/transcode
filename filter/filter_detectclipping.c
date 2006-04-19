@@ -142,7 +142,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if (options != NULL) {
 
-	if(verbose) tc_log_info (MOD_NAME, "options=%s", MOD_NAME, options);
+	if(verbose) tc_log_info (MOD_NAME, "options=%s", options);
 
 	optstr_get (options, "range",  "%u-%u/%d",    &mfd[ptr->filter_id]->start, &mfd[ptr->filter_id]->end, &mfd[ptr->filter_id]->step);
 	optstr_get (options, "limit",  "%d",    &mfd[ptr->filter_id]->limit);

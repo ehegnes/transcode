@@ -365,7 +365,7 @@ static int audio_init_ffmpeg(vob_t *vob, int o_codec)
       TC_UNLOCK_LIBAVCODEC;
       if (ret < 0)
       {
-        tc_warn("encode_ffmpeg", "could not open mpa codec !");
+        tc_warn("encode_ffmpeg: could not open mpa codec !");
         return(TC_EXPORT_ERROR);
       }
 

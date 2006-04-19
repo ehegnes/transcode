@@ -284,7 +284,8 @@ void decode_dv(decode_t *decode)
         linesize[0] = linesize[1] = linesize[2] = 0;  // what video? ;)
         break;
       default:
-        tc_log_error(__FILE__, "Invalid output format (%08X)", decode->format);
+        tc_log_error(__FILE__, "Invalid output format (%08lX)",
+                     decode->format);
         import_exit(1);
         return;
     }

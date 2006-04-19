@@ -217,7 +217,7 @@ MOD_close
 		strcmp (vob->video_out_file, "/dev/null")!=0) {
 	    tc_log_info (MOD_NAME, "Hint: Now merge the files with");
 	    tc_log_info (MOD_NAME, "Hint: ogmmerge -o complete.ogg %s %s",
-		    MOD_NAME, vob->video_out_file, vob->audio_out_file );
+			 vob->video_out_file, vob->audio_out_file );
 	}
 
         return(0);

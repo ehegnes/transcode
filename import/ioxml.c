@@ -341,7 +341,7 @@ int f_parse_tree(xmlNodePtr p_node,audiovideo_t *p_audiovideo)
 			if ((s_type==AUDIO_ITEM) && ((s_param==IN_VIDEO_CODEC)||(s_param==IN_VIDEO_MAGIC)||(s_param==OUT_VIDEO_HEIGHT)||(s_param==OUT_VIDEO_WIDTH)))
 			{
 				if (s_param==OUT_VIDEO_HEIGHT)
-					tc_log_warn(__FILE__,"The target-height parameter cannot be used in audio item, %s skipped.",__FILE__,(char *)p_node->xmlChildrenNode->content);
+					tc_log_warn(__FILE__,"The target-height parameter cannot be used in audio item, %s skipped.",(char *)p_node->xmlChildrenNode->content);
 				else if (s_param==OUT_VIDEO_WIDTH)
 					tc_log_warn(__FILE__,"The target-width parameter cannot be used in audio item, %s skipped.",(char *)p_node->xmlChildrenNode->content);
 				else if (s_param==IN_VIDEO_MAGIC)

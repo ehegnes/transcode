@@ -715,7 +715,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	      }
 	    }
 	    if (mod == -1){
-	      tc_log_error(MOD_NAME,"Error calculating frame to skip",MOD_NAME);
+	      tc_log_error(MOD_NAME, "Error calculating frame to skip");
 	      return -1;
 	    }
 	    framesOK[mod] = 0;

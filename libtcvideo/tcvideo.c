@@ -853,7 +853,7 @@ int tcv_antialias(TCVHandle handle,
     }
     if (weight < 0 || weight > 1 || bias < 0 || bias > 1) {
         tc_log_error("libtcvideo", "tcv_antialias: invalid antialiasing"
-                     " parameters (weight=%.3f, bias=%.3f)");
+                     " parameters (weight=%.3f, bias=%.3f)", weight, bias);
         return 0;
     }
 

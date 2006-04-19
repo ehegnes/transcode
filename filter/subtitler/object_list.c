@@ -206,8 +206,6 @@ char name[TEMP_SIZE];
 
 if(debug_flag)
 	{
-	tc_log_msg(MOD_NAME, "");
-
 	tc_log_msg(MOD_NAME, "add_subtitle_object(): arg\n\
 	start_frame_nr=%d end_frame_nr=%d\n\
 	type=%d\n\

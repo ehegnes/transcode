@@ -319,7 +319,7 @@ MOD_open
 	/* Open video file */
 	if(verbose_flag & TC_DEBUG)
 		tc_log_info(MOD_NAME, "Using %s output",
-			MOD_NAME, avi_output?"AVI":"Raw");
+			    avi_output?"AVI":"Raw");
 
 	if(avi_output) {
 		/* AVI Video output */

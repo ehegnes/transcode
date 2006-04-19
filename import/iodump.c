@@ -363,7 +363,7 @@ int fileinfo_dir(char *dname, int *fd, long *magic)
 	exit(1);
     } else if(verbose_flag & TC_DEBUG)
 
-	tc_log_error(__FILE__, "scanning dirlist \"%s\"", __FILE__, dname);
+	tc_log_error(__FILE__, "scanning dirlist \"%s\"", dname);
 
     if((name=tc_dirlist_scan(&tcdir))==NULL) return(-1);
 

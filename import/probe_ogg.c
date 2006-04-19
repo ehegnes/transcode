@@ -216,7 +216,7 @@ void probe_ogg(info_t *ipipe)
 			unsigned long codec;
 			codec = (sth->subtype[0] << 24) +
 			    (sth->subtype[1] << 16) + (sth->subtype[2] << 8) + sth->subtype[3];
-			tc_log_msg(__FILE__, "(v%d/%d) video; fps: %.3f width height: %dx%d " \
+			tc_log_msg(__FILE__, "(v%d/%d) video; fps: %.3f width height: %dx%d "
 				"codec: %p (%c%c%c%c)", nvtracks + 1,
 				natracks + nvtracks + 1,
 				(double)10000000 / (double)sth->time_unit,
@@ -275,8 +275,8 @@ void probe_ogg(info_t *ipipe)
 			buf[4] = 0;
 			codec = strtoul(buf, NULL, 16);
 #ifdef OGM_DEBUG
-			tc_log_msg(__FILE__, "(a%d/%d) codec: %d (0x%04x) (%s) bits per " \
-				   "sample: %d channels: %hd  samples per second: %ld " \
+			tc_log_msg(__FILE__, "(a%d/%d) codec: %d (0x%04x) (%s) bits per "
+				   "sample: %d channels: %hd  samples per second: %ld "
 				   "avgbytespersec: %hd blockalign: %d",
 				   natracks + 1, natracks + nvtracks + 1,
 				   codec, codec,
@@ -306,13 +306,13 @@ void probe_ogg(info_t *ipipe)
 			ac_memcpy(&streams[idx].state, &sstate, sizeof(sstate));
 			natracks++;
 		    } else {
-			tc_log_warn(__FILE__, "(%d) found new header of unknown/" \
+			tc_log_warn(__FILE__, "(%d) found new header of unknown/"
 				"unsupported type\n", nvtracks + natracks + 1);
 		    }
 		    break;
 		case none:
-		    tc_log_warn(__FILE__, "OGG stream %d is of an unknown type " \
-			"(bad header?)", __FILE__, nvtracks + natracks + 1);
+		    tc_log_warn(__FILE__, "OGG stream %d is of an unknown type "
+			"(bad header?)", nvtracks + natracks + 1);
 		    break;
 	    } /* switch type */
 	    free(inf);

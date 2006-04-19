@@ -353,7 +353,7 @@ static void parse_line(char *buf, TCConfigEntry *conf, const char *tag,
 
       default:
         tc_log_warn(tag, "%s:%d: Unknown type %d for variable `%s' (bug?)",
-                    filename, line, name);
+                    filename, line, conf->type, name);
         break;
 
     } /* switch (conf->type) */

@@ -100,7 +100,11 @@ typedef enum {
  *     This allocation can fail, and as result log message will be
  *     truncated to fit in avalaible static buffer.
  */
-int tc_log(TCLogLevel level, const char *tag, const char *fmt, ...);
+int tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
+#ifdef HAVE_ATTRIBUTE_FORMAT
+__attribute__((format(printf,3,4)))
+#endif
+;
 
 /* compatibility macros */
 #define tc_error(format, args...) \

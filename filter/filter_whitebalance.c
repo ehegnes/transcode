@@ -135,7 +135,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 			buffer = tc_malloc(SIZE_RGB_FRAME);
 		if (!buffer) {
 			tc_log_error(MOD_NAME, "Could not allocate %d bytes",
-                            MOD_NAME, SIZE_RGB_FRAME);
+				     SIZE_RGB_FRAME);
 			return -1;
 		}
 

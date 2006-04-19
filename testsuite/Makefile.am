@@ -57,3 +57,12 @@ test_tcmoduleinfo_LDADD = $(LIBTC_LIBS)
 
 test_tcstrdup_SOURCES = test-tcstrdup.c
 test_tcstrdup_LDADD = $(LIBTC_LIBS)
+
+
+# Avoid warnings on intentional empty strings in test-tclog
+test-tclog$(EXEEXT): CFLAGS := $(CFLAGS) -Wno-format-zero-length
+# Automake interprets that line as a rule overriding the default,
+# so put the default back
+test-tclog$(EXEEXT): $(test_tclog_OBJECTS) $(test_tclog_DEPENDENCIES) 
+	@rm -f test-tclog$(EXEEXT)
+	$(LINK) $(test_tclog_LDFLAGS) $(test_tclog_OBJECTS) $(test_tclog_LDADD) $(LIBS)

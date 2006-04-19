@@ -532,12 +532,13 @@ static size_t xread(uint8_t *buf, size_t elsize, size_t els, FILE *f)
         if (fread(readbuf, 4, 1, f) != 1)
             break;
         if (memcmp(readbuf, "\0\0\1", 3) != 0) {
-            tc_log_warn(MOD_NAME, "No start code found at %d", ftell(f)-4);
+            tc_log_warn(MOD_NAME, "No start code found at %ld",
+                        (long)ftell(f)-4);
             break;
         }
         if (verbose & TC_DEBUG) {
-            tc_log_msg(MOD_NAME, "Start code 0x%02X at %d", readbuf[3],
-                       ftell(f)-4);
+            tc_log_msg(MOD_NAME, "Start code 0x%02X at %ld", readbuf[3],
+                       (long)ftell(f)-4);
         }
         if (readbuf[3] == 0xB9) {  /* program end */
             if (verbose & TC_DEBUG)

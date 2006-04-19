@@ -459,7 +459,7 @@ void vframe_flush()
     }
 
     if (verbose & TC_DEBUG) {
-        tc_log_info(__FILE__, "flushing %d video buffer", __FILE__, i);
+        tc_log_msg(__FILE__, "flushing %d video buffer", i);
     }
 
     pthread_mutex_lock(&vbuffer_im_fill_lock);

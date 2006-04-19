@@ -476,7 +476,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 
 	if((v4l2_video_fd = open(device, O_RDWR, 0)) < 0)
 	{
-		tc_log_error(MOD_NAME, "cannot open video device %s");
+		tc_log_error(MOD_NAME, "cannot open video device %s", device);
 		return(1);
 	}
 

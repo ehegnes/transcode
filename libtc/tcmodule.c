@@ -728,7 +728,7 @@ failed_dlopen:
 #define CHECK_VALID_ID(id, where) \
     if (id < 0 || id > TC_FACTORY_MAX_HANDLERS) { \
         if (factory->verbose >= TC_DEBUG) { \
-            tc_log_error(__FILE__, "%s: invalid id (%i)", id, where); \
+            tc_log_error(__FILE__, "%s: invalid id (%i)", where, id); \
         } \
         return -1; \
     }
