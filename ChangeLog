@@ -1,4 +1,10 @@
 2006-04-19 Francesco Romani <fromani at gmail dot com>
+  * docs/man/tcexport.1
+  rewrite some statements, add return value section
+
+  * tools/tcexport.c
+  review return value handling.
+
   * docs/module-system-API.txt
   One more word of caution about multithreading and tcmodule.
 

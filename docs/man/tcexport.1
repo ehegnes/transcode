@@ -50,17 +50,17 @@ tcexport \- Simple frontend to transcode's encoding subsystem
 
 .SH DESCRIPTION
 .B tcexport
-tcexport was designed as a debug tool for transcode's encoding code and for
-fitting in a very limited range of usage cases; however, it can also be used
+was designed as a debug tool for transcode's encoding code: it fits
+in a very limited range of usage cases; however, it can also be used
 independently if you like.
 .br
 tcexport encodes and multiplexes a raw YUV4MPEG2/WAV V/A stream using given
 parameters and transcode encoder components. tecexport provides direct and complete
-access to transcode's encoding features and modules, but not at
+access to transcode's encoding features and modules, but hasn't any of transcode
 import/extracting/decoding/filtering capabilities. Use some other tc* tool
 if you need those facilities.
 .br
-tcexport's options are intentionally made similar or identical, if feasible,
+tcexport's options are intentionally made similar, or identical if feasible,
 to corresponding transcode's encoding options.
 
 .SH OPTIONS
@@ -172,6 +172,26 @@ Look in \fIPath\fP instead of the compiled-in module path for a module.
 .TP
 .B -v
 Print version information and exit.
+
+.SH RETURN VALUE
+.B tcexport
+uses following return values:
+.br
+ 0  successfull
+.br
+ 1  bad parameter or command line option
+.br
+ 2  error while reading/writing from/to a file
+.br
+ 3  requested an inexistent (or unreadable) module
+.br
+ 4  a module raised an internal error
+.br
+ 5  error while probing input file(s). Make sure they are of right format.
+.br
+64  internal error. Please provide a report of what's happened on transcode-devel mailing list
+.br
+
 
 .SH AUTHORS
 .B tcexport

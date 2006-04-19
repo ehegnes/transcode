@@ -37,14 +37,15 @@
 #define EXE "tcexport"
 
 enum {
+    STATUS_DONE = -1, /* used internally */
     STATUS_OK = 0,
-    STATUS_DONE,
     STATUS_BAD_PARAM,
     STATUS_IO_ERROR,
     STATUS_NO_MODULE,
     STATUS_MODULE_ERROR,
-    STATUS_INTERNAL_ERROR,
     STATUS_PROBE_FAILED,
+    /* ... */
+    STATUS_INTERNAL_ERROR = 64, /* must be the last one */
 };
 
 #define VIDEO_LOG_FILE       "mpeg4.log"
@@ -332,7 +333,7 @@ static int parse_options(int argc, char** argv, TCEncConf *conf)
           case 'h': /* fallthrough */
           default:
             usage();
-            return STATUS_DONE;
+            return STATUS_BAD_PARAM;
         }
     }
     return STATUS_OK;
