@@ -1,4 +1,11 @@
 2006-04-19 Francesco Romani <fromani at gmail dot com>
+  * testsuite/test-ratiocodes.c
+  rewrite and extend.
+
+  * libtc/ratiocodes.c libtc/ratiocodes.h
+  refactor and generalize tc_*_code_{from,to}_ratio, providing back
+  compatibility macro goodies. Add support for par ratios/codes.
+ 
   * docs/man/tcexport.1
   rewrite some statements, add return value section
 

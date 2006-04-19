@@ -11,6 +11,19 @@
 #ifndef RATIOCODES_H
 #define RATIOCODES_H
 
+/* 
+ * same ratio codes (i.e.: code=3) have different meaning in
+ * different contexts, so we have this enum to let the
+ * tc_code_{from,to}_ratio functions distinguish operational
+ * context.
+ */
+typedef enum tccoderatio_ TCRatioCode;
+enum tccoderatio_ {
+    TC_FRC_CODE = 1, /* frame ratio */
+    TC_ASR_CODE,     /* (display?) aspect ratio */
+    TC_PAR_CODE,     /* pixel aspect ratio */
+};
+
 typedef struct tcpair_ TCPair;
 struct tcpair_ {
     int a; /* numerator, width... */
@@ -48,7 +61,7 @@ do { \
  * tc_frc_code_from_value:
  *    detect the right frame ratio code (frc) given a frame rate value as
  *    real number.
- * 
+ *
  * Parameters:
  *    frc_code: pointer to integer where detected frc code will be stored.
  *              Can be NULL: if so, frc code will be detected but not stored.
@@ -63,7 +76,7 @@ int tc_frc_code_from_value(int *frc_code, double fps);
  * tc_frc_code_to_value:
  *    detect the right frame ratio value as real number given a frame rate
  *    code (frc).
- * 
+ *
  * Parameters:
  *    frc_code: frame rate code.
  *         fps: pointer to double where detected frc value will be stored.
@@ -75,75 +88,60 @@ int tc_frc_code_from_value(int *frc_code, double fps);
 int tc_frc_code_to_value(int frc_code, double *fps);
 
 /*
- * tc_frc_code_from_ratio:
- *    detect the right frame ratio code (frc) given a frame rate fraction
- *    as pair of integers.
- * 
+ * tc_code_from_ratio:
+ *    detect the right code in a specificied domain given a fraction as
+ *    pair of integers.
+ *
  * Parameters:
- *    frc_code: pointer to integer where detected frc code will be stored.
- *              Can be NULL: if so, frc code will be detected but not
- *              stored.
- *           n: numerator of given frame ratio fraction.
- *           d: denominator of given frame ratio fraction.
+ *        rc: select operational domain. See definition of
+ *            TCRatioCode above to see avalaible domains.
+ *      code: pointer to integer where detected code will be stored.
+ *            Can be NULL: if so, code will be detected but not
+ *            stored.
+ *         n: numerator of given frame ratio fraction.
+ *         d: denominator of given frame ratio fraction.
  * Return Value:
  *    TC_NULL_MATCH if input value isn't known
  *    >= 0 otherwise
  */
-int tc_frc_code_from_ratio(int *frc_code, int n, int d);
+int tc_code_from_ratio(TCRatioCode rc, int *out_code, int in_n, int in_d);
 
 /*
  * tc_frc_code_to_ratio:
- *    detect the right frame ratio fraction as pair of integers given a
- *    frame rate code (frc).
- * 
+ *    detect the right ratio fraction in a specified domain as pair of
+ *    integers given a ratio code.
+ *
  * Parameters:
- *    frc_code: frame rate code.
- *           n: pointer to integer where numerator of frame rate fraction
- *              will ne stored. Can be NULL: if so, frc fraction will be
- *              detected but not stored.
- *           d: pointer to integer where denominator of frame rate fraction
- *              will ne stored. Can be NULL: if so, frc fraction will be
- *              detected but not stored.
+ *        rc: select operational domain. See definition of
+ *            TCRatioCode above to see avalaible domains.
+ *	code: code to be converted in fraction.
+ *         n: pointer to integer where numerator of rate fraction
+ *            will ne stored. Can be NULL: if so, fraction will be
+ *            detected but not stored.
+ *         d: pointer to integer where denominator of frate fraction
+ *            will ne stored. Can be NULL: if so, fraction will be
+ *            detected but not stored.
  * Return Value:
  *    TC_NULL_MATCH if input value isn't known
  *    >= 0 otherwise
  */
-int tc_frc_code_to_ratio(int frc_code, int *n, int *d);
+int tc_code_to_ratio(TCRatioCode rc, int in_code, int *out_n, int *out_d);
 
-/*
- * tc_asr_code_from_ratio:
- *    detect the right aspect ratio code (asr) given an aspect
- *    rate fraction as pair of integers.
- * 
- * Parameters:
- *    asr_code: pointer to integer where detected asr code will be stored.
- *              Can be NULL: if so, asr code will be detected but not
- *              stored.
- *           n: numerator of given aspect ratio fraction.
- *           d: denominator of given aspect ratio fraction.
- * Return Value:
- *    TC_NULL_MATCH if input value isn't known
- *    >= 0 otherwise
- */
-int tc_asr_code_from_ratio(int *asr_code, int n, int d);
+/* macro goodies */
+#define tc_frc_code_from_ratio(frc, n, d) \
+	tc_code_from_ratio(TC_FRC_CODE, frc, n, d)
+#define tc_frc_code_to_ratio(frc, n, d) \
+	tc_code_to_ratio(TC_FRC_CODE, frc, n, d)
 
-/*
- * tc_asr_code_to_ratio:
- *    detect the right aspect ratio fraction as pair of integers given a
- *    aspect ratio code (asr).
- * 
- * Parameters:
- *    asr_code: aspect ratio code.
- *           n: pointer to integer where numerator of aspect ratio fraction
- *              will ne stored. Can be NULL: if so, asr fraction will be
- *              detected but not stored.
- *           d: pointer to integer where denominator of aspect ratio
- *              fraction will ne stored. Can be NULL: if so, asr fraction
- *              will be detected but not stored.
- * Return Value:
- *    TC_NULL_MATCH if input value isn't known
- *    >= 0 otherwise
- */
-int tc_asr_code_to_ratio(int asr_code, int *n, int *d);
+#define tc_asr_code_from_ratio(asr, n, d) \
+	tc_code_from_ratio(TC_ASR_CODE, asr, n, d)
+#define tc_asr_code_to_ratio(asr, n, d) \
+	tc_code_to_ratio(TC_ASR_CODE, asr, n, d)
+
+#define tc_par_code_from_ratio(par, n, d) \
+	tc_code_from_ratio(TC_PAR_CODE, par, n, d)
+#define tc_par_code_to_ratio(par, n, d) \
+	tc_code_to_ratio(TC_PAR_CODE, par, n, d)
+
 
 #endif  /* RATIOCODES_H */

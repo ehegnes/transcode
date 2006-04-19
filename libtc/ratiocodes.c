@@ -39,7 +39,7 @@ static const double frc_table[16] = {
 
 /* WARNING: this table MUST BE in frc order */
 static const TCPair frc_ratios[16] = {
-    { 0, 0 },
+    {     0,    0 },
     { 24000, 1001 },
     { 24000, 1000 },
     { 25000, 1000 },
@@ -49,26 +49,37 @@ static const TCPair frc_ratios[16] = {
     { 60000, 1001 },
     { 60000, 1000 },
     /* XXX */
-    { 1000, 1000 },
-    { 5000, 1000 },
+    {  1000, 1000 },
+    {  5000, 1000 },
     { 10000, 1000 },
     { 12000, 1000 },
     { 15000, 1000 },
     /* XXX  */
-    { 0, 0 },
-    { 0, 0 },
+    {     0,    0 },
+    {     0,    0 },
 };
 
 /* WARNING: this table MUST BE in asr order */
 static const TCPair asr_ratios[8] = {
-    { 0, 0 },
-    { 1, 1},
-    { 4, 3},
-    { 16, 9},
-    { 221, 100},
-    { 0, 0 },
-    { 0, 0 },
-    { 0, 0 },
+    {   0,   0 },
+    {   1,   1 },
+    {   4,   3 },
+    {  16,   9 },
+    { 221, 100 },
+    {   0,   0 },
+    {   0,   0 },
+    {   0,   0 },
+};
+
+static const TCPair par_ratios[8] = {
+    {    1,    1 },
+    {    1,    1 },
+    { 1200, 1100 },
+    { 1000, 1100 },
+    { 1600, 1100 },
+    { 4000, 3300 },
+    {    1,    1 },
+    {    1,    1 }
 };
 
 
@@ -77,7 +88,7 @@ int tc_frc_code_from_value(int *frc_code, double fps)
 {
     int frc = TC_NULL_MATCH, i = 0;
     double mindiff = DELTA;
-    
+
     for (i = 0; i < TABLE_LEN(frc_table); i++) {
         double diff = fabs(frc_table[i] - fps);
         if (diff < mindiff) {
@@ -86,7 +97,7 @@ int tc_frc_code_from_value(int *frc_code, double fps)
         }
     }
     if (frc_code != NULL && frc != TC_NULL_MATCH) {
-        *frc_code = frc;    
+        *frc_code = frc;
     }
     return frc;
 }
@@ -143,45 +154,63 @@ static int match_ratio(const TCPair *pairs, size_t len,
     return r;
 }
 
-int tc_asr_code_from_ratio(int *asr_code, int n, int d)
+static int select_table(TCRatioCode rc, const TCPair **table, size_t *len)
 {
-    int asr = match_ratio(asr_ratios, TABLE_LEN(asr_ratios),
-                          n, d, TC_NULL_MATCH);
-    if (asr_code != NULL && asr != TC_NULL_MATCH) {
-        *asr_code = asr;
+    int ret = 0;
+
+    switch (rc) {
+      case TC_FRC_CODE:
+        *table = frc_ratios;
+        *len = TABLE_LEN(frc_ratios);
+        break;
+      case TC_ASR_CODE:
+        *table = asr_ratios;
+        *len = TABLE_LEN(asr_ratios);
+        break;
+      case TC_PAR_CODE:
+        *table = par_ratios;
+        *len = TABLE_LEN(par_ratios);
+        break;
+      default:
+        *table = NULL;
+        *len = 0;
+        ret = TC_NULL_MATCH;
     }
-    return asr;
+    return ret;
 }
 
-int tc_asr_code_to_ratio(int asr_code, int *n, int *d)
+int tc_code_from_ratio(TCRatioCode rc, int *out_code, int in_n, int in_d)
 {
-    int asr = match_ratio(asr_ratios, TABLE_LEN(asr_ratios),
-                          TC_NULL_MATCH, TC_NULL_MATCH, asr_code);
-    if ((n != NULL && d != NULL) && asr != TC_NULL_MATCH) {
-        *n = asr_ratios[asr].a;
-        *d = asr_ratios[asr].b;
+    int code = TC_NULL_MATCH;
+    const TCPair *table = NULL;
+    size_t len = 0;
+
+    select_table(rc, &table, &len);
+    if (table != NULL) {
+        code = match_ratio(table, len, in_n, in_d, TC_NULL_MATCH);
+        if (out_code != NULL && code != TC_NULL_MATCH) {
+            *out_code = code;
+        }
     }
-    return asr;
+    return code;
 }
 
-int tc_frc_code_from_ratio(int *frc_code, int n, int d)
-{
-    int frc = match_ratio(frc_ratios, TABLE_LEN(frc_ratios),
-                          n, d, TC_NULL_MATCH);
-    if (frc_code != NULL && frc != TC_NULL_MATCH) {
-        *frc_code = frc;
-    }
-    return frc;
-}
 
-int tc_frc_code_to_ratio(int frc_code, int *n, int *d)
+int tc_code_to_ratio(TCRatioCode rc, int in_code, int *out_n, int *out_d)
 {
-    int frc = match_ratio(frc_ratios, TABLE_LEN(frc_ratios),
-                          TC_NULL_MATCH, TC_NULL_MATCH, frc_code);
-    if ((n != NULL && d != NULL) && frc != TC_NULL_MATCH) {
-        *n = frc_ratios[frc].a;
-        *d = frc_ratios[frc].b;
+    int code = TC_NULL_MATCH;
+    const TCPair *table = NULL;
+    size_t len = 0;
+
+    select_table(rc, &table, &len);
+    if (table != NULL) {
+        code = match_ratio(table, len,
+                           TC_NULL_MATCH, TC_NULL_MATCH, in_code);
+        if ((out_n != NULL && out_d != NULL) && code != TC_NULL_MATCH) {
+            *out_n = table[code].a;
+            *out_d = table[code].b;
+        }
     }
-    return frc;
+    return code;
 }
 
