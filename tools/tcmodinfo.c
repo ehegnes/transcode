@@ -54,6 +54,7 @@
 #include "filter.h"
 #include "video_trans.h"
 
+#include "libtc/cfgfile.h"
 #include "tcmodule-core.h"
 
 #define EXE "tcmodinfo"

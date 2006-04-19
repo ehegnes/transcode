@@ -28,6 +28,7 @@
 #include "encoder.h"
 #include "filter.h"
 #include "libtc/tcmodule-core.h"
+#include "libtc/cfgfile.h"
 #include "libtc/libtc.h"
 #include "libtc/tccodecs.h"
 

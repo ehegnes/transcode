@@ -1,7 +1,8 @@
 2006-04-19 Francesco Romani <fromani at gmail dot com>
   * tools/tcmodinfo.c tools/tcexport.c
-  call tc_config_dir() both to enforce config directory and to
-  request static linkage of new configuration handling code.
+  add right include file and call tc_config_dir() both to enforce
+  config directory and to request static linkage of new configuration
+  handling code.
 
 2006-04-18 Andrew Church <achurch at achurch dot org>
   * export/export_raw.c
