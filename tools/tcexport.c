@@ -505,6 +505,7 @@ int main(int argc, char *argv[])
     TCEncConf config;
 
     ac_init(AC_ALL);
+    tc_set_config_dir(NULL);
     config_init(&config, &vob);
     counter_on();
 
