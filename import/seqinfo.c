@@ -458,6 +458,12 @@ void seq_update(seq_list_t *ptr, int end_pts, int pictures, int packets, int fla
 
 /* ------------------------------------------------------------------ */
 
+/********
+ * FIXME: these two functions, and the printf()s below, are only used
+ * with the undocumented TC_DEMUX_SEQ_LIST (-M 5) mode.  Is printf()
+ * appropriate, or for that matter is this even needed at all?  --AC
+ ********/
+
 static int seq_offset=0, unit_ctr=-1;
 
 void seq_list_frames()

@@ -73,7 +73,7 @@ void probe_v4l(info_t *ipipe)
   // try v4l1
   if (!is_v4l2) {
       if (ipipe->verbose & TC_DEBUG)
-          fprintf(stderr, "Checking if v4l1 ioctls are supported...");
+          tc_log_msg(__FILE__, "Checking if v4l1 ioctls are supported...");
       if (-1 == ioctl(ipipe->fd_in,VIDIOCGCAP,&capability)) {
 	  if (ipipe->verbose & TC_DEBUG)
 	      tc_log_msg(__FILE__, "... no");

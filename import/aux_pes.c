@@ -285,8 +285,9 @@ int probe_picext(uint8_t *buffer, size_t buflen)
   return(buffer[2] & 3);
 }
 
-void probe_group(uint8_t *buffer, size_t buflen)
+const char *probe_group(uint8_t *buffer, size_t buflen)
 {
+    static char retbuf[32];
     static int buf_small_count = 0;
     if(buflen < 5) {
         if(buf_small_count == 0
@@ -296,10 +297,13 @@ void probe_group(uint8_t *buffer, size_t buflen)
                              (unsigned long)buflen, buf_small_count);
         }
         buf_small_count++;
+	*retbuf = 0;
     } else {
-       tc_log_msg(__FILE__, "%s%s", (buffer[4] & 0x40) ? " closed_gop" : "",
-		  (buffer[4] & 0x20) ? " broken_link" : "");
+	tc_snprintf(retbuf, sizeof(retbuf), "%s%s",
+		    (buffer[4] & 0x40) ? " closed_gop" : "",
+		    (buffer[4] & 0x20) ? " broken_link" : "");
     }
+    return retbuf;
 }
 
 int get_pts_dts(char *buffer, unsigned long *pts, unsigned long *dts)

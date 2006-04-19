@@ -160,20 +160,18 @@ int main(int argc, char *argv[])
 	if(optarg[0]=='-') usage(EXIT_FAILURE);
 
 	if((n = sscanf(optarg,"%d,%d-%d", &unit_seek, &resync_seq1, &resync_seq2))<0) {
-	  fprintf(stderr, "invalid parameter for option -S\n");
+	  tc_log_error(EXE, "invalid parameter for option -S");
 	  exit(1);
       }
 
       if(unit_seek<0) {
-	fprintf(stderr, "error: invalid unit parameter for option -S\n");
+	tc_log_error(EXE, "invalid unit parameter for option -S");
 	usage(EXIT_FAILURE);
-	exit(1);
       }
 
       if(resync_seq1<0 || resync_seq2<0 || resync_seq1>=resync_seq2) {
-	  fprintf(stderr, "error: invalid sequence parameter for option -S\n");
+	  tc_log_error(EXE, "invalid sequence parameter for option -S");
 	  usage(EXIT_FAILURE);
-	  exit(1);
       }
 
       break;
@@ -254,7 +252,7 @@ int main(int argc, char *argv[])
 	if(optarg[0]=='-') usage(EXIT_FAILURE);
 
 	if ((n = sscanf(optarg,"%x,%x,%x,%x,%x", &pass[0], &pass[1], &pass[2], &pass[3], &pass[4]))<=0) {
-	    fprintf(stderr, "invalid parameter for option -A\n");
+	    tc_log_error(EXE, "invalid parameter for option -A");
 	    exit(1);
 	}
 
@@ -270,7 +268,7 @@ int main(int argc, char *argv[])
 	if(demux_mode==TC_DEMUX_OFF) verbose=TC_QUIET;
 
 	if(demux_mode<0 || demux_mode>TC_DEMUX_MAX_OPTS) {
-	  fprintf(stderr, "invalid parameter for option -M\n");
+	  tc_log_error(EXE, "invalid parameter for option -M");
 	  exit(1);
 	}
 
@@ -281,7 +279,7 @@ int main(int argc, char *argv[])
 	if(optarg[0]=='-') usage(EXIT_FAILURE);
 
 	if ((n = sscanf(optarg,"%d,%d", &a_track, &v_track))<=0) {
-	  fprintf(stderr, "invalid parameter for option -a\n");
+	  tc_log_error(EXE, "invalid parameter for option -a");
 	  exit(1);
 	}
 
@@ -331,7 +329,8 @@ int main(int argc, char *argv[])
 
       stream_magic=fileinfo(ipipe.fd_in, 0);
 
-      if(verbose) fprintf(stderr, "[%s] (pid=%d) %s\n", EXE, getpid(), filetype(stream_magic));
+      if(verbose)
+	tc_log_msg(EXE, "(pid=%d) %s", getpid(), filetype(stream_magic));
 
     } else ipipe.fd_in = STDIN_FILENO;
 

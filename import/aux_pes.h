@@ -48,6 +48,6 @@ int probe_sequence(uint8_t *buffer, ProbeInfo *probe_info);
 int probe_extension(uint8_t *buffer, ProbeInfo *probe_info);
 void scr_rewrite(char *buffer, uint32_t pts);
 int probe_picext(uint8_t *buffer, size_t buflen);
-void probe_group(uint8_t *buffer, size_t buflen);
+const char *probe_group(uint8_t *buffer, size_t buflen);
 
 #endif

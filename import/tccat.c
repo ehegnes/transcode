@@ -63,22 +63,19 @@ static void usage(int status)
   version();
 
   fprintf(stderr,"\nUsage: %s [options]\n", EXE);
+  fprintf(stderr,"\t -i name          input file/directory%s%s name\n",
 #ifdef HAVE_LIBDVDREAD
+	  "/device/mountpoint",
+#else
+	  "",
+#endif
 #ifdef NET_STREAM
-  fprintf(stderr,"\t -i name          input file/directory/device/mountpoint/host name\n");
+	  "/host"
 #else
-  fprintf(stderr,"\t -i name          input file/directory/device/mountpoint name\n");
+	  ""
 #endif
-#else
-#ifdef NET_STREAM
-  fprintf(stderr,"\t -i name          input file/directory/host name\n");
-#else
-  fprintf(stderr,"\t -i name          input file/directory name\n");
-#endif
-#endif
-
+  );
   fprintf(stderr,"\t -t magic         file type [autodetect]\n");
-
 #ifdef HAVE_LIBDVDREAD
   fprintf(stderr,"\t -T t[,c[-d][,a]] DVD title[,chapter(s)[,angle]] [1,1,1]\n");
   fprintf(stderr,"\t -L               process all following chapters [off]\n");
@@ -159,7 +156,7 @@ int main(int argc, char *argv[])
 	  chapter2=chapter1;
 
 	  if(n<0 || n>3) {
-	    fprintf(stderr, "invalid parameter for option -T\n");
+	    tc_log_error(EXE, "invalid parameter for option -T");
 	    exit(1);
 	  }
 	}
@@ -169,7 +166,7 @@ int main(int argc, char *argv[])
 
       if(chapter2!=-1) {
 	if(chapter2<chapter1) {
-	  fprintf(stderr, "invalid parameter for option -T\n");
+	  tc_log_error(EXE, "invalid parameter for option -T");
 	  exit(1);
 	}
 	if(chapter2-chapter1>=1) loop=1;
@@ -245,7 +242,8 @@ int main(int argc, char *argv[])
   }
 
   //DVD debugging information
-  if(verbose & TC_DEBUG && source == IS_DVD) fprintf(stderr, "T=%d %d %d %d %d\n", n, title, chapter1, chapter2, angle);
+  if((verbose & TC_DEBUG) && source == IS_DVD)
+    tc_log_msg(EXE, "T=%d %d %d %d %d", n, title, chapter1, chapter2, angle);
 
   /* ------------------------------------------------------------
    *
@@ -266,7 +264,7 @@ int main(int argc, char *argv[])
 
   // no stdin for DVD
   if(name==NULL && source==IS_DVD) {
-    fprintf(stderr, "error: invalid directory/path_to_device\n");
+    tc_log_error(EXE, "invalid directory/path_to_device\n");
     usage(EXIT_FAILURE);
   }
 
@@ -285,7 +283,7 @@ int main(int argc, char *argv[])
 	    goto cont;
 	}
 #endif
-	fprintf(stderr, "(%s) invalid file \"%s\"\n", __FILE__, name);
+	tc_log_error(EXE, "invalid file \"%s\"", name);
 	exit(1);
     }
 
@@ -313,7 +311,7 @@ int main(int argc, char *argv[])
 
   if (name) {
       if ((ipipe.name = tc_strdup(name)) == NULL) {
-          fprintf(stderr, "(%s) could not allocate memory\n", __FILE__);
+          tc_log_error(EXE, "could not allocate memory");
           exit(1);
       }
       if (strlen(ipipe.name) != strlen(name)) {
@@ -361,7 +359,7 @@ int main(int argc, char *argv[])
   case IS_DVD:
 
     if(dvd_init(name, &max_titles, verbose)<0) {
-      fprintf(stderr, "[%s] (pid=%d) failed to open DVD %s\n", EXE, getpid(), name);
+      tc_log_error(EXE, "(pid=%d) failed to open DVD %s", getpid(), name);
       exit(1);
     }
 
@@ -375,7 +373,8 @@ int main(int argc, char *argv[])
 
     for(j=start_chapter; j<end_chapter+1; ++j) {
       ipipe.dvd_chapter=j;
-      if(verbose & TC_DEBUG) fprintf(stderr, "[%s] (pid=%d) processing chapter (%d/%d)\n", EXE, getpid(), j, max_chapters);
+      if(verbose & TC_DEBUG)
+	tc_log_msg(EXE, "(pid=%d) processing chapter (%d/%d)", getpid(), j, max_chapters);
 
       if(stream) {
         dvd_stream(title,j);
@@ -389,7 +388,8 @@ int main(int argc, char *argv[])
       dvd_stream(title,chapter1,chapter2);
 
     } else {
-	  if(verbose & TC_DEBUG) fprintf(stderr, "[%s] (pid=%d) processing chapter (%d)\n", EXE, getpid(), chapter1);
+	  if(verbose & TC_DEBUG)
+	    tc_log_msg(EXE, "(pid=%d) processing chapter (%d)", getpid(), chapter1);
           tccat_thread(&ipipe);
     }*/
 

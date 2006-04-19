@@ -146,11 +146,10 @@ void probe_ts(info_t *ipipe)
     for (i=0 ; i<MAX_PID; i++)
 	pid[i] = -1;
 
-    printf("(%s) Pids: ", __FILE__);
     while (size < ipipe->factor*1024*1024) {
 
 	if((i=tc_pread(ipipe->fd_in, buffer, TS_PACK-1)) != TS_PACK-1) {
-	    fprintf(stderr, "(%s) end of stream\n", __FILE__);
+	    tc_log_info(__FILE__, "end of stream");
 	    return;
 	}
 	size += i;
@@ -165,11 +164,11 @@ void probe_ts(info_t *ipipe)
 	}
 
 	if (!found) {
-	    printf("0x%x ", get_pid (buffer));
+	    tc_log_info(__FILE__, "Found pid 0x%x", get_pid (buffer));
 	    pid[npid] = get_pid (buffer);
 	    npid++;
 	    if (npid >= MAX_PID) {
-		fprintf(stderr, "(%s) Too many pids\n", __FILE__);
+		tc_log_warn(__FILE__, "Too many pids");
 		return;
 	    }
 	}
@@ -185,12 +184,13 @@ void probe_ts(info_t *ipipe)
 	    size += i;
 	}
 	if(!doit) {
-	    fprintf(stderr, "(%s) end of stream\n", __FILE__);
+	    tc_log_info(__FILE__, "end of stream");
 	    return;
 	}
     }
-    printf("%s\n", (npid>0?"":"none"));
 
+    if (!npid)
+	tc_log_info(__FILE__, "No pids found");
 }
 
 #define DEMUX_PAYLOAD_START 1
@@ -315,7 +315,7 @@ static int demux (uint8_t * buf, uint8_t * end, int flags)
 	if (demux_pid) {
 	    if ((header[3] >= 0xe0) && (header[3] <= 0xef))
 		goto pes;
-	    fprintf (stderr, "bad stream id %x\n", header[3]);
+	    tc_log_error(__FILE__, "bad stream id %x", header[3]);
 	    exit (1);
 	}
 	switch (header[3]) {
@@ -335,7 +335,7 @@ static int demux (uint8_t * buf, uint8_t * end, int flags)
 		DONEBYTES (12);
 		/* header points to the mpeg1 pack header */
 	    } else {
-		fprintf (stderr, "weird pack header\n");
+		tc_log_error(__FILE__, "weird pack header");
 		exit (1);
 	    }
 	    break;
@@ -354,7 +354,7 @@ static int demux (uint8_t * buf, uint8_t * end, int flags)
 			len++;
 			NEEDBYTES (len);
 			if (len > 23) {
-			    fprintf (stderr, "too much stuffing\n");
+			    tc_log_warn(__FILE__, "too much stuffing");
 			    break;
 			}
 		    }
@@ -378,8 +378,8 @@ static int demux (uint8_t * buf, uint8_t * end, int flags)
 		fwrite (buf, bytes, 1, stdout);
 		buf += bytes;
 	    } else if (header[3] < 0xb9) {
-		fprintf (stderr,
-			 "looks like a video stream, not system stream\n");
+		tc_log_info(__FILE__,
+			    "looks like a video stream, not system stream");
 		DONEBYTES (4);
 	    } else {
 		NEEDBYTES (6);
@@ -517,7 +517,7 @@ static void ts_loop (void)
     do {
 
       if((i=tc_pread(fd_in, buffer, TS_PACK)) != TS_PACK) {
-	fprintf(stderr, "(%s) end of stream\n", __FILE__);
+	tc_log_info(__FILE__, "end of stream");
 	return;
       }
 
@@ -528,12 +528,12 @@ static void ts_loop (void)
 	    buf = buffer + i * 188;
 	    end = buf + 188;
 	    if (buf[0] != 0x47) {
-		fprintf (stderr, "bad sync byte\n");
+		tc_log_error(__FILE__, "bad sync byte");
 		exit (1);
 	    }
 	    pid = ((buf[1] << 8) + buf[2]) & 0x1fff;
 	    if (pid != demux_pid) {
-	      //	      fprintf(stderr, "0x%x\n", pid);
+	      //tc_log_msg(__FILE__, "0x%x", pid);
 	      continue;
 	    }
 	    data = buf + 4;

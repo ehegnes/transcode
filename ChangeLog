@@ -29,6 +29,10 @@
     filter/tomsmocomp/filter_tomsmocomp.h
     filter/yuvdenoise/filter_yuvdenoise.c
     filter/yuvdenoise/filter_yuvmedian.c filter/yuvdenoise/motion.c
+    import/aux_pes.c import/aux_pes.h import/probe_v4l.c import/scan_pack.c
+    import/seqinfo.c import/tccat.c import/tcdecode.c import/tcdemux.c
+    import/tcextract.c import/tcprobe.c import/tcrequant.c import/tcscan.c
+    import/tcxmlcheck.c import/tcxpm2rgb.c import/ts_reader.c
   [f]printf() -> tc_log_XXX() changes.
 
   * filter/subtitler/Makefile.am
@@ -36,6 +40,9 @@
 
   * filter/tomsmocomp/filter_tomsmocomp.c
   sprintf -> tc_snprintf() changes.
+
+  * import/tcscan.c
+  Abort on invalid syntax in -e parameter.
 
 2006-04-19 Francesco Romani <fromani at gmail dot com>
   * testsuite/test-ratiocodes.c

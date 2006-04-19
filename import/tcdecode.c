@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
 	  if (2 != sscanf(optarg,"%ld,%ld", &decode.frame_limit[0], &decode.frame_limit[1])) usage(EXIT_FAILURE);
  	  if (decode.frame_limit[0] >= decode.frame_limit[1])
 	  {
-  		fprintf(stderr,"Invalid -C options\n");
+  		tc_log_error(EXE, "Invalid -C options");
 		usage(EXIT_FAILURE);
 	  }
 	  break;
@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
 
     // no autodetection yet
     if(codec==NULL) {
-	fprintf(stderr, "error: invalid codec %s\n", codec);
+	tc_log_error(EXE, "codec must be specified");
 	usage(EXIT_FAILURE);
     }
 
@@ -207,7 +207,8 @@ int main(int argc, char *argv[])
 
 	// try to find out the filetype
 	decode.magic = fileinfo(decode.fd_in, 0);
-	if (verbose) fprintf(stderr, "[%s] (pid=%d) %s\n", EXE, getpid(), filetype(decode.magic));
+	if (verbose)
+	    tc_log_msg(EXE, "(pid=%d) %s", getpid(), filetype(decode.magic));
 
     } else decode.fd_in = STDIN_FILENO;
 
@@ -345,7 +346,7 @@ int main(int argc, char *argv[])
     }
 
     if(!done) {
-	fprintf(stderr, "[%s] (pid=%d) unable to handle codec %s\n", EXE, getpid(), codec);
+	tc_log_error(EXE, "(pid=%d) unable to handle codec %s", getpid(), codec);
 	exit(1);
     }
 

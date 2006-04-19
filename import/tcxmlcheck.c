@@ -86,7 +86,7 @@ static int f_complete_vob_info(vob_t *p_vob,int s_type_check)
 		{
 			if( f_manage_input_xml(p_vob->video_in_file,1,&s_audiovideo))
 			{
-				fprintf(stderr,"(%s) Error parsing XML %s file\n",EXE,p_vob->video_in_file);
+				tc_log_error(EXE,"Error parsing XML %s file",p_vob->video_in_file);
 				(void) f_manage_input_xml(NULL,0,&s_audiovideo);
 				return(1);
 			}
@@ -105,7 +105,7 @@ static int f_complete_vob_info(vob_t *p_vob,int s_type_check)
 		{
 			if( f_manage_input_xml(p_vob->audio_in_file,1,&s_audiovideo))
 			{
-				fprintf(stderr,"(%s) Error parsing XML %s file\n",EXE,p_vob->audio_in_file);
+				tc_log_error(EXE,"Error parsing XML %s file",p_vob->video_in_file);
 				(void) f_manage_input_xml(NULL,0,&s_audiovideo);
 				return(1);
 			}
@@ -199,19 +199,19 @@ int main(int argc, char *argv[])
 
 		if((tc_pread(STDIN_FILENO, (uint8_t *) &s_vob, sizeof(vob_t))) != sizeof(vob_t))
 		{
-			fprintf(stderr,"(%s) Error reading data from stdin\n",EXE);
+			tc_log_error(EXE,"Error reading data from stdin");
 			exit(1);
 		}
 		if((s_shm=shmget(s_key,sizeof(vob_t),IPC_CREAT|0600)) == -1)
 		{
-			fprintf(stderr,"(%s) Cannot create shared memory segment\n",EXE);
+			tc_log_error(EXE,"Cannot create shared memory segment");
 			exit(1);
 		}
 		if ((p_vob=(vob_t *)shmat(s_shm,NULL,0)) == (vob_t *)-1)
 		{
 			shmctl( s_shm, IPC_RMID, NULL );
 			(int) shmdt(p_vob);
-			fprintf(stderr,"(%s) Cannot attach shared memory segment\n",EXE);
+			tc_log_error(EXE,"Cannot attach shared memory segment");
 			exit(1);
 		}
 		ac_memcpy((char *)p_vob,(char *) &s_vob, sizeof(vob_t));
@@ -222,14 +222,14 @@ int main(int argc, char *argv[])
 	{
 		if((s_shm=shmget(s_key,sizeof(vob_t),0600)) == -1)
 		{
-			fprintf(stderr,"(%s) Cannot create shared memory segment: use -S option to create it\n",EXE);
+			tc_log_error(EXE,"Cannot create shared memory segment: use -S option to create it");
 			exit(1);
 		}
 		if ((p_vob=(vob_t *)shmat(s_shm,NULL,0)) == (vob_t *)-1)
 		{
 			shmctl( s_shm, IPC_RMID, NULL );
 			(int) shmdt(p_vob);
-			fprintf(stderr,"(%s) Cannot attach shared memory segment\n",EXE);
+			tc_log_error(EXE,"Cannot attach shared memory segment");
 			exit(1);
 		}
 		ac_memcpy((char *)&s_vob,(char *) p_vob, sizeof(vob_t));
@@ -271,12 +271,12 @@ int main(int argc, char *argv[])
 			s_vob.audio_in_file=p_audio_tmp;
 			if(tc_pwrite(STDOUT_FILENO, (uint8_t *) &s_vob, sizeof(vob_t)) != sizeof(vob_t))
 			{
-				fprintf(stderr,"(%s) Error writing data to stdout\n",EXE);
+				tc_log_error(EXE,"Error writing data to stdout");
 				exit(1);
 			}
 			if(tc_pwrite(STDOUT_FILENO, (uint8_t *)&s_rc, sizeof(int)) != sizeof(int))
 			{
-				fprintf(stderr,"(%s) Error writing data to stdout\n",EXE);
+				tc_log_error(EXE,"Error writing data to stdout");
 				exit(1);
 			}
 		}

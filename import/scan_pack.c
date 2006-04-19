@@ -46,8 +46,8 @@ static int _cmp_32_bits(char *buf, long x)
 {
 
     if(0) {
-	fprintf(stderr, "MAGIC: 0x%02lx 0x%02lx 0x%02lx 0x%02lx\n", (x >> 24) & 0xff, ((x >> 16) & 0xff), ((x >>  8) & 0xff), ((x      ) & 0xff));
-	fprintf(stderr, " FILE: 0x%02x 0x%02x 0x%02x 0x%02x\n", buf[0] & 0xff, buf[1] & 0xff, buf[2] & 0xff, buf[3] & 0xff);
+	tc_log_msg(__FILE__, "MAGIC: 0x%02lx 0x%02lx 0x%02lx 0x%02lx", (x >> 24) & 0xff, ((x >> 16) & 0xff), ((x >>  8) & 0xff), ((x      ) & 0xff));
+	tc_log_msg(__FILE__, " FILE: 0x%02x 0x%02x 0x%02x 0x%02x", buf[0] & 0xff, buf[1] & 0xff, buf[2] & 0xff, buf[3] & 0xff);
     }
 
     if ((buf[0]& 0xff) != ((x >> 24) & 0xff))
@@ -67,8 +67,8 @@ static int _cmp_32_bits(char *buf, long x)
 static int _cmp_16_bits(char *buf, long x)
 {
   if(0) {
-    fprintf(stderr, "MAGIC: 0x%02lx 0x%02lx 0x%02lx 0x%02lx %s\n", (x >> 24) & 0xff, ((x >> 16) & 0xff), ((x >>  8) & 0xff), ((x      ) & 0xff), filetype(x));
-    fprintf(stderr, " FILE: 0x%02x 0x%02x 0x%02x 0x%02x\n", buf[2] & 0xff, buf[3] & 0xff, buf[0] & 0xff, buf[1] & 0xff);
+    tc_log_msg(__FILE__, "MAGIC: 0x%02lx 0x%02lx 0x%02lx 0x%02lx %s", (x >> 24) & 0xff, ((x >> 16) & 0xff), ((x >>  8) & 0xff), ((x      ) & 0xff), filetype(x));
+    tc_log_msg(__FILE__, " FILE: 0x%02x 0x%02x 0x%02x 0x%02x", buf[2] & 0xff, buf[3] & 0xff, buf[0] & 0xff, buf[1] & 0xff);
   }
 
     if ((uint8_t)buf[0] != ((x >>  8) & 0xff))
@@ -115,9 +115,9 @@ int scan_pack_pics(char *video)
    if(flag2) if( (video[off] & 0xff) == 1  &&  (video[off+1] & 0xff) == 0) ++ctr;
    if(flag3) if( (video[off] & 0xff) == 0  && (video[off+1] & 0xff) == 1  &&  (video[off+2] & 0xff) == 0) ++ctr;
 
-//   fprintf(stderr, "off=%d byte=0x%x byte=0x%x ctr=%d\n", off , (video[off] & 0xff), (video[VOB_PACKET_SIZE-4] & 0xff), ctr);
+//   tc_log_msg(__FILE__, "off=%d byte=0x%x byte=0x%x ctr=%d", off , (video[off] & 0xff), (video[VOB_PACKET_SIZE-4] & 0xff), ctr);
 
-   if(ctr && (verbose & TC_PRIVATE)) fprintf(stderr, "split PIC code detected\n");
+   if(ctr && (verbose & TC_PRIVATE)) tc_log_msg(__FILE__, "split PIC code detected");
 
    flag1=flag2=flag3=0;
 
@@ -129,7 +129,7 @@ int scan_pack_pics(char *video)
    if( (video[VOB_PACKET_SIZE-2] & 0xff) == 0 && (video[VOB_PACKET_SIZE-1] & 0xff) == 0) flag2=1;
    if( (video[VOB_PACKET_SIZE-3] & 0xff) == 0 && (video[VOB_PACKET_SIZE-2] & 0xff) == 0 && (video[VOB_PACKET_SIZE-1] & 0xff) == 1) flag1=1;
 
-//   fprintf(stderr, "ctr= %d | f1=%d, f2=%d, f3=%d\n", ctr, flag1, flag2, flag3);
+//   tc_log_msg(__FILE__, "ctr= %d | f1=%d, f2=%d, f3=%d", ctr, flag1, flag2, flag3);
 
    return(ctr);
 }
@@ -171,62 +171,63 @@ void scan_pack_payload(char *video, size_t size, int n, int verbose)
     ac_memcpy(buf, &video[4], 6);
     pts = read_time_stamp(buf);
 
-    //    printf("PTS=%ld %d %f %ld\n",  read_time_stamp_long(buf),read_ts(buf), read_ts(buf)/90000., parse_pts(buf, 2));
+    //    tc_log_msg(__FILE__, "PTS=%ld %d %f %ld",  read_time_stamp_long(buf),read_ts(buf), read_ts(buf)/90000., parse_pts(buf, 2));
 
     // payload length
     len = stream_read_int16(&video[18]);
 
-    printf("[%06d] id=0x%x SCR=%12.8f size=%4d\n", n, (video[17] & 0xff), pts, len);
+    tc_log_msg(__FILE__, "[%06d] id=0x%x SCR=%12.8f size=%4d", n, (video[17] & 0xff), pts, len);
 
 
     if((video[17] & 0xff) == P_ID_MPEG) {
 
 	if((k=pack_scan_32(video, TC_MAGIC_M2V))!=-1) {
 
-	    printf("\tMPEG SEQ start code found in packet %d, offset %4d\n", n, k);
+	    tc_log_msg(__FILE__, "\tMPEG SEQ start code found in packet %d, offset %4d", n, k);
 
 
 	    //read packet header
 	    ac_memcpy(buf, &video[20], 16);
 	    get_pts_dts(buf, &i_pts, &i_dts);
 
-	    printf( "\tPTS=%f DTS=%f\n", (double) i_pts / 90000., (double) i_dts / 90000.);
+	    tc_log_msg(__FILE__, "\tPTS=%f DTS=%f", (double) i_pts / 90000., (double) i_dts / 90000.);
 
 	    stats_sequence(&video[k+4], &si);
 
 	}
 
 	if((k=pack_scan_32(video, MPEG_SEQUENCE_END_CODE))!=-1)
-	    printf("\tMPEG SEQ   end code found in packet %d, offset %4d\n", n, k);
+	    tc_log_msg(__FILE__, "\tMPEG SEQ   end code found in packet %d, offset %4d", n, k);
 
 	if((k=pack_scan_32(video, MPEG_EXT_START_CODE))!=-1) {
 
 	    if(((uint8_t)video[k+4]>>4)==8) {
 		    int mode = probe_picext(&video[k+4], size - (size_t)k);
             if(mode > 0)
-                printf("\tMPEG EXT start code found in packet %d, offset %4d, %s\n", n, k, picture_structure_str[mode]);
+                tc_log_msg(__FILE__, "\tMPEG EXT start code found in packet %d, offset %4d, %s", n, k, picture_structure_str[mode]);
             else
-                printf("\tMPEG EXT start code found INCOMPLETE in packet %d, offset %4d\n", n, k);
+                tc_log_msg(__FILE__, "\tMPEG EXT start code found INCOMPLETE in packet %d, offset %4d", n, k);
 	    } else
-		    printf("\tMPEG EXT start code found in packet %d, offset %4d\n", n, k);
+		    tc_log_msg(__FILE__, "\tMPEG EXT start code found in packet %d, offset %4d", n, k);
 	}
 
 	if((k=pack_scan_32(video, MPEG_GOP_START_CODE))!=-1) {
-	    printf("\tMPEG GOP start code found in packet %d, offset %4d, gop [%03d] ", n, k, gop_cnt);
+	    tc_log_msg(__FILE__, "\tMPEG GOP start code found in packet %d, offset %4d, gop [%03d]%s",
+		       n, k, gop_cnt,
+		       probe_group((uint8_t*) &video[k+4], size - (size_t)k));
 	    gop_pts=pts;
 	    ++gop_cnt;
 	    gop=1;
-	    probe_group((uint8_t*) &video[k+4], size - (size_t)k);
 	}
 
 	if((k=pack_scan_32(video, MPEG_PICTURE_START_CODE))!=-1)
-	    printf("\tMPEG PIC start code found in packet %d, offset %4d\n", n, k);
+	    tc_log_msg(__FILE__, "\tMPEG PIC start code found in packet %d, offset %4d", n, k);
 
 	if((k=pack_scan_32(video, MPEG_SYSTEM_START_CODE))!=-1)
-	    printf("\tMPEG SYS start code found in packet %d, offset %4d\n", n, k);
+	    tc_log_msg(__FILE__, "\tMPEG SYS start code found in packet %d, offset %4d", n, k);
 
 	if((k=pack_scan_32(video, MPEG_PADDING_START_CODE))!=-1)
-	    printf("\tMPEG PAD start code found in packet %d, offset %4d\n", n, k);
+	    tc_log_msg(__FILE__, "\tMPEG PAD start code found in packet %d, offset %4d", n, k);
     }
 
     if((video[17] & 0xff) == P_ID_AC3) {
@@ -239,20 +240,20 @@ void scan_pack_payload(char *video, size_t size, int n, int verbose)
 	      ac_memcpy(buf, &video[20], 16);
 	      get_pts_dts(buf, &i_pts, &i_dts);
 
-	      printf("\t[%s] substream PTS=%f [0x%x]\n", __FILE__, (double) i_pts / 90000., *tmp);
+	      tc_log_msg(__FILE__, "\tsubstream PTS=%f [0x%x]", (double) i_pts / 90000., *tmp);
 
 	      if((k=pack_scan_16(video, TC_MAGIC_AC3))!=-1) {
 		if(gop) {
 
-		  printf("\tAC3 sync frame, packet %6d, offset %3d, gop [%03d], A-V %.3f\n", n, k, gop_cnt-1, pts-gop_pts);
+		  tc_log_msg(__FILE__, "\tAC3 sync frame, packet %6d, offset %3d, gop [%03d], A-V %.3f", n, k, gop_cnt-1, pts-gop_pts);
 		  gop=0;
 
 	    } else
-	      printf("\tAC3 sync frame found in packet %d, offset %d\n", n, k);
+	      tc_log_msg(__FILE__, "\tAC3 sync frame found in packet %d, offset %d", n, k);
 	}
 
 	if((k=pack_scan_32(video, MPEG_PADDING_START_CODE))!=-1)
-	    printf("\tMPEG PAD start code found in packet %d, offset %4d\n", n, k);
+	    tc_log_msg(__FILE__, "\tMPEG PAD start code found in packet %d, offset %4d", n, k);
 
     }
 
@@ -262,7 +263,7 @@ void scan_pack_payload(char *video, size_t size, int n, int verbose)
       ac_memcpy(buf, &video[20], 16);
       get_pts_dts(buf, &i_pts, &i_dts);
 
-      printf("\tMPEG audio PTS=%f [0x%x]\n", (double) i_pts / 90000., (video[17] & 0xff));
+      tc_log_msg(__FILE__, "\tMPEG audio PTS=%f [0x%x]", (double) i_pts / 90000., (video[17] & 0xff));
     }
 
     if((video[17] & 0xff) == P_ID_PROG) {
@@ -270,7 +271,7 @@ void scan_pack_payload(char *video, size_t size, int n, int verbose)
 	aud_tag = (video[23]>>2) & 0x3f;
 	vid_tag = video[24] & 0x1f;
 
-	printf("\tMPEG PRG start code found in packet %d, A=%d, V=%d\n", n, aud_tag, vid_tag);
+	tc_log_msg(__FILE__, "\tMPEG PRG start code found in packet %d, A=%d, V=%d", n, aud_tag, vid_tag);
 
     }// check for sync packet
 
@@ -281,6 +282,6 @@ int scan_pack_header(char *buf, long x)
 {
 
     int ret = _cmp_32_bits(buf, x);
-    if(0) fprintf(stderr, "ret=%d\n", ret);
+    if(0) tc_log_msg(__FILE__, "scan_pack_header() ret=%d", ret);
     return(ret);
 }

@@ -38,7 +38,10 @@ int verbose=TC_INFO;
 
 void import_exit(int code)
 {
-  if(verbose & TC_DEBUG) { fprintf (stderr, "[%s] (pid=%d) exit ", EXE, (int) getpid()); import_info(code, EXE); }
+  if(verbose & TC_DEBUG) {
+    tc_log_msg(EXE, "(pid=%d) exit", (int) getpid());
+    import_info(code, EXE);
+  }
   exit(code);
 }
 
@@ -154,7 +157,7 @@ int main(int argc, char *argv[])
           if (2 != sscanf(optarg,"%ld-%ld", &ipipe.frame_limit[0], &ipipe.frame_limit[1])) usage(EXIT_FAILURE);
           if (ipipe.frame_limit[0] > ipipe.frame_limit[1])
           {
-                fprintf(stderr,"Invalid -C options\n");
+                tc_log_error(EXE, "Invalid -C options");
                 usage(EXIT_FAILURE);
           }
           break;
@@ -182,7 +185,7 @@ int main(int argc, char *argv[])
 
     // no autodetection yet
     if(codec==NULL && magic==NULL) {
-      fprintf(stderr, "error: invalid codec %s\n", codec);
+      tc_log_error(EXE, "invalid codec %s", codec);
       usage(EXIT_FAILURE);
     }
 
@@ -200,12 +203,13 @@ int main(int argc, char *argv[])
 
       stream_magic = fileinfo(ipipe.fd_in, 0);
 
-      if(verbose & TC_DEBUG) fprintf(stderr, "[%s] (pid=%d) %s\n", EXE, getpid(), filetype(stream_magic));
+      if(verbose & TC_DEBUG)
+	tc_log_msg(EXE, "(pid=%d) %s", getpid(), filetype(stream_magic));
 
     } else ipipe.fd_in = STDIN_FILENO;
 
     if(verbose & TC_DEBUG)
-	fprintf(stderr, "[%s] (pid=%d) starting, doing %s\n", EXE, getpid(), codec);
+	tc_log_msg(EXE, "(pid=%d) starting, doing %s", getpid(), codec);
 
     // fill out defaults for info structure
     ipipe.fd_out = STDOUT_FILENO;
@@ -447,7 +451,7 @@ int main(int argc, char *argv[])
 
 
     if(!done) {
-	fprintf(stderr, "[%s] (pid=%d) unable to handle codec %s\n", EXE, getpid(), codec);
+	tc_log_error(EXE, "(pid=%d) unable to handle codec %s", getpid(), codec);
 	exit(1);
     }
 

@@ -151,15 +151,15 @@ static uint64 cnt_b_i, cnt_b_ni;
 // end mpeg2 state
 
 #ifndef NDEBUG
-	#define DEB(msg) fprintf (stderr, "%s:%d " msg, __FILE__, __LINE__)
-	#define DEBF(format, args...) fprintf (stderr, "%s:%d " format, __FILE__, __LINE__, args)
+	#define DEB(msg) tc_log_msg(EXE, "%s:%d " msg, __FILE__, __LINE__)
+	#define DEBF(format, args...) tc_log_msg(EXE, "%s:%d " format, __FILE__, __LINE__, args)
 #else
 	#define DEB(msg)
 	#define DEBF(format, args...)
 #endif
 
-#define LOG(msg) if (verbose > 1) fprintf (stderr, msg)
-#define LOGF(format, args...) if (verbose > 1) fprintf (stderr, format, args)
+#define LOG(msg) if (verbose > 1) tc_log_msg(EXE, msg)
+#define LOGF(format, args...) if (verbose > 1) tc_log_msg(EXE, format, args)
 
 #define BUF_SIZE (16*1024*1024)
 #define MIN_READ (1*1024*1024)
@@ -194,25 +194,22 @@ static uint64 cnt_b_i, cnt_b_ni;
 		free(orbuf); \
 		free(owbuf); \
 		\
-		LOG("Stats:\n");\
+		LOG("Stats:");\
 		\
-		LOGF("Wanted fact_x: %.1f\n", fact_x);\
+		LOGF("Wanted fact_x: %.1f", fact_x);\
 		\
-		LOGF("cnt_i: %.0f ", (float)cnt_i); \
-		if (cnt_i) LOGF("ori_i: %.0f new_i: %.0f fact_i: %.1f\n", (float)ori_i, (float)new_i, (float)ori_i/(float)new_i); \
-		else LOG("\n");\
+		if (cnt_i) LOGF("cnt_i: %.0f ori_i: %.0f new_i: %.0f fact_i: %.1f", (float)cnt_i, (float)ori_i, (float)new_i, (float)ori_i/(float)new_i); \
+		else LOGF("cnt_i: %.0f", (float)cnt_i);\
 		\
-		LOGF("cnt_p: %.0f ", (float)cnt_p); \
-		if (cnt_p) LOGF("ori_p: %.0f new_p: %.0f fact_p: %.1f cnt_p_i: %.0f cnt_p_ni: %.0f propor: %.1f i\n", \
-			(float)ori_p, (float)new_p, (float)ori_p/(float)new_p, (float)cnt_p_i, (float)cnt_p_ni, (float)cnt_p_i/((float)cnt_p_i+(float)cnt_p_ni)); \
-		else LOG("\n");\
+		if (cnt_p) LOGF("cnt_p: %.0f ori_p: %.0f new_p: %.0f fact_p: %.1f cnt_p_i: %.0f cnt_p_ni: %.0f propor: %.1f i", \
+			(float)cnt_p, (float)ori_p, (float)new_p, (float)ori_p/(float)new_p, (float)cnt_p_i, (float)cnt_p_ni, (float)cnt_p_i/((float)cnt_p_i+(float)cnt_p_ni)); \
+		else LOGF("cnt_p: %.0f", (float)cnt_p); \
 		\
-		LOGF("cnt_b: %.0f ", (float)cnt_b); \
-		if (cnt_b) LOGF("ori_b: %.0f new_b: %.0f fact_b: %.1f cnt_b_i: %.0f cnt_b_ni: %.0f propor: %.1f i\n", \
-			(float)ori_b, (float)new_b, (float)ori_b/(float)new_b, (float)cnt_b_i, (float)cnt_b_ni, (float)cnt_b_i/((float)cnt_b_i+(float)cnt_b_ni)); \
-		else LOG("\n");\
+		if (cnt_b) LOGF("cnt_b: %.0f ori_b: %.0f new_b: %.0f fact_b: %.1f cnt_b_i: %.0f cnt_b_ni: %.0f propor: %.1f i\n", \
+			(float)cnt_b, (float)ori_b, (float)new_b, (float)ori_b/(float)new_b, (float)cnt_b_i, (float)cnt_b_ni, (float)cnt_b_i/((float)cnt_b_i+(float)cnt_b_ni)); \
+		else LOGF("cnt_b: %.0f", (float)cnt_b); \
 		\
-		LOGF("Final fact_x: %.1f\n", (float)inbytecnt/(float)outbytecnt);\
+		LOGF("Final fact_x: %.1f", (float)inbytecnt/(float)outbytecnt);\
 		exit(0);
 
 #else
@@ -320,7 +317,7 @@ static inline void flush_read_buffer(void)
 	{
 		if (inbitbuf >> (32 - i))
 		{
-			DEBF("illegal inbitbuf: 0x%08X, %i, 0x%02X, %i\n", inbitbuf, inbitcnt, (inbitbuf >> (32 - i)), i);
+			DEBF("illegal inbitbuf: 0x%08X, %i, 0x%02X, %i", inbitbuf, inbitcnt, (inbitbuf >> (32 - i)), i);
 			sliceError++;
 		}
 
@@ -385,10 +382,10 @@ static int increment_quant(int quant)
 		//assert(quant >= 1 && quant <= 112);
 		if (quant < 1 || quant > 112)
 		{
-			DEBF("illegal quant: %d\n", quant);
+			DEBF("illegal quant: %d", quant);
 			if (quant > 112) quant = 112;
 			else if (quant < 1) quant = 1;
-			DEBF("illegal quant changed to : %d\n", quant);
+			DEBF("illegal quant changed to : %d", quant);
 			sliceError++;
 		}
 		quant = map_non_linear_mquant[quant] + 1;
@@ -401,11 +398,11 @@ static int increment_quant(int quant)
 		// assert(!(quant & 1));
 		if ((quant & 1) || (quant < 2) || (quant > 62))
 		{
-			DEBF("illegal quant: %d\n", quant);
+			DEBF("illegal quant: %d", quant);
 			if (quant & 1) quant--;
 			if (quant > 62) quant = 62;
 			else if (quant < 2) quant = 2;
-			DEBF("illegal quant changed to : %d\n", quant);
+			DEBF("illegal quant changed to : %d", quant);
 			sliceError++;
 		}
 		quant += 2;
@@ -448,7 +445,7 @@ static int getNewQuant(int curQuant)
 	}
 
 	/*
-		LOGF("type: %s orig_quant: %3i calc_quant: %7.1f quant_corr: %7.1f using_quant: %3i\n",
+		LOGF("type: %s orig_quant: %3i calc_quant: %7.1f quant_corr: %7.1f using_quant: %3i",
 		(picture_coding_type == I_TYPE ? "I_TYPE" : (picture_coding_type == P_TYPE ? "P_TYPE" : "B_TYPE")),
 		(int)curQuant, (float)calc_quant, (float)quant_corr, (int)mquant);
 	*/
@@ -476,13 +473,13 @@ static int putAC(int run, int signed_level, int vlcformat)
 	// assert(!(run<0 || run>63 || level==0 || level>2047));
 	if(run<0 || run>63)
 	{
-		DEBF("illegal run: %d\n", run);
+		DEBF("illegal run: %d", run);
 		sliceError++;
 		return 1;
 	}
 	if(level==0 || level>2047)
 	{
-		DEBF("illegal level: %d\n", level);
+		DEBF("illegal level: %d", level);
 		sliceError++;
 		return 1;
 	}
@@ -673,7 +670,7 @@ static inline int get_quantizer_scale(void)
 
 	if (!quantizer_scale_code)
     {
-		DEBF("illegal quant scale code: %d\n", quantizer_scale_code);
+		DEBF("illegal quant scale code: %d", quantizer_scale_code);
 		sliceError++;
 		quantizer_scale_code++;
     }
@@ -1173,7 +1170,7 @@ static int get_non_intra_block_rq (RunLevel *blk)
 			}
 
 			//if ( ((val) && (tab->level < tst)) || ((!val) && (tab->level >= tst)) )
-			//	LOGF("level: %i val: %i tst : %i q: %i nq : %i\n", tab->level, val, tst, q, nq);
+			//	LOGF("level: %i val: %i tst : %i q: %i nq : %i", tab->level, val, tst, q, nq);
 
 			DUMPBITS (bit_buf, bits, 1);
 
@@ -1425,7 +1422,7 @@ static inline int slice_init (int code)
 	else new_quantizer_scale = getNewQuant(quantizer_scale);
 	put_quantiser(new_quantizer_scale);
 
-	/*LOGF("************************\nstart of slice %i in %s picture. ori quant: %i new quant: %i\n", code,
+	/*LOGF("************************\nstart of slice %i in %s picture. ori quant: %i new quant: %i", code,
 		(picture_coding_type == I_TYPE ? "I_TYPE" : (picture_coding_type == P_TYPE ? "P_TYPE" : "B_TYPE")),
 		quantizer_scale, new_quantizer_scale);*/
 
@@ -1626,7 +1623,7 @@ static void mpeg2_slice(const int code)
 			}
 		}
 
-		//LOGF("\n\to: %i c: %i n: %i\n", quantizer_scale, last_coded_scale, new_quantizer_scale);
+		//LOGF("\to: %i c: %i n: %i", quantizer_scale, last_coded_scale, new_quantizer_scale);
 
 		NEXT_MACROBLOCK;
 
@@ -1663,19 +1660,6 @@ static void mpeg2_slice(const int code)
 }
 
 /////---- end ext mpeg code
-
-#define USAGE \
-	fprintf(stderr,\
-		"\n"\
-		"Usage is :\n"\
-		"\t%s factor\n"\
-		"\tfactor is a float number by which to divide the input.\n"\
-		"\tExample:\n"\
-		"\tcat input.m2v | %s 2.0 > output.m2v\n"\
-		"\n",\
-		argv[0], argv[0]);\
-	return -1;
-
 
 void version(void)
 {
@@ -1769,7 +1753,7 @@ int main (int argc, char *argv[])
 
 	if (ifile) {
 	    if ( (ifd = open(ifile, O_RDONLY, 0)) < 0) {
-		fprintf(stderr, "[%s] Cannot open input file: %s\n", EXE, strerror(errno));
+		tc_log_warn(EXE, "Cannot open input file: %s", strerror(errno));
 	    }
 	} else {
 	    ifd = STDIN_FILENO;
@@ -1777,7 +1761,7 @@ int main (int argc, char *argv[])
 
 	if (ofile) {
 	    if ( (ofd = open(ofile, O_WRONLY | O_CREAT | O_TRUNC, 0644))<0) {
-		fprintf(stderr, "[%s] Cannot open output file: %s\n", EXE, strerror(errno));
+		tc_log_warn(EXE, "Cannot open output file: %s", strerror(errno));
 	    }
 	} else {
 	    ofd = STDOUT_FILENO;
@@ -1786,7 +1770,7 @@ int main (int argc, char *argv[])
 	rbuf = cbuf = orbuf = tc_malloc(BUF_SIZE);
 	wbuf = owbuf = tc_malloc(BUF_SIZE);
 	if (!orbuf || !owbuf) {
-	    fprintf(stderr, "[%s] malloc() failed at %s:%d\n", EXE, __FILE__, __LINE__);
+	    tc_log_error(EXE, "malloc() failed at %s:%d", __FILE__, __LINE__);
 	    exit (1);
 	}
 	inbytecnt = outbytecnt = 0;
@@ -1799,8 +1783,8 @@ int main (int argc, char *argv[])
 	else if (fact_x > 900.0) fact_x = 900.0;
 	byte_stuff = !!byte_stuff;
 
-	LOGF("[%s] MPEG2 Requantiser by Makira.\n", EXE);
-	LOGF("[%s] Using %f as factor.\n", EXE, fact_x);
+	LOG("MPEG2 Requantiser by Makira.");
+	LOGF("Using %f as factor.", fact_x);
 
 	// recoding
 	while(1)
@@ -1831,7 +1815,7 @@ int main (int argc, char *argv[])
 			picture_coding_type = (cbuf[1] >> 3) & 0x7;
 			if (picture_coding_type < 1 || picture_coding_type > 3)
 			{
-				DEBF("illegal picture_coding_type: %i\n", picture_coding_type);
+				DEBF("illegal picture_coding_type: %i", picture_coding_type);
 				validPicHeader = 0;
 			}
 			else
@@ -1850,7 +1834,7 @@ int main (int argc, char *argv[])
 				||  vertical_size_value > 576 || vertical_size_value < 480
 				|| (horizontal_size_value & 0xF) || (vertical_size_value & 0xF))
 			{
-				DEBF("illegal size, hori: %i verti: %i\n", horizontal_size_value, vertical_size_value);
+				DEBF("illegal size, hori: %i verti: %i", horizontal_size_value, vertical_size_value);
 				validSeqHeader = 0;
 			}
 			else
@@ -1883,7 +1867,7 @@ int main (int argc, char *argv[])
 					||  (f_code[1][1] > 8 && f_code[1][1] < 14)
 					||  picture_structure == 0)
 				{
-					DEBF("illegal ext, f_code[0][0]: %i f_code[0][1]: %i f_code[1][0]: %i f_code[1][1]: %i picture_structure:%i\n",
+					DEBF("illegal ext, f_code[0][0]: %i f_code[0][1]: %i f_code[1][0]: %i f_code[1][1]: %i picture_structure:%i",
 							f_code[0][0], f_code[0][1], f_code[1][0], f_code[1][1], picture_structure);
 					validExtHeader = 0;
 				}
@@ -1944,7 +1928,7 @@ int main (int argc, char *argv[])
 				flush_write_buffer();
 				// end bit level recoding
 
-				/*LOGF("type: %s code: %02i in : %6i out : %6i diff : %6i fact: %2.2f\n",
+				/*LOGF("type: %s code: %02i in : %6i out : %6i diff : %6i fact: %2.2f",
 				(picture_coding_type == I_TYPE ? "I_TYPE" : (picture_coding_type == P_TYPE ? "P_TYPE" : "B_TYPE")),
 				ID,  cbuf - inTemp, wbuf - outTemp, (wbuf - outTemp) - (cbuf - inTemp), (float)(cbuf - inTemp) / (float)(wbuf - outTemp));*/
 
@@ -1953,11 +1937,11 @@ int main (int argc, char *argv[])
 #ifndef NDEBUG
 					if (sliceError > MAX_ERRORS)
 					{
-						DEBF("sliceError (%i) > MAX_ERRORS (%i)\n", sliceError, MAX_ERRORS);
+						DEBF("sliceError (%i) > MAX_ERRORS (%i)", sliceError, MAX_ERRORS);
 					}
 #endif
 
-					/*LOGF("*** slice bigger than before !! (type: %s code: %i in : %i out : %i diff : %i)\n",
+					/*LOGF("*** slice bigger than before !! (type: %s code: %i in : %i out : %i diff : %i)",
 					(picture_coding_type == I_TYPE ? "I_TYPE" : (picture_coding_type == P_TYPE ? "P_TYPE" : "B_TYPE")),
 					ID, cbuf - inTemp, wbuf - outTemp, (wbuf - outTemp) - (cbuf - inTemp));*/
 
@@ -2001,9 +1985,9 @@ int main (int argc, char *argv[])
 #ifndef NDEBUG
 		if ((ID >= 0x01) && (ID <= 0xAF) && (!validPicHeader || !validSeqHeader || !validExtHeader))
 		{
-			if (!validPicHeader) DEBF("missing pic header (%02X)\n", ID);
-			if (!validSeqHeader) DEBF("missing seq header (%02X)\n", ID);
-			if (!validExtHeader) DEBF("missing ext header (%02X)\n", ID);
+			if (!validPicHeader) DEBF("missing pic header (%02X)", ID);
+			if (!validSeqHeader) DEBF("missing seq header (%02X)", ID);
+			if (!validExtHeader) DEBF("missing ext header (%02X)", ID);
 		}
 #endif
 

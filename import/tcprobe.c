@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
 	  bitrate = atoi(optarg);
 
 	  if(bitrate < 0) {
-	    fprintf(stderr,"invalid bitrate for option -b");
+	    tc_log_error(EXE, "invalid bitrate for option -b");
 	    exit(1);
 	  }
 	  break;
@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
 	  probe_factor = atoi(optarg);
 
 	  if(probe_factor < 0) {
-	    fprintf(stderr,"invalid parameter for option -H");
+	    tc_log_error(EXE, "invalid parameter for option -H");
 	    exit(1);
 	  }
 	  break;
@@ -338,19 +338,19 @@ int main(int argc, char *argv[])
      * ------------------------------------------------------------*/
 
 
-    if(verbose) fprintf(stderr, "[%s] %s\n", EXE, filetype(stream_magic));
+    if(verbose) tc_log_msg(EXE, "%s\n", filetype(stream_magic));
 
     tcprobe_thread(&ipipe);
 
     switch(ipipe.error) {
 
     case 1:
-      if(verbose) fprintf(stderr, "[%s] failed to probe source\n", EXE);
+      if(verbose) tc_log_warn(EXE, "failed to probe source");
       return(1);
       break;
 
     case 2:
-      if(verbose) fprintf(stderr, "[%s] filetype/codec not yet supported by '%s'\n", EXE, PACKAGE);
+      if(verbose) tc_log_warn(EXE, "filetype/codec not yet supported by '%s'", PACKAGE);
       return(1);
       break;
     }

@@ -273,36 +273,36 @@ int main (int argc, char *argv[])
 
 
     if (!fgets(linebuf, MAX_BUF, f)) {
-	fprintf(stderr, "No more lines\n");
+	tc_log_error(EXE, "No more lines");
 	return 1;
     }
 
     if (strncmp ("/* XPM */", linebuf, 9) != 0) {
-	fprintf(stderr, "Not an xpm file 1 (%s)\n", linebuf);
+	tc_log_error(EXE, "Not an xpm file 1 (%s)", linebuf);
 	return 1;
     }
 
     if (!fgets(linebuf, MAX_BUF, f)) {
-	fprintf(stderr, "No more lines\n");
+	tc_log_error(EXE, "No more lines");
 	return 1;
     }
     if (strncmp ("static char", linebuf, 11) != 0) {
-	fprintf(stderr, "Not an xpm file 2\n");
+	tc_log_error(EXE, "Not an xpm file 2");
 	return 1;
     }
 
     fgets(linebuf, MAX_BUF, f);
     n = sscanf(linebuf+1, "%d %d %d %d", &width, &height, &colors, &bwidth);
     if (n != 4 || (bwidth > 2) || (width == 0) || (height == 0) || (colors == 0)) {
-	fprintf(stderr, "Error reading header\n");
+	tc_log_error(EXE, "Error reading header");
 	return 1;
     }
-    //fprintf(stderr, "XPM Image: %dx%d; %d colors, %d byte wide\n", width, height, colors, bwidth);
+    //tc_log_info(EXE, "XPM Image: %dx%d; %d colors, %d byte wide", width, height, colors, bwidth);
 
     clist = tc_malloc(colors*sizeof(char *));
 
     if (clist == (char **)NULL) {
-	fprintf(stderr, "Error malloc clist\n");
+	tc_log_error(EXE, "Error malloc clist");
 	return 1;
     }
 
@@ -313,7 +313,7 @@ int main (int argc, char *argv[])
 	int len;
 
 	if (!fgets(linebuf, MAX_BUF, f)) {
-	    fprintf(stderr, "Error reading color table\n");
+	    tc_log_error(EXE, "Error reading color table");
 	    return 1;
 	}
 	len=strlen(linebuf);
@@ -321,7 +321,7 @@ int main (int argc, char *argv[])
 	clist[n] = tc_malloc(len);
 	memcpy(clist[n], linebuf+1, len-3);
 	clist[n][len-4] = '\0';
-	//printf("[%d] : %s|\n", n, clist[n]);
+	//tc_log_msg(EXE, "[%d] : %s|", n, clist[n]);
     }
 
     keys = tc_malloc(colors*sizeof(char *));
@@ -352,7 +352,7 @@ int main (int argc, char *argv[])
     }
 
     if (j < colors) {
-	fprintf(stderr, "Corrupt XPM image file");
+	tc_log_error(EXE, "Corrupt XPM image file");
 	return 1;
     }
     memset (key, '\0', 16);
@@ -362,7 +362,7 @@ int main (int argc, char *argv[])
 
     out = tc_malloc (width*height*3);
     if (!out || !line) {
-	fprintf(stderr, "Error malloc line\n");
+	tc_log_error(EXE, "Error malloc line");
 	return 1;
     }
 
@@ -372,7 +372,7 @@ int main (int argc, char *argv[])
 	int len;
 
 	if (!fgets(line, linelen, f)) {
-	    fprintf(stderr, "Error reading line %d\n", y);
+	    tc_log_error(EXE, "Error reading line %d", y);
 	    return 1;
 	}
 	len = strlen(line);
@@ -398,13 +398,13 @@ int main (int argc, char *argv[])
     }
 
     if ( (n = fwrite (out, width*height*3, 1, o))<0) {
-	fprintf(stderr, "fwrite failed (should = %d, have = %d)\n", width*height*3, n);
+	tc_log_error(EXE, "fwrite failed (should = %d, have = %d)", width*height*3, n);
 	return 1;
     }
 
     fclose(o);
 
-    //fprintf(stderr, "Wrote %s\n", outfile);
+    //tc_log_msg(EXE, "Wrote %s", outfile);
 
     free(out);
     free(line);
