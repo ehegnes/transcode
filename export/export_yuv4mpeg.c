@@ -25,6 +25,7 @@
 #include <stdlib.h>
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "libtcvideo/tcvideo.h"
 #include "aud_aux.h"
 
@@ -138,7 +139,6 @@ MOD_open
 	framerate.d=1000;
     }
 
-    //printf("OUT %d %f %d %d\n", vob->ex_frc, vob->ex_fps, framerate.n, framerate.d);
     asr = (vob->ex_asr<0) ? vob->im_asr:vob->ex_asr;
     asrcode2asrratio(asr, &asr_rate);
 
@@ -165,8 +165,6 @@ MOD_open
       perror("write stream header");
       return(TC_EXPORT_ERROR);
     }
-
-    /* WAS: sprintf(buf, "FRAME\n"); */
 
     return(0);
   }

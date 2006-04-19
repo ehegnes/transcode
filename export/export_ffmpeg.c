@@ -30,6 +30,7 @@
 #include <time.h>
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "filter.h"
 #include "avilib/avilib.h"
 #include "aud_aux.h"
@@ -350,7 +351,7 @@ MOD_init {
     tmp_buffer = malloc(size);
 
     if (lavc_venc_context == NULL || !tmp_buffer || !lavc_convert_frame) {
-        fprintf(stderr, "[%s] Could not allocate enough memory.\n", MOD_NAME);
+        tc_log_error(MOD_NAME, "Could not allocate enough memory.");
         return TC_EXPORT_ERROR;
     }
 
@@ -364,7 +365,7 @@ MOD_init {
     if (pix_fmt == CODEC_YUV422 || is_huffyuv) {
         yuv42xP_buffer = malloc(size);
         if (!yuv42xP_buffer) {
-            fprintf(stderr, "[%s] yuv42xP_buffer allocation failed.\n", MOD_NAME);
+            tc_log_error(MOD_NAME, "yuv42xP_buffer allocation failed.");
             return TC_EXPORT_ERROR;
         }
     }
@@ -1039,7 +1040,7 @@ MOD_init {
     else if (!strcasecmp(lavc_param_format, "BGR32"))
         lavc_venc_context->pix_fmt = PIX_FMT_RGBA32;
     else {
-        fprintf(stderr, "%s is not a supported format\n", lavc_param_format);
+        tc_log_error(MOD_NAME, "%s is not a supported format", lavc_param_format);
         return TC_IMPORT_ERROR;
     }
 #endif

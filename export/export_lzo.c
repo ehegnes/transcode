@@ -25,6 +25,7 @@
 #include <stdlib.h>
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "avilib/avilib.h"
 #include "aud_aux.h"
 #include "import/magic.h"
@@ -79,7 +80,7 @@ MOD_init
       out = (lzo_bytep) lzo_malloc(vob->ex_v_height*vob->ex_v_width*3*2);
 
       if (wrkmem == NULL || out == NULL) {
-	fprintf(stderr, "[%s] out of memory\n", MOD_NAME);
+	tc_log_error(MOD_NAME, "out of memory");
 	return(TC_EXPORT_ERROR);
       }
 

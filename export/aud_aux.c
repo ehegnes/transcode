@@ -477,7 +477,7 @@ int audio_init(vob_t *vob, int v)
 	output = malloc (OUTPUT_SIZE);
 	input  = malloc (INPUT_SIZE);
 	if (!output || !input) {
-	    fprintf(stderr, "(%s:%d) Out of memory\n", __FILE__, __LINE__);
+	    tc_log_error(__FILE__, "(%s:%d) Out of memory", __FILE__, __LINE__);
 	    return (TC_EXPORT_ERROR);
 	}
 
@@ -1126,7 +1126,7 @@ static int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate){
     // head_check:
     if( (newhead & 0xffe00000) != 0xffe00000 ||
         (newhead & 0x0000fc00) == 0x0000fc00){
-	//fprintf( stderr, "[%s] head_check failed\n", __FILE__);
+	//tc_log_warn(__FILE__, "head_check failed");
 	return -1;
     }
 

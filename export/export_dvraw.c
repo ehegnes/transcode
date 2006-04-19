@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <libdv/dv.h>
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 #include "aclib/imgconvert.h"
 
@@ -113,7 +114,7 @@ MOD_init
     // tmp audio buffer
     for(i=0; i < 4; i++) {
       if(!(audio_bufs[i] = malloc(DV_AUDIO_MAX_SAMPLES * sizeof(int16_t)))) {
-	fprintf(stderr, "(%s) out of memory\n", __FILE__);
+	tc_log_error(MOD_NAME, "out of memory");
 	return(TC_EXPORT_ERROR);
       }
     }
@@ -188,7 +189,7 @@ MOD_open
     encoder->static_qno = 0;
     if (vob->ex_v_string != NULL)
       if (optstr_get (vob->ex_v_string, "qno", "%d", &encoder->static_qno) == 1)
-        printf("[%s] using quantisation: %d\n", MOD_NAME, encoder->static_qno);
+        tc_log_msg(MOD_NAME, "using quantisation: %d", encoder->static_qno);
     encoder->force_dct = DV_DCT_AUTO;
 
     return(0);

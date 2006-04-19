@@ -27,6 +27,7 @@
 #include "aud_aux.h"
 #include "avilib/avilib.h"
 #include "import/magic.h"
+#include "libtc/libtc.h"
 #include "libtc/iodir.h"
 #include "libtc/xio.h"
 #include "libtcvideo/tcvideo.h"
@@ -399,7 +400,7 @@ MOD_encode
 		     width*3);
 	}
 	param->size = height*width*3 + (4-mod)*height;
-	//fprintf(stderr, "going here mod = |%d| width (%d) size (%d)||\n", mod, width, param->size);
+	//tc_log_msg(MOD_NAME, "going here mod = |%d| width (%d) size (%d)||", mod, width, param->size);
     }
     // write video
     if(AVI_write_frame(avifile2, param->buffer, size, key)<0) {

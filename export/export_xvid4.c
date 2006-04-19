@@ -59,6 +59,7 @@
 #include "transcode.h"
 #include "avilib/avilib.h"
 #include "aud_aux.h"
+#include "libtc/libtc.h"
 #include "libtcvideo/tcvideo.h"
 
 #include "libtc/cfgfile.h"
@@ -239,7 +240,7 @@ MOD_init
 	} else
 		thismod.stream_size = (thismod.stream_size*3)/2;
 	if((thismod.stream = malloc(thismod.stream_size)) == NULL) {
-		fprintf(stderr, "[%s] Error allocating stream buffer\n", MOD_NAME);
+		tc_log_error(MOD_NAME, "Error allocating stream buffer");
 		return(TC_EXPORT_ERROR);
 	} else {
 		memset(thismod.stream, 0, thismod.stream_size);
@@ -1155,14 +1156,6 @@ static void *read_matrix(const char *filename)
 static void print_matrix(unsigned char *matrix)
 {
 	int i;
-// FIXME: remove me when new code works
-#if 0
-	for(i=0; i<8; i++) {
-		int j;
-		fprintf(stderr, "[%s] ", MOD_NAME);
-		for(j=0; j<8; j++) fprintf(stderr, "%3d ", (int)matrix[8*i + j]);
-		fprintf(stderr, "\n");
-#else
 	for(i=0; i < 64; i+=8) {
 		tc_log_info(MOD_NAME,
 			"%3d %3d %3d %3d "
@@ -1171,7 +1164,6 @@ static void print_matrix(unsigned char *matrix)
 			(int)matrix[i+2], (int)matrix[i+3],
 			(int)matrix[i+4], (int)matrix[i+5],
 			(int)matrix[i+6], (int)matrix[i+7]);
-#endif
 	}
 
 	return;

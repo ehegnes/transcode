@@ -58,6 +58,7 @@
 #endif
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "vbr.h"
 
 #define FALSE 0
@@ -222,9 +223,11 @@ int VbrControl_init_2pass_vbr_encoding(const char *filename, int bitrate, double
 	total_bits +=(int64_t)vFrame.total_bits;
 	complexity +=(int64_t)vFrame.text_bits*vFrame.quant;
 
-//	printf("Frames %d, texture %d, motion %d, quant %d total %d ",
-//		iNumFrames, vFrame.text_bits, vFrame.motion_bits, vFrame.quant, vFrame.total_bits);
-//	printf("texture %d, total %d, complexity %lld \n",vFrame.text_bits,vFrame.total_bits, complexity);
+//	tc_log_msg(MOD_NAME,
+//	           "Frames %d, texture %d, motion %d, quant %d total %d ",
+//	           "texture %d, total %d, complexity %lld",
+//	           iNumFrames, vFrame.text_bits, vFrame.motion_bits, vFrame.quant, vFrame.total_bits);
+//	           vFrame.text_bits, vFrame.total_bits, complexity);
 	 	}
 		iNumFrames++;
 		average_complexity=complexity/iNumFrames;
@@ -236,7 +239,7 @@ int VbrControl_init_2pass_vbr_encoding(const char *filename, int bitrate, double
 
 		m_vFrames = (entry*)malloc(iNumFrames*sizeof(entry));
 		if (!m_vFrames)
-		{	printf("out of memory");
+		{	tc_log_error(__FILE__, "out of memory");
 			return TC_EXPORT_ERROR;
 		}
 

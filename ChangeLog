@@ -1,5 +1,8 @@
 2006-04-19 Andrew Church <achurch at achurch dot org>
-  * filter/filter_29to23.c filter/filter_32detect.c filter/filter_32drop.c
+  * export/aud_aux.c export/divx4_vbr.c export/export_divx5.c
+    export/export_dvraw.c export/export_ffmpeg.c export/export_lzo.c
+    export/export_raw.c export/export_xvid4.c export/export_yuv4mpeg.c
+    filter/filter_29to23.c filter/filter_32detect.c filter/filter_32drop.c
     filter/filter_ascii.c filter/filter_astat.c filter/filter_clone.c
     filter/filter_compare.c filter/filter_control.c filter/filter_cpaudio.c
     filter/filter_denoise3d.c filter/filter_detectclipping.c

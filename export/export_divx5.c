@@ -289,10 +289,10 @@ MOD_init
 
     if (vob->divxlogfile && *vob->divxlogfile) {
 	if ((logfile_mv = malloc (strlen(vob->divxlogfile)+4)) == NULL) {
-            fprintf(stderr, "Cannot allocate memory for logfile_mv\n");
+            tc_log_error(MOD_NAME, "Cannot allocate memory for logfile_mv");
             return(TC_EXPORT_ERROR);
         }
-	snprintf(logfile_mv, strlen(vob->divxlogfile)+4, "%s_mv", vob->divxlogfile);
+	tc_snprintf(logfile_mv, strlen(vob->divxlogfile)+4, "%s_mv", vob->divxlogfile);
     }
 
     // default -- expose this to user?
