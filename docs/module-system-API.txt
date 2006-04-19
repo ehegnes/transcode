@@ -562,8 +562,10 @@ extern TCModuleFactory main_factory;
 
 Multiple thread CANNOT execute operations concurrently on the same factory
 descriptor.
-It is safe to execute concurrently operations if each module
-operate on it's own descriptor.
+It is safe to execute concurrently operations if each module operate on
+it's own descriptor. This means different threads can safely use different
+TCModule, but using one TCModule, or one TCFactory by two or more threads
+won't work.
 
 
 6.3. On explicit reference counting
