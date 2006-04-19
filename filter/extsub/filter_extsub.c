@@ -489,19 +489,19 @@ int tc_filter(frame_list_t *ptr_, char *options)
     codec = vob->im_v_codec;
 
     if ((sub_frame = malloc(BUFFER_SIZE))==NULL) {
-      perror("out of memory");
+      tc_log_perror(MOD_NAME, "out of memory");
       return(TC_EXPORT_ERROR);
     } else
       memset(sub_frame, 0, BUFFER_SIZE);
 
     if ((vid_frame = malloc(BUFFER_SIZE))==NULL) {
-      perror("out of memory");
+      tc_log_perror(MOD_NAME, "out of memory");
       return(TC_EXPORT_ERROR);
     } else
       memset(vid_frame, 0, BUFFER_SIZE);
 
     if ((tmp_frame = malloc(BUFFER_SIZE))==NULL) {
-      perror("out of memory");
+      tc_log_perror(MOD_NAME, "out of memory");
       return(TC_EXPORT_ERROR);
     } else
       memset(tmp_frame, 0, BUFFER_SIZE);

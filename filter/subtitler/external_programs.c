@@ -112,7 +112,7 @@ if(debug_flag)
 pptr = popen(command, "r");
 if(pptr <= 0)
 	{
-	perror("command");
+	tc_log_perror(MOD_NAME, "command");
 
 	return 0;
 	}

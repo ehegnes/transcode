@@ -287,7 +287,7 @@ static int v4l2_video_grab_frame(char * dest, size_t length)
 				buffer.flags	= 0;
 
 				if(ioctl(v4l2_video_fd, VIDIOC_DQBUF, &buffer) < 0)
-					perror("recover DQBUF");
+					tc_log_perror(MOD_NAME, "recover DQBUF");
 			}
 
 			for(ix = 0; ix < v4l2_buffers_count; ix++)
@@ -298,7 +298,7 @@ static int v4l2_video_grab_frame(char * dest, size_t length)
 				buffer.flags	= 0;
 
 				if(ioctl(v4l2_video_fd, VIDIOC_QBUF, &buffer) < 0)
-					perror("recover QBUF");
+					tc_log_perror(MOD_NAME, "recover QBUF");
 			}
 		}
 	}
@@ -559,7 +559,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 				if(errno == EINVAL)
 					break;
 
-				perror("VIDIOC_ENUMSTD");
+				tc_log_perror(MOD_NAME, "VIDIOC_ENUMSTD");
 				return(1);
 			}
 
@@ -580,7 +580,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 				if(errno == EINVAL)
 					break;
 
-				perror("VIDIOC_ENUMSTD");
+				tc_log_perror(MOD_NAME, "VIDIOC_ENUMSTD");
 				return(1);
 			}
 
@@ -722,7 +722,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 
 			if(ioctl(v4l2_video_fd, VIDIOC_S_CROP, &crop) < 0)
 			{
-				perror("VIDIOC_S_CROP");
+				tc_log_perror(MOD_NAME, "VIDIOC_S_CROP");
 				return(1);
 			}
 

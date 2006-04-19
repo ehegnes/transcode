@@ -222,7 +222,7 @@ if(pa -> data[0] == '*')
 				po -> heading = asin(da);
 				if(errno == EDOM)
 					{
-					perror("subtitler(): parse_frame_entry():\n\
+					tc_log_perror(MOD_NAME, "subtitler(): parse_frame_entry():\n\
 					asin NOT A NUMBER :-)");
 
 					exit(1);

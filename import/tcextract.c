@@ -197,7 +197,7 @@ int main(int argc, char *argv[])
       if(tc_file_check(name)) exit(1);
 
       if((ipipe.fd_in = xio_open(name, O_RDONLY))<0) {
-	perror("file open");
+	tc_log_perror(EXE, "file open");
 	return(-1);
       }
 

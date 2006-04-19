@@ -316,7 +316,7 @@ MOD_open
     if (!sa_ip) return(TC_EXPORT_ERROR);
 
     if( y4m_write_stream_header2( sa_ip, &y4mstream ) != Y4M_OK ){
-      perror("write stream header");
+      tc_log_perror(MOD_NAME, "write stream header");
       return(TC_EXPORT_ERROR);
     }
 
@@ -402,7 +402,7 @@ MOD_encode
       y4m_init_frame_info(&info);
 
       if( y4m_write_frame_header2( sa_ip, &info ) != Y4M_OK ){
-	perror("write stream header");
+	tc_log_perror(MOD_NAME, "write stream header");
 	return(TC_EXPORT_ERROR);
       }
 

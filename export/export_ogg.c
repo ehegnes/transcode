@@ -85,7 +85,7 @@ MOD_open
 	    result = tc_snprintf(resample, PATH_MAX, "-R %d", vob->a_rate);
         }
 	if (result < 0) {
-	    perror("command buffer overflow");
+	    tc_log_perror(MOD_NAME, "command buffer overflow");
 	    return(TC_EXPORT_ERROR);
 	}
 
@@ -109,7 +109,7 @@ MOD_open
 		vob->audio_out_file?vob->audio_out_file:"/dev/null",
 		(vob->ex_a_string?vob->ex_a_string:""));
 	if (result < 0) {
-	    perror("command buffer overflow");
+	    tc_log_perror(MOD_NAME, "command buffer overflow");
 	    return(TC_EXPORT_ERROR);
 	}
 	if ((pFile = popen (buf, "w")) == NULL)
@@ -161,7 +161,7 @@ MOD_encode
     {
         if (p_write (param->buffer, param->size) != param->size)
         {
-            perror("write audio frame");
+            tc_log_perror(MOD_NAME, "write audio frame");
             return(TC_EXPORT_ERROR);
         }
         return (0);

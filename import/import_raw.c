@@ -63,7 +63,7 @@ MOD_open
       }
 
       if(tc_snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d | tcextract -a %d -x pcm -d %d -t raw", cat_buf, vob->audio_in_file, vob->verbose, vob->a_track, vob->verbose) < 0) {
-	perror("cmd buffer overflow");
+	tc_log_perror(MOD_NAME, "cmd buffer overflow");
 	return(TC_IMPORT_ERROR);
       }
 
@@ -74,7 +74,7 @@ MOD_open
 
       // popen
       if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
-	perror("popen audio stream");
+	tc_log_perror(MOD_NAME, "popen audio stream");
 	return(TC_IMPORT_ERROR);
       }
 
@@ -107,7 +107,7 @@ MOD_open
       case CODEC_RGB:
 
 	if(tc_snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d %s | tcextract -a %d -x rgb -d %d", cat_buf, vob->video_in_file, vob->verbose, co, vob->v_track, vob->verbose) < 0) {
-	  perror("cmd buffer overflow");
+	  tc_log_perror(MOD_NAME, "cmd buffer overflow");
 	  return(TC_IMPORT_ERROR);
 	}
 
@@ -116,7 +116,7 @@ MOD_open
       case CODEC_YUV422:
 
 	if(tc_snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d %s | tcextract -a %d -x yuv422p -d %d", cat_buf, vob->video_in_file, vob->verbose, co, vob->v_track, vob->verbose) < 0) {
-	  perror("cmd buffer overflow");
+	  tc_log_perror(MOD_NAME, "cmd buffer overflow");
 	  return(TC_IMPORT_ERROR);
 	}
 
@@ -126,7 +126,7 @@ MOD_open
       default:
 
 	if(tc_snprintf(import_cmd_buf, MAX_BUF, "%s -i \"%s\" -d %d %s | tcextract -a %d -x yuv420p -d %d", cat_buf, vob->video_in_file, vob->verbose, co, vob->v_track, vob->verbose) < 0) {
-	  perror("cmd buffer overflow");
+	  tc_log_perror(MOD_NAME, "cmd buffer overflow");
 	  return(TC_IMPORT_ERROR);
 	}
 
@@ -141,7 +141,7 @@ MOD_open
 
       // popen
       if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
-	perror("popen video stream");
+	tc_log_perror(MOD_NAME, "popen video stream");
 	return(TC_IMPORT_ERROR);
       }
 

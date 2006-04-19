@@ -138,7 +138,7 @@ MOD_open
 
     // popen
     if((fd = popen(import_cmd_buf, "r"))== NULL) {
-	perror("popen pcm stream");
+	tc_log_perror(MOD_NAME, "popen pcm stream");
 	return(TC_IMPORT_ERROR);
     }
 

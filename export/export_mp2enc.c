@@ -131,7 +131,7 @@ MOD_open
 	  }
 
 	if(tc_snprintf(buf, PATH_MAX, "mp2enc -v %d -r %d -b %d %s -o \"%s\" %s", verb, srate, brate, chan, vob->audio_out_file, (vob->ex_a_string?vob->ex_a_string:"")) < 0) {
-	  perror("cmd buffer overflow");
+	  tc_log_perror(MOD_NAME, "cmd buffer overflow");
 	  return(TC_EXPORT_ERROR);
 	}
 
@@ -143,7 +143,7 @@ MOD_open
 
         wav = wav_fdopen(fileno(pFile), WAV_WRITE|WAV_PIPE, NULL);
         if (wav == NULL) {
-      	    perror("open wave stream");
+      	    tc_log_perror(MOD_NAME, "open wave stream");
       	    return TC_EXPORT_ERROR;
         }
 
@@ -196,7 +196,7 @@ MOD_encode
     {
 	if (wav_write_data(wav, param->buffer, param->size) != param->size)
         {
-            perror("write audio frame");
+            tc_log_perror(MOD_NAME, "write audio frame");
             return(TC_EXPORT_ERROR);
         }
         return (0);

@@ -71,22 +71,22 @@ int oss_init(const char *audio_device,
     encoding = (precision == 8) ? AFMT_U8 : AFMT_S16_LE;
 
     if ((oss_fd = open(audio_device, O_RDONLY)) < 0) {
-        perror(MOD_NAME "open audio device");
+        tc_log_perror(MOD_NAME, MOD_NAME "open audio device");
         return(1);
     }
 
     if (ioctl(oss_fd, SNDCTL_DSP_SETFMT, &encoding) < 0) {
-        perror("SNDCTL_DSP_SETFMT");
+        tc_log_perror(MOD_NAME, "SNDCTL_DSP_SETFMT");
         return(1);
     }
 
     if (ioctl(oss_fd, SNDCTL_DSP_CHANNELS, &channels) < 0) {
-        perror("SNDCTL_DSP_CHANNELS");
+        tc_log_perror(MOD_NAME, "SNDCTL_DSP_CHANNELS");
         return(1);
     }
 
     if (ioctl(oss_fd, SOUND_PCM_READ_RATE, &sample_rate) < 0) {
-        perror("SOUND_PCM_READ_RATE");
+        tc_log_perror(MOD_NAME, "SOUND_PCM_READ_RATE");
         return(1);
     }
 
@@ -109,7 +109,7 @@ int oss_grab(size_t size, char *buffer)
             if (errno == EINTR) {
                 received = 0;
             } else {
-                perror(MOD_NAME "audio grab");
+                tc_log_perror(MOD_NAME, MOD_NAME "audio grab");
                 return(1);
             }
         }

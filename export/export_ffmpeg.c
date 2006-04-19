@@ -1567,7 +1567,7 @@ MOD_encode
 	                today->tm_hour, today->tm_min, today->tm_sec);
             fvstats = fopen(filename,"w");
             if(!fvstats) {
-                perror("fopen");
+                tc_log_perror(MOD_NAME, "fopen");
                 lavc_param_psnr=0; // disable block
         do_psnr = 0;
                 /*exit(1);*/

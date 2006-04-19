@@ -55,7 +55,7 @@ errno = 0;
 dcolor = asin(dsine);
 if(errno == EDOM)
 	{
-	perror("subtitler(): rotate_color(): asin NOT A NUMBER :-)");
+	tc_log_perror(MOD_NAME, "subtitler(): rotate_color(): asin NOT A NUMBER :-)");
 
 	/* abort */
 	exit(1);
@@ -137,7 +137,7 @@ errno = 0;
 dcolor = asin(dsine);
 if(errno == EDOM)
 	{
-	perror("subtitler(): rotate_color(): asin NOT A NUMBER :-)");
+	tc_log_perror(MOD_NAME, "subtitler(): rotate_color(): asin NOT A NUMBER :-)");
 
 	/* abort */
 	exit(1);

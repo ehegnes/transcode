@@ -146,7 +146,7 @@ MOD_encode
     {
         if (p_write (param->buffer, param->size) != param->size)
         {
-            perror("write audio frame");
+            tc_log_perror(MOD_NAME, "write audio frame");
             return(TC_EXPORT_ERROR);
         }
         return (0);

@@ -268,7 +268,7 @@ static int read_xawtv_config(char *pStation, char *pNorm,
                 }
 
                 if (verb)
-                  tc_log_info(__FILE__, "\"%s\": using .xawtv from %s, freq=%.2fMHZ",
+                  tc_log_info("import_v4l.so", "\"%s\": using .xawtv from %s, freq=%.2fMHZ",
 			      pStation, pHome, (float) tfreq / 16.0);
                 break;
               }
@@ -276,13 +276,13 @@ static int read_xawtv_config(char *pStation, char *pNorm,
           } while ((pSection = cf_get_next_section (pRoot, pSection)) != NULL);
         }
         if (channel_has_tuner && !found_station && station_id != NULL) {
-          tc_log_warn(__FILE__, "Cannot find channel/name %s in .xawtv from %s", station_id, pHome);
+          tc_log_warn("import_v4l.so", "Cannot find channel/name %s in .xawtv from %s", station_id, pHome);
           return -1;
         }
         CF_FREE_ROOT (pRoot);
 
         if (verb)
-          tc_log_info(__FILE__, "%s: station=%s bright=%2.0f%% contrast=%2.0f%% color=%2.0f%% hue=%2.0f%%",
+          tc_log_info("import_v4l.so", "%s: station=%s bright=%2.0f%% contrast=%2.0f%% color=%2.0f%% hue=%2.0f%%",
                   pNorm, station_id == NULL ? "none" : station_id,
                   (float) bright / 65535 * 100, (float) contrast / 65535 * 100,
                   (float) color / 65535 * 100, (float) hue / 65535 * 100);
@@ -321,13 +321,13 @@ video_grab_init (const char *device,  // device the video/audio comes from [/dev
 
   // open video device
   if ((fh = open (device, O_RDWR)) == -1) {
-    perror ("grab device open");
+    tc_log_perror("import_v4l.so", "grab device open");
     return (-1);
   }
 
   // get grabber caps
   if (-1 == ioctl (fh, VIDIOCGCAP, &capability)) {
-    perror ("query capabilities");
+    tc_log_perror("import_v4l.so", "query capabilities");
     return (-1);
   }
 
@@ -341,7 +341,7 @@ video_grab_init (const char *device,  // device the video/audio comes from [/dev
   channels[chanid].channel = chanid;
 
   if (-1 == ioctl (fh, VIDIOCGCHAN, &channels[chanid])) {
-    perror ("invalid channel");
+    tc_log_perror("import_v4l.so", "invalid channel");
     return (-1);
   }
 
@@ -351,13 +351,13 @@ video_grab_init (const char *device,  // device the video/audio comes from [/dev
     channel_has_tuner = 1;
     // get tuner caps
     if (-1 == ioctl (fh, VIDIOCGTUNER, &tuner)) {
-      perror ("query tuner");
+      tc_log_perror("import_v4l.so", "query tuner");
       return (-1);
     }
 
     // print tuner capability
     if (verb)
-      tc_log_info(__FILE__, "%s: has[ %s%s%s%s%s] is[ %s%s%s%s]", tuner.name,
+      tc_log_info("import_v4l.so", "%s: has[ %s%s%s%s%s] is[ %s%s%s%s]", tuner.name,
 		  (tuner.flags & VIDEO_TUNER_PAL) ? "PAL " : "",
 		  (tuner.flags & VIDEO_TUNER_NTSC) ? "NTSC " : "",
 		  (tuner.flags & VIDEO_TUNER_SECAM) ? "SECAM " : "",
@@ -375,7 +375,7 @@ video_grab_init (const char *device,  // device the video/audio comes from [/dev
 
   // print channel capability
   if (verb)
-    tc_log_info(__FILE__, "%s: input #%d, %s%s%s%s",
+    tc_log_info("import_v4l.so", "%s: input #%d, %s%s%s%s",
 		channels[chanid].name, chanid,
 		(channels[chanid].flags & VIDEO_VC_TUNER) ? "tuner " : "",
 		(channels[chanid].flags & VIDEO_VC_AUDIO) ? "audio " : "",
@@ -387,10 +387,10 @@ dont_touch:
   if (do_audio) {
     // audio parameter
     if (-1 == ioctl (fh, VIDIOCGAUDIO, &audio)) {
-      //perror("ioctl VIDIOCGAUDIO");
+      //tc_log_perror("import_v4l.so", "ioctl VIDIOCGAUDIO");
       //return(-1);
       if (verb)
-        tc_log_info(__FILE__, "device has no audio channel");
+        tc_log_info("import_v4l.so", "device has no audio channel");
       do_audio = 0;             //reset
     }
 
@@ -409,19 +409,19 @@ dont_touch:
       if (audio.flags & VIDEO_AUDIO_TREBLE)
         tc_snprintf (buf4, sizeof(buf4), " treble=%2.0f%%",
 		     (float) audio.treble / 65535 * 100);
-      tc_log_info(__FILE__, "(audio-%s):%s%s%s%s", audio.name,
+      tc_log_info("import_v4l.so", "(audio-%s):%s%s%s%s", audio.name,
 		  buf1, buf2, buf3, buf4);
     }
   }
 
   // picture parameter
   if (-1 == ioctl (fh, VIDIOCGPICT, &pict)) {
-    perror ("ioctl VIDIOCGPICT");
+    tc_log_perror("import_v4l.so", "ioctl VIDIOCGPICT");
     return (-1);
   }
 
   if (verb)
-    tc_log_info(__FILE__, "picture: brightness=%2.0f%% hue=%2.0f%% colour=%2.0f%% contrast=%2.0f%%",
+    tc_log_info("import_v4l.so", "picture: brightness=%2.0f%% hue=%2.0f%% colour=%2.0f%% contrast=%2.0f%%",
 		(float) pict.brightness / 65535 * 100,
 		(float) pict.hue / 65535 * 100,
 		(float) pict.colour / 65535 * 100,
@@ -447,21 +447,21 @@ dont_touch:
   if (chanid >= 0) {
     // set input channel
     if (-1 == ioctl (fh, VIDIOCSCHAN, &channels[chanid])) {
-      perror ("invalid input channel");
+      tc_log_perror("import_v4l.so", "invalid input channel");
       return (-1);
     }
 
     if (bright >= 0) {
       grab_setattr (GRAB_ATTR_BRIGHT, bright);
       if (verb) {
-        tc_log_info(__FILE__, "setattr: setting bright   to %d (%2.0f%%).",
+        tc_log_info("import_v4l.so", "setattr: setting bright   to %d (%2.0f%%).",
 		    bright, (float) bright / 65535.0 * 100.0);
       }
     }
     if (contrast >= 0) {
       grab_setattr (GRAB_ATTR_CONTRAST, contrast);
       if (verb) {
-        tc_log_info(__FILE__, "setattr: setting contrast to %d (%2.0f%%).",
+        tc_log_info("import_v4l.so", "setattr: setting contrast to %d (%2.0f%%).",
 		    contrast, (float) contrast / 65535.0 * 100.0);
 
       }
@@ -469,14 +469,14 @@ dont_touch:
     if (color >= 0) {
       grab_setattr (GRAB_ATTR_COLOR, color);
       if (verb) {
-        tc_log_info(__FILE__, "setattr: setting color    to %d (%2.0f%%).",
+        tc_log_info("import_v4l.so", "setattr: setting color    to %d (%2.0f%%).",
 		    color, (float) color / 65535.0 * 100.0);
       }
     }
     if (hue >= 0) {
       grab_setattr (GRAB_ATTR_HUE, hue);
       if (verb) {
-        tc_log_info(__FILE__, "setattr: setting hue      to %d (%2.0f%%).",
+        tc_log_info("import_v4l.so", "setattr: setting hue      to %d (%2.0f%%).",
 		    hue, (float) hue / 65535.0 * 100.0);
       }
     }
@@ -484,7 +484,7 @@ dont_touch:
     if (channel_has_tuner && found_station) {
       // set station frequency
       if (-1 == ioctl (fh, VIDIOCSFREQ, &tfreq)) {
-        perror ("invalid tuner frequency");
+        tc_log_perror("import_v4l.so", "invalid tuner frequency");
         return (-1);
       }
     }
@@ -502,7 +502,7 @@ dont_touch:
     pict.palette = fmt;
     pict.depth = 24;
     if (-1 == ioctl (fh, VIDIOCSPICT, &pict)) {
-      tc_log_error(__FILE__, "Cannot not set RGB picture attributes. ioctl VIDIOCSPICT: %s", strerror(errno));
+      tc_log_error("import_v4l.so", "Cannot not set RGB picture attributes. ioctl VIDIOCSPICT: %s", strerror(errno));
       return (-1);
     }
   }
@@ -511,7 +511,7 @@ dont_touch:
   if (fmt == VIDEO_PALETTE_YUV420P) {
     pict.palette = fmt;
     if (-1 == ioctl(fh, VIDIOCSPICT,&pict)) {
-      tc_log_error(__FILE__, "Cannot not set YUV picture attributes. ioctl VIDIOCSPICT: %s", strerror(errno));
+      tc_log_error("import_v4l.so", "Cannot not set YUV picture attributes. ioctl VIDIOCSPICT: %s", strerror(errno));
       return(-1);
     }
   }
@@ -520,7 +520,7 @@ dont_touch:
   if (fmt == VIDEO_PALETTE_YUV422) {
     pict.palette = fmt;
     if (-1 == ioctl (fh, VIDIOCSPICT, &pict)) {
-      tc_log_error(__FILE__, "Cannot not set YUV 2 picture attributes. ioctl VIDIOCSPICT: %s", strerror(errno));
+      tc_log_error("import_v4l.so", "Cannot not set YUV 2 picture attributes. ioctl VIDIOCSPICT: %s", strerror(errno));
       return(-1);
     }
   }
@@ -528,17 +528,17 @@ dont_touch:
   // retrieve buffer size and offsets
 
   if (ioctl (fg.video_dev, VIDIOCGMBUF, &fg.vid_mbuf) == -1) {
-    tc_log_perror(__FILE__, "ioctl (VIDIOCGMBUF)");
+    tc_log_perror("import_v4l.so", "ioctl (VIDIOCGMBUF)");
     return (-1);
   }
 
   if (verb)
-    tc_log_info(__FILE__, "%d frame buffer(s) available", fg.vid_mbuf.frames);
+    tc_log_info("import_v4l.so", "%d frame buffer(s) available", fg.vid_mbuf.frames);
 
   v4l_max_buffer = fg.vid_mbuf.frames;
 
   if (!v4l_max_buffer) {
-    tc_log_error(__FILE__, "no frame buffer(s) available");
+    tc_log_error("import_v4l.so", "no frame buffer(s) available");
     return (-1);
   }
 
@@ -546,7 +546,7 @@ dont_touch:
 
   fg.video_map = mmap (0, fg.vid_mbuf.size, PROT_READ | PROT_WRITE, MAP_SHARED, fg.video_dev, 0);
   if ((unsigned char *) -1 == (unsigned char *) fg.video_map) {
-    perror ("mmap()");
+    tc_log_perror("import_v4l.so", "mmap()");
     return (-1);
   }
 
@@ -591,10 +591,10 @@ dont_touch:
 
   for (i = 1; i < v4l_max_buffer + 1; i++)
     if (ioctl (fg.video_dev, VIDIOCMCAPTURE, &fg.vid_mmap[i % v4l_max_buffer]) == -1)
-      perror ("VIDIOCMCAPTURE");
+      tc_log_perror("import_v4l.so", "VIDIOCMCAPTURE");
 
   if (found_station)
-    tc_log_info(__FILE__, "video device OK - recording from [%s]", pStation);
+    tc_log_info("import_v4l.so", "video device OK - recording from [%s]", pStation);
 
   return (0);
 }
@@ -647,7 +647,7 @@ grab_getattr (int id)
   if (i == NUM_ATTR)
     return -1;
   if (-1 == ioctl (fh, grab_attr[i].get, grab_attr[i].arg))
-    perror ("ioctl get");
+    tc_log_perror("import_v4l.so", "ioctl get");
 
   switch (id) {
   case GRAB_ATTR_VOLUME:
@@ -681,7 +681,7 @@ grab_setattr (int id, int val)
   if (i == NUM_ATTR)
     return -1;
   if (-1 == ioctl (fh, grab_attr[i].set, grab_attr[i].arg))
-    perror ("ioctl get");
+    tc_log_perror("import_v4l.so", "ioctl get");
 
   /* ... modify ... */
   switch (id) {
@@ -715,7 +715,7 @@ grab_setattr (int id, int val)
 
   /* ... write */
   if (-1 == ioctl (fh, grab_attr[i].set, grab_attr[i].arg))
-    perror ("ioctl set");
+    tc_log_perror("import_v4l.so", "ioctl set");
   return 0;
 }
 
@@ -730,7 +730,7 @@ video_grab_frame (char *buffer)
 
   // wait for next image in the sequence to complete grabbing
   if (ioctl (fg.video_dev, VIDIOCSYNC, &fg.vid_mmap[fg.current_grab_number]) == -1) {
-    perror ("VIDIOCSYNC");
+    tc_log_perror("import_v4l.so", "VIDIOCSYNC");
     return (-1);
   }
 
@@ -765,7 +765,7 @@ video_grab_frame (char *buffer)
   // issue new grab command for this buffer
 
   if (ioctl (fg.video_dev, VIDIOCMCAPTURE, &fg.vid_mmap[fg.current_grab_number]) == -1) {
-    perror ("VIDIOCMCAPTURE");
+    tc_log_perror("import_v4l.so", "VIDIOCMCAPTURE");
     return (-1);
   }
 

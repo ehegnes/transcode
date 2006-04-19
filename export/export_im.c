@@ -172,7 +172,7 @@ MOD_encode
 
     res = tc_snprintf(buf2, PATH_MAX, "%s%06d.%s", prefix, counter++, type);
     if (res < 0) {
-      perror("cmd buffer overflow");
+      tc_log_perror(MOD_NAME, "cmd buffer overflow");
       return(TC_EXPORT_ERROR);
     }
 

@@ -265,7 +265,7 @@ MOD_open
 					s_frame_size = 3*(p_video->s_v_width * p_video->s_v_height);
 					if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -x dv -d %d -C %ld-%ld | tcdecode -x dv -y rgb -d %d -Q %d", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video,vob->verbose, vob->quality) < 0)
 					{
-						perror("command buffer overflow");
+						tc_log_perror(MOD_NAME, "command buffer overflow");
 						return(TC_IMPORT_ERROR);
 					}
 				break;
@@ -273,7 +273,7 @@ MOD_open
 					s_frame_size = (3*(p_video->s_v_width * p_video->s_v_height))/2;
 					if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -x dv -d %d -C %ld-%ld | tcdecode -x dv -y yuv420p -Y -d %d -Q %d", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video,vob->verbose, vob->quality) < 0)
 					{
-						perror("command buffer overflow");
+						tc_log_perror(MOD_NAME, "command buffer overflow");
 						return(TC_IMPORT_ERROR);
 					}
 				break;
@@ -281,7 +281,7 @@ MOD_open
 					s_frame_size = (3*(p_video->s_v_width * p_video->s_v_height))/2;
 					if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -x dv -d %d -C %ld-%ld | tcdecode -x dv -y yuv420p -d %d -Q %d", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video,vob->verbose, vob->quality) < 0)
 					{
-						perror("command buffer overflow");
+						tc_log_perror(MOD_NAME, "command buffer overflow");
 						return(TC_IMPORT_ERROR);
 					}
 				break;
@@ -290,7 +290,7 @@ MOD_open
 					s_frame_size = (p_video->s_v_height==PAL_H) ? TC_FRAME_DV_PAL:TC_FRAME_DV_NTSC;
 					if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -x dv -d %d -C %ld-%ld", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video) < 0)
 					{
-						perror("command buffer overflow");
+						tc_log_perror(MOD_NAME, "command buffer overflow");
 						return(TC_IMPORT_ERROR);
 					}
 				break;
@@ -309,7 +309,7 @@ MOD_open
 					{
 						if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcdecode -x mov -i \"%s\" -d %d -C %ld,%ld -Q %d|tcdecode -x dv -y rgb -d %d -Q %d", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video, vob->quality,vob->verbose,vob->quality) < 0)
 						{
-							perror("command buffer overflow");
+							tc_log_perror(MOD_NAME, "command buffer overflow");
 							return(TC_IMPORT_ERROR);
 						}
 					}
@@ -317,7 +317,7 @@ MOD_open
 					{
 						if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcdecode -x mov -y rgb -i \"%s\" -d %d -C %ld,%ld -Q %d", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video, vob->quality) < 0)
 						{
-							perror("command buffer overflow");
+							tc_log_perror(MOD_NAME, "command buffer overflow");
 							return(TC_IMPORT_ERROR);
 						}
 					}
@@ -328,7 +328,7 @@ MOD_open
 					{
 						if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcdecode -x mov -i \"%s\" -d %d -C %ld,%ld -Q %d|tcdecode -x dv -y yuv420p -d %d -Q %d", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video, vob->quality,vob->verbose,vob->quality) < 0)
 						{
-							perror("command buffer overflow");
+							tc_log_perror(MOD_NAME, "command buffer overflow");
 							return(TC_IMPORT_ERROR);
 						}
 					}
@@ -336,7 +336,7 @@ MOD_open
 					{
 						if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcdecode -x mov -y yuv2 -i \"%s\" -d %d -C %ld,%ld -Q %d", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video, vob->quality) < 0)
 						{
-							perror("command buffer overflow");
+							tc_log_perror(MOD_NAME, "command buffer overflow");
 							return(TC_IMPORT_ERROR);
 						}
 					}
@@ -354,7 +354,7 @@ MOD_open
 				s_frame_size = (3*(p_video->s_v_width * p_video->s_v_height));
 				if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -x avi -d %d -C %ld-%ld", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video) < 0)
 				{
-					perror("command buffer overflow");
+					tc_log_perror(MOD_NAME, "command buffer overflow");
 					return(TC_IMPORT_ERROR);
 				}
 				break;
@@ -423,7 +423,7 @@ MOD_open
 			capability_flag=TC_CAP_RGB|TC_CAP_YUV|TC_CAP_DV|TC_CAP_PCM;
 			if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -d %d -x dv -C %ld-%ld | tcdecode -x dv -y pcm -d %d -Q %d", p_audio->p_nome_audio, vob->verbose,M_AUDIOMAX(s_frame_audio_size,p_audio->s_start_audio),M_AUDIOMAX(s_frame_audio_size,p_audio->s_end_audio),vob->verbose,vob->quality) < 0)
 			{
-				perror("command buffer overflow");
+				tc_log_perror(MOD_NAME, "command buffer overflow");
 				return(TC_IMPORT_ERROR);
 			}
 		   break;
@@ -431,7 +431,7 @@ MOD_open
 			capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_AUD|TC_CAP_VID;
 			if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -d %d -x pcm -a %d -C %ld-%ld",p_audio->p_nome_audio, vob->verbose,vob->a_track,M_AUDIOMAX(s_frame_audio_size,p_audio->s_start_audio),M_AUDIOMAX(s_frame_audio_size,p_audio->s_end_audio)) < 0)
 			{
-				perror("command buffer overflow");
+				tc_log_perror(MOD_NAME, "command buffer overflow");
 				return(TC_IMPORT_ERROR);
 			}
 		   break;
@@ -443,7 +443,7 @@ MOD_open
 				s_frame_audio_size >>= 1;
 			if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcdecode -i \"%s\" -d %d -x mov -y pcm -C %ld,%ld",p_audio->p_nome_audio, vob->verbose,M_AUDIOMAX(s_frame_audio_size,p_audio->s_start_audio),M_AUDIOMAX(s_frame_audio_size,p_audio->s_end_audio)) < 0)
 			{
-				perror("command buffer overflow");
+				tc_log_perror(MOD_NAME, "command buffer overflow");
 				return(TC_IMPORT_ERROR);
 			}
 		   break;
@@ -501,14 +501,14 @@ MOD_decode
 				   case TC_MAGIC_DV_NTSC:
 					if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -d %d -x dv -C %ld-%ld | tcdecode -x dv -y pcm -d %d -Q %d", p_audio->p_nome_audio, vob->verbose,M_AUDIOMAX(s_frame_audio_size,p_audio->s_start_audio),M_AUDIOMAX(s_frame_audio_size,p_audio->s_end_audio),vob->verbose,vob->quality) < 0)
                                         {
-                                                perror("command buffer overflow");
+                                                tc_log_perror(MOD_NAME, "command buffer overflow");
                                                 return(TC_IMPORT_ERROR);
                                         }
 				   break;
 				   case TC_MAGIC_AVI:
 					if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -d %d -x pcm -a %d -C %ld-%ld",p_audio->p_nome_audio, vob->verbose,vob->a_track,M_AUDIOMAX(s_frame_audio_size,p_audio->s_start_audio),M_AUDIOMAX(s_frame_audio_size,p_audio->s_end_audio)) < 0)
 					{
-						perror("command buffer overflow");
+						tc_log_perror(MOD_NAME, "command buffer overflow");
 						return(TC_IMPORT_ERROR);
 					}
 				   break;
@@ -519,7 +519,7 @@ MOD_decode
 						s_frame_audio_size >>= 1;
 					if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcdecode -i \"%s\" -d %d -x mov -y pcm -C %ld,%ld",p_audio->p_nome_audio, vob->verbose,M_AUDIOMAX(s_frame_audio_size,p_audio->s_start_audio),M_AUDIOMAX(s_frame_audio_size,p_audio->s_end_audio)) < 0)
 					{
-						perror("command buffer overflow");
+						tc_log_perror(MOD_NAME, "command buffer overflow");
 						return(TC_IMPORT_ERROR);
 					}
 		   		   break;
@@ -586,7 +586,7 @@ MOD_decode
 							s_frame_size = 3*(p_video->s_v_width * p_video->s_v_height);
 							if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -x dv -d %d -C %ld-%ld | tcdecode -x dv -y rgb -d %d -Q %d", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video,vob->verbose, vob->quality) < 0)
 							{
-								perror("command buffer overflow");
+								tc_log_perror(MOD_NAME, "command buffer overflow");
 								return(TC_IMPORT_ERROR);
 							}
 						break;
@@ -594,7 +594,7 @@ MOD_decode
 							s_frame_size = (3*(p_video->s_v_width * p_video->s_v_height))/2;
 							if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -x dv -d %d -C %ld-%ld | tcdecode -x dv -y yuv420p -Y -d %d -Q %d", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video,vob->verbose, vob->quality) < 0)
 							{
-								perror("command buffer overflow");
+								tc_log_perror(MOD_NAME, "command buffer overflow");
 								return(TC_IMPORT_ERROR);
 							}
 						break;
@@ -602,7 +602,7 @@ MOD_decode
 							s_frame_size = (3*(p_video->s_v_width * p_video->s_v_height))/2;
 							if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -x dv -d %d -C %ld-%ld | tcdecode -x dv -y yuv420p -d %d -Q %d", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video,vob->verbose, vob->quality) < 0)
 							{
-								perror("command buffer overflow");
+								tc_log_perror(MOD_NAME, "command buffer overflow");
 								return(TC_IMPORT_ERROR);
 							}
 						break;
@@ -611,7 +611,7 @@ MOD_decode
 							s_frame_size = (p_video->s_v_height==PAL_H) ? TC_FRAME_DV_PAL:TC_FRAME_DV_NTSC;
 							if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -x dv -d %d -C %ld-%ld", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video) < 0)
 							{
-								perror("command buffer overflow");
+								tc_log_perror(MOD_NAME, "command buffer overflow");
 								return(TC_IMPORT_ERROR);
 							}
 						break;
@@ -628,7 +628,7 @@ MOD_decode
 							{
 								if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcdecode -x mov -i \"%s\" -d %d -C %ld,%ld -Q %d|tcdecode -x dv -y rgb -d %d -Q %d", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video, vob->quality,vob->verbose,vob->quality) < 0)
 								{
-									perror("command buffer overflow");
+									tc_log_perror(MOD_NAME, "command buffer overflow");
 									return(TC_IMPORT_ERROR);
 								}
 							}
@@ -636,7 +636,7 @@ MOD_decode
 							{
 								if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcdecode -x mov -y rgb -i \"%s\" -d %d -C %ld,%ld -Q %d", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video, vob->quality) < 0)
 								{
-									perror("command buffer overflow");
+									tc_log_perror(MOD_NAME, "command buffer overflow");
 									return(TC_IMPORT_ERROR);
 								}
 							}
@@ -647,7 +647,7 @@ MOD_decode
 							{
 								if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcdecode -x mov -i \"%s\" -d %d -C %ld,%ld -Q %d|tcdecode -x dv -y yuv420p -d %d -Q %d", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video, vob->quality,vob->verbose,vob->quality) < 0)
 								{
-									perror("command buffer overflow");
+									tc_log_perror(MOD_NAME, "command buffer overflow");
 									return(TC_IMPORT_ERROR);
 								}
 							}
@@ -655,7 +655,7 @@ MOD_decode
 							{
 								if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcdecode -x mov -y yuv2 -i \"%s\" -d %d -C %ld,%ld -Q %d", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video, vob->quality) < 0)
 								{
-									perror("command buffer overflow");
+									tc_log_perror(MOD_NAME, "command buffer overflow");
 									return(TC_IMPORT_ERROR);
 								}
 							}
@@ -671,7 +671,7 @@ MOD_decode
 							s_frame_size = (3*(p_video->s_v_width * p_video->s_v_height));
 							if(tc_snprintf(import_cmd_buf, MAX_BUF, "tcextract -i \"%s\" -x avi -d %d -C %ld-%ld", p_video->p_nome_video,vob->verbose,p_video->s_start_video,p_video->s_end_video) < 0)
 							{
-								perror("command buffer overflow");
+								tc_log_perror(MOD_NAME, "command buffer overflow");
 								return(TC_IMPORT_ERROR);
 							}
 						break;

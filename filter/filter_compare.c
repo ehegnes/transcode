@@ -185,7 +185,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 			}
 			if (!(compare[instance]->results = fopen(results_name, "w")))
 			{
-				perror("could not open file for writing");
+				tc_log_perror(MOD_NAME, "could not open file for writing");
 			}
 
 			InitializeMagick("");
@@ -212,7 +212,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		}
 
 		else{
-			perror("Not image provided");
+			tc_log_perror(MOD_NAME, "Not image provided");
 		}
 
 		if (options != NULL)

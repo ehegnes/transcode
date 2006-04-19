@@ -59,7 +59,7 @@ MOD_open
   switch (param->flag) {
     case TC_VIDEO:
       if (mkfifo(videopipe, 00660) == -1) {
-        perror("mkfifo video failed");
+        tc_log_perror(MOD_NAME, "mkfifo video failed");
         return(TC_IMPORT_ERROR);
       }
 
@@ -76,7 +76,7 @@ MOD_open
       if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 
       if ((videopipefd = popen(import_cmd_buf, "w")) == NULL) {
-        perror("popen videopipe failed");
+        tc_log_perror(MOD_NAME, "popen videopipe failed");
 	unlink(videopipe);
         return(TC_IMPORT_ERROR);
       }
@@ -106,7 +106,7 @@ MOD_open
 
       // popen
       if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
-        perror("popen YUV stream");
+        tc_log_perror(MOD_NAME, "popen YUV stream");
 	unlink(videopipe);
         return(TC_IMPORT_ERROR);
       }
@@ -115,11 +115,11 @@ MOD_open
 
     case TC_AUDIO:
       if (!mktemp(audiopipe)) {
-        perror("mktemp audiopipe failed");
+        tc_log_perror(MOD_NAME, "mktemp audiopipe failed");
         return(TC_IMPORT_ERROR);
       }
       if (mkfifo(audiopipe, 00660) == -1) {
-        perror("mkfifo audio failed");
+        tc_log_perror(MOD_NAME, "mkfifo audio failed");
 	unlink(audiopipe);
         return(TC_IMPORT_ERROR);
       }
@@ -137,13 +137,13 @@ MOD_open
       if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 
       if ((audiopipefd = popen(import_cmd_buf, "w")) == NULL) {
-        perror("popen audiopipe failed");
+        tc_log_perror(MOD_NAME, "popen audiopipe failed");
 	unlink(audiopipe);
         return(TC_IMPORT_ERROR);
       }
 
       if ((param->fd = fopen(audiopipe, "r")) == NULL) {
-        perror("fopen audio stream");
+        tc_log_perror(MOD_NAME, "fopen audio stream");
 	unlink(audiopipe);
         return(TC_IMPORT_ERROR);
       }

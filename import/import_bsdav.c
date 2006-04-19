@@ -69,7 +69,7 @@ int sret;
             tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 
 	if ((param->fd = popen(import_cmd_buf, "r")) == NULL) {
-            perror("popen bsdav video stream");
+            tc_log_perror(MOD_NAME, "popen bsdav video stream");
             return(TC_IMPORT_ERROR);
         }
         break;
@@ -91,7 +91,7 @@ int sret;
             tc_log_info(MOD_NAME, "%s", import_cmd_buf);
 
 	if ((param->fd = popen(import_cmd_buf, "r")) == NULL) {
-            perror("popen bsdav audio stream");
+            tc_log_perror(MOD_NAME, "popen bsdav audio stream");
             return(TC_IMPORT_ERROR);
         }
         break;

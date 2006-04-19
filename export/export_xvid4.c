@@ -335,7 +335,7 @@ MOD_open
 				    O_RDWR|O_CREAT|O_TRUNC,
 				    S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
 		if(thismod.rawfd < 0) {
-			perror("open file");
+			tc_log_perror(MOD_NAME, "open file");
 			return(TC_EXPORT_ERROR);
 		}
 	}

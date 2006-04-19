@@ -60,12 +60,12 @@ static int sub_buf_alloc(int ex_num)
     //of import threads strange testing code
 
     if((sub_buf_ptr = (sframe_list_t **) calloc(num, sizeof(sframe_list_t *)))==NULL) {
-      perror("out of memory");
+      tc_log_perror(__FILE__, "out of memory");
       return(-1);
     }
 
     if((sub_buf_mem = (char *) calloc(num, sizeof(sframe_list_t)))==NULL) {
-      perror("out of memory");
+      tc_log_perror(__FILE__, "out of memory");
       return(-1);
     }
 
@@ -78,7 +78,7 @@ static int sub_buf_alloc(int ex_num)
 
 	//allocate extra subeo memory:
 	if((sub_buf_ptr[n]->video_buf=tc_bufalloc(SUB_BUFFER_SIZE))==NULL) {
-	  perror("out of memory");
+	  tc_log_perror(__FILE__, "out of memory");
 	  return(-1);
 	}
 

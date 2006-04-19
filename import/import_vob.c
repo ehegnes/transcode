@@ -93,7 +93,7 @@ MOD_open
     case CODEC_AC3:
 
       if (tc_snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -t vob -d %d -S %d | tcdemux -a %d -x ac3 %s %s -d %d | tcextract -t vob -a %d -x ac3 -d %d | tcextract -t raw -x ac3 -d %d", vob->audio_in_file, vob->verbose, vob->vob_offset, vob->a_track, seq_buf, dem_buf, vob->verbose, vob->a_track, vob->verbose, vob->verbose) < 0) {
-	perror("command buffer overflow");
+	tc_log_perror(MOD_NAME, "command buffer overflow");
 	return(TC_IMPORT_ERROR);
       }
 
@@ -106,7 +106,7 @@ MOD_open
       if(vob->a_codec_flag==CODEC_AC3) {
 
 	if(tc_snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -t vob -d %d -S %d | tcdemux -a %d -x ac3 %s %s -d %d | tcextract -t vob -a %d -x ac3 -d %d | tcdecode -x ac3 -d %d -s %f,%f,%f -A %d", vob->audio_in_file, vob->verbose, vob->vob_offset, vob->a_track, seq_buf, dem_buf, vob->verbose, vob->a_track, vob->verbose, vob->verbose, vob->ac3_gain[0], vob->ac3_gain[1], vob->ac3_gain[2], vob->a52_mode) < 0) {
-	  perror("command buffer overflow");
+	  tc_log_perror(MOD_NAME, "command buffer overflow");
 	  return(TC_IMPORT_ERROR);
 	}
 
@@ -117,7 +117,7 @@ MOD_open
       if(vob->a_codec_flag==CODEC_A52) {
 
 	if(tc_snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -t vob -d %d -S %d | tcdemux -a %d -x ac3 %s %s -d %d | tcextract -t vob -a %d -x ac3 -d %d | tcdecode -x a52 -d %d -A %d", vob->audio_in_file, vob->verbose, vob->vob_offset, vob->a_track, seq_buf, dem_buf, vob->verbose, vob->a_track, vob->verbose, vob->verbose, vob->a52_mode) < 0) {
-	  perror("command buffer overflow");
+	  tc_log_perror(MOD_NAME, "command buffer overflow");
 	  return(TC_IMPORT_ERROR);
 	}
 
@@ -127,7 +127,7 @@ MOD_open
       if(vob->a_codec_flag==CODEC_MP3) {
 
 	if(tc_snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -t vob -d %d -S %d | tcdemux -a %d -x mp3 %s %s -d %d | tcextract -t vob -a %d -x mp3 -d %d | tcdecode -x mp3 -d %d", vob->audio_in_file, vob->verbose, vob->vob_offset, vob->a_track, seq_buf, dem_buf, vob->verbose, vob->a_track, vob->verbose, vob->verbose) < 0) {
-	  perror("command buffer overflow");
+	  tc_log_perror(MOD_NAME, "command buffer overflow");
 	  return(TC_IMPORT_ERROR);
 	}
 
@@ -137,7 +137,7 @@ MOD_open
       if(vob->a_codec_flag==CODEC_MP2) {
 
 	if(tc_snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -t vob -d %d -S %d | tcdemux -a %d -x mp3 %s %s -d %d | tcextract -t vob -a %d -x mp2 -d %d | tcdecode -x mp2 -d %d", vob->audio_in_file, vob->verbose, vob->vob_offset, vob->a_track, seq_buf, dem_buf, vob->verbose, vob->a_track, vob->verbose, vob->verbose) < 0) {
-	  perror("command buffer overflow");
+	  tc_log_perror(MOD_NAME, "command buffer overflow");
 	  return(TC_IMPORT_ERROR);
 	}
 
@@ -147,7 +147,7 @@ MOD_open
       if(vob->a_codec_flag==CODEC_PCM || vob->a_codec_flag==CODEC_LPCM) {
 
 	if(tc_snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -t vob -d %d -S %d | tcdemux -a %d -x pcm %s %s -d %d | tcextract -t vob -a %d -x pcm -d %d", vob->audio_in_file, vob->verbose, vob->vob_offset, vob->a_track, seq_buf, dem_buf, vob->verbose, vob->a_track, vob->verbose) < 0) {
-	  perror("command buffer overflow");
+	  tc_log_perror(MOD_NAME, "command buffer overflow");
 	  return(TC_IMPORT_ERROR);
 	}
 
@@ -170,7 +170,7 @@ MOD_open
 
     // popen
     if((fd = popen(import_cmd_buf, "r"))== NULL) {
-      perror("popen PCM stream");
+      tc_log_perror(MOD_NAME, "popen PCM stream");
       return(TC_IMPORT_ERROR);
     }
 
@@ -185,7 +185,7 @@ MOD_open
     syncf = vob->sync;
 
     if(tc_snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -t vob -d %d -S %d | tcdemux -a %d -x ps1 %s %s -d %d | tcextract -t vob -a 0x%x -x ps1 -d %d", vob->audio_in_file, vob->verbose, vob->vob_offset, vob->s_track, seq_buf, dem_buf, vob->verbose, (vob->s_track+0x20), vob->verbose) < 0) {
-      perror("command buffer overflow");
+      tc_log_perror(MOD_NAME, "command buffer overflow");
 	  return(TC_IMPORT_ERROR);
     }
 
@@ -196,7 +196,7 @@ MOD_open
 
     // popen
     if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
-      perror("popen subtitle stream");
+      tc_log_perror(MOD_NAME, "popen subtitle stream");
       return(TC_IMPORT_ERROR);
     }
 
@@ -247,14 +247,14 @@ MOD_open
 		(vob->a_track+off), seq_buf, dem_buf, vob->verbose,
 		vob->v_track, vob->verbose,
 		requant_buf) < 0) {
-	  perror("command buffer overflow");
+	  tc_log_perror(MOD_NAME, "command buffer overflow");
 	  return(TC_IMPORT_ERROR);
 	}
 	break;
       case CODEC_RGB:
 
 	if (tc_snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -t vob -d %d -S %d | tcdemux -s 0x%x -x mpeg2 %s %s -d %d | tcextract -t vob -a %d -x mpeg2 -d %d | tcdecode -x mpeg2 -d %d", vob->video_in_file, vob->verbose, vob->vob_offset, (vob->a_track+off), seq_buf, dem_buf, vob->verbose, vob->v_track, vob->verbose, vob->verbose) < 0) {
-	  perror("command buffer overflow");
+	  tc_log_perror(MOD_NAME, "command buffer overflow");
 	  return(TC_IMPORT_ERROR);
 	}
 
@@ -263,7 +263,7 @@ MOD_open
       case CODEC_YUV:
 
 	if (tc_snprintf(import_cmd_buf, MAX_BUF, "tccat -i \"%s\" -t vob -d %d -S %d | tcdemux -s 0x%x -x mpeg2 %s %s -d %d | tcextract -t vob -a %d -x mpeg2 -d %d | tcdecode -x mpeg2 -d %d -y yuv420p", vob->video_in_file, vob->verbose, vob->vob_offset, (vob->a_track+off), seq_buf, dem_buf, vob->verbose, vob->v_track, vob->verbose, vob->verbose) < 0) {
-	  perror("command buffer overflow");
+	  tc_log_perror(MOD_NAME, "command buffer overflow");
 	  return(TC_IMPORT_ERROR);
 	}
 
@@ -273,7 +273,7 @@ MOD_open
 
 	tc_log_warn(MOD_NAME, "Don't know anything about Codec 0x%x", vob->im_v_codec);
 	if (tc_snprintf(import_cmd_buf, MAX_BUF, "cat /dev/null") < 0) {
-	  perror("command buffer overflow");
+	  tc_log_perror(MOD_NAME, "command buffer overflow");
 	  return(TC_IMPORT_ERROR);
 	}
 
@@ -286,7 +286,7 @@ MOD_open
 
       // popen
       if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
-	perror("popen RGB stream");
+	tc_log_perror(MOD_NAME, "popen RGB stream");
 	return(TC_IMPORT_ERROR);
       }
 

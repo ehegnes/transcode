@@ -340,7 +340,7 @@ int main(int argc, char *argv[])
   case IS_TS:
 
     if((ipipe.fd_in = xio_open(name, O_RDONLY))<0) {
-      perror("file open");
+      tc_log_perror(EXE, "file open");
       exit(1);
     }
 
@@ -404,7 +404,7 @@ int main(int argc, char *argv[])
   case IS_FILE:
 
     if((ipipe.fd_in = open(name, O_RDONLY))<0) {
-      perror("file open");
+      tc_log_perror(EXE, "file open");
       exit(1);
     }
 

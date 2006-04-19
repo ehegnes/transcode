@@ -75,17 +75,17 @@ int sunau_init(const char *audio_device,
     audio_if.mode = AUMODE_RECORD;
 
     if ((sunau_fd = open(audio_device, O_RDONLY)) < 0) {
-        perror(MOD_NAME "open audio device");
+        tc_log_perror(MOD_NAME, MOD_NAME "open audio device");
         return(1);
     }
 
     if (ioctl(sunau_fd, AUDIO_SETINFO, &audio_if) < 0) {
-        perror("AUDIO_SETINFO");
+        tc_log_perror(MOD_NAME, "AUDIO_SETINFO");
         return(1);
     }
 
     if (ioctl(sunau_fd, AUDIO_GETINFO, &audio_if) < 0) {
-        perror("AUDIO_GETINFO");
+        tc_log_perror(MOD_NAME, "AUDIO_GETINFO");
         return(1);
     }
 
@@ -119,7 +119,7 @@ int sunau_init(const char *audio_device,
     }
 
     if (ioctl(sunau_fd, AUDIO_FLUSH) < 0) {
-        perror("AUDIO_FLUSH");
+        tc_log_perror(MOD_NAME, "AUDIO_FLUSH");
         return(1);
     }
 
@@ -142,7 +142,7 @@ int sunau_grab(size_t size, char *buffer)
             if(errno == EINTR) {
                 received = 0;
             } else {
-                perror(MOD_NAME "audio grab");
+                tc_log_perror(MOD_NAME, MOD_NAME "audio grab");
                 return(1);
             }
         }

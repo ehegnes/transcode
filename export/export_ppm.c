@@ -197,17 +197,17 @@ MOD_encode
 	tc_snprintf(buf2, sizeof(buf2), "%s%06d.ppm", prefix, counter++);
 
     if((fd = fopen(buf2, "w"))==NULL) {
-      perror("fopen file");
+      tc_log_perror(MOD_NAME, "fopen file");
       return(TC_EXPORT_ERROR);
     }
 
     if(fwrite(buf, strlen(buf), 1, fd) != 1) {
-      perror("write header");
+      tc_log_perror(MOD_NAME, "write header");
       return(TC_EXPORT_ERROR);
     }
 
     if(fwrite(out_buffer, out_size, 1, fd) != 1) {
-	perror("write frame");
+	tc_log_perror(MOD_NAME, "write frame");
 	return(TC_EXPORT_ERROR);
     }
     fclose(fd);

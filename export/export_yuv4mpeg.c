@@ -157,12 +157,12 @@ MOD_open
 
     if((fd = open(vob->video_out_file, O_RDWR|O_CREAT|O_TRUNC,
 		  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))<0) {
-	  perror("open file");
+	  tc_log_perror(MOD_NAME, "open file");
 	  return(TC_EXPORT_ERROR);
     }
 
     if( y4m_write_stream_header( fd, &y4mstream ) != Y4M_OK ){
-      perror("write stream header");
+      tc_log_perror(MOD_NAME, "write stream header");
       return(TC_EXPORT_ERROR);
     }
 
@@ -200,7 +200,7 @@ MOD_encode
 
 	if(y4m_write_frame_header( fd, &y4mstream, &info ) != Y4M_OK )
 	{
-	    perror("write frame header");
+	    tc_log_perror(MOD_NAME, "write frame header");
 	    return(TC_EXPORT_ERROR);
 	}
 #else
@@ -208,14 +208,14 @@ MOD_encode
 
 	if(y4m_write_frame_header( fd, &info) != Y4M_OK )
 	{
-	    perror("write frame header");
+	    tc_log_perror(MOD_NAME, "write frame header");
 	    return(TC_EXPORT_ERROR);
 	}
 #endif
 
 	//do not trust param->size
 	if(tc_pwrite(fd, param->buffer, size) != size) {
-	    perror("write frame");
+	    tc_log_perror(MOD_NAME, "write frame");
 	    return(TC_EXPORT_ERROR);
 	}
 

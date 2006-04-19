@@ -101,7 +101,7 @@ MOD_open
     regex = "\\(.\\+[-._]\\)\\?\\([0-9]\\+\\)\\([-._].\\+\\)\\?";
     result = regcomp(&preg, regex, 0);
     if (result) {
-        perror("ERROR:  Regex compile failed.\n");
+        tc_log_perror(MOD_NAME, "ERROR:  Regex compile failed.\n");
         return(TC_IMPORT_ERROR);
     }
 
@@ -110,7 +110,7 @@ MOD_open
         tc_log_warn(MOD_NAME, "Regex match failed: no image sequence");
 	string_length = strlen(vob->video_in_file) + 1;
         if ((head = tc_malloc(string_length)) == NULL) {
-	    perror("filename head");
+	    tc_log_perror(MOD_NAME, "filename head");
 	    return(TC_IMPORT_ERROR);
 	}
 	strlcpy(head, vob->video_in_file, string_length);
@@ -123,14 +123,14 @@ MOD_open
         // split the name into head, frame number, and tail
         string_length = pmatch[1].rm_eo - pmatch[1].rm_so + 1;
         if ((head = tc_malloc(string_length)) == NULL) {
-            perror("filename head");
+            tc_log_perror(MOD_NAME, "filename head");
             return(TC_IMPORT_ERROR);
         }
         strlcpy(head, vob->video_in_file, string_length);
 
         string_length = pmatch[2].rm_eo - pmatch[2].rm_so + 1;
         if ((frame = tc_malloc(string_length)) == NULL) {
-            perror("filename frame");
+            tc_log_perror(MOD_NAME, "filename frame");
             return(TC_IMPORT_ERROR);
         }
         strlcpy(frame, vob->video_in_file + pmatch[2].rm_so, string_length);
@@ -144,7 +144,7 @@ MOD_open
 
         string_length = pmatch[3].rm_eo - pmatch[3].rm_so + 1;
         if ((tail = tc_malloc(string_length)) == NULL) {
-            perror("filename tail");
+            tc_log_perror(MOD_NAME, "filename tail");
             return(TC_IMPORT_ERROR);
         }
         strlcpy(tail, vob->video_in_file + pmatch[3].rm_so, string_length);

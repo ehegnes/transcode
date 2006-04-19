@@ -280,7 +280,7 @@ int main(int argc, char *argv[])
     if(tc_file_check(name)) exit(1);
 
     if((ipipe.fd_in = xio_open(name, O_RDONLY))<0) {
-      perror("open file");
+      tc_log_perror(EXE, "open file");
       exit(1);
     }
 
@@ -303,7 +303,7 @@ int main(int argc, char *argv[])
       for(;;) {
 
 	if (tc_pread(ipipe.fd_in, buffer, 1) !=1) {
-	  perror("ac3 sync frame scan failed");
+	  tc_log_perror(EXE, "ac3 sync frame scan failed");
 	  goto ac3_summary;
 	}
 
@@ -317,7 +317,7 @@ int main(int argc, char *argv[])
       i=i-2;
 
       if (tc_pread(ipipe.fd_in, buffer, 3) !=3) {
-	perror("ac3 header read failed");
+	tc_log_perror(EXE, "ac3 header read failed");
 	goto ac3_summary;
       }
 

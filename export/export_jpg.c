@@ -292,7 +292,7 @@ MOD_encode
 
 
     if(tc_snprintf(buf2, PATH_MAX, "%s%06d.%s", prefix, counter++, "jpg") < 0) {
-      perror("cmd buffer overflow");
+      tc_log_perror(MOD_NAME, "cmd buffer overflow");
       return(TC_EXPORT_ERROR);
     }
 

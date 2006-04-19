@@ -69,7 +69,7 @@ int audio_grab_init(const char *dev, int rate, int bits, int chan, int _verb)
   verb=_verb;
 
   if(-1==sound_open(&params)) {
-    tc_log_warn(__FILE__, "sound init failed");
+    tc_log_warn("import_v4l.so", "sound init failed");
     return(-1);
   }
 
@@ -87,14 +87,14 @@ int audio_grab_frame(char *buffer, int bytes)
     if(blocksize>bytes_left) {
 
       if (bytes_left != read(fd, buffer + offset, bytes_left)) {
-	perror("read /dev/dsp");
+	tc_log_perror("import_v4l.so", "read /dev/dsp");
 	return(-1);
       }
 
     } else {
 
       if (blocksize != read(fd, buffer + offset, blocksize)) {
-	perror("read /dev/dsp");
+	tc_log_perror("import_v4l.so", "read /dev/dsp");
 	return(-1);
       }
     }
@@ -124,7 +124,7 @@ int sound_open(struct MOVIE_PARAMS *params)
     int afmt, frag;
 
     if (-1 == (fd = open(params->adev, O_RDONLY))) {
-      perror("open audio device");
+      tc_log_perror("import_v4l.so", "open audio device");
       goto err;
     }
 
@@ -140,7 +140,7 @@ int sound_open(struct MOVIE_PARAMS *params)
       ioctl(fd, SNDCTL_DSP_SETFMT, &afmt);
 
       if (afmt != AFMT_S16_LE) {
-	tc_log_warn(__FILE__, "16 bit sound not supported");
+	tc_log_warn("import_v4l.so", "16 bit sound not supported");
 	goto err;
       }
 
@@ -153,14 +153,14 @@ int sound_open(struct MOVIE_PARAMS *params)
       ioctl(fd, SNDCTL_DSP_SETFMT, &afmt);
 
       if (afmt != AFMT_U8) {
-	tc_log_warn(__FILE__, "8 bit sound not supported");
+	tc_log_warn("import_v4l.so", "8 bit sound not supported");
 	goto err;
       }
 
       break;
 
     default:
-      tc_log_warn(__FILE__, "%d bit sound not supported", params->bits);
+      tc_log_warn("import_v4l.so", "%d bit sound not supported", params->bits);
       goto err;
     }
 
@@ -176,7 +176,7 @@ int sound_open(struct MOVIE_PARAMS *params)
     if (-1 == ioctl(fd, SNDCTL_DSP_GETBLKSIZE, &blocksize))
       goto err;
 
-    if(verb) tc_log_info(__FILE__, "audio blocksize %d", blocksize);
+    if(verb) tc_log_info("import_v4l.so", "audio blocksize %d", blocksize);
 
     //start recording
     sound_startrec(0);
@@ -197,7 +197,7 @@ void sound_startrec(int on_off)
     trigger = (on_off) ? PCM_ENABLE_INPUT : ~PCM_ENABLE_INPUT;
 
     if (-1 == ioctl(fd,SNDCTL_DSP_SETTRIGGER, &trigger)) {
-      perror("trigger record");
+      tc_log_perror("import_v4l.so", "trigger record");
       exit(1);
     }
 }
@@ -210,20 +210,20 @@ int mixer_open(char *filename, char *device)
     int i, devmask;
 
     if (-1 == (mix = open(filename,O_RDONLY))) {
-	perror("mixer open");
+	tc_log_perror("import_v4l.so", "mixer open");
 	return -1;
     }
 
     fcntl(mix,F_SETFD,FD_CLOEXEC);
 
     if (-1 == ioctl(mix,MIXER_READ(SOUND_MIXER_DEVMASK),&devmask)) {
-	perror("mixer read devmask");
+	tc_log_perror("import_v4l.so", "mixer read devmask");
 	return -1;
     }
     for (i = 0; i < SOUND_MIXER_NRDEVICES; i++) {
 	if ((1<<i) & devmask && strcasecmp(names[i],device) == 0) {
 	    if (-1 == ioctl(mix,MIXER_READ(i),&volume)) {
-		perror("mixer read volume");
+		tc_log_perror("import_v4l.so", "mixer read volume");
 		return -1;
 	    } else {
 		dev = i;
@@ -240,8 +240,8 @@ int mixer_open(char *filename, char *device)
 			    " '%s'", names[i]);
 	    }
 	}
-	tc_log_warn(__FILE__, "mixer: device '%s' not found", device);
-	tc_log_warn(__FILE__, "mixer: available: %s", buf);
+	tc_log_warn("import_v4l.so", "mixer: device '%s' not found", device);
+	tc_log_warn("import_v4l.so", "mixer: available: %s", buf);
     }
     return (-1 != dev) ? 0 : -1;
 }
@@ -257,7 +257,7 @@ int
 mixer_get_volume()
 {
     if (-1 == ioctl(mix,MIXER_READ(dev),&volume)) {
-	perror("mixer write volume");
+	tc_log_perror("import_v4l.so", "mixer write volume");
 	return -1;
     }
     return (-1 == dev) ? -1 : (volume & 0x7f);
@@ -271,7 +271,7 @@ mixer_set_volume(int val)
     val   &= 0x7f;
     volume = val | (val << 8);;
     if (-1 == ioctl(mix,MIXER_WRITE(dev),&volume)) {
-	perror("mixer write volume");
+	tc_log_perror("import_v4l.so", "mixer write volume");
 	return -1;
     }
     muted = 0;

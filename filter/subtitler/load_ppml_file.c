@@ -525,7 +525,7 @@ while(1)
 		a = ferror(file);
 		if(a)
 			{
-			perror("readline():");
+			tc_log_perror(MOD_NAME, "readline():");
 			continue;
 			}
 		break;

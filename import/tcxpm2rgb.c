@@ -256,7 +256,7 @@ int main (int argc, char *argv[])
     if (infile) {
 	f = fopen(infile, "r");
 	if (!f) {
-	    perror ("fopen infile");
+	    tc_log_perror(EXE, "fopen infile");
 	    return 1;
 	}
     } else
@@ -265,7 +265,7 @@ int main (int argc, char *argv[])
     if (outfile) {
 	o = fopen(outfile, "w");
 	if (!o) {
-	    perror ("fopen outfile");
+	    tc_log_perror(EXE, "fopen outfile");
 	    return 1;
 	}
     } else
@@ -418,7 +418,7 @@ int main (int argc, char *argv[])
 
     // read };
     if (!fgets(linebuf, MAX_BUF, f)) {
-	perror("fgets header");
+	tc_log_perror(EXE, "fgets header");
 	return 1;
     }
 

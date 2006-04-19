@@ -215,7 +215,7 @@ MOD_init
     }
 
     if ((buffer = malloc(vob->ex_v_height*vob->ex_v_width*3))==NULL) {
-      perror("out of memory");
+      tc_log_perror(MOD_NAME, "out of memory");
       return(TC_EXPORT_ERROR);
     } else
 
@@ -243,11 +243,11 @@ MOD_init
 #define FOURCC(A, B, C, D) ( ((uint8_t) (A)) | (((uint8_t) (B))<<8) | (((uint8_t) (C))<<16) | (((uint8_t) (D))<<24) )
 
     if ((settings = malloc(sizeof(SETTINGS)))==NULL) {
-      perror("out of memory");
+      tc_log_perror(MOD_NAME, "out of memory");
       return(TC_EXPORT_ERROR);
     }
     if ((format = malloc(sizeof(DivXBitmapInfoHeader)))==NULL) {
-      perror("out of memory");
+      tc_log_perror(MOD_NAME, "out of memory");
       return(TC_EXPORT_ERROR);
     }
     memset (settings, 0, sizeof(SETTINGS));
@@ -390,7 +390,7 @@ MOD_init
 #else
 
     if ((divx = malloc(sizeof(ENC_PARAM)))==NULL) {
-	perror("out of memory");
+	tc_log_perror(MOD_NAME, "out of memory");
       return(TC_EXPORT_ERROR);
     }
 

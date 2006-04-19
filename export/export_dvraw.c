@@ -143,7 +143,7 @@ MOD_open
     // video
     if((fd = open(vob->video_out_file, O_RDWR|O_CREAT|O_TRUNC,
 		  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))<0) {
-      perror("open file");
+      tc_log_perror(MOD_NAME, "open file");
 
       return(TC_EXPORT_ERROR);
     }
@@ -318,7 +318,7 @@ MOD_encode
     //write raw DV frame
 
     if(tc_pwrite(fd, target, frame_size) != frame_size) {
-      perror("write frame");
+      tc_log_perror(MOD_NAME, "write frame");
       return(TC_EXPORT_ERROR);
     }
 

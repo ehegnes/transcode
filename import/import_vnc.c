@@ -83,7 +83,7 @@ MOD_open
 		    }
 		    a[n++] = NULL;
 		    if (execvp (a[0], (char **)&a[0])<0) {
-			perror ("execvp vncrec failed. Is vncrec in your $PATH?");
+			tc_log_perror(MOD_NAME, "execvp vncrec failed. Is vncrec in your $PATH?");
 			return (TC_IMPORT_ERROR);
 		    }
 		}
@@ -122,7 +122,7 @@ MOD_decode
 	    tv.tv_usec = 0;
 
 	    fd = open(fifo, O_RDONLY | O_NONBLOCK);
-	    if (fd < 0) { perror ("open"); break; }
+	    if (fd < 0) { tc_log_perror(MOD_NAME, "open"); break; }
 
 	    FD_ZERO(&rfds);
 	    FD_SET(fd, &rfds);

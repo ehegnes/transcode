@@ -147,7 +147,7 @@ MOD_open
 
   // popen
   if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
-    perror("popen RGB stream");
+    tc_log_perror(MOD_NAME, "popen RGB stream");
     return(TC_IMPORT_ERROR);
   }
 

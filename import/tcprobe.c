@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
             ipipe.seek_allowed = 0;
           } else if (!dvd_title_set || (dvd_verify(name) < 0)) {
             if ((ipipe.fd_in = xio_open(name, O_RDONLY)) < 0) {
-              perror("file open");
+              tc_log_perror(EXE, "file open");
               return(-1);
             }
             stream_magic = fileinfo(ipipe.fd_in, skip);

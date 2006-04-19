@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
     if (decode.stype != TC_STYPE_STDIN) {
 	if (tc_file_check(decode.name)) exit(1);
 	if ((decode.fd_in = xio_open(decode.name, O_RDONLY)) < 0) {
-	    perror("open file");
+	    tc_log_perror(EXE, "open file");
 	    exit(1);
 	}
 

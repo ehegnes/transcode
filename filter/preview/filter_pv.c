@@ -327,12 +327,12 @@ int preview_cache_init(void) {
   int n;
 
   if((vid_buf_mem = (char *) calloc(cache_num, size))==NULL) {
-    perror("out of memory");
+    tc_log_perror(MOD_NAME, "out of memory");
     return(-1);
   }
 
   if((vid_buf = (char **) calloc(cache_num, sizeof(char *)))==NULL) {
-    perror("out of memory");
+    tc_log_perror(MOD_NAME, "out of memory");
     return(-1);
   }
 
