@@ -158,8 +158,8 @@ static uint64 cnt_b_i, cnt_b_ni;
 	#define DEBF(format, args...)
 #endif
 
-#define LOG(msg) if (verbose > 1) tc_log_msg(EXE, msg)
-#define LOGF(format, args...) if (verbose > 1) tc_log_msg(EXE, format, args)
+#define LOG(msg) do { if (verbose > 1) tc_log_msg(EXE, msg); } while (0)
+#define LOGF(format, args...) do { if (verbose > 1) tc_log_msg(EXE, format, args); } while (0)
 
 #define BUF_SIZE (16*1024*1024)
 #define MIN_READ (1*1024*1024)
