@@ -28,6 +28,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 #ifdef HAVE_STDINT_H
@@ -96,12 +97,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
   //----------------------------------
 
   if(ptr->tag & TC_FILTER_CLOSE) {
-    int i, res, len=0;
+    char songbuf[MAX_SONGS*12];  /* up to 11 chars and , per value */
+    int i, res, len=0, songlen=0;
     if (next<1) return 0;
 
     if((vob = tc_get_vob())==NULL) return(-1);
 
-    //len += sprintf(cmd, "tcmp3cut -i %s -o %s ", vob->audio_in_file, vob->audio_out_file?vob->audio_out_file:vob->audio_in_file);
+    //len += tc_snprintf(cmd, sizeof(cmd), "tcmp3cut -i %s -o %s ", vob->audio_in_file, vob->audio_out_file?vob->audio_out_file:vob->audio_in_file);
     res = tc_snprintf(cmd, sizeof(cmd), "tcmp3cut -i in.mp3 -o base ");
     if (res < 0) {
       tc_log_error(MOD_NAME, "cmd buffer overflow");
@@ -110,24 +112,30 @@ int tc_filter(frame_list_t *ptr_, char *options)
     len += res;
     tc_log_info(MOD_NAME, "********** Songs ***********");
     if (next>0) {
-      printf("%d", songs[0]);
-      res = tc_snprintf(cmd+len, sizeof(cmd) - len, "-t %d", songs[0]);
+      res = tc_snprintf(songbuf+songlen, sizeof(songbuf)-songlen,
+			"%d", songs[0]);
       if (res < 0) {
         tc_log_error(MOD_NAME, "cmd buffer overflow");
         return(-1);
       }
-      len += res;
+      songlen += res;
     }
     for (i=1; i<next; i++) {
-      printf(",%d", songs[i]);
-      res = tc_snprintf(cmd+len, sizeof(cmd) - len, ",%d", songs[i]);
+      res = tc_snprintf(songbuf+songlen, sizeof(songbuf)-songlen,
+			",%d", songs[i]);
       if (res < 0) {
         tc_log_error(MOD_NAME, "cmd buffer overflow");
         return(-1);
       }
-      len += res;
+      songlen += res;
     }
-    printf("\n");
+    tc_log_info(MOD_NAME, "%s", songbuf);
+    res = tc_snprintf(cmd+len, sizeof(cmd)-len, "-t %s", songbuf);
+    if (res < 0) {
+      tc_log_error(MOD_NAME, "cmd buffer overflow");
+      return(-1);
+    }
+    len += res;
     tc_log_info(MOD_NAME, "Execute: %s", cmd);
 
     return(0);
@@ -174,11 +182,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
        return (-1);
      }
 
-     //printf("\nCut at time %d frame %d\n", tot, ptr->id - (zero+2)/2);
+     //tc_log_msg(MOD_NAME, "Cut at time %d frame %d", tot, ptr->id - (zero+2)/2);
      zero=0;
    }
 
-   //printf("%5d: sum (%07.3f)\n", ptr->id, p);
+   //tc_log_msg(MOD_NAME, "%5d: sum (%07.3f)", ptr->id, p);
   }
 
   return(0);

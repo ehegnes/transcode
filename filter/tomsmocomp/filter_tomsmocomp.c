@@ -38,46 +38,47 @@
 static tomsmocomp_t *tmc_global = NULL;
 
 static void help_optstr (void) {
-    tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
-    printf ("* Overview:\n"
-	    "  TomsMoComp.dll is a filter that uses motion compensation and adaptive\n"
-	    "  processing to deinterlace video source. It uses a variable amount of\n"
-	    "  CPU time based upon the user specified 'searcheffort' parameter.\n"
-	    "  The search effort may currently be set anywhere from 0 (a smarter Bob)\n"
-	    "  to about 30 (too CPU intensive for everybody). Only certain values are\n"
-	    "  actually implemented (currently 0,1,3,5,9,11,13,15,19,21,max) but the\n"
-	    "  nearest value will be used.  Values above 15 have not been well tested\n"
-	    "  and should probably be avoided for now.\n"
-	    "\n"
-	    "  TomsMoComp should run on all MMX machines or higher. It has also has\n"
-	    "  some added code for 3DNOW instructions for when it is running on a\n"
-	    "  K6-II or higher and some SSEMMX for P3 & Athlon.\n"
-	    "\n"
-	    "* Options:\n"
-	    "  topfirst - assume the top field, lines 0,2,4,... should be displayed\n"
-	    "    first.  The default is TopFirst, which seems to occure most.\n"
-	    "    Note: DV video is usually BottomFirst!\n"
-	    "    You may have to look at a few frames to see which looks best.\n"
-	    "    The difference will be hardly visible, though.\n"
-	    "    (0=BottomFirst, 1=TopFirst)  Default: 1\n"
-	    "\n"
-	    // "    New - setting TopFirst=-1 will automatically pick up whatever Avisynth reports.\n"
-	    "\n"
-	    "  searcheffort - determines how much effort (CPU time) will be used to\n"
-	    "    find moved pixels. Currently numbers from 0 to 30 with 0 being\n"
-	    "    practically just a smarter bob and 30 being fairly CPU intensive.\n"
-	    "    (0 .. 30)  Default: 15\n"
-	    "\n"
-	    "  usestrangebob - not documented :-(((\n"
-	    "    (0 / 1)  Default: 0\n"
-	    "\n"
-	    "  cpuflags - Manually set CPU capabilities (expert only) (hex)\n"
-	    "    (0x08 MMX  0x20 3DNOW  0x80 SSE)  Default: autodetect\n"
-	    "\n"
-	    "* Known issues and limitations:\n"
-	    "  1) Assumes YUV (YUY2 or YV12) Frame Based input.\n"
-	    "  2) Currently still requires the pixel width to be a multiple of 4.\n"
-	    "  3) TomsMoComp is for pure video source material, not for IVTC.\n");
+    tc_log_info(MOD_NAME, "(%s) help"
+"* Overview:\n"
+"  TomsMoComp.dll is a filter that uses motion compensation and adaptive\n"
+"  processing to deinterlace video source. It uses a variable amount of\n"
+"  CPU time based upon the user specified 'searcheffort' parameter.\n"
+"  The search effort may currently be set anywhere from 0 (a smarter Bob)\n"
+"  to about 30 (too CPU intensive for everybody). Only certain values are\n"
+"  actually implemented (currently 0,1,3,5,9,11,13,15,19,21,max) but the\n"
+"  nearest value will be used.  Values above 15 have not been well tested\n"
+"  and should probably be avoided for now.\n"
+"\n"
+"  TomsMoComp should run on all MMX machines or higher. It has also has\n"
+"  some added code for 3DNOW instructions for when it is running on a\n"
+"  K6-II or higher and some SSEMMX for P3 & Athlon.\n"
+"\n"
+"* Options:\n"
+"  topfirst - assume the top field, lines 0,2,4,... should be displayed\n"
+"    first.  The default is TopFirst, which seems to occure most.\n"
+"    Note: DV video is usually BottomFirst!\n"
+"    You may have to look at a few frames to see which looks best.\n"
+"    The difference will be hardly visible, though.\n"
+"    (0=BottomFirst, 1=TopFirst)  Default: 1\n"
+"\n"
+// "    New - setting TopFirst=-1 will automatically pick up whatever Avisynth reports.\n"
+"\n"
+"  searcheffort - determines how much effort (CPU time) will be used to\n"
+"    find moved pixels. Currently numbers from 0 to 30 with 0 being\n"
+"    practically just a smarter bob and 30 being fairly CPU intensive.\n"
+"    (0 .. 30)  Default: 15\n"
+"\n"
+"  usestrangebob - not documented :-(((\n"
+"    (0 / 1)  Default: 0\n"
+"\n"
+"  cpuflags - Manually set CPU capabilities (expert only) (hex)\n"
+"    (0x08 MMX  0x20 3DNOW  0x80 SSE)  Default: autodetect\n"
+"\n"
+"* Known issues and limitations:\n"
+"  1) Assumes YUV (YUY2 or YV12) Frame Based input.\n"
+"  2) Currently still requires the pixel width to be a multiple of 4.\n"
+"  3) TomsMoComp is for pure video source material, not for IVTC.\n"
+		, MOD_CAP);
 }
 
 static void do_deinterlace (tomsmocomp_t *tmc) {
@@ -158,7 +159,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    return -1;
 
 	if (! (tmc = tmc_global = calloc (1, sizeof (tomsmocomp_t)))) {
-	    fprintf (stderr, "calloc() failed\n");
+	    tc_log_msg(MOD_NAME, "calloc() failed");
 	    return -1;
 	}
 
@@ -207,7 +208,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	if (! (tmc->framePrev = calloc (1, tmc->size)) ||
 	    ! (tmc->frameIn   = calloc (1, tmc->size)) ||
 	    ! (tmc->frameOut  = calloc (1, tmc->size))) {
-	    fprintf (stderr, "calloc() failed\n");
+	    tc_log_msg(MOD_NAME, "calloc() failed");
 	    return -1;
 	}
 
@@ -254,13 +255,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	char buf[255];
 	optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION,
 			    MOD_AUTHOR, "VY4E", "1");
-	sprintf (buf, "%d", tmc->TopFirst);
+	tc_snprintf (buf, sizeof(buf), "%d", tmc->TopFirst);
 	optstr_param (options, "topfirst", "Assume the top field should be displayed first" ,"%d", buf, "0", "1");
-	sprintf (buf, "%d", tmc->SearchEffort);
+	tc_snprintf (buf, "sizeof(buf), %d", tmc->SearchEffort);
 	optstr_param (options, "searcheffort", "CPU time used to find moved pixels" ,"%d", buf, "0", "30");
-	sprintf (buf, "%d", tmc->UseStrangeBob);
+	tc_snprintf (buf, sizeof(buf), "%d", tmc->UseStrangeBob);
 	optstr_param (options, "usestrangebob", "?Unknown?" ,"%d", buf, "0", "1");
-	sprintf (buf, "%02x", tmc->cpuflags);
+	tc_snprintf (buf, sizeof(buf), "%02x", tmc->cpuflags);
 	optstr_param (options, "cpuflags", "Manual specification of CPU capabilities" ,"%x", buf, "00", "ff");
     }
 
@@ -312,7 +313,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 			       tmc->width, tmc->height);
 		break;
 	    default:
-		fprintf (stderr, "codec: %x\n", tmc->codec);
+		tc_log_error(MOD_NAME, "codec: %x\n", tmc->codec);
 		assert (0);
 	    }
 	}

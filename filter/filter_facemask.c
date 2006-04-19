@@ -29,6 +29,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 /* For RGB->YUV conversion */
@@ -54,22 +55,25 @@ typedef struct parameter_struct {
 
 static parameter_struct *parameters = NULL;
 
-static void help_optstr(void){
-	tc_log_info (MOD_NAME, "Help:");
-	printf ("\n* Overview:\n");
-	printf("  This filter can mask people faces in video interviews.\n");
-	printf("  Both YUV and RGB formats are supported, in multithreaded mode.\n");
-	printf("\n* Warning:\n");
-	printf("  You have to calibrate by your own the mask dimensions and positions so as it fits to your video sample.\n");
-	printf("  You also have to choose a resolution that is multiple of the mask dimensions.\n");
-
-	printf ("\n* Options:\n");
-	printf ("  'xpos':\t\tPosition of the upper left corner of the mask (x)\n");
-	printf ("  'ypos':\t\tPosition of the upper left corner of the mask (y)\n");
-	printf ("  'xresolution':\tResolution of the mask (width)\n");
-	printf ("  'yresolution':\tResolution of the mask (height)\n");
-	printf ("  'xdim':\t\tWidth of the mask (= n*xresolution)\n");
-	printf ("  'ydim':\t\tHeight of the mask (= m*yresolution)\n");
+static void help_optstr(void)
+{
+    tc_log_info(MOD_NAME, "(%s) help"
+"\n* Overview:\n"
+"  This filter can mask people faces in video interviews.\n"
+"  Both YUV and RGB formats are supported, in multithreaded mode.\n"
+"\n"
+"* Warning:\n"
+"  You have to calibrate by your own the mask dimensions and positions so as it fits to your video sample.\n"
+"  You also have to choose a resolution that is multiple of the mask dimensions.\n"
+"\n"
+"* Options:\n"
+"  'xpos':\t\tPosition of the upper left corner of the mask (x)\n"
+"  'ypos':\t\tPosition of the upper left corner of the mask (y)\n"
+"  'xresolution':\tResolution of the mask (width)\n"
+"  'yresolution':\tResolution of the mask (height)\n"
+"  'xdim':\t\tWidth of the mask (= n*xresolution)\n"
+"  'ydim':\t\tHeight of the mask (= m*yresolution)\n"
+		, MOD_CAP);
 }
 
 static int check_parameters(int x, int y, int w, int h, int W, int H, vob_t *vob){

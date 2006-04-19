@@ -55,7 +55,7 @@ info =\
 XGetVisualInfo(dpy, VisualIDMask | VisualScreenMask, &template,&found);
 if (!info)
 	{
-	printf("XGetVisualInfo failed\n");
+	tc_log_warn(MOD_NAME, "XGetVisualInfo failed");
 	return -1;
 	}
 
@@ -68,11 +68,11 @@ display_bits = info -> depth;
 
 if(debug_flag)
 	{
-	printf(\
-	"x11: color depth: %u bits\n", display_bits);
+	tc_log_msg(MOD_NAME,
+	"x11: color depth: %u bits", display_bits);
 
-	printf(\
-	"x11: color masks: red=0x%08lx green=0x%08lx blue=0x%08lx\n",\
+	tc_log_msg(MOD_NAME,
+	"x11: color masks: red=0x%08lx green=0x%08lx blue=0x%08lx",
 	info->red_mask, info->green_mask, info->blue_mask);
 	}
 
@@ -102,7 +102,7 @@ unsigned char *getbuf(void)
 {
 if (!grab_ximage)
 	{
-	printf("grab_ximage == NULL shouldn't be!\n");
+	tc_log_error(MOD_NAME, "grab_ximage == NULL shouldn't be!\n");
 	}
 return grab_ximage -> data;
 }/* end function getbuf */
@@ -112,7 +112,7 @@ void closewin(void)
 {
 if(debug_flag)
 	{
-	fprintf(stdout, "closewin(): arg none\n");
+	tc_log_msg(MOD_NAME, "closewin(): arg none\n");
 	}
 
 XtDestroyWidget(app_shell);

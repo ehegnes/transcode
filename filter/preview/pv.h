@@ -30,6 +30,7 @@
 #define PV_H
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 
 #include <sys/types.h>
 #include <sys/mman.h>

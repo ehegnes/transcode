@@ -23,11 +23,6 @@
  */
 
 
-#define MOD_NAME    "filter_subtitler.so"
-#define MOD_VERSION "v0.8.1 (2003/10/25)"
-#define MOD_CAP     "subtitle filter"
-#define MOD_AUTHOR  "Jan Panteltje"
-
 #include "subtitler.h"
 
 
@@ -181,7 +176,7 @@ if(pfl->tag & TC_FILTER_INIT)
 	default_font_dir = strsave(temp);
 	if(! default_font_dir)
 		{
-		printf("subtitler(): could not allocate space for default_font_dir\n");
+		tc_log_error(MOD_NAME, "subtitler(): could not allocate space for default_font_dir");
 
 		return -1;
 		}
@@ -198,8 +193,8 @@ if(pfl->tag & TC_FILTER_INIT)
 	subtitle_file = strsave(temp);
 	if(! subtitle_file)
 		{
-		printf(\
-		"subtitler(): could not allocate space for subtitle_file\n");
+		tc_log_error(MOD_NAME,
+		"subtitler(): could not allocate space for subtitle_file");
 
 		return -1;
 		}
@@ -250,8 +245,8 @@ if(pfl->tag & TC_FILTER_INIT)
 	subtitle_font_path = strsave(temp);
 	if(! subtitle_font_path)
 		{
-		fprintf(stderr,\
-		"subtitler: tc_filter(): could not allocate space for subtitle_font_path, aborting\n");
+		tc_log_error(MOD_NAME,
+		"subtitler: tc_filter(): could not allocate space for subtitle_font_path, aborting");
 
 		exit(1);
 		}
@@ -259,8 +254,8 @@ if(pfl->tag & TC_FILTER_INIT)
 	default_subtitle_font_name = strsave("arial.ttf");
 	if(! default_subtitle_font_name)
 		{
-		fprintf(stderr,\
-		"subtitler: tc_filter(): could not allocate space for default_subtitle_font_name, aborting\n");
+		tc_log_error(MOD_NAME,
+		"subtitler: tc_filter(): could not allocate space for default_subtitle_font_name, aborting");
 
 		exit(1);
 		}
@@ -303,7 +298,7 @@ if(pfl->tag & TC_FILTER_INIT)
 		running = strsave(options);
 		if(! running)
 			{
-			printf("subtitler(): strsave(options) failed\n");
+			tc_log_error(MOD_NAME, "subtitler(): strsave(options) failed");
 
 			return -1;
 			}
@@ -345,8 +340,8 @@ if(pfl->tag & TC_FILTER_INIT)
 					subtitle_file = strsave(temp);
 					if(! subtitle_file)
 						{
-						printf(\
-			"subtitler(): could not allocate space for subtitle_file\n");
+						tc_log_error(MOD_NAME,
+			"subtitler(): could not allocate space for subtitle_file");
 
 						return -1;
 						}
@@ -361,8 +356,8 @@ if(pfl->tag & TC_FILTER_INIT)
 					default_font_dir = strsave(temp);
 					if(! default_font_dir)
 						{
-						printf(\
-			"subtitler(): could not allocate space for default_font_dir\n");
+						tc_log_error(MOD_NAME,
+			"subtitler(): could not allocate space for default_font_dir");
 
 						return -1;
 						}
@@ -414,7 +409,7 @@ if(pfl->tag & TC_FILTER_INIT)
 		vo_font = add_font(temp, default_subtitle_symbols, 28, 15, 1.0, 0.1);
 		if(! vo_font)
 			{
-			printf("subtitler(): Could not load font\n");
+			tc_log_error(MOD_NAME, "subtitler(): Could not load font");
 
 			/* return init error */
 			return -1;
@@ -425,7 +420,7 @@ if(pfl->tag & TC_FILTER_INIT)
 		/* load ppml file */
 		if(! load_ppml_file(subtitle_file) )
 			{
-			printf("subtitler(): could not load file %s\n",\
+			tc_log_error(MOD_NAME, "subtitler(): could not load file %s",\
 			subtitle_file);
 
 			/* return init error */
@@ -474,21 +469,6 @@ if(verbose & TC_STATS)
 	(pre)?"pre-process filter":"post-process filter");
 	} /* end if verbose and stats */
 
-#if 0
-if( (pfl->tag & TC_POST_PROCESS) && (pfl->tag & TC_AUDIO) )
-{
-	printf(\
-	"WAS afl->audio_size=%d afl->audio_buf=%lu\n",\
-	afl -> audio_size, afl -> audio_buf);
-
-	for(i = 0; i < 16; i++)
-		{
-		printf("%02x ", afl -> audio_buf[i]);
-		}
-	printf("\n");
-	}
-#endif
-
 /*
 default:
 add the subtitles, after the coding, else edges in text get bad
@@ -531,13 +511,6 @@ if(a)
 	line_h_end = (double)image_width - (double)line_h_start;
 	window_bottom = image_height - (subtitle_v_factor * (double)image_height);
 
-#if 0
-	printf("WAS PROC h_factor=%.2f v_factor=%.2f\n\
-	line_h_start=%d line_h_end=%d window_bottom=%d\n",\
-	subtitle_h_factor, subtitle_v_factor,\
-	line_h_start, line_h_end, window_bottom);
-#endif
-
 	if(de_stripe_flag)
 		{
 		/*
@@ -554,7 +527,7 @@ if(a)
 			frame_memory0 = malloc(pfl->v_width * pfl->v_height * 3);
 			if(! frame_memory0)
 				{
-				printf("de_striper(): could not malloc frame_memory0\n");
+				tc_log_error(MOD_NAME, "de_striper(): could not malloc frame_memory0");
 
 				/* return error */
 				return -1;
@@ -562,7 +535,7 @@ if(a)
 			frame_memory1 = malloc(pfl->v_width * pfl->v_height * 3);
 			if(! frame_memory1)
 				{
-				printf("de_striper(): could not malloc frame_memory1\n");
+				tc_log_error(MOD_NAME, "de_striper(): could not malloc frame_memory1");
 
 				/* return error */
 				return -1;
@@ -602,7 +575,6 @@ if(a)
 				(pfm[1] - opfm[1] > slice_level) &&\
 				(pfm[2] - opfm[2] > slice_level) )
 					{
-					//printf("STRIPE\n");
 
 					/* test for out of range pointers due to x_shift */
 					if( (opfm + x_shift >= (uint8_t *)frame_memory1) &&\
@@ -1439,12 +1411,6 @@ else if(vob->im_v_codec == CODEC_YUV)
 		for(x = 0; x < w; x++)
 			{
 
-#if 0
-	fprintf(stdout, "WAS imagewidth=%d image_height=%d\n", image_width, image_height);
-	fprintf(stdout, "WAS y=%d x=%d y0=%d x0=%d py=%p pu=%p pv=%p\n",\
-	y, x, y0, x0, py, pu, pv);
-#endif
-
 			/* clip right scroll */
 			if( (x + x0) > image_width - 1) continue;
 
@@ -2045,19 +2011,16 @@ From transcode -0.5.1 ChangeLog:
 Example: -J my_filter="fonts=3 position=55 -v"
 */
 
-tc_log_info(MOD_NAME, ":\n");
-printf(\
-"Usage -J subtitler=%c[no_objects] [subtitle_file=s]\n\
+ tc_log_info(MOD_NAME, "(%s) help\n"
+"Usage -J subtitler=\"[no_objects] [subtitle_file=s]\n\
 [color_depth=n]\n\
 [font_dir=s] [font=n] [font_factor=f\n\
 [frame_offset=n]\n\
-[debug] [help] [use_pre_processing]%c\n", '"', '"'\
-);
-
-printf("f is float, h is hex, n is integer, s is string.\n\n");
-
-printf(\
-"no_objects           disables subtitles and other objects (off).\n\
+[debug] [help] [use_pre_processing]\"\n\
+\n\
+f is float, h is hex, n is integer, s is string.\n\
+\n\
+no_objects           disables subtitles and other objects (off).\n\
 color_depth=         32 or 24 (overrides X auto) (32).\n\
 font=                0 or 1, 1 gives strange symbols... (0).\n\
 font_dir=            place where font.desc is (%s).\n\
@@ -2066,10 +2029,9 @@ frame_offset=        positive (text later) or negative (earlier) integer (0).\n\
 subtitle_file=       pathfilename.ppml location of ppml file (%s).\n\
 debug                prints debug messages (off).\n\
 help                 prints this list and exits.\n\
-use_pre_processing   uses pre_processing.\n",\
-default_font_dir, subtitle_file);
+use_pre_processing   uses pre_processing.\n",
+MOD_CAP, default_font_dir, subtitle_file);
 
-printf("\n");
 return 1;
 } /* end function print_options */
 

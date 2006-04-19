@@ -32,6 +32,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 #include "libtc/tcmodule-plugin.h"
@@ -96,16 +97,20 @@ static const char *levels_help = ""
 
 static void help_optstr(void)
 {
-    tc_log_info(MOD_NAME, "(%s) help", MOD_CAP);
-    fprintf(stderr, "* Overview\n");
-    fprintf(stderr, "  Scales luminosity values in the source image, similar to\n");
-    fprintf(stderr, "  VirtualDub's 'levels' filter.  This is useful to scale ITU-R601\n");
-    fprintf(stderr, "  video (which limits luma to 16-235) back to the full 0-255 range.\n");
-    fprintf(stderr, "* Options\n");
-    fprintf(stderr, "   input:   luma range of input (%d-%d)\n", DEFAULT_IN_BLACK, DEFAULT_IN_WHITE);
-    fprintf(stderr, "   gamma:   gamma ramp to apply to input luma (%f)\n", DEFAULT_IN_GAMMA);
-    fprintf(stderr, "   output:  luma range of output (%d-%d)\n", DEFAULT_OUT_BLACK, DEFAULT_OUT_WHITE);
-    fprintf(stderr, "   pre:     act as pre processing filter (0)\n");
+    tc_log_info(MOD_NAME, "(%s) help\n"
+"* Overview\n"
+"  Scales luminosity values in the source image, similar to\n"
+"  VirtualDub's 'levels' filter.  This is useful to scale ITU-R601\n"
+"  video (which limits luma to 16-235) back to the full 0-255 range.\n"
+"* Options\n"
+"   input:   luma range of input (%d-%d)\n"
+"   gamma:   gamma ramp to apply to input luma (%f)\n"
+"   output:  luma range of output (%d-%d)\n"
+"   pre:     act as pre processing filter (0)\n"
+		, MOD_CAP,
+		DEFAULT_IN_BLACK, DEFAULT_IN_WHITE,
+		DEFAULT_IN_GAMMA,
+		DEFAULT_OUT_BLACK, DEFAULT_OUT_WHITE);
 }
 
 static void levels_process(LevelsPrivateData *pd, uint8_t *data,

@@ -28,6 +28,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 /*-------------------------------------------------
@@ -38,12 +39,13 @@
 
 static void help_optstr(void)
 {
-   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
-   printf ("* Overview\n");
-   printf ("   This filter produces a simple slow-motion effect by\n");
-   printf ("   duplicating certain frames. I have seen this effect\n");
-   printf ("   on TV and despite its the simple algorithm it works\n");
-   printf ("   quite well. The filter has no options.\n");
+   tc_log_info (MOD_NAME, "(%s) help\n"
+"* Overview\n"
+"   This filter produces a simple slow-motion effect by\n"
+"   duplicating certain frames. I have seen this effect\n"
+"   on TV and despite its the simple algorithm it works\n"
+"   quite well. The filter has no options.\n"
+		, MOD_CAP);
 }
 
 static int do_clone (int id)

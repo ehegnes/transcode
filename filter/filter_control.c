@@ -28,6 +28,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 #include "src/socket.h"
@@ -70,11 +71,13 @@ typedef struct flist_t {
     struct flist_t *next;
 } flist_t;
 
-#define cprintf(fmt,args...) fprintf(stderr, "[control] " fmt "\n", ## args)
 #define mmalloc(str,type) \
    do {  \
        str = (type *)malloc(sizeof(type)); \
-       if (!str) { cprintf("(%s:%d) No Memory for %s", __FILE__, __LINE__, #str); return -1;} \
+       if (!str) { \
+           tc_log_error(MOD_NAME, "(%s:%d) No Memory for %s", __FILE__, __LINE__, #str); \
+           return -1; \
+       } \
        memset(str, 0, sizeof(type)); \
    } while (0)
 
@@ -103,7 +106,7 @@ int tc_filter(frame_list_t *ptr, char *options)
 	int ret;
 
 	if (!options) {
-	    cprintf("This filter makes no sense without options");
+	    tc_log_error(MOD_NAME, "This filter makes no sense without options");
 	    goto init_e_out;
 	}
 
@@ -117,11 +120,12 @@ int tc_filter(frame_list_t *ptr, char *options)
 	if (strlen(file)>0) {
 	    ctrl->file = tc_strdup(file);
 	} else {
-	    cprintf("The \"file\" option is mandatory");
+	    tc_log_error(MOD_NAME, "The \"file\" option is mandatory");
 	    goto init_e_out;
 	}
 	if (NULL == (ctrl->f = fopen(ctrl->file, "r"))) {
-	    cprintf("Cannot open \"%s\"", ctrl->file);
+	    tc_log_error(MOD_NAME, "Cannot open \"%s\": %s", ctrl->file,
+			 strerror(errno));
 	    goto init_e_out;
 	}
 
@@ -131,7 +135,8 @@ int tc_filter(frame_list_t *ptr, char *options)
 	if (strlen(file)>0) {
 	    ctrl->ofile = tc_strdup(file);
 	    if (NULL == (ctrl->of = fopen(ctrl->ofile, "w"))) {
-		cprintf("Cannot open \"%s\"", ctrl->ofile);
+		tc_log_error(MOD_NAME, "Cannot open \"%s\": %s", ctrl->ofile,
+			     strerror(errno));
 		goto init_e_out;
 	    }
 	}
@@ -139,19 +144,19 @@ int tc_filter(frame_list_t *ptr, char *options)
 	ret = parse_input_list (ctrl, &flist);
 
 	if (ret < 0) {
-	    cprintf("An error occurred parsing the command file");
+	    tc_log_error(MOD_NAME, "An error occurred parsing the command file");
 	    return -1;
 	}
 
 	if (flist == NULL) {
-	    cprintf("WTF? Nothing to do");
+	    tc_log_error(MOD_NAME, "WTF? Nothing to do");
 	    return -1;
 	}
 
 	first = flist;
 
 	for (first = flist; flist->next; flist = flist->next) {
-	    //cprintf("Frame %u -> %s", flist->frame, flist->line);
+	    //tc_log_msg(MOD_NAME, "Frame %u -> %s", flist->frame, flist->line);
 	}
 
 	// sort the list?
@@ -200,7 +205,7 @@ init_e_out:
 	flist = first;
 
 	if (!flist) {
-	    cprintf("No more actions");
+	    tc_log_msg(MOD_NAME, "No more actions");
 	    return 0;
 	}
 
@@ -218,7 +223,7 @@ init_e_out:
 	    }
 
 	    //if (verbose & TC_DEBUG)
-	    cprintf("Executed at %d \"%s\"", ptr->id, flist->line);
+	    tc_log_msg(MOD_NAME, "Executed at %d \"%s\"", ptr->id, flist->line);
 
 	    first = flist->next;
 	    free (flist->line);
@@ -262,7 +267,10 @@ static int parse_input_list (ctrl_t *ctrl, flist_t **flist_tofill)
 	line = buf;
 	skipws(line);
 
-	if (!line) { cprintf("Syntax error at line %d -- empty?", count); return -2;}
+	if (!line) {
+	    tc_log_error(MOD_NAME, "Syntax error at line %d -- empty?", count);
+	    return -2;
+	}
 	line--;
 	fnum = line;
 
@@ -272,10 +280,16 @@ static int parse_input_list (ctrl_t *ctrl, flist_t **flist_tofill)
 	}
 
 	action = strchr(line, ' ');
-	if (!action) { cprintf("Syntax error at line %d", count); return -2;}
+	if (!action) {
+	    tc_log_error(MOD_NAME, "Syntax error at line %d", count);
+	    return -2;
+	}
 
 	skipws(action);
-	if (!action) { cprintf("Syntax error at line %d", count); return -2;}
+	if (!action) {
+	    tc_log_error(MOD_NAME, "Syntax error at line %d", count);
+	    return -2;
+	}
 	action--;
 
 	// fnum points to the frame number
@@ -288,7 +302,7 @@ static int parse_input_list (ctrl_t *ctrl, flist_t **flist_tofill)
 	}
 
 	if (cmd->cmd == NULL) {
-	    cprintf("Warning at line %d: unknown command (%s) found -- ignored", count, action);
+	    tc_log_warn(MOD_NAME, "Warning at line %d: unknown command (%s) found -- ignored", count, action);
 	    count++;
 	    continue;
 	}
@@ -305,7 +319,7 @@ static int parse_input_list (ctrl_t *ctrl, flist_t **flist_tofill)
     }
 
     count--;
-    cprintf("Found %d lines", count);
+    tc_log_info(MOD_NAME, "Found %d lines", count);
 
     *flist_tofill = first;
 

@@ -29,6 +29,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 /*-------------------------------------------------
@@ -71,7 +72,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     f2 = tc_malloc (SIZE_RGB_FRAME);
 
     if (!f1 || !f2) {
-	    fprintf(stderr, "[%s]: Malloc failed in %d\n", MOD_NAME, __LINE__);
+	    tc_log_error(MOD_NAME, "Malloc failed in %d", __LINE__);
 	    return -1;
     }
 

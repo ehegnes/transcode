@@ -28,6 +28,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 
 /*-------------------------------------------------
  *
@@ -88,7 +89,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
   if(ptr->tag & TC_POST_S_PROCESS && ptr->tag & TC_VIDEO) {
 
-    //printf("mycount (%d) ptr->id (%d) (%f)\n", mycount, ptr->id, (double)mycount*15.0/25.0);
+    //tc_log_msg(MOD_NAME, "mycount (%d) ptr->id (%d) (%f)", mycount, ptr->id, (double)mycount*15.0/25.0);
     if (((double)mycount*15.0)/25.0 < (double)ptr->id) {
       ptr->attributes |= TC_FRAME_IS_CLONED;
     }

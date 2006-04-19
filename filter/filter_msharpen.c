@@ -33,6 +33,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 #include "libtcvideo/tcvideo.h"
@@ -57,34 +58,35 @@ static MyFilterData *mfd;
 
 static void help_optstr(void)
 {
-  tc_log_info(MOD_NAME, "(%s) help", MOD_CAP);
-   printf ("* Overview\n");
-   printf ("    This plugin implements an unusual concept in spatial sharpening.\n");
-   printf ("    Although designed specifically for anime, it also works well with\n");
-   printf ("    normal video. The filter is very effective at sharpening important\n");
-   printf ("    edges without amplifying noise.\n");
-
-   printf ("* Options\n");
-   printf ("  * Strength 'strength' (0-255) [100]\n");
-   printf ("    This is the strength of the sharpening to be applied to the edge\n");
-   printf ("    detail areas. It is applied only to the edge detail areas as\n");
-   printf ("    determined by the 'threshold' parameter. Strength 255 is the\n");
-   printf ("    strongest sharpening.\n");
-
-   printf ("  * Threshold 'threshold' (0-255) [10]\n");
-   printf ("    This parameter determines what is detected as edge detail and\n");
-   printf ("    thus sharpened. To see what edge detail areas will be sharpened,\n");
-   printf ("    use the 'mask' parameter.\n");
-
-   printf ("  * Mask 'mask' (0-1) [0]\n");
-   printf ("    When set to true, the areas to be sharpened are shown in white\n");
-   printf ("    against a black background. Use this to set the level of detail to\n");
-   printf ("    be sharpened. This function also makes a basic edge detection filter.\n");
-
-   printf ("  * HighQ 'highq' (0-1) [1]\n");
-   printf ("    This parameter lets you tradeoff speed for quality of detail\n");
-   printf ("    detection. Set it to true for the best detail detection. Set it to\n");
-   printf ("    false for maximum speed.\n");
+    tc_log_info(MOD_NAME, "(%s) help\n"
+"* Overview\n"
+"    This plugin implements an unusual concept in spatial sharpening.\n"
+"    Although designed specifically for anime, it also works well with\n"
+"    normal video. The filter is very effective at sharpening important\n"
+"    edges without amplifying noise.\n"
+"\n"
+"* Options\n"
+"  * Strength 'strength' (0-255) [100]\n"
+"    This is the strength of the sharpening to be applied to the edge\n"
+"    detail areas. It is applied only to the edge detail areas as\n"
+"    determined by the 'threshold' parameter. Strength 255 is the\n"
+"    strongest sharpening.\n"
+"\n"
+"  * Threshold 'threshold' (0-255) [10]\n"
+"    This parameter determines what is detected as edge detail and\n"
+"    thus sharpened. To see what edge detail areas will be sharpened,\n"
+"    use the 'mask' parameter.\n"
+"\n"
+"  * Mask 'mask' (0-1) [0]\n"
+"    When set to true, the areas to be sharpened are shown in white\n"
+"    against a black background. Use this to set the level of detail to\n"
+"    be sharpened. This function also makes a basic edge detection filter.\n"
+"\n"
+"  * HighQ 'highq' (0-1) [1]\n"
+"    This parameter lets you tradeoff speed for quality of detail\n"
+"    detection. Set it to true for the best detail detection. Set it to\n"
+"    false for maximum speed.\n"
+		, MOD_CAP);
 }
 
 int tc_filter(frame_list_t *ptr_, char *options)
@@ -107,7 +109,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	mfd = tc_malloc(sizeof(MyFilterData));
 
 	if (!mfd) {
-		fprintf(stderr, "[%s] No memory at %d!\n", MOD_NAME, __LINE__); return (-1);
+		tc_log_error(MOD_NAME, "No memory at %d!\n", __LINE__);
+		return (-1);
 	}
 
 	height = vob->ex_v_height;
@@ -148,20 +151,24 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	mfd->blur = tc_malloc(4 * width * height);
 	if (!mfd->blur){
-                fprintf(stderr, "[%s] No memory at %d!\n", MOD_NAME, __LINE__); return (-1);
+                tc_log_error(MOD_NAME, "No memory at %d!\n", __LINE__);
+		return (-1);
 	}
 	mfd->work = tc_malloc(4 * width * height);
 	if (!mfd->work){
-                fprintf(stderr, "[%s] No memory at %d!\n", MOD_NAME, __LINE__); return (-1);
+                tc_log_error(MOD_NAME, "No memory at %d!\n", __LINE__);
+		return (-1);
 	}
 	mfd->convertFrameIn = tc_zalloc (width*height*4);
 	if (!mfd->convertFrameIn) {
-		fprintf(stderr, "[%s] No memory at %d!\n", MOD_NAME, __LINE__); return (-1);
+		tc_log_error(MOD_NAME, "No memory at %d!\n", __LINE__);
+		return (-1);
 	}
 
 	mfd->convertFrameOut = tc_zalloc (width*height*4);
 	if (!mfd->convertFrameOut) {
-		fprintf(stderr, "[%s] No memory at %d!\n", MOD_NAME, __LINE__); return (-1);
+		tc_log_error(MOD_NAME, "No memory at %d!\n", __LINE__);
+		return (-1);
 	}
 
 	if (vob->im_v_codec == CODEC_YUV) {

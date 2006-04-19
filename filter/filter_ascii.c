@@ -29,6 +29,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 /* For RGB->YUV conversion */
@@ -56,20 +57,22 @@ typedef struct parameter_struct{
 
 static parameter_struct *parameters = NULL;
 
-static void help_optstr(void){
-	tc_log_info (MOD_NAME, "Help:");
-	printf ("\n* Overview:\n");
-	printf("  This filter renders a video sample into colored ascii art, using the `aart` package.\n");
-	printf("  Both YUV and RGB formats are supported, in multithreaded mode.\n");
-	printf("\n* Warning:\n");
-	printf("  Rendering a video sample into colored ascii art might take a VERY LONG TIME for the moment.\n");
-	printf("  Please only consider short video samples for this very version of the filter.\n");
-
-	printf ("\n* Options:\n");
-	printf ("  'font':\tValid PSF font file (provided with the `aart` package)\n");
-	printf ("  'pallete':\tValid PAL pallete file (provided with the `aart` package)\n");
-	printf ("  'threads':\tUse multiple-threaded routine for picture rendering (recommended = 1)\n");
-	printf ("  'buffer':\tUse `aart` internal buffer for output (recommended off)\n");
+static void help_optstr(void)
+{
+    tc_log_info(MOD_NAME, "(%s) help\n"
+"\n* Overview:\n"
+"  This filter renders a video sample into colored ascii art, using the `aart` package.\n"
+"  Both YUV and RGB formats are supported, in multithreaded mode.\n"
+"\n* Warning:\n"
+"  Rendering a video sample into colored ascii art might take a VERY LONG TIME for the moment.\n"
+"  Please only consider short video samples for this very version of the filter.\n"
+"\n"
+"* Options:\n"
+"  'font':    Valid PSF font file (provided with the `aart` package)\n"
+"  'pallete': Valid PAL pallete file (provided with the `aart` package)\n"
+"  'threads': Use multiple-threaded routine for picture rendering (recommended = 1)\n"
+"  'buffer':  Use `aart` internal buffer for output (recommended off)\n"
+		, MOD_CAP);
 }
 
 static int write_tmpfile(char* header, char* content, int content_size, int slot_id){
@@ -79,7 +82,7 @@ static int write_tmpfile(char* header, char* content, int content_size, int slot
 
 	filename = tc_malloc(sizeof(char)*(strlen(TMP_FILE) + TMP_STRING_SIZE));
 	if (!filename){
-		fprintf(stderr, "[%s] ... Out of memory !!!\n", MOD_NAME);
+		tc_log_error(MOD_NAME, "Out of memory !!!");
 		return -1;
 	}
 
@@ -271,7 +274,7 @@ int tc_filter(frame_list_t *ptr_, char *options){
 
 	/* Now, let's handle the options ... */
 	if((parameters = tc_malloc (sizeof(parameter_struct))) == NULL){
-		fprintf(stderr, "[%s] ... Out of memory !!!\n", MOD_NAME);
+		tc_log_error(MOD_NAME, "Out of memory !!!");
 		return -1;
 	}
 

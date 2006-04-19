@@ -28,6 +28,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 #include <ctype.h>
@@ -48,8 +49,8 @@ static int pre[MAX_FILTER];
 
 static void optstr_help (void)
 {
-  fprintf(stderr,
-   "<filterName>[:<option>[:<option>...]][[|/][-]<filterName>[:<option>...]]...\n"
+  tc_log_info(MOD_NAME, "(%s) help\n"
+"<filterName>[:<option>[:<option>...]][[|/][-]<filterName>[:<option>...]]...\n"
 "long form example:\n"
 "vdeblock:autoq/hdeblock:autoq/linblenddeint    default,-vdeblock\n"
 "short form example:\n"
@@ -82,7 +83,8 @@ static void optstr_help (void)
 "tn     tmpnoise        (3 Thresholds)          Temporal Noise Reducer\n"
 "                       1. <= 2. <= 3.          larger -> stronger filtering\n"
 "fq     forceQuant      <quantizer>             Force quantizer\n"
-"pre    pre                                     run as a pre filter\n");
+"pre    pre                                     run as a pre filter\n"
+	      , MOD_CAP);
 }
 
 
@@ -253,7 +255,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
       height[instance]= vob->ex_v_height;
     }
 
-    //fprintf(stderr, "[%s] after pre (%s)\n", MOD_NAME, options);
+    //tc_log_msg(MOD_NAME, "after pre (%s)", options);
 
     mode[instance] = pp_get_mode_by_name_and_quality(options, PP_QUALITY_MAX);
 

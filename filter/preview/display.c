@@ -41,6 +41,8 @@
 #include "config.h"
 #endif
 
+#include "libtc/libtc.h"
+
 #if HAVE_LIBXV
 #include <sys/ipc.h>
 #include <sys/shm.h>
@@ -397,37 +399,37 @@ dv_display_Xv_init(dv_display_t *dv_dpy, char *w_name, char *i_name,
   if(Success == XvQueryAdaptors(dv_dpy->dpy, dv_dpy->rwin, &ad_cnt, &ad_info)) {
 
     for(i = 0, got_port = False; i < ad_cnt; ++i) {
-      fprintf(stderr,
-	      "Xv: %s: ports %ld - %ld\n",
-	      ad_info[i].name,
-	      ad_info[i].base_id,
-	      ad_info[i].base_id +
-	      ad_info[i].num_ports - 1);
+      tc_log_msg(__FILE__,
+		 "Xv: %s: ports %ld - %ld",
+		 ad_info[i].name,
+		 ad_info[i].base_id,
+		 ad_info[i].base_id +
+		 ad_info[i].num_ports - 1);
 
       if (dv_dpy->arg_xv_port != 0 &&
 	      (dv_dpy->arg_xv_port < ad_info[i].base_id ||
 	       dv_dpy->arg_xv_port >= ad_info[i].base_id+ad_info[i].num_ports)) {
-	  fprintf(stderr,
-		    "Xv: %s: skipping (looking for port %i)\n",
+	  tc_log_msg(__FILE__,
+		    "Xv: %s: skipping (looking for port %i)",
 		    ad_info[i].name,
 		    dv_dpy->arg_xv_port);
 	  continue;
       }
 
       if (!(ad_info[i].type & XvImageMask)) {
-	fprintf(stderr,
-		"Xv: %s: XvImage NOT in capabilty list (%s%s%s%s%s )\n",
-		ad_info[i].name,
-		(ad_info[i].type & XvInputMask) ? " XvInput"  : "",
-		(ad_info[i]. type & XvOutputMask) ? " XvOutput" : "",
-		(ad_info[i]. type & XvVideoMask)  ?  " XvVideo"  : "",
-		(ad_info[i]. type & XvStillMask)  ?  " XvStill"  : "",
-		(ad_info[i]. type & XvImageMask)  ?  " XvImage"  : "");
+	tc_log_warn(__FILE__,
+		    "Xv: %s: XvImage NOT in capabilty list (%s%s%s%s%s )",
+		    ad_info[i].name,
+		    (ad_info[i].type & XvInputMask) ? " XvInput"  : "",
+		    (ad_info[i]. type & XvOutputMask) ? " XvOutput" : "",
+		    (ad_info[i]. type & XvVideoMask)  ?  " XvVideo"  : "",
+		    (ad_info[i]. type & XvStillMask)  ?  " XvStill"  : "",
+		    (ad_info[i]. type & XvImageMask)  ?  " XvImage"  : "");
 	continue;
       } /* if */
       fmt_info = XvListImageFormats(dv_dpy->dpy, ad_info[i].base_id,&fmt_cnt);
       if (!fmt_info || fmt_cnt == 0) {
-	fprintf(stderr, "Xv: %s: NO supported formats\n", ad_info[i].name);
+	tc_log_warn(__FILE__, "Xv: %s: NO supported formats", ad_info[i].name);
 	continue;
       } /* if */
       for(got_fmt = False, k = 0; k < fmt_cnt; ++k) {
@@ -437,14 +439,18 @@ dv_display_Xv_init(dv_display_t *dv_dpy, char *w_name, char *i_name,
 	} /* if */
       } /* for */
       if (!got_fmt) {
-	fprintf(stderr,
-		"Xv: %s: format %#08x is NOT in format list ( ",
-		ad_info[i].name,
-                dv_dpy->format);
+	char tmpbuf[1000];
+	*tmpbuf = 0;
 	for (k = 0; k < fmt_cnt; ++k) {
-	  fprintf (stderr, "%#08x[%s] ", fmt_info[k].id, fmt_info[k].guid);
+	  tc_snprintf(tmpbuf+strlen(tmpbuf), sizeof(tmpbuf)-strlen(tmpbuf),
+		      "%s%#08x[%s]", k>0 ? " " : "", fmt_info[k].id,
+		      fmt_info[k].guid);
 	}
-	fprintf(stderr, ")\n");
+	tc_log_warn(__FILE__,
+		    "Xv: %s: format %#08x is NOT in format list (%s)",
+		    ad_info[i].name,
+		    dv_dpy->format,
+		    tmpbuf);
 	continue;
       } /* if */
 
@@ -453,8 +459,8 @@ dv_display_Xv_init(dv_display_t *dv_dpy, char *w_name, char *i_name,
 	  ++k, ++(dv_dpy->port)) {
 	if (dv_dpy->arg_xv_port != 0 && dv_dpy->arg_xv_port != dv_dpy->port) continue;
 	if(!XvGrabPort(dv_dpy->dpy, dv_dpy->port, CurrentTime)) {
-	  fprintf(stderr, "Xv: grabbed port %ld\n",
-		  dv_dpy->port);
+	  tc_log_msg(__FILE__, "Xv: grabbed port %ld",
+		     dv_dpy->port);
 	  got_port = True;
 	  break;
 	} /* if */
@@ -469,11 +475,11 @@ dv_display_Xv_init(dv_display_t *dv_dpy, char *w_name, char *i_name,
   } /* else */
 
   if(!ad_cnt) {
-    fprintf(stderr, "Xv: (ERROR) no adaptor found!\n");
+    tc_log_warn(__FILE__, "Xv: (ERROR) no adaptor found!");
     return 0;
   }
   if(!got_port) {
-    fprintf(stderr, "Xv: (ERROR) could not grab any port!\n");
+    tc_log_warn(__FILE__, "Xv: (ERROR) could not grab any port!");
     return 0;
   }
 
@@ -650,7 +656,7 @@ dv_display_SDL_init(dv_display_t *dv_dpy, char *w_name, char *i_name) {
 
 static int
 dv_display_SDL_init(dv_display_t *dv_dpy, char *w_name, char *i_name) {
-  fprintf(stderr,"playdv was compiled without SDL support\n");
+  tc_log_warn(__FILE__,"playdv was compiled without SDL support");
   return(FALSE);
 } /* dv_display_SDL_init */
 
@@ -706,11 +712,11 @@ dv_display_init(dv_display_t *dv_dpy, int *argc, char ***argv, int width, int he
 			  dv_dpy->arg_size_val)) {
       goto Xv_ok;
     } else {
-      fprintf(stderr, "Attempt to display via Xv failed\n");
+      tc_log_error(__FILE__, "Attempt to display via Xv failed");
       goto fail;
     }
 #else /* HAVE_LIBXV */
-    fprintf(stderr, "Attempt to display via Xv failed\n");
+    tc_log_error(__FILE__, "Attempt to display via Xv failed");
     goto fail;
 #endif /* HAVE_LIBXV */
     break;
@@ -719,7 +725,7 @@ dv_display_init(dv_display_t *dv_dpy, int *argc, char ***argv, int width, int he
     if(dv_display_SDL_init(dv_dpy, w_name, i_name)) {
       goto SDL_ok;
     } else {
-      fprintf(stderr, "Attempt to display via SDL failed\n");
+      tc_log_error(__FILE__, "Attempt to display via SDL failed");
       goto fail;
     }
     break;
@@ -729,13 +735,13 @@ dv_display_init(dv_display_t *dv_dpy, int *argc, char ***argv, int width, int he
 
 #if HAVE_LIBXV
  Xv_ok:
-  fprintf(stderr, " Using Xv for display\n");
+  tc_log_info(__FILE__, " Using Xv for display");
   dv_dpy->lib = e_dv_dpy_Xv;
   goto yuv_ok;
 #endif /* HAVE_LIBXV */
 
  SDL_ok:
-  fprintf(stderr, " Using SDL for display\n");
+  tc_log_info(__FILE__, " Using SDL for display");
   dv_dpy->lib = e_dv_dpy_SDL;
   goto yuv_ok;
 
@@ -765,16 +771,16 @@ dv_display_init(dv_display_t *dv_dpy, int *argc, char ***argv, int width, int he
   dv_dpy->lib = e_dv_dpy_gtk;
   dv_dpy->len = dv_dpy->width * dv_dpy->height * 3;
   if(!dv_display_gdk_init(dv_dpy, argc, argv)) {
-    fprintf(stderr,"Attempt to use gtk for display failed\n");
+    tc_log_error(__FILE__, "Attempt to use gtk for display failed");
     goto fail;
   } /* if  */
   dv_dpy->pitches[0] = width * 3;
-  fprintf(stderr, " Using gtk for display\n");
+  tc_log_info(__FILE__, " Using gtk for display");
 
  ok:
   return(TRUE);
 
  fail:
-  fprintf(stderr, " Unable to establish a display method\n");
+  tc_log_error(__FILE__, " Unable to establish a display method");
   return(FALSE);
 } /* dv_display_init */

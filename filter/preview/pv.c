@@ -155,9 +155,9 @@ void xv_display_event (xv_display_t *dv_dpy)
 
     // tibit: Poll for a socket message
     if (sockmsg) {
-	//printf("[%s]: Got char (%c)\n", "filter_pv", sockmsg);
+	//tc_log_msg(__FILE__, "Got char (%c)", sockmsg);
 	arg = TC_SOCK_GET_ARG(sockmsg);
-	//printf("FILTER: (%d)\n", arg);
+	//tc_log_msg(__FILE__, "FILTER: (%d)", arg);
 	switch (sockmsg & TC_SOCK_COMMAND_MASK) {
 	    case TC_SOCK_PV_DRAW:
 		sockmsg = TC_SOCK_PV_NONE;
@@ -266,7 +266,7 @@ void xv_display_event (xv_display_t *dv_dpy)
 	      //print to socket
 	      tc_socket_submit (buf);
 	      //print elsewhere
-	      fprintf(stderr, "%s", buf);
+	      tc_log_msg(__FILE__, "%s", buf);
 	      // white
 	      XSetForeground(dv_dpy->dpy,dv_dpy->gc, 0xFFFFFFFFUL);
 	      XDrawRectangle(dv_dpy->dpy,dv_dpy->win,dv_dpy->gc,
@@ -434,41 +434,42 @@ static int xv_display_Xv_init(xv_display_t *dv_dpy, char *w_name, char *i_name,
   /*
    * So let's first check for an available adaptor and port
    */
+  /* Note: this is identical to the similar section in display.c  --AC */
 
   if(Success == XvQueryAdaptors(dv_dpy->dpy, dv_dpy->rwin, &ad_cnt, &ad_info)) {
 
     for(i = 0, got_port = False; i < ad_cnt; ++i) {
-      fprintf(stderr,
-	      "Xv: %s: ports %ld - %ld\n",
-	      ad_info[i].name,
-	      ad_info[i].base_id,
-	      ad_info[i].base_id +
-	      ad_info[i].num_ports - 1);
+      tc_log_msg(__FILE__,
+		 "Xv: %s: ports %ld - %ld",
+		 ad_info[i].name,
+		 ad_info[i].base_id,
+		 ad_info[i].base_id +
+		 ad_info[i].num_ports - 1);
 
       if (dv_dpy->arg_xv_port != 0 &&
 	      (dv_dpy->arg_xv_port < ad_info[i].base_id ||
 	       dv_dpy->arg_xv_port >= ad_info[i].base_id+ad_info[i].num_ports)) {
-	  fprintf(stderr,
-		    "Xv: %s: skipping (looking for port %i)\n",
+	  tc_log_msg(__FILE__,
+		    "Xv: %s: skipping (looking for port %i)",
 		    ad_info[i].name,
 		    dv_dpy->arg_xv_port);
 	  continue;
       }
 
       if (!(ad_info[i].type & XvImageMask)) {
-	fprintf(stderr,
-		"Xv: %s: XvImage NOT in capability list (%s%s%s%s%s )\n",
-		ad_info[i].name,
-		(ad_info[i].type & XvInputMask) ? " XvInput"  : "",
-		(ad_info[i]. type & XvOutputMask) ? " XvOutput" : "",
-		(ad_info[i]. type & XvVideoMask)  ?  " XvVideo"  : "",
-		(ad_info[i]. type & XvStillMask)  ?  " XvStill"  : "",
-		(ad_info[i]. type & XvImageMask)  ?  " XvImage"  : "");
+	tc_log_warn(__FILE__,
+		    "Xv: %s: XvImage NOT in capabilty list (%s%s%s%s%s )",
+		    ad_info[i].name,
+		    (ad_info[i].type & XvInputMask) ? " XvInput"  : "",
+		    (ad_info[i]. type & XvOutputMask) ? " XvOutput" : "",
+		    (ad_info[i]. type & XvVideoMask)  ?  " XvVideo"  : "",
+		    (ad_info[i]. type & XvStillMask)  ?  " XvStill"  : "",
+		    (ad_info[i]. type & XvImageMask)  ?  " XvImage"  : "");
 	continue;
       } /* if */
       fmt_info = XvListImageFormats(dv_dpy->dpy, ad_info[i].base_id,&fmt_cnt);
       if (!fmt_info || fmt_cnt == 0) {
-	fprintf(stderr, "Xv: %s: NO supported formats\n", ad_info[i].name);
+	tc_log_warn(__FILE__, "Xv: %s: NO supported formats", ad_info[i].name);
 	continue;
       } /* if */
       for(got_fmt = False, k = 0; k < fmt_cnt; ++k) {
@@ -478,14 +479,18 @@ static int xv_display_Xv_init(xv_display_t *dv_dpy, char *w_name, char *i_name,
 	} /* if */
       } /* for */
       if (!got_fmt) {
-	fprintf(stderr,
-		"Xv: %s: format %#08x is NOT in format list ( ",
-		ad_info[i].name,
-                dv_dpy->format);
+	char tmpbuf[1000];
+	*tmpbuf = 0;
 	for (k = 0; k < fmt_cnt; ++k) {
-	  fprintf (stderr, "%#08x[%s] ", fmt_info[k].id, fmt_info[k].guid);
+	  tc_snprintf(tmpbuf+strlen(tmpbuf), sizeof(tmpbuf)-strlen(tmpbuf),
+		      "%s%#08x[%s]", k>0 ? " " : "", fmt_info[k].id,
+		      fmt_info[k].guid);
 	}
-	fprintf(stderr, ")\n");
+	tc_log_warn(__FILE__,
+		    "Xv: %s: format %#08x is NOT in format list (%s)",
+		    ad_info[i].name,
+		    dv_dpy->format,
+		    tmpbuf);
 	continue;
       } /* if */
 
@@ -494,8 +499,8 @@ static int xv_display_Xv_init(xv_display_t *dv_dpy, char *w_name, char *i_name,
 	  ++k, ++(dv_dpy->port)) {
 	if (dv_dpy->arg_xv_port != 0 && dv_dpy->arg_xv_port != dv_dpy->port) continue;
 	if(!XvGrabPort(dv_dpy->dpy, dv_dpy->port, CurrentTime)) {
-	  fprintf(stderr, "Xv: grabbed port %ld\n",
-		  dv_dpy->port);
+	  tc_log_msg(__FILE__, "Xv: grabbed port %ld",
+		     dv_dpy->port);
 	  got_port = True;
 	  break;
 	} /* if */
@@ -510,11 +515,11 @@ static int xv_display_Xv_init(xv_display_t *dv_dpy, char *w_name, char *i_name,
   } /* else */
 
   if(!ad_cnt) {
-    fprintf(stderr, "Xv: (ERROR) no adaptor found!\n");
+    tc_log_warn(__FILE__, "Xv: (ERROR) no adaptor found!");
     return 0;
   }
   if(!got_port) {
-    fprintf(stderr, "Xv: (ERROR) could not grab any port!\n");
+    tc_log_warn(__FILE__, "Xv: (ERROR) could not grab any port!");
     return 0;
   }
 
@@ -660,12 +665,12 @@ int xv_display_init(xv_display_t *dv_dpy, int *argc, char ***argv, int width, in
 			dv_dpy->arg_size_val)) {
     goto Xv_ok;
   } else {
-    fprintf(stderr, "Attempt to display via Xv failed\n");
+    tc_log_error(__FILE__, "Attempt to display via Xv failed");
     goto fail;
   }
 
  Xv_ok:
-  fprintf(stderr, "Using Xv for display\n");
+  tc_log_info(__FILE__, "Using Xv for display");
   dv_dpy->lib = e_dv_dpy_Xv;
   dv_dpy->color_space = e_dv_color_yuv;
 
@@ -689,7 +694,7 @@ int xv_display_init(xv_display_t *dv_dpy, int *argc, char ***argv, int width, in
   return(0);
 
  fail:
-  fprintf(stderr, "Unable to establish a display method\n");
+  tc_log_error(__FILE__, "Unable to establish a display method");
   return(-1);
 } // xv_display_init
 
@@ -721,12 +726,12 @@ int DoSelection(XButtonEvent *ev, int *xanf, int *yanf, int *xend, int *yend)
       *yend = ev->y;
       lastClickButton=Button3;
 
-      //printf ("** x (%d) y (%d) h (%d) w (%d)\n", *xanf, *yanf, *xend-*xanf, *yend-*yanf);
+      //tc_log_msg(__FILE__, "** x (%d) y (%d) h (%d) w (%d)", *xanf, *yanf, *xend-*xanf, *yend-*yanf);
       rv = 1;
     }
 
   } else if (ev->button == Button2) {      /* do a drag & drop operation */
-    printf ("** Button2\n");
+    tc_log_msg(__FILE__, "** Button2");
   }
 
   lastClickTime   = ev->time;

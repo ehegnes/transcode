@@ -81,6 +81,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 static vob_t *vob=NULL;
@@ -124,22 +125,23 @@ static logoaway_data *data[MAX_FILTER];
  *********************************************************/
 static void help_optstr(void)
 {
-   tc_log_info (MOD_NAME, "(%s) help\n", MOD_CAP);
-   printf ("* Overview                                                                \n");
-   printf ("    This filter removes an image in a user specified area from the video. \n");
-   printf ("    You can choose from different methods.                                \n");
-   printf ("                                                                          \n");
-   printf ("* Options                                                                 \n");
-   printf ("       'range' Frame Range      (0-oo)                        [0-end]     \n");
-   printf ("         'pos' Position         (0-width x 0-height)          [0x0]       \n");
-   printf ("        'size' Size             (0-width x 0-height)          [10x10]     \n");
-   printf ("        'mode' Filter Mode      (0=none,1=solid,2=xy,3=shape) [0]         \n");
-   printf ("      'border' Visible Border                                             \n");
-   printf ("        'dump' Dump filter area to file                                   \n");
-   printf ("     'xweight' X-Y Weight       (0%%-100%%)                   [50]        \n");
-   printf ("        'fill' Solid Fill Color (RRGGBB)                      [000000]    \n");
-   printf ("        'file' Image with alpha/shape information             []          \n");
-   printf ("                                                                          \n");
+    tc_log_info(MOD_NAME, "(%s) help\n"
+"* Overview\n"
+"    This filter removes an image in a user specified area from the video.\n"
+"    You can choose from different methods.\n"
+"\n"
+"* Options\n"
+"       'range' Frame Range      (0-oo)                        [0-end]\n"
+"         'pos' Position         (0-width x 0-height)          [0x0]\n"
+"        'size' Size             (0-width x 0-height)          [10x10]\n"
+"        'mode' Filter Mode      (0=none,1=solid,2=xy,3=shape) [0]\n"
+"      'border' Visible Border\n"
+"        'dump' Dump filter area to file\n"
+"     'xweight' X-Y Weight       (0%%-100%%)                   [50]\n"
+"        'fill' Solid Fill Color (RRGGBB)                      [000000]\n"
+"        'file' Image with alpha/shape information             []\n"
+"\n"
+		, MOD_CAP);
 }
 
 
@@ -636,7 +638,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if((vob = tc_get_vob())==NULL) return(-1);
 
     if((data[instance] = tc_malloc (sizeof(logoaway_data))) == NULL) {
-      fprintf (stderr, "[%s] can't allocate filter data\n", __FILE__);
+      tc_log_error(MOD_NAME, "can't allocate filter data");
       return (-1);
     }
 
@@ -746,7 +748,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
       }
       if(data[instance]->dump) {
         if((data[instance]->dump_buf = tc_malloc ((data[instance]->width-data[instance]->xpos)*(data[instance]->height-data[instance]->ypos)*3)) == NULL)
-          fprintf (stderr, "[%s] out of memory\n", __FILE__);
+          tc_log_error(MOD_NAME, "out of memory");
 
         data[instance]->dumpimage_info = CloneImageInfo((ImageInfo *) NULL);
       }

@@ -30,8 +30,7 @@ FILE *fptr;
 
 if(debug_flag)
 	{
-	fprintf(stdout,\
-	"load_ppml_file(): arg pathfilename=%s\n", pathfilename);
+	tc_log_msg(MOD_NAME, "load_ppml_file(): arg pathfilename=%s", pathfilename);
 	}
 
 /* argument check */
@@ -40,7 +39,7 @@ if(! pathfilename) return 0;
 fptr = fopen(pathfilename, "r");
 if(! fptr)
 	{
-	fprintf(stdout, "Could not open file %s for read", pathfilename);
+	tc_log_msg(MOD_NAME, "Could not open file %s for read", pathfilename);
 
 	return 0;
 	}
@@ -48,7 +47,7 @@ if(! fptr)
 /* load the .xste file into the structure list */
 if(! read_in_ppml_file(fptr) )
 	{
-	printf("subtitler(): read_in_ppml_file(): failed\n");
+	tc_log_msg(MOD_NAME, "subtitler(): read_in_ppml_file(): failed");
 
 	return 0;
 	}
@@ -95,11 +94,11 @@ while(1)
 		{
 		return 1;
 		}
-//fprintf(stdout, "WAS readline_ppml temp=%s strlen(temp)=%d\n", temp, strlen(temp) );
+//tc_log_msg(MOD_NAME, "WAS readline_ppml temp=%s strlen(temp)=%d", temp, strlen(temp) );
 
 	if(debug_flag)
 	{
-		fprintf(stdout, "read_in_ppml_file(): line read=%s\n", temp);
+		tc_log_msg(MOD_NAME, "read_in_ppml_file(): line read=%s", temp);
 		}
 
 	/* scip emty lines */
@@ -129,7 +128,7 @@ while(1)
 
 		if(! ptr)
 			{
-			printf("subtitler(): strsave() malloc failed\n");
+			tc_log_msg(MOD_NAME, "subtitler(): strsave() malloc failed");
 
 			exit(1);
 			}
@@ -143,8 +142,7 @@ while(1)
 			ptr = strsave("");
 			if(! ptr)
 				{
-				printf(\
-			"subtitler(): load_ppml_file(): strsave() failed, aborting\n");
+				tc_log_msg(MOD_NAME, "subtitler(): load_ppml_file(): strsave() failed, aborting");
 
 				exit(1);
 				}
@@ -171,7 +169,7 @@ while(1)
 			fptr2 = fopen(ptr, "r");
 			if(!fptr2)
 				{
-				printf("subtitler(): file %s not found, aborting\n",\
+				tc_log_msg(MOD_NAME, "subtitler(): file %s not found, aborting",\
 				ptr);
 
 				exit(1);
@@ -188,8 +186,7 @@ while(1)
 			ptr = strsave("");
 			if(! ptr)
 				{
-				printf(\
-			"subtitler(): load_ppml_file(): strsave() failed, aborting\n");
+				tc_log_msg(MOD_NAME, "subtitler(): load_ppml_file(): strsave() failed, aborting");
 
 				exit(1);
 				}
@@ -201,15 +198,15 @@ while(1)
 			ptr = strsave(""); // no arguments
 			if(! ptr)
 				{
-				printf("subtitler(): strsave() malloc failed\n");
+				tc_log_msg(MOD_NAME, "subtitler(): strsave() malloc failed");
 
 				exit(1);
 				}
 			}
 		else /* syntax error?, fatal */
 			{
-			printf("subtitler(): ppml file: line %d\n\
-			unknow object type referenced: %s, aborting\n",\
+			tc_log_msg(MOD_NAME, "subtitler(): ppml file: line %d\n\
+			unknow object type referenced: %s, aborting",\
 			line_number, arg1);
 
 			exit(1);
@@ -217,9 +214,8 @@ while(1)
 
 		if(arguments_read < arguments)
 			{
-			printf(\
-			"subtitler(): read_in_ppml_file(): parse error in line %d\n\
-			arguments required=%d, arguments_read=%d\n",\
+			tc_log_msg(MOD_NAME, "subtitler(): read_in_ppml_file(): parse error in line %d\n\
+			arguments required=%d, arguments_read=%d",\
 			line_number, arguments, a);
 
 			exit(1);
@@ -238,7 +234,7 @@ while(1)
 		cptr = ppm_to_yuv_in_char(ptr, &xsize, &ysize);
 		if(! cptr)
 			{
-			printf("subtitler(): could not read file %s\n", ptr1);
+			tc_log_msg(MOD_NAME, "subtitler(): could not read file %s", ptr1);
 
 			exit(1);
 			}
@@ -284,9 +280,8 @@ while(1)
 		thread_arg = strsave(temp);
 		if(! thread_arg)
 			{
-			printf(\
-			"subtitler(): read_in_ppml_file():\n\
-			malloc thread_arg failed, aborting\n");
+			tc_log_msg(MOD_NAME, "subtitler(): read_in_ppml_file():\n\
+			malloc thread_arg failed, aborting");
 
 			exit(1);
 			}
@@ -310,9 +305,8 @@ while(1)
 	start_frame += frame_offset;
 	if(start_frame < 1)
 		{
-		fprintf(stdout,\
-		"subtitler(): read_in_ppml_file(): WARNING:\n\
-	line %d frame %d frame_offset %d causes frame values < 1\n",\
+		tc_log_msg(MOD_NAME, "subtitler(): read_in_ppml_file(): WARNING:\n\
+	line %d frame %d frame_offset %d causes frame values < 1",\
 		line_number, start_frame, frame_offset);
 
 		/* no exit here, also alert on *main etc */
@@ -342,7 +336,7 @@ while(1)
 		*/
 		if(! set_end_frame(old_start_frame, start_frame) )
 			{
-			printf("subtitler(): could not set end_frame=%d for frame=%d\n",\
+			tc_log_msg(MOD_NAME, "subtitler(): could not set end_frame=%d for frame=%d",\
 			start_frame, old_start_frame);
 			}
 
@@ -362,8 +356,7 @@ while(1)
 	xsize, ysize, zsize,\
 	id) )
 		{
-		printf(\
-		"subtitler(): could not add_frame start_frame=%d, aborting\n",\
+		tc_log_msg(MOD_NAME, "subtitler(): could not add_frame start_frame=%d, aborting",\
 		start_frame);
 
 		/* close input file */
@@ -391,7 +384,7 @@ int quote_flag;
 
 if(debug_flag)
 	{
-	fprintf(stdout, "movie_routine(): arg helper_flags=%s\n", helper_flags);
+	tc_log_msg(MOD_NAME, "movie_routine(): arg helper_flags=%s", helper_flags);
 	}
 
 strlcpy(helper_program, "transcode", sizeof(helper_program)); /* program name */
@@ -461,7 +454,7 @@ if(debug_flag)
 	{
 	for(i = 0; execv_args[i][0] != 0; i++)
 		{
-		fprintf(stdout, "i=%d execv_args[i]=%s flip[i]=%s\n",\
+		tc_log_msg(MOD_NAME, "i=%d execv_args[i]=%s flip[i]=%s",\
 		i, execv_args[i], flip[i]);
 		}
 	}
@@ -469,7 +462,7 @@ if(debug_flag)
 /* report to user */
 if(debug_flag)
 	{
-	fprintf(stdout, "Starting helper program %s %s\n",\
+	tc_log_msg(MOD_NAME, "Starting helper program %s %s",\
 	helper_program, temp);
 	}
 
@@ -488,8 +481,7 @@ if(pid == 0)/* in child */
 		{
 		if(debug_flag)
 			{
-			fprintf(stdout,\
-			"\nCannot start helper program execvp failed: %s %s errno=%d",\
+			tc_log_msg(MOD_NAME, "Cannot start helper program execvp failed: %s %s errno=%d",\
 			helper_program, temp, errno);
 			}
 		return(0);
@@ -497,7 +489,7 @@ if(pid == 0)/* in child */
 	}
 else if(pid < 0)/* fork failed */
 	{
-	printf("subtitler(): Helper program fork failed\n");
+	tc_log_msg(MOD_NAME, "subtitler(): Helper program fork failed");
 
 	return(0);
 	}
@@ -515,7 +507,7 @@ int status;
 
 if(debug_flag)
 	{
-	fprintf (stdout, "readline_ppml(): arg file=%lu\n", (long)file);
+	tc_log_msg(MOD_NAME, "readline_ppml(): arg file=%lu\n", (long)file);
 	}
 
 /* a back-slash before a \n signals a continuation of the current line */
@@ -589,8 +581,7 @@ line_number++;
 
 if(debug_flag)
 	{
-	printf(\
-	"readline_ppml(): line %d to long, returning 0 contents=%s\n",\
+	tc_log_msg(MOD_NAME, "readline_ppml(): line %d to long, returning 0 contents=%s",\
 	line_number, contents);
 	}
 

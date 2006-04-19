@@ -52,8 +52,7 @@ cv = .5 / (1.0 - cr);
 fptr = fopen(pathfilename, "rb");
 if(!fptr)
 	{
-	fprintf(stdout,\
-	"subtitler(): ppm_to_yuv_in_char(): could not open file %s for read\n", pathfilename);
+	tc_log_msg(MOD_NAME, "subtitler(): ppm_to_yuv_in_char(): could not open file %s for read\n", pathfilename);
 
 	strerror(errno);
 	return 0;
@@ -95,7 +94,7 @@ while(1)
 	if(c == EOF)
 		{
 		fclose(fptr);
-		fprintf(stdout, "ppm_to_yuv_in_char(): early EOF in header\n");
+		tc_log_msg(MOD_NAME, "ppm_to_yuv_in_char(): early EOF in header\n");
 		return 0;
 		}
 
@@ -109,7 +108,7 @@ while(1)
 	if( (c == '\n') || (c == '\t') || (c == '\r') || (c == ' ') )
 		{
 		temp[i] = 0;
-//printf("j=%d i=%d temp=%s\n", j, i, temp);
+//tc_log_msg(MOD_NAME, "j=%d i=%d temp=%s\n", j, i, temp);
 
 		/* test if a field present in line */
 		if(i != 0)
@@ -128,8 +127,7 @@ while(1)
 
 if(debug_flag)
 	{
-	fprintf(stdout,\
-	"ppm_to_yuv_in_char(): width=%d height=%d maxval=%d\n",\
+	tc_log_msg(MOD_NAME, "ppm_to_yuv_in_char(): width=%d height=%d maxval=%d\n",\
 	width, height, maxval);
 	}
 
@@ -139,7 +137,7 @@ if(debug_flag)
 buffer = (char *) malloc(width * height * 3); // should be 2 ?
 if(! buffer)
 	{
-	printf("subtitler(): ppm_to_yuv_in_char(): malloc buffer failed\n");
+	tc_log_msg(MOD_NAME, "subtitler(): ppm_to_yuv_in_char(): malloc buffer failed\n");
 
 	return 0;
 	}
@@ -151,7 +149,7 @@ for (i = 0; i < height; i++)
 	/* write Y, U, Y, V */
 	if(debug_flag)
 		{
-		fprintf(stdout, "ppm_to_yuv_in_char(): i=%d j=%d\n", i, j);
+		tc_log_msg(MOD_NAME, "ppm_to_yuv_in_char(): i=%d j=%d\n", i, j);
 		}
 
 	u_time = 1;
@@ -169,7 +167,7 @@ for (i = 0; i < height; i++)
 
 		if(r == EOF)
 			{
-			fprintf(stdout, "ppm_to_yuv_in_char(): early EOF r\n");
+			tc_log_msg(MOD_NAME, "ppm_to_yuv_in_char(): early EOF r\n");
 			/*
 			this is a hack to fix early EOF in the output from cjpeg
 			Substitute black.
@@ -190,7 +188,7 @@ for (i = 0; i < height; i++)
 			}
 		if(g == EOF)
 			{
-			fprintf(stdout, "ppm_to_yuv_in_char(): early EOF g\n");
+			tc_log_msg(MOD_NAME, "ppm_to_yuv_in_char(): early EOF g\n");
 			g = 0;
 /*			break;*/
 			}
@@ -206,7 +204,7 @@ for (i = 0; i < height; i++)
 			}
 		if(b == EOF)
 			{
-			fprintf(stdout, "ppm_to_yuv_in_char(): early EOF b\n");
+			tc_log_msg(MOD_NAME, "ppm_to_yuv_in_char(): early EOF b\n");
 			b = 0;
 /*			break;*/
 			}
@@ -265,8 +263,7 @@ int odd_xsize;
 
 if(debug_flag)
 	{
-	printf(\
-	"subtitler(): yuv_to_ppm(): arg data=%lu\n\
+	tc_log_msg(MOD_NAME, "subtitler(): yuv_to_ppm(): arg data=%lu\n\
 	xsize=%d ysize=%d filename=%s\n",\
 	(unsigned long)data, xsize, ysize, filename);
 	}
@@ -275,7 +272,7 @@ if(debug_flag)
 fptr = fopen(filename, "w");
 if(! fptr)
 	{
-	printf("subtitler(): yuv_to_ppm(): could not open %s for write\n",\
+	tc_log_msg(MOD_NAME, "subtitler(): yuv_to_ppm(): could not open %s for write\n",\
 	filename);
 
 	return 0;

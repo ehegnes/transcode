@@ -28,6 +28,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 #ifdef HAVE_STDINT_H
@@ -130,7 +131,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     vol = (fmin<fmax) ? 1./fmax : 1./fmin;
 
-    //    printf("[%s] audio frames=%.2f, estimated clip length=%.2f seconds\n", MOD_NAME, frames, frames/fps);
+    //tc_log_msg(MOD_NAME, "audio frames=%.2f, estimated clip length=%.2f seconds\n", frames, frames/fps);
     tc_log_info(MOD_NAME, "(min=%.3f/max=%.3f), "
                           "normalize volume with \"-s %.3f\"",
                           -fmin, fmax, vol);

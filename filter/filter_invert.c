@@ -28,6 +28,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 
@@ -52,11 +53,12 @@ static MyFilterData *mfd = NULL;
 
 static void help_optstr(void)
 {
-   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
-   printf ("* Overview\n");
-   printf ("    Invert an image\n");
-   printf ("* Options\n");
-   printf ("    'range' apply filter to [start-end]/step frames [0-oo/1]\n");
+    tc_log_info(MOD_NAME, "(%s) help\n"
+"* Overview\n"
+"    Invert an image\n"
+"* Options\n"
+"    'range' apply filter to [start-end]/step frames [0-oo/1]\n"
+		, MOD_CAP);
 }
 
 int tc_filter(frame_list_t *ptr_, char *options)

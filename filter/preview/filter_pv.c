@@ -514,18 +514,18 @@ void preview_filter(void)
     filter_handle = plugin_get_handle (filter_name);
 
     this_filter  = plugin_find_id ("pv");
-    fprintf (stderr, "[%s] this_filter (%d)\n", MOD_NAME, this_filter);
+    tc_log_msg(MOD_NAME, "this_filter (%d)", this_filter);
 
     // we now have a valid ID
     if ( (config = filter_single_readconf(filter_handle)) == NULL) {
-	fprintf(stderr, "[%s] Filter \"%s\" can not be configured.\n", MOD_NAME, filter_name);
+	tc_log_warn(MOD_NAME, "Filter \"%s\" can not be configured.", filter_name);
     }
 
     if ((g = fopen(tmpfile, "w")) != NULL) {
 	fputs (config, g);
 	fclose (g);
     } else {
-	fprintf(stderr, "[%s] unable to write to %s.\n", MOD_NAME, tmpfile);
+	tc_log_warn(MOD_NAME, "unable to write to %s.\n", tmpfile);
 	return;
     }
 
@@ -535,7 +535,7 @@ void preview_filter(void)
     } else
 	frames_needed = 1;
 
-    printf ("XXX optstr_frames_needed:(%d)\n", frames_needed);
+    tc_log_msg(MOD_NAME, "XXX optstr_frames_needed:(%d)", frames_needed);
 
 
     free (config);
@@ -562,7 +562,7 @@ void preview_filter(void)
 
     buf[strlen(buf)-1] = '\0';
 
-    //fprintf(stderr, "XX buf (%s)", buf);
+    //tc_log_msg(MOD_NAME, "XX buf (%s)", buf);
     // XXX
     if (buf && *buf)
 	filter_single_configure_handle (filter_handle, strchr (buf, '='));

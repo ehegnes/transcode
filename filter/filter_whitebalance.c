@@ -31,6 +31,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 #include "libtcvideo/tcvideo.h"
@@ -133,7 +134,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		if (!buffer)
 			buffer = tc_malloc(SIZE_RGB_FRAME);
 		if (!buffer) {
-			fprintf(stderr, "[%s] ERROR: Could not allocate %d bytes\n",
+			tc_log_error(MOD_NAME, "Could not allocate %d bytes",
                             MOD_NAME, SIZE_RGB_FRAME);
 			return -1;
 		}

@@ -40,6 +40,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 #include <math.h>
@@ -88,16 +89,16 @@ extern int rgbswap;
 
 static void help_optstr(void)
 {
-	tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
-	printf ("* Overview\n");
-	printf ("    Generate a file in with information about the times, \n");
-	printf ("    frame, etc the pattern defined in the image \n");
-	printf ("    parameter is observed.\n");
-	printf ("* Options\n");
-	printf ("    'pattern' path to the file used like pattern\n");
-	printf ("    'results' path to the file used to write the results\n");
-	printf ("    'delta' delta error allowed\n");
-
+    tc_log_info(MOD_NAME, "(%s) help"
+"* Overview\n"
+"    Generate a file in with information about the times, \n"
+"    frame, etc the pattern defined in the image \n"
+"    parameter is observed.\n"
+"* Options\n"
+"    'pattern' path to the file used like pattern\n"
+"    'results' path to the file used to write the results\n"
+"    'delta' delta error allowed\n"
+		, MOD_CAP);
 }
 
 
@@ -171,10 +172,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
 			optstr_get(options, "delta", "%f", &compare[instance]->delta);
 
 			if (verbose > 1) {
-			tc_log_info(MOD_NAME, "Compare Image Settings:");
-			printf("      pattern = %s\n", pattern_name);
-			printf("      results = %s\n", results_name);
-			printf("        delta = %f\n", compare[instance]->delta);
+				tc_log_info(MOD_NAME, "Compare Image Settings:");
+				tc_log_info(MOD_NAME, "      pattern = %s\n", pattern_name);
+				tc_log_info(MOD_NAME, "      results = %s\n", results_name);
+				tc_log_info(MOD_NAME, "        delta = %f\n", compare[instance]->delta);
 			}
 
 			if (strlen(results_name) == 0) {

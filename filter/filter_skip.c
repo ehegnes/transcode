@@ -41,6 +41,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 #include "libtc/framecode.h"
@@ -53,12 +54,14 @@
  *********************************************************/
 static void help_optstr(void)
 {
-  tc_log_info (MOD_NAME, "help : * Overview");
-  printf ("[%s] help :     This filter skips all listed frames.              \n", MOD_NAME);
-  printf ("[%s] help :                                                       \n", MOD_NAME);
-  printf ("[%s] help : * Options                                             \n", MOD_NAME);
-  printf ("[%s] help :                     'help' Prints out this help text  \n", MOD_NAME);
-  printf ("[%s] help :     'start-end/step [...]' List of frame ranges to skip (start-end/step) [] \n", MOD_NAME);
+  tc_log_info (MOD_NAME, "(%s) help\n"
+"* Overview\n"
+"    This filter skips all listed frames.\n"
+"\n"
+"* Options\n"
+"                    'help' Prints out this help text\n"
+"    'start-end/step [...]' List of frame ranges to skip (start-end/step) []\n"
+	       , MOD_CAP);
 }
 
 

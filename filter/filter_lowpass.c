@@ -30,6 +30,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 #ifdef HAVE_STDINT_H
@@ -83,7 +84,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     array_l = tc_malloc (taps * sizeof(short));
 
     if (!array_r || !array_l) {
-	fprintf (stderr, "[%s] Malloc failed in %d\n", MOD_NAME, __LINE__);
+	tc_log_error(MOD_NAME, "[%s] Malloc failed in %d", __LINE__);
 	return TC_IMPORT_ERROR;
     }
 

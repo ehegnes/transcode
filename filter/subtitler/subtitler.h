@@ -22,6 +22,11 @@
 #ifndef _SUBTITLER_H_
 #define _SUBTITLER_H_
 
+#define MOD_NAME    "filter_subtitler.so"
+#define MOD_VERSION "v0.8.1 (2003/10/25)"
+#define MOD_CAP     "subtitle filter"
+#define MOD_AUTHOR  "Jan Panteltje"
+
 #include <pwd.h>
 #include <ctype.h>
 #include <math.h>
@@ -29,6 +34,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 #include "load_font.h"

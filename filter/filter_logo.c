@@ -47,6 +47,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 #include "libtcvideo/tcvideo.h"
@@ -110,24 +111,25 @@ extern int flip;
 
 static void flogo_help_optstr(void)
 {
-    tc_log_info(MOD_NAME, "(%s) help", MOD_CAP);
-    printf("* Overview\n");
-    printf("    This filter renders an user specified image into the video.\n");
-    printf("    Any image format ImageMagick can read is accepted.\n");
-    printf("    Transparent images are also supported.\n");
-    printf("    Image origin is at the very top left.\n");
-
-    printf("* Options\n");
-    printf("        'file' Image filename (required) [logo.png]\n");
-    printf("         'pos' Position (0-width x 0-height) [0x0]\n");
-    printf("      'posdef' Position (0=None, 1=TopL, 2=TopR, 3=BotL, 4=BotR, 5=Center) [0]\n");
-    printf("       'range' Restrict rendering to framerange (0-oo) [0-end]\n");
-    printf("        'fade' Fade image in/out (# of frames) (0-oo) [0-0]\n");
-    printf("        'flip' Mirror image (0=off, 1=on) [0]\n");
-    printf("     'rgbswap' Swap colors [0]\n");
-    printf("     'grayout' YUV only: don't write Cb and Cr, makes a nice effect [0]\n");
-    printf("      'hqconv' YUV only: do high quality rgb->yuv img conversion [0]\n");
-    printf(" 'ignoredelay' Ignore delay specified in animations [0]\n");
+    tc_log_info(MOD_NAME, "(%s) help\n"
+"* Overview\n"
+"    This filter renders an user specified image into the video.\n"
+"    Any image format ImageMagick can read is accepted.\n"
+"    Transparent images are also supported.\n"
+"    Image origin is at the very top left.\n"
+"\n"
+"* Options\n"
+"        'file' Image filename (required) [logo.png]\n"
+"         'pos' Position (0-width x 0-height) [0x0]\n"
+"      'posdef' Position (0=None, 1=TopL, 2=TopR, 3=BotL, 4=BotR, 5=Center) [0]\n"
+"       'range' Restrict rendering to framerange (0-oo) [0-end]\n"
+"        'fade' Fade image in/out (# of frames) (0-oo) [0-0]\n"
+"        'flip' Mirror image (0=off, 1=on) [0]\n"
+"     'rgbswap' Swap colors [0]\n"
+"     'grayout' YUV only: don't write Cb and Cr, makes a nice effect [0]\n"
+"      'hqconv' YUV only: do high quality rgb->yuv img conversion [0]\n"
+" 'ignoredelay' Ignore delay specified in animations [0]\n"
+		, MOD_CAP);
 }
 
 

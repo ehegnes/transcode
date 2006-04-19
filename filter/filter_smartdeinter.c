@@ -39,6 +39,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 #include "libtcvideo/tcvideo.h"
@@ -90,28 +91,27 @@ static MyFilterData *mfd;
 
 static void help_optstr(void)
 {
-   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
-   printf ("* Overview\n");
-   printf ("    This filter provides a smart, motion-based deinterlacing\n");
-   printf ("    capability. In static picture areas, interlacing artifacts do not\n");
-   printf ("    appear, so data from both fields is used to provide full detail. In\n");
-   printf ("    moving areas, deinterlacing is performed\n");
-
-   printf ("* Options\n");
-
-   printf ("       'threshold' Motion Threshold (0-255) [15]\n");
-   printf ("  'scenethreshold' Scene Change Threshold (0-255) [100]:\n");
-   printf ("        'diffmode' Motion Detection (0=frame, 1=field, 2=both) [0] \n");
-   printf ("       'colordiff' Compare color channels instead of luma (0=off, 1=on) [1]\n");
-   printf ("      'motionOnly' Show motion areas only (0=off, 1=on) [0]\n");
-   printf ("           'Blend' Blend instead of interpolate in motion areas (0=off, 1=on) [0]\n");
-   printf ("           'cubic' Use cubic for interpolation (0=off, 1=on) [0]\n");
-   printf ("      'fieldShift' Phase shift (0=off, 1=on) [0]\n");
-   printf ("          'inswap' Field swap before phase shift (0=off, 1=on) [0]\n");
-   printf ("         'outswap' Field swap after phase shift (0=off, 1=on) [0]\n");
-   printf ("           'highq' Motion map denoising for field-only (0=off, 1=on) [0]\n");
-   printf ("        'noMotion' Disable motion processing (0=off, 1=on) [0]\n");
-
+   tc_log_info (MOD_NAME, "(%s) help\n"
+"* Overview\n"
+"    This filter provides a smart, motion-based deinterlacing\n"
+"    capability. In static picture areas, interlacing artifacts do not\n"
+"    appear, so data from both fields is used to provide full detail. In\n"
+"    moving areas, deinterlacing is performed\n"
+"\n"
+"* Options\n"
+"       'threshold' Motion Threshold (0-255) [15]\n"
+"  'scenethreshold' Scene Change Threshold (0-255) [100]:\n"
+"        'diffmode' Motion Detection (0=frame, 1=field, 2=both) [0] \n"
+"       'colordiff' Compare color channels instead of luma (0=off, 1=on) [1]\n"
+"      'motionOnly' Show motion areas only (0=off, 1=on) [0]\n"
+"           'Blend' Blend instead of interpolate in motion areas (0=off, 1=on) [0]\n"
+"           'cubic' Use cubic for interpolation (0=off, 1=on) [0]\n"
+"      'fieldShift' Phase shift (0=off, 1=on) [0]\n"
+"          'inswap' Field swap before phase shift (0=off, 1=on) [0]\n"
+"         'outswap' Field swap after phase shift (0=off, 1=on) [0]\n"
+"           'highq' Motion map denoising for field-only (0=off, 1=on) [0]\n"
+"        'noMotion' Disable motion processing (0=off, 1=on) [0]\n"
+		, MOD_CAP);
 }
 
 int tc_filter(frame_list_t *ptr_, char *options)
@@ -135,7 +135,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	mfd = tc_zalloc(sizeof(MyFilterData));
 
 	if (!mfd) {
-		fprintf(stderr, "No memory!\n");
+		tc_log_error(MOD_NAME, "No memory!");
 		return (-1);
 	}
 
@@ -655,7 +655,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		else scenechange = 0;
 
 		/*
-		printf("Frame (%04d) count (%8ld) sc (%d) calc (%02ld)\n",
+		tc_log_msg(MOD_NAME, "Frame (%04d) count (%8ld) sc (%d) calc (%02ld)",
 				ptr->id, count, scenechange, (100 * count) / (h * w));
 				*/
 

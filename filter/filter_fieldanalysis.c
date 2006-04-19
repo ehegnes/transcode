@@ -34,6 +34,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 #include "aclib/imgconvert.h"
 
@@ -392,7 +393,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    return -1;
 
 	if (! (myf = myf_global = calloc (1, sizeof (myfilter_t)))) {
-	    fprintf (stderr, "calloc() failed\n");
+	    tc_log_error(MOD_NAME, "calloc() failed");
 	    return -1;
 	}
 
@@ -444,17 +445,18 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    optstr_get (options, "outdiff",          "%d", &myf->outDiff);
 
 	    if (optstr_get (options, "help", "") >= 0) {
-		tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
-		printf("* Overview:\n"
-			"  'fieldanalysis' scans video for interlacing artifacts and\n"
-			"  detects progressive / interlaced / telecined video.\n"
-			"  It also determines the major field for interlaced video.\n"
-			"* Verbose Output:   [PtPb c t stsb]\n"
-			"  Pt, Pb:   progressivediff succeeded, per field.\n"
-			"  pt, pb:   unknowndiff succeeded, progressivediff failed.\n"
-			"  c:        progressivechange succeeded.\n"
-			"  t:        topFieldFirst / b: bottomFieldFirst detected.\n"
-			"  st, sb:   changedifmore failed (fields are similar to last frame).\n\n");
+		tc_log_info (MOD_NAME, "(%s) help\n"
+"* Overview:\n"
+"  'fieldanalysis' scans video for interlacing artifacts and\n"
+"  detects progressive / interlaced / telecined video.\n"
+"  It also determines the major field for interlaced video.\n"
+"* Verbose Output:   [PtPb c t stsb]\n"
+"  Pt, Pb:   progressivediff succeeded, per field.\n"
+"  pt, pb:   unknowndiff succeeded, progressivediff failed.\n"
+"  c:        progressivechange succeeded.\n"
+"  t:        topFieldFirst / b: bottomFieldFirst detected.\n"
+"  st, sb:   changedifmore failed (fields are similar to last frame).\n"
+			     , MOD_CAP);
 	    }
 	}
 
@@ -465,7 +467,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    ! (myf->lumInB   = calloc (1, myf->size)) ||
 	    ! (myf->lumPrevT = calloc (1, myf->size)) ||
 	    ! (myf->lumPrevB = calloc (1, myf->size))) {
-	    fprintf (stderr, "calloc() failed\n");
+	    tc_log_error(MOD_NAME, "calloc() failed");
 	    return -1;
 	}
 

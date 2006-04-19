@@ -28,6 +28,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 #include "video_trans.h"
@@ -104,20 +105,21 @@ static MyFilterData *mfd = NULL;
 
 static void help_optstr(void)
 {
-   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
-   printf ("* Overview\n");
-   printf ("    This filter renders text into the video stream\n");
-   printf ("* Options\n");
-   printf ("         'range' apply filter to [start-end]/step frames [0-oo/1]\n");
-   printf ("           'dpi' dots-per-inch resolution [96]\n");
-   printf ("        'points' point size of font in 1/64 [25]\n");
-   printf ("          'font' full path to font file [/usr/X11R6/.../arial.ttf]\n");
-   printf ("        'string' text to print [date]\n");
-   printf ("          'fade' Fade in and/or fade out [0=off, 1=slow, 10=fast]\n");
-   printf (" 'notransparent' disable transparency\n");
-   printf ("           'pos' Position (0-width x 0-height) [0x0]\n");
-   printf ("        'posdef' Position (0=None 1=TopL 2=TopR 3=BotL 4=BotR 5=Cent 6=BotCent) [0]\n");
-   printf ("        'tstamp' add timestamp to each frame (overrides string)\n");
+   tc_log_info (MOD_NAME, "(%s) help\n"
+"* Overview\n"
+"    This filter renders text into the video stream\n"
+"* Options\n"
+"         'range' apply filter to [start-end]/step frames [0-oo/1]\n"
+"           'dpi' dots-per-inch resolution [96]\n"
+"        'points' point size of font in 1/64 [25]\n"
+"          'font' full path to font file [/usr/X11R6/.../arial.ttf]\n"
+"        'string' text to print [date]\n"
+"          'fade' Fade in and/or fade out [0=off, 1=slow, 10=fast]\n"
+" 'notransparent' disable transparency\n"
+"           'pos' Position (0-width x 0-height) [0x0]\n"
+"        'posdef' Position (0=None 1=TopL 2=TopR 3=BotL 4=BotR 5=Cent 6=BotCent) [0]\n"
+"        'tstamp' add timestamp to each frame (overrides string)\n"
+		, MOD_CAP);
 }
 
 static void font_render(int width, int height, int codec, int w, int h, int i, uint8_t *p, uint8_t *q, uint8_t *buf)
@@ -139,12 +141,12 @@ static void font_render(int width, int height, int codec, int w, int h, int i, u
 	    if (verbose > 1) {
 		// see http://www.freetype.org/freetype2/docs/tutorial/metrics.png
 		/*
-		printf ("`%c\': rows(%2d) width(%2d) pitch(%2d) left(%2d) top(%2d) "
-			"METRIC: width(%2d) height(%2d) bearX(%2d) bearY(%2d)\n",
-			mfd->string[i], mfd->slot->bitmap.rows, mfd->slot->bitmap.width,
-			mfd->slot->bitmap.pitch, mfd->slot->bitmap_left, mfd->slot->bitmap_top,
-			mfd->slot->metrics.width>>6, mfd->slot->metrics.height>>6,
-			mfd->slot->metrics.horiBearingX>>6, mfd->slot->metrics.horiBearingY>>6);
+		tc_log_msg(MOD_NAME, "`%c\': rows(%2d) width(%2d) pitch(%2d) left(%2d) top(%2d) "
+			   "METRIC: width(%2d) height(%2d) bearX(%2d) bearY(%2d)\n",
+			   mfd->string[i], mfd->slot->bitmap.rows, mfd->slot->bitmap.width,
+			   mfd->slot->bitmap.pitch, mfd->slot->bitmap_left, mfd->slot->bitmap_top,
+			   mfd->slot->metrics.width>>6, mfd->slot->metrics.height>>6,
+			   mfd->slot->metrics.horiBearingX>>6, mfd->slot->metrics.horiBearingY>>6);
 			*/
 	    }
 
@@ -446,12 +448,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    mfd->boundY = 2*(mfd->slot->bitmap.rows) - mfd->slot->bitmap_top;
 
 	/*
-	printf ("`%c\': rows(%2d) width(%2d) pitch(%2d) left(%2d) top(%2d) "
-		"METRIC: width(%2d) height(%2d) bearX(%2d) bearY(%2d)\n",
-		mfd->string[i], mfd->slot->bitmap.rows, mfd->slot->bitmap.width,
-		mfd->slot->bitmap.pitch, mfd->slot->bitmap_left, mfd->slot->bitmap_top,
-		mfd->slot->metrics.width>>6, mfd->slot->metrics.height>>6,
-		mfd->slot->metrics.horiBearingX>>6, mfd->slot->metrics.horiBearingY>>6);
+	tc_log_msg(MOD_NAME, "`%c\': rows(%2d) width(%2d) pitch(%2d) left(%2d) top(%2d) "
+		   "METRIC: width(%2d) height(%2d) bearX(%2d) bearY(%2d)",
+		   mfd->string[i], mfd->slot->bitmap.rows, mfd->slot->bitmap.width,
+		   mfd->slot->bitmap.pitch, mfd->slot->bitmap_left, mfd->slot->bitmap_top,
+		   mfd->slot->metrics.width>>6, mfd->slot->metrics.height>>6,
+		   mfd->slot->metrics.horiBearingX>>6, mfd->slot->metrics.horiBearingY>>6);
 		*/
 
 	mfd->boundX += mfd->slot->advance.x >> 6;

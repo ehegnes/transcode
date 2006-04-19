@@ -63,7 +63,7 @@ int hashval;
 
 if(debug_flag)
 	{
-	fprintf(stdout, "installframe(): arg name=%s\n", name);
+	tc_log_msg(MOD_NAME, "installframe(): arg name=%s\n", name);
 	}
 
 /* allow multiple entries with the same name */
@@ -132,8 +132,7 @@ struct frame *pa;
 
 if(debug_flag)
 	{
-	fprintf(stdout,\
-	"add_frame(): arg name=%s\n\
+	tc_log_msg(MOD_NAME, "add_frame(): arg name=%s\n\
 	data=%lu\n\
 	object_type=%d\n\
 	xsize=%d ysize=%d zsize=%d\n\
@@ -178,7 +177,7 @@ char temp[80];
 
 if(debug_flag)
 	{
-	printf("subtitler(): process_frame_number(): arg frame_nr=%d\n",\
+	tc_log_msg(MOD_NAME, "subtitler(): process_frame_number(): arg frame_nr=%d\n",\
 	frame_nr);
 	}
 
@@ -203,7 +202,7 @@ char temp[80];
 
 if(debug_flag)
 	{
-	printf("set_end_frame(): frame_nr=%d end_frame=%d\n",\
+	tc_log_msg(MOD_NAME, "set_end_frame(): frame_nr=%d end_frame=%d\n",\
 	frame_nr, end_frame);
 	}
 
@@ -211,7 +210,7 @@ tc_snprintf(temp, sizeof(temp), "%d", frame_nr);
 for(pa = frametab[hash(temp)]; pa != 0; pa = pa -> nxtentr)
 	{
 #if 0
-	printf("WAS pa->type=%d pa->name=%s frame_nr=%d end_frame=%d\n",\
+	tc_log_msg(MOD_NAME, "WAS pa->type=%d pa->name=%s frame_nr=%d end_frame=%d\n",\
 	pa -> type, pa -> name, frame_nr, end_frame);
 #endif
 
@@ -250,8 +249,7 @@ struct subtitle_fontname *plast, *pnew;
 
 if(debug_flag)
 	{
-	fprintf(stdout,\
-	"install_subtitle_fontname_at_end_off_list(): arg name=%s\n", name);
+	tc_log_msg(MOD_NAME, "install_subtitle_fontname_at_end_off_list(): arg name=%s\n", name);
 	}
 
 pnew = lookup_subtitle_fontname(name);
@@ -289,7 +287,7 @@ char name[80];
 
 if(debug_flag)
 	{
-	fprintf(stdout, "delete_subtitle_fontname(): arg subtitle_fontnamenr=%d\n", subtitle_fontnamenr);
+	tc_log_msg(MOD_NAME, "delete_subtitle_fontname(): arg subtitle_fontnamenr=%d\n", subtitle_fontnamenr);
 	}
 
 tc_snprintf(name, sizeof(name), "%d", subtitle_fontnamenr);
@@ -344,7 +342,7 @@ struct subtitle_fontname *pa;
 
 if(debug_flag)
 	{
-	fprintf(stdout, "delete_all_subtitle_fontnames() arg none\n");
+	tc_log_msg(MOD_NAME, "delete_all_subtitle_fontnames() arg none\n");
 	}
 
 while(1)
@@ -372,8 +370,7 @@ char temp[4096];
 
 if(debug_flag)
 	{
-	fprintf(stdout,\
-	"add_font(): arg name=%s symbols=%d size=%d iso_extension=%d outline_thickness=%.2f blur_radius=%.2f\n",\
+	tc_log_msg(MOD_NAME, "add_font(): arg name=%s symbols=%d size=%d iso_extension=%d outline_thickness=%.2f blur_radius=%.2f\n",\
 	name, symbols, size, iso_extension, outline_thickness, blur_radius);
 	}
 
@@ -396,8 +393,7 @@ else /* not in fontname_list */
 	if(! pfd)
 		{
 		/* try the default font settings */
-		fprintf(stderr,\
-		"subtitler(): add_font(): could not create requested font %s, trying default font\n", temp);
+		tc_log_msg(MOD_NAME, "subtitler(): add_font(): could not create requested font %s, trying default font\n", temp);
 
 		pfd = make_font(\
 			default_subtitle_font_name, default_subtitle_symbols,
@@ -405,7 +401,7 @@ else /* not in fontname_list */
 			default_subtitle_radius, default_subtitle_thickness);
 		if(! pfd)
 			{
-			fprintf(stderr, "subtitler(): add_font(): could not create any font for %s\n", temp);
+			tc_log_msg(MOD_NAME, "subtitler(): add_font(): could not create any font for %s\n", temp);
 
 			return 0;
 			}
@@ -427,8 +423,7 @@ else /* not in fontname_list */
 ps = install_subtitle_fontname_at_end_of_list(temp);
 if(! ps)
 	{
-	fprintf(stderr,\
-	"subtitler(): add_font(): could not add subtitle font %s to subtitle_fontname_list\n", temp);
+	tc_log_msg(MOD_NAME, "subtitler(): add_font(): could not add subtitle font %s to subtitle_fontname_list\n", temp);
 
 	return 0;
 	}

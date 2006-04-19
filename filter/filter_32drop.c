@@ -28,6 +28,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 #include <inttypes.h>
@@ -172,7 +173,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
       isint = interlace_test(ptr->video_buf, ptr->v_width, ptr->v_height, ptr->id, 1);
     }
 
-    // fprintf(stderr, "%d %d\n", fnum, dcnt);
+    //tc_log_msg(MOD_NAME, "%d %d", fnum, dcnt);
 
     if (isint) {
  	linum = fnum;

@@ -22,6 +22,7 @@
  */
 
 #include "subtitle_buffer.h"
+#include "libtc/libtc.h"
 
 pthread_mutex_t sframe_list_lock=PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t sframe_list_empty_cv=PTHREAD_COND_INITIALIZER;
@@ -141,7 +142,7 @@ static sframe_list_t *sub_buf_retrieve(void)
 
     // ok
 
-    if(verbose & TC_FLIST) printf("alloc  =%d [%d]\n", sub_buf_next, ptr->bufid);
+    if(verbose & TC_FLIST) tc_log_msg(__FILE__, "alloc  =%d [%d]", sub_buf_next, ptr->bufid);
 
     ++sub_buf_next;
     sub_buf_next %= sub_buf_max;
@@ -175,7 +176,7 @@ static int sub_buf_release(sframe_list_t *ptr)
 	return(-1);
     } else {
 
-	if(verbose & TC_FLIST) printf("release=%d [%d]\n", sub_buf_next, ptr->bufid);
+	if(verbose & TC_FLIST) tc_log_msg(__FILE__, "release=%d [%d]", sub_buf_next, ptr->bufid);
 	ptr->status = FRAME_NULL;
 
     }
@@ -228,7 +229,7 @@ sframe_list_t *sframe_register(int id)
   // retrive a valid pointer from the pool
 
 #ifdef STATBUFFER
-  if(verbose & TC_FLIST) printf("frameid=%d\n", id);
+  if(verbose & TC_FLIST) tc_log_msg(__FILE__, "frameid=%d", id);
   if((ptr = sub_buf_retrieve()) == NULL) {
     pthread_mutex_unlock(&sframe_list_lock);
     return(NULL);
@@ -339,7 +340,7 @@ void sframe_flush()
   sframe_list_t *ptr;
 
   while((ptr=sframe_retrieve())!=NULL) {
-       fprintf(stderr, "flushing buffers\n");
+       tc_log_msg(__FILE__, "flushing buffers");
       sframe_remove(ptr);
   }
   return;
@@ -493,7 +494,7 @@ int sframe_fill_level(int status)
 {
 
   if(verbose & TC_STATS)
-    fprintf(stderr, "(S) fill=%d, ready=%d, request=%d\n", sub_buf_fill, sub_buf_ready, status);
+    tc_log_msg(__FILE__, "(S) fill=%d, ready=%d, request=%d", sub_buf_fill, sub_buf_ready, status);
 
   //user has to lock sframe_list_lock to obtain a proper result
 
@@ -539,7 +540,7 @@ void subtitle_reader()
     if((ptr = sframe_register(i))==NULL) {
 
 	//error
-	fprintf(stderr, "could not allocate subtitle buffer - exit.\n");
+	tc_log_error(__FILE__, "could not allocate subtitle buffer - exit.");
 	pthread_exit(0);
     }
 
@@ -548,13 +549,13 @@ void subtitle_reader()
     // get a subtitle
 
     if(fread(buffer, strlen(subtitle_header_str), 1, fd) != 1) {
-      fprintf(stderr, "(%s) reading subtitle header string (%d) failed - end of stream\n", __FILE__, i);
+      tc_log_error(__FILE__, "reading subtitle header string (%d) failed - end of stream", i);
       sframe_remove(ptr);
       pthread_exit(0);
     }
 
     if(strncmp(buffer, subtitle_header_str, strlen(subtitle_header_str))!=0) {
-      fprintf(stderr, "(%s) invalid subtitle header\n", __FILE__);
+      tc_log_error(__FILE__, "invalid subtitle header");
       sframe_remove(ptr);
       pthread_exit(0);
     }
@@ -562,7 +563,7 @@ void subtitle_reader()
     //get subtitle packet length and pts
 
     if(fread(&subtitle_header, sizeof(subtitle_header_t), 1, fd) != 1) {
-	fprintf(stderr, "(%s) error reading subtitle header\n", __FILE__);
+	tc_log_error(__FILE__, "error reading subtitle header");
 	sframe_remove(ptr);
 	pthread_exit(0);
     }
@@ -572,17 +573,17 @@ void subtitle_reader()
 
     //OK
     if(verbose & TC_STATS)
-      printf("(%s) subtitle %d, len=%d, lpts=%u\n", __FILE__, i, subtitle_header.payload_length, subtitle_header.lpts);
+      tc_log_msg(__FILE__, "subtitle %d, len=%d, lpts=%u", i, subtitle_header.payload_length, subtitle_header.lpts);
 
     // read packet payload
 
     if(fread(buffer, subtitle_header.payload_length, 1, fd) != 1) {
-	fprintf(stderr, "(%s) error reading subtitle packet\n", __FILE__);
+	tc_log_error(__FILE__, "error reading subtitle packet");
 	sframe_remove(ptr);
 	pthread_exit(0);
     }
 
-    if(verbose & TC_STATS) printf("(%s) buffering packet (%d)\n", __FILE__, ptr->id);
+    if(verbose & TC_STATS) tc_log_msg(__FILE__, "buffering packet (%d)", ptr->id);
 
     sframe_set_status(ptr, FRAME_READY);
 

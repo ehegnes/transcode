@@ -26,6 +26,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 #include <math.h>
@@ -198,17 +199,22 @@ static void PrecalcCoefs(int * ct, double dist25)
 
 static void help_optstr(void)
 {
-    tc_log_info(MOD_NAME, "(%s) help", MOD_CAP);
-    fprintf(stderr, "* Overview\n");
-    fprintf(stderr, "  This filter aims to reduce image noise producing\n");
-    fprintf(stderr, "  smooth images and making still images really still\n");
-    fprintf(stderr, "  (This should enhance compressibility).\n");
-    fprintf(stderr, "* Options\n");
-    fprintf(stderr, "   luma:            spatial luma strength (%f)\n",		DEFAULT_LUMA_SPATIAL);
-    fprintf(stderr, "   chroma:          spatial chroma strength (%f)\n",	DEFAULT_CHROMA_SPATIAL);
-    fprintf(stderr, "   luma_strength:   temporal luma strength (%f)\n",	DEFAULT_LUMA_TEMPORAL);
-    fprintf(stderr, "   chroma_strength: temporal chroma strength (%f)\n",	DEFAULT_CHROMA_TEMPORAL);
-    fprintf(stderr, "   pre:             run as a pre filter (0)\n");
+    tc_log_info(MOD_NAME, "(%s) help\n"
+"* Overview\n"
+"  This filter aims to reduce image noise producing\n"
+"  smooth images and making still images really still\n"
+"  (This should enhance compressibility).\n"
+"* Options\n"
+"   luma:            spatial luma strength (%f)\n"
+"   chroma:          spatial chroma strength (%f)\n"
+"   luma_strength:   temporal luma strength (%f)\n"
+"   chroma_strength: temporal chroma strength (%f)\n"
+"   pre:             run as a pre filter (0)\n"
+		, MOD_CAP,
+		DEFAULT_LUMA_SPATIAL,
+		DEFAULT_CHROMA_SPATIAL,
+		DEFAULT_LUMA_TEMPORAL,
+		DEFAULT_CHROMA_TEMPORAL);
 }
 
 int tc_filter(frame_list_t *vframe_, char * options)

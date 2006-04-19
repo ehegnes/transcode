@@ -28,6 +28,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 #include <ffmpeg/avcodec.h>
@@ -81,14 +82,17 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
                                 resample_buffer = tc_malloc(resample_buffer_size * sizeof(char));
     if (!resample_buffer) {
-        fprintf(stderr,"[%s] Buffer allocation failed\n", MOD_NAME);
+        tc_log_error(MOD_NAME, "Buffer allocation failed");
         return 1;
     }
 
-    if (verbose & TC_DEBUG) tc_log_info(MOD_NAME, "bufsize : %i, bytes : %i, bytesfreq/fps: %i, rest %i",
-        MOD_NAME, resample_buffer_size, bytes_per_sample,
-        vob->mp3frequency * bytes_per_sample / (int)vob->fps,
-        (vob->a_leap_bytes > 0 )?(int)(vob->a_leap_bytes * ratio):0);
+    if (verbose & TC_DEBUG) {
+	tc_log_info(MOD_NAME,
+		    "bufsize : %i, bytes : %i, bytesfreq/fps: %i, rest %i",
+		    resample_buffer_size, bytes_per_sample,
+		    vob->mp3frequency * bytes_per_sample / (int)vob->fps,
+		    (vob->a_leap_bytes > 0 )?(int)(vob->a_leap_bytes * ratio):0);
+    }
 
     if((int) (bytes_per_sample * vob->mp3frequency / vob->fps) > resample_buffer_size) return(1);
 

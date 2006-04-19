@@ -206,7 +206,7 @@ FILE *f = fopen(name, "rb");
 
 if(debug_flag)
 	{
-	fprintf(stdout, "load_raw(): arg name=%s verbose=%d\n", name, verbose);
+	tc_log_msg(MOD_NAME, "load_raw(): arg name=%s verbose=%d\n", name, verbose);
 	}
 
 if(!f)return NULL;							// can't open
@@ -220,7 +220,7 @@ raw->c = head[12] * 256 + head[13];
 if(raw->c > 256) return NULL;				// too many colors!?
 if(debug_flag)
 	{
-	printf("RAW: %s %d x %d, %d colors\n", name, raw->w, raw->h, raw->c);
+	tc_log_msg(MOD_NAME, "RAW: %s %d x %d, %d colors\n", name, raw->w, raw->h, raw->c);
 	}
 if(raw->c)
 	{
@@ -258,7 +258,7 @@ char *ptr;
 
 if(debug_flag)
 	{
-	fprintf(stdout, "read_font_desc(): arg fname=%s factor=%.2f verbose=%d\n",\
+	tc_log_msg(MOD_NAME, "read_font_desc(): arg fname=%s factor=%.2f verbose=%d\n",\
 	fname, factor, verbose);
 	}
 
@@ -269,7 +269,7 @@ memset(desc, 0, sizeof(font_desc_t) );
 f = fopen(fname, "r");
 if(!f)
 	{
-	printf("read_font_desc(): font: can't open file: %s\n", fname);
+	tc_log_msg(MOD_NAME, "read_font_desc(): font: can't open file: %s\n", fname);
 	return NULL;
 	}
 
@@ -277,7 +277,7 @@ strlcpy(temp, fname, sizeof(temp));
 ptr = strstr(temp, "font.desc");
 if(! ptr)
 	{
-	printf("subtitler: read_font_descr(): no font.desc found in %s aborting.\n", fname);
+	tc_log_msg(MOD_NAME, "subtitler: read_font_descr(): no font.desc found in %s aborting.\n", fname);
 
 	exit(1);
 	}
@@ -286,7 +286,7 @@ desc->fpath = strsave(temp);
 
 if(debug_flag)
 	{
-	printf("subtitler: read_font_desc(): read_font_desc(): fname=%s path=%s\n",\
+	tc_log_msg(MOD_NAME, "subtitler: read_font_desc(): read_font_desc(): fname=%s path=%s\n",\
 	fname, desc->fpath);
 	}
 
@@ -351,8 +351,8 @@ while( fgets(sor, 1020, f) )
 	if(d == sor2) continue; // skip empty lines
 	*d = 0;
 
-	//printf("params=%d sor=%s\n", pdb, sor);
-	//for(i = 0; i < pdb; i++) printf(" param %d = '%s'\n", i, p[i]);
+	//tc_log_msg(MOD_NAME, "params=%d sor=%s\n", pdb, sor);
+	//for(i = 0; i < pdb; i++) tc_log_msg(MOD_NAME, " param %d = '%s'\n", i, p[i]);
 
 	if(pdb == 1 && p[0][0] == '[')
 		{
@@ -362,14 +362,14 @@ while( fgets(sor, 1020, f) )
 			strlcpy(section, p[0], sizeof(section));
 			if(debug_flag)
 				{
-				printf("font: Reading section: %s\n",section);
+				tc_log_msg(MOD_NAME, "font: Reading section: %s\n",section);
 				}
 			if(strcmp(section, "[files]") == 0)
 				{
 				++fontdb;
 				if(fontdb >= 16)
 					{
-					printf("font: Too many bitmaps defined!\n");
+					tc_log_msg(MOD_NAME, "font: Too many bitmaps defined!\n");
 					return NULL;
 					}
 				}
@@ -398,7 +398,7 @@ while( fgets(sor, 1020, f) )
 			desc->fpath, p[1]);
 			if(!((desc->pic_a[fontdb] = load_raw(cp, verbose))))
 				{
-				printf("Can't load font bitmap: %s\n", p[1]);
+				tc_log_msg(MOD_NAME, "Can't load font bitmap: %s\n", p[1]);
 				free(cp);
 				return NULL;
 				}
@@ -416,7 +416,7 @@ while( fgets(sor, 1020, f) )
 			desc->fpath, p[1]);
 			if(!((desc->pic_b[fontdb] = load_raw(cp, verbose))))
 				{
-				printf("Can't load font bitmap: %s\n", p[1]);
+				tc_log_msg(MOD_NAME, "Can't load font bitmap: %s\n", p[1]);
 				free(cp);
 				return NULL;
 				}
@@ -463,8 +463,7 @@ while( fgets(sor, 1020, f) )
 			else if(strlen(p[0]) != 1) chr = strtol(p[0], NULL, 0);
 			if(end < start)
 				{
-				printf(\
-				"error in font desc: end<start for char '%c'\n", chr);
+				tc_log_msg(MOD_NAME, "error in font desc: end<start for char '%c'\n", chr);
 				}
 			else
 				{
@@ -472,7 +471,7 @@ while( fgets(sor, 1020, f) )
 				desc->width[chr] = end-start + 1;
 				desc->font[chr] = fontdb;
 #if 0
-				printf("char %d '%c' start=%d width=%d\n",
+				tc_log_msg(MOD_NAME, "char %d '%c' start=%d width=%d\n",
 				chr, chr, desc->start[chr], desc->width[chr]);
 				++chardb;
 #endif
@@ -480,17 +479,17 @@ while( fgets(sor, 1020, f) )
 			continue;
 			}
 		}
-	printf("Syntax error in font desc: %s\n", sor);
+	tc_log_msg(MOD_NAME, "Syntax error in font desc: %s\n", sor);
 	}
 fclose(f);
 
-//printf("font: pos of U = %d\n", desc->start[218]);
+//tc_log_msg(MOD_NAME, "font: pos of U = %d\n", desc->start[218]);
 
 for(i = 0; i <= fontdb; i++)
 	{
 	if(!desc->pic_a[i] || !desc->pic_b[i])
 		{
-		printf("font: Missing bitmap(s) for sub-font #%d\n", i);
+		tc_log_msg(MOD_NAME, "font: Missing bitmap(s) for sub-font #%d\n", i);
 		return NULL;
 		}
 //	if(factor != 1.0f)
@@ -501,7 +500,7 @@ for(i = 0; i <= fontdb; i++)
 		int j;
 		if(verbose)
 			{
-			printf("font: resampling alpha by factor %5.3f (%d) ",\
+			tc_log_msg(MOD_NAME, "font: resampling alpha by factor %5.3f (%d) ",\
 			factor, f);
 			}
 		fflush(stderr);
@@ -531,7 +530,7 @@ for(i = 0; i <= fontdb; i++)
 			desc->pic_a[i]->bmp[j] = x;
 //			desc->pic_b[i]->bmp[j]=0; // hack
 			}
-		if(verbose) printf("DONE!\n");
+		if(verbose) tc_log_msg(MOD_NAME, "DONE!\n");
 		}
 	if(!desc->height) desc->height = desc->pic_a[i]->h;
 	}
@@ -553,7 +552,7 @@ desc->font[' '] = -1;
 desc->width[' '] = desc->spacewidth;
 if(debug_flag)
 	{
-	printf("Font %s loaded successfully! (%d chars)\n", fname, chardb);
+	tc_log_msg(MOD_NAME, "Font %s loaded successfully! (%d chars)\n", fname, chardb);
 	}
 return desc;
 } /* end function read_font_desc */
@@ -591,9 +590,8 @@ static FT_ULong	charcodes[max_charset_size]; /* character codes in 'encoding' */
 iconv_t cd;	// iconv conversion descriptor
 
 
-#define eprintf(...)		fprintf(stderr, __VA_ARGS__)
-#define ERROR_(msg, ...)	(eprintf("%s: error: " msg "\n", command, __VA_ARGS__), return 0)
-#define WARNING_(msg, ...)	eprintf("%s: warning: " msg "\n", command, __VA_ARGS__)
+#define ERROR_(msg, ...)	(tc_log_error(MOD_NAME, "%s: " msg "\n", command, __VA_ARGS__), return 0)
+#define WARNING_(msg, ...)	tc_log_warn(MOD_NAME, "%s: " msg "\n", command, __VA_ARGS__)
 #define ERROR(...)		ERROR_(__VA_ARGS__, NULL)
 #define WARNING(...)		WARNING_(__VA_ARGS__, NULL)
 
@@ -668,7 +666,7 @@ tc_snprintf(name, max_name, "%s/%s-%c.raw", outdir, encoding_name, type);
 f = fopen(name, "wb");
 if(! f)
 	{
-	fprintf(stderr, "subtitler(): write_bitmap(): could not open %s for write\n", name);
+	tc_log_msg(MOD_NAME, "subtitler(): write_bitmap(): could not open %s for write\n", name);
 
 	return 0;
 	}
@@ -703,7 +701,7 @@ int		glyphs_count = 0;
     error = FT_Init_FreeType(&library);
     if (error)
 		{
-		fprintf(stderr, "subtitler: render(): Init_FreeType failed.");
+		tc_log_msg(MOD_NAME, "subtitler: render(): Init_FreeType failed.");
 
 		return 0;
 		}
@@ -711,8 +709,7 @@ int		glyphs_count = 0;
     error = FT_New_Face(library, font_path, 0, &face);
     if (error)
 		{
-		fprintf(stderr,\
-		"subtitler: render(): New_Face failed. Maybe the font path `%s' is wrong.", font_path);
+		tc_log_msg(MOD_NAME, "subtitler: render(): New_Face failed. Maybe the font path `%s' is wrong.", font_path);
 
 		return 0;
 		}
@@ -720,22 +717,22 @@ int		glyphs_count = 0;
     /*
     if (font_metrics) {
 	error = FT_Attach_File(face, font_metrics);
-	if (error) fprintf(stderr, "subtitler: render(): FT_Attach_File failed.");
+	if (error) tc_log_msg(MOD_NAME, "subtitler: render(): FT_Attach_File failed.");
     }
     */
 
 
 #if 0
     /************************************************************/
-    eprintf("Font encodings:\n");
+    tc_log_msg(MOD_NAME, "Font encodings:\n");
     for (i = 0; i<face->num_charmaps; ++i)
-	eprintf("'%.4s'\n", (char*)&face->charmaps[i]->encoding);
+	tc_log_msg(MOD_NAME, "'%.4s'\n", (char*)&face->charmaps[i]->encoding);
 
     //error = FT_Select_Charmap(face, ft_encoding_unicode);
     //error = FT_Select_Charmap(face, ft_encoding_adobe_standard);
     //error = FT_Select_Charmap(face, ft_encoding_adobe_custom);
     //error = FT_Set_Charmap(face, face->charmaps[1]);
-    //if (error) fprintf(stderr, "subtitler: render(): FT_Select_Charmap failed.");
+    //if (error) tc_log_msg(MOD_NAME, "subtitler: render(): FT_Select_Charmap failed.");
 #endif
 
 
@@ -746,7 +743,7 @@ int		glyphs_count = 0;
 	char gname[max_gname];
 	for (i = 0; i<face->num_glyphs; ++i) {
 	    FT_Get_Glyph_Name(face, i, gname, max_gname);
-	    eprintf("%02x `%s'\n", i, gname);
+	    tc_log_msg(MOD_NAME, "%02x `%s'\n", i, gname);
 	}
 
     }
@@ -754,10 +751,10 @@ int		glyphs_count = 0;
 
 
     if (face->charmap==NULL || face->charmap->encoding!=ft_encoding_unicode) {
-	fprintf(stderr, "subtitler: render(): Unicode charmap not available for this font. Very bad!");
+	tc_log_msg(MOD_NAME, "subtitler: render(): Unicode charmap not available for this font. Very bad!");
 	uni_charmap = 0;
 	error = FT_Set_Charmap(face, face->charmaps[0]);
-	if (error) fprintf(stderr, "subtitler: render(): No charmaps! Strange.");
+	if (error) tc_log_msg(MOD_NAME, "subtitler: render(): No charmaps! Strange.");
     }
 
 
@@ -765,7 +762,7 @@ int		glyphs_count = 0;
     /* set size */
     if (FT_IS_SCALABLE(face)) {
 	error = FT_Set_Char_Size(face, floatTof266(ppem), 0, 0, 0);
-	if (error) fprintf(stderr, "subtitler: render(): FT_Set_Char_Size failed.");
+	if (error) tc_log_msg(MOD_NAME, "subtitler: render(): FT_Set_Char_Size failed.");
     } else {
 	int j = 0;
 	int jppem = face->available_sizes[0].height;
@@ -776,22 +773,21 @@ int		glyphs_count = 0;
 		jppem = face->available_sizes[i].height;
 	    }
 	}
-	fprintf(stderr,\
-	"subtitler: render(): Selected font is not scalable. Using ppem=%i.", face->available_sizes[j].height);
+	tc_log_msg(MOD_NAME, "subtitler: render(): Selected font is not scalable. Using ppem=%i.", face->available_sizes[j].height);
 	error = FT_Set_Pixel_Sizes(face, face->available_sizes[j].width, face->available_sizes[j].height);
-	if (error) fprintf(stderr, "subtitler: render(): FT_Set_Pixel_Sizes failed.");
+	if (error) tc_log_msg(MOD_NAME, "subtitler: render(): FT_Set_Pixel_Sizes failed.");
     }
 
 
     if (FT_IS_FIXED_WIDTH(face))
-	fprintf(stderr, "subtitler: render(): Selected font is fixed-width.");
+	tc_log_msg(MOD_NAME, "subtitler: render(): Selected font is fixed-width.");
 
 
     /* compute space advance */
     error = FT_Load_Char(face, ' ', load_flags);
 //face->glyph->advance.x = 100;
 
-    if (error) fprintf(stderr, "subtitler: render(): spacewidth set to default.");
+    if (error) tc_log_msg(MOD_NAME, "subtitler: render(): spacewidth set to default.");
     else space_advance = f266ToInt(face->glyph->advance.x);
 
 
@@ -805,7 +801,7 @@ int		glyphs_count = 0;
     f = fopen(name, append_mode ? "a":"w");
 	if(! f)
 		{
-		fprintf(stderr, "xste(): render(): could not open file %s for write\n", name);
+		tc_log_msg(MOD_NAME, "xste(): render(): could not open file %s for write\n", name);
 
 		return 0;
 		}
@@ -868,7 +864,7 @@ int		glyphs_count = 0;
 			{
 			if(debug_flag)
 				{
-				fprintf(stdout, "subtitler: render(): Glyph for char 0x%02x|U+%04X|%c not found.",\
+				tc_log_msg(MOD_NAME, "subtitler: render(): Glyph for char 0x%02x|U+%04X|%c not found.",\
 				(unsigned int)code, (unsigned int)character, (char)(code<' '|| code > 255 ? '.' : code));
 				}
 
@@ -879,8 +875,7 @@ int		glyphs_count = 0;
 	// load glyph
 	error = FT_Load_Glyph(face, glyph_index, load_flags);
 	if (error) {
-	    fprintf(stderr,\
-	"subtitler: render(): FT_Load_Glyph 0x%02x (char 0x%02x|U+%04X) failed.", (unsigned int)glyph_index, (unsigned int)code, (unsigned int)character);
+	    tc_log_msg(MOD_NAME, "subtitler: render(): FT_Load_Glyph 0x%02x (char 0x%02x|U+%04X) failed.", (unsigned int)glyph_index, (unsigned int)code, (unsigned int)character);
 	    continue;
 	}
 	slot = face->glyph;
@@ -889,7 +884,7 @@ int		glyphs_count = 0;
 	if (slot->format != ft_glyph_format_bitmap) {
 	    error = FT_Render_Glyph(slot, ft_render_mode_normal);
 	    if (error) {
-		fprintf(stderr, "subtitler: render(): FT_Render_Glyph 0x%04x (char 0x%02x|U+%04X) failed.", (unsigned int)glyph_index, (unsigned int)code, (unsigned int)character);
+		tc_log_msg(MOD_NAME, "subtitler: render(): FT_Render_Glyph 0x%04x (char 0x%02x|U+%04X) failed.", (unsigned int)glyph_index, (unsigned int)code, (unsigned int)character);
 		continue;
 	    }
 	}
@@ -900,7 +895,7 @@ int		glyphs_count = 0;
 
 	    error = FT_Get_Glyph(slot, (void *)&tmp_glyph);
 	    if (error) {
-	        fprintf(stderr, "subtitler: render(): FT_Get_Glyph 0x%04x (char 0x%02x|U+%04X) failed.", glyph_index, (unsigned int)code, (unsigned int)character);
+	        tc_log_msg(MOD_NAME, "subtitler: render(): FT_Get_Glyph 0x%04x (char 0x%02x|U+%04X) failed.", glyph_index, (unsigned int)code, (unsigned int)character);
 	        continue;
 	    }
     }
@@ -927,11 +922,11 @@ int		glyphs_count = 0;
 	// max height
 	if (glyph->top > ymax) {
 	    ymax = glyph->top;
-	    //eprintf("%3i: ymax %i (%c)\n", code, ymax, code);
+	    //tc_log_msg(MOD_NAME, "%3i: ymax %i (%c)\n", code, ymax, code);
 	}
 	if (glyph->top - glyph->bitmap.rows < ymin) {
 	    ymin = glyph->top - glyph->bitmap.rows;
-	    //eprintf("%3i: ymin %i (%c)\n", code, ymin, code);
+	    //tc_log_msg(MOD_NAME, "%3i: ymin %i (%c)\n", code, ymin, code);
 	}
 
 	/* advance pen */
@@ -952,7 +947,7 @@ int		glyphs_count = 0;
 #ifdef NEW_DESC
     if (height<=0)
 		{
-		fprintf(stderr, "subtitler: render(): Something went wrong. Use the source!");
+		tc_log_msg(MOD_NAME, "subtitler: render(): Something went wrong. Use the source!");
 
 		return 0;
 		}
@@ -961,7 +956,7 @@ int		glyphs_count = 0;
 #else
     if (ymax<=ymin)
 		{
-		fprintf(stderr, "subtitler: render(): Something went wrong. Use the source!");
+		tc_log_msg(MOD_NAME, "subtitler: render(): Something went wrong. Use the source!");
 
 		return 0;
 		}
@@ -971,14 +966,14 @@ int		glyphs_count = 0;
 #endif
 
     // end of font.desc
-    if (debug_flag) eprintf("bitmap size: %ix%i\n", width, height);
+    if (debug_flag) tc_log_msg(MOD_NAME, "bitmap size: %ix%i\n", width, height);
     fprintf(f, "# bitmap size: %ix%i\n", width, height);
     fclose(f);
 
     bbuffer = (unsigned char*)malloc(width*height);
     if (bbuffer==NULL)
 		{
-		fprintf(stderr, "subtitler: render(): malloc failed.");
+		tc_log_msg(MOD_NAME, "subtitler: render(): malloc failed.");
 
 		return 0;
 		}
@@ -1001,7 +996,7 @@ int		glyphs_count = 0;
 	    baseline - glyph->top);
 
 	/* advance pen */
-//printf("WAS glyph->root.advance.x = %.2f\n", (float)glyph->root.advance.x);
+//tc_log_msg(MOD_NAME, "WAS glyph->root.advance.x = %.2f\n", (float)glyph->root.advance.x);
 //glyph->root.advance.x /= 2;
 
 	pen_x += f1616ToInt(glyph->root.advance.x) + 2*padding;
@@ -1015,7 +1010,7 @@ int		glyphs_count = 0;
     error = FT_Done_FreeType(library);
     if (error)
 		{
-		fprintf(stderr, "subtitler: render(): FT_Done_FreeType failed.");
+		tc_log_msg(MOD_NAME, "subtitler: render(): FT_Done_FreeType failed.");
 
 		return 0;
 		}
@@ -1061,7 +1056,7 @@ if (f == NULL)
 	cd = iconv_open(charmap, charmap);
 	if (cd==(iconv_t)-1)
 		{
-		fprintf(stderr, "subtitler: prepare_charset(): iconv doesn't know %s encoding. Use the source!", charmap);
+		tc_log_msg(MOD_NAME, "subtitler: prepare_charset(): iconv doesn't know %s encoding. Use the source!", charmap);
 
 		return 0;
 		}
@@ -1071,7 +1066,7 @@ if (f == NULL)
 	cd = iconv_open(charmap, encoding);
 	if(cd == (iconv_t) - 1)
 		{
-		fprintf(stderr, "subtitler: prepare_charset(): Unsupported encoding `%s', use iconv --list to list character sets known on your system.",\
+		tc_log_msg(MOD_NAME, "subtitler: prepare_charset(): Unsupported encoding `%s', use iconv --list to list character sets known on your system.",\
 		encoding);
 
 		return 0;
@@ -1082,7 +1077,7 @@ if (f == NULL)
 		{
 	    charcodes[count] = i+first_char;
 	    charset[count] = decode_char(i+first_char);
-	    //eprintf("%04X U%04X\n", charcodes[count], charset[count]);
+	    //tc_log_msg(MOD_NAME, "%04X U%04X\n", charcodes[count], charset[count]);
 	    if (charset[count]!=0) ++count;
 		}
 	charcodes[count] = charset[count] = 0; ++count;
@@ -1095,18 +1090,18 @@ else
 	unsigned int character, code;
 	int count;
 
-	eprintf("Reading custom encoding from file '%s'.\n", encoding);
+	tc_log_msg(MOD_NAME, "Reading custom encoding from file '%s'.\n", encoding);
 
     while ((count = fscanf(f, "%x%*[ \t]%x", &character, &code)) != EOF)
 		{
 	    if (charset_size==max_charset_size)
 			{
-			fprintf(stderr, "subtitler: prepare_charset(): There is no place for  more than %i characters. Use the source!", max_charset_size);
+			tc_log_msg(MOD_NAME, "subtitler: prepare_charset(): There is no place for  more than %i characters. Use the source!", max_charset_size);
 			break;
 		    }
 	    if (count == 0)
 			{
-			fprintf(stderr, "subtitler: prepare_charset(): Unable to parse custom encoding file.");
+			tc_log_msg(MOD_NAME, "subtitler: prepare_charset(): Unable to parse custom encoding file.");
 
 			return 0;
 			}
@@ -1123,7 +1118,7 @@ else
 
 if (charset_size==0)
 	{
-	fprintf(stderr, "subtitler: prepare_charset(): No characters to render!");
+	tc_log_msg(MOD_NAME, "subtitler: prepare_charset(): No characters to render!");
 
 	return 0;
 	}
@@ -1268,14 +1263,14 @@ for (my = 0; my < w; ++my)
 		(unsigned)(exp(A * ((mx - r) * (mx - r) + \
 		(my - r) * (my - r))) * base + .5);
 	    volume += m[mx + my * w];
-	    if (debug_flag) eprintf("%3i ", m[mx + my * w]);
+	    if (debug_flag) tc_log_msg(MOD_NAME, "%3i ", m[mx + my * w]);
 		}
-	if (debug_flag) eprintf("\n");
+	if (debug_flag) tc_log_msg(MOD_NAME, "\n");
     }
 if (debug_flag)
 	{
-	eprintf("A= %f\n", A);
-	eprintf("volume: %i; exact: %.0f; volume/exact: %.6f\n\n", volume, -M_PI*base/A, volume/(-M_PI*base/A));
+	tc_log_msg(MOD_NAME, "A= %f\n", A);
+	tc_log_msg(MOD_NAME, "volume: %i; exact: %.0f; volume/exact: %.6f\n\n", volume, -M_PI*base/A, volume/(-M_PI*base/A));
     }
 return volume;
 } /* end function gmatrix */
@@ -1296,14 +1291,14 @@ unsigned *g = (unsigned*)malloc(g_w * sizeof(unsigned));
 unsigned *om = (unsigned*)malloc(o_w * o_w * sizeof(unsigned));
 if (g == NULL || om == NULL)
 	{
-	fprintf(stderr, "subtitler: alpha(): malloc failed.");
+	tc_log_msg(MOD_NAME, "subtitler: alpha(): malloc failed.");
 
 	return 0;
 	}
 
 if(blur_radius == 0)
 	{
-	fprintf(stderr, "subtitler: alpha(): radius is zero, set subtitle fonts to default\n");
+	tc_log_msg(MOD_NAME, "subtitler: alpha(): radius is zero, set subtitle fonts to default\n");
 
 	return 0;
 	}
@@ -1313,11 +1308,11 @@ for (i = 0; i < g_w; ++i)
 	{
 	g[i] = (unsigned)(exp(A * (i - g_r) * (i - g_r) ) * base + .5);
 	volume += g[i];
-	if (debug_flag) eprintf("%3i ", g[i]);
+	if (debug_flag) tc_log_msg(MOD_NAME, "%3i ", g[i]);
     }
 
 //volume *= volume;
-if (debug_flag) eprintf("\n");
+if (debug_flag) tc_log_msg(MOD_NAME, "\n");
 
 /* outline matrix */
 for (my = 0; my < o_w; ++my)
@@ -1329,11 +1324,11 @@ for (my = 0; my < o_w; ++my)
 		outline_thickness + 1 - \
 		sqrt( (mx - o_r) * (mx - o_r) + (my - o_r) * (my - o_r) );
 	    om[mx + my * o_w] = d >= 1 ? base : d <= 0 ? 0 : (d * base + .5);
-	    if (debug_flag) eprintf("%3i ", om[mx + my * o_w]);
+	    if (debug_flag) tc_log_msg(MOD_NAME, "%3i ", om[mx + my * o_w]);
 		}
-	if (debug_flag) eprintf("\n");
+	if (debug_flag) tc_log_msg(MOD_NAME, "\n");
     }
-if (debug_flag) eprintf("\n");
+if (debug_flag) tc_log_msg(MOD_NAME, "\n");
 
 if(outline_thickness == 1.0)
 	outline1(bbuffer, abuffer, width, height);	// FAST solid 1 pixel outline
@@ -1362,7 +1357,7 @@ FILE *fptr;
 
 //if(debug_flag)
 	{
-	printf("make_font(): arg font_name=%s font_symbols=%d font_size=%d iso_extention=%d\n\
+	tc_log_msg(MOD_NAME, "make_font(): arg font_name=%s font_symbols=%d font_size=%d iso_extention=%d\n\
 	outline_thickness=%.2f blur_radius=%.2f\n",\
 	font_name, font_symbols, font_size, iso_extention, outline_thickness, blur_radius);
 	}
@@ -1382,7 +1377,7 @@ if(! font_path) return 0;
 fptr = fopen(font_path, "r");
 if(! fptr)
 	{
-	fprintf(stderr, "subtitler: make_font(): cannot open file %s for read, aborting.\n", font_path);
+	tc_log_msg(MOD_NAME, "subtitler: make_font(): cannot open file %s for read, aborting.\n", font_path);
 
 	exit(1);
 	} /* end if font_path not valid (font_path is actually pathfilename) */
@@ -1435,7 +1430,7 @@ tc_snprintf(temp, sizeof(temp), "%s/font.desc", outdir);
 pfontd = read_font_desc(temp, 1, 0);
 if(! pfontd)
 	{
-	fprintf(stderr, "subtitler: make_font(): could not load font %s for read, aborting.\n", temp);
+	tc_log_msg(MOD_NAME, "subtitler: make_font(): could not load font %s for read, aborting.\n", temp);
 
 	return 0;
 	}

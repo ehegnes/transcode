@@ -29,6 +29,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 #include <inttypes.h>
@@ -495,30 +496,29 @@ void free_buffers(void)
 
 void print_settings(void)
 {
-  fprintf (stderr, " \n");
-  fprintf (stderr, " denoiser - Settings:\n");
-  fprintf (stderr, " --------------------\n");
-  fprintf (stderr, " \n");
-  fprintf (stderr, " Mode             : %s\n",
+    tc_log_info(MOD_NAME, " denoiser - Settings:\n");
+    tc_log_info(MOD_NAME, " --------------------\n");
+    tc_log_info(MOD_NAME, " \n");
+    tc_log_info(MOD_NAME, " Mode             : %s\n",
     (denoiser.mode==0)? "Progressive frames" : (denoiser.mode==1)? "Interlaced frames": "PASS II only");
-  fprintf (stderr, " Deinterlacer     : %s\n",(denoiser.deinterlace==0)? "Off":"On");
-  fprintf (stderr, " Postprocessing   : %s\n",(denoiser.postprocess==0)? "Off":"On");
-  fprintf (stderr, " Frame border     : x:%3i y:%3i w:%3i h:%3i\n",denoiser.border.x,denoiser.border.y,denoiser.border.w,denoiser.border.h);
-  fprintf (stderr, " Search radius    : %3i\n",denoiser.radius);
-  fprintf (stderr, " Filter delay     : %3i\n",denoiser.delay);
-  fprintf (stderr, " Filter threshold : %3i\n",denoiser.threshold);
-  fprintf (stderr, " Pass 2 threshold : %3i\n",denoiser.pp_threshold);
-  fprintf (stderr, " Y - contrast     : %3i %%\n",denoiser.luma_contrast);
-  fprintf (stderr, " Cr/Cb - contrast : %3i %%\n",denoiser.chroma_contrast);
-  fprintf (stderr, " Sharpen          : %3i %%\n",denoiser.sharpen);
-  fprintf (stderr, " --------------------\n");
-  fprintf (stderr, " Run as pre filter: %s\n",(pre==0)? "Off":"On");
-  fprintf (stderr, " block_threshold  : %d\n",denoiser.block_thres);
-  fprintf (stderr, " scene_threshold  : %d%%\n",denoiser.scene_thres);
-  fprintf (stderr, " SceneChange Reset: %s\n",(denoiser.do_reset==0)? "Off":"On");
-  fprintf (stderr, " increment_cr     : %d\n",denoiser.increment_cr);
-  fprintf (stderr, " increment_cb     : %d\n",denoiser.increment_cb);
-  fprintf (stderr, " \n");
+    tc_log_info(MOD_NAME, " Deinterlacer     : %s\n",(denoiser.deinterlace==0)? "Off":"On");
+    tc_log_info(MOD_NAME, " Postprocessing   : %s\n",(denoiser.postprocess==0)? "Off":"On");
+    tc_log_info(MOD_NAME, " Frame border     : x:%3i y:%3i w:%3i h:%3i\n",denoiser.border.x,denoiser.border.y,denoiser.border.w,denoiser.border.h);
+    tc_log_info(MOD_NAME, " Search radius    : %3i\n",denoiser.radius);
+    tc_log_info(MOD_NAME, " Filter delay     : %3i\n",denoiser.delay);
+    tc_log_info(MOD_NAME, " Filter threshold : %3i\n",denoiser.threshold);
+    tc_log_info(MOD_NAME, " Pass 2 threshold : %3i\n",denoiser.pp_threshold);
+    tc_log_info(MOD_NAME, " Y - contrast     : %3i %%\n",denoiser.luma_contrast);
+    tc_log_info(MOD_NAME, " Cr/Cb - contrast : %3i %%\n",denoiser.chroma_contrast);
+    tc_log_info(MOD_NAME, " Sharpen          : %3i %%\n",denoiser.sharpen);
+    tc_log_info(MOD_NAME, " --------------------\n");
+    tc_log_info(MOD_NAME, " Run as pre filter: %s\n",(pre==0)? "Off":"On");
+    tc_log_info(MOD_NAME, " block_threshold  : %d\n",denoiser.block_thres);
+    tc_log_info(MOD_NAME, " scene_threshold  : %d%%\n",denoiser.scene_thres);
+    tc_log_info(MOD_NAME, " SceneChange Reset: %s\n",(denoiser.do_reset==0)? "Off":"On");
+    tc_log_info(MOD_NAME, " increment_cr     : %d\n",denoiser.increment_cr);
+    tc_log_info(MOD_NAME, " increment_cb     : %d\n",denoiser.increment_cb);
+    tc_log_info(MOD_NAME, " \n");
 
 }
 
@@ -537,7 +537,7 @@ void turn_on_accels(void)
     calc_SAD_half = &calc_SAD_half_mmxe;
     deinterlace = &deinterlace_mmx;
     if (filter_verbose)
-	fprintf (stderr, "[%s] Using extended MMX SIMD optimisations.\n", MOD_NAME);
+	tc_log_info(MOD_NAME, "Using extended MMX SIMD optimisations.");
   }
   else
     if( (CPU_CAP & AC_MMX)!=0 ) /* MMX */
@@ -547,7 +547,7 @@ void turn_on_accels(void)
       calc_SAD_half = &calc_SAD_half_mmx;
       deinterlace = &deinterlace_mmx;
       if (filter_verbose)
-	  fprintf (stderr, "[%s] Using MMX SIMD optimisations.\n", MOD_NAME);
+	  tc_log_info(MOD_NAME, "Using MMX SIMD optimisations.");
     }
     else
 #endif
@@ -557,98 +557,95 @@ void turn_on_accels(void)
       calc_SAD_half = &calc_SAD_half_noaccel;
       deinterlace = &deinterlace_noaccel;
       if (filter_verbose)
-	  fprintf (stderr, "[%s] Sorry, no SIMD optimisations available.\n", MOD_NAME);
+	  tc_log_info(MOD_NAME, "Sorry, no SIMD optimisations available.");
     }
 }
 
 void
 display_help(void)
 {
-  fprintf(
-  stderr,
-  "\n\n"
-  "denoiser Usage:\n"
-  "===========================================================================\n"
-  "\n"
-  "threshold <0..255> denoiser threshold\n"
-  "                   accept any image-error up to +/- threshold for a single\n"
-  "                   pixel to be accepted as valid for the image. If the\n"
-  "                   absolute error is greater than this, exchange the pixel\n"
-  "                   with the according pixel of the reference image.\n"
-  "                   (default=%i)"
-  "\n"
-  "delay <1...255>    Average 'n' frames for a time-lowpassed pixel. Values\n"
-  "                   below 2 will lead to a good response to the reference\n"
-  "                   frame, while larger values will cut out more noise (and\n"
-  "                   as a drawback will lead to noticable artefacts on high\n"
-  "                   motion scenes.) Values above 8 are allowed but rather\n"
-  "                   useless. (default=%i)\n"
-  "\n"
-  "radius <8...24>    Limit the search radius to that value. Usually it will\n"
-  "                   not make sense to go higher than 16. Esp. for VCD sizes.\n"
-  "                   (default=%i)"
-  "\n"
-  "border <x>x<y>-<w>x<h> Set active image area. Every pixel outside will be set\n"
-  "                   to <16,128,128> (\"pure black\"). This can save a lot of bits\n"
-  "                   without even touching the image itself (eg. on 16:9 movies\n"
-  "                   on 4:3 (VCD and SVCD) (default=%ix%i-%ix%i)\n"
-  "\n"
-  "luma_contrast <0...255>    Set luminance contrast in percent. (default=%i)\n"
-  "\n"
-  "chroma_contrast <0...255>  Set chrominance contrast in percent. AKA \"Saturation\"\n"
-  "                           (default=%i)"
-  "\n"
-  "sharpen <0...255>  Set sharpness in percent. WARNING: do not set too high\n"
-  "                   as this will gain bit-noise. (default=%i)\n"
-  "\n"
-  "deinterlace <0..1> Force deinterlacing. By default denoise interlaced.\n"
-  "\n"
-  "mode <0..2>        [2]: Fast mode. Use only Pass II (bitnoise-reduction) for\n"
-  "                   low to very low noise material. (default off)\n"
-  "                   [1]: Interlaced material\n"
-  "                   [0]: Progressive material (default)\n"
-  "\n"
-  "pp_threshold <0...255>   Pass II threshold (same as -t).\n"
-  "                   WARNING: If set to values greater than 8 you *will* see\n"
-  "                   artefacts...(default=%i)\n"
-  "\n"
-  "postprocess <0..1> [0]: disable filter internal postprocessing\n"
-  "                   [1]: enable filter internal postprocessing (default)\n"
-  "\n"
-  "pre <0..1>         [0]: run as a post process filter (default)\n"
-  "                   [1]: run as a pre process filter (not recommended)\n"
-  "\n"
-  "do_reset <0..n>    [n]: reset the filter for n frames after a scene change\n"
-  "                   [0]: dont reset\n"
-  "                   (default=%i)\n"
-  "\n"
-  "block_thres <0..oo>   Every SAD value greater than this will be considered \"bad\" \n"
-  "                   (default=%i)\n"
-  "\n"
-  "scene_thres <0%%..100%%> Percentage of blocks where motion estimation should fail\n"
-  "                   before a scene is considered changed (default=%i%%)\n"
-  "\n"
-  "increment_cb <-128..127> Increment Cb with a constant (default=%d)"
-  "\n"
-  "increment_cr <-128..127> Increment Cr with a constant (default=%d)"
-  "\n",
-  denoiser.threshold,
-  denoiser.delay,
-  denoiser.radius,
-  denoiser.border.x,
-  denoiser.border.y,
-  denoiser.border.w,
-  denoiser.border.h,
-  denoiser.luma_contrast,
-  denoiser.chroma_contrast,
-  denoiser.sharpen,
-  denoiser.pp_threshold,
-  denoiser.do_reset,
-  denoiser.block_thres,
-  denoiser.scene_thres,
-  denoiser.increment_cr,
-  denoiser.increment_cb
-  );
+    tc_log_info(MOD_NAME, "\n\n"
+"denoiser Usage:\n"
+"===========================================================================\n"
+"\n"
+"threshold <0..255> denoiser threshold\n"
+"                   accept any image-error up to +/- threshold for a single\n"
+"                   pixel to be accepted as valid for the image. If the\n"
+"                   absolute error is greater than this, exchange the pixel\n"
+"                   with the according pixel of the reference image.\n"
+"                   (default=%i)"
+"\n"
+"delay <1...255>    Average 'n' frames for a time-lowpassed pixel. Values\n"
+"                   below 2 will lead to a good response to the reference\n"
+"                   frame, while larger values will cut out more noise (and\n"
+"                   as a drawback will lead to noticable artefacts on high\n"
+"                   motion scenes.) Values above 8 are allowed but rather\n"
+"                   useless. (default=%i)\n"
+"\n"
+"radius <8...24>    Limit the search radius to that value. Usually it will\n"
+"                   not make sense to go higher than 16. Esp. for VCD sizes.\n"
+"                   (default=%i)"
+"\n"
+"border <x>x<y>-<w>x<h> Set active image area. Every pixel outside will be set\n"
+"                   to <16,128,128> (\"pure black\"). This can save a lot of bits\n"
+"                   without even touching the image itself (eg. on 16:9 movies\n"
+"                   on 4:3 (VCD and SVCD) (default=%ix%i-%ix%i)\n"
+"\n"
+"luma_contrast <0...255>    Set luminance contrast in percent. (default=%i)\n"
+"\n"
+"chroma_contrast <0...255>  Set chrominance contrast in percent. AKA \"Saturation\"\n"
+"                           (default=%i)"
+"\n"
+"sharpen <0...255>  Set sharpness in percent. WARNING: do not set too high\n"
+"                   as this will gain bit-noise. (default=%i)\n"
+"\n"
+"deinterlace <0..1> Force deinterlacing. By default denoise interlaced.\n"
+"\n"
+"mode <0..2>        [2]: Fast mode. Use only Pass II (bitnoise-reduction) for\n"
+"                   low to very low noise material. (default off)\n"
+"                   [1]: Interlaced material\n"
+"                   [0]: Progressive material (default)\n"
+"\n"
+"pp_threshold <0...255>   Pass II threshold (same as -t).\n"
+"                   WARNING: If set to values greater than 8 you *will* see\n"
+"                   artefacts...(default=%i)\n"
+"\n"
+"postprocess <0..1> [0]: disable filter internal postprocessing\n"
+"                   [1]: enable filter internal postprocessing (default)\n"
+"\n"
+"pre <0..1>         [0]: run as a post process filter (default)\n"
+"                   [1]: run as a pre process filter (not recommended)\n"
+"\n"
+"do_reset <0..n>    [n]: reset the filter for n frames after a scene change\n"
+"                   [0]: dont reset\n"
+"                   (default=%i)\n"
+"\n"
+"block_thres <0..oo>   Every SAD value greater than this will be considered \"bad\" \n"
+"                   (default=%i)\n"
+"\n"
+"scene_thres <0%%..100%%> Percentage of blocks where motion estimation should fail\n"
+"                   before a scene is considered changed (default=%i%%)\n"
+"\n"
+"increment_cb <-128..127> Increment Cb with a constant (default=%d)\n"
+"\n"
+"increment_cr <-128..127> Increment Cr with a constant (default=%d)\n",
+		denoiser.threshold,
+		denoiser.delay,
+		denoiser.radius,
+		denoiser.border.x,
+		denoiser.border.y,
+		denoiser.border.w,
+		denoiser.border.h,
+		denoiser.luma_contrast,
+		denoiser.chroma_contrast,
+		denoiser.sharpen,
+		denoiser.pp_threshold,
+		denoiser.do_reset,
+		denoiser.block_thres,
+		denoiser.scene_thres,
+		denoiser.increment_cr,
+		denoiser.increment_cb
+		);
 }
 
 /* vim: sw=4

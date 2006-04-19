@@ -31,6 +31,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 #include <inttypes.h>
@@ -58,15 +59,16 @@ static int      pre =1;
 
 static void Usage(void)
 {
-   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
-   printf ("* Options\n");
-   printf ("           'radius' Radius for median (luma)   [2]\n");
-   printf ("        'threshold' Trigger threshold (luma)   [2]\n");
-   printf ("    'radius_chroma' Radius for median (chroma) [2]\n");
-   printf (" 'threshold_chroma' Trigger threshold (chroma) [2]\n");
-   printf ("              'pre' Run as a PRE filter        [1]\n");
-   printf ("        'interlace' Treat input as interlaced  [0]\n");
-   printf ("             'help' show this help\n");
+    tc_log_info(MOD_NAME, "(%s) help"
+"* Options\n"
+"           'radius' Radius for median (luma)   [2]\n"
+"        'threshold' Trigger threshold (luma)   [2]\n"
+"    'radius_chroma' Radius for median (chroma) [2]\n"
+" 'threshold_chroma' Trigger threshold (chroma) [2]\n"
+"              'pre' Run as a PRE filter        [1]\n"
+"        'interlace' Treat input as interlaced  [0]\n"
+"             'help' show this help\n"
+		, MOD_CAP);
 }
 
 

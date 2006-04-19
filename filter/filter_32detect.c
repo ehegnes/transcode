@@ -28,6 +28,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 #include <inttypes.h>
@@ -60,21 +61,28 @@ static inline int sq( int d ) { return d * d; }
 
 static void help_optstr(void)
 {
-   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
-   printf ("* Overview\n");
-   printf("    This filter checks for interlaced video frames.\n");
-   printf("    Subsequent de-interlacing with transcode can be enforced with 'force_mode' option\n");
-
-   printf ("* Options\n");
-   printf ("   'threshold' interlace detection threshold [%d]\n", THRESHOLD);
-   printf ("   'chromathres' interlace detection chroma threshold [%d]\n", THRESHOLD/2);
-   printf ("   'equal' threshold for equal colors [%d]\n", COLOR_EQUAL);
-   printf ("   'chromaeq' threshold for equal chroma [%d]\n", COLOR_EQUAL/2);
-   printf ("   'diff' threshold for different colors [%d]\n", COLOR_DIFF);
-   printf ("   'chromadi' threshold for different colors [%d]\n", COLOR_DIFF/2);
-   printf ("   'force_mode' set internal force de-interlace flag with mode -I N [0]\n");
-   printf ("   'pre' run as pre filter [1]\n");
-   printf ("   'verbose' show results [off]\n");
+    tc_log_info(MOD_NAME, "(%s) help\n"
+"* Overview\n"
+"    This filter checks for interlaced video frames.\n"
+"    Subsequent de-interlacing with transcode can be enforced with 'force_mode' option\n"
+"\n"
+"* Options\n"
+"   'threshold' interlace detection threshold [%d]\n"
+"   'chromathres' interlace detection chroma threshold [%d]\n"
+"   'equal' threshold for equal colors [%d]\n"
+"   'chromaeq' threshold for equal chroma [%d]\n"
+"   'diff' threshold for different colors [%d]\n"
+"   'chromadi' threshold for different colors [%d]\n"
+"   'force_mode' set internal force de-interlace flag with mode -I N [0]\n"
+"   'pre' run as pre filter [1]\n"
+"   'verbose' show results [off]\n"
+		, MOD_CAP,
+		THRESHOLD,
+		THRESHOLD/2,
+		COLOR_EQUAL,
+		COLOR_EQUAL/2,
+		COLOR_DIFF,
+		COLOR_DIFF/2);
 }
 
 static int interlace_test(char *video_buf, int width, int height, int id, int instance, int thres, int eq, int diff)
@@ -247,8 +255,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
   if(((ptr->tag & TC_PRE_M_PROCESS  && pre[instance]) ||
 	  (ptr->tag & TC_POST_M_PROCESS && !pre[instance])) && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
 
-    //if (ptr->tag & TC_PRE_M_PROCESS) fprintf(stderr, "32#%d pre (%d)\n", instance, ptr->id);
-    //if (ptr->tag & TC_POST_M_PROCESS) fprintf(stderr, "32#%d post (%d)\n", instance, ptr->id);
+    //if (ptr->tag & TC_PRE_M_PROCESS) tc_log_msg(MOD_NAME, "32#%d pre (%d)", instance, ptr->id);
+    //if (ptr->tag & TC_POST_M_PROCESS) tc_log_msg(MOD_NAME, "32#%d post (%d)", instance, ptr->id);
 
     if(vob->im_v_codec==CODEC_RGB) {
 	is_interlaced = interlace_test(ptr->video_buf, 3*ptr->v_width, ptr->v_height, ptr->id, instance,

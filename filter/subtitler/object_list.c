@@ -68,8 +68,7 @@ struct object *plast, *pnew;
 
 if(debug_flag)
 	{
-	fprintf(stdout,\
-	"install_object_at_end_off_list(): arg name=%s\n", name);
+	tc_log_msg(MOD_NAME, "install_object_at_end_off_list(): arg name=%s", name);
 	}
 
 pnew = lookup_object(name);
@@ -109,7 +108,7 @@ struct object *pa, *pprev, *pdel, *pnext;
 
 if(debug_flag)
 	{
-	fprintf(stdout, "delete_object(): arg name=%s\n", name);
+	tc_log_msg(MOD_NAME, "delete_object(): arg name=%s", name);
 	}
 
 pa = objecttab[0];
@@ -169,7 +168,7 @@ struct object *pa;
 
 if(debug_flag)
 	{
-	fprintf(stdout, "delete_all_objects() arg none\n");
+	tc_log_msg(MOD_NAME, "delete_all_objects() arg none");
 	}
 
 while(1)
@@ -207,21 +206,20 @@ char name[TEMP_SIZE];
 
 if(debug_flag)
 	{
-	printf("\n");
+	tc_log_msg(MOD_NAME, "");
 
-	printf(\
-	"add_subtitle_object(): arg\n\
+	tc_log_msg(MOD_NAME, "add_subtitle_object(): arg\n\
 	start_frame_nr=%d end_frame_nr=%d\n\
 	type=%d\n\
 	xpos=%.2f ypos=%.2f zpos=%.2f\n\
-	data=%lu\n",\
+	data=%lu",\
 	start_frame_nr, end_frame_nr,\
 	type,\
 	xpos, ypos, zpos,\
 	(unsigned long)data\
 	);
 
-	if(type == FORMATTED_TEXT) printf("type formatted text data=%s\n", data);
+	if(type == FORMATTED_TEXT) tc_log_msg(MOD_NAME, "type formatted text data=%s", data);
 
 	}
 
@@ -234,7 +232,7 @@ start_frame_nr, end_frame_nr, xpos, ypos, zpos, type);
 pa = install_object_at_end_of_list(name);
 if(! pa)
 	{
-	fprintf(stderr, "subtitler: add_subtitle_object(): install_object_at_end_of_list %s failed\n",
+	tc_log_msg(MOD_NAME, "subtitler: add_subtitle_object(): install_object_at_end_of_list %s failed",
 	name);
 
 	return 0;
@@ -254,9 +252,8 @@ pa -> pfd = NULL;
 pa -> data = strsave(data);
 if(! pa -> data)
 	{
-	printf(\
-	"subtitler(): add_subtitle_object():\n\
-	could not allocate space for data, aborting\n");
+	tc_log_msg(MOD_NAME, "subtitler(): add_subtitle_object():\n\
+	could not allocate space for data, aborting");
 
 	return 0;
 	}
@@ -271,16 +268,15 @@ put the object that is the most in front at the end of the list
 */
 if(! sort_objects_by_zaxis() )
 	{
-	printf(\
-	"subtitler(): add_subtitle_object():\n\
-	could not sort objects by zaxis value, aborting\n");
+	tc_log_msg(MOD_NAME, "subtitler(): add_subtitle_object():\n\
+	could not sort objects by zaxis value, aborting");
 
 	return 0;
 	}
 
 if(debug_flag)
 	{
-	fprintf(stderr, "subtitler(): add_subtitle_object() return OK pa=%p\n", pa);
+	tc_log_msg(MOD_NAME, "subtitler(): add_subtitle_object() return OK pa=%p", pa);
 	}
 
 return pa;
@@ -302,7 +298,7 @@ char *ptr;
 
 if(debug_flag)
 	{
-	printf("add_objects(): arg current_frame_nr=%d____\n", current_frame_nr);
+	tc_log_msg(MOD_NAME, "add_objects(): arg current_frame_nr=%d____", current_frame_nr);
 	}
 
 for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
@@ -310,7 +306,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 	/* remove stale entries */
 	if(current_frame_nr == pa -> end_frame)
 		{
-//printf("DELETING STRUCTURE\n");
+//tc_log_msg(MOD_NAME, "DELETING STRUCTURE");
 		/* we now know which struture to delete */
 		pdel = pa;
 
@@ -344,15 +340,14 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 		{
 		if(debug_flag)
 			{
-			printf(\
-			"pa->name=%s pa->start_frame=%d pa->end_frame=%d\n\
+			tc_log_msg(MOD_NAME, "pa->name=%s pa->start_frame=%d pa->end_frame=%d\n\
 			pa->xpos=%.2f pa->ypos=%.2f pa->type=%d pa->data=%lu\n\
-			pa->pfd=%lu\n",\
+			pa->pfd=%lu",\
 			pa->name, pa->start_frame, pa->end_frame,\
 			pa->xpos, pa->ypos, pa->type, (unsigned long)pa->data,\
 			(unsigned long)pa->pfd);
 
-			printf("pa->data=%s\n", pa -> data);
+			tc_log_msg(MOD_NAME, "pa->data=%s", pa -> data);
 			}
 
 		/* functions working on variables deltas */
@@ -522,7 +517,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 				temp_data = ppm_to_yuv_in_char(temp, &width, &height);
 				if(! temp_data)
    			        {
-     			    printf("subtitler(): could not read file %s, aborting\n",\
+     			    tc_log_msg(MOD_NAME, "subtitler(): could not read file %s, aborting",\
 					temp);
 
 	    		    exit(1);
@@ -643,8 +638,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 				pa -> data = ppm_to_yuv_in_char(temp, &width, &height);
 		        if(! pa -> data)
     		        {
-   		     	    printf(\
-					"subtitler(): could not read file %s, aborting\n",\
+   		     	    tc_log_msg(MOD_NAME, "subtitler(): could not read file %s, aborting",\
 					temp);
 
    		 	        exit(1);
@@ -769,7 +763,7 @@ for(pa = objecttab[0]; pa != 0; pa = pa -> nxtentr)
 			pa -> distance -= dd;
 
 #if 0
-	printf("WAS GOTO x=%d y=%d dx=%.2f dy=%.2f dd=%.2f pa->distance=%.2f\n",\
+	tc_log_msg(MOD_NAME, "WAS GOTO x=%d y=%d dx=%.2f dy=%.2f dd=%.2f pa->distance=%.2f",\
 	(int)pa -> xpos, (int)pa -> ypos, dx, dy, dd, pa -> distance);
 #endif
 
@@ -949,14 +943,14 @@ int swap_flag;
 
 if(debug_flag)
 	{
-	printf("subtitler(): sort_objects_by_zaxis(): arg none\n");
+	tc_log_msg(MOD_NAME, "subtitler(): sort_objects_by_zaxis(): arg none");
 	}
 
 while(1)/* go through list again and again */
 	{
 	if(debug_flag)
 		{
-		fprintf(stdout, "SORTING OBJECT LIST\n");
+		tc_log_msg(MOD_NAME, "SORTING OBJECT LIST");
 		}/* end if debug_flag */
 
 	swap_flag = 0;
@@ -964,14 +958,14 @@ while(1)/* go through list again and again */
 		{
 		if(debug_flag)
 			{
-			fprintf(stdout, "sort_objects_by_zaxis(): sorting %s pa=%lu\n",\
+			tc_log_msg(MOD_NAME, "sort_objects_by_zaxis(): sorting %s pa=%lu",\
 			(const char *)pa->name, (unsigned long)pa);
 			}
 
 		pb = pa -> prventr;
 		if(debug_flag)
 			{
-			fprintf(stdout, "sort_objects_by_zaxis(): pb=pa->prventr=%lu\n", (unsigned long)pb);
+			tc_log_msg(MOD_NAME, "sort_objects_by_zaxis(): pb=pa->prventr=%lu", (unsigned long)pb);
 			}
 
 		if(pb)
@@ -983,10 +977,9 @@ while(1)/* go through list again and again */
 				/* indicate position was swapped */
 				if(debug_flag)
 					{
-					fprintf(stdout, "swap_flag=%d\n", swap_flag);
-					fprintf(stdout,\
-					"AFTER SWAP pa->prventr=%lu pa->nxtentr=%lu\n\
-					pb->prventr=%lu pb-nxtentrr=%lu\n",\
+					tc_log_msg(MOD_NAME, "swap_flag=%d", swap_flag);
+					tc_log_msg(MOD_NAME, "AFTER SWAP pa->prventr=%lu pa->nxtentr=%lu\n\
+					pb->prventr=%lu pb-nxtentrr=%lu",\
 					(unsigned long)pa -> prventr, (unsigned long)pa -> nxtentr,\
 					(unsigned long)pb -> prventr, (unsigned long)pb -> nxtentr);
 					}
@@ -1000,7 +993,7 @@ while(1)/* go through list again and again */
 
 if(debug_flag)
 	{
-	fprintf(stderr, "subtitler: sort_objects_by_zaxis(): return OK\n");
+	tc_log_msg(MOD_NAME, "subtitler: sort_objects_by_zaxis(): return OK");
 	}
 
 return 1;
@@ -1014,8 +1007,7 @@ struct object *pabove;
 
 if(debug_flag)
 	{
-	fprintf(stdout,\
-	"swap_position(): swapping top=%lu bottom=%lu\n", (unsigned long)ptop, (unsigned long)pbottom);
+	tc_log_msg(MOD_NAME, "swap_position(): swapping top=%lu bottom=%lu", (unsigned long)ptop, (unsigned long)pbottom);
 	}
 
 /* argument check */
@@ -1026,16 +1018,14 @@ if(! pbottom) return 0;
 punder = pbottom -> prventr;/* could be zero if first entry */
 if(debug_flag)
 	{
-	fprintf(stdout,\
-	"swap_position(): punder=%lu\n", (unsigned long)punder);
+	tc_log_msg(MOD_NAME, "swap_position(): punder=%lu", (unsigned long)punder);
 	}
 
 /* get the one above the top */
 pabove = ptop -> nxtentr;/* could be zero if last entry */
 if(debug_flag)
 	{
-	fprintf(stdout,\
-	"swap_position(): pabove=%lu\n", (unsigned long)pabove);
+	tc_log_msg(MOD_NAME, "swap_position(): pabove=%lu", (unsigned long)pabove);
 	}
 
 /* the next pointer in punder (or objecttab[0]) must now point to ptop */

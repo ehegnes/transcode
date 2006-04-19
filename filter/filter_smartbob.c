@@ -51,6 +51,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 #include "libtcvideo/tcvideo.h"
@@ -90,23 +91,22 @@ static MyFilterData *mfd;
 
 static void help_optstr(void)
 {
-   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
-   printf ("* Overview\n");
-   printf ("   This filter only makes sence when fed by -J doublefps.\n");
-   printf ("   It will take the field-frames which filter_doublefps\n");
-   printf ("   produces and generates full-sized motion adaptive deinterlaced \n");
-   printf ("   output at the double import framerate.\n");
-   printf ("   If you force reading the imput file twice its actual frames \n");
-   printf ("   per second, A/V will stay in sync (for PAL):\n");
-   printf ("   -f 50 -J doublefps=shiftEven=1,smartbob=denoise=1:threshold=12\n");
-
-   printf ("* Options\n");
-
-   printf ("      'motionOnly' Show motion areas only (0=off, 1=on) [1]\n");
-   printf ("       'threshold' Motion Threshold (0-255) [15]\n");
-   printf ("         'denoise' denoise (0=off, 1=on) [0]\n");
-   printf ("       'shiftEven' Phase shift (0=off, 1=on) [0]\n");
-
+   tc_log_info (MOD_NAME, "(%s) help\n"
+"* Overview\n"
+"   This filter only makes sence when fed by -J doublefps.\n"
+"   It will take the field-frames which filter_doublefps\n"
+"   produces and generates full-sized motion adaptive deinterlaced\n"
+"   output at the double import framerate.\n"
+"   If you force reading the imput file twice its actual frames\n"
+"   per second, A/V will stay in sync (for PAL):\n"
+"   -f 50 -J doublefps=shiftEven=1,smartbob=denoise=1:threshold=12\n"
+"\n"
+"* Options\n"
+"      'motionOnly' Show motion areas only (0=off, 1=on) [1]\n"
+"       'threshold' Motion Threshold (0-255) [15]\n"
+"         'denoise' denoise (0=off, 1=on) [0]\n"
+"       'shiftEven' Phase shift (0=off, 1=on) [0]\n"
+, MOD_CAP);
 }
 
 int tc_filter(frame_list_t *ptr_, char *options)
@@ -130,8 +130,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	mfd = tc_zalloc(sizeof(MyFilterData));
 
 	if (!mfd) {
-		fprintf(stderr, "No memory!\n");
-        return (-1);
+		tc_log_error(MOD_NAME, "No memory!");
+	        return (-1);
 	}
 
 	width  = vob->im_v_width;

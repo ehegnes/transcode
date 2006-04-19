@@ -24,6 +24,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 #include <math.h>
@@ -127,30 +128,37 @@ static void unsharp( uint8_t *dst, uint8_t *src, int dstStride, int srcStride, i
 
 static void help_optstr(void)
 {
-    tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
-    printf ("* Overview\n");
-    printf ("  This filter blurs or sharpens an image depending on\n");
-    printf ("  the sign of \"amount\". You can either set amount for\n");
-    printf ("  both luma and chroma or you can set it individually\n");
-    printf ("  (recommended). A positive value for amount will sharpen\n");
-    printf ("  the image, a negative value will blur it. A sane range\n");
-    printf ("  for amount is -1.5 to 1.5.\n");
-    printf ("  The matrix sizes must be odd and define the\n");
-    printf ("  range/strength of the effect. Sensible ranges are 3x3\n");
-    printf ("  to 7x7.\n");
-    printf ("  It sometimes makes sense to sharpen the sharpen the\n");
-    printf ("  luma and to blur the chroma. Sample string is:\n");
-    printf ("  \n");
-    printf ("  luma=0.8:luma_matrix=7x5:chroma=-0.2:chroma_matrix=3x3\n");
-    printf ("* Options\n");
-    printf ("         amount : Luma and chroma (un)sharpness amount (%f)\n", 0.0);
-    printf ("         matrix : Luma and chroma search matrix size (%dx%d)\n", 0, 0);
-    printf ("           luma : Luma (un)sharpness amount (%02.2f)\n", 0.0);
-    printf ("         chroma : Chroma (un)sharpness amount (%02.2f)\n", 0.0);
-    printf ("    luma_matrix : Luma search matrix size (%dx%d)\n", 0, 0);
-    printf ("  chroma_matrix : Chroma search matrix size (%dx%d)\n", 0, 0);
-    printf ("              pre : run as a pre filter (0)\n");
-    printf ("\n");
+    tc_log_info (MOD_NAME, "(%s) help\n"
+"* Overview\n"
+"  This filter blurs or sharpens an image depending on\n"
+"  the sign of \"amount\". You can either set amount for\n"
+"  both luma and chroma or you can set it individually\n"
+"  (recommended). A positive value for amount will sharpen\n"
+"  the image, a negative value will blur it. A sane range\n"
+"  for amount is -1.5 to 1.5.\n"
+"  The matrix sizes must be odd and define the\n"
+"  range/strength of the effect. Sensible ranges are 3x3\n"
+"  to 7x7.\n"
+"  It sometimes makes sense to sharpen the sharpen the\n"
+"  luma and to blur the chroma. Sample string is:\n"
+"\n"
+"  luma=0.8:luma_matrix=7x5:chroma=-0.2:chroma_matrix=3x3\n"
+"\n"
+"* Options\n"
+"         amount : Luma and chroma (un)sharpness amount (%f)\n"
+"         matrix : Luma and chroma search matrix size (%dx%d)\n"
+"           luma : Luma (un)sharpness amount (%02.2f)\n"
+"         chroma : Chroma (un)sharpness amount (%02.2f)\n"
+"    luma_matrix : Luma search matrix size (%dx%d)\n"
+"  chroma_matrix : Chroma search matrix size (%dx%d)\n"
+"              pre : run as a pre filter (0)\n"
+		 , MOD_CAP,
+		 0.0,
+		 0, 0,
+		 0.0,
+		 0.0,
+		 0, 0,
+		 0, 0);
 }
 
 //===========================================================================//

@@ -31,14 +31,14 @@ int bg_height, bg_width;
 
 if(debug_flag)
 	{
-	printf(\
+	tc_log_msg(MOD_NAME,
 	"subtitler(): parse_frame_entry():\n\
 	pa->name=%s pa->type=%d\n\
 	pa->end_frame=%d\n\
-	pa->data=%lu\n",\
-	pa -> name,\
-	pa -> type,\
-	pa -> end_frame,\
+	pa->data=%lu",
+	pa -> name,
+	pa -> type,
+	pa -> end_frame,
 	(unsigned long)pa -> data);
 	}
 
@@ -48,7 +48,7 @@ if(pa -> data[0] == '*')
 	running = strsave(pa -> data);
 	if(! running)
 		{
-		printf("subtitler(): strsave(pa -> data) failed\n");
+		tc_log_warn(MOD_NAME, "subtitler(): strsave(pa -> data) failed");
 
 		return -1;
 		}
@@ -61,7 +61,7 @@ if(pa -> data[0] == '*')
 
 		if(debug_flag)
 			{
-			printf("token=%s\n", token);
+			tc_log_msg(MOD_NAME, "token=%s", token);
 			}
 
 		/* avoid empty string */
@@ -74,8 +74,8 @@ if(pa -> data[0] == '*')
 			pb = lookup_frame(token);
 			if(! pb)
 				{
-				printf(\
-				"subtitler(): undefined object referenced: %s ignoring\n",\
+				tc_log_msg(MOD_NAME,
+				"subtitler(): undefined object referenced: %s ignoring",
 				token);
 
 				return 1;
@@ -85,7 +85,7 @@ if(pa -> data[0] == '*')
 			/* get data for this object */
 			if(debug_flag)
 				{
-//				printf("parser(): object %s data=%s\n", token, pb -> data);
+//				tc_log_msg(MOD_NAME, "parser(): object %s data=%s", token, pb -> data);
 				}
 
 			/*
@@ -95,9 +95,9 @@ if(pa -> data[0] == '*')
 			po = install_object_at_end_of_list(token);
 			if(! po)
 				{
-				printf(\
+				tc_log_msg(MOD_NAME,
 				"subtitler(): parse_frame_entry():\n\
-				could not install or find object %s in display list\n",\
+				could not install or find object %s in display list",\
 				token);
 
 				exit(1);
@@ -113,9 +113,9 @@ if(pa -> data[0] == '*')
 			*/
 			if(! po)
 				{
-				printf(\
+				tc_log_msg(MOD_NAME,
 		"subtitler(): syntax error (object must be first), line reads:\n\
-				%s\n", pa -> name);
+				%s", pa -> name);
 
 				exit(1);
 				}
@@ -354,8 +354,8 @@ if(pa -> data[0] == '*')
 				po -> font_dir = strsave(font_dir);
 				if(! po -> font_dir)
 					{
-					fprintf(stderr,\
-					"subtitler: parse_frame_entry(): could not allocate space for font_dir, aborting\n");
+					tc_log_msg(MOD_NAME,
+					"subtitler: parse_frame_entry(): could not allocate space for font_dir, aborting");
 
 					exit(1);
 					}
@@ -368,8 +368,8 @@ if(pa -> data[0] == '*')
 				po -> font_dir = strsave(font_dir);
 				if(! po -> font_dir)
 					{
-					fprintf(stderr,\
-					"subtitler: parse_frame_entry(): could not allocate space for font_dir, aborting\n");
+					tc_log_msg(MOD_NAME,
+					"subtitler: parse_frame_entry(): could not allocate space for font_dir, aborting");
 
 					exit(1);
 					}
@@ -382,8 +382,8 @@ if(pa -> data[0] == '*')
 				po -> font_name = strsave(font_name);
 				if(! po -> font_name)
 					{
-					fprintf(stderr,\
-					"subtitler: parse_frame_entry(): could not allocate space for font_name, aborting\n");
+					tc_log_msg(MOD_NAME,
+					"subtitler: parse_frame_entry(): could not allocate space for font_name, aborting");
 
 					exit(1);
 					}
@@ -396,8 +396,8 @@ if(pa -> data[0] == '*')
 
 			if(debug_flag)
 				{
-				printf("frame=%s font_dir=%s font_name=%s\n\
-				font_size=%d font_iso_extension=%d font_outline_thickness=%.2f font_blur_radius=%.2f\n",\
+				tc_log_msg(MOD_NAME, "frame=%s font_dir=%s font_name=%s\n\
+				font_size=%d font_iso_extension=%d font_outline_thickness=%.2f font_blur_radius=%.2f",\
 				pa -> name, po -> font_dir, po -> font_name,\
 				po -> font_size, po -> font_iso_extension,\
 				po -> font_outline_thickness, po -> font_blur_radius);
@@ -427,10 +427,10 @@ if(pa -> data[0] == '*')
 					po -> font_outline_thickness, po -> font_blur_radius);
 				if(! pfd)
 					{
-					fprintf(stderr,\
+					tc_log_msg(MOD_NAME,
 					"subtitler(): parser.c: could not load font:\n\
 					font_dir=%s font_name=%s symbols=%d size=%d iso extension=%d\n\
-					outline_thickness=%.2f  blur_radius=%.2f, aborting\n",\
+					outline_thickness=%.2f  blur_radius=%.2f, aborting",\
 					po -> font_dir, po -> font_name, po -> font_symbols, po -> font_size,\
 					po -> font_iso_extension,\
 					po -> font_outline_thickness, po -> font_blur_radius );
@@ -491,7 +491,7 @@ if(pa -> data[0] == '*')
 
 						if(debug_flag)
 							{
-							fprintf(stdout, "rgb_palette[%d][%d]=%d\n", i, j, rgb_palette[i][j]);
+							tc_log_msg(MOD_NAME, "rgb_palette[%d][%d]=%d", i, j, rgb_palette[i][j]);
 							}
 						}
 					}
@@ -500,8 +500,8 @@ if(pa -> data[0] == '*')
 				}
 			else if(a >= 1)
 				{
-				fprintf(stderr,\
-				"subtitler: parser.c frame %s only %d of 48 arguments found in palette, aborting.\n",\
+				tc_log_msg(MOD_NAME,
+				"subtitler: parser.c frame %s only %d of 48 arguments found in palette, aborting.",\
 				pa -> name, a);
 
 				exit(1);
@@ -537,7 +537,7 @@ if(pa -> data[0] == '*')
 
 //			if(strncmp(token, "exit", 4) == 0)
 //				{
-//				printf("subtitler(): exit request in .ppml file\n");
+//				tc_log_msg(MOD_NAME, "subtitler(): exit request in .ppml file");
 
 //				exit(1);
 //				}
@@ -563,8 +563,8 @@ if(pa -> type == FORMATTED_TEXT)
 
 //	if(verbose & TC_STATS)
 		{
-		printf(\
-		"subtitler(): frame_nr=%d end_frame_nr=%d\ntext=%s\n",\
+		tc_log_msg(MOD_NAME,
+		"subtitler(): frame_nr=%d end_frame_nr=%d\ntext=%s",\
 		frame_nr, end_frame_nr, pa -> data);
 		}
 
@@ -586,7 +586,7 @@ if(pa -> type == FORMATTED_TEXT)
 	pa -> data, line_h_end - line_h_start, subtitle_current_font_descriptor);
 	if(! tptr)
 		{
-		printf("subtitler(): could not reformat text=%s\n", pa -> data);
+		tc_log_msg(MOD_NAME, "subtitler(): could not reformat text=%s", pa -> data);
 
 		/* return error */
 		return -1;
@@ -641,14 +641,14 @@ if(pa -> type == FORMATTED_TEXT)
 	line_height = subtitle_current_font_descriptor -> height;
 	window_top = window_bottom - (screen_lines * line_height);
 
-//fprintf(stdout, "WAS line_height=%d\n", line_height);
+//tc_log_msg(MOD_NAME, "WAS line_height=%d", line_height);
 
 	if(debug_flag)
 		{
-		printf("screen_lines=%d\n", screen_lines);
-		printf("line_h_start=%d line_h_end=%d\n",\
+		tc_log_msg(MOD_NAME, "screen_lines=%d", screen_lines);
+		tc_log_msg(MOD_NAME, "line_h_start=%d line_h_end=%d",\
 		line_h_start, line_h_end);
-		printf("window_bottom=%d window_top=%d\n",\
+		tc_log_msg(MOD_NAME, "window_bottom=%d window_top=%d",\
 		window_bottom, window_top);
 		}
 
@@ -670,7 +670,7 @@ if(pa -> type == FORMATTED_TEXT)
 
 			if(pa -> pfd == 0)
 				{
-				fprintf(stderr, "subtitler: before get_h_pixels():  pa=%p pa -> fd=%p, aborting\n",\
+				tc_log_msg(MOD_NAME, "subtitler: before get_h_pixels():  pa=%p pa -> fd=%p, aborting",\
 				pa , pa -> pfd);
 
 				return 0;
@@ -692,10 +692,10 @@ if(pa -> type == FORMATTED_TEXT)
 
 		if(debug_flag)
 			{
-			printf(\
+			tc_log_msg(MOD_NAME,
 			"screen_start[%d]=%d window_bottom=%d window_top=%d\n\
 line_height=%d x=%d y=%d\n\
-text=%s\n",\
+text=%s",\
 			i, screen_start[i], window_bottom, window_top,\
 			line_height, x, y,\
 			screen_text[i]);

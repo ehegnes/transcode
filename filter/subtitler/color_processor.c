@@ -11,7 +11,7 @@ int tmp_int;
 
 if(debug_flag)
 	{
-	printf("subtitler(): adjust_color(): arg\n\
+	tc_log_msg(MOD_NAME, "subtitler(): adjust_color(): arg\n\
 	*u=%d *v=%d degrees=%.3f saturation=%.3f\n",\
 	*u, *v, degrees, saturation);
 	}
@@ -91,7 +91,7 @@ double dsine;
 
 if(debug_flag)
 	{
-	printf("subtitler(): chroma_key(): arg\n\
+	tc_log_msg(MOD_NAME, "subtitler(): chroma_key(): arg\n\
 	u=%d v=%d color=%.3f color_window=%.3f saturation=%.3f\n",\
 	u, v, color, color_window, saturation);
 	}

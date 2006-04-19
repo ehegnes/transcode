@@ -627,6 +627,5 @@ mb_search_00 (uint16_t x, uint16_t y)
         vector.y = yy+vy*2;
       }
     }
-  //printf("%d ", best_SAD);
   return best_SAD;
 }

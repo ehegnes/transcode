@@ -24,6 +24,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 #include <math.h>
@@ -132,18 +133,22 @@ static void PrecalcCoefs(int *Ct, double Dist25)
 
 static void help_optstr(void)
 {
-    tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
-    printf ("* Overview\n");
-    printf ("  This filter aims to reduce image noise producing\n");
-    printf ("  smooth images and making still images really still\n");
-    printf ("  (This should enhance compressibility).\n");
-    printf ("* Options\n");
-    printf ("             luma : spatial luma strength (%f)\n", PARAM1_DEFAULT);
-    printf ("           chroma : spatial chroma strength (%f)\n", PARAM2_DEFAULT);
-    printf ("    luma_strength : temporal luma strength (%f)\n", PARAM3_DEFAULT);
-    printf ("  chroma_strength : temporal chroma strength (%f)\n",
-	    PARAM3_DEFAULT*PARAM2_DEFAULT/PARAM1_DEFAULT);
-    printf ("              pre : run as a pre filter (0)\n");
+    tc_log_info(MOD_NAME, "(%s) help\n"
+"* Overview\n"
+"  This filter aims to reduce image noise producing\n"
+"  smooth images and making still images really still\n"
+"  (This should enhance compressibility).\n"
+"* Options\n"
+"             luma : spatial luma strength (%f)\n"
+"           chroma : spatial chroma strength (%f)\n"
+"    luma_strength : temporal luma strength (%f)\n"
+"  chroma_strength : temporal chroma strength (%f)\n"
+"              pre : run as a pre filter (0)\n"
+		, MOD_CAP,
+		PARAM1_DEFAULT,
+		PARAM2_DEFAULT,
+		PARAM3_DEFAULT,
+		PARAM3_DEFAULT*PARAM2_DEFAULT/PARAM1_DEFAULT);
 }
 
 // main filter routine
@@ -202,7 +207,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
       buffer[instance] = tc_zalloc(SIZE_RGB_FRAME);
 
       if (!mfd[instance] || !mfd[instance]->Line || !buffer[instance]) {
-	  fprintf(stderr, "[%s] Malloc failed\n", MOD_NAME);
+	  tc_log_error(MOD_NAME, "Malloc failed");
 	  return -1;
       }
 

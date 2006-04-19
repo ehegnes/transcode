@@ -27,6 +27,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 //#undef HAVE_ASM_MMX
@@ -128,39 +129,39 @@ static MyFilterData *mfd;
 
 static void help_optstr(void)
 {
-   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
-   printf ("* Overview\n");
-   printf ("   This filter is basically a rewrite of the\n");
-   printf ("   smartdeinter filter by Donald Graft (without advanced processing\n");
-   printf ("   options) for YUV mode only. Its faster than using the smartdeinter\n");
-   printf ("   in YUV mode and is also tuned with its threshold settings for YUV\n");
-   printf ("   mode. The filter detects motion and static areas in an image and\n");
-   printf ("   only deinterlaces (either by blending or by cubic interpolation)\n");
-   printf ("   the moving areas. The result is an image with high detail in\n");
-   printf ("   static areas, no information is lost there.\n");
-   printf ("\n");
-   printf ("   The threshold settings should be sufficent for most users. As a\n");
-   printf ("   rule of thumb, I recommend setting the chroma threshold to about\n");
-   printf ("   the half of the luma threshold. If you want more deinterlacing,\n");
-   printf ("   lower the thresholds. The scene threshold can be easily found by\n");
-   printf ("   turning on verbose mode and the preview filter. In verbose mode,\n");
-   printf ("   the filter will print out, when it detects a scene change. If\n");
-   printf ("   scenechanges go by unnoticed, lower the scene threshold. You can\n");
-   printf ("   completly disable chroma processing with the doChroma=0 option.\n");
-   printf ("   Here is a sample commandline\n");
-   printf ("   -J smartyuv=highq=1:diffmode=2:cubic=1:Blend=1:chromathres=4:threshold=8:doChroma=1\n");
-   printf ("* Options\n");
-   printf ("  'motionOnly' Show motion areas only (0=off, 1=on) [0]\n");
-   printf ("    'diffmode' Motion Detection (0=frame, 1=field, 2=both) [0]\n");
-   printf ("   'threshold' Motion Threshold (luma) (0-255) [14]\n");
-   printf (" 'chromathres' Motion Threshold (chroma) (0-255) [7]\n");
-   printf ("  'scenethres' Threshold for detecting scenechanges (0-255) [31]\n");
-   printf ("       'cubic' Do cubic interpolation (0=off 1=on) [1]\n");
-   printf ("       'highq' High-Quality processing (motion Map denoising) (0=off 1=on) [1]\n");
-   printf ("       'Blend' Blend the frames for deinterlacing (0=off 1=on) [1]\n");
-   printf ("    'doChroma' Enable chroma processing (slower but more accurate) (0=off 1=on) [1]\n");
-   printf ("     'verbose' Verbose mode (0=off 1=on) [1]\n");
-
+   tc_log_info (MOD_NAME, "(%s) help\n"
+"* Overview\n"
+"   This filter is basically a rewrite of the\n"
+"   smartdeinter filter by Donald Graft (without advanced processing\n"
+"   options) for YUV mode only. Its faster than using the smartdeinter\n"
+"   in YUV mode and is also tuned with its threshold settings for YUV\n"
+"   mode. The filter detects motion and static areas in an image and\n"
+"   only deinterlaces (either by blending or by cubic interpolation)\n"
+"   the moving areas. The result is an image with high detail in\n"
+"   static areas, no information is lost there.\n"
+"\n"
+"   The threshold settings should be sufficent for most users. As a\n"
+"   rule of thumb, I recommend setting the chroma threshold to about\n"
+"   the half of the luma threshold. If you want more deinterlacing,\n"
+"   lower the thresholds. The scene threshold can be easily found by\n"
+"   turning on verbose mode and the preview filter. In verbose mode,\n"
+"   the filter will print out, when it detects a scene change. If\n"
+"   scenechanges go by unnoticed, lower the scene threshold. You can\n"
+"   completly disable chroma processing with the doChroma=0 option.\n"
+"   Here is a sample commandline\n"
+"   -J smartyuv=highq=1:diffmode=2:cubic=1:Blend=1:chromathres=4:threshold=8:doChroma=1\n"
+"* Options\n"
+"  'motionOnly' Show motion areas only (0=off, 1=on) [0]\n"
+"    'diffmode' Motion Detection (0=frame, 1=field, 2=both) [0]\n"
+"   'threshold' Motion Threshold (luma) (0-255) [14]\n"
+" 'chromathres' Motion Threshold (chroma) (0-255) [7]\n"
+"  'scenethres' Threshold for detecting scenechanges (0-255) [31]\n"
+"       'cubic' Do cubic interpolation (0=off 1=on) [1]\n"
+"       'highq' High-Quality processing (motion Map denoising) (0=off 1=on) [1]\n"
+"       'Blend' Blend the frames for deinterlacing (0=off 1=on) [1]\n"
+"    'doChroma' Enable chroma processing (slower but more accurate) (0=off 1=on) [1]\n"
+"     'verbose' Verbose mode (0=off 1=on) [1]\n"
+		, MOD_CAP);
 }
 
 static void Erode_Dilate (uint8_t *_moving, uint8_t *_fmoving, int width, int height)
@@ -672,7 +673,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 		    vthres = vec_ld(0, tdata);
 
 		    count = 0;
-		    //printf ("Align: %p %p %p\n", src, srcminus, prev);
+		    //tc_log_msg(MOD_NAME, "Align: %p %p %p", src, srcminus, prev);
 		    for (y = 1; y < hminus1; y++)
 		    {
 			if (y & 1) { // odd lines
@@ -738,7 +739,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 
 		    } // height
 
-		    printf ("COUNT %d|\n", count);
+		    tc_log_msg(MOD_NAME, "COUNT %d|", count);
 
 		  } else
 #endif
@@ -790,7 +791,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 		if (scenechange && mfd->verbose)
 		    tc_log_info(MOD_NAME, "Scenechange at %6d (%6ld moving pixels)", counter, count);
 		/*
-		printf("Frame (%04d) count (%8ld) sc (%d) calc (%02ld)\n",
+		tc_log_msg(MOD_NAME, "Frame (%04d) count (%8ld) sc (%d) calc (%02ld)",
 				counter, count, scenechange, (100 * count) / (h * w));
 				*/
 
@@ -805,7 +806,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 		    Erode_Dilate(_moving, _fmoving, w, h);
 
 		    //rdtscll(after);
-		    //printf("%6d : %8lld\n", count, after-before);
+		    //tc_log_msg(MOD_NAME, "%6d : %8lld", count, after-before);
 		}
 	}
 	if (mfd->diffmode == FIELD_ONLY) {
@@ -1228,8 +1229,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	mfd = tc_zalloc(sizeof(MyFilterData));
 
 	if (!mfd) {
-		fprintf(stderr, "No memory!\n");
-        return (-1);
+		tc_log_error(MOD_NAME, "No memory!");
+	        return (-1);
 	}
 
 	width  = vob->im_v_width;
@@ -1305,7 +1306,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	if ( !mfd->movingY || !mfd->movingU || !mfd->movingV || !mfd->fmovingY ||
 	      !mfd->fmovingU || !mfd->fmovingV || !mfd->buf || !mfd->prevFrame) {
-	    fprintf (stderr, "[%s] Memory allocation error\n", MOD_NAME);
+	    tc_log_msg(MOD_NAME, "Memory allocation error");
 	    return -1;
 	}
 

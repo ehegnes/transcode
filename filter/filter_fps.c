@@ -28,6 +28,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 
@@ -48,19 +49,16 @@ parse_options(char *options, int *pre, double *infps, double *outfps)
 
 	if (!options || !*options) return 0;
 	if (!strcmp(options, "help")) {
-		tc_log_info(MOD_NAME, "help");
-		printf("This filter converts the video frame rate,"
-			" by repeating or dropping frames.\n"
-			"options: <input fps>:<output fps>\n"
-			"example: -J fps=25:29.97 will convert"
-			" from PAL to NTSC\n"
-			"In addition to the frame rate options,"
-			" you may also specify pre or post."
-			"If no rate options are given, defaults"
-			" or -f/--export_fps/--export_frc will be used.\n"
-			"If no pre or post options are given,"
-			" decreasing rates will preprocess and"
-			" increasing rates will postprocess.\n");
+		tc_log_info(MOD_NAME, "(%s) help\n"
+"This filter converts the video frame rate, by repeating or dropping frames.\n"
+"options: <input fps>:<output fps>\n"
+"example: -J fps=25:29.97 will convert from PAL to NTSC\n"
+"In addition to the frame rate options, you may also specify pre or post.\n"
+"If no rate options are given, defaults or -f/--export_fps/--export_frc will\n"
+"be used.\n"
+"If no pre or post options are given, decreasing rates will preprocess and\n"
+"increasing rates will postprocess.\n"
+			    , MOD_CAP);
 		return -1;
 	}
 

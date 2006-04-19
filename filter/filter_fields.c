@@ -32,6 +32,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 /*****************************************************************************
@@ -179,8 +180,7 @@ static int filter_fields_init(char *options) {
 
   buffer = tc_malloc(SIZE_RGB_FRAME);
   if (!buffer) {
-    fprintf(stderr, "[%s] ERROR: Unable to allocate memory.  Aborting.\n",
-                    MOD_NAME);
+    tc_log_error(MOD_NAME, "Unable to allocate memory.  Aborting.");
     return -1;
   }
 

@@ -35,6 +35,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 #include "aclib/imgconvert.h"
 
@@ -64,28 +65,28 @@ static MyFilterData *mfd;
 
 static void help_optstr(void)
 {
-   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
-   printf ("* Overview\n");
-   printf ("    This filter performs a subtle but useful sharpening effect. The\n");
-   printf ("    result is a sharpening effect that not only avoids amplifying\n");
-   printf ("    noise, but also tends to reduce it. A welcome side effect is that\n");
-   printf ("    files processed with this filter tend to compress to smaller files.\n");
-
-   printf ("* Options\n");
-   printf ("  * Strength 'strength' (0-255) [200]\n");
-   printf ("    When this value is 255, mapped pixels are not blended with the\n");
-   printf ("    original pixel values, so a full-strength effect is\n");
-   printf ("    obtained. As the value is reduced, each mapped pixel is\n");
-   printf ("    blended with more of the original pixel. At a value of 0,\n");
-   printf ("    the original pixels are passed through and there is no sharpening\n");
-   printf ("    effect.\n");
-
-   printf ("  * Threshold 'threshold' (0-255) [255]\n");
-   printf ("    This value determines how close a pixel must be to the brightest or\n");
-   printf ("    dimmest pixel to be mapped. If a pixel is more than threshold away\n");
-   printf ("    from the brightest or dimmest pixel, it is not mapped.  Thus, as\n");
-   printf ("    the threshold is reduced, pixels in the mid range start to be\n");
-   printf ("    spared.\n");
+   tc_log_info (MOD_NAME, "(%s) help\n"
+"* Overview\n"
+"    This filter performs a subtle but useful sharpening effect. The\n"
+"    result is a sharpening effect that not only avoids amplifying\n"
+"    noise, but also tends to reduce it. A welcome side effect is that\n"
+"    files processed with this filter tend to compress to smaller files.\n"
+"\n"
+"* Options\n"
+"  * Strength 'strength' (0-255) [200]\n"
+"    When this value is 255, mapped pixels are not blended with the\n"
+"    original pixel values, so a full-strength effect is obtained. As\n"
+"    the value is reduced, each mapped pixel is blended with more of the\n"
+"    original pixel. At a value of 0, the original pixels are passed\n"
+"    through and there is no sharpening effect.\n"
+"\n"
+"  * Threshold 'threshold' (0-255) [255]\n"
+"    This value determines how close a pixel must be to the brightest or\n"
+"    dimmest pixel to be mapped. If a pixel is more than threshold away\n"
+"    from the brightest or dimmest pixel, it is not mapped.  Thus, as\n"
+"    the threshold is reduced, pixels in the mid range start to be\n"
+"    spared.\n"
+		, MOD_CAP);
 }
 
 int tc_filter(frame_list_t *ptr_, char *options)
@@ -108,7 +109,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	mfd = tc_malloc(sizeof(MyFilterData));
 
 	if (!mfd) {
-		fprintf(stderr, "[%s] No memory at %d!\n", MOD_NAME, __LINE__); return (-1);
+		tc_log_error(MOD_NAME, "No memory at %d!", __LINE__);
+		return (-1);
 	}
 
 	height = vob->ex_v_height;
@@ -148,13 +150,15 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	mfd->convertFrameIn = tc_malloc (width*height*sizeof(Pixel32));
 	if (!mfd->convertFrameIn) {
-		fprintf(stderr, "[%s] No memory at %d!\n", MOD_NAME, __LINE__); return (-1);
+		tc_log_error(MOD_NAME, "No memory at %d!", __LINE__);
+		return (-1);
 	}
 	memset(mfd->convertFrameIn, 0, width*height*sizeof(Pixel32));
 
 	mfd->convertFrameOut = tc_malloc (width*height*sizeof(Pixel32));
 	if (!mfd->convertFrameOut) {
-		fprintf(stderr, "[%s] No memory at %d!\n", MOD_NAME, __LINE__); return (-1);
+		tc_log_error(MOD_NAME, "No memory at %d!", __LINE__);
+		return (-1);
 	}
 	memset(mfd->convertFrameOut, 0, width*height*sizeof(Pixel32));
 

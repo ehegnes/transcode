@@ -27,12 +27,13 @@
 #include "subproc.h"
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 
 #define MAXDATA (1024*100)
 
-//#define DEBUG(args...) fprintf(stderr, ## args)
-//#define NDEBUG(args...) fprintf(stderr, ## args)
-#define ERROR(args...) fprintf(stderr, ## args)
+//#define DEBUG(args...) tc_log_msg(__FILE__ , ## args)
+//#define NDEBUG(args...) tc_log_message(__FILE__ , ## args)
+#define ERROR(args...) tc_log_error(__FILE__ , ## args)
 
 #define NDEBUG(args...)
 #define DEBUG(args...)
@@ -184,7 +185,7 @@ static void parse_data_sequence(unsigned char *data, parsed_ctrl_sequence *parse
   memset(picture, 0, parsed->dimensions.size[0]*parsed->dimensions.size[1]);
 
   /*
-  sprintf(filename, "%s_%d.raw", config.subprefix, counter) ;
+  snprintf(filename, sizeof(filename), "%s_%d.raw", config.subprefix, counter) ;
 
   if ((file=fopen(filename, "w"))==0)
   {
@@ -232,13 +233,13 @@ static void parse_data_sequence(unsigned char *data, parsed_ctrl_sequence *parse
     if (chunk < 4) {
       // EOL
       len=width-x ;
-      //      fprintf(stderr, "Writing %d pixels (EOL)\n", parsed->dimensions.size[0]-x) ;
+      //tc_log_msg(__FILE__, "Writing %d pixels (EOL)", parsed->dimensions.size[0]-x) ;
     } else {
       len=chunk >> 2 ;
-      //fprintf(stderr, "Writing %d pixels (chunk=%x)\n", len, chunk) ;
+      //tc_log_msg(__FILE__, "Writing %d pixels (chunk=%x)", len, chunk) ;
 
       if (x+len > width) {
-	//        DEBUG("ERK! Line overrun by %d\n", (x+number)-width) ;
+	//DEBUG("ERK! Line overrun by %d\n", (x+number)-width) ;
       }
     }
 
@@ -257,11 +258,11 @@ static void parse_data_sequence(unsigned char *data, parsed_ctrl_sequence *parse
 
       if (offset[parity] & 1) {
 	offset[parity]++ ;
-	//        DEBUG("Realigned at EOL\n") ;
+	//DEBUG("Realigned at EOL\n") ;
       }
-      //  fprintf(stderr, "Written line %d with %d pixels from %d nibbles:\n",
-      //	      y-1, pixcounter, offset[parity]-linestart) ;
-      //show_nibbles(data+start[parity], linestart, offset[parity]-linestart, stderr) ;
+      //tc_log_msg(__FILE__, "Written line %d with %d pixels from %d nibbles:",
+      //           y-1, pixcounter, offset[parity]-linestart) ;
+      //show_nibbles(data+start[parity], linestart, offset[parity]-linestart, stderr);
       NDEBUG("\n") ;
       pixcounter=0 ;
     }
@@ -291,7 +292,7 @@ static int parse_ctrl_sequence(unsigned char *data,
     config.sub.time = (parsed[n].time) ? parsed[n].time : 500;
     next = read_short(data+offset+2) ;
 
-    //    fprintf(stderr, "sequence %d, time=%d, next=%d, current_offset=%d\n", n, parsed[n].time, next, current_offset) ;
+    //tc_log_msg(__FILE__, "sequence %d, time=%d, next=%d, current_offset=%d", n, parsed[n].time, next, current_offset) ;
     offset+=4 ;
 
     //DEBUG("ctrlseq: ") ; show_nibbles(data, 0, 80, stderr) ;DEBUG("\n") ;
@@ -373,7 +374,7 @@ static int parse_ctrl_sequence(unsigned char *data,
           offset += 5 ;
           break ;
         default:
-          fprintf(stderr, "unknown ctrl sequence 0x%x\n", data[offset]) ;
+          tc_log_warn(__FILE__, "unknown ctrl sequence 0x%x", data[offset]) ;
 	  ++offset;
           break;
       }
@@ -460,11 +461,11 @@ int subproc_init(char *scriptfile, char *prefix, int subtitles, unsigned short i
     config.id=id ;
 
     if (id > 31) {
-	fprintf(stderr, "illegal subtitle stream id %d\n", id) ;
+	tc_log_error(__FILE__, "illegal subtitle stream id %d", id) ;
 	return(-1);
     }
 
-    printf("(%s) extracting subtitle stream %d\n", __FILE__, config.id) ;
+    tc_log_info(__FILE__, "extracting subtitle stream %d", config.id) ;
     return(0);
 }
 

@@ -37,6 +37,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 
@@ -46,11 +47,12 @@
 
 static void help_optstr(void)
 {
-   tc_log_info (MOD_NAME, "(%s) help\n", MOD_CAP);
-   printf ("* Overview\n");
-   printf ("    Copies audio from one channel to another\n");
-   printf ("* Options\n");
-   printf ("     'source=['l<eft>' or 'r<ight>']\n");
+    tc_log_info(MOD_NAME, "(%s) help\n"
+"* Overview\n"
+"    Copies audio from one channel to another\n"
+"* Options\n"
+"     'source=['l<eft>' or 'r<ight>']\n"
+		, MOD_CAP);
 }
 
 /*-------------------------------------------------
@@ -133,7 +135,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     int len = ptr->audio_size / 2; // 16 bits samples
     int i;
 
-    // if(verbose) printf("[%s] Length: %d, Source: %d\n", MOD_NAME, len, sourceChannel);
+    // if(verbose) tc_log_msg(MOD_NAME, "Length: %d, Source: %d", len, sourceChannel);
 
     for (i = 0; i < len; i += 2) // Implicitly assumes even number of samples (e.g. l,r pairs)
     {

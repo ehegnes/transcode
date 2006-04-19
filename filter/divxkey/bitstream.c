@@ -12,7 +12,7 @@
 
 #define MARKER()	bs_skip(bs, 1)
 
-//#define DEBUGI(S,I) {printf("%s %i\n", (S), (I));}
+//#define DEBUGI(S,I) {fprintf(stderr, "%s %i\n", (S), (I));}
 
 static int __inline log2bin(int value)
 {

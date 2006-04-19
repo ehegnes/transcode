@@ -40,6 +40,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 #include <math.h>
@@ -98,19 +99,21 @@ static MyFilterData *mfd = NULL;
 
 static void help_optstr(void)
 {
-   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
-   printf ("* Overview\n");
-   printf ("    normalizes audio\n");
-   printf ("* Options\n");
-   printf ("     'smooth' double for smoothing ]0.0 1.0[  [0.06]\n");
-   printf (" 'smoothlast' double for smoothing last sample ]0.0, 1.0[  [0.06]\n");
-   printf ("       'algo' Which algorithm to use (1 or 2) [1]\n");
-   printf ("            1: uses a 1 value memory and coefficients new=a*old+b*cur (with a+b=1)\n");
-   printf ("            2: uses several samples to smooth the variations (standard weighted mean\n");
-   printf ("            on past samples)\n");
+   tc_log_info (MOD_NAME, "(%s) help\n"
+"* Overview\n"
+"    normalizes audio\n"
+"* Options\n"
+"     'smooth' double for smoothing ]0.0 1.0[  [0.06]\n"
+" 'smoothlast' double for smoothing last sample ]0.0, 1.0[  [0.06]\n"
+"       'algo' Which algorithm to use (1 or 2) [1]\n"
+"            1: uses a 1 value memory and coefficients new=a*old+b*cur (with a+b=1)\n"
+"            2: uses several samples to smooth the variations (standard weighted mean\n"
+"            on past samples)\n"
+		, MOD_CAP);
 }
 
-static void reset(void){
+static void reset(void)
+{
   int i;
   mfd->mul = MUL_INIT;
   switch(mfd->format) {

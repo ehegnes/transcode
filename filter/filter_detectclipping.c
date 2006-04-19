@@ -29,6 +29,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 
@@ -61,18 +62,19 @@ static MyFilterData *mfd[16];
 
 static void help_optstr(void)
 {
-   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
-   printf ("* Overview\n");
-   printf ("    Detect black regions on top, bottom, left and right of an image\n");
-   printf ("    It is suggested that the filter is run for around 100 frames.\n");
-   printf ("    It will print its detected parameters every frame. If you\n");
-   printf ("    don't notice any change in the printout for a while, the filter\n");
-   printf ("    probably won't find any other values.\n");
-   printf ("    The filter converges, meaning it will learn.\n");
-   printf ("* Options\n");
-   printf ("    'range' apply filter to [start-end]/step frames [0-oo/1]\n");
-   printf ("    'limit' the sum of a line must be below this limit to be considered black\n");
-   printf ("     'post' run as a POST filter (calc -Y instead of the default -j)\n");
+    tc_log_info(MOD_NAME, "(%s) help\n"
+"* Overview\n"
+"    Detect black regions on top, bottom, left and right of an image\n"
+"    It is suggested that the filter is run for around 100 frames.\n"
+"    It will print its detected parameters every frame. If you\n"
+"    don't notice any change in the printout for a while, the filter\n"
+"    probably won't find any other values.\n"
+"    The filter converges, meaning it will learn.\n"
+"* Options\n"
+"    'range' apply filter to [start-end]/step frames [0-oo/1]\n"
+"    'limit' the sum of a line must be below this limit to be considered black\n"
+"     'post' run as a POST filter (calc -Y instead of the default -j)\n"
+		, MOD_CAP);
 }
 
 static int checkline(unsigned char* src,int stride,int len,int bpp){

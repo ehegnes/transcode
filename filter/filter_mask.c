@@ -28,6 +28,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
 
@@ -186,14 +187,14 @@ static int is_optstr (char *buf) {
 
 static void help_optstr(void)
 {
-   tc_log_info (MOD_NAME, "(%s) help", MOD_CAP);
-   printf ("* Overview\n");
-   printf ("    This filter applies an rectangular mask to the video.\n");
-   printf ("    Everything outside the mask is set to black.\n");
-   printf ("* Options\n");
-   printf ("    lefttop : Upper left corner of the box\n");
-   printf ("   rightbot : Lower right corner of the box\n");
-
+    tc_log_info(MOD_NAME, "(%s) help\n"
+"* Overview\n"
+"    This filter applies an rectangular mask to the video.\n"
+"    Everything outside the mask is set to black.\n"
+"* Options\n"
+"    lefttop : Upper left corner of the box\n"
+"   rightbot : Lower right corner of the box\n"
+		, MOD_CAP);
 }
 
 int tc_filter(frame_list_t *ptr_, char *options)

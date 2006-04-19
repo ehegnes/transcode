@@ -55,6 +55,7 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
 #include "libtc/ratiocodes.h"
 
@@ -88,30 +89,38 @@ static int clonetype = 0;
 
 static void help_optstr(void)
 {
-    tc_log_info(MOD_NAME, "(%s) help", MOD_CAP);
-    printf ("* Overview\n");
-    printf ("  This filter aims to allow transcode to alter the fps\n");
-    printf ("  of video.  While one can reduce the fps to any amount,\n");
-    printf ("  one can only increase the fps to at most twice the\n");
-    printf ("  original fps\n");
-    printf ("  There are two modes of operation, buffered and unbuffered,\n");
-    printf ("  unbuffered is quick, but buffered, especially when dropping frames\n");
-    printf ("  should look better\n");
-    printf ("  For most users, modfps will need either no options, or just mode=1\n");
-    printf ("* Options\n");
-    printf ("\tmode : (0=unbuffered, 1=buffered [%d]\n", mode);
-    printf ("\tinfps : original fps (override what transcode supplies) [%f]\n",infps);
-    printf ("\tinfrc : original frc (overwrite infps) [%d]\n",infrc);
-    printf ("\tbuffer : number of frames to buffer [%d]\n",numSample);
-    printf ("\tsubsample : number of pixels to subsample when examining buffers [%d]\n",offset);
-    printf ("\tclonetype : when cloning and mode=1 do something special [%d]\n",clonetype);
-    printf ("\t\t    0 = none\n");
-    printf ("\t\t    1 = merge fields, cloned frame first(good for interlaced displays)\n");
-    printf ("\t\t    2 = merge fields, cloned frame 2nd (good for interlaced displays)\n");
-    printf ("\t\t    3 = average frames\n");
-    printf ("\t\t    4 = temporally average frame\n");
-    printf ("\t\t    5 = pseudo-phosphor average frames (YUV only) (slow)\n");
-    printf ("\tverbose : 0 = not verbose, 1 is verbose [%d]\n",show_results);
+    tc_log_info(MOD_NAME, "(%s) help\n"
+"* Overview\n"
+"  This filter aims to allow transcode to alter the fps\n"
+"  of video.  While one can reduce the fps to any amount,\n"
+"  one can only increase the fps to at most twice the\n"
+"  original fps\n"
+"  There are two modes of operation, buffered and unbuffered,\n"
+"  unbuffered is quick, but buffered, especially when dropping frames\n"
+"  should look better\n"
+"  For most users, modfps will need either no options, or just mode=1\n"
+"* Options\n"
+"    mode : (0=unbuffered, 1=buffered [%d]\n"
+"    infps : original fps (override what transcode supplies) [%f]\n"
+"    infrc : original frc (overwrite infps) [%d]\n"
+"    buffer : number of frames to buffer [%d]\n"
+"    subsample : number of pixels to subsample when examining buffers [%d]\n"
+"    clonetype : when cloning and mode=1 do something special [%d]\n"
+"        0 = none\n"
+"        1 = merge fields, cloned frame first(good for interlaced displays)\n"
+"        2 = merge fields, cloned frame 2nd (good for interlaced displays)\n"
+"        3 = average frames\n"
+"        4 = temporally average frame\n"
+"        5 = pseudo-phosphor average frames (YUV only) (slow)\n"
+"    verbose : 0 = not verbose, 1 is verbose [%d]\n"
+		, MOD_CAP,
+		mode,
+		infps,
+		infrc,
+		numSample,
+		offset,
+		clonetype,
+		show_results);
 }
 
 #define ABS_u8(a) (((a)^((a)>>7))-((a)>>7))
@@ -385,24 +394,24 @@ static int memory_init(vframe_list_t * ptr){
 
   frames = tc_malloc(sizeof (char*)*frbufsize);
   if (NULL == frames){
-    fprintf(stderr, "[%s] Error allocating memory in init\n",MOD_NAME);
+    tc_log_error(MOD_NAME, "Error allocating memory in init");
     return -1;
   } // else
   for (i=0;i<frbufsize; i++){
     frames[i] = tc_malloc(sizeof(char)*ptr->video_size);
     if (NULL == frames[i]){
-      fprintf(stderr, "[%s] Error allocating memory in init\n",MOD_NAME);
+      tc_log_error(MOD_NAME, "Error allocating memory in init");
       return -1;
     }
   }
   framesOK = tc_malloc(sizeof(int)*frbufsize);
   if (NULL == framesOK){
-    fprintf(stderr, "[%s] Error allocating memory in init\n",MOD_NAME);
+    tc_log_error(MOD_NAME, "Error allocating memory in init");
     return -1;
   }
   framesScore = tc_malloc(sizeof(int)*frbufsize);
   if (NULL == framesScore){
-    fprintf(stderr, "[%s] Error allocating memory in init\n",MOD_NAME);
+    tc_log_error(MOD_NAME, "Error allocating memory in init");
     return -1;
   }
   if (mode == 1){

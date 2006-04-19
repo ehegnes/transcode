@@ -20,8 +20,7 @@ returns new data adjusted for geometry, calls Imagemagick package mogrify.
 */
 if(debug_flag)
 	{
-	printf(\
-	"change_picture_geometry(): data=%lu xsize=%d ysize=%d\n\
+	tc_log_msg(MOD_NAME, "change_picture_geometry(): data=%lu xsize=%d ysize=%d\n\
 	new_xsize=%.2f new_ysize=%.2f keep_aspect=%d\n\
 	zrotation=%.2f xshear=%.2f yshear=%.2f\n",\
 	(unsigned long)data, xsize, ysize,\
@@ -34,8 +33,7 @@ if(debug_flag)
 tc_snprintf(temp, sizeof(temp), "%s/%s/temp.ppm", home_dir, subtitles_dir);
 if(! yuv_to_ppm(data, xsize, ysize, temp) )
 	{
-	printf(\
-	"subtitler(): change_picture_geometry(): yuv_to_ppm() error return\n");
+	tc_log_msg(MOD_NAME, "subtitler(): change_picture_geometry(): yuv_to_ppm() error return\n");
 
 	return 0;
 	}
@@ -94,7 +92,7 @@ ptr = ppm_to_yuv_in_char(temp, &x, &y);
 *new_ysize = (double)y;
 
 #if 0
-	printf("WAS RELOAD x=%d y=%d *new_xsize=%.2f *new_ysize=%.2f\n",\
+	tc_log_msg(MOD_NAME, "WAS RELOAD x=%d y=%d *new_xsize=%.2f *new_ysize=%.2f\n",\
 	x, y, *new_xsize, *new_ysize);
 #endif
 
@@ -108,7 +106,7 @@ FILE *pptr;
 
 if(debug_flag)
 	{
-	fprintf(stdout, "subtitler() execute(): arg command=%s\n", command);
+	tc_log_msg(MOD_NAME, "subtitler() execute(): arg command=%s\n", command);
 	}
 
 pptr = popen(command, "r");

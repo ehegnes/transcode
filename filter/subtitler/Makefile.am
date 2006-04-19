@@ -14,16 +14,16 @@ pkg_LTLIBRARIES = filter_subtitler.la
 
 filter_subtitler_la_SOURCES = \
 	filter_subtitler.c \
-	load_ppml_file.c \
-	load_font.c \
-	frame_list.c \
-	object_list.c \
-	x11.c \
-	text_processing.c \
-	load_pictures.c \
-	parser.c \
+	color_processor.c \
 	external_programs.c \
-	color_processor.c
+	frame_list.c \
+	load_font.c \
+	load_pictures.c \
+	load_ppml_file.c \
+	object_list.c \
+	parser.c \
+	text_processing.c \
+	x11.c
 
 filter_subtitler_la_LDFLAGS = -module -avoid-version
 
@@ -41,10 +41,11 @@ filter_subtitler_la_LIBADD = \
 	$(ICONV_LIBS)
 
 EXTRA_DIST = \
+	CHANGES \
 	HOWTO_USE_THIS \
+	LICENSE \
 	README.COLOR.PROCESSOR \
 	README.PPML \
-	CHANGES \
 	demo.ppml \
 	frame_list.h \
 	load_font.h \
@@ -53,5 +54,4 @@ EXTRA_DIST = \
 	subtitler.h \
 	subtitler_proto.h \
 	sun.ppm \
-	LICENSE \
 	x11.h
