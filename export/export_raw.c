@@ -106,12 +106,17 @@ MOD_open
     const char *dir_name = NULL;
     const char *to_open;
     const char *fcc = NULL;
+    int force_avi = (vob->ex_v_string && strcmp(vob->ex_v_string,"avi") == 0);
 
     im_v_codec = vob->im_v_codec;
 
     // open out file
     if(param->flag==TC_AUDIO && vob->out_flag) goto further;
-    if(param->flag==TC_VIDEO && vob->v_codec_flag == TC_CODEC_MPEG2 && (vob->pass_flag & TC_VIDEO)) goto further;
+    if(param->flag==TC_VIDEO
+       && vob->v_codec_flag == TC_CODEC_MPEG2
+       && (vob->pass_flag & TC_VIDEO)
+       && !force_avi)
+      goto further;
     if(vob->avifile_out==NULL) {
       if(NULL == (vob->avifile_out = AVI_open_output_file(
 	      (param->flag==TC_VIDEO)?  vob->video_out_file: vob->audio_out_file))) {
@@ -232,11 +237,22 @@ further:
 		tc_log_info(MOD_NAME, "icodec (0x%08x) and codec_flag (0x%08lx) - passthru",
 		    vob->im_v_codec, vob->v_codec_flag);
 
-		mpeg_f = fopen(vob->video_out_file, "w");
-		if (!mpeg_f) {
-		    tc_log_warn(MOD_NAME, "Cannot open outfile \"%s\": %s",
+		if (force_avi) {
+		    fcc = "mpg2";
+		    AVI_set_video(vob->avifile_out, vob->ex_v_width,
+				  vob->ex_v_height, vob->ex_fps, fcc);
+		    if(!info_shown && verbose_flag) {
+			tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d,"
+				    " height=%d", fcc, vob->ex_fps,
+				    vob->ex_v_width, vob->ex_v_height);
+		    }
+		} else {
+		    mpeg_f = fopen(vob->video_out_file, "w");
+		    if (!mpeg_f) {
+			tc_log_warn(MOD_NAME, "Cannot open outfile \"%s\": %s",
 				    vob->video_out_file, strerror(errno));
-		    return (TC_EXPORT_ERROR);
+			return (TC_EXPORT_ERROR);
+		    }
 		}
 	    }
 	}

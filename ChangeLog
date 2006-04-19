@@ -1,4 +1,9 @@
 2006-04-18 Andrew Church <achurch at achurch dot org>
+  * export/export_raw.c
+  Add "-y raw=avi" option to force AVI output format with -P 1 and MPEG2
+  video.
+
+2006-04-18 Andrew Church <achurch at achurch dot org>
   * Changed: import/Makefile.am import/demuxer.h import/scan_pes.c
              import/tcdecode.c libtc/tccodecs.h src/probe.c
              src/tc_defaults.h
