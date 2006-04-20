@@ -5,10 +5,7 @@ AM_CPPFLAGS = \
 	-DMOD_PATH=\"$(MOD_PATH)\" \
 	-DTC_ENCODER_NG=1 \
 	-I$(top_srcdir) \
-	-I$(top_srcdir)/src \
-	$(AC3_CFLAGS) \
-	$(DLDARWIN_CFLAGS) \
-	$(XIO_CFLAGS)
+	-I$(top_srcdir)/src
 
 bin_PROGRAMS = \
 	avifix \
@@ -77,6 +74,8 @@ avisplit_LDADD = \
 	$(LIBTC_LIBS)
 
 tcmodinfo_SOURCES = tcmodinfo.c
+tcmodinfo_CPPFLAGS = $(AM_CPPFLAGS) \
+	$(DLDARWIN_CFLAGS)
 tcmodinfo_LDADD = \
 	$(DLDARWIN_LIBS) \
 	$(ACLIB_LIBS) \
@@ -98,6 +97,8 @@ tcexport_SOURCES = tcexport.c \
 	../src/counter.c \
 	../src/encoder.c \
 	../src/encoder-common.c
+tcexport_CPPFLAGS = $(AM_CPPFLAGS) \
+	$(DLDARWIN_CFLAGS)
 tcexport_LDADD = \
 	$(DLDARWIN_LIBS) \
 	$(ACLIB_LIBS) \
