@@ -451,7 +451,7 @@ static int source_check(char *import_file)
     if((hp = gethostbyname(import_file)) != NULL) return(0);
     tc_error("invalid filename or host \"%s\"", import_file);
 #else
-    tc_error("invalid filename \"%s\"", import_file);
+    tc_error("invalid filename \"%s\": %s", import_file, strerror(errno));
 #endif
     return(1);
 }
