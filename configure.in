@@ -693,11 +693,7 @@ dnl
 dnl
 dnl Divx4linux
 dnl
-AC_CHECK_HEADERS([encore2.h],
-  [have_divx_encore2=yes
-    AC_DEFINE([HAVE_DIVX_ENCORE2], 1,
-      [Have the Divx4linux encore2.h header file])],
-  [have_divx_encore2=no])
+AC_CHECK_HEADERS([encore2.h])
 
 dnl
 dnl libpostproc

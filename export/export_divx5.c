@@ -55,7 +55,7 @@
 
 
 
-#ifdef HAVE_DIVX_ENCORE2
+#ifdef HAVE_ENCORE2_H
 #include <encore2.h>
 #else
 #include "divx5_encore2.h"

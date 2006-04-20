@@ -20,6 +20,10 @@
   * src/tcrequant.c
   Fix potential bug with if statements in macros.
 
+  * configure.in export/export_divx5.c
+  Remove extraneous HAVE_DIVX_ENCORE2, using autoconf-set HAVE_ENCORE2_H
+  in its place.
+
 2006-04-19 Andrew Church <achurch at achurch dot org>
   * export/* filter/* import/*
   [f]printf() -> tc_log_XXX() and perror() -> tc_log_perror() changes.
