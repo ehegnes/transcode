@@ -8,19 +8,18 @@
  * for details.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#define MOD_NAME    "encode_lzo.so"
+#define MOD_VERSION "v0.0.1 (2006-03-24)"
+#define MOD_CAP     "LZO lossless video encoder"
 
 #include "transcode.h"
 #include "aclib/imgconvert.h"
 #include "libtc/optstr.h"
 #include "libtc/tc_lzo.h"
-
 #include "libtc/tcmodule-plugin.h"
 
-#define MOD_NAME    "encode_lzo.so"
-#define MOD_VERSION "v0.0.1 (2006-03-24)"
-#define MOD_CAP     "LZO lossless video encoder"
+#include <stdio.h>
+#include <stdlib.h>
 
 /* tc_lzo_ prefix was used to avoid any possible name clash with liblzo? */
 
@@ -29,8 +28,6 @@ static const char *tc_lzo_help = ""
     "\tthis module encodes raw RGB/YUV video frames in LZO, using liblzo V2.\n"
     "Options:\n"
     "\thelp\tproduce module overview and options explanations\n";
-
-#include "transcode.h"
 
 typedef struct {
     lzo_byte *work_mem; /* needed by encoder to work properly */

@@ -24,12 +24,12 @@
 #ifndef _TC_V4L_VCR_H
 #define _TC_V4L_VCR_H 1
 
-#include <sys/ioctl.h>
-
 #include "transcode.h"
 #include "audio.h"
 #include "video.h"
 #include "common.h"
+
+#include <sys/ioctl.h>
 
 // video
 

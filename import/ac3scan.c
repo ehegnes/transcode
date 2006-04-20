@@ -21,16 +21,16 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <inttypes.h>
+#include "libtc/libtc.h"
 
 #include "ac3.h"
 #include "ac3scan.h"
 #include "magic.h"
 
-#include "libtc/libtc.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <inttypes.h>
 
 #define MAX_BUF 4096
 static char sbuffer[MAX_BUF];

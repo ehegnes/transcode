@@ -22,15 +22,15 @@
  *
  */
 
-#include <stdio.h>
-#include <unistd.h>
+#define MOD_NAME    "export_ac3.so"
+#define MOD_VERSION "v0.1 (2003-02-26)"
+#define MOD_CODEC   "(video) null | (audio) ac3"
 
 #include "transcode.h"
 #include "probe_export.h"
 
-#define MOD_NAME    "export_ac3.so"
-#define MOD_VERSION "v0.1 (2003-02-26)"
-#define MOD_CODEC   "(video) null | (audio) ac3"
+#include <stdio.h>
+#include <unistd.h>
 
 static int   verbose_flag=TC_QUIET;
 static int   capability_flag=TC_CAP_PCM;

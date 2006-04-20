@@ -22,6 +22,12 @@
 #define MOD_CAP     "Luminosity level scaler"
 #define MOD_AUTHOR  "Bryan Mayland"
 
+#include "transcode.h"
+#include "filter.h"
+#include "libtc/libtc.h"
+#include "libtc/optstr.h"
+#include "libtc/tcmodule-plugin.h"
+
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif
@@ -29,13 +35,6 @@
 #include <inttypes.h>
 #endif
 #include <math.h>
-
-#include "transcode.h"
-#include "filter.h"
-#include "libtc/libtc.h"
-#include "libtc/optstr.h"
-
-#include "libtc/tcmodule-plugin.h"
 
 #define DEFAULT_IN_BLACK   0
 #define DEFAULT_IN_WHITE   255

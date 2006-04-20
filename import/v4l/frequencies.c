@@ -1,7 +1,3 @@
-#include <stdlib.h>
-#include <sys/time.h>
-#include <pthread.h>
-
 #include "frequencies.h"
 
 /* --------------------------------------------------------------------- */
@@ -1192,7 +1188,7 @@ struct CHANLISTS chanlists[] = {
     { "southafrica",      pal_bcast_za,      CHAN_COUNT(pal_bcast_za)      },
     { "argentina",        argentina,         CHAN_COUNT(argentina)         },
     { "canada-cable",     ntsc_cable_ca,     CHAN_COUNT(ntsc_cable_ca)     },
-    { NULL, NULL, 0 } /* EOF */
+    { 0, 0, 0 } /* EOF */
 };
 
 struct STRTAB chanlist_names[] = {
@@ -1212,7 +1208,7 @@ struct STRTAB chanlist_names[] = {
     { 13, "southafrica" },
     { 14, "argentina" },
     { 15, "canada-cable" },
-    { -1, NULL }
+    { -1, 0 }
 };
 
 int                chantab   = 5;

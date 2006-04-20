@@ -8,11 +8,12 @@
  * for details.
  */
 
-#include <string.h>
 #include "src/transcode.h"
 #include "libtc.h"
 #include "tccodecs.h"
 #include "tcmodule-info.h"
+
+#include <string.h>
 
 int tc_module_info_match(int tc_codec,
                          const TCModuleInfo *head, const TCModuleInfo *tail)

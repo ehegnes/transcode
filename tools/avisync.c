@@ -21,6 +21,8 @@
  *
  */
 
+#include "transcode.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -28,8 +30,6 @@
 
 #include "buffer.h"
 #include "avilib/avilib.h"
-#include "config.h"
-#include "transcode.h"
 
 #include "aud_scan.h"
 #include "aud_scan_avi.h"

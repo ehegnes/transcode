@@ -421,6 +421,18 @@ Coding style guidelines for transcode
 
 == Transcode-specific features ==
 
+* Always include config.h (if HAVE_CONFIG_H is defined) before including
+  any system includes, since config.h defines symbols such as
+  _FILE_OFFSET_BITS which can affect system includes.  The following files
+  also include config.h:
+     transcode.h
+     aclib/aclib.h
+     avilib/avilib.h
+     avilib/wavlib.h
+     libtc/libtc.h
+     libtcaudio/tcaudio.h
+     libtcvideo/tcvideo.h
+
 * All code which may be called from the main transcode executable
   (including modules, libraries, the tcdecode/tcextract/etc. subprograms,
   and their component source files) should use one of the tc_log_XXX()

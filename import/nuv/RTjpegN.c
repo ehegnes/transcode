@@ -25,10 +25,10 @@
 
 */
 
+#include "RTjpegN.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "RTjpegN.h"
 
 #ifdef MMX
 #include "mmx.h"

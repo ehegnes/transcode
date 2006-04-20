@@ -28,6 +28,10 @@
  * Stefan Lucke <lucke@berlin.snafu.de> */
 
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -36,10 +40,6 @@
 
 #include <libdv/dv_types.h>
 #include "display.h"
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #include "libtc/libtc.h"
 

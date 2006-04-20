@@ -21,21 +21,20 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "jpeglib.h"
-
-/* quirk: jpeglib.h defines HAVE_STDLIB_H and config.h too */
-#if defined(HAVE_STDLIB_H)
-#undef HAVE_STDLIB_H
-#endif
-
-#include "transcode.h"
-
 #define MOD_NAME    "export_jpg.so"
 #define MOD_VERSION "v0.2.1 (2003-08-06)"
 #define MOD_CODEC   "(video) *"
+
+#include "transcode.h"
+
+/* quirk: jpeglib.h defines HAVE_STDLIB_H too */
+#if defined(HAVE_STDLIB_H)
+#undef HAVE_STDLIB_H
+#endif
+#include "jpeglib.h"
+
+#include <stdio.h>
+#include <stdlib.h>
 
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_YUV|TC_CAP_RGB|TC_CAP_PCM|TC_CAP_AUD;

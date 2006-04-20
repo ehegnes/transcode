@@ -22,6 +22,10 @@
 
 */
 
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
+
 #ifndef _I386_TYPES_H
 typedef unsigned char __u8;
 typedef unsigned short __u16;

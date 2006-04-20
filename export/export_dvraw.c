@@ -21,17 +21,18 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <libdv/dv.h>
+#define MOD_NAME    "export_dvraw.so"
+#define MOD_VERSION "v0.4 (2003-10-14)"
+#define MOD_CODEC   "(video) Digital Video | (audio) PCM"
+
 #include "transcode.h"
 #include "libtc/libtc.h"
 #include "libtc/optstr.h"
 #include "aclib/imgconvert.h"
 
-#define MOD_NAME    "export_dvraw.so"
-#define MOD_VERSION "v0.4 (2003-10-14)"
-#define MOD_CODEC   "(video) Digital Video | (audio) PCM"
+#include <stdio.h>
+#include <stdlib.h>
+#include <libdv/dv.h>
 
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID|TC_CAP_YUV422;

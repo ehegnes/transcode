@@ -34,16 +34,16 @@
  *  can be found... somewhere... oh, whatever...          *
  **********************************************************/
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <math.h>
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>

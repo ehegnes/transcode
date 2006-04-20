@@ -21,13 +21,6 @@
  * Fri May 30 01:17:49 CEST 2001            *
  ********************************************/
 
-#ifdef __bsdi__
-#define  _LARGEFILE64_SOURCE    1
-#ifndef	O_LARGEFILE
-#define O_LARGEFILE 0
-#endif
-#endif
-
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -113,11 +106,7 @@ int rtjpeg_aud_open(const char *tplorg)
     regions[0].end   = -1;
   }
 
-#ifdef SYS_BSD
   rtjpeg_aud_file=open(tplorg, O_RDONLY);
-#else
-  rtjpeg_aud_file=open(tplorg, O_RDONLY|O_LARGEFILE);
-#endif
 
   if (rtjpeg_aud_file == -1) {
     fprintf(stderr, "File not found: %s\n", tplorg);

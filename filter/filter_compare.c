@@ -22,6 +22,11 @@
  *
  */
 
+#include "transcode.h"
+#include "filter.h"
+#include "libtc/libtc.h"
+#include "libtc/optstr.h"
+
 #define MOD_NAME    "filter_compare.so"
 #define MOD_VERSION "v0.1.2 (2003-08-29)"
 #define MOD_CAP     "compare with other image to find a pattern"
@@ -29,22 +34,11 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-
-#include <magick/api.h>
-/* ImageMagick leaves these defined, grr */
-#undef PACKAGE_BUGREPORT
-#undef PACKAGE_NAME
-#undef PACKAGE_TARNAME
-#undef PACKAGE_VERSION
-#undef PACKAGE_STRING
-
-#include "transcode.h"
-#include "filter.h"
-#include "libtc/libtc.h"
-#include "libtc/optstr.h"
-
 #include <math.h>
 #include <inttypes.h>
+
+#define _MAGICKCORE_CONFIG_H  // to avoid conflicts with our config.h
+#include <magick/api.h>
 
 #define DELTA_COLOR 45.0
 

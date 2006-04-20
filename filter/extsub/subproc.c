@@ -24,10 +24,10 @@
  *
  */
 
-#include "subproc.h"
-
 #include "transcode.h"
 #include "libtc/libtc.h"
+
+#include "subproc.h"
 
 #define MAXDATA (1024*100)
 

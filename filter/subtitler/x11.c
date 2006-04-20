@@ -1,10 +1,11 @@
+#include "subtitler.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 
 #include <X11/Intrinsic.h>
 #include <X11/Xaw/Simple.h>
 
-#include "subtitler.h"
 #include "x11.h"
 
 extern int debug_flag;

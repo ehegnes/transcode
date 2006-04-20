@@ -69,10 +69,10 @@
  * Get the idea? :)
  */
 
+#include "st.h"
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include "st.h"
 
 /* resample includes */
 #include "resampl.h"

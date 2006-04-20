@@ -40,11 +40,6 @@
 #include "dvd_reader.h"
 #endif
 
-#ifdef SYS_BSD
-typedef off_t off64_t;
-#define lseek64 lseek
-#endif
-
 int dvd_read(int arg_title, int arg_chapter, int arg_angle);
 
 #define IO_BUF_SIZE 1024
@@ -107,13 +102,13 @@ void tccat_thread(info_t *ipipe)
 
     if(vob_offset>0) {
 
-      off64_t off;
+      off_t off;
 
       //get filesize in units of packs (2kB)
-      off = lseek64(ipipe->fd_in, vob_offset * (int64_t) DVD_VIDEO_LB_LEN,
-		    SEEK_SET);
+      off = lseek(ipipe->fd_in, vob_offset * (off_t) DVD_VIDEO_LB_LEN,
+		  SEEK_SET);
 
-      if( off != ( vob_offset * (int64_t) DVD_VIDEO_LB_LEN ) ) {
+      if( off != ( vob_offset * (off_t) DVD_VIDEO_LB_LEN ) ) {
 	tc_log_warn(__FILE__, "unable to seek to block %d", vob_offset); //drop this chunk/file
 	goto vob_skip2;
       }
@@ -288,16 +283,16 @@ void tccat_thread(info_t *ipipe)
 
 	if(vob_offset>0) {
 
-	  off64_t off, size;
+	  off_t off, size;
 
 	  //get filesize in units of packs (2kB)
-	  size  = lseek64(ipipe->fd_in, 0, SEEK_END);
+	  size  = lseek(ipipe->fd_in, 0, SEEK_END);
 
-	  lseek64(ipipe->fd_in, 0, SEEK_SET);
+	  lseek(ipipe->fd_in, 0, SEEK_SET);
 
-	  if(size > vob_offset * (int64_t) DVD_VIDEO_LB_LEN) {
+	  if(size > vob_offset * (off_t) DVD_VIDEO_LB_LEN) {
 	    // offset within current file
-	    off = lseek64(ipipe->fd_in, vob_offset * (int64_t) DVD_VIDEO_LB_LEN, SEEK_SET);
+	    off = lseek(ipipe->fd_in, vob_offset * (off_t) DVD_VIDEO_LB_LEN, SEEK_SET);
 	    vob_offset = 0;
 	  } else {
 	    vob_offset -= size/DVD_VIDEO_LB_LEN;

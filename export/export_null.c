@@ -21,14 +21,14 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "transcode.h"
-
 #define MOD_NAME    "export_null.so"
 #define MOD_VERSION "v0.1.2 (2001-08-17)"
 #define MOD_CODEC   "(video) null | (audio) null"
+
+#include "transcode.h"
+
+#include <stdio.h>
+#include <stdlib.h>
 
 static int verbose_flag=TC_QUIET;
 static int capability_flag=-1; //all codecs welcome

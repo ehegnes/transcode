@@ -21,19 +21,14 @@
  *
  */
 
+#include "transcode.h"
+#include "aclib/imgconvert.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 
+#define _MAGICKCORE_CONFIG_H  // to avoid conflicts with our config.h
 #include <magick/api.h>
-/* ImageMagick leaves these defined, grr */
-#undef PACKAGE_BUGREPORT
-#undef PACKAGE_NAME
-#undef PACKAGE_TARNAME
-#undef PACKAGE_VERSION
-#undef PACKAGE_STRING
-
-#include "transcode.h"
-#include "aclib/imgconvert.h"
 
 #define MOD_NAME    "export_im.so"
 #define MOD_VERSION "v0.0.4 (2003-11-13)"

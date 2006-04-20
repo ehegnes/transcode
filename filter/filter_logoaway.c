@@ -68,21 +68,16 @@
 #define MOD_CAP     "remove an image from the video"
 #define MOD_AUTHOR  "Thomas Wehrspann"
 
-#include <stdlib.h>
-#include <stdio.h>
-
-#include <magick/api.h>
-/* ImageMagick leaves these defined, grr */
-#undef PACKAGE_BUGREPORT
-#undef PACKAGE_NAME
-#undef PACKAGE_TARNAME
-#undef PACKAGE_VERSION
-#undef PACKAGE_STRING
-
 #include "transcode.h"
 #include "filter.h"
 #include "libtc/libtc.h"
 #include "libtc/optstr.h"
+
+#include <stdlib.h>
+#include <stdio.h>
+
+#define _MAGICKCORE_CONFIG_H  // to avoid conflicts with our config.h
+#include <magick/api.h>
 
 static vob_t *vob=NULL;
 

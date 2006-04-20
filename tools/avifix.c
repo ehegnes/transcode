@@ -21,6 +21,8 @@
  *
  */
 
+#include "transcode.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -29,8 +31,6 @@
 #include <fcntl.h>
 #include <string.h>
 
-#include "transcode.h"
-#include "config.h"
 #include "avilib/avilib.h"
 
 #define EXE "avifix"

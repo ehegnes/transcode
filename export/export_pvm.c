@@ -21,27 +21,25 @@
  *
  */
 
+#define MOD_NAME    "export_pvm.so"
+#define MOD_VERSION  EXPORT_PVM_VERSION
+#define MOD_CODEC   "(video) * | (audio) *"
+
+#include "transcode.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "config.h"
-
-#include <pvm_version.h>
-#include <pvm_interface.h>
-#include <pvm_parser.h>
-#include <external_codec.h>
-#include <vob_pack_unpack.h>
+#include "pvm_version.h"
+#include "pvm_interface.h"
+#include "pvm_parser.h"
+#include "external_codec.h"
+#include "vob_pack_unpack.h"
 
 #define MAX_BUF 1024
 
 #define MIN_TOT_NPROC	1
 #define MIN_FRAME	10
-
-#include "transcode.h"
-
-#define MOD_NAME    "export_pvm.so"
-#define MOD_VERSION  EXPORT_PVM_VERSION
-#define MOD_CODEC   "(video) * | (audio) *"
 
 static int verbose_flag=TC_QUIET;
 static int capability_flag=-1; //all codecs are welcome

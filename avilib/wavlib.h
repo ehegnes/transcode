@@ -22,6 +22,10 @@
 #ifndef _WAVLIB_H_
 #define _WAVLIB_H_
 
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
+
 #include <sys/types.h>
 #include <inttypes.h>
 #include <stdint.h>

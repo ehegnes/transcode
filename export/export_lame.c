@@ -21,17 +21,17 @@
  *
  */
 
+#define MOD_NAME    "export_lame.so"
+#define MOD_VERSION "v0.0.3 (2003-03-06)"
+#define MOD_CODEC   "(audio) MPEG 1/2"
+
+#include "transcode.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
-
-#include "transcode.h"
-
-#define MOD_NAME    "export_lame.so"
-#define MOD_VERSION "v0.0.3 (2003-03-06)"
-#define MOD_CODEC   "(audio) MPEG 1/2"
 
 static int 			verbose_flag	= TC_QUIET;
 static int 			capability_flag	= TC_CAP_PCM;

@@ -21,14 +21,18 @@
  *
  */
 
+#define MOD_NAME    "export_mpeg2enc.so"
+#define MOD_VERSION "v1.1.10 (2003-10-30)"
+#define MOD_CODEC   "(video) MPEG 1/2"
+
+#include "transcode.h"
+#include "libtcvideo/tcvideo.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
-
-#include "transcode.h"
-#include "libtcvideo/tcvideo.h"
 
 #if defined(HAVE_MJPEGTOOLS_INC)
 #include "yuv4mpeg.h"
@@ -37,10 +41,6 @@
 #include "mjpegtools/yuv4mpeg.h"
 #include "mjpegtools/mpegconsts.h"
 #endif
-
-#define MOD_NAME    "export_mpeg2enc.so"
-#define MOD_VERSION "v1.1.10 (2003-10-30)"
-#define MOD_CODEC   "(video) MPEG 1/2"
 
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_YUV|TC_CAP_RGB;

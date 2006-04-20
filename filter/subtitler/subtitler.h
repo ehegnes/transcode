@@ -27,15 +27,15 @@
 #define MOD_CAP     "subtitle filter"
 #define MOD_AUTHOR  "Jan Panteltje"
 
-#include <pwd.h>
-#include <ctype.h>
-#include <math.h>
-#include <limits.h>
-
 #include "transcode.h"
 #include "filter.h"
 #include "libtc/libtc.h"
 #include "libtc/optstr.h"
+
+#include <pwd.h>
+#include <ctype.h>
+#include <math.h>
+#include <limits.h>
 
 #include "load_font.h"
 #include "frame_list.h"

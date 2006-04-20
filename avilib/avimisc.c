@@ -21,7 +21,7 @@
  *
  */
 
-#include "os.h"
+#include "avilib.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,7 +33,6 @@
 #include <sys/stat.h>
 #include <string.h>
 
-#include "avilib.h"
 #include "libtc/xio.h"
 
 void AVI_info(avi_t *avifile)

@@ -47,15 +47,15 @@
 
 */
 
-#include <stdio.h>
-#include <unistd.h>
+#define MOD_NAME    "export_mp2.so"
+#define MOD_VERSION "v0.2.1 (2004-08-06)"
+#define MOD_CODEC   "(audio) MPEG 1/2"
 
 #include "transcode.h"
 #include "libtc/optstr.h"
 
-#define MOD_NAME    "export_mp2.so"
-#define MOD_VERSION "v0.2.1 (2004-08-06)"
-#define MOD_CODEC   "(audio) MPEG 1/2"
+#include <stdio.h>
+#include <unistd.h>
 
 static int   verbose_flag=TC_QUIET;
 static int   capability_flag=TC_CAP_PCM;

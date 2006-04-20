@@ -23,20 +23,19 @@
  *
  */
 
+#define MOD_NAME    "export_mp2enc.so"
+#define MOD_VERSION "v1.0.11 (2006-03-16)"
+#define MOD_CODEC   "(audio) MPEG 1/2"
+
+#include "transcode.h"
+#include "avilib/wavlib.h"
+#include "probe_export.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
-
-#include "transcode.h"
-#include "avilib/wavlib.h"
-
-#include "probe_export.h"
-
-#define MOD_NAME    "export_mp2enc.so"
-#define MOD_VERSION "v1.0.11 (2006-03-16)"
-#define MOD_CODEC   "(audio) MPEG 1/2"
 
 #define CLAMP(x,l,h) x > h ? h : x < l ? l : x
 

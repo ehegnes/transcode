@@ -146,7 +146,7 @@ static int yw_open_video(YWPrivateData *pd, vob_t *vob)
     pd->width = vob->im_v_width;
     pd->height = vob->im_v_height;
     
-    pd->fd_vid = open(vob->video_in_file, O_RDONLY|O_LARGEFILE);
+    pd->fd_vid = open(vob->video_in_file, O_RDONLY);
     if (pd->fd_vid == -1) {
         tc_log_error(MOD_NAME, "can't open video source '%s'"
                                " (reason: %s)", vob->video_in_file,

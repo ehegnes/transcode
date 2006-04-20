@@ -23,6 +23,8 @@
  *
  */
 
+#include "transcode.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -33,8 +35,6 @@
 
 #include "libtc/xio.h"
 
-#include "config.h"
-#include "transcode.h"
 #include "aud_scan.h"
 
 #define EXE "aviindex"

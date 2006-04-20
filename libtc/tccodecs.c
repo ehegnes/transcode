@@ -8,11 +8,14 @@
  * for details.
  */
 
-#include <string.h>
-#include <strings.h>
+#include "libtc.h"
 #include "src/transcode.h"
 #include "tccodecs.h"
-#include "libtc.h"
+
+#include <string.h>
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif
 
 /* internal usage only ***************************************************/
 

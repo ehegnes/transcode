@@ -22,6 +22,11 @@
  *
  */
 
+#include "transcode.h"
+#include "libtc/libtc.h"
+#include "aud_aux.h"
+#include "ac3.h"
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,12 +37,6 @@
 #include <assert.h>
 
 #include <ffmpeg/avcodec.h>
-#include "libtc/libtc.h"
-
-#include "aud_aux.h"
-#include "ac3.h"
-
-#include "transcode.h"
 
 static AVCodec        *mpa_codec = NULL;
 static AVCodecContext mpa_ctx;

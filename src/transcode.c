@@ -21,9 +21,6 @@
  *
  */
 
-#include <ctype.h>
-#include <math.h>
-
 #include "transcode.h"
 #include "decoder.h"
 #include "encoder.h"
@@ -38,6 +35,9 @@
 #include "libtc/ratiocodes.h"
 #include "libtc/iodir.h"
 #include "libtc/xio.h"
+
+#include <ctype.h>
+#include <math.h>
 
 #ifdef HAVE_GETOPT_LONG_ONLY
 #include <getopt.h>

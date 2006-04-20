@@ -21,14 +21,14 @@
  *
  */
 
-#include <stdio.h>
-#include <unistd.h>
-
-#include "transcode.h"
-
 #define MOD_NAME    "export_ogg.so"
 #define MOD_VERSION "v0.0.5 (2003-08-31)"
 #define MOD_CODEC   "(video) null | (audio) ogg"
+
+#include "transcode.h"
+
+#include <stdio.h>
+#include <unistd.h>
 
 static int   verbose_flag=TC_QUIET;
 static int   capability_flag=TC_CAP_PCM;

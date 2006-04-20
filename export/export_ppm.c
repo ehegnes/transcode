@@ -21,17 +21,17 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#define MOD_NAME    "export_ppm.so"
+#define MOD_VERSION "v0.1.1 (2002-02-14)"
+#define MOD_CODEC   "(video) PPM/PGM | (audio) MPEG/AC3/PCM"
 
 #include "transcode.h"
 #include "avilib/avilib.h"
 #include "aud_aux.h"
 #include "aclib/imgconvert.h"
 
-#define MOD_NAME    "export_ppm.so"
-#define MOD_VERSION "v0.1.1 (2002-02-14)"
-#define MOD_CODEC   "(video) PPM/PGM | (audio) MPEG/AC3/PCM"
+#include <stdio.h>
+#include <stdlib.h>
 
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_YUV|TC_CAP_RGB|TC_CAP_PCM|TC_CAP_AC3|TC_CAP_AUD|TC_CAP_YUV422;

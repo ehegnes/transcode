@@ -22,12 +22,6 @@
  *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <math.h>
-#include <time.h>
 
 #include "transcode.h"
 #include "libtc/libtc.h"
@@ -38,6 +32,13 @@
 // FIXME
 #undef EMULATE_FAST_INT
 #include <ffmpeg/avcodec.h>
+
+#include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <math.h>
+#include <time.h>
 
 #if !defined(INFINITY) && defined(HUGE_VAL)
 #define INFINITY HUGE_VAL

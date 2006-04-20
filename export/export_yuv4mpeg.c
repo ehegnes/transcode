@@ -21,17 +21,17 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#define MOD_NAME    "export_yuv4mpeg.so"
+#define MOD_VERSION "v0.1.8 (2003-08-23)"
+#define MOD_CODEC   "(video) YUV4MPEG2 | (audio) MPEG/AC3/PCM"
 
 #include "transcode.h"
 #include "libtc/libtc.h"
 #include "libtcvideo/tcvideo.h"
 #include "aud_aux.h"
 
-#define MOD_NAME    "export_yuv4mpeg.so"
-#define MOD_VERSION "v0.1.8 (2003-08-23)"
-#define MOD_CODEC   "(video) YUV4MPEG2 | (audio) MPEG/AC3/PCM"
+#include <stdio.h>
+#include <stdlib.h>
 
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_YUV|TC_CAP_PCM|TC_CAP_AC3|TC_CAP_AUD|TC_CAP_RGB;

@@ -1,3 +1,5 @@
+#include "transcode.h"
+
 #include <unistd.h>
 #include <string.h>
 #include <math.h>
@@ -7,8 +9,6 @@
 #include "global.h"
 #include "stdio.h"
 #include "denoise.h"
-
-#include "transcode.h"
 
 extern struct DNSR_GLOBAL denoiser;
 extern struct DNSR_VECTOR vector;

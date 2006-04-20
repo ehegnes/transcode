@@ -21,10 +21,10 @@
  *
  */
 
-#include "packets.h"
-
 #include "transcode.h"
 #include "libtc/libtc.h"
+
+#include "packets.h"
 
 #define FLUSH_BUFFER_MAX (1024<<4)
 

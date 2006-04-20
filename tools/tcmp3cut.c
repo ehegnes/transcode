@@ -21,11 +21,11 @@
  *
  */
 
-#include <sys/errno.h>
-
 #include "transcode.h"
 #include "framebuffer.h"
 #include "aud_scan.h"
+
+#include <sys/errno.h>
 
 
 #define EXE "tcmp3cut"

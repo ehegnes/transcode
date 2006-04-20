@@ -24,17 +24,17 @@
  *
  */
 
+#define MOD_NAME    "export_toolame.so"
+#define MOD_VERSION "v1.0.6 (2004-01-26)"
+#define MOD_CODEC   "(audio) MPEG 1/2"
+
+#include "transcode.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
-
-#include "transcode.h"
-
-#define MOD_NAME    "export_toolame.so"
-#define MOD_VERSION "v1.0.6 (2004-01-26)"
-#define MOD_CODEC   "(audio) MPEG 1/2"
 
 static int 			verbose_flag	= TC_QUIET;
 static int 			capability_flag	= TC_CAP_PCM;

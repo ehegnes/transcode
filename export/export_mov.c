@@ -25,16 +25,18 @@
  *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include "import/magic.h"
-#include "transcode.h"
-#include "encoder.h"
-#include "aclib/imgconvert.h"
-
 #define MOD_NAME    "export_mov.so"
 #define MOD_VERSION "v0.1.2 (2004-01-19)"
 #define MOD_CODEC   "(video) * | (audio) *"
+
+#include "transcode.h"
+#include "import/magic.h"
+#include "encoder.h"
+#include "aclib/imgconvert.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+
 /* verbose flag */
 static int verbose_flag=TC_QUIET;
 

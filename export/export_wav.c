@@ -21,15 +21,15 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#define MOD_NAME    "export_wav.so"
+#define MOD_VERSION "v0.3.0 (2006-03-16)"
+#define MOD_CODEC   "(audio) WAVE PCM"
 
 #include "transcode.h"
 #include "avilib/wavlib.h"
 
-#define MOD_NAME    "export_wav.so"
-#define MOD_VERSION "v0.3.0 (2006-03-16)"
-#define MOD_CODEC   "(audio) WAVE PCM"
+#include <stdio.h>
+#include <stdlib.h>
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;

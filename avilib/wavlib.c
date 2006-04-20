@@ -19,6 +19,8 @@
  * 3. This notice may not be removed or altered from any source distribution.
  */
 
+#include "wavlib.h"
+
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -26,8 +28,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
-
-#include "wavlib.h"
 
 /*************************************************************************
  * utilties                                                              *

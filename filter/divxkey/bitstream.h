@@ -1,6 +1,10 @@
 #ifndef _BITSTREAM_H_
 #define _BITSTREAM_H_
 
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
+
 #include <inttypes.h>
 
 #define BSWAP(x) x=((((x) & 0xff000000) >> 24) | (((x) & 0x00ff0000) >>  8) | (((x) & 0x0000ff00) <<  8) | (((x) & 0x000000ff) << 24))

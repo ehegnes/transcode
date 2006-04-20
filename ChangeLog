@@ -1,4 +1,37 @@
 2006-04-20 Andrew Church <achurch at achurch dot org>
+  * configure.in
+  Use standard largefile macros instead of rolling our own.
+
+  * import/import_yuv4mpeg.c import/iodump.c import/nuv/rtjpeg_aud_plugin.c
+    import/nuv/rtjpeg_vid_plugin.c multiplex/multiplex_y4m.c
+  Use standard large file interface instead of transitional one.
+
+  * STYLE
+  Add note that config.h must be included before any system includes.
+
+  * avilib/avimisc.c avilib/wavlib.c avilib/wavlib.h encode/encode_lzo.c
+    export/aud_aux.c export/divx4_vbr.c export/export_*.c
+    export/ffmpeg_cfg.c filter/filter_compare.c filter/filter_levels.c
+    filter/filter_logo.c filter/filter_logoaway.c
+    filter/divxkey/bitstream.c filter/divxkey/bitstream.h
+    filter/extsub/subproc.c filter/preview/display.c
+    filter/subtitler/subtitler.h filter/subtitler/x11.c
+    filter/yuvdenoise/deinterlace.c filter/yuvdenoise/denoise.c
+    filter/yuvdenoise/motion.c import/ac3scan.c import/import_im.c
+    import/import_imlist.c import/packets.c import/seqinfo.c
+    import/nuv/RTjpegN.c import/nuv/RTjpegN.h import/nuv/resample.c
+    import/v4l/frequencies.c import/v4l/vcr.h import/v4l/video.c
+    libtc/iodir.c libtc/ratiocodes.c libtc/tccodecs.c libtc/tcmoduleinfo.c
+    pvm3/*.c src/transcode.c tools/aud_scan.c tools/aud_scan_avi.c
+    tools/avifix.c tools/aviindex.c tools/avimerge.c tools/avisplit.c
+    tools/avisync.c tools/buffer.c tools/rawsource.c tools/tcmp3cut.c
+  Ensure config.h is included (possibly via transcode.h, etc.) before any
+  system includes.
+
+  * tools/Makefile.am
+  Clean up CFLAGS usage.
+
+2006-04-20 Andrew Church <achurch at achurch dot org>
   * libtc/libtc.h
   Add __attribute__((format())) to tc_log() declaration to catch format
   string problems.

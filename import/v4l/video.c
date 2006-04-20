@@ -24,16 +24,16 @@
  *
  */
 
+#include "transcode.h"
+#include "libtc/cfgfile.h"
+#include "aclib/imgconvert.h"
+
 #include "vcr.h"
 #include "video.h"
 #include "counter.h"
 #include "frequencies.h"
 
 #include "src/filter.h"
-
-#include "transcode.h"
-#include "libtc/cfgfile.h"
-#include "aclib/imgconvert.h"
 
 struct fgdevice fg;
 

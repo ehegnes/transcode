@@ -21,8 +21,10 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
+#define MOD_NAME    "export_raw.so"
+#define MOD_VERSION "v0.3.12 (2003-08-04)"
+#define MOD_CODEC   "(video) * | (audio) MPEG/AC3/PCM"
+
 #include "transcode.h"
 #include "aud_aux.h"
 #include "avilib/avilib.h"
@@ -32,9 +34,8 @@
 #include "libtc/xio.h"
 #include "libtcvideo/tcvideo.h"
 
-#define MOD_NAME    "export_raw.so"
-#define MOD_VERSION "v0.3.12 (2003-08-04)"
-#define MOD_CODEC   "(video) * | (audio) MPEG/AC3/PCM"
+#include <stdio.h>
+#include <stdlib.h>
 
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_DV|TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AC3|TC_CAP_AUD|TC_CAP_VID|TC_CAP_YUV422;

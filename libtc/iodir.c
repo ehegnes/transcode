@@ -21,10 +21,10 @@
  *
  */
 
+#include "libtc.h"
+#include "iodir.h"
 #include <stdlib.h>
 #include <string.h>
-#include "iodir.h"
-#include "libtc.h"
 
 #ifdef SYS_BSD
 typedef off_t off64_t;
