@@ -1,7 +1,7 @@
 dnl AC_C_ATTRIBUTE_ALIGNED
 dnl define ATTRIBUTE_ALIGNED_MAX to the maximum alignment if this is supported
 AC_DEFUN([AC_C_ATTRIBUTE_ALIGNED],
-    [AC_CACHE_CHECK([__attribute__ ((aligned ())) support],
+    [AC_CACHE_CHECK([__attribute__ ((aligned())) support],
 	[ac_cv_c_attribute_aligned],
 	[ac_cv_c_attribute_aligned=0
 	for ac_cv_c_attr_align_try in 2 4 8 16 32 64; do
@@ -15,21 +15,19 @@ AC_DEFUN([AC_C_ATTRIBUTE_ALIGNED],
     fi])
 
 
-dnl AC_TRY_CXXFLAGS (CXXFLAGS, [ACTION-IF-WORKS], [ACTION-IF-FAILS])
-dnl check if $CXX supports a given set of cflags
-AC_DEFUN([AC_TRY_CXXFLAGS],
-    [AC_MSG_CHECKING([if $CXX supports $1 flags])
-    SAVE_CXXFLAGS="$CXXFLAGS"
-    CXXFLAGS="$1"
-    AC_TRY_COMPILE([],[],[ac_cv_try_cflags_ok=yes],[ac_cv_try_cflags_ok=no])
-    CXXFLAGS="$SAVE_CXXFLAGS"
-    AC_MSG_RESULT([$ac_cv_try_cflags_ok])
-    if test x"$ac_cv_try_cflags_ok" = x"yes"; then
-	ifelse([$2],[],[:],[$2])
-    else
-	ifelse([$3],[],[:],[$3])
+dnl AC_C_ATTRIBUTE_FORMAT
+dnl See if __attribute__((format(...))) is available.
+AC_DEFUN([AC_C_ATTRIBUTE_FORMAT],
+    [AC_CACHE_CHECK([__attribute__ ((format())) support],
+        [ac_cv_c_attribute_format],
+        [AC_TRY_COMPILE([],
+            [extern int foo(char *,...) __attribute__((format(printf,1,2)));],
+            [ac_cv_c_attribute_format=yes],
+            [ac_cv_c_attribute_format=no])])
+    if test x"$ac_cv_c_attribute_format" = x"yes"; then
+        AC_DEFINE([HAVE_ATTRIBUTE_FORMAT], 1,
+               [Compiler understands __attribute__ ((format(...)))])
     fi])
-
 
 dnl AC_TRY_CFLAGS (CFLAGS, [ACTION-IF-WORKS], [ACTION-IF-FAILS])
 dnl check if $CC supports a given set of cflags

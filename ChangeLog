@@ -3,7 +3,7 @@
   Add __attribute__((format())) to tc_log() declaration to catch format
   string problems.
 
-  * configure.in
+  * acinclude.m4 configure.in
   Add test to check for availability of __attribute__((format())).
 
   * export/aud_aux.c export/export_ogg.c export/export_xvid4.c
@@ -23,6 +23,14 @@
   * configure.in export/export_divx5.c
   Remove extraneous HAVE_DIVX_ENCORE2, using autoconf-set HAVE_ENCORE2_H
   in its place.
+
+  * acinclude.m4 configure.in
+  Clean up the configure script:
+     - Remove AC_PROG_GCC_TRADITIONAL, as GCC 4 no longer supports
+       -traditional.
+     - Remove AC_PROG_CXX and AC_PROG_CPP calls, since neither are used.
+     - Remove AC_TRY_CXXFLAGS, since it is not used.
+     - Remove AC_SUBST(CFLAGS), since CFLAGS is automatically exported.
 
 2006-04-19 Andrew Church <achurch at achurch dot org>
   * export/* filter/* import/*

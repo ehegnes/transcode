@@ -14,10 +14,7 @@ AM_MAINTAINER_MODE
 
 # Checks for programs.
 AC_PROG_CC
-AC_PROG_GCC_TRADITIONAL
-AC_PROG_CXX
 AC_PROG_AWK
-AC_PROG_CPP
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
@@ -32,7 +29,7 @@ AC_SUBST(CCASFLAGS)
 ASFLAGS="$CCASFLAGS"
 AC_SUBST(ASFLAGS)
 
-dnl we got $AWK already, but not it's full path
+dnl we got $AWK already, but not its full path
 AC_PATH_PROG(PATH_TO_AWK, $AWK)
 
 deflib="/lib"
@@ -42,8 +39,6 @@ case "x${target_os}" in
   xdarwin*)
     is_osx=true
     CFLAGS="${CFLAGS} -no-cpp-precomp -D_INTL_REDIRECT_MACROS"
-    CXXFLAGS="${CXXFLAGS} -no-cpp-precomp -D_INTL_REDIRECT_MACROS"
-    OBJCFLAGS="${OBJCFLAGS} -no-cpp-precomp -D_INTL_REDIRECT_MACROS"
     #LDFLAGS="${LDFLAGS} -all_load"
 
     AC_DEFINE([SYSTEM_DARWIN], 1, [Define if this is Darwin / MacOSX OS])
@@ -97,14 +92,15 @@ AC_CHECK_HEADERS([errno.h fcntl.h inttypes.h limits.h malloc.h sys/time.h unistd
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_HEADER_TIME
-AC_C_INLINE
 AC_TYPE_SIZE_T
+AC_TYPE_OFF_T
+AC_C_INLINE
 AC_C_BIGENDIAN([words_bigendian=true
   AC_DEFINE([WORDS_BIGENDIAN], 1, [Define if your CPU is big endian])],
   words_bigendian=false)
 AM_CONDITIONAL(WORDS_BIGENDIAN, test x"$words_bigendian" = x"true")
-AC_TYPE_OFF_T
 AC_C_ATTRIBUTE_ALIGNED
+AC_C_ATTRIBUTE_FORMAT
 
 # Checks for library functions.
 AC_FUNC_MALLOC
@@ -451,23 +447,12 @@ fi
 AM_CONDITIONAL(HAVE_GCC2, test x"$gcc2" = x"yes")
 AM_CONDITIONAL(HAVE_GCC4, test x"$gcc4" = x"yes")
 
-dnl See if __attribute__((format(...))) is available.
-AC_TRY_COMPILE([],
-    [extern int foo(char *,...) __attribute__((format(printf,1,2)));],
-    [AC_DEFINE([HAVE_ATTRIBUTE_FORMAT], 1,
-               [Compiler understands __attribute__((format(...)))])])
-
 
 AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
 
 OPT_CFLAGS="-D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 $CFLAGS"
 AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
-AC_SUBST(CFLAGS)
-
-OPT_CXXFLAGS="$CXXFLAGS -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64"
-AC_TRY_CXXFLAGS([$OPT_CXXFLAGS],[CXXFLAGS=$OPT_CXXFLAGS])
-AC_SUBST(CXXFLAGS)
 
 
 dnl
