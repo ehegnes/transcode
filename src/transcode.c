@@ -439,7 +439,7 @@ static int source_check(char *import_file)
 #endif
 
     if(import_file==NULL) {
-      tc_error("invalid filename \"%s\"", import_file);
+      tc_error("invalid filename \"(null)\"");
       return(1);
     }
 
