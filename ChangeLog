@@ -1,4 +1,7 @@
 2006-04-21 Francesco Romani <fromani at gmail dot com>
+  * removed file: src/probe_export.h
+  remove the now useless probe_export.h
+
   * src/transcode.h
   add export_attributes field.
 
