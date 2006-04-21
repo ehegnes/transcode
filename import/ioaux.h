@@ -41,15 +41,13 @@ char *filetype(long magic);
 void scan_pes(int verbose, FILE *fd);
 void probe_pes(info_t *ipipe);
 
-int open_dir(char *name, int *fd, long *stype);
-
+/* ioaux.c */
 unsigned int stream_read_int16(const unsigned char *s);
 unsigned int stream_read_int32(const unsigned char *s);
-
 double read_time_stamp(const unsigned char *s);
 long read_time_stamp_long(const unsigned char *s);
 
-
+/* ts_reader.c */
 void probe_ts(info_t *ipipe);
 int ts_read(int fd_in, int fd_out, int demux_pid);
 

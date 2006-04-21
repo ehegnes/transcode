@@ -13,12 +13,15 @@
   * import/fileinfo.c import/ioaux.h
   Remove unused file_magic().
 
+  * import/ioaux.h
+  Remove declaration for nonexistent function open_dir().
+
   * import/ioaux.h import/seqinfo.h
   Move sync_type_t definition to seqinfo.h (only used in seqinfo.c and
   clone.c).
 
-  * import/clone.c import/dvd_reader.c import/ivtc.c import/probe_dvd.c
-    import/seqinfo.c
+  * import/clone.c import/dvd_reader.c import/ioxml.c import/ivtc.c
+    import/probe_dvd.c import/seqinfo.c
   Remove unneeded #include "ioaux.h".
 
   * import/ioaux.h import/probe_dvd.c import/tc.h

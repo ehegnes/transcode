@@ -21,13 +21,13 @@
  *
  */
 
-#include "config.h"
-
+#include "transcode.h"
 #include "libtc/libtc.h"
 
 #ifdef HAVE_LIBXML2
 
-#include "ioaux.h"
+#include "tcinfo.h"
+#include "magic.h"
 #include "tc.h"
 #include "ioxml.h"
 
