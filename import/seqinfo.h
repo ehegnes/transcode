@@ -84,4 +84,26 @@ void seq_list_frames(void);
 extern seq_list_t *seq_list_head;
 extern seq_list_t *seq_list_tail;
 
+
+/* Can't decide whether this belongs here or in clone.h, but it certainly
+ * doesn't belong in ioaux.h  --AC */
+typedef struct sync_info_s {
+
+  long int enc_frame;
+  long int adj_frame;
+
+  long int sequence;
+
+  double dec_fps;
+  double enc_fps;
+
+  double pts;
+
+  int pulldown;
+  int drop_seq;
+
+} sync_info_t;
+
+
+
 #endif

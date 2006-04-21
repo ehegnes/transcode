@@ -856,34 +856,3 @@ char *filetype(long magic)
   default:                    return("unknown file type");
   }
 }
-
-char *filemagic(long magic)
-{
-
-  switch(magic) {
-
-  case TC_MAGIC_VOB:      return("vob");
-  case TC_MAGIC_M2V:      return("m2v");
-  case TC_MAGIC_TS:       return("ts");
-  case TC_MAGIC_AVI:      return("avi");
-  case TC_MAGIC_WAV:      return("wav");
-  case TC_MAGIC_RAW:      return("raw");
-  case TC_MAGIC_MP3:      return("mp3");
-  case TC_MAGIC_ID3:      return("mp3+idtag");
-  case TC_MAGIC_MP3_2_5:  return("mp3");
-  case TC_MAGIC_MP3_2:    return("mp3");
-  case TC_MAGIC_MP2:      return("mp2");
-  case TC_MAGIC_DVD_NTSC: return("dvd");
-  case TC_MAGIC_DVD_PAL:  return("dvd");
-  case TC_MAGIC_NUV:      return("nuv");
-  case TC_MAGIC_DV_PAL:   return("dv");
-  case TC_MAGIC_DV_NTSC:  return("dv");
-  case TC_MAGIC_YUV4MPEG: return("yuv4mpeg");
-  case TC_MAGIC_XML:      return("xml");
-  case TC_MAGIC_OGG:      return("ogg");
-  case TC_MAGIC_BSDAV:    return("bsdav");
-  case TC_MAGIC_ERROR:    return("error");
-  case TC_MAGIC_UNKNOWN:
-  default:                return("unknown file type");
-  }
-}

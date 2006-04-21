@@ -25,10 +25,10 @@
 #include "transcode.h"
 #include "libtc/libtc.h"
 #include "probe.h"
+#include "magic.h"
 
 #include <assert.h>
 
-#include "ioaux.h"
 #include "dvd_reader.h"
 
 #ifdef HAVE_LIBDVDREAD

@@ -10,6 +10,16 @@
   Move single-line import_info() directly into each program's
   import_exit(), and add a PID identifier to the message.
 
+  * import/fileinfo.c import/ioaux.h
+  Remove unused file_magic().
+
+  * import/ioaux.h import/seqinfo.h
+  Move sync_type_t definition to seqinfo.h (only used in seqinfo.c and
+  clone.c).
+
+  * import/clone.c import/dvd_reader.c import/ivtc.c import/seqinfo.c
+  Remove unneeded #include "ioaux.h".
+
   * Changed: import/ioaux.h import/tcprobe.c import/tcscan.c
     Removed: import/bitrate.c
   Move enc_bitrate() into tcscan.c (and put a copy in tcprobe.c until we

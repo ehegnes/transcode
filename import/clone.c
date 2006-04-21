@@ -27,8 +27,8 @@
 #include "transcode.h"
 #include "libtc/libtc.h"
 #include "encoder.h"
-#include "ioaux.h"
 #include "clone.h"
+#include "seqinfo.h"  /* for sync_type_t */
 #include "ivtc.h"
 
 #include "frame_info.h"

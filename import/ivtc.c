@@ -22,7 +22,6 @@
  */
 
 #include "transcode.h"
-#include "ioaux.h"
 #include "ivtc.h"
 #include "libtc/libtc.h"
 

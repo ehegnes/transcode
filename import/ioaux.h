@@ -32,11 +32,10 @@
 /* this exit is provided by the import module or frontend */
 extern void import_exit(int ret);
 
+/* fileinfo.c */
 long fileinfo(int fd, int skipy);
 long streaminfo(int fd);
-
 char *filetype(long magic);
-char *filemagic(long magic);
 
 void scan_pes(int verbose, FILE *fd);
 void probe_pes(info_t *ipipe);
@@ -56,24 +55,6 @@ int ts_read(int fd_in, int fd_out, int demux_pid);
 
 #define VOB_PACKET_SIZE   0x800
 #define VOB_PACKET_OFFSET    22
-
-typedef struct sync_info_s {
-
-  long int enc_frame;
-  long int adj_frame;
-
-  long int sequence;
-
-  double dec_fps;
-  double enc_fps;
-
-  double pts;
-
-  int pulldown;
-  int drop_seq;
-
-} sync_info_t;
-
 
 //packet type
 #define P_ID_AC3  0xbd
