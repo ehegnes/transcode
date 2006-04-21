@@ -50,7 +50,7 @@ const TCCodecInfo tc_codecs_info[] = {
     { TC_CODEC_DIVX4, "divx4", "DIVX", "MPEG 4 compliant video", 1 }, // XXX
     { TC_CODEC_DIVX5, "divx5", "DX50", "MPEG 4 compliant video", 1 }, // XXX
     { TC_CODEC_MJPG, "mjpeg", "MJPG", "Motion JPEG", 0 },
-    { TC_CODEC_DV, "dv", "DVSD", "Digital Video", 0 },
+    { TC_CODEC_DV, "dvvideo", "DVSD", "Digital Video", 0 },
     { TC_CODEC_LZO1, "lzo1", "LZO1",
                      "Fast lossless video codec version 1", 0 },
     { TC_CODEC_LZO2, "lzo2", "LZO2",
