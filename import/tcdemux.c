@@ -44,7 +44,8 @@ int verbose=TC_QUIET;
 
 void import_exit(int code)
 {
-  if(verbose & TC_DEBUG) import_info(code, EXE);
+  if(verbose & TC_DEBUG)
+    tc_log_msg(EXE, "(pid=%d) exit (code %d)", (int) getpid(), code);
   exit(code);
 }
 

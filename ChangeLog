@@ -10,6 +10,11 @@
   Move enc_bitrate() into tcscan.c (and put a copy in tcprobe.c until we
   move its scanning code to tcscan instead, where it belongs).
 
+  * import/ioaux.c import/ioaux.h import/tccat.c import/tcdecode.c
+    import/tcdemux.c import/tcextract.c import/tcprobe.c import/tcscan.c
+  Move single-line import_info() directly into each program's
+  import_exit(), and add a PID identifier to the message.
+
   * tools/tcmodinfo.c
   Fix an erroneous #include.
 

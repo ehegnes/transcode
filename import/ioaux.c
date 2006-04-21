@@ -26,11 +26,6 @@
 #include "libtc/libtc.h"
 #include "libtc/xio.h"
 
-void import_info(int code, const char *EXE)
-{
-    tc_log_msg(EXE, "exit code (%d)", code);
-}
-
 
 unsigned int stream_read_int16(const unsigned char *s)
 {
