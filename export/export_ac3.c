@@ -27,7 +27,6 @@
 #define MOD_CODEC   "(video) null | (audio) ac3"
 
 #include "transcode.h"
-#include "probe_export.h"
 
 #include <stdio.h>
 #include <unistd.h>
