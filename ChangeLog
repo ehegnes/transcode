@@ -1,4 +1,7 @@
 2006-04-21 Francesco Romani <fromani at gmail dot com>
+  * libtc/tcmodule.c
+  more STYLEish documentation.
+
   * export/export_ffmpeg.c export/export_mp2enc.c
     export/export_mpeg2enc.c src/Makefile.am
   drop dangling references to probe_export.h.

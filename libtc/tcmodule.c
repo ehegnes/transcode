@@ -27,7 +27,7 @@
 #include "transcode.h"
 
 #define TC_FACTORY_MAX_HANDLERS     (16)
-#define MOD_TYPE_MAX_LEN            (256)
+#define MOD_TYPE_MAX_LEN            (TC_BUF_MIN * 2)
 
 #define tc_module_init(module) \
     (module)->klass->init(&((module)->instance))
@@ -236,12 +236,6 @@ static const TCModuleClass dummy_class = {
  *     TC_TRUE if given class name can be understanded -and builded-
  *     by actual factory code.
  *     TC_FALSE otherwise
- * Side effects:
- *     None.
- * Preconditions:
- *     None.
- * Postconditions:
- *     None.
  */
 static int is_known_modclass(const char *modclass)
 {
@@ -276,7 +270,7 @@ static int is_known_modclass(const char *modclass)
  *     See below to get some usage examples.
  *
  * Parameters:
- *     desc: pointer to a TCModuleDescriptor.
+ *         desc: pointer to a TCModuleDescriptor.
  *     userdata: opaque pointer to function-specific data.
  * Return Value:
  *     0  -> keep on going
@@ -287,8 +281,6 @@ static int is_known_modclass(const char *modclass)
  * Preconditions:
  *     given factory (but isn't guaranteed that also descriptors are) already
  *     initialized and contains valid data.
- * Postconditions:
- *     none.
  */
 typedef int (*TCModuleDescriptorIter)(TCModuleDescriptor *desc, void *userdata);
 
@@ -298,17 +290,15 @@ typedef int (*TCModuleDescriptorIter)(TCModuleDescriptor *desc, void *userdata);
  *     *both used and unused*.
  *
  * Parameters:
- *     factory: factory instance to use
+ *      factory: factory instance to use
  *     iterator: iterator to apply at factory descriptors
  *     userdata: opaque data to pass to iterator along with each descriptor
- *     index: pointer to an integer. If not NULL, will be filled
- *            with index of last descriptor elaborated
+ *        index: pointer to an integer. If not NULL, will be filled
+ *               with index of last descriptor elaborated
  * Return Value:
  *     return code of the last execution of iterator.
  * Side effects:
  *     None (see specific descriptor for this).
- * Preconditions:
- *     None.
  * Postconditions:
  *     If return value is 0, given iteratr wass applied to *all*
  *     descriptors in factory.
@@ -346,18 +336,12 @@ static int tc_foreach_descriptor(TCFactory factory,
  *     verify the match for a given descriptor and a given module type.
  *
  * Parameters:
- *     desc: descriptor to verify
+ *         desc: descriptor to verify
  *     modtype_: module type to look for.
  * Return Value:
  *     1  if given descriptor has given module type,
  *     0  succesfull.
  *     -1 if a given parameter is bogus.
- * Side effects:
- *     None.
- * Preconditions:
- *     None.
- * Postconditions:
- *     None.
  */
 static int descriptor_match_modtype(TCModuleDescriptor *desc,
                                     void *modtype_)
@@ -380,18 +364,12 @@ static int descriptor_match_modtype(TCModuleDescriptor *desc,
  *     verify the match for a given descriptor is an unitialized one.
  *
  * Parameters:
- *     desc: descriptor to verify
+ *       desc: descriptor to verify
  *     unused: dummy parameter to achieve API conformancy.
  * Return Value:
  *     1  if given descriptor is a free one (uninitialized),
  *     0  succesfull.
  *     -1 if a given parameter is bogus.
- * Side effects:
- *     None.
- * Preconditions:
- *     None.
- * Postconditions:
- *     None.
  */
 static int descriptor_is_free(TCModuleDescriptor *desc, void *unused)
 {
@@ -409,17 +387,11 @@ static int descriptor_is_free(TCModuleDescriptor *desc, void *unused)
  *     initialize a plugin descriptor with valid defaults.
  *
  * Parameters:
- *     desc: descriptor to initialize.
+ *       desc: descriptor to initialize.
  *     unused: dummy parameter to achieve API conformancy.
  * Return Value:
  *     0  succesfull.
  *     -1 if a given parameter is bogus.
- * Side effects:
- *     None.
- * Preconditions:
- *     None.
- * Postconditions:
- *     None.
  */
 static int descriptor_init(TCModuleDescriptor *desc, void *unused)
 {
@@ -443,7 +415,7 @@ static int descriptor_init(TCModuleDescriptor *desc, void *unused)
  *     resources.
  *
  * Parameters:
- *     desc: descriptor to finalize.
+ *       desc: descriptor to finalize.
  *     unused: dummy parameter to achieve API conformancy.
  * Return Value:
  *     1  if given descriptor has still some live instances around,
@@ -451,10 +423,6 @@ static int descriptor_init(TCModuleDescriptor *desc, void *unused)
  *     -1 if a given parameter is bogus.
  * Side effects:
  *     A plugin will be released and unloaded (via dlclose()).
- * Preconditions:
- *     None.
- * Postconditions:
- *     None.
  */
 static int descriptor_fini(TCModuleDescriptor *desc, void *unused)
 {
@@ -519,18 +487,14 @@ static void make_modtype(char *buf, size_t bufsize,
  *     hard copy: make two independent copies duplicating the data.
  *
  * Parameters:
- *     klass: source class to be copied.
- *     nklass: class destionation of copy.
+ *         klass: source class to be copied.
+ *        nklass: class destionation of copy.
  *     soft_copy: boolean flag: if !0 do a soft copy,
  *                do an hard one otherwise.
  * Return Value:
  *     0  successfull
  *     -1 given (at least) a bad TCModuleClass reference
  *     1  not enough memory to perform a full copy
- * Side effects:
- *     none.
- * Preconditions:
- *     none.
  * Postconditions:
  *     destination class is a copy of source class.
  */
@@ -635,9 +599,9 @@ static int tc_module_class_copy(const TCModuleClass *klass,
  *     module class
  *
  * Parameters:
- *     factory: module factory to loads module in
+ *      factory: module factory to loads module in
  *     modclass: class of plugin to load
- *     modname: name of plugin to load
+ *      modname: name of plugin to load
  * Return Value:
  *     >= 0 identifier (slot) of newly loaded plugin
  *     -1   error occcurred (and notified via tc_log*())
@@ -742,7 +706,7 @@ failed_dlopen:
  *
  * Parameters:
  *     factory: a module factory
- *     id: id of plugin to unload
+ *          id: id of plugin to unload
  * Return Value:
  *     0      plugin unloaded correctly
  *     != 0   error occcurred (and notified via tc_log*())
