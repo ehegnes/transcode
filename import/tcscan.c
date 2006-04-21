@@ -21,10 +21,6 @@
  *
  */
 
-int enc_bitrate(long frames, double fps, int abit, char *s, int cdsize);
-int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate);
-#define tc_decode_mp3_header(hbuf)  tc_get_mp3_header(hbuf, NULL, NULL, NULL)
-
 #undef TCF_DEBUG
 
 #include "transcode.h"
@@ -36,10 +32,14 @@ int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate)
 #include "tc.h"
 #include "ac3.h"
 #include "avilib/avilib.h"
+#include <math.h>
 
 #define EXE "tcscan"
 
 int verbose=TC_QUIET;
+
+int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate, int *bitrate);
+#define tc_decode_mp3_header(hbuf)  tc_get_mp3_header(hbuf, NULL, NULL, NULL)
 
 void import_exit(int code)
 {
@@ -62,6 +62,57 @@ static void check (int v)
 
   return;
 }
+
+/*************************************************************************/
+
+/* enc_bitrate:  Print bitrate information about the source data.
+ *
+ * Parameters:
+ *       frames: Number of frames in the source.
+ *          fps: Frames per second of the source.
+ *     abitrate: Audio bitrate (bits per second).
+ *     discsize: User-specified disc size in bytes, or 0 for none.
+ * Return value:
+ *     None.
+ */
+
+static void enc_bitrate(long frames, double fps, int abitrate, double discsize)
+{
+    static const int defsize[] = {650, 700, 1300, 1400};
+    long time;
+    double audiosize, videosize, vbitrate;
+
+    if (frames <= 0 || fps <= 0.0)
+	return;
+    time = frames / fps;
+    audiosize = (double)abitrate/8 * time;
+
+    /* Print basic source information */
+    printf("[%s] V: %ld frames, %ld sec @ %.3f fps\n",
+	   EXE, frames, time, fps);
+    printf("[%s] A: %.2f MB @ %d kbps\n",
+	   EXE, audiosize/(1024*1024), abitrate/1000);
+
+    /* Print recommended bitrates for user-specified or default disc sizes */
+    if (discsize) {
+        videosize = discsize - audiosize;
+        vbitrate = videosize / time;
+        printf("USER CDSIZE: %4d MB | V: %6.1f MB @ %.1f kbps\n",
+               (int)floor(discsize/(1024*1024)), videosize/(1024*1024),
+               vbitrate);
+    } else {
+        int i;
+        for (i = 0; i < sizeof(defsize) / sizeof(*defsize); i++) {
+            videosize = defsize[i] - audiosize;
+            vbitrate = videosize / time;
+            printf("USER CDSIZE: %4d MB | V: %6.1f MB @ %.1f kbps\n",
+                   (int)floor(discsize/(1024*1024)), videosize/(1024*1024),
+                   vbitrate);
+        }
+    }
+}
+
+/*************************************************************************/
 
 /* ------------------------------------------------------------
  *
@@ -141,7 +192,7 @@ int main(int argc, char *argv[])
 
   uint32_t i=0, j=0;
   uint16_t sync_word = 0;
-  int cdsize = 0;
+  double cdsize = 0.0;
 
   ac_init(AC_ALL);
 
@@ -153,7 +204,7 @@ int main(int argc, char *argv[])
     switch (ch) {
     case 'c':
       if(optarg[0]=='-') usage(EXIT_FAILURE);
-      cdsize = atoi(optarg);
+      cdsize = atof(optarg) * (1024*1024);  /* MB -> bytes */
 
       break;
 
@@ -259,7 +310,7 @@ int main(int argc, char *argv[])
 
   // simple bitrate calculator
   if(bframes) {
-    enc_bitrate(bframes, fps, bitrate, EXE, cdsize);
+    enc_bitrate(bframes, fps, bitrate*1000, cdsize);
     exit(0);
   }
 
@@ -399,7 +450,7 @@ int main(int argc, char *argv[])
       printf("[%s] audio frames=%.2f, estimated clip length=%.2f seconds\n", EXE, frames, frames/fps);
       printf("[%s] (min/max) amplitude=(%.3f/%.3f), suggested volume rescale=%.3f\n", EXE, -fmin, fmax, vol);
 
-      enc_bitrate((long) frames, fps, bitrate, EXE, cdsize);
+      enc_bitrate((long) frames, fps, bitrate*1000, cdsize);
 
       return(0);
   }

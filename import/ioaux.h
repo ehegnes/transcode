@@ -45,7 +45,6 @@ int probe_dvd(info_t *ipipe);
 
 int open_dir(char *name, int *fd, long *stype);
 
-int enc_bitrate(long frames, double fps, int abit, char *s, int cdsize);
 unsigned int stream_read_int16(const unsigned char *s);
 unsigned int stream_read_int32(const unsigned char *s);
 

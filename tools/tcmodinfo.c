@@ -55,7 +55,7 @@
 #include "video_trans.h"
 
 #include "libtc/cfgfile.h"
-#include "tcmodule-core.h"
+#include "libtc/tcmodule-core.h"
 
 #define EXE "tcmodinfo"
 #define OPTS_SIZE 8192 //Buffersize

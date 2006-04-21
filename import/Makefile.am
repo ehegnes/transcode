@@ -404,7 +404,6 @@ tcprobe_SOURCES = \
 	tcprobe.c \
 	ac3scan.c \
 	aux_pes.c \
-	bitrate.c \
 	dvd_reader.c \
 	fileinfo.c \
 	ioaux.c \
@@ -493,7 +492,6 @@ tcscan_SOURCES = \
 	tcscan.c \
 	ac3scan.c \
 	aux_pes.c \
-	bitrate.c \
 	fileinfo.c \
 	ioaux.c \
 	mpg123.c \

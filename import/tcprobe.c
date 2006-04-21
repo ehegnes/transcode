@@ -47,6 +47,61 @@ void import_exit(int code)
   exit(code);
 }
 
+/*************************************************************************/
+
+/* enc_bitrate:  Print bitrate information about the source data.
+ *
+ * Parameters:
+ *       frames: Number of frames in the source.
+ *          fps: Frames per second of the source.
+ *     abitrate: Audio bitrate (bits per second).
+ *     discsize: User-specified disc size in bytes, or 0 for none.
+ * Return value:
+ *     None.
+ * Notes:
+ *     This function is copied from tcscan.c.  Ideally, tcprobe should
+ *     only print basic source information, and this extended information
+ *     should be handled by tcscan (or alternatively, tcscan should be
+ *     merged into tcprobe).
+ */
+
+static void enc_bitrate(long frames, double fps, int abitrate, double discsize)
+{
+    static const int defsize[] = {650, 700, 1300, 1400};
+    long time;
+    double audiosize, videosize, vbitrate;
+
+    if (frames <= 0 || fps <= 0.0)
+	return;
+    time = frames / fps;
+    audiosize = (double)abitrate/8 * time;
+
+    /* Print basic source information */
+    printf("[%s] V: %ld frames, %ld sec @ %.3f fps\n",
+	   EXE, frames, time, fps);
+    printf("[%s] A: %.2f MB @ %d kbps\n",
+	   EXE, audiosize/(1024*1024), abitrate/1000);
+
+    /* Print recommended bitrates for user-specified or default disc sizes */
+    if (discsize) {
+        videosize = discsize - audiosize;
+        vbitrate = videosize / time;
+        printf("USER CDSIZE: %4d MB | V: %6.1f MB @ %.1f kbps\n",
+               (int)floor(discsize/(1024*1024)), videosize/(1024*1024),
+               vbitrate);
+    } else {
+        int i;
+        for (i = 0; i < sizeof(defsize) / sizeof(*defsize); i++) {
+            videosize = defsize[i] - audiosize;
+            vbitrate = videosize / time;
+            printf("USER CDSIZE: %4d MB | V: %6.1f MB @ %.1f kbps\n",
+                   (int)floor(discsize/(1024*1024)), videosize/(1024*1024),
+                   vbitrate);
+        }
+    }
+}
+
+/*************************************************************************/
 
 /* ------------------------------------------------------------
  *
@@ -514,7 +569,7 @@ int main(int argc, char *argv[])
     //encoder bitrate infos (DVD only)
 
     if(stream_magic == TC_MAGIC_DVD_PAL || stream_magic == TC_MAGIC_DVD_NTSC ||stream_magic == TC_MAGIC_DVD) {
-      enc_bitrate((long)ceil(ipipe.probe_info->fps*ipipe.probe_info->time), ipipe.probe_info->fps, bitrate, EXE, 0);
+      enc_bitrate((long)ceil(ipipe.probe_info->fps*ipipe.probe_info->time), ipipe.probe_info->fps, bitrate*1000, 0);
     } else {
 
       if(ipipe.probe_info->frames > 0) {
