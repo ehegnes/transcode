@@ -81,6 +81,8 @@ void probe_oss(info_t *ipipe);
 void probe_mxf(info_t *ipipe);
 void extract_mxf(info_t *ipipe);
 
+void probe_dvd(info_t *ipipe);
+
 void probe_mplayer(info_t *ipipe);
 
 int scan_header_dv(char *buf);

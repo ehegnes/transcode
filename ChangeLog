@@ -17,8 +17,13 @@
   Move sync_type_t definition to seqinfo.h (only used in seqinfo.c and
   clone.c).
 
-  * import/clone.c import/dvd_reader.c import/ivtc.c import/seqinfo.c
+  * import/clone.c import/dvd_reader.c import/ivtc.c import/probe_dvd.c
+    import/seqinfo.c
   Remove unneeded #include "ioaux.h".
+
+  * import/ioaux.h import/probe_dvd.c import/tc.h
+  Move probe_dvd() declaration to tc.h and change return type to void,
+  like other probe_xxx() functions.
 
   * Changed: import/ioaux.h import/tcprobe.c import/tcscan.c
     Removed: import/bitrate.c

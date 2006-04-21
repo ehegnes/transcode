@@ -37,9 +37,9 @@ long fileinfo(int fd, int skipy);
 long streaminfo(int fd);
 char *filetype(long magic);
 
+/* scan_pes.c */
 void scan_pes(int verbose, FILE *fd);
 void probe_pes(info_t *ipipe);
-int probe_dvd(info_t *ipipe);
 
 int open_dir(char *name, int *fd, long *stype);
 
