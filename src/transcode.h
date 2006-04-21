@@ -378,6 +378,7 @@ typedef struct _vob_t {
 
     mpeg_profile_t mpeg_profile;
 
+    unsigned int export_attributes;
 } vob_t;
 
 

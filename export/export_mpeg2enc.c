@@ -269,7 +269,7 @@ MOD_open
       //Standard SVCD. An MPEG-2 profile
       //exactly  to  the  SVCD2.0 specification
 
-      if ( !(probe_export_attributes & TC_PROBE_NO_EXPORT_VBITRATE) )
+      if ( !(vob->export_attributes & TC_EXPORT_ATTRIBUTE_VBITRATE) )
 	tc_snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -f 4 -F %d %s -o \"%s\" %s %s", verb, fields, frc, buf2, vob->video_out_file, p2, p4);
       else
 	tc_snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -f 4 %s -F %d %s -o \"%s\" %s %s", verb, fields, bitrate, frc, buf2, vob->video_out_file, p2, p4);
@@ -293,7 +293,7 @@ MOD_open
 
       //DVD
 
-      if ( !(probe_export_attributes & TC_PROBE_NO_EXPORT_VBITRATE) )
+      if ( !(vob->export_attributes & TC_EXPORT_ATTRIBUTE_VBITRATE) )
 	tc_snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -f 8 -F %d %s -o \"%s\" %s %s", verb, fields, frc, buf2, vob->video_out_file, p2, p4);
       else
 	tc_snprintf(buf, sizeof(buf), "mpeg2enc -v %d -I %d -f 8 %s -F %d %s -o \"%s\" %s %s", verb, fields, bitrate, frc, buf2, vob->video_out_file, p2, p4);

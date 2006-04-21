@@ -54,10 +54,6 @@ const char *BLUE   = COL_BLUE;
 const char *WHITE  = COL_WHITE;
 const char *GRAY   = COL_GRAY;
 
-// communicating with export modules to allow to set them defaults.
-#include "probe_export.h"
-unsigned int probe_export_attributes = 0;
-
 
 /* ------------------------------------------------------------
  *
@@ -999,6 +995,8 @@ int main(int argc, char *argv[]) {
     vob->hard_fps_flag    = 0;
     vob->mpeg_profile     = PROF_NONE;
 
+    vob->export_attributes= TC_EXPORT_ATTRIBUTE_NONE;
+
     // prepare for SIGINT to catch
 
     //signal(SIGINT, SIG_IGN);
@@ -1207,9 +1205,9 @@ int main(int argc, char *argv[]) {
 	  if(n>1 && vob->dm_bits != 0 && vob->dm_bits != 8 && vob->dm_bits != 16 && vob->dm_bits != 24) tc_error("invalid parameter for option -E");
 
 	  switch (n) {
-	    case 3: probe_export_attributes |= TC_PROBE_NO_EXPORT_ACHANS;
-	    case 2: probe_export_attributes |= TC_PROBE_NO_EXPORT_ABITS;
-	    case 1: probe_export_attributes |= TC_PROBE_NO_EXPORT_ARATE;
+	    case 3: vob->export_attributes |= TC_EXPORT_ATTRIBUTE_ACHANS;
+	    case 2: vob->export_attributes |= TC_EXPORT_ATTRIBUTE_ABITS;
+	    case 1: vob->export_attributes |= TC_EXPORT_ATTRIBUTE_ARATE;
 	  }
 
 
@@ -1292,7 +1290,7 @@ int main(int argc, char *argv[]) {
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 
 	  n = sscanf(optarg,"%d,%d,%f,%d", &vob->mp3bitrate, &vob->a_vbr, &vob->mp3quality, &vob->mp3mode);
-	  probe_export_attributes |= TC_PROBE_NO_EXPORT_ABITRATE;
+	  vob->export_attributes |= TC_EXPORT_ATTRIBUTE_ABITRATE;
 
 	if(n<0 || vob->mp3bitrate < 0|| vob->a_vbr<0 || vob->mp3quality<-1.00001 || vob->mp3mode<0)
 	  tc_error("invalid bitrate for option -b");
@@ -1336,7 +1334,7 @@ int main(int argc, char *argv[]) {
 	vob->ex_a_codec = strtol(optarg, endptr, 16);
 
 	if(vob->ex_a_codec < 0) tc_error("invalid parameter for option -N");
-	probe_export_attributes |= TC_PROBE_NO_EXPORT_ACODEC;
+	vob->export_attributes |= TC_EXPORT_ATTRIBUTE_ACODEC;
 
 	break;
 
@@ -1353,12 +1351,12 @@ int main(int argc, char *argv[]) {
 	  if(vob->divxcrispness < 0 || vob->divxcrispness >100 )
 	    tc_error("invalid crispness parameter for option -w");
 	case 2:
-	  probe_export_attributes |= TC_PROBE_NO_EXPORT_GOP;
+	  vob->export_attributes |= TC_EXPORT_ATTRIBUTE_GOP;
 	case 1:
 
 	  vob->divxbitrate = (int)ratefact;
 	  vob->m2v_requant =      ratefact;
-	  probe_export_attributes |= TC_PROBE_NO_EXPORT_VBITRATE;
+	  vob->export_attributes |= TC_EXPORT_ATTRIBUTE_VBITRATE;
 
 	  if(!vob->divxbitrate)
 	    tc_error("invalid bitrate parameter for option -w");
@@ -1492,14 +1490,14 @@ int main(int argc, char *argv[]) {
 	  ex_aud_mod = vbuf2;
 	  ex_vid_mod = vbuf2;
 	  no_v_out_codec=0;
-	  probe_export_attributes |= TC_PROBE_NO_EXPORT_AMODULE;
+	  vob->export_attributes |= TC_EXPORT_ATTRIBUTE_AMODULE;
 	}
 
 	if(n==2) {
 	  ex_aud_mod = abuf2;
 	  ex_vid_mod = vbuf2;
 	  no_v_out_codec=no_a_out_codec=0;
-	  probe_export_attributes |= (TC_PROBE_NO_EXPORT_AMODULE|TC_PROBE_NO_EXPORT_VMODULE);
+	  vob->export_attributes |= (TC_EXPORT_ATTRIBUTE_AMODULE|TC_EXPORT_ATTRIBUTE_VMODULE);
 	}
 
 	if(strlen(ex_aud_mod)!=0 && strchr(ex_aud_mod,'=') && n==2) {
@@ -1742,7 +1740,7 @@ int main(int argc, char *argv[]) {
           vob->ex_v_fcc = optarg;
         }
 	break;
-	probe_export_attributes |= TC_PROBE_NO_EXPORT_VCODEC;
+	vob->export_attributes |= TC_EXPORT_ATTRIBUTE_VCODEC;
 
       case 'o':
 
@@ -1850,7 +1848,7 @@ int main(int argc, char *argv[]) {
 
 	    if(vob->ex_asr < 0) tc_error("invalid parameter for option --export_asr");
 
-	    probe_export_attributes |= TC_PROBE_NO_EXPORT_ASR;
+	    vob->export_attributes |= TC_EXPORT_ATTRIBUTE_ASR;
 
 	    break;
 
@@ -1874,12 +1872,12 @@ int main(int argc, char *argv[]) {
 	    if(n==2) vob->ex_fps=MIN_FPS; //will be overwritten later
 
 	    if(vob->ex_fps < MIN_FPS || n < 0) tc_error("invalid parameter for option --export_fps");
-	    probe_export_attributes |= TC_PROBE_NO_EXPORT_FPS;
+	    vob->export_attributes |= TC_EXPORT_ATTRIBUTE_FPS;
 
 	    if(n==2) {
 	      if(vob->ex_frc < 0 || vob->ex_frc > 15) tc_error("invalid frame rate code for option --export_fps");
 
-	      probe_export_attributes |= TC_PROBE_NO_EXPORT_FRC;
+	      vob->export_attributes |= TC_EXPORT_ATTRIBUTE_FRC;
 
 	      tc_frc_code_to_value(vob->ex_frc, &vob->ex_fps);
 	    }
@@ -1892,7 +1890,7 @@ int main(int argc, char *argv[]) {
 	    vob->ex_frc=atoi(optarg);
 
 	    if(vob->ex_frc<0) tc_error("invalid parameter for option --export_frc");
-	    probe_export_attributes |= TC_PROBE_NO_EXPORT_FRC;
+	    vob->export_attributes |= TC_EXPORT_ATTRIBUTE_FRC;
 
 	    break;
 
@@ -1989,7 +1987,7 @@ int main(int argc, char *argv[]) {
 	      tc_error("option --encode_fields argument must be one of p, t, b or u");
 	      break;
 	  }
-	  probe_export_attributes |= TC_PROBE_NO_EXPORT_FIELDS;
+	  vob->export_attributes |= TC_EXPORT_ATTRIBUTE_FIELDS;
 
 	  break;
 
@@ -2304,7 +2302,7 @@ int main(int argc, char *argv[]) {
 	    tc_error("invalid argument for --ex_par");
 	  }
 
-	  probe_export_attributes |= TC_PROBE_NO_EXPORT_PAR;
+	  vob->export_attributes |= TC_EXPORT_ATTRIBUTE_PAR;
 	  break;
 
 	case EXTENSIONS:

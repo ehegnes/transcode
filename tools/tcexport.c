@@ -123,6 +123,8 @@ static vob_t vob = {
 
     .a_leap_frame = TC_LEAP_FRAME,
     .a_leap_bytes = 0,
+
+    .export_attributes= TC_EXPORT_ATTRIBUTE_NONE,
 };
 
 
@@ -484,7 +486,6 @@ int tc_progress_rate = 1;
 
 /* more symbols needed by modules ***************************************/
 
-int probe_export_attributes = 0;
 int verbose  = TC_INFO;
 int tc_accel = -1;    /* acceleration code */
 int tc_cluster_mode = 0;

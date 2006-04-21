@@ -222,4 +222,26 @@
 
 #define M2V_REQUANT_FACTOR  1.00f
 
+/* 
+ * flags used in modules for supporting export profiles (--export_prof)
+ * if one of those flag is set, then use the value provided by the user.
+ * otherwise use the ones the export modules suggests.
+ */
+#define TC_EXPORT_ATTRIBUTE_NONE      (    0)
+#define TC_EXPORT_ATTRIBUTE_VBITRATE  (1<< 1) /* -w */
+#define TC_EXPORT_ATTRIBUTE_ABITRATE  (1<< 2) /* -b */
+#define TC_EXPORT_ATTRIBUTE_FIELDS    (1<< 3) /* --encode_fields */
+#define TC_EXPORT_ATTRIBUTE_VMODULE   (1<< 4) /* -y X,* */
+#define TC_EXPORT_ATTRIBUTE_AMODULE   (1<< 5) /* -y *,X */
+#define TC_EXPORT_ATTRIBUTE_FRC       (1<< 6) /* --export_fps *,X */
+#define TC_EXPORT_ATTRIBUTE_FPS       (1<< 7) /* --export_fps X,* */
+#define TC_EXPORT_ATTRIBUTE_VCODEC    (1<< 8) /* -F */
+#define TC_EXPORT_ATTRIBUTE_ACODEC    (1<< 9) /* -N */
+#define TC_EXPORT_ATTRIBUTE_ARATE     (1<<10) /* -E X,*,* */
+#define TC_EXPORT_ATTRIBUTE_ABITS     (1<<11) /* -E *,X,* */
+#define TC_EXPORT_ATTRIBUTE_ACHANS    (1<<12) /* -E *,*,X */
+#define TC_EXPORT_ATTRIBUTE_ASR       (1<<13) /* --export_asr */
+#define TC_EXPORT_ATTRIBUTE_PAR       (1<<14) /* --export_par */
+#define TC_EXPORT_ATTRIBUTE_GOP       (1<<15) /* key frames */
+
 #endif

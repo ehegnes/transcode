@@ -110,19 +110,19 @@ MOD_open
 	}
 
 	// encoding values, let commandline override profile
-	if(!(probe_export_attributes & TC_PROBE_NO_EXPORT_ARATE))
+	if(!(vob->export_attributes & TC_EXPORT_ATTRIBUTE_ARATE))
 	  if (srate != def_srate) {
             tc_log_info(MOD_NAME, "export profile changed samplerate:"
 			          " %d -> %d Hz.", srate, def_srate);
 	    srate = def_srate;
 	  }
-	if(!(probe_export_attributes & TC_PROBE_NO_EXPORT_ABITRATE))
+	if(!(vob->export_attributes & TC_EXPORT_ATTRIBUTE_ABITRATE))
 	  if (brate != def_brate) {
             tc_log_info(MOD_NAME, "export profile changed bitrate: "
 			          "%d -> %d kbps.", brate, def_brate);
 	    brate = def_brate;
 	  }
-	if(!(probe_export_attributes & TC_PROBE_NO_EXPORT_ACHANS))
+	if(!(vob->export_attributes & TC_EXPORT_ATTRIBUTE_ACHANS))
 	  if (chan != def_chan) {
             tc_log_info(MOD_NAME, "export profile changed channels: "
 			          "mono -> stereo.");

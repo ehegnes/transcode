@@ -123,7 +123,6 @@ int plugin_get_handle(char *name)
 }
 
 /* symbols needed by modules */
-int probe_export_attributes = 0;
 int verbose  = TC_INFO;
 int rgbswap  = 0;
 int tc_accel = -1;    //acceleration code

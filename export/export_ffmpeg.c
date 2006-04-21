@@ -376,7 +376,7 @@ MOD_init {
     lavc_venc_context->qmin               = vob->min_quantizer;
     lavc_venc_context->qmax               = vob->max_quantizer;
 
-    if (probe_export_attributes & TC_PROBE_NO_EXPORT_GOP)
+    if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_GOP)
         lavc_venc_context->gop_size = vob->divxkeyframes;
     else
         if (is_mpegvideo)
@@ -388,7 +388,7 @@ MOD_init {
         tc_log_info(MOD_NAME, "Selected %s profile, %s video type for video",
                  pseudo_codec_name[pseudo_codec], vt_name[video_template]);
 
-        if(!(probe_export_attributes & TC_PROBE_NO_EXPORT_FIELDS)) {
+        if(!(vob->export_attributes & TC_EXPORT_ATTRIBUTE_FIELDS)) {
             if(video_template == vt_pal)
                 vob->encode_fields = 1;  /* top first */
             else
@@ -403,7 +403,7 @@ MOD_init {
             tc_log_info(MOD_NAME, "Set interlacing to %s", il_name[vob->encode_fields]);
         }
 
-        if (!(probe_export_attributes & TC_PROBE_NO_EXPORT_FRC)) {
+        if (!(vob->export_attributes & TC_EXPORT_ATTRIBUTE_FRC)) {
             if(video_template == vt_pal)
                 vob->ex_frc = 3;
             else
@@ -416,7 +416,7 @@ MOD_init {
                     (vob->ex_frc == 4 ? "29.97" : "unknown"));
         }
     } else { /* no profile active */
-        if (!(probe_export_attributes & TC_PROBE_NO_EXPORT_FIELDS)) {
+        if (!(vob->export_attributes & TC_EXPORT_ATTRIBUTE_FIELDS)) {
             tc_log_warn(MOD_NAME, "Interlacing parameters unknown, use --encode_fields");
             vob->encode_fields = 3; /* unknown */
         }
@@ -430,7 +430,7 @@ MOD_init {
         if (vob->ex_v_height != 240 && vob->ex_v_height != 288)
             tc_log_warn(MOD_NAME, "Y resolution is not 240 or 288 as required");
 
-        if (probe_export_attributes & TC_PROBE_NO_EXPORT_VBITRATE) {
+        if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_VBITRATE) {
             if (vob->divxbitrate != 1150)
                 tc_log_warn(MOD_NAME, "Video bitrate not 1150 kbps as required");
         } else {
@@ -438,7 +438,7 @@ MOD_init {
             tc_log_info(MOD_NAME, "Set video bitrate to 1150");
         }
 
-        if (probe_export_attributes & TC_PROBE_NO_EXPORT_GOP) {
+        if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_GOP) {
             if(vob->divxkeyframes > 9)
                 tc_log_warn(MOD_NAME, "GOP size not < 10 as required");
         } else {
@@ -462,7 +462,7 @@ MOD_init {
         if (vob->ex_v_height != 480 && vob->ex_v_height != 576)
             tc_log_warn(MOD_NAME, "Y resolution is not 480 or 576 as required");
 
-        if (probe_export_attributes & TC_PROBE_NO_EXPORT_VBITRATE) {
+        if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_VBITRATE) {
             if(vob->divxbitrate != 2040)
                 tc_log_warn(MOD_NAME, "Video bitrate not 2040 kbps as required");
         } else {
@@ -470,7 +470,7 @@ MOD_init {
             tc_log_warn(MOD_NAME, "Set video bitrate to 2040");
         }
 
-        if (probe_export_attributes & TC_PROBE_NO_EXPORT_GOP) {
+        if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_GOP) {
             if (vob->divxkeyframes > 18)
                 tc_log_warn(MOD_NAME, "GOP size not < 19 as required");
         } else {
@@ -498,7 +498,7 @@ MOD_init {
         if (vob->ex_v_height != 480 && vob->ex_v_height != 576)
             tc_log_warn(MOD_NAME, "Y resolution is not 480 or 576 as required");
 
-        if (probe_export_attributes & TC_PROBE_NO_EXPORT_VBITRATE) {
+        if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_VBITRATE) {
             if (vob->divxbitrate < 1000 || vob->divxbitrate > 9000)
                 tc_log_warn(MOD_NAME, "Video bitrate not between 1000 and 9000 kbps as required");
         } else {
@@ -506,7 +506,7 @@ MOD_init {
             tc_log_warn(MOD_NAME, "Set video bitrate to 2040");
         }
 
-        if (probe_export_attributes & TC_PROBE_NO_EXPORT_GOP) {
+        if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_GOP) {
             if (vob->divxkeyframes > 18)
                 tc_log_warn(MOD_NAME, "GOP size not < 19 as required");
         } else {
@@ -538,7 +538,7 @@ MOD_init {
         if (vob->ex_v_height != 576 && vob->ex_v_height != 480 && vob->ex_v_height != 288 && vob->ex_v_height != 240)
             tc_log_warn(MOD_NAME, "Y resolution is not 576, 480, 288 or 240 as required");
 
-        if (probe_export_attributes & TC_PROBE_NO_EXPORT_VBITRATE) {
+        if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_VBITRATE) {
             if(vob->divxbitrate < 1000 || vob->divxbitrate > 9800)
                 tc_log_warn(MOD_NAME, "Video bitrate not between 1000 and 9800 kbps as required");
         } else {
@@ -546,7 +546,7 @@ MOD_init {
             tc_log_info(MOD_NAME, "Set video bitrate to 5000");
         }
 
-        if (probe_export_attributes & TC_PROBE_NO_EXPORT_GOP) {
+        if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_GOP) {
             if (vob->divxkeyframes > 18)
                 tc_log_warn(MOD_NAME, "GOP size not < 19 as required");
         } else {
@@ -894,7 +894,7 @@ MOD_init {
     lavc_venc_context->p_masking             = lavc_param_p_masking;
     lavc_venc_context->dark_masking          = lavc_param_dark_masking;
 
-    if (probe_export_attributes & TC_PROBE_NO_EXPORT_PAR) { /* export_par explicitely set by user */
+    if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_PAR) { /* export_par explicitely set by user */
         if (vob->ex_par > 0) {
             switch(vob->ex_par) {
             case 1:
@@ -934,7 +934,7 @@ MOD_init {
     } else {
         double dar, sar;
 
-        if (probe_export_attributes & TC_PROBE_NO_EXPORT_ASR) { /* export_asr explicitely set by user */
+        if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_ASR) { /* export_asr explicitely set by user */
             if (vob->ex_asr > 0) {
                 switch(vob->ex_asr) {
                 case 1: dar = 1.0; break;
@@ -1228,7 +1228,7 @@ MOD_init {
             tc_log_info(MOD_NAME, "Selected %s profile for audio", pseudo_codec_name[target]);
             tc_log_info(MOD_NAME, "Resampling filter %sactive", resample_active ? "already " : "in");
 
-            if(probe_export_attributes & TC_PROBE_NO_EXPORT_ACHANS)
+            if(vob->export_attributes & TC_EXPORT_ATTRIBUTE_ACHANS)
             {
                 if(vob->dm_chan != 2)
                     tc_log_warn(MOD_NAME, "Number of audio channels not 2 as required");
@@ -1239,7 +1239,7 @@ MOD_init {
                 tc_log_info(MOD_NAME, "Set number of audio channels to 2");
             }
 
-            if(probe_export_attributes & TC_PROBE_NO_EXPORT_ABITS)
+            if(vob->export_attributes & TC_EXPORT_ATTRIBUTE_ABITS)
             {
                 if(vob->dm_bits != 16)
                     tc_log_warn(MOD_NAME, "Number of audio bits not 16 as required");
@@ -1255,7 +1255,7 @@ MOD_init {
                 if(vob->mp3frequency != 0)
                     tc_log_warn(MOD_NAME, "Resampling filter active but vob->mp3frequency not 0!");
 
-                if(probe_export_attributes & TC_PROBE_NO_EXPORT_ARATE)
+                if(vob->export_attributes & TC_EXPORT_ATTRIBUTE_ARATE)
                 {
                     if((rate == -1) || (vob->a_rate == rate))
                         tc_log_info(MOD_NAME, "No audio resampling necessary");
@@ -1271,7 +1271,7 @@ MOD_init {
             }
             else
             {
-                if((probe_export_attributes & TC_PROBE_NO_EXPORT_ARATE) && (vob->mp3frequency != 0))
+                if((vob->export_attributes & TC_EXPORT_ATTRIBUTE_ARATE) && (vob->mp3frequency != 0))
                 {
                     if(vob->mp3frequency != rate)
                         tc_log_warn(MOD_NAME, "Selected audio sample rate (%d Hz) not %d Hz as required",
@@ -1304,7 +1304,7 @@ MOD_init {
                 }
             }
 
-            if(probe_export_attributes & TC_PROBE_NO_EXPORT_ABITRATE)
+            if(vob->export_attributes & TC_EXPORT_ATTRIBUTE_ABITRATE)
             {
                 if((target != pc_dvd) && (target != pc_xvcd))
                 {
@@ -1323,7 +1323,7 @@ MOD_init {
                 tc_log_info(MOD_NAME, "Set audio bit rate to 224 kbps");
             }
 
-            if(probe_export_attributes & TC_PROBE_NO_EXPORT_ACODEC)
+            if(vob->export_attributes & TC_EXPORT_ATTRIBUTE_ACODEC)
             {
                 if(target != pc_dvd)
                 {
