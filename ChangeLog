@@ -1,3 +1,11 @@
+2006-04-21 Francesco Romani <fromani at gmail dot com>
+  * libtc/framecode.c
+  tiny compilation fixes on amd64.
+
+  * export/divx4_vbr.c
+  partially rewrite to make more STYLEish; also introduce
+  a couple of compilation fixes for amd64.
+
 2006-04-20 Andrew Church <achurch at achurch dot org>
   * configure.in
   Use standard largefile macros instead of rolling our own.

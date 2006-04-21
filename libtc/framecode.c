@@ -190,11 +190,11 @@ struct fc_time *new_fc_time_from_string(const char *string,
         if (t-s > sizeof(rangebuf)-1) {
             if (verbose >= 0) {
                 tc_log_error(__FILE__, "new_fc_time_from_string():"
-                             " range string too long! (%d/%d)",
-                             t-s, sizeof(rangebuf)-1);
+                             " range string too long! (%u/%u)",
+                             (unsigned)(t-s), (unsigned)sizeof(rangebuf)-1);
                 /* Print out the string and the location of the error */
                 tc_log_error(__FILE__, "%s", string);
-                tc_log_error(__FILE__, "%*s", (s-string)+1, "^");
+                tc_log_error(__FILE__, "%*s", (int)((s-string)+1), "^");
             }
             /* Don't forget to free anything we already parsed */
             free_fc_time(list);
@@ -210,7 +210,7 @@ struct fc_time *new_fc_time_from_string(const char *string,
                 tc_log_error(__FILE__, "Error parsing framecode range: %s",
                              errmsg);
                 tc_log_error(__FILE__, "%s", string);
-                tc_log_error(__FILE__, "%*s", (s-string+errpos)+1, "^");
+                tc_log_error(__FILE__, "%*s", (int)((s-string+errpos)+1), "^");
             }
             free_fc_time(list);
             return NULL;
