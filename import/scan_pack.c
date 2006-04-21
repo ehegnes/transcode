@@ -22,7 +22,6 @@
  */
 
 #include "transcode.h"
-
 #include "ioaux.h"
 #include "aux_pes.h"
 #include "seqinfo.h"
@@ -99,6 +98,73 @@ static int pack_scan_32(char *video, long magic)
 	if(_cmp_32_bits(video+k, magic)) return(k);
     }// scan buffer
     return(-1);
+}
+
+#if 0  // unused
+static unsigned long read_ts(char *_s)
+{
+
+  unsigned long pts;
+
+  char *buffer=_s;
+
+  unsigned int ptr=0;
+
+  pts = (buffer[ptr++] >> 1) & 7;  //low 4 bits (7==1111)
+  pts <<= 15;
+  pts |= (stream_read_int16(&buffer[ptr]) >> 1);
+  ptr+=2;
+  pts <<= 15;
+  pts |= (stream_read_int16(&buffer[ptr]) >> 1);
+
+  return pts;
+}
+#endif
+
+#define BUF_WARN_COUNT 20
+
+static int probe_picext(uint8_t *buffer, size_t buflen)
+{
+
+  //  static char *picture_structure_str[4] = {
+  //  "Invalid Picture Structure",
+  //  "Top field",
+  //  "Bottom field",
+  //  "Frame Picture"
+  //};
+  static int buf_small_count = 0;
+  if(buflen < 3) {
+    if(buf_small_count == 0
+      || (buf_small_count % BUF_WARN_COUNT) == 0) {
+        tc_log_warn(__FILE__, "not enough buffer to probe picture extension "
+                          "(buflen=%lu) [happened at least %i times]",
+                          (unsigned long)buflen, buf_small_count);
+    }
+    buf_small_count++;
+    return(-1); /* failed probe */
+  }
+  return(buffer[2] & 3);
+}
+
+static const char *probe_group(uint8_t *buffer, size_t buflen)
+{
+    static char retbuf[32];
+    static int buf_small_count = 0;
+    if(buflen < 5) {
+        if(buf_small_count == 0
+          || (buf_small_count % BUF_WARN_COUNT) == 0) {
+            tc_log_warn(__FILE__, "not enough buffer to probe picture group "
+                             "(buflen=%lu) [happened at least %i times]",
+                             (unsigned long)buflen, buf_small_count);
+        }
+        buf_small_count++;
+	*retbuf = 0;
+    } else {
+	tc_snprintf(retbuf, sizeof(retbuf), "%s%s",
+		    (buffer[4] & 0x40) ? " closed_gop" : "",
+		    (buffer[4] & 0x20) ? " broken_link" : "");
+    }
+    return retbuf;
 }
 
 int flag1=0, flag2=0, flag3=0;

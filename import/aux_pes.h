@@ -44,10 +44,5 @@ typedef struct _seq_info_t {
 int stats_sequence_silent(uint8_t * buffer, seq_info_t *seq_info);
 int stats_sequence(uint8_t * buffer, seq_info_t *seq_info);
 int get_pts_dts(char *buffer, unsigned long *pts, unsigned long *dts);
-int probe_sequence(uint8_t *buffer, ProbeInfo *probe_info);
-int probe_extension(uint8_t *buffer, ProbeInfo *probe_info);
-void scr_rewrite(char *buffer, uint32_t pts);
-int probe_picext(uint8_t *buffer, size_t buflen);
-const char *probe_group(uint8_t *buffer, size_t buflen);
 
 #endif

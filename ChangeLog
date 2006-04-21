@@ -1,3 +1,10 @@
+2006-04-21 Andrew Church <achurch at achurch dot org>
+  * import/aux_pes.c import/aux_pes.h import/demuxer.c import/scan_pack.c
+    import/scan_pes.c
+  Move demuxer-private routine scr_rewrite() from aux_pes.c to demuxer.c,
+  probe_sequence() and probe_extension() to scan_pes.c, and
+  probe_picext() and probe_group() to scan_pack.c.
+
 2006-04-21 Francesco Romani <fromani at gmail dot com>
   * libtc/tccodecs.c
   change name of DV video from "dv" to "dvvideo".

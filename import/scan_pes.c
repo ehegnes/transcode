@@ -31,6 +31,7 @@
 #include "ac3scan.h"
 #include "demuxer.h"
 #include "libtc/libtc.h"
+#include "libtc/ratiocodes.h"
 
 #define BUFFER_SIZE 262144
 static uint8_t buffer[BUFFER_SIZE];
@@ -69,6 +70,85 @@ static int cmp_32_bits(char *buf, long x)
 
   // OK found it
   return 1;
+}
+
+static int probe_sequence(uint8_t *buffer, ProbeInfo *probe_info)
+{
+
+  int horizontal_size;
+  int vertical_size;
+  int aspect_ratio_information;
+  int frame_rate_code;
+  int bit_rate_value;
+  int vbv_buffer_size_value;
+  int constrained_parameters_flag;
+  int load_intra_quantizer_matrix;
+  int load_non_intra_quantizer_matrix;
+
+  vertical_size = (buffer[0] << 16) | (buffer[1] << 8) | buffer[2];
+  horizontal_size = ((vertical_size >> 12) + 15) & ~15;
+  vertical_size = ((vertical_size & 0xfff) + 15) & ~15;
+
+  aspect_ratio_information = buffer[3] >> 4;
+  frame_rate_code = buffer[3] & 15;
+  bit_rate_value = (buffer[4] << 10) | (buffer[5] << 2) | (buffer[6] >> 6);
+  vbv_buffer_size_value = ((buffer[6] << 5) | (buffer[7] >> 3)) & 0x3ff;
+  constrained_parameters_flag = buffer[7] & 4;
+  load_intra_quantizer_matrix = buffer[7] & 2;
+  if (load_intra_quantizer_matrix)
+    buffer += 64;
+  load_non_intra_quantizer_matrix = buffer[7] & 1;
+
+  //set some defaults, if invalid:
+  if(aspect_ratio_information < 0 || aspect_ratio_information>15) aspect_ratio_information=1;
+
+  if(frame_rate_code < 0 || frame_rate_code>15) frame_rate_code=3;
+
+  //fill out user structure
+
+  probe_info->width = horizontal_size;
+  probe_info->height = vertical_size;
+  probe_info->asr = aspect_ratio_information;
+  probe_info->frc = frame_rate_code;
+  probe_info->bitrate = bit_rate_value * 400.0 / 1000.0;
+  tc_frc_code_to_value(frame_rate_code, &probe_info->fps);
+
+  return(0);
+
+}
+
+static int probe_extension(uint8_t *buffer, ProbeInfo *probe_info)
+{
+
+    int intra_dc_precision;
+    int picture_structure;
+    int top_field_first;
+    int frame_pred_frame_dct;
+    int concealment_motion_vectors;
+    int q_scale_type;
+    int intra_vlc_format;
+    int alternate_scan;
+    int repeat_first_field;
+    int progressive_frame;
+
+    intra_dc_precision = (buffer[2] >> 2) & 3;
+    picture_structure = buffer[2] & 3;
+    top_field_first = buffer[3] >> 7;
+    frame_pred_frame_dct = (buffer[3] >> 6) & 1;
+    concealment_motion_vectors = (buffer[3] >> 5) & 1;
+    q_scale_type = (buffer[3] >> 4) & 1;
+    intra_vlc_format = (buffer[3] >> 3) & 1;
+    alternate_scan = (buffer[3] >> 2) & 1;
+    repeat_first_field = (buffer[3] >> 1) & 1;
+    progressive_frame = buffer[4] >> 7;
+
+    //get infos
+    probe_info->ext_attributes[2] = progressive_frame;
+    probe_info->ext_attributes[3] = alternate_scan;
+
+    if(top_field_first == 1 && repeat_first_field == 0) return(1);
+
+  return(0);
 }
 
 static void unit_summary(void)
