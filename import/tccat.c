@@ -23,11 +23,24 @@
 
 #include "transcode.h"
 #include "tcinfo.h"
-
+#include "libtc/libtc.h"
+#include "libtc/iodir.h"
 #include "libtc/xio.h"
 #include "ioaux.h"
 #include "tc.h"
 #include "dvd_reader.h"
+
+#include <sys/types.h>
+
+#ifdef HAVE_LIBDVDREAD
+#ifdef HAVE_LIBDVDREAD_INC
+#include <dvdread/dvd_reader.h>
+#else
+#include <dvd_reader.h>
+#endif
+#else
+#include "dvd_reader.h"
+#endif
 
 #define EXE "tccat"
 
@@ -43,6 +56,308 @@ void import_exit(int code)
   exit(code);
 }
 
+
+/* ------------------------------------------------------------
+ *
+ * source extract thread
+ *
+ * ------------------------------------------------------------*/
+
+#define IO_BUF_SIZE 1024
+#define DVD_VIDEO_LB_LEN 2048
+
+static void tccat_thread(info_t *ipipe)
+{
+
+  const char *name=NULL;
+  int found=0, itype=TC_MAGIC_UNKNOWN, type=TC_MAGIC_UNKNOWN;
+
+  int verbose_flag;
+  int vob_offset;
+
+  info_t ipipe_avi;
+  TCDirList tcdir;
+
+#ifdef NET_STREAM
+  struct sockaddr_in sin;
+  struct hostent *hp;
+
+  int port, vs;
+  char *iobuf;
+
+  int bytes;
+  int error=0;
+
+#endif
+
+  verbose_flag = ipipe->verbose;
+  vob_offset = ipipe->vob_offset;
+
+  switch(ipipe->magic) {
+
+  case TC_MAGIC_DVD_PAL:
+  case TC_MAGIC_DVD_NTSC:
+
+    if(verbose_flag & TC_DEBUG)
+      tc_log_msg(__FILE__, "%s", filetype(ipipe->magic));
+
+    dvd_read(ipipe->dvd_title, ipipe->dvd_chapter, ipipe->dvd_angle);
+    break;
+
+  case TC_MAGIC_TS:
+
+    ts_read(ipipe->fd_in, ipipe->fd_out, ipipe->ts_pid);
+    break;
+
+  case TC_MAGIC_RAW:
+
+    if(verbose_flag & TC_DEBUG)
+      tc_log_msg(__FILE__, "%s", filetype(ipipe->magic));
+
+    if(vob_offset>0) {
+
+      off_t off;
+
+      //get filesize in units of packs (2kB)
+      off = lseek(ipipe->fd_in, vob_offset * (off_t) DVD_VIDEO_LB_LEN,
+		  SEEK_SET);
+
+      if( off != ( vob_offset * (off_t) DVD_VIDEO_LB_LEN ) ) {
+	tc_log_warn(__FILE__, "unable to seek to block %d", vob_offset); //drop this chunk/file
+	goto vob_skip2;
+      }
+    }
+
+    tc_preadwrite(ipipe->fd_in, ipipe->fd_out);
+
+  vob_skip2:
+    break;
+
+#ifdef NET_STREAM
+  case TC_MAGIC_SOCKET:
+
+      port = (ipipe->select==1) ? TC_DEFAULT_APORT:TC_DEFAULT_VPORT;
+
+      if(( hp = gethostbyname(ipipe->name)) == NULL) {
+
+	  tc_log_error(__FILE__, "[%s] host %s unknown", ipipe->name);
+	  ipipe->error=1;
+	  return;
+      }
+
+      // get socket file descriptor
+
+      if(( vs = socket(AF_INET, SOCK_STREAM, 0)) <0) {
+
+	tc_log_perror(__FILE__, "socket");
+	ipipe->error=1;
+	return;
+      }
+
+      sin.sin_family = AF_INET;
+      sin.sin_port = htons(port);
+
+      bcopy(hp->h_addr, &sin.sin_addr, hp->h_length);
+
+
+      if(connect(vs, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
+
+	tc_log_perror(__FILE__, "connect");
+	ipipe->error=1;
+	return;
+      }
+
+      //start streaming
+
+      if(!(iobuf = tc_malloc(IO_BUF_SIZE))) {
+	tc_log_error(__FILE__, "out of memory");
+	ipipe->error=1;
+	return;
+      }
+
+      do {
+
+	bytes=tc_pread(vs, iobuf, IO_BUF_SIZE);
+
+	// error on read?
+	if(bytes<0) {
+	  ipipe->error=1;
+	  return;
+	}
+
+	// read stream end?
+	if(bytes!=IO_BUF_SIZE) error=1;
+
+	// write stream problems?
+	if(tc_pwrite(ipipe->fd_out, iobuf, bytes)!= bytes) error=1;
+      } while(!error);
+
+      close(vs);
+
+      free(iobuf);
+
+      break;
+#endif
+
+  case TC_MAGIC_DIR:
+
+    //PASS 1: check file type - file order not important
+
+    if(tc_dirlist_open(&tcdir, ipipe->name, 0)<0) {
+      tc_log_error(__FILE__, "unable to open dirlist \"%s\"", ipipe->name);
+      exit(1);
+    } else if(verbose_flag & TC_DEBUG)
+      tc_log_msg(__FILE__, "scanning dirlist \"%s\"", ipipe->name);
+
+    while((name=tc_dirlist_scan(&tcdir))!=NULL) {
+
+      if((ipipe->fd_in = open(name, O_RDONLY))<0) {
+	tc_log_perror(__FILE__, "file open");
+	exit(1);
+      }
+
+      //first valid magic must be the same for all
+      //files to follow
+
+
+      itype = fileinfo(ipipe->fd_in, 0);
+
+      close(ipipe->fd_in);
+
+      if(itype == TC_MAGIC_UNKNOWN || itype == TC_MAGIC_PIPE ||
+	 itype == TC_MAGIC_ERROR) {
+
+	tc_log_error(__FILE__,"this version of transcode supports only");
+	tc_log_error(__FILE__,"directories containing files of identical file type.");
+	tc_log_error(__FILE__,"Please clean up dirlist %s and restart.", ipipe->name);
+
+	tc_log_error(__FILE__,"file %s with filetype %s is invalid for dirlist mode.", name, filetype(itype));
+
+	exit(1);
+      } // error
+
+
+      switch(itype) {
+
+	// supported file types
+      case TC_MAGIC_VOB:
+      case TC_MAGIC_DV_PAL:
+      case TC_MAGIC_DV_NTSC:
+      case TC_MAGIC_AC3:
+      case TC_MAGIC_YUV4MPEG:
+      case TC_MAGIC_AVI:
+      case TC_MAGIC_MPEG:
+
+	if(!found) type=itype;
+
+	if(itype!=type) {
+	  tc_log_error(__FILE__,"multiple filetypes not valid for dirlist mode.");
+	  exit(1);
+	}
+	found=1;
+	break;
+
+      default:
+	tc_log_error(__FILE__, "invalid filetype %s for dirlist mode.", filetype(type));
+	exit(1);
+      } // check itype
+    } // process files
+
+    tc_dirlist_close(&tcdir);
+
+    if(!found) {
+      tc_log_error(__FILE__, "no valid files found in %s", name);
+      exit(1);
+    } else if(verbose_flag & TC_DEBUG)
+      tc_log_msg(__FILE__, "%s", filetype(type));
+
+
+
+    //PASS 2: dump files in correct order
+
+    if(tc_dirlist_open(&tcdir, ipipe->name, 1)<0) {
+      tc_log_error(__FILE__, "unable to sort dirlist entries\"%s\"", name);
+      exit(1);
+    }
+
+    while((name=tc_dirlist_scan(&tcdir))!=NULL) {
+
+      if((ipipe->fd_in = open(name, O_RDONLY))<0) {
+	tc_log_perror(__FILE__, "file open");
+	exit(1);
+      } else if(verbose_flag & TC_STATS)
+	tc_log_msg(__FILE__, "processing %s", name);
+
+
+      //type determined in pass 1
+
+      switch(type) {
+
+      case TC_MAGIC_VOB:
+
+	if(vob_offset>0) {
+
+	  off_t off, size;
+
+	  //get filesize in units of packs (2kB)
+	  size  = lseek(ipipe->fd_in, 0, SEEK_END);
+
+	  lseek(ipipe->fd_in, 0, SEEK_SET);
+
+	  if(size > vob_offset * (off_t) DVD_VIDEO_LB_LEN) {
+	    // offset within current file
+	    off = lseek(ipipe->fd_in, vob_offset * (off_t) DVD_VIDEO_LB_LEN, SEEK_SET);
+	    vob_offset = 0;
+	  } else {
+	    vob_offset -= size/DVD_VIDEO_LB_LEN;
+	    goto vob_skip;
+	  }
+	}
+
+	tc_preadwrite(ipipe->fd_in, ipipe->fd_out);
+
+      vob_skip:
+	break;
+
+      case TC_MAGIC_DV_PAL:
+      case TC_MAGIC_DV_NTSC:
+      case TC_MAGIC_AC3:
+      case TC_MAGIC_YUV4MPEG:
+      case TC_MAGIC_MPEG:
+
+	tc_preadwrite(ipipe->fd_in, ipipe->fd_out);
+
+
+	break;
+
+      case TC_MAGIC_AVI:
+
+	//extract and concatenate streams
+
+	ac_memcpy(&ipipe_avi, ipipe, sizeof(info_t));
+
+	//real AVI file name
+	ipipe_avi.name = (char *)name;
+	ipipe_avi.magic = TC_MAGIC_AVI;
+
+	extract_avi(&ipipe_avi);
+
+	break;
+
+      default:
+	tc_log_error(__FILE__, "invalid filetype %s for dirlist mode.", filetype(type));
+	exit(1);
+      }
+
+      close(ipipe->fd_in);
+
+    }//process files
+
+    tc_dirlist_close(&tcdir);
+
+    break;
+  }
+}
 
 /* ------------------------------------------------------------
  *

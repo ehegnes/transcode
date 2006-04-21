@@ -33,7 +33,6 @@
 extern void import_exit(int ret);
 
 long fileinfo(int fd, int skipy);
-int fileinfo_dir(char *name, int *fd, long *cc);
 long streaminfo(int fd);
 
 char *filetype(long magic);

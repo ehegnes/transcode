@@ -240,7 +240,6 @@ tccat_SOURCES = \
 	extract_avi.c \
 	fileinfo.c \
 	ioaux.c \
-	iodump.c \
 	ioxml.c \
 	scan_dv.c \
 	ts_reader.c
@@ -407,7 +406,6 @@ tcprobe_SOURCES = \
 	dvd_reader.c \
 	fileinfo.c \
 	ioaux.c \
-	iodump.c \
 	ioxml.c \
 	mpg123.c \
 	scan_dv.c \

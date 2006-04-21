@@ -23,13 +23,15 @@
 
 #include "transcode.h"
 #include "tcinfo.h"
-
-#include <math.h>
+#include "libtc/libtc.h"
+#include "libtc/iodir.h"
 #include "libtc/xio.h"
 #include "ioaux.h"
 #include "tc.h"
 #include "demuxer.h"
 #include "dvd_reader.h"
+
+#include <math.h>
 
 #define EXE "tcprobe"
 
@@ -100,6 +102,38 @@ static void enc_bitrate(long frames, double fps, int abitrate, double discsize)
                    vbitrate);
         }
     }
+}
+
+/*************************************************************************/
+
+static int fileinfo_dir(char *dname, int *fd, long *magic)
+{
+    TCDirList tcdir;
+    const char *name=NULL;
+
+    //check file type - file order not important
+
+    if(tc_dirlist_open(&tcdir, dname, 0)<0) {
+	tc_log_error(__FILE__, "unable to open dirlist \"%s\"", dname);
+	exit(1);
+    } else if(verbose & TC_DEBUG)
+
+	tc_log_error(__FILE__, "scanning dirlist \"%s\"", dname);
+
+    if((name=tc_dirlist_scan(&tcdir))==NULL) return(-1);
+
+    if((*fd= open(name, O_RDONLY))<0) {
+	tc_log_perror(__FILE__, "open file");
+	return(-1);
+    }
+
+    tc_dirlist_close(&tcdir);
+
+    //first valid magic must be the same for all
+    //files to follow, but is not checked here
+
+    *magic = fileinfo(*fd, 0);
+    return(0);
 }
 
 /*************************************************************************/
