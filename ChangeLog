@@ -1,4 +1,8 @@
 2006-04-21 Francesco Romani <fromani at gmail dot com>
+  * export/export_ffmpeg.c export/export_mp2enc.c
+    export/export_mpeg2enc.c src/Makefile.am
+  drop dangling references to probe_export.h.
+
   * removed file: src/probe_export.h
   remove the now useless probe_export.h
 

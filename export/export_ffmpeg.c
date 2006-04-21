@@ -95,7 +95,6 @@ static int capability_flag = TC_CAP_YUV|TC_CAP_RGB|TC_CAP_PCM|TC_CAP_AC3|
 #define MOD_PRE ffmpeg
 #include "export_def.h"
 
-#include "probe_export.h"
 #include "ffmpeg_cfg.h"
 
 

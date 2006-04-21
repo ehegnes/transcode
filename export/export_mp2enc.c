@@ -29,7 +29,6 @@
 
 #include "transcode.h"
 #include "avilib/wavlib.h"
-#include "probe_export.h"
 
 #include <stdio.h>
 #include <stdlib.h>

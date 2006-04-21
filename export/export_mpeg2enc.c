@@ -62,8 +62,6 @@ static ImageFormat srcfmt;
 #define Y4M_MAGIC "YUV4MPEG2"
 #define Y4M_FRAME_MAGIC "FRAME"
 
-#include "probe_export.h"
-
 
 static int y4m_snprint_xtags(char *s, int maxn, y4m_xtag_list_t *xtags)
 {

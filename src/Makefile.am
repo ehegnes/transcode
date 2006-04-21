@@ -41,8 +41,7 @@ EXTRA_DIST = \
 	tc_defaults.h \
 	transcode.h \
 	usage.h \
-	video_trans.h \
-	probe_export.h
+	video_trans.h 
 
 transcode_SOURCES = \
 	transcode.c \
