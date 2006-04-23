@@ -75,12 +75,12 @@ static const char *null_help = ""
 static void help_optstr(void)
 {
   tc_log_info(MOD_NAME, "help : * Overview");
-  tc_log_msg(MOD_NAME,
+  tc_log_info(MOD_NAME,
              "help :     This exists for demonstration purposes only. "
              "It does NOTHING!");
-  tc_log_msg(MOD_NAME, "help :");
-  tc_log_msg(MOD_NAME, "help : * Options");
-  tc_log_msg(MOD_NAME, "help :         'help' Prints out this help text");
+  tc_log_info(MOD_NAME, "help :");
+  tc_log_info(MOD_NAME, "help : * Options");
+  tc_log_info(MOD_NAME, "help :         'help' Prints out this help text");
 }
 
 static int null_init(TCModuleInstance *self)

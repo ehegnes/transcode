@@ -1,4 +1,7 @@
 2006-04-23 Andrew Church <achurch at achurch dot org>
+  * filter/filter_null.c
+  Keep the log message type consistent when displaying help.
+
   * tools/tcmodinfo.c
   Allos use of transcode control socket regardless of NET_STREAM setting.
 
