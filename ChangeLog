@@ -1,3 +1,8 @@
+2006-04-23 Francesco Romani <fromani at gmail dot com>
+  * src/transcode.c
+  review --export_par option handling: use ratiocodes facilities,
+  a bit more strict checking, simplify code where feasible.
+
 2006-04-21 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule.c
   more STYLEish documentation.

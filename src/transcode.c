@@ -2280,26 +2280,28 @@ int main(int argc, char *argv[]) {
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
 
 	  n = sscanf(optarg, "%d,%d", &vob->ex_par_width, &vob->ex_par_height);
-	  if (n == 1) {
+	  if (n == 1) { /* only one argument: PAR code */
 	    vob->ex_par = vob->ex_par_width;
-	    vob->ex_par_width = vob->ex_par_height = 0;
 	    if (vob->ex_par < 0 || vob->ex_par > 5) {
-	      tc_error("--ex_par must be between 0 and 5");
+	      tc_error("--export_par must be between 0 and 5");
 	    }
-
-	    switch (vob->ex_par) {
-	      case 1: vob->ex_par_width =  1; vob->ex_par_height =  1; break;
-	      case 2: vob->ex_par_width = 12; vob->ex_par_height = 11; break;
-	      case 3: vob->ex_par_width = 10; vob->ex_par_height = 11; break;
-	      case 4: vob->ex_par_width = 16; vob->ex_par_height = 11; break;
-	      case 5: vob->ex_par_width = 40; vob->ex_par_height = 33; break;
-	      default: case 0: vob->ex_par_width = 0; vob->ex_par_height = 1; break;
-	    }
-
-	  } else if (n == 2) {
+	    /* par_width & par_height must be always valid */
+            tc_par_code_to_ratio(vob->ex_par,
+	    	                 &(vob->ex_par_width),
+	    	                 &(vob->ex_par_height));
+	  } else if (n == 2) { /* two arguments: use nonstandard PAR */
 	    vob->ex_par = 0;
-	  } else {
-	    tc_error("invalid argument for --ex_par");
+	    if (vob->ex_par_width <= 0 || vob->ex_par_height <= 0) {
+	      tc_error("bad PAR values for --export_par: %i/%i not [>0]/[>0]",
+                       vob->ex_par_width, vob->ex_par_height);
+            }
+            /* correct common misbehaviour */
+	    if (vob->ex_par_width == 1 && vob->ex_par_height == 1) {
+              vob->ex_par = 1;
+	      tc_info("given PAR values of 1/1, reset PAR code to 1");
+            }
+	  } else { /* bad number of arguments (<1 || >2) */
+	    tc_error("invalid argument for --export_par");
 	  }
 
 	  vob->export_attributes |= TC_EXPORT_ATTRIBUTE_PAR;
