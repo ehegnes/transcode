@@ -1,4 +1,8 @@
 2006-04-23 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_xvid.c
+  remove extra PAR sanity check, because environment MUST
+  guarantee that.
+
   * src/transcode.c
   remove stale printf().
 
