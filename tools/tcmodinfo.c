@@ -231,7 +231,7 @@ static int do_connect_socket(const char *socketfile)
     retval = select(sock+1, &rfds, NULL, NULL, NULL);
     /* Don't rely on the value of tv now! */
 
-    memset(buf, 0, sizeof (buf));
+    memset(buf, 0, sizeof (buf));  // null-termination in advance, slowly
 
     if (retval>0) {
         if (FD_ISSET(0, &rfds)) {
@@ -250,7 +250,7 @@ static int do_connect_socket(const char *socketfile)
         }
     }
 
-    if (write(sock, buf, sizeof(buf)) < 0)
+    if (write(sock, buf, strlen(buf)) < 0)
         perror("writing on stream socket");
 
     memset(buf, 0, sizeof (buf));

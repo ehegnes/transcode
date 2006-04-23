@@ -411,67 +411,68 @@ int plugin_disable_id (int id)
 }
 
 /* the plugin_list_{disabled,enabled,loaded} functions are only
- * called from socket.c.  there, buf has been memset M_BUF_SIZE bytes.
- * that's where the M_BUF_SIZE comes from in the snprintfs here.
- */
-int plugin_list_disabled(char *buf)
+ * called from socket.c */
+const char *plugin_list_disabled(void)
 {
+    static char retbuf[MAX_FILTER * (MAX_FILTER_NAME_LEN+4)];
     int n, pos=0;
 
     for (n=0; n<MAX_FILTER; n++) {
 	if ( (filter[n].status == 0) && filter[n].name && strlen(filter[n].name)) {
 	    int res;
 	    if (pos == 0) { // first
-		res = tc_snprintf(buf, M_BUF_SIZE, "\"%s\"", filter[n].name);
+		res = tc_snprintf(retbuf, sizeof(retbuf), "\"%s\"", filter[n].name);
 	    } else {
-		res = snprintf(buf+pos, M_BUF_SIZE - pos, ", \"%s\"", filter[n].name);
+		res = snprintf(retbuf+pos, sizeof(retbuf) - pos, ", \"%s\"", filter[n].name);
 	    }
 	    if (res > 0)
 		pos += res;
 	}
     }
-    tc_snprintf(buf+pos, M_BUF_SIZE - pos, "\n");
-    return 0;
+    tc_snprintf(retbuf+pos, sizeof(retbuf) - pos, "\n");
+    return retbuf;
 }
 
-int plugin_list_enabled(char *buf)
+const char *plugin_list_enabled(void)
 {
+    static char retbuf[MAX_FILTER * (MAX_FILTER_NAME_LEN+4)];
     int n, pos=0;
 
     for (n=0; n<MAX_FILTER; n++) {
 	if ( (filter[n].status == 1) && filter[n].name && strlen(filter[n].name)) {
 	    int res;
 	    if (pos == 0) { // first
-		res = tc_snprintf(buf, M_BUF_SIZE, "\"%s\"", filter[n].name);
+		res = tc_snprintf(retbuf, sizeof(retbuf), "\"%s\"", filter[n].name);
 	    } else {
-		res = tc_snprintf(buf+pos, M_BUF_SIZE - pos, ", \"%s\"", filter[n].name);
+		res = tc_snprintf(retbuf+pos, sizeof(retbuf) - pos, ", \"%s\"", filter[n].name);
 	    }
 	    if (res > 0)
 		pos += res;
 	}
     }
-    tc_snprintf(buf+pos, M_BUF_SIZE - pos, "\n");
-    return 0;
+    tc_snprintf(retbuf+pos, sizeof(retbuf) - pos, "\n");
+    return retbuf;
 }
 
-int plugin_list_loaded(char *buf)
+const char *plugin_list_loaded(void)
 {
+    static char retbuf[MAX_FILTER * (MAX_FILTER_NAME_LEN+4)];
     int n, pos=0;
 
     for (n=0; n<MAX_FILTER; n++) {
 	if (filter[n].name && strlen(filter[n].name)) {
 	    int res;
 	    if (pos == 0) { // first
-		res = tc_snprintf(buf, M_BUF_SIZE, "\"%s\"", filter[n].name);
+		res = tc_snprintf(retbuf, sizeof(retbuf), "\"%s\"", filter[n].name);
 	    } else {
-		res = tc_snprintf(buf+pos, M_BUF_SIZE - pos, ", \"%s\"", filter[n].name);
+		res = tc_snprintf(retbuf+pos, sizeof(retbuf) - pos, ", \"%s\"", filter[n].name);
 	    }
 	    if (res > 0)
 		pos += res;
 	}
     }
-    tc_snprintf(buf+pos, M_BUF_SIZE - pos, "\n");
-    return 0;
+    tc_snprintf(retbuf+pos, sizeof(retbuf) - pos, "\n");
+    return retbuf;
 }
 
 int plugin_get_handle (char *name)

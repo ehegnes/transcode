@@ -29,8 +29,6 @@
 
 #define MAX_FILTER 16
 
-#define M_BUF_SIZE 8192
-
 #define MAX_FILTER_NAME_LEN 32
 
 typedef struct filter_s {
@@ -74,9 +72,9 @@ int plugin_single_close(int id);
 
 int load_single_plugin (char *mfilter_string);
 
-int plugin_list_disabled(char *buf);
-int plugin_list_enabled(char *buf);
-int plugin_list_loaded(char *buf);
+const char *plugin_list_disabled(void);
+const char *plugin_list_enabled(void);
+const char *plugin_list_loaded(void);
 
 char * filter_single_readconf(int id);
 int filter_single_configure_handle(int handle, char *options);

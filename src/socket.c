@@ -1,698 +1,740 @@
-/*
- *  socket.c
+/* socket.c -- routines for controlling transcode over a socket
+ * Written by Andrew Church <achurch@achurch.org>
  *
- *  Copyright (C) Thomas Östreich - June 2001
- *                Written 2003 by Tilmann Bitterberg
- *
- *  This file is part of transcode, a video stream processing tool
- *
- *  transcode is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2, or (at your option)
- *  any later version.
- *
- *  transcode is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
- */
-/*
- * This file opens a socket and lets transcode be configured over it.
- * use tcmodinfo -s FILE to connect
+ * This file is part of transcode, a video stream processing tool.
+ * transcode is free software, distributable under the terms of the GNU
+ * General Public License (version 2 or later).  See the file COPYING
+ * for details.
  */
 
 #include "transcode.h"
 #include "filter.h"
 #include "socket.h"
+#include "libtc/libtc.h"
 
 //for the socket
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 
-extern char* socket_file; // transcode.c
+/*************************************************************************/
 
-unsigned int tc_socket_msgchar = 0;
-char *tc_socket_submit_buf=NULL;
-static int socket_fd=-1;
+/* Socket descriptor for socket */
+static int client_sock = -1;
 
-pthread_mutex_t tc_socket_msg_lock=PTHREAD_MUTEX_INITIALIZER;
+/* For communicating with "pv" module (FIXME: should go away) */
+pthread_mutex_t tc_socket_msg_lock = PTHREAD_MUTEX_INITIALIZER;
+enum tc_socket_msg_cmd_enum tc_socket_msg_cmd;
+int tc_socket_msg_arg = 0;
 
-static int s_write (int sock, void *buf, size_t count)
+/*************************************************************************/
+/*************************************************************************/
+
+/**
+ * sendall: Send data to a client_sock, handling partial writes transparently.
+ *
+ * Parameters:
+ *      sock: Socket descriptor.
+ *       buf: Data to write.
+ *     count: Number of bytes to send.
+ * Return value:
+ *     Total number of bytes sent; -1 indicates that the send failed.
+ */
+
+static int sendall(int sock, const void *buf, size_t count)
 {
-    int retval=0;
-    do {
-	if ( (retval += write(sock, buf, count)) < 0) {
-	    perror ("write");
-	    break;
-	} else if (retval == 0) {
-	    perror("write Ending connection");
-	    break;
-	}
-    } while (retval<count);
-    return retval;
+    int total_sent = 0;
+
+    if (sock < 0 || !buf || count < 0) {
+        tc_log_warn(__FILE__, "sendall(): invalid parameters!");
+        errno = EINVAL;
+        return -1;
+    }
+    while (count > 0) {
+        int retval = send(sock, buf, count, 0);
+        if (retval <= 0) {
+            tc_log_warn(__FILE__, "sendall(): socket write failed (%s)",
+                        retval<0 ? strerror(errno) : "Connection closed");
+            if (total_sent == 0)
+                return -1;  /* Nothing sent yet, abort with error return */
+            break;
+        }
+        total_sent += retval;
+        buf = (int8_t *)buf + retval;
+        count -= retval;
+    }
+    return total_sent;
 }
 
-static int tc_socket_version(char *buf)
+/*************************************************************************/
+
+/**
+ * sendstr: Send a string to a client_sock, handling partial writes transparently.
+ *
+ * Parameters:
+ *      sock: Socket descriptor.
+ *       str: String to write.
+ * Return value:
+ *     Total number of bytes sent; -1 indicates that the send failed.
+ */
+
+static int sendstr(int sock, const char *str)
 {
-    tc_snprintf(buf, M_BUF_SIZE, "%s%s", VERSION, "\n");
-    return 0;
+    return sendall(sock, str, strlen(str));
 }
 
-#define P(field,fmt) \
-    n = tc_snprintf (buf, M_BUF_SIZE, "%20s = "fmt"\n", #field, vob->field); \
-    if (n > 0) s_write (socket_fd, buf, n)
+/*************************************************************************/
 
-static int tc_socket_dump_vob(char *buf)
+/**
+ * dump_vob:  Send the contents of the global `vob' structure over the
+ * socket in a "parameter=value" format, one field per line.
+ *
+ * Parameters:
+ *     sock: Socket descriptor to send data to.
+ * Return value:
+ *     None.
+ */
+
+static void dump_vob(int sock)
 {
     vob_t *vob = tc_get_vob();
+    char buf[1000];
     int n;
-    P(vmod_probed, "%s");
-    P(amod_probed, "%s");
-    P(vmod_probed_xml, "%s");
-    P(amod_probed_xml, "%s");
-    P(verbose, "%d");
-    P(video_in_file, "%s");
-    P(audio_in_file, "%s");
-    P(nav_seek_file, "%s");
-    P(in_flag, "%d");
-    P(has_audio, "%d");
-    P(has_audio_track, "%d");
-    P(has_video, "%d");
-    P(lang_code, "%d");
-    P(a_track, "%d");
-    P(v_track, "%d");
-    P(s_track, "%d");
-    P(sync, "%d");
-    P(sync_ms, "%d");
-    P(dvd_title, "%d");
-    P(dvd_chapter1, "%d");
-    P(dvd_chapter2, "%d");
-    P(dvd_max_chapters, "%d");
-    P(dvd_angle, "%d");
-    P(ps_unit, "%d");
-    P(ps_seq1, "%d");
-    P(ps_seq2, "%d");
-    P(ts_pid1, "%d");
-    P(ts_pid2, "%d");
-    P(vob_offset, "%d");
-    P(vob_chunk, "%d");
-    P(vob_chunk_num1, "%d");
-    P(vob_chunk_num2, "%d");
-    P(vob_chunk_max, "%d");
-    P(vob_percentage, "%d");
-    P(vob_psu_num1, "%d");
-    P(vob_psu_num2, "%d");
-    P(vob_info_file, "%s");
-    P(pts_start, "%f");
-    P(psu_offset, "%f");
-    P(demuxer, "%d");
-    P(v_format_flag, "%ld");
-    P(v_codec_flag, "%ld");
-    P(quality, "%d");
-    P(a_stream_bitrate, "%d");
-    P(a_chan, "%d");
-    P(a_bits, "%d");
-    P(a_rate, "%d");
-    P(a_padrate, "%d");
-    P(im_a_size, "%d");
-    P(ex_a_size, "%d");
-    P(a_format_flag, "%ld");
-    P(a_codec_flag, "%ld");
-    P(im_a_codec, "%d");
-    P(a_leap_frame, "%d");
-    P(a_leap_bytes, "%d");
-    P(a_vbr, "%d");
-    P(a52_mode, "%d");
-    P(dm_bits, "%d");
-    P(dm_chan, "%d");
-    P(v_stream_bitrate, "%d");
-    P(fps, "%f");
-    P(im_frc, "%d");
-    P(ex_fps, "%f");
-    P(ex_frc, "%d");
-    P(hard_fps_flag, "%d");
-    P(pulldown, "%d");
-    P(im_v_height, "%d");
-    P(im_v_width, "%d");
-    P(im_v_size, "%d");
-    P(im_asr, "%d");
-    P(ex_asr, "%d");
-    P(attributes, "%d");
-    P(im_v_codec, "%d");
-    P(encode_fields, "%d");
-    P(dv_yuy2_mode, "%d");
-    P(volume, "%f");
-    P(ac3_gain[0], "%f");
-    P(ac3_gain[1], "%f");
-    P(ac3_gain[2], "%f");
-    P(clip_count, "%d");
-    P(ex_v_width, "%d");
-    P(ex_v_height, "%d");
-    P(ex_v_size, "%d");
-    P(reduce_h, "%d");
-    P(reduce_w, "%d");
-    P(resize1_mult, "%d");
-    P(vert_resize1, "%d");
-    P(hori_resize1, "%d");
-    P(resize2_mult, "%d");
-    P(vert_resize2, "%d");
-    P(hori_resize2, "%d");
-    P(zoom_width, "%d");
-    P(zoom_height, "%d");
-    P(zoom_filter, "%d");
-    P(antialias, "%d");
-    P(deinterlace, "%d");
-    P(decolor, "%d");
-    P(aa_weight, "%f");
-    P(aa_bias, "%f");
-    P(gamma, "%f");
-    P(ex_clip_top, "%d");
-    P(ex_clip_bottom, "%d");
-    P(ex_clip_left, "%d");
-    P(ex_clip_right, "%d");
-    P(im_clip_top, "%d");
-    P(im_clip_bottom, "%d");
-    P(im_clip_left, "%d");
-    P(im_clip_right, "%d");
-    P(post_ex_clip_top, "%d");
-    P(post_ex_clip_bottom, "%d");
-    P(post_ex_clip_left, "%d");
-    P(post_ex_clip_right, "%d");
-    P(pre_im_clip_top, "%d");
-    P(pre_im_clip_bottom, "%d");
-    P(pre_im_clip_left, "%d");
-    P(pre_im_clip_right, "%d");
-    P(video_out_file, "%s");
-    P(audio_out_file, "%s");
-    P(avifile_in, "%p");
-    P(avifile_out, "%p");
-    P(avi_comment_fd, "%d");
-    P(out_flag, "%d");
-    P(divxbitrate, "%d");
-    P(divxkeyframes, "%d");
-    P(divxquality, "%d");
-    P(divxcrispness, "%d");
-    P(divxmultipass, "%d");
-    P(video_max_bitrate, "%d");
-    P(divxlogfile, "%s");
-    P(min_quantizer, "%d");
-    P(max_quantizer, "%d");
-    P(rc_period, "%d");
-    P(rc_reaction_period, "%d");
-    P(rc_reaction_ratio, "%d");
-    P(divx5_vbv_prof, "%d");
-    P(divx5_vbv_bitrate, "%d");
-    P(divx5_vbv_size, "%d");
-    P(divx5_vbv_occupancy, "%d");
-    P(mp3bitrate, "%d");
-    P(mp3frequency, "%d");
-    P(mp3quality, "%f");
-    P(mp3mode, "%d");
-    P(bitreservoir, "%d");
-    P(lame_preset, "%s");
-    P(audiologfile, "%s");
-    P(ex_a_codec, "%d");
-    P(ex_v_codec, "%d");
-    P(ex_v_fcc, "%s");
-    P(ex_a_fcc, "%s");
-    P(ex_profile_name, "%s");
-    P(pass_flag, "%d");
-    P(lame_flush, "%d");
-    P(mod_path, "%s");
-    P(ttime, "%p");
-    P(frame_interval, "%d");
-    P(chanid, "%d");
-    P(station_id, "%s");
-    P(im_v_string, "%s");
-    P(im_a_string, "%s");
-    P(ex_v_string, "%s");
-    P(ex_a_string, "%s");
-    P(m2v_requant, "%f");
 
-    return 0;
+#define SEND(field,fmt) \
+    n = tc_snprintf(buf, sizeof(buf), "%s=" fmt "\n", #field, vob->field); \
+    if (n > 0) \
+        sendall(sock, buf, n);
+
+    /* Generated via find-and-replace from vob_t definition in transcode.h */
+    SEND(vmod_probed, "%s");
+    SEND(amod_probed, "%s");
+    SEND(vmod_probed_xml, "%s");
+    SEND(amod_probed_xml, "%s");
+    SEND(verbose, "%d");
+    SEND(video_in_file, "%s");
+    SEND(audio_in_file, "%s");
+    SEND(nav_seek_file, "%s");
+    SEND(in_flag, "%d");
+    SEND(has_audio, "%d");
+    SEND(has_audio_track, "%d");
+    SEND(has_video, "%d");
+    SEND(lang_code, "%d");
+    SEND(a_track, "%d");
+    SEND(v_track, "%d");
+    SEND(s_track, "%d");
+    SEND(sync, "%d");
+    SEND(sync_ms, "%d");
+    SEND(dvd_title, "%d");
+    SEND(dvd_chapter1, "%d");
+    SEND(dvd_chapter2, "%d");
+    SEND(dvd_max_chapters, "%d");
+    SEND(dvd_angle, "%d");
+    SEND(ps_unit, "%d");
+    SEND(ps_seq1, "%d");
+    SEND(ps_seq2, "%d");
+    SEND(ts_pid1, "%d");
+    SEND(ts_pid2, "%d");
+    SEND(vob_offset, "%d");
+    SEND(vob_chunk, "%d");
+    SEND(vob_chunk_num1, "%d");
+    SEND(vob_chunk_num2, "%d");
+    SEND(vob_chunk_max, "%d");
+    SEND(vob_percentage, "%d");
+    SEND(vob_psu_num1, "%d");
+    SEND(vob_psu_num2, "%d");
+    SEND(vob_info_file, "%s");
+    SEND(pts_start, "%f");
+    SEND(psu_offset, "%f");
+    SEND(demuxer, "%d");
+    SEND(v_format_flag, "%ld");
+    SEND(v_codec_flag, "%ld");
+    SEND(a_format_flag, "%ld");
+    SEND(a_codec_flag, "%ld");
+    SEND(quality, "%d");
+    SEND(a_stream_bitrate, "%d");
+    SEND(a_chan, "%d");
+    SEND(a_bits, "%d");
+    SEND(a_rate, "%d");
+    SEND(a_padrate, "%d");
+    SEND(im_a_size, "%d");
+    SEND(ex_a_size, "%d");
+    SEND(im_a_codec, "%d");
+    SEND(a_leap_frame, "%d");
+    SEND(a_leap_bytes, "%d");
+    SEND(a_vbr, "%d");
+    SEND(a52_mode, "%d");
+    SEND(dm_bits, "%d");
+    SEND(dm_chan, "%d");
+    SEND(v_stream_bitrate, "%d");
+    SEND(fps, "%f");
+    SEND(im_frc, "%d");
+    SEND(ex_fps, "%f");
+    SEND(ex_frc, "%d");
+    SEND(hard_fps_flag, "%d");
+    SEND(pulldown, "%d");
+    SEND(im_v_height, "%d");
+    SEND(im_v_width, "%d");
+    SEND(im_v_size, "%d");
+    SEND(im_asr, "%d");
+    SEND(im_par, "%d");
+    SEND(im_par_width, "%d");
+    SEND(im_par_height, "%d");
+    SEND(ex_asr, "%d");
+    SEND(ex_par, "%d");
+    SEND(ex_par_width, "%d");
+    SEND(ex_par_height, "%d");
+    SEND(attributes, "%d");
+    SEND(im_v_codec, "%d");
+    SEND(encode_fields, "%d");
+    SEND(dv_yuy2_mode, "%d");
+    SEND(volume, "%f");
+    SEND(ac3_gain[0], "%f");
+    SEND(ac3_gain[1], "%f");
+    SEND(ac3_gain[2], "%f");
+    SEND(clip_count, "%d");
+    SEND(ex_v_width, "%d");
+    SEND(ex_v_height, "%d");
+    SEND(ex_v_size, "%d");
+    SEND(reduce_h, "%d");
+    SEND(reduce_w, "%d");
+    SEND(resize1_mult, "%d");
+    SEND(vert_resize1, "%d");
+    SEND(hori_resize1, "%d");
+    SEND(resize2_mult, "%d");
+    SEND(vert_resize2, "%d");
+    SEND(hori_resize2, "%d");
+    SEND(zoom_width, "%d");
+    SEND(zoom_height, "%d");
+    SEND(zoom_filter, "%d");
+    SEND(antialias, "%d");
+    SEND(deinterlace, "%d");
+    SEND(decolor, "%d");
+    SEND(aa_weight, "%f");
+    SEND(aa_bias, "%f");
+    SEND(gamma, "%f");
+    SEND(ex_clip_top, "%d");
+    SEND(ex_clip_bottom, "%d");
+    SEND(ex_clip_left, "%d");
+    SEND(ex_clip_right, "%d");
+    SEND(im_clip_top, "%d");
+    SEND(im_clip_bottom, "%d");
+    SEND(im_clip_left, "%d");
+    SEND(im_clip_right, "%d");
+    SEND(post_ex_clip_top, "%d");
+    SEND(post_ex_clip_bottom, "%d");
+    SEND(post_ex_clip_left, "%d");
+    SEND(post_ex_clip_right, "%d");
+    SEND(pre_im_clip_top, "%d");
+    SEND(pre_im_clip_bottom, "%d");
+    SEND(pre_im_clip_left, "%d");
+    SEND(pre_im_clip_right, "%d");
+    SEND(video_out_file, "%s");
+    SEND(audio_out_file, "%s");
+    SEND(avifile_in, "%p");  // not sure if there's any point sending these...
+    SEND(avifile_out, "%p");
+    SEND(avi_comment_fd, "%d");
+    SEND(out_flag, "%d");
+    SEND(divxbitrate, "%d");
+    SEND(divxkeyframes, "%d");
+    SEND(divxquality, "%d");
+    SEND(divxcrispness, "%d");
+    SEND(divxmultipass, "%d");
+    SEND(video_max_bitrate, "%d");
+    SEND(divxlogfile, "%s");
+    SEND(min_quantizer, "%d");
+    SEND(max_quantizer, "%d");
+    SEND(rc_period, "%d");
+    SEND(rc_reaction_period, "%d");
+    SEND(rc_reaction_ratio, "%d");
+    SEND(divx5_vbv_prof, "%d");
+    SEND(divx5_vbv_bitrate, "%d");
+    SEND(divx5_vbv_size, "%d");
+    SEND(divx5_vbv_occupancy, "%d");
+    SEND(mp3bitrate, "%d");
+    SEND(mp3frequency, "%d");
+    SEND(mp3quality, "%f");
+    SEND(mp3mode, "%d");
+    SEND(bitreservoir, "%d");
+    SEND(lame_preset, "%s");
+    SEND(audiologfile, "%s");
+    SEND(ex_a_codec, "%d");
+    SEND(ex_v_codec, "%d");
+    SEND(ex_v_fcc, "%s");
+    SEND(ex_a_fcc, "%s");
+    SEND(ex_profile_name, "%s");
+    SEND(pass_flag, "%d");
+    SEND(lame_flush, "%d");
+    SEND(mod_path, "%s");
+    SEND(ttime, "%p");  // format this as a -c style string?
+    SEND(frame_interval, "%u");
+    SEND(chanid, "%d");
+    SEND(station_id, "%s");
+    SEND(im_v_string, "%s");
+    SEND(im_a_string, "%s");
+    SEND(ex_v_string, "%s");
+    SEND(ex_a_string, "%s");
+    SEND(ex_m_string, "%s");
+    SEND(m2v_requant, "%f");
+    SEND(mpeg_profile, "%d");
+    SEND(export_attributes, "%u");
+
+#undef SEND
 }
-#undef P
 
+/*************************************************************************/
+/*************************************************************************/
 
-int tc_socket_preview(char *buf)
+/* Socket actions. */
+
+/*************************************************************************/
+
+/**
+ * handle_config():  Process a "config" command received on the socket.
+ *
+ * Parameters:
+ *     params: Command parameters.
+ * Return value:
+ *     Nonzero on success, zero on failure.
+ */
+
+static int handle_config(char *params)
+{
+    char *filter_name, *filter_params;
+    int filter_id;
+
+    filter_name = params;
+    filter_params = filter_name + strcspn(filter_name, " \t");
+    *filter_params++ = 0;
+    filter_params += strspn(filter_params, " \t");
+    if (!*filter_name || !*filter_params)
+        return 0;
+
+    filter_id = plugin_find_id(filter_name);
+    if (filter_id < 0)
+        return 0;
+    else
+	return filter_single_configure_handle(filter_id, filter_params) == 0;
+}
+
+/*************************************************************************/
+
+/**
+ * handle_disable():  Process a "disable" command received on the socket.
+ *
+ * Parameters:
+ *     params: Command parameters.
+ * Return value:
+ *     Nonzero on success, zero on failure.
+ */
+
+static int handle_disable(char *params)
 {
     int filter_id;
-    unsigned int arg = 0;
-    char *c, *d;
-    int ret = 0;
 
-    // preview filter loaded?
-    if ( (filter_id = plugin_find_id("pv")) < 0)
-	filter_id = load_single_plugin("pv=cache=20");
+    filter_id = plugin_find_id(params);
+    if (filter_id < 0)
+        return 0;
+    else
+        return plugin_disable_id(filter_id) == 0;
+}
 
-    // it is loaded and we have its ID in filter_id
+/*************************************************************************/
 
-    c = strchr (buf, ' ');
-    while (c && *c && *c == ' ')
-	c++;
+/**
+ * handle_enable():  Process an "enable" command received on the socket.
+ *
+ * Parameters:
+ *     params: Command parameters.
+ * Return value:
+ *     Nonzero on success, zero on failure.
+ */
 
-    if (!c)
-	return 1;
+static int handle_enable(char *params)
+{
+    int filter_id;
 
-    d = strchr (c, ' ');
-    if (d) {
-	arg = strtol(d, (char **)NULL, 0);
+    filter_id = plugin_find_id(params);
+    if (filter_id < 0)
+        return 0;
+    else
+        return plugin_enable_id(filter_id) == 0;
+}
+
+/*************************************************************************/
+
+/**
+ * handle_help():  Process a "help" command received on the socket.
+ *
+ * Parameters:
+ *     params: Command parameters.
+ * Return value:
+ *     Nonzero on success, zero on failure.
+ */
+
+static int handle_help(char *params)
+{
+    sendstr(client_sock,
+            "load <filter> <initial string>\n"
+            "unload <filter>\n"
+            "enable <filter>\n"
+            "disable <filter>\n"
+            "config <filter> <string>\n"
+            "parameters <filter>\n"
+            "list [ load | enable | disable ]\n"
+            "dump\n"
+            "progress\n"
+            "pause\n"
+            "preview <command>\n"
+            "  [ draw | undo | pause | fastfw |\n"
+            "    slowfw | slowbw | rotate |\n"
+            "    rotate | display | slower |\n"
+            "    faster | toggle | grab ]\n"
+            "help\n"
+            "version\n"
+            "quit\n"
+    );
+    return 1;
+}
+
+/*************************************************************************/
+
+/**
+ * handle_list():  Process a "list" command received on the socket.
+ *
+ * Parameters:
+ *     params: Command parameters.
+ * Return value:
+ *     Nonzero on success, zero on failure.
+ */
+
+static int handle_list(char *params)
+{
+    const char *list = NULL;
+
+    if (strncasecmp(params, "load", 2) == 0)
+        list = plugin_list_loaded();
+    else if (strncasecmp(params, "enable", 2) == 0)
+        list = plugin_list_enabled();
+    else if (strncasecmp(params, "disable", 2) == 0)
+        list = plugin_list_disabled();
+
+    if (list) {
+        sendstr(client_sock, list);
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+/*************************************************************************/
+
+/**
+ * handle_load():  Process a "load" command received on the socket.
+ *
+ * Parameters:
+ *     params: Command parameters.
+ * Return value:
+ *     Nonzero on success, zero on failure.
+ */
+
+static int handle_load(char *params)
+{
+    char *s;
+
+    s = strchr(params, ' ');
+    if (s) {
+        /* Turn whitespace separating filter name and params into an equals */
+        char *t;
+        *s++ = '=';
+        t = s + strspn(s, " \t");
+        if (t > s)
+            memmove(s, t, strlen(t)+1);
+    }
+    return load_single_plugin(params) == 0;
+}
+
+/*************************************************************************/
+
+/**
+ * handle_parameter():  Process a "parameter" command received on the
+ * socket.
+ *
+ * Parameters:
+ *     params: Command parameters.
+ * Return value:
+ *     Nonzero on success, zero on failure.
+ */
+
+static int handle_parameter(char *params)
+{
+    int filter_id;
+    char *s;
+
+    filter_id = plugin_find_id(params);
+    if (filter_id < 0)
+        return 0;
+    s = filter_single_readconf(filter_id);
+    if (!s)
+        return 0;
+    sendstr(client_sock, s);
+    return 1;
+}
+
+/*************************************************************************/
+
+/**
+ * handle_preview():  Process a "preview" command received on the socket.
+ *
+ * Parameters:
+ *     params: Command parameters.
+ * Return value:
+ *     Nonzero on success, zero on failure.
+ */
+
+static int handle_preview(char *params)
+{
+    int filter_id, cmd, arg;
+    char *cmdstr, *argstr;
+
+    /* Check that the preview filter is loaded, and load it if not */
+    filter_id = plugin_find_id("pv");
+    if (filter_id < 0) {
+        filter_id = load_single_plugin("pv=cache=20");
+        if (filter_id < 0)
+            return 0;
+    }
+
+    /* Parse out preview command name and (optional) argument */
+    cmdstr = strtok(params, " \t");
+    if (cmdstr)  // there are strtok() implementations that crash without this!
+        argstr = strtok(NULL, " \t");
+    else
+        argstr = NULL;
+    if (argstr)
+        arg = atoi(argstr);
+    else
+        arg = 0;
+
+    if        (!strncasecmp(cmdstr, "draw",    2)) {
+	cmd = TC_SOCK_PV_DRAW;
+    } else if (!strncasecmp(cmdstr, "pause",  2)) {
+	cmd = TC_SOCK_PV_PAUSE;
+    } else if (!strncasecmp(cmdstr, "undo", 2)) {
+	cmd = TC_SOCK_PV_UNDO;
+    } else if (!strncasecmp(cmdstr, "fastfw", 6)) {
+	cmd = TC_SOCK_PV_FAST_FW;
+    } else if (!strncasecmp(cmdstr, "fastbw", 6)) {
+	cmd = TC_SOCK_PV_FAST_BW;
+    } else if (!strncasecmp(cmdstr, "slowfw", 6)) {
+	cmd = TC_SOCK_PV_SLOW_FW;
+    } else if (!strncasecmp(cmdstr, "slowbw", 6)) {
+	cmd = TC_SOCK_PV_SLOW_BW;
+    } else if (!strncasecmp(cmdstr, "toggle", 6)) {
+	cmd = TC_SOCK_PV_TOGGLE;
+    } else if (!strncasecmp(cmdstr, "slower", 6)) {
+	cmd = TC_SOCK_PV_SLOWER;
+    } else if (!strncasecmp(cmdstr, "faster", 6)) {
+	cmd = TC_SOCK_PV_FASTER;
+    } else if (!strncasecmp(cmdstr, "rotate", 6)) {
+	cmd = TC_SOCK_PV_ROTATE;
+    } else if (!strncasecmp(cmdstr, "display", 6)) {
+	cmd = TC_SOCK_PV_DISPLAY;
+    } else if (!strncasecmp(cmdstr, "grab", 4)) {
+	cmd = TC_SOCK_PV_SAVE_JPG;
+    } else {
+	return 0;
     }
 
     pthread_mutex_lock(&tc_socket_msg_lock);
-
-    if        (!strncasecmp(c, "draw",    2)) {
-	tc_socket_msgchar = TC_SOCK_PV_DRAW;
-	TC_SOCK_SET_ARG (tc_socket_msgchar, arg);
-
-    } else if (!strncasecmp(c, "pause",  2)) {
-	tc_socket_msgchar = TC_SOCK_PV_PAUSE;
-
-    } else if (!strncasecmp(c, "undo", 2)) {
-	tc_socket_msgchar = TC_SOCK_PV_UNDO;
-
-    } else if (!strncasecmp(c, "fastfw", 6)) {
-	tc_socket_msgchar = TC_SOCK_PV_FAST_FW;
-
-    } else if (!strncasecmp(c, "fastbw", 6)) {
-	tc_socket_msgchar = TC_SOCK_PV_FAST_BW;
-
-    } else if (!strncasecmp(c, "slowfw", 6)) {
-	tc_socket_msgchar = TC_SOCK_PV_SLOW_FW;
-
-    } else if (!strncasecmp(c, "slowbw", 6)) {
-	tc_socket_msgchar = TC_SOCK_PV_SLOW_BW;
-
-    } else if (!strncasecmp(c, "toggle", 6)) {
-	tc_socket_msgchar = TC_SOCK_PV_TOGGLE;
-
-    } else if (!strncasecmp(c, "slower", 6)) {
-	tc_socket_msgchar = TC_SOCK_PV_SLOWER;
-
-    } else if (!strncasecmp(c, "faster", 6)) {
-	tc_socket_msgchar = TC_SOCK_PV_FASTER;
-
-    } else if (!strncasecmp(c, "rotate", 6)) {
-	tc_socket_msgchar = TC_SOCK_PV_ROTATE;
-
-    } else if (!strncasecmp(c, "display", 6)) {
-	tc_socket_msgchar = TC_SOCK_PV_DISPLAY;
-
-    } else if (!strncasecmp(c, "grab", 4)) {
-	tc_socket_msgchar = TC_SOCK_PV_SAVE_JPG;
-
-    } else
-	ret = 1;
-
+    tc_socket_msg_cmd = cmd;
+    tc_socket_msg_arg = arg;
     pthread_mutex_unlock(&tc_socket_msg_lock);
 
-    return ret;
+    return 1;
 }
 
-int tc_socket_parameter(char *buf)
+/*************************************************************************/
+
+/**
+ * handle:  Handle a single message from a socket.
+ *
+ * Parameters:
+ *     buf: Line read from socket.
+ * Return value:
+ *     Zero if the socket is to be closed, nonzero otherwise.
+ */
+
+static int handle(char *buf)
 {
-    char *c = buf, *d;
-    int filter_id;
-    long sret;
+    char *cmd, *params;
+    int len, retval;
 
-    c = strchr (buf, ' ');
-    while (c && *c == ' ')
-	c++;
+    len = strlen(buf);
+    if (len > 0 && buf[len-1] == '\n')
+        buf[--len] = 0;
+    if (len > 0 && buf[len-1] == '\r')
+        buf[--len] = 0;
+    //tc_log_msg(__FILE__, "read from socket: |%s|", buf);
 
-    if (!c)
-	return 1;
-
-    if ( (filter_id = plugin_find_id(c)) < 0)
-	return 1;
-
-    memset (buf, 0, strlen(buf));
-
-    if ((d = filter_single_readconf(filter_id)) == NULL)
-	return 1;
-
-    /* tc_socket_parameter() is only called with originating *buf of */
-    /* size M_BUF_SIZE */
-
-    sret = strlcpy(buf, d, M_BUF_SIZE);
-    if (tc_test_string(__FILE__, __LINE__, M_BUF_SIZE, sret, errno)) {
-        free(d);
-        return(1);
-    }
-
-    free (d);
-    return 0;
-}
-
-int tc_socket_list(char *buf)
-{
-    char *c = buf;
-
-    c = strchr (buf, ' ');
-    while (c && *c == ' ') c++;
-
-    if (!c)
-	return 1;
-
-    if        (!strncasecmp(c, "load",    2)) {
-	memset (buf, 0, M_BUF_SIZE);
-	plugin_list_loaded(buf);
-    } else if (!strncasecmp(c, "enable",  2)) {
-	memset (buf, 0, M_BUF_SIZE);
-	plugin_list_enabled(buf);
-    } else if (!strncasecmp(c, "disable", 2)) {
-	memset (buf, 0, M_BUF_SIZE);
-	plugin_list_disabled(buf);
-    } else
-	return 1;
-
-    return 0;
-
-}
-int tc_socket_config(char *buf)
-{
-    char *c = buf, *d;
-    int filter_id;
-
-    c = strchr (buf, ' ');
-    while (c && *c && *c == ' ')
-	c++;
-
-    if (!c)
-	return 1;
-
-    d = c;
-    c = strchr (d, ' ');
-    while (c && *c && *c == ' ')
-	*c++ = '\0';
-
-    if (!c || !d)
-	return 1;
-
-    filter_id = plugin_find_id(d);
-
-    if (filter_id < 0) {
-	return 1;
-    } else
-	return filter_single_configure_handle(filter_id, c);
-}
-
-int tc_socket_disable(char *buf)
-{
-    char *c = buf;
-    int filter_id;
-
-    c = strchr (buf, ' ');
-    while (c && *c == ' ')
-	c++;
-
-    filter_id = plugin_find_id(c);
-
-    if (filter_id < 0) {
-	return 1;
-    } else
-	return plugin_disable_id(filter_id);
-}
-
-int tc_socket_enable(char *buf)
-{
-    char *c = buf;
-    int filter_id;
-
-    c = strchr (buf, ' ');
-    while (c && *c == ' ')
-	c++;
-
-    filter_id = plugin_find_id(c);
-
-    if (filter_id < 0) {
-	return 1;
-    } else
-	return plugin_enable_id(filter_id);
-}
-
-int tc_socket_load(char *buf)
-{
-    char *c = buf, *d;
-
-    // skip "load "
-    c = strchr (buf, ' ');
-
-    // eat whitespace
-    while (c && *c && *c == ' ')
-	c++;
-
-    if (!c)
-	return 1;
-
-    d = c;
-    c = strchr (c, ' ');
-
-    if (c && *c)  {
-	*c = '=';
-	c++;
-	if (c && *c && *c=='0')
-	    *c = '\0';
-    }
-
-    return load_single_plugin(d);
-}
-
-static int tc_socket_help(char *buf)
-{
-    tc_snprintf(buf, M_BUF_SIZE, "%s",
-	    "load <filter> <initial string>\n"
-	    "config <filter> <string>\n"
-	    "parameters <filter>\n"
-	    "quit\n"
-	    "help\n"
-	    "version\n"
-	    "enable <filter>\n"
-	    "disable <filter>\n"
-	    "unload <filter>\n"
-	    "progress\n"
-	    "pause\n"
-	    "dump\n"
-	    "preview <command>\n"
-	    "  [ draw | undo | pause | fastfw |\n"
-	    "    slowfw | slowbw | rotate |\n"
-	    "    rotate | display | slower |\n"
-	    "    faster | toggle | grab ]\n"
-	    "list [ load | enable | disable ]\n");
-
-    return 0;
-}
-
-static int tc_socket_handle(char *buf)
-{
-    int ret = TC_SOCK_FAILED;
-
-    if        (!strncasecmp(buf, "help", 2)) {
-	ret = TC_SOCK_HELP;
-    } else if (!strncasecmp(buf, "load", 2)) {
-	ret = TC_SOCK_LOAD;
-    } else if (!strncasecmp(buf, "config", 2)) {
-	ret = TC_SOCK_CONFIG;
-    } else if (!strncasecmp(buf, "parameters", 3)) {
-	ret = TC_SOCK_PARAMETER;
-    } else if (!strncasecmp(buf, "quit", 2) || !strncasecmp(buf, "exit", 2)) {
-	ret = TC_SOCK_QUIT;
-    } else if (!strncasecmp(buf, "version", 2)) {
-	ret = TC_SOCK_VERSION;
-    } else if (!strncasecmp(buf, "enable", 2)) {
-	ret = TC_SOCK_ENABLE;
-    } else if (!strncasecmp(buf, "disable", 2)) {
-	ret = TC_SOCK_DISABLE;
-    } else if (!strncasecmp(buf, "unload", 2)) {
-	ret = TC_SOCK_UNLOAD;
-    } else if (!strncasecmp(buf, "list", 2)) {
-	ret = TC_SOCK_LIST;
-    } else if (!strncasecmp(buf, "preview", 3)) {
-	ret = TC_SOCK_PREVIEW;
-    } else if (!strncasecmp(buf, "progress", 3)) {
-	ret = TC_SOCK_PROGRESS_METER;
-    } else if (!strncasecmp(buf, "pause", 3)) {
-	ret = TC_SOCK_PAUSE;
-    } else if (!strncasecmp(buf, "dump", 3)) {
-	ret = TC_SOCK_DUMP;
+    cmd = buf + strspn(buf, " \t");
+    params = cmd + strcspn(cmd, " \t");
+    *params++ = 0;
+    params += strspn(params, " \t");
+    
+    if (!*cmd) {  // not strictly necessary, but lines up else if's nicely
+        retval = 0;
+    } else if (strncasecmp(cmd, "config", 2) == 0) {
+        retval = handle_config(params);
+    } else if (strncasecmp(cmd, "disable", 2) == 0) {
+        retval = handle_disable(params);
+    } else if (strncasecmp(cmd, "dump", 2) == 0) {
+        dump_vob(client_sock);
+        retval = 1;
+    } else if (strncasecmp(cmd, "enable", 2) == 0) {
+        retval = handle_enable(params);
+    } else if (strncasecmp(cmd, "help", 2) == 0) {
+        retval = handle_help(params);
+    } else if (strncasecmp(cmd, "list", 2) == 0) {
+        retval = handle_list(params);
+    } else if (strncasecmp(cmd, "load", 2) == 0) {
+        retval = handle_load(params);
+    } else if (strncasecmp(cmd, "parameters", 3) == 0) {
+        retval = handle_parameter(params);
+    } else if (strncasecmp(cmd, "pause", 3) == 0) {
+        tc_pause_request();
+        retval = 1;
+    } else if (strncasecmp(cmd, "preview", 3) == 0) {
+        retval = handle_preview(params);
+    } else if (strncasecmp(cmd, "progress", 3) == 0) {
+        tc_progress_meter = !tc_progress_meter;
+        retval = 1;
+    } else if (strncasecmp(cmd, "quit", 2) == 0
+            || strncasecmp(cmd, "exit", 2) == 0) {
+        return 0;  // tell caller to close socket
+    } else if (strncasecmp(cmd, "unload", 2) == 0) {
+	retval = 0;  // FIXME: not implemented
+    } else if (strncasecmp(cmd, "version", 2) == 0) {
+        sendstr(client_sock, PACKAGE_VERSION "\n");
+        retval = 1;
     } else {
-	ret = TC_SOCK_FAILED;
+	retval = 0;
     }
 
-    return ret;
+    sendstr(client_sock, retval ? "OK\n" : "FAILED\n");
+    return 1;  // socket remains open
 }
 
-// allows printing to the socket from everywhere
-void tc_socket_submit (char *buf)
+/*************************************************************************/
+/*************************************************************************/
+
+/* External interfaces. */
+
+/*************************************************************************/
+
+/**
+ * tc_socket_thread:  The socket thread routine.
+ *
+ * Parameters:
+ *     socket_file: Pathname to use for communication socket.
+ * Return value:
+ *     None.
+ */
+
+void tc_socket_thread(const char *socket_file)
 {
-    // this better be a queue, but up to now we only have one user
-    // -- tibit
-    int len = 0;
-
-    // we may not be running
-    if (socket_fd <= 0)
-	return;
-
-    if (!tc_socket_submit_buf) {
-	if ( (tc_socket_submit_buf = (char *) malloc (M_BUF_SIZE)) == NULL) {
-	  fprintf(stderr, "[%s] malloc for tc_socket_submit_buf failed : %s:%d\n",
-		  "socket server" , __FILE__, __LINE__);
-	  return;
-	}
-    }
-    len = strlen (buf);
-    if (len >= M_BUF_SIZE) {
-	len = M_BUF_SIZE;
-    }
-
-    strncpy (tc_socket_submit_buf, buf, len);
-
-    s_write (socket_fd, tc_socket_submit_buf, len);
-}
-
-void socket_thread(void)
-{
-    int retval, msgsock;
-    int thisfd;
-    long sret;
-
-    // too hard on the stack?
-    char rbuf[M_BUF_SIZE];
-
-    struct sockaddr_un server;
+    struct sockaddr_un server_addr;
+    int server_sock;
 
     unlink(socket_file);
-
-    thisfd = socket (AF_UNIX, SOCK_STREAM, 0);
-    if (thisfd < 0) {
-	perror("socket");
-	return;
-    }
-
-    server.sun_family = AF_UNIX;
-
-    /* sun_path is always array of length 1024? */
-    sret = strlcpy(server.sun_path, socket_file, sizeof(server.sun_path));
-    if (tc_test_string(__FILE__, __LINE__, sizeof(server.sun_path), sret, errno))
+    server_addr.sun_family = AF_UNIX;
+    if (tc_snprintf(server_addr.sun_path, sizeof(server_addr.sun_path),
+                    "%s", socket_file) < 0
+    ) {
+        tc_log_error(__FILE__, "Socket pathname too long");
         return;
-
-    if (bind(thisfd, (struct sockaddr *) &server, sizeof(struct sockaddr_un))) {
-	perror("binding stream socket");
-	return;
+    }
+    server_sock = socket (AF_UNIX, SOCK_STREAM, 0);
+    if (server_sock < 0) {
+        tc_log_perror(__FILE__, "Unable to create server socket");
+        return;
+    }
+    if (bind(server_sock, (struct sockaddr *)&server_addr,
+             sizeof(server_addr))
+    ) {
+        tc_log_perror(__FILE__, "Unable to bind server socket");
+        close(server_sock);
+        return;
+    }
+    if (listen(server_sock, 5) < 0) {
+        tc_log_perror(__FILE__, "Unable to activate server socket");
+        close(server_sock);
+        return;
     }
 
-    //fprintf(stderr, "Socket has name %s, mypid (%d)\n", server.sun_path, getpid()); fflush(stderr);
-    listen(thisfd, 5);
+    /* Listen/receive loop */
+    for (;;) {
+        char msgbuf[TC_BUF_MAX];
+        int retval;
 
-    while (1) {
-	int ret;
+        if (client_sock < 0) {
+            /* No connection, so listen for one */
+            pthread_testcancel();
+            client_sock = accept(server_sock, NULL, 0);
+            if (client_sock < 0) {
+                tc_log_perror(__FILE__, "Unable to accept new connection");
+                break;
+            }
+        }
 
-	pthread_testcancel();
+        pthread_testcancel();
+        if ((retval = recv(client_sock, msgbuf, sizeof(msgbuf)-1, 0)) <= 0) {
+            if (retval < 0)
+                tc_log_perror(__FILE__, "Unable to read message from socket");
+            close(client_sock);
+            client_sock = -1;
+        } else {
+            if (retval > sizeof(msgbuf)-1)  // paranoia
+                retval = sizeof(msgbuf)-1;
+            msgbuf[retval] = 0;
+            if (!handle(msgbuf)) {
+                close(client_sock);
+                client_sock = -1;
+            }
+        }
 
-	socket_fd = msgsock = accept(thisfd, 0, 0);
+    }  // end of listen/receive loop
 
-	//printf("Connect!\n");
-	if (msgsock == -1) {
-	    perror("accept");
-	    goto socket_out;
-	}
-	do {
-	    pthread_testcancel();
-
-	    memset(rbuf, 0, M_BUF_SIZE);
-
-	    // We wait in this read() for data to become available
-	    if ((retval = read(msgsock, rbuf, M_BUF_SIZE)) < 0) {
-		perror("reading stream message");
-		//goto socket_out;
-		continue;
-	    } else if (retval == 0)  {
-		//printf("read Ending connection\n");
-		break;
-	    } else {
-		rbuf[strlen(rbuf)-1] = '\0'; // chomp
-		//fprintf(stderr, "[%s]: ->|%s|\n", "socket_read", rbuf);
-	    }
-
-
-	    switch (ret = tc_socket_handle(rbuf)) {
-
-		case TC_SOCK_FAILED:
-		    break;
-		case TC_SOCK_HELP:
-		    ret = !tc_socket_help(rbuf);
-		    break;
-		case TC_SOCK_VERSION:
-		    ret = !tc_socket_version(rbuf);
-		    break;
-		case TC_SOCK_LOAD:
-		    ret = !tc_socket_load(rbuf);
-		    memset (rbuf, 0, M_BUF_SIZE);
-		    break;
-		case TC_SOCK_QUIT:
-		    close (msgsock);
-		    socket_fd = -1;
-		    msgsock = 0;
-		    break;
-		case TC_SOCK_UNLOAD:
-		    // implement filter unload
-		    break;
-		case TC_SOCK_LIST:
-		    ret = !tc_socket_list(rbuf);
-		    break;
-		case TC_SOCK_ENABLE:
-		    ret = !tc_socket_enable(rbuf);
-		    memset (rbuf, 0, M_BUF_SIZE);
-		    break;
-		case TC_SOCK_DISABLE:
-		    ret = !tc_socket_disable(rbuf);
-		    memset (rbuf, 0, M_BUF_SIZE);
-		    break;
-		case TC_SOCK_CONFIG:
-		    ret = !tc_socket_config(rbuf);
-		    memset (rbuf, 0, M_BUF_SIZE);
-		    break;
-		case TC_SOCK_PARAMETER:
-		    ret = !tc_socket_parameter(rbuf);
-		    break;
-		case TC_SOCK_PREVIEW:
-		    ret = !tc_socket_preview(rbuf);
-		    memset (rbuf, 0, M_BUF_SIZE);
-		    break;
-		case TC_SOCK_PROGRESS_METER:
-		    tc_progress_meter = !tc_progress_meter;
-		    memset (rbuf, 0, M_BUF_SIZE);
-		    break;
-		case TC_SOCK_PAUSE:
-		    tc_pause_request();
-		    memset (rbuf, 0, M_BUF_SIZE);
-		    break;
-		case TC_SOCK_DUMP:
-		    ret = !tc_socket_dump_vob(rbuf);
-		    memset (rbuf, 0, M_BUF_SIZE);
-		    break;
-		default:
-		    break;
-	    }
-	    if (ret>0)
-		tc_snprintf(rbuf+strlen(rbuf), M_BUF_SIZE - strlen(rbuf), "%s", "OK\n");
-	    else
-		tc_snprintf(rbuf, M_BUF_SIZE, "%s", "FAILED\n");
-
-	    if (msgsock > 0)
-		s_write (msgsock,  rbuf, strlen(rbuf));
-
-	} while (msgsock);
-    }
-socket_out:
-    close (thisfd);
-    unlink (socket_file);
-
+    close(server_sock);
+    unlink(socket_file);
 }
 
-/* vim: sw=4
+/*************************************************************************/
+
+/**
+ * tc_socket_submit:  Send a string to the socket.  Does nothing if no
+ * socket is open.
+ *
+ * Parameters:
+ *     str: String to send.
+ * Return value:
+ *     None.
+ */
+
+void tc_socket_submit(const char *str)
+{
+    if (socket >= 0)
+        sendstr(client_sock, str);
+}
+
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
  */

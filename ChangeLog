@@ -1,4 +1,11 @@
 2006-04-23 Andrew Church <achurch at achurch dot org>
+  * filter/preview/pv.c src/filter.c src/filter.h src/socket.c src/socket.h
+    src/transcode.c tools/tcmodinfo.c
+  Re-implement control socket handling more cleanly.
+
+  * filter/filter_control.c
+  Disable, since it does not work with the new socket code.
+
   * filter/filter_null.c
   Keep the log message type consistent when displaying help.
 

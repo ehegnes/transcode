@@ -35,6 +35,7 @@
 
 #include <ctype.h>
 
+#if 0
 #ifndef M_BUF_SIZE
 #define M_BUF_SIZE 8192
 #endif
@@ -44,7 +45,7 @@ typedef struct cmd_t {
     int (*action)(char *);
 } cmd_t;
 
-struct cmd_t actions[]={
+static struct cmd_t actions[]={
     {"preview",   tc_socket_preview  },
     {"parameter", tc_socket_parameter},
     {"list",      tc_socket_list     },
@@ -83,9 +84,11 @@ typedef struct flist_t {
 
 
 static int parse_input_list (ctrl_t *ctrl, flist_t **flist_tofill);
+#endif
 
 int tc_filter(frame_list_t *ptr, char *options)
 {
+#if 0
     static ctrl_t  *ctrl  = NULL;
     static flist_t *flist = NULL;
     static flist_t *first = NULL;
@@ -238,8 +241,15 @@ init_e_out:
     } // PROCESS
 
     return 0;
+#else  // 0
+    tc_log_error(MOD_NAME, "This filter is currently disabled.");
+    tc_log_error(MOD_NAME, "Please contact transcode-devel@exit1.org");
+    tc_log_error(MOD_NAME, "if you need it.");
+    return -1;
+#endif  // 0
 }
 
+#if 0
 #define skipws(a) while (a && *a && isspace(*a++))
 
 static int parse_input_list (ctrl_t *ctrl, flist_t **flist_tofill)
@@ -325,4 +335,4 @@ static int parse_input_list (ctrl_t *ctrl, flist_t **flist_tofill)
 
     return 0;
 }
-
+#endif  // 0

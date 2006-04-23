@@ -30,6 +30,7 @@
 #include "frame_threads.h"
 #include "filter.h"
 #include "probe.h"
+#include "socket.h"
 #include "split.h"
 #include "libtc/cfgfile.h"
 #include "libtc/ratiocodes.h"
@@ -99,9 +100,6 @@ sigset_t sigs_to_block;
 // for initializing export_pvm
 pthread_mutex_t s_channel_lock=PTHREAD_MUTEX_INITIALIZER;
 
-void socket_thread(void); // socket.c
-
-char *socket_file = NULL;
 char *plugins_string = NULL;
 size_t size_plugstr = 0;
 pid_t writepid = 0;
@@ -608,7 +606,7 @@ int main(int argc, char *argv[]) {
     char
       *audio_in_file=NULL, *audio_out_file=NULL,
       *video_in_file=NULL, *video_out_file=NULL,
-      *nav_seek_file=NULL;
+      *nav_seek_file=NULL, *socket_file=NULL;
 
     int n=0, ch1, ch2, fa, fb, hh, mm, ss;
 
@@ -3992,7 +3990,7 @@ int main(int argc, char *argv[]) {
     if(verbose & TC_DEBUG) printf("[%s] encoder delay = decode=%d encode=%d usec\n", PACKAGE, tc_buffer_delay_dec, tc_buffer_delay_enc);
 
     if (socket_file) {
-      if(pthread_create(&thread_socket, NULL, (void *) socket_thread, NULL)!=0)
+      if(pthread_create(&thread_socket, NULL, (void *) tc_socket_thread, socket_file)!=0)
 	tc_error("failed to start socket handler thread");
     }
 

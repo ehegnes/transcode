@@ -143,73 +143,60 @@ void xv_display_event (xv_display_t *dv_dpy)
   char buf[16];
   XButtonEvent *but_event;
   static int x1, y1, x2, y2;
+  enum tc_socket_msg_cmd_enum sockcmd;
   int arg;
-  unsigned int sockmsg = 0;
 
   pthread_mutex_lock(&tc_socket_msg_lock);
-  sockmsg = tc_socket_msgchar;
-  tc_socket_msgchar = TC_SOCK_PV_NONE;
+  sockcmd = tc_socket_msg_cmd;
+  arg = tc_socket_msg_arg;
+  tc_socket_msg_cmd = TC_SOCK_PV_NONE;
   pthread_mutex_unlock(&tc_socket_msg_lock);
 
-  while ( sockmsg || XPending(dv_dpy->dpy) )  {
+  while ( sockcmd || XPending(dv_dpy->dpy) )  {
 
     // tibit: Poll for a socket message
-    if (sockmsg) {
-	//tc_log_msg(__FILE__, "Got char (%c)", sockmsg);
-	arg = TC_SOCK_GET_ARG(sockmsg);
+    if (sockcmd) {
+	//tc_log_msg(__FILE__, "Got char (%c)", sockcmd);
 	//tc_log_msg(__FILE__, "FILTER: (%d)", arg);
-	switch (sockmsg & TC_SOCK_COMMAND_MASK) {
+	switch (sockcmd) {
 	    case TC_SOCK_PV_DRAW:
-		sockmsg = TC_SOCK_PV_NONE;
 		preview_filter_buffer(arg?arg:1);
 		break;
 	    case TC_SOCK_PV_UNDO:
-		sockmsg = TC_SOCK_PV_NONE;
 		preview_cache_undo();
 		break;
 	    case TC_SOCK_PV_SLOW_FW:
-		sockmsg = TC_SOCK_PV_NONE;
 		preview_cache_draw(cache_short_skip);
 		break;
 	    case TC_SOCK_PV_SLOW_BW:
-		sockmsg = TC_SOCK_PV_NONE;
 		preview_cache_draw(-cache_short_skip);
 		break;
 	    case TC_SOCK_PV_FAST_FW:
-		sockmsg = TC_SOCK_PV_NONE;
 		preview_cache_draw(cache_long_skip);
 		break;
 	    case TC_SOCK_PV_FAST_BW:
-		sockmsg = TC_SOCK_PV_NONE;
 		preview_cache_draw(-cache_long_skip);
 		break;
 	    case TC_SOCK_PV_ROTATE:
-		sockmsg = TC_SOCK_PV_NONE;
 		tc_outstream_rotate_request();
 		break;
 	    case TC_SOCK_PV_FASTER:
-		sockmsg = TC_SOCK_PV_NONE;
 		dec_preview_delay();
 		break;
 	    case TC_SOCK_PV_SLOWER:
-		sockmsg = TC_SOCK_PV_NONE;
 		inc_preview_delay();
 		break;
 	    case TC_SOCK_PV_TOGGLE:
-		sockmsg = TC_SOCK_PV_NONE;
 		preview_toggle_skip();
 		break;
 	    case TC_SOCK_PV_SAVE_JPG:
-		sockmsg = TC_SOCK_PV_NONE;
 		preview_grab_jpeg();
 		break;
 	    case TC_SOCK_PV_DISPLAY:
-		sockmsg = TC_SOCK_PV_NONE;
 		xv_pause=0;
 		dv_dpy->dontdraw = (dv_dpy->dontdraw) ? 0:1;
 		break;
 	    case TC_SOCK_PV_PAUSE:
-		sockmsg = TC_SOCK_PV_NONE;
 		xv_pause = (xv_pause)?0:1;
 		while(xv_pause) {
 		    xv_display_event(dv_dpy);
@@ -219,7 +206,7 @@ void xv_display_event (xv_display_t *dv_dpy)
 	    default:
 		break;
 	} // switch msg
-	sockmsg = TC_SOCK_PV_NONE;
+	sockcmd = TC_SOCK_PV_NONE;
     } else {
 
     // remove Event
