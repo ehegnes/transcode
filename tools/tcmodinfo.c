@@ -197,7 +197,6 @@ static int load_plugin(const char *path, int id, int verbose)
 
 static int do_connect_socket(const char *socketfile)
 {
-#ifdef NET_STREAM
     int sock, retval;
     struct sockaddr_un server;
     char buf[OPTS_SIZE];
@@ -267,10 +266,6 @@ static int do_connect_socket(const char *socketfile)
 
     close(sock);
     return STATUS_OK;
-#else
-    tc_log_error(EXE, "No support for Netstreams compiled in");
-    return STATUS_NO_SOCKET;
-#endif
 }
 
 int main(int argc, char *argv[])

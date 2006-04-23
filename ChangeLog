@@ -1,3 +1,7 @@
+2006-04-23 Andrew Church <achurch at achurch dot org>
+  * tools/tcmodinfo.c
+  Allos use of transcode control socket regardless of NET_STREAM setting.
+
 2006-04-23 Francesco Romani <fromani at gmail dot com>
   * encode/encode_xvid.c
   remove extra PAR sanity check, because environment MUST
