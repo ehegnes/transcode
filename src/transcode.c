@@ -2935,8 +2935,6 @@ int main(int argc, char *argv[]) {
 
       if (pre_clip) pre_im_clip = TC_TRUE;
 
-      printf("XXX: zoom=%s pre_clip=%s\n", zoom?"yes":"no", pre_im_clip?"yes":"no");
-
       // shall we really go this far?
       // If yes, there can be much more settings adjusted.
       if (ex_vid_mod == NULL || !strcmp(ex_vid_mod, "mpeg2enc")) {

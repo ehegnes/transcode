@@ -1,5 +1,8 @@
 2006-04-23 Francesco Romani <fromani at gmail dot com>
   * src/transcode.c
+  remove stale printf().
+
+  * src/transcode.c
   review --export_par option handling: use ratiocodes facilities,
   a bit more strict checking, simplify code where feasible.
 
