@@ -1141,19 +1141,20 @@ AC_SUBST(ACLIB_LIBS)
 
 
 dnl
-dnl warning flags; always add -Wall
+dnl warning flags; always add -Wall -Wstrict-prototypes -Wmissing-prototypes
 dnl note that autoconf uses an unprototyped main(), so we disable prototype
 dnl warnings when checking whether -Werror works
 dnl
 if test x"$GCC" = x"yes" ; then
-    OPT_CFLAGS="-Wall $CFLAGS"
+    OPT_CFLAGS="-Wall -Wstrict-prototypes -Wmissing-prototypes $CFLAGS"
     AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
 fi
 AC_ARG_ENABLE([warnings-as-errors],
     AC_HELP_STRING([--enable-warnings-as-errors], [treat warnings as errors]))
 if test x"$enable_warnings_as_errors" = x"yes" -a x"$GCC" = x"yes" ; then
-    dnl compiler warnings treated as erors
-    OPT_CFLAGS="-Werror $CFLAGS"
+    dnl compiler warnings treated as errors
+    dnl we don't care about pointer sign warnings, so disable them
+    OPT_CFLAGS="-Werror -Wno-pointer-sign $CFLAGS"
     AC_TRY_CFLAGS([$OPT_CFLAGS -Wno-strict-prototypes -Wno-missing-prototypes],[CFLAGS=$OPT_CFLAGS])
 fi
 AC_SUBST(CFLAGS)

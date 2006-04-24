@@ -1,3 +1,7 @@
+2006-04-24 Andrew Church <achurch at achurch dot org>
+  * configure.in
+  Adjust default warning flags.
+
 2006-04-23 Andrew Church <achurch at achurch dot org>
   * filter/preview/pv.c src/filter.c src/filter.h src/socket.c src/socket.h
     src/transcode.c tools/tcmodinfo.c
