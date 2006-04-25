@@ -1,4 +1,9 @@
 2006-04-25 Andrew Church <achurch at achurch dot org>
+  * encode/encode_xvid.c
+  Avoid depending on xvid being installed.  Reported by
+  <mlist4suntong at yahoo dot com>
+
+2006-04-25 Andrew Church <achurch at achurch dot org>
   * encode/encode_copy.c encode/encode_lzo.c encode/encode_null.c
     encode/encode_xvid.c filter/filter_facemask.c filter/filter_levels.c
     filter/filter_null.c import/decode_ogg.c import/scan_pack.c

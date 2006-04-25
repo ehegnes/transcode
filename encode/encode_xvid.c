@@ -57,7 +57,7 @@
 # endif
 #endif
 
-#include "xvid.h"
+#include "export/xvid4.h"
 
 #include "libtcvideo/tcvideo.h"
 
