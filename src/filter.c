@@ -121,12 +121,11 @@ static int filter_unquote_options(char *options)
     return 0;
 }
 
-static int load_plugin(const char *path) {
+static int load_plugin(const char *path, int id) {
   const char *error;
 
   int n;
   char *c;
-  int id = filter_next_free_id();
   int len;
 
 
@@ -349,7 +348,7 @@ int load_single_plugin (char *mfilter_string)
   if (tc_test_string(__FILE__, __LINE__, MAX_FILTER_NAME_LEN, sret, errno))
     return(1);
 
-  if (load_plugin(vob->mod_path)==0)  {
+  if (load_plugin(vob->mod_path, id)==0)  {
     plugins++;
     plugins_loaded = 1;
   } else {
@@ -509,7 +508,6 @@ static int init_plugin(vob_t *vob)
   //memset(filter, 0, sizeof(filter_t)*MAX_FILTER);
 
   for(n=0; n<MAX_FILTER; ++n) {
-      //memset(&(filter[n]), 0, sizeof(filter[n]));
       filter[n].options = NULL;
       filter[n].name = NULL;
   }
@@ -519,7 +517,8 @@ static int init_plugin(vob_t *vob)
 
     if((offset=get_next_filter_name(&(filter[j].name), &(filter[j].namelen), offset))==NULL) break;
 
-    if(load_plugin(vob->mod_path)==0) ++j;
+    if(load_plugin(vob->mod_path, j)==0)
+      j++;
   }
 
   plugin_fix_id();
