@@ -5,8 +5,8 @@
 
   * src/filter.c
   Explicitly pass new filter ID to load_plugin() rather than blindly
-  assuming it's the highest ID in use.
-  
+  assuming it's the highest ID in use.  Also fix bug causing a "load"
+  from the control socket to fail if the option string was too long.
 
 2006-04-25 Andrew Church <achurch at achurch dot org>
   * encode/encode_copy.c encode/encode_lzo.c encode/encode_null.c
