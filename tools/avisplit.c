@@ -45,16 +45,16 @@ static void usage(int status)
 {
     version();
     printf("\nUsage: %s [options]\n", EXE);
-    printf("\t -i name             file name\n");
-    printf("\t -s size             de-chunk based on size in MB (0=dechunk)\n");
-    printf("\t -H n                split only first n chunks [all]\n");
-    printf("\t -t s1-s2[,s3-s4,..] de-chunk based on time/framecode (n:m:l.k) [off]\n");
-    printf("\t -c                  merge chunks on-the-fly for option -t [off]\n");
-    printf("\t -m                  force split at upper limit for option -t [off]\n");
-    printf("\t -o base             split to base-%%04d.avi [name-%%04d]\n");
-    printf("\t -b n                handle vbr audio [autodetect]\n");
-    printf("\t -f FILE             read AVI comments from FILE [off]\n");
-    printf("\t -v                  print version\n");
+    printf("    -i name             file name\n");
+    printf("    -s size             de-chunk based on size in MB (0=dechunk)\n");
+    printf("    -H n                split only first n chunks [all]\n");
+    printf("    -t s1-s2[,s3-s4,..] de-chunk based on time/framecode (n:m:l.k) [off]\n");
+    printf("    -c                  merge chunks on-the-fly for option -t [off]\n");
+    printf("    -m                  force split at upper limit for option -t [off]\n");
+    printf("    -o base             split to base-%%04d.avi [name-%%04d]\n");
+    printf("    -b n                handle vbr audio [autodetect]\n");
+    printf("    -f FILE             read AVI comments from FILE [off]\n");
+    printf("    -v                  print version\n");
     exit(status);
 }
 

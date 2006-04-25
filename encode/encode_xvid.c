@@ -98,10 +98,10 @@
 
 static const char *xvid_help = ""
     "Overview:\n"
-    "\tthis module encodes raw RGB/YUV video frames in MPEG4, using XviD.\n"
-    "\tXviD is a high quality/performance ISO MPEG4 codec.\n"
+    "    this module encodes raw RGB/YUV video frames in MPEG4, using XviD.\n"
+    "    XviD is a high quality/performance ISO MPEG4 codec.\n"
     "Options:\n"
-    "\thelp\tproduce module overview and options explanations\n";
+    "    help    produce module overview and options explanations\n";
 
 /*****************************************************************************
  * XviD symbols grouped in a nice struct.

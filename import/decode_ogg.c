@@ -96,7 +96,7 @@ static int decode_ogg_file(int fdin, int fdout)
             done += ret/size;
             if((double)done/(double)length * 200. > (double)percent) {
                 percent = (double)done/(double)length *200;
-                fprintf(stderr, "\r\t[%5.1f%%]", (double)percent/2.);
+                fprintf(stderr, "\r[%5.1f%%]", (double)percent/2.);
             }
         }
     }

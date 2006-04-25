@@ -138,27 +138,27 @@ static void usage(void)
 {
     version();
     tc_log_info(EXE, "Usage: %s [options]", EXE);
-    tc_log_msg(EXE, "\t -d verbosity      Verbosity mode [1 == TC_INFO]");
-    tc_log_msg(EXE, "\t -D                dry run, only loads module (used"
+    tc_log_msg(EXE, "    -d verbosity      Verbosity mode [1 == TC_INFO]");
+    tc_log_msg(EXE, "    -D                dry run, only loads module (used"
                     " for testing)");
-    tc_log_msg(EXE, "\t -m path           Use PATH as module path");
-    tc_log_msg(EXE, "\t -c f1-f2[,f3-f4]  encode only f1-f2[,f3-f4]"
+    tc_log_msg(EXE, "    -m path           Use PATH as module path");
+    tc_log_msg(EXE, "    -c f1-f2[,f3-f4]  encode only f1-f2[,f3-f4]"
                     " (frames or HH:MM:SS) [all]");
-    tc_log_msg(EXE, "\t -b b[,v[,q[,m]]]  audio encoder bitrate kBits/s"
+    tc_log_msg(EXE, "    -b b[,v[,q[,m]]]  audio encoder bitrate kBits/s"
                     "[,vbr[,quality[,mode]]] [%i,%i,%i,%i]",
                     ABITRATE, AVBR, AQUALITY, AMODE);
-    tc_log_msg(EXE, "\t -i file           video input file name");
-    tc_log_msg(EXE, "\t -p file           audio input file name");
-    tc_log_msg(EXE, "\t -o file           output file (base)name");
-    tc_log_msg(EXE, "\t -N V,A            Video,Audio output format"
+    tc_log_msg(EXE, "    -i file           video input file name");
+    tc_log_msg(EXE, "    -p file           audio input file name");
+    tc_log_msg(EXE, "    -o file           output file (base)name");
+    tc_log_msg(EXE, "    -N V,A            Video,Audio output format"
                     " (encoder) [%s,%s]", VIDEO_CODEC, AUDIO_CODEC);
-    tc_log_msg(EXE, "\t -y V,A,M          Video,Audio,Multiplexor export"
+    tc_log_msg(EXE, "    -y V,A,M          Video,Audio,Multiplexor export"
                     " modules [%s,%s,%s]", TC_DEFAULT_EXPORT_VIDEO,
                     TC_DEFAULT_EXPORT_AUDIO, TC_DEFAULT_EXPORT_MPLEX);
-    tc_log_msg(EXE, "\t -w b[,k[,c]]      encoder"
+    tc_log_msg(EXE, "    -w b[,k[,c]]      encoder"
                 " bitrate[,keyframes[,crispness]] [%d,%d,%d]",
             VBITRATE, VKEYFRAMES, VCRISPNESS);
-    tc_log_msg(EXE, "\t -R n[,f1[,f2]]    enable multi-pass encoding"
+    tc_log_msg(EXE, "    -R n[,f1[,f2]]    enable multi-pass encoding"
                 " (0-3) [%d,mpeg4.log,pcm.log]", VMULTIPASS);
 }
 

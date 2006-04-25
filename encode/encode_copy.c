@@ -20,11 +20,11 @@
 
 static const char *copy_help = ""
     "Overview:\n"
-    "\tthis module passthrough A/V frames copying them from input\n"
-    "\tto output.\n"
-    "\tFor a faster passthrough consider usage of 'null' module.\n"
+    "    this module passthrough A/V frames copying them from input\n"
+    "    to output.\n"
+    "    For a faster passthrough consider usage of 'null' module.\n"
     "Options:\n"
-    "\thelp\tproduce module overview and options explanations\n";
+    "    help    produce module overview and options explanations\n";
 
 static int copy_init(TCModuleInstance *self)
 {

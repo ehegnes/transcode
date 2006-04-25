@@ -85,14 +85,14 @@ static void build_map(uint8_t *map, int inlow, int inhigh,
 
 static const char *levels_help = ""
     "Overview:\n"
-    "\tScales luminosity values in the source image, similar to\n"
-    "\tVirtualDub's 'levels' filter.  This is useful to scale ITU-R601\n"
-    "\tvideo (which limits luma to 16-235) back to the full 0-255 range.\n"
+    "    Scales luminosity values in the source image, similar to\n"
+    "    VirtualDub's 'levels' filter.  This is useful to scale ITU-R601\n"
+    "    video (which limits luma to 16-235) back to the full 0-255 range.\n"
     "Options:\n"
-    "\tinput \tluma range of input (0-255)\n"
-    "\tgamma \tgamma ramp to apply to input luma (F)\n"
-    "\toutput\tluma range of output (0-255)\n"
-    "\tpre   \tact as pre processing filter (I)\n";
+    "    input   luma range of input (0-255)\n"
+    "    gamma   gamma ramp to apply to input luma (F)\n"
+    "    output  luma range of output (0-255)\n"
+    "    pre     act as pre processing filter (I)\n";
 
 static void help_optstr(void)
 {

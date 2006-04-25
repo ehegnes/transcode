@@ -49,10 +49,10 @@
 /* XXX */
 static const char *yw_help = ""
     "Overview:\n"
-    "\tthis module writes a yuv420p video stream using YUV4MPEG2 format"
-    "\tand/or a pcm stream using WAVE format.\n"
+    "    this module writes a yuv420p video stream using YUV4MPEG2 format\n"
+    "    and/or a pcm stream using WAVE format.\n"
     "Options:\n"
-    "\thelp\tproduce module overview and options explanations\n";
+    "    help    produce module overview and options explanations\n";
 
 typedef struct {
     int fd_vid;

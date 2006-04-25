@@ -135,15 +135,15 @@ static void usage(int status)
 
   fprintf(stderr,"\nUsage: %s [options]\n", EXE);
 
-  fprintf(stderr,"\t -i file           input file name [stdin]\n");
-  fprintf(stderr,"\t -x codec          source codec\n");
-  fprintf(stderr,"\t -e r[,b[,c]]      PCM audio stream parameter [%d,%d,%d]\n", RATE, BITS, CHANNELS);
-  fprintf(stderr,"\t -f rate,frc       frame rate [%.3f][,frc]\n", PAL_FPS);
-  fprintf(stderr,"\t -w num            estimate bitrate for num frames\n");
-  fprintf(stderr,"\t -b bitrate        audio encoder bitrate kBits/s [%d]\n", ABITRATE);
-  fprintf(stderr,"\t -c cdsize         user defined CD size in MB [0]\n");
-  fprintf(stderr,"\t -d mode           verbosity mode\n");
-  fprintf(stderr,"\t -v                print version\n");
+  fprintf(stderr,"   -i file           input file name [stdin]\n");
+  fprintf(stderr,"    -x codec          source codec\n");
+  fprintf(stderr,"    -e r[,b[,c]]      PCM audio stream parameter [%d,%d,%d]\n", RATE, BITS, CHANNELS);
+  fprintf(stderr,"    -f rate,frc       frame rate [%.3f][,frc]\n", PAL_FPS);
+  fprintf(stderr,"    -w num            estimate bitrate for num frames\n");
+  fprintf(stderr,"    -b bitrate        audio encoder bitrate kBits/s [%d]\n", ABITRATE);
+  fprintf(stderr,"    -c cdsize         user defined CD size in MB [0]\n");
+  fprintf(stderr,"    -d mode           verbosity mode\n");
+  fprintf(stderr,"    -v                print version\n");
 
   exit(status);
 

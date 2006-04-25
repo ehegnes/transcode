@@ -29,10 +29,10 @@
 
 static const char *raw_help = ""
     "Overview:\n"
-    "\tthis module simply write audio and video streams in\n"
-    "\ta separate plain file for each stream.\n"
+    "    this module simply write audio and video streams in\n"
+    "    a separate plain file for each stream.\n"
     "Options:\n"
-    "\thelp\tproduce module overview and options explanations\n";
+    "    help    produce module overview and options explanations\n";
 
 typedef struct {
     int fd_aud;

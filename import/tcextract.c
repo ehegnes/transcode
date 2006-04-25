@@ -61,14 +61,14 @@ static void usage(int status)
   version();
 
   fprintf(stderr,"\nUsage: %s [options]\n", EXE);
-  fprintf(stderr,"\t -i name           input file name [stdin]\n");
-  fprintf(stderr,"\t -t magic          file type [autodetect]\n");
-  fprintf(stderr,"\t -a track          track number [0]\n");
-  fprintf(stderr,"\t -x codec          source codec\n");
-  fprintf(stderr,"\t -d mode           verbosity mode\n");
-  fprintf(stderr,"\t -C s-e            process only (video frame/audio byte) range [all]\n");
-  fprintf(stderr,"\t -f seekfile       seek/index file [off]\n");
-  fprintf(stderr,"\t -v                print version\n");
+  fprintf(stderr,"    -i name           input file name [stdin]\n");
+  fprintf(stderr,"    -t magic          file type [autodetect]\n");
+  fprintf(stderr,"    -a track          track number [0]\n");
+  fprintf(stderr,"    -x codec          source codec\n");
+  fprintf(stderr,"    -d mode           verbosity mode\n");
+  fprintf(stderr,"    -C s-e            process only (video frame/audio byte) range [all]\n");
+  fprintf(stderr,"    -f seekfile       seek/index file [off]\n");
+  fprintf(stderr,"    -v                print version\n");
 
   exit(status);
 

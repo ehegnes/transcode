@@ -55,12 +55,12 @@ static void usage(int status)
 
   fprintf(stderr,"\nUsage: %s [options]\n", EXE);
 
-  fprintf(stderr,"\t -i file           input file name\n");
-  fprintf(stderr,"\t -o base           output file name base\n");
-  fprintf(stderr,"\t -e r[,b[,c]]      MP3 audio stream parameter [%d,%d,%d]\n", RATE, BITS, CHANNELS);
-  fprintf(stderr,"\t -t c1[,c2[,.]]    cut points in milliseconds\n");
-  fprintf(stderr,"\t -d mode           verbosity mode\n");
-  fprintf(stderr,"\t -v                print version\n");
+  fprintf(stderr,"    -i file           input file name\n");
+  fprintf(stderr,"    -o base           output file name base\n");
+  fprintf(stderr,"    -e r[,b[,c]]      MP3 audio stream parameter [%d,%d,%d]\n", RATE, BITS, CHANNELS);
+  fprintf(stderr,"    -t c1[,c2[,.]]    cut points in milliseconds\n");
+  fprintf(stderr,"    -d mode           verbosity mode\n");
+  fprintf(stderr,"    -v                print version\n");
 
   exit(status);
 

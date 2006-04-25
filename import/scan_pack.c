@@ -249,36 +249,36 @@ void scan_pack_payload(char *video, size_t size, int n, int verbose)
 
 	if((k=pack_scan_32(video, TC_MAGIC_M2V))!=-1) {
 
-	    tc_log_msg(__FILE__, "\tMPEG SEQ start code found in packet %d, offset %4d", n, k);
+	    tc_log_msg(__FILE__, "    MPEG SEQ start code found in packet %d, offset %4d", n, k);
 
 
 	    //read packet header
 	    ac_memcpy(buf, &video[20], 16);
 	    get_pts_dts(buf, &i_pts, &i_dts);
 
-	    tc_log_msg(__FILE__, "\tPTS=%f DTS=%f", (double) i_pts / 90000., (double) i_dts / 90000.);
+	    tc_log_msg(__FILE__, "    PTS=%f DTS=%f", (double) i_pts / 90000., (double) i_dts / 90000.);
 
 	    stats_sequence(&video[k+4], &si);
 
 	}
 
 	if((k=pack_scan_32(video, MPEG_SEQUENCE_END_CODE))!=-1)
-	    tc_log_msg(__FILE__, "\tMPEG SEQ   end code found in packet %d, offset %4d", n, k);
+	    tc_log_msg(__FILE__, "    MPEG SEQ   end code found in packet %d, offset %4d", n, k);
 
 	if((k=pack_scan_32(video, MPEG_EXT_START_CODE))!=-1) {
 
 	    if(((uint8_t)video[k+4]>>4)==8) {
 		    int mode = probe_picext(&video[k+4], size - (size_t)k);
             if(mode > 0)
-                tc_log_msg(__FILE__, "\tMPEG EXT start code found in packet %d, offset %4d, %s", n, k, picture_structure_str[mode]);
+                tc_log_msg(__FILE__, "    MPEG EXT start code found in packet %d, offset %4d, %s", n, k, picture_structure_str[mode]);
             else
-                tc_log_msg(__FILE__, "\tMPEG EXT start code found INCOMPLETE in packet %d, offset %4d", n, k);
+                tc_log_msg(__FILE__, "    MPEG EXT start code found INCOMPLETE in packet %d, offset %4d", n, k);
 	    } else
-		    tc_log_msg(__FILE__, "\tMPEG EXT start code found in packet %d, offset %4d", n, k);
+		    tc_log_msg(__FILE__, "    MPEG EXT start code found in packet %d, offset %4d", n, k);
 	}
 
 	if((k=pack_scan_32(video, MPEG_GOP_START_CODE))!=-1) {
-	    tc_log_msg(__FILE__, "\tMPEG GOP start code found in packet %d, offset %4d, gop [%03d]%s",
+	    tc_log_msg(__FILE__, "    MPEG GOP start code found in packet %d, offset %4d, gop [%03d]%s",
 		       n, k, gop_cnt,
 		       probe_group((uint8_t*) &video[k+4], size - (size_t)k));
 	    gop_pts=pts;
@@ -287,13 +287,13 @@ void scan_pack_payload(char *video, size_t size, int n, int verbose)
 	}
 
 	if((k=pack_scan_32(video, MPEG_PICTURE_START_CODE))!=-1)
-	    tc_log_msg(__FILE__, "\tMPEG PIC start code found in packet %d, offset %4d", n, k);
+	    tc_log_msg(__FILE__, "    MPEG PIC start code found in packet %d, offset %4d", n, k);
 
 	if((k=pack_scan_32(video, MPEG_SYSTEM_START_CODE))!=-1)
-	    tc_log_msg(__FILE__, "\tMPEG SYS start code found in packet %d, offset %4d", n, k);
+	    tc_log_msg(__FILE__, "    MPEG SYS start code found in packet %d, offset %4d", n, k);
 
 	if((k=pack_scan_32(video, MPEG_PADDING_START_CODE))!=-1)
-	    tc_log_msg(__FILE__, "\tMPEG PAD start code found in packet %d, offset %4d", n, k);
+	    tc_log_msg(__FILE__, "    MPEG PAD start code found in packet %d, offset %4d", n, k);
     }
 
     if((video[17] & 0xff) == P_ID_AC3) {
@@ -306,20 +306,20 @@ void scan_pack_payload(char *video, size_t size, int n, int verbose)
 	      ac_memcpy(buf, &video[20], 16);
 	      get_pts_dts(buf, &i_pts, &i_dts);
 
-	      tc_log_msg(__FILE__, "\tsubstream PTS=%f [0x%x]", (double) i_pts / 90000., *tmp);
+	      tc_log_msg(__FILE__, "    substream PTS=%f [0x%x]", (double) i_pts / 90000., *tmp);
 
 	      if((k=pack_scan_16(video, TC_MAGIC_AC3))!=-1) {
 		if(gop) {
 
-		  tc_log_msg(__FILE__, "\tAC3 sync frame, packet %6d, offset %3d, gop [%03d], A-V %.3f", n, k, gop_cnt-1, pts-gop_pts);
+		  tc_log_msg(__FILE__, "    AC3 sync frame, packet %6d, offset %3d, gop [%03d], A-V %.3f", n, k, gop_cnt-1, pts-gop_pts);
 		  gop=0;
 
 	    } else
-	      tc_log_msg(__FILE__, "\tAC3 sync frame found in packet %d, offset %d", n, k);
+	      tc_log_msg(__FILE__, "    AC3 sync frame found in packet %d, offset %d", n, k);
 	}
 
 	if((k=pack_scan_32(video, MPEG_PADDING_START_CODE))!=-1)
-	    tc_log_msg(__FILE__, "\tMPEG PAD start code found in packet %d, offset %4d", n, k);
+	    tc_log_msg(__FILE__, "    MPEG PAD start code found in packet %d, offset %4d", n, k);
 
     }
 
@@ -329,7 +329,7 @@ void scan_pack_payload(char *video, size_t size, int n, int verbose)
       ac_memcpy(buf, &video[20], 16);
       get_pts_dts(buf, &i_pts, &i_dts);
 
-      tc_log_msg(__FILE__, "\tMPEG audio PTS=%f [0x%x]", (double) i_pts / 90000., (video[17] & 0xff));
+      tc_log_msg(__FILE__, "    MPEG audio PTS=%f [0x%x]", (double) i_pts / 90000., (video[17] & 0xff));
     }
 
     if((video[17] & 0xff) == P_ID_PROG) {
@@ -337,7 +337,7 @@ void scan_pack_payload(char *video, size_t size, int n, int verbose)
 	aud_tag = (video[23]>>2) & 0x3f;
 	vid_tag = video[24] & 0x1f;
 
-	tc_log_msg(__FILE__, "\tMPEG PRG start code found in packet %d, A=%d, V=%d", n, aud_tag, vid_tag);
+	tc_log_msg(__FILE__, "    MPEG PRG start code found in packet %d, A=%d, V=%d", n, aud_tag, vid_tag);
 
     }// check for sync packet
 

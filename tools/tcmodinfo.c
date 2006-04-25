@@ -100,13 +100,13 @@ static void usage(void)
 {
     version();
     tc_log_info(EXE, "Usage: %s [options]", EXE);
-    fprintf(stderr, "\t -i name           Module name information (like \'smooth\')\n");
-    fprintf(stderr, "\t -p                Print the compiled-in module path\n");
-    fprintf(stderr, "\t -d verbosity      Verbosity mode [1 == TC_INFO]\n");
-    fprintf(stderr, "\t -m path           Use PATH as module path\n");
-    fprintf(stderr, "\t -M element        Request to module informations about <element>\n");
-    fprintf(stderr, "\t -s socket         Connect to transcode socket\n");
-    fprintf(stderr, "\t -t type           Type of module (filter, encode, multiplex)\n");
+    fprintf(stderr, "    -i name           Module name information (like \'smooth\')\n");
+    fprintf(stderr, "    -p                Print the compiled-in module path\n");
+    fprintf(stderr, "    -d verbosity      Verbosity mode [1 == TC_INFO]\n");
+    fprintf(stderr, "    -m path           Use PATH as module path\n");
+    fprintf(stderr, "    -M element        Request to module informations about <element>\n");
+    fprintf(stderr, "    -s socket         Connect to transcode socket\n");
+    fprintf(stderr, "    -t type           Type of module (filter, encode, multiplex)\n");
     fprintf(stderr, "\n");
 }
 

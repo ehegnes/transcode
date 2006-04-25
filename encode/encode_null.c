@@ -20,10 +20,10 @@
 
 static const char *null_help = ""
     "Overview:\n"
-    "\tthis module perform a fast passthrough of A/V frames.\n"
-    "\tSwitch to (slower) 'copy' module if this one produces weird results\n"
+    "    this module perform a fast passthrough of A/V frames.\n"
+    "    Switch to (slower) 'copy' module if this one produces weird results\n"
     "Options:\n"
-    "\thelp\tproduce module overview and options explanations\n";
+    "    help    produce module overview and options explanations\n";
 
 static int null_init(TCModuleInstance *self)
 {

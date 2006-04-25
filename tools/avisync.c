@@ -46,16 +46,16 @@ static void usage(int status)
 {
   version();
   printf("\nUsage: %s [options]\n", EXE);
-  printf("\t -o file            output file\n");
-  printf("\t -i file            input file\n");
-  printf("\t -q                 be quiet\n");
-  printf("\t -a num             audio track number [0]\n");
-  printf("\t -b n               handle vbr audio [1]\n");
-  printf("\t -f FILE            read AVI comments from FILE [off]\n");
-  //printf("\t -N                 enocde a real silent frame [off]\n");
-  printf("\t -n count           shift audio by count frames [0]\n");
-  printf("\t                    count>0: audio starts with frame 'count'\n");
-  printf("\t                    count<0: prepend 'count' padding audio frames\n");
+  printf("    -o file            output file\n");
+  printf("    -i file            input file\n");
+  printf("    -q                 be quiet\n");
+  printf("    -a num             audio track number [0]\n");
+  printf("    -b n               handle vbr audio [1]\n");
+  printf("    -f FILE            read AVI comments from FILE [off]\n");
+  //printf("    -N                 enocde a real silent frame [off]\n");
+  printf("    -n count           shift audio by count frames [0]\n");
+  printf("                       count>0: audio starts with frame 'count'\n");
+  printf("                       count<0: prepend 'count' padding audio frames\n");
   exit(status);
 }
 

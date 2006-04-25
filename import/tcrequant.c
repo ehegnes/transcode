@@ -1623,7 +1623,7 @@ static void mpeg2_slice(const int code)
 			}
 		}
 
-		//LOGF("\to: %i c: %i n: %i", quantizer_scale, last_coded_scale, new_quantizer_scale);
+		//LOGF("o: %i c: %i n: %i", quantizer_scale, last_coded_scale, new_quantizer_scale);
 
 		NEXT_MACROBLOCK;
 
@@ -1673,12 +1673,12 @@ static void usage(int status)
   version();
 
   fprintf(stderr,"\nUsage: %s [options]\n", EXE);
-  fprintf(stderr,"\t -i name           input file name [stdin]\n");
-  fprintf(stderr,"\t -o file           output file name [stdout]\n");
-  fprintf(stderr,"\t -d mode           verbosity mode\n");
-  fprintf(stderr,"\t -f factor         requantize factor [1.5]\n");
-  fprintf(stderr,"\t -b N              remove byte stuffing [1]\n");
-  fprintf(stderr,"\t -v                print version\n");
+  fprintf(stderr,"    -i name           input file name [stdin]\n");
+  fprintf(stderr,"    -o file           output file name [stdout]\n");
+  fprintf(stderr,"    -d mode           verbosity mode\n");
+  fprintf(stderr,"    -f factor         requantize factor [1.5]\n");
+  fprintf(stderr,"    -b N              remove byte stuffing [1]\n");
+  fprintf(stderr,"    -v                print version\n");
 
   exit(status);
 

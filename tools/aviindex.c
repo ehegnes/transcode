@@ -49,15 +49,15 @@ static void usage(int status)
 {
   version();
   printf("\nUsage: %s [options]\n", EXE);
-  printf("\t -o file   output file\n");
-  printf("\t -i file   input file\n");
-  printf("\t -f        force the use of the existing index\n");
-  printf("\t           only to use when avi > 2GB, because\n");
-  printf("\t           the default is to -n with big files\n");
-  printf("\t -n        read index in \"smart\" mode: don't use the existing index\n");
-  printf("\t -x        don't use the existing index to generate the keyframes\n");
-  printf("\t           this flag forces -n\n");
-  printf("\t -v        print version\n");
+  printf("    -o file   output file\n");
+  printf("    -i file   input file\n");
+  printf("    -f        force the use of the existing index\n");
+  printf("              only to use when avi > 2GB, because\n");
+  printf("              the default is to -n with big files\n");
+  printf("    -n        read index in \"smart\" mode: don't use the existing index\n");
+  printf("    -x        don't use the existing index to generate the keyframes\n");
+  printf("              this flag forces -n\n");
+  printf("    -v        print version\n");
   exit(status);
 }
 

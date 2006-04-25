@@ -159,16 +159,16 @@ static void usage(int status)
   version();
 
   fprintf(stderr,"\nUsage: %s [options] [-]\n", EXE);
-  fprintf(stderr,"\t -i name        input file/directory/device/host name [stdin]\n");
-  fprintf(stderr,"\t -B             binary output to stdout (used by transcode) [off]\n");
-  fprintf(stderr,"\t -M             use EXPERIMENTAL mplayer probe [off]\n");
-  fprintf(stderr,"\t -H n           probe n MB of stream [1]\n");
-  fprintf(stderr,"\t -s n           skip first n bytes of stream [0]\n");
-  fprintf(stderr,"\t -T title       probe for DVD title [off]\n");
-  fprintf(stderr,"\t -b bitrate     audio encoder bitrate kBits/s [%d]\n", ABITRATE);
-  fprintf(stderr,"\t -f seekfile    seek/index file [off]\n");
-  fprintf(stderr,"\t -d verbosity   verbosity mode [1]\n");
-  fprintf(stderr,"\t -v             print version\n");
+  fprintf(stderr,"    -i name        input file/directory/device/host name [stdin]\n");
+  fprintf(stderr,"    -B             binary output to stdout (used by transcode) [off]\n");
+  fprintf(stderr,"    -M             use EXPERIMENTAL mplayer probe [off]\n");
+  fprintf(stderr,"    -H n           probe n MB of stream [1]\n");
+  fprintf(stderr,"    -s n           skip first n bytes of stream [0]\n");
+  fprintf(stderr,"    -T title       probe for DVD title [off]\n");
+  fprintf(stderr,"    -b bitrate     audio encoder bitrate kBits/s [%d]\n", ABITRATE);
+  fprintf(stderr,"    -f seekfile    seek/index file [off]\n");
+  fprintf(stderr,"    -d verbosity   verbosity mode [1]\n");
+  fprintf(stderr,"    -v             print version\n");
 
   exit(status);
 }

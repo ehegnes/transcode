@@ -67,12 +67,12 @@ static void help_optstr(void)
 "  You also have to choose a resolution that is multiple of the mask dimensions.\n"
 "\n"
 "* Options:\n"
-"  'xpos':\t\tPosition of the upper left corner of the mask (x)\n"
-"  'ypos':\t\tPosition of the upper left corner of the mask (y)\n"
-"  'xresolution':\tResolution of the mask (width)\n"
-"  'yresolution':\tResolution of the mask (height)\n"
-"  'xdim':\t\tWidth of the mask (= n*xresolution)\n"
-"  'ydim':\t\tHeight of the mask (= m*yresolution)\n"
+"  'xpos':        Position of the upper left corner of the mask (x)\n"
+"  'ypos':        Position of the upper left corner of the mask (y)\n"
+"  'xresolution': Resolution of the mask (width)\n"
+"  'yresolution': Resolution of the mask (height)\n"
+"  'xdim':        Width of the mask (= n*xresolution)\n"
+"  'ydim':        Height of the mask (= m*yresolution)\n"
 		, MOD_CAP);
 }
 

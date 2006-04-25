@@ -44,14 +44,14 @@ static void usage(int status)
 {
     version();
     printf("\nUsage: %s [options]\n", EXE);
-    printf("\t -i name           AVI file name\n");
-    printf("\t -F string         video codec FOURCC\n");
-    printf("\t -f val1,val2      video frame rate (fps=val1/val2)\n");
-    printf("\t -N 0xnn           audio format identifier\n");
-    printf("\t -b bitrate        audio encoder bitrate (kbps)\n");
-    printf("\t -e r[,b[,c]]      audio stream parameter (samplerate,bits,channels)\n");
-    printf("\t -a num            audio track number [0]\n");
-    printf("\t -v                print version\n");
+    printf("    -i name           AVI file name\n");
+    printf("    -F string         video codec FOURCC\n");
+    printf("    -f val1,val2      video frame rate (fps=val1/val2)\n");
+    printf("    -N 0xnn           audio format identifier\n");
+    printf("    -b bitrate        audio encoder bitrate (kbps)\n");
+    printf("    -e r[,b[,c]]      audio stream parameter (samplerate,bits,channels)\n");
+    printf("    -a num            audio track number [0]\n");
+    printf("    -v                print version\n");
     exit(status);
 }
 

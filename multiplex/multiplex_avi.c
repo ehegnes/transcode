@@ -21,12 +21,12 @@
 
 static const char *avi_help = ""
     "Overview:\n"
-    "\tthis module create an AVI stream using avilib.\n"
-    "\tAVI streams produced by this module can have a\n"
-    "\tmaximum of one audio and video track.\n"
-    "\tYou can add more tracks with further processing.\n"
+    "    this module create an AVI stream using avilib.\n"
+    "    AVI streams produced by this module can have a\n"
+    "    maximum of one audio and video track.\n"
+    "    You can add more tracks with further processing.\n"
     "Options:\n"
-    "\thelp\tproduce module overview and options explanations\n";
+    "    help    produce module overview and options explanations\n";
 
 typedef struct {
     avi_t *avifile;

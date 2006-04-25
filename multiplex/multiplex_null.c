@@ -19,10 +19,10 @@
 
 static const char *null_help = ""
     "Overview:\n"
-    "\tthis module simply discard given encoded write audio and video frames.\n"
-    "\tIs used for test, benchmark and debug purposes.\n"
+    "    this module simply discard given encoded write audio and video frames.\n"
+    "    Is used for test, benchmark and debug purposes.\n"
     "Options:\n"
-    "\thelp\tproduce module overview and options explanations\n";
+    "    help    produce module overview and options explanations\n";
 
 static int null_init(TCModuleInstance *self)
 {

@@ -43,15 +43,15 @@ static void usage(int status)
 {
     version();
     printf("\nUsage: %s [options]\n", EXE);
-    printf("\t -o file                   output file name\n");
-    printf("\t -i file1 [file2 [...]]    input file(s)\n");
-    printf("\t -p file                   multiplex additional audio track from file\n");
-    printf("\t -a num                    select audio track number from input file [0]\n");
-    printf("\t -A num                    select audio track number in output file [next]\n");
-    printf("\t -b n                      handle vbr audio [autodetect]\n");
-    printf("\t -c                        drop video frames in case audio is missing [off]\n");
-    printf("\t -f FILE                   read AVI comments from FILE [off]\n");
-    printf("\t -x FILE                   read AVI index from FILE [off] (see aviindex(1))\n");
+    printf("    -o file                   output file name\n");
+    printf("    -i file1 [file2 [...]]    input file(s)\n");
+    printf("    -p file                   multiplex additional audio track from file\n");
+    printf("    -a num                    select audio track number from input file [0]\n");
+    printf("    -A num                    select audio track number in output file [next]\n");
+    printf("    -b n                      handle vbr audio [autodetect]\n");
+    printf("    -c                        drop video frames in case audio is missing [off]\n");
+    printf("    -f FILE                   read AVI comments from FILE [off]\n");
+    printf("    -x FILE                   read AVI index from FILE [off] (see aviindex(1))\n");
     exit(status);
 }
 

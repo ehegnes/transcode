@@ -201,9 +201,9 @@ static void usage(int status)
   fprintf(stderr,"\n%s converts a XPM file to rgb24 format\n", EXE);
   fprintf(stderr,"Usage: %s [options]\n", EXE);
 
-  fprintf(stderr,"\t-i name          input file name [stdin]\n");
-  fprintf(stderr,"\t-o name          output file name [stdout]\n");
-  fprintf(stderr,"\t-v               print version\n");
+  fprintf(stderr,"    -i name          input file name [stdin]\n");
+  fprintf(stderr,"    -o name          output file name [stdout]\n");
+  fprintf(stderr,"    -v               print version\n");
 
   exit(status);
 

@@ -25,9 +25,9 @@
 
 static const char *tc_lzo_help = ""
     "Overview:\n"
-    "\tthis module encodes raw RGB/YUV video frames in LZO, using liblzo V2.\n"
+    "    this module encodes raw RGB/YUV video frames in LZO, using liblzo V2.\n"
     "Options:\n"
-    "\thelp\tproduce module overview and options explanations\n";
+    "    help    produce module overview and options explanations\n";
 
 typedef struct {
     lzo_byte *work_mem; /* needed by encoder to work properly */

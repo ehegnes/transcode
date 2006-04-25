@@ -63,9 +63,9 @@
 
 static const char *null_help = ""
     "Overview:\n"
-    "\tThis filter exists for demonstration purposes only; it doesn nothing.\n"
+    "    This filter exists for demonstration purposes only; it doesn nothing.\n"
     "Options:\n"
-    "\tHelp\tproduce module overview and options explanations\n";
+    "    help    produce module overview and options explanations\n";
 
 /**
  * Help text.

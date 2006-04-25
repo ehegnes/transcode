@@ -451,3 +451,6 @@ Coding style guidelines for transcode
             messages.
   NEVER use printf() or any other functions which write to stdout for
   these purposes.
+
+* Do not use "\t" in strings for aligning text; use the proper number of
+  spaces instead.

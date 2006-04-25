@@ -379,7 +379,7 @@ static void usage(int status)
   version();
 
   fprintf(stderr,"\nUsage: %s [options]\n", EXE);
-  fprintf(stderr,"\t -i name          input file/directory%s%s name\n",
+  fprintf(stderr,"    -i name          input file/directory%s%s name\n",
 #ifdef HAVE_LIBDVDREAD
 	  "/device/mountpoint",
 #else
@@ -391,17 +391,17 @@ static void usage(int status)
 	  ""
 #endif
   );
-  fprintf(stderr,"\t -t magic         file type [autodetect]\n");
+  fprintf(stderr,"    -t magic         file type [autodetect]\n");
 #ifdef HAVE_LIBDVDREAD
-  fprintf(stderr,"\t -T t[,c[-d][,a]] DVD title[,chapter(s)[,angle]] [1,1,1]\n");
-  fprintf(stderr,"\t -L               process all following chapters [off]\n");
+  fprintf(stderr,"    -T t[,c[-d][,a]] DVD title[,chapter(s)[,angle]] [1,1,1]\n");
+  fprintf(stderr,"    -L               process all following chapters [off]\n");
 #endif
-  fprintf(stderr,"\t -S n             seek to VOB stream offset nx2kB [0]\n");
-  fprintf(stderr,"\t -P               stream DVD ( needs -T )\n");
-  fprintf(stderr,"\t -a               dump AVI-file/socket audio stream\n");
-  fprintf(stderr,"\t -n id            transport stream id [0x10]\n");
-  fprintf(stderr,"\t -d mode          verbosity mode\n");
-  fprintf(stderr,"\t -v               print version\n");
+  fprintf(stderr,"    -S n             seek to VOB stream offset nx2kB [0]\n");
+  fprintf(stderr,"    -P               stream DVD ( needs -T )\n");
+  fprintf(stderr,"    -a               dump AVI-file/socket audio stream\n");
+  fprintf(stderr,"    -n id            transport stream id [0x10]\n");
+  fprintf(stderr,"    -d mode          verbosity mode\n");
+  fprintf(stderr,"    -v               print version\n");
 
   exit(status);
 

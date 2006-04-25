@@ -49,14 +49,14 @@ static void usage(int status)
 	version();
 	fprintf(stderr,"\nUsage: %s [options] [-]\n", EXE);
 #ifdef HAVE_LIBXML2
-	fprintf(stderr,"\t -i name        input video/audio xml file [stdin]\n");
-	fprintf(stderr,"\t -p name        input audio xml file [none]\n");
-	fprintf(stderr,"\t -B             binary output to stdout (used by transcode) [off]\n");
-	fprintf(stderr,"\t -S             write stdin into shared memory (used by transcode)[off]\n");
-	fprintf(stderr,"\t -V             check only video file input [off]\n");
-	fprintf(stderr,"\t -A             check only audio file input [off]\n");
+	fprintf(stderr,"    -i name        input video/audio xml file [stdin]\n");
+	fprintf(stderr,"    -p name        input audio xml file [none]\n");
+	fprintf(stderr,"    -B             binary output to stdout (used by transcode) [off]\n");
+	fprintf(stderr,"    -S             write stdin into shared memory (used by transcode)[off]\n");
+	fprintf(stderr,"    -V             check only video file input [off]\n");
+	fprintf(stderr,"    -A             check only audio file input [off]\n");
 #endif
-	fprintf(stderr,"\t -v             print version\n");
+	fprintf(stderr,"    -v             print version\n");
 
 	exit(status);
 }

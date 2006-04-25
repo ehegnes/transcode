@@ -65,19 +65,19 @@ static void usage(int status)
 
   fprintf(stderr,"\nUsage: %s [options]\n", EXE);
 
-  fprintf(stderr,"\t -i file           input file [stdin]\n");
-  fprintf(stderr,"\t -x codec          source codec (required)\n");
-  fprintf(stderr,"\t -t package        codec package\n");
-  fprintf(stderr,"\t -g wxh            stream frame size [autodetect]\n");
-  fprintf(stderr,"\t -y format         output raw stream format [rgb]\n");
-  fprintf(stderr,"\t -Q mode           decoding quality (0=fastest-5=best) [%d]\n", VQUALITY);
-  fprintf(stderr,"\t -d mode           verbosity mode\n");
-  fprintf(stderr,"\t -s c,f,r          audio gain for ac3 downmixing [1,1,1]\n");
-  fprintf(stderr,"\t -A n              A52 decoder flag [0]\n");
-  fprintf(stderr,"\t -C s,e            decode only from start to end ((V) frames/(A) bytes) [all]\n");
-  fprintf(stderr,"\t -Y                use libdv YUY2 decoder mode\n");
-  fprintf(stderr,"\t -z r              convert zero padding to silence\n");
-  fprintf(stderr,"\t -v                print version\n");
+  fprintf(stderr,"    -i file           input file [stdin]\n");
+  fprintf(stderr,"    -x codec          source codec (required)\n");
+  fprintf(stderr,"    -t package        codec package\n");
+  fprintf(stderr,"    -g wxh            stream frame size [autodetect]\n");
+  fprintf(stderr,"    -y format         output raw stream format [rgb]\n");
+  fprintf(stderr,"    -Q mode           decoding quality (0=fastest-5=best) [%d]\n", VQUALITY);
+  fprintf(stderr,"    -d mode           verbosity mode\n");
+  fprintf(stderr,"    -s c,f,r          audio gain for ac3 downmixing [1,1,1]\n");
+  fprintf(stderr,"    -A n              A52 decoder flag [0]\n");
+  fprintf(stderr,"    -C s,e            decode only from start to end ((V) frames/(A) bytes) [all]\n");
+  fprintf(stderr,"    -Y                use libdv YUY2 decoder mode\n");
+  fprintf(stderr,"    -z r              convert zero padding to silence\n");
+  fprintf(stderr,"    -v                print version\n");
 
   exit(status);
 }

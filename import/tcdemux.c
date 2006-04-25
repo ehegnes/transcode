@@ -68,21 +68,21 @@ static void usage(int status)
 
   fprintf(stderr,"\nUsage: %s [options]\n", EXE);
 
-  fprintf(stderr,"\t-i name          input file name [stdin]\n");
-  fprintf(stderr,"\t-t magic         input file type [autodetect]\n");
-  fprintf(stderr,"\t-x codec         process only packs with codec payload [all]\n");
-  fprintf(stderr,"\t-S unit[,s1-s2]  presentation unit[,s1-s2] sequences [0,all]\n");
-  fprintf(stderr,"\t-a ach[,vch]     extract audio[,video] track [0,0]\n");
-  fprintf(stderr,"\t-s 0xnn          sync with private substream id 0xnn [off]\n");
-  fprintf(stderr,"\t-M mode          demuxer PES A-V sync mode (0=off|1=PTS only|2=full) [1]\n");
-  fprintf(stderr,"\t-O               do not skip initial sequence\n");
-  fprintf(stderr,"\t-P name          write synchronization data to file\n");
-  fprintf(stderr,"\t-W               write navigation data to stdout\n");
-  fprintf(stderr,"\t-f fps           frame rate [%.3f]\n", PAL_FPS);
-  fprintf(stderr,"\t-d mode          verbosity mode\n");
-  fprintf(stderr,"\t-A n[,m[...]]    pass-through packet payload id\n");
-  fprintf(stderr,"\t-H               sync hard to supplied fps (no smooth drop)\n");
-  fprintf(stderr,"\t-v               print version\n");
+  fprintf(stderr,"    -i name          input file name [stdin]\n");
+  fprintf(stderr,"    -t magic         input file type [autodetect]\n");
+  fprintf(stderr,"    -x codec         process only packs with codec payload [all]\n");
+  fprintf(stderr,"    -S unit[,s1-s2]  presentation unit[,s1-s2] sequences [0,all]\n");
+  fprintf(stderr,"    -a ach[,vch]     extract audio[,video] track [0,0]\n");
+  fprintf(stderr,"    -s 0xnn          sync with private substream id 0xnn [off]\n");
+  fprintf(stderr,"    -M mode          demuxer PES A-V sync mode (0=off|1=PTS only|2=full) [1]\n");
+  fprintf(stderr,"    -O               do not skip initial sequence\n");
+  fprintf(stderr,"    -P name          write synchronization data to file\n");
+  fprintf(stderr,"    -W               write navigation data to stdout\n");
+  fprintf(stderr,"    -f fps           frame rate [%.3f]\n", PAL_FPS);
+  fprintf(stderr,"    -d mode          verbosity mode\n");
+  fprintf(stderr,"    -A n[,m[...]]    pass-through packet payload id\n");
+  fprintf(stderr,"    -H               sync hard to supplied fps (no smooth drop)\n");
+  fprintf(stderr,"    -v               print version\n");
 
   exit(status);
 

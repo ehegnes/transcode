@@ -1,3 +1,18 @@
+2006-04-25 Andrew Church <achurch at achurch dot org>
+  * encode/encode_copy.c encode/encode_lzo.c encode/encode_null.c
+    encode/encode_xvid.c filter/filter_facemask.c filter/filter_levels.c
+    filter/filter_null.c import/decode_ogg.c import/scan_pack.c
+    import/tccat.c import/tcdecode.c import/tcdemux.c import/tcextract.c
+    import/tcprobe.c import/tcrequant.c import/tcscan.c import/tcxmlcheck.c
+    import/tcxpm2rgb.c multiplex/multiplex_avi.c multiplex/multiplex_null.c
+    multiplex/multiplex_raw.c multiplex/multiplex_y4m.c tools/avifix.c
+    tools/aviindex.c tools/avimerge.c tools/avisplit.c tools/avisync.c
+    tools/tcexport.c tools/tcmodinfo.c tools/tcmp3cut.c
+  Avoid using tabs for aligning text in strings.
+
+  * STYLE
+  Add note that tabs should not be used for aligning text in strings.
+
 2006-04-24 Andrew Church <achurch at achurch dot org>
   * configure.in
   Adjust default warning flags.
