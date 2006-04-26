@@ -1,4 +1,7 @@
 2006-04-26 Andrew Church <achurch at achurch dot org>
+  * libtc/libtc.h
+  add needed pthread.h header.
+
   * tools/tcexport.c
   add fake reference to tc_spkcet_poll() to let tcexport compile
   happily.

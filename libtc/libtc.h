@@ -30,6 +30,7 @@
 #endif
 
 #include <stdarg.h>
+#include <pthread.h>
 
 #ifdef HAVE_STDINT_H
 # include <stdint.h>
