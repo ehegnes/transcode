@@ -87,7 +87,7 @@ AM_CONDITIONAL(USE_DLDARWIN, test x"$USE_DLDARWIN" = x"yes")
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([errno.h fcntl.h inttypes.h limits.h malloc.h sys/time.h unistd.h])
+AC_CHECK_HEADERS([errno.h fcntl.h inttypes.h limits.h malloc.h sys/select.h sys/time.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST

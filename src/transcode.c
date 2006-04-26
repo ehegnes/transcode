@@ -93,7 +93,7 @@ static int sig_tstp  = 0;
 static char *im_aud_mod = NULL, *im_vid_mod = NULL;
 static char *ex_aud_mod = NULL, *ex_vid_mod = NULL;
 
-static pthread_t thread_signal=(pthread_t)0, thread_server=(pthread_t)0, thread_socket=(pthread_t)0;
+static pthread_t thread_signal=(pthread_t)0, thread_server=(pthread_t)0;
 int tc_signal_thread     =  0;
 sigset_t sigs_to_block;
 
@@ -3990,8 +3990,8 @@ int main(int argc, char *argv[]) {
     if(verbose & TC_DEBUG) printf("[%s] encoder delay = decode=%d encode=%d usec\n", PACKAGE, tc_buffer_delay_dec, tc_buffer_delay_enc);
 
     if (socket_file) {
-      if(pthread_create(&thread_socket, NULL, (void *) tc_socket_thread, socket_file)!=0)
-	tc_error("failed to start socket handler thread");
+      if (!tc_socket_init(socket_file))
+	tc_error("failed to initialize socket handler");
     }
 
 
@@ -4630,6 +4630,11 @@ int main(int argc, char *argv[]) {
     }
 
     if(verbose & TC_INFO) { printf(" internal threads |");fflush(stdout); }
+
+    // shut down control socket, if active
+    tc_socket_fini();
+
+    if(verbose & TC_INFO) { printf(" control socket |");fflush(stdout); }
 
     // all done
     if(verbose & TC_INFO) printf(" done\n");

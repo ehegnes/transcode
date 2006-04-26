@@ -35,6 +35,7 @@
 #include "decoder.h"
 #include "encoder.h"
 #include "frame_threads.h"
+#include "socket.h"
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
@@ -789,6 +790,11 @@ void encoder_loop(vob_t *vob, int frame_first, int frame_last)
             }
             return;
         }
+
+        /* check for control socket activity */
+        tc_socket_poll();
+
+        /* stop here if pause requested */
         tc_pause();
 
         err = encdata.buffer->acquire_video_frame(encdata.buffer, vob);

@@ -12,14 +12,21 @@
 #include "socket.h"
 #include "libtc/libtc.h"
 
-//for the socket
+#ifdef HAVE_SYS_SELECT_H
+# include <sys/select.h>
+#endif
+#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <unistd.h>
 
 /*************************************************************************/
 
-/* Socket descriptor for socket */
+/* Pathname for listener socket */
+static char socket_path[PATH_MAX+1] = "";
+/* Socket descriptors for listener socket and client socket */
+static int server_sock = -1;
 static int client_sock = -1;
 
 /* For communicating with "pv" module (FIXME: should go away) */
@@ -633,62 +640,158 @@ static int handle(char *buf)
 /*************************************************************************/
 
 /**
- * tc_socket_thread:  The socket thread routine.
+ * tc_socket_init:  Initialize the socket code, and open a listener socket
+ * with the given pathname.
  *
  * Parameters:
- *     socket_file: Pathname to use for communication socket.
+ *     socket_path_: Pathname to use for communication socket.
  * Return value:
- *     None.
+ *     Nonzero on success, zero on failure.
+ * Side effects:
+ *     If `socket_path' points to an existing file, the file is removed.
  */
 
-void tc_socket_thread(const char *socket_file)
+int tc_socket_init(const char *socket_path_)
 {
     struct sockaddr_un server_addr;
-    int server_sock;
 
-    unlink(socket_file);
+    client_sock = -1;
+    server_sock = -1;
+
+    if (tc_snprintf(socket_path, sizeof(socket_path), "%s", socket_path_) < 0){
+        tc_log_error(__FILE__, "Socket pathname too long (1)");
+        *socket_path = 0;
+        return 0;
+    }
+
+    errno = 0;
+    if (unlink(socket_path) != 0 && errno != ENOENT) {
+        tc_log_error(__FILE__, "Unable to remove \"%s\": %s",
+                     socket_path, strerror(errno));
+        return 0;
+    }
+
     server_addr.sun_family = AF_UNIX;
     if (tc_snprintf(server_addr.sun_path, sizeof(server_addr.sun_path),
-                    "%s", socket_file) < 0
+                    "%s", socket_path) < 0
     ) {
         tc_log_error(__FILE__, "Socket pathname too long");
-        return;
+        return 0;
     }
     server_sock = socket (AF_UNIX, SOCK_STREAM, 0);
     if (server_sock < 0) {
         tc_log_perror(__FILE__, "Unable to create server socket");
-        return;
+        return 0;
     }
     if (bind(server_sock, (struct sockaddr *)&server_addr,
              sizeof(server_addr))
     ) {
         tc_log_perror(__FILE__, "Unable to bind server socket");
         close(server_sock);
-        return;
+        server_sock = -1;
+        unlink(socket_path);  // just in case
+        return 0;
     }
     if (listen(server_sock, 5) < 0) {
         tc_log_perror(__FILE__, "Unable to activate server socket");
         close(server_sock);
+        unlink(socket_path);
+        return 0;
+    }
+
+    return 1;
+}
+
+/*************************************************************************/
+
+/**
+ * tc_socket_fini:  Close the listener and client sockets, if open, and
+ * perform any other necessary cleanup.
+ *
+ * Parameters:
+ *     None.
+ * Return value:
+ *     None.
+ */
+
+void tc_socket_fini(void)
+{
+    if (client_sock >= 0) {
+        close(client_sock);
+        client_sock = -1;
+    }
+    if (server_sock >= 0) {
+        close(server_sock);
+        server_sock = -1;
+        unlink(socket_path);
+    }
+}
+
+/*************************************************************************/
+
+/**
+ * tc_socket_poll:  Check server and (if connected) client sockets for
+ * pending events, and process them.
+ *
+ * Parameters:
+ *     None.
+ * Return value:
+ *     None.
+ */
+
+void tc_socket_poll(void)
+{
+    fd_set rfds, wfds;
+    struct timeval tv = {0,0};
+    char msgbuf[TC_BUF_MAX];
+    int maxfd, retval;
+
+    if (server_sock < 0 && client_sock < 0) {
+        /* Nothing to poll! */
         return;
     }
 
-    /* Listen/receive loop */
-    for (;;) {
-        char msgbuf[TC_BUF_MAX];
-        int retval;
-
-        if (client_sock < 0) {
-            /* No connection, so listen for one */
-            pthread_testcancel();
-            client_sock = accept(server_sock, NULL, 0);
-            if (client_sock < 0) {
-                tc_log_perror(__FILE__, "Unable to accept new connection");
-                break;
-            }
+    FD_ZERO(&rfds);
+    FD_ZERO(&wfds);
+    maxfd = -1;
+    if (server_sock >= 0) {
+        FD_SET(server_sock, &rfds);
+        maxfd = server_sock;
+    }
+    if (client_sock >= 0) {
+        FD_SET(client_sock, &rfds);
+        //FD_SET(client_sock, &wfds);
+        if (client_sock > maxfd)
+            maxfd = client_sock;
+    }
+    retval = select(maxfd+1, &rfds, &wfds, NULL, &tv);
+    if (retval <= 0) {
+        static int warned = 0;
+        if (retval < 0 && !warned) {
+            tc_log_warn(__FILE__, "select(): %s", strerror(errno));
+            warned = 1;
         }
+        return;
+    }
 
-        pthread_testcancel();
-        if ((retval = recv(client_sock, msgbuf, sizeof(msgbuf)-1, 0)) <= 0) {
+    if (server_sock >= 0 && FD_ISSET(server_sock, &rfds)) {
+        int newsock = accept(server_sock, NULL, 0);
+        if (newsock < 0) {
+            tc_log_warn(__FILE__, "Unable to accept new connection: %s",
+                        strerror(errno));
+            return;
+        }
+        if (client_sock >= 0) {
+            /* We already have a connection, so drop this one */
+            close(newsock);
+        } else {
+            client_sock = newsock;
+        }
+    }
+
+    if (client_sock >= 0 && FD_ISSET(client_sock, &rfds)) {
+        retval = recv(client_sock, msgbuf, sizeof(msgbuf)-1, 0);
+        if (retval <= 0) {
             if (retval < 0)
                 tc_log_perror(__FILE__, "Unable to read message from socket");
             close(client_sock);
@@ -702,11 +805,7 @@ void tc_socket_thread(const char *socket_file)
                 client_sock = -1;
             }
         }
-
-    }  // end of listen/receive loop
-
-    close(server_sock);
-    unlink(socket_file);
+    }
 }
 
 /*************************************************************************/

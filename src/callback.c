@@ -23,6 +23,7 @@
 
 #include "transcode.h"
 #include "encoder.h"
+#include "socket.h"
 
 #include "libtc/xio.h"
 
@@ -44,7 +45,10 @@ void tc_pause_request(void)
 
 void tc_pause(void)
 {
-    while (pause_flag) usleep(TC_DELAY_MIN);
+    while (pause_flag) {
+        usleep(TC_DELAY_MIN);
+        tc_socket_poll();
+    }
 }
 
 void tc_outstream_rotate_request(void)

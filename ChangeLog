@@ -1,3 +1,11 @@
+2006-04-26 Andrew Church <achurch at achurch dot org>
+  * configure.in
+  Add check for sys/sockets.h include file.
+
+  * src/callback.c src/encoder.c src/socket.c src/socket.h src/transcode.c
+  Avoid using a separate thread for control socket handling; check for
+  socket events before processing each frame.
+
 2006-04-25 Andrew Church <achurch at achurch dot org>
   * encode/encode_xvid.c
   Avoid depending on xvid being installed.  Reported by
