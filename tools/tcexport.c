@@ -27,6 +27,7 @@
 #include "probe.h"
 #include "encoder.h"
 #include "filter.h"
+#include "socket.h"
 #include "libtc/tcmodule-core.h"
 #include "libtc/cfgfile.h"
 #include "libtc/libtc.h"
@@ -463,6 +464,12 @@ int plugin_get_handle(char *name)
 }
 
 void tc_pause(void)
+{
+    /* do nothing */
+    return;
+}
+
+void tc_socket_poll(void)
 {
     /* do nothing */
     return;
