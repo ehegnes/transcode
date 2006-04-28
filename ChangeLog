@@ -1,9 +1,9 @@
-2006-04-26 Andrew Church <achurch at achurch dot org>
+2006-04-26 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h
   add needed pthread.h header.
 
   * tools/tcexport.c
-  add fake reference to tc_spkcet_poll() to let tcexport compile
+  add fake reference to tc_socket_poll() to let tcexport compile
   happily.
 
 2006-04-26 Andrew Church <achurch at achurch dot org>
