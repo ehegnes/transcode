@@ -624,6 +624,7 @@ int main(int argc, char *argv[])
     memset(&ipipe, 0, sizeof(info_t));
     ipipe.stype = TC_STYPE_UNKNOWN;
     ipipe.seek_allowed = 0;
+    ipipe.factor = 1;
 
     while ((ch = getopt(argc, argv, "i:vBMRd:T:f:b:s:H:?h")) != -1) {
         switch (ch) {
