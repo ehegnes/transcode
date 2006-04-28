@@ -187,14 +187,13 @@ static int fileinfo_dir(const char *dname, int *fd, long *magic)
 static int info_setup(info_t *ipipe, int skip, int mplayer_probe, int want_dvd)
 {
     int file_kind = tc_probe_path(ipipe->name);
-    int is_dvd = dvd_is_valid(ipipe->name);
     int ret;
 
     switch (file_kind) {
       case TC_PROBE_PATH_FILE:	/* regular file */
         if (mplayer_probe) {
             ipipe->magic = TC_MAGIC_MPLAYER;
-        } else if (want_dvd && is_dvd) {
+        } else if (want_dvd && dvd_is_valid(ipipe->name)) {
             ipipe->magic = TC_MAGIC_DVD;
         } else {
             ipipe->fd_in = xio_open(ipipe->name, O_RDONLY);
@@ -213,7 +212,7 @@ static int info_setup(info_t *ipipe, int skip, int mplayer_probe, int want_dvd)
         }
         break;
       case TC_PROBE_PATH_ABSPATH:       /* absolute path */
-        if (is_dvd) {
+        if (dvd_is_valid(ipipe->name)) {
             /* normal directory - no DVD copy */
             ret = fileinfo_dir(ipipe->name, &ipipe->fd_in, &ipipe->magic);
             if (ret < 0) {

@@ -1,5 +1,11 @@
 2006-04-28 Francesco Romani <fromani at gmail dot com>
   * import/tcprobe.c
+  small fixes:
+  - check if source is DVD only on demand, no longer always.
+  - proper initialize ipipe.factor to 1, at least.
+
+2006-04-28 Francesco Romani <fromani at gmail dot com>
+  * import/tcprobe.c
   rewrite almost totally. Highlights:
   - more STYLEish and modularized code.
   - documentation for some functions used internally.
