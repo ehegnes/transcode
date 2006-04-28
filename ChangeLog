@@ -1,3 +1,28 @@
+2006-04-28 Francesco Romani <fromani at gmail dot com>
+  * import/tcprobe.c
+  rewrite almost totally. Highlights:
+  - more STYLEish and modularized code.
+  - add raw output mode like mplayer -identify.
+  - documentation for some functions used internally.
+  There is still a lot of room for improvements, but I think really
+  better and deeper changes require an overall review/rewrite of the
+  whole probing subsystem.
+
+  * libtc/ratiocodes.c libtc/ratiocodes.h
+  add annotations about uncertain ASRs.
+  rename a macro to achieve better naming conformancy.
+
+  * libtc/libtc.h
+  add TC_LOG_EXTRA loglevel.
+
+  * libtc/tc_functions.c
+  send low-priority (info, msg, extra) log messages to stdout, not
+  to stderr; handle TC_LOG_EXTRA properly.
+
+  * import/dvd_reader.c import/dvd_reader.h
+  dvd_verify -> dvd_is_valid.
+  Add basic documentation and change return values.
+
 2006-04-26 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h
   add needed pthread.h header.

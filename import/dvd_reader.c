@@ -723,24 +723,25 @@ int dvd_probe(int title, ProbeInfo *info)
     return(0);
 }
 
-int dvd_verify(const char *dvd_path)
+int dvd_is_valid(const char *dvd_path)
 {
-    static dvd_reader_t *_dvd=NULL;
-    ifo_handle_t *vmg_file=NULL;
+    dvd_reader_t *_dvd = NULL;
+    ifo_handle_t *vmg_file = NULL;
 
     _dvd = DVDOpen(dvd_path);
 
-    if(!_dvd) return(-1);
-
-    vmg_file = ifoOpen( _dvd, 0 );
-    if(!vmg_file) {
-      DVDClose(_dvd);
-      return (-1);
+    if (_dvd == NULL) {
+        return TC_FALSE;
+    }
+    
+    vmg_file = ifoOpen( _dvd, 0);
+    if (vmg_file == NULL) {
+        DVDClose(_dvd);
+        return TC_FALSE;
     }
 
     DVDClose(_dvd);
-
-    return(0);
+    return TC_TRUE;
 }
 
 

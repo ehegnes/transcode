@@ -69,6 +69,11 @@ static const TCPair asr_ratios[8] = {
     {   0,   0 },
     {   0,   0 },
     {   0,   0 },
+    /* 
+     * XXX: import/tcprobe.c also claims that
+     * asr == 8 and asr == 12 are 4:3.
+     * Need further investigation.
+     */
 };
 
 static const TCPair par_ratios[8] = {

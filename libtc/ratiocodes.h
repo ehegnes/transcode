@@ -30,7 +30,7 @@ struct tcpair_ {
     int b; /* denominator, height... */
 };
 
-#define TC_FRC_RATIO_FROM_FPS(fps, pn, pd) \
+#define TC_FRC_FPS_TO_RATIO(fps, pn, pd) \
 do { \
     *(pn) = (int)((fps) * 1000.0); \
     *(pd) = 1000; \

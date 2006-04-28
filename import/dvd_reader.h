@@ -32,6 +32,16 @@ int dvd_query(int arg_title, int *arg_chapter, int *arg_angle);
 int dvd_read(int arg_title, int arg_chapter, int arg_angle);
 int dvd_stream(int arg_title,int arg_chapid);
 int dvd_close(void);
-int dvd_verify(const char *path);
+
+/*
+ * dvd_is_valid:
+ * 	verify if given PATH looks like a DVD.
+ * 
+ * Parameters:
+ * 	path: path to verify
+ * Return Value:
+ * 	TC_TRUE if given path seems to be a valid DVD, TC_FALSE otherwise.
+ */
+int dvd_is_valid(const char *path);
 
 #endif

@@ -72,6 +72,13 @@ typedef enum {
     TC_LOG_WARN,    /* non-critical error condition */
     TC_LOG_INFO,    /* informative highlighted message */
     TC_LOG_MSG,     /* regular message */
+    
+    TC_LOG_EXTRA,   /* must always be the last */
+    /* 
+     * on this special log level is guaranteed that: 
+     * 1) message will sent to stdout
+     * 2) message will be logged verbatim: no tag, no colours, anything
+     */
 } TCLogLevel;
 
 /*
@@ -108,8 +115,10 @@ __attribute__((format(printf,3,4)))
 ;
 
 /* compatibility macros */
-#define tc_error(format, args...) \
-    do { tc_log(TC_LOG_ERR, PACKAGE, format , ## args); exit(1); } while(0)
+#define tc_error(format, args...) do { \
+    tc_log(TC_LOG_ERR, PACKAGE, format , ## args); \
+    exit(1); \
+} while(0)
 #define tc_info(format, args...) \
     tc_log(TC_LOG_INFO, PACKAGE, format , ## args)
 #define tc_warn(format, args...) \
