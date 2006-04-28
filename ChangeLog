@@ -2,8 +2,11 @@
   * import/tcprobe.c
   rewrite almost totally. Highlights:
   - more STYLEish and modularized code.
-  - add raw output mode like mplayer -identify.
   - documentation for some functions used internally.
+  - add raw output mode like mplayer -identify.
+  - standard output format was extended.
+    It still looks like the old one, but now it carries more
+    informations and it's (hopefully) clearer.
   There is still a lot of room for improvements, but I think really
   better and deeper changes require an overall review/rewrite of the
   whole probing subsystem.
