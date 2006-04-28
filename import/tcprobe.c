@@ -53,7 +53,7 @@ void import_exit(int code)
 
 /*************************************************************************/
 
-/* 
+/*
  * enc_bitrate:  Print bitrate information about the source data.
  *
  * Parameters:
@@ -189,7 +189,7 @@ static int info_setup(info_t *ipipe, int skip, int mplayer_probe, int want_dvd)
     int file_kind = tc_probe_path(ipipe->name);
     int is_dvd = dvd_is_valid(ipipe->name);
     int ret;
-    
+
     switch (file_kind) {
       case TC_PROBE_PATH_FILE:	/* regular file */
         if (mplayer_probe) {
@@ -254,7 +254,7 @@ static int info_setup(info_t *ipipe, int skip, int mplayer_probe, int want_dvd)
  * info_teardown:
  *
  *      reverse initialization done in info_setup
- * 
+ *
  * Parameters:
  *      ipipe: info_t structure to (finish to) initialize
  * Return Value:
@@ -278,7 +278,7 @@ typedef void (*InfoDumpFn)(info_t *ipipe);
 
 /*
  * dump_info_binary:
- *      
+ *
  *      dump a ProbeInfo structure in binary (and platform-dependent,
  *      and probably even not fully safe) way to stdout.
  *      This dump mode is used by tcprobe to communicate with transcode.
@@ -312,7 +312,7 @@ static void dump_info_binary(info_t *ipipe)
 
 /*
  * dump_info_binary:
- *      
+ *
  *      dump a ProbeInfo structure in a human-readable, slightly modifed
  *      from standard pre-1,1,0 format.
  *
@@ -324,7 +324,7 @@ static void dump_info_binary(info_t *ipipe)
 static void dump_info_user(info_t *ipipe)
 {
     long frame_time = 0;
-    int is_std = TC_TRUE; /* flag: select PROBED_??? above */ 
+    int is_std = TC_TRUE; /* flag: select PROBED_??? above */
     int nsubs = 0, n = 0;
     char extrabuf[TC_BUF_MIN];
     int extrabuf_ready = TC_FALSE;
@@ -341,13 +341,13 @@ static void dump_info_user(info_t *ipipe)
     tc_log_msg(EXE, "%18s %s", "stream type:", filetype(ipipe->magic));
     tc_log_msg(EXE, "%18s %s", "video format:",
                tc_codec_to_string(ipipe->probe_info->codec));
-    
+
     /* video first. */
     if (ipipe->probe_info->width > 0 && ipipe->probe_info->height > 0) {
         int n, d;
-        
+
         extrabuf_ready = TC_FALSE;
-        
+
         tc_log_msg(EXE, "%18s %dx%d [%dx%d] (-g) %s",
                    "import frame size:",
                    ipipe->probe_info->width, ipipe->probe_info->height,
@@ -359,7 +359,7 @@ static void dump_info_user(info_t *ipipe)
                    n, d, ipipe->probe_info->asr,
                    CHECK_MARK_EXPECTED(ipipe->probe_info->asr, 1));
 
-        
+
         frame_time = (ipipe->probe_info->fps != 0) ?
                      (long)(1. / ipipe->probe_info->fps * 1000) : 0;
 
@@ -392,11 +392,11 @@ static void dump_info_user(info_t *ipipe)
     for (n = 0; n < TC_MAX_AUD_TRACKS; n++) {
         int D_arg = 0, D_arg_ms = 0;
         double pts_diff = 0.;
-        
+
         if (ipipe->probe_info->track[n].format != 0
          && ipipe->probe_info->track[n].chan > 0) {
             extrabuf_ready = TC_FALSE;
-            
+
 	        if (ipipe->probe_info->track[n].samplerate != RATE
              || ipipe->probe_info->track[n].chan != CHANNELS
              || ipipe->probe_info->track[n].bits != BITS
@@ -475,7 +475,7 @@ static void dump_info_user(info_t *ipipe)
         tc_log_msg(EXE, "detected (%d) presentation unit(s) (SCR reset)",
                     ipipe->probe_info->unit_cnt+1);
     }
-        
+
     /* DVD only: coder bitrate infos */
     if (ipipe->magic == TC_MAGIC_DVD_PAL || ipipe->magic == TC_MAGIC_DVD_NTSC
      || ipipe->magic == TC_MAGIC_DVD) {
@@ -509,7 +509,7 @@ static void dump_info_user(info_t *ipipe)
 
 /*
  * dump_info_raw:
- *      
+ *
  *      dump a ProbeInfo structure in a human-readable but machine-friendly
  *      format, resembling, or identical where feasible, the mplayer -identify
  *      output.
@@ -526,7 +526,7 @@ static void dump_info_raw(info_t *ipipe)
     /* always use log_msg here to leave output cleanest as possible */
     tc_printf("ID_FILENAME=\"%s\"\n", ipipe->name);
     tc_printf("ID_FILETYPE=\"%s\"\n", filetype(ipipe->magic));
-    
+
     tc_printf("ID_VIDEO_WIDTH=%i\n", ipipe->probe_info->width);
     tc_printf("ID_VIDEO_HEIGHT=%i\n", ipipe->probe_info->height);
     tc_printf("ID_VIDEO_FPS=%.3f\n", ipipe->probe_info->fps);
@@ -537,7 +537,7 @@ static void dump_info_raw(info_t *ipipe)
     tc_printf("ID_VIDEO_BITRATE=%li\n", ipipe->probe_info->bitrate);
 
     /* only the first audio track, now */
-    tc_printf("ID_AUDIO_CODEC=%s\n", 
+    tc_printf("ID_AUDIO_CODEC=%s\n",
                tc_codec_to_string(ipipe->probe_info->track[0].format));
     tc_printf("ID_AUDIO_FORMAT=%i\n", ipipe->probe_info->track[0].format);
     tc_printf("ID_AUDIO_BITRATE=%i\n", ipipe->probe_info->track[0].bitrate);
@@ -592,7 +592,7 @@ static void usage(int status)
 
     exit(status);
 }
-        
+
 /* ------------------------------------------------------------
  * universal probing code frontend
  * ------------------------------------------------------------*/
@@ -732,7 +732,7 @@ int main(int argc, char *argv[])
                          PACKAGE);
         }
     }
-    
+
     info_teardown(&ipipe);
     return ipipe.error;
 }
