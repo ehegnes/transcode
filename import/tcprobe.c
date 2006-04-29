@@ -213,13 +213,13 @@ static int info_setup(info_t *ipipe, int skip, int mplayer_probe, int want_dvd)
         break;
       case TC_PROBE_PATH_ABSPATH:       /* absolute path */
         if (dvd_is_valid(ipipe->name)) {
+            ipipe->magic = TC_MAGIC_DVD;
+        } else {
             /* normal directory - no DVD copy */
             ret = fileinfo_dir(ipipe->name, &ipipe->fd_in, &ipipe->magic);
             if (ret < 0) {
                 return TC_IMPORT_ERROR;
             }
-        } else {
-            ipipe->magic = TC_MAGIC_DVD;
         }
         break;
       /* now the easy stuff */
