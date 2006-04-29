@@ -21,9 +21,7 @@
 # include "config.h"
 #endif
 
-#ifdef HAVE_STDINT_H
-# include <stdint.h>
-#endif
+#include <stdint.h>
 
 #include "tcmodule-data.h"
 

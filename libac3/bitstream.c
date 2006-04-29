@@ -27,9 +27,7 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 
 #include "ac3.h"
 #include "ac3_internal.h"

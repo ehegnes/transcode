@@ -33,9 +33,7 @@ static int capability_flag = TC_CAP_PCM;
 #define MOD_PRE oss
 #include "import_def.h"
 
-#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
-#endif
 #include <sys/ioctl.h>
 #ifdef HAVE_SYS_SOUNDCARD_H
 # include <sys/soundcard.h>

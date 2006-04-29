@@ -33,7 +33,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <inttypes.h>
+#include <stdint.h>
 #include <assert.h>
 
 #include <ffmpeg/avcodec.h>

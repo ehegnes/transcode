@@ -44,10 +44,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <math.h>
-
-#ifdef HAVE_STDINT_H
 #include <stdint.h>
-#endif
 
 #ifdef HAVE_DLFCN_H
 #include <dlfcn.h>

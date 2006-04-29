@@ -33,9 +33,7 @@
 #include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
-#ifdef HAVE_STDINT_H
 #include <stdint.h>
-#endif
 
 
 static short *array_l = NULL, *array_r = NULL;

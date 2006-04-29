@@ -17,12 +17,8 @@
 #include "config.h"
 #endif
 
-#ifdef HAVE_STDINT_H
 #include <stdint.h>
-#endif
-#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
-#endif
 
 /* flags */
 #define TC_LZO_FORMAT_YV12    	1  /* obsolete */

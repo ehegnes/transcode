@@ -552,7 +552,7 @@ static void putmbtype(int mb_type)
 			mbtypetab[picture_coding_type-1][mb_type].len);
 }
 
-#include <inttypes.h>
+#include <stdint.h>
 #include "getvlc.h"
 
 static int non_linear_quantizer_scale [] =

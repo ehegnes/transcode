@@ -31,7 +31,7 @@
 #include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
-#include <inttypes.h>
+#include <stdint.h>
 
 // basic parameter
 

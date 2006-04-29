@@ -30,18 +30,10 @@
 #endif
 
 #include <stdarg.h>
-#include <pthread.h>
-
-#ifdef HAVE_STDINT_H
-# include <stdint.h>
-#endif
-#ifdef HAVE_SYS_TYPES_H
-# include <sys/types.h>
-#endif
-
-#ifdef HAVE_STRING_H
+#include <stdint.h>
+#include <sys/types.h>
 #include <string.h>
-#endif
+#include <pthread.h>
 
 #ifndef SYS_BSD
 # ifdef HAVE_MALLOC_H

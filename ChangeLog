@@ -1,3 +1,34 @@
+2006-04-29 Andrew Church <achurch at achurch dot org>
+  * acinclude.m4 configure.in
+  Check that the following header files are available, and abort if not:
+  errno.h, fcntl.h, limits.h, stdarg.h, stddef.h, stdint.h, stdio.h,
+  stdlib.h, string.h, time.h, sys/stat.h, sys/time.h, sys/types.h
+  and remove existing checks for these headers.  Also add a check for
+  endian.h, which was missing.
+
+  * aclib/ac.h avilib/avilib.h avilib/wavlib.h export/aud_aux.c
+    export/divx4_vbr.c export/export_divx5.c export/export_jpg.c
+    filter/deinterlace.c filter/filter_32detect.c filter/filter_32drop.c
+    filter/filter_astat.c filter/filter_compare.c
+    filter/filter_detectsilence.c filter/filter_levels.c
+    filter/filter_lowpass.c filter/filter_pp.c filter/divxkey/bitstream.h
+    filter/extsub/filter_extsub.c filter/tomsmocomp/TomsMoCompAll.inc
+    filter/tomsmocomp/dscaler_interface.h
+    filter/tomsmocomp/filter_tomsmocomp.h
+    filter/yuvdenoise/filter_yuvdenoise.c
+    filter/yuvdenoise/filter_yuvmedian.c filter/yuvdenoise/mjpeg_types.h
+    import/ac3scan.c import/extract_ogm.c import/extract_pcm.c
+    import/import_oss.c import/tcrequant.c libac3/bitstream.c libtc/libtc.h
+    libtc/tc_functions.clibtc/tc_lzo.h libtc/tccodecs.c
+    libtc/tcmodule-core.h libtc/tcmodule-data.h libtc/tcmodule-info.h
+    libtc/tcmodule-plugin.h libtcaudio/tcaudio.h libtcvideo/tcvideo.h
+    pvm3/external_codec.h pvm3/pvm_parser.c src/encoder-buffer.c
+    src/encoder-common.c src/encoder.c src/framebuffer.h src/transcode.h
+    testsuite/test-acmemcpy-speed.c tools/aud_scan.c tools/aud_scan_avi.c
+    tools/aviindex.c tools/tcexport.c tools/tcmodinfo.c
+  Remove #if tests for include files listed above, and remove #includes for
+  <inttypes.h> and <strings.h>.
+
 2006-04-29 Francesco Romani <fromani at gmail dot com>
   * import/tcprobe.c
   fix a (very) stupid bug in usage of dvd_is_valid() that caused

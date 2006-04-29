@@ -34,7 +34,7 @@
 #include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
-#include <inttypes.h>
+#include <stdint.h>
 
 #include "mjpeg_types.h"
 

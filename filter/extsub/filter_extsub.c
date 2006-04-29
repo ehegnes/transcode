@@ -32,9 +32,7 @@
 #include "libtc/optstr.h"
 #include "libtcvideo/tcvideo.h"
 
-#ifdef HAVE_STDINT_H
 #include <stdint.h>
-#endif
 
 #include "dl_loader.h"
 #include "import/magic.h"

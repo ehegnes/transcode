@@ -15,12 +15,6 @@
 # include "config.h"
 #endif
 
-#ifdef HAVE_STDINT_H
-# include <stdint.h>
-#endif
-
-#include "aclib/imgconvert.h"
-
 /*************************************************************************/
 
 /* Handle for calling tcaudio functions, allocated by tca_init() and passed

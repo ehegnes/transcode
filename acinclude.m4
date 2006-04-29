@@ -1,3 +1,106 @@
+dnl TC_CHECK_STD_HEADERS
+dnl Ensure that standard headers are available, and abort if not.
+AC_DEFUN([TC_CHECK_STD_HEADERS],
+    [AC_CACHE_CHECK(for standard header files, ac_cv_header_std,
+        [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <errno.h>
+#include <fcntl.h>
+#include <limits.h>
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
+]])],
+            [ac_cv_header_std=yes],
+            [ac_cv_header_std=no])])
+if test x"$ac_cv_header_std" != x"yes"; then
+    AC_MSG_ERROR([cannot compile with one or more of:
+    errno.h fcntl.h limits.h stdarg.h stddef.h stdint.h stdio.h
+    stdlib.h string.h time.h sys/stat.h sys/time.h sys/types.h
+See \`config.log' for more details.])
+fi
+dnl Stop autoconf from running its own standard header check.
+AC_PROVIDE(AC_HEADER_STDC)dnl
+dnl Define HAVE_* macros in case anybody wants them anyway.
+AC_DEFINE([STDC_HEADERS], 1,
+          [Define to 1 if you have the ANSI C header files.])
+AC_DEFINE([HAVE_ERRNO_H], 1,
+          [Define to 1 if you have the <errno.h> include file.])
+AC_DEFINE([HAVE_FCNTL_H], 1,
+          [Define to 1 if you have the <fcntl.h> include file.])
+AC_DEFINE([HAVE_LIMITS_H], 1,
+          [Define to 1 if you have the <limits.h> include file.])
+AC_DEFINE([HAVE_STDARG_H], 1,
+          [Define to 1 if you have the <stdarg.h> include file.])
+AC_DEFINE([HAVE_STDDEF_H], 1,
+          [Define to 1 if you have the <stddef.h> include file.])
+AC_DEFINE([HAVE_STDINT_H], 1,
+          [Define to 1 if you have the <stdint.h> include file.])
+AC_DEFINE([HAVE_STDIO_H], 1,
+          [Define to 1 if you have the <stdio.h> include file.])
+AC_DEFINE([HAVE_STDLIB_H], 1,
+          [Define to 1 if you have the <stdlib.h> include file.])
+AC_DEFINE([HAVE_STRING_H], 1,
+          [Define to 1 if you have the <string.h> include file.])
+AC_DEFINE([HAVE_TIME_H], 1,
+          [Define to 1 if you have the <time.h> include file.])
+AC_DEFINE([HAVE_SYS_STAT_H], 1,
+          [Define to 1 if you have the <sys/stat.h> include file.])
+AC_DEFINE([HAVE_SYS_TIME_H], 1,
+          [Define to 1 if you have the <sys/time.h> include file.])
+AC_DEFINE([HAVE_SYS_TYPES_H], 1,
+          [Define to 1 if you have the <sys/types.h> include file.])
+])
+
+dnl Argh, we have to redefine this to stop headers.m4 from doing extra checks
+AC_DEFUN([_AC_INCLUDES_DEFAULT_REQUIREMENTS],
+[m4_divert_text([DEFAULTS],
+[# Factoring default headers for most tests.
+dnl If ever you change this variable, please keep autoconf.texi in sync.
+ac_includes_default="\
+#include <stdio.h>
+#if HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
+#if HAVE_SYS_STAT_H
+# include <sys/stat.h>
+#endif
+#if STDC_HEADERS
+# include <stdlib.h>
+# include <stddef.h>
+#else
+# if HAVE_STDLIB_H
+#  include <stdlib.h>
+# endif
+#endif
+#if HAVE_STRING_H
+# if !STDC_HEADERS && HAVE_MEMORY_H
+#  include <memory.h>
+# endif
+# include <string.h>
+#endif
+#if HAVE_STRINGS_H
+# include <strings.h>
+#endif
+#if HAVE_INTTYPES_H
+# include <inttypes.h>
+#else
+# if HAVE_STDINT_H
+#  include <stdint.h>
+# endif
+#endif
+#if HAVE_UNISTD_H
+# include <unistd.h>
+#endif"
+])])
+
+dnl -----------------------------------------------------------------------
+
 dnl AC_C_ATTRIBUTE_ALIGNED
 dnl define ATTRIBUTE_ALIGNED_MAX to the maximum alignment if this is supported
 AC_DEFUN([AC_C_ATTRIBUTE_ALIGNED],

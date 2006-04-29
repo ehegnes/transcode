@@ -27,7 +27,6 @@
 #endif
 
 #include <sys/types.h>
-#include <inttypes.h>
 #include <stdint.h>
 
 /* transcode build system integration */

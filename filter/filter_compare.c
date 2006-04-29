@@ -35,7 +35,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <inttypes.h>
+#include <stdint.h>
 
 #define _MAGICKCORE_CONFIG_H  // to avoid conflicts with our config.h
 #include <magick/api.h>

@@ -20,10 +20,7 @@
 # include "config.h"
 #endif
 
-#ifdef HAVE_STDINT_H
-# include <stdint.h>
-#endif
-
+#include <stdint.h>
 #include <stdlib.h>
 
 #include "framebuffer.h"

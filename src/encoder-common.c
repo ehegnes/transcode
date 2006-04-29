@@ -27,10 +27,7 @@
 # include "config.h"
 #endif
 
-#ifdef HAVE_STDINT_H
-# include <stdint.h>
-#endif
-
+#include <stdint.h>
 #include <pthread.h>
 #include "tc_defaults.h"
 #include "encoder-common.h"

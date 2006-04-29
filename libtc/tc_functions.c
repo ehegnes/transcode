@@ -30,14 +30,11 @@
 #include <unistd.h>
 #include <errno.h>
 #include <ctype.h>
+#include <sys/stat.h>
 
 #include "xio.h"
 #include "libtc.h"
 #include "tc_defaults.h"
-
-#ifdef HAVE_SYS_STAT_H
-#include <sys/stat.h>
-#endif
 
 #include "framebuffer.h"
 

@@ -14,7 +14,10 @@ exit $?
  * for details.
  */
 
+#include "config.h"
+
 #define _GNU_SOURCE  /* for strsignal */
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,11 +26,6 @@ exit $?
 #include <setjmp.h>
 #include <signal.h>
 #include <sys/time.h>
-
-#include "config.h"
-#ifdef HAVE_STDINT_H
-# include <stdint.h>
-#endif
 
 #define ac_memcpy local_ac_memcpy  /* to avoid clash with libac.a */
 #define ac_memcpy_init local_ac_memcpy_init  /* to avoid clash with libac.a */

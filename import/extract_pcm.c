@@ -25,9 +25,7 @@
 #include "libtc/libtc.h"
 #include "tcinfo.h"
 
-#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
-#endif
 #include <sys/mman.h>
 
 #include "ioaux.h"

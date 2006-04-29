@@ -30,7 +30,6 @@
 
 #include <stdio.h>
 #include <ctype.h>
-#include <strings.h>
 #include <string.h>
 #include <pvm_parser.h>
 

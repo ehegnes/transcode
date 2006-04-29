@@ -1,5 +1,5 @@
 /*
-    $Id: mjpeg_types.h,v 1.6 2005-11-11 14:47:04 achurch Exp $
+    $Id: mjpeg_types.h,v 1.7 2006-04-29 19:18:11 achurch Exp $
 
     Copyright (C) 2000 Herbert Valerio Riedel <hvr@gnu.org>
 
@@ -35,32 +35,8 @@
 #endif
 
 
-#if defined(HAVE_STDINT_H)
-# include <stdint.h>
-#elif defined(HAVE_INTTYPES_H)
-# include <inttypes.h>
-#elif defined(__CYGWIN__)
-# include <sys/types.h>
-typedef uint8_t uint8_t;
-typedef u_int16_t uint16_t;
-typedef u_int32_t uint32_t;
-typedef u_int64_t uint64_t;
-# define INT8_C(c)     c
-# define INT16_C(c)    c
-# define INT32_C(c)    c
-# define INT64_C(c)    c ## LL
-# define UINT8_C(c)    c ## U
-# define UINT16_C(c)   c ## U
-# define UINT32_C(c)   c ## U
-# define UINT64_C(c)   c ## ULL
-#else
-/* warning ISO/IEC 9899:1999 <stdint.h> was missing and even <inttypes.h> */
-/* fixme */
-#endif /* HAVE_STDINT_H */
-
-#if defined(HAVE_SYS_TYPES_H)
+#include <stdint.h>
 #include <sys/types.h>
-#endif
 
 #if defined(HAVE_STDBOOL_H) && !defined(__cplusplus)
 #include <stdbool.h>

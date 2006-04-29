@@ -28,41 +28,21 @@
 # include "config.h"
 #endif
 
-#ifdef HAVE_SYS_STAT_H
-# include <sys/stat.h>
-#endif
-#ifdef HAVE_SYS_TIME_H
-# include <sys/time.h>
-#endif
-#ifdef HAVE_ERRNO_H
-# include <errno.h>
-#else
-extern int errno;
-#endif
-#ifdef HAVE_FCNTL_H
-# include <fcntl.h>
-#endif
-#ifdef HAVE_INTTYPES_H
-# include <inttypes.h>
-#endif
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdio.h>
-#ifdef HAVE_STDLIB_H
-# include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
-# include <string.h>
-#endif
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
-#endif
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 #ifdef NET_STREAM
-# ifdef HAVE_SYS_TYPES_H
-#  include <sys/types.h>
-# endif
+# include <sys/types.h>
 # include <sys/socket.h>
 # include <netinet/in.h>
 # include <netdb.h>

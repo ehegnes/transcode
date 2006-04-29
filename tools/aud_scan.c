@@ -27,10 +27,10 @@
 #include "config.h"
 #endif
 
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <inttypes.h>
 
 #include "aud_scan.h"
 

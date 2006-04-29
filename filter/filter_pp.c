@@ -32,7 +32,7 @@
 #include "libtc/optstr.h"
 
 #include <ctype.h>
-#include <inttypes.h>
+#include <stdint.h>
 
 #include "postprocess.h"
 
