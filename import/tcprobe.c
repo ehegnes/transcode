@@ -503,9 +503,6 @@ static void dump_info_user(info_t *ipipe)
     }
 }
 
-#define tc_printf(format, args...) \
-    tc_log(TC_LOG_EXTRA, "", format , ## args)
-
 /*
  * dump_info_raw:
  *
@@ -522,32 +519,32 @@ static void dump_info_user(info_t *ipipe)
 static void dump_info_raw(info_t *ipipe)
 {
     double duration = 0.0; /* seconds */
-    /* always use log_msg here to leave output cleanest as possible */
-    tc_printf("ID_FILENAME=\"%s\"\n", ipipe->name);
-    tc_printf("ID_FILETYPE=\"%s\"\n", filetype(ipipe->magic));
 
-    tc_printf("ID_VIDEO_WIDTH=%i\n", ipipe->probe_info->width);
-    tc_printf("ID_VIDEO_HEIGHT=%i\n", ipipe->probe_info->height);
-    tc_printf("ID_VIDEO_FPS=%.3f\n", ipipe->probe_info->fps);
-    tc_printf("ID_VIDEO_FRC=%i\n", ipipe->probe_info->frc);
-    tc_printf("ID_VIDEO_ASR=%i\n", ipipe->probe_info->asr);
-    tc_printf("ID_VIDEO_FORMAT=%s\n",
+    printf("ID_FILENAME=\"%s\"\n", ipipe->name);
+    printf("ID_FILETYPE=\"%s\"\n", filetype(ipipe->magic));
+
+    printf("ID_VIDEO_WIDTH=%i\n", ipipe->probe_info->width);
+    printf("ID_VIDEO_HEIGHT=%i\n", ipipe->probe_info->height);
+    printf("ID_VIDEO_FPS=%.3f\n", ipipe->probe_info->fps);
+    printf("ID_VIDEO_FRC=%i\n", ipipe->probe_info->frc);
+    printf("ID_VIDEO_ASR=%i\n", ipipe->probe_info->asr);
+    printf("ID_VIDEO_FORMAT=%s\n",
               tc_codec_to_string(ipipe->probe_info->codec));
-    tc_printf("ID_VIDEO_BITRATE=%li\n", ipipe->probe_info->bitrate);
+    printf("ID_VIDEO_BITRATE=%li\n", ipipe->probe_info->bitrate);
 
     /* only the first audio track, now */
-    tc_printf("ID_AUDIO_CODEC=%s\n",
+    printf("ID_AUDIO_CODEC=%s\n",
                tc_codec_to_string(ipipe->probe_info->track[0].format));
-    tc_printf("ID_AUDIO_FORMAT=%i\n", ipipe->probe_info->track[0].format);
-    tc_printf("ID_AUDIO_BITRATE=%i\n", ipipe->probe_info->track[0].bitrate);
-    tc_printf("ID_AUDIO_RATE=%i\n", ipipe->probe_info->track[0].samplerate);
-    tc_printf("ID_AUDIO_NCH=%i\n", ipipe->probe_info->track[0].chan);
-    tc_printf("ID_AUDIO_BITS=%i\n", ipipe->probe_info->track[0].bits);
+    printf("ID_AUDIO_FORMAT=%i\n", ipipe->probe_info->track[0].format);
+    printf("ID_AUDIO_BITRATE=%i\n", ipipe->probe_info->track[0].bitrate);
+    printf("ID_AUDIO_RATE=%i\n", ipipe->probe_info->track[0].samplerate);
+    printf("ID_AUDIO_NCH=%i\n", ipipe->probe_info->track[0].chan);
+    printf("ID_AUDIO_BITS=%i\n", ipipe->probe_info->track[0].bits);
     if (ipipe->probe_info->fps != 0.0) {
         /* seconds */
         duration = ((double)ipipe->probe_info->frames/ipipe->probe_info->fps);
     }
-    tc_printf("ID_LENGTH=%.2f\n", duration);
+    printf("ID_LENGTH=%.2f\n", duration);
 }
 
 /*************************************************************************/

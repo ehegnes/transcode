@@ -1,7 +1,11 @@
-2006-04-26 Andrew Church <achurch at achurch dot org>
+2006-04-29 Andrew Church <achurch at achurch dot org>
   * libtc/libtc.h libtc/tc_functions.c
   Move all tc_log() output back to stderr to avoid polluting stdout in
   pipes.
+
+  * import/tcprobe.c
+  Change tc_log(TC_LOG_EXTRA) to plain printf() to ensure that the output
+  goes to stdout.
 
 2006-04-28 Francesco Romani <fromani at gmail dot com>
   * import/tcprobe.c
