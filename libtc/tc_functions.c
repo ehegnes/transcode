@@ -67,7 +67,6 @@ int tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
 {
     char buf[TC_MSG_BUF_SIZE];
     char *msg = buf;
-    FILE *dest = stderr;
     size_t size = 0;
     int dynbuf = TC_FALSE, truncated = TC_FALSE;
     /* flag: we must use a dynamic (larger than static) buffer? */
@@ -79,8 +78,6 @@ int tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
     /* sanity check, avoid dealing with NULL as much as we can */
     tag = (tag != NULL) ?tag :"";
     fmt = (fmt != NULL) ?fmt :"";
-    /* lower priorities goes to stdout */
-    dest = (level >= TC_LOG_INFO) ?stdout :stderr;
     /* TC_LOG_EXTRA special handling: force always empty tag */
     tag = (level == TC_LOG_EXTRA) ?"" :tag; 
     
@@ -114,15 +111,15 @@ int tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
     /* `size' value was already scaled for the final '\0' */
 
     va_start(ap, fmt);
-    vfprintf(dest, msg, ap);
+    vfprintf(stderr, msg, ap);
     va_end(ap);
 
     if (dynbuf == 1) {
         free(msg);
     }
 
-    fflush(dest); 
-    fflush(stdout); /* ensure that all *other* messages are written */
+    /* ensure that all *other* messages are written */
+    fflush(stderr);
     return (truncated) ?-1 :0;
 }
 

@@ -75,9 +75,8 @@ typedef enum {
     
     TC_LOG_EXTRA,   /* must always be the last */
     /* 
-     * on this special log level is guaranteed that: 
-     * 1) message will sent to stdout
-     * 2) message will be logged verbatim: no tag, no colours, anything
+     * on this special log level is guaranteed that message will be logged
+     * verbatim: no tag, no colours, anything
      */
 } TCLogLevel;
 
