@@ -19,41 +19,35 @@ AC_PROG_AWK
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-
-# dnl added 2002-04-26
 AM_PROG_AS
-AS=$CC
-CCAS='$(CC)'
-AC_SUBST(CCAS)
-AC_SUBST(CCASFLAGS)
-ASFLAGS="$CCASFLAGS"
-AC_SUBST(ASFLAGS)
+AM_CONDITIONAL(HAVE_GCC, test x"$GCC" = x"yes")
+
+dnl Check for gcc2, which doesn't seem to handle asm templates
+dnl And check for gcc4, which also has problems with filter_tomsmocomp
+dnl
+gcc2=no
+gcc4=no
+if test x"$GCC" = x"yes" ; then
+  gcc_ver="`LANG=C $CC -dumpversion`"
+  if test x"$gcc_ver" != x"" ; then
+    if echo $gcc_ver | grep -q ^2 ; then
+      gcc2=yes
+    fi
+    if echo $gcc_ver | grep -q ^4 ; then
+      gcc4=yes
+    fi
+  fi
+fi
+AM_CONDITIONAL(HAVE_GCC2, test x"$gcc2" = x"yes")
+AM_CONDITIONAL(HAVE_GCC4, test x"$gcc4" = x"yes")
 
 dnl we got $AWK already, but not its full path
 AC_PATH_PROG(PATH_TO_AWK, $AWK)
 
-deflib="/lib"
-
-is_osx=false
-case "x${target_os}" in
-  xdarwin*)
-    is_osx=true
-    CFLAGS="${CFLAGS} -no-cpp-precomp -D_INTL_REDIRECT_MACROS"
-    #LDFLAGS="${LDFLAGS} -all_load"
-
-    AC_DEFINE([SYSTEM_DARWIN], 1, [Define if this is Darwin / MacOSX OS])
-    AC_DEFINE([BROKEN_PTHREADS], 1, [Define if you have weird pthreads])
-
-    # Include Fink in compile and link if present
-    if test -d /sw; then
-      CPPFLAGS="${CPPFLAGS} -I/sw/include"
-      LDFLAGS="${LDFLAGS} -L/sw/lib"
-    fi
-    ;;
-esac
-
-
-AM_CONDITIONAL([SYSTEM_DARWIN], test x"$is_osx" = x"true")
+# Check for Darwin (has to be done here, after checks for proograms and
+# before checks for libraries), and BSD while we're at it.
+TC_CHECK_DARWIN
+TC_CHECK_BSD
 
 # Checks for libraries.
 AC_CHECK_LIB(dl, dlopen)
@@ -67,7 +61,6 @@ if test x"$is_osx" = x"true" ; then
     AC_MSG_WARN([does not automatically prepend an underscore])
     AC_MSG_WARN([to symbols.]))
 fi
-AC_DISABLE_STATIC
 
 USE_DLDARWIN=no
 if test x"$ac_cv_lib_dl_dlopen" = x"no" ; then
@@ -84,6 +77,13 @@ AC_SUBST(DLDARWIN_CFLAGS)
 AC_SUBST(DLDARWIN_LIBS)
 AM_CONDITIONAL(USE_DLDARWIN, test x"$USE_DLDARWIN" = x"yes")
 
+# libtool setup
+AC_PROVIDE([AC_PROG_CXX])  dnl we don't want it!
+AC_PROVIDE([AC_PROG_F77])  dnl likewise
+AC_DISABLE_STATIC
+AC_LIBTOOL_DLOPEN
+AC_PROG_LIBTOOL
+
 
 # Checks for header files.
 TC_CHECK_STD_HEADERS
@@ -91,38 +91,25 @@ AC_CHECK_HEADERS([endian.h malloc.h sys/select.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
-AC_TYPE_SIZE_T
-AC_TYPE_OFF_T
 AC_C_INLINE
 AC_C_BIGENDIAN([words_bigendian=true
-  AC_DEFINE([WORDS_BIGENDIAN], 1, [Define if your CPU is big endian])],
+  AC_DEFINE([WORDS_BIGENDIAN], 1, [Define if your CPU is big-endian.])],
   words_bigendian=false)
 AM_CONDITIONAL(WORDS_BIGENDIAN, test x"$words_bigendian" = x"true")
-AC_C_ATTRIBUTE_ALIGNED
-AC_C_ATTRIBUTE_FORMAT
+TC_C_ATTRIBUTE_ALIGNED
+TC_C_ATTRIBUTE_FORMAT
 
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_TYPE_SIGNAL
-AC_CHECK_FUNCS([getopt_long_only getpagesize gettimeofday memmove memset strlcat strlcpy strtof vsscanf])
+AC_CHECK_FUNCS([getopt_long_only getpagesize gettimeofday strlcat strlcpy strtof vsscanf])
 AM_CONDITIONAL(HAVE_GETOPT_LONG_ONLY, test x"$have_getopt_long_only" = x"yes")
 
 dnl Large file support.
 AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO
 
-
-case "$host_os" in
-  freebsd*|openbsd*|netbsd*|bsdi*|darwin*|rhapsody*)
-     AC_DEFINE([SYS_BSD], 1, [Define if your system is modern BSD])
-     ;;
-  *)
-     ;;
-esac
-
-
-dnl check for pthreads
-dnl
+dnl Thread support (pthreads).
 case "$host" in
   *-*-freebsd*)
     pthread_cflags="-pthread -D_REENTRANT -D_THREAD_SAFE"
@@ -174,6 +161,7 @@ else
 fi
 AC_SUBST(PTHREAD_LIBS)
 AC_SUBST(PTHREAD_CFLAGS)
+
 
 dnl
 dnl Architecture specific instructions
@@ -426,34 +414,7 @@ if test x"$ld_altivec" = x"yes" ; then
 fi
 
 
-dnl
-dnl gcc stuff
-dnl
-AM_CONDITIONAL(HAVE_GCC, test x"$GCC" = x"yes")
-
-dnl Check for gcc2, which doesn't seem to handle asm templates
-dnl And check for gcc4, which also has problems with filter_tomsmocomp
-dnl
-gcc2=no
-gcc4=no
-if test x"$GCC" = x"yes" ; then
-  gcc_ver="`LANG=C $CC -dumpversion`"
-  if test x"$gcc_ver" != x"" ; then
-    if echo $gcc_ver | grep -q ^2 ; then
-      gcc2=yes
-    fi
-    if echo $gcc_ver | grep -q ^4 ; then
-      gcc4=yes
-    fi
-  fi
-fi
-AM_CONDITIONAL(HAVE_GCC2, test x"$gcc2" = x"yes")
-AM_CONDITIONAL(HAVE_GCC4, test x"$gcc4" = x"yes")
-
-
-AC_LIBTOOL_DLOPEN
-AC_PROG_LIBTOOL
-
+dnl ---------------------------------------------------------------------
 dnl
 dnl pkgconfig
 dnl
@@ -1146,7 +1107,7 @@ dnl warnings when checking whether -Werror works
 dnl
 if test x"$GCC" = x"yes" ; then
     OPT_CFLAGS="-Wall -Wstrict-prototypes -Wmissing-prototypes $CFLAGS"
-    AC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
+    TC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
 fi
 AC_ARG_ENABLE([warnings-as-errors],
     AC_HELP_STRING([--enable-warnings-as-errors], [treat warnings as errors]))
@@ -1154,7 +1115,7 @@ if test x"$enable_warnings_as_errors" = x"yes" -a x"$GCC" = x"yes" ; then
     dnl compiler warnings treated as errors
     dnl we don't care about pointer sign warnings, so disable them
     OPT_CFLAGS="-Werror -Wno-pointer-sign $CFLAGS"
-    AC_TRY_CFLAGS([$OPT_CFLAGS -Wno-strict-prototypes -Wno-missing-prototypes],[CFLAGS=$OPT_CFLAGS])
+    TC_TRY_CFLAGS([$OPT_CFLAGS -Wno-strict-prototypes -Wno-missing-prototypes],[CFLAGS=$OPT_CFLAGS])
 fi
 AC_SUBST(CFLAGS)
 

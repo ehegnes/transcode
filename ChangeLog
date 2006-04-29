@@ -1,5 +1,14 @@
 2006-04-29 Andrew Church <achurch at achurch dot org>
   * acinclude.m4 configure.in
+  Remove unused macro AC_COMPILE_CHECK_SIZEOF.
+  Rename all locally-defined AC_* tests to TC_*.
+  Move Darwin and BSD tests into new macros, TC_CHECK_{DARWIN,BSD}.
+  Remove checks for size_t, off_t, memmove(), and memset().
+  Avoid libtool's check for C++ and Fortran compilers.
+  Clean up various other things.
+
+2006-04-29 Andrew Church <achurch at achurch dot org>
+  * acinclude.m4 configure.in
   Check that the following header files are available, and abort if not:
   errno.h, fcntl.h, limits.h, stdarg.h, stddef.h, stdint.h, stdio.h,
   stdlib.h, string.h, time.h, sys/stat.h, sys/time.h, sys/types.h

@@ -1,5 +1,49 @@
+dnl TC_CHECK_DARWIN
+dnl See whether we're running on a Darwin (MacOS X) system, and set
+dnl appropriate flags if so.
+dnl
+AC_DEFUN([TC_CHECK_DARWIN], [dnl
+deflib="/lib"
+
+is_osx=false
+case "x${target_os}" in
+  xdarwin*)
+    is_osx=true
+    CFLAGS="${CFLAGS} -no-cpp-precomp -D_INTL_REDIRECT_MACROS"
+    #LDFLAGS="${LDFLAGS} -all_load"
+
+    AC_DEFINE([SYSTEM_DARWIN], 1, [Define if this is a Darwin / MacOS X system.])
+    AC_DEFINE([BROKEN_PTHREADS], 1, [Define if you have weird pthreads.])
+
+    # Include Fink in compile and link if present
+    if test -d /sw; then
+      CPPFLAGS="${CPPFLAGS} -I/sw/include"
+      LDFLAGS="${LDFLAGS} -L/sw/lib"
+    fi
+    ;;
+esac
+
+AM_CONDITIONAL([SYSTEM_DARWIN], test x"$is_osx" = x"true")])
+
+dnl -----------------------------------------------------------------------
+
+dnl TC_CHECK_BSD
+dnl Check whether this is a modern BSD system.
+dnl
+AC_DEFUN([TC_CHECK_BSD], [dnl
+case "$host_os" in
+  freebsd*|openbsd*|netbsd*|bsdi*|darwin*|rhapsody*)
+     AC_DEFINE([SYS_BSD], 1, [Define if your system is modern BSD])
+     ;;
+  *)
+     ;;
+esac])
+
+dnl -----------------------------------------------------------------------
+
 dnl TC_CHECK_STD_HEADERS
 dnl Ensure that standard headers are available, and abort if not.
+dnl
 AC_DEFUN([TC_CHECK_STD_HEADERS],
     [AC_CACHE_CHECK(for standard header files, ac_cv_header_std,
         [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <errno.h>
@@ -25,7 +69,7 @@ if test x"$ac_cv_header_std" != x"yes"; then
 See \`config.log' for more details.])
 fi
 dnl Stop autoconf from running its own standard header check.
-AC_PROVIDE(AC_HEADER_STDC)dnl
+AC_PROVIDE([AC_HEADER_STDC])dnl
 dnl Define HAVE_* macros in case anybody wants them anyway.
 AC_DEFINE([STDC_HEADERS], 1,
           [Define to 1 if you have the ANSI C header files.])
@@ -101,9 +145,10 @@ ac_includes_default="\
 
 dnl -----------------------------------------------------------------------
 
-dnl AC_C_ATTRIBUTE_ALIGNED
-dnl define ATTRIBUTE_ALIGNED_MAX to the maximum alignment if this is supported
-AC_DEFUN([AC_C_ATTRIBUTE_ALIGNED],
+dnl TC_C_ATTRIBUTE_ALIGNED
+dnl Define ATTRIBUTE_ALIGNED_MAX to the maximum alignment if this is supported.
+dnl
+AC_DEFUN([TC_C_ATTRIBUTE_ALIGNED],
     [AC_CACHE_CHECK([__attribute__ ((aligned())) support],
 	[ac_cv_c_attribute_aligned],
 	[ac_cv_c_attribute_aligned=0
@@ -117,10 +162,12 @@ AC_DEFUN([AC_C_ATTRIBUTE_ALIGNED],
 	    [$ac_cv_c_attribute_aligned],[maximum supported data alignment])
     fi])
 
+dnl -----------------------------------------------------------------------
 
-dnl AC_C_ATTRIBUTE_FORMAT
+dnl TC_C_ATTRIBUTE_FORMAT
 dnl See if __attribute__((format(...))) is available.
-AC_DEFUN([AC_C_ATTRIBUTE_FORMAT],
+dnl
+AC_DEFUN([TC_C_ATTRIBUTE_FORMAT],
     [AC_CACHE_CHECK([__attribute__ ((format())) support],
         [ac_cv_c_attribute_format],
         [AC_TRY_COMPILE([],
@@ -132,9 +179,12 @@ AC_DEFUN([AC_C_ATTRIBUTE_FORMAT],
                [Compiler understands __attribute__ ((format(...)))])
     fi])
 
-dnl AC_TRY_CFLAGS (CFLAGS, [ACTION-IF-WORKS], [ACTION-IF-FAILS])
-dnl check if $CC supports a given set of cflags
-AC_DEFUN([AC_TRY_CFLAGS],
+dnl -----------------------------------------------------------------------
+
+dnl TC_TRY_CFLAGS (CFLAGS, [ACTION-IF-WORKS], [ACTION-IF-FAILS])
+dnl Check if $CC supports a given set of CFLAGS.
+
+AC_DEFUN([TC_TRY_CFLAGS],
     [AC_MSG_CHECKING([if $CC supports $1 flags])
     SAVE_CFLAGS="$CFLAGS"
     CFLAGS="$1"
@@ -147,16 +197,7 @@ AC_DEFUN([AC_TRY_CFLAGS],
 	ifelse([$3],[],[:],[$3])
     fi])
 
-
-dnl AC_COMPILE_CHECK_SIZEOF (TYPE SUPPOSED-SIZE)
-dnl abort if the given type does not have the supposed size
-AC_DEFUN([AC_COMPILE_CHECK_SIZEOF],
-    [AC_MSG_CHECKING(that size of $1 is $2)
-    AC_TRY_COMPILE([],[switch (0) case 0: case (sizeof ($1) == $2):;],[],
-	[AC_MSG_ERROR([can not build a default inttypes.h])])
-    AC_MSG_RESULT([yes])])
-
-
+dnl -----------------------------------------------------------------------
 
 dnl TC_CHECK_V4L([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for video4linux headers, and define HAVE_STRUCT_V4L2_BUFFER
@@ -205,6 +246,7 @@ buffer.memory = V4L2_MEMORY_MMAP
 fi
 ])
 
+dnl -----------------------------------------------------------------------
 
 dnl TC_CHECK_BKTR([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for bktr headers
@@ -242,6 +284,7 @@ if test x"$enable_bktr" = x"yes" ; then
 fi
 ])
 
+dnl -----------------------------------------------------------------------
 
 dnl TC_CHECK_SUNAU([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for sunau headers
@@ -273,6 +316,7 @@ if test x"$enable_sunau" = x"yes" ; then
 fi
 ])
 
+dnl -----------------------------------------------------------------------
 
 dnl TC_CHECK_OSS([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for OSS headers
@@ -307,6 +351,7 @@ if test x"$enable_oss" = x"yes" ; then
 fi
 ])
 
+dnl -----------------------------------------------------------------------
 
 dnl TC_PATH_IBP([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for ibp libraries, and define IBP_LIBS
@@ -413,7 +458,8 @@ fi
 AC_SUBST([IBP_LIBS])
 ])
 
-
+dnl -----------------------------------------------------------------------
+dnl -----------------------------------------------------------------------
 
 dnl TC_PKG_CHECK(pkg-name, def-enabled, var-name, pkgconfig-name, conf-script,
 dnl     header, lib, symbol)
@@ -600,6 +646,7 @@ else
 fi
 ])
 
+dnl -----------------------------------------------------------------------
 
 dnl TC_PKG_ERROR(name, object, req-enable, pkg, url, [error message])
 dnl
@@ -623,6 +670,7 @@ $2 can be found in the following packages:
 EOF
 ])
 
+dnl -----------------------------------------------------------------------
 
 dnl TC_PKG_INIT(rptfile, errfile)
 dnl
@@ -643,6 +691,7 @@ fi
 echo -n > $tc_pkg_err_file
 ])
 
+dnl -----------------------------------------------------------------------
 
 dnl TC_PKG_HAVE(pkg, PKG)
 dnl
@@ -662,6 +711,7 @@ else
 fi
 ])
 
+dnl -----------------------------------------------------------------------
 
 dnl TC_PKG_REPORT()
 dnl
