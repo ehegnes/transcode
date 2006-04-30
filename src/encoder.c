@@ -128,13 +128,13 @@ static int is_last_frame(TCEncoderData *encdata, int cluster_mode)
 
 int export_init(TCEncoderBuffer *buffer, TCFactory factory)
 {
-    if (!buffer) {
+    if (buffer == NULL) {
         tc_log_error(__FILE__, "missing encoder buffer reference");
         return 1;
     }
     encdata.buffer = buffer;
 
-    if (!factory) {
+    if (factory == NULL) {
         tc_log_error(__FILE__, "missing factory reference");
         return 1;
     }
@@ -148,7 +148,7 @@ int export_setup(vob_t *vob,
     int match = 0;
     const char *mod_name = NULL;
 
-    if (verbose & TC_DEBUG) {
+    if (verbose >= TC_DEBUG) {
         tc_log_info(__FILE__, "loading export modules");
     }
 
@@ -197,7 +197,7 @@ int export_setup(vob_t *vob,
 
 void export_shutdown(void)
 {
-    if (verbose & TC_DEBUG) {
+    if (verbose >= TC_DEBUG) {
         tc_log_info(__FILE__, "unloading export modules");
     }
 
@@ -275,7 +275,7 @@ int encoder_close(void)
         return -1;
     }
 
-    if(verbose & TC_DEBUG) {
+    if(verbose >= TC_DEBUG) {
         tc_log_info(__FILE__, "encoder closed");
     }
     return 0;
@@ -304,7 +304,7 @@ int encoder_stop(void)
         return -1;
     }
 
-    if(verbose & TC_DEBUG) {
+    if(verbose >= TC_DEBUG) {
         tc_log_info(__FILE__, "encoder stopped");
     }
     return 0;
@@ -409,7 +409,7 @@ static int encoder_export(TCEncoderData *data, vob_t *vob)
         data->error_flag = 1;
     }
 
-    if (verbose & TC_INFO) {
+    if (verbose >= TC_INFO) {
         int last = (data->frame_last == TC_FRAME_LAST) ?(-1) :data->frame_last;
         if (!data->fill_flag) {
             data->fill_flag = 1;
@@ -742,7 +742,7 @@ static int encoder_export(TCEncoderData *data, vob_t *vob)
  */
 static void encoder_skip(TCEncoderData *data)
 {
-    if (verbose & TC_INFO) {
+    if (verbose >= TC_INFO) {
         if (!data->fill_flag) {
             data->fill_flag = 1;
         }
@@ -781,7 +781,7 @@ void encoder_loop(vob_t *vob, int frame_first, int frame_last)
     do {
         /* check for ^C signal */
         if (tc_export_stop_requested()) {
-            if (verbose & TC_DEBUG) {
+            if (verbose >= TC_DEBUG) {
                 tc_log_warn(__FILE__, "export canceled on user request");
             }
             return;
@@ -838,7 +838,7 @@ void encoder_loop(vob_t *vob, int frame_first, int frame_last)
 
     free_buffers(&encdata);
 
-    if (verbose & TC_DEBUG) {
+    if (verbose >= TC_DEBUG) {
         tc_log_info(__FILE__, "export terminated - buffer(s) empty");
     }
 }

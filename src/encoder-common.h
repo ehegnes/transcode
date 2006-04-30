@@ -1,5 +1,5 @@
 /*
- *  encoder-common.h
+ *  encoder-common.h - miscelanous asynchronous encoder functions.
  *
  *  Copyright (C) Thomas Östreich - June 2001
  *  Updated and partially rewritten by
@@ -23,8 +23,13 @@
  *
  */
 
-#ifndef _ENCODER_COMMON_H
-#define _ENCODER_COMMON_H
+#ifndef ENCODER_COMMON_H
+#define ENCODER_COMMON_H
+
+/*
+ * MULTITHREADING NOTE:
+ * It is *GUARANTEED SAFE* to call those functions from different threads.
+ */
 
 /*
  * tc_get_frames_{dropped,skipped,encoded,cloned,skipped_cloned}:
@@ -95,4 +100,4 @@ void tc_export_stop_nolock(void);
  */
 int tc_export_stop_requested(void);
 
-#endif
+#endif /* ENCODER_COMMON_H */

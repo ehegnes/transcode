@@ -1,4 +1,10 @@
 2006-04-30 Francesco Romani <fromani at gmail dot com>
+  * src/encoder-common.h src/encoder.h
+  Documentation update.
+
+  * src/encoder.c
+  review handling of verbose setting.
+
   * libtc/libtc.h
   add a note suggesting when to use tc_log_* and when *printf*.
 

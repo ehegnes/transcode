@@ -1,5 +1,5 @@
 /*
- *  encoder.h
+ *  encoder.h - interface for the main encoder loop in transcode
  *
  *  Copyright (C) Thomas Östreich - June 2001
  *  Updated and partially rewritten by
@@ -23,8 +23,8 @@
  *
  */
 
-#ifndef _ENCODER_H
-#define _ENCODER_H
+#ifndef ENCODER_H
+#define ENCODER_H
 
 #include "transcode.h"
 #include "framebuffer.h"
@@ -32,6 +32,31 @@
 #include "libtc/tcmodule-core.h"
 #include "encoder-common.h"
 
+/*
+ * MULTITHREADING WARNING:
+ * It is in general *NOT SAFE* to call functions declared on this header from
+ * different threads. See comments below.
+ */
+
+/*
+ * A TCEncoderBuffer structre, alog with it's operations, incapsulate
+ * the actions needed by encoder to acquire and dispose a single A/V frame
+ * to encode.
+ *
+ * Main purpose of this structure is to help to modularize and cleanup
+ * encoder core code. Unfortunately, a propoer cleanup and refactoring isn't
+ * fully possible without heavily reviewing transcode's inner frame buffering
+ * and frame handling, but this task is really critical and should planned
+ * really carefully.
+ *
+ * The need of TCEncoderBuffer also emerges given the actual frame buffer
+ * handling. TCEncoderBuffer operations take care of hide the most part
+ * of nasty stuff needed by current structure (see comments in
+ * encoder-buffer.c).
+ *
+ * A proper reorganization of frame handling core code will GREATLY shrink,
+ * or even make completely unuseful, the whole TCEncoderBuffer machinery.
+ */
 typedef struct tcencoderbuffer_ TCEncoderBuffer;
 struct tcencoderbuffer_ {
     int frame_id; /* current frame identifier (both for A and V, yet) */
@@ -51,15 +76,174 @@ struct tcencoderbuffer_ {
 /* default main transcode buffer */
 extern TCEncoderBuffer *tc_ringbuffer;
 
+/*
+ * helper routines. Client code needs to call those routines before
+ * (export_init/export_setup) or after (export_shutdown)
+ * all the others.
+ */
+
+/*
+ * export_init:
+ *      select a TCEncoderBuffer and a TCFactory to use for further
+ *      operations. Both buffer and factory will be used until a new
+ *      call to export_init occurs.
+ *      PLEASE NOTE: there NOT are sensible defaults, so client
+ *      cose NEEDS to call this function as first one in code using
+ *      encoder.
+ *
+ * Parameters:
+ *      buffer: TCEncoderBuffer to use in future encoding loops.
+ *     factory: TCFactory to use for future module (un)loading.
+ * Return Value:
+ *       0: succesfull
+ *      !0: given one or more bad (NULL) value(s).
+ */
 int export_init(TCEncoderBuffer *buffer, TCFactory factory);
+
+/*
+ * export_setup:
+ *      load export modules (encoders and multiplexor) using Module Factory
+ *      selected via export_init, checking if loaded modules are
+ *      compatible with requested audio/video codec, and prepare for
+ *      real encoding.
+ *
+ * Parameters:
+ *     vob: pointer to vob_t.
+ *          export_setup need to fetch from a vob structure some informations
+ *          needed by proper loading (es: module path).
+ *   a_mod: name of audio encoder module to load.
+ *   v_mod: name of video encoder module to load.
+ *   m_mod: name of multiplexor module to load.
+ * Return Value:
+ *      0: succesfull
+ *     <0: failure: failed to load one or more requested modules,
+ *         *OR* there is at least one incompatibility between requested
+ *         modules and requested codecs.
+ *         (i.e. audio encoder module VS requested audio codec)
+ *         (i.e. video encoder module VS multiplexor module)
+ * Preconditions:
+ *      Module Factory avalaible and selected using export_init.
+ */
 int export_setup(vob_t *vob,
-		 const char *a_mod, const char *v_mod, const char *m_mod);
+                 const char *a_mod, const char *v_mod, const char *m_mod);
+
+
+/*
+ * export_shutdown:
+ *      revert operations done by export_setup, unloading encoder and
+ *      multiplexor modules.
+ *
+ * Parameters:
+ *      None.
+ * Return Value:
+ *      None.
+ * Preconditions:
+ *      export_setup() was previously called. To call this function if
+ *      export_setup() wasn't called will cause undefined behaviour.
+ */
 void export_shutdown(void);
 
+/*
+ * main encoder API.
+ *
+ * There isn't explicit reference to encoder data structure,
+ * so there always be one and only one global hidden encoder instance.
+ * In current (and in the prevedible future) doesn't make sense to
+ * have more than one encoder, so it's instance is global, hidden, implicit.
+ *
+ * PLEASE NOTE:
+ * current encoder does not _explicitely_ use more than one thread.
+ * This means that audio and video encoding, as well as multiplexing, happens
+ * sequentially on the same (and unique) encoder thread.
+ * It's definitively possible (and already happens) that real encoder code loaded
+ * by modules uses internally more than one thread, but this is completely opaque
+ * to encoder.
+ */
+
+/*
+ * encoder_init:
+ *     initialize the A/V encoders, by (re)configuring encoder modules.
+ *
+ * Parameters:
+ *     vob: pointer to vob_t.
+ *          encoder_init need to fetch from a vob structure some informations
+ *          needed by it's inizalitation.
+ * Return Value:
+ *     -1: error configuring modules. Reason of error will be notified
+ *         via tc_log*().
+ *      0: succesfull.
+ */
 int encoder_init(vob_t *vob);
-void encoder_loop(vob_t *vob, int frame_first, int frame_last);
-int encoder_stop(void);
+
+/*
+ * encoder_open:
+ *     open output file(s), by (re)configuring multiplexor module.
+ *
+ * Parameters:
+ *     vob: pointer to vob_t.
+ *          encoder_open need to fetch from a vob structure some informations
+ *          needed by it's inizalitation.
+ * Return Value:
+ *     -1: error configuring module(s) or opening file(s). Reason of error will be
+ *         notified via tc_log*().
+ *      0: succesfull.
+ */
 int encoder_open(vob_t *vob);
+
+/*
+ * encoder_loop:
+ *      encodes a range of frames from stream(s) using given settings.
+ *      This is the main and inner encoding loop.
+ *      Encoding usually halts with last frame in range is encountered, but
+ *      it can also stop if some error happens when acquiring new frames,
+ *      or, of course, if there is an asynchronous stop request
+ *      (see tc_export_stop_nolock()).
+ *      Please note that FIRST frame in given range will be encoded, but
+ *      LAST frame in given range will NOT.
+ *
+ * Parameters:
+ *         vob: pointer to a vob_t structure holding both informations about
+ *              input streams and settings for output streams
+ *              (i.e.: bitrate, GOP size...).
+ * frame_first: sequence number of first frame in range to encode.
+ *              All frames before this one will be acquired via
+ *              TCEncoderBuffer routines, but will also be discarded.
+ *  frame_last: sequence number of last frame in range to encode.
+ *              *encoding halts when this frame is acquired*, so this
+ *              frame will NOT encoded.
+ * Return Value:
+ *      None.
+ * Preconditions:
+ *      encoder properly initialized. This means:
+ *      export_init() called succesfully;
+ *      export_setup() called succesfully;
+ *      encoder_init() called succesfully;
+ *      encoder_open() called succesfully;
+ */
+void encoder_loop(vob_t *vob, int frame_first, int frame_last);
+
+/*
+ * encoder_stop:
+ *      stop both the audio and the video encoders.
+ *
+ * Parameters:
+ *      None.
+ * Return Value:
+ *      0: succesfull.
+ *     <0: failure, reason will be notified via tc_log*().
+ */
+int encoder_stop(void);
+
+/*
+ * encoder_close:
+ *      stop multiplexor and close output file.
+ *
+ * Parameters:
+ *      None.
+ * Return Value:
+ *      0: succesfull.
+ *     <0: failure, reason will be notified via tc_log*().
+ */
 int encoder_close(void);
 
-#endif
+#endif /* ENCODER_H */
