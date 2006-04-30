@@ -1,6 +1,7 @@
-2006-04-29 Andrew Church <achurch at achurch dot org>
+2006-04-30 Andrew Church <achurch at achurch dot org>
   * src/tcprobe.c
-  Fix an uninitialized string buffer bug causing output corruption.
+  Fix a typo causing binary output corruption, and an uninitialized string
+  buffer bug causing text output corruption.
 
 2006-04-30 Francesco Romani <fromani at gmail dot com>
   * src/encoder-common.h src/encoder.h

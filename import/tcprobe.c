@@ -293,7 +293,7 @@ static void dump_info_binary(info_t *ipipe)
 {
     pid_t pid = getpid();
     tc_pwrite(STDOUT_FILENO, (uint8_t *) &pid, sizeof(pid_t));
-    tc_pwrite(STDOUT_FILENO, (uint8_t *) &ipipe->probe_info,
+    tc_pwrite(STDOUT_FILENO, (uint8_t *) ipipe->probe_info,
               sizeof(ProbeInfo));
 }
 
