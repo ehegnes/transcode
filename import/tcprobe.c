@@ -328,6 +328,8 @@ static void dump_info_user(info_t *ipipe)
     char extrabuf[TC_BUF_MIN];
     int extrabuf_ready = TC_FALSE;
 
+    *extrabuf = 0;
+
     printf("summary for %s, %s = not default, 0 = not detected\n",
            ((ipipe->magic == TC_STYPE_STDIN) ?"-" :ipipe->name),
            PROBED_NEW);
