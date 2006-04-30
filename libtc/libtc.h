@@ -105,6 +105,16 @@ __attribute__((format(printf,3,4)))
 #endif
 ;
 
+/* 
+ * When to use tc_log*() stuff?
+ *
+ * tc_log() family should be used for non-output status messages, like
+ * the ones coming from the various modules and components of transcode.
+ * For actual output use printf() (or fprintf(), etc.) as appropriate.
+ * (yes, this means that transcode prints a lot of status and a very
+ * few output messages).
+ */
+
 /* compatibility macros */
 #define tc_error(format, args...) do { \
     tc_log(TC_LOG_ERR, PACKAGE, format , ## args); \

@@ -1,3 +1,14 @@
+2006-04-30 Francesco Romani <fromani at gmail dot com>
+  * libtc/libtc.h
+  add a note suggesting when to use tc_log_* and when *printf*.
+
+  * libtc/tccodecs.c
+  add informations for generic MPEG format to make tcprobe happier.
+
+  * import/tcprobe.c
+  tc_log_* -> printf() for real output.
+  print informations for all probed audio tracks when using -R.
+
 2006-04-29 Andrew Church <achurch at achurch dot org>
   * acinclude.m4 configure.in
   Remove unused macro AC_COMPILE_CHECK_SIZEOF.

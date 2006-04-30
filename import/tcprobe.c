@@ -83,26 +83,26 @@ static void enc_bitrate(long frames, double fps, int abitrate, double discsize)
     audiosize = (double)abitrate/8 * time;
 
     /* Print basic source information */
-    tc_log_msg(EXE, "V: %ld frames, %ld sec @ %.3f fps",
-               frames, time, fps);
-    tc_log_msg(EXE, "A: %.2f MB @ %d kbps",
-               audiosize/(1024*1024), abitrate/1000);
+    printf("V: %ld frames, %ld sec @ %.3f fps\n",
+           frames, time, fps);
+    printf("A: %.2f MB @ %d kbps\n",
+           audiosize/(1024*1024), abitrate/1000);
 
     /* Print recommended bitrates for user-specified or default disc sizes */
     if (discsize) {
         videosize = discsize - audiosize;
         vbitrate = videosize / time;
-        tc_log_msg(EXE, "USER CDSIZE: %4d MB | V: %6.1f MB @ %.1f kbps",
-                   (int)floor(discsize/(1024*1024)), videosize/(1024*1024),
-                   vbitrate);
+        printf("USER CDSIZE: %4d MB | V: %6.1f MB @ %.1f kbps\n",
+               (int)floor(discsize/(1024*1024)), videosize/(1024*1024),
+               vbitrate);
     } else {
         int i;
         for (i = 0; i < sizeof(defsize) / sizeof(*defsize); i++) {
             videosize = defsize[i] - audiosize;
             vbitrate = videosize / time;
-            tc_log_msg(EXE, "USER CDSIZE: %4d MB | V: %6.1f MB @ %.1f kbps",
-                       (int)floor(discsize/(1024*1024)), videosize/(1024*1024),
-                       vbitrate);
+            printf("USER CDSIZE: %4d MB | V: %6.1f MB @ %.1f kbps\n",
+                   (int)floor(discsize/(1024*1024)), videosize/(1024*1024),
+                   vbitrate);
         }
     }
 }
@@ -328,18 +328,18 @@ static void dump_info_user(info_t *ipipe)
     char extrabuf[TC_BUF_MIN];
     int extrabuf_ready = TC_FALSE;
 
-    tc_log_msg(EXE, "summary for %s, %s = not default, 0 = not detected",
-               ((ipipe->magic == TC_STYPE_STDIN) ?"-" :ipipe->name),
-               PROBED_NEW);
+    printf("summary for %s, %s = not default, 0 = not detected\n",
+           ((ipipe->magic == TC_STYPE_STDIN) ?"-" :ipipe->name),
+           PROBED_NEW);
 
     if (ipipe->probe_info->width != PAL_W
      || ipipe->probe_info->height != PAL_H) {
         is_std = TC_FALSE;
     }
 
-    tc_log_msg(EXE, "%18s %s", "stream type:", filetype(ipipe->magic));
-    tc_log_msg(EXE, "%18s %s", "video format:",
-               tc_codec_to_string(ipipe->probe_info->codec));
+    printf("%18s %s\n", "stream type:", filetype(ipipe->magic));
+    printf("%18s %s\n", "video format:",
+           tc_codec_to_string(ipipe->probe_info->codec));
 
     /* video first. */
     if (ipipe->probe_info->width > 0 && ipipe->probe_info->height > 0) {
@@ -347,25 +347,25 @@ static void dump_info_user(info_t *ipipe)
 
         extrabuf_ready = TC_FALSE;
 
-        tc_log_msg(EXE, "%18s %dx%d [%dx%d] (-g) %s",
-                   "import frame size:",
-                   ipipe->probe_info->width, ipipe->probe_info->height,
-                   PAL_W, PAL_H, MARK_EXPECTED(is_std));
+        printf("%18s %dx%d [%dx%d] (-g) %s\n",
+               "import frame size:",
+               ipipe->probe_info->width, ipipe->probe_info->height,
+               PAL_W, PAL_H, MARK_EXPECTED(is_std));
 
         tc_asr_code_to_ratio(ipipe->probe_info->asr, &n, &d);
-        tc_log_msg(EXE, "%18s %i:%i asr=%i (--import_asr) %s",
-                   "aspect ratio:",
-                   n, d, ipipe->probe_info->asr,
-                   CHECK_MARK_EXPECTED(ipipe->probe_info->asr, 1));
+        printf("%18s %i:%i asr=%i (--import_asr) %s\n",
+               "aspect ratio:",
+               n, d, ipipe->probe_info->asr,
+               CHECK_MARK_EXPECTED(ipipe->probe_info->asr, 1));
 
 
         frame_time = (ipipe->probe_info->fps != 0) ?
                      (long)(1. / ipipe->probe_info->fps * 1000) : 0;
 
-        tc_log_msg(EXE, "%18s %.3f [%.3f] frc=%d (-f) %s",
-                   "frame rate:",
-                   ipipe->probe_info->fps, PAL_FPS, ipipe->probe_info->frc,
-                   CHECK_MARK_EXPECTED(ipipe->probe_info->frc, 3));
+        printf("%18s %.3f [%.3f] frc=%d (-f) %s\n",
+               "frame rate:",
+               ipipe->probe_info->fps, PAL_FPS, ipipe->probe_info->frc,
+               CHECK_MARK_EXPECTED(ipipe->probe_info->frc, 3));
 
         /* video track extra info */
         if (ipipe->probe_info->pts_start) {
@@ -383,7 +383,7 @@ static void dump_info_user(info_t *ipipe)
             extrabuf_ready = TC_TRUE;
         }
         if (extrabuf_ready) {
-            tc_log_msg(EXE, extrabuf);
+            printf("%s\n", extrabuf);
         }
     }
 
@@ -405,19 +405,19 @@ static void dump_info_user(info_t *ipipe)
                 is_std = TC_TRUE;
             }
 
-            tc_log_msg(EXE, "%18s id=%i [0] (-a) format=0x%x [0x%x] (-n) %s",
-                       "audio track:",
-                       ipipe->probe_info->track[n].tid,
-                       ipipe->probe_info->track[n].format,
-                       CODEC_AC3,
-                       MARK_EXPECTED(is_std));
-            tc_log_msg(EXE, "%18s rate,bits,channels=%d,%d,%d "
-                            "[%d,%d,%d] (-e)",
-                       "", /* empty string to have a nice justification */
-                       ipipe->probe_info->track[n].samplerate,
-                       ipipe->probe_info->track[n].bits,
-                       ipipe->probe_info->track[n].chan,
-                       RATE, BITS, CHANNELS);
+            printf("%18s id=%i [0] (-a) format=0x%x [0x%x] (-n) %s\n",
+                   "audio track:",
+                   ipipe->probe_info->track[n].tid,
+                   ipipe->probe_info->track[n].format,
+                   CODEC_AC3,
+                   MARK_EXPECTED(is_std));
+            printf("%18s rate,bits,channels=%d,%d,%d "
+                   "[%d,%d,%d] (-e)\n",
+                   "", /* empty string to have a nice justification */
+                   ipipe->probe_info->track[n].samplerate,
+                   ipipe->probe_info->track[n].bits,
+                   ipipe->probe_info->track[n].chan,
+                   RATE, BITS, CHANNELS);
 
             /* audio track extra info */
             if (ipipe->probe_info->track[n].pts_start) {
@@ -433,9 +433,9 @@ static void dump_info_user(info_t *ipipe)
                 extrabuf_ready = TC_TRUE;
             }
             if (extrabuf_ready) {
-                tc_log_msg(EXE, "%18s %s",
-                                "", /* empty string for a nice justification */
-                                extrabuf);
+                printf("%18s %s\n",
+                       "", /* empty string for a nice justification */
+                       extrabuf);
             }
 
             /* audio track A/V sync suggestion */
@@ -447,10 +447,10 @@ static void dump_info_user(info_t *ipipe)
                 D_arg = (int)(pts_diff * ipipe->probe_info->fps);
                 D_arg_ms = (int)((pts_diff - D_arg/ipipe->probe_info->fps)*1000);
 
-                tc_log_msg(EXE, "%18s audio delay: %i frames/%i ms "
-                                "(-D/--av_fine_ms) [0/0]",
-                           "", /* empty string for nice justification */
-                           D_arg, D_arg_ms);
+                printf("%18s audio delay: %i frames/%i ms "
+                       "(-D/--av_fine_ms) [0/0]\n",
+                       "", /* empty string for nice justification */
+                       D_arg, D_arg_ms);
             }
         }
         /* have subtitles here? */
@@ -461,17 +461,16 @@ static void dump_info_user(info_t *ipipe)
 
     /* no audio */
     if (ipipe->probe_info->num_tracks == 0) {
-        tc_log_msg(EXE, "%18s %s", "no audio track:",
-                  "(use \"null\" import module for audio)");
+        printf("%18s %s", "no audio track:",
+               "(use \"null\" import module for audio)\n");
     }
-
     if (nsubs > 0) {
-        tc_log_msg(EXE, "detected (%d) subtitle(s)", nsubs);
+        printf("detected (%d) subtitle(s)\n", nsubs);
     }
 
     /* P-units */
     if (ipipe->probe_info->unit_cnt) {
-        tc_log_msg(EXE, "detected (%d) presentation unit(s) (SCR reset)",
+        printf("detected (%d) presentation unit(s) (SCR reset)\n",
                     ipipe->probe_info->unit_cnt+1);
     }
 
@@ -494,11 +493,49 @@ static void dump_info_user(info_t *ipipe)
             dur_min = (dur_ms %= 3600000)/60000;
             dur_s = (dur_ms %= 60000)/1000;
             dur_ms %= 1000;
-            tc_log_msg(EXE, "%18s %ld frames, frame_time=%ld msec,"
-                             " duration=%u:%02u:%02u.%03lu",
-                             "length:",
-                             ipipe->probe_info->frames, frame_time,
-                             dur_h, dur_min, dur_s, dur_ms);
+            printf("%18s %ld frames, frame_time=%ld msec,"
+                        " duration=%u:%02u:%02u.%03lu\n",
+                   "length:",
+                   ipipe->probe_info->frames, frame_time,
+                   dur_h, dur_min, dur_s, dur_ms);
+        }
+    }
+}
+
+/*
+ * dump_track_info_raw:
+ *
+ *      dump a ProbeTrackInfo structure in a human-readable but machine-friendly
+ *      format, resembling, or identical where feasible, the mplayer -identify
+ *      output.
+ *      Print one field at line, in the format KEY=value.
+ *
+ * Parameters:
+ *      tracks: pointer to ProbeTrackInfo array to be dumped
+ *           i: dump only the i-th structure on array.
+ * Return Value:
+ *      None
+ */
+static void dump_track_info_raw(ProbeTrackInfo *ti, int i)
+{
+    if (ti != NULL && i >= 0) { /* paranoia */
+        const char *ext = "";
+        /* extension to identifiers for non-zero (not first) track */
+        char ext_buf[24];
+        
+        if (i > 0) {
+            tc_snprintf(ext_buf, sizeof(ext_buf), "_%i", i);
+            ext = ext_buf;
+        }
+        
+        if (ti[i].format != 0 && ti[i].chan > 0) {
+            printf("ID_AUDIO_CODEC%s=%s\n", ext,
+                   tc_codec_to_string(ti[i].format));
+            printf("ID_AUDIO_FORMAT%s=%i\n", ext, ti[i].format);
+            printf("ID_AUDIO_BITRATE%s=%i\n", ext, ti[i].bitrate);
+            printf("ID_AUDIO_RATE%s=%i\n", ext, ti[i].samplerate);
+            printf("ID_AUDIO_NCH%s=%i\n", ext, ti[i].chan);
+            printf("ID_AUDIO_BITS%s=%i\n", ext, ti[i].bits);
         }
     }
 }
@@ -518,11 +555,14 @@ static void dump_info_user(info_t *ipipe)
  */
 static void dump_info_raw(info_t *ipipe)
 {
+    int i;
     double duration = 0.0; /* seconds */
 
+    /* general information */
     printf("ID_FILENAME=\"%s\"\n", ipipe->name);
     printf("ID_FILETYPE=\"%s\"\n", filetype(ipipe->magic));
 
+    /* video track, only the first */
     printf("ID_VIDEO_WIDTH=%i\n", ipipe->probe_info->width);
     printf("ID_VIDEO_HEIGHT=%i\n", ipipe->probe_info->height);
     printf("ID_VIDEO_FPS=%.3f\n", ipipe->probe_info->fps);
@@ -532,18 +572,16 @@ static void dump_info_raw(info_t *ipipe)
               tc_codec_to_string(ipipe->probe_info->codec));
     printf("ID_VIDEO_BITRATE=%li\n", ipipe->probe_info->bitrate);
 
-    /* only the first audio track, now */
-    printf("ID_AUDIO_CODEC=%s\n",
-               tc_codec_to_string(ipipe->probe_info->track[0].format));
-    printf("ID_AUDIO_FORMAT=%i\n", ipipe->probe_info->track[0].format);
-    printf("ID_AUDIO_BITRATE=%i\n", ipipe->probe_info->track[0].bitrate);
-    printf("ID_AUDIO_RATE=%i\n", ipipe->probe_info->track[0].samplerate);
-    printf("ID_AUDIO_NCH=%i\n", ipipe->probe_info->track[0].chan);
-    printf("ID_AUDIO_BITS=%i\n", ipipe->probe_info->track[0].bits);
+    /* audio stuff */
+    for (i = 0; i < TC_MAX_AUD_TRACKS; i++) {
+        dump_track_info_raw(ipipe->probe_info->track, i);
+    }
+   
     if (ipipe->probe_info->fps != 0.0) {
         /* seconds */
         duration = ((double)ipipe->probe_info->frames/ipipe->probe_info->fps);
     }
+    /* general information, reprise */
     printf("ID_LENGTH=%.2f\n", duration);
 }
 
@@ -558,9 +596,8 @@ static void dump_info_raw(info_t *ipipe)
 void version(void)
 {
     /* print id string to stderr */
-    tc_log_info(EXE, "%s (%s v%s) (C) 2001-2006 "
-                     "Thomas Oestreich, Transcode team",
-                EXE, PACKAGE, VERSION);
+    printf("%s (%s v%s) (C) 2001-2006 Thomas Oestreich, Transcode team\n",
+           EXE, PACKAGE, VERSION);
 }
 
 
@@ -568,23 +605,22 @@ static void usage(int status)
 {
     version();
 
-    tc_log_info(EXE, "Usage: %s [options] [-]", EXE);
-    tc_log_msg(EXE, "    -i name        input file/directory/device/host"
-                    " name [stdin]");
-    tc_log_msg(EXE, "    -B             binary output to stdout"
-                    " (used by transcode) [off]");
-    tc_log_msg(EXE, "    -M             use EXPERIMENTAL"
-                    " mplayer probe [off]");
-    tc_log_msg(EXE, "    -R             raw mode: produce machine-friendly "
-                    "output [off]");
-    tc_log_msg(EXE, "    -H n           probe n MB of stream [1]");
-    tc_log_msg(EXE, "    -s n           skip first n bytes of stream [0]");
-    tc_log_msg(EXE, "    -T title       probe for DVD title [off]");
-    tc_log_msg(EXE, "    -b bitrate     audio encoder bitrate kBits/s [%d]",
-               ABITRATE);
-    tc_log_msg(EXE, "    -f seekfile    seek/index file [off]");
-    tc_log_msg(EXE, "    -d verbosity   verbosity mode [1]");
-    tc_log_msg(EXE, "    -v             print version");
+    printf("Usage: %s [options] [-]\n", EXE);
+    printf("    -i name        input file/directory/device/host"
+                    " name [stdin]\n");
+    printf("    -B             binary output to stdout"
+           " (used by transcode) [off]\n");
+    printf("    -M             use EXPERIMENTAL mplayer probe [off]\n");
+    printf("    -R             raw mode: produce machine-friendly"
+           " output [off]\n");
+    printf("    -H n           probe n MB of stream [1]\n");
+    printf("    -s n           skip first n bytes of stream [0]\n");
+    printf("    -T title       probe for DVD title [off]\n");
+    printf("    -b bitrate     audio encoder bitrate kBits/s [%d]\n",
+           ABITRATE);
+    printf("    -f seekfile    seek/index file [off]\n");
+    printf("    -d verbosity   verbosity mode [1]\n");
+    printf("    -v             print version\n");
 
     exit(status);
 }
