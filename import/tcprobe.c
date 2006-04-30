@@ -310,7 +310,7 @@ static void dump_info_binary(info_t *ipipe)
         (((val) == (probed)) ?(PROBED_STD) :(PROBED_NEW))
 
 /*
- * dump_info_binary:
+ * dump_info_user:
  *
  *      dump a ProbeInfo structure in a human-readable, slightly modifed
  *      from standard pre-1,1,0 format.
