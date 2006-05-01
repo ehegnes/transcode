@@ -272,7 +272,7 @@ MOD_init {
         is_mjpeg = 1;
 
         if((handle = plugin_get_handle("levels=input=16-240") == -1))
-            tc_log_warn(MOD_NAME, "cannot load levels filtern");
+            tc_log_warn(MOD_NAME, "cannot load levels filter");
     }
 
     free(user_codec_string);
