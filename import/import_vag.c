@@ -48,7 +48,7 @@ static void do_decode(const uint8_t *inbuf, int16_t *outbuf, int chan,
 /*************************************************************************/
 /*************************************************************************/
 
-/* Module routines and data. */
+/* Module interface routines and data. */
 
 /*************************************************************************/
 
@@ -170,7 +170,7 @@ static const char *vag_inspect(TCModuleInstance *self,
                 "Options available:\n"
                 "    blocksize=N   Set stereo blocking size (16-%d, default %d)\n",
                 MAX_STEREO_BLOCK, DEF_STEREO_BLOCK);
-        return buf;;
+        return buf;
     }
     if (optstr_lookup(param, "blocksize")) {
         tc_snprintf(buf, sizeof(buf), "%d", pd->blocksize);
