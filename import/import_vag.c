@@ -215,7 +215,7 @@ extern const TCModuleClass *tc_plugin_setup(void)
 /*************************************************************************/
 
 /**
- * vag_decode():  Decode a frame of data.  See tcmodule-data.h for function
+ * vag_decode:  Decode a frame of data.  See tcmodule-data.h for function
  * details.
  */
 
