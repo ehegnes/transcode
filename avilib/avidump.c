@@ -40,10 +40,6 @@
 #include <fcntl.h>
 #include "libtc/xio.h"
 
-#if defined(SYS_UNIX) || defined(COMP_MSC) || defined(SYS_APPLE)
-#define lseek64 lseek
-#endif
-
 //#define AVI_DEBUG
 
 #ifdef HAVE_ENDIAN_H
@@ -840,11 +836,7 @@ int AVI_scan(const char *file_name)
 
     DWORD  chunksize;    /* size of the RIFF chunk data */
 
-#if defined(SYS_WINDOWS)
-    if (!(fd=open(file_name, O_RDONLY|O_BINARY))) {
-#else
     if (!(fd=xio_open(file_name, O_RDONLY))) {
-#endif
 	printf("\n\n *** Error opening file %s. Program aborted!\n",
 	       file_name);
 	return(1);
@@ -879,11 +871,7 @@ int AVI_dump(const char *file_name, int mode)
 
     DWORD  chunksize;    /* size of the RIFF chunk data */
 
-#if defined(SYS_WINDOWS)
-    if (!(fd=open(file_name,O_RDONLY|O_BINARY))) return(1);
-#else
     if (!(fd=xio_open(file_name,O_RDONLY))) return(1);
-#endif
 
     filesize = xio_lseek(fd, 0, SEEK_END);
     xio_lseek(fd, 0, SEEK_SET);

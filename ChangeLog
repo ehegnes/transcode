@@ -1,3 +1,7 @@
+2006-05-02 Andrew Church <achurch at achurch dot org>
+  * avilib/avidump.c avilib/avilib.c avilib/os.h
+  Remove checks for Windows, as none of the rest of the code has any.
+
 2006-05-01 Andrew Church <achurch at achurch dot org>
   * libtcvideo/libtcvideo.c libtcvideo/libtcvideo.h src/video_trans.c
   Allow selection of which field to drop when dropping fields in

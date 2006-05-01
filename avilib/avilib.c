@@ -640,15 +640,8 @@ avi_t *AVI_open_output_file(const char *filename)
       we do not truncate the file when we open it.
       Instead it is truncated when the AVI file is closed */
 
-#if defined(SYS_UNIX)
    AVI->fdes = xio_open(filename, O_RDWR|O_CREAT,
 		    S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH);
-#elif defined(COMP_MINGW) || defined(COMP_CYGWIN)
-   AVI->fdes = open(filename, O_RDWR|O_CREAT|O_BINARY, S_IRUSR | S_IWUSR);
-#else
-   AVI->fdes = open(filename, O_RDWR|O_CREAT|O_BINARY,
-                    S_IRUSR | S_IWUSR | S_IGRP | S_IROTH);
-#endif
 
    if (AVI->fdes < 0)
    {
@@ -1989,11 +1982,7 @@ avi_t *AVI_open_input_indexfile(const char *filename, int getIndex,
 
   /* Open the file */
 
-#if defined(SYS_WINDOWS)
-  AVI->fdes = open(filename,O_RDONLY|O_BINARY);
-#else
   AVI->fdes = xio_open(filename,O_RDONLY);
-#endif
   if(AVI->fdes < 0)
     {
       AVI_errno = AVI_ERR_OPEN;
