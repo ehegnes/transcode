@@ -102,7 +102,8 @@ MOD_open
         char *ptr = buf;
 
         strlcpy(out_fname, vob->audio_out_file, sizeof(out_fname));
-        strlcat(out_fname, ".mpa", sizeof(out_fname));
+	if (strcmp(vob->audio_out_file, vob->video_out_file) == 0)
+            strlcat(out_fname, ".mpa", sizeof(out_fname));
 
 	if (vob->mp3bitrate == 0) {
             tc_log_warn (MOD_NAME, "Audio bitrate 0 is not valid, cannot cope.");
