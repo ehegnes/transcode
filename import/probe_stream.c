@@ -234,6 +234,10 @@ void tcprobe_thread(info_t *ipipe)
 
       break;
 
+    case TC_MAGIC_PV3:
+      probe_pv3(ipipe);
+      break;
+
 #ifdef NET_STREAM
     case TC_MAGIC_SOCKET:
       probe_net(ipipe);

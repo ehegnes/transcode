@@ -90,6 +90,7 @@
 #define TC_MAGIC_PPM                   0x00005036
 #define TC_MAGIC_PGM                   0x00005035
 #define TC_MAGIC_ID3                   0x49443303
+#define TC_MAGIC_PV3                   0x50563301
 
 //movie types:
 #define TC_MAGIC_PAL                   0x000000F1

@@ -1,4 +1,18 @@
 2006-05-01 Andrew Church <achurch at achurch dot org>
+  * configure.in
+    Add checks for sys/mman.h, mmap(), and sysconf(_SC_PAGESIZE).
+
+  * Changed: import/Makefile.am import/import_pv3.c import/probe_pv3.c
+             import/probe_stream.c import/tc.h libtc/tccodecs.h src/probe.c
+    Added: import/import_pv3.c import/probe_pv3.c
+  Add import module for Earth Soft PV3 codec
+  (http://earthsoft.jp/PV3/dv.html), using codec DLL for Windows.
+
+  * Added: import/w32dll.c import/w32dll.h import/w32dll-emu.c
+           import/w32dll-emu.h import/w32dll-local.h
+  Add simplistic Win32 DLL interface, used by import_pv3.
+
+2006-05-01 Andrew Church <achurch at achurch dot org>
   * export/export_mp2.c
   Don't add .mpa to the output filename if it's different from the video
   output filename (i.e. the -m option was given).

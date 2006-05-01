@@ -12,7 +12,7 @@ AM_CONFIG_HEADER(config.h)
 
 AM_MAINTAINER_MODE
 
-# Checks for programs.
+dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_AWK
@@ -44,12 +44,12 @@ AM_CONDITIONAL(HAVE_GCC4, test x"$gcc4" = x"yes")
 dnl we got $AWK already, but not its full path
 AC_PATH_PROG(PATH_TO_AWK, $AWK)
 
-# Check for Darwin (has to be done here, after checks for proograms and
-# before checks for libraries), and BSD while we're at it.
+dnl Check for Darwin (has to be done here, after checks for proograms and
+dnl before checks for libraries), and BSD while we're at it.
 TC_CHECK_DARWIN
 TC_CHECK_BSD
 
-# Checks for libraries.
+dnl Checks for libraries.
 AC_CHECK_LIB(dl, dlopen)
 AC_CHECK_FUNCS([dlopen])
 if test x"$is_osx" = x"true" ; then
@@ -77,7 +77,7 @@ AC_SUBST(DLDARWIN_CFLAGS)
 AC_SUBST(DLDARWIN_LIBS)
 AM_CONDITIONAL(USE_DLDARWIN, test x"$USE_DLDARWIN" = x"yes")
 
-# libtool setup
+dnl libtool setup
 AC_PROVIDE([AC_PROG_CXX])  dnl we don't want it!
 AC_PROVIDE([AC_PROG_F77])  dnl likewise
 AC_DISABLE_STATIC
@@ -85,11 +85,11 @@ AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
 
 
-# Checks for header files.
+dnl Checks for header files.
 TC_CHECK_STD_HEADERS
-AC_CHECK_HEADERS([endian.h malloc.h sys/select.h])
+AC_CHECK_HEADERS([endian.h malloc.h sys/mman.h sys/select.h])
 
-# Checks for typedefs, structures, and compiler characteristics.
+dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_C_INLINE
 AC_C_BIGENDIAN([words_bigendian=true
@@ -99,11 +99,22 @@ AM_CONDITIONAL(WORDS_BIGENDIAN, test x"$words_bigendian" = x"true")
 TC_C_ATTRIBUTE_ALIGNED
 TC_C_ATTRIBUTE_FORMAT
 
-# Checks for library functions.
+dnl Checks for library functions.
 AC_FUNC_MALLOC
 AC_TYPE_SIGNAL
-AC_CHECK_FUNCS([getopt_long_only getpagesize gettimeofday strlcat strlcpy strtof vsscanf])
+AC_CHECK_FUNCS([getopt_long_only getpagesize gettimeofday mmap strlcat strlcpy strtof vsscanf])
 AM_CONDITIONAL(HAVE_GETOPT_LONG_ONLY, test x"$have_getopt_long_only" = x"yes")
+AM_CONDITIONAL(HAVE_MMAP, test x"$have_mmap" = x"yes")
+
+dnl Special check for sysconf() to ensure _SC_PAGESIZE is also available.
+AC_CACHE_CHECK([for sysconf(_SC_PAGESIZE)], ac_cv_sysconf_with_sc_pagesize,
+    [AC_TRY_COMPILE([#include <unistd.h>], [sysconf(_SC_PAGESIZE)],
+        [ac_cv_sysconf_with_sc_pagesize=yes],
+        [ac_cv_sysconf_with_sc_pagesize=no])])
+if test x"$ac_cv_sysconf_with_sc_pagesize" = x"yes"; then
+    AC_DEFINE([HAVE_SYSCONF_WITH_SC_PAGESIZE], 1,
+              [Define to 1 if you have sysconf(_SC_PAGESIZE).])
+fi
 
 dnl Large file support.
 AC_SYS_LARGEFILE

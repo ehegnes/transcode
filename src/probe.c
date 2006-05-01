@@ -139,6 +139,7 @@ const char *codec2str(int flag)
         case TC_CODEC_YUV420P: return "YUV420P/YV12";
         case TC_CODEC_YUV2:    return "YUV2";
         case TC_CODEC_NUV:     return "RTjpeg";
+        case TC_CODEC_PV3:     return "PV3";
         case TC_CODEC_RGB:     return "RGB/BGR";
         case TC_CODEC_PCM:     return "PCM";
     }
@@ -594,6 +595,11 @@ static void select_modules(int flags, vob_t *vob)
 
       case TC_MAGIC_AC3:
         vob->amod_probed = "ac3";
+        break;
+
+      case TC_MAGIC_PV3:
+        vob->vmod_probed = "pv3";
+        vob->amod_probed = "pv3";  // really just BE raw after demuxing
         break;
 
     }  // switch (vob->v_format_flag)

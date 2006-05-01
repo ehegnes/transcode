@@ -43,6 +43,12 @@ if HAVE_OSS
 IMPORT_OSS = import_oss.la
 endif
 
+if ARCH_X86
+if HAVE_MMAP
+IMPORT_PV3 = import_pv3.la
+endif
+endif
+
 if HAVE_SUNAU
 IMPORT_SUNAU = import_sunau.la
 endif
@@ -78,6 +84,7 @@ pkg_LTLIBRARIES = \
 	import_null.la \
 	import_ogg.la \
 	$(IMPORT_OSS) \
+	$(IMPORT_PV3) \
 	import_raw.la \
 	$(IMPORT_SUNAU) \
 	import_vag.la \
@@ -160,6 +167,9 @@ import_ogg_la_LDFLAGS = -module -avoid-version
 
 import_oss_la_SOURCES = import_oss.c
 import_oss_la_LDFLAGS = -module -avoid-version
+
+import_pv3_la_SOURCES = import_pv3.c w32dll.c w32dll-emu.c
+import_pv3_la_LDFLAGS = -module -avoid-version
 
 import_raw_la_SOURCES = import_raw.c
 import_raw_la_LDFLAGS = -module -avoid-version
@@ -423,6 +433,7 @@ tcprobe_SOURCES = \
 	probe_nuv.c \
 	probe_ogg.c \
 	probe_oss.c \
+	probe_pv3.c \
 	probe_socket.c \
 	probe_stream.c \
 	probe_sunau.c \
