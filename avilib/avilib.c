@@ -32,15 +32,7 @@
 #define VERSION "1.0.0"
 #endif
 
-#include "os.h"
-
-#if defined(COMP_MSC) || defined(COMP_MINGW)
-#include <io.h>
-#define ftruncate _chsize
-#define strncasecmp _strnicmp
-#else // COMP_...
 #include <unistd.h>
-#endif
 
 #include "avilib.h"
 #include "libtc/xio.h"
@@ -48,7 +40,6 @@
 #define INFO_LIST
 
 // add a new riff chunk after XX MB
-//#define NEW_RIFF_THRES (1900*1024*1024)
 #define NEW_RIFF_THRES (1900*1024*1024)
 //#define NEW_RIFF_THRES (10*1024*1024)
 

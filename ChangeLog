@@ -2,6 +2,25 @@
   * avilib/avidump.c avilib/avilib.c avilib/os.h
   Remove checks for Windows, as none of the rest of the code has any.
 
+  * acinclude.m4 configure.in
+  Merge OS-checking code back into the main configure.in file, and rename
+  the macros to a uniform OS_xxx.  Also add a check for Linux.
+
+  * encode/encode_xvid.c export/divx4_vbr.c export/export_divx5.c
+    export/export_xvid4.c filter/Makefile.am filter/preview/filter_pv.c
+    filter/tomsmocomp/tomsmocompmacros.h import/a52_decore.c
+    import/decode_a52.c import/nuv/st.h libtc/iodir.c libtc/libtc.h
+    libtc/tc_functions.c libtc/tcmodule.c pvm3/export_pvm_slave.c
+    pvm3/pvm_interface.c pvm3/pvm_interface.h src/dl_loader.c src/filter.c
+    tools/tcmodinfo.c
+  Use the new macro names.
+
+  * import/Makefile.am
+  Add a check for OS_LINUX on import_pv3 (w32dll only works on Linux).
+
+  * avilib.h
+  Remove, since it's now unneeded.
+
 2006-05-01 Andrew Church <achurch at achurch dot org>
   * libtcvideo/libtcvideo.c libtcvideo/libtcvideo.h src/video_trans.c
   Allow selection of which field to drop when dropping fields in

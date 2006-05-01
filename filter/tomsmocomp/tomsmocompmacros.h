@@ -2,7 +2,7 @@
 #include <math.h>
 #include <stdlib.h>
 #ifdef HAVE_MALLOC_H
-#  ifndef SYS_BSD
+#  ifndef OS_BSD
 #  include <malloc.h>
 #  endif
 #endif

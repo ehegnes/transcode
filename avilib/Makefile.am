@@ -10,8 +10,7 @@ libavi_la_SOURCES = \
 	avidump.c \
 	avilib.c \
 	avilib.h \
-	avimisc.c \
-	os.h
+	avimisc.c
 
 libwav_la_SOURCES = \
 	wavlib.c \

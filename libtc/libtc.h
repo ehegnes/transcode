@@ -35,7 +35,7 @@
 #include <string.h>
 #include <pthread.h>
 
-#ifndef SYS_BSD
+#ifndef OS_BSD
 # ifdef HAVE_MALLOC_H
 #  include <malloc.h>
 # endif

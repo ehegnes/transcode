@@ -25,17 +25,13 @@
  *
  */
 
-#include "os.h"
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdio.h>
 #include <fcntl.h>
 
-#if !defined(COMP_MSC)
 #include <unistd.h>
 #include <stdint.h>
-#endif
 
 #include <limits.h>
 #include <stdlib.h>

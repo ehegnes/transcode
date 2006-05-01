@@ -8,7 +8,7 @@ AM_CPPFLAGS = \
 pkgdir = $(MOD_PATH)
 
 if CAN_COMPILE_C_ALTIVEC
-if SYSTEM_DARWIN
+if OS_DARWIN
 ALTIVEC = -faltivec
 else
 ALTIVEC = -maltivec -mabi=altivec

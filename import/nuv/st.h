@@ -21,7 +21,7 @@ extern "C" {
 
 #include <stdio.h>
 #include <stdlib.h>
-#ifndef SYS_BSD
+#ifndef OS_BSD
 # ifdef HAVE_MALLOC_H
 #  include <malloc.h>
 # endif

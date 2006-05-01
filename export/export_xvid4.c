@@ -43,12 +43,12 @@
 #ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
 #else
-# ifdef SYSTEM_DARWIN
+# ifdef OS_DARWIN
 #  include "libdldarwin/dlfcn.h"
 # endif
 #endif
 
-#ifndef SYS_BSD
+#ifndef OS_BSD
 # ifdef HAVE_MALLOC_H
 # include <malloc.h>
 # endif
@@ -84,7 +84,7 @@ static int capability_flag = TC_CAP_PCM |
 
 /* XviD shared library name */
 #define XVID_SHARED_LIB_BASE "libxvidcore"
-#ifdef SYSTEM_DARWIN
+#ifdef OS_DARWIN
 #define XVID_SHARED_LIB_SUFX "dylib"
 #else
 #define XVID_SHARED_LIB_SUFX "so"
@@ -1183,14 +1183,14 @@ static int load_xvid(xvid_module_t *xvid, const char *path)
 	memset(xvid, 0, sizeof(xvid[0]));
 
 	/* First we build all sonames we will try to load */
-#ifdef SYSTEM_DARWIN
+#ifdef OS_DARWIN
 	tc_snprintf(soname[0], 4095, "%s/%s.%d.%s", path, XVID_SHARED_LIB_BASE,
 	            XVID_API_MAJOR(XVID_API), XVID_SHARED_LIB_SUFX);
 #else
 	tc_snprintf(soname[0], 4095, "%s/%s.%s.%d", path, XVID_SHARED_LIB_BASE,
 	            XVID_SHARED_LIB_SUFX, XVID_API_MAJOR(XVID_API));
 #endif
-#ifdef SYSTEM_DARWIN
+#ifdef OS_DARWIN
 	tc_snprintf(soname[1], 4095, "%s.%d.%s", XVID_SHARED_LIB_BASE,
 	            XVID_API_MAJOR(XVID_API), XVID_SHARED_LIB_SUFX);
 #else

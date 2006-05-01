@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef SYS_BSD
+#ifdef OS_BSD
 typedef off_t off64_t;
 #define lseek64 lseek
 #endif

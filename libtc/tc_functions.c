@@ -447,7 +447,7 @@ int tc_probe_path(const char *name)
         /* *BSD DVD device? v4l? bktr? sunau? */
         if(S_ISCHR(fbuf.st_mode)) {
             switch (major(fbuf.st_rdev)) {
-#ifdef SYS_BSD
+#ifdef OS_BSD
 # ifdef __OpenBSD__
                 case 15: /* rcd */
                     return TC_PROBE_PATH_ABSPATH;

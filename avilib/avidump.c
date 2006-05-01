@@ -26,7 +26,6 @@
  */
 
 #include "avilib.h"
-#include "os.h"
 
 #include <stdlib.h>
 #include <string.h>

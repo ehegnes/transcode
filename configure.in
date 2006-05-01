@@ -44,10 +44,41 @@ AM_CONDITIONAL(HAVE_GCC4, test x"$gcc4" = x"yes")
 dnl we got $AWK already, but not its full path
 AC_PATH_PROG(PATH_TO_AWK, $AWK)
 
-dnl Check for Darwin (has to be done here, after checks for proograms and
-dnl before checks for libraries), and BSD while we're at it.
-TC_CHECK_DARWIN
-TC_CHECK_BSD
+dnl Check the OS.  This has to be done here, after checks for proograms and
+dnl before checks for libraries.
+
+deflib="/lib"
+is_linux=no
+is_bsd=no
+is_osx=no
+case "${target_os}" in
+  *linux*)
+    is_linux=yes
+    AC_DEFINE([OS_LINUX], 1, [Define if your system is Linux])
+    ;;
+  freebsd*|openbsd*|netbsd*|bsdi*|darwin*|rhapsody*)
+    is_bsd=yes
+    AC_DEFINE([OS_BSD], 1, [Define if your system is modern BSD])
+    ;;
+  darwin*)
+    is_osx=yes
+    CFLAGS="${CFLAGS} -no-cpp-precomp -D_INTL_REDIRECT_MACROS"
+    #LDFLAGS="${LDFLAGS} -all_load"
+
+    AC_DEFINE([OS_DARWIN], 1, [Define if this is a Darwin / MacOS X system.])
+    AC_DEFINE([BROKEN_PTHREADS], 1, [Define if you have weird pthreads.])
+
+    # Include Fink in compile and link if present
+    if test -d /sw; then
+      CPPFLAGS="${CPPFLAGS} -I/sw/include"
+      LDFLAGS="${LDFLAGS} -L/sw/lib"
+    fi
+    ;;
+esac
+AM_CONDITIONAL([OS_LINUX], test x"$is_linux" = x"yes")
+AM_CONDITIONAL([OS_BSD], test x"$is_bsd" = x"yes")
+AM_CONDITIONAL([OS_DARWIN], test x"$is_osx" = x"yes")
+
 
 dnl Checks for libraries.
 AC_CHECK_LIB(dl, dlopen)

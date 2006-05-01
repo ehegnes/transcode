@@ -44,8 +44,10 @@ IMPORT_OSS = import_oss.la
 endif
 
 if ARCH_X86
+if OS_LINUX
 if HAVE_MMAP
 IMPORT_PV3 = import_pv3.la
+endif
 endif
 endif
 
