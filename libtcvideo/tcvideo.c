@@ -259,20 +259,20 @@ int tcv_clip(TCVHandle handle,
  * Preconditions: handle != 0: handle was returned by tcv_init()
  *                src != NULL: src[0]..src[width*height*Bpp-1] are readable
  *                dest != NULL:
- *                    mode == TCV_DEINTERLACE_DROP_FIELD:
+ *                    mode == TCV_DEINTERLACE_DROP_FIELD_{TOP,BOTTOM}:
  *                        dest[0]..dest[width*(height/2)*Bpp-1] are writable
- *                    mode != TCV_DEINTERLACE_DROP_FIELD:
+ *                    mode != TCV_DEINTERLACE_DROP_FIELD_{TOP,BOTTOM}:
  *                        dest[0]..dest[width*height*Bpp-1] are writable
  *                src != dest: src and dest do not overlap
  * Postconditions: (on success)
- *                     mode == TCV_DEINTERLACE_DROP_FIELD:
+ *                     mode == TCV_DEINTERLACE_DROP_FIELD_{TOP,BOTTOM}:
  *                         dest[0]..dest[width*(height/2)*Bpp-1] are set
- *                     mode != TCV_DEINTERLACE_DROP_FIELD:
+ *                     mode != TCV_DEINTERLACE_DROP_FIELD_{TOP,BOTTOM}:
  *                         dest[0]..dest[width*height*Bpp-1] are set
  */
 
 static int deint_drop_field(uint8_t *src, uint8_t *dest, int width,
-                            int height, int Bpp);
+                            int height, int Bpp, int drop_top);
 static int deint_interpolate(uint8_t *src, uint8_t *dest, int width,
                              int height, int Bpp);
 static int deint_linear_blend(uint8_t *src, uint8_t *dest, int width,
@@ -287,8 +287,10 @@ int tcv_deinterlace(TCVHandle handle,
         return 0;
     }
     switch (mode) {
-      case TCV_DEINTERLACE_DROP_FIELD:
-        return deint_drop_field(src, dest, width, height, Bpp);
+      case TCV_DEINTERLACE_DROP_FIELD_TOP:
+        return deint_drop_field(src, dest, width, height, Bpp, 1);
+      case TCV_DEINTERLACE_DROP_FIELD_BOTTOM:
+        return deint_drop_field(src, dest, width, height, Bpp, 0);
       case TCV_DEINTERLACE_INTERPOLATE:
         return deint_interpolate(src, dest, width, height, Bpp);
       case TCV_DEINTERLACE_LINEAR_BLEND:
@@ -320,11 +322,13 @@ int tcv_deinterlace(TCVHandle handle,
  */
 
 static int deint_drop_field(uint8_t *src, uint8_t *dest, int width,
-                            int height, int Bpp)
+                            int height, int Bpp, int drop_top)
 {
     int Bpl = width * Bpp;
     int y;
 
+    if (drop_top)
+        src += Bpl;
     for (y = 0; y < height/2; y++)
         ac_memcpy(dest + y*Bpl, src + (y*2)*Bpl, Bpl);
     return 1;

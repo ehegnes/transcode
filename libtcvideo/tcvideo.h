@@ -28,7 +28,8 @@ typedef struct tcvhandle_ *TCVHandle;
 
 /* Modes for tcv_deinterlace(): */
 typedef enum {
-    TCV_DEINTERLACE_DROP_FIELD,
+    TCV_DEINTERLACE_DROP_FIELD_TOP,
+    TCV_DEINTERLACE_DROP_FIELD_BOTTOM,
     TCV_DEINTERLACE_INTERPOLATE,
     TCV_DEINTERLACE_LINEAR_BLEND,
 } TCVDeinterlaceMode;

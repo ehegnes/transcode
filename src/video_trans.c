@@ -236,7 +236,9 @@ static int do_process_frame(vob_t *vob, vframe_list_t *ptr)
         } else if (mode == 3 || mode == 4) {
             /* Drop every other line (and zoom back out in mode 3) */
             preadjust_frame_size(&vtd, ptr->v_width, ptr->v_height/2);
-            PROCESS_FRAME(tcv_deinterlace, &vtd, TCV_DEINTERLACE_DROP_FIELD);
+            /* Drop the top or the bottom field?  (Does it matter?) */
+            PROCESS_FRAME(tcv_deinterlace, &vtd,
+                          TCV_DEINTERLACE_DROP_FIELD_BOTTOM);
             if (mode == 3) {
                 int w = ptr->v_width, h = ptr->v_height*2;
                 preadjust_frame_size(&vtd, w, h);
