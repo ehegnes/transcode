@@ -4,7 +4,8 @@
   tcv_deinterlace().
 
   * src/video_trans.c
-  Eliminate a stray printf().
+  Fix double clipping when using --post_clip with filters that clone frames.
+  Also eliminate a stray printf().
 
 2006-05-01 Andrew Church <achurch at achurch dot org>
   * configure.in

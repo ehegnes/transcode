@@ -552,8 +552,8 @@ int postprocess_vid_frame(vob_t *vob, vframe_list_t *ptr)
         return -1;
     }
 
-    /* Perform final clipping */
-    if (post_ex_clip) {
+    /* Perform final clipping, if this isn't a cloned frame */
+    if (post_ex_clip && !(ptr->attributes & TC_FRAME_WAS_CLONED)) {
         video_trans_data_t vtd;
         ptr->v_codec = vob->im_v_codec;
         set_vtd(&vtd, ptr);
@@ -570,7 +570,7 @@ int postprocess_vid_frame(vob_t *vob, vframe_list_t *ptr)
 
     /* Sanity check: make sure the frame size is what we're expecting */
     if (ptr->v_width != vob->ex_v_width || ptr->v_height != vob->ex_v_height) {
-        tc_log_msg(__FILE__, "width %d %d | height %d %d\n",
+        tc_log_msg(__FILE__, "width %d %d | height %d %d",
                    ptr->v_width, vob->ex_v_width,
                    ptr->v_height, vob->ex_v_height);
         tc_error("Oops, frame parameter mismatch detected");
