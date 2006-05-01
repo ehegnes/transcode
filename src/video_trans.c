@@ -570,9 +570,9 @@ int postprocess_vid_frame(vob_t *vob, vframe_list_t *ptr)
 
     /* Sanity check: make sure the frame size is what we're expecting */
     if (ptr->v_width != vob->ex_v_width || ptr->v_height != vob->ex_v_height) {
-        printf("(%s) width %d %d | height %d %d\n", __FILE__,
-               ptr->v_width, vob->ex_v_width,
-               ptr->v_height, vob->ex_v_height);
+        tc_log_msg(__FILE__, "width %d %d | height %d %d\n",
+                   ptr->v_width, vob->ex_v_width,
+                   ptr->v_height, vob->ex_v_height);
         tc_error("Oops, frame parameter mismatch detected");
     }
 

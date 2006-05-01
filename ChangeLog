@@ -3,6 +3,9 @@
   Allow selection of which field to drop when dropping fields in
   tcv_deinterlace().
 
+  * src/video_trans.c
+  Eliminate a stray printf().
+
 2006-05-01 Andrew Church <achurch at achurch dot org>
   * configure.in
     Add checks for sys/mman.h, mmap(), and sysconf(_SC_PAGESIZE).
