@@ -7,6 +7,10 @@
   Fix double clipping when using --post_clip with filters that clone frames.
   Also eliminate a stray printf().
 
+  * configure.in
+  Fix a bug causing compilation conditioned on getopt_long_only() and
+  mmap() to fail.
+
 2006-05-01 Andrew Church <achurch at achurch dot org>
   * configure.in
     Add checks for sys/mman.h, mmap(), and sysconf(_SC_PAGESIZE).
