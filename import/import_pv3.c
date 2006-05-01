@@ -793,10 +793,15 @@ MOD_decode
         vframe_list_t vframe1, vframe2;
         vframe1.video_buf = pd->framebuf;
         vframe2.video_buf = param->buffer;
-        if (pv3_demultiplex(mod, &vframe1, NULL) < 0)
-            return -1;
-        if (pv3_decode_video(mod, &vframe1, &vframe2) < 0)
-            return -1;
+        if (param->attributes & TC_FRAME_IS_OUT_OF_RANGE) {
+            if (pv3_demultiplex(mod, &vframe2, NULL) < 0)
+                return -1;
+        } else {
+            if (pv3_demultiplex(mod, &vframe1, NULL) < 0)
+                return -1;
+            if (pv3_decode_video(mod, &vframe1, &vframe2) < 0)
+                return -1;
+        }
         param->size = vframe2.video_size;
     } else if (param->flag == TC_AUDIO) {
         aframe_list_t aframe;

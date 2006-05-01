@@ -107,9 +107,6 @@ static int do_process_audio(vob_t *vob, aframe_list_t *ptr)
 
 int process_aud_frame(vob_t *vob, aframe_list_t *ptr)
 {
-    struct fc_time *t;
-    int skip;
-
     /* Check parameter validity */
     if (!vob || !ptr)
         return -1;
@@ -130,19 +127,6 @@ int process_aud_frame(vob_t *vob, aframe_list_t *ptr)
             tc_log_error(__FILE__, "tca_init() failed!");
             return -1;
         }
-    }
-
-    /* Set skip attribute based on -c */
-    skip = 1;
-    for (t = vob->ttime; t; t = t->next) {
-        if (t->stf <= ptr->id && ptr->id < t->etf)  {
-            skip = 0;
-            break;
-        }
-    }
-    if (skip) {
-        ptr->attributes |= TC_FRAME_IS_OUT_OF_RANGE;
-        return 0;
     }
 
     /* Check for pass-through mode */

@@ -450,9 +450,6 @@ int process_vid_frame(vob_t *vob, vframe_list_t *ptr)
 
 int preprocess_vid_frame(vob_t *vob, vframe_list_t *ptr)
 {
-    struct fc_time *t;
-    int skip;
-
     /* Check parameter validity */
     if (!vob || !ptr)
         return -1;
@@ -464,19 +461,6 @@ int preprocess_vid_frame(vob_t *vob, vframe_list_t *ptr)
             tc_log_error(PACKAGE, "video_trans.c: tcv_init() failed!");
             return -1;
         }
-    }
-
-    /* Set skip attribute based on -c */
-    skip = 1;
-    for (t = vob->ttime; t; t = t->next) {
-        if (t->stf <= ptr->id && ptr->id < t->etf)  {
-            skip = 0;
-            break;
-        }
-    }
-    if (skip) {
-        ptr->attributes |= TC_FRAME_IS_OUT_OF_RANGE;
-        return 0;
     }
 
     /* Check for pass-through mode */

@@ -482,12 +482,11 @@ void vimport_thread(vob_t *vob)
 {
 
   long int i=0;
-
   int ret=0, vbytes;
-
   vframe_list_t *ptr=NULL;
-
   transfer_t import_para;
+  struct fc_time *t;
+
 
   if(verbose & TC_DEBUG) fprintf(stderr, "(%s) video thread id=%ld\n", __FILE__, (unsigned long)pthread_self());
 
@@ -541,6 +540,15 @@ void vimport_thread(vob_t *vob)
 
     ptr->attributes=0;
 
+    /* Set skip attribute based on -c */
+    ptr->attributes |= TC_FRAME_IS_OUT_OF_RANGE;
+    for (t = vob->ttime; t; t = t->next) {
+        if (t->stf <= ptr->id && ptr->id < t->etf)  {
+            ptr->attributes &= ~TC_FRAME_IS_OUT_OF_RANGE;
+            break;
+        }
+    }
+
     // read video frame
 
     // check if import module reades data
@@ -554,10 +562,11 @@ void vimport_thread(vob_t *vob)
 
     } else {
 
-      import_para.buffer  = ptr->video_buf;
-      import_para.buffer2 = ptr->video_buf2;
-      import_para.size    = vbytes;
-      import_para.flag    = TC_VIDEO;
+      import_para.buffer     = ptr->video_buf;
+      import_para.buffer2    = ptr->video_buf2;
+      import_para.size       = vbytes;
+      import_para.flag       = TC_VIDEO;
+      import_para.attributes = ptr->attributes;
 
       //fprintf(stderr, "DECODE 1\n");
       ret = tcv_import(TC_IMPORT_DECODE, &import_para, vob);
@@ -665,12 +674,10 @@ void aimport_thread(vob_t *vob)
 {
 
   long int i=0;
-
   int ret=0, abytes;
-
   aframe_list_t *ptr=NULL;
-
   transfer_t import_para;
+  struct fc_time *t;
 
 
   if(verbose & TC_DEBUG) fprintf(stderr, "(%s) audio thread id=%ld\n", __FILE__, (unsigned long)pthread_self());
@@ -733,6 +740,15 @@ void aimport_thread(vob_t *vob)
 
     ptr->attributes=0;
 
+    /* Set skip attribute based on -c */
+    ptr->attributes |= TC_FRAME_IS_OUT_OF_RANGE;
+    for (t = vob->ttime; t; t = t->next) {
+        if (t->stf <= ptr->id && ptr->id < t->etf)  {
+            ptr->attributes &= ~TC_FRAME_IS_OUT_OF_RANGE;
+            break;
+        }
+    }
+
     // read audio frame
 
     if(vob->sync>0) {
@@ -752,9 +768,10 @@ void aimport_thread(vob_t *vob)
 
 	} else {
 
-	  import_para.buffer = ptr->audio_buf;
-	  import_para.size   = abytes;
-	  import_para.flag   = TC_AUDIO;
+	  import_para.buffer     = ptr->audio_buf;
+	  import_para.size       = abytes;
+	  import_para.flag       = TC_AUDIO;
+	  import_para.attributes = ptr->attributes;
 
 	  ret = tca_import(TC_IMPORT_DECODE, &import_para, vob);
 	  if(ret==-1) break;

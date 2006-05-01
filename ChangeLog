@@ -11,6 +11,10 @@
   Fix a bug causing compilation conditioned on getopt_long_only() and
   mmap() to fail.
 
+  * import/import_pv3.c src/audio_trans.c src/decoder.c src/video_trans.c
+  Set TC_FRAME_IS_OUT_OF_RANGE at decode time, so that the decoder module
+  can know when not to bother decoding frames.
+
 2006-05-01 Andrew Church <achurch at achurch dot org>
   * configure.in
     Add checks for sys/mman.h, mmap(), and sysconf(_SC_PAGESIZE).
