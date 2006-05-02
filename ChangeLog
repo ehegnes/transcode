@@ -3,8 +3,8 @@
   Rewrite, fixing various bugs in the original and adding the ability to
   realign the separated fields vertically (at significant time cost).
 
-  * src/counter.c
-  Display frame time based on export FPS, not import FPS.
+  * src/counter.c src/transcode.c
+  Display stream time based on export FPS, not import FPS.
 
   * libtcvideo/tcvideo.c libtcvideo/zoom.c libtcvideo/zoom.h
   Add an "interlaced zoom" mode to tcv_zoom(), in which the two fields of

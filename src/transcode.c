@@ -4656,7 +4656,7 @@ int main(int argc, char *argv[]) {
                       " clip length %6.2f s\n",
         	      PACKAGE, (long)tc_get_frames_encoded(), drop,
                       (long)tc_get_frames_cloned(),
-                      tc_get_frames_encoded()/vob->fps);
+                      tc_get_frames_encoded()/vob->ex_fps);
     }
 
 #ifdef STATBUFFER
