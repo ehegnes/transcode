@@ -458,7 +458,7 @@ static int pv3_configure(TCModuleInstance *self,
     if (options) {
         char buf[1024];
         *buf = 0;
-        optstr_get(options, "dllpath", "%.*s", sizeof(buf), buf);
+        optstr_get(options, "dllpath", "%1024s", buf);
         if (*buf)
             pd->dll_path = tc_strdup(buf);
     }

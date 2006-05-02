@@ -676,7 +676,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
         data[instance]->ycolor =  (0.257 * data[instance]->rcolor) + (0.504 * data[instance]->gcolor) + (0.098 * data[instance]->bcolor) + 16;
         data[instance]->ucolor =  (0.439 * data[instance]->rcolor) - (0.368 * data[instance]->gcolor) - (0.071 * data[instance]->bcolor) + 128;
         data[instance]->vcolor = -(0.148 * data[instance]->rcolor) - (0.291 * data[instance]->gcolor) + (0.439 * data[instance]->bcolor) + 128;
-      if (optstr_get (options,  "file",    "%[^:]",     &data[instance]->file) >= 0)
+      if (optstr_get (options,  "file",    "%[^:]",     data[instance]->file) >= 0)
         data[instance]->alpha = 1;
       if (optstr_get (options,  "dump",  "") >= 0)
         data[instance]->dump = 1;

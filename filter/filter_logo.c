@@ -314,8 +314,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
             if (verbose)
                 tc_log_info(MOD_NAME, "options=%s", options);
 
-            optstr_get(options, "file",     "%[^:]", &mfd->file);
-            optstr_get(options, "posdef",   "%d",    &mfd->pos);
+            optstr_get(options, "file",     "%[^:]", mfd->file);
+            optstr_get(options, "posdef",   "%d",    (int *)&mfd->pos);
             optstr_get(options, "pos",      "%dx%d", &mfd->posx,  &mfd->posy);
             optstr_get(options, "range",    "%u-%u", &mfd->start, &mfd->end);
             optstr_get(options, "fade",     "%u-%u", &mfd->fadein, &mfd->fadeout);

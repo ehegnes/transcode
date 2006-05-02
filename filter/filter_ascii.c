@@ -293,9 +293,9 @@ int tc_filter(frame_list_t *ptr_, char *options){
 		/* Get filter options via transcode core */
 		if (verbose & TC_DEBUG)
 			tc_log_info(MOD_NAME, "Merging options from transcode.");
-		optstr_get(options, "font",			"%s",		&parameters->aart_font);
+		optstr_get(options, "font",			"%s",		parameters->aart_font);
 		clean_parameter(parameters->aart_font);
-		optstr_get(options, "pallete",		"%s",		&parameters->aart_pallete);
+		optstr_get(options, "pallete",		"%s",		parameters->aart_pallete);
 		clean_parameter(parameters->aart_pallete);
 		optstr_get(options, "threads",   	"%d",		&parameters->aart_threads);
 

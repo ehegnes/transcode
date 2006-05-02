@@ -2,6 +2,15 @@
   * configure.in
   Add -Wno-format-zero-length to compiler flags when using -Werror.
 
+  * libtc/optstr.h
+  Add format tag to optstr_get() declaration.
+
+  * filter/filter_ascii.c filter/filter_compare.c filter/filter_logo.c
+    filter/filter_logoaway.c filter/filter_modfps.c
+    filter/filter_normalize.c filter/filter_text.c
+    filter/filter_whitebalance.c import/import_pv3.c
+  Correct bugs in calling optstr_get().
+
 2006-05-02 Andrew Church <achurch at achurch dot org>
   * avilib/avidump.c avilib/avilib.c avilib/os.h
   Remove checks for Windows, as none of the rest of the code has any.

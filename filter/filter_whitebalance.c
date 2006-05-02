@@ -110,7 +110,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 			optstr_get(options, "level", "%d", &level);
 			memset(limit, 0, PATH_MAX);
-			optstr_get(options, "limit", "%[^:]", &limit);
+			optstr_get(options, "limit", "%[^:]", limit);
 		}
 		if (verbose) tc_log_info(MOD_NAME, "options set to: level=%d limit=%s", level, limit);
 		factor = 1 + ((double)abs(level))/100;

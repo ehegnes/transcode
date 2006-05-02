@@ -97,7 +97,11 @@ const char * optstr_lookup(const char *haystack, const char *needle);
  * Postconditions:
  *     none
  */
-int optstr_get(const char *options, const char *name, const char *fmt, ...);
+int optstr_get(const char *options, const char *name, const char *fmt, ...)
+#ifdef HAVE_ATTRIBUTE_FORMAT
+__attribute__((format(scanf,3,4)))
+#endif
+;
 
 /*
  * optstr_filter_desc:

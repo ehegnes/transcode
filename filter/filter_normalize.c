@@ -177,8 +177,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
-	optstr_get(options, "smooth", "%f", &mfd->SMOOTH_MUL);
-	optstr_get(options, "smoothlast", "%f", &mfd->SMOOTH_LASTAVG);
+	optstr_get(options, "smooth", "%lf", &mfd->SMOOTH_MUL);
+	optstr_get(options, "smoothlast", "%lf", &mfd->SMOOTH_LASTAVG);
 	optstr_get(options, "algo", "%d", &mfd->AVG);
 
 	if (mfd->AVG > 2) mfd->AVG = 2;

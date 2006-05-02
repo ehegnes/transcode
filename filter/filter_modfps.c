@@ -453,7 +453,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	  }
 	  optstr_get (options, "verbose", "%d", &show_results);
 	  optstr_get (options, "mode", "%d", &mode);
-	  optstr_get (options, "infps", "%f", &infps);
+	  optstr_get (options, "infps", "%lf", &infps);
 	  optstr_get (options, "infrc", "%d", &infrc);
 	  optstr_get (options, "buffer", "%d", &numSample);
 	  optstr_get (options, "subsample", "%d", &offset);

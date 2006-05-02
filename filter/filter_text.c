@@ -325,10 +325,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	optstr_get (options, "range",  "%u-%u/%d", &mfd->start, &mfd->end, &mfd->step);
 	optstr_get (options, "dpi",    "%u",       &mfd->dpi);
 	optstr_get (options, "points", "%u",       &mfd->points);
-	optstr_get (options, "font",   "%[^:]",    &font);
-	optstr_get (options, "posdef", "%d",       &mfd->pos);
+	optstr_get (options, "font",   "%[^:]",    font);
+	optstr_get (options, "posdef", "%d",       (int *)&mfd->pos);
 	optstr_get (options, "pos",    "%dx%d",    &mfd->posx,  &mfd->posy);
-	optstr_get (options, "string", "%[^:]",    &string);
+	optstr_get (options, "string", "%[^:]",    string);
 	optstr_get (options, "fade",   "%d",       &mfd->fade);
 	optstr_get (options, "antialias",   "%d",       &mfd->antialias);
 	optstr_get (options, "color",   "%2x%2x%2x",  &mfd->R, &mfd->G, &mfd->B);

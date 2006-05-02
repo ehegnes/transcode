@@ -161,8 +161,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 			if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
-			optstr_get(options, "pattern", "%[^:]", &pattern_name);
-			optstr_get(options, "results", "%[^:]", &results_name);
+			optstr_get(options, "pattern", "%[^:]", pattern_name);
+			optstr_get(options, "results", "%[^:]", results_name);
 			optstr_get(options, "delta", "%f", &compare[instance]->delta);
 
 			if (verbose > 1) {
