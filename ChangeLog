@@ -1,3 +1,11 @@
+2006-05-02 Francesco Romani <fromani at gmail dot com>
+  * import/import_vob.c
+  minor cleanup on audio section.
+  Allow the user to skip tcdemux on import pipeline if demuxer is
+  already disabled (-M 0) using a new option ('nodemux').
+  Yes, this is a (quite ugly) workaround until import layer will be
+  rewritten.
+
 2006-05-02 Andrew Church <achurch at achurch dot org>
   * configure.in
   Add -Wno-format-zero-length to compiler flags when using -Werror.
