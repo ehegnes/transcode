@@ -17,7 +17,7 @@ typedef struct zoominfo ZoomInfo;
 
 /* Create a ZoomInfo structure for the given parameters. */
 ZoomInfo *zoom_init(int old_w, int old_h, int new_w, int new_h, int Bpp,
-                    TCVZoomFilter filter);
+                    int old_stride, int new_stride, TCVZoomFilter filter);
 
 /* The resizing function itself. */
 void zoom_process(const ZoomInfo *zi, const uint8_t *src, uint8_t *dest);

@@ -61,7 +61,7 @@ transcode \- LINUX video stream processing tool
 .br
 [ -B n[,m[,M]] ]
 [ -X n[,m[,M]] ]
-[ -Z wxh[,fast] ]
+[ -Z wxh[,fast|interlaced] ]
 .br
 [ --zoom_filter str ]
 [ -C mode ]
@@ -574,8 +574,8 @@ want to calculate \fIn\fP and \fIm\fP yourself.
 select (encoder) frame region by clipping border. Negative values add a border [off].
 
 .TP
-.B \-Z \fIwidth\fPx\fIheight\fP[\fI,fast\fP]
-resize to \fIwidth\fP columns, \fIheight\fP rows with filtering [off,notfast].
+.B \-Z \fIwidth\fPx\fIheight\fP[\fI,fast|interlaced\fP]
+resize to \fIwidth\fP columns, \fIheight\fP rows with filtering [off,notfast,notinterlaced].
 .br
 If \fIfast\fP is given, transcode will calculate the parameters for \fB-X\fP
 and/or \fB-B\fP. The option \fIfast\fP can only be used when
@@ -585,21 +585,26 @@ In fast mode, a faster but less precise resizing algorithm will be used
 resulting in a slightly less good quality. Beside this (small) drawback, it is
 worth a try.
 
+If \fIinterlaced\fP is given, transcode will assume the frame is interlaced
+when resizing, and resize each field independently. This will give better
+results on interlaced video, but is incompatible with fast mode. Also, the
+height (both old and new) must be a multiple of 4.
+
 It is also possible to omit \fIwidth\fP OR \fIheight\fP. In this case,
 transcode will calculate the missing value using the import aspect ratio. The
 new value will be aligned to be a multiple of 8. Using an additional \fIfast\fP
-is also possible.
+or \fIinterlaced\fP is also possible.
 
 Examples (assume input is a 16:9 coded file at 720x576):
 .nf
-   -Z 576x328       uses filtered zoom.
-   -Z 576x328,fast  uses fast zoom.
-   -Z 576x,fast     guess 328 and do fast zoom.
-   -Z x328          guess 576 and do filtered zoom.
+   -Z 576x328           uses filtered zoom.
+   -Z 576x328,fast      uses fast zoom.
+   -Z 576x,fast         guess 328 and do fast zoom.
+   -Z x328,interlaced   guess 576 and do interlaced zoom.
 .fi
 
 If you also set --export_prof, you can use just "fast" to indicate that fast
-resizing is wanted.
+resizing is wanted (likewise with "interlaced").
 
 .TP
 .B \-a \fIach\fP[\fI,vch\fP]

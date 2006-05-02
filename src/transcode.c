@@ -1659,6 +1659,8 @@ int main(int argc, char *argv[]) {
 
 	} else if (*optarg == 'f') {
 	  fast_resize = TC_TRUE;
+	} else if (*optarg == 'i') {
+	  vob->zoom_interlaced = 1;
 	} else {
 	  tc_error("invalid setting for option -Z");
 	}
@@ -1669,7 +1671,8 @@ int main(int argc, char *argv[]) {
 	  tc_error("invalid height for option -Z");
 
 	c = strchr(optarg, ',');
-	if (c && *c && *(c+1) && !strncmp(c+1, "fast", 1)) fast_resize = TC_TRUE;
+	if (c && c[1] && !strncmp(c+1, "fast", 1)) fast_resize = TC_TRUE;
+	if (c && c[1] && !strncmp(c+1, "interlaced", 1)) vob->zoom_interlaced = TC_TRUE;
 
 	}
 

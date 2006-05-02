@@ -254,6 +254,7 @@ typedef struct _vob_t {
 
     int zoom_width;             // Zoom width
     int zoom_height;            // Zoom height
+    int zoom_interlaced;        // Zoom in interlaced mode?
 
     TCVZoomFilter zoom_filter;
 

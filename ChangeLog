@@ -6,8 +6,15 @@
   * src/counter.c
   Display frame time based on export FPS, not import FPS.
 
+  * libtcvideo/tcvideo.c libtcvideo/zoom.c libtcvideo/zoom.h
+  Add an "interlaced zoom" mode to tcv_zoom(), in which the two fields of
+  an interlaced frame are each zoomed separately.
+
+  * src/socket.c src/transcode.c src/transcode.h src/video_trans.c
+  Add support for interlaced zoom mode with -Z WxH,interlaced.
+
   * docs/filter-help.txt docs/man/transcode.1
-  Document the rewritten filter_doublefps.
+  Document the rewritten filter_doublefps and the updated -Z option.
 
 2006-05-02 Francesco Romani <fromani at gmail dot com>
   * import/import_vob.c

@@ -59,7 +59,7 @@ struct tcvhandle_ {
     double saved_weight, saved_bias;
     /* ZoomInfo cache */
     struct {
-        int old_w, old_h, new_w, new_h, Bpp;
+        int old_w, old_h, new_w, new_h, Bpp, ilace;
         TCVZoomFilter filter;
         ZoomInfo *zi;
     } zoominfo_cache[ZOOMINFO_CACHE_SIZE];
@@ -533,7 +533,10 @@ static inline void rescale_pixel(const uint8_t *src1, const uint8_t *src2,
  *             height: Height of frame.
  *                Bpp: Bytes (not bits!) per pixel.
  *              new_w: New frame width.
- *              new_h: New frame height.
+ *              new_h: New frame height.  If negative, the frame is
+ *                     processed in an interlaced mode, zooming each
+ *                     field separately to a total height of -new_h.
+ *                     Both `height' and `new_h' must be even.
  *             filter: Filter type (TCV_ZOOM_*).
  * Return value: Nonzero on success, zero on error (invalid parameters).
  * Preconditions: handle != 0: handle was returned by tcv_init()
@@ -549,11 +552,22 @@ int tcv_zoom(TCVHandle handle,
 {
     ZoomInfo *zi;
     int free_zi = 0;  // Should the ZoomInfo be freed after use?
+    int interlace_mode = 0;
     int i;
 
     if (!src || !dest || width <= 0 || height <= 0 || (Bpp != 1 && Bpp != 3)) {
         tc_log_error("libtcvideo", "tcv_zoom: invalid frame parameters!");
         return 0;
+    }
+    if (new_h < 0) {
+        new_h = -new_h;
+        interlace_mode = 1;
+        if (height % 2 != 0 || new_h % 2 != 0) {
+            tc_log_error("libtcvideo", "tcv_zoom: heights must be even in"
+                         " interlace mode (old height %d, new height %d)",
+                         height, new_h);
+            return 0;
+        }
     }
     if (new_w <= 0 || new_h <= 0) {
         tc_log_error("libtcvideo", "tcv_zoom: invalid target size %dx%d!",
@@ -581,13 +595,25 @@ int tcv_zoom(TCVHandle handle,
          && handle->zoominfo_cache[i].new_w  == new_w
          && handle->zoominfo_cache[i].new_h  == new_h
          && handle->zoominfo_cache[i].Bpp    == Bpp
+         && handle->zoominfo_cache[i].ilace  == interlace_mode
          && handle->zoominfo_cache[i].filter == filter
         ) {
             zi = handle->zoominfo_cache[i].zi;
         }
     }
     if (!zi) {
-        zi = zoom_init(width, height, new_w, new_h, Bpp, filter);
+        int ilace_height = height;
+        int ilace_new_h = new_h;
+        int old_stride = width * Bpp;
+        int new_stride = new_w * Bpp;
+        if (interlace_mode) {
+            ilace_height /= 2;
+            ilace_new_h /= 2;
+            old_stride *= 2;
+            new_stride *= 2;
+        }
+        zi = zoom_init(width, ilace_height, new_w, ilace_new_h, Bpp,
+                       old_stride, new_stride, filter);
         if (!zi) {
             tc_log_error("libtcvideo", "tcv_zoom: zoom_init() failed!");
             return 0;
@@ -601,6 +627,7 @@ int tcv_zoom(TCVHandle handle,
                 handle->zoominfo_cache[i].new_w  = new_w;
                 handle->zoominfo_cache[i].new_h  = new_h;
                 handle->zoominfo_cache[i].Bpp    = Bpp;
+                handle->zoominfo_cache[i].ilace  = interlace_mode;
                 handle->zoominfo_cache[i].filter = filter;
                 free_zi = 0;
                 break;
@@ -608,6 +635,8 @@ int tcv_zoom(TCVHandle handle,
         }
     }
     zoom_process(zi, src, dest);
+    if (interlace_mode)
+        zoom_process(zi, src + width*Bpp, dest + new_w*Bpp);
     if (free_zi)
         zoom_free(zi);
     return 1;

@@ -286,8 +286,27 @@ static int do_process_frame(vob_t *vob, vframe_list_t *ptr)
 
     if (zoom) {
         preadjust_frame_size(&vtd, vob->zoom_width, vob->zoom_height);
-        PROCESS_FRAME(tcv_zoom, &vtd, vob->zoom_width / vtd.width_div[i],
-                      vob->zoom_height / vtd.height_div[i], vob->zoom_filter);
+        if (vob->zoom_interlaced) {
+            /* In YUV mode, only handle the first place as interlaced;
+             * the U and V planes are shared between both fields */
+            int i;
+            tcv_zoom(handle, vtd.planes[0], vtd.tmpplanes[0],
+                     ptr->v_width, ptr->v_height, vtd.Bpp,
+                     vob->zoom_width, -vob->zoom_height, vob->zoom_filter);
+            for (i = 1; i < vtd.nplanes; i++) {
+                tcv_zoom(handle, vtd.planes[i], vtd.tmpplanes[i],
+                         ptr->v_width / vtd.width_div[i],
+                         ptr->v_height / vtd.height_div[i], vtd.Bpp,
+                         vob->zoom_width / vtd.width_div[i],
+                         vob->zoom_height / vtd.height_div[i],
+                         vob->zoom_filter);
+            }
+            swap_buffers(&vtd);
+        } else {
+            PROCESS_FRAME(tcv_zoom, &vtd, vob->zoom_width / vtd.width_div[i],
+                          vob->zoom_height / vtd.height_div[i],
+                          vob->zoom_filter);
+        }
     }
 
     /**** -Y: clip frame (export) ****/

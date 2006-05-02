@@ -35,6 +35,8 @@ struct zoominfo {
     int old_w, old_h;           /* Original width and height */
     int new_w, new_h;           /* New width and height */
     int Bpp;                    /* Bytes per pixel */
+    int old_stride;             /* Bytes per line (original image) */
+    int new_stride;             /* Bytes per line (new image) */
     double (*filter)(double);   /* Filter function */
     double fwidth;              /* Filter width */
     int32_t *x_contrib;         /* Contributors in the horizontal direction */
@@ -54,9 +56,10 @@ struct zoominfo {
 /**
  * *_filter:  Filter functions for resizing.
  *
- * Parameters: t: Filter parameter.
- * Return value: Filter result.
- * Preconditions: None.
+ * Parameters:
+ *     t: Filter parameter.
+ * Return value:
+ *     Filter result.
  * Postconditions: 0 <= t && t <= 1
  */
 
@@ -193,22 +196,24 @@ static double mitchell_filter(double t)
  * gen_contrib:  Helper function to generate the list of contributors to
  * each resized pixel in one direction (horizontal or vertical).
  *
- * Parameters: oldsize: Size of original image in the direction for which
- *                      contributors are being generated.
- *             newsize: Size of resized image in the direction for which
- *                      contributors are being generated.
- *              stride: Number of bytes between adjacent pixels in the
- *                      direction for which contributors are being generated.
- *              filter: As for zoom_process().
- *              fwidth: As for zoom_process().
- * Return value: A pointer to a `newsize'-element array of `struct clist'
- *               elements, or NULL on error (out of memory).
- * Preconditions: oldsize > 0
- *                newsize > 0
- *                stride > 0
- *                filter != NULL
- *                fwidth > 0
- * Postconditions: None.
+ * Parameters:
+ *     oldsize: Size of original image in the direction for which
+ *              contributors are being generated.
+ *     newsize: Size of resized image in the direction for which
+ *              contributors are being generated.
+ *      stride: Number of bytes between adjacent pixels in the direction
+ *              for which contributors are being generated.
+ *      filter: As for zoom_process().
+ *      fwidth: As for zoom_process().
+ * Return value:
+ *     A pointer to a `newsize'-element array of `struct clist' elements,
+ *     or NULL on error (out of memory).
+ * Preconditions:
+ *     oldsize > 0
+ *     newsize > 0
+ *     stride > 0
+ *     filter != NULL
+ *     fwidth > 0
  */
 
 static struct clist *gen_contrib(int oldsize, int newsize, int stride,
@@ -256,25 +261,31 @@ static struct clist *gen_contrib(int oldsize, int newsize, int stride,
 /*************************************************************************/
 /*************************************************************************/
 
+/* External interface. */
+
+/*************************************************************************/
+
 /**
  * zoom_init:  Allocate, initialize, and return a ZoomInfo structure for
  * use in subsequent zoom_process() calls.  The structure should be freed
  * with zoom_free() when no longer needed.
  *
- * Parameters:  old_w: Width of original image.
- *              old_h: Height of original image.
- *              new_w: Width of resized image.
- *              new_h: Height of resized image.
- *                Bpp: Bytes (not bits!) per pixel.
- *             filter: Filter identifier (TCV_ZOOM_*).
- * Return value: A pointer to a newly allocated ZoomInfo structure, or NULL
- *               on error (invalid parameters or out of memory).
- * Preconditions: None.
- * Postconditions: None.
+ * Parameters:
+ *          old_w: Width of original image.
+ *          old_h: Height of original image.
+ *          new_w: Width of resized image.
+ *          new_h: Height of resized image.
+ *            Bpp: Bytes (not bits!) per pixel.
+ *     old_stride: Bytes per line of original image.
+ *     new_stride: Bytes per line of resized image.
+ *         filter: Filter identifier (TCV_ZOOM_*).
+ * Return value:
+ *     A pointer to a newly allocated ZoomInfo structure, or NULL on error
+ *     (invalid parameters or out of memory).
  */
 
 ZoomInfo *zoom_init(int old_w, int old_h, int new_w, int new_h, int Bpp,
-                    TCVZoomFilter filter)
+                    int old_stride, int new_stride, TCVZoomFilter filter)
 {
     ZoomInfo *zi;
     struct clist *x_contrib, *y_contrib;
@@ -282,7 +293,8 @@ ZoomInfo *zoom_init(int old_w, int old_h, int new_w, int new_h, int Bpp,
     int32_t *ptr;
 
     /* Sanity check */
-    if (old_w <= 0 || old_h <= 0 || new_w <= 0 || new_h <= 0 || Bpp <= 0)
+    if (old_w <= 0 || old_h <= 0 || new_w <= 0 || new_h <= 0 || Bpp <= 0
+     || old_stride <= 0 || new_stride <= 0)
         return NULL;
 
     /* Allocate structure */
@@ -296,6 +308,8 @@ ZoomInfo *zoom_init(int old_w, int old_h, int new_w, int new_h, int Bpp,
     zi->new_w = new_w;
     zi->new_h = new_h;
     zi->Bpp = Bpp;
+    zi->old_stride = old_stride;
+    zi->new_stride = new_stride;
     switch (filter) {
       case TCV_ZOOM_BOX:
         zi->filter = box_filter;
@@ -390,17 +404,16 @@ ZoomInfo *zoom_init(int old_w, int old_h, int new_w, int new_h, int Bpp,
 /**
  * zoom_process:  Image resizing core.
  *
- * Parameters:   zi: ZoomInfo structure allocated by zoom_init().
- *              src: Source data plane.
- *             dest: Destination data plane.
+ * Parameters:
+ *       zi: ZoomInfo structure allocated by zoom_init().
+ *      src: Source data plane.
+ *     dest: Destination data plane.
  * Return value: None.
- * Preconditions: zi was allocated by zoom_init()
- *                src != NULL
- *                src[0]..src[zi->old_w*zi->old_h*zi->Bpp-1] are readable
- *                dest != NULL
- *                dest[0]..dest[zi->new_w*zi->new_h*zi->Bpp-1] are writable
- *                src and dest do not overlap
- * Postconditions: dest[0]..dest[zi->new_w*zi->new_h*zi->Bpp-1] are set
+ * Preconditions:
+ *     zi was allocated by zoom_init()
+ *     src != NULL
+ *     dest != NULL
+ *     src and dest do not overlap
  */
 
 /* clamp the input to the specified range */
@@ -416,7 +429,7 @@ void zoom_process(const ZoomInfo *zi, const uint8_t *src, uint8_t *dest)
     /* Apply filter to zoom horizontally from src to tmp */
     for (y = 0, from = src, to = zi->tmpimage;
          y < zi->old_h;
-         y++, from += zi->old_w * zi->Bpp, to += zi->new_w * zi->Bpp
+         y++, from += zi->old_stride, to += zi->new_w * zi->Bpp
     ) {
         contrib = zi->x_contrib;
         for (x = 0; x < zi->new_w * zi->Bpp; x++) {
@@ -434,7 +447,7 @@ void zoom_process(const ZoomInfo *zi, const uint8_t *src, uint8_t *dest)
     /* Use Y as the outside loop to avoid cache thrashing on output buffer */
     from = zi->tmpimage;
     contrib = zi->y_contrib;
-    for (y = 0, to = dest; y < zi->new_h; y++, to += zi->new_w * zi->Bpp) {
+    for (y = 0, to = dest; y < zi->new_h; y++, to += zi->new_stride) {
         int n = *contrib++;
         for (x = 0; x < zi->new_w * zi->Bpp; x++) {
             int32_t weight = DOUBLE_TO_FIXED(0.5);
@@ -453,10 +466,14 @@ void zoom_process(const ZoomInfo *zi, const uint8_t *src, uint8_t *dest)
 /**
  * zoom_free():  Free a ZoomInfo structure.
  *
- * Parameters: zi: ZoomInfo structure allocated by zoom_init().
- * Return value: None.
- * Preconditions: zi was allocated by zoom_init()
- * Postconditions: zi is freed
+ * Parameters:
+ *     zi: ZoomInfo structure allocated by zoom_init().
+ * Return value:
+ *     None.
+ * Preconditions:
+ *     zi was allocated by zoom_init()
+ * Postconditions:
+ *     zi is freed
  */
 void zoom_free(ZoomInfo *zi)
 {

@@ -213,6 +213,7 @@ static void dump_vob(int sock)
     SEND(hori_resize2, "%d");
     SEND(zoom_width, "%d");
     SEND(zoom_height, "%d");
+    SEND(zoom_interlaced, "%d");
     SEND(zoom_filter, "%d");
     SEND(antialias, "%d");
     SEND(deinterlace, "%d");
