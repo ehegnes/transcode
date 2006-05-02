@@ -37,9 +37,6 @@ Empty lines and lines starting with a `#' are ignored. The frame numbers must be
       # reconfigure at 20
       20 configure smooth=strength=0.9
       99 disable smooth
-
-
-
 <----------------------|
 
 ---------------------->[ cpaudio.help ]
@@ -76,11 +73,18 @@ version of the filter is that if you supply -1 to either component's parameters
 (luma/chroma), that component will not have the filter applied to. If you're
 still short on CPU cycles, try disabling the luma filter, this will not make
 much difference in the effectiveness of the filter!
-
 <----------------------|
 
 ---------------------->[ dnr.help ]
 see /docs/filter_dnr.txt (german only)
+<----------------------|
+
+---------------------->[ doublefps.help ]
+Converts interlaced video into progressive video with half the
+original height and twice the speed (FPS), by converting each
+interlaced field to a separate frame.  Optionally allows the two
+fields to be shifted by half a pixel each to line them up correctly
+(at a significant expense of time).
 <----------------------|
 
 ---------------------->[ fields.help ]
@@ -284,13 +288,10 @@ quite well. The filter has no options.
 <----------------------|
 
 ---------------------->[ smartbob.help ]
-This filter only makes sence when fed by -J doublefps.
+This filter only makes sense when fed by -J doublefps.
 It will take the field-frames which filter_doublefps
 produces and generates full-sized motion adaptive deinterlaced
 output at the double import framerate.
-If you force reading the imput file twice its actual frames
-per second, A/V will stay in sync (for PAL):
--f 50 -J doublefps=shiftEven=1,smartbob=denoise=1:threshold=12
 <----------------------|
 
 ---------------------->[ smartdeinter.help ]

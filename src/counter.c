@@ -211,7 +211,7 @@ void counter_print(int encoding, int frame, int first, int last)
     buf3 = vbuffer_ex_fill_ctr;
     pthread_mutex_unlock(&vbuffer_ex_fill_lock);
 
-    time = (double)frame / ((vob->fps<1.0) ? 1.0 : vob->fps);
+    time = (double)frame / ((vob->ex_fps<1.0) ? 1.0 : vob->ex_fps);
 
     if (last == -1) {
         /* Can't calculate ETA, just display current timestamp */

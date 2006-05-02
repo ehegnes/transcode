@@ -1,3 +1,14 @@
+2006-05-02 Andrew Church <achurch at achurch dot org>
+  * filter/filter_doublefps.c
+  Rewrite, fixing various bugs in the original and adding the ability to
+  realign the separated fields vertically (at significant time cost).
+
+  * src/counter.c
+  Display frame time based on export FPS, not import FPS.
+
+  * docs/filter-help.txt docs/man/transcode.1
+  Document the rewritten filter_doublefps.
+
 2006-05-02 Francesco Romani <fromani at gmail dot com>
   * import/import_vob.c
   minor cleanup on audio section.

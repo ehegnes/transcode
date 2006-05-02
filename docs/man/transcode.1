@@ -2311,16 +2311,27 @@ Percentage of picture difference (scene change)
 see /docs/filter_dnr.txt (german only)
 .RE
 .TP 4
-\fBdoublefps\fP - \fBdouble frame rate by creating frames from fields\fP
-\fBdoublefps\fP was written by Tilmann Bitterberg. The version documented here is v0.2 (2003-06-23). This is a video filter. It can handle RGB and YUV mode. It is a post-processing only filter.
+\fBdoublefps\fP - \fBdouble frame rate by deinterlacing fields into frames\fP
+\fBdoublefps\fP was written by Andrew Church. The version documented here is v1.0 (2006-05-02). This is a video and audio filter. It can handle YUV and YUV422 modes. It is a post-processing only filter.
 .IP
 .RS
 \(bu
-.I shiftEven
+.I topfirst
+= \fI%d\fP  [default \fI0\fP when height=480, else \fI1\fP]
+.RS 3
+Assume top field is displayed first
+.RE
+\(bu
+.I hq
 = \fI%d\fP  [default \fI0\fP]
 .RS 3
-Assume even field dominance
+Adjust for vertical displacement (slow)
 .RE
+Converts interlaced video into progressive video with half the
+original height and twice the speed (FPS), by converting each
+interlaced field to a separate frame.  Optionally allows the two
+fields to be shifted by half a pixel each to line them up correctly
+(at a significant expense of time).
 .RE
 .TP 4
 \fBextsub\fP - \fBDVD subtitle overlay plugin\fP
@@ -3170,13 +3181,10 @@ Motion Threshold
 Phase shift
 .RE
 .IP
-This filter only makes sence when fed by -J doublefps.
+This filter only makes sense when fed by -J doublefps.
 It will take the field-frames which filter_doublefps
 produces and generates full-sized motion adaptive deinterlaced
 output at the double import framerate.
-If you force reading the imput file twice its actual frames
-per second, A/V will stay in sync (for PAL):
--f 50 -J doublefps=shiftEven=1,smartbob=denoise=1:threshold=12
 .RE
 .TP 4
 \fBsmartdeinter\fP - \fBVirtualDub's smart deinterlacer\fP
