@@ -1147,17 +1147,21 @@ dnl warning flags; always add -Wall -Wstrict-prototypes -Wmissing-prototypes
 dnl note that autoconf uses an unprototyped main(), so we disable prototype
 dnl warnings when checking whether -Werror works
 dnl
-if test x"$GCC" = x"yes" ; then
-    OPT_CFLAGS="-Wall -Wstrict-prototypes -Wmissing-prototypes $CFLAGS"
-    TC_TRY_CFLAGS([$OPT_CFLAGS],[CFLAGS=$OPT_CFLAGS])
-fi
 AC_ARG_ENABLE([warnings-as-errors],
     AC_HELP_STRING([--enable-warnings-as-errors], [treat warnings as errors]))
-if test x"$enable_warnings_as_errors" = x"yes" -a x"$GCC" = x"yes" ; then
-    dnl compiler warnings treated as errors
-    dnl we don't care about pointer sign warnings, so disable them
-    OPT_CFLAGS="-Werror -Wno-pointer-sign $CFLAGS"
-    TC_TRY_CFLAGS([$OPT_CFLAGS -Wno-strict-prototypes -Wno-missing-prototypes],[CFLAGS=$OPT_CFLAGS])
+if test x"$GCC" = x"yes" ; then
+    OPT_CFLAGS="-Wall -Wstrict-prototypes -Wmissing-prototypes"
+    TMP_CFLAGS=""
+    TC_TRY_CFLAGS([$OPT_CFLAGS $CFLAGS],[TMP_CFLAGS="$OPT_CFLAGS "])
+    dnl Don't assign this yet, as -Wall would counteract the -Wno-XXX options
+    if test x"$enable_warnings_as_errors" = x"yes" ; then
+        dnl compiler warnings treated as errors
+        dnl we don't care about pointer sign warnings, and empty format
+        dnl strings are occasionally useful, so disable those warnings
+        OPT_CFLAGS="-Werror -Wno-pointer-sign -Wno-format-zero-length $CFLAGS"
+        TC_TRY_CFLAGS([$OPT_CFLAGS -Wno-strict-prototypes -Wno-missing-prototypes],[CFLAGS=$OPT_CFLAGS])
+    fi
+    CFLAGS="$TMP_CFLAGS$CFLAGS"
 fi
 AC_SUBST(CFLAGS)
 

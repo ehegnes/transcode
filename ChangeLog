@@ -1,4 +1,8 @@
 2006-05-02 Andrew Church <achurch at achurch dot org>
+  * configure.in
+  Add -Wno-format-zero-length to compiler flags when using -Werror.
+
+2006-05-02 Andrew Church <achurch at achurch dot org>
   * avilib/avidump.c avilib/avilib.c avilib/os.h
   Remove checks for Windows, as none of the rest of the code has any.
 
