@@ -404,7 +404,7 @@ ZoomInfo *zoom_init(int old_w, int old_h, int new_w, int new_h, int Bpp,
  */
 
 /* clamp the input to the specified range */
-#define CLAMP(v,l,h)    ((v)<(l) ? (l) : (v) > (h) ? (h) : v)
+#define CLAMP(v,l,h)    ((v)<(l) ? (l) : (v) > (h) ? (h) : (v))
 
 void zoom_process(const ZoomInfo *zi, const uint8_t *src, uint8_t *dest)
 {
