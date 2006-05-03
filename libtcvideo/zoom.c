@@ -288,9 +288,7 @@ ZoomInfo *zoom_init(int old_w, int old_h, int new_w, int new_h, int Bpp,
                     int old_stride, int new_stride, TCVZoomFilter filter)
 {
     ZoomInfo *zi;
-    struct clist *x_contrib, *y_contrib;
-    int count, i, j;
-    int32_t *ptr;
+    struct clist *x_contrib = NULL, *y_contrib = NULL;
 
     /* Sanity check */
     if (old_w <= 0 || old_h <= 0 || new_w <= 0 || new_h <= 0 || Bpp <= 0
@@ -347,12 +345,22 @@ ZoomInfo *zoom_init(int old_w, int old_h, int new_w, int new_h, int Bpp,
     /* Generate contributor lists and allocate temporary image buffer */
     zi->x_contrib = NULL;
     zi->y_contrib = NULL;
-    x_contrib = gen_contrib(old_w, new_w, Bpp, zi->filter, zi->fwidth);
-    y_contrib = gen_contrib(old_h, new_h, Bpp*new_w, zi->filter, zi->fwidth);
     zi->tmpimage = tc_malloc(new_w * old_h * Bpp);
-    if (!x_contrib || !y_contrib || !zi->tmpimage) {
-        zoom_free(zi);
-        return NULL;
+    if (!zi->tmpimage)
+        goto error_out;
+    if (old_w != new_w) {
+        x_contrib = gen_contrib(old_w, new_w, Bpp, zi->filter, zi->fwidth);
+        if (!x_contrib)
+            goto error_out;
+    }
+    if (old_h != new_h) {
+        /* Calculate the correct stride--if the width isn't changing,
+         * this will just be old_stride */
+        int stride = (old_w==new_w) ? old_stride : Bpp*new_w;
+        y_contrib = gen_contrib(old_h, new_h, stride, zi->filter,
+                                zi->fwidth);
+        if (!y_contrib)
+            goto error_out;
     }
 
     /* Convert contributor lists into flat arrays and fixed-point values.
@@ -360,43 +368,74 @@ ZoomInfo *zoom_init(int old_w, int old_h, int new_w, int new_h, int Bpp,
      * contributor (index and fixed-point weight) for each output pixel.
      * Note that for the horizontal direction, we make `Bpp' copies of the
      * contributors, adjusting the offset for each byte of the pixel. */
-    count = 0;
-    for (i = 0; i < new_w; i++)
-        count += 1 + 2 * x_contrib[i].n;
-    zi->x_contrib = tc_malloc(sizeof(int32_t) * count * Bpp);
-    count = 0;
-    for (i = 0; i < new_h; i++)
-        count += 1 + 2 * y_contrib[i].n;
-    zi->y_contrib = tc_malloc(sizeof(int32_t) * count);
-    if (!zi->x_contrib || !zi->y_contrib) {
-        zoom_free(zi);
-        return NULL;
-    }
-    for (ptr = zi->x_contrib, i = 0; i < new_w * Bpp; i++) {
-        *ptr++ = x_contrib[i/Bpp].n;
-        for (j = 0; j < x_contrib[i/Bpp].n; j++) {
-            *ptr++ = x_contrib[i/Bpp].list[j].pixel + i%Bpp;
-            *ptr++ = DOUBLE_TO_FIXED(x_contrib[i/Bpp].list[j].weight);
+
+    if (x_contrib) {
+        int count = 0, i;
+        int32_t *ptr;
+
+        for (i = 0; i < new_w; i++)
+            count += 1 + 2 * x_contrib[i].n;
+        zi->x_contrib = tc_malloc(sizeof(int32_t) * count * Bpp);
+        if (!zi->x_contrib)
+            goto error_out;
+        for (ptr = zi->x_contrib, i = 0; i < new_w * Bpp; i++) {
+            int j;
+            *ptr++ = x_contrib[i/Bpp].n;
+            for (j = 0; j < x_contrib[i/Bpp].n; j++) {
+                *ptr++ = x_contrib[i/Bpp].list[j].pixel + i%Bpp;
+                *ptr++ = DOUBLE_TO_FIXED(x_contrib[i/Bpp].list[j].weight);
+            }
         }
-    }
-    for (ptr = zi->y_contrib, i = 0; i < new_h; i++) {
-        *ptr++ = y_contrib[i].n;
-        for (j = 0; j < y_contrib[i].n; j++) {
-            *ptr++ = y_contrib[i].list[j].pixel;
-            *ptr++ = DOUBLE_TO_FIXED(y_contrib[i].list[j].weight);
-        }
+        /* Free original contributor list */
+        for (i = 0; i < new_w; i++)
+            free(x_contrib[i].list);
+        free(x_contrib);
+        x_contrib = NULL;
     }
 
-    /* Free original contributor lists */
-    for (i = 0; i < new_w; i++)
-        free(x_contrib[i].list);
-    free(x_contrib);
-    for (i = 0; i < new_h; i++)
-        free(y_contrib[i].list);
-    free(y_contrib);
+    if (y_contrib) {
+        int count = 0, i;
+        int32_t *ptr;
+
+        for (i = 0; i < new_h; i++)
+            count += 1 + 2 * y_contrib[i].n;
+        zi->y_contrib = tc_malloc(sizeof(int32_t) * count);
+        if (!zi->y_contrib)
+            goto error_out;
+        for (ptr = zi->y_contrib, i = 0; i < new_h; i++) {
+            int j;
+            *ptr++ = y_contrib[i].n;
+            for (j = 0; j < y_contrib[i].n; j++) {
+                *ptr++ = y_contrib[i].list[j].pixel;
+                *ptr++ = DOUBLE_TO_FIXED(y_contrib[i].list[j].weight);
+            }
+        }
+        for (i = 0; i < new_h; i++)
+            free(y_contrib[i].list);
+        free(y_contrib);
+        y_contrib = NULL;
+    }
 
     /* Done */
     return zi;
+
+  error_out:
+    {
+        if (x_contrib) {
+            int i;
+            for (i = 0; i < new_w; i++)
+                free(x_contrib[i].list);
+            free(x_contrib);
+        }
+        if (y_contrib) {
+            int i;
+            for (i = 0; i < new_w; i++)
+                free(x_contrib[i].list);
+            free(x_contrib);
+        }
+        zoom_free(zi);
+        return NULL;
+    }
 }
 
 /*************************************************************************/
@@ -421,43 +460,70 @@ ZoomInfo *zoom_init(int old_w, int old_h, int new_w, int new_h, int Bpp,
 
 void zoom_process(const ZoomInfo *zi, const uint8_t *src, uint8_t *dest)
 {
-    int x, y, i;
+    int from_stride, to_stride;
     const uint8_t *from;
     uint8_t *to;
-    int32_t *contrib;
 
-    /* Apply filter to zoom horizontally from src to tmp */
-    for (y = 0, from = src, to = zi->tmpimage;
-         y < zi->old_h;
-         y++, from += zi->old_stride, to += zi->new_w * zi->Bpp
-    ) {
-        contrib = zi->x_contrib;
-        for (x = 0; x < zi->new_w * zi->Bpp; x++) {
-            int32_t weight = DOUBLE_TO_FIXED(0.5);
-            int n = *contrib++;
-            for (i = 0; i < n; i++) {
-                int pixel = *contrib++;
-                weight += from[pixel] * (*contrib++);
+    from = src;
+    from_stride = zi->old_stride;
+
+    /* Apply filter to zoom horizontally from src to tmp (if necessary) */
+    if (zi->x_contrib) {
+        int y;
+        to = zi->tmpimage;
+        to_stride = zi->new_w * zi->Bpp;
+        for (y = 0; y < zi->old_h; y++, from += from_stride, to += to_stride) {
+            int32_t *contrib = zi->x_contrib;
+            int x;
+            for (x = 0; x < zi->new_w * zi->Bpp; x++) {
+                int32_t weight = DOUBLE_TO_FIXED(0.5);
+                int n = *contrib++, i;
+                for (i = 0; i < n; i++) {
+                    int pixel = *contrib++;
+                    weight += from[pixel] * (*contrib++);
+                }
+                to[x] = CLAMP(FIXED_TO_INT(weight), 0, 255);
             }
-            to[x] = CLAMP(FIXED_TO_INT(weight), 0, 255);
         }
+        from = zi->tmpimage;
+        from_stride = to_stride;
     }
 
-    /* Apply filter to zoom vertically from tmp to dest */
+    /* Apply filter to zoom vertically from tmp (or src) to dest */
     /* Use Y as the outside loop to avoid cache thrashing on output buffer */
-    from = zi->tmpimage;
-    contrib = zi->y_contrib;
-    for (y = 0, to = dest; y < zi->new_h; y++, to += zi->new_stride) {
-        int n = *contrib++;
-        for (x = 0; x < zi->new_w * zi->Bpp; x++) {
-            int32_t weight = DOUBLE_TO_FIXED(0.5);
-            for (i = 0; i < n; i++) {
-                int pixel = contrib[i*2];
-                weight += from[x+pixel] * contrib[i*2+1];
+    to = dest;
+    to_stride = zi->new_stride;
+    if (zi->y_contrib) {
+        int32_t *contrib = zi->y_contrib;
+        int y;
+        for (y = 0; y < zi->new_h; y++, to += to_stride) {
+            int n = *contrib++, x;
+            for (x = 0; x < zi->new_w * zi->Bpp; x++) {
+                int32_t weight = DOUBLE_TO_FIXED(0.5);
+                int i;
+                for (i = 0; i < n; i++) {
+                    int pixel = contrib[i*2];
+                    weight += from[x+pixel] * contrib[i*2+1];
+                }
+                to[x] = CLAMP(FIXED_TO_INT(weight), 0, 255);
             }
-            to[x] = CLAMP(FIXED_TO_INT(weight), 0, 255);
+            contrib += 2*n;
         }
-        contrib += 2*n;
+    } else {
+        /* No zooming necessary, just copy */
+        if (from_stride == zi->new_w*zi->Bpp
+         && to_stride == zi->new_w*zi->Bpp
+        ) {
+            /* We can copy the whole frame at once */
+            ac_memcpy(to, from, to_stride * zi->new_h);
+        } else {
+            /* Copy one row at a time */
+            int y;
+            for (y = 0; y < zi->new_h; y++) {
+                ac_memcpy(to + y*to_stride, from + y*from_stride,
+                          zi->new_w * zi->Bpp);
+            }
+        }
     }
 }
 

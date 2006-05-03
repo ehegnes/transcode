@@ -1,3 +1,8 @@
+2006-05-03 Andrew Church <achurch at achurch dot org>
+  * libtcvideo/zoom.c
+  Use a simple memory copy rather than performing the full calculation loop
+  when the pre- and post-resize width or height are the same.
+
 2006-05-02 Andrew Church <achurch at achurch dot org>
   * filter/filter_doublefps.c
   Rewrite, fixing various bugs in the original and adding the ability to
