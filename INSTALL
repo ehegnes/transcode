@@ -254,6 +254,18 @@ Optional packages:
       export_yuv4mpeg.so, export_mpeg2enc.so, export_mp2enc.so,
       export_xvid4.so, import_mp3.so
 
+  XviD  http://www.xvid.org/
+    related options:
+      --enable-xvid (disabled)
+          build with xvid support for video encoding
+      --with-xvid-prefix=PFX (/usr)
+          prefix where xvid is installed
+      --with-xvid-includes=DIR (/usr/include)
+          directory where xvid headers are installed
+      --with-xvid-libs=DIR (/usr/lib)
+          directory xvid lame libraries are installed
+    affected modules: encode_xvid.so
+
   ogg  http://www.xiph.org/ogg/
     related options:
       --enable-ogg (disabled)

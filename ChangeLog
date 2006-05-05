@@ -11,6 +11,9 @@
   Update for new filter interface.
 
 2006-05-05 Francesco Romani <fromani at gmail dot com>
+  * INSTALL
+  add xvid-related lines
+
   * configure.in
   fill and export XVID_LIBS.
 
