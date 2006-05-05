@@ -761,6 +761,34 @@ fi
 TC_PKG_HAVE(lame, LAME)
 
 dnl
+dnl xvid
+dnl
+TC_PKG_CHECK(xvid, no, xvid, no, xvid.h, xvidcore, xvid_global, xvid,
+ [http://www.xvid.org/])
+if test x"$have_xvid" = x"yes" ; then
+  AC_MSG_CHECKING([xvid version >= 1.0])
+  AC_TRY_RUN([
+#include <stdio.h>
+#include <xvid.h>
+
+int main() {
+	printf("%s\n", (XVID_API >= XVID_MAKE_API(4, 0)) ?"yes" :"no");
+	return 0;
+}
+],
+    [xvid_version_ok="`./conftest$ac_exeext`"],
+    [TC_PKG_ERROR(xvid, xvid.h, yes, xvid, [http://www.xvid.org/],
+      [cannot compile and run a test program])],,
+    [echo $ac_n "cross compiling; assumed OK... $ac_c"])
+  if test x"$xvid_version_ok" = x"no"; then
+    have_xvid="no"
+    TC_PKG_ERROR(xvid, xvid.h, yes, xvid, [http://www.xvid.org/],
+      [XviD version < 1.0])
+  fi
+fi
+TC_PKG_HAVE(xvid, XVID)
+
+dnl
 dnl ogg
 dnl
 TC_PKG_CHECK(ogg, no, OGG, no, [ogg/ogg.h], ogg, ogg_stream_init, ogg,

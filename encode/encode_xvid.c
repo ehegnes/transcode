@@ -43,6 +43,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+<<<<<<< encode_xvid.c
+#include "transcode.h"
+=======
 #ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
 #else
@@ -59,14 +62,13 @@
 
 #include "export/xvid4.h"
 
+>>>>>>> 1.7
 #include "libtcvideo/tcvideo.h"
-
 #include "libtc/cfgfile.h"
-
-#include "transcode.h"
 #include "libtc/optstr.h"
-
 #include "libtc/tcmodule-plugin.h"
+
+#include "export/xvid4.h"
 
 /*
  * notes:
@@ -87,6 +89,8 @@
 #define MOD_VERSION "v0.0.3 (2006-03-26)"
 #define MOD_CAP     "XviD 1.x encoder"
 
+<<<<<<< encode_xvid.c
+=======
 /* XviD shared library name */
 #define XVID_SHARED_LIB_BASE "libxvidcore"
 #ifdef OS_DARWIN
@@ -94,6 +98,7 @@
 #else
 #define XVID_SHARED_LIB_SUFX "so"
 #endif
+>>>>>>> 1.7
 #define XVID_CONFIG_FILE "xvid.cfg"
 
 static const char *xvid_help = ""
@@ -109,27 +114,11 @@ static const char *xvid_help = ""
 
 typedef int (*xvid_function_t)(void *handle, int opt, void *param1, void *param2);
 
-typedef struct {
-    void *so;
-    xvid_function_t global;
-    xvid_function_t encore;
-    xvid_function_t plugin_onepass;
-    xvid_function_t plugin_twopass1;
-    xvid_function_t plugin_twopass2;
-    xvid_function_t plugin_lumimasking;
-} xvid_module_t;
-
-static int load_xvid(xvid_module_t *xvid, const char *path);
-static int unload_xvid(xvid_module_t *xvid);
-
 /*****************************************************************************
  * Transcode module private data
  ****************************************************************************/
 
 typedef struct {
-    /* XviD lib functions */
-    xvid_module_t xvid;
-
     /* Instance related global vars */
     void *instance;
     xvid_gbl_init_t   xvid_gbl_init;
@@ -216,7 +205,7 @@ static int tc_xvid_configure(TCModuleInstance *self,
     memset(&pd->xvid_gbl_init, 0, sizeof(xvid_gbl_init_t));
     pd->xvid_gbl_init.version = XVID_VERSION;
 
-    ret = pd->xvid.global(NULL, XVID_GBL_INIT, &pd->xvid_gbl_init, NULL);
+    ret = xvid_global(NULL, XVID_GBL_INIT, &pd->xvid_gbl_init, NULL);
     if (ret < 0) {
         tc_log_error(MOD_NAME, "configure: library initialization failed");
         return TC_EXPORT_ERROR;
@@ -225,7 +214,7 @@ static int tc_xvid_configure(TCModuleInstance *self,
     /* Combine both the config settings with the transcode direct options
      * into the final xvid_enc_create_t struct */
     set_create_struct(pd, vob);
-    ret = pd->xvid.encore(NULL, XVID_ENC_CREATE, &pd->xvid_enc_create, NULL);
+    ret = xvid_encore(NULL, XVID_ENC_CREATE, &pd->xvid_enc_create, NULL);
 
     if (ret < 0) {
         tc_log_error(MOD_NAME, "configure: encoder initialization failed");
@@ -241,7 +230,6 @@ static int tc_xvid_configure(TCModuleInstance *self,
 
 static int tc_xvid_init(TCModuleInstance *self)
 {
-    int ret;
     XviDPrivateData *pd = NULL;
     vob_t *vob = tc_get_vob();
 
@@ -278,14 +266,6 @@ static int tc_xvid_init(TCModuleInstance *self)
     }
 
     reset_module(pd);
-
-    /* Load the codec */
-    ret = load_xvid(&pd->xvid, vob->mod_path);
-    if (ret < 0) {
-        goto init_failed;
-        return TC_EXPORT_ERROR;
-    }
-
     self->userdata = pd;
 
     if (verbose) {
@@ -319,7 +299,6 @@ static int tc_xvid_encode_video(TCModuleInstance *self,
 {
     int bytes;
     xvid_enc_stats_t xvid_enc_stats;
-    xvid_module_t *xvid = NULL;
     vob_t *vob = tc_get_vob();
     XviDPrivateData *pd = NULL;
 
@@ -329,7 +308,6 @@ static int tc_xvid_encode_video(TCModuleInstance *self,
     }
 
     pd = self->userdata;
-    xvid = &pd->xvid;
 
     /*
      * XXX: we can skip don't use tcv_convert (to save an ac_memcpy) here?
@@ -352,8 +330,8 @@ static int tc_xvid_encode_video(TCModuleInstance *self,
      * into the final xvid_enc_frame_t struct */
     set_frame_struct(pd, vob, inframe, outframe);
 
-    bytes = xvid->encore(pd->instance, XVID_ENC_ENCODE,
-                         &pd->xvid_enc_frame, &xvid_enc_stats);
+    bytes = xvid_encore(pd->instance, XVID_ENC_ENCODE,
+                        &pd->xvid_enc_frame, &xvid_enc_stats);
 
     /* Error handling */
     if (bytes < 0) {
@@ -393,7 +371,6 @@ static int tc_xvid_encode_video(TCModuleInstance *self,
 static int tc_xvid_stop(TCModuleInstance *self)
 {
     int ret;
-    xvid_module_t *xvid = NULL;
     XviDPrivateData *pd = NULL;
 
     if (self == NULL) {
@@ -402,13 +379,12 @@ static int tc_xvid_stop(TCModuleInstance *self)
     }
 
     pd = self->userdata;
-    xvid = &pd->xvid;
 
     /* ToDo: Can we flush the last frames here ? */
 
     if (pd->instance != NULL) {
         /* Destroy the encoder instance */
-        ret = xvid->encore(pd->instance, XVID_ENC_DESTROY, NULL, NULL);
+        ret = xvid_encore(pd->instance, XVID_ENC_DESTROY, NULL, NULL);
         if (ret < 0) {
             tc_log_warn(MOD_NAME, "stop: encoder instance releasing failed");
             return TC_EXPORT_ERROR;
@@ -448,7 +424,6 @@ static int tc_xvid_stop(TCModuleInstance *self)
 
 static int tc_xvid_fini(TCModuleInstance *self)
 {
-    xvid_module_t *xvid = NULL;
     XviDPrivateData *pd = NULL;
 
     if (self == NULL) {
@@ -458,10 +433,6 @@ static int tc_xvid_fini(TCModuleInstance *self)
     tc_xvid_stop(self);
 
     pd = self->userdata;
-    xvid = &pd->xvid;
-
-    /* Unload the shared symbols/lib */
-    unload_xvid(xvid);
 
     /* Free all dynamic memory allocated in the module structure */
     cleanup_module(pd);
@@ -833,7 +804,6 @@ static void set_create_struct(XviDPrivateData *mod, const vob_t *vob)
 {
     xvid_enc_create_t *x    = &mod->xvid_enc_create;
     xvid_enc_create_t *xcfg = &mod->cfg_create;
-    xvid_module_t *xvid     = &mod->xvid;
 
     memset(x, 0, sizeof(xvid_enc_create_t));
     x->version = XVID_VERSION;
@@ -900,16 +870,11 @@ static void set_create_struct(XviDPrivateData *mod, const vob_t *vob)
     if (vob->divxmultipass == 1) {
         xvid_plugin_2pass1_t *pass1 = &mod->pass1;
 
-        if (xvid->plugin_twopass1 == NULL) {
-            tc_log_warn(MOD_NAME, "Two Pass #1 bitrate controller plugin not available");
-            return;
-        }
-
         memset(pass1, 0, sizeof(xvid_plugin_2pass1_t));
         pass1->version  = XVID_VERSION;
         pass1->filename = (char*)vob->divxlogfile; /* XXX: ugh */
 
-        x->plugins[x->num_plugins].func  = xvid->plugin_twopass1;
+        x->plugins[x->num_plugins].func  = xvid_plugin_2pass1;
         x->plugins[x->num_plugins].param = pass1;
         x->num_plugins++;
     }
@@ -918,11 +883,6 @@ static void set_create_struct(XviDPrivateData *mod, const vob_t *vob)
     if (vob->divxmultipass == 2) {
         xvid_plugin_2pass2_t *pass2 = &mod->pass2;
         xvid_plugin_2pass2_t *pass2cfg = &mod->cfg_pass2;
-
-        if (xvid->plugin_twopass2 == NULL) {
-            tc_log_warn(MOD_NAME, "Two Pass #2 bitrate controller plugin not available");
-            return;
-        }
 
         memset(pass2, 0, sizeof(xvid_plugin_2pass2_t));
         pass2->version  = XVID_VERSION;
@@ -948,7 +908,7 @@ static void set_create_struct(XviDPrivateData *mod, const vob_t *vob)
         } else {
             pass2->bitrate  = vob->divxbitrate;
         }
-        x->plugins[x->num_plugins].func  = xvid->plugin_twopass2;
+        x->plugins[x->num_plugins].func  = xvid_plugin_2pass2;
         x->plugins[x->num_plugins].param = pass2;
         x->num_plugins++;
     }
@@ -958,11 +918,6 @@ static void set_create_struct(XviDPrivateData *mod, const vob_t *vob)
     if (vob->divxmultipass == 0  || vob->divxmultipass == 3) {
         xvid_plugin_single_t *onepass = &mod->onepass;
         xvid_plugin_single_t *cfgonepass = &mod->cfg_onepass;
-
-        if (xvid->plugin_onepass == NULL) {
-            tc_log_warn(MOD_NAME, "One Pass bitrate controller plugin not available");
-            return;
-        }
 
         memset(onepass, 0, sizeof(xvid_plugin_single_t));
         onepass->version = XVID_VERSION;
@@ -985,7 +940,7 @@ static void set_create_struct(XviDPrivateData *mod, const vob_t *vob)
         }
 
 
-        x->plugins[x->num_plugins].func  = xvid->plugin_onepass;
+        x->plugins[x->num_plugins].func  = xvid_plugin_single;
         x->plugins[x->num_plugins].param = onepass;
         x->num_plugins++;
     }
@@ -1078,6 +1033,8 @@ static const char *errorstring(int err)
     return (const char *)error;
 }
 
+<<<<<<< encode_xvid.c
+=======
 /*****************************************************************************
  * Un/Loading XviD shared lib and symbols
  ****************************************************************************/
@@ -1184,10 +1141,5 @@ static int unload_xvid(xvid_module_t *xvid)
 
     return 0;
 }
+>>>>>>> 1.7
 
-/*
- * Please do not modify the tag line.
- * (still useful? -- fromani 20051231)
- *
- * arch-tag: 16c618a5-6cda-4c95-a418-602fc4837824 export_xvid module
- */

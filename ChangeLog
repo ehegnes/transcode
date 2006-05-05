@@ -1,4 +1,12 @@
 2006-05-05 Francesco Romani <fromani at gmail dot com>
+  * configure.in encode/Makefile.am encode/encode_xvid.c
+  add configure option to enable/disable xvid support (requiring
+  xvid >= 1.0 (api v4)). Actually only encode_xvid honours this
+  option. Conditionally build encode_xvid module only if xvid support
+  is enabled.
+  Switch to standard dynamic linkage for encode_xvid instead to
+  dlopen() libxvidcore.
+
   * filter/filter_32detect.c filter/filter_decimate.c
     filter/filter_detectclipping.c filter/filter_facemask.c
     filter/filter_fieldanalysis.c filter/filter_fields.c
