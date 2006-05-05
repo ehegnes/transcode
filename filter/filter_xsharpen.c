@@ -142,7 +142,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	}
 
 	if (options)
-		if ( optstr_get(options, "help", "") >= 0) {
+		if ( optstr_lookup(options, "help") != NULL) {
 			help_optstr();
 		}
 

@@ -1269,7 +1269,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	  optstr_get (options, "doChroma",       "%d",  &mfd->doChroma       );
 	  optstr_get (options, "verbose",        "%d",  &mfd->verbose        );
 
-	  if (optstr_get (options, "help", "") >= 0) {
+	  if (optstr_lookup (options, "help") != NULL) {
 		  help_optstr();
 	  }
 	}

@@ -90,7 +90,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if (options) {
 	if (verbose) tc_log_info(MOD_NAME, "options=%s", options);
-	if (optstr_get(options, "help", "")>=0) help_optstr();
+	if (optstr_lookup(options, "help")!=NULL) help_optstr();
     }
 
     return(0);

@@ -132,7 +132,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		pre       = !!pre;
 		interlace = !!interlace;
 
-		if (optstr_get (options, "help", "") >= 0)
+		if (optstr_lookup (options, "help") != NULL)
 		    Usage();
 
 	    }

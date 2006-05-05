@@ -666,9 +666,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
       optstr_get     (options,  "size",    "%dx%d",     &data[instance]->width,  &data[instance]->height);
         data[instance]->width += data[instance]->xpos; data[instance]->height += data[instance]->ypos;
       optstr_get     (options,  "mode",    "%d",        &data[instance]->mode);
-      if (optstr_get (options,  "border",  "") >= 0)
+      if (optstr_lookup (options,  "border") != NULL)
         data[instance]->border = 1;
-      if (optstr_get (options,  "help",    "") >= 0)
+      if (optstr_lookup (options,  "help") != NULL)
         help_optstr();
       optstr_get     (options,  "xweight", "%d",        &data[instance]->xweight);
         data[instance]->yweight = 100 - data[instance]->xweight;
@@ -678,7 +678,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
         data[instance]->vcolor = -(0.148 * data[instance]->rcolor) - (0.291 * data[instance]->gcolor) + (0.439 * data[instance]->bcolor) + 128;
       if (optstr_get (options,  "file",    "%[^:]",     data[instance]->file) >= 0)
         data[instance]->alpha = 1;
-      if (optstr_get (options,  "dump",  "") >= 0)
+      if (optstr_lookup (options,  "dump") != NULL)
         data[instance]->dump = 1;
     }
 

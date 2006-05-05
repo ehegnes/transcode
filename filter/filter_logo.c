@@ -320,18 +320,18 @@ int tc_filter(frame_list_t *ptr_, char *options)
             optstr_get(options, "range",    "%u-%u", &mfd->start, &mfd->end);
             optstr_get(options, "fade",     "%u-%u", &mfd->fadein, &mfd->fadeout);
 
-            if (optstr_get(options, "ignoredelay", "") >= 0)
+            if (optstr_lookup(options, "ignoredelay") != NULL)
                 mfd->ignoredelay = !mfd->ignoredelay;
-            if (optstr_get(options, "flip",    "") >= 0)
+            if (optstr_lookup(options, "flip") != NULL)
                 mfd->flip    = !mfd->flip;
-            if (optstr_get(options, "rgbswap", "") >= 0)
+            if (optstr_lookup(options, "rgbswap") != NULL)
                 mfd->rgbswap = !mfd->rgbswap;
-            if (optstr_get(options, "grayout", "") >= 0)
+            if (optstr_lookup(options, "grayout") != NULL)
                 mfd->grayout = !mfd->grayout;
-            if (optstr_get(options, "hqconv",  "") >= 0)
+            if (optstr_lookup(options, "hqconv") != NULL)
                 mfd->hqconv  = !mfd->hqconv;
 
-            if (optstr_get (options, "help",   "") >= 0)
+            if (optstr_lookup (options, "help") != NULL)
                 flogo_help_optstr();
         }
 

@@ -110,7 +110,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	// filter init ok.
 	if (options != NULL) {
 
-	    if (optstr_get (options, "verbose", "") >= 0) {
+	    if (optstr_lookup (options, "verbose") != NULL) {
 		show_results=1;
 	    }
 

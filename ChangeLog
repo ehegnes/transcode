@@ -1,7 +1,25 @@
 2006-05-05 Francesco Romani <fromani at gmail dot com>
+  * filter/filter_32detect.c filter/filter_decimate.c
+    filter/filter_detectclipping.c filter/filter_facemask.c
+    filter/filter_fieldanalysis.c filter/filter_fields.c
+    filter/filter_ivtc.c filter/filter_logo.c filter/filter_logoaway.c
+    filter/filter_msharpen.c filter/filter_slowmo.c
+    filter/filter_smartbob.c filter/filter_smartdeinter.c
+    filter/filter_smartyuv.c filter/filter_xsharpen.c
+    filter/preview/filter_pv.c
+    filter/yuvdenoise/filter_yuvdenoise.c
+    filter/yuvdenoise/filter_yuvmedian.c
+  correct a few misuses of opstr_get that causes compiler to
+  complain with a message like that
+  filter_XXX.c:NNN: warning: zero-length scanf format string
+  from
+  if (optstr_get(options, "my_opt", "") >= 0) do_something()
+  to
+  if (optstr_lookup(options, "my_opt") != NULL) do_something()
+
   * Removed file: import/scan_dv.c
   (see below)
-  
+
   * import/Makefile.am import/fileinfo.c import/tc.h
   scan_dv.c contains just one function, scan_header_dv, which is
   used only once and only on import/fileinfo.c. Nobody else

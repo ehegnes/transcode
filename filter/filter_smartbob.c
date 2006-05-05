@@ -153,7 +153,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	  optstr_get (options, "threshold",      "%d",  &mfd->threshold        );
 	  optstr_get (options, "denoise",        "%d",  &mfd->bDenoise         );
 
-	  if (optstr_get (options, "help", "") >= 0) {
+	  if (optstr_lookup (options, "help") != NULL) {
 		  help_optstr();
 	  }
 	}

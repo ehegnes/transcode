@@ -164,7 +164,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 
     if (options != NULL) {
-      if(optstr_get (options, "fullscreen", "") == 0)
+      if(optstr_lookup(options, "fullscreen") != NULL)
         xv_player->display->full_screen = 1;
       optstr_get (options, "port", "%d", &preview_xv_port);
       if(preview_xv_port != 0) {

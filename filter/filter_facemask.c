@@ -190,7 +190,7 @@ int tc_filter(frame_list_t *ptr_, char *options){
 		optstr_get(options, "yresolution",   	"%d",		&parameters->yresolution);
 		optstr_get(options, "xdim",			   	"%d",		&parameters->xdim);
 		optstr_get(options, "ydim",			   	"%d",		&parameters->ydim);
-		if (optstr_get(options, "help",  "") >=0) help_optstr();
+		if (optstr_lookup(options, "help") !=NULL) help_optstr();
 	}
 
 	if (vob->im_v_codec == CODEC_YUV){

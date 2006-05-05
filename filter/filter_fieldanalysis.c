@@ -444,7 +444,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    optstr_get (options, "verbose",          "%d", &myf->verbose);
 	    optstr_get (options, "outdiff",          "%d", &myf->outDiff);
 
-	    if (optstr_get (options, "help", "") >= 0) {
+	    if (optstr_lookup (options, "help") != NULL) {
 		tc_log_info (MOD_NAME, "(%s) help\n"
 "* Overview:\n"
 "  'fieldanalysis' scans video for interlacing artifacts and\n"

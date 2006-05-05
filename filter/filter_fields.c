@@ -189,14 +189,14 @@ static int filter_fields_init(char *options) {
   memset(buffer, 0, SIZE_RGB_FRAME);
 
   if(options != NULL) {
-    if (optstr_get (options, "flip", "") >= 0)
+    if (optstr_lookup (options, "flip") != NULL)
       field_ops |= FIELD_OP_FLIP;
-    if (optstr_get (options, "shift", "") >= 0)
+    if (optstr_lookup (options, "shift") != NULL)
       field_ops |= FIELD_OP_SHIFT;
-    if (optstr_get (options, "flip_first", "") >= 0)
+    if (optstr_lookup (options, "flip_first") != NULL)
       field_ops |= FIELD_OP_REVERSE;
 
-    if (optstr_get (options, "help", "") >= 0) {
+    if (optstr_lookup (options, "help") != NULL) {
       show_help();
       help_shown = 1;
     }

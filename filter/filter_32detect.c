@@ -214,11 +214,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	  optstr_get (options, "chromadi", "%d",  &chroma_diff_threshold2[instance]);
 	  optstr_get (options, "pre", "%d",  &pre[instance]);
 
-	  if (optstr_get (options, "verbose", "") >= 0) {
+	  if (optstr_lookup (options, "verbose") != NULL) {
 	      show_results[instance]=1;
 	  }
 
-	  if (optstr_get (options, "help", "") >= 0) {
+	  if (optstr_lookup (options, "help") != NULL) {
 	      help_optstr();
 	  }
       }
