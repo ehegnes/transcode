@@ -253,7 +253,6 @@ tccat_SOURCES = \
 	fileinfo.c \
 	ioaux.c \
 	ioxml.c \
-	scan_dv.c \
 	ts_reader.c
 
 tccat_LDADD = \
@@ -282,7 +281,6 @@ tcdecode_SOURCES = \
 	fileinfo.c \
 	ioaux.c \
 	mpg123.c \
-	scan_dv.c \
 	decode_a52.c \
 	decode_ac3.c \
 	decode_dv.c \
@@ -340,7 +338,6 @@ tcdemux_SOURCES = \
 	fileinfo.c \
 	ioaux.c \
 	packets.c \
-	scan_dv.c \
 	scan_pack.c \
 	seqinfo.c
 
@@ -371,7 +368,6 @@ tcextract_SOURCES = \
 	aux_pes.c \
 	fileinfo.c \
 	ioaux.c \
-	scan_dv.c \
 	extract_ac3.c \
 	extract_avi.c \
 	extract_dv.c \
@@ -420,7 +416,6 @@ tcprobe_SOURCES = \
 	ioaux.c \
 	ioxml.c \
 	mpg123.c \
-	scan_dv.c \
 	scan_pes.c \
 	ts_reader.c \
 	decode_dv.c \
@@ -506,7 +501,6 @@ tcscan_SOURCES = \
 	fileinfo.c \
 	ioaux.c \
 	mpg123.c \
-	scan_dv.c \
 	scan_pes.c
 
 tcscan_LDADD = \
@@ -534,8 +528,7 @@ tcxmlcheck_SOURCES = \
 	fileinfo.c \
 	ioaux.c \
 	ioxml.c \
-	probe_xml.c \
-	scan_dv.c
+	probe_xml.c
 
 tcxmlcheck_LDADD = \
 	$(LIBDV_LIBS) \

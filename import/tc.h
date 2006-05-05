@@ -85,8 +85,6 @@ void probe_dvd(info_t *ipipe);
 
 void probe_mplayer(info_t *ipipe);
 
-int scan_header_dv(char *buf);
-
 void probe_pv3(info_t *ipipe);
 
 #endif

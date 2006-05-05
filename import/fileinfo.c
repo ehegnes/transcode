@@ -23,6 +23,10 @@
 
 #include "config.h"
 
+#ifdef HAVE_LIBDV
+#include <libdv/dv.h>
+#endif
+
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -32,6 +36,9 @@
 #include "libtc/xio.h"
 #include "ioaux.h"
 #include "tc.h"
+
+/* forward declaration */ 
+static int scan_header_dv(const char *buf);
 
 unsigned char asfhdrguid[16]={0x30,0x26,0xB2,0x75,0x8E,0x66,0xCF,0x11,0xA6,0xD9,0x00,0xAA,0x00,0x62,0xCE,0x6C};
 
@@ -863,3 +870,25 @@ char *filetype(long magic)
   default:                    return("unknown file type");
   }
 }
+
+static int scan_header_dv(const char *buf)
+{
+    int cc = -1;
+#ifdef HAVE_LIBDV
+    dv_decoder_t *dv_decoder = dv_decoder_new(TRUE, FALSE, FALSE);
+
+    // Initialize DV decoder
+
+    if (dv_decoder == NULL) {
+    	tc_log_error(__FILE__, "dv decoder init failed");
+	    return(-1);
+    }
+
+    dv_decoder->prev_frame_decoded = 0;
+    cc = dv_parse_header(dv_decoder, buf);
+
+    dv_decoder_free(dv_decoder);
+#endif
+    return(cc);
+}
+
