@@ -31,7 +31,6 @@ EXTRA_DIST = \
 	dl_loader.h \
 	encoder.h \
 	encoder-common.h \
-	encoder-buffer.h \
 	filter.h \
 	frame_threads.h \
 	framebuffer.h \

@@ -166,7 +166,6 @@ EXTRA_DIST = \
 	divx5_encore2.h \
 	export_def.h \
 	ffmpeg_cfg.h \
-	tc_lzo.h \
 	vbr.h \
 	xvid4.h \
 	xvid4.cfg

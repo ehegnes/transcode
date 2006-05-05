@@ -24,7 +24,4 @@ EXTRA_DIST = \
         imgconvert.h \
         img_internal.h \
         img_x86_common.h \
-        rgb-yuv-conv.pl \
-        test-imgconvert.c \
-        test-memcpy.c \
-        test-memcpy-speed.c
+        rgb-yuv-conv.pl 
