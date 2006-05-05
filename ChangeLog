@@ -52,7 +52,7 @@
 
   * import/Makefile.am import/fileinfo.c import/tc.h
   scan_dv.c contains just one function, scan_header_dv, which is
-  used only once and only on import/fileinfo.c. Nobody else
+  used only once and only in import/fileinfo.c. Nobody else
   uses it. So, this changeset merge scan_dv.c into fileinfo.c
   and make scan_header_dv private.
 
