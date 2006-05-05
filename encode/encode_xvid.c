@@ -34,14 +34,8 @@
 #include "config.h"
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
+#include <strings.h>
 #include <math.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 
 #include "transcode.h"
 #include "libtcvideo/tcvideo.h"
