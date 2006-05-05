@@ -6,7 +6,7 @@
     filter/filter_msharpen.c filter/filter_slowmo.c
     filter/filter_smartbob.c filter/filter_smartdeinter.c
     filter/filter_smartyuv.c filter/filter_xsharpen.c
-    filter/preview/filter_pv.c
+    filter/preview/filter_pv.c filter/filter_ascii.c
     filter/yuvdenoise/filter_yuvdenoise.c
     filter/yuvdenoise/filter_yuvmedian.c
   correct a few misuses of opstr_get that causes compiler to

@@ -299,9 +299,9 @@ int tc_filter(frame_list_t *ptr_, char *options){
 		clean_parameter(parameters->aart_pallete);
 		optstr_get(options, "threads",   	"%d",		&parameters->aart_threads);
 
-		if (optstr_get(options, "buffer",  "") >= 0)
+		if (optstr_lookup(options, "buffer") != NULL)
 			parameters->aart_buffer=1;
-		if (optstr_get(options, "help",  "") >=0)
+		if (optstr_lookup(options, "help") != NULL)
 			help_optstr();
 		if (verbose & TC_DEBUG)
 			tc_log_info(MOD_NAME, "Options correctly merged.");
