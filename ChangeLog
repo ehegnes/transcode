@@ -1,3 +1,15 @@
+2006-05-05 Andrew Church <achurch at achurch dot org>
+  * src/filter.c src/filter.h 
+  Rewrite, using a new tc_filter_* interface.
+
+  * export/export_ffmpeg.c filter/filter_32detect.c filter/filter_compare.c
+    filter/filter_denoise3d.c filter/filter_hqdn3d.c filter/filter_levels.c
+    filter/filter_logo.c filter/filter_logoaway.c filter/filter_pp.c
+    filter/filter_smooth.c filter/preview/filter_pv.c import/import_ffmpeg.c
+    src/decoder.c src/encoder-buffer.c src/frame_threads.c src/socket.c
+    src/transcode.c src/video_trans.c tools/tcexport.c tools/tcmodinfo.c
+  Update for new filter interface.
+
 2006-05-05 Francesco Romani <fromani at gmail dot com>
   * configure.in
   fill and export XVID_LIBS.

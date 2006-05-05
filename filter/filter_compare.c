@@ -72,7 +72,9 @@ typedef struct compareData {
 
 } compareData;
 
-static compareData *compare[MAX_FILTER];
+/* FIXME: this uses the filter ID as an index--the ID can grow
+ * arbitrarily large, so this needs to be fixed */
+static compareData *compare[100];
 extern int rgbswap;
 
 /*-------------------------------------------------

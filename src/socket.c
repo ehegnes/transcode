@@ -318,11 +318,11 @@ static int handle_config(char *params)
     if (!*filter_name || !*filter_params)
         return 0;
 
-    filter_id = plugin_find_id(filter_name);
-    if (filter_id < 0)
+    filter_id = tc_filter_find(filter_name);
+    if (!filter_id)
         return 0;
     else
-	return filter_single_configure_handle(filter_id, filter_params) == 0;
+	return tc_filter_configure(filter_id, filter_params) == 0;
 }
 
 /*************************************************************************/
@@ -340,11 +340,11 @@ static int handle_disable(char *params)
 {
     int filter_id;
 
-    filter_id = plugin_find_id(params);
-    if (filter_id < 0)
+    filter_id = tc_filter_find(params);
+    if (!filter_id)
         return 0;
     else
-        return plugin_disable_id(filter_id) == 0;
+        return tc_filter_disable(filter_id);
 }
 
 /*************************************************************************/
@@ -362,11 +362,11 @@ static int handle_enable(char *params)
 {
     int filter_id;
 
-    filter_id = plugin_find_id(params);
-    if (filter_id < 0)
+    filter_id = tc_filter_find(params);
+    if (!filter_id)
         return 0;
     else
-        return plugin_enable_id(filter_id) == 0;
+        return tc_filter_enable(filter_id);
 }
 
 /*************************************************************************/
@@ -421,11 +421,11 @@ static int handle_list(char *params)
     const char *list = NULL;
 
     if (strncasecmp(params, "load", 2) == 0)
-        list = plugin_list_loaded();
+        list = tc_filter_list(TC_FILTER_LIST_LOADED);
     else if (strncasecmp(params, "enable", 2) == 0)
-        list = plugin_list_enabled();
+        list = tc_filter_list(TC_FILTER_LIST_ENABLED);
     else if (strncasecmp(params, "disable", 2) == 0)
-        list = plugin_list_disabled();
+        list = tc_filter_list(TC_FILTER_LIST_DISABLED);
 
     if (list) {
         sendstr(client_sock, list);
@@ -448,18 +448,15 @@ static int handle_list(char *params)
 
 static int handle_load(char *params)
 {
-    char *s;
+    char *name, *options;
 
-    s = strchr(params, ' ');
-    if (s) {
-        /* Turn whitespace separating filter name and params into an equals */
-        char *t;
-        *s++ = '=';
-        t = s + strspn(s, " \t");
-        if (t > s)
-            memmove(s, t, strlen(t)+1);
+    name = params;
+    options = strchr(params, ' ');
+    if (options) {
+        *options++ = 0;
+        options += strspn(options, " \t");
     }
-    return load_single_plugin(params) == 0;
+    return tc_filter_add(name, options);
 }
 
 /*************************************************************************/
@@ -477,12 +474,12 @@ static int handle_load(char *params)
 static int handle_parameter(char *params)
 {
     int filter_id;
-    char *s;
+    const char *s;
 
-    filter_id = plugin_find_id(params);
-    if (filter_id < 0)
+    filter_id = tc_filter_find(params);
+    if (!filter_id)
         return 0;
-    s = filter_single_readconf(filter_id);
+    s = tc_filter_get_conf(filter_id, NULL);
     if (!s)
         return 0;
     sendstr(client_sock, s);
@@ -506,10 +503,10 @@ static int handle_preview(char *params)
     char *cmdstr, *argstr;
 
     /* Check that the preview filter is loaded, and load it if not */
-    filter_id = plugin_find_id("pv");
-    if (filter_id < 0) {
-        filter_id = load_single_plugin("pv=cache=20");
-        if (filter_id < 0)
+    filter_id = tc_filter_find("pv");
+    if (!filter_id) {
+        filter_id = tc_filter_add("pv", "cache=20");
+        if (!filter_id)
             return 0;
     }
 

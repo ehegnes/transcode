@@ -100,8 +100,7 @@ sigset_t sigs_to_block;
 // for initializing export_pvm
 pthread_mutex_t s_channel_lock=PTHREAD_MUTEX_INITIALIZER;
 
-char *plugins_string = NULL;
-size_t size_plugstr = 0;
+static char *plugins_string = NULL;
 pid_t writepid = 0;
 pthread_mutex_t writepid_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t writepid_cond = PTHREAD_COND_INITIALIZER;
@@ -503,6 +502,39 @@ static void signal_thread(void)
 vob_t *tc_get_vob() {return(vob);}
 
 
+/**
+ * load_all_filters:  Loads all filters specified by the -J option.
+ *
+ * Parameters: 
+ *     filter_list: String containing filter list from -J option.
+ * Return value:
+ *     None.
+ * Side effects:
+ *     Destroys `filter_list'.
+ */
+
+static void load_all_filters(char *filter_list)
+{
+    if (!filter_list)
+	return;
+
+    while (*filter_list) {
+	char *s = filter_list + strcspn(filter_list, ",");
+	char *options;
+
+	while (*s && s > filter_list && s[-1] == '\\')
+	    s += 1 + strcspn(s+1, ",");
+	if (*s)
+	    *s++ = 0;
+	options = strchr(filter_list, '=');
+	if (options)
+	    *options++ = 0;
+	tc_filter_add(filter_list, options);
+	filter_list = s;
+    }
+}
+
+
 /* ------------------------------------------------------------
  *
  * transcoder engine
@@ -525,18 +557,16 @@ static int transcoder(int mode, vob_t *vob)
 	return(-1);
       }
 
-      // load and initialize filter plugins
-      plugin_init(vob);
-
-      // initalize filter plugins
-      filter_init();
+      // load and initialize filters
+      tc_filter_init();
+      load_all_filters(plugins_string);
 
       if(ex_aud_mod && strcmp(ex_aud_mod,"null") != 0) tc_encode_stream|=TC_AUDIO;
       if(ex_vid_mod && strcmp(ex_vid_mod,"null") != 0) tc_encode_stream|=TC_VIDEO;
 
       /*
        * load export modules and check capabilities using OLD code
-       * (so we DON'T need a fTCModule actory)
+       * (so we DON'T need a TCModule factory)
        */
       if(export_init(tc_ringbuffer, NULL) < 0) {
       	tc_error("failed to init export layer");
@@ -554,11 +584,8 @@ static int transcoder(int mode, vob_t *vob)
       // unload import modules
       import_shutdown();
 
-      // call all filter plug-ins closing routines
-      filter_close();
-
-      // and unload plugin
-      plugin_close();
+      // unload filters
+      tc_filter_fini();
 
       // unload export modules
       export_shutdown();
@@ -664,6 +691,8 @@ int main(int argc, char *argv[]) {
     long sret;  /* used for string function return values */
 
     TCDirList tcdir;
+
+    size_t size_plugstr = 0;
 
     static struct option long_options[] =
     {

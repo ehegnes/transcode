@@ -364,7 +364,7 @@ int preview_filter_buffer(int frames_needed)
 {
     int current,i;
 
-    static int this_filter = -1;
+    static int this_filter = 0;
     static vframe_list_t *ptr = NULL;
     vob_t *vob = tc_get_vob();
 
@@ -374,8 +374,8 @@ int preview_filter_buffer(int frames_needed)
 
     if (!cache_enabled) return 0;
 
-    if (this_filter == -1);
-	this_filter = plugin_find_id("pv");
+    if (this_filter == 0)
+	this_filter = tc_filter_find("pv");
 
     for (current = frames_needed, i = 1; current > 0; current--, i++){
 
@@ -436,20 +436,20 @@ int preview_filter_buffer(int frames_needed)
 
 	// we disable this filter (filter_pv), because it does not make sense
 	// to be run in the preview loop
-	plugin_disable_id (this_filter);
+	tc_filter_disable(this_filter);
 
 	// PRE
 	ptr->tag= TC_VIDEO | TC_PRE_S_PROCESS  | TC_PRE_M_PROCESS;
-	process_vid_plugins (ptr);
+	tc_filter_process((frame_list_t *)ptr);
 
 	// CORE
 	process_vid_frame(vob, ptr);
 
 	// POST
 	ptr->tag= TC_VIDEO | TC_POST_S_PROCESS | TC_POST_M_PROCESS;
-	process_vid_plugins (ptr);
+	tc_filter_process((frame_list_t *)ptr);
 
-	plugin_enable_id (this_filter);
+	tc_filter_enable(this_filter);
 
 	ac_memcpy (vid_buf[cache_ptr-current+1], ptr->video_buf, size);
 	preview_cache_draw(0);
@@ -502,22 +502,22 @@ void preview_filter(void)
     pclose (f);
 
     if (disable) {
-	filter_handle = plugin_find_id (filter_name);
+	filter_handle = tc_filter_find(filter_name);
 	if (filter_handle == -1) {
 	    // not loaded
 	    return;
 	} else {
-	    plugin_disable_id(filter_handle);
+	    tc_filter_disable(filter_handle);
 	    goto redisplay_frame;
 	}
     }
-    filter_handle = plugin_get_handle (filter_name);
+    filter_handle = tc_filter_add(filter_name, NULL);
 
-    this_filter  = plugin_find_id ("pv");
+    this_filter  = tc_filter_find("pv");
     tc_log_msg(MOD_NAME, "this_filter (%d)", this_filter);
 
     // we now have a valid ID
-    if ( (config = filter_single_readconf(filter_handle)) == NULL) {
+    if ( (config = tc_filter_get_conf(filter_handle, NULL)) == NULL) {
 	tc_log_warn(MOD_NAME, "Filter \"%s\" can not be configured.", filter_name);
     }
 
@@ -564,8 +564,10 @@ void preview_filter(void)
 
     //tc_log_msg(MOD_NAME, "XX buf (%s)", buf);
     // XXX
-    if (buf && *buf)
-	filter_single_configure_handle (filter_handle, strchr (buf, '='));
+    if (buf && *buf) {
+	char *s = strchr(buf, '=');
+	tc_filter_configure(filter_handle, s ? s+1 : NULL);
+    }
 
 redisplay_frame:
     // logoaway pos=210x136:size=257x175:mode=2
@@ -620,9 +622,9 @@ redisplay_frame:
 
 	// we disable this filter (filter_pv), because it does not make sense
 	// to be run in the preview loop
-	plugin_disable_id (this_filter);
-	process_vid_plugins (&ptr);
-	plugin_enable_id (this_filter);
+	tc_filter_disable(this_filter);
+	tc_filter_process((frame_list_t *)&ptr);
+	tc_filter_enable(this_filter);
 
 	ac_memcpy (vid_buf[cache_ptr-current+1], ptr.video_buf, size);
 	preview_cache_draw(0);

@@ -59,7 +59,9 @@ typedef struct
     char conf_str[TC_BUF_MIN];
 } LevelsPrivateData;
 
-static LevelsPrivateData levels_private_data[MAX_FILTER];
+/* FIXME: this uses the filter ID as an index--the ID can grow
+ * arbitrarily large, so this needs to be fixed */
+static LevelsPrivateData levels_private_data[100];
 
 static void build_map(uint8_t *map, int inlow, int inhigh,
                       float ingamma, int outlow, int outhigh)

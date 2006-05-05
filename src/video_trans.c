@@ -432,12 +432,10 @@ int process_vid_frame(vob_t *vob, vframe_list_t *ptr)
     if (!vob || !ptr)
         return -1;
 
-    /* Check for pass-through mode or skipped/out-of-range frames */
+    /* Check for pass-through mode or skipped frames */
     if (vob->pass_flag & TC_VIDEO)
         return 0;
     if (ptr->attributes & TC_FRAME_IS_SKIPPED)
-        return 0;
-    if (ptr->attributes & TC_FRAME_IS_OUT_OF_RANGE)
         return 0;
 
     /* It's a valid frame, check the colorspace for validity and process it */
@@ -538,12 +536,10 @@ int postprocess_vid_frame(vob_t *vob, vframe_list_t *ptr)
     if (!vob || !ptr)
         return -1;
 
-    /* Check for pass-through mode or skipped/out-of-range frames */
+    /* Check for pass-through mode or skipped frames */
     if (vob->pass_flag & TC_VIDEO)
         return 0;
     if (ptr->attributes & TC_FRAME_IS_SKIPPED)
-        return 0;
-    if (ptr->attributes & TC_FRAME_IS_OUT_OF_RANGE)
         return 0;
 
     /* Check frame colorspace */

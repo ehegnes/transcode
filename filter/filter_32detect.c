@@ -39,17 +39,19 @@
 #define COLOR_DIFF   30
 #define THRESHOLD     9
 
-static int color_diff_threshold1[MAX_FILTER];  //=COLOR_EQUAL;
-static int color_diff_threshold2[MAX_FILTER];  //=COLOR_DIFF;
-static int chroma_diff_threshold1[MAX_FILTER]; //=COLOR_EQUAL/2;
-static int chroma_diff_threshold2[MAX_FILTER]; //=COLOR_DIFF/2;
+/* FIXME: these all use the filter ID as an index--the ID can grow
+ * arbitrarily large, so this needs to be fixed */
+static int color_diff_threshold1[100];  //=COLOR_EQUAL;
+static int color_diff_threshold2[100];  //=COLOR_DIFF;
+static int chroma_diff_threshold1[100]; //=COLOR_EQUAL/2;
+static int chroma_diff_threshold2[100]; //=COLOR_DIFF/2;
 
 static int force_mode=0;
-static int threshold[MAX_FILTER];              //=THRESHOLD;
-static int chroma_threshold[MAX_FILTER];       //=THRESHOLD/2;
-static int show_results[MAX_FILTER];           //=0;
+static int threshold[100];              //=THRESHOLD;
+static int chroma_threshold[100];       //=THRESHOLD/2;
+static int show_results[100];           //=0;
 
-static int pre[MAX_FILTER];	// = 0;
+static int pre[100];	// = 0;
 
 /*-------------------------------------------------
  *

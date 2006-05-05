@@ -68,7 +68,17 @@ enum {
     STATUS_SOCKET_ERROR,
 };
 
-static filter_t filter[MAX_FILTER];
+/* FIXME: this should use the routines from filter.c */
+static struct {
+  int id;
+  int status;
+  int unload;
+  char *options;
+  void *handle;
+  char *name;
+  int namelen;
+  int (*entry)(void *ptr, void *options);
+} filter[MAX_FILTERS];
 static vob_t vob = {
     // some arbitrary values for the modules
     .fps = PAL_FPS,
@@ -115,7 +125,12 @@ vob_t *tc_get_vob()
     return &vob;
 }
 
-int plugin_get_handle(char *name)
+int tc_filter_add(const char *name, const char *options)
+{
+    return 0;
+}
+
+int tc_filter_find(const char *name)
 {
     return 0;
 }

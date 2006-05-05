@@ -107,7 +107,9 @@ typedef struct logoaway_data {
   ImageInfo     *dumpimage_info;
 } logoaway_data;
 
-static logoaway_data *data[MAX_FILTER];
+/* FIXME: this uses the filter ID as an index--the ID can grow
+ * arbitrarily large, so this needs to be fixed */
+static logoaway_data *data[100];
 
 
 /*********************************************************

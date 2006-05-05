@@ -81,7 +81,9 @@ typedef struct MyFilterData {
     Image       *images;         /* tmp Magick handle (todo:remove) */
 } MyFilterData;
 
-static MyFilterData *mfd_all[MAX_FILTER] = {NULL};
+/* FIXME: this uses the filter ID as an index--the ID can grow
+ * arbitrarily large, so this needs to be fixed */
+static MyFilterData *mfd_all[100] = {NULL};
 
 /* Only one instance of the module needs to initialize ImageMagick */
 static int magick_usecount = 0;

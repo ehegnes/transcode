@@ -156,8 +156,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
 {
   vframe_list_t *ptr = (vframe_list_t *)ptr_;
   static vob_t *vob=NULL;
-  static MyFilterData *mfd[MAX_FILTER];
-  static char *buffer[MAX_FILTER];
+  /* FIXME: these use the filter ID as an index--the ID can grow
+   * arbitrarily large, so this needs to be fixed */
+  static MyFilterData *mfd[100];
+  static char *buffer[100];
   int instance = ptr->filter_id;
 
 

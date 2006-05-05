@@ -271,7 +271,7 @@ MOD_init {
 
         is_mjpeg = 1;
 
-        if((handle = plugin_get_handle("levels=input=16-240") == -1))
+        if(!(handle = tc_filter_add("levels", "input=16-240")))
             tc_log_warn(MOD_NAME, "cannot load levels filter");
     }
 
@@ -1221,7 +1221,7 @@ MOD_init {
 
         if(target != pc_none)
         {
-            int resample_active = plugin_find_id("resample") != -1;
+            int resample_active = tc_filter_find("resample") != 0;
             int rate = pseudo_codec_rate[target];
 
             tc_log_info(MOD_NAME, "Selected %s profile for audio", pseudo_codec_name[target]);
@@ -1297,7 +1297,7 @@ MOD_init {
 					       rate, vob->a_rate);
                         tc_log_warn(MOD_NAME, "   loading resample plugin");
 
-                        if(plugin_get_handle("resample") == -1)
+                        if(tc_filter_add("resample", NULL) == -1)
                             tc_log_warn(MOD_NAME, "Load of resample filter failed, expect trouble");
                     }
                 }

@@ -102,7 +102,9 @@ typedef struct
 
 } dn3d_private_data_t;
 
-static dn3d_private_data_t dn3d_private_data[MAX_FILTER];
+/* FIXME: this uses the filter ID as an index--the ID can grow
+ * arbitrarily large, so this needs to be fixed */
+static dn3d_private_data_t dn3d_private_data[100];
 
 static const dn3d_layout_t dn3d_layout[] =
 {

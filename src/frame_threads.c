@@ -394,27 +394,29 @@ void process_vframe(vob_t *vob)
 
     DROP_vptr_if_skipped(ptr)
 
-    // external plugin pre-processing
-    ptr->tag = TC_VIDEO|TC_PRE_M_PROCESS;
-    process_vid_plugins(ptr);
+    if (!(ptr->attributes & TC_FRAME_IS_OUT_OF_RANGE)) {
+	// external plugin pre-processing
+	ptr->tag = TC_VIDEO|TC_PRE_M_PROCESS;
+	tc_filter_process((frame_list_t *)ptr);
 
-    DROP_vptr_if_skipped(ptr)
+	DROP_vptr_if_skipped(ptr)
 
-    // clone if the filter told us to do so.
-    DUP_vptr_if_cloned(ptr)
+	// clone if the filter told us to do so.
+	DUP_vptr_if_cloned(ptr)
 
-    // internal processing of video
-    ptr->tag = TC_VIDEO;
-    process_vid_frame(vob, ptr);
+	// internal processing of video
+	ptr->tag = TC_VIDEO;
+	process_vid_frame(vob, ptr);
 
-    // external plugin post-processing
-    ptr->tag = TC_VIDEO|TC_POST_M_PROCESS;
-    process_vid_plugins(ptr);
+	// external plugin post-processing
+	ptr->tag = TC_VIDEO|TC_POST_M_PROCESS;
+	tc_filter_process((frame_list_t *)ptr);
 
-    // Won't work, because the frame is already rescaled and such
-    //DUP_vptr_if_cloned(ptr);
+	// Won't work, because the frame is already rescaled and such
+	//DUP_vptr_if_cloned(ptr);
 
-    DROP_vptr_if_skipped(ptr)
+	DROP_vptr_if_skipped(ptr)
+    }
 
     pthread_testcancel();
 
@@ -500,23 +502,25 @@ void process_aframe(vob_t *vob)
 
     DROP_aptr_if_skipped(ptr)
 
-    // external plugin pre-processing
-    ptr->tag = TC_AUDIO|TC_PRE_M_PROCESS;
-    process_aud_plugins(ptr);
+    if (!(ptr->attributes & TC_FRAME_IS_OUT_OF_RANGE)) {
+	// external plugin pre-processing
+	ptr->tag = TC_AUDIO|TC_PRE_M_PROCESS;
+	tc_filter_process((frame_list_t *)ptr);
 
-    DUP_aptr_if_cloned(ptr)
+	DUP_aptr_if_cloned(ptr)
 
-    DROP_aptr_if_skipped(ptr)
+	DROP_aptr_if_skipped(ptr)
 
-    // internal processing of audio
-    ptr->tag = TC_AUDIO;
-    process_aud_frame(vob, ptr);
+	// internal processing of audio
+	ptr->tag = TC_AUDIO;
+	process_aud_frame(vob, ptr);
 
-    // external plugin post-processing
-    ptr->tag = TC_AUDIO|TC_POST_M_PROCESS;
-    process_aud_plugins(ptr);
+	// external plugin post-processing
+	ptr->tag = TC_AUDIO|TC_POST_M_PROCESS;
+	tc_filter_process((frame_list_t *)ptr);
 
-    DROP_aptr_if_skipped(ptr)
+	DROP_aptr_if_skipped(ptr)
+    }
 
     pthread_testcancel();
 

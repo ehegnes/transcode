@@ -98,26 +98,30 @@ static void apply_video_filters(vframe_list_t *vptr, vob_t *vob)
         DEC_VBUF_COUNTER(im);
         INC_VBUF_COUNTER(xx);
 
-        /* external plugin pre-processing */
-        vptr->tag = TC_VIDEO|TC_PRE_M_PROCESS;
-        process_vid_plugins(vptr);
+        if (!(vptr->attributes & TC_FRAME_IS_OUT_OF_RANGE)) {
+            /* external plugin pre-processing */
+            vptr->tag = TC_VIDEO|TC_PRE_M_PROCESS;
+            tc_filter_process((frame_list_t *)vptr);
 
-        /* internal processing of video */
-        vptr->tag = TC_VIDEO;
-        process_vid_frame(vob, vptr);
+            /* internal processing of video */
+            vptr->tag = TC_VIDEO;
+            process_vid_frame(vob, vptr);
 
-        /* external plugin post-processing */
-        vptr->tag = TC_VIDEO|TC_POST_M_PROCESS;
-        process_vid_plugins(vptr);
+            /* external plugin post-processing */
+            vptr->tag = TC_VIDEO|TC_POST_M_PROCESS;
+            tc_filter_process((frame_list_t *)vptr);
+        }
 
         DEC_VBUF_COUNTER(xx);
         INC_VBUF_COUNTER(ex);
     }
 
-    /* second stage post-processing - (synchronous) */
-    vptr->tag = TC_VIDEO|TC_POST_S_PROCESS;
-    process_vid_plugins(vptr);
-    postprocess_vid_frame(vob, vptr);
+    if (!(vptr->attributes & TC_FRAME_IS_OUT_OF_RANGE)) {
+        /* second stage post-processing - (synchronous) */
+        vptr->tag = TC_VIDEO|TC_POST_S_PROCESS;
+        tc_filter_process((frame_list_t *)vptr);
+        postprocess_vid_frame(vob, vptr);
+    }
 }
 
 /*
@@ -132,25 +136,29 @@ static void apply_audio_filters(aframe_list_t *aptr, vob_t *vob)
         DEC_ABUF_COUNTER(im);
         INC_ABUF_COUNTER(xx);
 
-        /* external plugin pre-processing */
-        aptr->tag = TC_AUDIO|TC_PRE_PROCESS;
-        process_aud_plugins(aptr);
+        if (!(aptr->attributes & TC_FRAME_IS_OUT_OF_RANGE)) {
+            /* external plugin pre-processing */
+            aptr->tag = TC_AUDIO|TC_PRE_PROCESS;
+            tc_filter_process((frame_list_t *)aptr);
 
-        /* internal processing of audio */
-        aptr->tag = TC_AUDIO;
-        process_aud_frame(vob, aptr);
+            /* internal processing of audio */
+            aptr->tag = TC_AUDIO;
+            process_aud_frame(vob, aptr);
 
-        /* external plugin post-processing */
-        aptr->tag = TC_AUDIO|TC_POST_PROCESS;
-        process_aud_plugins(aptr);
+            /* external plugin post-processing */
+            aptr->tag = TC_AUDIO|TC_POST_PROCESS;
+            tc_filter_process((frame_list_t *)aptr);
+        }
 
         DEC_ABUF_COUNTER(xx);
         INC_ABUF_COUNTER(ex);
     }
 
-    /* second stage post-processing - (synchronous) */
-    aptr->tag = TC_AUDIO|TC_POST_S_PROCESS;
-    process_aud_plugins(aptr);
+    if (!(aptr->attributes & TC_FRAME_IS_OUT_OF_RANGE)) {
+        /* second stage post-processing - (synchronous) */
+        aptr->tag = TC_AUDIO|TC_POST_S_PROCESS;
+        tc_filter_process((frame_list_t *)aptr);
+    }
 }
 
 /*

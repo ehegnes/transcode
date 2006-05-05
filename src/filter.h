@@ -1,84 +1,62 @@
 /*
- *  filter.h
+ * filter.h -- audio/video filter include file
+ * Written by Andrew Church <achurch@achurch.org>
  *
- *  Copyright (C) Thomas Östreich - June 2001
- *
- *  This file is part of transcode, a video stream processing tool
- *
- *  transcode is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2, or (at your option)
- *  any later version.
- *
- *  transcode is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
- *
+ * This file is part of transcode, a video stream processing tool.
+ * transcode is free software, distributable under the terms of the GNU
+ * General Public License (version 2 or later).  See the file COPYING
+ * for details.
  */
 
-#ifndef _FILTER_H
-#define _FILTER_H
+#ifndef FILTER_H
+#define FILTER_H
 
-#include "transcode.h"
 #include "framebuffer.h"
 
-#define MAX_FILTER 16
+/*************************************************************************/
 
-#define MAX_FILTER_NAME_LEN 32
+/* Maximum number of filter instances that can be loaded. */
+#define MAX_FILTERS		16
 
-typedef struct filter_s {
+/* Maximum length of a filter name, in bytes. */
+#define MAX_FILTER_NAME_LEN	32
 
-  int id;
-  int status;
+/* Parameters to tc_filter_list(). */
+enum tc_filter_list_enum {
+    TC_FILTER_LIST_LOADED,
+    TC_FILTER_LIST_ENABLED,
+    TC_FILTER_LIST_DISABLED,
+};
 
-  int unload;
 
-  char *options;
+/* Filter interface functions. */
+extern int tc_filter_init(void);
+extern void tc_filter_fini(void);
+extern void tc_filter_process(frame_list_t *frame);
+extern int tc_filter_add(const char *name, const char *options);
+extern int tc_filter_find(const char *name);
+extern void tc_filter_remove(int id);
+extern int tc_filter_enable(int id);
+extern int tc_filter_disable(int id);
+extern int tc_filter_configure(int id, const char *options);
+extern const char *tc_filter_get_conf(int id, const char *option);
+extern const char *tc_filter_list(enum tc_filter_list_enum what);
 
-  void *handle;
+/* Type of the exported module entry point for the old module system, and a
+ * prototype for tc_filter() for those modules. */
+typedef int (*TCFilterOldEntryFunc)(void *ptr, char *options);
+extern int tc_filter(frame_list_t *ptr, char *options);
 
-  char *name;
-  int namelen;
+/*************************************************************************/
 
-  int (*entry)(void *ptr, void *options);
+#endif  /* FILTER_H */
 
-} filter_t;
-
-extern char *plugins_string;
-
-int process_vid_plugins(vframe_list_t *ptr);
-int process_aud_plugins(aframe_list_t *ptr);
-
-int plugin_close(void);
-int filter_close(void);
-
-int plugin_init(vob_t *vob);
-int filter_init(void);
-
-// instance maybe -1 to pick the first match
-filter_t * plugin_by_name (char *name, int instance);
-
-// s == "name[#instance][=.*]"
-int plugin_find_id(char *s);
-int plugin_get_handle (char *name);
-int plugin_disable_id (int id);
-int plugin_enable_id (int id);
-int plugin_single_close(int id);
-
-int load_single_plugin (char *mfilter_string);
-
-const char *plugin_list_disabled(void);
-const char *plugin_list_enabled(void);
-const char *plugin_list_loaded(void);
-
-char * filter_single_readconf(int id);
-int filter_single_configure_handle(int handle, char *options);
-#endif
-
-// filter module entry point
-int tc_filter(frame_list_t *ptr, char *options);
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */

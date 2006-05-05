@@ -607,12 +607,14 @@ void vimport_thread(vob_t *vob)
     ++vbuffer_im_fill_ctr;
     pthread_mutex_unlock(&vbuffer_im_fill_lock);
 
-    //first stage pre-processing - (synchronous)
-    preprocess_vid_frame(vob, ptr);
+    if (!(ptr->attributes & TC_FRAME_IS_OUT_OF_RANGE)) {
+	//first stage pre-processing - (synchronous)
+	preprocess_vid_frame(vob, ptr);
 
-    //plugin pre-processing - (synchronous)
-    ptr->tag = TC_VIDEO|TC_PRE_S_PROCESS;
-    process_vid_plugins(ptr);
+	//filter pre-processing - (synchronous)
+	ptr->tag = TC_VIDEO|TC_PRE_S_PROCESS;
+	tc_filter_process((frame_list_t *)ptr);
+    }
 
     // done and ready for encoder
     vframe_set_status(ptr, FRAME_WAIT);
@@ -844,9 +846,11 @@ void aimport_thread(vob_t *vob)
     ++abuffer_im_fill_ctr;
     pthread_mutex_unlock(&abuffer_im_fill_lock);
 
-    //first stage pre-processing - (synchronous)
-    ptr->tag = TC_AUDIO|TC_PRE_S_PROCESS;
-    process_aud_plugins(ptr);
+    if (!(ptr->attributes & TC_FRAME_IS_OUT_OF_RANGE)) {
+	//first stage pre-processing - (synchronous)
+	ptr->tag = TC_AUDIO|TC_PRE_S_PROCESS;
+	tc_filter_process((frame_list_t *)ptr);
+    }
 
     // done and ready for encoder
     aframe_set_status(ptr, FRAME_WAIT);

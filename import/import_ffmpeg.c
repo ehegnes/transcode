@@ -204,7 +204,7 @@ static int divx3_is_key(const uint8_t *d)
 static void enable_levels_filter(void)
 {
   tc_log_info(MOD_NAME, "input is mjpeg, reducing range from YUVJ420P to YUV420P");
-  if((levels_handle = plugin_get_handle("levels=output=16-240:pre=1") == -1))
+  if(!(levels_handle = tc_filter_add("levels", "output=16-240:pre=1")))
     tc_log_warn(MOD_NAME, "cannot load levels filter");
 }
 

@@ -36,10 +36,12 @@
 
 #include "postprocess.h"
 
-static pp_mode_t *mode[MAX_FILTER];
-static pp_context_t *context[MAX_FILTER];
-static int width[MAX_FILTER], height[MAX_FILTER];
-static int pre[MAX_FILTER];
+/* FIXME: these use the filter ID as an index--the ID can grow
+ * arbitrarily large, so this needs to be fixed */
+static pp_mode_t *mode[100];
+static pp_context_t *context[100];
+static int width[100], height[100];
+static int pre[100];
 
 /*-------------------------------------------------
  *

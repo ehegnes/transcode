@@ -30,7 +30,9 @@
 #include "filter.h"
 #include "libtc/optstr.h"
 
-static unsigned char *tbuf[MAX_FILTER];
+/* FIXME: this uses the filter ID as an index--the ID can grow
+ * arbitrarily large, so this needs to be fixed */
+static unsigned char *tbuf[100];
 
 static void smooth_yuv(unsigned char *buf, int width, int height, int maxdiff,
 		       int maxldiff, int maxdist, float level, int instance)
@@ -118,8 +120,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
 {
   vframe_list_t *ptr = (vframe_list_t *)ptr_;
   static vob_t *vob=NULL;
-  static int cdiff[MAX_FILTER], ldiff[MAX_FILTER], range[MAX_FILTER];
-  static float strength[MAX_FILTER];
+  /* FIXME: these use the filter ID as an index--the ID can grow
+   * arbitrarily large, so this needs to be fixed */
+  static int cdiff[100], ldiff[100], range[100];
+  static float strength[100];
   int instance = ptr->filter_id;
 
 
