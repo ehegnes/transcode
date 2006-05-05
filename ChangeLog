@@ -1,4 +1,10 @@
 2006-05-05 Francesco Romani <fromani at gmail dot com>
+  * configure.in
+  fill and export XVID_LIBS
+
+  * encode/encode_xvid.c
+  cleanup some unexpected garbage.
+
   * configure.in encode/Makefile.am encode/encode_xvid.c
   add configure option to enable/disable xvid support (requiring
   xvid >= 1.0 (api v4)). Actually only encode_xvid honours this

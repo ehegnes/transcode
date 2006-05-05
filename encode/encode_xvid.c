@@ -43,32 +43,13 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-<<<<<<< encode_xvid.c
 #include "transcode.h"
-=======
-#ifdef HAVE_DLFCN_H
-#include <dlfcn.h>
-#else
-# ifdef OS_DARWIN
-#  include "libdldarwin/dlfcn.h"
-# endif
-#endif
-
-#ifndef OS_BSD
-# ifdef HAVE_MALLOC_H
-# include <malloc.h>
-# endif
-#endif
-
-#include "export/xvid4.h"
-
->>>>>>> 1.7
 #include "libtcvideo/tcvideo.h"
 #include "libtc/cfgfile.h"
 #include "libtc/optstr.h"
 #include "libtc/tcmodule-plugin.h"
 
-#include "export/xvid4.h"
+#include "xvid.h"
 
 /*
  * notes:
@@ -86,19 +67,9 @@
  ****************************************************************************/
 
 #define MOD_NAME    "encode_xvid.so"
-#define MOD_VERSION "v0.0.3 (2006-03-26)"
+#define MOD_VERSION "v0.0.4 (2006-05-05)"
 #define MOD_CAP     "XviD 1.x encoder"
 
-<<<<<<< encode_xvid.c
-=======
-/* XviD shared library name */
-#define XVID_SHARED_LIB_BASE "libxvidcore"
-#ifdef OS_DARWIN
-#define XVID_SHARED_LIB_SUFX "dylib"
-#else
-#define XVID_SHARED_LIB_SUFX "so"
-#endif
->>>>>>> 1.7
 #define XVID_CONFIG_FILE "xvid.cfg"
 
 static const char *xvid_help = ""
@@ -1032,114 +1003,4 @@ static const char *errorstring(int err)
 
     return (const char *)error;
 }
-
-<<<<<<< encode_xvid.c
-=======
-/*****************************************************************************
- * Un/Loading XviD shared lib and symbols
- ****************************************************************************/
-
-static int load_xvid(xvid_module_t *xvid, const char *path)
-{
-    const char *error;
-    char soname[4][4096];
-    int i;
-
-    /* Reset pointers */
-    memset(xvid, 0, sizeof(xvid[0]));
-
-    /* First we build all sonames we will try to load */
-#ifdef OS_DARWIN
-    tc_snprintf(soname[0], 4095, "%s/%s.%d.%s", path, XVID_SHARED_LIB_BASE,
-                XVID_API_MAJOR(XVID_API), XVID_SHARED_LIB_SUFX);
-#else
-    tc_snprintf(soname[0], 4095, "%s/%s.%s.%d", path, XVID_SHARED_LIB_BASE,
-                XVID_SHARED_LIB_SUFX, XVID_API_MAJOR(XVID_API));
-#endif
-#ifdef OS_DARWIN
-    tc_snprintf(soname[1], 4095, "%s.%d.%s", XVID_SHARED_LIB_BASE,
-                XVID_API_MAJOR(XVID_API), XVID_SHARED_LIB_SUFX);
-#else
-    tc_snprintf(soname[1], 4095, "%s.%s.%d", XVID_SHARED_LIB_BASE,
-                XVID_SHARED_LIB_SUFX, XVID_API_MAJOR(XVID_API));
-#endif
-    tc_snprintf(soname[2], 4095, "%s/%s.%s", path, XVID_SHARED_LIB_BASE,
-                XVID_SHARED_LIB_SUFX);
-    tc_snprintf(soname[3], 4095, "%s.%s", XVID_SHARED_LIB_BASE,
-                XVID_SHARED_LIB_SUFX);
-
-    /* Let's try each shared lib until success */
-    for (i = 0; i < 4; i++) {
-        if (verbose & TC_DEBUG) {
-            tc_log_info(MOD_NAME, "Trying to load shared lib %s",
-                soname[i]);
-        }
-        /* Try loading the shared lib */
-        xvid->so = dlopen(soname[i], RTLD_GLOBAL| RTLD_LAZY);
-
-        /* Test wether loading succeeded */
-        if (xvid->so != NULL) {
-            break;
-        }
-    }
-
-    /* None of the modules were available */
-    if (xvid->so == NULL) {
-        tc_log_warn(MOD_NAME, "No libxvidcore API4 found");
-        return -1;
-    }
-
-    if (verbose & TC_DEBUG) {
-        tc_log_info(MOD_NAME, "Loaded %s", soname[i]);
-    }
-
-    /* Next step is to load xvidcore symbols
-     *
-     * Some of them are mandatory, others like plugins can be safely
-     * ignored if they are not available, this will just restrict user
-     * available functionnality -- Up to the upper layer to handle these
-     * functionnality restrictions */
-
-    /* Mandatory symbol */
-    xvid->global = dlsym(xvid->so, "xvid_global");
-
-    error = dlerror();
-    if (xvid->global == NULL && error != NULL) {
-        tc_log_warn(MOD_NAME, "Error loading symbol (%s)", error);
-        tc_log_warn(MOD_NAME, "Library \"%s\" looks like an old "
-                      "version of libxvidcore", soname[i]);
-        tc_log_warn(MOD_NAME, "You cannot use this module with this"
-                      " lib; maybe -y xvid2 works");
-        return -1;
-    }
-
-    /* Mandatory symbol */
-    xvid->encore = dlsym(xvid->so, "xvid_encore");
-
-    error = dlerror();
-    if (xvid->encore == NULL && error != NULL) {
-        tc_log_warn(MOD_NAME, "Error loading symbol (%s)", error);
-        return -1;
-    }
-
-    /* Optional plugin symbols */
-    xvid->plugin_onepass     = dlsym(xvid->so, "xvid_plugin_single");
-    xvid->plugin_twopass1    = dlsym(xvid->so, "xvid_plugin_2pass1");
-    xvid->plugin_twopass2    = dlsym(xvid->so, "xvid_plugin_2pass2");
-    xvid->plugin_lumimasking = dlsym(xvid->so, "xvid_plugin_lumimasking");
-
-    return 0;
-}
-
-static int unload_xvid(xvid_module_t *xvid)
-{
-    if (xvid->so != NULL) {
-        dlclose(xvid->so);
-        xvid->so = NULL;
-        memset(xvid, 0, sizeof(xvid_module_t));
-    }
-
-    return 0;
-}
->>>>>>> 1.7
 
