@@ -1,3 +1,7 @@
+2006-05-06 Andrew Church <achurch at achurch dot org>
+  * filter/filter_smartbob.c
+  Remove outdated help text.
+
 2006-05-05 Andrew Church <achurch at achurch dot org>
   * src/filter.c src/filter.h 
   Rewrite, using a new tc_filter_* interface.

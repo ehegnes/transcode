@@ -97,9 +97,6 @@ static void help_optstr(void)
 "   It will take the field-frames which filter_doublefps\n"
 "   produces and generates full-sized motion adaptive deinterlaced\n"
 "   output at the double import framerate.\n"
-"   If you force reading the imput file twice its actual frames\n"
-"   per second, A/V will stay in sync (for PAL):\n"
-"   -f 50 -J doublefps=shiftEven=1,smartbob=denoise=1:threshold=12\n"
 "\n"
 "* Options\n"
 "      'motionOnly' Show motion areas only (0=off, 1=on) [1]\n"
@@ -162,7 +159,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	  tc_log_info (MOD_NAME, " Smart Deinterlacer Filter Settings (%dx%d):", width, height);
 	  tc_log_info (MOD_NAME, "        motionOnly = %d", mfd->bMotionOnly);
-	  tc_log_info (MOD_NAME, "            denois = %d", mfd->bDenoise);
+	  tc_log_info (MOD_NAME, "           denoise = %d", mfd->bDenoise);
 	  tc_log_info (MOD_NAME, "         threshold = %d", mfd->threshold);
 	  tc_log_info (MOD_NAME, "         shiftEven = %d", mfd->bShiftEven);
 	}
@@ -253,7 +250,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	int hminus = ptr->v_height/2 - 1;
 	int hminus2 = ptr->v_height/2 - 2;
 	int wminus = ptr->v_width - 1;
-	int iOddEven =          mfd->bShiftEven ? 0 : 1;
+	int iOddEven = mfd->bShiftEven ? 0 : 1;
 	int pitch = ptr->v_width*4;
 
 	Pixel32 * dst_buf;
