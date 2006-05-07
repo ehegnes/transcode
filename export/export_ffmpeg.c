@@ -1173,14 +1173,14 @@ MOD_init {
 
       //-- GMO end --
 
-      tc_log_info(MOD_NAME, "  max keyframe interval: %d\n",
+      tc_log_info(MOD_NAME, "  max keyframe interval: %d",
               vob->divxkeyframes);
-      tc_log_info(MOD_NAME, "             frame rate: %.2f\n",
+      tc_log_info(MOD_NAME, "             frame rate: %.2f",
               vob->ex_fps);
-      tc_log_info(MOD_NAME, "            color space: %s\n",
+      tc_log_info(MOD_NAME, "            color space: %s",
               (pix_fmt == CODEC_RGB) ? "RGB24":
              ((pix_fmt == CODEC_YUV) ? "YUV420P" : "YUV422"));
-      tc_log_info(MOD_NAME, "             quantizers: %d/%d\n",
+      tc_log_info(MOD_NAME, "             quantizers: %d/%d",
               lavc_venc_context->qmin, lavc_venc_context->qmax);
     }
 
