@@ -1,3 +1,7 @@
+2006-05-07 Andrew Church <achurch at achurch dot org>
+  * autogen.sh
+  Remove, to avoid confusing people (the proper method is autoreconf -f -i).
+
 2006-05-06 Andrew Church <achurch at achurch dot org>
   * filter/filter_smartbob.c
   Remove outdated help text.
