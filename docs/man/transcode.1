@@ -1744,18 +1744,6 @@ zooming, etc).
 channel number and station number or name [0]
 
 .TP
-.B \-\-record_v4l \fIa-b\fP
-recording time interval in seconds [off]
-.br
-obsolete, use -c a-b.
-
-.TP
-.B \-\-duration \fIhh:mm:ss\fP
-limit v4l recording to this duration [off]
-.br
-obsolete, use -c 0-hh:mm:ss.
-
-.TP
 .B \-\-pulldown
 set MPEG 3:2 pulldown flags on export [off]
 
@@ -1978,10 +1966,6 @@ Controls how frequently the status message is printed (every \fIN\fP frames).
 .B \-\-socket \fIFILE\fP
 Open a socket to accept commands while running. See \fBtcmodinfo(1)\fP and
 /docs/filter-socket.txt for more information about the protocol.
-
-.TP
-.B \-\-more_help \fIparam\fP
-more help on named parameter (if supported)
 
 .SH FILTERS
 The syntax for filter options is simple. A filter is specified with

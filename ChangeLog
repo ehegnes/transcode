@@ -5,7 +5,7 @@
   * Removed file: src/usage.h
   now useless, so removed.
 
-  * src/transcode.c
+  * src/transcode.c docs/man/transcode.1
   remove some deprecate options.
 
   * libtc/cfgfile.c
