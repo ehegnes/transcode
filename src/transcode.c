@@ -628,7 +628,7 @@ int main(int argc, char *argv[]) {
       *video_in_file=NULL, *video_out_file=NULL,
       *nav_seek_file=NULL, *socket_file=NULL;
 
-    int n=0, ch1, ch2, fa, fb, hh, mm, ss;
+    int n=0, ch1, ch2, fa, fb;
 
     int psu_frame_threshold=12; //psu with less/equal frames are skipped.
 
