@@ -44,6 +44,17 @@ void tc_set_config_dir(const char *dir)
 
 /*************************************************************************/
 
+#define CLEANUP_LINE(line) do { \
+    /* skip comments, if any */ \
+    char *s = strchr((line), '#'); \
+    if (s) { \
+        *s = 0; \
+    } \
+    /* Remove leading and trailing spaces, if any */ \
+    tc_strstrip((line)); \
+} while (0)
+
+
 /**
  * module_read_config:  Reads in configuration information from an external
  * file.
@@ -75,8 +86,8 @@ int module_read_config(const char *filename, const char *section,
     }
 
     /* Open the file */
-    snprintf(path_buf, sizeof(path_buf), "%s/%s",
-             config_dir ? config_dir : ".", filename);
+    tc_snprintf(path_buf, sizeof(path_buf), "%s/%s",
+                config_dir ? config_dir : ".", filename);
     f = fopen(path_buf, "r");
     if (!f) {
         if (errno == EEXIST) {
@@ -98,7 +109,6 @@ int module_read_config(const char *filename, const char *section,
         char expect[TC_BUF_MAX];
         tc_snprintf(expect, sizeof(expect), "[%s]", section);
         do {
-            char *s;
             if (!fgets(buf, sizeof(buf), f)) {
                 tc_log_warn(tag, "Section [%s] not found in configuration"
                             " file %s!", section, path_buf);
@@ -106,43 +116,15 @@ int module_read_config(const char *filename, const char *section,
                 return 0;
             }
             line++;
-            s = strchr(buf, '#');
-            if (s)
-                *s = 0;
-            s = buf;
-            while (isspace(*s))
-                s++;
-            if (s > buf)
-                memmove(buf, s, strlen(s)+1);
-            s = buf + strlen(buf);
-            while (s > buf && isspace(s[-1]))
-                s--;
-            *s = 0;
+            CLEANUP_LINE(buf);
         } while (strcmp(buf, expect) != 0);
     }
 
     /* Read in the configuration values (up to the end of the section, if
      * a section name was given) */
     while (fgets(buf, sizeof(buf), f)) {
-        char *s;
-
         line++;
-
-        /* Ignore comments */
-        s = strchr(buf, '#');
-        if (s)
-            *s = 0;
-
-        /* Remove leading and trailing space */
-        s = buf;
-        while (isspace(*s))
-            s++;
-        if (s > buf)
-            memmove(buf, s, strlen(s)+1);
-        s = buf + strlen(buf);
-        while (s > buf && isspace(s[-1]))
-            s--;
-        *s = 0;
+        CLEANUP_LINE(buf);
 
         /* Ignore empty lines and comment lines */
         if (!*buf || *buf == '#')

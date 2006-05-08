@@ -1,3 +1,7 @@
+2006-05-08 Francesco Romani <fromani at gmail dot com>
+  * libtc/cfgfile.c
+  switch to tc_strstrip and minor code factorization.
+
 2006-05-07 Andrew Church <achurch at achurch dot org>
   * autogen.sh
   Remove, to avoid confusing people (the proper method is autoreconf -f -i).
