@@ -46,8 +46,6 @@
 #include "libtc/getopt.h"
 #endif
 
-#include "usage.h"
-
 const char *RED    = COL_RED;
 const char *GREEN  = COL_GREEN;
 const char *YELLOW = COL_YELLOW;
@@ -121,15 +119,12 @@ enum {
   DIVX_QUANT,
   DIVX_RC,
   IMPORT_V4L,
-  RECORD_V4L,
   PULLDOWN,
   ANTIALIAS_PARA,
-  MORE_HELP,
   KEEP_ASR,
   NO_AUDIO_ADJUST,
   NO_BITRESERVOIR,
   AV_FINE_MS,
-  DURATION,
   NAV_SEEK,
   PSU_MODE,
   PSU_CHUNKS,
@@ -161,7 +156,6 @@ enum {
   CONFIG_DIR,
   USE_YUV422,
   DVD_ACCESS_DELAY,
-  EXTENSIONS,
   EX_PIXEL_ASPECT,
   EXPORT_PROF,
   MPLAYER_PROBE,
@@ -404,7 +398,6 @@ static void usage(int status)
   printf(" -q level            verbosity (0=quiet,1=info,2=debug) [%d]\n", TC_INFO);
   printf(" -h                  this usage message\n");
   printf(" -v                  print version\n");
-//  printf("--more_help param   more help on named parameter\n");
   printf("\n");
 
   if (vob) free(vob);
@@ -646,7 +639,6 @@ int main(int argc, char *argv[]) {
     int
 	frame_a=TC_FRAME_FIRST,   // defaults to all frames
 	frame_b=TC_FRAME_LAST,
-	frame_asec=0, frame_bsec=0,
 	splitavi_frames=0,
 	psu_mode=TC_FALSE;
 
@@ -762,15 +754,12 @@ int main(int argc, char *argv[]) {
       {"divx_quant", required_argument, NULL, DIVX_QUANT},
       {"divx_rc", required_argument, NULL, DIVX_RC},
       {"import_v4l", required_argument, NULL, IMPORT_V4L},
-      {"record_v4l", required_argument, NULL, RECORD_V4L},
       {"pulldown", no_argument, NULL, PULLDOWN},
       {"antialias_para", required_argument, NULL, ANTIALIAS_PARA},
-      {"more_help", required_argument, NULL, MORE_HELP},
       {"keep_asr", no_argument, NULL, KEEP_ASR},
       {"no_audio_adjust", no_argument, NULL, NO_AUDIO_ADJUST},
       {"no_bitreservoir", no_argument, NULL, NO_BITRESERVOIR},
       {"av_fine_ms", required_argument, NULL, AV_FINE_MS},
-      {"duration", required_argument, NULL, DURATION},
       {"nav_seek", required_argument, NULL, NAV_SEEK},
       {"psu_mode", no_argument, NULL, PSU_MODE},
       {"psu_chunks", required_argument, NULL, PSU_CHUNKS},
@@ -795,7 +784,6 @@ int main(int argc, char *argv[]) {
       {"dv_yuy2_mode", no_argument, NULL, DV_YUY2_MODE},
       {"lame_preset", required_argument, NULL, LAME_PRESET},
       {"color", required_argument, NULL, COLOR_LEVEL},
-      {"colour", required_argument, NULL, COLOR_LEVEL},
       {"video_max_bitrate", required_argument, NULL, VIDEO_MAX_BITRATE},
       {"avi_comments", required_argument, NULL, AVI_COMMENTS},
       {"divx_vbv_prof", required_argument, NULL, DIVX5_VBV_PROF},
@@ -804,7 +792,6 @@ int main(int argc, char *argv[]) {
       {"config_dir", required_argument, NULL, CONFIG_DIR},
       {"yuv422", no_argument, NULL, USE_YUV422},
       {"dvd_access_delay", required_argument, NULL, DVD_ACCESS_DELAY},
-      {"ext", required_argument, NULL, EXTENSIONS},
       {"export_par", required_argument, NULL, EX_PIXEL_ASPECT},
       {"export_prof", required_argument, NULL, EXPORT_PROF},
 
@@ -1969,17 +1956,6 @@ int main(int argc, char *argv[]) {
 
 	  break;
 
-
-	case RECORD_V4L:
-	  tc_error ("--record_v4l is deprecated, please use -c 0:0:s1-0:0:s2");
-
-	  if((n = sscanf( optarg, "%d-%d", &frame_asec, &frame_bsec) ) != 2 )
-	    tc_error( "invalid parameter for option --record_v4l" );
-
-	  if(frame_bsec<=frame_asec) tc_error( "invalid parameter for option --record_v4l" );
-
-	  break;
-
 	case ANTIALIAS_PARA:
 	  if((n = sscanf( optarg, "%lf,%lf", &vob->aa_weight, &vob->aa_bias)) == 0 ) tc_error( "invalid parameter for option --antialias_para");
 
@@ -2081,47 +2057,6 @@ int main(int argc, char *argv[]) {
 	case AV_FINE_MS:
 	  vob->sync_ms=atoi(optarg);
 	  preset_flag |= TC_PROBE_NO_AV_FINE;
-	  break;
-
-	case MORE_HELP:
-	  printf( "more help for " );
-
-	  if( strncmp( optarg, "import_v4l", TC_BUF_MIN ) == 0 ) {
-	    printf( "import_v4l\n" );
-	    import_v4l_usage();
-	  }
-
- 	  if( strncmp( optarg, "duration", TC_BUF_MIN ) == 0 ) {
-	    printf( "duration\n" );
-	    duration_usage();
-	  }
-
-	  printf( "none\n" );
-	  usage(EXIT_FAILURE);
-
-	  break;
-
-	case DURATION:
-	  tc_error ("--duration is deprecated, please use -c 0-hh:mm:ss");
-
-	  if( ( n = sscanf( optarg, "%d:%d:%d", &hh, &mm, &ss ) ) == 0 ) usage(EXIT_FAILURE);
-
-	  frame_a = 0;
-
-	  switch( n ) {
-	  case 1:  // record for hh seconds
-	    frame_b = vob->fps * hh;
-	    break;
-	  case 2:  // record for hh minutes and mm seconds
-	    frame_b = vob->fps * 60 * hh + vob->fps * mm;
-	    break;
-	  case 3:  // record for hh hours, mm minutes and ss seconds
-	    frame_b = vob->fps * 3600 * hh + vob->fps * 60 * mm + vob->fps * ss;
-	    break;
-	  }
-
-	  if(frame_b-1 < frame_a) tc_error("invalid frame range for option --duration");
-
 	  break;
 
 	case NAV_SEEK:
@@ -2335,12 +2270,6 @@ int main(int argc, char *argv[]) {
 	  }
 
 	  vob->export_attributes |= TC_EXPORT_ATTRIBUTE_PAR;
-	  break;
-
-	case EXTENSIONS:
-          /* FIXME: disabled option */
-          tc_log_warn(PACKAGE, "The --ext option is obsolete; please specify the");
-	  tc_log_warn(PACKAGE, "extensions in the -o and -m filenames.");
 	  break;
 
 	case EXPORT_PROF:
@@ -3958,13 +3887,6 @@ int main(int argc, char *argv[]) {
     // different audio/video output files need two export modules
     if(no_a_out_codec==0 && vob->audio_out_file==NULL &&strcmp(ex_vid_mod,ex_aud_mod) !=0) tc_error("different audio/export modules require use of option -m");
 
-
-    // --record_v4l
-
-    if (frame_asec > 0)
-        frame_a = (int) (frame_asec * vob->fps);
-    if (frame_bsec > 0)
-        frame_b = (int) (frame_bsec * vob->fps);
 
     // --accel
 

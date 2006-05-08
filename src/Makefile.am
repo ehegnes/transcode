@@ -39,7 +39,6 @@ EXTRA_DIST = \
 	split.h \
 	tc_defaults.h \
 	transcode.h \
-	usage.h \
 	video_trans.h 
 
 transcode_SOURCES = \

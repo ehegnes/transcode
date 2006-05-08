@@ -1,4 +1,13 @@
 2006-05-08 Francesco Romani <fromani at gmail dot com>
+  * src/Makefile.am
+  remove references to src/usage.h
+
+  * Removed file: src/usage.h
+  now useless, so removed.
+
+  * src/transcode.c
+  remove some deprecate options.
+
   * libtc/cfgfile.c
   switch to tc_strstrip and minor code factorization.
 

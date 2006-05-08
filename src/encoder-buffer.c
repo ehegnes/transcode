@@ -1,5 +1,5 @@
 /*
- *  encoder-buffer.c
+ *  encoder-buffer.c - encoder interface to transcode ring frame buffer
  *
  *  Copyright (C) Thomas Östreich - June 2001
  *  Updated and partially rewritten by
@@ -48,12 +48,6 @@
  * - moved counters update into dispose -> SHOULD be harmless
  * - wrapper on exit_flag check -> harmless?
  */
-
-/* ------------------------------------------------------------
- *
- * encoder main loop helpers
- *
- * ------------------------------------------------------------*/
 
 /*
  * NOTE about counter/condition/mutex handling inside various
