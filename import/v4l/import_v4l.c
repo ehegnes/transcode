@@ -74,11 +74,12 @@ MOD_open
         }
         param->fd = NULL;
 
-        if (optstr_get(options, "%i", &chan_id) != 1) {
+        if (optstr_get(vob->im_v_string, "chanid", "%i", &chan_id) != 1) {
             tc_log_error(MOD_NAME, "you must supply a channel id");
             return TC_IMPORT_ERROR;
         }
-        if (optstr_get(options, "%128s", &station_id) == 1) { /* XXX; magic number */
+        if (optstr_get(vob->im_v_string, "stationid",
+		       "%128s", station_id) == 1) { /* XXX; magic number */
             station_id[TC_BUF_MIN-1] = '\0'; /* force EOL */
         } else {
             tc_log_error(MOD_NAME, "you must supply a station id");
@@ -104,7 +105,7 @@ MOD_open
             /* default already set at initialization */
         }
         
-        if (video_grab_init(vob->video_in_file, chanid, station_id,
+        if (video_grab_init(vob->video_in_file, chan_id, station_id,
                             vob->im_v_width, vob->im_v_height,
                             fmt, verbose_flag, do_audio) < 0) {
             tc_log_error(MOD_NAME, "error grab init");
