@@ -65,7 +65,8 @@ MOD_open
     tc_log_warn(MOD_NAME, "this module is deprecated: "
                           "please use import_v4l2 instead");
     if (param->flag == TC_VIDEO) {
-        char station_id[TC_BUF_MIN] = { '\0' };
+        char station_buf[TC_BUF_MIN] = { '\0' };
+        char *station_id = NULL;
         int chan_id = -1;
 
         // print out
@@ -74,16 +75,12 @@ MOD_open
         }
         param->fd = NULL;
 
-        if (optstr_get(vob->im_v_string, "chanid", "%i", &chan_id) != 1) {
-            tc_log_error(MOD_NAME, "you must supply a channel id");
-            return TC_IMPORT_ERROR;
-        }
-        if (optstr_get(vob->im_v_string, "stationid",
-		       "%128s", station_id) == 1) { /* XXX; magic number */
-            station_id[TC_BUF_MIN-1] = '\0'; /* force EOL */
-        } else {
-            tc_log_error(MOD_NAME, "you must supply a station id");
-            return TC_IMPORT_ERROR;
+        if (vob->im_v_string != NULL) {
+            optstr_get(vob->im_v_string, "chanid", "%i", &chan_id);
+            if (optstr_get(vob->im_v_string, "stationid",
+                           "%128s", station_buf) == 1) { /* XXX; magic number */
+                station_id = station_buf;
+            }
         }
 
         if ((vob->video_in_file && strlen(vob->video_in_file)>=11
