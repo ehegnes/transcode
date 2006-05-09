@@ -1,3 +1,11 @@
+2006-05-09 Francesco Romani <fromani at gmail dot com>
+  * import/import_bktr.c
+  more changes while looking for a boolean option
+  from
+  optstr_get(options, "my_opt", "")
+  to
+  optstr_lookup(options, "my_opt")
+
 2006-05-08 Francesco Romani <fromani at gmail dot com>
   * src/Makefile.am
   remove references to src/usage.h

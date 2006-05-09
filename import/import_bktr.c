@@ -184,15 +184,15 @@ int bktr_parse_options(char *options)
     char tuner[128];
     int i;
 
-    if (optstr_get(options, "help", "") >= 0) {
+    if (optstr_lookup(options, "help") != NULL) {
         bktr_usage();
         return(1);
     }
 
-    if (optstr_get(options, "hwfps", "") >= 0)
+    if (optstr_lookup(options, "hwfps") != NULL)
         bktr_hwfps = 1;
 
-    if (optstr_get(options, "mute", "") >= 0)
+    if (optstr_lookup(options, "mute") != NULL)
         bktr_mute = 1;
 
     if (optstr_get(options, "format", "%[^:]", &format) >= 0) {
