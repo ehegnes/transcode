@@ -1,4 +1,8 @@
 2006-05-09 Francesco Romani <fromani at gmail dot com>
+  * docs/man/transcode.1
+  remove some NON-ascii characters that cause troubles with
+  man/less pair on some systems.
+
   * import/import_bktr.c
   more changes while looking for a boolean option
   from
