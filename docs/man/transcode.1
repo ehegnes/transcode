@@ -46,10 +46,8 @@ transcode \- LINUX video stream processing tool
 [ -s g[,c[,f[,r]]] ]
 [ -u m[,n] ]
 [ -A ]
-[ -V ]
-[ --yuv422 ]
+[ -V format ]
 .br
-[ --use_rgb ]
 [ -J f1[,f2[,...]] ]
 [ -P flag ]
 [ -D num ]
@@ -543,21 +541,27 @@ even specify chapter ranges.
 process DVD in chapter mode to base-ch%02d.avi [off].
 
 .TP
-.B \-V
-use YV12/I420 as internal video layout / colour space
-.br
-This option is depricated. It is default now because it is most codecs'
-internal format so there is no need for conversions. Some modules may
-not support it though. Use --use_rgb in that case.
-
-.TP
-.B \--use_rgb
-Use RGB as internal video layout / colour space
-.br
-Use this when you want the old (pre-0.6.13) transcode behaviour of using
-RGB as internal format. Most codecs do not support this format natively
-and have to convert it to/from YUV first, so only use this option if you're
+.B \-V \fIformat\fP
+select video layout / colour space for internal processing.
+Possible values for this options are: yuv420p (default), yuv422, rgb 
+.IP
+yuv420p is default because it is most codecs' internal format
+so there is no need for conversions. Some modules may
+not support it though: use rgb in that case.
+.IP
+rgb is the old (pre-0.6.13) transcode internal format.
+Most codecs do not support this format natively and have to
+convert it to/from YUV first, so only use this option if you're
 really sure or you want to use a module that doesn't support YUV.
+.IP
+yuv422 is an experimental feature and a developers playground. Not many import,
+export and filter modules support this colorspace. A 4:2:2 colorspace offers
+much more quality than the consumer oriented 4:2:0 colorspaces like I420/YV12.
+Most equipment in film and video post-production uses YUV422. YUV422 doubles
+the precision for chroma (color difference) information in the image.
+.IP
+All internal transformations are supported in YUV422 mode (clipping, flipping,
+zooming, etc).
 
 .TP
 .B \-W \fIn\fP,\fIm\fP[,\fInav_file\fP]
@@ -1725,19 +1729,6 @@ obsolete, use --export_fps 0,F
 disable smooth dropping (for variable fps clips) [off]
 .br
 see /docs/framerate.txt for more information.
-
-.TP
-.B \-\-yuv422
-use YUV422 as internal video codec [off]
-.br
-This is an experimental feature and a developers playground. Not many import,
-export and filter modules support this colorspace. A 4:2:2 colorspace offers
-much more quality than the consumer oriented 4:2:0 colorspaces like I420/YV12.
-Most equipment in film and video post-production uses YUV422. YUV422 doubles
-the precision for chroma (color difference) information in the image.
-.IP
-All internal transformations are supported in YUV422 mode (clipping, flipping,
-zooming, etc).
 
 .TP
 .B \-\-import_v4l \fIn\fP[,\fIid\fP]

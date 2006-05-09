@@ -154,7 +154,6 @@ enum {
   DIVX5_VBV_PROF,
   DIVX5_VBV,
   CONFIG_DIR,
-  USE_YUV422,
   DVD_ACCESS_DELAY,
   EX_PIXEL_ASPECT,
   EXPORT_PROF,
@@ -271,9 +270,7 @@ static void usage(int status)
   //processing
   printf(" -u m[,n]            use m framebuffer[,n threads] for AV processing [%d,%d]\n", TC_FRAME_BUFFER, TC_FRAME_THREADS);
   printf(" -A                  use AC3 as internal audio codec [off]\n");
-  printf(" -V                  use YV12/I420/YUV420 as internal video format [deprecated, default]\n");
-  printf(" --use_rgb           use RGB as internal video format [off]\n");
-  printf(" --yuv422            use YUV422 as internal video format [off]\n");
+  printf(" -V format           select internal video format [yuv420p]\n");
   printf(" -J f1[,f2[,...]]    apply external filter plugins [off]\n");
   printf(" -P flag             pass-through flag (0=off|1=V|2=A|3=A+V) [0]\n");
   printf("\n");
@@ -498,7 +495,7 @@ vob_t *tc_get_vob() {return(vob);}
 /**
  * load_all_filters:  Loads all filters specified by the -J option.
  *
- * Parameters: 
+ * Parameters:
  *     filter_list: String containing filter list from -J option.
  * Return value:
  *     None.
@@ -708,8 +705,6 @@ int main(int argc, char *argv[]) {
       {"audio_swap_bytes", no_argument, NULL, 'd'},
       {"increase_volume", required_argument, NULL, 's'},
       {"use_ac3", no_argument, NULL, 'A'},
-      {"use_yuv", no_argument, NULL, 'V'},
-      {"use_rgb", no_argument, NULL, '1'},
       {"external_filter", required_argument, NULL, 'J'},
       {"pass-through", required_argument, NULL, 'P'},
       {"av_sync_offset", required_argument, NULL, 'D'},
@@ -790,7 +785,6 @@ int main(int argc, char *argv[]) {
       {"divx_vbv", required_argument, NULL, DIVX5_VBV},
       {"hard_fps", no_argument, NULL, HARD_FPS},
       {"config_dir", required_argument, NULL, CONFIG_DIR},
-      {"yuv422", no_argument, NULL, USE_YUV422},
       {"dvd_access_delay", required_argument, NULL, DVD_ACCESS_DELAY},
       {"export_par", required_argument, NULL, EX_PIXEL_ASPECT},
       {"export_prof", required_argument, NULL, EXPORT_PROF},
@@ -1170,22 +1164,27 @@ int main(int argc, char *argv[]) {
 	  break;
 
 	case 'V':
-	  fprintf(stderr, "*** WARNING: The option -V is deprecated. ***\n"
-	      "*** Transcode internal frame handling is now in YV12 / YUV420 ***\n"
-	      "*** format by default because most codecs can only handle this format, ***\n"
-	      "*** otherwise leading to unnecessary time and quality wasting conversions. ***\n"
-	      "*** If you want to have to \"old\" behaviour (RGB24 as internal format), ***\n"
-	      "*** then please use the new -1/--use_rgb option ***\n");
-	  // vob->im_v_codec=CODEC_YUV;
-	  break;
-
-	case '1':
-	  vob->im_v_codec = CODEC_RGB;
+          if (!optarg || !strlen(optarg)) {
+              tc_error("missing argument for -V: should be one of: "
+                       "yuv420p (default), yuv422p, rgb");
+          }
+          if (strcmp(optarg, "yuv420p") == 0) {
+              tc_warn("yuv420p is already the default for -V");
+              /* anyway... */
+	      vob->im_v_codec=CODEC_YUV;
+          } else if (strcmp(optarg, "yuv422") == 0) {
+              vob->im_v_codec = CODEC_YUV422;
+          } else if (strcmp(optarg, "rgb") == 0) {
+	      vob->im_v_codec = CODEC_RGB;
+          } else {
+              tc_error("bad argument for -V: should be one of: "
+                       "yuv420p (default), yuv422p, rgb");
+          }
 	  break;
 
 	case 'l':
-
-	  mirror = TC_TRUE;
+	
+          mirror = TC_TRUE;
 	  break;
 
 	case 'C':
@@ -1841,10 +1840,6 @@ int main(int argc, char *argv[]) {
 
 	  break;
 
-	case USE_YUV422:
-	  vob->im_v_codec = CODEC_YUV422;
-	  break;
-
 	case CLUSTER_PERCENTAGE:
 	  vob->vob_percentage=1;
 	  break;
@@ -1945,16 +1940,16 @@ int main(int argc, char *argv[]) {
 
 	    break;
 
-	case IMPORT_V4L:
-	  if( ( n = sscanf( optarg, "%d,%s", &chanid, station_id ) ) == 0 )
-	    tc_error( "invalid parameter for option --import_v4l" );
+       case IMPORT_V4L:
+         if( ( n = sscanf( optarg, "%d,%s", &chanid, station_id ) ) == 0 )
+           tc_error( "invalid parameter for option --import_v4l" );
 
-	  vob->chanid = chanid;
+         vob->chanid = chanid;
 
-	  if( n > 1 )
-	    vob->station_id = station_id;
+         if( n > 1 )
+           vob->station_id = station_id;
 
-	  break;
+         break;
 
 	case ANTIALIAS_PARA:
 	  if((n = sscanf( optarg, "%lf,%lf", &vob->aa_weight, &vob->aa_bias)) == 0 ) tc_error( "invalid parameter for option --antialias_para");
@@ -3353,7 +3348,7 @@ int main(int argc, char *argv[]) {
       // sanity check for YUV
       if(vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
 	if(vob->ex_v_width%2 != 0 || (vob->im_v_codec == CODEC_YUV && vob->ex_v_height%2 != 0)) {
-	    tc_error("rescaled width/height must be even for YUV mode, try --use_rgb");
+	    tc_error("rescaled width/height must be even for YUV mode, try -V rgb");
 	}
       }
 
