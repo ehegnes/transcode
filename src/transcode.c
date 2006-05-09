@@ -1038,7 +1038,7 @@ int main(int argc, char *argv[]) {
      *
      * ------------------------------------------------------------*/
 
-    while ((ch1 = getopt_long_only(argc, argv, "n:m:y:h?u:i:o:a:t:p:f:zdkr:j:w:b:c:x:s:e:g:q:vlD:AV1B:Z:C:I:KP:T:U:L:Q:R:J:F:E:S:M:Y:G:OX:H:N:W:", long_options, &option_index)) != -1) {
+    while ((ch1 = getopt_long_only(argc, argv, "n:m:y:h?u:i:o:a:t:p:f:zdkr:j:w:b:c:x:s:e:g:q:vlD:AV:B:Z:C:I:KP:T:U:L:Q:R:J:F:E:S:M:Y:G:OX:H:N:W:", long_options, &option_index)) != -1) {
 
 	switch (ch1) {
 
