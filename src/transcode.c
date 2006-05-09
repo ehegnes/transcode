@@ -1169,7 +1169,7 @@ int main(int argc, char *argv[]) {
                        "yuv420p (default), yuv422p, rgb");
           }
           if (strcmp(optarg, "yuv420p") == 0) {
-              tc_warn("yuv420p is already the default for -V");
+              tc_info("yuv420p is already the default for -V");
               /* anyway... */
 	      vob->im_v_codec=CODEC_YUV;
           } else if (strcmp(optarg, "yuv422") == 0) {
