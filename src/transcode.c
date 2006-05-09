@@ -1166,19 +1166,19 @@ int main(int argc, char *argv[]) {
 	case 'V':
           if (!optarg || !strlen(optarg)) {
               tc_error("missing argument for -V: should be one of: "
-                       "yuv420p (default), yuv422p, rgb");
+                       "yuv420p (default), yuv422p, rgb24");
           }
           if (strcmp(optarg, "yuv420p") == 0) {
               tc_info("yuv420p is already the default for -V");
               /* anyway... */
 	      vob->im_v_codec=CODEC_YUV;
-          } else if (strcmp(optarg, "yuv422") == 0) {
+          } else if (strcmp(optarg, "yuv422p") == 0) {
               vob->im_v_codec = CODEC_YUV422;
-          } else if (strcmp(optarg, "rgb") == 0) {
+          } else if (strcmp(optarg, "rgb24") == 0) {
 	      vob->im_v_codec = CODEC_RGB;
           } else {
               tc_error("bad argument for -V: should be one of: "
-                       "yuv420p (default), yuv422p, rgb");
+                       "yuv420p (default), yuv422p, rgb24");
           }
 	  break;
 
@@ -3348,7 +3348,7 @@ int main(int argc, char *argv[]) {
       // sanity check for YUV
       if(vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
 	if(vob->ex_v_width%2 != 0 || (vob->im_v_codec == CODEC_YUV && vob->ex_v_height%2 != 0)) {
-	    tc_error("rescaled width/height must be even for YUV mode, try -V rgb");
+	    tc_error("rescaled width/height must be even for YUV mode, try -V rgb24");
 	}
       }
 
@@ -3626,18 +3626,20 @@ int main(int argc, char *argv[]) {
       tc_error("invalid frame processing requested");
     }
 
-    // -V / --yuv422
+    // -V
 
     if(vob->im_v_codec==CODEC_YUV) {
       vob->ex_v_size = (3*vob->ex_v_height * vob->ex_v_width)>>1;
       vob->im_v_size = (3*vob->im_v_height * vob->im_v_width)>>1;
-      if(verbose & TC_INFO) printf("[%s] V: %-16s | I420\n", PACKAGE, "YCbCr");
+      if(verbose & TC_INFO) printf("[%s] V: %-16s | YUV420 (4:2:0) aka I420\n", PACKAGE, "video format");
     } else if (vob->im_v_codec==CODEC_YUV422) {
       vob->ex_v_size = (2*vob->ex_v_height * vob->ex_v_width);
       vob->im_v_size = (2*vob->im_v_height * vob->im_v_width);
-      if(verbose & TC_INFO) printf("[%s] V: %-16s | YUV422 (4:2:2)\n", PACKAGE, "YCbCr");
-    } else
+      if(verbose & TC_INFO) printf("[%s] V: %-16s | YUV422 (4:2:2)\n", PACKAGE, "video format");
+    } else {
       vob->ex_v_size = vob->ex_v_height * vob->ex_v_width * BPP/8;
+      if(verbose & TC_INFO) printf("[%s] V: %-16s | RGB24\n", PACKAGE, "video format");
+    }
 
     // -p
 

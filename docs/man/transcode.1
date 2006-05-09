@@ -543,18 +543,18 @@ process DVD in chapter mode to base-ch%02d.avi [off].
 .TP
 .B \-V \fIformat\fP
 select video layout / colour space for internal processing.
-Possible values for this options are: yuv420p (default), yuv422, rgb 
+Possible values for this options are: yuv420p (default), yuv422p, rgb24
 .IP
 yuv420p is default because it is most codecs' internal format
 so there is no need for conversions. Some modules may
 not support it though: use rgb in that case.
 .IP
-rgb is the old (pre-0.6.13) transcode internal format.
+rgb24 is the old (pre-0.6.13) transcode internal format.
 Most codecs do not support this format natively and have to
 convert it to/from YUV first, so only use this option if you're
 really sure or you want to use a module that doesn't support YUV.
 .IP
-yuv422 is an experimental feature and a developers playground. Not many import,
+yuv422p is an experimental feature and a developers playground. Not many import,
 export and filter modules support this colorspace. A 4:2:2 colorspace offers
 much more quality than the consumer oriented 4:2:0 colorspaces like I420/YV12.
 Most equipment in film and video post-production uses YUV422. YUV422 doubles

@@ -9,6 +9,8 @@
   * src/transcode.c docs/man/transcode.1
   change usage of option -V by merging --use_rgb and --yuv422 on it;
   now it's possible to select to internal colorspace just using -V.
+  Ensure coherent naming of video formats identifiers, and
+  also make video format notify to the user a little bit prettier ;).
 
 2006-05-08 Francesco Romani <fromani at gmail dot com>
   * src/Makefile.am
