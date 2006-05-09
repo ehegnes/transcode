@@ -23,9 +23,10 @@
 
 #include "transcode.h"
 #include "vcr.h"
+#include "libtc/optstr.h"
 
 #define MOD_NAME    "import_v4l.so"
-#define MOD_VERSION "v0.0.5 (2003-06-11)"
+#define MOD_VERSION "v0.0.6 (2006-05-08)"
 #define MOD_CODEC   "(video) v4l | (audio) PCM"
 
 static int verbose_flag=TC_QUIET;
@@ -61,82 +62,84 @@ MOD_open
 {
     int fmt = VIDEO_PALETTE_YUV420P;
 
+    tc_log_warn(MOD_NAME, "this module is deprecated: "
+                          "please use import_v4l2 instead");
+    if (param->flag == TC_VIDEO) {
+        char station_id[TC_BUF_MIN] = { '\0' };
+        int chan_id = -1;
 
-  if(param->flag == TC_VIDEO) {
+        // print out
+        if (verbose_flag) {
+            tc_log_info(MOD_NAME, "video4linux video grabbing");
+        }
+        param->fd = NULL;
 
-    // print out
-    if(verbose_flag) tc_log_info(MOD_NAME, "video4linux video grabbing");
+        if (optstr_get(options, "%i", &chan_id) != 1) {
+            tc_log_error(MOD_NAME, "you must supply a channel id");
+            return TC_IMPORT_ERROR;
+        }
+        if (optstr_get(options, "%128s", &station_id) == 1) { /* XXX; magic number */
+            station_id[TC_BUF_MIN-1] = '\0'; /* force EOL */
+        } else {
+            tc_log_error(MOD_NAME, "you must supply a station id");
+            return TC_IMPORT_ERROR;
+        }
 
-    param->fd = NULL;
+        if ((vob->video_in_file && strlen(vob->video_in_file)>=11
+          && strncmp(vob->video_in_file, "/dev/video1", 11))) {
+            do_resync = 0; //no resync stuff for webcams
+        }
 
-    //set channel_id with vob->v_track
-    //set channel with vob->station or vob->station_id
-    //set device with vob->video_in_file
+        switch (vob->im_v_codec) {
+          case CODEC_RGB:
+            fmt = VIDEO_PALETTE_RGB24;
+            break;
+          case CODEC_YUV:
+            if (vob->im_v_string && strlen (vob->im_v_string) > 0) {
+                if ( (strcmp (vob->im_v_string, "yuv422")) == 0) {
+                    fmt = VIDEO_PALETTE_YUV422;
+                }
+            } /* else we're fine with default (yuv420p) */
+            break;
+            /* default already set at initialization */
+        }
+        
+        if (video_grab_init(vob->video_in_file, chanid, station_id,
+                            vob->im_v_width, vob->im_v_height,
+                            fmt, verbose_flag, do_audio) < 0) {
+            tc_log_error(MOD_NAME, "error grab init");
+            return TC_IMPORT_ERROR;
+        }
 
-    //tc_log_msg(MOD_NAME, "vob->amod_probed (%s)", vob->amod_probed);
+        vframe_pts = v4l_counter_init();
+        vframe_pts0 = vframe_pts;
+        if (do_audio) {
+            video_drop_frames = audio_drop_frames - 
+                                (int) ((vframe_pts0-aframe_pts0)*vob->fps);
+        }
+        if (verbose_flag) {
+            tc_log_info(MOD_NAME, "dropping %d video frames for AV sync ",
+                        video_drop_frames);
+        }
 
-    /* This check is bogus since amod->probed does not contain what the user
-     * specified with -x
-
-    if ((vob->amod_probed && strlen(vob->amod_probed)>=4 && !strncmp(vob->amod_probed, "null", 4))
-	    || !vob->amod_probed) {
-	tc_log_msg(MOD_NAME, "NO AUDIO");
-	do_audio = 0;
+        return TC_IMPORT_OK;
     }
-    */
+    if (param->flag == TC_AUDIO) {
+        if (verbose_flag) {
+            tc_log_info(MOD_NAME, "video4linux audio grabbing");
+        }
 
-    if ((vob->video_in_file && strlen(vob->video_in_file)>=11 && strncmp(vob->video_in_file, "/dev/video1", 11))) do_resync=0; //no resync stuff for webcams
-
-    switch(vob->im_v_codec) {
-
-    case CODEC_RGB:
-
-      if(video_grab_init(vob->video_in_file, vob->chanid, vob->station_id, vob->im_v_width, vob->im_v_height, VIDEO_PALETTE_RGB24, verbose_flag, do_audio)<0) {
-	tc_log_error(MOD_NAME, "error grab init");
-	return(TC_IMPORT_ERROR);
-      }
-
-      break;
-
-    case CODEC_YUV:
-
-      if (vob->im_v_string && strlen (vob->im_v_string)>0) {
-	  if ( (strcmp (vob->im_v_string, "yuv422")) == 0)
-	      fmt = VIDEO_PALETTE_YUV422;
-      }
-
-      if(video_grab_init(vob->video_in_file, vob->chanid, vob->station_id, vob->im_v_width, vob->im_v_height, fmt, verbose_flag, do_audio)<0) {
-	tc_log_error(MOD_NAME, "error grab init");
-	return(TC_IMPORT_ERROR);
-      }
-
-      break;
+        if (audio_grab_init(vob->audio_in_file,
+                            vob->a_rate, vob->a_bits, vob->a_chan,
+                            verbose_flag) < 0) {
+            return TC_IMPORT_ERROR;
+        }
+        aframe_pts = v4l_counter_init();
+        aframe_pts0 = aframe_pts;
+        param->fd = NULL;
+        return TC_IMPORT_OK;
     }
-
-    vframe_pts0 =  vframe_pts = v4l_counter_init();
-    if (do_audio)
-	video_drop_frames = audio_drop_frames - (int) ((vframe_pts0-aframe_pts0)*vob->fps);
-    if(verbose_flag) tc_log_info(MOD_NAME, "dropping %d video frames for AV sync ", video_drop_frames);
-
-    return(0);
-  }
-
-  if(param->flag == TC_AUDIO) {
-
-    // print out
-    if(verbose_flag) tc_log_info(MOD_NAME, "video4linux audio grabbing");
-
-    //set device with vob->audio_in_file
-    if(audio_grab_init(vob->audio_in_file, vob->a_rate, vob->a_bits, vob->a_chan, verbose_flag)<0) return(TC_IMPORT_ERROR);
-
-    aframe_pts0 = aframe_pts = v4l_counter_init();
-
-    param->fd = NULL;
-
-    return(0);
-  }
-
-  return(TC_IMPORT_ERROR);
+    return TC_IMPORT_ERROR;
 }
 
 /* ------------------------------------------------------------
@@ -145,47 +148,50 @@ MOD_open
  *
  * ------------------------------------------------------------*/
 
-MOD_decode{
+MOD_decode
+{
+    if (param->flag == TC_VIDEO) {
+        if (!do_resync) {
+            video_drop_frames = 1;
+        }
+        
+        do {
+            video_grab_frame(param->buffer);
+            if ((verbose & TC_STATS) && vframe_cnt<MAX_DISPLAY_PTS) {
+                v4l_counter_print("VIDEO", vframe_cnt, vframe_pts0,
+                                  &vframe_pts);
+            }
+            ++vframe_cnt;
+            --video_drop_frames;
+        } while (video_drop_frames > 0);
+        
+        video_drop_frames = 1;
+        
+        return TC_IMPORT_OK;
+    }
 
-  if(param->flag == TC_VIDEO) {
+    if (param->flag == TC_AUDIO) {
+        if (!do_resync) {
+            audio_drop_frames = 1;
+        }
+    
+        do {
+            audio_grab_frame(param->buffer, param->size);
+            if ((verbose & TC_STATS) && aframe_cnt<MAX_DISPLAY_PTS) {
+                v4l_counter_print("AUDIO", aframe_cnt, aframe_pts0,
+                                  &aframe_pts);
+            }
 
-    if(!do_resync) video_drop_frames=1;
+            ++aframe_cnt;
+            --audio_drop_frames;
 
-    do {
-      video_grab_frame(param->buffer);
-      if((verbose & TC_STATS) && vframe_cnt<MAX_DISPLAY_PTS) v4l_counter_print("VIDEO", vframe_cnt, vframe_pts0, &vframe_pts);
+        } while (audio_drop_frames>0);
 
-      ++vframe_cnt;
-      --video_drop_frames;
+        audio_drop_frames = 1;
 
-    } while(video_drop_frames>0);
-
-    video_drop_frames=1;
-
-    return(0);
-  }
-
-  if(param->flag == TC_AUDIO) {
-
-    if(!do_resync) audio_drop_frames=1;
-
-    do {
-
-      audio_grab_frame(param->buffer, param->size);
-      if((verbose & TC_STATS) && aframe_cnt<MAX_DISPLAY_PTS) v4l_counter_print("AUDIO", aframe_cnt, aframe_pts0, &aframe_pts);
-
-      ++aframe_cnt;
-      --audio_drop_frames;
-
-    } while(audio_drop_frames>0);
-
-    audio_drop_frames=1;
-
-    return(0);
- }
-
- return(TC_IMPORT_ERROR);
-
+        return TC_IMPORT_OK;
+    }
+    return TC_IMPORT_ERROR;
 }
 
 /* ------------------------------------------------------------
@@ -196,24 +202,16 @@ MOD_decode{
 
 MOD_close
 {
+    if (param->flag == TC_VIDEO) {
+        video_grab_close(do_audio);
+        return TC_IMPORT_OK;
+    }
 
-  if(param->flag == TC_VIDEO) {
-
-    // stop grabbing
-    video_grab_close(do_audio);
-
-    return(0);
-  }
-
-  if(param->flag == TC_AUDIO) {
-
-    // stop grabbing
-    audio_grab_close(do_audio);
-
-    return(0);
-  }
-
-  return(TC_IMPORT_ERROR);
+    if (param->flag == TC_AUDIO) {
+        audio_grab_close(do_audio);
+        return TC_IMPORT_OK;
+    }
+    return TC_IMPORT_ERROR;
 }
 
 

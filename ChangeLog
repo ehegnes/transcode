@@ -1,4 +1,10 @@
 2006-05-09 Francesco Romani <fromani at gmail dot com>
+  * import/v4l/import_v4l.c
+  add two option to select station and channel id instead
+  using the corresponding vob fields (so they can be removed
+  in incoming patch); partial rewrite to make more STYLEish.
+  Add deprecation warning.
+
   * docs/man/transcode.1
   remove some NON-ascii characters that cause troubles with
   man/less pair on some systems.
