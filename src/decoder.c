@@ -314,7 +314,7 @@ int import_init(vob_t *vob, char *a_mod, char *v_mod)
 	if(!cc)
 	{
 		fprintf(stderr, "Video format not supported by import module\n");
-		fprintf(stderr, "Please try --uyvy or --use_rgb\n");
+		fprintf(stderr, "Please try -V yuv422p or -V rgb24\n");
 		return(-1);
 	}
 

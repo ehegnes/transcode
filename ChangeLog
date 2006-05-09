@@ -1,4 +1,8 @@
 2006-05-09 Francesco Romani <fromani at gmail dot com>
+  * filter/filter_fields.c src/decoder.c testsuite/newtest.pl
+    testsuite/test.pl
+  remove still living references to --use_rgb option.
+
   * import/v4l/import_v4l.c
   add two option to select station and channel id instead
   using the corresponding vob fields (so they can be removed

@@ -90,7 +90,7 @@ static const char *help_text[] = {
   "discrepancies if YUV is used as the internal transcode",
   "video format.  This is because YUV does not contain enough",
   "information to do field shifting cleanly. For best (but",
-  "slower) results, use RGB mode (--use_rgb) for field",
+  "slower) results, use RGB mode (-V rgb24) for field",
   "shifting.",
   "",
   0 // End of Text

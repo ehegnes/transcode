@@ -125,7 +125,7 @@ sub testmodule($ $ $ $ $ $ $)
 		return(1);
 	}
 
-	$cmdline .= " --use_rgb" if($mode eq "rgb");
+	$cmdline .= " -V rgb24" if($mode eq "rgb");
 	$cmdline .= " -F $codec" if(defined($codec) && $codec ne "");
 
 	open(my($fd), ">>log");
