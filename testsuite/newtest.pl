@@ -524,7 +524,7 @@ sub test_raw_raw
     my $raw_frame = substr($raw_in, $i+4,
                            8+unpack("V",substr($raw_in,$i+8,4)));
     my @colorspace_args = ();
-    push @colorspace_args, "-V rgb24" if $csp == CSP_RGB;
+    push @colorspace_args, "-V", "rgb24" if $csp == CSP_RGB;
     $VideoData{$csp} = &transcode($raw_in, "-x", "raw,null", "-y",
                                    "raw,null", @colorspace_args);
     return "transcode failed" if !$VideoData{$csp};
@@ -550,7 +550,7 @@ sub test_raw_raw_csp
         if !$VideoData{$csp_out};
     my $outcsp_arg = $csp_out==CSP_RGB ? "rgb" : "i420";
     my @colorspace_args = ();
-    push @colorspace_args, "-V rgb24" if $csp_in == CSP_RGB;
+    push @colorspace_args, "-V", "rgb24" if $csp_in == CSP_RGB;
     $data = &transcode($data, "-x", "raw,null", "-y", "raw,null",
                        "-F", $outcsp_arg, @colorspace_args);
     return "transcode failed" if !$data;
@@ -571,7 +571,7 @@ sub test_import
     &fatal("***BUG*** missing output data for CSP $csp")
         if !$VideoData{$csp};
     my @colorspace_args = ();
-    push @colorspace_args, "-V rgb24" if $csp == CSP_RGB;
+    push @colorspace_args, "-V", "rgb24" if $csp == CSP_RGB;
     $data = &transcode($$dataref, "-x", "$vimport_mod,null", "-y", "raw,null",
                        @colorspace_args);
     return "transcode failed" if !$data;
@@ -594,7 +594,7 @@ sub test_export_x_ffmpeg
     my @extra_args = ();
     push @extra_args, "-F", $F_arg if defined($F_arg);
     my @colorspace_args = ();
-    push @colorspace_args, "-V rgb24" if $csp == CSP_RGB;
+    push @colorspace_args, "-V", "rgb24" if $csp == CSP_RGB;
     my $export_data = &transcode($csp_data, "-x", "raw,null", "-y",
                                  "$vexport_mod,null", @extra_args,
                                  @colorspace_args);
@@ -622,7 +622,7 @@ sub test_vidcore
 {
     my $colorspace = shift @_;
     my @cmdline = ("-x", "raw,null", "-y", "raw,null");
-    push @cmdline, "-V rgb24" if $colorspace == CSP_RGB;
+    push @cmdline, "-V", "rgb24" if $colorspace == CSP_RGB;
     my $bpp = $colorspace==CSP_RGB ? 24 : 12;  # total bits per pixel
 
     # Diagonalize the test frame, to try and catch more bugs

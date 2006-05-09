@@ -1,4 +1,8 @@
 2006-05-09 Francesco Romani <fromani at gmail dot com>
+  * testsuite/newtest.pl
+  Write "-V rgb24" the right way.
+
+2006-05-09 Francesco Romani <fromani at gmail dot com>
   * filter/filter_fields.c src/decoder.c testsuite/newtest.pl
     testsuite/test.pl
   remove still living references to --use_rgb option.
