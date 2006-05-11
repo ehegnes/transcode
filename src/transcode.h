@@ -346,9 +346,6 @@ typedef struct _vob_t {
 
     unsigned int frame_interval; // Select every `frame_interval' frames only
 
-    int chanid;
-    const char *station_id;
-
     char *im_v_string;          // Extra options for import video module
     char *im_a_string;          // Extra options for import audio module
     char *ex_v_string;          // Extra options for export video module

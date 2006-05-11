@@ -276,8 +276,6 @@ static void dump_vob(int sock)
     SEND(mod_path, "%s");
     SEND(ttime, "%p");  // format this as a -c style string?
     SEND(frame_interval, "%u");
-    SEND(chanid, "%d");
-    SEND(station_id, "%s");
     SEND(im_v_string, "%s");
     SEND(im_a_string, "%s");
     SEND(ex_v_string, "%s");

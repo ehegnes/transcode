@@ -1,3 +1,10 @@
+2006-05-11 Francesco Romani <fromani at gmail dot com>
+  * docs/man/transcode.1 pvm3/vob_pack_unpack.c src/socket.c
+    src/transcode.c src/transcode.h
+  transcode's --import_v4l is now gone, so vob.station_id and
+  vob.chanid. Use chanid and stationd options of import_v4l
+  instead, or even better switch to import_v4l2.
+
 2006-05-09 Andrew Church <achurch at achurch dot org>
   * testsuite/newtest.pl
   Write "-V rgb24" the right way.

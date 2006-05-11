@@ -118,7 +118,6 @@ enum {
   HARD_FPS,
   DIVX_QUANT,
   DIVX_RC,
-  IMPORT_V4L,
   PULLDOWN,
   ANTIALIAS_PARA,
   KEEP_ASR,
@@ -349,10 +348,6 @@ static void usage(int status)
   printf("--cluster_chunks a-b process chunk range instead of selected chunk [off]\n");
   printf(" -S unit[,s1-s2]     process program stream unit[,s1-s2] sequences [0,all]\n");
   printf(" -L n                seek to VOB stream offset nx2kB [0]\n");
-  printf("\n");
-
-  //v4l
-  printf("--import_v4l n[,id]  channel number and station number or name [0]\n");
   printf("\n");
 
   //mpeg
@@ -616,10 +611,6 @@ int main(int argc, char *argv[]) {
     int s_tcxmlcheck_resize;
     char *p_tcxmlcheck_buffer;
 #endif
-    // v4l capture
-    int chanid = -1;
-    char station_id[TC_BUF_MIN];
-
     char
       *audio_in_file=NULL, *audio_out_file=NULL,
       *video_in_file=NULL, *video_out_file=NULL,
@@ -748,7 +739,6 @@ int main(int argc, char *argv[]) {
       {"export_fps", required_argument, NULL, EXPORT_FPS},
       {"divx_quant", required_argument, NULL, DIVX_QUANT},
       {"divx_rc", required_argument, NULL, DIVX_RC},
-      {"import_v4l", required_argument, NULL, IMPORT_V4L},
       {"pulldown", no_argument, NULL, PULLDOWN},
       {"antialias_para", required_argument, NULL, ANTIALIAS_PARA},
       {"keep_asr", no_argument, NULL, KEEP_ASR},
@@ -978,10 +968,6 @@ int main(int argc, char *argv[]) {
     vob->zoom_filter      = TCV_ZOOM_LANCZOS3;
 
     vob->frame_interval   = 1; // write every frame
-
-    // v4l capture
-    vob->chanid           = chanid;
-    vob->station_id       = NULL;
 
     //anti-alias
     vob->aa_weight        = TC_DEFAULT_AAWEIGHT;
@@ -1939,17 +1925,6 @@ int main(int argc, char *argv[]) {
 	      tc_error("invalid parameters for option --divx_vbv");
 
 	    break;
-
-       case IMPORT_V4L:
-         if( ( n = sscanf( optarg, "%d,%s", &chanid, station_id ) ) == 0 )
-           tc_error( "invalid parameter for option --import_v4l" );
-
-         vob->chanid = chanid;
-
-         if( n > 1 )
-           vob->station_id = station_id;
-
-         break;
 
 	case ANTIALIAS_PARA:
 	  if((n = sscanf( optarg, "%lf,%lf", &vob->aa_weight, &vob->aa_bias)) == 0 ) tc_error( "invalid parameter for option --antialias_para");

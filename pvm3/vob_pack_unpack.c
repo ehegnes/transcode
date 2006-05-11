@@ -239,17 +239,6 @@ char *f_vob_pack(char *p_option,vob_t *p_vob,int *p_size)
 			p_pup_area->s_size=1;	/*only \0*/
 		*p_size=*p_size+p_pup_area->s_size+sizeof(vob_pack_unpack_t);
 		p_pup_area=(vob_pack_unpack_t *)(p_buffer+*p_size); /*pointer to the next section*/
-		if (p_vob->station_id!=NULL)
-		{
-			p_pup_area->p_area=(char *)((char *)p_pup_area+sizeof(vob_pack_unpack_t));
-			p_pup_area->s_size=strlen(p_vob->station_id);
-			memcpy(p_pup_area->p_area,p_vob->station_id,p_pup_area->s_size);
-			p_pup_area->s_size+=1;	/*strlen + \0 so the strings will be terminated*/
-		}
-		else
-			p_pup_area->s_size=1;	/*only \0*/
-		*p_size=*p_size+p_pup_area->s_size+sizeof(vob_pack_unpack_t);
-		p_pup_area=(vob_pack_unpack_t *)(p_buffer+*p_size); /*pointer to the next section*/
 		if (p_vob->im_v_string!=NULL)
 		{
 			p_pup_area->p_area=(char *)((char *)p_pup_area+sizeof(vob_pack_unpack_t));
@@ -430,12 +419,6 @@ vob_t *f_vob_unpack(char *p_option,char *p_area,int s_size)
 		if (p_pup_area->s_size==1)
 			p_pun_buf=NULL;
 		p_vob->mod_path=p_pun_buf;
-		s_cont+=p_pup_area->s_size+sizeof(vob_pack_unpack_t);
-		p_pup_area=(vob_pack_unpack_t *)(p_buffer+s_cont); /*pointer to the next section*/
-		p_pun_buf=(char *)((char *)p_pup_area+sizeof(vob_pack_unpack_t));
-		if (p_pup_area->s_size==1)
-			p_pun_buf=NULL;
-		p_vob->station_id=p_pun_buf;
 		s_cont+=p_pup_area->s_size+sizeof(vob_pack_unpack_t);
 		p_pup_area=(vob_pack_unpack_t *)(p_buffer+s_cont); /*pointer to the next section*/
 		p_pun_buf=(char *)((char *)p_pup_area+sizeof(vob_pack_unpack_t));
