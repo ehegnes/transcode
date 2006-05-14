@@ -2287,7 +2287,7 @@ see /docs/filter_dnr.txt (german only)
 .RE
 .TP 4
 \fBdoublefps\fP - \fBdouble frame rate by deinterlacing fields into frames\fP
-\fBdoublefps\fP was written by Andrew Church. The version documented here is v1.0 (2006-05-02). This is a video and audio filter. It can handle YUV and YUV422 modes. It is a post-processing only filter.
+\fBdoublefps\fP was written by Andrew Church. The version documented here is v1.1 (2006-05-14). This is a video and audio filter. It can handle YUV and YUV422 modes. It is a pre-processing only filter.
 .IP
 .RS
 \(bu
@@ -2297,16 +2297,21 @@ see /docs/filter_dnr.txt (german only)
 Assume top field is displayed first
 .RE
 \(bu
-.I hq
+.I fullheight
 = \fI%d\fP  [default \fI0\fP]
 .RS 3
-Adjust for vertical displacement (slow)
+Output full-height frames
 .RE
-Converts interlaced video into progressive video with half the
-original height and twice the speed (FPS), by converting each
-interlaced field to a separate frame.  Optionally allows the two
-fields to be shifted by half a pixel each to line them up correctly
-(at a significant expense of time).
+
+Doubles the frame rate of interlaced video by separating each field
+into a separate frame.  The fields can either be left as is (giving a
+progessive video with half the height of the original) or re-interlaced
+into their original height (at the doubled frame rate) for the
+application of a separate deinterlacing filter.
+
+Note that due to transcode limitations, it is currently necessary to use
+the -Z option to specify the output frame size when using half-height mode
+(this does not slow the program down if no actual zooming is done).
 .RE
 .TP 4
 \fBextsub\fP - \fBDVD subtitle overlay plugin\fP

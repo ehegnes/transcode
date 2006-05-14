@@ -1,4 +1,10 @@
 2006-05-14 Andrew Church <achurch at achurch dot org>
+  * dpcs/man/transcode.1 filter/filter_doublefps.c
+  Remove "hq" option (it actually lowered quality), and add "fullheight"
+  option to produce full-height frames with successive pairs of frames
+  interlaced: (1,2), (2,3), (3,4)...  Also change from a postprocessing
+  filter to a preprocessing filter.
+
   * src/video_buffer.c
   When duplicating buffers, don't overwrite the new buffer's `free' field
   (which deals with the buffer's pointers, not the video frame itself).

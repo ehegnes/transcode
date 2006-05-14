@@ -9,7 +9,7 @@
  */
 
 #define MOD_NAME        "filter_doublefps.so"
-#define MOD_VERSION     "v1.0 (2006-05-02)"
+#define MOD_VERSION     "v1.1 (2006-05-14)"
 #define MOD_CAP         "double frame rate by deinterlacing fields into frames"
 #define MOD_AUTHOR      "Andrew Church"
 
@@ -25,12 +25,15 @@
 
 typedef struct {
     int topfirst;           // Top field first?
-    int hq;                 // High-quality mode
+    int fullheight;         // Full-height mode
+    int configured;         // Nonzero if we've been configured once
+    int have_first_frame;   // Nonzero if we've seen a frame
     TCVHandle tcvhandle;    // For tcv_zoom() when shifting
     int deinter_handle;     // For high-quality mode
     int saved_audio_len;    // Number of bytes of audio saved for second field
     uint8_t saved_audio[SIZE_PCM_FRAME];
-    uint8_t saved_field[TC_MAX_V_FRAME_WIDTH*(TC_MAX_V_FRAME_HEIGHT/2)*3];
+    uint8_t saved_frame[TC_MAX_V_FRAME_WIDTH*TC_MAX_V_FRAME_HEIGHT*3];
+    int saved_width, saved_height;  // For full-height operation
 } PrivateData;
 
 #define HQ_OFF          0   // HQ mode off
@@ -65,29 +68,11 @@ static int doublefps_init(TCModuleInstance *self)
         return -1;
     }
     pd->topfirst = (vob->im_v_height == 480 ? 0 : 1);
-    pd->hq = 0;
-
-    pd->tcvhandle = tcv_init();
-    if (!pd->tcvhandle) {
-        tc_log_error(MOD_NAME, "init: tcv_init() failed");
-        free(pd);
-        self->userdata = NULL;
-        return -1;
-    }
+    pd->fullheight = 0;
+    pd->have_first_frame = pd->saved_width = pd->saved_height = 0;
 
     /* FIXME: we need a proper way for filters to tell the core that
      * they're changing the export parameters */
-    vob->ex_v_height /= 2;
-    if (vob->encode_fields == 1 || vob->encode_fields == 2) {
-        pd->topfirst = (vob->encode_fields == 1) ? 1 : 0;
-        if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_FIELDS) {
-            tc_log_warn(MOD_NAME, "Use \"-J doublefps=topfirst=%d\","
-                        " not \"--encode_fields %c\"", pd->topfirst,
-                        vob->encode_fields == 1 ? 't' : 'b');
-        }
-    }
-    vob->encode_fields = 0;
-    vob->export_attributes |= TC_EXPORT_ATTRIBUTE_FIELDS;
     if (!(vob->export_attributes
           & (TC_EXPORT_ATTRIBUTE_FPS | TC_EXPORT_ATTRIBUTE_FRC))
     ) {
@@ -119,9 +104,8 @@ static int doublefps_fini(TCModuleInstance *self)
 {
     PrivateData *pd;
 
-    if (!self) {
+    if (!self)
        return -1;
-    }
     pd = self->userdata;
 
     if (pd->tcvhandle) {
@@ -144,21 +128,44 @@ static int doublefps_fini(TCModuleInstance *self)
 static int doublefps_configure(TCModuleInstance *self,
                                const char *options, vob_t *vob)
 {
+    int new_fullheight;
     PrivateData *pd;
-    if (!self) {
+    if (!self)
        return -1;
-    }
     pd = self->userdata;
 
     pd->topfirst = (vob->im_v_height == 480 ? 0 : 1);
-    pd->hq = 0;
+    new_fullheight = -1;
     if (options) {
         if (optstr_get(options, "shiftEven", "%d", &pd->topfirst) == 1) {
             tc_log_warn(MOD_NAME, "The \"shiftEven\" option name is obsolete;"
                         " please use \"topfirst\" instead.");
         }
         optstr_get(options, "topfirst", "%d", &pd->topfirst);
-        optstr_get(options, "hq", "%d", &pd->hq);
+        optstr_get(options, "fullheight", "%d", &new_fullheight);
+    }
+
+    if (!pd->configured) {
+        pd->fullheight = (new_fullheight==-1 ? 0 : new_fullheight);
+        if (!pd->fullheight) {
+            //vob->ex_v_height /= 2;  // FIXME: not needed for preprocessing (overridden by zoom)
+            if (vob->encode_fields == 1 || vob->encode_fields == 2) {
+                pd->topfirst = (vob->encode_fields == 1) ? 1 : 0;
+                if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_FIELDS) {
+                    tc_log_warn(MOD_NAME, "Use \"-J doublefps=topfirst=%d\","
+                                " not \"--encode_fields %c\"", pd->topfirst,
+                                vob->encode_fields == 1 ? 't' : 'b');
+                }
+            }
+            vob->encode_fields = 0;
+            vob->export_attributes |= TC_EXPORT_ATTRIBUTE_FIELDS;
+        }
+        pd->configured = 1;
+    } else {  // already configured
+        if (new_fullheight != -1 && new_fullheight != pd->fullheight) {
+            tc_log_warn(MOD_NAME, "The \"fullheight\" option cannot be"
+                        " changed after startup!");
+        }
     }
     return 0;
 }
@@ -172,6 +179,11 @@ static int doublefps_configure(TCModuleInstance *self,
 
 static int doublefps_stop(TCModuleInstance *self)
 {
+    PrivateData *pd;
+    if (!self)
+       return -1;
+    pd = self->userdata;
+    pd->have_first_frame = pd->saved_width = pd->saved_height = 0;
     return 0;
 }
 
@@ -195,35 +207,45 @@ static const char *doublefps_inspect(TCModuleInstance *self, const char *param)
         return
 "Overview:\n"
 "\n"
-"    Converts interlaced video into progressive video with half the\n"
-"    original height and twice the speed (FPS), by converting each\n"
-"    interlaced field to a separate frame.  Optionally allows the two\n"
-"    fields to be shifted by half a pixel each to line them up correctly\n"
-"    (at a significant expense of time).\n"
+"    Doubles the frame rate of interlaced video by separating each field\n"
+"    into a separate frame.  The fields can either be left as is (giving a\n"
+"    progessive video with half the height of the original) or re-interlaced\n"
+"    into their original height (at the doubled frame rate) for the\n"
+"    application of a separate deinterlacing filter.\n"
 "\n"
-"    When using this filter, make sure you specify \"--encode_fields p\"\n"
-"    on the transcode command line, and do not use the \"-I\" option.\n"
+"    Note that due to transcode limitations, it is currently necessary to\n"
+"    use the -Z option to specify the output frame size when using\n"
+"    half-height mode (this does not slow the program down if no actual\n"
+"    zooming is done).\n"
+"\n"
+"    When using this filter in half-height mode, make sure you specify\n"
+"    \"--encode_fields p\" on the transcode command line, and do not use the\n"
+"    \"-I\" option.\n"
 "\n"
 "Options available:\n"
 "\n"
-"    topfirst=0|1   Selects whether the top field is the first displayed.\n"
-"                   Defaults to 0 (bottom-first) for 480-line video, 1\n"
-"                   (top-first) otherwise.\n"
+"    topfirst=0|1     Selects whether the top field is the first displayed.\n"
+"                     Defaults to 0 (bottom-first) for 480-line video, 1\n"
+"                     (top-first) otherwise.\n"
 "\n"
-"    hq=1           Selects high-quality mode.  This causes both fields to\n"
-"                   be shifted half a pixel toward each other, removing the\n"
-"                   \"jitter\" caused by the two fields being vertically\n"
-"                   offset from each other and reducing encoding noise.\n"
-"                   However, this carries a significant speed penalty;\n"
-"                   in addition, the half-pixel shift can cause a minor\n"
-"                   loss of detail.\n";
+"    fullheight=0|1   Selects whether or not to retain full height when\n"
+"                     doubling the frame rate.  If this is set to 1, the\n"
+"                     resulting video will have the same frame size as the\n"
+"                     original at double the frame rate, and the frames will\n"
+"                     consist of fields 0 and 1, 1 and 2, 2 and 3, and so\n"
+"                     forth.  This can be used to let a separate filter\n"
+"                     perform deinterlacing on the double-rate frames; note\n"
+"                     that the filter must be able to deal with the top and\n"
+"                     bottom fields switching with each frame.\n"
+"                     Note that this option cannot be changed after startup.\n"
+;
     }
     if (optstr_lookup(param, "topfirst")) {
         tc_snprintf(buf, sizeof(buf), "%d", pd->topfirst);
         return buf;
     }
-    if (optstr_lookup(param, "hq")) {
-        tc_snprintf(buf, sizeof(buf), "%d", pd->hq);
+    if (optstr_lookup(param, "fullheight")) {
+        tc_snprintf(buf, sizeof(buf), "%d", pd->fullheight);
         return buf;
     }
     return "";
@@ -239,9 +261,7 @@ static const char *doublefps_inspect(TCModuleInstance *self, const char *param)
 static int doublefps_filter_video(TCModuleInstance *self, vframe_list_t *frame)
 {
     PrivateData *pd;
-    uint8_t *oldbuf[3], *newbuf[3], *savebuf[3];
     int w, h, hUV;
-    TCVDeinterlaceMode dropfirst, dropsecond;
 
     if (!self || !frame) {
         tc_log_error(MOD_NAME, "filter_video: %s == NULL!",
@@ -249,106 +269,137 @@ static int doublefps_filter_video(TCModuleInstance *self, vframe_list_t *frame)
         return -1;
     }
     pd = self->userdata;
+    /* If we have a saved frame size, restore it and clear the saved values */
+    if (pd->saved_width && pd->saved_height) {
+        frame->v_width = pd->saved_width;
+        frame->v_height = pd->saved_height;
+        pd->saved_width = pd->saved_height = 0;
+    }
     w = frame->v_width;
     h = frame->v_height;
     hUV = (frame->v_codec == CODEC_YUV422) ? h : h/2;
 
-    /* If this is the second field, the new frame is already saved in our
-     * private data structure, so copy it over and return. */
-    if (frame->attributes & TC_FRAME_WAS_CLONED) {
-        ac_memcpy(frame->video_buf, pd->saved_field, w*h + (w/2)*hUV*2);
-        frame->attributes &= ~TC_FRAME_IS_INTERLACED;
-        return 0;
-    }
-
-    /* The remainder is processing for the first field. */
-
-    if (pd->topfirst) {
-        dropfirst  = TCV_DEINTERLACE_DROP_FIELD_BOTTOM;
-        dropsecond = TCV_DEINTERLACE_DROP_FIELD_TOP;
-    } else {
-        dropfirst  = TCV_DEINTERLACE_DROP_FIELD_TOP;
-        dropsecond = TCV_DEINTERLACE_DROP_FIELD_BOTTOM;
-    }
-
-    oldbuf[0]  = frame->video_buf;
-    oldbuf[1]  = oldbuf[0] + w * h;
-    oldbuf[2]  = oldbuf[1] + (w/2) * hUV;
-    newbuf[0]  = frame->video_buf_Y[frame->free];
-    newbuf[1]  = newbuf[0] + w * (h/2);
-    newbuf[2]  = newbuf[1] + (w/2) * (hUV/2);
-    savebuf[0] = pd->saved_field;
-    savebuf[1] = savebuf[0] + w * (h/2);
-    savebuf[2] = savebuf[1] + (w/2) * (hUV/2);
-
-    /* Deinterlace the fields into separate frames, and save the second
-     * frame for the next time we're called. */
-    if (!tcv_deinterlace(pd->tcvhandle, oldbuf[0], newbuf[0], w, h, 1,
-                         dropfirst)
-     || !tcv_deinterlace(pd->tcvhandle, oldbuf[1], newbuf[1], w/2, hUV, 1,
-                         dropfirst)
-     || !tcv_deinterlace(pd->tcvhandle, oldbuf[2], newbuf[2], w/2, hUV, 1,
-                         dropfirst)
-     || !tcv_deinterlace(pd->tcvhandle, oldbuf[0], savebuf[0], w, h, 1,
-                         dropsecond)
-     || !tcv_deinterlace(pd->tcvhandle, oldbuf[1], savebuf[1], w/2, hUV, 1,
-                         dropsecond)
-     || !tcv_deinterlace(pd->tcvhandle, oldbuf[2], savebuf[2], w/2, hUV, 1,
-                         dropsecond)
+    switch ((pd->fullheight ? 2 : 0)
+            + (frame->attributes & TC_FRAME_WAS_CLONED ? 1 : 0)
     ) {
-        tc_log_warn(MOD_NAME, "tcv_deinterlace() failed!");
-        return -1;
-    }
 
-    if (pd->hq == 1) {
-        /* Zoom out to full (original) height, then drop the opposite field
-         * to make the frames line up properly.  Use oldbuf as a temporary
-         * buffer, since it's no longer needed. */
-        /* Note that we need a separate set of pointers for newbuf[] in the
-         * second set of zooms, because the current set assumes half height. */
-        char *newbuf2[3];
-        newbuf2[0] = newbuf[0];
-        newbuf2[1] = newbuf2[0] + w * h;
-        newbuf2[2] = newbuf2[1] + (w/2) * hUV;
-        if (!tcv_zoom(pd->tcvhandle, newbuf[0], oldbuf[0], w, h/2, 1,
-                      w, h, tc_get_vob()->zoom_filter)
-         || !tcv_zoom(pd->tcvhandle, newbuf[1], oldbuf[1], w/2, hUV/2, 1,
-                      w/2, hUV, tc_get_vob()->zoom_filter)
-         || !tcv_zoom(pd->tcvhandle, newbuf[2], oldbuf[2], w/2, hUV/2, 1,
-                      w/2, hUV, tc_get_vob()->zoom_filter)
-         || !tcv_zoom(pd->tcvhandle, savebuf[0], newbuf2[0], w, h/2, 1,
-                      w, h, tc_get_vob()->zoom_filter)
-         || !tcv_zoom(pd->tcvhandle, savebuf[1], newbuf2[1], w/2, hUV/2, 1,
-                      w/2, hUV, tc_get_vob()->zoom_filter)
-         || !tcv_zoom(pd->tcvhandle, savebuf[2], newbuf2[2], w/2, hUV/2, 1,
-                      w/2, hUV, tc_get_vob()->zoom_filter)
-        ) {
-            tc_log_warn(MOD_NAME, "tcv_zoom() failed!");
-            return -1;
+      case 0: {  // Half height, first field
+        uint8_t *oldbuf[3], *newbuf[3], *savebuf[3];
+        TCVDeinterlaceMode dropfirst, dropsecond;
+
+        if (pd->topfirst) {
+            dropfirst  = TCV_DEINTERLACE_DROP_FIELD_BOTTOM;
+            dropsecond = TCV_DEINTERLACE_DROP_FIELD_TOP;
+        } else {
+            dropfirst  = TCV_DEINTERLACE_DROP_FIELD_TOP;
+            dropsecond = TCV_DEINTERLACE_DROP_FIELD_BOTTOM;
         }
-        if (!tcv_deinterlace(pd->tcvhandle, newbuf2[0], savebuf[0],
-                             w, h, 1, dropfirst)
-         || !tcv_deinterlace(pd->tcvhandle, newbuf2[1], savebuf[1],
-                             w/2, hUV, 1, dropfirst)
-         || !tcv_deinterlace(pd->tcvhandle, newbuf2[2], savebuf[2],
-                             w/2, hUV, 1, dropfirst)
-         || !tcv_deinterlace(pd->tcvhandle, oldbuf[0], newbuf[0],
-                             w, h, 1, dropsecond)
-         || !tcv_deinterlace(pd->tcvhandle, oldbuf[1], newbuf[1],
-                             w/2, hUV, 1, dropsecond)
-         || !tcv_deinterlace(pd->tcvhandle, oldbuf[2], newbuf[2],
-                             w/2, hUV, 1, dropsecond)
+
+        oldbuf[0]  = frame->video_buf;
+        oldbuf[1]  = oldbuf[0] + w * h;
+        oldbuf[2]  = oldbuf[1] + (w/2) * hUV;
+        newbuf[0]  = frame->video_buf_Y[frame->free];
+        newbuf[1]  = newbuf[0] + w * (h/2);
+        newbuf[2]  = newbuf[1] + (w/2) * (hUV/2);
+        savebuf[0] = pd->saved_frame;
+        savebuf[1] = savebuf[0] + w * (h/2);
+        savebuf[2] = savebuf[1] + (w/2) * (hUV/2);
+
+        /* Deinterlace the fields into separate frames, and save the second
+         * frame for the next time we're called. */
+        if (!tcv_deinterlace(pd->tcvhandle, oldbuf[0], newbuf[0], w, h, 1,
+                             dropfirst)
+         || !tcv_deinterlace(pd->tcvhandle, oldbuf[1], newbuf[1], w/2, hUV, 1,
+                             dropfirst)
+         || !tcv_deinterlace(pd->tcvhandle, oldbuf[2], newbuf[2], w/2, hUV, 1,
+                             dropfirst)
+         || !tcv_deinterlace(pd->tcvhandle, oldbuf[0], savebuf[0], w, h, 1,
+                             dropsecond)
+         || !tcv_deinterlace(pd->tcvhandle, oldbuf[1], savebuf[1], w/2, hUV, 1,
+                             dropsecond)
+         || !tcv_deinterlace(pd->tcvhandle, oldbuf[2], savebuf[2], w/2, hUV, 1,
+                             dropsecond)
         ) {
             tc_log_warn(MOD_NAME, "tcv_deinterlace() failed!");
             return -1;
         }
-    }  // if (pd->hq)
 
-    frame->attributes |= TC_FRAME_IS_CLONED;
-    frame->attributes &= ~TC_FRAME_IS_INTERLACED;
-    frame->v_height /= 2;
-    frame->video_buf = newbuf[0];
-    frame->free = (frame->free==0) ? 1 : 0;
+        frame->attributes |= TC_FRAME_IS_CLONED;
+        frame->attributes &= ~TC_FRAME_IS_INTERLACED;
+        frame->v_height /= 2;
+        frame->video_buf = newbuf[0];
+        frame->free = (frame->free==0) ? 1 : 0;
+        break;
+
+      }  // case 0: half height, first field
+
+      case 1:  // Half height, second field
+
+        /* The new frame is already saved in our private data structure,
+         * so copy it over and return. */
+        ac_memcpy(frame->video_buf, pd->saved_frame, w*h + (w/2)*hUV*2);
+        frame->attributes &= ~TC_FRAME_IS_INTERLACED;
+        break;
+
+      case 2: {  // Full height, first field
+        uint8_t *top[3], *bottom[3], *out[3];
+        uint8_t *oldframe = frame->video_buf;  // for saving
+
+        /* Merge this frame's first field and the previous frame's second
+         * field (unless this is the first frame, in which case we do
+         * nothing). */
+        if (pd->have_first_frame) {
+            int plane;
+            if (pd->topfirst) {
+                top[0]    = frame->video_buf;
+                bottom[0] = pd->saved_frame;
+            } else {
+                top[0]    = pd->saved_frame;
+                bottom[0] = frame->video_buf;
+            }
+            top[1]    = top[0] + w * h;
+            top[2]    = top[1] + (w/2) * hUV;
+            bottom[1] = bottom[0] + w * h;
+            bottom[2] = bottom[1] + (w/2) * hUV;
+            out[0]    = frame->video_buf_Y[frame->free];
+            out[1]    = out[0] + w * h;
+            out[2]    = out[1] + (w/2) * hUV;
+            /* Only interlace the Y plane in YUV420 mode */
+            for (plane = 0; plane < (h==hUV ? 3 : 1); plane++) {
+                int W = plane==0 ? w : w/2;
+                int y;
+                for (y = 0; y < h; y += 2) {
+                    ac_memcpy(out[plane]+(y  )*W, top   [plane]+(y  )*W, W);
+                    ac_memcpy(out[plane]+(y+1)*W, bottom[plane]+(y+1)*W, W);
+                }
+            }
+            /* Copy U and V planes in YUV420 mode */
+            if (h != hUV)
+                ac_memcpy(out[1], frame->video_buf + w*h, (w/2)*hUV*2);
+            /* Update frame data */
+            frame->video_buf = out[0];
+            frame->free = (frame->free==0) ? 1 : 0;
+        }
+        frame->attributes |= TC_FRAME_IS_CLONED;
+
+        /* Now save this frame in the temporary buffer. */
+        ac_memcpy(pd->saved_frame, oldframe, w*h + (w/2)*hUV*2);
+        pd->saved_width = w;
+        pd->saved_height = h;
+        break;
+
+      }  // case 2: full height, first field
+
+      case 3:  // Full height, second field
+
+        /* Restore the original frame (we copy the entire frame because
+         * somebody else might have changed the working copy). */
+        ac_memcpy(frame->video_buf, pd->saved_frame, w*h + (w/2)*hUV*2);
+        break;
+
+    }  // switch (height mode + field number)
+
+    pd->have_first_frame = 1;
     return 0;
 }
 
@@ -453,7 +504,7 @@ int tc_filter(frame_list_t *frame, char *options)
                     doublefps_inspect(&mod, "help"));
         return 0;
 
-    } else if (frame->tag & TC_POST_S_PROCESS) {
+    } else if (frame->tag & TC_PRE_M_PROCESS) {
         if (frame->tag & TC_VIDEO)
             return doublefps_filter_video(&mod, (vframe_list_t *)frame);
         else if (frame->tag & TC_AUDIO)
