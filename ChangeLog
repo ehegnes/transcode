@@ -1,3 +1,8 @@
+2006-05-14 Andrew Church <achurch at achurch dot org>
+  * src/video_buffer.c
+  When duplicating buffers, don't overwrite the new buffer's `free' field
+  (which deals with the buffer's pointers, not the video frame itself).
+
 2006-05-11 Francesco Romani <fromani at gmail dot com>
   * docs/man/transcode.1 pvm3/vob_pack_unpack.c src/socket.c
     src/transcode.c src/transcode.h
