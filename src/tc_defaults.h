@@ -32,9 +32,6 @@
 
 #define TC_DEFAULT_MOD_PATH "/usr/local/lib/transcode"
 
-#define TC_TRUE          1
-#define TC_FALSE         0
-
 #define TC_ON            1
 #define TC_OFF           0
 

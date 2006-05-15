@@ -45,6 +45,9 @@
 extern "C" {
 #endif
 
+#define TC_TRUE          	1
+#define TC_FALSE         	0
+
 #define TC_NULL_MATCH           -1
 
 #define TC_BUF_MAX            1024
