@@ -29,7 +29,7 @@
 
 #include <stdint.h>
 #include <pthread.h>
-#include "tc_defaults.h"
+#include "libtc/libtc.h"
 #include "encoder-common.h"
 
 /* volatile: for threadness paranoia */
