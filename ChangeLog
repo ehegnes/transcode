@@ -1,4 +1,11 @@
 2006-05-20 Francesco Romani <fromani at gmail dot com>
+  * docs/man/tcexport.1
+  documentation for new profile support
+
+  * docs/man/transcode.1
+  warn about possible future renaming of --export_prof 
+  (to --export_profile)
+
   * Added files: src/export_profile.c src/export_profile.h
     testsuite/test-export-profile.c
   add new profile support code with basic documentation and very

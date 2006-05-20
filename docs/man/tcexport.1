@@ -25,6 +25,9 @@ tcexport \- Simple frontend to transcode's encoding subsystem
 .B -R
 .I n[,video_log[,audio_log]]
 ] [
+.B -P
+.I profile[,profile]
+] [
 .B -y
 .I video_mod,audio_mod,mplex_mod
 ] [
@@ -143,6 +146,14 @@ changes its meaning, it now takes the quantizer ranging from 1 to 31. Note
 that constant quantizer encoding is not supported with some codecs (notably
 mpeg1/2/4 with -y ffmpeg).
 .RE
+.TP
+.B \-P \fIprofile\fP[,\fIprofile\fP]
+select export profile(s) to load. An export profile it's just a different,
+already tuned, set of basic values for tcexport's options. Even if isn't recomended,
+an user can always overwrite profile settings just using standard options.
+export profiles are stackable, just requesting to load multiple profiles
+separated by commas; if some options are set by more than one profile, the last
+profile determine their value.
 .TP
 .B \-y \fIvideo_mod\fP,\fIaudio_mod\fP,\fImplex_mod\fP
 Select export modules: video and audio encoders, and multiplexor module.
