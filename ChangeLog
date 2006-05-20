@@ -1,3 +1,7 @@
+2006-05-20 Francesco Romani <fromani at gmail dot com>
+  * src/video_trans.c
+  fix typo in documentation.
+
 2006-05-15 Francesco Romani <fromani at gmail dot com>
   * src/tc_defaults.h libtc/libtc.h
     src/encoder-common.c

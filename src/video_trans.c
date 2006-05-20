@@ -60,7 +60,7 @@ static TCVHandle handle = 0;
 /*************************************************************************/
 
 /**
- * preadjust_frame_size:  Initialize the given vtd structure from the given
+ * set_vtd:  Initialize the given vtd structure from the given
  * vframe_list_t, and update ptr->video_size.
  *
  * Parameters: vtd: Pointer to video frame data to be initialized.
