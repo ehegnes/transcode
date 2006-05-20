@@ -1,4 +1,13 @@
 2006-05-20 Francesco Romani <fromani at gmail dot com>
+  * src/tcinfo.h
+  As first step of vob_t decomposition effort, introduce a new
+  structure, TCExportInfo. This structure will contain all data
+  needed to export layer to work properly; so, this structure
+  also specifies how exported stream will look like,
+  codec/modules/modules options to use and so on.
+  Maybe more fields should be removed, or added or renamed: see
+  upcoming discussions on transcode-devel.
+
   * src/video_trans.c
   fix typo in documentation.
 

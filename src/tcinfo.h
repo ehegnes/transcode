@@ -89,6 +89,70 @@ typedef struct {
 
 /*************************************************************************/
 
+typedef struct tcexportinfo_ TCExportInfo;
+
+struct tcexportinfo_ {
+    uint32_t attributes;
+
+    struct {
+        char *string;
+        char *module;
+        char *module_opts;
+
+        char *log_file;
+
+        int width;
+        int height;
+        int asr;
+
+        int frc;
+        int par;
+        int encode_fields;
+
+        int gop_size;
+        int quantizer_min;
+        int quantizer_max;
+
+        int format;
+        int quality;
+        int bitrate;
+        int bitrate_max;
+
+        int flush_flag;
+        int pass_number;
+    } video;
+
+    struct {
+        char *string;
+        char *module;
+        char *module_opts;
+
+        int format;
+        int quality;
+        int bitrate;
+
+        int sample_rate;
+        int sample_bits;
+        int channels;
+        int mode;
+        /* lame-ism */
+        int vbr_flag;
+        int flush_flag;
+        int bit_reservoir;
+    } audio;
+
+    struct {
+        char *string;
+        char *module;
+        char *module_opts;
+
+        char *out_file;
+        char *out_file_aux;
+    } mplex;
+};
+
+/*************************************************************************/
+
 #endif  // TCINFO_H
 
 /*
