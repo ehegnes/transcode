@@ -3,7 +3,9 @@
 AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
 	-DMOD_PATH=\"$(MOD_PATH)\" \
+	-DPROF_PATH=\"$(PROF_PATH)\" \
 	-DTC_ENCODER_NG=1 \
+	-DTCEXPORT_PROFILE=1 \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src
 
@@ -96,7 +98,8 @@ tcexport_SOURCES = tcexport.c \
 	../src/video_buffer.c \
 	../src/counter.c \
 	../src/encoder.c \
-	../src/encoder-common.c
+	../src/encoder-common.c \
+	../src/export_profile.c
 tcexport_CPPFLAGS = $(AM_CPPFLAGS) \
 	$(DLDARWIN_CFLAGS)
 tcexport_LDADD = \

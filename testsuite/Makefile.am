@@ -6,6 +6,7 @@ EXTRA_DIST = \
 AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
 	-DMOD_PATH=\"$(MOD_PATH)\" \
+	-DPROF_PATH=\"$(PROF_PATH)\" \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
 	$(DLDARWIN_CFLAGS) \
@@ -15,6 +16,7 @@ noinst_PROGRAMS = \
 	test-acmemcpy \
 	test-acmemcpy-speed \
 	test-bufalloc \
+	test-export-profile \
 	test-framecode \
 	test-imgconvert \
 	test-iodir \
@@ -48,7 +50,6 @@ test_ratiocodes_LDADD = $(LIBTC_LIBS)
 test_tclog_SOURCES = test-tclog.c
 test_tclog_LDADD = $(LIBTC_LIBS)
 
-test_tcmodule_SOURCES = test-tcmodule.c
 test_tcmodule_LDADD = $(LIBTC_LIBS)
 test_tcmodule_LDFLAGS = -export-dynamic
 
@@ -58,6 +59,8 @@ test_tcmoduleinfo_LDADD = $(LIBTC_LIBS)
 test_tcstrdup_SOURCES = test-tcstrdup.c
 test_tcstrdup_LDADD = $(LIBTC_LIBS)
 
+test_export_profile_SOURCES = test-export-profile.c ../src/export_profile.c
+test_export_profile_LDADD = $(LIBTC_LIBS)
 
 # Avoid warnings on intentional empty strings in test-tclog
 test-tclog$(EXEEXT): CFLAGS := $(CFLAGS) -Wno-format-zero-length

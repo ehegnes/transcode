@@ -1204,6 +1204,16 @@ AC_ARG_WITH(mod-path,
   MOD_PATH=$withval)
 AC_SUBST(MOD_PATH)
 
+dnl export profiles data path
+dnl
+PROF_PATH="\${datadir}/transcode/profile"
+AC_ARG_WITH(prof-path,
+  AC_HELP_STRING([--with-prof-path],
+    [where export profiles data are installed (${datadir}/transcode)]),
+  PROF_PATH=$withval)
+AC_SUBST(PROF_PATH)
+
+
 X_CFLAGS=`echo $X_CFLAGS | sed -e 's/  */ /g'`
 X_PRE_LIBS=`echo $X_PRE_LIBS | sed -e 's/  */ /g'`
 X_LIBS=`echo $X_LIBS | sed -e 's/  */ /g'`

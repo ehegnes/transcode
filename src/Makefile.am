@@ -3,6 +3,7 @@
 AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
 	-DMOD_PATH=\"$(MOD_PATH)\" \
+	-DPROF_PATH=\"$(PROF_PATH)\" \
 	-I$(top_srcdir) \
 	$(LIBAVCODEC_CFLAGS) \
 	$(DLDARWIN_CFLAGS)

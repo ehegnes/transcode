@@ -1,4 +1,9 @@
 2006-05-20 Francesco Romani <fromani at gmail dot com>
+  * configure.in src/Makefile.am tools/Makefile.am
+    testsuite/Makefile.am
+  Let the user configure the profile data path (needed by new
+  profile code).
+
   * src/tcinfo.h
   As first step of vob_t decomposition effort, introduce a new
   structure, TCExportInfo. This structure will contain all data
