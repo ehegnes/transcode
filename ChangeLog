@@ -1,4 +1,8 @@
 2006-05-20 Francesco Romani <fromani at gmail dot com>
+  * src/export_profile.c
+  documentation for internal private functions.
+  Maybe tc_strsplit/tc_strfreev should go into libtc?
+
   * docs/man/tcexport.1
   documentation for new profile support
 

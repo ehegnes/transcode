@@ -45,10 +45,11 @@ static TCExportProfile prof_data = {
 
     .video_codec = NULL,
     .audio_codec = NULL,
+
     /*
      * we need to take care of strings deallocating
      * them between module_read_config() calls, to
-     * avoid memleaks.
+     * avoid memleaks, so we use NULL marking here.
      */
     .info.video.string = NULL,
     .info.video.module = NULL,
@@ -95,21 +96,124 @@ static TCExportProfile prof_data = {
 };
 
 
-void tc_export_profile_to_vob(const TCExportInfo *info, vob_t *vob);
+/* private helpers: declaration *******************************************/
 
-/* private helpers: declaration */
+/*
+ * tc_load_single_export_profile:
+ *      tc_load_export_profile backend.
+ *      Find and load, by looking into user profile path then into system
+ *      profiles path, the i-th selected profile.
+ *      If profile can't be loaded, it will just skipped.
+ *      If verbose >= TC_DEBUG and the profile wasn't loaded, notify
+ *      the user using tc_log*.
+ *      If verbose >= TC_INFO and profile was loaded, notify the user
+ *      using tc_log*.
+ * 
+ * Parameters:
+ *          i: load the i-th already parsed (see below) export profile.
+ *     config: use this TCConfigEntry array, provided by frontend, to
+ *             parse profile data file
+ *   sys_path: system path to look for profile data
+ *  user_path: user path to look for profile data
+ * Return value:
+ *      1: profile data succesfully loaded
+ *      0: profile data not loaded for some reasons (profile file
+ *         not found or not readable).
+ * Side effects:
+ *      Isn't a proper side effect, anyway it's worth to note that
+ *      this function _will_ alter some data not explicitely provided,
+ *      via config parameter. Note that this function WILL NOT alter
+ *      config data, so caller providing config data will have full
+ *      control of those unproper side effects by careful craft of
+ *      TCConfigEntry data.
+ *      Also note that this function mangle global private prof_data
+ *      variable, most notably by invoking cleanup_strings on it
+ *      to avoid memleaks in subsequent calls of module_read_config.
+ * Preconditions:
+ *      this function should be always used _after_ a succesfull
+ *      call to tc_setup_export_profiles, which parse the profiles
+ *      selected by user. Otherwise it's still safe to call this function,
+ *      but it always fail.
+ */
 static int tc_load_single_export_profile(int i, TCConfigEntry *config,
                                          const char *sys_path,
                                          const char *user_path);
 
 
-/* utilities used internally (yet( */
+/* utilities used internally (yet) */
+
+/*
+ * cleanup_strings:
+ *      free()s and reset to NULL every not-NULL string in a given 
+ *      TCExportInfo structure
+ *
+ * Parameters:
+ *      info: pointero to a TCExportInfo structure to cleanup.
+ * Return value:
+ *      None.
+ */
 static void cleanup_strings(TCExportInfo *info);
 
+/*
+ * tc_mangle_cmdline:
+ *      parse a command line option array looking for a given option.
+ *      Given option can be short or long but must be given literally.
+ *      So, if you want to mangle "--foobar", give "--foobar" not
+ *      "foobar". Same story for short options "-V": use "-V" not "V".
+ *      If given option isn't found in string option array, do nothing
+ *      and return succesfull (see below). If option is found but 
+ *      it's argument isn't found, don't mangle string options array
+ *      but return failure.
+ *      If BOTH option and it's value its found, store a pointer to
+ *      option value into "optval" parameter and remove both option
+ *      and value from string options array.
+ * Parameters:
+ *      argc: pointer to number of values present into option string
+ *            array. This parameter must be !NULL and it's updated
+ *            by a succesfull call of this function.
+ *      argv: pointer to array of option string items. This parameter
+ *            must be !NULL and it's updated by a succesfull call of
+ *            this function
+ *       opt: option to look for.
+ *    optval: if succesfull, pointer to option value will be stored here.
+ * Return value:
+ *      1: bad parameter(s) (NULL)
+ *      0: succesfull
+ *     -1: bad usage: given the option but not it's value
+ * Postconditions:
+ *      this function must operate trasparently by always leaving
+ *      argc/argv in an usable and consistent state.
+ */
 static int tc_mangle_cmdline(int *argc, char ***argv,
                              const char *opt, const char **optval);
+
+/*
+ * tc_strsplit:
+ *      split a given string into tokens using given separator character.
+ *      Return NULL-terminated array of splitted tokens, and optionally
+ *      return (via a out parameter) size of returned array.
+ *
+ * Parameters:
+ *         str: string to split
+ *         sep: separator CHARACTER: cut string when sep is found
+ *  pieces_num: if not NULL, store here the size of returned array
+ * Return value:
+ *      NULL-terminated array of splitted pieces.
+ *      You must explicitely free this returned array by using tc_strfreev
+ *      (see below) in order to avoid memleaks.
+ */
 static char **tc_strsplit(const char *str, char sep,
                           size_t *pieces_num);
+
+/*
+ * tc_strfreev:
+ *      return an array of strings as returned by tc_strsplit
+ *
+ * Parameters:
+ *      pieces: return value of tc_strsplit to be freed.
+ * Return value:
+ *      None.
+ */
 static void tc_strfreev(char **pieces);
 
 /*************************************************************************/
@@ -216,6 +320,7 @@ const TCExportInfo *tc_load_export_profile(void)
     return &prof_data.info;
 }
 
+/* it's pretty naif yet. FR */
 void tc_export_profile_to_vob(const TCExportInfo *info, vob_t *vob)
 {
     if (info == NULL || vob == NULL) {
