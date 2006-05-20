@@ -1,4 +1,12 @@
 2006-05-20 Francesco Romani <fromani at gmail dot com>
+  * Added files: src/export_profile.c src/export_profile.h
+    testsuite/test-export-profile.c
+  add new profile support code with basic documentation and very
+  basic testsuite (more to come very soon for both).
+
+  * tools/tcexport.c
+  add support for new profile code.
+
   * configure.in src/Makefile.am tools/Makefile.am
     testsuite/Makefile.am
   Let the user configure the profile data path (needed by new

@@ -20,6 +20,7 @@
 #include <string.h>
 
 #include "transcode.h"
+#include "export_profile.h"
 #include "framebuffer.h"
 #include "counter.h"
 #include "probe.h"
@@ -61,15 +62,19 @@ struct tcencconf_ {
     int dry_run; /* flag */
     vob_t *vob;
 
-    char video_codec[TC_BUF_MIN];
-    char audio_codec[TC_BUF_MIN];
+    char *video_codec;
+    char *audio_codec;
 
-    char vlogfile[TC_BUF_MIN];
-    char alogfile[TC_BUF_MIN];
+    char vlogfile[32];
+    char alogfile[32];
 
-    char video_mod[TC_BUF_MIN];
-    char audio_mod[TC_BUF_MIN];
-    char mplex_mod[TC_BUF_MIN];
+    char video_mod_buf[64];
+    char audio_mod_buf[64];
+    char mplex_mod_buf[64];
+    
+    char *video_mod;
+    char *audio_mod;
+    char *mplex_mod;
 
     char *range_str;
 };
@@ -129,36 +134,39 @@ static vob_t vob = {
 
 void version(void)
 {
-    tc_log_info(EXE, "%s v%s (C) 2006 transcode team",
-                EXE, VERSION);
+    printf("%s v%s (C) 2006 transcode team\n",
+           EXE, VERSION);
 }
 
 static void usage(void)
 {
     version();
-    tc_log_info(EXE, "Usage: %s [options]", EXE);
-    tc_log_msg(EXE, "    -d verbosity      Verbosity mode [1 == TC_INFO]");
-    tc_log_msg(EXE, "    -D                dry run, only loads module (used"
-                    " for testing)");
-    tc_log_msg(EXE, "    -m path           Use PATH as module path");
-    tc_log_msg(EXE, "    -c f1-f2[,f3-f4]  encode only f1-f2[,f3-f4]"
-                    " (frames or HH:MM:SS) [all]");
-    tc_log_msg(EXE, "    -b b[,v[,q[,m]]]  audio encoder bitrate kBits/s"
-                    "[,vbr[,quality[,mode]]] [%i,%i,%i,%i]",
-                    ABITRATE, AVBR, AQUALITY, AMODE);
-    tc_log_msg(EXE, "    -i file           video input file name");
-    tc_log_msg(EXE, "    -p file           audio input file name");
-    tc_log_msg(EXE, "    -o file           output file (base)name");
-    tc_log_msg(EXE, "    -N V,A            Video,Audio output format"
-                    " (encoder) [%s,%s]", VIDEO_CODEC, AUDIO_CODEC);
-    tc_log_msg(EXE, "    -y V,A,M          Video,Audio,Multiplexor export"
-                    " modules [%s,%s,%s]", TC_DEFAULT_EXPORT_VIDEO,
-                    TC_DEFAULT_EXPORT_AUDIO, TC_DEFAULT_EXPORT_MPLEX);
-    tc_log_msg(EXE, "    -w b[,k[,c]]      encoder"
-                " bitrate[,keyframes[,crispness]] [%d,%d,%d]",
+    printf("Usage: %s [options]\n", EXE);
+    printf("    -d verbosity      Verbosity mode [1 == TC_INFO]\n");
+    printf("    -D                dry run, only loads module (used"
+           " for testing)\n");
+    printf("    -m path           Use PATH as module path\n");
+    printf("    -c f1-f2[,f3-f4]  encode only f1-f2[,f3-f4]"
+           " (frames or HH:MM:SS) [all]\n");
+    printf("    -b b[,v[,q[,m]]]  audio encoder bitrate kBits/s"
+           "[,vbr[,quality[,mode]]] [%i,%i,%i,%i]\n",
+           ABITRATE, AVBR, AQUALITY, AMODE);
+    printf("    -i file           video input file name\n");
+    printf("    -p file           audio input file name\n");
+    printf("    -o file           output file (base)name\n");
+    printf("    -P profile        select export profile."
+           " if you want to use more than one profile,\n"
+           "                      provide a comma separated list.\n");
+    printf("    -N V,A            Video,Audio output format"
+           " (encoder) [%s,%s]\n", VIDEO_CODEC, AUDIO_CODEC);
+    printf("    -y V,A,M          Video,Audio,Multiplexor export"
+           " modules [%s,%s,%s]\n", TC_DEFAULT_EXPORT_VIDEO,
+           TC_DEFAULT_EXPORT_AUDIO, TC_DEFAULT_EXPORT_MPLEX);
+    printf("    -w b[,k[,c]]      encoder"
+           " bitrate[,keyframes[,crispness]] [%d,%d,%d]\n",
             VBITRATE, VKEYFRAMES, VCRISPNESS);
-    tc_log_msg(EXE, "    -R n[,f1[,f2]]    enable multi-pass encoding"
-                " (0-3) [%d,mpeg4.log,pcm.log]", VMULTIPASS);
+    printf("    -R n[,f1[,f2]]    enable multi-pass encoding"
+           " (0-3) [%d,mpeg4.log,pcm.log]\n", VMULTIPASS);
 }
 
 static void config_init(TCEncConf *conf, vob_t *vob)
@@ -168,12 +176,12 @@ static void config_init(TCEncConf *conf, vob_t *vob)
 
     conf->range_str = NULL;
 
-    strlcpy(conf->vlogfile, VIDEO_LOG_FILE, TC_BUF_MIN);
-    strlcpy(conf->alogfile, AUDIO_LOG_FILE, TC_BUF_MIN);
+    strlcpy(conf->vlogfile, VIDEO_LOG_FILE, sizeof(conf->vlogfile));
+    strlcpy(conf->alogfile, AUDIO_LOG_FILE, sizeof(conf->alogfile));
 
-    strlcpy(conf->video_mod, TC_DEFAULT_EXPORT_VIDEO, TC_BUF_MIN);
-    strlcpy(conf->audio_mod, TC_DEFAULT_EXPORT_AUDIO, TC_BUF_MIN);
-    strlcpy(conf->mplex_mod, TC_DEFAULT_EXPORT_MPLEX, TC_BUF_MIN);
+    conf->video_mod = TC_DEFAULT_EXPORT_VIDEO;
+    conf->audio_mod = TC_DEFAULT_EXPORT_AUDIO;
+    conf->mplex_mod = TC_DEFAULT_EXPORT_MPLEX;
 }
 
 /* split up module string (=options) to module name */
@@ -207,6 +215,7 @@ static char *setup_mod_string(char *mod)
 static int parse_options(int argc, char** argv, TCEncConf *conf)
 {
     int ch, n;
+    char acodec[32], vcodec[32];
     vob_t *vob = conf->vob;
 
     if (argc == 1) {
@@ -256,16 +265,15 @@ static int parse_options(int argc, char** argv, TCEncConf *conf)
             break;
           case 'N':
             VALIDATE_OPTION;
-	        n = sscanf(optarg,"%64[^,],%64s",
-                       conf->video_codec, conf->audio_codec);
+	        n = sscanf(optarg,"%32[^,],%32s", vcodec, acodec);
             if (n != 2) {
                 tc_log_error(EXE, "invalid parameter for option -N"
                                   " (you must specify ALL parameters)");
                 return STATUS_BAD_PARAM;
             }
 
-            vob->ex_v_codec = tc_codec_from_string(conf->video_codec);
-            vob->ex_a_codec = tc_codec_from_string(conf->audio_codec);
+            vob->ex_v_codec = tc_codec_from_string(vcodec);
+            vob->ex_a_codec = tc_codec_from_string(acodec);
 
             if (vob->ex_v_codec == TC_CODEC_ERROR
              || vob->ex_a_codec == TC_CODEC_ERROR) {
@@ -316,12 +324,16 @@ static int parse_options(int argc, char** argv, TCEncConf *conf)
           case 'y':
             VALIDATE_OPTION;
 	        n = sscanf(optarg,"%64[^,],%64[^,],%64s",
-                       conf->video_mod, conf->audio_mod, conf->mplex_mod);
+                       conf->video_mod_buf, conf->audio_mod_buf,
+                       conf->mplex_mod_buf);
             if (n != 3) {
                 tc_log_error(EXE, "invalid parameter for option -y"
                                   " (you must specify ALL parameters)");
                 return STATUS_BAD_PARAM;
             }
+            conf->video_mod = conf->video_mod_buf;
+            conf->audio_mod = conf->audio_mod_buf;
+            conf->mplex_mod = conf->mplex_mod_buf;
 
             vob->ex_v_string = setup_mod_string(conf->video_mod);
             vob->ex_a_string = setup_mod_string(conf->audio_mod);
@@ -416,7 +428,7 @@ static int setup_ranges(TCEncConf *conf)
 }
 
 
-#define MOD_OPTS(opts) (((opts)) ?((opts)) :"none")
+#define MOD_OPTS(opts) (((opts) != NULL) ?((opts)) :"none")
 static void print_summary(TCEncConf *conf, int verbose)
 {
     vob_t *vob = conf->vob;
@@ -508,20 +520,33 @@ pid_t tc_probe_pid = 0;
         return status; \
     }
 
+#define GET_MODULE(mod) ((mod) != NULL) ?(mod) :"null"
+
 int main(int argc, char *argv[])
 {
-    int ret = 0;
-    int status = STATUS_OK;
+    int ret = 0, status = STATUS_OK;
     /* needed by some modules */
-    TCVHandle tcv_handle = tcv_init();
     TCFactory factory = NULL;
-
+    const TCExportInfo *info = NULL;
+    TCVHandle tcv_handle = tcv_init();
     TCEncConf config;
 
     ac_init(AC_ALL);
     tc_set_config_dir(NULL);
     config_init(&config, &vob);
     counter_on();
+
+    /* we want to modify real argc/argv pair */
+    ret = tc_setup_export_profile(&argc, &argv);
+    if (ret < 0) {
+        /* error, so bail out */
+        return STATUS_BAD_PARAM;
+    }
+    info = tc_load_export_profile();
+    config.audio_mod = GET_MODULE(info->audio.module);
+    config.video_mod = GET_MODULE(info->video.module);
+    config.mplex_mod = GET_MODULE(info->mplex.module);
+    tc_export_profile_to_vob(info, &vob);
 
     ret = parse_options(argc, argv, &config);
     if (ret != STATUS_OK) {
@@ -606,11 +631,12 @@ int main(int argc, char *argv[])
     ret = tc_del_module_factory(factory);
     tcv_free(tcv_handle);
     free_fc_time(vob.ttime);
+    tc_cleanup_export_profile();
 
     if(verbose >= TC_INFO) {
         long encoded = tc_get_frames_encoded();
         long dropped = - tc_get_frames_dropped();
-	long cloned  = tc_get_frames_cloned();
+    	long cloned  = tc_get_frames_cloned();
 
         tc_log_info(EXE, "encoded %ld frames (%ld dropped, %ld cloned),"
                          " clip length %6.2f s",
@@ -623,7 +649,14 @@ int main(int argc, char *argv[])
 #include "avilib/static_avilib.h"
 #include "avilib/static_wavlib.h"
 
-/* vim: sw=4
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
  */
-
-
