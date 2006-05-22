@@ -89,8 +89,15 @@ typedef struct {
 
 /*************************************************************************/
 
-typedef struct tcexportinfo_ TCExportInfo;
+typedef struct tcarea_ TCArea;
+struct tcarea_ {
+    int top;
+    int left;
+    int bottom;
+    int right;
+};
 
+typedef struct tcexportinfo_ TCExportInfo;
 struct tcexportinfo_ {
     uint32_t attributes;
 
@@ -103,11 +110,16 @@ struct tcexportinfo_ {
 
         int width;
         int height;
+        int fast_resize_flag;
+        int zoom_interlaced_flag;
         int asr;
 
         int frc;
         int par;
         int encode_fields;
+
+        TCArea pre_clip;
+        TCArea post_clip;
 
         int gop_size;
         int quantizer_min;

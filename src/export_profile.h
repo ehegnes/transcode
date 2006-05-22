@@ -14,7 +14,7 @@
 #include "transcode.h"
 #include "tcinfo.h"
 
-/* 
+/*
  * GENERAL WARNING: none of those functions
  * are intended to be thread-safe
  */
@@ -53,7 +53,7 @@ int tc_setup_export_profile(int *argc, char ***argv);
 /*
  * tc_setup_export_profile:
  *      release all resources acquired by tc_setup_export_profile.
- * 
+ *
  * Parameters:
  *      None.
  * Return vaule:
@@ -66,11 +66,11 @@ void tc_cleanup_export_profile(void);
  *      sequentially load all profiles recognized using
  *      tc_setup_export_profile, so if two or more profile specifies
  *      a value for an option, the later will prevail.
- * 
+ *
  * Parameters:
  *      None
  * Return value:
- *      if succesfull, return a pointer to a TCEXportInfo structure 
+ *      if succesfull, return a pointer to a TCEXportInfo structure
  *      intialized with sensible defaults and containing the values
  *      set by loaded profile(s). There is no need to free() returned
  *      structure, it's handled internally.

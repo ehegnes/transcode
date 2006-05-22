@@ -1,3 +1,10 @@
+2006-05-22 Francesco Romani <fromani at gmail dot com>
+  * src/tcinfo.h src/export_profile.c src/export_profile.c
+  some internal rearrangements/cleanups, and add support
+  for clipping and resizing method decision (fast or standard
+  zoom) at profile level. This is hopefully the last needed
+  feature for proper profile support.
+
 2006-05-20 Francesco Romani <fromani at gmail dot com>
   * src/export_profile.c
   documentation for internal private functions.

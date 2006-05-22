@@ -37,7 +37,12 @@ struct tcexportprofile_ {
     /* auxiliary variables */
     const char *video_codec;
     const char *audio_codec;
+
+    const char *pre_clip_area;
+    const char *post_clip_area;
 };
+
+#define CLIP_AREA_INIT  { 0, 0, 0, 0 }
 
 static TCExportProfile prof_data = {
     .profile_count = 0,
@@ -45,6 +50,8 @@ static TCExportProfile prof_data = {
 
     .video_codec = NULL,
     .audio_codec = NULL,
+    .pre_clip_area = NULL,
+    .post_clip_area = NULL,
 
     /*
      * we need to take care of strings deallocating
@@ -69,6 +76,10 @@ static TCExportProfile prof_data = {
     /* standard initialization */
     .info.video.width = PAL_W,
     .info.video.height = PAL_H,
+    .info.video.fast_resize_flag = TC_FALSE,
+    .info.video.zoom_interlaced_flag = TC_FALSE,
+    .info.video.pre_clip = CLIP_AREA_INIT,
+    .info.video.post_clip = CLIP_AREA_INIT,
     .info.video.asr = -1, // XXX
     .info.video.frc = 3, // XXX (magic number)
     .info.video.par = 0,
@@ -108,7 +119,7 @@ static TCExportProfile prof_data = {
  *      the user using tc_log*.
  *      If verbose >= TC_INFO and profile was loaded, notify the user
  *      using tc_log*.
- * 
+ *
  * Parameters:
  *          i: load the i-th already parsed (see below) export profile.
  *     config: use this TCConfigEntry array, provided by frontend, to
@@ -144,7 +155,7 @@ static int tc_load_single_export_profile(int i, TCConfigEntry *config,
 
 /*
  * cleanup_strings:
- *      free()s and reset to NULL every not-NULL string in a given 
+ *      free()s and reset to NULL every not-NULL string in a given
  *      TCExportInfo structure
  *
  * Parameters:
@@ -161,7 +172,7 @@ static void cleanup_strings(TCExportInfo *info);
  *      So, if you want to mangle "--foobar", give "--foobar" not
  *      "foobar". Same story for short options "-V": use "-V" not "V".
  *      If given option isn't found in string option array, do nothing
- *      and return succesfull (see below). If option is found but 
+ *      and return succesfull (see below). If option is found but
  *      it's argument isn't found, don't mangle string options array
  *      but return failure.
  *      If BOTH option and it's value its found, store a pointer to
@@ -216,6 +227,23 @@ static char **tc_strsplit(const char *str, char sep,
  */
 static void tc_strfreev(char **pieces);
 
+/*
+ * setup_clip_area:
+ *      helper to parse a clipping area string into a TCArea structure.
+ *      Automagically expand the clipping information using the same
+ *      logic of transcode core (actually this code is a very
+ *      little more than a rip-off form src/transcode.c).
+ *
+ * Parameters:
+ *      str: clipping area string to parse.
+ *     area: pointero to a TCArea where clipping parameters will be stored.
+ * Return value:
+ *      1: succesfull
+ *     -1: error: malformed clipping string or bad parameters.
+ */
+static int setup_clip_area(const char *str, TCArea *area);
+
+
 /*************************************************************************/
 
 int tc_setup_export_profile(int *argc, char ***argv)
@@ -224,7 +252,7 @@ int tc_setup_export_profile(int *argc, char ***argv)
     int ret;
 
     if (argc == NULL || argv == NULL) {
-        tc_log_warn(__FILE__, "tc_export_profile_init: bad data reference");
+        tc_log_warn(__FILE__, "tc_setup_export_profile: bad data reference");
         return -2;
     }
 
@@ -271,6 +299,24 @@ const TCExportInfo *tc_load_export_profile(void)
                         TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 12000000 },
         { "video_keyframes", &(prof_data.info.video.gop_size),
                         TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 1, 2000 },
+        { "video_encode_fields", &(prof_data.info.video.encode_fields),
+                        TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 5 }, // XXX
+        { "video_frc", &(prof_data.info.video.frc),
+                            TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 5 },
+        { "video_pre_clip", &(prof_data.pre_clip_area),
+                            TCCONF_TYPE_STRING, 0, 0, 0 },
+        { "video_post_clip", &(prof_data.post_clip_area),
+                            TCCONF_TYPE_STRING, 0, 0, 0 },
+        { "video_width", &(prof_data.info.video.width),
+                        TCCONF_TYPE_INT, TCCONF_FLAG_RANGE,
+                        1, TC_MAX_V_FRAME_WIDTH },
+        { "video_height", &(prof_data.info.video.height),
+                        TCCONF_TYPE_INT, TCCONF_FLAG_RANGE,
+                        1, TC_MAX_V_FRAME_HEIGHT },
+        { "video_fast_resize", &(prof_data.info.video.fast_resize_flag),
+                        TCCONF_TYPE_FLAG, 0, 0, 1 },
+        { "video_zoom_interlaced", &(prof_data.info.video.zoom_interlaced_flag),
+                        TCCONF_TYPE_FLAG, 0, 0, 1 },
         /* audio stuff */
         { "audio_codec", &(prof_data.audio_codec),
                         TCCONF_TYPE_STRING, 0, 0, 0 },
@@ -281,26 +327,17 @@ const TCExportInfo *tc_load_export_profile(void)
         { "audio_bitrate", &(prof_data.info.audio.bitrate),
                         TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 1000000 },
         { "audio_frequency", &(prof_data.info.audio.sample_rate),
-                        TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 48000 }, // XXX: review min
+                        TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 48000 },
+                        // XXX: review min
         { "audio_bits", &(prof_data.info.audio.sample_bits),
                         TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 8, 16 }, // XXX
         { "audio_channels", &(prof_data.info.audio.channels),
                         TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 1, 2 },
-        /* generic stuff */
-        { "width", &(prof_data.info.video.width),
-                        TCCONF_TYPE_INT, TCCONF_FLAG_RANGE,
-                        1, TC_MAX_V_FRAME_WIDTH },
-        { "height", &(prof_data.info.video.height),
-                        TCCONF_TYPE_INT, TCCONF_FLAG_RANGE,
-                        1, TC_MAX_V_FRAME_HEIGHT },
+        /* multiplexing */
         { "mplex_module", &(prof_data.info.mplex.module),
                         TCCONF_TYPE_STRING, 0, 0, 0 },
         { "mplex_module_options", &(prof_data.info.mplex.module_opts),
                         TCCONF_TYPE_STRING, 0, 0, 0 },
-        { "encode_fields", &(prof_data.info.video.encode_fields),
-                        TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 5 }, // XXX
-        { "frame_rate_code", &(prof_data.info.video.frc),
-                            TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 5 },
         { NULL, NULL, 0, 0, 0, 0 }
     };
     home = getenv("HOME");
@@ -349,6 +386,26 @@ void tc_export_profile_to_vob(const TCExportInfo *info, vob_t *vob)
  * private helpers: implementation
  **************************************************************************/
 
+#define SETUP_CODEC(TYPE) do { \
+    int codec = 0; /* shortcut  */\
+    if (prof_data.TYPE ## _codec != NULL) { \
+        codec  = tc_codec_from_string(prof_data.TYPE ## _codec); \
+        prof_data.info.TYPE.format = codec; \
+        tc_free((char*)prof_data.TYPE ## _codec); /* avoid const warning */ \
+        prof_data.TYPE ## _codec = NULL; \
+    } \
+} while (0)
+
+#define SETUP_CLIPPING(TYPE) do { \
+    if (prof_data.TYPE ## _clip_area != NULL) { \
+        memset(&(prof_data.info.video.TYPE ## _clip), 0, sizeof(TCArea)); \
+        setup_clip_area(prof_data.TYPE ## _clip_area, \
+                        &(prof_data.info.video.TYPE ## _clip)); \
+        tc_free((char*)prof_data.TYPE ## _clip_area); /* avoid const warning */ \
+        prof_data.TYPE ## _clip_area = NULL; \
+    } \
+} while (0)
+
 static int tc_load_single_export_profile(int i, TCConfigEntry *config,
                                          const char *sys_path,
                                          const char *user_path)
@@ -360,19 +417,19 @@ static int tc_load_single_export_profile(int i, TCConfigEntry *config,
     if (sys_path == NULL || user_path == NULL || config == NULL
      || ((i < 0) || i >= prof_data.profile_count)) {
         /* paranoia */
-        tc_log_warn(__FILE__, "tc_export_profile_load():"
+        tc_log_warn(__FILE__, "tc_load_single_export_profile:"
                               " bad data reference");
         return -1;
     }
 
-    tc_snprintf(path_buf, sizeof(path_buf), "%s/%s",
+    tc_snprintf(path_buf, sizeof(path_buf), "%s/%s.cfg",
                 user_path, prof_data.profiles[i]);
     ret = access(path_buf, R_OK);
     if (ret == 0) {
         found = 1;
         basedir = user_path;
     } else {
-        tc_snprintf(path_buf, sizeof(path_buf), "%s/%s",
+        tc_snprintf(path_buf, sizeof(path_buf), "%s/%s.cfg",
                     sys_path, prof_data.profiles[i]);
         ret = access(path_buf, R_OK);
         if (ret == 0) {
@@ -382,27 +439,23 @@ static int tc_load_single_export_profile(int i, TCConfigEntry *config,
     }
 
     if (found) {
+        char prof_name[TC_BUF_MIN];
         cleanup_strings(&prof_data.info);
+        tc_snprintf(prof_name, sizeof(prof_name), "%s.cfg",
+                    prof_data.profiles[i]);
 
         tc_set_config_dir(basedir);
-        ret = module_read_config(prof_data.profiles[i], NULL,
-                                 config, __FILE__);
+        ret = module_read_config(prof_name, NULL, config, __FILE__);
         if (ret == 0) {
             found = 0; /* module_read_config() failed */
         } else {
             if (verbose >= TC_INFO) {
                 tc_log_info(__FILE__, "loaded profile \"%s\"...", path_buf);
             }
-            if (prof_data.video_codec != NULL) {
-                prof_data.info.video.format = tc_codec_from_string(prof_data.video_codec);
-                tc_free((char*)prof_data.video_codec); /* avoid const warning */
-                prof_data.video_codec = NULL;
-            }
-            if (prof_data.audio_codec != NULL) {
-                prof_data.info.audio.format = tc_codec_from_string(prof_data.audio_codec);
-                tc_free((char*)prof_data.audio_codec); /* avoid const warning */
-                prof_data.audio_codec = NULL;
-            }
+            SETUP_CODEC(video);
+            SETUP_CODEC(audio);
+            SETUP_CLIPPING(pre);
+            SETUP_CLIPPING(post);
         }
     } else {
         if (verbose >= TC_DEBUG) {
@@ -413,6 +466,9 @@ static int tc_load_single_export_profile(int i, TCConfigEntry *config,
     return found;
 }
 
+#undef SETUP_CODEC
+#undef SETUP_CLIPPING
+
 /*
  * module_read_config (used internally, see later)
  * allocates new strings for option values, so
@@ -421,9 +477,10 @@ static int tc_load_single_export_profile(int i, TCConfigEntry *config,
  */
 
 #define CLEANUP_STRING(field) do { \
-    if (info->field != NULL) \
+    if (info->field != NULL) {\
         tc_free(info->field); \
         info->field = NULL; \
+    } \
 } while (0)
 
 static void cleanup_strings(TCExportInfo *info)
@@ -566,3 +623,22 @@ static void tc_strfreev(char **pieces)
     }
 }
 
+
+static int setup_clip_area(const char *str, TCArea *area)
+{
+    int n = sscanf(str, "%i,%i,%i,%i",
+                   &area->top, &area->left, &area->bottom, &area->right);
+    if (n < 0) {
+        return -1;
+    }
+
+    /* symmetrical clipping for only 1-3 arguments */
+    if (n == 1 || n == 2) {
+        area->bottom = area->top;
+    }
+    if (n == 2 || n == 3) {
+        area->right = area->left;
+    }
+
+    return 1;
+}
