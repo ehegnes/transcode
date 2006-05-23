@@ -44,6 +44,9 @@ struct tcexportprofile_ {
 
 #define CLIP_AREA_INIT  { 0, 0, 0, 0 }
 
+/* used in tc_log_*() calls */
+const char *package = __FILE__;
+
 static TCExportProfile prof_data = {
     .profile_count = 0,
     .profiles = NULL,
@@ -253,10 +256,12 @@ int tc_setup_export_profile(int *argc, char ***argv)
     int ret;
 
     if (argc == NULL || argv == NULL) {
-        tc_log_warn(__FILE__, "tc_setup_export_profile: bad data reference");
+        tc_log_warn(package, "tc_setup_export_profile: bad data reference");
         return -2;
     }
 
+    /* guess package name from command line */
+    package = (*argv)[0];
     ret = tc_mangle_cmdline(argc, argv, TC_EXPORT_PROFILE_OPT,
                             &optval);
     if (ret == 0) { /* success */
@@ -264,7 +269,7 @@ int tc_setup_export_profile(int *argc, char ***argv)
                                          &prof_data.profile_count);
         ret = (int)prof_data.profile_count;
         if (verbose >= TC_INFO) {
-            tc_log_info(__FILE__, "recognized %i profiles", ret);
+            tc_log_info(package, "E: %-16s | %i", "profiles parsed", ret);
         }
     }
     return ret;
@@ -349,7 +354,7 @@ const TCExportInfo *tc_load_export_profile(void)
         tc_snprintf(home_path, sizeof(home_path), "%s/%s",
                     home, USER_PROF_PATH);
     } else {
-        tc_log_warn(__FILE__, "can't determinate home directory!");
+        tc_log_warn(package, "can't determinate home directory!");
         return NULL;
     }
 
@@ -420,8 +425,8 @@ static int tc_load_single_export_profile(int i, TCConfigEntry *config,
     if (sys_path == NULL || user_path == NULL || config == NULL
      || ((i < 0) || i >= prof_data.profile_count)) {
         /* paranoia */
-        tc_log_warn(__FILE__, "tc_load_single_export_profile:"
-                              " bad data reference");
+        tc_log_warn(package, "tc_load_single_export_profile:"
+                             " bad data reference");
         return -1;
     }
 
@@ -448,12 +453,13 @@ static int tc_load_single_export_profile(int i, TCConfigEntry *config,
                     prof_data.profiles[i]);
 
         tc_set_config_dir(basedir);
-        ret = module_read_config(prof_name, NULL, config, __FILE__);
+        ret = module_read_config(prof_name, NULL, config, package);
         if (ret == 0) {
             found = 0; /* module_read_config() failed */
         } else {
             if (verbose >= TC_INFO) {
-                tc_log_info(__FILE__, "loaded profile \"%s\"...", path_buf);
+                tc_log_info(package, "E: %-16s | %s", "loaded profile",
+                            path_buf);
             }
             SETUP_CODEC(video);
             SETUP_CODEC(audio);
@@ -462,8 +468,8 @@ static int tc_load_single_export_profile(int i, TCConfigEntry *config,
         }
     } else {
         if (verbose >= TC_DEBUG) {
-            tc_log_warn(__FILE__, "unable to load profile \"%s\", skipped",
-                        prof_data.profiles[i]);
+            tc_log_warn(package, "E: %-16s | %s (skipped)", "unable to load",
+                        path_buf);
         }
     }
     return found;
@@ -526,7 +532,7 @@ static int tc_mangle_cmdline(int *argc, char ***argv,
         if ((*argv)[i] && strcmp((*argv)[i], opt) == 0) {
             if (i + 1 >= *argc || (*argv)[i + 1][0] == '-') {
                 /* report bad usage */
-                tc_log_warn(__FILE__, "you must supply a profile name");
+                tc_log_warn(package, "you must supply a profile name");
                 return -1;
             } else {
                 found = TC_TRUE;
