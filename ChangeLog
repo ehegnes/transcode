@@ -1,4 +1,8 @@
 2006-05-23 Francesco Romani <fromani at gmail dot com>
+  * configure.in src/export_profile.c
+  {SYS,USER}_PROF_PATH should be $PATH/profiles, not $PATH/profile
+  (note the trailing 's').
+
   * Added files: export/dvd-pal.cfg export/dvd-ntsc.cfg
   Added *experimental* new-style profiles for dvd. *vcd
   profiles will follow soon. Feel free to improve or to

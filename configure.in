@@ -1206,10 +1206,10 @@ AC_SUBST(MOD_PATH)
 
 dnl export profiles data path
 dnl
-PROF_PATH="\${datadir}/transcode/profile"
+PROF_PATH="\${datadir}/transcode/profiles"
 AC_ARG_WITH(prof-path,
   AC_HELP_STRING([--with-prof-path],
-    [where export profiles data are installed (${datadir}/transcode)]),
+    [where export profiles data are installed (${datadir}/transcode/profiles)]),
   PROF_PATH=$withval)
 AC_SUBST(PROF_PATH)
 

@@ -23,7 +23,7 @@
 # define TC_EXPORT_PROFILE_OPT     "--export_prof"
 #endif
 
-#define USER_PROF_PATH   ".transcode/profile"
+#define USER_PROF_PATH   ".transcode/profiles"
 
 /* all needed support variables/data packed in a nice structure */
 typedef struct tcexportprofile_ TCExportProfile;
