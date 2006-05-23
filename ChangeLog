@@ -1,4 +1,7 @@
 2006-05-23 Francesco Romani <fromani at gmail dot com>
+  * export/Makefile.am
+  ship new profile data.
+
   * export/dvd-ntsc.cfg export/dvd-pal.cfg
   small profile fixes (profiles are still experimental)
   and fix athe obvious typo left in.

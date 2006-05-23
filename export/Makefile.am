@@ -170,7 +170,13 @@ EXTRA_DIST = \
 
 PROFILES = \
 	dvd-pal.cfg \
-	dvd-ntsc.cfg
+	dvd-ntsc.cfg \
+	vcd-pal.cfg \
+	vcd-ntsc.cfg \
+	svcd-pal.cfg \
+	svcd-ntsc.cfg \
+	xvcd-pal.cfg \
+	xvcd-ntsc.cfg
 
 pkg_DATA = xvid4.cfg $(PROFILES)
 
