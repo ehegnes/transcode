@@ -1,3 +1,9 @@
+2006-05-23 Francesco Romani <fromani at gmail dot com>
+  * src/tcinfo.h src/export_profile.c
+  add keep_asr flag, useful for already existing export profiles.
+  The idea is to drop existing custom resizing code and always
+  use (an updated version of) keep_asr code.
+
 2006-05-22 Francesco Romani <fromani at gmail dot com>
   * src/tcinfo.h src/export_profile.c src/export_profile.c
   some internal rearrangements/cleanups, and add support

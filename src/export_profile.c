@@ -76,6 +76,7 @@ static TCExportProfile prof_data = {
     /* standard initialization */
     .info.video.width = PAL_W,
     .info.video.height = PAL_H,
+    .info.video.keep_asr_flag = TC_FALSE,
     .info.video.fast_resize_flag = TC_FALSE,
     .info.video.zoom_interlaced_flag = TC_FALSE,
     .info.video.pre_clip = CLIP_AREA_INIT,
@@ -297,7 +298,7 @@ const TCExportInfo *tc_load_export_profile(void)
                         TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 12000000 },
         { "video_bitrate_max", &(prof_data.info.video.bitrate_max),
                         TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 12000000 },
-        { "video_keyframes", &(prof_data.info.video.gop_size),
+        { "video_gop_size", &(prof_data.info.video.gop_size),
                         TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 1, 2000 },
         { "video_encode_fields", &(prof_data.info.video.encode_fields),
                         TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 5 }, // XXX
@@ -313,6 +314,8 @@ const TCExportInfo *tc_load_export_profile(void)
         { "video_height", &(prof_data.info.video.height),
                         TCCONF_TYPE_INT, TCCONF_FLAG_RANGE,
                         1, TC_MAX_V_FRAME_HEIGHT },
+        { "video_keep_asr", &(prof_data.info.video.keep_asr_flag),
+                        TCCONF_TYPE_FLAG, 0, 0, 1 },
         { "video_fast_resize", &(prof_data.info.video.fast_resize_flag),
                         TCCONF_TYPE_FLAG, 0, 0, 1 },
         { "video_zoom_interlaced", &(prof_data.info.video.zoom_interlaced_flag),

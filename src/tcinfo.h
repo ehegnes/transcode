@@ -110,6 +110,7 @@ struct tcexportinfo_ {
 
         int width;
         int height;
+        int keep_asr_flag;
         int fast_resize_flag;
         int zoom_interlaced_flag;
         int asr;
