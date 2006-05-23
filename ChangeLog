@@ -1,4 +1,13 @@
 2006-05-23 Francesco Romani <fromani at gmail dot com>
+  * Added files: export/dvd-pal.cfg export/dvd-ntsc.cfg
+  Added *experimental* new-style profiles for dvd. *vcd
+  profiles will follow soon. Feel free to improve or to
+  suggest another place to store they.
+
+  * export/Makefile.am
+  install avalaible profiles in transcode's system profiles
+  directory (aka PROF_PATH).
+
   * src/tcinfo.h src/export_profile.c
   add keep_asr flag, useful for already existing export profiles.
   The idea is to drop existing custom resizing code and always

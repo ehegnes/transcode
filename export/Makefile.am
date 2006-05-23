@@ -159,8 +159,6 @@ export_yuv4mpeg_la_CPPFLAGS = $(AM_CPPFLAGS) $(MJPEGTOOLS_CFLAGS) $(AC3_CFLAGS) 
 export_yuv4mpeg_la_LDFLAGS = -module -avoid-version
 export_yuv4mpeg_la_LIBADD = $(MJPEGTOOLS_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS) $(LAME_LIBS)
 
-pkg_DATA = xvid4.cfg
-
 EXTRA_DIST = \
 	aud_aux.h \
 	divx5_encore2.h \
@@ -170,7 +168,15 @@ EXTRA_DIST = \
 	xvid4.h \
 	xvid4.cfg
 
+PROFILES = \
+	dvd-pal.cfg \
+	dvd-ntsc.cfg
+
+pkg_DATA = xvid4.cfg $(PROFILES)
+
 install-exec-hook:
 	@mkdir -p $(DESTDIR)$(MOD_PATH)
 	@rm -f $(DESTDIR)$(MOD_PATH)/export_xvid.so
 	@$(LN_S) export_xvid4.so $(DESTDIR)$(MOD_PATH)/export_xvid.so
+	@mkdir -p $(DESTDIR)$(PROF_PATH)
+	@cp $(PROFILES) $(DESTDIR)$(PROF_PATH)
