@@ -435,26 +435,29 @@ static void print_summary(TCEncConf *conf, int verbose)
 
     version();
     if (verbose >= TC_INFO) {
-        tc_log_info(EXE, "M: destination     | %s", vob->video_out_file);
-        tc_log_info(EXE, "E: bitrate (A,V)   | %i,%i kbps",
+        tc_log_info(EXE, "M: %-16s | %s", "destination",
+                    vob->video_out_file);
+        tc_log_info(EXE, "E: %-16s | %i,%i kbps", "bitrate(A,V)",
                     vob->divxbitrate, vob->mp3bitrate);
-        tc_log_info(EXE, "E: logfile (A,V)   | %s,%s",
+        tc_log_info(EXE, "E: %-16s | %s,%s", "logfile (A,V)",
                     vob->divxlogfile, vob->audiologfile);
-        tc_log_info(EXE, "V: encoder         | %s (options=%s)",
+        tc_log_info(EXE, "V: %-16s | %s (options=%s)", "encoder",
                     conf->video_mod, MOD_OPTS(vob->ex_v_string));
-        tc_log_info(EXE, "A: encoder         | %s (options=%s)",
+        tc_log_info(EXE, "A: %-16s | %s (options=%s)", "encoder",
                     conf->audio_mod, MOD_OPTS(vob->ex_a_string));
-        tc_log_info(EXE, "M: format          | %s (options=%s)",
+        tc_log_info(EXE, "M: %-16s | %s (options=%s)", "format",
                     conf->mplex_mod, MOD_OPTS(vob->ex_m_string));
-        tc_log_info(EXE, "M: fps             | %.3f", vob->fps);
-        tc_log_info(EXE, "V: picture size    | %ix%i",
+        tc_log_info(EXE, "M: %-16s | %.3f", "fps", vob->fps);
+        tc_log_info(EXE, "V: %-16s | %ix%i", "picture size",
                     vob->im_v_width, vob->im_v_height);
-        tc_log_info(EXE, "V: bytes per frame | %i", vob->im_v_size);
-        tc_log_info(EXE, "V: pass            | %i", vob->divxmultipass);
-        tc_log_info(EXE, "A: rate,chans,bits | %i,%i,%i",
+        tc_log_info(EXE, "V: %-16s | %i", "bytes per frame",
+                    vob->im_v_size);
+        tc_log_info(EXE, "V: %-16s | %i", "pass", vob->divxmultipass);
+        tc_log_info(EXE, "A: %-16s | %i,%i,%i", "rate,chans,bits",
                     vob->a_rate, vob->a_chan, vob->a_bits);
-        tc_log_info(EXE, "A: bytes per frame | %i", vob->im_a_size);
-        tc_log_info(EXE, "A: adjustement     | %i@%i",
+        tc_log_info(EXE, "A: %-16s | %i", "bytes per frame",
+                    vob->im_a_size);
+        tc_log_info(EXE, "A: %-16s | %i@%i", "adjustement",
                          vob->a_leap_bytes, vob->a_leap_frame);
     }
 }

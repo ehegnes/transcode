@@ -1,4 +1,7 @@
 2006-05-23 Francesco Romani <fromani at gmail dot com>
+  * tools/tcexport.c
+  better output handling.
+
   * src/export_profile.c
   smarter logging (better tag handling).
 
