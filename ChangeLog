@@ -1,4 +1,13 @@
 2006-05-23 Francesco Romani <fromani at gmail dot com>
+  * export/dvd-ntsc.cfg export/dvd-pal.cfg
+  small profile fixes (profiles are still experimental)
+  and fix athe obvious typo left in.
+
+  * Added files: export/svcd-ntsc.cfg export/svcd-pal.cfg 
+                 export/vcd-ntsc.cfg  export/vcd-pal.cfg
+		 export/xvcd-ntsc.cfg export/xvcd-pal.cfg
+  Add more (experimental) profile data.
+
   * configure.in src/export_profile.c
   {SYS,USER}_PROF_PATH should be $PATH/profiles, not $PATH/profile
   (note the trailing 's').
