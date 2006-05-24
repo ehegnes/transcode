@@ -87,7 +87,7 @@ static TCExportProfile prof_data = {
     .info.video.asr = -1, // XXX
     .info.video.frc = 3, // XXX (magic number)
     .info.video.par = 0,
-    .info.video.encode_fields = 0,
+    .info.video.encode_fields = TC_ENCODE_FIELDS_PROGRESSIVE,
     .info.video.gop_size = VKEYFRAMES,
     .info.video.quantizer_min = VMINQUANTIZER,
     .info.video.quantizer_max = VMAXQUANTIZER,
@@ -306,9 +306,15 @@ const TCExportInfo *tc_load_export_profile(void)
         { "video_gop_size", &(prof_data.info.video.gop_size),
                         TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 1, 2000 },
         { "video_encode_fields", &(prof_data.info.video.encode_fields),
-                        TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 5 }, // XXX
+                        TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 3 },
+        // FIXME: switch to char/string?
         { "video_frc", &(prof_data.info.video.frc),
                             TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 5 },
+        { "video_asr", &(prof_data.info.video.asr),
+                            TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 9 },
+        { "video_par", &(prof_data.info.video.par),
+                            TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 9 },
+        // FIXME: expand achronym?
         { "video_pre_clip", &(prof_data.pre_clip_area),
                             TCCONF_TYPE_STRING, 0, 0, 0 },
         { "video_post_clip", &(prof_data.post_clip_area),

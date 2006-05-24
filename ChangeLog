@@ -1,4 +1,7 @@
 2006-05-24 Francesco Romani <fromani at gmail dot com>
+  * src/export_profile.c
+  use new constant and let the profile specify also par/asr.
+
   * libtc/tccodecs.h src/tcinfo.h
   Add a few new typedefs in order to further clarify a bit.
   Also add syntethic description of fields in TCExportInfo
