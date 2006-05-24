@@ -25,6 +25,11 @@
 #ifndef TC_CODECS_H
 #define TC_CODECS_H
 
+#include <stdint.h>
+
+typedef uint32_t TCCodecID;
+/* just an unsigned integer big enough to store any TC_CODEC_* */
+
 /*
  * codecs identifiers.
  * Each one must fit in exactly 32 bits.

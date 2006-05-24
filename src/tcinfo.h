@@ -89,6 +89,16 @@ typedef struct {
 
 /*************************************************************************/
 
+#include "libtc/tccodecs.h"
+
+typedef enum tcencodefieldsid_ TCEncodeFieldsID;
+enum tcencodefieldsid_ {
+    TC_ENCODE_FIELDS_PROGRESSIVE = 0,
+    TC_ENCODE_FIELDS_TOP_FIRST,
+    TC_ENCODE_FIELDS_BOTTOM_FIRST,
+    TC_ENCODE_FIELDS_UNKNOWN,
+};
+
 typedef struct tcarea_ TCArea;
 struct tcarea_ {
     int top;
@@ -101,38 +111,74 @@ typedef struct tcexportinfo_ TCExportInfo;
 struct tcexportinfo_ {
     uint32_t attributes;
 
+    /*
+     * common fields for video/audio/mplex sections:
+     * string      : generic opaque string identifier
+     *               (for video, mainly used for fourcc).
+     * module      : (NMS) encode module to use.
+     * module_opts : (opaque) option string to module.
+     *
+     * common fields for video/audio sections:
+     * format      : identifier of video format to use in encoding phase.
+     *               Isn't a proper codec identifer since it can be a
+     *               'special' format like TC_CODEC_COPY
+     * FIXME: can sometimes be CODEC_XXX not TC_CODEC_XXX.
+     * quality     : encoding quality condensed in a single param.
+     *               Rarely used but still needed.
+     * bitrate     : MEAN video bitrate to use (kbps) in encoding.
+     */
     struct {
         char *string;
         char *module;
         char *module_opts;
+        
+        TCCodecID format;
+        int quality;
+        int bitrate;
 
         char *log_file;
+        /* path to log file to use, if needed, for multipass encoding. */
 
         int width;
         int height;
+        /*
+         * FINAL requested video frame width/height: encoded video stream will
+         * have this width/height.
+         */
         int keep_asr_flag;
-        int fast_resize_flag;
-        int zoom_interlaced_flag;
+        /* final asr should be forced equal to import asr? */
+        int fast_resize_flag; /* self explanatory :) */
+        int zoom_interlaced_flag; /* self explanatory :) */
         int asr;
+        /* 
+         * frame aspect ratio; often (but NOT always)
+         * computed from width/height pair
+         */
 
-        int frc;
+        int frc; /* frame rate code */
         int par;
-        int encode_fields;
+        /* pixel aspect ratio; 1:1 by default, overridden by user in case */
+        TCEncodeFieldsID encode_fields;
+        /* field based encoding selection */
 
         TCArea pre_clip;
+        /* clip specified area BEFORE any other operation */
         TCArea post_clip;
+        /* clip specified area AFTER any other operation */
 
         int gop_size;
+        /* video GOP size also known as keyframe interval */
         int quantizer_min;
         int quantizer_max;
+        /* quantizer range to use in encoding */
 
-        int format;
-        int quality;
-        int bitrate;
         int bitrate_max;
+        /* 
+         * Maximum video bitrate to use (kbps) in encoding.
+         * Rarely used but still needed.
+         */
 
-        int flush_flag;
-        int pass_number;
+        int pass_number; /* set for usage in multipass encoding */
     } video;
 
     struct {
@@ -140,15 +186,18 @@ struct tcexportinfo_ {
         char *module;
         char *module_opts;
 
-        int format;
+        TCCodecID format;
         int quality;
         int bitrate;
 
-        int sample_rate;
-        int sample_bits;
-        int channels;
-        int mode;
-        /* lame-ism */
+        int sample_rate; /* audio sample rate (Hz) */
+        int sample_bits; /* bits to use for each audio sample */
+        int channels; /* number of channels in audio stream */    
+        int mode; /* audio mode: mode, stereo, joint stereo... */
+        /* 
+         * those last three fields are mainly used by lame, but they
+         * should be generalized
+         */
         int vbr_flag;
         int flush_flag;
         int bit_reservoir;
@@ -159,8 +208,12 @@ struct tcexportinfo_ {
         char *module;
         char *module_opts;
 
-        char *out_file;
-        char *out_file_aux;
+        char *out_file; /* self explanatory :) */
+        char *out_file_aux; 
+        /*
+         * path of extra output file (separate audio track.
+         * Provided for back compatibilty, can go away in future revisions.
+         */
     } mplex;
 };
 

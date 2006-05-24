@@ -1,3 +1,9 @@
+2006-05-24 Francesco Romani <fromani at gmail dot com>
+  * libtc/tccodecs.h src/tcinfo.h
+  Add a few new typedefs in order to further clarify a bit.
+  Also add syntethic description of fields in TCExportInfo
+  structure.
+
 2006-05-23 Francesco Romani <fromani at gmail dot com>
   * tools/tcexport.c
   better output handling.
