@@ -95,7 +95,6 @@ static TCExportProfile prof_data = {
     .info.video.quality = -1,
     .info.video.bitrate = VBITRATE,
     .info.video.bitrate_max = VBITRATE,
-    .info.video.flush_flag = TC_FALSE,
     .info.video.pass_number = VMULTIPASS,
 
     .info.audio.format = CODEC_NULL,
