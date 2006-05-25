@@ -21,6 +21,7 @@ noinst_PROGRAMS = \
 	test-imgconvert \
 	test-iodir \
 	test-ratiocodes \
+	test-resize-values \
 	test-tclog \
 	test-tcmodule \
 	test-tcmoduleinfo \
@@ -61,6 +62,9 @@ test_tcstrdup_LDADD = $(LIBTC_LIBS)
 
 test_export_profile_SOURCES = test-export-profile.c ../src/export_profile.c
 test_export_profile_LDADD = $(LIBTC_LIBS)
+
+test_resize_values_SOURCES = test-resize-values.c
+test_resize_values_LDADD = $(LIBTC_LIBS)
 
 # Avoid warnings on intentional empty strings in test-tclog
 test-tclog$(EXEEXT): CFLAGS := $(CFLAGS) -Wno-format-zero-length

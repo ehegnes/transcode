@@ -1,4 +1,9 @@
 2006-05-25 Francesco Romani <fromani at gmail dot com>
+  * added file: testsuite/test-resize-values.c
+
+  * testsuite/Makefile.am
+  test code for new resize values computation function.
+
   * src/export_profile.c
   small changes to TCExportInfo -> vob glue code;
   also use new fast resize computation helper.
