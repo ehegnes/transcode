@@ -1,3 +1,9 @@
+2006-05-25 Francesco Romani <fromani at gmail dot com>
+  * libtc/libtc.h libtc/tc_functions.c
+  add a new utility function to compute fast resize parameters.
+  API still needs some future work, the algorythm si less or
+  more stable and identical to existing old one in src/transcode.c.
+
 2006-05-24 Francesco Romani <fromani at gmail dot com>
   * src/export_profile.c
   use new constant and let the profile specify also par/asr.

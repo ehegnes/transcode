@@ -37,6 +37,7 @@
 #include "tc_defaults.h"
 
 #include "framebuffer.h"
+#include "transcode.h"
 
 /*************************************************************************/
 
@@ -195,7 +196,6 @@ int tc_test_program(const char *name)
     return 0;
 }
 
-/*************************************************************************/
 
 int tc_test_string(const char *file, int line, int limit, long ret, int errnum)
 {
@@ -323,6 +323,7 @@ void tc_buffree(void *ptr)
 #endif
 }
 
+/*************************************************************************/
 
 ssize_t tc_pread(int fd, uint8_t *buf, size_t len)
 {
@@ -502,6 +503,73 @@ int tc_probe_path(const char *name)
 
     return TC_PROBE_PATH_INVALID;
 }
+
+/*************************************************************************/
+
+#define RESIZE_DIV      8
+#define DIM_IS_OK(dim)  ((dim) % RESIZE_DIV == 0)
+
+int tc_compute_fast_resize_values(void *_vob, int strict)
+{
+    int ret = -1;
+    int dw = 0, dh = 0; /* delta width, height */
+    vob_t *vob = _vob; /* adjust pointer */
+
+    /* sanity checks first */
+    if (vob == NULL) {
+        return -1;
+    }
+    if (!DIM_IS_OK(vob->ex_v_width) || !DIM_IS_OK(vob->ex_v_width)) {
+        return -1;
+    }
+    if (!DIM_IS_OK(vob->zoom_width) || !DIM_IS_OK(vob->zoom_width)) {
+        return -1;
+    }
+    
+    dw = vob->ex_v_width - vob->zoom_width;
+    dh = vob->ex_v_height - vob->zoom_height;
+    /* MORE sanity checks */
+    if (!DIM_IS_OK(dw) || !DIM_IS_OK(dh)) {
+        return -1;
+    }
+    if (dw == 0 && dh == 0) {
+        /* we're already fine */
+        ret = 0;
+    } else  if (dw > 0 && dh > 0) {
+        /* smaller destination frame -> -B */
+        vob->resize1_mult = RESIZE_DIV;
+        vob->hori_resize1 = dw / RESIZE_DIV;
+        vob->vert_resize1 = dh / RESIZE_DIV;
+        ret = 0;
+    } else if (dw < 0 && dh < 0) {
+        /* bigger destination frame -> -X */
+        vob->resize2_mult = RESIZE_DIV;
+        vob->hori_resize2 = -dw / RESIZE_DIV;
+        vob->vert_resize2 = -dh / RESIZE_DIV;
+        ret = 0;
+    } else if (strict == 0) {
+        /* always needed in following cases */
+        vob->resize1_mult = RESIZE_DIV;
+        vob->resize2_mult = RESIZE_DIV;
+        ret = 0;
+        if (dw <= 0 && dh >= 0) {
+            vob->hori_resize2 = -dw / RESIZE_DIV;
+            vob->vert_resize1 = dh / RESIZE_DIV;
+        } else if (dw >= 0 && dh <= 0) {
+            vob->hori_resize1 = dw / RESIZE_DIV;
+            vob->vert_resize2 = -dh / RESIZE_DIV;
+        }
+    }
+
+    if (ret == 0) {
+        vob->zoom_width = 0;
+        vob->zoom_height = 0;
+    }
+    return ret;
+}
+
+#undef RESIZE_DIV
+#undef DIM_IS_OK
 
 /*************************************************************************/
 

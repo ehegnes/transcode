@@ -144,6 +144,7 @@ __attribute__((format(printf,3,4)))
                  (__s && *__s) ? ": " : "",  strerror(errno));     \
 } while (0)
 
+/*************************************************************************/
 
 /*
  * tc_test_program:
@@ -224,6 +225,8 @@ int _tc_vsnprintf(const char *file, int line, char *buf, size_t limit,
                   const char *format, va_list args);
 int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
                  const char *format, ...);
+
+/*************************************************************************/
 
 /*
  * tc_malloc: just a simple wrapper on libc's malloc(), with emits
@@ -324,6 +327,8 @@ void *_tc_bufalloc(const char *file, int line, size_t size);
  *     but tc_buffree(), or vice versa.
  */
 void tc_buffree(void *ptr);
+
+/*************************************************************************/
 
 /*
  * tc_strdup: a macro wrapper on top of _tc_strndup, like tc_malloc, above
@@ -524,6 +529,46 @@ const char* tc_codec_fourcc(int codec);
  */
 int tc_codec_description(int codec, char *buf, size_t bufsize);
 
+/*************************************************************************/
+
+/*
+ * tc_compute_fast_resize_values:
+ *     compute internal values needed for video frame fast resize (-B/-X)
+ *     given base resolution (ex_v_{width,height}) and target one
+ * 	   (zoom_{width,height}).
+ *     WARNING: at moment of writing there are some back compatibility
+ *     constraints, nevethless this function interface (notabley I/O
+ *     parameters passing) needs a SERIOUS rethink.
+ * 
+ * Parameters:
+ *      _vob: pointer to a structure on which read/store values for
+ *            computation.
+ *            Should ALWAYS really be a pointer to a vob_t structure,
+ *            but vob_t pointer isn't used (yet) in order to avoid
+ *            libtc/transcode.h interdependency.
+ *            I'm not yet convinced that those informations should go
+ *            in TCExportInfo since only transcode core needs them.
+ *            Perhaps the cleanest solution is to introduce yet
+ *            another structure :\.
+ *            If anyone has a better solution just let me know -- FR.
+ *            vob_t fields used:
+ *                ex_v_{width, height}: base resolution (In)
+ *                zoom_{width, height}: target resolution (In)
+ *                resize{1,2}_mult, vert_resize{1,2}, hori_resize{1,2}:
+ *                                   computed parameters (Out)
+ *    strict: if !0, allow only enlarging and shrinking of frame in
+ *            both dimensions, and fail otherwise.
+ * Return value:
+ *      0 succesfull
+ *     -1 error, computation failed 
+ *        (i.e. width or height not multiple of 8)
+ * Side effects:
+ *     if succesfull, zoom_{width,height} will be set to 0.
+ */
+int tc_compute_fast_resize_values(void *_vob, int strict);
+
+/*************************************************************************/
+
 /*
  * XXX: add some general notes about quantization matrices stored
  * into files (format etc. etc.)
@@ -603,6 +648,7 @@ int tc_read_matrix(const char *filename, uint8_t *m8, uint16_t *m16);
  */
 void tc_print_matrix(uint8_t *m8, uint16_t *m16);
 
+/*************************************************************************/
 
 /*
  * tc_vframe_new:
@@ -668,6 +714,7 @@ void tc_vframe_del(void *_vptr);
  */
 void tc_aframe_del(void *_aptr);
 
+/*************************************************************************/
 
 /*
  * libavcodec lock. Used for serializing initialization/open of library.
