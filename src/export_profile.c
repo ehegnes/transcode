@@ -84,8 +84,8 @@ static TCExportProfile prof_data = {
     .info.video.zoom_interlaced_flag = TC_FALSE,
     .info.video.pre_clip = CLIP_AREA_INIT,
     .info.video.post_clip = CLIP_AREA_INIT,
-    .info.video.asr = -1, // XXX
     .info.video.frc = 3, // XXX (magic number)
+    .info.video.asr = -1, // XXX
     .info.video.par = 0,
     .info.video.encode_fields = TC_ENCODE_FIELDS_PROGRESSIVE,
     .info.video.gop_size = VKEYFRAMES,
@@ -383,6 +383,8 @@ void tc_export_profile_to_vob(const TCExportInfo *info, vob_t *vob)
     vob->ex_a_codec = info->audio.format;
     vob->ex_v_fcc = info->video.string;
     vob->ex_frc = info->video.frc;
+    vob->ex_asr = info->video.asr;
+    vob->ex_par = info->video.par;
     vob->encode_fields = info->video.encode_fields;
     vob->divxbitrate = info->video.bitrate;
     vob->mp3bitrate = info->audio.bitrate;
@@ -391,8 +393,15 @@ void tc_export_profile_to_vob(const TCExportInfo *info, vob_t *vob)
     vob->mp3frequency = info->audio.sample_rate;
     vob->dm_bits = info->audio.sample_bits;
     vob->dm_chan = info->audio.channels;
-    vob->zoom_width = info->video.width;
-    vob->zoom_height = info->video.height;
+    vob->mp3mode = info->audio.mode;
+    vob->bitreservoir = info->audio.bit_reservoir;
+    vob->zoom_interlaced = info->video.zoom_interlaced_flag;
+    if (info->video.fast_resize_flag) {
+        tc_compute_fast_resize_values(vob, TC_FALSE);
+    } else {
+        vob->zoom_width = info->video.width;
+        vob->zoom_height = info->video.height;
+    }
 }
 
 /*************************************************************************
