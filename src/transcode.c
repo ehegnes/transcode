@@ -3095,83 +3095,28 @@ int main(int argc, char *argv[]) {
 
     // -Z ...,fast
     if (fast_resize) {
+      int ret = tc_compute_fast_resize_values(vob, TC_FALSE);
+      if (ret == 0) {
+        if (vob->hori_resize1 == 0 && vob->vert_resize1 == 0)
+          resize1 = TC_FALSE;
+        else
+          resize1 = TC_TRUE;
+        if (vob->hori_resize2 == 0 && vob->vert_resize2 == 0)
+          resize2 = TC_FALSE;
+        else
+          resize2 = TC_TRUE;
 
-      int nw, nh, ow, oh;
-      int Bw, Bh, Xw, Xh;
-      int dw, dh, M=0;
-
-      ow = vob->ex_v_width;
-      oh = vob->ex_v_height;
-      nw = vob->zoom_width;
-      nh = vob->zoom_height;
-
-      // -B: new = old - n*M
-      // (-1)*n = (new - old)/M
-
-      dw = nw - ow;
-      if (dw%8 == 0) M = 8;
-      if (!M) fast_resize = 0;
-
-      M = 0;
-      dh = nh - oh;
-      if (dh%8 == 0) M = 8;
-      if (!M) fast_resize = 0;
-
-      if (fast_resize) {
-
-	Bw = dw/M;
-	Bh = dh/M;
-
-	if        (Bw < 0 && Bh < 0) {
-	  resize1 = TC_TRUE;
-	  resize2 = TC_FALSE;
-	  Xh = Xw = 0;
-	  Bw = -Bw;
-	  Bh = -Bh;
-	} else if (Bw < 0 && Bh >= 0) {
-	  resize1 = TC_TRUE;
-	  resize2 = TC_TRUE;
-	  Bw = -Bw;
-	  Xh = Bh;
-	  Xw = Bh = 0;
-	} else if (Bw >= 0 && Bh < 0) {
-	  resize1 = TC_TRUE;
-	  resize2 = TC_TRUE;
-	  Bh = -Bh;
-	  Xw = Bw;
-	  Bw = Xh = 0;
-	} else {
-	  resize1 = TC_FALSE;
-	  resize2 = TC_TRUE;
-	  Xw = Bw;
-	  Xh = Bh;
-	  Bh = Bw = 0;
-	}
-
-	vob->resize1_mult = 8;
-	vob->resize2_mult = 8;
-	vob->vert_resize1 = Bh;
-	vob->hori_resize1 = Bw;
-	vob->vert_resize2 = Xh;
-	vob->hori_resize2 = Xw;
-	vob->zoom_width   = 0;
-	vob->zoom_height  = 0;
-
-	if (Bw == 0 && Bh == 0) resize1 = TC_FALSE;
-	if (Xw == 0 && Xh == 0) resize2 = TC_FALSE;
-
-	if(verbose & TC_INFO)
-	printf("[%s] V: %-16s | Using -B %d,%d,8 -X %d,%d,8\n",
-	    PACKAGE, "fast resize", Bh, Bw, Xh, Xw);
-
-	zoom = TC_FALSE;
-
+        if(verbose & TC_INFO)
+          printf("[%s] V: %-16s | Using -B %d,%d,8 -X %d,%d,8\n",
+                 PACKAGE, "fast resize",
+                 vob->vert_resize1, vob->hori_resize1,
+                 vob->vert_resize2, vob->hori_resize2);
+        zoom = TC_FALSE;
       } else {
-	if(verbose & TC_INFO)
-	printf("[%s] V: %-16s | requested but can't be used (W or H mod 8 != 0)\n",
-	    PACKAGE, "fast resize");
+        if(verbose & TC_INFO)
+          printf("[%s] V: %-16s | requested but can't be used (W or H mod 8 != 0)\n",
+                 PACKAGE, "fast resize");
       }
-
     }
 
     // -X

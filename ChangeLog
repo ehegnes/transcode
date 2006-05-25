@@ -1,5 +1,8 @@
 2006-05-25 Francesco Romani <fromani at gmail dot com>
-  * added file: testsuite/test-resize-values.c
+  * src/transcode.c
+  switch to new helper function when computing resize parameters.
+
+  * Added file: testsuite/test-resize-values.c
 
   * testsuite/Makefile.am
   test code for new resize values computation function.
