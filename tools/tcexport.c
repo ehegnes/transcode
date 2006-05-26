@@ -482,12 +482,6 @@ int tc_filter_find(const char *name)
     return 0;
 }
 
-void tc_pause(void)
-{
-    /* do nothing */
-    return;
-}
-
 void tc_socket_poll(void)
 {
     /* do nothing */

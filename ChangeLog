@@ -1,4 +1,8 @@
 2006-05-26 Francesco Romani <fromani at gmail dot com>
+  * tools/tcexport.c
+  tc_pause*() stuff it's now avalaible through encoder-common,
+  so there is no longer need to use a fake symbol here.
+
   * src/callback.c src/encoder-common.c src/encoder-common.h
   move tc_pause*() code into src/encoder-common, since pausing
   feature it's used only into encoding main loop.
