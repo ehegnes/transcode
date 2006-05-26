@@ -36,20 +36,6 @@
 static int rotate_ctr=0;
 static int rotate_flag=0;
 static char *base=NULL;
-static int pause_flag=0;
-
-void tc_pause_request(void)
-{
-    pause_flag = !pause_flag;
-}
-
-void tc_pause(void)
-{
-    while (pause_flag) {
-        usleep(TC_DELAY_MIN);
-        tc_socket_poll();
-    }
-}
 
 void tc_outstream_rotate_request(void)
 {

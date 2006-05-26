@@ -62,6 +62,35 @@ void tc_update_frames_encoded(uint32_t val);
 void tc_update_frames_cloned(uint32_t val);
 
 /*
+ * tc_pause_request:
+ *     toggle pausing; if pausing is enabled, further calls to tc_pause()
+ *     will effectively pause application's current thread; otherwise,
+ *     tc_pause() calls will do just nothing.
+ *
+ * Parameters:
+ *     None.
+ * Return value:
+ *     None.
+ */
+void tc_pause_request(void);
+
+/*
+ * tc_pause:
+ *     if pausing enabled, so if tc_pause_request was previously called
+ *     at least once, pause the current application thread for at least
+ *     TC_DELAY_MIN microseconds.
+ *
+ * Parameters:
+ *     None.
+ * Return value:
+ *     None.
+ * Side effects:
+ *     Incoming socket requests (see socket code), if any, will be handled
+ *     before to return.
+ */
+void tc_pause(void);
+
+/*
  * tc_export_stop_nolock():
  *     (asynchronously) request to encoder to exit from an encoding loop
  *     as soon as is possible.

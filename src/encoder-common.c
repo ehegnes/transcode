@@ -28,12 +28,17 @@
 #endif
 
 #include <stdint.h>
+#include <unistd.h>
 #include <pthread.h>
 #include "libtc/libtc.h"
 #include "encoder-common.h"
+#include "tc_defaults.h" /* TC_DELAY_MIN */
+#include "socket.h"
 
 /* volatile: for threadness paranoia */
 static volatile int exit_flag = TC_FALSE;
+static int pause_flag = 0;
+
 
 void tc_export_stop_nolock(void)
 {
@@ -43,6 +48,19 @@ void tc_export_stop_nolock(void)
 int tc_export_stop_requested(void)
 {
     return exit_flag;
+}
+
+void tc_pause_request(void)
+{
+    pause_flag = !pause_flag;
+}
+
+void tc_pause(void)
+{
+    while (pause_flag) {
+        usleep(TC_DELAY_MIN);
+        tc_socket_poll();
+    }
 }
 
 
