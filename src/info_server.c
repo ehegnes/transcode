@@ -23,23 +23,7 @@
 
 #include "transcode.h"
 #include "probe.h"
-
-#ifdef NET_STREAM
-static size_t pp_write (int fd, char *buf, size_t len)
-{
-   size_t n = 0;
-   size_t r = 0;
-
-   while (r < len) {
-      n = write (fd, buf + r, len - r);
-      if (n < 0)
-         return n;
-
-      r += n;
-   }
-   return r;
-}
-#endif
+#include "libtc/libtc.h"
 
 void server_thread(vob_t *vob)
 {
@@ -94,7 +78,7 @@ void server_thread(vob_t *vob)
       return;
     }
 
-    if(pp_write(ans, (char *) vob, sizeof(vob_t))!= sizeof(vob_t)) {
+    if(tc_pwrite(ans, (char *) vob, sizeof(vob_t))!= sizeof(vob_t)) {
       perror("write");
       return;
     }

@@ -1,3 +1,9 @@
+2006-05-26 Francesco Romani <fromani at gmail dot com>
+  * src/info_server.c
+  don't duplicate privately tc_pwrite, use the one in libtc.
+  Side note: info_server.c is still used/useful? Maybe it should
+  go away enteraly. I'll investigate on this direction ASAP.
+
 2006-05-25 Francesco Romani <fromani at gmail dot com>
   * src/transcode.c
   switch to new helper function when computing resize parameters.
