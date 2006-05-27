@@ -436,7 +436,7 @@ int tc_probe_path(const char *name)
         return TC_PROBE_PATH_INVALID;
     }
 
-    if(xio_stat(name, &fbuf)==0) {
+    if(xio_stat(name, &fbuf) == 0) {
         /* inode exists */
 
         /* treat DVD device as absolute directory path */

@@ -1,5 +1,5 @@
 /*
- * test-export-profile.c - testsuite for new export profiles code
+ * test-export-profile.c - testsuite for new export profiles code;
  *                         everyone feel free to add more tests and improve
  *                         existing ones.
  * (C) 2006 - Francesco Romani <fromani -at- gmail -dot- com>

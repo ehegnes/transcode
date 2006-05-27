@@ -1,6 +1,6 @@
 /*
- * test-resize-values.c - testsuite for tc_compute_fast_reize_values
- *                        (tc_functions,c) everyone feel free to add
+ * test-resize-values.c - testsuite for tc_compute_fast_resize_values
+ *                        (tc_functions.c); everyone feel free to add
  *                        more tests and improve existing ones.
  * (C) 2006 - Francesco Romani <fromani -at- gmail -dot- com>
  *

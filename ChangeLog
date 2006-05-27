@@ -1,3 +1,10 @@
+2006-05-27 Francesco Romani <fromani at gmail dot com>
+  * testsuite/test-bufalloc.c testsuite/test-export-profile.c
+    testsuite/test-iodir.c testsuite/test-resize-values.c
+    testsuite/test-tclog.c testsuite/test-tcmodule.c
+    testsuite/test-tcmoduleinfo.c testsuite/test-tcstrdup.c
+  Fix typos in header.
+
 2006-05-26 Francesco Romani <fromani at gmail dot com>
   * tools/tcexport.c
   tc_pause*() stuff it's now avalaible through encoder-common,

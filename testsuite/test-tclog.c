@@ -1,5 +1,5 @@
 /*
- * test-tclog.c - testsuite for tc_*log* family (tc_functions,c)
+ * test-tclog.c - testsuite for tc_*log* family (tc_functions.c);
  *                everyone feel free to add more tests and improve
  *                existing ones.
  * (C) 2006 - Francesco Romani <fromani -at- gmail -dot- com>

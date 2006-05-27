@@ -1,5 +1,5 @@
 /*
- * test-iodir.c - testsuite for TCDirList* family 
+ * test-iodir.c - testsuite for TCDirList* family; 
  *                everyone feel free to add more tests and improve
  *                existing ones.
  * (C) 2006 - Francesco Romani <fromani -at- gmail -dot- com>

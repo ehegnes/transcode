@@ -1,5 +1,5 @@
 /*
- * test-tcmodule.c - testsuite for tcmodule functions 
+ * test-tcmodule.c - testsuite for tcmodule functions; 
  *                   everyone feel free to add more tests and improve
  *                   existing ones.
  * (C) 2006 - Francesco Romani <fromani -at- gmail -dot- com>

@@ -1,5 +1,5 @@
 /*
- * test-tcmodulenfo.c - testsuite for tcmoduleinfo* functions 
+ * test-tcmodulenfo.c - testsuite for tcmoduleinfo* functions; 
  *                      everyone feel free to add more tests and improve
  *                      existing ones.
  * (C) 2006 - Francesco Romani <fromani -at- gmail -dot- com>
