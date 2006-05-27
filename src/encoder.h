@@ -38,8 +38,8 @@
  * different threads. See comments below.
  */
 
-/*
- * A TCEncoderBuffer structre, alog with it's operations, incapsulate
+/*************************************************************************
+ * A TCEncoderBuffer structure, alog with it's operations, incapsulate
  * the actions needed by encoder to acquire and dispose a single A/V frame
  * to encode.
  *
@@ -76,7 +76,10 @@ struct tcencoderbuffer_ {
 /* default main transcode buffer */
 extern TCEncoderBuffer *tc_ringbuffer;
 
-/*
+/*************************************************************************/
+
+
+/*************************************************************************
  * helper routines. Client code needs to call those routines before
  * (export_init/export_setup) or after (export_shutdown)
  * all the others.
@@ -143,7 +146,54 @@ int export_setup(vob_t *vob,
  */
 void export_shutdown(void);
 
+
+/*************************************************************************
+ * new-style output rotation support.
+ * This couple of functions
+ *      export_rotation_limit_frames
+ *      export_rotation_limit_megabytes
+ *
+ * Allow the client code to automatically split output into chunks by
+ * specifying a maxmimum size, resp. in frames OR in megabytes, for each
+ * output chunk.
+ *
+ * Those functions MUST BE used BEFORE to call first encoder_open(),
+ * otherwise will fall into unspecifed behaviour.
+ * It's important to note that client code CAN call multiple times
+ * (even if isn't usually useful to do so ;) ) export_rotation_limit*,
+ * but only one limit can be used, so the last limit set will be used.
+ * In other words, is NOT (yet) possible to limit output chunk size
+ * BOTH by frames and by size.
+ */
+
 /*
+ * export_rotation_limit_frames:
+ *     rotate output file(s) every given amount of encoded frames.
+ *
+ * Parameters:
+ *        vob: pointer to main vob_t structure.
+ *     frames: maximum of frames that every output chunk should contain.
+ * Return value:
+ *     None.
+ */
+void export_rotation_limit_frames(vob_t *vob, uint32_t frames);
+
+/*
+ * export_rotation_limit_megabytes:
+ *     rotate output file(s) after a given amount of data was encoded.
+ *
+ * Parameters:
+ *           vob: pointer to main vob_t structure.
+ *     megabytes: maximum size that every output chunk should have.
+ * Return value:
+ *     None.
+ */
+void export_rotation_limit_megabytes(vob_t *vob, uint32_t megabytes);
+
+
+/*************************************************************************/
+
+/*************************************************************************
  * main encoder API.
  *
  * There isn't explicit reference to encoder data structure,
@@ -246,4 +296,16 @@ int encoder_stop(void);
  */
 int encoder_close(void);
 
+/*************************************************************************/
+
 #endif /* ENCODER_H */
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */

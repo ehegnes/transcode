@@ -1,4 +1,16 @@
 2006-05-27 Francesco Romani <fromani at gmail dot com>
+  * src/encoder.c src/encoder.h
+  enter new output rotation support code. It's quite finished
+  and API it's almost stable (I'm fairly satisfied of it), but
+  this code isn't yet well tested. I'd commit anyway it since
+
+  - it IS NOT used AT ALL in old-style encoder, only in new one,
+    so transcode it's supposed to work exactly like before.
+  - it is still disabled in testing frontend code (tcexport)
+
+  This code is in fact dormant with this commit, so having
+  into CVS will not harm anything. ;)
+
   * testsuite/test-bufalloc.c testsuite/test-export-profile.c
     testsuite/test-iodir.c testsuite/test-resize-values.c
     testsuite/test-tclog.c testsuite/test-tcmodule.c
