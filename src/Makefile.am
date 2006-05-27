@@ -46,7 +46,6 @@ transcode_SOURCES = \
 	transcode.c \
 	audio_buffer.c \
 	audio_trans.c \
-	callback.c \
 	counter.c \
 	decoder.c \
 	dl_loader.c \

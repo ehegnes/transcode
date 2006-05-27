@@ -1,4 +1,9 @@
 2006-05-27 Francesco Romani <fromani at gmail dot com>
+  * deleted file: src/callback.c
+
+  * src/Makefile.am
+  frag src/callback.c, now it's useless.
+
   * src/encoder.c
   merge old-style rotation code too, so it will be easier
   to drop the whole package when NMS-powered export layer
