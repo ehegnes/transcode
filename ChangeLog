@@ -1,4 +1,9 @@
 2006-05-27 Francesco Romani <fromani at gmail dot com>
+  * src/encoder.c
+  merge old-style rotation code too, so it will be easier
+  to drop the whole package when NMS-powered export layer
+  it's ready.
+
   * src/encoder.c src/encoder.h
   enter new output rotation support code. It's quite finished
   and API it's almost stable (I'm fairly satisfied of it), but

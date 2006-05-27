@@ -39,6 +39,8 @@
 #include "frame_threads.h"
 #include "socket.h"
 
+#include "transcode.h" /* temporary needed by old rotation code */
+
 #include <stdint.h>
 #include <sys/types.h>
 
@@ -1071,8 +1073,70 @@ void export_rotation_limit_megabytes(vob_t *vob, uint32_t megabytes)
     return;
 }
 
-/* old style rotation support code */
+/************************************************************************* 
+ * old style rotation support code.
+ * TEMPORARY merged here until it will be deleted together with
+ * old encoder code when NMS-powered export layer is ready to switch
+ * (read: when we have enough encode/multiplexor module to go).
+ *************************************************************************/
 
+#include "libtc/xio.h"
+
+//-----------------------------------------------------------------
+//
+// r,R - switch output file
+//
+//-----------------------------------------------------------------
+
+static int rotate_ctr = 0;
+static int rotate_flag = 0;
+static char *base = NULL;
+
+void tc_outstream_rotate_request(void)
+{
+  //set flag
+  rotate_flag = 1;
+}
+
+void tc_outstream_rotate(void)
+{
+
+  char buf[TC_BUF_MAX];
+  vob_t *vob=tc_get_vob();
+
+  if(!rotate_flag) return;
+
+  //reset flag to avoid re-entry
+  rotate_flag=0;
+
+  // do not try to rename /dev/null
+  if(strcmp(vob->video_out_file, "/dev/null") == 0) return;
+
+  // get current outfile basename
+  base=tc_strdup(vob->video_out_file);
+
+  //check
+  if(base==NULL) return;
+
+  // close output
+  if(encoder_close()<0)
+    tc_error("failed to close output");
+
+  // create new filename
+  tc_snprintf(buf, sizeof(buf), "%s-%03d", base, rotate_ctr++);
+
+  //rename old outputfile
+  if(xio_rename(base, buf)<0) tc_error("failed to rename output file\n");
+
+  // reopen output
+  if(encoder_open(vob)<0)
+    tc_error("failed to open output");
+
+  fprintf(stderr, "\n(%s) outfile %s saved to %s\n", __FILE__, base, buf);
+
+  free(base);
+
+}
 
 #endif /* TC_ENCODER_NG */
 
