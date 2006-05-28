@@ -170,7 +170,6 @@ const char *mformat2str(int flag)
         case TC_MAGIC_NTSC:      return "NTSC";
         case TC_MAGIC_TS:        return "MPEG transport stream";
         case TC_MAGIC_YUV4MPEG:  return "YUV4MPEG";
-        case TC_MAGIC_SOCKET:    return "network stream";
         case TC_MAGIC_NUV:       return "NuppelVideo";
         case TC_MAGIC_DVD_PAL:   return "DVD PAL";
         case TC_MAGIC_DVD_NTSC:  return "DVD NTSC";

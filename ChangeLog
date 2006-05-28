@@ -1,4 +1,8 @@
 2006-05-27 Francesco Romani <fromani at gmail dot com>
+  * import/fileinfo.c import/magic.h src/probe.c
+  net stream support final removal [5/N]:
+  TC_MAGIC_SOCKET is no longer known.
+
   * import/tccat.c
   net stream support final removal [4/N]:
   drop netstream support in tccat.

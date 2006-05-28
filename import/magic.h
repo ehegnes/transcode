@@ -46,7 +46,6 @@
 #define TC_MAGIC_MXF                   0x00000027
 
 #define TC_MAGIC_VOB                   0x000001ba
-#define TC_MAGIC_SOCKET                0xFF00FF00
 #define TC_MAGIC_DVD                   0xF0F0F0F0
 #define TC_MAGIC_DVD_PAL               0xF0F0F0F1
 #define TC_MAGIC_DVD_NTSC              0xF0F0F0F2

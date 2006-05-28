@@ -856,7 +856,6 @@ char *filetype(long magic)
   case TC_MAGIC_VNC:          return("VNCrec logfile");
   case TC_MAGIC_PV3:          return("PV3 video");
 
-  case TC_MAGIC_SOCKET:       return("network stream");
   case TC_MAGIC_V4L_AUDIO:    return("V4L audio device");
   case TC_MAGIC_V4L_VIDEO:    return("V4L video device");
   case TC_MAGIC_BKTR_VIDEO:   return("bktr video device");
