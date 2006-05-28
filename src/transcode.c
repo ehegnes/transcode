@@ -91,7 +91,7 @@ static int sig_tstp  = 0;
 static char *im_aud_mod = NULL, *im_vid_mod = NULL;
 static char *ex_aud_mod = NULL, *ex_vid_mod = NULL;
 
-static pthread_t thread_signal=(pthread_t)0, thread_server=(pthread_t)0;
+static pthread_t thread_signal=(pthread_t)0;
 int tc_signal_thread     =  0;
 sigset_t sigs_to_block;
 
@@ -166,7 +166,6 @@ int color_level = 0;
 
 int tc_buffer_delay_dec  = -1;
 int tc_buffer_delay_enc  = -1;
-int tc_server_thread     =  0;
 int tc_cluster_mode      =  0;
 int tc_decoder_delay     =  0;
 int tc_x_preview         =  0;
@@ -208,17 +207,9 @@ static void usage(int status)
 
   //source
 #ifdef HAVE_LIBDVDREAD
-#ifdef NET_STREAM
-  printf(" -i name             input file/directory/device/mountpoint/host name\n");
-#else
   printf(" -i name             input file/directory/device/mountpoint name\n");
-#endif
-#else
-#ifdef NET_STREAM
-  printf(" -i name             input file/directory/host name\n");
 #else
   printf(" -i name             input file/directory name\n");
-#endif
 #endif
   printf(" -H n                auto-probe n MB of source (0=off) [1]\n");
   printf(" -p file             read audio stream from separate file [off]\n");
@@ -412,9 +403,6 @@ static int source_check(char *import_file)
 {
     // check for existent file, directory or host
     struct stat fbuf;
-#ifdef NET_STREAM
-    struct hostent *hp;
-#endif
 
     if(import_file==NULL) {
       tc_error("invalid filename \"(null)\"");
@@ -425,12 +413,7 @@ static int source_check(char *import_file)
 
     if(xio_stat(import_file, &fbuf)==0) return(0);
 
-#ifdef NET_STREAM
-    if((hp = gethostbyname(import_file)) != NULL) return(0);
-    tc_error("invalid filename or host \"%s\"", import_file);
-#else
     tc_error("invalid filename \"%s\": %s", import_file, strerror(errno));
-#endif
     return(1);
 }
 
@@ -3845,11 +3828,6 @@ int main(int argc, char *argv[]) {
 
     }
 
-    if(ex_aud_mod && strlen(ex_aud_mod) != 0 && strcmp(ex_aud_mod, "net")==0)
-      tc_server_thread=1;
-    if(ex_vid_mod && strlen(ex_vid_mod) != 0 && strcmp(ex_vid_mod, "net")==0)
-      tc_server_thread=1;
-
     // -u
 
     if(tc_buffer_delay_dec==-1) //adjust core parameter
@@ -3874,12 +3852,6 @@ int main(int argc, char *argv[]) {
      * OK, so far, now start the support threads, setup buffers, ...
      *
      * ------------------------------------------------------------- */
-
-    // start the signal vob info structure server thread, if requested
-    if(tc_server_thread) {
-      if(pthread_create(&thread_server, NULL, (void *) server_thread, vob)!=0)
-	tc_error("failed to start server thread");
-    }
 
     //this will speed up in pass-through mode
     if(vob->pass_flag && !(preset_flag & TC_PROBE_NO_BUFFER)) max_frame_buffer=50;
@@ -4491,13 +4463,6 @@ int main(int argc, char *argv[]) {
       }
       thread_signal=(pthread_t)0;
       tc_signal_thread=0;
-    }
-
-    // cancel optional server thread
-    if(tc_server_thread) {
-      pthread_cancel(thread_server);
-      pthread_join(thread_server, &thread_status);
-      tc_server_thread=0;
     }
 
     if(verbose & TC_INFO) { printf(" internal threads |");fflush(stdout); }

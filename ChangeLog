@@ -1,4 +1,8 @@
 2006-05-27 Francesco Romani <fromani at gmail dot com>
+  * src/transcode.c src/transcode.h
+  net stream support final removal [8/N]:
+  never start info_server thread (no longer needed).
+
   * libtc/libtc,h libtc/tc_functions.c
   net stream support final removal [7/N]:
   remove netstream support in file type guess routines.

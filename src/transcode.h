@@ -41,13 +41,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#ifdef NET_STREAM
-# include <sys/types.h>
-# include <sys/socket.h>
-# include <netinet/in.h>
-# include <netdb.h>
-#endif
-
 #include "avilib/avilib.h"
 #include "aclib/ac.h"
 #include "libtc/framecode.h"
