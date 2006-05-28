@@ -428,9 +428,7 @@ int tc_file_check(const char *name)
 int tc_probe_path(const char *name)
 {
     struct stat fbuf;
-#ifdef NET_STREAM
-    struct hostent *hp;
-#endif
+
     if(name == NULL) {
         tc_log_warn(__FILE__, "invalid file \"%s\"", name);
         return TC_PROBE_PATH_INVALID;
@@ -491,13 +489,7 @@ int tc_probe_path(const char *name)
         /* directory mode */
         return TC_PROBE_PATH_RELDIR;
     } else {
-#ifdef NET_STREAM
-        /* check for network host */
-        if ((hp = gethostbyname(name)) != NULL) {
-            return(TC_PROBE_PATH_NET);
-        }
-#endif
-        tc_log_warn(__FILE__, "invalid filename or host \"%s\"", name);
+        tc_log_warn(__FILE__, "invalid filename \"%s\"", name);
         return TC_PROBE_PATH_INVALID;
     }
 

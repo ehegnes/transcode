@@ -1,4 +1,8 @@
 2006-05-27 Francesco Romani <fromani at gmail dot com>
+  * libtc/libtc,h libtc/tc_functions.c
+  net stream support final removal [7/N]:
+  remove netstream support in file type guess routines.
+
   * deleted file: import/probe_socket.c
   net stream support final removal [6/N]:
   finally remove socket probing code.
