@@ -1,4 +1,8 @@
 2006-05-27 Francesco Romani <fromani at gmail dot com>
+  * deleted file: import/probe_socket.c
+  net stream support final removal [6/N]:
+  finally remove socket probing code.
+
   * import/fileinfo.c import/magic.h src/probe.c
   net stream support final removal [5/N]:
   TC_MAGIC_SOCKET is no longer known.
