@@ -13,6 +13,7 @@
 
 #include "transcode.h"
 #include "libtc/optstr.h"
+#include "libtc/ratiocodes.h"
 
 #include "libtc/tcmodule-plugin.h"
 
@@ -67,35 +68,6 @@ typedef struct {
 } YWPrivateData;
 
 
-/* XXX: this one should go into libtc ASAP */
-static void asr_code_to_ratio(int asr, y4m_ratio_t *r)
-{
-    switch (asr) {
-      case 2:
-        r->n = 4;
-        r->d = 3;
-        break;
-      case 3: 
-        r->n = 16;
-        r->d = 9;
-        break;
-      case 4:
-        r->n = 221;
-        r->d = 100;
-        break;
-      case 1:
-        r->n = 1;
-        r->d = 1;
-        break;
-      case 0: /* fallthrough */
-      default:
-        r->n = 0;
-        r->d = 0;
-        break;
-    }
-}
-
-
 static const char *yw_inspect(TCModuleInstance *self,
                                const char *options)
 {
@@ -141,7 +113,7 @@ static int yw_open_video(YWPrivateData *pd, const char *filename,
     }
     
     asr = (vob->ex_asr < 0) ?vob->im_asr :vob->ex_asr;
-    asr_code_to_ratio(asr, &asr_rate);
+    tc_asr_code_to_ratio(asr, &asr_rate.n, &asr_rate.d); 
 
     y4m_init_stream_info(&(pd->streaminfo));
     y4m_si_set_framerate(&(pd->streaminfo), framerate);
@@ -151,7 +123,6 @@ static int yw_open_video(YWPrivateData *pd, const char *filename,
                             y4m_guess_sar(pd->width,
                                           pd->height,
                                           asr_rate));
-    /* XXX */
     y4m_si_set_height(&(pd->streaminfo), pd->height);
     y4m_si_set_width(&(pd->streaminfo), pd->width);
     /* Y4M_CHROMA_420JPEG     4:2:0, H/V centered, for JPEG/MPEG-1 */
@@ -396,4 +367,16 @@ extern const TCModuleClass *tc_plugin_setup(void)
 {
     return &yw_class;
 }
+
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */
 

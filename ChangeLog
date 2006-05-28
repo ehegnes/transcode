@@ -1,4 +1,8 @@
 2006-05-28 Francesco Romani <fromani at gmail dot com>
+  * multiplex/multiplex_avi.c multiplex/multiplex_null.c
+    multiplex/multiplex_raw.c multiplex/multiplex_y4m.c
+  tiny multiplexor update roundup.
+
   * deleted file: src/info_server.c
   net stream support final removal [9/9]:
   drop info_server code.

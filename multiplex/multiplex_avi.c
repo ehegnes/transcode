@@ -30,7 +30,7 @@ static const char *avi_help = ""
 
 typedef struct {
     avi_t *avifile;
-    int force_kf;
+    int force_kf; /* boolean flag */
 } AVIPrivateData;
 
 static const char *avi_inspect(TCModuleInstance *self,
@@ -66,12 +66,10 @@ static int avi_configure(TCModuleInstance *self,
     pd = self->userdata;
     fcc = tc_codec_fourcc(vob->ex_v_codec);
 
-    switch (vob->im_v_codec) {
-      case CODEC_RGB: /* fallthrough */
-      case CODEC_YUV:
-        pd->force_kf = 1;
-      default:
-        pd->force_kf = 0;
+    if (vob->im_v_codec == CODEC_RGB || vob->im_v_codec == CODEC_YUV) {
+        pd->force_kf = TC_TRUE;
+    } else {
+        pd->force_kf = TC_FALSE;
     }
 
     pd->avifile = AVI_open_output_file(vob->video_out_file);
@@ -168,13 +166,13 @@ static int avi_init(TCModuleInstance *self)
     }
 
     pd->avifile = NULL;
-    pd->force_kf = 0;
+    pd->force_kf = TC_FALSE;
 
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
         if (verbose >= TC_DEBUG) {
             tc_log_info(MOD_NAME, "max AVI-file size limit = %lu bytes",
-                                  (unsigned long) AVI_max_size());
+                                  (unsigned long)AVI_max_size());
         }
     }
 
@@ -237,4 +235,16 @@ extern const TCModuleClass *tc_plugin_setup(void)
 {
     return &avi_class;
 }
+
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */
 
