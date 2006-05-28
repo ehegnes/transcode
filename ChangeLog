@@ -1,34 +1,38 @@
 2006-05-27 Francesco Romani <fromani at gmail dot com>
+  * deleted file: src/info_server.c
+  net stream support final removal [9/9]:
+  drop info_server code.
+
   * src/transcode.c src/transcode.h
-  net stream support final removal [8/N]:
+  net stream support final removal [8/9]:
   never start info_server thread (no longer needed).
 
   * libtc/libtc,h libtc/tc_functions.c
-  net stream support final removal [7/N]:
+  net stream support final removal [7/9]:
   remove netstream support in file type guess routines.
 
   * deleted file: import/probe_socket.c
-  net stream support final removal [6/N]:
+  net stream support final removal [6/9]:
   finally remove socket probing code.
 
   * import/fileinfo.c import/magic.h src/probe.c
-  net stream support final removal [5/N]:
+  net stream support final removal [5/9]:
   TC_MAGIC_SOCKET is no longer known.
 
   * import/tccat.c
-  net stream support final removal [4/N]:
+  net stream support final removal [4/9]:
   drop netstream support in tccat.
 
   * import/probe_stream.c import/tcprobe.c
-  net stream support final removal [3/N]:
+  net stream support final removal [3/9]:
   drop netstream support in tcprobe.
 
   * import/Makefile.am src/Makefile.am
-  net stream support final removal [2/N]:
+  net stream support final removal [2/9]:
   don't build netstream code.
 
   * configure.in
-  net stream support final removal [1/N]:
+  net stream support final removal [1/9]:
   drop netstream support configuration switches.
 
   Rationale for overall move: this code was largely obsolete,
