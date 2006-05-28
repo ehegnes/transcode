@@ -458,6 +458,14 @@ int main(int argc, char *argv[])
    return status;
 }
 
+#include "libtc/ratiocodes.h"
+void dummy_misc(void);
+void dummy_misc(void)
+{
+    int n, d;
+    tc_frc_code_to_ratio(3, &n, &d);
+}
+
 #include "libtc/static_optstr.h"
 #include "avilib/static_avilib.h"
 #include "avilib/static_wavlib.h"

@@ -1,4 +1,7 @@
 2006-05-28 Francesco Romani <fromani at gmail dot com>
+  * tools/tcmodinfo.c
+  tiny update to let multiplexors load again.
+
   * multiplex/multiplex_avi.c multiplex/multiplex_null.c
     multiplex/multiplex_raw.c multiplex/multiplex_y4m.c
   tiny multiplexor update roundup.
