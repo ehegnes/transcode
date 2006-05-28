@@ -238,12 +238,6 @@ void tcprobe_thread(info_t *ipipe)
       probe_pv3(ipipe);
       break;
 
-#ifdef NET_STREAM
-    case TC_MAGIC_SOCKET:
-      probe_net(ipipe);
-      break;
-#endif
-
     default:
       ipipe->error=2;
     }

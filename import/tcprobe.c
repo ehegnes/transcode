@@ -223,9 +223,6 @@ static int info_setup(info_t *ipipe, int skip, int mplayer_probe, int want_dvd)
         }
         break;
       /* now the easy stuff */
-      case TC_PROBE_PATH_NET:		/* network host */
-        ipipe->magic = TC_MAGIC_SOCKET;
-        break;
       case TC_PROBE_PATH_BKTR:	/* bktr device */
         ipipe->magic = TC_MAGIC_BKTR_VIDEO;
         break;
