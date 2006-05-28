@@ -1,4 +1,16 @@
 2006-05-27 Francesco Romani <fromani at gmail dot com>
+  * configure.in
+  net stream support final removal [1/N]: drop netstream support
+  configuration switches.
+
+  Rationale for overall move: this code was largely obsolete,
+  nobody claimed it from quite long time so this code may be
+  already dormant, and it's useless without already dropped
+  {im,ex}port_net modules.
+  In worst case we reimplement netstream support in a more
+  modern and clean way later.
+
+2006-05-27 Francesco Romani <fromani at gmail dot com>
   * deleted file: src/callback.c
 
   * src/Makefile.am
