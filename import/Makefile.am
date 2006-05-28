@@ -431,7 +431,6 @@ tcprobe_SOURCES = \
 	probe_ogg.c \
 	probe_oss.c \
 	probe_pv3.c \
-	probe_socket.c \
 	probe_stream.c \
 	probe_sunau.c \
 	probe_v4l.c \

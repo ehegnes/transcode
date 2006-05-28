@@ -54,7 +54,6 @@ transcode_SOURCES = \
 	encoder-buffer.c \
 	filter.c \
 	frame_threads.c \
-	info_server.c \
 	probe.c \
 	socket.c \
 	split.c \

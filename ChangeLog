@@ -1,7 +1,11 @@
 2006-05-27 Francesco Romani <fromani at gmail dot com>
+  * import/Makefile.am src/Makefile.am
+  net stream support final removal [2/N]:
+  don't build netstream code.
+
   * configure.in
-  net stream support final removal [1/N]: drop netstream support
-  configuration switches.
+  net stream support final removal [1/N]:
+  drop netstream support configuration switches.
 
   Rationale for overall move: this code was largely obsolete,
   nobody claimed it from quite long time so this code may be
