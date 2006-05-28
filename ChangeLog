@@ -1,4 +1,8 @@
 2006-05-28 Francesco Romani <fromani at gmail dot com>
+  * docs/man/tcmodinfo.1
+  update tcmodinfo man page to cover last (well, not so last ;) )
+  changes.
+
   * tools/tcmodinfo.c
   tiny update to let multiplexors load again.
 
