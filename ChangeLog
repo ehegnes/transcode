@@ -1,4 +1,4 @@
-2006-05-27 Francesco Romani <fromani at gmail dot com>
+2006-05-28 Francesco Romani <fromani at gmail dot com>
   * deleted file: src/info_server.c
   net stream support final removal [9/9]:
   drop info_server code.
