@@ -78,18 +78,6 @@ static void tccat_thread(info_t *ipipe)
   info_t ipipe_avi;
   TCDirList tcdir;
 
-#ifdef NET_STREAM
-  struct sockaddr_in sin;
-  struct hostent *hp;
-
-  int port, vs;
-  char *iobuf;
-
-  int bytes;
-  int error=0;
-
-#endif
-
   verbose_flag = ipipe->verbose;
   vob_offset = ipipe->vob_offset;
 
@@ -132,72 +120,6 @@ static void tccat_thread(info_t *ipipe)
 
   vob_skip2:
     break;
-
-#ifdef NET_STREAM
-  case TC_MAGIC_SOCKET:
-
-      port = (ipipe->select==1) ? TC_DEFAULT_APORT:TC_DEFAULT_VPORT;
-
-      if(( hp = gethostbyname(ipipe->name)) == NULL) {
-
-	  tc_log_error(__FILE__, "[%s] host %s unknown", ipipe->name);
-	  ipipe->error=1;
-	  return;
-      }
-
-      // get socket file descriptor
-
-      if(( vs = socket(AF_INET, SOCK_STREAM, 0)) <0) {
-
-	tc_log_perror(__FILE__, "socket");
-	ipipe->error=1;
-	return;
-      }
-
-      sin.sin_family = AF_INET;
-      sin.sin_port = htons(port);
-
-      bcopy(hp->h_addr, &sin.sin_addr, hp->h_length);
-
-
-      if(connect(vs, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
-
-	tc_log_perror(__FILE__, "connect");
-	ipipe->error=1;
-	return;
-      }
-
-      //start streaming
-
-      if(!(iobuf = tc_malloc(IO_BUF_SIZE))) {
-	tc_log_error(__FILE__, "out of memory");
-	ipipe->error=1;
-	return;
-      }
-
-      do {
-
-	bytes=tc_pread(vs, iobuf, IO_BUF_SIZE);
-
-	// error on read?
-	if(bytes<0) {
-	  ipipe->error=1;
-	  return;
-	}
-
-	// read stream end?
-	if(bytes!=IO_BUF_SIZE) error=1;
-
-	// write stream problems?
-	if(tc_pwrite(ipipe->fd_out, iobuf, bytes)!= bytes) error=1;
-      } while(!error);
-
-      close(vs);
-
-      free(iobuf);
-
-      break;
-#endif
 
   case TC_MAGIC_DIR:
 
@@ -379,14 +301,9 @@ static void usage(int status)
   version();
 
   fprintf(stderr,"\nUsage: %s [options]\n", EXE);
-  fprintf(stderr,"    -i name          input file/directory%s%s name\n",
+  fprintf(stderr,"    -i name          input file/directory%s name\n",
 #ifdef HAVE_LIBDVDREAD
-	  "/device/mountpoint",
-#else
-	  "",
-#endif
-#ifdef NET_STREAM
-	  "/host"
+	  "/device/mountpoint"
 #else
 	  ""
 #endif
@@ -411,8 +328,7 @@ static void usage(int status)
 # define IS_FILE     2
 # define IS_DVD      3
 # define IS_DIR      4
-# define IS_SOCKET   5
-# define IS_TS       6
+# define IS_TS       5
 
 /* ------------------------------------------------------------
  *
@@ -424,9 +340,6 @@ int main(int argc, char *argv[])
 {
 
   struct stat fbuf;
-#ifdef NET_STREAM
-  struct hostent *hp;
-#endif
   info_t ipipe;
 
   int user=0, source=0;
@@ -591,14 +504,6 @@ int main(int argc, char *argv[])
 
     if(stat(name, &fbuf)) {
 
-#ifdef NET_STREAM
-	// no file, maybe host?
-
-	if((hp = gethostbyname(name)) != NULL) {
-	    source=IS_SOCKET;
-	    goto cont;
-	}
-#endif
 	tc_log_error(EXE, "invalid file \"%s\"", name);
 	exit(1);
     }
@@ -607,10 +512,6 @@ int main(int argc, char *argv[])
     source=IS_FILE;
     if(S_ISDIR(fbuf.st_mode)) source=IS_DIR;
   }
-
-#ifdef NET_STREAM
- cont:
-#endif
 
   // fill out defaults for info structure
   ipipe.fd_out = STDOUT_FILENO;
@@ -751,15 +652,6 @@ int main(int argc, char *argv[])
     // ------
     // socket
     // ------
-
-  case IS_SOCKET:
-
-    //stream out:
-    ipipe.magic = TC_MAGIC_SOCKET;
-
-    tccat_thread(&ipipe);
-
-    break;
 
   }
 
