@@ -1,4 +1,8 @@
 2006-05-31 Andrew Church <achurch at achurch dot org>
+  * import/nuv/Makefile.am import/nuv/import_nuv.c
+  Replace rtjpeg_vid_plugin with native code, which handles Nuppel's
+  variable frame intervals by cloning frames as needed.
+
   * import/nuv/import_nuv.c
   We now use YUV plane order, not YVU.
 

@@ -16,7 +16,6 @@ import_nuv_la_SOURCES = \
 	minilzo.c  \
 	resample.c \
 	rtjpeg_aud_plugin.c \
-	rtjpeg_vid_plugin.c \
 	soxfuncs.c
 import_nuv_la_LDFLAGS = -module -avoid-version
 import_nuv_la_LIBADD = -lm
@@ -32,5 +31,6 @@ EXTRA_DIST =  \
 	resampl.h \
 	resample.h \
 	rtjpeg_aud_plugin.h \
+	rtjpeg_vid_plugin.c \
 	rtjpeg_vid_plugin.h \
 	st.h
