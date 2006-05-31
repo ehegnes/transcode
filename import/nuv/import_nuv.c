@@ -44,12 +44,6 @@ static int capability_flag=TC_CAP_YUV|TC_CAP_PCM;
 char import_cmd_buf[MAX_BUF];
 
 static int yuv_size=0;
-static int y_offset=0;
-static int u_offset=0;
-static int v_offset=0;
-static int y_size=0;
-static int u_size=0;
-static int v_size=0;
 
 static void* videobuf1 = NULL;
 static void* videobuf2 = NULL;
@@ -71,17 +65,15 @@ MOD_open
 {
   //tc_log_msg(MOD_NAME, "nuv: open");
   if(param->flag == TC_VIDEO) {
+    int y_size, u_size, v_size;
     //tc_log_msg(MOD_NAME, "nuv: video");
     if(rtjpeg_vid_file == 0) {
       rtjpeg_vid_open(vob->video_in_file);
       param->fd = NULL;
     }
-    yuv_size = (rtjpeg_vid_video_width * rtjpeg_vid_video_height * 3) / 2;
-    y_offset = 0;
-    u_offset = rtjpeg_vid_video_width * rtjpeg_vid_video_height;
-    v_offset = (rtjpeg_vid_video_width * rtjpeg_vid_video_height * 5) /4;
-    u_size = v_size = (rtjpeg_vid_video_width * rtjpeg_vid_video_height) / 4;
     y_size = rtjpeg_vid_video_width * rtjpeg_vid_video_height;
+    u_size = v_size = (rtjpeg_vid_video_width/2) * (rtjpeg_vid_video_height/2);
+    yuv_size = y_size + u_size + v_size;
     videoframe = 0;
     return 0;
   }
@@ -124,13 +116,7 @@ MOD_decode
     }
 
     param->size = yuv_size;
-
-
-    // Do the shuffle... yuv => yvu
-
-    ac_memcpy(param->buffer, videobuf1, y_size);
-    ac_memcpy(param->buffer + v_offset, videobuf1 + u_offset, u_size);
-    ac_memcpy(param->buffer + u_offset, videobuf1 + v_offset, v_size);
+    ac_memcpy(param->buffer, videobuf1, yuv_size);
 
     videoframe++;
 

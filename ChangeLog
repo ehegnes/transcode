@@ -1,3 +1,7 @@
+2006-05-31 Andrew Church <achurch at achurch dot org>
+  * import/nuv/import_nuv.c
+  We now use YUV plane order, not YVU.
+
 2006-05-28 Francesco Romani <fromani at gmail dot com>
   * docs/man/tcmodinfo.1
   update tcmodinfo man page to cover last (well, not so last ;) )
