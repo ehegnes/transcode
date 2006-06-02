@@ -1,3 +1,7 @@
+2006-06-02 Andrew Church <achurch at achurch dot org>
+  * import/import_pv3.c
+  Fix a bug in handling frames with unusually small amounts of audio.
+
 2006-05-31 Andrew Church <achurch at achurch dot org>
   * import/nuv/Makefile.am import/nuv/import_nuv.c
   Replace rtjpeg_vid_plugin with native code, which handles Nuppel's

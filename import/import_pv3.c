@@ -10,7 +10,7 @@
  */
 
 #define MOD_NAME        "import_pv3.so"
-#define MOD_VERSION     "v1.0 (2006-05-01)"
+#define MOD_VERSION     "v1.1 (2006-06-02)"
 #define MOD_CAP         "Imports Earth Soft PV3 codec audio/video streams"
 #define MOD_AUTHOR      "Andrew Church"
 
@@ -572,6 +572,9 @@ static int pv3_demultiplex(TCModuleInstance *self,
     framesize  = 512;                                           // header
     framesize += (pd->framebuf[24]<<8 | pd->framebuf[25]) * 4;  // audio
     framesize  = (framesize+0xFFF) & -0x1000;                   // align
+    /* Seems to reserve 8192-512 bytes for audio no matter what */
+    if (framesize < 8192)
+        framesize = 8192;
     framesize += pd->framebuf[28]<<24 | pd->framebuf[29]<<16    // video 0
                | pd->framebuf[30]<<8  | pd->framebuf[31];
     framesize  = (framesize+0x1F) & -0x20;                      // align
