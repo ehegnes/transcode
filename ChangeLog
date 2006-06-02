@@ -1,3 +1,8 @@
+2006-06-02 Francesco Romani <fromani at gmail dot com>
+  * docs/man/tcprobe.1 docs/man/transcode.1
+  time to update tcprobe and transcode manpage to document new mplayer
+  probing capabilities. Better late than never! ;)
+
 2006-06-02 Andrew Church <achurch at achurch dot org>
   * import/import_pv3.c
   Fix a bug in handling frames with unusually small amounts of audio.
