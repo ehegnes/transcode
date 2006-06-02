@@ -1,4 +1,7 @@
 2006-06-02 Andrew Church <achurch at achurch dot org>
+  * docs/import-mods.txt docs/man/transcode.1 import/Makefile.am
+  import_nuv now requires liblzo to compile.
+
   * configure.in import/Makefile.am
   Add --enable-pv3 (disabled by default) to configure, so people who don't
   need import_pv3 don't have to compile it.

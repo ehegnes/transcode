@@ -128,7 +128,7 @@ P: audio - none, video - none
 
 M: import_nuv.c
 D: (video) YUV | (audio) PCM
-C: none
+C: liblzo
 R: none
 S: o
 I: interface to NuppelVideo file format.

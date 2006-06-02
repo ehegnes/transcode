@@ -61,7 +61,10 @@ endif
 
 pkgdir = $(MOD_PATH)
 
-SUBDIRS = nuv v4l
+if HAVE_LZO
+NUV = nuv
+endif
+SUBDIRS = $(NUV) v4l
 
 pkg_LTLIBRARIES = \
 	$(IMPORT_A52) \
