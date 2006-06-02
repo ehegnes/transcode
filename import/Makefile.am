@@ -43,12 +43,8 @@ if HAVE_OSS
 IMPORT_OSS = import_oss.la
 endif
 
-if ARCH_X86
-if OS_LINUX
-if HAVE_MMAP
+if ENABLE_PV3
 IMPORT_PV3 = import_pv3.la
-endif
-endif
 endif
 
 if HAVE_SUNAU

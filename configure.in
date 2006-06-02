@@ -626,6 +626,26 @@ if test x"$enable_statbuffer" = x"yes" ; then
 fi
 
 dnl
+dnl import_pv3
+dnl
+AC_MSG_CHECKING([for PV3 support])
+AC_ARG_ENABLE(statbuffer,
+  AC_HELP_STRING([--enable-pv3],
+    [enable PV3 support (no)]),
+  [case "${enableval}" in
+    yes) if test true != "$have_x86cpu" -o yes != "$is_linux" -o yes != "$ac_cv_func_mmap"; then
+           AC_MSG_ERROR(PV3 not supported on this platform)
+         fi
+         ;;
+    no)  ;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --enable-pv3) ;;
+  esac],
+  [enable_pv3=no])
+AC_MSG_RESULT($enable_pv3)
+AM_CONDITIONAL(ENABLE_PV3, test yes = "$enable_pv3")
+
+
+dnl
 dnl hardware/OS dependent modules
 dnl
 

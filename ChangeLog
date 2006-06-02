@@ -1,3 +1,8 @@
+2006-06-02 Andrew Church <achurch at achurch dot org>
+  * configure.in import/Makefile.am
+  Add --enable-pv3 (disabled by default) to configure, so people who don't
+  need import_pv3 don't have to compile it.
+
 2006-06-02 Francesco Romani <fromani at gmail dot com>
   * docs/man/tcprobe.1 docs/man/transcode.1
   time to update tcprobe and transcode manpage to document new mplayer
