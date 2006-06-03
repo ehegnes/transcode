@@ -21,6 +21,7 @@ bin_PROGRAMS = \
 
 avisync_SOURCES = \
 	avisync.c \
+	avimisc.c \
 	buffer.c \
 	buffer.h \
 	aud_scan.c \
@@ -35,6 +36,7 @@ avisync_LDADD = \
 
 avimerge_SOURCES = \
 	avimerge.c \
+	avimisc.c \
 	aud_scan.c \
 	aud_scan_avi.c \
 	aud_scan_avi.h \
@@ -46,7 +48,8 @@ avimerge_LDADD = \
 	$(LIBTC_LIBS)
 
 avifix_SOURCES = \
-	avifix.c
+	avifix.c \
+	avimisc.c
 avifix_LDADD = \
 	$(AVILIB_LIBS) \
 	$(XIO_LIBS) \
@@ -55,6 +58,7 @@ avifix_LDADD = \
 
 aviindex_SOURCES = \
 	aviindex.c \
+	avimisc.c \
 	aud_scan.c \
 	aud_scan.h
 aviindex_LDADD = \
@@ -65,6 +69,7 @@ aviindex_LDADD = \
 
 avisplit_SOURCES = \
 	avisplit.c \
+	avimisc.c \
 	aud_scan.c \
 	aud_scan_avi.c \
 	aud_scan.h

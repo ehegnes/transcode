@@ -36,6 +36,9 @@
 
 #define EXE "avisync"
 
+/* AVI_info is no longer in avilib */
+void AVI_info(avi_t *avifile);
+
 void version(void)
 {
   printf("%s (%s v%s) (C) 2001-2003 Thomas Oestreich\n", EXE, PACKAGE, VERSION);

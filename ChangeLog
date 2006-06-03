@@ -8,6 +8,13 @@
   * avilib/static_avilib.h
   don't force linkage of AVI_info.
 
+  * added file: tools/avimisc.c
+
+  * tools/avifix.c tools/aviindex.c tools/avimerge.c tools/avisplit.c
+    tools/avisync.c tools/Makefile.am
+  move AVI_info to tools/ since avi* tools are the only piece of
+  code that actually uses it.
+
 2006-06-02 Andrew Church <achurch at achurch dot org>
   * docs/import-mods.txt docs/man/transcode.1 import/Makefile.am
   import_nuv now requires liblzo to compile.

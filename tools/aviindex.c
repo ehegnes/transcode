@@ -39,6 +39,9 @@
 
 #define EXE "aviindex"
 
+/* AVI_info is no longer in avilib */
+void AVI_info(avi_t *avifile);
+
 void version(void)
 {
   printf("%s (%s v%s) (C) 2003-2004 Tilmann Bitterberg\n", EXE, PACKAGE, VERSION);
