@@ -19,7 +19,6 @@ void dummy_avilib(void) {
 	AVI_bytes_written(outfile);
 	AVI_max_size();
 	AVI_strerror();
-	AVI_info(infile);
 	AVI_close(infile);
 	AVI_close(outfile);
 }
