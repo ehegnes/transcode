@@ -1624,10 +1624,12 @@ Consider \fB--keep_asr\fP a wrapper for calculating \fB-Y\fP options and
 
 .TP
 .B \-\-mplayer_probe
-use external mplayer binary to probe stream [off]
+use external mplayer binary to probe stream, reset default import modules
+as mplayer ones [off]
 .br
-Default is to use internal probing code. Usage of this option is
-recommended ONLY together with mplayer import modules (-x mplayer).
+Default is to use internal probing code.
+Using this option without mplayer import modules (-x mplayer)
+can lead to unpredictable and possibly wrong results.
 
 .TP
 .B \-\-divx_quant \fImin,max\fP

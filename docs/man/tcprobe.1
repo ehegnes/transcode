@@ -10,6 +10,8 @@ standard output
 [
 .B -B
 ] [
+.B -M
+] [
 .B -T
 .I title
 ] [
@@ -46,6 +48,11 @@ as input source.  \fBtcprobe\fP usually handles the different types
 correctly.
 .IP "\fB-B\fP"
 Binary output to stdout for use in transcode.
+.IP "\fB-M\fP"
+Use EXPERIMENTAL mplayer probe, useful for streams that tcprobe doesn't
+recognize elsewhere. With this option enabled, tcprobe merely acts as
+a frontend for mplayer; of course mplayer binary needs to be installed
+and avalaible somewhere in PATH.
 .IP "\fB-T \fItitle\fP"
 Probe for DVD
 .I title
