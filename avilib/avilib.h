@@ -386,7 +386,6 @@ int AVI_dump(const char *name, int mode);
 
 int AVI_file_check(const char *import_file);
 
-void AVI_info(avi_t *avifile);
 uint64_t AVI_max_size(void);
 int avi_update_header(avi_t *AVI);
 

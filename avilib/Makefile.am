@@ -9,8 +9,7 @@ noinst_LTLIBRARIES = libavi.la libwav.la
 libavi_la_SOURCES = \
 	avidump.c \
 	avilib.c \
-	avilib.h \
-	avimisc.c
+	avilib.h
 
 libwav_la_SOURCES = \
 	wavlib.c \

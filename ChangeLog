@@ -15,6 +15,11 @@
   move AVI_info to tools/ since avi* tools are the only piece of
   code that actually uses it.
 
+  * removed file: avilib/avimisc.c
+
+  * avilib/Makefile.am avilib/avilib.h
+  remove avimisc from avilib since nobody needs it any more.
+
 2006-06-02 Andrew Church <achurch at achurch dot org>
   * docs/import-mods.txt docs/man/transcode.1 import/Makefile.am
   import_nuv now requires liblzo to compile.
