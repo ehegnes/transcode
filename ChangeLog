@@ -2,6 +2,9 @@
   * configure.in
   Typo and a couple of tiny fixes.
 
+  * avilib/avilib.h avilib/avimisc.c
+  blast AVI_codec2str, since nobody uses it.
+
 2006-06-02 Andrew Church <achurch at achurch dot org>
   * docs/import-mods.txt docs/man/transcode.1 import/Makefile.am
   import_nuv now requires liblzo to compile.

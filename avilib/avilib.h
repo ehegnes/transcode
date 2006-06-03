@@ -384,7 +384,6 @@ char *AVI_syserror(void);
 int AVI_scan(const char *name);
 int AVI_dump(const char *name, int mode);
 
-const char *AVI_codec2str(uint32_t codec);
 int AVI_file_check(const char *import_file);
 
 void AVI_info(avi_t *avifile);
