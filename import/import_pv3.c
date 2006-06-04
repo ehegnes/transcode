@@ -524,7 +524,7 @@ static const char *pv3_inspect(TCModuleInstance *self,
 /*************************************************************************/
 
 /**
- * pv3_demultiplex:  Demultiplex a frame of data.  See tcmode-data.h for
+ * pv3_demultiplex:  Demultiplex a frame of data.  See tcmodule-data.h for
  * function details.
  *
  * Notes:
