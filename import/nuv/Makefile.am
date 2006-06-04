@@ -10,27 +10,13 @@ AM_CPPFLAGS = \
 pkgdir = $(MOD_PATH)
 pkg_LTLIBRARIES = import_nuv.la
 
-import_nuv_la_SOURCES = \
-	RTjpegN.c \
-	import_nuv.c  \
-	minilzo.c  \
-	resample.c \
-	rtjpeg_aud_plugin.c \
-	soxfuncs.c
+import_nuv_la_SOURCES = import_nuv.c RTjpegN.c
+import_nuv_la_CPPFLAGS = $(AM_CPPFLAGS) $(LZO_CFLAGS)
 import_nuv_la_LDFLAGS = -module -avoid-version
-import_nuv_la_LIBADD = -lm
+import_nuv_la_LIBADD = $(LZO_LIBS) -lm
 
 EXTRA_DIST =  \
-	LICENSE.Nuppelvideo \
 	LICENSE.rtjpeg \
 	README.rtjpeg \
 	RTjpegN.h \
-	lzoconf.h \
-	minilzo.h \
-	nuppelvideo.h \
-	resampl.h \
-	resample.h \
-	rtjpeg_aud_plugin.h \
-	rtjpeg_vid_plugin.c \
-	rtjpeg_vid_plugin.h \
-	st.h
+	nuppelvideo.h

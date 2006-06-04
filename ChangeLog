@@ -1,4 +1,16 @@
 2006-06-03 Andrew Church <achurch at achurch dot org>
+  * import/Makefile.am import/import_nuv.c
+  Rewrite import_nuv in NMS style, with 100% native transcode code (except
+  for RTjpeg).
+
+  * Removed files: import/nuv/LICENSE.Nuppelvideo import/nuv/lzoconf.h
+        import/nuv/minilzo.c import/nuv/minilzo.h import/nuv/resampl.h 
+        import/nuv/resample.c import/nuv/resample.h
+        import/nuv/rtjpeg_aud_plugin.c import/nuv/rtjpeg_aud_plugin.h
+        import/nuv/rtjpeg_vid_plugin.c import/nuv/rtjpeg_vid_plugin.h
+        import/nuv/soxfuncs.c import/nuv/st.h
+
+2006-06-03 Andrew Church <achurch at achurch dot org>
   * libtc/libtc.h libtc/tc_functions.c
   Add tc_realloc().
 
