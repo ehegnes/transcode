@@ -1,3 +1,7 @@
+2006-06-03 Andrew Church <achurch at achurch dot org>
+  * libtc/libtc.h libtc/tc_functions.c
+  Add tc_realloc().
+
 2006-06-03 Francesco Romani <fromani at gmail dot com>
   * configure.in
   Typo and a couple of tiny fixes.

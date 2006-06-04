@@ -268,7 +268,20 @@ void *_tc_zalloc(const char *file, int line, size_t size)
     return p;
 }
 
-/*** FIXME ***: find a clean way to refactorize above two functions */
+/* realloc() wrapper. */
+
+void *_tc_realloc(const char *file, int line, void *p, size_t size)
+{
+    p = realloc(p, size);
+    if (p == NULL && size > 0) {
+        fprintf(stderr, "[%s:%d] tc_realloc(): can't allocate %lu bytes\n",
+                        file, line, (unsigned long)size);
+    }
+    return p;
+}
+
+
+/*** FIXME ***: find a clean way to refactorize above functions */
 
 /* Allocate a buffer aligned to the machine's page size, if known.  The
  * buffer must be freed with buffree() (not free()). */

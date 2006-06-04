@@ -235,12 +235,15 @@ int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
  * tc_zalloc: like tc_malloc, but zeroes all acquired memory before
  *             returning to the caller (this is quite common in
  *             transcode codebase)
+ * tc_realloc: the same thing for realloc()
  * tc_free: the companion memory releasing wrapper.
  */
 #define tc_malloc(size) \
             _tc_malloc(__FILE__, __LINE__, size)
 #define tc_zalloc(size) \
             _tc_zalloc(__FILE__, __LINE__, size)
+#define tc_realloc(p,size) \
+            _tc_realloc(__FILE__, __LINE__, p, size)
 #define tc_free(ptr) \
             free(ptr);
 
@@ -257,7 +260,7 @@ int _tc_snprintf(const char *file, int line, char *buf, size_t limit,
  * Return Value:
  *     a pointer of acquired memory, or NULL if acquisition fails
  * Side effects:
- *     a message is printed on stderr (20051017)
+ *     a message is printed on stderr  if acquisition fails
  * Preconditions:
  *     file param not null
  */
@@ -276,13 +279,33 @@ void *_tc_malloc(const char *file, int line, size_t size);
  * Return Value:
  *     a pointer of acquired memory, or NULL if acquisition fails
  * Side effects:
- *     a message is printed on stderr (20051017)
+ *     a message is printed on stderr  if acquisition fails
  * Preconditions:
  *     file param not null
  * Postconditions:
- *     if call succeed, acquired memory contains all '0'
+ *     if call succeed, acquired memory contains all zeros
  */
 void *_tc_zalloc(const char *file, int line, size_t size);
+
+/*
+ * _tc_realloc:
+ *     do the real work behind tc_realloc macro
+ *
+ * Parameters:
+ *     file: name of the file on which call occurs
+ *     line: line of above file on which call occurs
+ *           (above two parameters are intended to be, and usually
+ *           are, filled by tc_malloc macro)
+ *        p: pointer to reallocate
+ *     size: size of desired chunk of memory
+ * Return Value:
+ *     a pointer of acquired memory, or NULL if acquisition fails
+ * Side effects:
+ *     a message is printed on stderr if acquisition fails
+ * Preconditions:
+ *     file param not null
+ */
+void *_tc_realloc(const char *file, int line, void *p, size_t size);
 
 /*
  * Allocate a buffer aligned to the machine's page size, if known.  The
