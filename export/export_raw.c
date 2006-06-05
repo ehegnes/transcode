@@ -30,12 +30,13 @@
 #include "avilib/avilib.h"
 #include "import/magic.h"
 #include "libtc/libtc.h"
-#include "libtc/iodir.h"
 #include "libtc/xio.h"
 #include "libtcvideo/tcvideo.h"
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <dirent.h>
 
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_DV|TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AC3|TC_CAP_AUD|TC_CAP_VID|TC_CAP_YUV422;
@@ -105,8 +106,6 @@ MOD_open
     double fps;
 
     const char *codec;
-    const char *dir_name = NULL;
-    const char *to_open;
     const char *fcc = NULL;
     int force_avi = (vob->ex_v_string && strcmp(vob->ex_v_string,"avi") == 0);
 
@@ -278,31 +277,20 @@ further:
 	  break;
 
 	default:
-
 	  // pass-through mode is the default, works only with import_avi.so
-
 	  if(vob->pass_flag & TC_VIDEO) {
+        if (tc_file_check(vob->video_in_file) != 0) {
+            tc_log_warn(MOD_NAME, "bad source file: \"%s\"",
+                        vob->video_in_file);
+        }
 
-	    to_open = vob->video_in_file;
-
-	    if (tc_file_check(vob->video_in_file) == 1) { /* dirlist */
-
-	      TCDirList dir;
-	      dir_name = vob->video_in_file;
-	      if(tc_dirlist_open(&dir, dir_name, 0)<0) {
-		tc_log_warn(MOD_NAME, "unable to open dirlist \"%s\"", dir_name);
-		return(TC_EXPORT_ERROR);
+	    if(avifile1==NULL) {
+	      avifile1 = AVI_open_input_file(vob->video_in_file, 1);
+	      if(NULL == avifile1) {
+    		AVI_print_error("avi open error in export_raw");
+	    	return(TC_EXPORT_ERROR);
 	      }
-	      to_open = tc_dirlist_scan(&dir);
-
-	      tc_dirlist_close(&dir);
-	    }
-
-	    if(avifile1==NULL)
-	      if(NULL == (avifile1 = AVI_open_input_file(to_open,1))) {
-		AVI_print_error("avi open error in export_raw");
-		return(TC_EXPORT_ERROR);
-	      }
+        }
 
 	    //read all video parameter from input file
 	    width  =  AVI_video_width(avifile1);

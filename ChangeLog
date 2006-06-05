@@ -1,3 +1,8 @@
+2006-06-05 Francesco Romani <fromani at gmail dot com>
+  * export/export_raw.c
+  drop iodir support here (almost useless) and sanitize a little bit
+  pass-through mode, even if this should go away soon.
+
 2006-06-05 Andrew Church <achurch at achurch dot org>
   * INSTALL Makefile.am configure.in export/Makefile.am export/aud_aux.c
     import/Makefile.am import/ac3scan.c import/extract_ac3.c
