@@ -418,8 +418,8 @@ AC_SUBST([IBP_LIBS])
 dnl -----------------------------------------------------------------------
 dnl -----------------------------------------------------------------------
 
-dnl TC_PKG_CHECK(pkg-name, def-enabled, var-name, pkgconfig-name, conf-script,
-dnl     header, lib, symbol)
+dnl TC_PKG_CHECK(name, req-enable, var-name, conf-script, header, lib,
+dnl     symbol, pkgconfig-name, url)
 dnl Test for pkg-name, and define var-name_CFLAGS and var-name_LIBS
 dnl   and HAVE_var-name if found
 dnl
