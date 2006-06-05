@@ -25,10 +25,13 @@
  *
  */
 
+#define SUPPORT_OLD_ENCODER  // for now
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 
+#include "transcode.h"  // needed for vob_t, at least
 #include "framebuffer.h"
 #include "filter.h"
 #include "counter.h"
@@ -39,10 +42,9 @@
 #include "frame_threads.h"
 #include "socket.h"
 
-#include "transcode.h" /* temporary needed by old rotation code */
-
 #include <stdint.h>
 #include <sys/types.h>
+
 
 /*
  * new encoder module design principles
@@ -55,8 +57,6 @@
  * FIXME: STILL MISSING
  * - interface updates
  */
-
-#ifdef TC_ENCODER_NG
 
 /* ------------------------------------------------------------
  * new-style output rotation support. Always avalaible, but
@@ -358,8 +358,6 @@ static int tc_rotate_if_needed_by_bytes(TCRotateContext *rotor,
 #undef ROTATE_COMMON_CODE
 #undef ROTATE_UPDATE_COUNTERS
 
-#endif /* TC_ENCODER_NG */
-
 /*************************************************************************/
 
 
@@ -380,7 +378,6 @@ struct tcencoderdata_ {
 
     TCEncoderBuffer *buffer;
 
-#ifdef TC_ENCODER_NG
     vframe_list_t *venc_ptr;
     aframe_list_t *aenc_ptr;
 
@@ -391,7 +388,8 @@ struct tcencoderdata_ {
     TCModule mplex_mod;
 
     TCRotateContext rotor_data;
-#else /* not defined TC_ENCODER_NG */
+
+#ifdef SUPPORT_OLD_ENCODER
     transfer_t export_para;
 
     void *ex_a_handle;
@@ -408,7 +406,6 @@ static TCEncoderData encdata = {
     .this_frame_last = 0,
     .old_frame_last = 0,
     .buffer = NULL,
-#ifdef TC_ENCODER_NG
     .venc_ptr = NULL,
     .aenc_ptr = NULL,
     .factory = NULL,
@@ -416,11 +413,25 @@ static TCEncoderData encdata = {
     .aud_mod = NULL,
     .mplex_mod = NULL,
     /* rotor_data explicitely initialized later */
-#else /* not defined TC_ENCODER_NG */
+#ifdef SUPPORT_OLD_ENCODER
     .ex_a_handle = NULL,
     .ex_v_handle = NULL,
-#endif /* TC_ENCODER_NG */
+#endif
 };
+
+#ifdef SUPPORT_OLD_ENCODER
+
+static int OLD_export_setup(vob_t *vob,
+                            const char *a_mod, const char *v_mod);
+static void OLD_export_shutdown(void);
+static int OLD_encoder_init(vob_t *vob);
+static int OLD_encoder_open(vob_t *vob);
+static int OLD_encoder_close(void);
+static int OLD_encoder_stop(void);
+static int OLD_encoder_export(TCEncoderData *data, vob_t *vob);
+
+#endif  // SUPPORT_OLD_ENCODER
+
 
 static int is_last_frame(TCEncoderData *encdata, int cluster_mode)
 {
@@ -430,8 +441,6 @@ static int is_last_frame(TCEncoderData *encdata, int cluster_mode)
     }
     return (fid == encdata->frame_last);
 }
-
-#ifdef TC_ENCODER_NG
 
 /* ------------------------------------------------------------
  *
@@ -447,10 +456,12 @@ int export_init(TCEncoderBuffer *buffer, TCFactory factory)
     }
     encdata.buffer = buffer;
 
+#ifndef SUPPORT_OLD_ENCODER  // factory==NULL to signal use of old code
     if (factory == NULL) {
         tc_log_error(__FILE__, "missing factory reference");
         return 1;
     }
+#endif
     encdata.factory = factory;
     return 0;
 }
@@ -460,6 +471,11 @@ int export_setup(vob_t *vob,
 {
     int match = 0;
     const char *mod_name = NULL;
+
+#ifdef SUPPORT_OLD_ENCODER
+    if (!encdata.factory)
+        return OLD_export_setup(vob, a_mod, v_mod);
+#endif
 
     if (verbose >= TC_DEBUG) {
         tc_log_info(__FILE__, "loading export modules");
@@ -512,6 +528,11 @@ int export_setup(vob_t *vob,
 
 void export_shutdown(void)
 {
+#ifdef SUPPORT_OLD_ENCODER
+    if (!encdata.factory)
+        return OLD_export_shutdown();
+#endif
+
     if (verbose >= TC_DEBUG) {
         tc_log_info(__FILE__, "unloading export modules");
     }
@@ -532,6 +553,11 @@ int encoder_init(vob_t *vob)
 {
     int ret;
     const char *options = NULL;
+
+#ifdef SUPPORT_OLD_ENCODER
+    if (!encdata.factory)
+        return OLD_encoder_init(vob);
+#endif
 
     options = (vob->ex_v_string) ?vob->ex_v_string :"";
     ret = tc_module_configure(encdata.vid_mod, options, vob);
@@ -562,6 +588,11 @@ int encoder_open(vob_t *vob)
     int ret;
     const char *options = NULL;
 
+#ifdef SUPPORT_OLD_ENCODER
+    if (!encdata.factory)
+        return OLD_encoder_open(vob);
+#endif
+
     options = (vob->ex_m_string) ?vob->ex_m_string :"";
     ret = tc_module_configure(encdata.mplex_mod, options, vob);
     if (ret == TC_EXPORT_ERROR) {
@@ -584,7 +615,14 @@ int encoder_open(vob_t *vob)
 
 int encoder_close(void)
 {
-    int ret = tc_module_stop(encdata.mplex_mod);
+    int ret;
+
+#ifdef SUPPORT_OLD_ENCODER
+    if (!encdata.factory)
+        return OLD_encoder_close();
+#endif
+
+    ret = tc_module_stop(encdata.mplex_mod);
     if (ret == TC_EXPORT_ERROR) {
         tc_log_warn(__FILE__, "multiplexor module error: stop failed");
         return -1;
@@ -606,6 +644,11 @@ int encoder_close(void)
 int encoder_stop(void)
 {
     int ret;
+
+#ifdef SUPPORT_OLD_ENCODER
+    if (!encdata.factory)
+        return OLD_encoder_stop();
+#endif
 
     ret = tc_module_stop(encdata.vid_mod);
     if (ret == TC_EXPORT_ERROR) {
@@ -633,6 +676,11 @@ int encoder_stop(void)
 
 static int alloc_buffers(TCEncoderData *data)
 {
+#ifdef SUPPORT_OLD_ENCODER
+    if (!encdata.factory)
+        return 0;
+#endif
+
     data->venc_ptr = tc_malloc(sizeof(vframe_list_t));
     if (!data->venc_ptr) {
         goto no_vptr;
@@ -666,6 +714,11 @@ no_vptr:
 
 static void free_buffers(TCEncoderData *data)
 {
+#ifdef SUPPORT_OLD_ENCODER
+    if (!encdata.factory)
+        return;
+#endif
+
 #ifdef STATBUFFER
     tc_buffree(data->venc_ptr->internal_video_buf_0);
     tc_buffree(data->aenc_ptr->internal_audio_buf);
@@ -692,6 +745,11 @@ static int encoder_export(TCEncoderData *data, vob_t *vob)
 {
     int video_delayed = 0;
     int ret;
+
+#ifdef SUPPORT_OLD_ENCODER
+    if (!encdata.factory)
+        return OLD_encoder_export(data, vob);
+#endif
 
     ret = tc_module_encode_video(data->vid_mod,
                                  data->buffer->vptr, data->venc_ptr);
@@ -740,28 +798,30 @@ static int encoder_export(TCEncoderData *data, vob_t *vob)
 
 void export_rotation_limit_frames(vob_t *vob, uint32_t frames)
 {
+#ifdef SUPPORT_OLD_ENCODER
+    if (!encdata.factory)
+        return;
+#endif
+
     tc_rotate_set_frames_limit(&encdata.rotor_data, vob, frames);
 }
 
 void export_rotation_limit_megabytes(vob_t *vob, uint32_t megabytes)
 {
+#ifdef SUPPORT_OLD_ENCODER
+    if (!encdata.factory)
+        return;
+#endif
+
     tc_rotate_set_bytes_limit(&encdata.rotor_data,
                               vob, megabytes * 1024 * 1024);
 }
 
-#else /* not defined TC_ENCODER_NG */
+/*************************************************************************/
+
+#ifdef SUPPORT_OLD_ENCODER
 
 #include "dl_loader.h"
-
-static int alloc_buffers(TCEncoderData *data)
-{
-    return 0;
-}
-
-static void free_buffers(TCEncoderData *data)
-{
-    ;
-}
 
 /* ------------------------------------------------------------
  *
@@ -769,18 +829,8 @@ static void free_buffers(TCEncoderData *data)
  *
  * ------------------------------------------------------------*/
 
-int export_init(TCEncoderBuffer *buffer, TCFactory factory)
-{
-    if (!buffer) {
-        tc_log_error(__FILE__, "missing encoder buffer reference");
-        return 1;
-    }
-    encdata.buffer = buffer;
-    return 0;
-}
-
-int export_setup(vob_t *vob,
-                 const char *a_mod, const char *v_mod, const char *m_mod)
+static int OLD_export_setup(vob_t *vob,
+                            const char *a_mod, const char *v_mod)
 {
     const char *mod_name = NULL;
 
@@ -886,7 +936,7 @@ int export_setup(vob_t *vob,
  *
  * ------------------------------------------------------------*/
 
-void export_shutdown(void)
+static void OLD_export_shutdown(void)
 {
     if (verbose & TC_DEBUG) {
         tc_log_info(__FILE__, "unloading export modules");
@@ -903,7 +953,7 @@ void export_shutdown(void)
  *
  * ------------------------------------------------------------*/
 
-int encoder_init(vob_t *vob)
+static int OLD_encoder_init(vob_t *vob)
 {
     int ret;
 
@@ -931,7 +981,7 @@ int encoder_init(vob_t *vob)
  *
  * ------------------------------------------------------------*/
 
-int encoder_open(vob_t *vob)
+static int OLD_encoder_open(vob_t *vob)
 {
     int ret;
 
@@ -959,7 +1009,7 @@ int encoder_open(vob_t *vob)
  *
  * ------------------------------------------------------------*/
 
-int encoder_close(void)
+static int OLD_encoder_close(void)
 {
     /* close, errors not fatal */
 
@@ -982,7 +1032,7 @@ int encoder_close(void)
  *
  * ------------------------------------------------------------*/
 
-int encoder_stop(void)
+static int OLD_encoder_stop(void)
 {
     int ret;
 
@@ -1005,7 +1055,7 @@ int encoder_stop(void)
 /*
  * dispatch the acquired frames to encoder modules
  */
-static int encoder_export(TCEncoderData *data, vob_t *vob)
+static int OLD_encoder_export(TCEncoderData *data, vob_t *vob)
 {
     int video_delayed = 0;
 
@@ -1059,18 +1109,6 @@ static int encoder_export(TCEncoderData *data, vob_t *vob)
     // XXX: _always_ update?
     tc_update_frames_encoded(1);
     return data->error_flag;
-}
-
-/* stub, intentionally empty */
-void export_rotation_limit_frames(vob_t *vob, uint32_t frames)
-{
-    return;
-}
-
-/* stub, intentionally empty */
-void export_rotation_limit_megabytes(vob_t *vob, uint32_t megabytes)
-{
-    return;
 }
 
 /************************************************************************* 
@@ -1138,7 +1176,9 @@ void tc_outstream_rotate(void)
 
 }
 
-#endif /* TC_ENCODER_NG */
+/*************************************************************************/
+
+#endif  // SUPPORT_OLD_ENCODER
 
 /*
  * fake encoding, simply adjust frame counters.
@@ -1221,12 +1261,12 @@ void encoder_loop(vob_t *vob, int frame_first, int frame_last)
         /* check frame id */
         if (frame_first <= encdata.buffer->frame_id
           && encdata.buffer->frame_id < frame_last) {
-#ifdef TC_ENCODER_NG
-            // XXX
-            VFRAME_INIT(encdata.venc_ptr,
-                        tc_frame_width_max, tc_frame_height_max);
-            AFRAME_INIT(encdata.aenc_ptr);
-#endif
+            if (encdata.factory) {
+                // XXX
+                VFRAME_INIT(encdata.venc_ptr,
+                            tc_frame_width_max, tc_frame_height_max);
+                AFRAME_INIT(encdata.aenc_ptr);
+            }
             encoder_export(&encdata, vob);
         } else { /* frame not in range */
             encoder_skip(&encdata);

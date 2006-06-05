@@ -36,7 +36,7 @@ transcode \- LINUX video stream processing tool
 .br
 [ -o file ]
 [ -m file ]
-[ -y vmod[,amod] ]
+[ -y vmod[,amod[,mmod]] ]
 [ -F codec ]
 .br
 [ --avi_limit N ]
@@ -1115,10 +1115,14 @@ To tell the rawlist import module (which reads images from a list of files) the
 colour space of the images.
 
 .TP
-.B \-y \fIvmod\fP[\fI,amod\fP]
-video[,audio] export modules [null].  If omitted, transcode will encode to
-the \fInull\fP module. A full-blown transcode installation has the following
-export modules:
+.B \-y \fIvmod\fP[,\fIamod\fP[,\fImmod\fP]]
+video[,audio[,multiplex]] export modules [null].  If omitted, transcode will
+encode to the \fInull\fP module.  If a multiplex module is given, transcode
+will use the new-style encode/multiplex modules (still under development,
+see the encode and multiplex directories); if no multiplex module is given,
+the traditional export modules will be used.
+.br
+A full-blown transcode installation has the following export modules:
 .RS
 .\" Here starts the generated export part, produced by make-module-man.sed
 .TP 4

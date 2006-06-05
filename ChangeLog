@@ -1,4 +1,8 @@
 2006-06-04 Andrew Church <achurch at achurch dot org>
+  * docs/man/transcode.1 src/encoder.c src/transcode.c
+  Add support for NMS encoding by adding a multiplexor module to -y:
+  -y video,audio,multiplex (e.g. -y xvid,copy,avi)
+
   * encode/encode_xvid.c
   Make sure to set vob->ex_v_codec.
 

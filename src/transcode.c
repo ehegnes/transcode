@@ -89,7 +89,7 @@ static int sig_int   = 0;
 static int sig_tstp  = 0;
 
 static char *im_aud_mod = NULL, *im_vid_mod = NULL;
-static char *ex_aud_mod = NULL, *ex_vid_mod = NULL;
+static char *ex_aud_mod = NULL, *ex_vid_mod = NULL, *ex_mplex_mod = NULL;
 
 static pthread_t thread_signal=(pthread_t)0;
 int tc_signal_thread     =  0;
@@ -533,14 +533,15 @@ static int transcoder(int mode, vob_t *vob)
       if(ex_vid_mod && strcmp(ex_vid_mod,"null") != 0) tc_encode_stream|=TC_VIDEO;
 
       /*
-       * load export modules and check capabilities using OLD code
-       * (so we DON'T need a TCModule factory)
+       * load export modules and check capabilities
+       * (only create a TCModule factory if a multiplex module was given)
        */
-      if(export_init(tc_ringbuffer, NULL) < 0) {
+      if(export_init(tc_ringbuffer,
+		     ex_mplex_mod ? tc_new_module_factory(vob->mod_path,verbose) : NULL) < 0) {
       	tc_error("failed to init export layer");
 	return(-1);
       }
-      if(export_setup(vob, ex_aud_mod, ex_vid_mod, NULL)<0) {
+      if(export_setup(vob, ex_aud_mod, ex_vid_mod, ex_mplex_mod)<0) {
       	tc_error("failed to init export modules");
 	return(-1);
       }
@@ -617,7 +618,7 @@ int main(int argc, char *argv[]) {
       base[TC_BUF_MIN], buf[TC_BUF_MAX],
       *chbase=NULL, *psubase=NULL, *dirbase=NULL,
       abuf1[TC_BUF_MIN], vbuf1[TC_BUF_MIN],
-      abuf2[TC_BUF_MIN], vbuf2[TC_BUF_MIN];
+      abuf2[TC_BUF_MIN], vbuf2[TC_BUF_MIN], mbuf[TC_BUF_MIN];
 
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
     char
@@ -1466,7 +1467,8 @@ int main(int argc, char *argv[]) {
 
 	if(optarg[0]=='-') usage(EXIT_FAILURE);
 
-	if ((n = sscanf(optarg,"%64[^,],%s", vbuf2, abuf2))<=0) tc_error("invalid parameter for option -y");
+	if ((n = sscanf(optarg,"%64[^,],%64[^,],%s", vbuf2, abuf2, mbuf))<=0)
+	  tc_error("invalid parameter for option -y");
 
 	if(n==1) {
 	  ex_aud_mod = vbuf2;
@@ -1475,14 +1477,16 @@ int main(int argc, char *argv[]) {
 	  vob->export_attributes |= TC_EXPORT_ATTRIBUTE_AMODULE;
 	}
 
-	if(n==2) {
+	if(n>=2) {
 	  ex_aud_mod = abuf2;
 	  ex_vid_mod = vbuf2;
+	  if (n>=3)
+	    ex_mplex_mod = mbuf;
 	  no_v_out_codec=no_a_out_codec=0;
 	  vob->export_attributes |= (TC_EXPORT_ATTRIBUTE_AMODULE|TC_EXPORT_ATTRIBUTE_VMODULE);
 	}
 
-	if(strlen(ex_aud_mod)!=0 && strchr(ex_aud_mod,'=') && n==2) {
+	if(strlen(ex_aud_mod)!=0 && strchr(ex_aud_mod,'=') && n>=2) {
 	  char *t = strchr(optarg, ',');
 	  vob->ex_a_string=strchr(t, '=')+1;
 	  if (vob->ex_a_string[0] == '\0')
@@ -1490,6 +1494,12 @@ int main(int argc, char *argv[]) {
 
 	  t = strchr(ex_aud_mod, '=');
 	  *t = '\0';
+	}
+
+	if (ex_mplex_mod && strchr(ex_mplex_mod, '=')) {
+	    char *t = strchr(ex_mplex_mod, '=');
+	    *t++ = 0;
+	    // vob->ex_m_string = t;
 	}
 
 	if(strlen(ex_vid_mod)!=0 && strchr(ex_vid_mod,'=')) {
@@ -1503,8 +1513,6 @@ int main(int argc, char *argv[]) {
 	  t = strchr(optarg, ',');
 	  if (t && *t) *t = '\0';
 	}
-
-	if(n>2) tc_error("invalid parameter for option -y");
 
 	break;
 
