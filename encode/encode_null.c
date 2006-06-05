@@ -20,7 +20,7 @@
 
 static const char *null_help = ""
     "Overview:\n"
-    "    this module absorb provided A/V frames and produces fake,
+    "    this module absorb provided A/V frames and produces fake,"
     "    empty \"encoded\" frames.\n"
     "Options:\n"
     "    help    produce module overview and options explanations\n";
