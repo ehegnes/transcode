@@ -70,6 +70,7 @@ typedef uint32_t TCCodecID;
 #define TC_CODEC_DIVX4                 0x000041B6
 #define TC_CODEC_DIVX5                 0x000051B6
 #define TC_CODEC_XVID                  0x58766944
+#define TC_CODEC_H264                  0x34363248
 #define TC_CODEC_MJPG                  0xA0000010
 #define TC_CODEC_MPG1                  0xA0000012
 #define TC_CODEC_SUB                   0xA0000011
@@ -92,7 +93,6 @@ typedef uint32_t TCCodecID;
 #define TC_CODEC_FFV1                  0x000FFFFE
 #define TC_CODEC_ASV1                  0x0010FFFE
 #define TC_CODEC_ASV2                  0x0011FFFE
-#define TC_CODEC_H264                  0x0012FFFE
 #define TC_CODEC_VAG                   0x0000FEED
 #define TC_CODEC_PV3                   0x50563301
 

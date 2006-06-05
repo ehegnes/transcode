@@ -1,4 +1,7 @@
 2006-06-05 Andrew Church <achurch at achurch dot org>
+  * libtc/tccodecs.h
+  Use the fourcc value for TC_CODEC_H264.
+
   * import/extract_avi.c import/import_ffmpeg.c src/probe.c
   Add h.264 to FFmpeg supported codec list.
 
