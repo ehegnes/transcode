@@ -85,6 +85,8 @@ static struct ffmpeg_codec ffmpeg_codecs[] = {
     {"I263", ""}},
   {CODEC_ID_H263P, TC_CODEC_H263P, "h263p",
     {"H263", "U263", "VIV1", ""}},
+  {CODEC_ID_H264, TC_CODEC_H264, "h264",
+    {"H264", "h264", "X264", "x264", "avc1", ""}},
   {CODEC_ID_RV10, TC_CODEC_RV10, "rv10",
     {"RV10", "RV13", ""}},
   {CODEC_ID_SVQ1, TC_CODEC_SVQ1, "svq1",

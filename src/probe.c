@@ -133,6 +133,7 @@ const char *codec2str(int flag)
         case TC_CODEC_DIVX4:   return "DivX4";
         case TC_CODEC_DIVX5:   return "DivX5";
         case TC_CODEC_XVID:    return "XviD";
+        case TC_CODEC_H264:    return "h.264";
         case TC_CODEC_MPEG1:   return "MPEG-1";
         case TC_CODEC_MPEG:    return "MPEG";
         case TC_CODEC_DV:      return "DV Digital Video";
@@ -666,6 +667,7 @@ static void select_modules(int flags, vob_t *vob)
       case TC_CODEC_ASV1:
       case TC_CODEC_ASV2:
       case TC_CODEC_FFV1:
+      case TC_CODEC_H264:
         if (!vob->vmod_probed)
             vob->vmod_probed = "ffmpeg";
         if (!vob->amod_probed)

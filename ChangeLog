@@ -1,3 +1,7 @@
+2006-06-05 Andrew Church <achurch at achurch dot org>
+  * import/extract_avi.c import/import_ffmpeg.c src/probe.c
+  Add h.264 to FFmpeg supported codec list.
+
 2006-06-05 Francesco Romani <fromani at gmail dot com>
   * encode/encode_xvid.c
   more sane setting for PAR for XviD.

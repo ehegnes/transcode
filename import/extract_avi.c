@@ -148,6 +148,11 @@ void probe_avi(info_t *ipipe)
 	if(strcasecmp(codec,"FFV1")==0)
 	  ipipe->probe_info->codec=TC_CODEC_FFV1;
 
+	if(strcasecmp(codec,"H264")==0
+        || strcasecmp(codec,"X264")==0
+	|| strcasecmp(codec,"avc1")==0)
+	  ipipe->probe_info->codec=TC_CODEC_H264;
+
       }
     } else
       ipipe->probe_info->codec=TC_CODEC_UNKNOWN;
