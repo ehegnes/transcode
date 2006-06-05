@@ -65,7 +65,7 @@
 #define MOD_VERSION "v0.0.4 (2006-05-05)"
 #define MOD_CAP     "XviD 1.x encoder"
 
-#define XVID_CONFIG_FILE "xvid.cfg"
+#define XVID_CONFIG_FILE "xvid4.cfg"
 
 static const char *xvid_help = ""
     "Overview:\n"
@@ -643,7 +643,7 @@ static void read_config_file(XviDPrivateData *mod)
     };
 
     /* Read the values */
-    module_read_config("xvid4.cfg", NULL, xvid_config, MOD_NAME);
+    module_read_config(XVID_CONFIG_FILE, NULL, xvid_config, MOD_NAME);
 
     /* Print the values */
     if (verbose & TC_DEBUG) {

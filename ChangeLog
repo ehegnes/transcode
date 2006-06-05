@@ -1,10 +1,11 @@
-2006-06-04 Andrew Church <achurch at achurch dot org>
+2006-06-05 Andrew Church <achurch at achurch dot org>
   * docs/man/transcode.1 src/encoder.c src/transcode.c
   Add support for NMS encoding by adding a multiplexor module to -y:
   -y video,audio,multiplex (e.g. -y xvid,copy,avi)
 
   * encode/encode_xvid.c
-  Make sure to set vob->ex_v_codec.
+  Make sure to set vob->ex_v_codec.  Also use the XVID_CONFIG_FILE define
+  instead of a literal string constant, and use <string.h>, not <strings.h>.
 
   * import/nuv/import_nuv.c
   Only print frameskip messages for TC_DEBUG.
