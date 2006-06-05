@@ -100,10 +100,8 @@ a52_decode_la_CPPFLAGS = $(AM_CPPFLAGS) $(A52_CFLAGS)
 a52_decore_la_LDFLAGS = -module -avoid-version
 a52_decore_la_LIBADD = $(A52_LIBS) $(XIO_LIBS)
 
-import_ac3_la_SOURCES = import_ac3.c ac3scan.c
-import_ac3_la_CPPFLAGS = $(AM_CPPFLAGS) $(AC3_CFLAGS)
+import_ac3_la_SOURCES = import_ac3.c
 import_ac3_la_LDFLAGS = -module -avoid-version
-import_ac3_la_LIBADD = $(AC3_LIBS) -lm
 
 import_avi_la_SOURCES = import_avi.c
 import_avi_la_LDFLAGS = -module -avoid-version
@@ -120,9 +118,9 @@ import_dv_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBDV_CFLAGS)
 import_dv_la_LDFLAGS = -module -avoid-version
 
 import_dvd_la_SOURCES = import_dvd.c ac3scan.c dvd_reader.c clone.c ioaux.c frame_info.c ivtc.c
-import_dvd_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBDVDREAD_CFLAGS) $(AC3_CFLAGS)
+import_dvd_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBDVDREAD_CFLAGS)
 import_dvd_la_LDFLAGS = -module -avoid-version
-import_dvd_la_LIBADD = $(LIBDVDREAD_LIBS) $(AC3_LIBS)
+import_dvd_la_LIBADD = $(LIBDVDREAD_LIBS)
 
 import_ffmpeg_la_SOURCES = import_ffmpeg.c
 import_ffmpeg_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBAVCODEC_CFLAGS)
@@ -185,9 +183,8 @@ import_vnc_la_SOURCES = import_vnc.c
 import_vnc_la_LDFLAGS = -module -avoid-version
 
 import_vob_la_SOURCES = import_vob.c ac3scan.c clone.c ioaux.c frame_info.c ivtc.c
-import_vob_la_CPPFLAGS = $(AM_CPPFLAGS) $(AC3_CFLAGS)
+import_vob_la_CPPFLAGS = $(AM_CPPFLAGS)
 import_vob_la_LDFLAGS =	-module -avoid-version
-import_vob_la_LIBADD = $(AC3_LIBS)
 
 import_xml_la_SOURCES = import_xml.c ioxml.c probe_xml.c
 import_xml_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBXML2_CFLAGS)
@@ -281,7 +278,6 @@ tcdecode_SOURCES = \
 	ioaux.c \
 	mpg123.c \
 	decode_a52.c \
-	decode_ac3.c \
 	decode_dv.c \
 	decode_lavc.c \
 	decode_lzo.c \
@@ -293,7 +289,6 @@ tcdecode_SOURCES = \
 
 tcdecode_LDADD = \
 	$(LIBAVCODEC_LIBS) \
-	$(AC3_LIBS) \
 	$(LIBDV_LIBS) \
 	$(LAME_LIBS) \
 	$(LZO_LIBS) \
@@ -310,7 +305,6 @@ tcdecode_LDADD = \
 	$(LIBTCVIDEO_LIBS)
 
 tcdecode_CFLAGS = $(AM_CFLAGS) \
-	$(AC3_CFLAGS) \
 	$(LIBAVCODEC_CFLAGS) \
 	$(LIBDV_CFLAGS) \
 	$(LAME_CFLAGS) \
@@ -341,7 +335,6 @@ tcdemux_SOURCES = \
 	seqinfo.c
 
 tcdemux_LDADD = \
-	$(AC3_LIBS) \
 	$(AVILIB_LIBS) \
 	$(LIBDV_LIBS) \
 	$(LIBDVDREAD_LIBS) \
@@ -353,7 +346,6 @@ tcdemux_LDADD = \
 	-lm
 
 tcdemux_CFLAGS = $(AM_CFLAGS) \
-	$(AC3_CFLAGS) \
 	$(LIBDV_CFLAGS) \
 	$(LIBDVDREAD_CFLAGS)
 
@@ -380,7 +372,6 @@ tcextract_SOURCES = \
 	extract_yuv.c
 
 tcextract_LDADD = \
-	$(AC3_LIBS) \
 	$(AVILIB_LIBS) \
 	$(WAVLIB_LIBS) \
 	$(LIBDV_LIBS) \
@@ -394,7 +385,6 @@ tcextract_LDADD = \
 	-lm
 
 tcextract_CFLAGS = $(AM_CFLAGS) \
-	$(AC3_CFLAGS) \
 	$(LIBDV_CFLAGS) \
 	$(MJPEGTOOLS_CFLAGS) \
 	$(OGG_CFLAGS) \
@@ -441,7 +431,6 @@ tcprobe_SOURCES = \
 tcprobe_LDADD = \
 	$(AVILIB_LIBS) \
 	$(WAVLIB_LIBS) \
-	$(AC3_LIBS) \
 	$(LIBDV_LIBS) \
 	$(LIBDVDREAD_LIBS) \
 	$(IMAGEMAGICK_LIBS) \
@@ -460,7 +449,6 @@ tcprobe_LDADD = \
 	-lm
 
 tcprobe_CFLAGS = $(AM_CFLAGS) \
-	$(AC3_CFLAGS) \
 	$(LIBDV_CFLAGS) \
 	$(LIBDVDREAD_CFLAGS) \
 	$(IMAGEMAGICK_CFLAGS) \
@@ -502,7 +490,6 @@ tcscan_SOURCES = \
 	scan_pes.c
 
 tcscan_LDADD = \
-	$(AC3_LIBS) \
 	$(AVILIB_LIBS) \
 	$(LIBDV_LIBS) \
 	$(LAME_LIBS) \
@@ -512,7 +499,6 @@ tcscan_LDADD = \
 	-lm
 
 tcscan_CFLAGS = $(AM_CFLAGS) \
-	$(AC3_CFLAGS) \
 	$(LIBDV_CFLAGS) \
 	$(LAME_CFLAGS)
 

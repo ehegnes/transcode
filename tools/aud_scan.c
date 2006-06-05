@@ -311,7 +311,6 @@ int tc_get_audio_header(unsigned char *buf, int buflen, int format, int *chans, 
 	return tc_get_mp3_header(buf, chans, srate, bitrate);
 	break;
     case 0x2000: // AC3
-    case 0x2001: // A52
 	return tc_get_ac3_header(buf, buflen, chans, srate, bitrate);
 	break;
     default:
@@ -329,7 +328,7 @@ int tc_probe_audio_header(unsigned char *buf, int buflen)
 }
 
 int tc_format_ms_supported(int format) {
-    if (format == 0x55 || format == 0x2000 || format == 0x2001 || format == 0x1) return 1;
+    if (format == 0x55 || format == 0x2000 || format == 0x1) return 1;
     return 0;
 }
 
@@ -342,7 +341,6 @@ void tc_format_mute(unsigned char *buf, int buflen, int format) {
 	    memset (buf+4, 0, buflen-4);
 	    break;
 	case 0x2000:
-	case 0x2001:
 	    // check me!
 	    memset (buf+5, 0, buflen-5);
 	    break;

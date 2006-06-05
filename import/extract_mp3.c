@@ -29,7 +29,6 @@
 #include "avilib/avilib.h"
 #include "ioaux.h"
 #include "tc.h"
-#include "ac3.h"
 
 
 #define BUFFER_SIZE 262144

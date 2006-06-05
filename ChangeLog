@@ -1,4 +1,17 @@
 2006-06-05 Andrew Church <achurch at achurch dot org>
+  * INSTALL Makefile.am configure.in export/Makefile.am export/aud_aux.c
+    import/Makefile.am import/ac3scan.c import/extract_ac3.c
+    import/extract_mp3.c import/import_ac3.c import/import_dvd.c
+    import/import_vob.c import/scan_pes.c import/tc.h import/tcdecode.c
+    import/tcextract.c import/tcscan.c libtc/tccodecs.c libtc/tccodecs.h
+    multiplex/multiplex_avi.c src/probe.c src/tc_defaults.h src/transcode.c
+    tools/aud_scan.c
+  Switch to using liba52 exclusively for decoding AC3 audio, and remove
+  -N 0x2001 pseudocodec; drop all use of libac3.
+
+  * Removed: import/decode_ac3.c
+
+2006-06-05 Andrew Church <achurch at achurch dot org>
   * configure.in encode/Makefile.am multiplex/multiplex_avi.c
   * Added files: encode/encode_x264.c encode/x264.cfg
   Add experimental x264 encoder, based on code by Christian Bodenstedt.

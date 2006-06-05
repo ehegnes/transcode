@@ -44,6 +44,7 @@ static int codec, syncf=0;
 static int pseudo_frame_size=0, real_frame_size=0, effective_frame_size=0;
 static int ac3_bytes_to_go=0;
 
+
 /* ------------------------------------------------------------
  *
  * open stream
@@ -90,19 +91,6 @@ MOD_open
 	        return(TC_IMPORT_ERROR);
 
 	    if(verbose_flag) tc_log_info(MOD_NAME, "AC3->PCM");
-	}
-
-	if(vob->a_codec_flag==CODEC_A52) {
-
-	    sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-				"tcextract -a %d -i \"%s\" -x a52 -d %d |"
-				" tcdecode -x a52 -d %d -A %d",
-				vob->a_track, vob->audio_in_file,
-				vob->verbose, vob->verbose, vob->a52_mode);
-            if (sret < 0)
-	        return(TC_IMPORT_ERROR);
-
-	    if(verbose_flag) tc_log_info(MOD_NAME, "A52->PCM");
 	}
 
 	break;

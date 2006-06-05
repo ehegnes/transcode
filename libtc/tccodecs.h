@@ -43,7 +43,6 @@ typedef uint32_t TCCodecID;
 #define TC_CODEC_PCM                   0x00000001
 #define TC_CODEC_RGB                   0x00000024
 #define TC_CODEC_AC3                   0x00002000
-#define TC_CODEC_A52                   0x00002001
 #define TC_CODEC_DTS                   0x0001000f
 #define TC_CODEC_YV12                  0x32315659
 #define TC_CODEC_YUV420P               0x30323449  /* I420 */

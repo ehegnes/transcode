@@ -13,7 +13,6 @@ endif
 SUBDIRS = \
 	aclib \
 	avilib \
-	libac3 \
 	$(LIBDLDARWIN) \
 	libtc \
 	libtcaudio \

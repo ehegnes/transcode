@@ -100,8 +100,7 @@ MOD_open
       if (vob->im_a_codec == CODEC_AC3) {
         codec = "ac3";
       } else { /* vob->im_a_codec == CODEC_PCM */
-        if (vob->a_codec_flag == CODEC_AC3
-         || vob->a_codec_flag == CODEC_A52) {
+        if (vob->a_codec_flag == CODEC_AC3) {
           codec = "ac3";
         } else if (vob->a_codec_flag == CODEC_MP3
                 || vob->a_codec_flag == CODEC_MP2) {
@@ -155,20 +154,6 @@ MOD_open
         if(verbose_flag & TC_DEBUG) tc_log_info(MOD_NAME, "AC3->PCM");
       }
       
-      if(vob->a_codec_flag==CODEC_A52) {
-        if(tc_snprintf(import_cmd_buf, sizeof(import_cmd_buf),
-                       "%s %s"
-                       " | tcextract -t vob -a %d -x ac3 -d %d"
-                       " | tcdecode -x a52 -d %d -A %d",
-                       input_buf, demux_buf,
-                       vob->a_track, vob->verbose,
-                       vob->verbose, vob->a52_mode) < 0) {
-          tc_log_perror(MOD_NAME, "command buffer overflow");
-          return(TC_IMPORT_ERROR);
-        }
-        if(verbose_flag & TC_DEBUG) tc_log_info(MOD_NAME, "A52->PCM");
-      }
-
       if(vob->a_codec_flag==CODEC_MP3) {
         if(tc_snprintf(import_cmd_buf, sizeof(import_cmd_buf),
                        "%s %s"

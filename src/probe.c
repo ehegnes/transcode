@@ -152,7 +152,6 @@ const char *aformat2str(int flag)
 {
     switch (flag) {
         case CODEC_AC3:    return "AC3";
-        case CODEC_A52:    return "AC3/A52";
         case CODEC_MP3:    return "MPEG layer-3";
         case CODEC_MP2:    return "MPEG layer-2";
         case CODEC_PCM:    return "PCM";
@@ -476,7 +475,6 @@ static void select_modules(int flags, vob_t *vob)
     switch (vob->a_codec_flag) {
         case CODEC_MP2:    default_amod = "mp3";  break;
         case CODEC_MP3:    default_amod = "mp3";  break;
-        case CODEC_A52:    default_amod = "ac3";  break;
         case CODEC_AC3:    default_amod = "ac3";  break;
         case CODEC_PCM:    default_amod = "raw";  break;
         case CODEC_VORBIS: default_amod = "ogg";  break;

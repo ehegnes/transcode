@@ -286,13 +286,6 @@ int main(int argc, char *argv[])
     // AC3
     if (!strcmp(codec, "ac3")) {
 	decode.codec = TC_CODEC_AC3;
-	decode_ac3(&decode);
-	done = 1;
-    }
-
-    // A52
-    if (!strcmp(codec, "a52")) {
-	decode.codec = TC_CODEC_A52;
 	decode_a52(&decode);
 	done = 1;
     }

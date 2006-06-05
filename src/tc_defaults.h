@@ -167,7 +167,6 @@
 
 #define CODEC_PCM     0x1
 #define CODEC_AC3     0x2000
-#define CODEC_A52     0x2001
 #define CODEC_MP2     0x50
 #define CODEC_MP3     0x55
 #define CODEC_DIVX    0x161

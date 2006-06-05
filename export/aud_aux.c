@@ -25,7 +25,6 @@
 #include "transcode.h"
 #include "libtc/libtc.h"
 #include "aud_aux.h"
-#include "ac3.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -516,7 +515,6 @@ int audio_init(vob_t *vob, int v)
 			break;
 
 		case CODEC_AC3:
-		case CODEC_A52:
 			tc_info("PCM -> AC3");
 			ret=audio_init_ffmpeg(vob, vob->ex_a_codec);
 			audio_encode_function = audio_encode_ffmpeg;
@@ -930,9 +928,17 @@ static int audio_pass_through_ac3(char *aud_buffer, int aud_size, avi_t *avifile
 			sync_word = (sync_word << 8) + (uint8_t) aud_buffer[i];
 			if(sync_word == 0x0b77)
 			{
-				bitrate = get_ac3_bitrate(&aud_buffer[i+1]);
-				if(bitrate<0)
-					bitrate=0;
+				/* from import/ac3scan.c */
+				static const int bitrates[] = {
+					32, 40, 48, 56,
+					64, 80, 96, 112,
+					128, 160, 192, 224,
+					256, 320, 384, 448,
+					512, 576, 640
+				};
+				int ratecode = (aud_buffer[i+3] & 0x3E) >> 1;
+				if (ratecode < sizeof(bitrates)/sizeof(*bitrates))
+					bitrate = bitrates[ratecode];
 				break;
 			}
 		}

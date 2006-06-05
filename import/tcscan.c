@@ -30,7 +30,6 @@
 #include "libtc/ratiocodes.h"
 #include "ioaux.h"
 #include "tc.h"
-#include "ac3.h"
 #include "avilib/avilib.h"
 #include <math.h>
 
@@ -62,6 +61,40 @@ static void check (int v)
   }
 
   return;
+}
+
+/*************************************************************************/
+
+/* from ac3scan.c */
+
+static int get_ac3_bitrate(uint8_t *ptr)
+{
+    static const int bitrates[] = {
+	32, 40, 48, 56,
+	64, 80, 96, 112,
+	128, 160, 192, 224,
+	256, 320, 384, 448,
+	512, 576, 640
+    };
+    int ratecode = (ptr[2] & 0x3E) >> 1;
+    if (ratecode < sizeof(bitrates)/sizeof(*bitrates))
+	return bitrates[ratecode];
+    return -1;
+}
+
+static int get_ac3_samplerate(uint8_t *ptr)
+{
+    static const int samplerates[] = {48000, 44100, 32000, -1};
+    return samplerates[ptr[2]>>6];
+}
+
+static int get_ac3_framesize(uint8_t *ptr)
+{
+    int bitrate = get_ac3_bitrate(ptr);
+    int samplerate = get_ac3_samplerate(ptr);
+    if (bitrate < 0 || samplerate < 0)
+	return -1;
+    return bitrate * 96000 / samplerate + (samplerate==44100 ? ptr[2]&1 : 0);
 }
 
 /*************************************************************************/

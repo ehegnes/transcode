@@ -15,7 +15,8 @@ The libavcodec.a file won't do!
 
 Depending on what you want to do with transcode you may need additional
 packages installed. In particular, a recent version of lame is needed
-for encoding MP2/MP3 audio.
+for encoding MP2/MP3 audio, and liba52 is required for decoding AC3
+audio (as is used on some DVDs).
 
 If you obtained transcode using CVS, you will need to generate the
 "configure" script yourself while in the snapshot tarballs it's
@@ -200,17 +201,13 @@ Optional packages:
   liba52  http://liba52.sourceforge.net/
     related options:
       --enable-a52 (disabled)
-          build with liba52 support for AC3/A52 audio decoding
+          build with support for AC3/A52 audio decoding
       --with-a52-prefix=PFX (/usr)
           prefix where liba52 is installed
       --with-a52-includes=DIR (/usr/include)
           directory where liba52 headers are installed
       --with-a52-libs=DIR (/usr/lib)
           directory where liba52 libraries are installed
-      --enable-a52-default-decoder (disabled)
-          if enabled, and --enable-a52 is also enabled, uses liba52 as
-          default A52/AC3 decoder, otherwise, the older libac3 that comes
-          with transcode is used as the default A52/AC3 decoder
     affected modules: a52_decore.so
 
   mjpegtools  http://mjpeg.sourceforge.net/

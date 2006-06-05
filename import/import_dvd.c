@@ -178,24 +178,6 @@ MOD_open
           tc_log_info(MOD_NAME, "AC3->PCM");
       }
 
-      if(vob->a_codec_flag==CODEC_A52) {
-
-	sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-			   "tccat -T %s -i \"%s\" -t dvd -d %d %s |"
-			   " tcdemux -a %d -x ac3 %s %s -d %d |"
-			   " tcextract -t vob -x a52 -a %d -d %d |"
-			   " tcdecode -x a52 -d %d -A %d",
-			   cha_buf, vob->audio_in_file, vob->verbose,
-			   cat_buf, vob->a_track, seq_buf, dem_buf,
-			   vob->verbose, vob->a_track, vob->verbose,
-			   vob->verbose, vob->a52_mode);
-	if (sret < 0)
-	  return(TC_IMPORT_ERROR);
-
-	if(verbose_flag & TC_DEBUG && !a_re_entry)
-          tc_log_info(MOD_NAME, "A52->PCM");
-      }
-
       if(vob->a_codec_flag==CODEC_MP3) {
 
         sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,

@@ -926,27 +926,6 @@ dnl
 A52_EXTRA_LIBS="$A52_EXTRA_LIBS -lm"
 TC_PKG_CHECK(a52, no, A52, no, [a52dec/a52.h], a52, a52_init, a52dec,
  [http://liba52.sourceforge.net/])
-if test x"$have_a52" = x"yes" ; then
-  # whether to use liba52 as the default A52/AC3 decoder
-  AC_MSG_CHECKING(for liba52 as default A52/AC3 decoder)
-  AC_ARG_ENABLE(a52-default-decoder,
-    AC_HELP_STRING([--enable-a52-default-decoder],
-      [liba52 as default decoder (disabled)]),
-    [case "${enableval}" in
-      yes) ;;
-      no)  ;;
-      *) AC_MSG_ERROR(bad value ${enableval} for --enable-a52-default-decoder) ;;
-    esac],
-    [enable_a52_default_decoder="no"])
-  AC_MSG_RESULT($enable_a52_default_decoder)
-  if test x"${enable_a52_default_decoder}" = x"yes"; then
-    AC_DEFINE([USE_LIBA52_DECODER], 1,
-      [Use the liba52 A52/AC3 decoder as default])
-  fi
-else
-  AC_MSG_CHECKING(use libac3 as default decoder)
-  AC_MSG_RESULT(yes)
-fi
 TC_PKG_HAVE(a52, A52)
 
 dnl
@@ -1165,14 +1144,6 @@ AC_SUBST(WAVLIB_LIBS)
 
 
 dnl
-dnl libac3
-dnl
-AC3_CFLAGS="-I\$(top_srcdir)/libac3"
-AC3_LIBS="\$(top_builddir)/libac3/libac3_tc.la"
-AC_SUBST(AC3_CFLAGS)
-AC_SUBST(AC3_LIBS)
-
-dnl
 dnl aclib
 dnl
 ACLIB_LIBS="\$(top_builddir)/aclib/libac.la"
@@ -1259,7 +1230,6 @@ AC_OUTPUT([
 	import/nuv/Makefile
 	import/v4l/Makefile
 	multiplex/Makefile
-	libac3/Makefile
 	libdldarwin/Makefile
 	libtc/Makefile
 	libtcaudio/Makefile

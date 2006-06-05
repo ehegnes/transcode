@@ -350,20 +350,6 @@ int main(int argc, char *argv[])
 	done = 1;
     }
 
-    // A52
-    if(strcmp(codec,"a52")==0) {
-
-	ipipe.codec = TC_CODEC_A52;
-	ipipe.select = TC_AUDIO;
-
-	if(strcmp(magic, "raw")==0) ipipe.magic = TC_MAGIC_RAW;
-	if(strcmp(magic, "vob")==0) ipipe.magic = TC_MAGIC_VOB;
-
-	// handled by ac3
-	extract_ac3(&ipipe);
-	done = 1;
-    }
-
     // MP3
     if(strcmp(codec,"mp3")==0 || strcmp(codec,"mp2")==0) {
 

@@ -356,6 +356,7 @@ static void usage(int status)
   printf("\n");
 
   //a52
+  // FIXME: these should probably be renamed to ac3_blah
   printf("--a52_drc_off        disable liba52 dynamic range compression [enabled]\n");
   printf("--a52_demux          demux AC3/A52 to separate channels [off]\n");
   printf("--a52_dolby_off      disable liba52 dolby surround [enabled]\n");
@@ -3563,12 +3564,6 @@ int main(int argc, char *argv[]) {
     if(audio_out_file==NULL) vob->audio_out_file=vob->video_out_file;
 
     // -n
-
-#ifdef USE_LIBA52_DECODER
-    //switch codec ids
-    if(vob->a_codec_flag==CODEC_AC3) vob->a_codec_flag=CODEC_A52;
-    else if(vob->a_codec_flag==CODEC_A52) vob->a_codec_flag=CODEC_AC3;
-#endif
 
     if(no_ain_codec==1 && vob->has_audio==0 &&
        vob->a_codec_flag==CODEC_AC3) {
