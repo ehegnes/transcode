@@ -6,6 +6,10 @@
   * INSTALL
   add a few lines to point out that NUV support requires LZO.
 
+  * src/transcode.c
+  temporary disable directory mode. The idea is to drop it enterely
+  soon if nothing get broken.
+
 2006-06-05 Andrew Church <achurch at achurch dot org>
   * INSTALL Makefile.am configure.in export/Makefile.am export/aud_aux.c
     import/Makefile.am import/ac3scan.c import/extract_ac3.c

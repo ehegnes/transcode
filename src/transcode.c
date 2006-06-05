@@ -133,7 +133,7 @@ enum {
   A52_DRC_OFF,
   A52_DEMUX,
   A52_DOLBY_OFF,
-  DIR_MODE,
+//  DIR_MODE,
   FRAME_INTERVAL,
   ENCODE_FIELDS,
   WRITE_PID,
@@ -617,7 +617,7 @@ int main(int argc, char *argv[]) {
 
     char
       base[TC_BUF_MIN], buf[TC_BUF_MAX],
-      *chbase=NULL, *psubase=NULL, *dirbase=NULL,
+      *chbase=NULL, *psubase=NULL, // *dirbase=NULL,
       abuf1[TC_BUF_MIN], vbuf1[TC_BUF_MIN],
       abuf2[TC_BUF_MIN], vbuf2[TC_BUF_MIN], mbuf[TC_BUF_MIN];
 
@@ -739,7 +739,7 @@ int main(int argc, char *argv[]) {
       {"a52_drc_off", no_argument, NULL, A52_DRC_OFF},
       {"a52_demux", no_argument, NULL, A52_DEMUX},
       {"a52_dolby_off", no_argument, NULL, A52_DOLBY_OFF},
-      {"dir_mode", required_argument, NULL, DIR_MODE},
+//      {"dir_mode", required_argument, NULL, DIR_MODE},
       {"frame_interval", required_argument, NULL, FRAME_INTERVAL},
       {"encode_fields", required_argument, NULL, ENCODE_FIELDS},
       {"progress_meter", required_argument, NULL, PROGRESS_METER},
@@ -2054,6 +2054,7 @@ int main(int argc, char *argv[]) {
 
 	  break;
 
+#if 0
 	case DIR_MODE:
 
 	  if(optarg[0]=='-') usage(EXIT_FAILURE);
@@ -2063,7 +2064,7 @@ int main(int argc, char *argv[]) {
 	  core_mode=TC_MODE_DIRECTORY;
 
 	  break;
-
+#endif
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
 	case ACCEL_MODE:
 	  accel = optarg;
@@ -4161,7 +4162,7 @@ int main(int argc, char *argv[]) {
 
 
     case TC_MODE_DIRECTORY:
-
+#if 0
       /* ---------------------------------------------------------------
        *
        * internal directory mode (needs single import directory)
@@ -4312,7 +4313,7 @@ int main(int argc, char *argv[]) {
 
       break;
 
-
+#endif
     case TC_MODE_DVD_CHAPTER:
 
 #ifdef HAVE_LIBDVDREAD
