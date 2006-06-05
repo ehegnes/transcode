@@ -964,10 +964,14 @@ static void set_frame_struct(XviDPrivateData *mod, vob_t *vob,
 
     /* pixel aspect ratio
      * transcode.c uses 0 for EXT instead of 15 */
-    x->par = (vob->ex_par == 0)? XVID_PAR_EXT: vob->ex_par;
-    x->par_width = vob->ex_par_width;
-    x->par_height = vob->ex_par_height;
-
+    if (vob->ex_par == 0) {
+        x->par = XVID_PAR_EXT;
+        x->par_width = vob->ex_par_width;
+        x->par_height = vob->ex_par_height;
+    } else {
+        x->par = vob->ex_par;
+        /* par_{width,height} already set to zero above */
+    }
     return;
 }
 

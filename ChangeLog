@@ -1,3 +1,7 @@
+2006-06-05 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_xvid.c
+  more sane setting for PAR for XviD.
+
 2006-06-05 Andrew Church <achurch at achurch dot org>
   * docs/man/transcode.1 src/encoder.c src/transcode.c
   Add support for NMS encoding by adding a multiplexor module to -y:
