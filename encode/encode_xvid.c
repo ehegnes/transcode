@@ -34,7 +34,7 @@
 #include "config.h"
 #endif
 
-#include <strings.h>
+#include <string.h>
 #include <math.h>
 
 #include "transcode.h"
