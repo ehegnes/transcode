@@ -792,6 +792,13 @@ fi
 TC_PKG_HAVE(xvid, XVID)
 
 dnl
+dnl x264
+dnl
+TC_PKG_CHECK(x264, no, X264, no, [x264.h], x264, x264_param_default, x264,
+ [http://developers.videolan.org/x264.html])
+TC_PKG_HAVE(x264, X264)
+
+dnl
 dnl ogg
 dnl
 TC_PKG_CHECK(ogg, no, OGG, no, [ogg/ogg.h], ogg, ogg_stream_init, ogg,
