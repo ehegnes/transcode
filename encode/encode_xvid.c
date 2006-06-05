@@ -42,6 +42,7 @@
 #include "libtc/cfgfile.h"
 #include "libtc/optstr.h"
 #include "libtc/tcmodule-plugin.h"
+#include "libtc/tccodecs.h"
 
 #include "xvid.h"
 
@@ -233,6 +234,9 @@ static int tc_xvid_init(TCModuleInstance *self)
     reset_module(pd);
     self->userdata = pd;
 
+    /* Set ex_v_codec (FIXME: is this the right place to do it?) */
+    vob->ex_v_codec = TC_CODEC_XVID;
+
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     }
@@ -419,7 +423,6 @@ static const int tc_xvid_codecs_in[] = {
     TC_CODEC_ERROR
 };
 
-/* a encodeor is at the end of pipeline */
 static const int tc_xvid_codecs_out[] = {
     TC_CODEC_XVID,
     TC_CODEC_ERROR
