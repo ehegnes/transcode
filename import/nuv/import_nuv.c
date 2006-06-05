@@ -399,8 +399,10 @@ static int nuv_demultiplex(TCModuleInstance *self,
         }
         pd->have_vframe = 0;
     } else {
-        tc_log_warn(MOD_NAME, "Dropped frame(s) or bad A/V sync, cloning"
-                    " last frame");
+        if (verbose & TC_DEBUG) {
+            tc_log_warn(MOD_NAME, "(frame %d) Dropped frame(s) or bad A/V"
+                        " sync, cloning last frame", pd->framenum);
+        }
     }
 
     /* Copy the video frame to the destination buffer and return. */

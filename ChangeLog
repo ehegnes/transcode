@@ -1,5 +1,9 @@
+2006-06-04 Andrew Church <achurch at achurch dot org>
+  * import/nuv/import_nuv.c
+  Only print frameskip messages for TC_DEBUG.
+
 2006-06-03 Andrew Church <achurch at achurch dot org>
-  * import/Makefile.am import/import_nuv.c
+  * import/nuv/Makefile.am import/nuv/import_nuv.c
   Rewrite import_nuv in NMS style, with 100% native transcode code (except
   for RTjpeg).
 
