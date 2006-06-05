@@ -632,8 +632,10 @@ int main(int argc, char *argv[]) {
     char *aux_str;
     char **endptr=&aux_str;
 
+#if 0
     const char *dir_name, *dir_fname;
     int dir_fcnt=0, dir_audio=0;
+#endif
 
     double fch, asr;
     int leap_bytes1, leap_bytes2;
@@ -655,7 +657,7 @@ int main(int argc, char *argv[]) {
 
     long sret;  /* used for string function return values */
 
-    TCDirList tcdir;
+//    TCDirList tcdir;
 
     size_t size_plugstr = 0;
 
