@@ -15,13 +15,13 @@
 #include "libtc/tcmodule-plugin.h"
 
 #define MOD_NAME    "encode_null.so"
-#define MOD_VERSION "v0.0.2 (2005-12-29)"
-#define MOD_CAP     "null (passthrough) A/V encoder"
+#define MOD_VERSION "v0.0.3 (2005-06-05)"
+#define MOD_CAP     "null (fake) A/V encoder"
 
 static const char *null_help = ""
     "Overview:\n"
-    "    this module perform a fast passthrough of A/V frames.\n"
-    "    Switch to (slower) 'copy' module if this one produces weird results\n"
+    "    this module absorb provided A/V frames and produces fake,
+    "    empty \"encoded\" frames.\n"
     "Options:\n"
     "    help    produce module overview and options explanations\n";
 
@@ -94,8 +94,7 @@ static int null_encode_video(TCModuleInstance *self,
         return TC_EXPORT_ERROR;
     }
 
-    vframe_copy(outframe, inframe, 0);
-
+    outframe->video_size = 0;
     return TC_EXPORT_OK;
 }
 
@@ -107,8 +106,7 @@ static int null_encode_audio(TCModuleInstance *self,
         return TC_EXPORT_ERROR;
     }
 
-    aframe_copy(outframe, inframe, 0);
-
+    outframe->audio_size = 0;
     return TC_EXPORT_OK;
 }
 
