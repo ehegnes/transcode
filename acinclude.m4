@@ -423,8 +423,8 @@ dnl     symbol, pkgconfig-name, url)
 dnl Test for pkg-name, and define var-name_CFLAGS and var-name_LIBS
 dnl   and HAVE_var-name if found
 dnl
-dnl 1 name          name of package; required (pkg-config name if applicable)
-dnl 2 req-enable    enable  by default, 'required', 'yes' or 'no'; required
+dnl 1 name          name of package; required (used in messages, option names)
+dnl 2 req-enable    enable by default, 'required', 'yes' or 'no'; required
 dnl 3 var-name      name stub for variables, preferably uppercase; required
 dnl 4 conf-script   name of "-config" script or 'no'
 dnl 5 header        header file to check or 'none'
