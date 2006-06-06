@@ -62,6 +62,11 @@
 
 #define TC_MAGIC_BSDAV                 0xB5D00003
 
+//MPEG streams
+#define TC_MAGIC_MPEG_ES               0x1EEE00F0
+#define TC_MAGIC_MPEG_PS               0x1EEE00F1
+#define TC_MAGIC_MPEG_PES              0x1EEE00F2
+
 //raw streams concatenated frames:
 #define TC_MAGIC_M2V                   0x000001b3
 #define TC_MAGIC_PICEXT                0x000001b5
@@ -94,7 +99,6 @@
 //movie types:
 #define TC_MAGIC_PAL                   0x000000F1
 #define TC_MAGIC_NTSC                  0x000000F2
-#define TC_MAGIC_MPG                   0x000000F3
 #define TC_MAGIC_RMF                   0x000000F4
 
 #define MPEG_PACK_START_CODE           0x000001ba

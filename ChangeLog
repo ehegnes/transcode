@@ -1,7 +1,12 @@
 2006-06-06 Francesco Romani <fromani at gmail dot com>
   * import/tcprobe.c
   drop old dirlist code (libtc/iodir) from here and use a
-  better and more reliable heuristic for probing directories..
+  better and more reliable heuristic for probing directories,
+  plus a little output format fix.
+
+  * import/magic.h
+  add new magic numbers for MPEG stream subtypes (well, at least
+  most common ones), in order to reorder a bit magic numbers.
 
 2006-06-05 Francesco Romani <fromani at gmail dot com>
   * export/export_raw.c
