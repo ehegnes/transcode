@@ -510,6 +510,7 @@ static void dump_info_user(info_t *ipipe)
     int nsubs = 0, n = 0;
     char extrabuf[TC_BUF_MIN];
     int extrabuf_ready = TC_FALSE;
+    size_t len = 0;
 
     *extrabuf = 0;
 
@@ -522,7 +523,8 @@ static void dump_info_user(info_t *ipipe)
         is_std = TC_FALSE;
     }
 
-    printf("%18s %s\n", "stream type:", filetype(ipipe->magic));
+    /* we want last probed value here */
+    printf("%18s %s\n", "stream type:", filetype(ipipe->probe_info->magic));
     printf("%18s %s\n", "video format:",
            tc_codec_to_string(ipipe->probe_info->codec));
 
@@ -552,20 +554,29 @@ static void dump_info_user(info_t *ipipe)
                ipipe->probe_info->fps, PAL_FPS, ipipe->probe_info->frc,
                CHECK_MARK_EXPECTED(ipipe->probe_info->frc, 3));
 
+        tc_snprintf(extrabuf, sizeof(extrabuf),
+                    "%18s ", "");
+                    /* empty string to have a nice justification */
         /* video track extra info */
         if (ipipe->probe_info->pts_start) {
-            tc_snprintf(extrabuf, sizeof(extrabuf),
-                        "%18s PTS=%.4f, frame_time=%ld ms",
-                        "", /* empty string to have a nice justification */
+            len = strlen(extrabuf);
+            tc_snprintf(extrabuf + len, sizeof(extrabuf) - len,
+                        "PTS=%.4f, frame_time=%ld ms",
                         ipipe->probe_info->pts_start, frame_time);
             extrabuf_ready = TC_TRUE;
         }
         if (ipipe->probe_info->bitrate) {
-            size_t len = strlen(extrabuf);
+            len = strlen(extrabuf);
             tc_snprintf(extrabuf + len, sizeof(extrabuf) - len,
-                        ", bitrate=%li kbps",
+                        "%sbitrate=%li kbps",
+                        (extrabuf_ready) ?", " :"",
+                        /*
+                         * add seeparator only if we alread
+                         * written something in buffer
+                         */
                         ipipe->probe_info->bitrate);
             extrabuf_ready = TC_TRUE;
+            /* at this point extrabuf flag willa lways be set to on */
         }
         if (extrabuf_ready) {
             printf("%s\n", extrabuf);
