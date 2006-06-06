@@ -9,8 +9,9 @@
   most common ones), in order to reorder a bit magic numbers.
   Remove a magic number (TC_CODEC_MPG) used only internally.
 
-  * import/fileinfo.c
+  * import/fileinfo.c import/ioaux.h
   use new magic ids where appropriate.
+  return type of fileinfo should be const.
 
   * import/probe_stream.c
   support new magic ids, and reformat the source file to make it

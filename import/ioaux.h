@@ -35,7 +35,7 @@ extern void import_exit(int ret);
 /* fileinfo.c */
 long fileinfo(int fd, int skipy);
 long streaminfo(int fd);
-char *filetype(long magic);
+const char *filetype(uint32_t magic);
 
 /* scan_pes.c */
 void scan_pes(int verbose, FILE *fd);
