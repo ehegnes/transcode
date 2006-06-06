@@ -7,6 +7,10 @@
   * import/magic.h
   add new magic numbers for MPEG stream subtypes (well, at least
   most common ones), in order to reorder a bit magic numbers.
+  Remove a magic number (TC_CODEC_MPG) used only internally.
+
+  * import/fileinfo.c
+  use new magic ids where appropriate.
 
 2006-06-05 Francesco Romani <fromani at gmail dot com>
   * export/export_raw.c

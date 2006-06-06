@@ -308,7 +308,7 @@ long fileinfo(int fdes, int skip)
   // MPEG Video / .VDR
 
   if(cmp_28_bits(buf, TC_MAGIC_MPEG)) {
-    id = TC_MAGIC_MPEG;
+    id = TC_MAGIC_MPEG; /* FIXME: it's PES? */
     goto exit;
   }
 
@@ -336,7 +336,7 @@ long fileinfo(int fdes, int skip)
   // M2V
 
   if(cmp_32_bits(buf, TC_MAGIC_M2V)) {
-    id = TC_MAGIC_M2V;
+    id = TC_MAGIC_MPEG_ES;
     goto exit;
   }
 
@@ -679,14 +679,14 @@ long streaminfo(int fdes)
   // M2V
 
   if(cmp_32_bits(buf, TC_MAGIC_M2V)) {
-    id = TC_MAGIC_M2V;
+    id = TC_MAGIC_MPEG_ES;
     goto exit;
   }
 
   // MPEG Video / .VDR
 
   if(cmp_32_bits(buf, TC_MAGIC_MPEG)) {
-    id = TC_MAGIC_MPEG;
+    id = TC_MAGIC_MPEG; /* FIXME: it's PES? */
     goto exit;
   }
 
@@ -809,14 +809,17 @@ long streaminfo(int fdes)
   return(id);
 }
 
-char *filetype(long magic)
+const char *filetype(uint32_t magic)
 {
 
   switch(magic) {
 
-  case TC_MAGIC_VOB:          return("MPEG program stream (PS)");
-  case TC_MAGIC_M2V:          return("MPEG elementary stream (ES)");
   case TC_MAGIC_TS:           return("MPEG transport stream (TS)");
+  case TC_MAGIC_MPEG_PS:      /* fallthrough */
+  case TC_MAGIC_VOB:          return("MPEG program stream (PS)");
+  case TC_MAGIC_MPEG_ES:      /* fallthrough */
+  case TC_MAGIC_M2V:          return("MPEG elementary stream (ES)");
+  case TC_MAGIC_MPEG_PES:     /* fallthrough */
   case TC_MAGIC_MPEG:         return("MPEG packetized elementary stream (PES)");
   case TC_MAGIC_AVI:          return("RIFF data, AVI video");
   case TC_MAGIC_WAV:          return("RIFF data, WAVE audio");
