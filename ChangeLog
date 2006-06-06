@@ -12,6 +12,10 @@
   * import/fileinfo.c
   use new magic ids where appropriate.
 
+  * import/probe_stream.c
+  support new magic ids, and reformat the source file to make it
+  more STYLEish.
+
 2006-06-05 Francesco Romani <fromani at gmail dot com>
   * export/export_raw.c
   drop iodir support here (almost useless) and sanitize a little bit
