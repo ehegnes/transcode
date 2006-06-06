@@ -38,8 +38,10 @@ static int capability_flag = TC_CAP_YUV | TC_CAP_RGB | TC_CAP_VID | TC_CAP_PCM;
 
 char import_cmd_buf[TC_BUF_MAX];
 
-static const char * videopipe = "./stream.yuv";
-static char audiopipe[40] = "/tmp/mplayer2transcode-audio.XXXXXX";
+#define VIDEOPIPE_TEMPLATE "/tmp/mplayer2transcode-video.XXXXXX"
+#define AUDIOPIPE_TEMPLATE "/tmp/mplayer2transcode-audio.XXXXXX"
+static char videopipe[40];
+static char audiopipe[40];
 static FILE *videopipefd = NULL;
 static FILE *audiopipefd = NULL;
 
@@ -58,6 +60,11 @@ MOD_open
 
   switch (param->flag) {
     case TC_VIDEO:
+      tc_snprintf(videopipe, sizeof(videopipe), VIDEOPIPE_TEMPLATE);
+      if (!mktemp(videopipe)) {
+        tc_log_perror(MOD_NAME, "mktemp audiopipe failed");
+        return(TC_IMPORT_ERROR);
+      }
       if (mkfifo(videopipe, 00660) == -1) {
         tc_log_perror(MOD_NAME, "mkfifo video failed");
         return(TC_IMPORT_ERROR);
@@ -65,7 +72,9 @@ MOD_open
 
       sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
 			 "mplayer -benchmark -noframedrop -nosound -vo"
-			 " yuv4mpeg %s \"%s\" -osdlevel 0 > /dev/null 2>&1",
+			 " yuv4mpeg:file=%s %s \"%s\" -osdlevel 0"
+			 " > /dev/null 2>&1",
+			 videopipe,
 			 ((vob->im_v_string) ? vob->im_v_string : ""),
 			 vob->video_in_file);
       if (sret < 0) {
@@ -114,6 +123,7 @@ MOD_open
       return TC_IMPORT_OK;
 
     case TC_AUDIO:
+      tc_snprintf(audiopipe, sizeof(audiopipe), AUDIOPIPE_TEMPLATE);
       if (!mktemp(audiopipe)) {
         tc_log_perror(MOD_NAME, "mktemp audiopipe failed");
         return(TC_IMPORT_ERROR);
