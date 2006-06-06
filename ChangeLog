@@ -1,3 +1,8 @@
+2006-06-06 Francesco Romani <fromani at gmail dot com>
+  * import/tcprobe.c
+  drop old dirlist code (libtc/iodir) from here and use a
+  better and more reliable heuristic for probing directories..
+
 2006-06-05 Francesco Romani <fromani at gmail dot com>
   * export/export_raw.c
   drop iodir support here (almost useless) and sanitize a little bit

@@ -35,6 +35,11 @@
 #include "dvd_reader.h"
 
 #include <math.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <dirent.h>
+
 
 #define EXE "tcprobe"
 
@@ -109,42 +114,232 @@ static void enc_bitrate(long frames, double fps, int abitrate, double discsize)
 
 /*************************************************************************/
 
-/* XXX; add docs */
-static int fileinfo_dir(const char *dname, int *fd, long *magic)
+/* 
+ * we don't want to scan the full directory since it can be a HUGE number
+ * of entries (think to images -> clip transcoding [i.e. jpeg -> AVI])
+ */
+#define TC_SCAN_MAX_FILES       32
+
+/* informations for one stream found in given directory */
+typedef struct tcdirentryinfo_ TCDirEntryInfo;
+struct tcdirentryinfo_ {
+    uint32_t magic;
+    size_t count;
+    /* how many times a file with this magic was found on directory? */ 
+    int fd;
+    /* file descriptor of the FIRST file encountered with this magic */
+};
+
+/*
+ * tc_entry_find_magic:
+ *      find the element in an array of TCDirEntryInfo strucutes
+ *      that has it's magic equals to a given magic id.
+ *
+ * Parameters:
+ *      info: pointer to an array of TCDirEntryInfo strucutre to be scanned.
+ *      size: number of elements in given array.
+ *     magic: magic ID to find
+ * Return value:
+ *      -1: given magic ID not found on given array.
+ *     >=0: index in array of element with same magic ID as given one.
+ */
+static int tc_entry_info_find_magic(const TCDirEntryInfo *infos,
+                                    size_t size, uint32_t magic)
 {
-    TCDirList tcdir;
-    const char *name=NULL;
+    int ret = -1;
+    size_t i = 0;
 
-    //check file type - file order not important
-    if (tc_dirlist_open(&tcdir, dname, 0) < 0) {
-	    tc_log_error(__FILE__, "unable to open dirlist \"%s\"", dname);
-        return TC_IMPORT_ERROR;
+    if (infos != NULL && size > 0) {
+        for (i = 0; i < size; i++) {
+            if (infos[i].magic == magic) {
+                ret = (int)i;
+                break;
+            }
+        }
     }
+    return ret;
+}
+/*
+ * tc_entry_find_max_count:
+ *      find the element in an array of TCDirEntryInfo strucutes
+ *      that has the maximum count value.
+ *
+ * Parameters:
+ *      info: pointer to an array of TCDirEntryInfo strucutre to be scanned.
+ *      size: number of elements in given array.
+ * Return value:
+ *      index in array of element with most high 'count' value.
+ */
+static int tc_entry_info_find_max_count(const TCDirEntryInfo *infos,
+                                        size_t size)
+{
+    int ret = 0; /* start pointing to first element */
+    size_t i = 0;
 
-    if (verbose >= TC_DEBUG) {
-        tc_log_msg(__FILE__, "scanning dirlist \"%s\"", dname);
+    if (infos != NULL && size > 0) {
+        for (i = 1; i < size; i++) {
+            if (infos[i].count > infos[ret].count) {
+                ret = (int)i;
+            }
+        }
     }
-
-    name = tc_dirlist_scan(&tcdir);
-    if (name == NULL) {
-        return TC_IMPORT_ERROR;
-    }
-
-    *fd = open(name, O_RDONLY);
-    if (*fd < 0) {
-    	tc_log_perror(__FILE__, "open file");
-	    return TC_IMPORT_ERROR;
-    }
-
-    tc_dirlist_close(&tcdir);
-
-    //first valid magic must be the same for all
-    //files to follow, but is not checked here
-
-    *magic = fileinfo(*fd, 0);
-    return TC_IMPORT_OK;
+    return ret;
 }
 
+/*
+ * tc_entry_info_free:
+ *      release resources linked to a TCDirEntryInfo structure.
+ *
+ * Parameters:
+ *      de: pointer to a TCDirEntryInfo to be released.
+ * Return value:
+ *      None
+ */
+static void tc_entry_info_free(TCDirEntryInfo *de)
+{
+    if (de != NULL) {
+        xio_close(de->fd);
+        de->fd = -1;
+    }
+}
+
+/*
+ * tc_scan_directory_info:
+ *      Partially scan a given directory and optionally filla TCDirEntryInfo
+ *      structure with data about most common stream format found in.
+ *
+ *      Partial scanning is done in order to avoid to waste too much
+ *      time/resources in scanning phase. Anyway, partial scan ti's supposed
+ *      to give results reliable enough.
+ *      Filled TCDirEntryInfo structure will have an already open file
+ *      descriptor pointing to the first file of the biggest set of files
+ *      with the same magic id.
+ *
+ *      Use tc_entry_info_free() to release resources acquired using this
+ *      function, do not free()/close() things by hand to avoid undefined
+ *      behaviours.
+ *
+ * Parameters:
+ *          dname: path of dicrectory to scan.
+ *      candidate: optional pointer of TCDirEntryInfo structure to be filled.
+ *                 can safely be NULL.
+ * Return value:
+ *      -1: internal error
+ *       0: succesfull, but directory seems to have mixed content
+ *       1: succesfull, and directory seems to have homogeneous content
+ * Side effects:
+ *      Some files (first TC_SCAN_MAX_FILES in filesystem order) in directory
+ *      are open and scanned to detect their magic number.
+ */
+static int tc_scan_directory_info(const char *dname,
+                                  TCDirEntryInfo *candidate)
+{
+    TCDirEntryInfo dinfo[TC_SCAN_MAX_FILES];
+    struct dirent *entry = NULL;
+    size_t i = 0, j = 0, last = 0, probed = 0;
+    int ret = -1;
+    DIR *dir = opendir(dname);
+
+    /* base sanity check first */
+    if (dir == NULL) {
+        return -1;
+    }
+
+    /* round one: collect some stuff */
+    for (i = 0; i < TC_SCAN_MAX_FILES; i++) {
+        char path_buf[PATH_MAX + 1];
+        uint32_t magic = TC_MAGIC_UNKNOWN;
+        struct stat stat_buf;
+        int fd, err;
+
+        entry = readdir(dir);
+        if (entry == NULL) {
+            break;
+        }
+        tc_snprintf(path_buf, sizeof(path_buf), "%s/%s",
+                    dname, entry->d_name);
+        err = stat(path_buf, &stat_buf);
+        if (err || !S_ISREG(stat_buf.st_mode)) {
+            if (verbose >= TC_DEBUG) { /* uhm */
+                tc_log_warn(EXE, "opening '%s': is not a file",
+                            path_buf);
+            }
+            continue;
+        }
+        fd = xio_open(path_buf, O_RDONLY);
+        if (fd == -1) {
+            /* switch to tc_log_perror? */
+            tc_log_error(EXE, "opening '%s': %s",
+                         path_buf, strerror(errno));
+            continue; /* assume non-fatal error */
+        }
+        magic = fileinfo(fd, 0);
+        j = tc_entry_info_find_magic(dinfo, last, magic);
+        if (j != -1) { /* entry already encountered */
+            dinfo[j].count++;
+            xio_close(fd);
+            /* we want only the first file descriptor of a given set */
+        } else {
+            dinfo[last].fd = fd;
+            dinfo[last].magic = magic;
+            dinfo[last].count = 1;
+            last++;
+        }
+        probed++;
+    }
+    closedir(dir);
+
+    /* round two: let's make a choice */
+    if (last > 0) { /* at least one file scanned succesfully */
+        if (last == 1) {
+            j = 0; /* pretty simple, uh? ;) */
+            ret = 1; /* obviously homogeneous */
+        } else {
+            j = tc_entry_info_find_max_count(dinfo, last);
+            /* save only candidate entry info */
+            for (i = 0; i < last; i++) {
+                if (i != j) {
+                    tc_entry_info_free(&dinfo[i]);
+                }
+            }
+            if (dinfo[j].count < probed + 1) {
+                ret = 0;
+            } else {
+                ret = 1;
+            }
+        }
+        if (candidate != NULL) {
+            candidate->fd = dinfo[j].fd;
+            candidate->magic = dinfo[j].magic;
+            candidate->count = dinfo[j].count;
+        }
+    }
+    return ret;
+}
+
+
+#define OPEN_FILE(ipipe, name) do { \
+    (ipipe)->fd_in = xio_open((name), O_RDONLY); \
+    if ((ipipe)->fd_in < 0) { \
+        tc_log_perror(EXE, "file open"); \
+        return TC_IMPORT_ERROR; \
+    } \
+} while (0)
+ 
+#define PROBE_DIR(ipipe) do { \
+    TCDirEntryInfo info; \
+    int ret = tc_scan_directory_info((ipipe)->name, &info); \
+    if (ret < 0) { \
+        tc_log_error(EXE, "unrecognized filetype for '%s'", \
+                     (ipipe)->name); \
+        return TC_IMPORT_ERROR; \
+    } else if (ret == 0) { \
+        tc_log_warn(EXE, "non-homogeneous directory content" \
+                         " (different stream type detected)"); \
+    } \
+    (ipipe)->fd_in = info.fd; \
+    (ipipe)->magic = info.magic; \
+} while (0)
 
 /*
  * info_setup:
@@ -187,7 +382,6 @@ static int fileinfo_dir(const char *dname, int *fd, long *magic)
 static int info_setup(info_t *ipipe, int skip, int mplayer_probe, int want_dvd)
 {
     int file_kind = tc_probe_path(ipipe->name);
-    int ret;
 
     switch (file_kind) {
       case TC_PROBE_PATH_FILE:	/* regular file */
@@ -196,30 +390,19 @@ static int info_setup(info_t *ipipe, int skip, int mplayer_probe, int want_dvd)
         } else if (want_dvd && dvd_is_valid(ipipe->name)) {
             ipipe->magic = TC_MAGIC_DVD;
         } else {
-            ipipe->fd_in = xio_open(ipipe->name, O_RDONLY);
-            if (ipipe->fd_in < 0) {
-                tc_log_perror(EXE, "file open");
-                return TC_IMPORT_ERROR;
-            }
+            OPEN_FILE(ipipe, ipipe->name);
             ipipe->magic = fileinfo(ipipe->fd_in, skip);
             ipipe->seek_allowed = 1;
         }
         break;
       case TC_PROBE_PATH_RELDIR:        /* relative path to directory */
-        ret = fileinfo_dir(ipipe->name, &ipipe->fd_in, &ipipe->magic);
-        if (ret < 0) {
-            return TC_IMPORT_ERROR;
-        }
+        PROBE_DIR(ipipe);
         break;
       case TC_PROBE_PATH_ABSPATH:       /* absolute path */
         if (dvd_is_valid(ipipe->name)) {
             ipipe->magic = TC_MAGIC_DVD;
         } else {
-            /* normal directory - no DVD copy */
-            ret = fileinfo_dir(ipipe->name, &ipipe->fd_in, &ipipe->magic);
-            if (ret < 0) {
-                return TC_IMPORT_ERROR;
-            }
+            PROBE_DIR(ipipe);
         }
         break;
       /* now the easy stuff */
@@ -245,6 +428,9 @@ static int info_setup(info_t *ipipe, int skip, int mplayer_probe, int want_dvd)
     } /* probe_path */
     return TC_IMPORT_OK;
 }
+
+#undef OPEN_FILE
+#undef PROBE_DIR
 
 /*
  * info_teardown:
