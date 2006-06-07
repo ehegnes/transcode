@@ -1,4 +1,8 @@
 2006-06-07 Andrew Church <achurch at achurch dot org>
+  * INSTALL configure.in import/Makefile.am
+  Add --enable-nuv configure option to explicitly enable/disable
+  NuppelVideo support (disabled by default, as it depends on liblzo2).
+
   * import/import_mplayer.c
   Avoid using the fixed filename "stream.yuv" for the video FIFO, instead
   generating a temporary filename as for audio.

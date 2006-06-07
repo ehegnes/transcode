@@ -426,3 +426,10 @@ Optional packages:
       --with-liblors=DIR ()
           base directory for liblors
     affected modules: none (only core).
+
+Optional modules:
+
+  --enable-pv3
+      enable PV3 support (http://earthsoft.jp/PV3/dv.html)
+  --enable-nuv
+      enable NuppelVideo support

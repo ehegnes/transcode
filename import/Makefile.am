@@ -61,7 +61,7 @@ endif
 
 pkgdir = $(MOD_PATH)
 
-if HAVE_LZO
+if ENABLE_NUV
 NUV = nuv
 endif
 SUBDIRS = $(NUV) v4l
