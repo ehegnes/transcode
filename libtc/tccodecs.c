@@ -58,16 +58,16 @@ const TCCodecInfo tc_codecs_info[] = {
     { TC_CODEC_WMV1, "wmv1", "WMV1", "Windows Media Video v1", 1 },
     { TC_CODEC_WMV2, "wmv2", "WMV2", "Windows Media Video v2", 1 },
     { TC_CODEC_HUFFYUV, "huffyuv", "HFYU", "Lossless video", 1 },
-    { TC_CODEC_H263P, "h.263+", "H263", "h.263 plus video ", 1 },
+    { TC_CODEC_H263P, "h263p", "H263", "h.263 plus video ", 1 },
     // XXX: right fcc?
-    { TC_CODEC_H263I, "h.263", "H263", "h.263 video", 0 },
+    { TC_CODEC_H263I, "h263", "H263", "h.263 video", 0 },
     // XXX: right fcc?
     { TC_CODEC_FFV1, "ffv1", "FFV1",
                     "Experimental lossless ffmpeg codec", 1 },
     { TC_CODEC_ASV1, "asusvideo1", "ASV1", "ASUS video codec, v1", 0 },
     { TC_CODEC_ASV2, "asusvideo2", "ASV2", "ASUS video codec, v2", 0 },
-    { TC_CODEC_H264, "h.264", "H264", "h.264 (AVC) video", 1 },
-    /* miscelanous */
+    { TC_CODEC_H264, "h264", "H264", "h.264 (AVC) video", 1 },
+    /* miscelanous; XXX: drop from here */
     { TC_CODEC_MPEG, "MPEG", NULL, "MPEG program stream", 0 },
     { TC_CODEC_MPEG1, "MPEG1", NULL, "MPEG 1 program stream", 0 },
     { TC_CODEC_MPEG2, "MPEG2", NULL, "MPEG 2 program stream", 0 },

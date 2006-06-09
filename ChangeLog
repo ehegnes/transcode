@@ -1,3 +1,7 @@
+2006-06-09 Francesco Romani <fromani at gmail dot com>
+  * libtc/tccodecs.c
+  make a couple of codec names a little more sane.
+
 2006-06-07 Andrew Church <achurch at achurch dot org>
   * INSTALL configure.in import/Makefile.am
   Add --enable-nuv configure option to explicitly enable/disable
