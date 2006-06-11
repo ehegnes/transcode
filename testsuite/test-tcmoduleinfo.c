@@ -38,6 +38,29 @@ static TCModuleInfo pass_enc = {
     pass_enc_codecs
 };
 
+static const int fake_pcm_codecs[] = { TC_CODEC_PCM, TC_CODEC_ERROR };
+static TCModuleInfo fake_wav_mplex = {
+    TC_MODULE_FEATURE_MULTIPLEX | TC_MODULE_FEATURE_AUDIO,
+    TC_MODULE_FLAG_RECONFIGURABLE,
+    "mplex_wav.so",
+    "0.0.1 (2006-06-11)",
+    "accepts pcm, writes wav (fake!)",
+    fake_pcm_codecs,
+    empty_codecs
+};
+
+static const int fake_yuv_codecs[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
+static TCModuleInfo fake_y4m_mplex = {
+    TC_MODULE_FEATURE_MULTIPLEX | TC_MODULE_FEATURE_VIDEO,
+    TC_MODULE_FLAG_RECONFIGURABLE,
+    "mplex_y4m.so",
+    "0.0.1 (2006-06-11)",
+    "accepts yuv420p, writes YUV4MPEG2 (fake!)",
+    fake_yuv_codecs,
+    empty_codecs
+};
+
+
 static const int fake_mplex_codecs[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
 static TCModuleInfo fake_mplex = {
     TC_MODULE_FEATURE_MULTIPLEX | TC_MODULE_FEATURE_VIDEO
@@ -52,7 +75,7 @@ static TCModuleInfo fake_mplex = {
 
 static const int pcm_pass_codecs[] = { TC_CODEC_PCM, TC_CODEC_ERROR };
 static TCModuleInfo pcm_pass = {
-    TC_MODULE_FEATURE_ENCODE | TC_MODULE_FEATURE_AUDIO | TC_MODULE_FEATURE_EXTRA,
+    TC_MODULE_FEATURE_ENCODE | TC_MODULE_FEATURE_AUDIO,
     TC_MODULE_FLAG_RECONFIGURABLE,
     "encode_pcm.so",
     "0.0.1 (2006-03-11)",
@@ -61,7 +84,16 @@ static TCModuleInfo pcm_pass = {
     pcm_pass_codecs
 };
 
-
+static const int yuv_pass_codecs[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
+static TCModuleInfo yuv_pass = {
+    TC_MODULE_FEATURE_ENCODE | TC_MODULE_FEATURE_VIDEO,
+    TC_MODULE_FLAG_RECONFIGURABLE,
+    "encode_yuv.so",
+    "0.0.1 (2006-03-11)",
+    "passthrough yuv",
+    yuv_pass_codecs,
+    yuv_pass_codecs
+};
 
 static const int fake_mpeg_codecs_in[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
 static const int fake_mpeg_codecs_out[] = { TC_CODEC_MPEG1VIDEO, TC_CODEC_MPEG2VIDEO, TC_CODEC_XVID, TC_CODEC_ERROR };
@@ -87,7 +119,11 @@ static TCModuleInfo fake_vorbis_enc = {
     fake_vorbis_codecs_out
 };
 
-static const int fake_avi_codecs_in[] = { TC_CODEC_MPEG1VIDEO, TC_CODEC_XVID, TC_CODEC_MP3, TC_CODEC_PCM, TC_CODEC_ERROR };
+static const int fake_avi_codecs_in[] = {
+        TC_CODEC_MPEG1VIDEO, TC_CODEC_XVID, TC_CODEC_YUV420P,
+        TC_CODEC_MP3, TC_CODEC_PCM,
+        TC_CODEC_ERROR
+};
 static TCModuleInfo fake_avi_mplex = {
     TC_MODULE_FEATURE_MULTIPLEX | TC_MODULE_FEATURE_VIDEO
         | TC_MODULE_FEATURE_AUDIO,
@@ -99,32 +135,10 @@ static TCModuleInfo fake_avi_mplex = {
     empty_codecs
  };
 
-static const TCModuleInfo *fake_modules[] = {
-    &empty, &pass_enc, &fake_mplex, &fake_mpeg_enc,
-    &fake_vorbis_enc, &fake_avi_mplex, &pcm_pass,
-};
-static const int fake_modules_count = sizeof(fake_modules)/sizeof(*fake_modules);
-
-#if 0  // not used --AC
-static void test_module_log(void)
-{
-    int verbosiness[4] = { TC_QUIET, TC_INFO, TC_DEBUG, TC_STATS };
-    int i = 0, j = 0;
-
-    for (i = 0; i < 4; i++) {
-        fprintf(stderr, "*** at verbosiness level %i:\n", verbosiness[i]);
-        fprintf(stderr, "----------------------------\n");
-        for (j = 0; j < fake_modules_count; j++) {
-            tc_module_info_log(fake_modules[j], verbosiness[i]);
-            fputs("\n", stderr);
-        }
-    }
-}
-#endif
 
 static int test_match_helper(int codec,
-                              TCModuleInfo *m1,
-                              TCModuleInfo *m2,
+                              const TCModuleInfo *m1,
+                              const TCModuleInfo *m2,
                               int expected)
 {
     int match = tc_module_info_match(codec, m1, m2);
@@ -178,6 +192,15 @@ static int test_module_match(void)
     errors += test_match_helper(TC_CODEC_VORBIS, &fake_vorbis_enc, &fake_mpeg_enc, 0);
     errors += test_match_helper(TC_CODEC_VORBIS, &fake_vorbis_enc, &fake_mplex, 1);
     errors += test_match_helper(TC_CODEC_VORBIS, &fake_vorbis_enc, &fake_avi_mplex, 0);
+
+    errors += test_match_helper(TC_CODEC_PCM, &pcm_pass, &fake_wav_mplex, 1);
+    errors += test_match_helper(TC_CODEC_PCM, &pcm_pass, &fake_y4m_mplex, 0);
+    errors += test_match_helper(TC_CODEC_MPEG1VIDEO, &fake_mpeg_enc, &fake_wav_mplex, 0);
+
+    errors += test_match_helper(TC_CODEC_YUV420P, &yuv_pass, &fake_y4m_mplex, 1);
+    errors += test_match_helper(TC_CODEC_YUV420P, &yuv_pass, &fake_wav_mplex, 0);
+    errors += test_match_helper(TC_CODEC_YUV420P, &yuv_pass, &fake_avi_mplex, 1);
+    errors += test_match_helper(TC_CODEC_YUV420P, &yuv_pass, &fake_mplex, 1);
 
     return errors;
 }
