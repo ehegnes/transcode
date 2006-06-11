@@ -15,22 +15,28 @@
 
 #include <string.h>
 
+#define HAVE_FEATURE(info, feat) \
+    ((info)->features & (TC_MODULE_FEATURE_ ## feat))
+
 int tc_module_info_match(int tc_codec,
                          const TCModuleInfo *head, const TCModuleInfo *tail)
 {
     int found = 0;
     int i = 0, j = 0;
-
     /* we need a pair of valid references to go further */
     if (head == NULL || tail == NULL) {
         return 0;
     }
-
     /*
      * a multiplexor module can be chained with nothing,
      * it must be placed at the end of the chain
      */
-    if (head->features & TC_MODULE_FEATURE_MULTIPLEX) {
+    if (HAVE_FEATURE(head, MULTIPLEX)) {
+        return 0;
+    }
+    /* format kind compatibility check */
+    if ((HAVE_FEATURE(head, VIDEO) && !HAVE_FEATURE(tail, VIDEO))
+     || (HAVE_FEATURE(head, AUDIO) && !HAVE_FEATURE(tail, AUDIO))) {
         return 0;
     }
 
@@ -60,6 +66,8 @@ int tc_module_info_match(int tc_codec,
     }
     return found;
 }
+
+#undef HAVE_FEATURE
 
 #define DATA_BUF_SIZE   256
 

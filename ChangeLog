@@ -21,6 +21,9 @@
   * testsuite/test-tcmoduleinfo.c
   a few more testcases.
 
+  * libtc/tcmoduleinfo.c
+  check for FEATURE_VIDEO/AUDIO too in tc_module_match.
+
 2006-06-09 Francesco Romani <fromani at gmail dot com>
   * libtc/tccodecs.c
   make a couple of codec names a little more sane.
