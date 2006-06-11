@@ -1,4 +1,8 @@
 2006-06-11 Francesco Romani <fromani at gmail dot com>
+  * import/tccat.c
+  reformat/make more STYLEish, no functional changes (yet,
+  but prepare land for such changes).
+
   * encode/encode_xvid.c encode/encode_x264.c
   vob->ex_v_codec will be set from core, so don't overwrite it.
 
