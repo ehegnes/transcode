@@ -750,9 +750,6 @@ static int x264_init(TCModuleInstance *self)
     pd->framenum = 0;
     pd->enc = NULL;
 
-    /* Set ex_v_codec (FIXME: is this the right place to do it?) */
-    tc_get_vob()->ex_v_codec = TC_CODEC_H264;
-
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     }

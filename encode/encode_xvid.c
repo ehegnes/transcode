@@ -44,7 +44,7 @@
 #include "libtc/tcmodule-plugin.h"
 #include "libtc/tccodecs.h"
 
-#include "xvid.h"
+#include <xvid.h>
 
 /*
  * notes:
@@ -183,7 +183,8 @@ static int tc_xvid_configure(TCModuleInstance *self,
     ret = xvid_encore(NULL, XVID_ENC_CREATE, &pd->xvid_enc_create, NULL);
 
     if (ret < 0) {
-        tc_log_error(MOD_NAME, "configure: encoder initialization failed");
+        tc_log_error(MOD_NAME, "configure: encoder initialization failed"
+                               " (XviD returned %i)", ret);
         return TC_EXPORT_ERROR;
     }
 
@@ -233,9 +234,6 @@ static int tc_xvid_init(TCModuleInstance *self)
 
     reset_module(pd);
     self->userdata = pd;
-
-    /* Set ex_v_codec (FIXME: is this the right place to do it?) */
-    vob->ex_v_codec = TC_CODEC_XVID;
 
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
