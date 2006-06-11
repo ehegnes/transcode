@@ -36,6 +36,7 @@
 #include "libtc/ratiocodes.h"
 #include "libtc/iodir.h"
 #include "libtc/xio.h"
+#include "libtc/tccodecs.h"
 
 #include <ctype.h>
 #include <math.h>
@@ -223,8 +224,9 @@ static void usage(int status)
   printf(" -e r[,b[,c]]        PCM audio stream parameter [%d,%d,%d]\n", RATE, BITS, CHANNELS);
   printf(" -E r[,b[,c]]        audio output samplerate, bits, channels [as input]\n");
   printf(" -n 0xnn             import audio format id [0x%x]\n", CODEC_AC3);
-  printf(" -N 0xnn             export audio format id [0x%x]\n", CODEC_MP3);
-  printf(" -b b[,v[,q[,m]]]    audio encoder bitrate kBits/s[,vbr[,quality[,mode]]] [%d,%d,%d,%d]\n", ABITRATE, AVBR, AQUALITY, AMODE);
+  printf(" -N acodec[,vcodec]  export audio[,video] format [mp3]");
+  printf(" -b b[,v[,q[,m]]]    audio encoder bitrate kBits/s[,vbr[,quality[,mode]]] [%d,%d,%d,%d]\n",
+         ABITRATE, AVBR, AQUALITY, AMODE);
   printf("--no_audio_adjust    disable audio frame sample adjustment [off]\n");
   printf("--no_bitreservoir    disable lame bitreservoir [off]\n");
   printf("--lame_preset name[,fast]  use lame preset with name. [off]\n");
@@ -245,7 +247,7 @@ static void usage(int status)
   //output
   printf(" -o file             output file name\n");
   printf(" -m file             write audio stream to separate file [off]\n");
-  printf(" -y vmod[,amod]      video[,audio] export modules [%s]\n",
+  printf(" -y vm[,am[,mm]]     video[,audio[,mplex]] export modules [%s]\n",
 	 TC_DEFAULT_EXPORT_VIDEO);
   printf(" -F codec            encoder parameter strings [module dependent]\n");
   printf(" --avi_limit N       split output AVI file after N MB [%d]\n", AVI_FILE_LIMIT);
@@ -705,7 +707,7 @@ int main(int argc, char *argv[]) {
       {"quality", required_argument, NULL, 'Q'},
       {"audio_bitrate", required_argument, NULL, 'b'},
       {"import_audio_format", required_argument, NULL, 'n'},
-      {"export_audio_format", required_argument, NULL, 'N'},
+      {"export_format", required_argument, NULL, 'N'},
       {"re-sample", required_argument, NULL, 'E'},
       {"codec", required_argument, NULL, 'F'},
       {"encode_frames", required_argument, NULL, 'c'},
@@ -916,7 +918,6 @@ int main(int argc, char *argv[]) {
     vob->v_format_flag    = 0;
     vob->v_codec_flag     = 0;
     vob->a_format_flag    = 0;
-    vob->a_codec_flag     = 0;
     vob->im_asr           = 0;
     vob->im_par           = 0;
     vob->im_par_width     = 0;
@@ -1314,16 +1315,35 @@ int main(int argc, char *argv[]) {
 
 	break;
 
-      case 'N':
+      case 'N': {
+          char acodec[TC_BUF_MIN];
+          char vcodec[TC_BUF_MIN]; 
 
-	if(optarg[0]=='-') usage(EXIT_FAILURE);
-	vob->ex_a_codec = strtol(optarg, endptr, 16);
-
-	if(vob->ex_a_codec < 0) tc_error("invalid parameter for option -N");
-	vob->export_attributes |= TC_EXPORT_ATTRIBUTE_ACODEC;
-
-	break;
-
+          if (optarg[0] == '-') {
+            usage(EXIT_FAILURE);
+          }
+          n = sscanf(optarg,"%32[^,],%32s", acodec, vcodec);
+          /* codecs in reversed order as usual for backward compatibility */
+          switch (n) {
+            case 2: /* audio AND video codec */
+              vob->ex_v_codec = tc_codec_from_string(vcodec);
+              if (vob->ex_v_codec == TC_CODEC_ERROR) {
+                tc_error("unknown video format for option -N");
+              }
+              vob->export_attributes |= TC_EXPORT_ATTRIBUTE_VCODEC;
+              /* fallthrough */
+            case 1: /* audio codec */
+              vob->ex_a_codec = tc_codec_from_string(acodec);
+              if (vob->ex_a_codec == TC_CODEC_ERROR) {
+                tc_error("unknown audio format for option -N");
+              }
+              vob->export_attributes |= TC_EXPORT_ATTRIBUTE_ACODEC;
+              break;
+            default:
+              tc_error("invalid parameter for option -N");
+          }
+        }
+        break;
       case 'w':
 	{
 	float ratefact = 1.0f;
@@ -2349,20 +2369,22 @@ int main(int argc, char *argv[]) {
 	    ((video_in_file==NULL)? audio_in_file:video_in_file),
 	    (result ? GREEN : RED), (result ? "ok" : "failed"), GRAY);
 
-	printf("[%s] V: %-16s | %s %s (V=%s|A=%s)\n", PACKAGE, "import format",
+	printf("[%s] V: %-16s | %s %s (module=%s)\n", PACKAGE, "import format",
 	       codec2str(vob->v_codec_flag), mformat2str(vob->v_format_flag),
-	       ((no_vin_codec==0)?im_vid_mod:vob->vmod_probed),
+	       ((no_vin_codec==0)?im_vid_mod:vob->vmod_probed));
+	printf("[%s] A: %-16s | %s %s (module=%s)\n", PACKAGE, "import format",
+	       codec2str(vob->a_codec_flag), mformat2str(vob->a_format_flag),
 	       ((no_ain_codec==0)?im_aud_mod:vob->amod_probed));
       }
     }
 #ifdef HAVE_LIBXML2
-#define TCXML_MAX_BUFF 1024
+#define TC_BUF_MAX 1024
     if (vob->vmod_probed_xml && strstr(vob->vmod_probed_xml,"xml") != NULL)
     {
 	if (vob->video_in_file && strstr(vob->video_in_file,"/dev/zero") ==NULL)
 	{
-	      	p_tcxmlcheck_buffer=(char *)calloc(TCXML_MAX_BUFF,1);
-		if (tc_snprintf(p_tcxmlcheck_buffer, TCXML_MAX_BUFF, "tcxmlcheck -i \"%s\" -S -B -V",vob->video_in_file)<0)
+	      	p_tcxmlcheck_buffer=(char *)calloc(TC_BUF_MAX,1);
+		if (tc_snprintf(p_tcxmlcheck_buffer, TC_BUF_MAX, "tcxmlcheck -i \"%s\" -S -B -V",vob->video_in_file)<0)
 		{
 		  perror("command buffer overflow");
 		  exit(1);
@@ -2379,8 +2401,8 @@ int main(int argc, char *argv[]) {
 		  exit(1);
 		}
 		pclose (p_fd_tcxmlcheck);
-		memset(p_tcxmlcheck_buffer, 0 ,TCXML_MAX_BUFF);
-		if (tc_snprintf(p_tcxmlcheck_buffer, TCXML_MAX_BUFF, "tcxmlcheck -i \"%s\" -B -V",vob->video_in_file)<0)
+		memset(p_tcxmlcheck_buffer, 0 ,TC_BUF_MAX);
+		if (tc_snprintf(p_tcxmlcheck_buffer, TC_BUF_MAX, "tcxmlcheck -i \"%s\" -B -V",vob->video_in_file)<0)
 		{
 		  perror("command buffer overflow");
 		  exit(1);
@@ -2424,8 +2446,8 @@ int main(int argc, char *argv[]) {
     {
 	if (vob->audio_in_file && strstr(vob->audio_in_file,"/dev/zero") ==NULL)
 	{
-      		p_tcxmlcheck_buffer=(char *)calloc(TCXML_MAX_BUFF,1);
-		if (tc_snprintf(p_tcxmlcheck_buffer, TCXML_MAX_BUFF, "tcxmlcheck -p %s -S -B -A",vob->audio_in_file)<0)
+      		p_tcxmlcheck_buffer=(char *)calloc(TC_BUF_MAX,1);
+		if (tc_snprintf(p_tcxmlcheck_buffer, TC_BUF_MAX, "tcxmlcheck -p %s -S -B -A",vob->audio_in_file)<0)
 		{
 	  		perror("command buffer overflow");
 	  		exit(1);
@@ -2442,8 +2464,8 @@ int main(int argc, char *argv[]) {
 		  exit(1);
 		}
 		pclose(p_fd_tcxmlcheck);
-		memset(p_tcxmlcheck_buffer,0 ,TCXML_MAX_BUFF);
-		if (tc_snprintf(p_tcxmlcheck_buffer, TCXML_MAX_BUFF, "tcxmlcheck -p %s -B -A",vob->audio_in_file)<0)
+		memset(p_tcxmlcheck_buffer,0 ,TC_BUF_MAX);
+		if (tc_snprintf(p_tcxmlcheck_buffer, TC_BUF_MAX, "tcxmlcheck -p %s -B -A",vob->audio_in_file)<0)
 		{
 		  perror("command buffer overflow");
 		  exit(1);
@@ -3642,14 +3664,19 @@ int main(int argc, char *argv[]) {
 
       if(verbose & TC_INFO) {
 	if(vob->pass_flag & TC_AUDIO)
-	  printf("[%s] A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps\n", PACKAGE, "export format", vob->im_a_codec, aformat2str(vob->im_a_codec),
+	  printf("[%s] A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps\n", PACKAGE,
+                 "export format", vob->im_a_codec, aformat2str(vob->im_a_codec),
 		 vob->a_rate, vob->a_bits, vob->a_chan, vob->a_stream_bitrate);
 	else
-	  printf("[%s] A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps\n", PACKAGE, "export format", vob->ex_a_codec, aformat2str(vob->ex_a_codec),
+	  printf("[%s] A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps\n", PACKAGE,
+                 "export format", vob->ex_a_codec, aformat2str(vob->ex_a_codec),
 		 ((vob->mp3frequency>0)? vob->mp3frequency:vob->a_rate),
 		 ((vob->dm_bits>0)?vob->dm_bits:vob->a_bits),
 		 ((vob->dm_chan>0)?vob->dm_chan:vob->a_chan),
 		 vob->mp3bitrate);
+        printf("[%s] V: %-16s | %s%s\n", PACKAGE, "export format",
+               tc_codec_to_string(vob->ex_v_codec),
+               (vob->ex_v_codec == 0) ?" (module dependant)" :"");
       }
     }
 

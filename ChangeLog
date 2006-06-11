@@ -1,3 +1,11 @@
+2006-06-11 Francesco Romani <fromani at gmail dot com>
+  * src/transcode.c docs/man/transcode.1
+  change meaning of option -N so can user can (must) choose
+  codec to use for exporting when export modules provides more
+  than one. At moment of writing, specifying both -N and -y
+  it's needed to let the things works, but in future releases
+  -y can be deducted from -N.
+
 2006-06-09 Francesco Romani <fromani at gmail dot com>
   * libtc/tccodecs.c
   make a couple of codec names a little more sane.
