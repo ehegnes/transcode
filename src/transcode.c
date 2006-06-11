@@ -224,7 +224,7 @@ static void usage(int status)
   printf(" -e r[,b[,c]]        PCM audio stream parameter [%d,%d,%d]\n", RATE, BITS, CHANNELS);
   printf(" -E r[,b[,c]]        audio output samplerate, bits, channels [as input]\n");
   printf(" -n 0xnn             import audio format id [0x%x]\n", CODEC_AC3);
-  printf(" -N acodec[,vcodec]  export audio[,video] format [mp3]");
+  printf(" -N format           export format [mp3]");
   printf(" -b b[,v[,q[,m]]]    audio encoder bitrate kBits/s[,vbr[,quality[,mode]]] [%d,%d,%d,%d]\n",
          ABITRATE, AVBR, AQUALITY, AMODE);
   printf("--no_audio_adjust    disable audio frame sample adjustment [off]\n");
@@ -1315,33 +1315,42 @@ int main(int argc, char *argv[]) {
 
 	break;
 
-      case 'N': {
-          char acodec[TC_BUF_MIN];
-          char vcodec[TC_BUF_MIN]; 
+      case 'N': 
+        {
+            if (optarg[0] == '-') {
+              usage(EXIT_FAILURE);
+            }
 
-          if (optarg[0] == '-') {
-            usage(EXIT_FAILURE);
-          }
-          n = sscanf(optarg,"%32[^,],%32s", acodec, vcodec);
-          /* codecs in reversed order as usual for backward compatibility */
-          switch (n) {
-            case 2: /* audio AND video codec */
-              vob->ex_v_codec = tc_codec_from_string(vcodec);
-              if (vob->ex_v_codec == TC_CODEC_ERROR) {
-                tc_error("unknown video format for option -N");
-              }
-              vob->export_attributes |= TC_EXPORT_ATTRIBUTE_VCODEC;
-              /* fallthrough */
-            case 1: /* audio codec */
-              vob->ex_a_codec = tc_codec_from_string(acodec);
-              if (vob->ex_a_codec == TC_CODEC_ERROR) {
-                tc_error("unknown audio format for option -N");
-              }
-              vob->export_attributes |= TC_EXPORT_ATTRIBUTE_ACODEC;
-              break;
-            default:
-              tc_error("invalid parameter for option -N");
-          }
+            if (optarg[0] == '0' && optarg[1] == 'x') {
+                /* old behaviour */
+                vob->ex_a_codec = strtol(optarg, endptr, 16);
+                if(vob->ex_a_codec < 0) tc_error("invalid parameter for option -N");
+                vob->export_attributes |= TC_EXPORT_ATTRIBUTE_ACODEC;
+            } else {
+                char acodec[TC_BUF_MIN];
+                char vcodec[TC_BUF_MIN]; 
+                /* new behaviour */
+                n = sscanf(optarg, "%32[^,],%32s", vcodec, acodec);
+                /* codecs in reversed order as usual for backward compatibility */
+                switch (n) {
+                  case 2: /* audio AND video codec */
+                    vob->ex_v_codec = tc_codec_from_string(vcodec);
+                    if (vob->ex_v_codec == TC_CODEC_ERROR) {
+                      tc_error("unknown video format for option -N");
+                    }
+                    vob->export_attributes |= TC_EXPORT_ATTRIBUTE_VCODEC;
+                    /* fallthrough */
+                  case 1: /* audio codec */
+                    vob->ex_a_codec = tc_codec_from_string(acodec);
+                    if (vob->ex_a_codec == TC_CODEC_ERROR) {
+                      tc_error("unknown audio format for option -N");
+                    }
+                    vob->export_attributes |= TC_EXPORT_ATTRIBUTE_ACODEC;
+                    break;
+                  default:
+                    tc_error("invalid parameter for option -N");
+                }
+            }
         }
         break;
       case 'w':

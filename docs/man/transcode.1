@@ -14,7 +14,7 @@ transcode \- LINUX video stream processing tool
 [ -e r[,b[,c]] ]
 [ -E r[,b[,c]] ]
 [ -n 0xnn ]
-[ -N acodec[,vcodec] ]
+[ -N format ]
 .br
 [ -b b[,v[,q[,m]]] ]
 [ --no_audio_adjust ]
@@ -423,39 +423,38 @@ with additional frame rate enforcement (for NTSC).
 .RE
 
 .TP
-.B \-N \fIacodec[,vcodec]\fP
-select export audio and optionally video format id. Default is mp3 for audio,
-and module-dependant format for video.
-This is true and it's the default for old-style modules.
+.B \-N \fIformat\fP
+select export format. Default is mp3 for audio, and module-dependant format for video.
+This option has two different behaviours and accepts two different set of options,
+as side-effect of ongoing export module transition.
+For old-style modules (current default, as found in 1.0.x series), argument
+is audio format ID has hexadecimal value: see below for a list of recognized
+IDs. Default id, so default format for audio exported track, is MP3 (0x55).
 .br
 If you are using, the transcode's the new-style encode/multiplex modules
-(still under development, see the encode and multiplex directories), you
-NEED to specify both an audio and a video format pair.
+(still under development, see the encode and multiplex directories), argument
+is a comma-separated pair of export format names.
 Use tcmodinfo tool to check out what new-style export module support what
 formats.
-.br
-If you are using the old-style behaviour and modules, the only difference
-with past is that you must give to this option the name of the audio format,
-no longer it's ID.
 
 .RS
 Available format for old-style behaviour are:
 .TP 8
-.I pcm (0x1)
+.I 0x1
 PCM uncompressed audio
 .TP
-.I mp2 (0x50)
+.I 0x50
 MPEG layer-2 aka MP2
 .TP
-.I mp3 (0x55)
+.I 0x55
 MPEG layer-3 aka MP3.
 Also have a look at --lame_preset
 if you intend to do VBR audio.
 .TP
-.I ac3 (0x2000)
+.I 0x2000
 AC3 audio
 .TP
-.I vorbis (0xfffe)
+.I 0xfffe
 OGG/Vorbis audio
 .RE
 
