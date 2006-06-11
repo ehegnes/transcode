@@ -433,6 +433,19 @@ static int OLD_encoder_export(TCEncoderData *data, vob_t *vob);
 #endif  // SUPPORT_OLD_ENCODER
 
 
+/*
+ * is_last_frame:
+ *      check if current frame it's supposed to be the last one in
+ *      encoding frame range. Catch all all kknown special cases
+ * 
+ * Parameters:
+ *           encdata: fetch current frame id from this structure reference.
+ *      cluster_mode: boolean flag. When in cluster mode we need to take
+ *                    some special care.
+ * Return value:
+ *     !0: current frame it's supposed to be the last one
+ *      0: otherwise
+ */
 static int is_last_frame(TCEncoderData *encdata, int cluster_mode)
 {
     int fid = encdata->buffer->frame_id;
@@ -440,6 +453,46 @@ static int is_last_frame(TCEncoderData *encdata, int cluster_mode)
         fid -= tc_get_frames_dropped();
     }
     return (fid == encdata->frame_last);
+}
+
+/*
+ * export_update_formats:
+ *      coerce exported formats to the default ones from the loaded
+ *      encoder modules IF AND ONLY IF user doesn't have requested
+ *      specific ones.
+ *
+ *      That's a temporary workaround until we have a full-NMS
+ *      export layer.
+ *
+ * Parameters:
+ *        vob: pointer to vob_t structure to update.
+ *      vinfo: pointer to TCModuleInfo of video encoder module.
+ *      ainfo: pointer to TCModuleInfo of audio encoder module.
+ * Return value:
+ *      None
+ */
+static void export_update_formats(vob_t *vob, const TCModuleInfo *vinfo,
+                                  const TCModuleInfo *ainfo)
+{
+    if (vob == NULL || vinfo == NULL || ainfo == NULL) {
+        /* should never happen */
+        tc_log_error(__FILE__, "missing export formats references");
+    }
+    /* 
+     * OK, that's pretty hackish since export_attributes should
+     * go away in near future. Neverthless, ex_a_codec features
+     * a pretty unuseful default (CODEC_MP3), so we don't use
+     * such default value to safely distinguish between -N given
+     * or not given.
+     * And so we must use another flag, and export_attributes are
+     * the simplest things that work, now/
+     */
+    if (!(vob->export_attributes & TC_EXPORT_ATTRIBUTE_VCODEC)) {
+        vob->ex_v_codec = vinfo->codecs_out[0];
+    }
+    if (!(vob->export_attributes & TC_EXPORT_ATTRIBUTE_ACODEC)) {
+        vob->ex_a_codec = ainfo->codecs_out[0];
+    }
 }
 
 /* ------------------------------------------------------------
@@ -499,6 +552,8 @@ int export_setup(vob_t *vob,
         tc_log_error(__FILE__, "can't load multiplexor");
         return -1;
     }
+    export_update_formats(vob, tc_module_get_info(encdata.vid_mod),
+                               tc_module_get_info(encdata.aud_mod));
 
     match = tc_module_match(vob->ex_a_codec,
                             encdata.aud_mod, encdata.mplex_mod);

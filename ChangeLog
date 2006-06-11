@@ -24,6 +24,13 @@
   * libtc/tcmoduleinfo.c
   check for FEATURE_VIDEO/AUDIO too in tc_module_match.
 
+  * src/encoder.c
+  add code to promote default formats from loaded encoder
+  modules to export formats, so user no longer *needs* (but, of
+  course, still cans) to specify it.
+  That's a temporary solution until export layer will be fully
+  ported to NMS; later this solution will be rediscussed.
+
 2006-06-09 Francesco Romani <fromani at gmail dot com>
   * libtc/tccodecs.c
   make a couple of codec names a little more sane.
