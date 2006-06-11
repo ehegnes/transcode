@@ -26,7 +26,6 @@
 typedef struct {
     int topfirst;           // Top field first?
     int fullheight;         // Full-height mode
-    int configured;         // Nonzero if we've been configured once
     int have_first_frame;   // Nonzero if we've seen a frame
     TCVHandle tcvhandle;    // For tcv_zoom() when shifting
     int deinter_handle;     // For high-quality mode
@@ -35,10 +34,6 @@ typedef struct {
     uint8_t saved_frame[TC_MAX_V_FRAME_WIDTH*TC_MAX_V_FRAME_HEIGHT*3];
     int saved_width, saved_height;  // For full-height operation
 } PrivateData;
-
-#define HQ_OFF          0   // HQ mode off
-#define HQ_SHIFT_ONE    1   // Shift second frame to match first frame
-#define HQ_SHIFT_BOTH   2   // Shift both frames half a line by zooming
 
 /*************************************************************************/
 /*************************************************************************/
@@ -67,7 +62,7 @@ static int doublefps_init(TCModuleInstance *self)
         tc_log_error(MOD_NAME, "init: out of memory!");
         return -1;
     }
-    pd->topfirst = (vob->im_v_height == 480 ? 0 : 1);
+    pd->topfirst = -1;
     pd->fullheight = 0;
     pd->have_first_frame = pd->saved_width = pd->saved_height = 0;
 
@@ -128,45 +123,41 @@ static int doublefps_fini(TCModuleInstance *self)
 static int doublefps_configure(TCModuleInstance *self,
                                const char *options, vob_t *vob)
 {
-    int new_fullheight;
     PrivateData *pd;
+    int new_topfirst = -1;
+
     if (!self)
        return -1;
     pd = self->userdata;
 
-    pd->topfirst = (vob->im_v_height == 480 ? 0 : 1);
-    new_fullheight = -1;
     if (options) {
         if (optstr_get(options, "shiftEven", "%d", &pd->topfirst) == 1) {
             tc_log_warn(MOD_NAME, "The \"shiftEven\" option name is obsolete;"
                         " please use \"topfirst\" instead.");
         }
-        optstr_get(options, "topfirst", "%d", &pd->topfirst);
-        optstr_get(options, "fullheight", "%d", &new_fullheight);
+        optstr_get(options, "topfirst", "%d", &new_topfirst);
+        optstr_get(options, "fullheight", "%d", &pd->fullheight);
+    }
+    if (new_topfirst == -1) {
+        if (pd->topfirst == -1)
+            pd->topfirst = (vob->im_v_height == 480 ? 0 : 1);
+    } else {
+        pd->topfirst = new_topfirst;
     }
 
-    if (!pd->configured) {
-        pd->fullheight = (new_fullheight==-1 ? 0 : new_fullheight);
-        if (!pd->fullheight) {
-            //vob->ex_v_height /= 2;  // FIXME: not needed for preprocessing (overridden by zoom)
-            if (vob->encode_fields == 1 || vob->encode_fields == 2) {
-                pd->topfirst = (vob->encode_fields == 1) ? 1 : 0;
-                if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_FIELDS) {
-                    tc_log_warn(MOD_NAME, "Use \"-J doublefps=topfirst=%d\","
-                                " not \"--encode_fields %c\"", pd->topfirst,
-                                vob->encode_fields == 1 ? 't' : 'b');
-                }
+    if (!pd->fullheight) {
+        if (vob->encode_fields == 1 || vob->encode_fields == 2) {
+            pd->topfirst = (vob->encode_fields == 1) ? 1 : 0;
+            if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_FIELDS) {
+                tc_log_warn(MOD_NAME, "Use \"-J doublefps=topfirst=%d\","
+                            " not \"--encode_fields %c\"", pd->topfirst,
+                            vob->encode_fields == 1 ? 't' : 'b');
             }
-            vob->encode_fields = 0;
-            vob->export_attributes |= TC_EXPORT_ATTRIBUTE_FIELDS;
         }
-        pd->configured = 1;
-    } else {  // already configured
-        if (new_fullheight != -1 && new_fullheight != pd->fullheight) {
-            tc_log_warn(MOD_NAME, "The \"fullheight\" option cannot be"
-                        " changed after startup!");
-        }
+        vob->encode_fields = 0;
+        vob->export_attributes |= TC_EXPORT_ATTRIBUTE_FIELDS;
     }
+
     return 0;
 }
 
@@ -280,7 +271,7 @@ static int doublefps_filter_video(TCModuleInstance *self, vframe_list_t *frame)
     hUV = (frame->v_codec == CODEC_YUV422) ? h : h/2;
 
     switch ((pd->fullheight ? 2 : 0)
-            + (frame->attributes & TC_FRAME_WAS_CLONED ? 1 : 0)
+          + (frame->attributes & TC_FRAME_WAS_CLONED ? 1 : 0)
     ) {
 
       case 0: {  // Half height, first field
