@@ -27,7 +27,7 @@
   * src/encoder.c
   add code to promote default formats from loaded encoder
   modules to export formats, so user no longer *needs* (but, of
-  course, still cans) to specify it.
+  course, still cans) to specify/choose them.
   That's a temporary solution until export layer will be fully
   ported to NMS; later this solution will be rediscussed.
 
