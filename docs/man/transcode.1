@@ -14,7 +14,7 @@ transcode \- LINUX video stream processing tool
 [ -e r[,b[,c]] ]
 [ -E r[,b[,c]] ]
 [ -n 0xnn ]
-[ -N acodec,vcodec ]
+[ -N acodec[,vcodec] ]
 .br
 [ -b b[,v[,q[,m]]] ]
 [ --no_audio_adjust ]
@@ -427,11 +427,16 @@ with additional frame rate enforcement (for NTSC).
 select export audio and optionally video format id. Default is mp3 for audio,
 and module-dependant format for video.
 This is true and it's the default for old-style modules.
+.br
 If you are using, the transcode's the new-style encode/multiplex modules
 (still under development, see the encode and multiplex directories), you
 NEED to specify both an audio and a video format pair.
 Use tcmodinfo tool to check out what new-style export module support what
 formats.
+.br
+If you are using the old-style behaviour and modules, the only difference
+with past is that you must give to this option the name of the audio format,
+no longer it's ID.
 
 .RS
 Available format for old-style behaviour are:
