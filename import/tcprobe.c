@@ -106,7 +106,7 @@ static void enc_bitrate(long frames, double fps, int abitrate, double discsize)
             videosize = defsize[i] - audiosize;
             vbitrate = videosize / time;
             printf("USER CDSIZE: %4d MB | V: %6.1f MB @ %.1f kbps\n",
-                   (int)floor(discsize/(1024*1024)), videosize/(1024*1024),
+                   defsize[i], videosize/(1024*1024),
                    vbitrate);
         }
     }
@@ -853,6 +853,7 @@ int main(int argc, char *argv[])
     ipipe.stype = TC_STYPE_UNKNOWN;
     ipipe.seek_allowed = 0;
     ipipe.factor = 1;
+    ipipe.dvd_title = 1;
 
     while ((ch = getopt(argc, argv, "i:vBMRd:T:f:b:s:H:?h")) != -1) {
         switch (ch) {
