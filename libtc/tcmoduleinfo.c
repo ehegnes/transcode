@@ -29,9 +29,10 @@ int tc_module_info_match(int tc_codec,
     }
     /*
      * a multiplexor module can be chained with nothing,
-     * it must be placed at the end of the chain
+     * it must be placed at the end of the chain; reversed
+     * for demulitplexor module.
      */
-    if (HAVE_FEATURE(head, MULTIPLEX)) {
+    if (HAVE_FEATURE(head, MULTIPLEX) || HAVE_FEATURE(tail, DEMULTIPLEX)) {
         return 0;
     }
     /* format kind compatibility check */
@@ -40,14 +41,19 @@ int tc_module_info_match(int tc_codec,
         return 0;
     }
 
+    /* 
+     * we look only for the first compatible match, not for the best one.
+     * Yet.
+     */
     for (i = 0; !found && tail->codecs_in[i] != TC_CODEC_ERROR; i++) {
         for (j = 0; !found && head->codecs_out[j] != TC_CODEC_ERROR; j++) {
+            /* trivial case: exact match */
             if (tc_codec == head->codecs_out[j]
              && head->codecs_out[j] == tail->codecs_in[i]) {
                 /* triple fit */
                 found = 1;
             }
-            if((head->codecs_out[j] == tail->codecs_in[i]
+            if ((head->codecs_out[j] == tail->codecs_in[i]
               || head->codecs_out[j] == TC_CODEC_ANY)
                && TC_CODEC_ANY == tc_codec) {
                 found = 1;
@@ -68,6 +74,7 @@ int tc_module_info_match(int tc_codec,
 }
 
 #undef HAVE_FEATURE
+
 
 #define DATA_BUF_SIZE   256
 

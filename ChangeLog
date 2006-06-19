@@ -1,4 +1,7 @@
 2006-06-19 Francesco Romani <fromani at gmail dot com>
+  * libtc/tcmoduleinfo.c
+  tiny fixes/updates after a review of match handling code.
+
   * import/tcprobe.c
   a couple of fixes: let dvd probe work again with default arguments
   (i.w. without -T) and fix a little regression in bitrate
