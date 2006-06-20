@@ -1,3 +1,7 @@
+2006-06-20 Francesco Romani <fromani at gmail dot com>
+  * import/dvd_reader.c
+  fix compilation without libdvdread support.
+
 2006-06-19 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmoduleinfo.c
   tiny fixes/updates after a review of match handling code.

@@ -268,9 +268,9 @@ static void usage(int status)
     fprintf(stderr,"\nUsage: %s [options]\n", EXE);
     fprintf(stderr,"    -i name          input file/directory%s name\n",
 #ifdef HAVE_LIBDVDREAD
-	               "/device/mountpoint"
+                   "/device/mountpoint"
 #else
-                    ""
+                   ""
 #endif
            );
     fprintf(stderr,"    -t magic         file type [autodetect]\n");

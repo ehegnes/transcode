@@ -1377,4 +1377,10 @@ int dvd_probe(int title, ProbeInfo *info)
   return(-1);
 }
 
+int dvd_is_valid(const char *dvd_path)
+{
+  tc_log_error(__FILE__, "no support for DVD reading configured - exit.");
+  return(TC_FALSE);
+}
+
 #endif
