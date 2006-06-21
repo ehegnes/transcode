@@ -65,7 +65,7 @@
 #define MOD_VERSION "v0.0.4 (2006-05-05)"
 #define MOD_CAP     "XviD 1.x encoder"
 
-#define XVID_CONFIG_FILE "xvid4.cfg"
+#define XVID_CONFIG_FILE "xvid.cfg"
 
 static const char *xvid_help = ""
     "Overview:\n"

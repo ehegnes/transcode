@@ -1,3 +1,11 @@
+2006-06-21 Francesco Romani <fromani at gmail dot com>
+  * added file: encode/xvid.cfg
+  sample configuration file (identical to export/xvid4.cfg yet)
+
+  * encode/Makefile.am
+  pass proper CFLAGS to encode_x264 module; ship encode_xvid sample
+  configuration file
+
 2006-06-20 Francesco Romani <fromani at gmail dot com>
   * import/dvd_reader.c
   fix compilation without libdvdread support.
