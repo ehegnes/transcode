@@ -8,10 +8,6 @@ AM_CPPFLAGS = \
 
 pkgdir = $(MOD_PATH)
 
-if HAVE_LIBDV
-ENCODE_DV = encode_dv.la
-endif
-
 if HAVE_LZO
 ENCODE_LZO = encode_lzo.la
 endif
@@ -26,7 +22,6 @@ endif
 
 pkg_LTLIBRARIES = \
 	encode_copy.la \
-	$(ENCODE_DV) \
 	$(ENCODE_LZO) \
 	encode_null.la \
 	$(ENCODE_X264) \
@@ -34,11 +29,6 @@ pkg_LTLIBRARIES = \
 
 encode_copy_la_SOURCES = encode_copy.c
 encode_copy_la_LDFLAGS = -module -avoid-version
-
-encode_dv_la_SOURCES = encode_dv.c
-encode_dv_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBDV_CFLAGS)
-encode_dv_la_LDFLAGS = -module -avoid-version
-encode_dv_la_LIBADD = $(LIBDV_LIBS)
 
 encode_lzo_la_SOURCES = encode_lzo.c
 encode_lzo_la_CPPFLAGS = $(AM_CPPFLAGS) $(LZO_CFLAGS)
