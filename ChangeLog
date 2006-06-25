@@ -1,4 +1,8 @@
 2006-06-25 Francesco Romani <fromani at gmail dot com>
+  * src/filter.c
+  looks like size field si never used at filter initialization, so
+  set it to 0, allowing also to reduce symbol interdependency.
+
   * filter/filter_unsharp.c
   switch to TC_{MIN,MAX,CLAMP} macros instead to use private ones.
 

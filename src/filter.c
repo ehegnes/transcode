@@ -374,7 +374,8 @@ int tc_filter_add(const char *name, const char *options)
         dummy_frame.filter_id = id;
         dummy_frame.tag = TC_FILTER_INIT;
         /* Maximum size of a single frame, video or audio */
-        dummy_frame.size = tc_frame_height_max * tc_frame_width_max * 3;
+        dummy_frame.size = 0;
+        /* XXX: it seems never used, so 0 should be safe -- FR */
         if (filters[i].entry(&dummy_frame, (char *)options) < 0) {
             tc_warn("Initialization of filter %s failed, skipping.", name);
             tc_filter_remove(id);
@@ -546,7 +547,8 @@ int tc_filter_configure(int id, const char *options)
         filters[i].entry(&dummy_frame, NULL);
         dummy_frame.filter_id = id;
         dummy_frame.tag = TC_FILTER_INIT;
-        dummy_frame.size = tc_frame_height_max * tc_frame_width_max * 3;
+        dummy_frame.size = 0;
+        /* XXX: it seems never used, so 0 should be safe -- FR */
         if (filters[i].entry(&dummy_frame, (char *)options) < 0) {
             tc_log_warn(PACKAGE, "Reconfiguration of filter %s failed,"
                         " disabling.", filters[i].name);
