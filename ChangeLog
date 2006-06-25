@@ -1,6 +1,6 @@
 2006-06-25 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h
-  common naif MIN/MAX macro. More optimization will come if needed
+  common naif MIN/MAX/CLAMP macro. More optimization will come if needed
   and where it's needed (aclib? cmov?)
 
 2006-06-21 Francesco Romani <fromani at gmail dot com>
