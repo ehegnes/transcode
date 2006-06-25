@@ -53,6 +53,9 @@ extern "C" {
 #define TC_BUF_MAX            1024
 #define TC_BUF_MIN             128
 
+#define TC_MAX(a, b)	(((a) > (b)) ?(a) :(b))
+#define TC_MIN(a, b)	(((a) < (b)) ?(a) :(b))
+
 /* colors macros */
 #define COL(x)              "\033[" #x ";1m"
 #define COL_RED             COL(31)
