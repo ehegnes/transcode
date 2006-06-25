@@ -29,15 +29,6 @@
 
 #include <math.h>
 
-
-#ifndef MIN
-#define        MIN(a,b) (((a)<(b))?(a):(b))
-#endif
-#ifndef MAX
-#define        MAX(a,b) (((a)>(b))?(a):(b))
-#endif
-
-
 //===========================================================================//
 
 #define MIN_MATRIX_SIZE 3
@@ -240,8 +231,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	if (amount!=0.0 && msizeX && msizeY) {
 
-	    msizeX = 1 | MIN( MAX( msizeX, MIN_MATRIX_SIZE), MAX_MATRIX_SIZE );
-	    msizeY = 1 | MIN( MAX( msizeY, MIN_MATRIX_SIZE), MAX_MATRIX_SIZE );
+	    msizeX = 1 | TC_CLAMP(msizeX, MIN_MATRIX_SIZE, MAX_MATRIX_SIZE);
+	    msizeY = 1 | TC_CLAMP(msizeY, MIN_MATRIX_SIZE, MAX_MATRIX_SIZE);
 	    mfd->lumaParam.msizeX = msizeX;
 	    mfd->lumaParam.msizeY = msizeY;
 	    mfd->chromaParam.msizeX = msizeX;
@@ -252,10 +243,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	} else {
 
 	    // min/max & odd
-	    mfd->lumaParam.msizeX   = 1 | MIN( MAX( mfd->lumaParam.msizeX,   MIN_MATRIX_SIZE ), MAX_MATRIX_SIZE );
-	    mfd->lumaParam.msizeY   = 1 | MIN( MAX( mfd->lumaParam.msizeY,   MIN_MATRIX_SIZE ), MAX_MATRIX_SIZE );
-	    mfd->chromaParam.msizeX = 1 | MIN( MAX( mfd->chromaParam.msizeX, MIN_MATRIX_SIZE ), MAX_MATRIX_SIZE );
-	    mfd->chromaParam.msizeY = 1 | MIN( MAX( mfd->chromaParam.msizeY, MIN_MATRIX_SIZE ), MAX_MATRIX_SIZE );
+	    mfd->lumaParam.msizeX   = 1 | TC_CLAMP(mfd->lumaParam.msizeX, MIN_MATRIX_SIZE, MAX_MATRIX_SIZE);
+	    mfd->lumaParam.msizeY   = 1 | TC_CLAMP(mfd->lumaParam.msizeY, MIN_MATRIX_SIZE, MAX_MATRIX_SIZE);
+	    mfd->chromaParam.msizeX = 1 | TC_CLAMP(mfd->chromaParam.msizeX, MIN_MATRIX_SIZE, MAX_MATRIX_SIZE);
+	    mfd->chromaParam.msizeY = 1 | TC_CLAMP(mfd->chromaParam.msizeY, MIN_MATRIX_SIZE, MAX_MATRIX_SIZE);
 	}
     }
 

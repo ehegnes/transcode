@@ -1,4 +1,7 @@
 2006-06-25 Francesco Romani <fromani at gmail dot com>
+  * filter/filter_unsharp.c
+  switch to TC_{MIN,MAX,CLAMP} macros instead to use private ones.
+
   * libtc/libtc.h
   common naif MIN/MAX/CLAMP macro. More optimization will come if needed
   and where it's needed (aclib? cmov?)
