@@ -1260,6 +1260,7 @@ static void encoder_skip(TCEncoderData *data)
 void encoder_loop(vob_t *vob, int frame_first, int frame_last)
 {
     int err = 0;
+    int w, h;
 
     if (encdata.this_frame_last != frame_last) {
         encdata.old_frame_last = encdata.this_frame_last;
@@ -1269,6 +1270,9 @@ void encoder_loop(vob_t *vob, int frame_first, int frame_last)
     encdata.frame_first = frame_first;
     encdata.frame_last = frame_last;
     encdata.saved_frame_last = encdata.old_frame_last;
+
+    w = TC_MAX(vob->ex_v_width, vob->im_v_width);
+    h = TC_MAX(vob->ex_v_height, vob->im_v_height);
 
     err = alloc_buffers(&encdata);
     if (err) {
@@ -1318,8 +1322,7 @@ void encoder_loop(vob_t *vob, int frame_first, int frame_last)
           && encdata.buffer->frame_id < frame_last) {
             if (encdata.factory) {
                 // XXX
-                VFRAME_INIT(encdata.venc_ptr,
-                            tc_frame_width_max, tc_frame_height_max);
+                VFRAME_INIT(encdata.venc_ptr, w, h);
                 AFRAME_INIT(encdata.aenc_ptr);
             }
             encoder_export(&encdata, vob);

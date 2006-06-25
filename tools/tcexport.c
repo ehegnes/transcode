@@ -560,7 +560,6 @@ int main(int argc, char *argv[])
     if (!ret) {
         return STATUS_PROBE_FAILED;
     }
-    tc_adjust_frame_buffer(vob.im_v_width, vob.im_v_height);
 
     setup_im_size(&vob);
     setup_ex_params(&vob);

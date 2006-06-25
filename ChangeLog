@@ -1,4 +1,13 @@
 2006-06-25 Francesco Romani <fromani at gmail dot com>
+  * src/framebuffer.h src/encoder.c src/transcode.c
+    src/video_buffer.c tools/tcexport.c
+  drop tc_adjust_frame_buffer and remove 
+  tc_framw_{width, height}_max symbols. The idea is to reduce both
+  module interdependencies and to avoid to use globals; same result
+  can be achieved with a very simple API change at vframe_alloc
+  function. Anyway, since this change touches a critical area of
+  buffer management, an (already ongoing) careful test is needed.
+
   * src/filter.c
   looks like size field si never used at filter initialization, so
   set it to 0, allowing also to reduce symbol interdependency.

@@ -42,11 +42,6 @@
 #define TC_BUFFER_READY  2
 #define TC_BUFFER_LOCKED 3
 
-extern int tc_frame_width_max;
-extern int tc_frame_height_max;
-
-void tc_adjust_frame_buffer(int height, int width);
-
 /*
  * BIG FAT WARNING:
  *
@@ -165,7 +160,7 @@ vframe_list_t *vframe_dup(vframe_list_t *f);
 void vframe_copy(vframe_list_t *dst, vframe_list_t *src, int copy_data);
 vframe_list_t *vframe_retrieve_status(int old_status, int new_status);
 void vframe_set_status(vframe_list_t *ptr, int status);
-int vframe_alloc(int num);
+int vframe_alloc(int num, int width, int height);
 void vframe_free(void);
 void vframe_flush(void);
 int vframe_fill_level(int status);

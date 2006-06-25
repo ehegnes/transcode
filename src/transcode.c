@@ -658,6 +658,7 @@ int main(int argc, char *argv[]) {
     int no_audio_adjust=TC_FALSE, no_split=TC_FALSE;
 
     long sret;  /* used for string function return values */
+    int frame_width, frame_height;
 
 //    TCDirList tcdir;
 
@@ -2754,9 +2755,6 @@ int main(int argc, char *argv[]) {
     // export bytes per frame (RGB 24bits)
     vob->ex_v_size   = vob->im_v_size;
 
-    //2003-01-13
-    tc_adjust_frame_buffer(vob->ex_v_height, vob->ex_v_width);
-
     // calc clip settings for encoding to mpeg (vcd,svcd,xvcd,dvd)
     // --export_prof {vcd,vcd-pal,vcd-ntsc,svcd,svcd-pal,svcd-ntsc,dvd,dvd-pal,dvd-ntsc}
 
@@ -2986,9 +2984,6 @@ int main(int argc, char *argv[]) {
 	  "pre clip frame", vob->ex_v_width, vob->ex_v_height,
 	  vob->pre_im_clip_top, vob->pre_im_clip_left,
 	  vob->pre_im_clip_bottom, vob->pre_im_clip_right);
-
-      //2003-01-13
-      tc_adjust_frame_buffer(vob->ex_v_height, vob->ex_v_width);
     }
 
 
@@ -3026,9 +3021,6 @@ int main(int argc, char *argv[]) {
       vob->ex_v_width  -= (vob->im_clip_left + vob->im_clip_right);
 
       if(verbose & TC_INFO) printf("[%s] V: %-16s | %03dx%03d\n", PACKAGE, "clip frame (<-)", vob->ex_v_width, vob->ex_v_height);
-
-      //2003-01-13
-      tc_adjust_frame_buffer(vob->ex_v_height, vob->ex_v_width);
     }
 
 
@@ -3179,9 +3171,6 @@ int main(int argc, char *argv[]) {
         vob->hori_resize2 *= (vob->resize2_mult/8);
 
 	if(verbose & TC_INFO && vob->ex_v_height>0) printf("[%s] V: %-16s | %03dx%03d  %4.2f:1 (-X)\n", PACKAGE, "new aspect ratio", vob->ex_v_width, vob->ex_v_height, asr);
-
-      //2003-01-13
-      tc_adjust_frame_buffer(vob->ex_v_height, vob->ex_v_width);
     }
 
 
@@ -3216,9 +3205,6 @@ int main(int argc, char *argv[]) {
         vob->hori_resize1 *= (vob->resize1_mult/8);
 
 	if(verbose & TC_INFO && vob->ex_v_height>0) printf("[%s] V: %-16s | %03dx%03d  %4.2f:1 (-B)\n", PACKAGE, "new aspect ratio", vob->ex_v_width, vob->ex_v_height, asr);
-
-      //2003-01-13
-      tc_adjust_frame_buffer(vob->ex_v_height, vob->ex_v_width);
     }
 
 
@@ -3233,9 +3219,6 @@ int main(int argc, char *argv[]) {
         vob->ex_v_height = vob->zoom_height;
 
         if(verbose & TC_INFO && vob->ex_v_height>0 ) printf("[%s] V: %-16s | %03dx%03d  %4.2f:1 (%s)\n", PACKAGE, "zoom", vob->ex_v_width, vob->ex_v_height, asr, zoom_filter);
-
-      //2003-01-13
-      tc_adjust_frame_buffer(vob->ex_v_height, vob->ex_v_width);
     }
 
 
@@ -3275,9 +3258,6 @@ int main(int argc, char *argv[]) {
       vob->ex_v_width -= (vob->ex_clip_left + vob->ex_clip_right);
 
       if(verbose & TC_INFO) printf("[%s] V: %-16s | %03dx%03d\n", PACKAGE, "clip frame (->)", vob->ex_v_width, vob->ex_v_height);
-
-      //2003-01-13
-      tc_adjust_frame_buffer(vob->ex_v_height, vob->ex_v_width);
     }
 
     // -r
@@ -3297,9 +3277,6 @@ int main(int argc, char *argv[]) {
 	    tc_error("rescaled width/height must be even for YUV mode, try -V rgb24");
 	}
       }
-
-      //2003-01-13
-      tc_adjust_frame_buffer(vob->ex_v_height, vob->ex_v_width);
     }
 
     // --keep_asr
@@ -3524,9 +3501,6 @@ int main(int argc, char *argv[]) {
       vob->ex_v_width -= (vob->post_ex_clip_left + vob->post_ex_clip_right);
 
       if(verbose & TC_INFO) printf("[%s] V: %-16s | %03dx%03d\n", PACKAGE, "post clip frame", vob->ex_v_width, vob->ex_v_height);
-
-      //2003-01-13
-      tc_adjust_frame_buffer(vob->ex_v_height, vob->ex_v_width);
     }
 
 
@@ -3898,13 +3872,18 @@ int main(int argc, char *argv[]) {
     //this will speed up in pass-through mode
     if(vob->pass_flag && !(preset_flag & TC_PROBE_NO_BUFFER)) max_frame_buffer=50;
 
-    if(verbose & TC_INFO) printf("[%s] V: video buffer     | %d @ %dx%d\n", PACKAGE, max_frame_buffer, tc_frame_width_max, tc_frame_height_max);
+    frame_width = TC_MAX(vob->im_v_width, vob->ex_v_width);
+    frame_height = TC_MAX(vob->im_v_height, vob->ex_v_height);
+    if(verbose & TC_INFO)
+      printf("[%s] V: video buffer     | %d @ %dx%d\n", PACKAGE,
+             max_frame_buffer, frame_width, frame_height);
 
 #ifdef STATBUFFER
     // allocate buffer
     if(verbose & TC_DEBUG) printf("[%s] allocating %d framebuffer (static)\n", PACKAGE, max_frame_buffer);
 
-    if(vframe_alloc(max_frame_buffer)<0) tc_error("static framebuffer allocation failed");
+    if(vframe_alloc(max_frame_buffer, frame_width, frame_height) < 0)
+        tc_error("static framebuffer allocation failed");
     if(aframe_alloc(max_frame_buffer)<0) tc_error("static framebuffer allocation failed");
 
 #else

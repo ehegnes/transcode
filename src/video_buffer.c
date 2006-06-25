@@ -25,9 +25,6 @@
 #include "framebuffer.h"
 #include "frame_threads.h"
 
-int tc_frame_width_max = 0;
-int tc_frame_height_max = 0;
-
 pthread_mutex_t vframe_list_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t vframe_list_full_cv = PTHREAD_COND_INITIALIZER;
 
@@ -56,28 +53,28 @@ static int8_t *vid_buf_mem;
 
 */
 
-int vframe_alloc(int ex_num)
+int vframe_alloc(int num, int width, int height)
 {
     int n = 0;
-    int frame_size_max = (tc_frame_width_max * tc_frame_height_max) * BPP/8;
+    int frame_size_max = width * height * 3; /* worst case (RGB) */
 
-    if (ex_num < 0) {
+    if (num < 0) {
         return -1;
     }
-    ex_num++; /* alloc at least one buffer */
+    num++; /* alloc at least one buffer */
 
-    vid_buf_ptr = tc_malloc(ex_num * sizeof(vframe_list_t *));
+    vid_buf_ptr = tc_malloc(num * sizeof(vframe_list_t *));
     if (vid_buf_ptr == NULL) {
         return -1;
     }
 
-    vid_buf_mem = tc_malloc(ex_num * sizeof(vframe_list_t));
+    vid_buf_mem = tc_malloc(num * sizeof(vframe_list_t));
     if (vid_buf_mem == NULL) {
         return(-1);
     }
 
     /* init ringbuffer */
-    for (n = 0; n < ex_num; n++) {
+    for (n = 0; n < num; n++) {
     	vid_buf_ptr[n] = (vframe_list_t *)(vid_buf_mem + n * sizeof(vframe_list_t));
         vid_buf_ptr[n]->status = FRAME_NULL;
         vid_buf_ptr[n]->bufid = n;
@@ -93,11 +90,11 @@ int vframe_alloc(int ex_num)
     	    return -1;
     	}
 
-        VFRAME_INIT(vid_buf_ptr[n], tc_frame_width_max, tc_frame_height_max);
+        VFRAME_INIT(vid_buf_ptr[n], width, height);
 
     	vid_buf_ptr[n]->free = 1;
     }
-    vid_buf_max = ex_num;
+    vid_buf_max = num;
 
     return 0;
 }
@@ -650,12 +647,3 @@ int vframe_fill_level(int status)
     return 0;
 }
 
-void tc_adjust_frame_buffer(int height, int width)
-{
-    if (height > tc_frame_height_max) {
-        tc_frame_height_max = height;
-    }
-    if (width > tc_frame_width_max) {
-        tc_frame_width_max = width;
-    }
-}
