@@ -1,7 +1,7 @@
 2006-06-27 Francesco Romani <fromani at gmail dot com>
   * src/video_buffer.c
   don't mess with vframe_list_t.plane_mode (removed with previous
-  patch), really nobody cares about it/
+  patch), really nobody cares about it.
 
   * src/framebuffer.h
   minor cleanup (which breaks ABI, but I think isn't a problem
