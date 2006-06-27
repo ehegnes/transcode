@@ -1,4 +1,11 @@
 2006-06-27 Francesco Romani <fromani at gmail dot com>
+  * src/framebuffer.h
+  minor cleanup (which breaks ABI, but I think isn't a problem
+  since module interface is still a [maybe slowly] moving target).
+  Refactorize some common fields of *frame_list_t structures,
+  and add 'len' fields, useful for demuxer/decoder and encoder/muxer
+  comunications.
+
   * configure.in
   adapt configure to properly check version of newest libavcodec.
   If anyone has a better fix just send it. ;)

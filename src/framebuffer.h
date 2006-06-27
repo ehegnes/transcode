@@ -57,84 +57,99 @@
  *          -- tibit
  */
 
-typedef struct frame_list {
-
-  int bufid;     // buffer id
-  int tag;       // init, open, close, ...
-  int filter_id; // filter instance to run
-  int codec;     // v_codec or a_codec
-  int id;        //
-  int status;
-  int attributes;
-  int thread_id;
-  int param1; // v_width or a_rate
-  int param2; // v_height or a_bits
-  int param3; // v_bpp or a_chan
-  int size;
-
-} frame_list_t;
-
-typedef struct vframe_list {
-
-    //frame accounting parameter
-
-  int bufid;     // buffer id
-  int tag;       // init, open, close, ...
-
-  int filter_id; // filter instance to run
-
-  int v_codec;   // video frame codec
-
-  int id;        // frame number
-  int status;    // frame status
-
-  int attributes;    //this flag must be set to activate action for the following flags:
-
-  int thread_id;
-
-    //frame physical parameter
-
-  int v_width;
-  int v_height;
-  int v_bpp;
-
-  int video_size;
-
-  struct vframe_list *next;
-  struct vframe_list *prev;
-
-  int plane_mode;
-
-  int clone_flag;    // set to N if frame needs to be processed (encoded) N+1 times.
-  int deinter_flag;  // set to N for internal de-interlacing with "-I N"
+#define TC_FRAME_COMMON \
+    int id;         /* FIXME: comment */ \
+    int bufid;      /* buffer id */ \
+    int tag;        /* init, open, close, ... */ \
+    int filter_id;  /* filter instance to run */ \
+    int status;     /* FIXME: comment */ \
+    int attributes; /* FIXME: comment */ \
+    int thread_id;
 
 
-  //pointer to current buffer
-  uint8_t *video_buf;
+typedef struct frame_list frame_list_t;
+struct frame_list {
+    TC_FRAME_COMMON
 
-  //pointer to backup buffer
-  uint8_t *video_buf2;
+    int codec;   /* codec identifier */
 
-  //flag
-  int free;
+    int size;    /* buffer size avalaible */
+    int len;     /* how much data is valid? */
 
-  //RGB
-  uint8_t *video_buf_RGB[2];
+    int param1; // v_width or a_rate
+    int param2; // v_height or a_bits
+    int param3; // v_bpp or a_chan
+};
 
-  //YUV planes
-  uint8_t *video_buf_Y[2];
-  uint8_t *video_buf_U[2];
-  uint8_t *video_buf_V[2];
+
+typedef struct vframe_list vframe_list_t;
+struct vframe_list {
+    TC_FRAME_COMMON
+    /* frame physical parameter */
+    
+    int v_codec;       /* codec identifier */
+
+    int video_size;    /* buffer size avalaible */
+    int video_len;     /* how much data is valid? */
+
+    int v_width;
+    int v_height;
+    int v_bpp;
+
+    struct vframe_list *next;
+    struct vframe_list *prev;
+
+    int clone_flag;     
+    /* set to N if frame needs to be processed (encoded) N+1 times. */
+    int deinter_flag;
+    /* set to N for internal de-interlacing with "-I N" */
+
+    uint8_t *video_buf;  /* pointer to current buffer */
+    uint8_t *video_buf2; /* pointer to backup buffer */
+
+    int free; /* flag */
+
+    uint8_t *video_buf_RGB[2];
+
+    uint8_t *video_buf_Y[2];
+    uint8_t *video_buf_U[2];
+    uint8_t *video_buf_V[2];
 
 #ifdef STATBUFFER
-  uint8_t *internal_video_buf_0;
-  uint8_t *internal_video_buf_1;
+    uint8_t *internal_video_buf_0;
+    uint8_t *internal_video_buf_1;
 #else
-  uint8_t internal_video_buf_0[SIZE_RGB_FRAME];
-  uint8_t internal_video_buf_1[SIZE_RGB_FRAME];
+    uint8_t internal_video_buf_0[SIZE_RGB_FRAME];
+    uint8_t internal_video_buf_1[SIZE_RGB_FRAME];
 #endif
+};
 
-} vframe_list_t;
+
+typedef struct aframe_list aframe_list_t;
+struct aframe_list {
+    TC_FRAME_COMMON
+
+    int a_codec;       /* codec identifier */
+
+    int audio_size;    /* buffer size avalaible */
+    int audio_len;     /* how much data is valid? */
+
+    int a_rate;
+    int a_bits;
+    int a_chan;
+
+    struct aframe_list *next;
+    struct aframe_list *prev;
+
+    uint8_t *audio_buf;
+
+#ifdef STATBUFFER
+    uint8_t *internal_audio_buf;
+#else
+    uint8_t internal_audio_buf[SIZE_PCM_FRAME<<2];
+#endif
+};
+
 
 #define VFRAME_INIT(vptr, W, H) \
     do { \
@@ -153,6 +168,12 @@ typedef struct vframe_list {
         (vptr)->video_buf2 = (vptr)->internal_video_buf_1; \
     } while(0)
 
+#define AFRAME_INIT(ptr) \
+do { \
+        ptr->audio_buf  = ptr->internal_audio_buf; \
+} while(0)
+
+
 vframe_list_t *vframe_register(int id);
 void vframe_remove(vframe_list_t *ptr);
 vframe_list_t *vframe_retrieve(void);
@@ -166,54 +187,6 @@ void vframe_flush(void);
 int vframe_fill_level(int status);
 void vframe_fill_print(int r);
 
-extern pthread_mutex_t vframe_list_lock;
-extern pthread_cond_t vframe_list_full_cv;
-extern vframe_list_t *vframe_list_head;
-extern vframe_list_t *vframe_list_tail;
-
-
-typedef struct aframe_list {
-
-    //frame accounting parameter
-
-  int bufid;     // buffer id
-  int tag;       // init, open, close, ...
-
-  int filter_id; // filter instance to run
-
-  int a_codec;   // audio frame codec
-
-  int id;        // frame number
-  int status;    // frame status
-
-  int attributes;
-
-  int thread_id;
-
-
-  int a_rate;
-  int a_bits;
-  int a_chan;
-
-  int audio_size;
-
-  struct aframe_list *next;
-  struct aframe_list *prev;
-
-  uint8_t *audio_buf;
-
-#ifdef STATBUFFER
-  uint8_t *internal_audio_buf;
-#else
-  uint8_t internal_audio_buf[SIZE_PCM_FRAME<<2];
-#endif
-
-} aframe_list_t;
-
-#define AFRAME_INIT(ptr) \
-do { \
-        ptr->audio_buf  = ptr->internal_audio_buf; \
-} while(0)
 
 aframe_list_t *aframe_register(int id);
 void aframe_remove(aframe_list_t *ptr);
@@ -228,11 +201,15 @@ void aframe_flush(void);
 int aframe_fill_level(int status);
 void aframe_fill_print(int r);
 
+
+extern pthread_mutex_t vframe_list_lock;
+extern pthread_cond_t vframe_list_full_cv;
+extern vframe_list_t *vframe_list_head;
+extern vframe_list_t *vframe_list_tail;
+
 extern pthread_mutex_t aframe_list_lock;
 extern pthread_cond_t aframe_list_full_cv;
 extern aframe_list_t *aframe_list_head;
 extern aframe_list_t *aframe_list_tail;
-
-#define FINFO printf("(%s@%d) w=%d h=%d size=%d\n", __FILE__, __LINE__, ptr->v_width, ptr->v_height, ptr->video_size);
 
 #endif
