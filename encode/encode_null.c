@@ -94,7 +94,7 @@ static int null_encode_video(TCModuleInstance *self,
         return TC_EXPORT_ERROR;
     }
 
-    outframe->video_size = 0;
+    outframe->video_len = 0;
     return TC_EXPORT_OK;
 }
 
@@ -106,7 +106,7 @@ static int null_encode_audio(TCModuleInstance *self,
         return TC_EXPORT_ERROR;
     }
 
-    outframe->audio_size = 0;
+    outframe->audio_len = 0;
     return TC_EXPORT_OK;
 }
 

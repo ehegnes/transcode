@@ -947,18 +947,18 @@ static int x264_encode_video(TCModuleInstance *self,
 
     // tc_log_msg("saving %d NAL(s)", nnal);
     /* modified code from x264.c down there (IIRC). */
-    outframe->video_size = 0;
+    outframe->video_len = 0;
     for (i = 0; i < nnal; i++) {
         int size, ret;
 
-        size = 0x7FFFFFFF //FIXME (need to know size of video_buf)
-             - outframe->video_size;
+        size = outframe->video_size - outframe->video_len;
         ret = x264_nal_encode(outframe->video_buf + outframe->video_size,
                               &size, 1, &nal[i]);
         if (ret < 0) {
             tc_log_warn(MOD_NAME, "output buffer overflow");
             break;
         }
+        outframe->video_len += size;
     }
 
     return 0;

@@ -129,7 +129,7 @@ static int avi_multiplex(TCModuleInstance *self,
                         || pd->force_kf) ?1 :0;
 
         ret = AVI_write_frame(pd->avifile, (const char*)vframe->video_buf,
-                              vframe->video_size, key);
+                              vframe->video_len, key);
 
         if(ret < 0) {
             tc_log_error(MOD_NAME, "avilib error: %s", AVI_strerror());
@@ -139,7 +139,7 @@ static int avi_multiplex(TCModuleInstance *self,
 
     if (aframe != NULL) {
  		ret = AVI_write_audio(pd->avifile, (const char*)aframe->audio_buf,
-                              aframe->audio_size);
+                              aframe->audio_len);
  		if (ret < 0) {
             tc_log_error(MOD_NAME, "avilib error: %s", AVI_strerror());
 			return TC_EXPORT_ERROR;

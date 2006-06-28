@@ -307,7 +307,7 @@ static int tc_xvid_encode_video(TCModuleInstance *self,
                                errorstring(bytes));
         return TC_EXPORT_ERROR;
     }
-    outframe->video_size = bytes;
+    outframe->video_len = bytes;
 
     /* Extract stats info */
     if (xvid_enc_stats.type>0 && pd->cfg_stats) {
@@ -321,7 +321,7 @@ static int tc_xvid_encode_video(TCModuleInstance *self,
     * We must make sure audio A/V is still good and does not run away */
     if (bytes == 0) {
         outframe->attributes |= TC_FRAME_IS_DELAYED;
-        outframe->video_size = 0; /* paranoia */
+        outframe->video_len = 0; /* paranoia */
         return TC_EXPORT_OK;
     }
 

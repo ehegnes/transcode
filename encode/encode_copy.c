@@ -96,6 +96,8 @@ static int copy_encode_video(TCModuleInstance *self,
     }
 
     vframe_copy(outframe, inframe, 1);
+    /* enforce full length (we deal with uncompressed frames */
+    outframe->video_len = outframe->video_size;
 
     return TC_EXPORT_OK;
 }
@@ -109,6 +111,8 @@ static int copy_encode_audio(TCModuleInstance *self,
     }
 
     aframe_copy(outframe, inframe, 1);
+    /* enforce full lenbgth (we deal with uncompressed frames */
+    outframe->audio_len = outframe->audio_size;
 
     return TC_EXPORT_OK;
 }

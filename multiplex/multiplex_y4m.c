@@ -273,12 +273,12 @@ static int yw_multiplex(TCModuleInstance *self,
                                   y4m_strerr(ret));
             return TC_EXPORT_ERROR;
         }
-        w_vid = vframe->video_size;
+        w_vid = vframe->video_len;
     }
 
     if (aframe != NULL) {
-        w_aud = wav_write_data(pd->wav, aframe->audio_buf, aframe->audio_size);
-        if (w_aud != aframe->audio_size) {
+        w_aud = wav_write_data(pd->wav, aframe->audio_buf, aframe->audio_len);
+        if (w_aud != aframe->audio_len) {
             tc_log_warn(MOD_NAME, "error while writing audio frame: %s",
                                   wav_strerror(wav_last_error(pd->wav)));
             return TC_EXPORT_ERROR;

@@ -248,7 +248,7 @@ static int tc_lzo_encode_video(TCModuleInstance *self,
     }
 
     /* only keyframes */
-    outframe->video_size = out_len + TC_LZO_HDR_SIZE;
+    outframe->video_len = out_len + TC_LZO_HDR_SIZE;
     outframe->attributes |= TC_FRAME_IS_KEYFRAME;
 
     return TC_EXPORT_OK;

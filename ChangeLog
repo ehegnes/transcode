@@ -1,4 +1,12 @@
 2006-06-28 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_copy.c encode/encode_lzo.c encode/encode_null.c
+    encode/encode_x264.c encode/encode_xvid.c
+    multiplex/multiplex_avi.c multiplex/multiplex_null.c
+    multiplex/multiplex_raw.c multiplex/multiplex_y4m.c
+  No longer mess with {audio,video}_size to pass the encoded
+  frame size between encoder and multiplexors. Use brand new
+  {audio,video}_len field instead.
+
   * src/audio_buffer.c src/video_buffer.c
   when copying frames, copy len field too.
 

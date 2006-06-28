@@ -159,14 +159,14 @@ static int raw_multiplex(TCModuleInstance *self,
     pd = self->userdata;
 
     if (vframe != NULL) {
-        w_vid = tc_pwrite(pd->fd_vid, vframe->video_buf, vframe->video_size);
+        w_vid = tc_pwrite(pd->fd_vid, vframe->video_buf, vframe->video_len);
         if(w_vid < 0) {
             return TC_EXPORT_ERROR;
         }
     }
 
     if (aframe != NULL) {
-        w_aud = tc_pwrite(pd->fd_aud, aframe->audio_buf, aframe->audio_size);
+        w_aud = tc_pwrite(pd->fd_aud, aframe->audio_buf, aframe->audio_len);
  		if (w_aud < 0) {
 			return TC_EXPORT_ERROR;
 		}
