@@ -952,7 +952,7 @@ static int x264_encode_video(TCModuleInstance *self,
         int size, ret;
 
         size = outframe->video_size - outframe->video_len;
-        ret = x264_nal_encode(outframe->video_buf + outframe->video_size,
+        ret = x264_nal_encode(outframe->video_buf + outframe->video_len,
                               &size, 1, &nal[i]);
         if (ret < 0) {
             tc_log_warn(MOD_NAME, "output buffer overflow");
