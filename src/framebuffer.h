@@ -21,8 +21,8 @@
  *
  */
 
-#ifndef _FRAMEBUFFER_H
-#define _FRAMEBUFFER_H
+#ifndef FRAMEBUFFER_H
+#define FRAMEBUFFER_H
 
 #ifdef HAVE_CONFIG_H
 # include "config.h"
@@ -31,16 +31,22 @@
 #include <stdint.h>
 #include <pthread.h>
 
-#define FRAME_NULL  -1
-#define FRAME_EMPTY  0
-#define FRAME_READY  1
-#define FRAME_LOCKED 2
-#define FRAME_WAIT   3
+typedef enum tcframestatus_ TCFrameStatus;
+enum tcframestatus_ {
+    FRAME_NULL = -1,
+    FRAME_EMPTY = 0,
+    FRAME_READY,
+    FRAME_LOCKED,
+    FRAME_WAIT,
+};
 
-#define TC_BUFFER_EMPTY  0
-#define TC_BUFFER_FULL   1
-#define TC_BUFFER_READY  2
-#define TC_BUFFER_LOCKED 3
+typedef enum tcbufferstatus_ TCBufferStatus;
+enum tcbufferstatus_ {
+    TC_BUFFER_EMPTY = 0,
+    TC_BUFFER_FULL,
+    TC_BUFFER_READY,
+    TC_BUFFER_LOCKED,
+};
 
 /*
  * BIG FAT WARNING:
@@ -66,6 +72,33 @@
     int attributes; /* FIXME: comment */ \
     int thread_id;
 
+
+/* 
+ * Size vs Length
+ *
+ * Size represent the effective size of audio/video buffer,
+ * while length represent the amount of valid data into buffer.
+ * Until 1.1.0, there isn;t such distinction, and 'size'
+ * have approximatively a mixed meaning of above.
+ *
+ * Now the interesting part is the following:
+ * after the decoder, and before the encoder (included),
+ * the frame length is equal to frame size. This happens
+ * because buffers are intentionally allocated so a decoded
+ * A/V frame will exactly fit on them. So on those processing
+ * stages, length == size, so length isn't significant here.
+ *
+ * Things changes between demultiplexor and decoder and
+ * between encoder and multiplexor.
+ * Compresed frame (unless something REALLY wrong is going on)
+ * are supposed to be not larger then uncompressed frame,
+ * so they must fit on avaible buffers.
+ * They are expected to be smaller, so tbe need for
+ * length field arise.
+ *
+ * The advantage of doing this way instead trickying the 'size'
+ * fields si that buffer size it's always known at any time.
+ */
 
 typedef struct frame_list frame_list_t;
 struct frame_list {
@@ -212,4 +245,4 @@ extern pthread_cond_t aframe_list_full_cv;
 extern aframe_list_t *aframe_list_head;
 extern aframe_list_t *aframe_list_tail;
 
-#endif
+#endif /* FRAMEBUFFFER_H */
