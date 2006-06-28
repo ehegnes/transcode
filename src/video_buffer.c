@@ -291,6 +291,7 @@ void vframe_copy(vframe_list_t *dst, vframe_list_t *src, int copy_data)
     dst->v_height = src->v_height;
     dst->v_bpp = src->v_bpp;
     dst->video_size = src->video_size;
+    dst->video_len = src->video_len;
 
     if (copy_data == 1) {
         /* really copy video data */

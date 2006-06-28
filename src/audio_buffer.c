@@ -286,6 +286,7 @@ void aframe_copy(aframe_list_t *dst, aframe_list_t *src, int copy_data)
     dst->a_bits = src->a_bits;
     dst->a_chan = src->a_chan;
     dst->audio_size = src->audio_size;
+    dst->audio_len = src->audio_len;
 
     if (copy_data == 1) {
         /* really copy video data */

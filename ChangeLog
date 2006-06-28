@@ -1,4 +1,7 @@
 2006-06-28 Francesco Romani <fromani at gmail dot com>
+  * src/audio_buffer.c src/video_buffer.c
+  when copying frames, copy len field too.
+
   * src/framebuffer.h
   add size VS length explanation and convert a couple of
   #define set to enums.
