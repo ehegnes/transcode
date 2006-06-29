@@ -1,7 +1,7 @@
 /*
  *  multiplex_y4m.c - pack a yuv420p stream in YUV4MPEG2 format
  *                    and/or a pcm stream in WAVE format
- *  (C) Francesco Romani <fromani at gmail dot com> - March 2006
+ *  (C) 2005/2006 Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
  * transcode is free software, distributable under the terms of the GNU

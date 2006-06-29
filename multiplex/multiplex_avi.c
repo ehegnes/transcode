@@ -1,6 +1,6 @@
 /*
  *  multiplex_avi.c - multiplex frames in an AVI file using avilib
- *  (C) Francesco Romani <fromani at gmail dot com> - December 2005
+ *  (C) 2005/2006 Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
  * transcode is free software, distributable under the terms of the GNU

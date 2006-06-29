@@ -1,3 +1,11 @@
+2006-06-29 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_copy.c encode/encode_lzo.c encode/encode_null.c
+    encode/encode_xvid.c libtc/ratiocodes.h libtc/tcmodule-core.h
+    libtc/tcmodule-data.h libtc/tcmodule-info.h libtc/tcmodule-plugin.h
+    multiplex/multiplex_avi.c multiplex/multiplex_null.c
+    multiplex/multiplex_raw.c multiplex/multiplex_y4m.c
+  Bump copyright year.
+
 2006-06-28 Francesco Romani <fromani at gmail dot com>
   * encode/encode_copy.c encode/encode_lzo.c encode/encode_null.c
     encode/encode_x264.c encode/encode_xvid.c

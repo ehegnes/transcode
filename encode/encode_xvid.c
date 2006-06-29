@@ -6,7 +6,7 @@
  *  Author : Edouard Gomez <ed.gomez@free.fr>
  *
  *  Port to transcode 1.1.0+ Module System:
- *  Francesco Romani <fromani at gmail dot com> - December 2005
+ *  (C) 2005-2006 Francesco Romani <fromani at gmail dot com>
  *
  *  This file is part of transcode, a video stream processing tool
  *
