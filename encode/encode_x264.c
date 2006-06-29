@@ -47,15 +47,17 @@
 
 
 #include "transcode.h"
+#include "libtc/libtc.h"
 #include "libtc/cfgfile.h"
 #include "libtc/optstr.h"
 #include "libtc/tcmodule-plugin.h"
 #include "libtc/ratiocodes.h"
+
 #include <x264.h>
 
 
 #define MOD_NAME    "encode_x264.so"
-#define MOD_VERSION "v0.1 (2006-06-05)"
+#define MOD_VERSION "v0.1.1 (2006-06-29)"
 #define MOD_CAP     "x264 encoder"
 
 
@@ -69,12 +71,13 @@
 typedef struct {
     int framenum;
     int interval;
-    int width, height;
-    uint8_t buffer[BUFFER_SIZE];
+    int width;
+    int height;
+//    uint8_t buffer[BUFFER_SIZE];
 
     x264_param_t x264params;
     x264_t *enc;
-} PrivateData;
+} X264PrivateData;
 
 /* Static structure to provide pointers for configuration entries */
 static struct confdata_struct {
@@ -86,7 +89,10 @@ static struct confdata_struct {
                          analyse.inter, i_trellis, i_me_method,
                          b_transform_8x8, b_weighted_bipred */
     int me_method; /* motion estimation method (i_me_method) */
-    int me_range;  /* TODO: what is it? */
+    int me_range;  /* TODO: what is it?
+                    Looks like Motion Estimation range, so it influence
+                    the extension, the accuracy and the computational cost
+                    of motion estimation. No more that a guess, yet. FR*/
 } confdata;
 
 /*************************************************************************/
@@ -366,18 +372,6 @@ static TCConfigEntry conf[] ={
 /*************************************************************************/
 /*************************************************************************/
 
-/* Some helper functions first */
-
-static int min(int a, int b)
-{
-    if (a < b) return a; else return b;
-}
-
-static int max(int a, int b)
-{
-    if (a > b) return a; else return b;
-}
-
 /*************************************************************************/
 
 /**
@@ -397,7 +391,7 @@ static int max(int a, int b)
  *     sar_den: integer to store SAR-denominator in.
  *
  * Returns:
- *     0 on success, nonzero otherwise.
+ *     0 on success, nonzero otherwise (this means bad parameters).
  */
 
 static int vob_get_sample_aspect_ratio(const vob_t *vob,
@@ -405,93 +399,50 @@ static int vob_get_sample_aspect_ratio(const vob_t *vob,
 {
     int num, den;
 
-    /* TODO: change error-handling */
-
-    /* QUESTION: Do I really need to check, if $vob->ex_par,
-         $vob->ex_par_width, $vob->ex_par_height and $vob->ex_asr are
-         in a sane range? Aren't these checks performed by
-         core-transcode somewhere?
-    */
     if (!vob || !sar_num || !sar_den)
         return -1;
 
     /* Aspect Ratio Calculations (modified code from export_ffmpeg.c) */
     if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_PAR) {
         if (vob->ex_par > 0) {
-            switch(vob->ex_par) {
-              case 1:
-                num = 1;
-                den = 1;
-                break;
-              case 2:
-                num = 1200;
-                den = 1100;
-                break;
-              case 3:
-                num = 1000;
-                den = 1100;
-                break;
-              case 4:
-                num = 1600;
-                den = 1100;
-                break;
-              case 5:
-                num = 4000;
-                den = 3300;
-                break;
-              default:
-                tc_log_error(MOD_NAME, "Parameter value for --export_par"
-                             " out of range (allowed: [1-5])");
-                return -1;
-            }
+            /* 
+             * vob->ex_par MUST be guarantee to be in a sane range
+             * by core (transcode/tcexport 
+             */
+            tc_par_code_to_ratio(vob->ex_par, &num, &den);
         } else {
-            if (vob->ex_par_width > 0 && vob->ex_par_height > 0) {
-                num = vob->ex_par_width;
-                den = vob->ex_par_height;
-            } else {
-                tc_log_error(MOD_NAME, "Parameter values for --export_par"
-                             " parameter out of range (allowed: [>0]/[>0])");
-                return -1;
-            }
+            /* same as above */
+            num = vob->ex_par_width;
+            den = vob->ex_par_height;
         }
+        tc_log_info(MOD_NAME, "DAR value ratio calculated as"
+                              " %f = %d/%d",
+                              (double)num/(double)den, num, den);
     } else {
         if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_ASR) {
-            if (vob->ex_asr > 0) {
-                switch(vob->ex_asr) {
-                  case 1: num =   1; den =   1; break;
-                  case 2: num =   4; den =   3; break;
-                  case 3: num =  16; den =   9; break;
-                  case 4: num = 221; den = 100; break;
-                  default:
-                    tc_log_error(MOD_NAME, "Parameter value to --export_asr"
-                                 " out of range (allowed: [1-4])");
-                    return -1;
-                }
+            /* same as above for PAR stuff */
+            tc_asr_code_to_ratio(vob->ex_asr, &num, &den);
+            tc_log_info(MOD_NAME, "Display aspect ratio calculated as"
+                                  " %f = %d/%d",
+                                 (double)num/(double)den, num, den);
 
-                tc_log_info(MOD_NAME, "Display aspect ratio calculated as"
-                            " %f = %d/%d", (double)num/(double)den, num, den);
+            /* ffmpeg FIXME:
+             * This original code might lead to rounding/truncating errors
+             * and maybe produces too high values for "den" and
+             * "num" for -y ffmpeg -F mpeg4
+             *
+             * sar = dar * ((double)vob->ex_v_height / (double)vob->ex_v_width);
+             * lavc_venc_context->sample_aspect_ratio.num = (int)(sar * 1000);
+             * lavc_venc_context->sample_aspect_ratio.den = 1000;
+             */
 
-                /* ffmpeg FIXME:
-                 * This original code might lead to rounding/truncating errors
-                 * and maybe produces too high values for "den" and
-                 * "num" for -y ffmpeg -F mpeg4
-                 *
-                 * sar = dar * ((double)vob->ex_v_height / (double)vob->ex_v_width);
-                 * lavc_venc_context->sample_aspect_ratio.num = (int)(sar * 1000);
-                 * lavc_venc_context->sample_aspect_ratio.den = 1000;
-                 */
+             num *= vob->ex_v_height;
+             den *= vob->ex_v_width;
+             /* I don't need to reduce since x264 does it itself :-) */
+             tc_log_info(MOD_NAME, "Sample aspect ratio calculated as"
+                                   " %f = %d/%d",
+                                   (double)num/(double)den, num, den);
 
-                num *= vob->ex_v_height;
-                den *= vob->ex_v_width;
-                /* I don't need to reduce since x264 does it itself :-) */
-                tc_log_info(MOD_NAME, "Sample aspect ratio calculated as"
-                            " %f = %d/%d", (double)num/(double)den, num, den);
-
-            } else {
-                tc_log_error(MOD_NAME, "Parameter value to --export_asr"
-                             " out of range (allowed: [1-4])");
-                return -1;
-            }
         } else { /* user did not specify asr at all, assume no change */
             tc_log_info(MOD_NAME, "Set display aspect ratio to input");
             num = 1;
@@ -501,7 +452,6 @@ static int vob_get_sample_aspect_ratio(const vob_t *vob,
 
     *sar_num = num;
     *sar_den = den;
-
     return 0;
 }
 
@@ -555,7 +505,7 @@ static int x264params_set_multipass(x264_param_t *params,
         if (turbo == 1) {
             params->i_frame_reference = (params->i_frame_reference + 1) / 2;
             params->analyse.i_subpel_refine =
-                max(min(3, params->analyse.i_subpel_refine - 1), 1);
+                TC_CLAMP(params->analyse.i_subpel_refine - 1, 1, 3);
             params->analyse.inter &= ~X264_ANALYSE_PSUB8x8;
             params->analyse.inter &= ~X264_ANALYSE_BSUB16x16;
             params->analyse.i_trellis = 0;
@@ -606,17 +556,25 @@ static int x264params_set_multipass(x264_param_t *params,
 static int x264params_configure(const char *mpstat_filename, int pass)
 {
     switch (confdata.me_method) {
-        case 1: confdata.x264params.analyse.i_me_method = X264_ME_DIA; break;
-        case 2: confdata.x264params.analyse.i_me_method = X264_ME_HEX; break;
-        case 3: confdata.x264params.analyse.i_me_method = X264_ME_UMH; break;
-        case 4: confdata.x264params.analyse.i_me_method = X264_ME_ESA; break;
+      case 1:
+        confdata.x264params.analyse.i_me_method = X264_ME_DIA;
+        break;
+      case 2:
+        confdata.x264params.analyse.i_me_method = X264_ME_HEX;
+        break;
+      case 3:
+        confdata.x264params.analyse.i_me_method = X264_ME_UMH;
+        break;
+      case 4:
+        confdata.x264params.analyse.i_me_method = X264_ME_ESA;
+        break;
     }
 
     /* turbo mode might change $i_me_method, which influences $i_me_range */
     if (0 != x264params_set_multipass(&confdata.x264params, pass,
                                       confdata.turbo, mpstat_filename)
     ) {
-        fprintf(stderr, "Failed to apply multipass settings.\n");
+        tc_log_error(MOD_NAME, "Failed to apply multipass settings.");
         return -1;
     }
 
@@ -735,17 +693,17 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
 
 static int x264_init(TCModuleInstance *self)
 {
-    PrivateData *pd;
+    X264PrivateData *pd;
 
     if (!self) {
         tc_log_error(MOD_NAME, "init: self == NULL!");
-        return -1;
+        return TC_EXPORT_ERROR;
     }
 
-    self->userdata = pd = tc_malloc(sizeof(PrivateData));
+    pd = tc_malloc(sizeof(X264PrivateData));
     if (!pd) {
         tc_log_error(MOD_NAME, "init: out of memory!");
-        return -1;
+        return TC_EXPORT_ERROR;
     }
     pd->framenum = 0;
     pd->enc = NULL;
@@ -753,8 +711,9 @@ static int x264_init(TCModuleInstance *self)
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     }
+    self->userdata = pd;
 
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 /*************************************************************************/
@@ -766,10 +725,10 @@ static int x264_init(TCModuleInstance *self)
 
 static int x264_fini(TCModuleInstance *self)
 {
-    PrivateData *pd;
+    X264PrivateData *pd;
 
     if (!self) {
-        return -1;
+        return TC_EXPORT_ERROR;
     }
     pd = self->userdata;
 
@@ -780,7 +739,7 @@ static int x264_fini(TCModuleInstance *self)
 
     tc_free(self->userdata);
     self->userdata = NULL;
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 /*************************************************************************/
@@ -793,10 +752,10 @@ static int x264_fini(TCModuleInstance *self)
 static int x264_configure(TCModuleInstance *self,
                          const char *options, vob_t *vob)
 {
-    PrivateData *pd;
+    X264PrivateData *pd;
 
     if (!self) {
-        return -1;
+        return TC_EXPORT_ERROR;
     }
     pd = self->userdata;
 
@@ -810,7 +769,7 @@ static int x264_configure(TCModuleInstance *self,
     /* Apply extra settings to $x264params */
     if (0 != x264params_configure(vob->divxlogfile, vob->divxmultipass)) {
         tc_log_error(MOD_NAME, "Failed to apply settings to $x264params.");
-        return -1;
+        return TC_EXPORT_ERROR;
     }
 
     /* Copy parameter block to module private data */
@@ -820,29 +779,29 @@ static int x264_configure(TCModuleInstance *self,
      * $x264params. This is done as the last step to make transcode CLI
      * override any settings done before. */
     if (0 != x264params_set_by_vob(&pd->x264params, vob)) {
-        fprintf(stderr, "Failed to evaluate vob_t values.\n");
-        return -1;
+        tc_log_error(MOD_NAME, "Failed to evaluate vob_t values.");
+        return TC_EXPORT_ERROR;
     }
 
     /* Test if the set parameters fit together. */
     if (0 != x264params_check(&pd->x264params)) {
-        return -1;
+        return TC_EXPORT_ERROR;
     }
 
     /* Now we've set all parameters gathered from transcode and the config
      * file to $x264params. Let's give some status report and finally open
      * the encoder. */
-    if (verbose & TC_DEBUG) {
+    if (verbose >= TC_DEBUG) {
         module_print_config(conf, MOD_NAME);
     }
 
     pd->enc = x264_encoder_open(&pd->x264params);
     if (!pd->enc) {
         tc_log_error(MOD_NAME, "x264_encoder_open() returned NULL - sorry.");
-        return -1;
+        return TC_EXPORT_ERROR;
     }
 
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 /*************************************************************************/
@@ -854,10 +813,10 @@ static int x264_configure(TCModuleInstance *self,
 
 static int x264_stop(TCModuleInstance *self)
 {
-    PrivateData *pd;
+    X264PrivateData *pd;
 
     if (!self) {
-        return -1;
+        return TC_EXPORT_ERROR;
     }
     pd = self->userdata;
 
@@ -866,7 +825,7 @@ static int x264_stop(TCModuleInstance *self)
         pd->enc = NULL;
     }
 
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 /*************************************************************************/
@@ -879,7 +838,7 @@ static int x264_stop(TCModuleInstance *self)
 static const char *x264_inspect(TCModuleInstance *self,
                                const char *param)
 {
-    PrivateData *pd;
+    X264PrivateData *pd;
     static char buf[TC_BUF_MAX];
 
     if (!self || !param)
@@ -908,13 +867,13 @@ static const char *x264_inspect(TCModuleInstance *self,
 static int x264_encode_video(TCModuleInstance *self,
                             vframe_list_t *inframe, vframe_list_t *outframe)
 {
-    PrivateData *pd;
+    X264PrivateData *pd;
     x264_nal_t *nal;
     int nnal, i;
     x264_picture_t pic, pic_out;
 
     if (!self) {
-        return -1;
+        return TC_EXPORT_ERROR;
     }
     pd = self->userdata;
 
@@ -941,9 +900,9 @@ static int x264_encode_video(TCModuleInstance *self,
      * done? */
     pic.i_pts = (int64_t) pd->framenum * pd->x264params.i_fps_den;
 
-    // tc_log_msg(MOD_NAME, "starting encoder_encode(frame %d)", framenum);
-    if (x264_encoder_encode(pd->enc, &nal, &nnal, &pic, &pic_out) != 0)
-        return -1;
+    if (x264_encoder_encode(pd->enc, &nal, &nnal, &pic, &pic_out) != 0) {
+        return TC_EXPORT_ERROR;
+    }
 
     // tc_log_msg("saving %d NAL(s)", nnal);
     /* modified code from x264.c down there (IIRC). */
@@ -955,13 +914,13 @@ static int x264_encode_video(TCModuleInstance *self,
         ret = x264_nal_encode(outframe->video_buf + outframe->video_len,
                               &size, 1, &nal[i]);
         if (ret < 0) {
-            tc_log_warn(MOD_NAME, "output buffer overflow");
+            tc_log_error(MOD_NAME, "output buffer overflow");
             break;
         }
         outframe->video_len += size;
     }
 
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 /*************************************************************************/

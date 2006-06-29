@@ -1,4 +1,9 @@
 2006-06-29 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_x264.c
+  small cleanup: use libtc commodities when feasible, remove
+  some magic numbers, temporary disable big buffer (seems to
+  be unused, yet), make more NMSish and STYLEish where feasible.
+
   * src/transcode.c
   slightly stricter check on sanity of ex_asr option.
 
