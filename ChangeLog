@@ -1,4 +1,7 @@
 2006-06-29 Francesco Romani <fromani at gmail dot com>
+  * src/transcode.c
+  slightly stricter check on sanity of ex_asr option.
+
   * encode/encode_copy.c encode/encode_lzo.c encode/encode_null.c
     encode/encode_xvid.c libtc/ratiocodes.h libtc/tcmodule-core.h
     libtc/tcmodule-data.h libtc/tcmodule-info.h libtc/tcmodule-plugin.h

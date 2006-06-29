@@ -1868,7 +1868,8 @@ int main(int argc, char *argv[]) {
 	    if(optarg[0]=='-') usage(EXIT_FAILURE);
 	    vob->ex_asr=atoi(optarg);
 
-	    if(vob->ex_asr < 0) tc_error("invalid parameter for option --export_asr");
+	    if(vob->ex_asr < 0 || vob->ex_asr > 4)
+               tc_error("invalid parameter for option --export_asr");
 
 	    vob->export_attributes |= TC_EXPORT_ATTRIBUTE_ASR;
 
