@@ -1,3 +1,7 @@
+2006-07-06 Francesco Romani <fromani at gmail dot com>
+  * configure.in
+  fix glitch in libavcodec version detection (#ifdef -> #if).
+
 2006-06-29 Francesco Romani <fromani at gmail dot com>
   * encode/encode_x264.c
   small cleanup: use libtc commodities when feasible, remove
