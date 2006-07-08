@@ -96,6 +96,7 @@ static void ps_loop (void)
 	  buf = tmp1;
 	  break;
 
+    /* video stream code: 1110???? */
 	case 0xe0:	/* video */
 	case 0xe1:	/* video */
 	case 0xe2:	/* video */
@@ -106,6 +107,12 @@ static void ps_loop (void)
 	case 0xe7:	/* video */
 	case 0xe8:	/* video */
 	case 0xe9:	/* video */
+	case 0xea:	/* video */
+	case 0xeb:	/* video */
+	case 0xec:	/* video */
+	case 0xed:	/* video */
+	case 0xee:	/* video */
+	case 0xef:	/* video */
 
 	  tmp2 = buf + 6 + (buf[4] << 8) + buf[5];
 	  if (tmp2 > end)
