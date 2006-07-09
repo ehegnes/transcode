@@ -25,6 +25,7 @@ libtc_la_SOURCES = \
 	strlcpy.c \
 	tc_functions.c \
 	tccodecs.c \
+	tcframes.c \
 	tcmodule.c \
 	tcmoduleinfo.c \
 	$(GETOPT_FILES) \
@@ -41,6 +42,7 @@ EXTRA_DIST = \
 	static_xio.h \
 	tc_lzo.h \
 	tccodecs.h \
+	tcframes.h \
 	tcmodule-core.h \
 	tcmodule-data.h \
 	tcmodule-info.h \

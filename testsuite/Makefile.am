@@ -18,6 +18,7 @@ noinst_PROGRAMS = \
 	test-bufalloc \
 	test-export-profile \
 	test-framecode \
+	test-framealloc \
 	test-imgconvert \
 	test-iodir \
 	test-ratiocodes \
@@ -35,6 +36,9 @@ test_acmemcpy_speed_LDADD = $(ACLIB_LIBS)
 
 test_bufalloc_SOURCES = test-bufalloc.c
 test_bufalloc_LDADD = $(LIBTC_LIBS)
+
+test_framealloc_SOURCES = test-framealloc.c
+test_framealloc_LDADD = $(LIBTC_LIBS)
 
 test_framecode_SOURCES = test-framecode.c
 test_framecode_LDADD = $(LIBTC_LIBS)
