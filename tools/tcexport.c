@@ -28,9 +28,10 @@
 #include "filter.h"
 #include "socket.h"
 #include "libtc/tcmodule-core.h"
-#include "libtc/cfgfile.h"
 #include "libtc/libtc.h"
+#include "libtc/cfgfile.h"
 #include "libtc/tccodecs.h"
+#include "libtc/tcframes.h"
 
 #include "rawsource.h"
 
@@ -78,6 +79,8 @@ struct tcencconf_ {
 
     char *range_str;
 };
+
+/* FIXME: what about ex_asr and ex_par ? */
 
 static vob_t vob = {
     .verbose = TC_INFO,
@@ -522,6 +525,7 @@ pid_t tc_probe_pid = 0;
 int main(int argc, char *argv[])
 {
     int ret = 0, status = STATUS_OK;
+    double samples = 0;
     /* needed by some modules */
     TCFactory factory = NULL;
     const TCExportInfo *info = NULL;
@@ -561,6 +565,11 @@ int main(int argc, char *argv[])
         return STATUS_PROBE_FAILED;
     }
 
+    samples = TC_AUDIO_SAMPLES_IN_FRAME(vob.a_rate, vob.ex_fps);
+    vob.im_a_size = tc_audio_frame_size(samples, vob.a_chan, vob.a_bits,
+                                        &vob.a_leap_bytes);
+    vob.im_v_size = tc_video_frame_size(vob.im_v_width, vob.im_v_height,
+                                        vob.im_v_codec);
     setup_im_size(&vob);
     setup_ex_params(&vob);
     ret = setup_ranges(&config);

@@ -27,6 +27,9 @@
   isn't enabled. That's a temporary solution, both filters
   deserve some care.
 
+  * tools/rawsource.c tools/tcexport.c
+  switch to new frame handling code.
+
 2006-07-08 Francesco Romani <fromani at gmail dot com>
   * import/extract_mpeg2.c
   extend video stream code range to all possible values.

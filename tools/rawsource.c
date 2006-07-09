@@ -23,6 +23,7 @@
 #include "dl_loader.h"
 #include "rawsource.h"
 #include "libtc/libtc.h"
+#include "libtc/tcframes.h"
 #include "avilib/wavlib.h"
 #include "rawsource.h"
 
@@ -167,17 +168,20 @@ int tc_rawsource_open(vob_t *vob)
 {
     int ret = 0;
     int num_sources = 0;
+    double samples;
 
     if (!vob) {
         goto vframe_failed;
     }
 
-    rawsource.vframe = tc_vframe_new(vob->im_v_width, vob->im_v_height);
+    rawsource.vframe = tc_new_video_frame(vob->im_v_width, vob->im_v_height,
+                                          vob->im_v_codec, TC_TRUE);
     if (!rawsource.vframe) {
         tc_log_error(__FILE__, "can't allocate video frame buffer");
         goto vframe_failed;
     }
-    rawsource.aframe = tc_aframe_new();
+    samples = TC_AUDIO_SAMPLES_IN_FRAME(vob->a_rate, vob->ex_fps);
+    rawsource.aframe = tc_new_audio_frame(samples, vob->a_chan, vob->a_bits);
     if (!rawsource.aframe) {
         tc_log_error(__FILE__, "can't allocate audio frame buffer");
         goto aframe_failed;
@@ -221,9 +225,9 @@ int tc_rawsource_open(vob_t *vob)
     return num_sources;
 
 load_failed:
-    tc_aframe_del(rawsource.aframe);
+    tc_del_audio_frame(rawsource.aframe);
 aframe_failed:
-    tc_vframe_del(rawsource.vframe);
+    tc_del_video_frame(rawsource.vframe);
 vframe_failed:
     return -1;
 }
@@ -231,11 +235,11 @@ vframe_failed:
 static void tc_rawsource_free(void)
 {
     if (rawsource.vframe != NULL) {
-        tc_vframe_del(rawsource.vframe);
+        tc_del_video_frame(rawsource.vframe);
         rawsource.vframe = NULL;
     }
     if (rawsource.aframe != NULL) {
-        tc_aframe_del(rawsource.aframe);
+        tc_del_audio_frame(rawsource.aframe);
         rawsource.aframe = NULL;
     }
 }
