@@ -499,7 +499,7 @@ void vimport_thread(vob_t *vob)
 
     memset(&import_para, 0, sizeof(transfer_t));
 
-    if(verbose & TC_STATS) printf("\n%10s [%ld] V=%d bytes\n", "requesting", i, vbytes);
+    if(verbose >= TC_STATS) printf("\n%10s [%ld] V=%d bytes\n", "requesting", i, vbytes);
 
     pthread_testcancel();
 
@@ -701,7 +701,7 @@ void aimport_thread(vob_t *vob)
       abytes = vob->im_a_size;
     }
 
-    if(verbose & TC_STATS) printf("\n%10s [%ld] A=%d bytes\n", "requesting", i, abytes);
+    if(verbose >= TC_STATS) printf("\n%10s [%ld] A=%d bytes\n", "requesting", i, abytes);
 
     pthread_testcancel();
 
