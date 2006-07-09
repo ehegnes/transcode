@@ -56,5 +56,20 @@ extern uint32_t abuffer_xx_fill_ctr;
 extern pthread_mutex_t abuffer_ex_fill_lock;
 extern uint32_t abuffer_ex_fill_ctr;
 
+/*
+ * tc_flush_{audio,video}_counters:
+ *      reset to zero frame counters that accounts
+ *      amount of frames in various stage of processing.
+ *      Threas safe
+ *
+ * Parameters:
+ *      None
+ * Return Value:
+ *      None
+ * Side effects:
+ *      Use internal locking, so it's thread safe/
+ */
+void tc_flush_audio_counters(void);
+void tc_flush_video_counters(void);
 
 #endif

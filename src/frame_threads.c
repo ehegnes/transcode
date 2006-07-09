@@ -67,6 +67,36 @@ static pthread_t fthread_id[TC_FRAME_THREADS_MAX];
 pthread_mutex_t fth_id_lock=PTHREAD_MUTEX_INITIALIZER;
 int fthread_index=0;
 
+void tc_flush_audio_counters(void)
+{
+    pthread_mutex_lock(&abuffer_im_fill_lock);
+    abuffer_im_fill_ctr = 0;
+    pthread_mutex_unlock(&abuffer_im_fill_lock);
+
+    pthread_mutex_lock(&abuffer_ex_fill_lock);
+    abuffer_ex_fill_ctr = 0;
+    pthread_mutex_unlock(&abuffer_ex_fill_lock);
+
+    pthread_mutex_lock(&abuffer_xx_fill_lock);
+    abuffer_xx_fill_ctr = 0;
+    pthread_mutex_unlock(&abuffer_xx_fill_lock);
+}
+
+void tc_flush_video_counters(void)
+{
+    pthread_mutex_lock(&vbuffer_im_fill_lock);
+    vbuffer_im_fill_ctr = 0;
+    pthread_mutex_unlock(&vbuffer_im_fill_lock);
+
+    pthread_mutex_lock(&vbuffer_ex_fill_lock);
+    vbuffer_ex_fill_ctr = 0;
+    pthread_mutex_unlock(&vbuffer_ex_fill_lock);
+
+    pthread_mutex_lock(&vbuffer_xx_fill_lock);
+    vbuffer_xx_fill_ctr = 0;
+    pthread_mutex_unlock(&vbuffer_xx_fill_lock);
+}
+
 /* ------------------------------------------------------------
  *
  * frame processing threads
