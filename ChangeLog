@@ -8,6 +8,9 @@
   * libtc/Makefile.am testsuite/Makefile.am
   Add unified, generic, frame allocation helpers.
 
+  * import/extract_yuv.c
+  switch to new frame allocation code.
+
 2006-07-08 Francesco Romani <fromani at gmail dot com>
   * import/extract_mpeg2.c
   extend video stream code range to all possible values.

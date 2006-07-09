@@ -29,6 +29,7 @@
 #include "tcinfo.h"
 #include "libtc/libtc.h"
 #include "libtc/ratiocodes.h"
+#include "libtc/tcframes.h"
 
 #include "ioaux.h"
 #include "avilib/avilib.h"
@@ -91,7 +92,8 @@ static int extract_yuv_y4m(info_t *ipipe)
     
     w = y4m_si_get_width(&streaminfo);
     h = y4m_si_get_height(&streaminfo);
-    vptr = tc_vframe_new(w, h);
+    vptr = tc_new_video_frame(w, h, TC_CODEC_YUV420P, TC_TRUE);
+
     if (!vptr) {
         tc_log_error(__FILE__, "can't allocate buffer (%ix%i)", w, h);
         return 1;
@@ -117,7 +119,7 @@ static int extract_yuv_y4m(info_t *ipipe)
         }
     }
 
-    tc_vframe_del(vptr);
+    tc_del_video_frame(vptr);
     y4m_fini_frame_info(&frameinfo);
     y4m_fini_stream_info(&streaminfo);
 
