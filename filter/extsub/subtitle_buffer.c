@@ -32,7 +32,9 @@ sframe_list_t *sframe_list_head;
 sframe_list_t *sframe_list_tail;
 
 static int sub_buf_max = 0;
+#ifdef STATBUFFER
 static int sub_buf_next = 0;
+#endif
 
 static int sub_buf_fill=0;
 static int sub_buf_ready=0;
@@ -76,12 +78,13 @@ static int sub_buf_alloc(int ex_num)
 	sub_buf_ptr[n]->status = FRAME_NULL;
 	sub_buf_ptr[n]->bufid = n;
 
+#ifdef STATBUFFER
 	//allocate extra subeo memory:
 	if((sub_buf_ptr[n]->video_buf=tc_bufalloc(SUB_BUFFER_SIZE))==NULL) {
 	  tc_log_perror(__FILE__, "out of memory");
 	  return(-1);
 	}
-
+#endif /* STATBUFFER */
     }
 
     // assign to static
@@ -118,6 +121,8 @@ static void sub_buf_free(void)
 }
 
 /* ------------------------------------------------------------------ */
+
+#ifdef STATBUFFER
 
 static sframe_list_t *sub_buf_retrieve(void)
 {
@@ -184,6 +189,7 @@ static int sub_buf_release(sframe_list_t *ptr)
     return(0);
 }
 
+#endif /* STATBUFFER */
 
 /* ------------------------------------------------------------------ */
 

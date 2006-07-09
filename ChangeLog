@@ -22,6 +22,11 @@
   * libtc/tcframes.c
   build fixes without static buffers support.
 
+  * filter/preview/filter_pv.c filter/extsub/subtitle_buffer.c
+  another couple of build fixes if static buffer support
+  isn't enabled. That's a temporary solution, both filters
+  deserve some care.
+
 2006-07-08 Francesco Romani <fromani at gmail dot com>
   * import/extract_mpeg2.c
   extend video stream code range to all possible values.

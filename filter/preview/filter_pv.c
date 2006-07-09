@@ -398,16 +398,18 @@ int preview_filter_buffer(int frames_needed)
 	ptr->filter_id = 0;
 	ptr->v_codec = CODEC_YUV;
 	ptr->id  = i; // frame
+#ifdef STATBUFFER
 	ptr->internal_video_buf_0 = run_buffer[0];
 	ptr->internal_video_buf_1 = run_buffer[1];
+#endif /* STATBUFFER */
 
 	// RGB
-	ptr->video_buf_RGB[0]=ptr->internal_video_buf_0;
-	ptr->video_buf_RGB[1]=ptr->internal_video_buf_1;
+	ptr->video_buf_RGB[0]=run_buffer[0];
+	ptr->video_buf_RGB[1]=run_buffer[1];
 
 	//YUV
-	ptr->video_buf_Y[0] = ptr->internal_video_buf_0;
-	ptr->video_buf_Y[1] = ptr->internal_video_buf_1;
+	ptr->video_buf_Y[0] = run_buffer[0];
+	ptr->video_buf_Y[1] = run_buffer[1];
 
 	ptr->video_buf_U[0] = ptr->video_buf_Y[0]
 	    + TC_MAX_V_FRAME_WIDTH * TC_MAX_V_FRAME_HEIGHT;
@@ -420,8 +422,8 @@ int preview_filter_buffer(int frames_needed)
 	    + (TC_MAX_V_FRAME_WIDTH * TC_MAX_V_FRAME_HEIGHT)/4;
 
 	//default pointer
-	ptr->video_buf  = ptr->internal_video_buf_0;
-	ptr->video_buf2 = ptr->internal_video_buf_1;
+	ptr->video_buf  = run_buffer[0];
+	ptr->video_buf2 = run_buffer[1];
 	ptr->free = 1;
 
 #ifdef NO_PROCESS
@@ -589,16 +591,18 @@ redisplay_frame:
 	ptr.filter_id = 0;
 	ptr.v_codec = CODEC_YUV;
 	ptr.id  = i; // frame
+#ifdef STATBUFFER	
 	ptr.internal_video_buf_0 = run_buffer[0];
 	ptr.internal_video_buf_1 = run_buffer[1];
+#endif /* STATBUFFER */
 
 	// RGB
-	ptr.video_buf_RGB[0]=ptr.internal_video_buf_0;
-	ptr.video_buf_RGB[1]=ptr.internal_video_buf_1;
+	ptr.video_buf_RGB[0]=run_buffer[0];
+	ptr.video_buf_RGB[1]=run_buffer[1];
 
 	//YUV
-	ptr.video_buf_Y[0] = ptr.internal_video_buf_0;
-	ptr.video_buf_Y[1] = ptr.internal_video_buf_1;
+	ptr.video_buf_Y[0] = run_buffer[0];
+	ptr.video_buf_Y[1] = run_buffer[1];
 
 	ptr.video_buf_U[0] = ptr.video_buf_Y[0]
 	    + TC_MAX_V_FRAME_WIDTH * TC_MAX_V_FRAME_HEIGHT;
@@ -611,8 +615,8 @@ redisplay_frame:
 	    + (TC_MAX_V_FRAME_WIDTH * TC_MAX_V_FRAME_HEIGHT)/4;
 
 	//default pointer
-	ptr.video_buf  = ptr.internal_video_buf_0;
-	ptr.video_buf2 = ptr.internal_video_buf_1;
+	ptr.video_buf  = run_buffer[0];
+	ptr.video_buf2 = run_buffer[1];
 	ptr.free = 1;
 
 	ptr.video_size = size;
