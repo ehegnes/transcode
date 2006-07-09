@@ -186,12 +186,15 @@ vframe_list_t *tc_alloc_video_frame(size_t size, int partial)
 #ifdef STATBUFFER
         vptr->internal_video_buf_0 = tc_bufalloc(size);
         if (vptr->internal_video_buf_0 == NULL) {
-            goto no_vid_buf_0;
+            tc_free(vptr);
+            return NULL;
         }
         if (!partial) {
             vptr->internal_video_buf_1 = tc_bufalloc(size);
             if (vptr->internal_video_buf_1 == NULL) {
-                goto no_vid_buf_1;
+                tc_buffree(vptr->internal_video_buf_0);
+                tc_free(vptr);
+                return NULL;
             }
         } else {
             vptr->internal_video_buf_1 = NULL;
@@ -201,11 +204,6 @@ vframe_list_t *tc_alloc_video_frame(size_t size, int partial)
     }
     return vptr;
 
-no_vid_buf_1:
-    tc_buffree(vptr->internal_video_buf_0);
-no_vid_buf_0:
-    tc_free(vptr);
-    return NULL;
 }
 
 aframe_list_t *tc_alloc_audio_frame(size_t size)

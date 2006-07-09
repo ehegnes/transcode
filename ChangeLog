@@ -19,6 +19,9 @@
   to reduce framebuffer/core interdependencies and
   to make code more generic).
 
+  * libtc/tcframes.c
+  build fixes without static buffers support.
+
 2006-07-08 Francesco Romani <fromani at gmail dot com>
   * import/extract_mpeg2.c
   extend video stream code range to all possible values.
