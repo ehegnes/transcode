@@ -23,6 +23,9 @@
   * src/encoder.c
   Don't reset inexistent frame attributes when using OMS modules.
 
+  * import/tcprobe.c
+  fix output glitch when displaying audio bitrate only.
+
 2006-07-09 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c
   verbosiness switch.

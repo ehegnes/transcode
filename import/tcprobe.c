@@ -508,11 +508,9 @@ static void dump_info_user(info_t *ipipe)
     long frame_time = 0;
     int is_std = TC_TRUE; /* flag: select PROBED_??? above */
     int nsubs = 0, n = 0;
-    char extrabuf[TC_BUF_MIN];
+    char extrabuf[TC_BUF_MIN] = { '\0' };
     int extrabuf_ready = TC_FALSE;
     size_t len = 0;
-
-    *extrabuf = 0;
 
     printf("summary for %s, %s = not default, 0 = not detected\n",
            ((ipipe->magic == TC_STYPE_STDIN) ?"-" :ipipe->name),
@@ -554,9 +552,8 @@ static void dump_info_user(info_t *ipipe)
                ipipe->probe_info->fps, PAL_FPS, ipipe->probe_info->frc,
                CHECK_MARK_EXPECTED(ipipe->probe_info->frc, 3));
 
-        tc_snprintf(extrabuf, sizeof(extrabuf),
-                    "%18s ", "");
-                    /* empty string to have a nice justification */
+        tc_snprintf(extrabuf, sizeof(extrabuf), "%18s ", "");
+        /* empty string to have a nice justification */
         /* video track extra info */
         if (ipipe->probe_info->pts_start) {
             len = strlen(extrabuf);
@@ -624,7 +621,7 @@ static void dump_info_user(info_t *ipipe)
             if (ipipe->probe_info->track[n].bitrate) {
                 size_t len = strlen(extrabuf);
                 tc_snprintf(extrabuf + len, sizeof(extrabuf) - len,
-                            "%sbitrate=%i kbps", (len > 0) ?", " :"",
+                            "%sbitrate=%i kbps", (extrabuf_ready) ?", " :"",
                             ipipe->probe_info->track[n].bitrate);
                 extrabuf_ready = TC_TRUE;
             }
