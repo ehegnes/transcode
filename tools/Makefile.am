@@ -99,12 +99,11 @@ tcexport_SOURCES = tcexport.c \
 	rawsource.h \
 	../src/probe.c \
 	../src/dl_loader.c \
-	../src/audio_buffer.c \
-	../src/video_buffer.c \
 	../src/counter.c \
 	../src/encoder.c \
 	../src/encoder-common.c \
-	../src/export_profile.c
+	../src/export_profile.c \
+	../src/framebuffer.c
 tcexport_CPPFLAGS = $(AM_CPPFLAGS) \
 	$(DLDARWIN_CFLAGS)
 tcexport_LDADD = \

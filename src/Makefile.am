@@ -44,7 +44,6 @@ EXTRA_DIST = \
 
 transcode_SOURCES = \
 	transcode.c \
-	audio_buffer.c \
 	audio_trans.c \
 	counter.c \
 	decoder.c \
@@ -54,8 +53,8 @@ transcode_SOURCES = \
 	encoder-buffer.c \
 	filter.c \
 	frame_threads.c \
+	framebuffer.c \
 	probe.c \
 	socket.c \
 	split.c \
-	video_buffer.c \
 	video_trans.c

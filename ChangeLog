@@ -11,6 +11,12 @@
   * libtc/libtc.h libtc/tc_functions.c
   drop old tc_{a,v}frame_{del,new}, now we have better replacements.
 
+  * Added file: src/framebuffer.c
+  * src/framebuffer.h src/transcode.c src/Makefile.am
+  tools/Makefile.am
+  Enter the new framebuffer handling code. Works nicely, but it's still
+  under testing. Documentation is on the road.
+
 2006-07-09 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c
   verbosiness switch.

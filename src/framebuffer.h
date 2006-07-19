@@ -2,6 +2,8 @@
  *  framebuffer.h
  *
  *  Copyright (C) Thomas Östreich - June 2001
+ *  Updates and Enhancements
+ *  (C) 2006 - Francesco Romani <fromani -at- gmail -dot- com>
  *
  *  This file is part of transcode, a video stream processing tool
  *
@@ -30,6 +32,8 @@
 
 #include <stdint.h>
 #include <pthread.h>
+
+#include "tc_defaults.h"
 
 typedef enum tcframestatus_ TCFrameStatus;
 enum tcframestatus_ {
@@ -63,6 +67,7 @@ enum tcbufferstatus_ {
  *          -- tibit
  */
 
+/* FIXME: comment me up */
 #define TC_FRAME_COMMON \
     int id;         /* FIXME: comment */ \
     int bufid;      /* buffer id */ \
@@ -112,6 +117,9 @@ struct frame_list {
     int param1; // v_width or a_rate
     int param2; // v_height or a_bits
     int param3; // v_bpp or a_chan
+
+    struct frame_list *next;
+    struct frame_list *prev;
 };
 
 
@@ -183,55 +191,77 @@ struct aframe_list {
 #endif
 };
 
+/* generic pointer structure */
+typedef union tcframeptr_ TCFramePtr;
+union tcframeptr_ {
+    frame_list_t *generic;
+    vframe_list_t *video;
+    aframe_list_t *audio;
+};
 
-#define VFRAME_INIT(vptr, W, H) \
-    do { \
-        (vptr)->video_buf_RGB[0] = (vptr)->internal_video_buf_0; \
-        (vptr)->video_buf_RGB[1] = (vptr)->internal_video_buf_1; \
-        \
-        (vptr)->video_buf_Y[0] = (vptr)->internal_video_buf_0; \
-        (vptr)->video_buf_U[0] = (vptr)->video_buf_Y[0] + (W) * (H); \
-        (vptr)->video_buf_V[0] = (vptr)->video_buf_U[0] + ((W) * (H)); \
-        \
-        (vptr)->video_buf_Y[1] = (vptr)->internal_video_buf_1; \
-        (vptr)->video_buf_U[1] = (vptr)->video_buf_Y[1] + (W) * (H); \
-        (vptr)->video_buf_V[1] = (vptr)->video_buf_U[1] + ((W) * (H)); \
-        \
-        (vptr)->video_buf  = (vptr)->internal_video_buf_0; \
-        (vptr)->video_buf2 = (vptr)->internal_video_buf_1; \
-    } while(0)
+/* 
+ * frame*buffer* specifications, needed to properly allocate
+ * and initialize single frame buffers
+ */
+typedef struct tcframespecs_ TCFrameSpecs;
+struct tcframespecs_ {
+    int frc;   /* frame ratio code is more precise than value */
 
-#define AFRAME_INIT(ptr) \
-do { \
-        ptr->audio_buf  = ptr->internal_audio_buf; \
-} while(0)
+    /* video fields */
+    int width;
+    int height;
+    int format; /* TC_CODEC_XXX preferred,
+                 * CODEC_XXX still supported for compatibility
+                 */
+    /* audio fields */
+    int rate;
+    int channels;
+    int bits;
 
+    /* private field, used internally */
+    double samples;
+};
+
+const TCFrameSpecs *tc_ring_framebuffer_get_specs(void);
+void tc_ring_framebuffer_set_specs(const TCFrameSpecs *specs);
 
 vframe_list_t *vframe_register(int id);
-void vframe_remove(vframe_list_t *ptr);
-vframe_list_t *vframe_retrieve(void);
-vframe_list_t *vframe_dup(vframe_list_t *f);
-void vframe_copy(vframe_list_t *dst, vframe_list_t *src, int copy_data);
-vframe_list_t *vframe_retrieve_status(int old_status, int new_status);
-void vframe_set_status(vframe_list_t *ptr, int status);
-int vframe_alloc(int num, int width, int height);
-void vframe_free(void);
-void vframe_flush(void);
-int vframe_fill_level(int status);
-void vframe_fill_print(int r);
-
-
 aframe_list_t *aframe_register(int id);
+
+void vframe_remove(vframe_list_t *ptr);
 void aframe_remove(aframe_list_t *ptr);
+
+vframe_list_t *vframe_retrieve(void);
 aframe_list_t *aframe_retrieve(void);
+
+vframe_list_t *vframe_dup(vframe_list_t *f);
 aframe_list_t *aframe_dup(aframe_list_t *f);
+
+void vframe_copy(vframe_list_t *dst, vframe_list_t *src, int copy_data);
 void aframe_copy(aframe_list_t *dst, aframe_list_t *src, int copy_data);
+
+vframe_list_t *vframe_retrieve_status(int old_status, int new_status);
 aframe_list_t *aframe_retrieve_status(int old_status, int new_status);
+
+void vframe_set_status(vframe_list_t *ptr, int status);
 void aframe_set_status(aframe_list_t *ptr, int status);
+
+int vframe_alloc(int num);
 int aframe_alloc(int num);
+
+vframe_list_t *vframe_alloc_single(void);
+aframe_list_t *aframe_alloc_single(void);
+
+void vframe_free(void);
 void aframe_free(void);
+
+void vframe_flush(void);
 void aframe_flush(void);
+
+int vframe_fill_level(int status);
 int aframe_fill_level(int status);
+
+void vframe_fill_print(int r);
 void aframe_fill_print(int r);
 
 

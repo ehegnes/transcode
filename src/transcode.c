@@ -658,7 +658,7 @@ int main(int argc, char *argv[]) {
     int no_audio_adjust=TC_FALSE, no_split=TC_FALSE;
 
     long sret;  /* used for string function return values */
-    int frame_width, frame_height;
+    TCFrameSpecs specs;
 
 //    TCDirList tcdir;
 
@@ -3871,21 +3871,42 @@ int main(int argc, char *argv[]) {
      * ------------------------------------------------------------- */
 
     //this will speed up in pass-through mode
-    if(vob->pass_flag && !(preset_flag & TC_PROBE_NO_BUFFER)) max_frame_buffer=50;
+    if(vob->pass_flag && !(preset_flag & TC_PROBE_NO_BUFFER)) {
+        max_frame_buffer = 50;
+    }
 
-    frame_width = TC_MAX(vob->im_v_width, vob->ex_v_width);
-    frame_height = TC_MAX(vob->im_v_height, vob->ex_v_height);
-    if(verbose & TC_INFO)
-      printf("[%s] V: video buffer     | %d @ %dx%d\n", PACKAGE,
-             max_frame_buffer, frame_width, frame_height);
+    if (vob->fps >= vob->ex_fps) {
+        /* worst case -> lesser fps (more audio samples for second) */
+        specs.frc = vob->im_frc;
+    } else {
+        specs.frc = vob->ex_frc;
+    }
+    specs.width = TC_MAX(vob->im_v_width, vob->ex_v_width);
+    specs.height = TC_MAX(vob->im_v_height, vob->ex_v_height);
+    specs.format = vob->im_v_codec;
+
+    /* XXX: explain me up */
+    specs.rate = TC_MAX(vob->a_rate, vob->mp3frequency);
+    specs.channels = TC_MAX(vob->a_chan, vob->dm_chan);
+    specs.bits = TC_MAX(vob->a_bits, vob->dm_bits);
+
+    tc_ring_framebuffer_set_specs(&specs);
+
+    if(verbose & TC_INFO) {
+      printf("[%s] V: video buffer     | %i @ %ix%i [0x%x]\n", PACKAGE,
+             max_frame_buffer, specs.width, specs.height, specs.format);
+      printf("[%s] A: audio buffer     | %i @ %ix%ix%i\n", PACKAGE,
+             max_frame_buffer, specs.rate, specs.channels, specs.bits);
+    }
 
 #ifdef STATBUFFER
     // allocate buffer
     if(verbose & TC_DEBUG) printf("[%s] allocating %d framebuffer (static)\n", PACKAGE, max_frame_buffer);
 
-    if(vframe_alloc(max_frame_buffer, frame_width, frame_height) < 0)
+    if(vframe_alloc(max_frame_buffer) < 0)
         tc_error("static framebuffer allocation failed");
-    if(aframe_alloc(max_frame_buffer)<0) tc_error("static framebuffer allocation failed");
+    if(aframe_alloc(max_frame_buffer) < 0)
+        tc_error("static framebuffer allocation failed");
 
 #else
     if(verbose & TC_DEBUG) printf("[%s] %d framebuffer (dynamical) requested\n", PACKAGE, max_frame_buffer);
@@ -3970,7 +3991,9 @@ int main(int argc, char *argv[]) {
 	  import_threads_cancel();
 	  import_close();
 	  aframe_flush();
+          tc_flush_audio_counters();
 	  vframe_flush();
+          tc_flush_video_counters();
 	  vob->vob_offset = tstart->vob_offset;
 	  vob->sync = sync_seconds;
 	  if(import_open(vob)<0) tc_error("failed to open input source");
@@ -4156,7 +4179,9 @@ int main(int argc, char *argv[]) {
 
 	  // flush all buffers before we proceed to next PSU
 	  aframe_flush();
+          tc_flush_audio_counters();
 	  vframe_flush();
+          tc_flush_video_counters();
 
 	  vob->psu_offset += (double) (fb-fa);
 
@@ -4311,7 +4336,9 @@ int main(int argc, char *argv[]) {
 
 	// flush all buffers before we proceed to next file
 	aframe_flush();
+        tc_flush_audio_counters();
         vframe_flush();
+        tc_flush_video_counters();
 
 	++dir_fcnt;
 
@@ -4420,7 +4447,9 @@ int main(int argc, char *argv[]) {
 
 	// flush all buffers before we proceed
 	aframe_flush();
+        tc_flush_audio_counters();
 	vframe_flush();
+        tc_flush_video_counters();
 
 	//exit, i) if import module could not determine max_chapters
 	//      ii) all chapters are done
