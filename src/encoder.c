@@ -42,6 +42,8 @@
 #include "frame_threads.h"
 #include "socket.h"
 
+#include "libtc/tcframes.h"
+
 #include <stdint.h>
 #include <sys/types.h>
 
@@ -736,34 +738,19 @@ static int alloc_buffers(TCEncoderData *data)
         return 0;
 #endif
 
-    data->venc_ptr = tc_malloc(sizeof(vframe_list_t));
-    if (!data->venc_ptr) {
-        goto no_vptr;
+    data->venc_ptr = vframe_alloc_single();
+    if (data->venc_ptr == NULL) {
+        goto no_vframe;
     }
-    data->aenc_ptr = tc_malloc(sizeof(aframe_list_t));
-    if (!data->aenc_ptr) {
-        goto no_aptr;
+    data->aenc_ptr = aframe_alloc_single();
+    if (data->aenc_ptr == NULL) {
+        goto no_aframe;
     }
-#ifdef STATBUFFER
-    data->venc_ptr->internal_video_buf_0 = tc_bufalloc(SIZE_RGB_FRAME);
-    data->venc_ptr->internal_video_buf_1 = data->venc_ptr->internal_video_buf_0;
-    if (!data->venc_ptr->internal_video_buf_0) {
-        goto no_vmem;
-    }
-    data->aenc_ptr->internal_audio_buf = tc_bufalloc(SIZE_PCM_FRAME);
-    if (!data->aenc_ptr->internal_audio_buf) {
-        goto no_amem;
-    }
-#endif /* STATBUFFER */
     return 0;
 
-no_amem:
-    tc_buffree(data->venc_ptr->internal_video_buf_0);
-no_vmem:
-    tc_free(data->aenc_ptr);
-no_aptr:
-    tc_free(data->venc_ptr);
-no_vptr:
+no_aframe:
+    tc_del_video_frame(data->venc_ptr);
+no_vframe:
     return -1;
 }
 
@@ -773,13 +760,8 @@ static void free_buffers(TCEncoderData *data)
     if (!encdata.factory)
         return;
 #endif
-
-#ifdef STATBUFFER
-    tc_buffree(data->venc_ptr->internal_video_buf_0);
-    tc_buffree(data->aenc_ptr->internal_audio_buf);
-#endif /* STATBUFFER */
-    tc_free(data->venc_ptr);
-    tc_free(data->aenc_ptr);
+    tc_del_video_frame(data->venc_ptr);
+    tc_del_audio_frame(data->aenc_ptr);
 }
 
 /*
@@ -1257,6 +1239,8 @@ static void encoder_skip(TCEncoderData *data)
  *
  * ------------------------------------------------------------*/
 
+#define RESET_ATTRIBUTES(ptr)   (ptr)->attributes = 0
+
 void encoder_loop(vob_t *vob, int frame_first, int frame_last)
 {
     int err = 0;
@@ -1317,14 +1301,12 @@ void encoder_loop(vob_t *vob, int frame_first, int frame_last)
             return;
         }
 
+        /* remove spurious attributes */
+        RESET_ATTRIBUTES(encdata.venc_ptr);
+        RESET_ATTRIBUTES(encdata.aenc_ptr);
         /* check frame id */
         if (frame_first <= encdata.buffer->frame_id
           && encdata.buffer->frame_id < frame_last) {
-            if (encdata.factory) {
-                // XXX
-                VFRAME_INIT(encdata.venc_ptr, w, h);
-                AFRAME_INIT(encdata.aenc_ptr);
-            }
             encoder_export(&encdata, vob);
         } else { /* frame not in range */
             encoder_skip(&encdata);
