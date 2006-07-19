@@ -55,6 +55,7 @@ extern "C" {
 
 #define TC_MAX(a, b)		(((a) > (b)) ?(a) :(b))
 #define TC_MIN(a, b)		(((a) < (b)) ?(a) :(b))
+/* clamp x between a and b */
 #define TC_CLAMP(x, a, b)	TC_MIN(TC_MAX((a), (x)), (b))
 
 /* colors macros */
@@ -673,72 +674,6 @@ int tc_read_matrix(const char *filename, uint8_t *m8, uint16_t *m16);
  *     At least one given pointer is valid.
  */
 void tc_print_matrix(uint8_t *m8, uint16_t *m16);
-
-/*************************************************************************/
-
-/*
- * tc_vframe_new:
- *     allocate enough memory to safely hold a vframe_list_t for a frame of
- *     given size. Such frame will be independent respect to all other frames,
- *     either allocated with tc_vframe_new or by transcode's default frame ringbuffer.
- *
- *     This function is usually used by some code that needs, for some reasons,
- *     to have a private vframe_list_t.
- *
- *     PLEASE NOTE: it's UNSAFE to free() memory acquired with this function
- *     using any function different from tc_vframe_del. Expect undefined behaviours
- *     (memory leaks, subtle corruptions, even crashes) if you do so.
- *
- * Parameters:
- *     width: maximum width of video frame that can be contained.
- *    height: maximum height of video frame that can be contained.
- * Return Value:
- *      NULL if some error happens, a valid pointer otherwise.
- */
-void *tc_vframe_new(int width, int height);
-
-/*
- * tc_aframe_new:
- *     allocate enough memory to safely hold an aframe_list_t for a frame of
- *     standard size in transcode environment.
- *     Such frame will be independent respect to all other frames, either
- *     allocated with tc_aframe_new or by transcode's default frame ringbuffer.
- *
- *     This function is usually used by some code that needs, for some reasons,
- *     to have a private aframe_list_t.
- *
- *     PLEASE NOTE: it's UNSAFE to free() memory acquired with this function
- *     using any function different from tc_aframe_del. Expect undefined behaviours
- *     (memory leaks, subtle corruptions, even crashes) if you do so.
- *
- * Parameters:
- *      None
- * Return Value:
- *      NULL if some error happens, a valid pointer otherwise.
- */
-void *tc_aframe_new(void);
-
-/*
- * tc_vframe_del:
- *     safely deallocate memory obtained with tc_vframe_new.
- *
- * Parameters:
- *     _vptr: a pointer obtained by calling tc_vframe_new.
- * Return Value:
- *     None
- */
-void tc_vframe_del(void *_vptr);
-
-/*
- * tc_aframe_del:
- *     safely deallocate memory obtained with tc_aframe_new.
- *
- * Parameters:
- *     _aptr: a pointer obtained by calling tc_aframe_new.
- * Return Value:
- *     None
- */
-void tc_aframe_del(void *_aptr);
 
 /*************************************************************************/
 

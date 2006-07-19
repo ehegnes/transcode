@@ -8,6 +8,9 @@
   fix everything-is-a-keyframe bug (was ex_{a,v}_codec, NOT
   im_{a,v}_codec!).
 
+  * libtc/libtc.h libtc/tc_functions.c
+  drop old tc_{a,v}frame_{del,new}, now we have better replacements.
+
 2006-07-09 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c
   verbosiness switch.

@@ -36,7 +36,6 @@
 #include "libtc.h"
 #include "tc_defaults.h"
 
-#include "framebuffer.h"
 #include "transcode.h"
 
 /*************************************************************************/
@@ -690,73 +689,6 @@ void tc_print_matrix(uint8_t *m8, uint16_t *m16)
         }
     }
     return;
-}
-
-/*************************************************************************/
-
-void *tc_vframe_new(int width, int height)
-{
-    vframe_list_t *vptr = tc_malloc(sizeof(vframe_list_t));
-
-    // XXX XXX XXX
-
-    if (vptr != NULL) {
-#ifdef STATBUFFER
-        vptr->internal_video_buf_0 = tc_bufalloc(width * height * BPP/8);
-        vptr->internal_video_buf_1 = vptr->internal_video_buf_0;
-        if (!vptr->internal_video_buf_0) {
-            tc_free(vptr);
-            return NULL;
-        }
-        vptr->video_size = SIZE_RGB_FRAME;
-#endif /* STATBUFFER */
-        VFRAME_INIT(vptr, width, height);
-    }
-    return vptr;
-}
-
-void *tc_aframe_new(void)
-{
-    aframe_list_t *aptr = tc_malloc(sizeof(aframe_list_t));
-
-    if (aptr != NULL) {
-#ifdef STATBUFFER
-        // XXX XXX XXX
-
-        aptr->internal_audio_buf = tc_bufalloc(SIZE_PCM_FRAME << 2);
-        if (!aptr->internal_audio_buf) {
-            tc_free(aptr);
-            return NULL;
-        }
-        aptr->audio_size = SIZE_PCM_FRAME << 2;
-#endif /* STATBUFFER */
-        AFRAME_INIT(aptr);
-    }
-    return aptr;
-}
-
-void tc_vframe_del(void *_vptr)
-{
-    vframe_list_t *vptr = _vptr;
-    
-    if (vptr != NULL) {
-#ifdef STATBUFFER
-        tc_buffree(vptr->internal_video_buf_0);
-#endif
-        tc_free(vptr);
-    }
-}
-
-void tc_aframe_del(void *_aptr)
-{
-    aframe_list_t *aptr = _aptr;
-    
-    if (aptr != NULL) {
-#ifdef STATBUFFER
-        tc_buffree(aptr->internal_audio_buf);
-#endif
-        tc_free(aptr);
-    }
 }
 
 /*************************************************************************/
