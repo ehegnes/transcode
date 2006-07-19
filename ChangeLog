@@ -17,6 +17,9 @@
   Enter the new framebuffer handling code. Works nicely, but it's still
   under testing. Documentation is on the road.
 
+  * Removed files: src/audio_buffer.c src/video_buffer.c
+  No longer needed, superceeded by new unified framebuffer code.
+
 2006-07-09 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c
   verbosiness switch.
