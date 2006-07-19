@@ -435,6 +435,10 @@ static int OLD_encoder_export(TCEncoderData *data, vob_t *vob);
 #endif  // SUPPORT_OLD_ENCODER
 
 
+#define RESET_ATTRIBUTES(ptr)   do { \
+        (ptr)->attributes = 0; \
+} while (0)
+
 /*
  * is_last_frame:
  *      check if current frame it's supposed to be the last one in
@@ -787,6 +791,9 @@ static int encoder_export(TCEncoderData *data, vob_t *vob)
     if (!encdata.factory)
         return OLD_encoder_export(data, vob);
 #endif
+    /* remove spurious attributes */
+    RESET_ATTRIBUTES(data->venc_ptr);
+    RESET_ATTRIBUTES(data->aenc_ptr);
 
     ret = tc_module_encode_video(data->vid_mod,
                                  data->buffer->vptr, data->venc_ptr);
@@ -1239,8 +1246,6 @@ static void encoder_skip(TCEncoderData *data)
  *
  * ------------------------------------------------------------*/
 
-#define RESET_ATTRIBUTES(ptr)   (ptr)->attributes = 0
-
 void encoder_loop(vob_t *vob, int frame_first, int frame_last)
 {
     int err = 0;
@@ -1301,9 +1306,6 @@ void encoder_loop(vob_t *vob, int frame_first, int frame_last)
             return;
         }
 
-        /* remove spurious attributes */
-        RESET_ATTRIBUTES(encdata.venc_ptr);
-        RESET_ATTRIBUTES(encdata.aenc_ptr);
         /* check frame id */
         if (frame_first <= encdata.buffer->frame_id
           && encdata.buffer->frame_id < frame_last) {

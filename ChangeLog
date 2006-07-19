@@ -20,6 +20,9 @@
   * Removed files: src/audio_buffer.c src/video_buffer.c
   No longer needed, superceeded by new unified framebuffer code.
 
+  * src/encoder.c
+  Don't reset inexistent frame attributes when using OMS modules.
+
 2006-07-09 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c
   verbosiness switch.
