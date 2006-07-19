@@ -66,7 +66,9 @@ static int avi_configure(TCModuleInstance *self,
     pd = self->userdata;
     fcc = tc_codec_fourcc(vob->ex_v_codec);
 
-    if (vob->im_v_codec == CODEC_RGB || vob->im_v_codec == CODEC_YUV) {
+    /* FIXME: switch to new TC_CODEC_XXX */
+    if (vob->ex_v_codec == CODEC_RGB || vob->ex_v_codec == CODEC_YUV
+     || vob->ex_v_codec == CODEC_YUV422) {
         pd->force_kf = TC_TRUE;
     } else {
         pd->force_kf = TC_FALSE;

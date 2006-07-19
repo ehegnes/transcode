@@ -4,6 +4,10 @@
   libtc frame allocation routines (tcframes).
   Reset only attributes field, not the whole frame metadata.
 
+  * multiplex/multiplex_avi.c
+  fix everything-is-a-keyframe bug (was ex_{a,v}_codec, NOT
+  im_{a,v}_codec!).
+
 2006-07-09 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c
   verbosiness switch.
