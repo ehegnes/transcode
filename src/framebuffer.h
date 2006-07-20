@@ -37,8 +37,8 @@
 
 typedef enum tcframestatus_ TCFrameStatus;
 enum tcframestatus_ {
-    FRAME_NULL = -1,
-    FRAME_EMPTY = 0,
+    FRAME_NULL = -1, /* not yet claimed */
+    FRAME_EMPTY = 0, /* claimed, but still empty */
     FRAME_READY,
     FRAME_LOCKED,
     FRAME_WAIT,
@@ -67,7 +67,12 @@ enum tcbufferstatus_ {
  *          -- tibit
  */
 
-/* FIXME: comment me up */
+/* This macro factorizes common frame data fields.
+ * Isn't possible to compeltely factor out all frame_list_t fields
+ * because video and audio typess uses different names for same field,
+ * and existing code relies on this situation.
+ * Fixing this is stuff for 1.2.0 and beyond. -- FR.
+ */
 #define TC_FRAME_COMMON \
     int id;         /* FIXME: comment */ \
     int bufid;      /* buffer id */ \
@@ -76,7 +81,7 @@ enum tcbufferstatus_ {
     int status;     /* FIXME: comment */ \
     int attributes; /* FIXME: comment */ \
     int thread_id;
-
+/* BEWARE: semicolon NOT NEEDED */
 
 /* 
  * Size vs Length
@@ -191,7 +196,12 @@ struct aframe_list {
 #endif
 };
 
-/* generic pointer structure */
+/* 
+ * generic pointer type, needed at least by internal code.
+ * In the long (long) shot I'd like to use a unique generic
+ * data container, like AVPacket (libavcodec) or something like it.
+ * -- FR
+ */
 typedef union tcframeptr_ TCFramePtr;
 union tcframeptr_ {
     frame_list_t *generic;
@@ -222,57 +232,299 @@ struct tcframespecs_ {
     double samples;
 };
 
+/*
+ * tc_ring_framebuffer_get_specs: (NOT thread safe)
+ *     Get a pointer to a TCFrameSpecs structure representing current
+ *     framebuffer structure. Frame handling code will use those parameters
+ *     to allocate framebuffers.
+ *
+ * Parameters:
+ *     None
+ * Return Value:
+ *     Constant pointer to a TCFrameSpecs structure. There is no need
+ *     to *free() this structure.
+ */
 const TCFrameSpecs *tc_ring_framebuffer_get_specs(void);
+
+/*
+ * tc_ring_framebuffer_set_specs: (NOT thread safe)
+ *     Setup new framebuffer parameters, to be used by internal framebuffer
+ *     code to properly handle frame allocation.
+ *     PLEASE NOTE that only allocation performed AFTER calling this function
+ *     will use those parameters.
+ *     PLEASE ALSO NOTE that is HIGHLY unsafe to mix allocation by changing
+ *     TCFrameSpecs in between without freeing ringbuffers. Just DO NOT.
+ *
+ * Parameters:
+ *     Constant pointer to a TCFrameSpecs holding new framebuffer parameters.
+ * Return Value:
+ *     None
+ */
 void tc_ring_framebuffer_set_specs(const TCFrameSpecs *specs);
 
-vframe_list_t *vframe_register(int id);
-aframe_list_t *aframe_register(int id);
-
-void vframe_remove(vframe_list_t *ptr);
-void aframe_remove(aframe_list_t *ptr);
-
-vframe_list_t *vframe_retrieve(void);
-aframe_list_t *aframe_retrieve(void);
-
-vframe_list_t *vframe_dup(vframe_list_t *f);
-aframe_list_t *aframe_dup(aframe_list_t *f);
-
-void vframe_copy(vframe_list_t *dst, vframe_list_t *src, int copy_data);
-void aframe_copy(aframe_list_t *dst, aframe_list_t *src, int copy_data);
-
-vframe_list_t *vframe_retrieve_status(int old_status, int new_status);
-aframe_list_t *aframe_retrieve_status(int old_status, int new_status);
-
-void vframe_set_status(vframe_list_t *ptr, int status);
-void aframe_set_status(aframe_list_t *ptr, int status);
-
+/*
+ * vframe_alloc, aframe_alloc: (NOT thread safe)
+ *     Allocate respectively a video or audio frame ringbuffer capable to hold
+ *     given amount of frames, with a minimum of one.
+ *     Each framebuffer is allocated using TCFrameSpecs parameters.
+ *     Use vframe_free/aframe_free to release acquired ringbuffers.
+ *
+ * Parameters:
+ *     num: size of ringbuffer to allocate (number of framebuffers holded
+ *          in ringbuffer).
+ * Return Value:
+ *      0: succesfull
+ *     !0: error, tipically this means that one (or more) frame
+ *         can't be allocated.
+ */
 int vframe_alloc(int num);
 int aframe_alloc(int num);
 
+/*
+ * vframe_alloc_single, aframe_alloc_single: (NOT thread safe)
+ *     allocate a single framebuffer (respectively, video or audio)
+ *     in compliacy with last TCFrameSpecs set.
+ *     Those functione are mainly intended to provide a convenient
+ *     way to encoder/decoder/whatelse to allocate private framebuffers
+ *     without doing any size computation or waste memory.
+ *     Returned value can be SAFELY deallocated using
+ *     tc_del_video_frame or tc_del_audio_frame.
+ *
+ * Parameters:
+ * 	None
+ * Return Value:
+ *      respectively a pointer to a vframe_list_t or aframe_list_t,
+ *      like, tc_new_video_frame() or tc_new_audio_frame() called
+ *      with right parameters.
+ *      NULL if allocation fails.
+ */
 vframe_list_t *vframe_alloc_single(void);
 aframe_list_t *aframe_alloc_single(void);
 
+/*
+ * vframe_free, aframe_free: (NOT thread safe)
+ *     release all framebuffer memory acquired respect. for video and
+ *     audio frame ringbuffers.
+ *     Please remember thet ffter those functions called, almost
+ *     all other ringbuffer functions will fail.
+ *
+ * Parameters:
+ *     None
+ * Return Value:
+ *     None
+ */
 void vframe_free(void);
 void aframe_free(void);
 
+/*
+ * vframe_flush, aframe_flush: (NOT thread safe)
+ *     flush all framebuffers still in ringbuffer, by marking those as unused.
+ *     This will reset ringbuffer to an ampty state, ready to be (re)used again.
+ *
+ * Parameters:
+ *     None
+ * Return Value:
+ *     None
+ */
 void vframe_flush(void);
 void aframe_flush(void);
 
+/*
+ * vframe_register, aframe_register: (thread safe)
+ *     Fetch anew empty (FRAME_EMPRTY) framebuffer from ringbuffer and
+ *     assign to it the given id for later usage. Meaning of id is defined by
+ *     client; common usage (as in decoder) is to use id to attach sequential
+ *     number to frames.
+ *     The key factor is that ringbuffer internal routines DO NOT uses at all
+ *     this value internally.
+ *     DO NOT *free() returned pointer! Use respectively vframe_remove
+ *     or aframe_remove to dispose returned framebuffer when is no longer
+ *     needed.
+ *
+ * Parameters:
+ *     id: set framebuffer id to this value.    
+ *
+ * Return Value:
+ *     NULL if failed (no avalaible framebuffers)
+ *     a valid pointer to respectively a video or audio framebuffer
+ *     if succesfull.
+ */
+vframe_list_t *vframe_register(int id);
+aframe_list_t *aframe_register(int id);
+
+/*
+ * vframe_retrieve, aframe_retrieve: (thread safe)
+ *     Fetch next ready (FRAME_READY) framebuffer, by scanning IN ORDER
+ *     the frame list. This means that this function WILL FAIL if there
+ *     are some locked (FRAME_LOCKED) frames before the first ready frame.
+ *     That happens because frame ordering MUST be preserved in current
+ *     architecture.
+ *     DO NOT *free() returned pointer! Use respectively vframe_remove
+ *     or aframe_remove to dispose returned framebuffer when is no longer
+ *     needed.
+ *
+ * Parameters:
+ *     None
+ * Return Value:
+ *     NULL if there aren't ready framebuffers avalaible, or if they
+ *     are preceeded by one or more locked frmabuffer.
+ *     A valid pointer to a framebuffer otherwise.
+ */
+vframe_list_t *vframe_retrieve(void);
+aframe_list_t *aframe_retrieve(void);
+
+/*
+ * vframe_remove, aframe_remove: (thread safe)
+ *      release a framebuffer obtained via vframe_register or vframe_remove
+ *      by putting back it on belonging ringbuffer (respectively,
+ *      video and audio ringbuffers). Released framebuffer becomes
+ *      avalaible for later usage.
+ *
+ * Parameters:
+ *      ptr: framebuffer tor release.
+ * Return Value:
+ *      None
+ * Side Effects:
+ *      ringbuffer counters are updated as well.
+ */
+void vframe_remove(vframe_list_t *ptr);
+void aframe_remove(aframe_list_t *ptr);
+
+/*
+ * vframe_dup, aframe_dup: (thread safe)
+ *      Duplicate given respectively video or audio framebuffer by
+ *      using another frame from video or audio ringbuffer. New
+ *      framebuffer will be a full (deep) copy of old one
+ *      (see aframe_copy/vframe_copy documentation to learn about
+ *      deep copy).
+ *
+ * Parameters:
+ *      f: framebuffer to be copied
+ *         (this should be maked const ASAP --  FR)
+ * Return Value:
+ *      NULL if error, otherwise
+ *      A pointer to a new, valid, framebuffer that's a full copy of
+ *      given argument. Dispose it using respectively vframe_remove
+ *      or aframe_remove, just as usual.
+ * Side Effects:
+ *      clone_flag for copied video framebuffer is handled intelligently.
+ */
+vframe_list_t *vframe_dup(vframe_list_t *f);
+aframe_list_t *aframe_dup(aframe_list_t *f);
+
+/*
+ * vframe_retrieve_status, aframe_retrieve_status: (thread safe)
+ *      scan the claimed (!FRAME_NULL) respectiveli video or audio
+ *      framebuffer list looking for first frame with given status
+ *      (old_status); change framebuffer status to given one (new_status).
+ *      update ringbuffer counters and finally returns a pointer to
+ *      found and manipulated frame. Returned pointer can be disposed
+ *      as usual by using respectively vframe_remove or aframe_remove.
+ *
+ * Parameters:
+ *      old_status: status of framebuffer to look for (halt on first match).
+ *      new_status: new status of found framebuffer.
+ * Return Value:
+ *      NULL if failed, otherwise
+ *      a pointer to found framebuffer, ready for usage.
+ */
+vframe_list_t *vframe_retrieve_status(int old_status, int new_status);
+aframe_list_t *aframe_retrieve_status(int old_status, int new_status);
+
+/*
+ * vframe_copy, aframe_copy (thread safe)
+ *     perform a soft or optionally deep copy respectively of a 
+ *     video or audio framebuffer. A soft copy just copies metadata;
+ *     #ifdef STATBUFFER
+ *     soft copy also let the buffer pointers point to original frame
+ *     buffers, so data isn't really copied around.
+ *     #endif
+ *     A deep copy just ac_memcpy()s buffer data from a frame to other
+ *     one, so new frame will be an independent copy of old one.
+ *
+ * Parameters:
+ *           dst: framebuffer which will hold te copied (meta)data.
+ *           src: framebuffer to be copied.
+ *                Mind the fact that when using softcopy real buffers will
+ *                remain the ones of this frame
+ *     copy_data: boolean flag. If 0, do softcopy; do deepcopy otherwise.
+ *         
+ * Return Value:
+ *     None
+ */
+void vframe_copy(vframe_list_t *dst, vframe_list_t *src, int copy_data);
+void aframe_copy(aframe_list_t *dst, aframe_list_t *src, int copy_data);
+
+/*
+ * vframe_set_status, aframe_set_status: (thread safe)
+ *     change the status of a given framebuffer and updates the counters
+ *     of originating ringbuffer (respectively, video and audio).
+ *
+ * Parameters:
+ *        ptr: framebuffer pointer to be updated.
+ *     status: new framebuffer status
+ * Return Value:
+ *     None
+ */
+void vframe_set_status(vframe_list_t *ptr, int status);
+void aframe_set_status(aframe_list_t *ptr, int status);
+
+/*
+ * vframe_fill_level, aframe_fill_level: (NOT thread safe)
+ *     check out respectively video and audio ringbuffer, veryfing if
+ *     there is some frames of given status present and usable.
+ *
+ *     THREAD SAFENESS WARNING: this function access data in read-only
+ *     fashon, so it doesn't hurt anything to use it in a multithreaded
+ *     environment, as already happens, but since it DOES NOT lock counters
+ *     before to read values, it's possible that it logs outdated
+ *     informations. That still happens for legacy reasons, but of course
+ *     this will fixed ASAP.
+ *
+ *     Optionally log out ringbuffer status if 'verbose' >= TC_STATS
+ *     like vframe_fill_print, aframe_fill_print.
+ *
+ * Parameters:
+ *     status: framebuffer status to be verified
+ * Return Value:
+ *      0: no framebuffer avalaible.
+ *     >0: at least a framebuffer avalaible.
+ */
 int vframe_fill_level(int status);
 int aframe_fill_level(int status);
 
+/*
+ * vframe_fill_print, aframe_fill_print: (NOT thread safe)
+ *      tc_log* out current framebuffer ringbuffer fill level (counters
+ *      for null/ready/empty/loacked frames) respectively for video
+ *      and audio ringbuffers.
+ *
+ *      THREAD SAFENESS WARNING: this function access data in read-only
+ *      fashon, so it doesn't hurt anything to use it in a multithreaded
+ *      environment, as already happens, but since it DOES NOT lock counters
+ *      before to read values, it's possible that it logs outdated
+ *      informations. That still happens for legacy reasons, but of course
+ *      this will fixed ASAP.
+ *
+ * Parameters:
+ *      r: tag to be logged. Client-defined meaning. (Legacy).
+ * Return Value:
+ *      None
+ * Side effects:
+ *      See THREAD SAFENESS WARNING above.
+ */
 void vframe_fill_print(int r);
 void aframe_fill_print(int r);
 
-
+/* 
+ * Some legacy code still access directly those variables.
+ * I'm mostly OK (at least in principles) for doing so for lock and conditions,
+ * but codebase still deserve an audit. -- FR.
+ */
 extern pthread_mutex_t vframe_list_lock;
 extern pthread_cond_t vframe_list_full_cv;
-extern vframe_list_t *vframe_list_head;
-extern vframe_list_t *vframe_list_tail;
 
 extern pthread_mutex_t aframe_list_lock;
 extern pthread_cond_t aframe_list_full_cv;
-extern aframe_list_t *aframe_list_head;
-extern aframe_list_t *aframe_list_tail;
 
 #endif /* FRAMEBUFFFER_H */

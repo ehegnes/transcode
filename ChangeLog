@@ -1,3 +1,7 @@
+2006-07-20 Francesco Romani <fromani at gmail dot com>
+  * src/framebuffer.h
+  documentation round one.
+
 2006-07-19 Francesco Romani <fromani at gmail dot com>
   * src/encoder.c
   simplify private frame allocation code by switching to
