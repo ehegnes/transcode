@@ -2,6 +2,9 @@
   * src/framebuffer.h
   documentation round one.
 
+  * src/fraembuffer.c
+  complain louder whern wrong (NULL) parameters are used.
+
 2006-07-19 Francesco Romani <fromani at gmail dot com>
   * src/encoder.c
   simplify private frame allocation code by switching to

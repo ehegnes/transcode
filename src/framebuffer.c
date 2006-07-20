@@ -20,14 +20,14 @@
 pthread_mutex_t aframe_list_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t aframe_list_full_cv = PTHREAD_COND_INITIALIZER;
 
-aframe_list_t *aframe_list_head = NULL;
-aframe_list_t *aframe_list_tail = NULL;
+static aframe_list_t *aframe_list_head = NULL;
+static aframe_list_t *aframe_list_tail = NULL;
 
 pthread_mutex_t vframe_list_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t vframe_list_full_cv = PTHREAD_COND_INITIALIZER;
 
-vframe_list_t *vframe_list_head = NULL;
-vframe_list_t *vframe_list_tail = NULL;
+static vframe_list_t *vframe_list_head = NULL;
+static vframe_list_t *vframe_list_tail = NULL;
 
 /* ------------------------------------------------------------------ */
 
@@ -133,6 +133,7 @@ const TCFrameSpecs *tc_ring_framebuffer_get_specs(void)
 
 void tc_ring_framebuffer_set_specs(const TCFrameSpecs *specs)
 {
+    /* silently ignore NULL specs */
     if (specs != NULL) {
         double fps;
 
@@ -518,9 +519,7 @@ aframe_list_t *aframe_dup(aframe_list_t *f)
     TCFramePtr frame;
 
     if (f == NULL) {
-        if (verbose & TC_FLIST) {
-            tc_log_warn(__FILE__, "aframe_dup: empty frame");
-        }
+        tc_log_warn(__FILE__, "aframe_dup: empty frame");
         return NULL;
     }
 
@@ -534,10 +533,8 @@ aframe_list_t *aframe_dup(aframe_list_t *f)
         LIST_FRAME_LINK(frame.audio, f, aframe_list_tail);
 #ifdef STATBUFFER
     } else { /* ptr == NULL */
-        if (verbose & TC_FLIST) {
-            tc_log_warn(__FILE__, "aframe_dup: cannot find a free slot"
-                                  " (%i)", f->id);
-        }
+        tc_log_warn(__FILE__, "aframe_dup: cannot find a free slot"
+                              " (%i)", f->id);
 #endif
     }
     pthread_mutex_unlock(&aframe_list_lock);
@@ -549,9 +546,7 @@ vframe_list_t *vframe_dup(vframe_list_t *f)
     TCFramePtr frame;
 
     if (f == NULL) {
-        if (verbose & TC_FLIST) {
-            tc_log_warn(__FILE__, "vframe_dup: empty frame");
-        }
+        tc_log_warn(__FILE__, "vframe_dup: empty frame");
         return NULL;
     }
 
@@ -568,10 +563,8 @@ vframe_list_t *vframe_dup(vframe_list_t *f)
         LIST_FRAME_LINK(frame.video, f, vframe_list_tail);
 #ifdef STATBUFFER
     } else { /* ptr == NULL */
-        if (verbose & TC_FLIST) {
-            tc_log_warn(__FILE__, "vframe_dup: cannot find a free slot"
-                                  " (%i)", f->id);
-        }
+        tc_log_warn(__FILE__, "vframe_dup: cannot find a free slot"
+                              " (%i)", f->id);
 #endif
     }
     pthread_mutex_unlock(&vframe_list_lock);
@@ -599,7 +592,9 @@ vframe_list_t *vframe_dup(vframe_list_t *f)
 
 void aframe_remove(aframe_list_t *ptr)
 {
-    if (ptr != NULL) {
+    if (ptr == NULL) {
+        tc_log_warn(__FILE__, "aframe_remove: given NULL frame pointer");
+    } else {
         TCFramePtr frame;
         frame.audio = ptr;
 
@@ -616,7 +611,9 @@ void aframe_remove(aframe_list_t *ptr)
 
 void vframe_remove(vframe_list_t *ptr)
 {
-    if (ptr != NULL) {
+    if (ptr == NULL) {
+        tc_log_warn(__FILE__, "vframe_remove: given NULL frame pointer");
+    } else {
         TCFramePtr frame;
         frame.video = ptr;
 
@@ -782,7 +779,10 @@ vframe_list_t *vframe_retrieve_status(int old_status, int new_status)
 
 void aframe_set_status(aframe_list_t *ptr, int status)
 {
-    if (ptr != NULL) {
+    if (ptr == NULL) {
+        /* a bit more of paranoia */
+        tc_log_warn(__FILE__, "aframe_set_status: given NULL frame pointer");
+    } else {
         pthread_mutex_lock(&aframe_list_lock);
         FRAME_SET_EXT_STATUS(&tc_audio_ringbuffer, ptr, status);
         pthread_mutex_unlock(&aframe_list_lock);
@@ -792,7 +792,10 @@ void aframe_set_status(aframe_list_t *ptr, int status)
 
 void vframe_set_status(vframe_list_t *ptr, int status)
 {
-    if (ptr != NULL) {
+    if (ptr == NULL) {
+        /* a bit more of paranoia */
+        tc_log_warn(__FILE__, "vframe_set_status: given NULL frame pointer");
+    } else {
         pthread_mutex_lock(&vframe_list_lock);
         FRAME_SET_EXT_STATUS(&tc_video_ringbuffer, ptr, status);
         pthread_mutex_unlock(&vframe_list_lock);
@@ -844,6 +847,7 @@ void vframe_fill_print(int r)
 void aframe_copy(aframe_list_t *dst, aframe_list_t *src, int copy_data)
 {
     if (!dst || !src) {
+        tc_log_warn(__FILE__, "aframe_copy: given NULL frame pointer");
     	return;
     }
 
@@ -862,6 +866,7 @@ void aframe_copy(aframe_list_t *dst, aframe_list_t *src, int copy_data)
 void vframe_copy(vframe_list_t *dst, vframe_list_t *src, int copy_data)
 {
     if (!dst || !src) {
+        tc_log_warn(__FILE__, "vframe_copy: given NULL frame pointer");
     	return;
     }
 
