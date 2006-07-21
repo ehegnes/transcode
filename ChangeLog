@@ -1,3 +1,8 @@
+2006-07-21 Francesco Romani <fromani at gmail dot com>
+  * src/framebuffer.c
+  documentation round tw, plus a small enhancement to retrieve
+  frame code.
+
 2006-07-20 Francesco Romani <fromani at gmail dot com>
   * src/framebuffer.h
   documentation round one.

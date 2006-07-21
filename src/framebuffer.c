@@ -16,6 +16,22 @@
 #include "libtc/tcframes.h"
 #include "libtc/ratiocodes.h"
 
+/* Quick summary:
+ * This code acts as generic ringbuffer implementation, with
+ * specializations for main (auido and video) ringbufffers
+ * in order to cope legacy constraints from 1.0.x series.
+ * It replaces former src/{audio,video}_buffer.c in (hopefully!)
+ * a more generic, clean, maintanable, compact way.
+ * 
+ * Please note that there is *still* some other ringbuffer
+ * scatthered through codebase (subtitle buffer,d emux buffers,
+ * possibly more). They will be merged lately or will be dropped
+ * or reworked.
+ *
+ * This code can, of course, be further improved, but doing so
+ * hasn't high priority on my TODO list, I've covered with this
+ * piece of code most urgent todos for 1.1.0.      -- FR
+ */
 
 pthread_mutex_t aframe_list_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t aframe_list_full_cv = PTHREAD_COND_INITIALIZER;
@@ -31,6 +47,13 @@ static vframe_list_t *vframe_list_tail = NULL;
 
 /* ------------------------------------------------------------------ */
 
+/*
+ * Layered, custom allocator/disposer for ringbuffer structures.
+ * THe idea is to semplify (from ringbufdfer viewpoint!) frame
+ * allocation/disposal and to make it as much generic as is possible
+ * (avoif if()s and so on).
+ */
+
 typedef TCFramePtr (*TCFrameAllocFn)(const TCFrameSpecs *);
 
 typedef void (*TCFrameFreeFn)(TCFramePtr);
@@ -43,6 +66,7 @@ struct tcringframebuffer_ {
     /* real ringbuffer */
     TCFramePtr *frames;
 
+    /* frame indexes */
     int next;
     int last;
 
@@ -62,6 +86,10 @@ struct tcringframebuffer_ {
 static TCRingFrameBuffer tc_audio_ringbuffer;
 static TCRingFrameBuffer tc_video_ringbuffer;
 
+/* 
+ * Specs used internally. I don't export this structure directly
+ * because I want to be free to change it if needed
+ */
 static TCFrameSpecs tc_specs = {
     /* PAL defaults */
     .frc = 3,
@@ -74,9 +102,14 @@ static TCFrameSpecs tc_specs = {
     .samples = 48000.0,
 };
 
-/* ------------------------------------------------------------------ */
-/* Frame allocation/disposal helpers, needed by code below            */
-/* thin wrappers around libtc facilities                              */
+/*
+ * Frame allocation/disposal helpers, needed by code below
+ * thin wrappers around libtc facilities
+ * I don't care about layering and performance loss, *here*, because
+ * frame are supposed to be allocated/disposed ahead of time, and
+ * always outside inner (performance-sensitive) loops.
+ */
+
 /* ------------------------------------------------------------------ */
 
 #define TCFRAMEPTR_IS_NULL(tcf)    (tcf.generic == NULL)
@@ -110,14 +143,14 @@ static void tc_audio_free(TCFramePtr frame)
 
 /* ------------------------------------------------------------------ */
 
-/* XXX */
+/* exported commodities :) */
+
 vframe_list_t *vframe_alloc_single(void)
 {
     return tc_new_video_frame(tc_specs.width, tc_specs.height,
                               tc_specs.format, TC_TRUE);
 }
 
-/* XXX */
 aframe_list_t *aframe_alloc_single(void)
 {
     return tc_new_audio_frame(tc_specs.samples, tc_specs.channels,
@@ -131,6 +164,11 @@ const TCFrameSpecs *tc_ring_framebuffer_get_specs(void)
     return &tc_specs;
 }
 
+/* 
+ * using an <OOP-ism>accessor</OOP-ism> is also justified here
+ * by the fact that we compute (ahead of time) samples value for
+ * later usage.
+ */
 void tc_ring_framebuffer_set_specs(const TCFrameSpecs *specs)
 {
     /* silently ignore NULL specs */
@@ -152,6 +190,31 @@ void tc_ring_framebuffer_set_specs(const TCFrameSpecs *specs)
 /* NEW API, yet private                                               */
 /* ------------------------------------------------------------------ */
 
+/*
+ * Threading notice:
+ *
+ * Generic code doesn't use any locking at all (yet).
+ * That's was a design choice. For clarity, locking is
+ * provided by back-compatibility wrapper functions.
+ */
+
+
+/*
+ * tc_init_ring_framebuffer: (NOT thread safe)
+ *     initialize a framebuffer ringbuffer by allocating needed
+ *     amount of frames using given parameters.
+ *
+ * Parameters:
+ *       rfb: ring framebuffer structure to initialize.
+ *     specs: frame specifications to use for allocation.
+ *     alloc: frame allocation function to use.
+ *      free: frame disposal function to use.
+ *      size: size of ringbuffer (number of frame to allocate)
+ * Return Value:
+ *      > 0: wrong (NULL) parameters
+ *        0: succesfull
+ *      < 0: allocation failed for one or more framesbuffers/internal error
+ */
 static int tc_init_ring_framebuffer(TCRingFrameBuffer *rfb,
                                     const TCFrameSpecs *specs,
                                     TCFrameAllocFn alloc,
@@ -200,7 +263,17 @@ static int tc_init_ring_framebuffer(TCRingFrameBuffer *rfb,
     return 0;
 }
 
-
+/*
+ * tc_fini_ring_framebuffer: (NOT thread safe)
+ *     finalize a framebuffer ringbuffer by freeing all acquired
+ *     resources (framebuffer memory).
+ *
+ * Parameters:
+ *       rfb: ring framebuffer structure to finalize.
+ * Return Value:
+ *       None.
+ */
+s
 static void tc_fini_ring_framebuffer(TCRingFrameBuffer *rfb)
 {
     if (rfb != NULL && rfb->free != NULL) {
@@ -218,7 +291,22 @@ static void tc_fini_ring_framebuffer(TCRingFrameBuffer *rfb)
     }
 }
 
-
+/*
+ * tc_ring_framebuffer_retrieve_frame: (NOT thread safe)
+ *      retrieve next unclaimed (FRAME_NULL) framebuffer from
+ *      ringbuffer and return a pointer to it for later usage
+ *      by client code.
+ *
+ * Parameters:
+ *      rfb: ring framebuffer to use
+ * Return Value:
+ *      Always a framebuffer generic pointer. That can be pointing to
+ *      NULL if there aren't no more unclaimed (FRAME_NULL) framebuffer
+ *      avalaible; otherwise it contains
+ *      a pointer to retrieved framebuffer.
+ *      DO NOT *free() such pointer directly! use
+ *      tc_ring_framebuffer_release_frame() instead!
+ */
 static TCFramePtr tc_ring_framebuffer_retrieve_frame(TCRingFrameBuffer *rfb)
 {
     TCFramePtr ptr;
@@ -242,28 +330,38 @@ static TCFramePtr tc_ring_framebuffer_retrieve_frame(TCRingFrameBuffer *rfb)
                 tc_log_warn(__FILE__, "retrieved buffer=%i, but not empty",
                                       ptr.generic->status);
             }
-            ptr.generic = NULL;
-            return ptr;
+            ptr.generic = NULL; /* enforce NULL-ness */
+        } else {
+            if (verbose >= TC_FLIST) {
+                tc_log_info(__FILE__, "retrieved buffer = %i [%i]",
+                                      rfb->next, ptr.generic->bufid);
+            }
+            /* adjust internal pointer */
+            rfb->next++;
+            rfb->next %= rfb->last;
         }
     }
-
-    /* ok */
-    if (verbose >= TC_FLIST) {
-        tc_log_info(__FILE__, "retrieved buffer = %i [%i]",
-                              rfb->next, ptr.generic->bufid);
-    }
-
-    rfb->next++;
-    rfb->next %= rfb->last;
     return ptr;
 }
 
-
+/*
+ * tc_ring_framebuffer_release_frame: (NOT thread safe)
+ *      release a previously retrieved frame back to ringbuffer,
+ *      removing claim from it and making again avalaible (FRAME_NULL).
+ *
+ * Parameters:
+ *         rfb: ring framebuffer to use.
+ *       frame: generic pointer to frame to release.
+ * Return Value:
+ *       > 0: wrong (NULL) parameters.
+ *         0: succesfull
+ *       < 0: internal error (frame to be released isn't empty).
+ */
 static int tc_ring_framebuffer_release_frame(TCRingFrameBuffer *rfb,
                                              TCFramePtr frame)
 {
     if (rfb == NULL || TCFRAMEPTR_IS_NULL(frame)) {
-        return -1;
+        return 1;
     }
     if (frame.generic->status != FRAME_EMPTY) {
         tc_log_warn(__FILE__, "trying to release non empty frame #%i (%i)",
@@ -279,7 +377,27 @@ static int tc_ring_framebuffer_release_frame(TCRingFrameBuffer *rfb,
     return 0;
 }
 
-
+/*
+ * tc_ring_framebuffer_register_frame: (NOT thread safe)
+ *      retrieve and register a framebuffer froma a ringbuffer by
+ *      attaching an ID to it, setup properly status and updating
+ *      internal ringbuffer counters.
+ *
+ *      That's the function that client code is supposed to use
+ *      (maybe wrapped by some thin macros to save status setting troubles).
+ *      In general, dont' use retrieve_frame directly, use register_frame
+ *      instead.
+ *
+ * Parameters:
+ *         rfb: ring framebuffer to use
+ *          id: id to attach to registered framebuffer
+ *      status: status of framebuffer to register. This was needed to
+ *              make registering process multi-purpose.
+ * Return Value:
+ *      Always a generic framebuffer pointer. That can be pointing to NULL
+ *      if there isn't no more framebuffer avalaible on given ringbuffer;
+ *      otherwise, it will point to a valid framebuffer.
+ */
 static TCFramePtr tc_ring_framebuffer_register_frame(TCRingFrameBuffer *rfb,
                                                      int id, int status)
 {
@@ -319,7 +437,21 @@ static TCFramePtr tc_ring_framebuffer_register_frame(TCRingFrameBuffer *rfb,
     return ptr; 
 }
 
-
+/*
+ * tc_ring_framebuffer_remove_frame: (NOT thread safe)
+ *      De-register and release a given framebuffer;
+ *      also updates internal ringbuffer counters.
+ *      
+ *      That's the function that client code is supposed to use.
+ *      In general, dont' use release_frame directly, use remove_frame
+ *      instead.
+ *
+ * Parameters:
+ *        rfb: ring framebuffer to use.
+ *      frame: generic pointer to frambuffer to remove.
+ * Return Value:
+ *      None.
+ */
 static void tc_ring_framebuffer_remove_frame(TCRingFrameBuffer *rfb,
                                              TCFramePtr frame)
 {
@@ -352,7 +484,16 @@ static void tc_ring_framebuffer_remove_frame(TCRingFrameBuffer *rfb,
     }
 }
 
-
+/*
+ * tc_ring_framebuffer_flush:
+ *      unclaim ALL claimed frames on given ringbuffer, maing
+ *      ringbuffer ready to be used again.
+ *
+ * Parameters:
+ *      rfb: ring framebuffer to use.
+ * Return Value:
+ *      amount of framebuffer unclaimed by this function.
+ */
 static int tc_ring_framebuffer_flush(TCRingFrameBuffer *rfb)
 {
     TCFramePtr frame;
@@ -373,7 +514,19 @@ static int tc_ring_framebuffer_flush(TCRingFrameBuffer *rfb)
     return i;
 }
 
-
+/*
+ * tc_ring_framebuffer_chack_status:
+ *      checks if there is at least one frame in a given state
+ *      in given ring framebuffer.
+ *
+ * Parameters:
+ *         rfb: ring framebuffer to use.
+ *      status: framebuffer status to check on.
+ * Return Value
+ *      0: there aren't framebuffer of given status on given ringbuffer
+ *     !0: there is at least one framebuffer of given status on given
+ *         ringbuffer.
+ */
 static int tc_ring_framebuffer_check_status(const TCRingFrameBuffer *rfb,
                                             int status)
 {
@@ -440,6 +593,17 @@ void vframe_free(void)
 
 /* ------------------------------------------------------------------ */
 
+/* 
+ * Macro VS generic functions like above:
+ *
+ * I've used generic code and TCFramePtr in every place I was
+ * capable to introduce them in a *clean* way without using any
+ * casting. Of course there is still room for improvements,
+ * but back compatibility is an issue too. I'd like to get rid
+ * of all those macro and swtich to pure generic code of course,
+ * so this will be improved in future revisions. In the
+ * meantime, patches and suggestions welcome ;)             -- FR
+ */
 
 #define LIST_FRAME_APPEND(ptr, tail) do { \
     if ((tail) != NULL) { \
