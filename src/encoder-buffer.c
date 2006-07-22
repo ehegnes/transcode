@@ -41,6 +41,21 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+/*
+ * Quick Summary:
+ *
+ * This code provide glue between frames ringbuffer and real encoder
+ * code, in order to make encoder modular and independent from
+ * a single frame source, to promote reusability (tcexport).
+ * This code also take acare of some oddities like handling filtering
+ * if no frame threads are avalaible.
+ *
+ * This code isn't clean as one (i.e.: me) would like since it
+ * must cope with a lot of legacy constraints and some other nasty
+ * stuff. Of course situation will be improved in future releases
+ * when we keep going away from legacy oddities and continue
+ * sanitize/modernize the codebase.
+ */
 
 /*
  * XXX: critical changes:
@@ -81,11 +96,90 @@
     ++abuffer_ ## BUFID ## _fill_ctr; \
     pthread_mutex_unlock(&abuffer_ ## BUFID ## _fill_lock)
 
+/*************************************************************************/
+
 /*
- * Apply the filter chain to current video frame.
- * Used if no frame threads are avalaible.
- * this function should be never exported.
+ * apply_video_filters. appli_auido_filters:
+ *       Apply the filter chain to current respectively video
+ *       or audio frame.
+ *       This function is used if no frame threads are avalaible,
+ *       but of course filtering still must be applied.
+ *       This function should be never exported.
+ *
+ * Parameters:
+ *       vptr, aptr: respectively video or aufio framebuffer
+ *                   pointer to frame to be filtered.
+ *              vob: pointer to vob_t structure holding stream
+ *                   parameters.
  */
+static void apply_video_filters(vframe_list_t *vptr, vob_t *vob);
+static void apply_audio_filters(aframe_list_t *aptr, vob_t *vob);
+
+/*
+ * encoder_wait_vframe, encoder_wait_aframe:
+ *      Wait until respectively a new video or audio frame buffer
+ *      is avalaible for encoding, by querying appropriate
+ *      ringbuffer.
+ *      When a new frame is avalaible update the encoding context
+ *      adjusting framebuffer pointer, and returns.
+ *      Also returns if no more frames are avalaible: that;s usually
+ *      happens when frame stream ends.
+ *
+ *      Yes, properly using a pthread condition would be much cleaner
+ *      and simpler.
+ *
+ * Parameters:
+ *      buf: Encoder (buffer) context to use.
+ * Return Value:
+ *      0: new framebuffer avalaible
+ *     -1: no more framebuffers. (Stream ends?)
+ */
+static int encoder_wait_vframe(TCEncoderBuffer *buf);
+static int encoder_wait_aframe(TCEncoderBuffer *buf);
+
+/*
+ * encoder_acquire_vframe, encoder_acquire_aframe:
+ *      Get respectively a new video or audio framebuffer for encoding.
+ *      This roughly means:
+ *      1. to wait for a new frame avalaible for encoder using
+ *         encoder_wait_vframe or encoder_wait_aframe
+ *      2. apply the filters if no frame threads are avalaible
+ *      3. apply the encoder filters (POST_S_PROCESS)
+ *      4. verify the status of audio framebuffer after all filtering.
+ *         if acquired framebuffer is skipped, we must acquire a new one
+ *         before continue with encoding, so we must restart from step 1.
+ *
+ * Parameters:
+ *      buf: encoder buffer to use (and fullfull with acquired frame).
+ *      vob: pointer to vob_t structure describing stream parameters.
+ *           Used Internally.
+ * Return Value:
+ *       0 when a new framebuffer is avalaible for encoding;
+ *      <0 if no more framebuffers are avalaible.
+ *         As for encoder_wait_{v,a}frame, this usually happens
+ *         when video/audio stream ends.
+ */
+static int encoder_acquire_vframe(TCEncoderBuffer *buf, vob_t *vob);
+static int encoder_acquire_aframe(TCEncoderBuffer *buf, vob_t *vob);
+
+/*
+ * encoder_dispose_vframe, encoder_dispose_aframe:
+ *       Mark a framebuffer (respectively video or audio) as completed
+ *       from encoder viewpoint, so release it to source ringbuffer,
+ *       update counters and do all cleanup actions needed internally.
+ *
+ * Parameters:
+ *       buf: encoder buffer to use (release currente framebuffers
+ *            and update related counters and internal variables).
+ * Return Value:
+ *       None.
+ */
+static void encoder_dispose_vframe(TCEncoderBuffer *buf);
+static void encoder_dispose_aframe(TCEncoderBuffer *buf);
+
+
+/*************************************************************************/
+
 static void apply_video_filters(vframe_list_t *vptr, vob_t *vob)
 {
     if (!have_vframe_threads) {
@@ -118,11 +212,6 @@ static void apply_video_filters(vframe_list_t *vptr, vob_t *vob)
     }
 }
 
-/*
- * Apply the filter chain to current audio frame.
- * Used if no frame threads are avalaible.
- * this function should be never exported.
- */
 static void apply_audio_filters(aframe_list_t *aptr, vob_t *vob)
 {
     /* now we try to process the audio frame */
@@ -155,14 +244,7 @@ static void apply_audio_filters(aframe_list_t *aptr, vob_t *vob)
     }
 }
 
-/*
- * wait until a new audio frame is avalaible for encoding
- * in frame buffer.
- * When a new frame is avalaible update the encoding context
- * adjusting video frame buffer, and returns 0.
- * Return -1 if no more frames are avalaible.
- * This usually happens when video stream ends.
- */
+
 static int encoder_wait_vframe(TCEncoderBuffer *buf)
 {
     int ready = TC_FALSE;
@@ -202,14 +284,6 @@ static int encoder_wait_vframe(TCEncoderBuffer *buf)
     return 0;
 }
 
-/*
- * wait until a new audio frame is avalaible for encoding
- * in frame buffer.
- * When a new frame is avalaible update the encoding context
- * adjusting video frame buffer, and returns 0.
- * Return -1 if no more frames are avalaible. This usually
- * means that video stream is ended.
- */
 static int encoder_wait_aframe(TCEncoderBuffer *buf)
 {
     int ready = TC_FALSE;
@@ -248,19 +322,7 @@ static int encoder_wait_aframe(TCEncoderBuffer *buf)
     return 0;
 }
 
-/*
- * get a new video frame for encoding. This means:
- * 1. to wait for a new frame avalaible for encoder using encoder_wait_vframe
- * 2. apply the filters if no frame threads are avalaible
- * 3. apply the encoder filters (POST_S_PROCESS)
- * 4. verify the status of video frame after all filtering.
- *    if acquired video frame is skipped, we must acquire a new one before
- *    continue with encoding, so we must restart from step 1.
- * returns 0 when a new frame is avalaible for encoding, or <0 if no more
- * video frames are avalaible. As for encoder_wait_vframe, this usually happens
- * when video stream ends.
- * returns >0 if frame id exceed the desired frame range
- */
+
 static int encoder_acquire_vframe(TCEncoderBuffer *buf, vob_t *vob)
 {
     int err = 0;
@@ -349,18 +411,6 @@ static int encoder_acquire_vframe(TCEncoderBuffer *buf, vob_t *vob)
     return 0;
 }
 
-/*
- * get a new audio frame for encoding. This means:
- * 1. to wait for a new frame avalaible for encoder using encoder_wait_aframe
- * 2. apply the filters if no frame threads are avalaible
- * 3. apply the encoder filters (POST_S_PROCESS)
- * 4. verify the status of audio frame after all filtering.
- *    if acquired audio frame is skipped, we must acquire a new one before
- *    continue with encoding, so we must restart from step 1.
- * returns 0 when a new frame is avalaible for encoding, or <0 if no more
- * video frames are avalaible. As for encoder_wait_aframe, this usually happens
- * when audio stream ends.
- */
 static int encoder_acquire_aframe(TCEncoderBuffer *buf, vob_t *vob)
 {
     int err = 0;
@@ -425,9 +475,7 @@ static int encoder_acquire_aframe(TCEncoderBuffer *buf, vob_t *vob)
     return 0;
 }
 
-/*
- * put back to frame buffer an acquired video frame.
- */
+
 static void encoder_dispose_vframe(TCEncoderBuffer *buf)
 {
     if (buf->vptr->attributes & TC_FRAME_IS_OUT_OF_RANGE) {
@@ -482,9 +530,6 @@ static void encoder_dispose_vframe(TCEncoderBuffer *buf)
 }
 
 
-/*
- * put back to frame buffer an acquired audio frame
- */
 static void encoder_dispose_aframe(TCEncoderBuffer *buf)
 {
     if (buf->aptr->attributes & TC_FRAME_IS_OUT_OF_RANGE) {
@@ -529,6 +574,7 @@ static void encoder_dispose_aframe(TCEncoderBuffer *buf)
         INC_ABUF_COUNTER(ex);
     }
 }
+
 
 static int encoder_have_data(TCEncoderBuffer *buf)
 {

@@ -1,3 +1,10 @@
+2006-07-22 Francesco Romani <fromani at gmail dot com>
+  * src/framebuffer.c
+  append format/STYLE helper trailer
+
+  * src/encoder-buffer.c
+  Documentation update.
+
 2006-07-21 Francesco Romani <fromani at gmail dot com>
   * src/framebuffer.c
   documentation round tw, plus a small enhancement to retrieve

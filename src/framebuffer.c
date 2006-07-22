@@ -1056,3 +1056,14 @@ void vframe_copy(vframe_list_t *dst, vframe_list_t *src, int copy_data)
     }
 }
 
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */
