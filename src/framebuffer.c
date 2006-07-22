@@ -273,7 +273,6 @@ static int tc_init_ring_framebuffer(TCRingFrameBuffer *rfb,
  * Return Value:
  *       None.
  */
-s
 static void tc_fini_ring_framebuffer(TCRingFrameBuffer *rfb)
 {
     if (rfb != NULL && rfb->free != NULL) {
