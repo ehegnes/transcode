@@ -5,6 +5,10 @@
   * src/encoder-buffer.c
   Documentation update.
 
+  * src/framebuffer.h src/fraembuffer.c
+  re-export framebuffer list tail/head, decoder needs them
+  Proper (cleaner) solution will follow soon.
+
 2006-07-21 Francesco Romani <fromani at gmail dot com>
   * src/framebuffer.c
   documentation round tw, plus a small enhancement to retrieve

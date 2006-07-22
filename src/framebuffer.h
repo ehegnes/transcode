@@ -527,4 +527,10 @@ extern pthread_cond_t vframe_list_full_cv;
 extern pthread_mutex_t aframe_list_lock;
 extern pthread_cond_t aframe_list_full_cv;
 
+extern aframe_list_t *aframe_list_head;
+extern aframe_list_t *aframe_list_tail;
+
+extern vframe_list_t *vframe_list_head;
+extern vframe_list_t *vframe_list_tail;
+
 #endif /* FRAMEBUFFFER_H */
