@@ -1,3 +1,8 @@
+2006-07-24 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_x264.c
+  update  module to work against lastest x264 build.
+  Still needs some care.
+
 2006-07-22 Francesco Romani <fromani at gmail dot com>
   * src/framebuffer.c
   append format/STYLE helper trailer

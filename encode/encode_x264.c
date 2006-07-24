@@ -610,7 +610,11 @@ static int x264params_check(x264_param_t *params)
         params->rc.i_qp_max = params->rc.i_qp_constant;
     }
 
+#if X264_BUILD >= 48
+    if (params->rc.i_rc_method == X264_RC_ABR) {
+#else
     if (params->rc.b_cbr == 1) {
+#endif
         if ((params->rc.i_vbv_max_bitrate > 0)
             != (params->rc.i_vbv_buffer_size > 0)
         ) {
@@ -648,7 +652,11 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
     params->i_height = vob->ex_v_height;
 
     /* TODO: allow other modes than cbr */
+#if X264_BUILD >= 48
+    params->rc.i_rc_method = X264_RC_ABR; /* use bitrate instead of CQP */
+#else
     params->rc.b_cbr = 1; /* use bitrate instead of CQP */
+#endif
     params->rc.i_bitrate = vob->divxbitrate; /* what a name */
 
     if (TC_NULL_MATCH == tc_frc_code_to_ratio(vob->ex_frc,
