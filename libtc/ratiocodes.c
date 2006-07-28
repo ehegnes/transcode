@@ -219,3 +219,14 @@ int tc_code_to_ratio(TCRatioCode rc, int in_code, int *out_n, int *out_d)
     return code;
 }
 
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */
