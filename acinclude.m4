@@ -191,7 +191,7 @@ buffer.memory = V4L2_MEMORY_MMAP
 ],    [AC_DEFINE([HAVE_STRUCT_V4L2_BUFFER], 1,
         [define if your videodev2 header has struct v4l2_buffer])
         AC_MSG_RESULT([yes])],
-      [v4l2=no AC_MSG_RESULT([no])])
+      [AC_MSG_RESULT([no])])
   fi
 
   if test x"$v4l" = x"yes" -o x"$v4l2" = x"yes" ; then

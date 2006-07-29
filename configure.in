@@ -542,7 +542,7 @@ AC_CHECK_LIB(avutil, av_rescale,
     [tc_libavutil=-lavutil], [tc_libavutil=""], [])
 LIBAVCODEC_EXTRA_LIBS="$LIBAVCODEC_EXTRA_LIBS $tc_libavutil -lm -lz $PTHREAD_LIBS"
 TC_PKG_CHECK(libavcodec, required, LIBAVCODEC, no, [ffmpeg/avcodec.h],
- avcodec, avcodec_thread_init, FFMpeg, [http://www.ffmpeg.org/])
+ avcodec, avcodec_thread_init, libavcodec, [http://www.ffmpeg.org/])
 if test x"$have_libavcodec" = x"yes" ; then
   save_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$CPPFLAGS $LIBAVCODEC_CFLAGS"
@@ -673,8 +673,8 @@ AC_CHECK_HEADERS([encore2.h])
 dnl
 dnl libpostproc
 dnl
-TC_PKG_CHECK(libpostproc, no, LIBPOSTPROC, no, postprocess.h,
-  postproc, pp_postprocess, FFmpeg, [http://www.ffmpeg.org/])
+TC_PKG_CHECK(libpostproc, no, LIBPOSTPROC, no, [postproc/postprocess.h],
+  postproc, pp_postprocess, libpostproc, [http://www.ffmpeg.org/])
 TC_PKG_HAVE(libpostproc, LIBPOSTPROC)
 
 dnl
@@ -911,7 +911,7 @@ dnl
 dnl A52
 dnl
 A52_EXTRA_LIBS="$A52_EXTRA_LIBS -lm"
-TC_PKG_CHECK(a52, no, A52, no, [a52dec/a52.h], a52, a52_init, a52dec,
+TC_PKG_CHECK(a52, no, A52, no, [a52dec/a52.h], a52, a52_init, liba52,
  [http://liba52.sourceforge.net/])
 TC_PKG_HAVE(a52, A52)
 
