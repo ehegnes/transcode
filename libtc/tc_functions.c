@@ -122,6 +122,45 @@ int tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
 
 /*************************************************************************/
 
+int tc_mangle_cmdline(int *argc, char ***argv,
+                      const char *opt, const char **optval)
+{
+    int i, found = TC_FALSE;
+
+    if (argc == NULL || argv == NULL || opt == NULL || optval == NULL) {
+        return 1;
+    }
+
+    /* first we looking for our option (and it's value) */
+    for (i = 1; i < *argc; i++) {
+        if ((*argv)[i] && strcmp((*argv)[i], opt) == 0) {
+            if (i + 1 >= *argc || (*argv)[i + 1][0] == '-') {
+                /* report bad usage */
+                tc_log_warn(__FILE__, "wrong usage for option '%s'", opt);
+                return -1;
+            } else {
+                found = TC_TRUE;
+                *optval = (*argv)[i + 1];
+            }
+            break;
+        }
+    }
+
+    /*
+     * if we've found our option, now we must shift back all
+     * the other options after the ours and we must also update argc.
+     */
+    if (found) {
+        for (; i < (*argc - 2); i++) {
+            (*argv)[i] = (*argv)[i + 2];
+        }
+        (*argc) -= 2;
+    }
+
+    return 0;
+}
+
+
 int tc_test_program(const char *name)
 {
 #ifndef NON_POSIX_PATH
@@ -602,6 +641,81 @@ void tc_strstrip(char *s)
     }
 }
 
+char **tc_strsplit(const char *str, char sep, size_t *pieces_num)
+{
+    const char *begin = str, *end = NULL;
+    char **pieces = NULL, *pc = NULL;
+    size_t i = 0, n = 2;
+    int failed = TC_FALSE;
+
+    if (!str || !strlen(str)) {
+        return NULL;
+    }
+
+    while (begin != NULL) {
+        begin = strchr(begin, sep);
+        if (begin != NULL) {
+            begin++;
+            n++;
+        }
+    }
+
+    pieces = tc_malloc(n * sizeof(char*));
+    if (!pieces) {
+        return NULL;
+    }
+
+    begin = str;
+    while (begin != NULL) {
+        size_t len;
+
+        end = strchr(begin, sep);
+        if (end != NULL) {
+            len = (end - begin);
+        } else {
+            len = strlen(begin);
+        }
+        if (len > 0) {
+            pc = tc_strndup(begin, len);
+            if (pc == NULL) {
+                failed = TC_TRUE;
+                break;
+            } else {
+                pieces[i] = pc;
+                i++;
+            }
+        }
+        if (end != NULL) {
+            begin = end + 1;
+        } else {
+            break;
+        }
+    }
+
+    if (failed) {
+        /* one or more copy of pieces failed */
+        tc_free(pieces);
+        pieces = NULL;
+    } else { /* i == n - 1 -> all pieces copied */
+        pieces[n - 1] = NULL; /* end marker */
+        if (pieces_num != NULL) {
+            *pieces_num = i;
+        }
+    }
+    return pieces;
+}
+
+void tc_strfreev(char **pieces)
+{
+    if (pieces != NULL) {
+        int i = 0;
+        for (i = 0; pieces[i] != NULL; i++) {
+            tc_free(pieces[i]);
+        }
+        tc_free(pieces);
+    }
+}
+ 
 /*************************************************************************/
 
 /* 

@@ -152,6 +152,39 @@ __attribute__((format(printf,3,4)))
 /*************************************************************************/
 
 /*
+ * tc_mangle_cmdline:
+ *      parse a command line option array looking for a given option.
+ *      Given option can be short or long but must be given literally.
+ *      So, if you want to mangle "--foobar", give "--foobar" not
+ *      "foobar". Same story for short options "-V": use "-V" not "V".
+ *      If given option isn't found in string option array, do nothing
+ *      and return succesfull (see below). If option is found but
+ *      it's argument isn't found, don't mangle string options array
+ *      but return failure.
+ *      If BOTH option and it's value its found, store a pointer to
+ *      option value into "optval" parameter and remove both option
+ *      and value from string options array.
+ * Parameters:
+ *      argc: pointer to number of values present into option string
+ *            array. This parameter must be !NULL and it's updated
+ *            by a succesfull call of this function.
+ *      argv: pointer to array of option string items. This parameter
+ *            must be !NULL and it's updated by a succesfull call of
+ *            this function
+ *       opt: option to look for.
+ *    optval: if succesfull, pointer to option value will be stored here.
+ * Return value:
+ *      1: bad parameter(s) (NULL)
+ *      0: succesfull
+ *     -1: bad usage: given the option but not it's value
+ * Postconditions:
+ *      this function must operate trasparently by always leaving
+ *      argc/argv in an usable and consistent state.
+ */
+int tc_mangle_cmdline(int *argc, char ***argv,
+                      const char *opt, const char **optval);
+
+/*
  * tc_test_program:
  *     check if a given program is avalaible in current PATH.
  *     This function of course needs to read (and copy) the PATH
@@ -179,6 +212,34 @@ size_t strlcpy(char *dst, const char *src, size_t size);
 #ifndef HAVE_STRLCAT
 size_t strlcat(char *dst, const char *src, size_t size);
 #endif
+
+/*
+ * tc_strsplit:
+ *      split a given string into tokens using given separator character.
+ *      Return NULL-terminated array of splitted tokens, and optionally
+ *      return (via a out parameter) size of returned array.
+ *
+ * Parameters:
+ *         str: string to split
+ *         sep: separator CHARACTER: cut string when sep is found
+ *  pieces_num: if not NULL, store here the size of returned array
+ * Return value:
+ *      NULL-terminated array of splitted pieces.
+ *      You must explicitely free this returned array by using tc_strfreev
+ *      (see below) in order to avoid memleaks.
+ */
+char **tc_strsplit(const char *str, char sep, size_t *pieces_num);
+
+/*
+ * tc_strfreev:
+ *      return an array of strings as returned by tc_strsplit
+ *
+ * Parameters:
+ *      pieces: return value of tc_strsplit to be freed.
+ * Return value:
+ *      None.
+ */
+void tc_strfreev(char **pieces);
 
 /*
  * tc_strstrip:

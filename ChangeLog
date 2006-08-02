@@ -1,3 +1,9 @@
+2006-08-02 Francesco Romani <fromani at gmail dot com>
+  * src/export_profile.c libtc/libtc.h libtc/tc_functions.c
+  Move some utility functions private to export_profile code (since
+  it is the only user of such code, yet) into libtc, so they gain
+  better visibility and review.
+
 2006-07-29 Francesco Romani <fromani at gmail dot com>
   * acinclude.m4 configure.in
   fix a couple of glitches in our autostuff (Debian CVS autoconf
