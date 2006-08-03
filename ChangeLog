@@ -1,3 +1,7 @@
+2006-08-03 Francesco Romani <fromani at gmail dot com>
+  * libtc/tcmodule-core.h
+  prefer static inline functions over old-not-so-good macros.
+
 2006-08-02 Francesco Romani <fromani at gmail dot com>
   * src/export_profile.c libtc/libtc.h libtc/tc_functions.c
   Move some utility functions private to export_profile code (since

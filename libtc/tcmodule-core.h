@@ -23,7 +23,7 @@
 
 #include <stdint.h>
 
-#include "tcmodule-data.h"
+#include "tcmodule-data.h" /* pulls framebuffer.h and transcode.h */
 
 /*
  * this structure will hold all data needed to use a module by client code:
@@ -43,54 +43,108 @@ struct tcmodule_ {
  * interface helpers, using shortened notation                           *
  *************************************************************************/
 
-#define tc_module_configure(handle, options, vob) \
-    (handle)->klass->configure(&((handle)->instance), options, vob)
+static inline int tc_module_configure(TCModule handle,
+                                      const char *options, vob_t *vob)
+{
+    return handle->klass->configure(&(handle->instance), options, vob);
+}
 
-#define tc_module_stop(handle) \
-    (handle)->klass->stop(&((handle)->instance))
+static inline int tc_module_stop(TCModule handle)
+{
+    return handle->klass->stop(&(handle->instance));
+}
 
-#define tc_module_inspect(handle, param) \
-    (handle)->klass->inspect(&((handle)->instance), param)
+static inline const char *tc_module_inspect(TCModule handle,
+                                            const char *param)
+{
+    return handle->klass->inspect(&(handle->instance), param);
+}
 
-#define tc_module_encode_video(handle, inframe, outframe) \
-    (handle)->klass->encode_video(&((handle)->instance), inframe, outframe)
+static inline int tc_module_encode_video(TCModule handle,
+                                         vframe_list_t *inframe,
+                                         vframe_list_t *outframe)
+{
+    return handle->klass->encode_video(&(handle->instance),
+                                       inframe, outframe);
+}
 
-#define tc_module_encode_audio(handle, inframe, outframe) \
-    (handle)->klass->encode_audio(&((handle)->instance), inframe, outframe)
+static inline int tc_module_encode_audio(TCModule handle,
+                                         aframe_list_t *inframe,
+                                         aframe_list_t *outframe)
+{
+    return handle->klass->encode_audio(&(handle->instance),
+                                       inframe, outframe);
+}
 
-#define tc_module_decode_video(handle, inframe, outframe) \
-    (handle)->klass->decode_video(&((handle)->instance), inframe, outframe)
+static inline int tc_module_decode_video(TCModule handle,
+                                         vframe_list_t *inframe,
+                                         vframe_list_t *outframe)
+{
+    return handle->klass->decode_video(&(handle->instance),
+                                       inframe, outframe);
+}
 
-#define tc_module_decode_audio(handle, inframe, outframe) \
-    (handle)->klass->decode_audio(&((handle)->instance), inframe, outframe)
+static inline int tc_module_decode_audio(TCModule handle,
+                                         aframe_list_t *inframe,
+                                         aframe_list_t *outframe)
+{
+    return handle->klass->decode_audio(&(handle->instance),
+                                       inframe, outframe);
+}
 
-#define tc_module_filter_video(handle, frame) \
-    (handle)->klass->filter_video(&((handle)->instance), frame)
+static inline int tc_module_filter_video(TCModule handle,
+                                         vframe_list_t *frame)
+{
+    return handle->klass->filter_video(&(handle->instance), frame);
+}
 
-#define tc_module_filter_audio(handle, frame) \
-    (handle)->klass->filter_audio(&((handle)->instance), frame)
+static inline int tc_module_filter_audio(TCModule handle,
+                                         aframe_list_t *frame)
+{
+    return handle->klass->filter_audio(&(handle->instance), frame);
+}
 
-#define tc_module_multiplex(handle, vframe, aframe) \
-    (handle)->klass->multiplex(&((handle)->instance), vframe, aframe)
+static inline int tc_module_multiplex(TCModule handle,
+                                      vframe_list_t *vframe,
+                                      aframe_list_t *aframe)
+{
+    return handle->klass->multiplex(&(handle->instance), vframe, aframe);
+}
 
-#define tc_module_demultiplex(handle, vframe, aframe) \
-    (handle)->klass->demultiplex(&((handle)->instance), vframe, aframe)
+static inline int tc_module_demultiplex(TCModule handle,
+                                        vframe_list_t *vframe,
+                                        aframe_list_t *aframe)
+{
+    return handle->klass->demultiplex(&(handle->instance), vframe, aframe);
+}
 
-#define tc_module_get_info(handle) \
-    (const TCModuleInfo*)((handle)->klass->info)
+static inline const TCModuleInfo *tc_module_get_info(TCModule handle)
+{
+    return handle->klass->info;
+}
 
-#define tc_module_match(codec, handle, other) \
-    tc_module_info_match(codec, (handle)->klass->info, (other)->klass->info)
+static inline int tc_module_match(int codec,
+                                  TCModule handle, TCModule other)
+{
+    return tc_module_info_match(codec,
+                                handle->klass->info, other->klass->info);
+}
 
-#define tc_module_show_info(handle, verbose) \
-    tc_module_info_log((handle)->klass->info, verbose)
+static inline void tc_module_show_info(TCModule handle, int verbose)
+{
+    tc_module_info_log(handle->klass->info, verbose);
+}
 
-// XXX
-#define tc_module_pass_extradata(hs, hd) \
-    do { \
-        hd->instance.extradata = hs->instance.extradata; \
-        hd->instance.extradata_size = hs->instance.extradata_size; \
-    } while(0)
+/* XXX: can be further improved. */
+static inline void tc_module_pass_extradata(TCModule source, TCModule dest)
+{
+    if (source != NULL && dest != NULL) {
+        /* soft copy */
+        dest->instance.extradata = source->instance.extradata; 
+        dest->instance.extradata_size = source->instance.extradata_size;
+    }
+}
+
 
 /* factory data type. */
 typedef struct tcfactory_ *TCFactory;
@@ -207,7 +261,7 @@ int tc_del_module_factory(TCFactory factory);
  *      TCModule my_module = tc_new_module("filter", "foobar");
  */
 TCModule tc_new_module(TCFactory factory,
-		       const char *modclass, const char *modname);
+               const char *modclass, const char *modname);
 
 /*
  * tc_del_module:
