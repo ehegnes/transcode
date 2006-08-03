@@ -53,7 +53,7 @@ int tc_video_planes_size(size_t psizes[3],
  */
 static inline size_t tc_video_frame_size(int width, int height, int format)
 {
-    size_t psizes[3];
+    size_t psizes[3] = { 0, 0, 0 };
     tc_video_planes_size(psizes, width, height, format);
     return (psizes[0] + psizes[1] + psizes[2]);
 }
