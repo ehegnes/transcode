@@ -48,7 +48,7 @@ do { \
  * to use a custom struct (TCPair) for those situations without
  * requiring to use a temporary variable, that looks quite
  * clumsy to me. So I've chosen to fall back to minimum
- * comune denominator, that is a couple of int or pointer
+ * common denominator, that is a couple of int or pointer
  * to ints.
  *
  * Of course this can change if a better and cleanest solution
