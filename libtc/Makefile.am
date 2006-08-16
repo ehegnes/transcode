@@ -15,6 +15,10 @@ if HAVE_IBP
 XIO_FILES = libxio.c
 endif
 
+if HAVE_GETTIMEOFDAY
+TIMER_FILES = tctimer.c
+endif
+
 libtc_la_SOURCES = \
 	cfgfile.c \
 	framecode.c \
@@ -29,6 +33,7 @@ libtc_la_SOURCES = \
 	tcmodule.c \
 	tcmoduleinfo.c \
 	$(GETOPT_FILES) \
+	$(TIMER_FILES) \
 	$(XIO_FILES)
 
 EXTRA_DIST = \
@@ -40,6 +45,8 @@ EXTRA_DIST = \
 	optstr.h \
 	ratiocodes.h \
 	static_xio.h \
+	static_optstr.h \
+	static_tctimer.h \
 	tc_lzo.h \
 	tccodecs.h \
 	tcframes.h \
@@ -47,4 +54,6 @@ EXTRA_DIST = \
 	tcmodule-data.h \
 	tcmodule-info.h \
 	tcmodule-plugin.h \
+	tctimer.h \
 	xio.h
+

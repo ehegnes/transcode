@@ -1,3 +1,11 @@
+2006-08-16 Francesco Romani <fromani at gmail dot com>
+  * added files: libtc/static_tctimer.h libtc/tctimer.c libtc/tctimer.h
+
+  * libtc/Makefile.am
+  Add simple (yet) software timer based on nanosleep() and
+  gettimeofday() (any sane POSIX platform is suppsoed to ship both
+  of them), needed by upcoming X11 import module.
+
 2006-08-03 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule-core.h
   prefer static inline functions over old-not-so-good macros.
