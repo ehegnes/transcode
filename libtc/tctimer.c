@@ -1,5 +1,5 @@
 /*
- * tctimer.h - simple timer code for transcode
+ * tctimer.c - simple timer code implementation for transcode
  * (C) 2006 - Francesco Romani <fromani -at- gmail -dot- com>
  *
  * This file is part of transcode, a video stream processing tool.
@@ -7,9 +7,6 @@
  * General Public License (version 2 or later).  See the file COPYING
  * for details.
  */
-
-#ifndef TCTIMER_H
-#define TCTIMER_H
 
 #include "config.h"
 
@@ -20,14 +17,6 @@
 #include <sys/time.h>
 #include <time.h>
 #include <errno.h>
-
-#ifdef OS_LINUX /* RTC timing requires file acces */
-# include <sys/types.h>
-# include <sys/stat.h>
-# include <sys/ioctl.h>
-# include <unistd.h>
-# include <fcntl.h>
-#endif /* OS_LINUX */
 
 #include "tctimer.h"
 #include "libtc.h"
@@ -134,11 +123,3 @@ int tc_timer_init_soft(TCTimer *timer, uint16_t frequency)
     }
     return ret;
 }
-
-int tc_timer_init_best(TCTimer *timer, uint16_t frequency)
-{
-    tc_log_info(__FILE__, "Intializing software timer...");
-    return tc_timer_init_soft(timer, frequency);
-}
-
-#endif /* TCTIMER_H */

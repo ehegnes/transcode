@@ -1,4 +1,7 @@
 2006-08-17 Francesco Romani <fromani at gmail dot com>
+  * libtc/tctimer.c
+  cleanup unexpected mess.
+
   * configure.in
   AM_CONDITIONAL for gettimeofday, needed by timer facilities.
 
