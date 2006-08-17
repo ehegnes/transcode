@@ -33,19 +33,16 @@ typedef struct {
     int force_kf; /* boolean flag */
 } AVIPrivateData;
 
-static const char *avi_inspect(TCModuleInstance *self,
-                                const char *param)
+static int avi_inspect(TCModuleInstance *self,
+                       const char *param, const char **value)
 {
-    if (!self) {
-        tc_log_error(MOD_NAME, "inspect: bad instance data reference");
-        return NULL;
-    }
+    TC_MODULE_SELF_CHECK(self, "inspect");
 
     if (optstr_lookup(param, "help")) {
-        return avi_help;
+        *value = avi_help;
     }
 
-    return "";
+    return TC_EXPORT_OK;
 }
 
 static int avi_configure(TCModuleInstance *self,
@@ -58,10 +55,8 @@ static int avi_configure(TCModuleInstance *self,
     int abitrate = (vob->ex_a_codec == CODEC_PCM)
                     ?(vob->a_rate*4)/1000*8 :vob->mp3bitrate;
 
-    if (!self || !vob) {
-        tc_log_error(MOD_NAME, "configure: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "configure");
+    TC_MODULE_SELF_CHECK(vob, "configure"); /* hackish? */
 
     pd = self->userdata;
     fcc = tc_codec_fourcc(vob->ex_v_codec);
@@ -95,10 +90,7 @@ static int avi_stop(TCModuleInstance *self)
 {
     AVIPrivateData *pd = NULL;
 
-    if (!self) {
-        tc_log_error(MOD_NAME, "stop: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "stop");
 
     pd = self->userdata;
 
@@ -118,10 +110,7 @@ static int avi_multiplex(TCModuleInstance *self,
 
     AVIPrivateData *pd = NULL;
 
-    if (!self) {
-        tc_log_error(MOD_NAME, "multiplex: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "multiplex");
 
     pd = self->userdata;
     size_before = AVI_bytes_written(pd->avifile);
@@ -157,10 +146,7 @@ static int avi_init(TCModuleInstance *self)
 {
     AVIPrivateData *pd = NULL;
 
-    if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "init");
 
     pd = tc_malloc(sizeof(AVIPrivateData));
     if (!pd) {
@@ -184,10 +170,7 @@ static int avi_init(TCModuleInstance *self)
 
 static int avi_fini(TCModuleInstance *self)
 {
-    if (!self) {
-        tc_log_error(MOD_NAME, "fini: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "fini");
 
     avi_stop(self);
 

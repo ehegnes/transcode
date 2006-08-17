@@ -39,19 +39,16 @@ typedef struct {
     int fd_vid;
 } RawPrivateData;
 
-static const char *raw_inspect(TCModuleInstance *self,
-                               const char *options)
+static int raw_inspect(TCModuleInstance *self,
+                       const char *options, const char **value)
 {
-    if (!self) {
-        tc_log_error(MOD_NAME, "inspect: bad instance data reference");
-        return NULL;
-    }
+    TC_MODULE_SELF_CHECK(self, "inspect");
     
     if (optstr_lookup(options, "help")) {
-        return raw_help;
+        *value = raw_help;
     }
 
-    return "";
+    return TC_EXPORT_OK;
 }
 
 static int raw_configure(TCModuleInstance *self,
@@ -61,10 +58,8 @@ static int raw_configure(TCModuleInstance *self,
     char aud_name[PATH_MAX];
     RawPrivateData *pd = NULL;
 
-    if (!self) {
-        tc_log_error(MOD_NAME, "configure: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "configure");
+
     pd = self->userdata;
 
     // XXX
@@ -116,10 +111,8 @@ static int raw_stop(TCModuleInstance *self)
     RawPrivateData *pd = NULL;
     int verr, aerr;
 
-    if (!self) {
-        tc_log_error(MOD_NAME, "stop: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "stop");
+
     pd = self->userdata;
 
     if (pd->fd_vid != -1) {
@@ -142,7 +135,7 @@ static int raw_stop(TCModuleInstance *self)
         pd->fd_aud = -1;
     }
 
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 static int raw_multiplex(TCModuleInstance *self,
@@ -152,10 +145,8 @@ static int raw_multiplex(TCModuleInstance *self,
 
     RawPrivateData *pd = NULL;
 
-    if (!self) {
-        tc_log_error(MOD_NAME, "multiplex: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "multiplex");
+
     pd = self->userdata;
 
     if (vframe != NULL) {
@@ -178,13 +169,11 @@ static int raw_multiplex(TCModuleInstance *self,
 static int raw_init(TCModuleInstance *self)
 {
     RawPrivateData *pd = NULL;
-    if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+
+    TC_MODULE_SELF_CHECK(self, "init");
 
     pd = tc_malloc(sizeof(RawPrivateData));
-    if (!pd) {
+    if (pd == NULL) {
         return TC_EXPORT_ERROR;
     }
 
@@ -196,22 +185,19 @@ static int raw_init(TCModuleInstance *self)
     }
 
     self->userdata = pd;
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 static int raw_fini(TCModuleInstance *self)
 {
-    if (!self) {
-        tc_log_error(MOD_NAME, "fini: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "fini");
 
     raw_stop(self);
 
     tc_free(self->userdata);
     self->userdata = NULL;
 
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 

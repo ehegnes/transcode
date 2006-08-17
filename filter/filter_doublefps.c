@@ -185,17 +185,18 @@ static int doublefps_stop(TCModuleInstance *self)
  * the module.  See tcmodule-data.h for function details.
  */
 
-static const char *doublefps_inspect(TCModuleInstance *self, const char *param)
+static int doublefps_inspect(TCModuleInstance *self,
+                             const char *param, const char **value)
 {
     PrivateData *pd;
     static char buf[TC_BUF_MAX];
 
     if (!self || !param)
-       return NULL;
+       return -1;
     pd = self->userdata;
 
     if (optstr_lookup(param, "help")) {
-        return
+        *value = 
 "Overview:\n"
 "\n"
 "    Doubles the frame rate of interlaced video by separating each field\n"
@@ -233,13 +234,13 @@ static const char *doublefps_inspect(TCModuleInstance *self, const char *param)
     }
     if (optstr_lookup(param, "topfirst")) {
         tc_snprintf(buf, sizeof(buf), "%d", pd->topfirst);
-        return buf;
+        *value = buf;
     }
     if (optstr_lookup(param, "fullheight")) {
         tc_snprintf(buf, sizeof(buf), "%d", pd->fullheight);
-        return buf;
+        *value = buf;
     }
-    return "";
+    return 0;
 }
 
 /*************************************************************************/
@@ -491,8 +492,9 @@ int tc_filter(frame_list_t *frame, char *options)
         return doublefps_configure(&mod, options, tc_get_vob());
 
     } else if (frame->tag & TC_FILTER_GET_CONFIG) {
-        tc_snprintf(options, ARG_CONFIG_LEN, "%s",
-                    doublefps_inspect(&mod, "help"));
+        const char *value = NULL;
+        doublefps_inspect(&mod, "help", &value);
+        tc_snprintf(options, ARG_CONFIG_LEN, "%s", value);
         return 0;
 
     } else if (frame->tag & TC_PRE_M_PROCESS) {

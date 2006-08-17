@@ -403,22 +403,27 @@ int main(int argc, char *argv[])
     module = tc_new_module(factory, modtype, filename);
 
     if (module != NULL) {
+        const char *answer = NULL;
+
         if (verbose >= TC_DEBUG) {
             tc_log_info(EXE, "using new module system");
         }
         if (verbose >= TC_INFO) {
             /* overview and options */
-            puts(tc_module_inspect(module, "help"));
+            tc_module_inspect(module, "help", &answer);
+            puts(answer);
             /* module capabilities */
             tc_module_show_info(module, verbose);
             /* current configuration */
             puts("\ndefault module configuration:");
-            puts(tc_module_inspect(module, "all"));
+            tc_module_inspect(module, "all", &answer);
+            puts(answer);
         }
         if (modarg != NULL) {
             tc_log_info(EXE, "informations about '%s' for "
                              "module:", modarg);
-            puts(tc_module_inspect(module, modarg));
+            tc_module_inspect(module, modarg, &answer);
+            puts(answer);
         }
         tc_del_module(factory, module);
         status = STATUS_OK;

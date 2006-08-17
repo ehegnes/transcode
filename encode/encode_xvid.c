@@ -154,10 +154,9 @@ static int tc_xvid_configure(TCModuleInstance *self,
     int ret;
     XviDPrivateData *pd = NULL;
 
-    if (self == NULL || vob == NULL) {
-        tc_log_error(MOD_NAME, "configure: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "configure");
+    TC_MODULE_SELF_CHECK(vob, "configure"); /* uhu, hackish? */
+
     pd = self->userdata;
 
     /* Load the config file settings */
@@ -200,10 +199,7 @@ static int tc_xvid_init(TCModuleInstance *self)
     XviDPrivateData *pd = NULL;
     vob_t *vob = tc_get_vob();
 
-    if (self == NULL) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "init");
 
     /* Check frame dimensions */
     if (vob->ex_v_width % 2 || vob->ex_v_height % 2) {
@@ -246,19 +242,16 @@ init_failed:
     return TC_EXPORT_ERROR;
 }
 
-static const char *tc_xvid_inspect(TCModuleInstance *self,
-                                const char *param)
+static int tc_xvid_inspect(TCModuleInstance *self,
+                           const char *param, const char **value)
 {
-    if (self == NULL) {
-        tc_log_error(MOD_NAME, "inspect: bad instance data reference");
-        return NULL;
-    }
+    TC_MODULE_SELF_CHECK(self, "inspect");
 
     if (optstr_lookup(param, "help")) {
-        return xvid_help;
+        *value = xvid_help;
     }
 
-    return "";
+    return TC_EXPORT_OK;
 }
 
 static int tc_xvid_encode_video(TCModuleInstance *self,
@@ -269,10 +262,7 @@ static int tc_xvid_encode_video(TCModuleInstance *self,
     vob_t *vob = tc_get_vob();
     XviDPrivateData *pd = NULL;
 
-    if (self == NULL) {
-        tc_log_error(MOD_NAME, "encode_video: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "encode_video");
 
     pd = self->userdata;
 
@@ -340,10 +330,7 @@ static int tc_xvid_stop(TCModuleInstance *self)
     int ret;
     XviDPrivateData *pd = NULL;
 
-    if (self == NULL) {
-        tc_log_error(MOD_NAME, "stop: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "stop");
 
     pd = self->userdata;
 
@@ -393,10 +380,8 @@ static int tc_xvid_fini(TCModuleInstance *self)
 {
     XviDPrivateData *pd = NULL;
 
-    if (self == NULL) {
-        tc_log_error(MOD_NAME, "fini: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "fini");
+
     tc_xvid_stop(self);
 
     pd = self->userdata;

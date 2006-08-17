@@ -68,19 +68,16 @@ typedef struct {
 } YWPrivateData;
 
 
-static const char *yw_inspect(TCModuleInstance *self,
-                               const char *options)
+static int yw_inspect(TCModuleInstance *self,
+                      const char *options, const char **value)
 {
-    if (!self) {
-        tc_log_error(MOD_NAME, "inspect: bad instance data reference");
-        return NULL;
-    }
+    TC_MODULE_SELF_CHECK(self, "inspect");
     
     if (optstr_lookup(options, "help")) {
-        return yw_help;
+        *value = yw_help;
     }
 
-    return "";
+    return TC_EXPORT_OK;
 }
 
 static int yw_open_video(YWPrivateData *pd, const char *filename,
@@ -170,10 +167,8 @@ static int yw_configure(TCModuleInstance *self,
     YWPrivateData *pd = NULL;
     int ret;
 
-    if (!self) {
-        tc_log_error(MOD_NAME, "configure: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "configure");
+
     pd = self->userdata;
 
     if (vob->audio_out_file == NULL
@@ -214,10 +209,8 @@ static int yw_stop(TCModuleInstance *self)
     YWPrivateData *pd = NULL;
     int verr, aerr;
 
-    if (!self) {
-        tc_log_error(MOD_NAME, "stop: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "stop");
+
     pd = self->userdata;
 
     if (pd->fd_vid != -1) {
@@ -253,10 +246,8 @@ static int yw_multiplex(TCModuleInstance *self,
 
     YWPrivateData *pd = NULL;
 
-    if (!self) {
-        tc_log_error(MOD_NAME, "multiplex: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "multiplex");
+
     pd = self->userdata;
 
     if (vframe != NULL) {
@@ -291,13 +282,11 @@ static int yw_multiplex(TCModuleInstance *self,
 static int yw_init(TCModuleInstance *self)
 {
     YWPrivateData *pd = NULL;
-    if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+
+    TC_MODULE_SELF_CHECK(self, "init");
 
     pd = tc_malloc(sizeof(YWPrivateData));
-    if (!pd) {
+    if (pd == NULL) {
         return TC_EXPORT_ERROR;
     }
 
@@ -313,7 +302,7 @@ static int yw_init(TCModuleInstance *self)
     }
 
     self->userdata = pd;
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 static int yw_fini(TCModuleInstance *self)
@@ -328,7 +317,7 @@ static int yw_fini(TCModuleInstance *self)
     tc_free(self->userdata);
     self->userdata = NULL;
 
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 

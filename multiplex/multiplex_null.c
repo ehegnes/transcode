@@ -1,5 +1,5 @@
 /*
- *  multiplex_raw.c - write a separate plain file for each stream
+ *  multiplex_null.c - fake multiplexor that discards any given frame.
  *  (C) 2005/2006 Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
@@ -26,63 +26,48 @@ static const char *null_help = ""
 
 static int null_init(TCModuleInstance *self)
 {
-    if (self == NULL) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "init");
 
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     }
     self->userdata = NULL;
 
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 static int null_fini(TCModuleInstance *self)
 {
-    if (self == NULL) {
-        tc_log_error(MOD_NAME, "fini: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "fini");
 
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 static int null_configure(TCModuleInstance *self,
                           const char *options, vob_t *vob)
 {
-    if (self == NULL) {
-        tc_log_error(MOD_NAME, "configure: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "configure");
     
     return TC_EXPORT_OK;
 }
 
-static const char *null_inspect(TCModuleInstance *self,
-                                const char *param)
+static int null_inspect(TCModuleInstance *self,
+                        const char *param, const char **value)
 {
-    if (self == NULL) {
-        tc_log_error(MOD_NAME, "inspect: bad instance data reference");
-        return NULL;
-    }
+    TC_MODULE_SELF_CHECK(self, "inspect");
 
     if (optstr_lookup(param, "help")) {
-        return null_help;
+        *value = null_help;
     }
 
-    return "";
+    return TC_EXPORT_OK;
 }
 
 static int null_stop(TCModuleInstance *self)
 {
-    if (self == NULL) {
-        tc_log_error(MOD_NAME, "stop: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "stop");
 
-    return 0;
+    return TC_EXPORT_OK;
 }
 
 static int null_multiplex(TCModuleInstance *self,
@@ -90,10 +75,7 @@ static int null_multiplex(TCModuleInstance *self,
 {
     int asize = 0, vsize = 0;
 
-    if (self == NULL) {
-        tc_log_error(MOD_NAME, "multiplex: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "multiplex");
 
     if (vframe != NULL) {
         vsize = vframe->video_len;

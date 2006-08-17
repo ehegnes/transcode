@@ -31,7 +31,7 @@ static const char *tc_lzo_help = ""
 
 typedef struct {
     lzo_byte *work_mem; /* needed by encoder to work properly */
-    
+
     int codec;
 } LZOPrivateData;
 
@@ -41,10 +41,7 @@ static int tc_lzo_configure(TCModuleInstance *self,
     LZOPrivateData *pd = NULL;
     int ret;
 
-    if (self == NULL) {
-        tc_log_error(MOD_NAME, "configure: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "configure");
 
     pd = self->userdata;
     pd->codec = vob->im_v_codec;
@@ -55,7 +52,7 @@ static int tc_lzo_configure(TCModuleInstance *self,
                                " compression buffer");
         return TC_EXPORT_ERROR;
     }
-    
+
     ret = lzo_init();
     if (ret != LZO_E_OK) {
         lzo_free(pd->work_mem);
@@ -72,13 +69,11 @@ static int tc_lzo_configure(TCModuleInstance *self,
 static int tc_lzo_stop(TCModuleInstance *self)
 {
     LZOPrivateData *pd = NULL;
-    if (self == NULL) {
-        tc_log_error(MOD_NAME, "stop: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+
+    TC_MODULE_SELF_CHECK(self, "stop");
 
     pd = self->userdata;
-   
+
     if (pd->work_mem != NULL) {
         lzo_free(pd->work_mem);
         pd->work_mem = NULL;
@@ -90,10 +85,7 @@ static int tc_lzo_init(TCModuleInstance *self)
 {
     LZOPrivateData *pd = NULL;
 
-    if (self == NULL) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "init");
 
     pd = tc_malloc(sizeof(LZOPrivateData));
     if (!pd) {
@@ -103,7 +95,7 @@ static int tc_lzo_init(TCModuleInstance *self)
     /* sane defaults */
     pd->work_mem = NULL;
     pd->codec = CODEC_YUV;
-    
+
     self->userdata = pd;
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
@@ -115,36 +107,31 @@ static int tc_lzo_fini(TCModuleInstance *self)
 {
     LZOPrivateData *pd = NULL;
 
-    if (self == NULL) {
-        tc_log_error(MOD_NAME, "fini: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "fini");
+
     pd = self->userdata;
 
     tc_lzo_stop(self);
-    
+
     tc_free(self->userdata);
     self->userdata = NULL;
     return TC_EXPORT_OK;
 }
 
-static const char *tc_lzo_inspect(TCModuleInstance *self,
-                                  const char *param)
+static int tc_lzo_inspect(TCModuleInstance *self,
+                          const char *param, const char **value)
 {
     LZOPrivateData *pd = NULL;
 
-    if (self == NULL) {
-        tc_log_error(MOD_NAME, "inspect: bad instance data reference");
-        return NULL;
-    }
+    TC_MODULE_SELF_CHECK(self, "inspect");
 
     pd = self->userdata;
 
     if (optstr_lookup(param, "help")) {
-        return tc_lzo_help;
+        *value = tc_lzo_help;
     }
 
-    return "";
+    return TC_EXPORT_OK;
 }
 
 /* ------------------------------------------------------------
@@ -195,12 +182,10 @@ static int tc_lzo_encode_video(TCModuleInstance *self,
     tc_lzo_header_t hdr;
     int ret;
 
-    if (self == NULL) {
-        tc_log_error(MOD_NAME, "encode_video: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "encode_video");
+
     pd = self->userdata;
-   
+
     /* invariants */
     hdr.magic = TC_CODEC_LZO2;
     hdr.method = 1;

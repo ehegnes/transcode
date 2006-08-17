@@ -4,7 +4,7 @@
 
  Francesco Romani <fromani@gmail.com>, Andrew Church <achurch@achurch.org> 
                                      -
-                        Revision 0.4, 2 April 2006
+                        Revision 0.5, 17 August 2006
 
  Index:
 ---------------------------------------------------------------------------
@@ -29,6 +29,7 @@
      6.3. On explicit reference counting
      6.4. Possibile API and ABI breakage
      6.5. init VS configure, fini VS stop
+     6.6. A bit more about multiplexors and demultiplexors
  7. Final notes
 
                                      ***
@@ -109,16 +110,16 @@ Please note that a given module CAN belong to more than one class (this
 means that such module just implements more functions).
 
 - demuxing module: 
-	take care of reading stream data and extract audio stream, 
-	video stream and so on
+        take care of reading stream data and extract audio stream, 
+        video stream and so on
 - decoding module:
-	decodes A/V frame to raw data
+        decodes A/V frame to raw data
 - filter module:
-	apply some transformation to A/V raw data
+        apply some transformation to A/V raw data
 - encoding module:
-	encodes raw data in a user-defined format
+        encodes raw data in a user-defined format
 - muxing module:
-	packs encoded data in a user-defined container
+        packs encoded data in a user-defined container
 
 More module classes (notably an input and/or output abstraction)
 can be added in future releases, but class count should not increase
@@ -151,7 +152,7 @@ roughly:
   Of course, you can also use the new capabilities system to peek what
   a loaded module is supposed to do. More on this topic later.
 - when you're set, ask to factory to unload the module. You CAN'T just
-  free your module by hand, since factory needs again to do some black
+  free your module manually, since factory needs again to do some black
   magic to handle things nicely.
 - eventually shutdown the module factory itself. Do this only when
   you have released all modules instances, or factory will complain loudly.
@@ -215,7 +216,10 @@ The reader of this section is encouraged to take a look of documentation
 of functions and data structures embedded into header files of NMS to 
 become confident with the notions exposed here.
 Interesting files: 
-	libtc/tcmodule-core.h libtc/tcmodule-data.h libtc/tcmodule-info.h
+
+    libtc/tcmodule-core.h
+    libtc/tcmodule-data.h
+    libtc/tcmodule-info.h
 
 This section will not explore the semantic and the meaning of parameters
 of core API functions, interested reader should be better served just
@@ -309,7 +313,11 @@ tightly bound and can't be handled separately.
 
 Known module classes as in transcode 1.1.0:
 
-	demultiplex, decode, filter, encode, multiplex
+    demultiplex,
+    decode,
+    filter,
+    encode,
+    multiplex
 
 Destroying a module is really simple. Just invoke the destruction
 function using your factory and the module, and the latter will be 
@@ -319,7 +327,7 @@ In facts, destruction of last module triggers plugin
 unloading. The factory can detect at any time if a given module is
 the last one or not. You should'nt worry about this.
 
-Take care of check the return code of tc_del_module, since it
+Take care to check the return code of tc_del_module, since it
 triggers plugin unloading it can fail. Some debug messages are
 sent to (real) users using tc_log*().
 Future releases perhaps will add some detailed error codes than 
@@ -359,8 +367,8 @@ must be considered opaque by client code.
 
 Usage of a module, if we want to ignore the internals and the gory details,
 should be really easy and straightforwarded. 
-For each possibile module operation, there is a convenience macro for
-easier usage and to avoid clumsy module->operation(module, ... ) syntax.
+For each possibile module operation, there is a convenience (inline) function
+for easier usage and to avoid clumsy module->operation(module, ... ) syntax.
 
 The list of supported operations follows:
 
@@ -370,35 +378,35 @@ tc_module_configure(module, options, vob)
         before the usage.
 
 tc_module_stop(module)
-	stop a module and prepare it for a new safe (re)configuration.
-    this means flushing all buffers, closing files and so on.
+        stop a module and prepare it for a new safe (re)configuration.
+        this means flushing all buffers, closing files and so on.
 
-tc_module_inspect(module, param)
+tc_module_inspect(module, param, *value)
     query about the actual value of a given parameter.
 
 tc_module_encode_video(module, inframe, outframe)
 tc_module_encode_audio(module, inframe, outframe)
-	encode a give video or audio frame and store data in another one.
-	
+        encode a give video or audio frame and store data in another one.
+        
 tc_module_decode_video(module, inframe, outframe)
 tc_module_decode_audio(module, inframe, outframe)
-	decode a give video or audio frame and store data in another one.
+        decode a give video or audio frame and store data in another one.
 
-tc_module_filter_video(module, frame)
-tc_module_filter_audio(module, frame)
-	apply a filter in place to a video or audio frame.
+tc_module_filter_video(module, vframe)
+tc_module_filter_audio(module, aframe)
+        apply a filter in place to a video or audio frame.
 
 tc_module_multiplex(module, vframe, aframe)
-	pack given encoded audio and video frame (both at once or just one)
+        pack given encoded audio and video frame (both at once or just one)
 
 tc_module_demultiplex(module, vframe, aframe)
-	unpack encoded audio and video frame (both or just one)
+        unpack encoded audio and video frame (both or just one)
 
-Just use any of above macro in your code. Do not forget to check the
-return code.
+Just use any of above functions in your code. Do not forget to check the
+return code. In the common case, return value of -1 means 'error',
+and 0 means 'succesfull'.
 
-A few special parameters exists both for 'configure' and 'inspect'
-operations.
+A few special parameters exists for 'inspect':
 
 for 'inspect':
 * "all" option will force the module to return to calling environment
@@ -418,7 +426,10 @@ The reader of this section is encouraged to take a look of documentation
 of functions and data structures embedded into header files of NMS to 
 become familiar with the notions exposed here.
 Interesting files: 
-	libtc/tcmodule-plugin.h libtc/tcmodule-data.h libtc/tcmodule-info.h
+
+    libtc/tcmodule-plugin.h
+    libtc/tcmodule-data.h
+    libtc/tcmodule-info.h
 
 
 4.1. What you need to use NMS (as a plugin writer)
@@ -552,9 +563,9 @@ like:
 extern TCModuleFactory main_factory;
 
 #define tc_load_module(type, name) \
-	tc_new_module(main_factory, type, name)
+        tc_new_module(main_factory, type, name)
 #define tc_unload_module(type, name) \
-	tc_del_module(main_factory, mod)
+        tc_del_module(main_factory, mod)
 
 
 6.2. About multithreading safeness

@@ -21,6 +21,15 @@
 #include "tcmodule-info.h"
 #include "tcmodule-data.h"
 
+
+#define TC_MODULE_SELF_CHECK(self, WHERE) do { \
+    if ((self) == NULL) { \
+        tc_log_error(MOD_NAME, WHERE ": bad instance data reference"); \
+        return -1; /* catch all for filter/encoders/decoders/(de)muxers */ \
+    } \
+} while (0)
+
+
 /*
  * plugin entry point prototype
  */

@@ -95,7 +95,7 @@ struct tcmoduleclass_ {
     int (*fini)(TCModuleInstance *self);
     int (*configure)(TCModuleInstance *self, const char *options, vob_t *vob);
     int (*stop)(TCModuleInstance *self);
-    const char* (*inspect)(TCModuleInstance *self, const char *param);
+    int (*inspect)(TCModuleInstance *self, const char *param, const char **value);
 
     /*
      * not-mandatory operations, a module doing something useful implements
@@ -134,10 +134,6 @@ struct tcmoduleclass_ {
  *      0  succesfull.
  *      -1 error occurred. A proper message should be sent to user using
  *         tc_log*()
- * Side effects:
- *      None.
- * Preconditions:
- *      None
  * Postconditions:
  *      Given module is ready to be configured.
  *
@@ -151,8 +147,6 @@ struct tcmoduleclass_ {
  *      0  succesfull.
  *      -1 error occurred. A proper message should be sent to user using
  *         tc_log*()
- * Side effects:
- *      None.
  * Preconditions:
  *      module was already initialized. To finalize a uninitialized module
  *      will cause an undefined behaviour.
@@ -177,8 +171,6 @@ struct tcmoduleclass_ {
  *      0  succesfull.
  *      -1 error occurred. A proper message should be sent to user using
  *         tc_log*()
- * Side effects:
- *      None.
  * Preconditions:
  *      Given module was already initialized AND stopped.
  *      A module MUST be stop()ped before to be configured again, otherwise
@@ -201,8 +193,6 @@ struct tcmoduleclass_ {
  *      0  succesfull.
  *      -1 error occurred. A proper message should be sent to user using
  *         tc_log*()
- * Side effects:
- *      None.
  * Preconditions:
  *      Given module was already initialized. Try to (re)stop
  *      an unitialized module will cause an undefined behaviour.
@@ -225,13 +215,15 @@ struct tcmoduleclass_ {
  * Parameters:
  *      self: pointer to module instance to inspect.
  *      param: name of parameter to inspect
+ *      value: when method succesfully returns, will point to a constant
+ *             string (that MUST NOT be *free()d by calling code)
+ *             containing the actual value of requested parameter.
+ *             PLEASE NOTE that this value CAN change between
+ *             invocations of this method.
  * Return value:
- *      a string containing the answer, or NULL if parameter requested
- *      isn't known, or if an error occurr. In latter case a message
- *      will be emitted using tc_log*().
- *      There is no need to tc_free() returned string.
- * Side effects:
- *      none
+ *      0  succesfull. That means BOTH the request was honoured OR
+ *         the requested parameter isn't known and was silently ignored.
+ *      -1 INTERNAL error, reason will be tc_log*()'d out.
  * Preconditions:
  *      module was already initialized.
  *      Inspecting a uninitialized module will cause an
@@ -252,15 +244,11 @@ struct tcmoduleclass_ {
  *      0  succesfull.
  *      -1 error occurred. A proper message should be sent to user using
  *         tc_log*()
- * Side effects:
- *      None.
  * Preconditions:
  *      module was already initialized AND configured.
  *      To use a uninitialized and/or unconfigured module
  *      for decoding/encoding will cause an undefined behaviour.
  *      outframe != NULL.
- * Postconditions:
- *      None
  *
  *
  * filter_{audio,video}:
@@ -274,14 +262,10 @@ struct tcmoduleclass_ {
  *      0  succesfull.
  *      -1 error occurred. A proper message should be sent to user using
  *         tc_log*()
- * Side effects:
- *      None.
  * Preconditions:
  *      module was already initialized AND configured.
  *      To use a uninitialized and/or unconfigured module
  *      for filter will cause an undefined behaviour.
- * Postconditions:
- *      None
  *
  *
  * multiplex:
@@ -298,14 +282,10 @@ struct tcmoduleclass_ {
  *      >0 number of bytes writed for multiplexed frame(s). Can be
  *         (and usually is) different from the plain sum of sizes of
  *         encoded frames.
- * Side effects:
- *      None
  * Preconditions:
  *      module was already initialized AND configured.
  *      To use a uninitialized and/or unconfigured module
  *      for multiplex will cause an undefined behaviour.
- * Postconditions:
- *      None
  *
  *
  * demultiplex:
@@ -322,14 +302,10 @@ struct tcmoduleclass_ {
  *      >0 number of bytes readed for demultiplexed frame(s). Can be
  *         (and usually is) different from the plain sum of sizes of
  *         encoded frames.
- * Side effects:
- *      None
  * Preconditions:
  *      module was already initialized AND configured.
  *      To use a uninitialized and/or unconfigured module
  *      for demultiplex will cause an undefined behaviour.
- * Postconditions:
- *      None
  *
  */
 

@@ -197,18 +197,18 @@ static int levels_init_data(LevelsPrivateData *pd, const vob_t *vob,
     return 0;
 }
 
-static const char *levels_inspect(TCModuleInstance *self,
-                                  const char *param)
+static int levels_inspect(TCModuleInstance *self,
+                          const char *param, const char **value)
 {
     LevelsPrivateData *pd = NULL;
 
     if (!param) {
-       return NULL;
+       return -1;
     }
     pd = self->userdata;
 
     if (optstr_lookup(param, "help")) {
-        return levels_help;
+        *value = levels_help;
     }
 
     if (optstr_lookup(param, "all")) {
@@ -222,8 +222,9 @@ static const char *levels_inspect(TCModuleInstance *self,
         /* reset configuration string */
         pd->conf_str[0] = '\0';
     }
+    *value = pd->conf_str;
 
-    return pd->conf_str;
+    return 0;
 }
 
 static int levels_configure(TCModuleInstance *self,

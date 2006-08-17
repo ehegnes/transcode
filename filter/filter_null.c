@@ -110,13 +110,13 @@ static int null_configure(TCModuleInstance *self,
     return 0;
 }
 
-static const char *null_inspect(TCModuleInstance*self,
-                                   const char *param)
+static int null_inspect(TCModuleInstance*self,
+                        const char *param, const char **value)
 {
     if (optstr_lookup(param, "help")) {
-        return null_help;
+        *value = null_help;
     }
-    return "";
+    return 0;
 }
 
 static int null_stop(TCModuleInstance *self)

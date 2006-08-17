@@ -43,46 +43,34 @@ static int copy_init(TCModuleInstance *self)
 
 static int copy_fini(TCModuleInstance *self)
 {
-    if (self == NULL) {
-        tc_log_error(MOD_NAME, "fini: bad instance data reference");
-        return TC_EXPORT_ERROR;
+    TC_MODULE_SELF_CHECK(self, "fini");
+
+    return TC_EXPORT_OK;
+}
+
+static int copy_inspect(TCModuleInstance *self,
+                        const char *param, const char **value)
+{
+    TC_MODULE_SELF_CHECK(self, "inspect");
+
+    if (optstr_lookup(param, "help")) {
+        *value = copy_help;
     }
 
     return TC_EXPORT_OK;
 }
 
-static const char *copy_inspect(TCModuleInstance *self,
-                                const char *param)
-{
-    if (self == NULL) {
-        tc_log_error(MOD_NAME, "inspect: bad instance data reference");
-        return NULL;
-    }
-
-    if (optstr_lookup(param, "help")) {
-        return copy_help;
-    }
-
-    return "";
-}
-
 static int copy_configure(TCModuleInstance *self,
                           const char *options, vob_t *vob)
 {
-    if (self == NULL) {
-        tc_log_error(MOD_NAME, "configure: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "configure");
 
     return TC_EXPORT_OK;
 }
 
 static int copy_stop(TCModuleInstance *self)
 {
-    if (self == NULL) {
-        tc_log_error(MOD_NAME, "stop: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "stop");
 
     return TC_EXPORT_OK;
 }
@@ -90,10 +78,7 @@ static int copy_stop(TCModuleInstance *self)
 static int copy_encode_video(TCModuleInstance *self,
                               vframe_list_t *inframe, vframe_list_t *outframe)
 {
-    if (self == NULL) {
-        tc_log_error(MOD_NAME, "encode_video: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "encode_video");
 
     vframe_copy(outframe, inframe, 1);
     /* enforce full length (we deal with uncompressed frames */
@@ -105,10 +90,7 @@ static int copy_encode_video(TCModuleInstance *self,
 static int copy_encode_audio(TCModuleInstance *self,
                               aframe_list_t *inframe, aframe_list_t *outframe)
 {
-    if (self == NULL) {
-        tc_log_error(MOD_NAME, "encode_audio: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "encode_audio");
 
     aframe_copy(outframe, inframe, 1);
     /* enforce full lenbgth (we deal with uncompressed frames */

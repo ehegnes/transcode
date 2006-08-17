@@ -1,3 +1,29 @@
+2006-08-17 Francesco Romani <fromani at gmail dot com>
+  * ChangeLog docs/module-system-API.txt
+    encode/encode_copy.c encode/encode_lzo.c encode/encode_null.c
+    encode/encode_x264.c encode/encode_xvid.c
+    filter/filter_doublefps.c filter/filter_levels.c filter/filter_null.c
+    import/import_pv3.c import/import_vag.c import/nuv/import_nuv.c
+    libtc/tcmodule-core.h libtc/tcmodule-data.h libtc/tcmodule-plugin.h
+    libtc/tcmodule.c
+    multiplex/multiplex_avi.c multiplex/multiplex_null.c
+    multiplex/multiplex_raw.c multiplex/multiplex_y4m.c
+    tools/tcmodinfo.c
+
+  Yet another (small!) change to NMS API. Slightly improve the
+  semantic of inspect() operation since previously both return value
+  and status notification was packed on operation return parameter,
+  and that's not-so-good. Moreover, having only inspect() operation
+  to return not an integer would not allow some useful generic
+  common checks and code factorizations.
+  After this change, all operations returns success/error via
+  return value, and does I/O through parameters.
+  Please note that this change DOES NOT modify the behaviour nor
+  of module nor of client code since now client code just access
+  the inspect()ed informations via an additional constant pointer.
+  See code to learn more (hey, it's really simple!) or blame me
+  via email ;)
+
 2006-08-16 Francesco Romani <fromani at gmail dot com>
   * added files: libtc/static_tctimer.h libtc/tctimer.c libtc/tctimer.h
 

@@ -54,10 +54,10 @@ static inline int tc_module_stop(TCModule handle)
     return handle->klass->stop(&(handle->instance));
 }
 
-static inline const char *tc_module_inspect(TCModule handle,
-                                            const char *param)
+static inline int tc_module_inspect(TCModule handle,
+                                    const char *param, const char **value)
 {
-    return handle->klass->inspect(&(handle->instance), param);
+    return handle->klass->inspect(&(handle->instance), param, value);
 }
 
 static inline int tc_module_encode_video(TCModule handle,

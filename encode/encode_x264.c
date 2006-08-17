@@ -701,12 +701,9 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
 
 static int x264_init(TCModuleInstance *self)
 {
-    X264PrivateData *pd;
+    X264PrivateData *pd = NULL;
 
-    if (!self) {
-        tc_log_error(MOD_NAME, "init: self == NULL!");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "init");
 
     pd = tc_malloc(sizeof(X264PrivateData));
     if (!pd) {
@@ -733,11 +730,10 @@ static int x264_init(TCModuleInstance *self)
 
 static int x264_fini(TCModuleInstance *self)
 {
-    X264PrivateData *pd;
+    X264PrivateData *pd = NULL;
 
-    if (!self) {
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "fini");
+
     pd = self->userdata;
 
     if (pd->enc) {
@@ -760,11 +756,10 @@ static int x264_fini(TCModuleInstance *self)
 static int x264_configure(TCModuleInstance *self,
                          const char *options, vob_t *vob)
 {
-    X264PrivateData *pd;
+    X264PrivateData *pd = NULL;
 
-    if (!self) {
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "configure");
+
     pd = self->userdata;
 
     /* Initialize parameter block */
@@ -821,11 +816,10 @@ static int x264_configure(TCModuleInstance *self,
 
 static int x264_stop(TCModuleInstance *self)
 {
-    X264PrivateData *pd;
+    X264PrivateData *pd = NULL;
 
-    if (!self) {
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "stop");
+
     pd = self->userdata;
 
     if (pd->enc) {
@@ -843,14 +837,16 @@ static int x264_stop(TCModuleInstance *self)
  * module.  See tcmodule-data.h for function details.
  */
 
-static const char *x264_inspect(TCModuleInstance *self,
-                               const char *param)
+static int x264_inspect(TCModuleInstance *self,
+                        const char *param, const char **value)
 {
-    X264PrivateData *pd;
+    X264PrivateData *pd = NULL;
     static char buf[TC_BUF_MAX];
 
-    if (!self || !param)
-       return NULL;
+    TC_MODULE_SELF_CHECK(self, "inspect");
+    TC_MODULE_SELF_CHECK(param, "inspect"); /* hackish? */
+    TC_MODULE_SELF_CHECK(value, "inspect"); /* hackish? */
+
     pd = self->userdata;
 
     if (optstr_lookup(param, "help")) {
@@ -859,10 +855,10 @@ static const char *x264_inspect(TCModuleInstance *self,
                 "    Encodes video in h.264 format using the x264 library.\n"
                 "Options available:\n"
                 "    [todo]\n");
-        return buf;
+        *value = buf;
     }
 
-    return "";
+    return TC_EXPORT_OK;
 }
 
 /*************************************************************************/
@@ -965,7 +961,6 @@ extern const TCModuleClass *tc_plugin_setup(void)
 }
 
 /*************************************************************************/
-/*************************************************************************/
 
 /*
  * Local variables:
@@ -976,3 +971,4 @@ extern const TCModuleClass *tc_plugin_setup(void)
  *
  * vim: expandtab shiftwidth=4:
  */
+

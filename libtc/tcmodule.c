@@ -117,11 +117,11 @@ static int dummy_stop(TCModuleInstance *self)
     return -1;
 }
 
-static const char* dummy_inspect(TCModuleInstance *self,
-                                 const char *param)
+static int dummy_inspect(TCModuleInstance *self,
+                         const char *param, const char **value)
 {
-    DUMMY_HEAVY_CHECK(self, "inspection");
-    return NULL;
+    DUMMY_HEAVY_CHECK(self, "inspect");
+    return -1;
 }
 
 static int dummy_encode_video(TCModuleInstance *self,
