@@ -26,18 +26,6 @@
  * XXX WRITEME
  */
 
-typedef struct tctimer_ TCTimer;
-struct tctimer_ {
-    uint32_t last_time;
-
-    int (*fini)(TCTimer *timer);
-    uint32_t (*elapsed)(TCTimer *timer);
-    int (*sleep)(TCTimer *timer, uint32_t amount);
-};
-
-
-int tc_timer_init_soft(TCTimer *timer, uint16_t frequency);
-
 /*************************************************************************/
 /* utilities */
 
