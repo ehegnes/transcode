@@ -1,4 +1,7 @@
 2006-08-17 Francesco Romani <fromani at gmail dot com>
+  * configure.in
+  AM_CONDITIONAL for gettimeofday, needed by timer facilities.
+
   * ChangeLog docs/module-system-API.txt
     encode/encode_copy.c encode/encode_lzo.c encode/encode_null.c
     encode/encode_x264.c encode/encode_xvid.c
