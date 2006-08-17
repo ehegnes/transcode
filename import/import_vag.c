@@ -153,14 +153,14 @@ static int vag_stop(TCModuleInstance *self)
  * module.  See tcmodule-data.h for function details.
  */
 
-static const char *vag_inspect(TCModuleInstance *self,
-                               const char *param)
+static int vag_inspect(TCModuleInstance *self,
+                       const char *param, const char **value)
 {
     PrivateData *pd;
     static char buf[TC_BUF_MAX];
 
     if (!self || !param)
-       return NULL;
+       return TC_IMPORT_ERROR;
     pd = self->userdata;
 
     if (optstr_lookup(param, "help")) {
@@ -170,13 +170,15 @@ static const char *vag_inspect(TCModuleInstance *self,
                 "Options available:\n"
                 "    blocksize=N   Set stereo blocking size (16-%d, default %d)\n",
                 MAX_STEREO_BLOCK, DEF_STEREO_BLOCK);
-        return buf;
+        *value = buf;
+        return TC_IMPORT_OK;
     }
     if (optstr_lookup(param, "blocksize")) {
         tc_snprintf(buf, sizeof(buf), "%d", pd->blocksize);
-        return buf;
+        *value = buf;
+        return TC_IMPORT_OK;
     }
-    return "";
+    return TC_IMPORT_OK;
 }
 
 /*************************************************************************/

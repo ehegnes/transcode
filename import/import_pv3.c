@@ -496,8 +496,8 @@ static int pv3_stop(TCModuleInstance *self)
  * module.  See tcmodule-data.h for function details.
  */
 
-static const char *pv3_inspect(TCModuleInstance *self,
-                               const char *param)
+static int pv3_inspect(TCModuleInstance *self,
+                       const char *param, const char **value)
 {
     PrivateData *pd;
     static char buf[TC_BUF_MAX];
@@ -512,13 +512,13 @@ static const char *pv3_inspect(TCModuleInstance *self,
                 "    Decodes streams recorded by the Earth Soft PV3 recorder.\n"
                 "Options available:\n"
                 "    dllpath=path   Set path/filename to load dv.dll from\n");
-        return buf;
+        *value = buf;
     }
     if (optstr_lookup(param, "dllpath")) {
         tc_snprintf(buf, sizeof(buf), "%s", pd->dll_path ? pd->dll_path : "");
-        return buf;
+        *value = buf;
     }
-    return "";
+    return TC_IMPORT_OK;
 }
 
 /*************************************************************************/

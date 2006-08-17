@@ -199,8 +199,8 @@ static int nuv_stop(TCModuleInstance *self)
  * module.  See tcmodule-data.h for function details.
  */
 
-static const char *nuv_inspect(TCModuleInstance *self,
-                               const char *param)
+static int nuv_inspect(TCModuleInstance *self,
+                       const char *param, const char **value)
 {
     PrivateData *pd;
     static char buf[TC_BUF_MAX];
@@ -214,9 +214,9 @@ static const char *nuv_inspect(TCModuleInstance *self,
                     "Overview:\n"
                     "    Decodes NuppelVideo streams.\n"
                     "Options available: None.\n");
-        return buf;
+       *value = buf;
     }
-    return "";
+    return TC_IMPORT_OK;
 }
 
 /*************************************************************************/
