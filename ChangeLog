@@ -1,4 +1,36 @@
 2006-08-17 Francesco Romani <fromani at gmail dot com>
+  * added files:
+    import/import_x11.c import/probe_x11.c
+    import/x11source.c import/x11source.h
+
+  * import/Makefile.am import/fileinfo.c import/ioaux.h
+    import/magic.h import/probe_stream.c import/tc.h
+    import/tcprobe.c src/Makefile.am src/probe.c src/transcode.c
+
+  Enter first version of new, experimental, funny X11 import module.
+  Code works (...mostly ;) ), has documentation and stuff, but there
+  is some things to consider:
+  - multithreading pain with Xlib. Current solution is pretty
+    brutal, and requires a hook to transcode core (the annoying
+    stuff is that transcode binary too must be linked to Xlib).
+    Of course we can do better, and I'm working on a saner locking
+    policy as soon as I figure out a couple more of things.
+  - autoprobing stuff is pretty brutal and naif too. I'm not
+    enthusiast of current solution, I'm working on this too.
+    Suggestions welcome.
+  - last but not least, the module itself is still pretty simple:
+    it just use some simple Xlib functions, so it wastes a good
+    amount of bandwith (not Shm nor XV nor DAMAGE extensions or
+    other fancy stuff. Yet ;) ), it doesn't grab the pointer,
+    supports only 24-bit depth servers and stuff.
+    Take a look at import/x11source.? and import/import_x11.c
+    to figure out. Of course most of those limitations will
+    go away as soon as I get rid of above issues.
+
+    At moment of writing, this module is more a working demo
+    than an usable one. Neverthless, I already like it more
+    than import_vnc! (no, this isn't because I wrote it :P)
+
   * libtc/tctimer.c
   cleanup unexpected mess.
 

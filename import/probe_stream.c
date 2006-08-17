@@ -214,6 +214,10 @@ void tcprobe_thread(info_t *ipipe)
         probe_pv3(ipipe);
         break;
 
+      case TC_MAGIC_X11:
+        probe_x11(ipipe);
+        break;
+
       default:
         ipipe->error=2;
     }

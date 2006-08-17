@@ -62,6 +62,8 @@
 
 #define TC_MAGIC_BSDAV                 0xB5D00003
 
+#define TC_MAGIC_X11                   0x1100FEED
+
 //MPEG streams
 #define TC_MAGIC_MPEG_ES               0x1EEE00F0
 #define TC_MAGIC_MPEG_PS               0x1EEE00F1

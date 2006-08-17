@@ -867,6 +867,7 @@ const char *filetype(uint32_t magic)
   case TC_MAGIC_OSS_AUDIO:    return("OSS audio device");
   case TC_MAGIC_PIPE:         return("pipe/fifo (not seekable)");
   case TC_MAGIC_MPLAYER:      return("probed by mplayer");
+  case TC_MAGIC_X11:          return("X11 display source");
   case TC_MAGIC_ERROR:        return("error");
   case TC_MAGIC_UNKNOWN:
   default:                    return("unknown file type");

@@ -66,6 +66,7 @@ int ts_read(int fd_in, int fd_out, int demux_pid);
 #define TC_STYPE_UNKNOWN      0x00000000
 #define TC_STYPE_FILE         0x00000001
 #define TC_STYPE_STDIN        0x00000002
+#define TC_STYPE_X11          0x00000004
 
 #define ERROR_END_OF_STREAM        1
 #define ERROR_INVALID_FRAME        2

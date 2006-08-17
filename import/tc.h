@@ -86,4 +86,6 @@ void probe_mplayer(info_t *ipipe);
 
 void probe_pv3(info_t *ipipe);
 
+void probe_x11(info_t *ipipe);
+
 #endif

@@ -600,6 +600,10 @@ static void select_modules(int flags, vob_t *vob)
         vob->amod_probed = "pv3";  // really just BE raw after demuxing
         break;
 
+      case TC_MAGIC_X11:
+        vob->vmod_probed = "x11";
+        break;
+
     }  // switch (vob->v_format_flag)
 
     switch (vob->a_format_flag) {

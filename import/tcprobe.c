@@ -33,6 +33,7 @@
 #include "tc.h"
 #include "demuxer.h"
 #include "dvd_reader.h"
+#include "x11source.h"
 
 #include <math.h>
 #include <sys/types.h>
@@ -922,6 +923,10 @@ int main(int argc, char *argv[])
     /* assume defaults */
     if (name == NULL) {
         ipipe.stype = TC_STYPE_STDIN;
+    } else {
+        if (tc_x11source_is_display_name(name)) {
+            ipipe.stype = TC_STYPE_X11;
+        }
     }
     ipipe.verbose = verbose;
     ipipe.fd_out = STDOUT_FILENO;
@@ -932,6 +937,9 @@ int main(int argc, char *argv[])
     if (ipipe.stype == TC_STYPE_STDIN) {
         ipipe.fd_in = STDIN_FILENO;
         ipipe.magic = streaminfo(ipipe.fd_in);
+    } else if (ipipe.stype == TC_STYPE_X11) {
+        ipipe.fd_in = STDIN_FILENO; /* XXX */
+        ipipe.magic = TC_MAGIC_X11;
     } else {
         ret = info_setup(&ipipe, skip, mplayer_probe, want_dvd);
         if (ret != TC_IMPORT_OK) {

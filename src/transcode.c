@@ -47,6 +47,11 @@
 #include "libtc/getopt.h"
 #endif
 
+#ifdef HAVE_X11
+# include <X11/Xlib.h>
+#endif
+
+
 const char *RED    = COL_RED;
 const char *GREEN  = COL_GREEN;
 const char *YELLOW = COL_YELLOW;
@@ -413,6 +418,7 @@ static int source_check(char *import_file)
     }
 
     if(import_file[0] == '!') return(0);
+    if(import_file[0] == ':') return(0); /* ugh */
 
     if(xio_stat(import_file, &fbuf)==0) return(0);
 
@@ -774,6 +780,12 @@ int main(int argc, char *argv[]) {
     };
 
     if(argc==1) short_usage(EXIT_FAILURE);
+
+#ifdef HAVE_X11
+    if (XInitThreads() == 0) {
+        tc_error("can't initialize X11 threading support");
+    }
+#endif
 
     // if we're sending output to a terminal default to no progress meter.
     if (isatty(fileno(stdout))) {
@@ -4564,6 +4576,7 @@ int main(int argc, char *argv[]) {
 // unneeded object files from a .a file.
 
 #include "libtc/static_optstr.h"
+#include "libtc/static_tctimer.h"
 #include "avilib/static_avilib.h"
 #include "avilib/static_wavlib.h"
 

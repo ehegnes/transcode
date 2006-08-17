@@ -6,11 +6,16 @@ AM_CPPFLAGS = \
 	-DPROF_PATH=\"$(PROF_PATH)\" \
 	-I$(top_srcdir) \
 	$(LIBAVCODEC_CFLAGS) \
-	$(DLDARWIN_CFLAGS)
+	$(DLDARWIN_CFLAGS) \
+	$(X_CFLAGS)
 
 AM_LDFLAGS = -export-dynamic
 
 bin_PROGRAMS = transcode
+
+if HAVE_X11
+TC_X_LIBS = $(X_LIBS) $(X_PRE_LIBS) -lXext -lX11 $(X_EXTRA_LIBS)
+endif
 
 transcode_LDADD = \
 	$(DLDARWIN_LIBS) \
@@ -23,6 +28,7 @@ transcode_LDADD = \
 	$(XIO_LIBS) \
 	$(LIBXML2_LIBS) \
 	$(PTHREAD_LIBS) \
+	$(TC_X_LIBS) \
 	-lm
 
 EXTRA_DIST = \

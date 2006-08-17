@@ -55,6 +55,10 @@ if HAVE_LIBXML2
 IMPORT_XML = import_xml.la
 endif
 
+if HAVE_X11
+IMPORT_X11 = import_x11.la
+endif
+
 if HAVE_MJPEGTOOLS
 IMPORT_YUV4MPEG = import_yuv4mpeg.la
 endif
@@ -93,6 +97,7 @@ pkg_LTLIBRARIES = \
 	import_vob.la \
 	$(IMPORT_XML) \
 	import_xvid.la \
+	import_x11.la \
 	$(IMPORT_YUV4MPEG)
 
 a52_decore_la_SOURCES = a52_decore.c
@@ -193,6 +198,16 @@ import_xml_la_LIBADD = $(LIBXML2_LIBS) -lm
 
 import_xvid_la_SOURCES = import_xvid.c
 import_xvid_la_LDFLAGS = -module -avoid-version
+
+import_x11_la_SOURCES = import_x11.c x11source.c
+import_x11_la_CPPFLAGS = $(AM_CPPFLAGS) $(X_CFLAGS)
+import_x11_la_LDFLAGS = -module -avoid-version
+import_x11_la_LIBADD = \
+	$(X_LIBS) \
+	$(X_PRE_LIBS) \
+	-lXext \
+	-lX11 \
+	$(X_EXTRA_LIBS)
 
 import_yuv4mpeg_la_SOURCES = import_yuv4mpeg.c
 import_yuv4mpeg_la_CPPFLAGS = $(AM_CPPFLAGS) $(MJPEGTOOLS_CFLAGS)
@@ -426,7 +441,9 @@ tcprobe_SOURCES = \
 	probe_vnc.c \
 	probe_wav.c \
 	probe_xml.c \
-	probe_mplayer.c
+	probe_mplayer.c \
+	probe_x11.c \
+	x11source.c
 
 tcprobe_LDADD = \
 	$(AVILIB_LIBS) \
