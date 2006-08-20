@@ -32,7 +32,7 @@ void probe_x11(info_t *ipipe)
 {
 #ifdef HAVE_X11
     TCX11Source xsrc;
-    int err = tc_x11source_open(&xsrc, ipipe->name);
+    int err = tc_x11source_open(&xsrc, ipipe->name, TC_X11_MODE_PLAIN);
     if (err == 0) {
         tc_x11source_probe(&xsrc, ipipe->probe_info);
         tc_x11source_close(&xsrc);

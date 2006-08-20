@@ -104,7 +104,7 @@ static int tc_x11_configure(TCModuleInstance *self,
         return TC_IMPORT_ERROR;
     }
 
-    ret = tc_x11source_open(&priv->src, vob->video_in_file);
+    ret = tc_x11source_open(&priv->src, vob->video_in_file, TC_X11_MODE_BEST);
     if (ret != 0) {
         tc_log_error(MOD_NAME, "configure: failed to open X11 connection"
                                " to '%s'", vob->video_in_file);

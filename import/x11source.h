@@ -41,22 +41,50 @@ typedef struct tcX11source_ TCX11Source;
 
 #ifdef HAVE_X11
 
+#define HAVE_X11_SHM 1 /* ugly hack until configure isn't updated */
+
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
-#endif
+# ifdef HAVE_X11_SHM
+# include <sys/ipc.h>
+# include <sys/shm.h>   
+# include <X11/extensions/XShm.h>
+# endif /* X11_SHM */
+
+#endif /* X11 */
 
 struct tcX11source_ {
 #ifdef HAVE_X11
     Display *dpy;
+    int screen;
     Window root;
     Pixmap pix;
     GC gc;
-#endif
+    XImage *image;
+
+# ifdef HAVE_X11_SHM
+    XVisualInfo vis_info;
+    XShmSegmentInfo shm_info;
+# endif /* X11_SHM */
+#endif /* X11 */
 
     int width;
     int height;
     int depth;
+
+    int mode;
+
+    int (*acquire_data)(TCX11Source *handle, uint8_t *data, int maxdata);
+    int (*fini)(TCX11Source *handle);
+};
+
+typedef enum tcx11sourcemode_ TCX11SourceMode;
+enum tcx11sourcemode_ {
+    TC_X11_MODE_PLAIN = 0,
+    TC_X11_MODE_SHM,
+
+    TC_X11_MODE_BEST = 255, /* this MUST be the last one */
 };
 
 
@@ -76,36 +104,6 @@ struct tcX11source_ {
 int tc_x11source_is_display_name(const char *name);
 
 /*
- * tc_x11source_open:
- *      connext to given LOCAL X11 display, and prepare ofr later
- *      probing and/or image acquisition.
- *
- * Parameters:
- *       handle: connection handle to be used. (Allocation must
- *               be handled by caller).
- *      display: LOCAL X11 display identifier to connect on.
- * Return Value:
- *      -1: error on connection, reason will be tc_log_*()'d out.
- *       0: succesfull
- *       1: wrong (NULL) parameters.
- */
-int tc_x11source_open(TCX11Source *handle, const char *display);
-
-/*
- * tc_x11source_close:
- *      close an X11 connection represented by given handle, and
- *      releases all acquired resources.
- *
- * Parameters:
- *      handle: connection handle to be closed.
- * Return Value:
- *      -1: error on connection, reason will be tc_log_*()'d out.
- *       0: succesfull
- *       1: wrong (NULL) parameters.
- */
-int tc_x11source_close(TCX11Source *handle);
-
-/*
  * tc_x11source_probe:
  *      fetch image parameters through given connection and
  *      store them into given info structure.
@@ -120,6 +118,37 @@ int tc_x11source_close(TCX11Source *handle);
  *       1: wrong (NULL) parameters.
  */
 int tc_x11source_probe(TCX11Source *handle, ProbeInfo *info);
+
+/*
+ * tc_x11source_open:
+ *      connext to given LOCAL X11 display, and prepare ofr later
+ *      probing and/or image acquisition.
+ *
+ * Parameters:
+ *       handle: connection handle to be used. (Allocation must
+ *               be handled by caller).
+ *      display: LOCAL X11 display identifier to connect on.
+ *         mode: select X extensions to use, if avalaible.
+ * Return Value:
+ *      -1: error on connection, reason will be tc_log_*()'d out.
+ *       0: succesfull
+ *       1: wrong (NULL) parameters.
+ */
+int tc_x11source_open(TCX11Source *handle, const char *display, int mode);
+
+/*
+ * tc_x11source_close:
+ *      close an X11 connection represented by given handle, and
+ *      releases all acquired resources.
+ *
+ * Parameters:
+ *      handle: connection handle to be closed.
+ * Return Value:
+ *      -1: error on connection, reason will be tc_log_*()'d out.
+ *       0: succesfull
+ *       1: wrong (NULL) parameters.
+ */
+int tc_x11source_close(TCX11Source *handle);
 
 /*
  * tc_x11source_acquire:
@@ -137,5 +166,6 @@ int tc_x11source_probe(TCX11Source *handle, ProbeInfo *info);
  *     >0: size of acquire dimage.
  */
 int tc_x11source_acquire(TCX11Source *handle, uint8_t *data, int maxdata);
+
 
 #endif /* TC_X11SOURCE_H */

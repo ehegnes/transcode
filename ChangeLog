@@ -1,3 +1,10 @@
+2006-08-20 Francesco Romani <fromani at gmail dot com>
+  * import/import_x11.c import/probe_x11.c
+    import/x11source.c import/x11source.h
+  fix swapped colors (X it's BGRA32 not RGBA32, at least here
+  on little-endian-PC-land) and implement (first try of)
+  XShm acquisition code.
+
 2006-08-18 Francesco Romani <fromani at gmail dot com>
   * added file: docs/import_x11.txt
 
