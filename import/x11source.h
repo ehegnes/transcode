@@ -41,8 +41,6 @@ typedef struct tcX11source_ TCX11Source;
 
 #ifdef HAVE_X11
 
-#define HAVE_X11_SHM 1 /* ugly hack until configure isn't updated */
-
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
