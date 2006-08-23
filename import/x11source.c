@@ -25,7 +25,6 @@
 #ifdef HAVE_X11
 
 
-
 int tc_x11source_is_display_name(const char *name)
 {
     if (name != NULL && strlen(name) != 0) {
@@ -334,7 +333,7 @@ open_failed:
 #else /* HAVE_X11 */
 
 
-int tc_x11source_open(TCX11Source *handle, const char *display)
+int tc_x11source_open(TCX11Source *handle, const char *display, int mode)
 {
     tc_log_error(__FILE__, "X11 support unavalaible");
     return -1;
