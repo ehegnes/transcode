@@ -242,6 +242,7 @@ dnl x86 & x86_64 architectures
 
 dnl MMX support
 dnl
+explicit_mmx=no
 AC_ARG_ENABLE(mmx,
   AC_HELP_STRING([--enable-mmx],
     [enable MMX code portions (yes)]),
@@ -249,16 +250,17 @@ AC_ARG_ENABLE(mmx,
     yes) use_mmx=yes ;;
     no)  use_mmx=no ;;
     *) AC_MSG_ERROR(bad value ${enableval} for --enable-mmx) ;;
-  esac],
+  esac
+  explicit_mmx=yes],
   [if test x"$have_x86cpu" = x"true" -o x"$have_x86_64cpu" = x"true" ; then
     use_mmx=yes
   else
     use_mmx=no
   fi])
 
-AC_MSG_CHECKING([if \$CC groks MMX inline assembly])
 have_asm_mmx="no"
 if test x"$use_mmx" = x"yes" ; then
+  AC_MSG_CHECKING([if \$CC groks MMX inline assembly])
   AC_TRY_COMPILE([],
     [void *p;asm volatile("packuswb %%mm1,%%mm2"::"r"(p));],
     [have_asm_mmx="yes"])
@@ -266,8 +268,11 @@ if test x"$use_mmx" = x"yes" ; then
     AC_DEFINE([HAVE_ASM_MMX], 1,
       [Define if your compiler understands MMX assembly instructions])
   fi
+  AC_MSG_RESULT($have_asm_mmx)
+  if test x"$have_asm_mmx" = x"no" -a x"$explicit_mmx" = x"yes" ; then
+    AC_MSG_WARN(*** Ignoring --enable-mmx due to no compiler support ***)
+  fi
 fi
-AC_MSG_RESULT($have_asm_mmx)
 AM_CONDITIONAL(HAVE_ASM_MMX, test x"$have_asm_mmx" = x"yes")
 if test x"$have_asm_mmx" = x"no" ; then
   AC_MSG_WARN(*** All MMX dependent parts will be disabled ***)
@@ -275,22 +280,28 @@ fi
 
 dnl 3DNow support
 dnl
+explicit_3dnow=no
 AC_ARG_ENABLE(3dnow,
   AC_HELP_STRING([--enable-3dnow],
     [enable 3DNow code portions (yes)]),
   [case "${enableval}" in
-    yes) use_3dnow=yes ;;
+    yes) if test x"$have_asm_mmx" = x"no"; then
+             AC_MSG_ERROR(--enable-3dnow requires --enable-mmx)
+         else
+             use_3dnow=yes
+         fi ;;
     no)  use_3dnow=no ;;
     *) AC_MSG_ERROR(bad value ${enableval} for --enable-3dnow) ;;
-  esac],
-  [if test x"$have_x86cpu" = x"true" -o x"$have_x86_64cpu" = x"true" ; then
+  esac
+  explicit_3dnow=yes],
+  [if test x"$have_asm_mmx" = x"yes" -a \( x"$have_x86cpu" = x"true" -o x"$have_x86_64cpu" = x"true" \) ; then
     use_3dnow=yes
   else
     use_3dnow=no
   fi])
-AC_MSG_CHECKING([if \$CC groks 3DNow inline assembly])
 have_asm_3dnow="no"
 if test x"$use_3dnow" = x"yes" ; then
+  AC_MSG_CHECKING([if \$CC groks 3DNow inline assembly])
   AC_TRY_COMPILE([],
     [void *p;asm volatile("pfmul %%mm3,%%mm4"::"r"(p));],
     [have_asm_3dnow="yes"])
@@ -298,8 +309,11 @@ if test x"$use_3dnow" = x"yes" ; then
     AC_DEFINE([HAVE_ASM_3DNOW], 1,
       [Define if your compiler understands 3DNow assembly instructions])
   fi
+  AC_MSG_RESULT($have_asm_3dnow)
+  if test x"$have_asm_3dnow" = x"no" -a x"$explicit_3dnow" = x"yes" ; then
+    AC_MSG_WARN(*** Ignoring --enable-3dnow due to no compiler support ***)
+  fi
 fi
-AC_MSG_RESULT($have_asm_3dnow)
 AM_CONDITIONAL(HAVE_ASM_3DNOW, test x"$have_asm_3dnow" = x"yes")
 if test x"$have_asm_3dnow" = x"no" ; then
   AC_MSG_WARN(*** All 3DNow dependent parts will be disabled ***)
@@ -308,22 +322,28 @@ fi
 
 dnl SSE support
 dnl
+explicit_sse=no
 AC_ARG_ENABLE(sse,
   AC_HELP_STRING([--enable-sse],
     [enable SSE code portions (yes)]),
   [case "${enableval}" in
-    yes) use_sse=yes ;;
+    yes) if test x"$have_asm_mmx" = x"no"; then
+             AC_MSG_ERROR(--enable-sse requires --enable-mmx)
+         else
+             use_sse=yes
+         fi ;;
     no)  use_sse=no ;;
     *) AC_MSG_ERROR(bad value ${enableval} for --enable-sse) ;;
-  esac],
-  [if test x"$have_x86cpu" = x"true" -o x"$have_x86_64cpu" = x"true" ; then
+  esac
+  explicit_sse=yes],
+  [if test x"$have_asm_mmx" = x"yes" -a \( x"$have_x86cpu" = x"true" -o x"$have_x86_64cpu" = x"true" \) ; then
     use_sse=yes
   else
     use_sse=no
   fi])
-AC_MSG_CHECKING([if \$CC groks SSE inline assembly])
 have_asm_sse="no"
 if test x"$use_sse" = x"yes" ; then
+  AC_MSG_CHECKING([if \$CC groks SSE inline assembly])
   AC_TRY_COMPILE([],
     [void *p; asm volatile("movntps  %%xmm0, 0"::"r"(p));],
     [have_asm_sse=yes])
@@ -331,8 +351,11 @@ if test x"$use_sse" = x"yes" ; then
     AC_DEFINE([HAVE_ASM_SSE], 1,
       [Define if your compiler understands SSE assembly instructions])
   fi
+  AC_MSG_RESULT($have_asm_sse)
+  if test x"$have_asm_sse" = x"no" -a x"$explicit_sse" = x"yes" ; then
+    AC_MSG_WARN(*** Ignoring --enable-sse due to no compiler support ***)
+  fi
 fi
-AC_MSG_RESULT($have_asm_sse)
 AM_CONDITIONAL(HAVE_ASM_SSE, test x"$have_asm_sse" = x"yes")
 if test x"$have_asm_sse" = x"no" ; then
   AC_MSG_WARN(*** All SSE dependent parts will be disabled ***)
@@ -341,22 +364,28 @@ fi
 
 dnl SSE2 support
 dnl
+explicit_sse2=no
 AC_ARG_ENABLE(sse2,
   AC_HELP_STRING([--enable-sse2],
     [enable SSE2 code portions (yes)]),
   [case "${enableval}" in
-    yes) use_sse2=yes ;;
+    yes) if test x"$have_asm_sse" = x"no"; then
+             AC_MSG_ERROR(--enable-sse2 requires --enable-sse)
+         else
+             use_sse2=yes
+         fi ;;
     no)  use_sse2=no ;;
     *) AC_MSG_ERROR(bad value ${enableval} for --enable-sse2) ;;
-  esac],
-  [if test x"$have_x86cpu" = x"true" -o x"$have_x86_64cpu" = x"true" ; then
+  esac
+  explicit_sse2=yes],
+  [if test x"$have_asm_sse" = x"yes" -a \( x"$have_x86cpu" = x"true" -o x"$have_x86_64cpu" = x"true" \) ; then
     use_sse2=yes
   else
     use_sse2=no
   fi])
-AC_MSG_CHECKING([if \$CC can handle SSE2 inline asm])
 have_asm_sse2="no"
 if test x"$use_sse2" = x"yes" ; then
+  AC_MSG_CHECKING([if \$CC can handle SSE2 inline asm])
   AC_TRY_COMPILE([],
     [void *p; asm volatile("movdqa  %%xmm2, %%xmm3"::"r"(p));],
     [have_asm_sse2=yes])
@@ -364,8 +393,11 @@ if test x"$use_sse2" = x"yes" ; then
     AC_DEFINE([HAVE_ASM_SSE2], 1,
       [Define if your compiler understands SSE2 assembly instructions])
   fi
+  AC_MSG_RESULT($have_asm_sse2)
+  if test x"$have_asm_sse2" = x"no" -a x"$explicit_sse2" = x"yes" ; then
+    AC_MSG_WARN(*** Ignoring --enable-sse2 due to no compiler support ***)
+  fi
 fi
-AC_MSG_RESULT($have_asm_sse2)
 AM_CONDITIONAL(HAVE_ASM_SSE2, test x"$have_asm_sse2" = x"yes")
 if test x"$have_asm_sse2" = x"no" ; then
   AC_MSG_RESULT(*** All SSE2 dependent parts will be disabled ***)

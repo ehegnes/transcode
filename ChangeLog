@@ -1,4 +1,9 @@
 2006-09-01 Andrew Church <achurch at achurch dot org>
+  * configure.in
+  Ensure that the user-supplied --{enable,disable}-{mmx,3dnow,sse,sse2}
+  options are consistent, and don't default to enabling later extensions
+  when earlier ones are disabled.
+
   * aclib/average.c aclib/img_rgb_packed.c aclib/img_yuv_mixed.c
     aclib/img_yuv_packed.c aclib/img_yuv_planar.c aclib/img_yuv_rgb.c
     aclib/memcpy.c aclib/rescale.c
