@@ -127,6 +127,8 @@ static int yvyu_uyvy_x86(uint8_t **src, uint8_t **dest, int width, int height)
 
 /* MMX routines */
 
+#if defined(HAVE_ASM_MMX) && defined(ARCH_X86)  /* i.e. not x86_64 */
+
 static int yuv16_swap16_mmx(uint8_t **src, uint8_t **dest, int width, int height)
 {
     ASM_SWAP16_2_MMX(width*height/2);
@@ -160,9 +162,13 @@ static int yvyu_uyvy_mmx(uint8_t **src, uint8_t **dest, int width, int height)
     return 1;
 }
 
+#endif  /* HAVE_ASM_MMX && ARCH_X86 */
+
 /*************************************************************************/
 
 /* SSE2 routines */
+
+#if defined(HAVE_ASM_SSE2)
 
 static int yuv16_swap16_sse2(uint8_t **src, uint8_t **dest, int width, int height)
 {
@@ -196,6 +202,8 @@ static int yvyu_uyvy_sse2(uint8_t **src, uint8_t **dest, int width, int height)
             src[0][width*height*2-2]<<8 | src[0][width*height*2-1];
     return 1;
 }
+
+#endif  /* HAVE_ASM_SSE2 */
 
 /*************************************************************************/
 
@@ -236,6 +244,7 @@ int ac_imgconvert_init_yuv_packed(int accel)
         }
     }
 
+#if defined(HAVE_ASM_MMX) && defined(ARCH_X86)
     if (accel & AC_MMX) {
         if (!register_conversion(IMG_YUY2,    IMG_UYVY,    yuv16_swap16_mmx)
          || !register_conversion(IMG_YUY2,    IMG_YVYU,    yuv16_swapuv_mmx)
@@ -247,7 +256,9 @@ int ac_imgconvert_init_yuv_packed(int accel)
             return 0;
         }
     }
+#endif
 
+#if defined(HAVE_ASM_SSE2)
     if (accel & AC_SSE2) {
         if (!register_conversion(IMG_YUY2,    IMG_UYVY,    yuv16_swap16_sse2)
          || !register_conversion(IMG_YUY2,    IMG_YVYU,    yuv16_swapuv_sse2)
@@ -259,6 +270,8 @@ int ac_imgconvert_init_yuv_packed(int accel)
             return 0;
         }
     }
+#endif
+
 #endif  /* ARCH_X86 || ARCH_X86_64 */
 
     return 1;

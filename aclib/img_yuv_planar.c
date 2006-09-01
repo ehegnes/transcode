@@ -310,9 +310,9 @@ static int y8_yuv444p(uint8_t **src, uint8_t **dest, int width, int height)
 /*************************************************************************/
 /*************************************************************************/
 
-#if defined(ARCH_X86) || defined(ARCH_X86_64)
+#if defined(HAVE_ASM_SSE2)
 
-/* SSE2 routines.  See comments img_x86_common.h for why we don't bother
+/* SSE2 routines.  See comments in img_x86_common.h for why we don't bother
  * unrolling the loops. */
 
 /* Common macros/data for x86 code */
@@ -691,7 +691,7 @@ static int yuv444p_yuv422p_sse2(uint8_t **src, uint8_t **dest, int width, int he
 
 /*************************************************************************/
 
-#endif  /* ARCH_X86 || ARCH_X86_64 */
+#endif  /* HAVE_ASM_SSE2 */
 
 /*************************************************************************/
 /*************************************************************************/
@@ -733,7 +733,7 @@ int ac_imgconvert_init_yuv_planar(int accel)
         return 0;
     }
 
-#if defined(ARCH_X86) || defined(ARCH_X86_64)
+#if defined(HAVE_ASM_SSE2)
     if (accel & AC_SSE2) {
         if (!register_conversion(IMG_YUV420P, IMG_YUV411P, yuv420p_yuv411p_sse2)
          || !register_conversion(IMG_YUV420P, IMG_YUV444P, yuv420p_yuv444p_sse2)

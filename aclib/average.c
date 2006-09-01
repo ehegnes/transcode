@@ -40,7 +40,7 @@ static void average(const uint8_t *src1, const uint8_t *src2,
 
 /*************************************************************************/
 
-#ifdef ARCH_X86
+#if defined(HAVE_ASM_MMX) && defined(ARCH_X86)  /* i.e. not x86_64 */
 
 static void average_mmx(const uint8_t *src1, const uint8_t *src2,
                         uint8_t *dest, int bytes)
@@ -80,6 +80,11 @@ static void average_mmx(const uint8_t *src1, const uint8_t *src2,
     }
 }
 
+#endif  /* HAVE_ASM_MMX && ARCH_X86 */
+
+/*************************************************************************/
+
+#if defined(HAVE_ASM_SSE) && defined(ARCH_X86)
 
 /* SSE has PAVGB */
 
@@ -131,13 +136,13 @@ static void average_sse(const uint8_t *src1, const uint8_t *src2,
     }
 }
 
-#endif  /* ARCH_X86 */
+#endif  /* HAVE_ASM_SSE && ARCH_X86 */
 
 /*************************************************************************/
 
-#if defined(ARCH_X86) || defined(ARCH_X86_64)
+#if defined(HAVE_ASM_SSE2)
 
-#ifdef ARCH_X86_64
+#if defined(ARCH_X86_64)
 # define EAX "%%rax"
 # define EDX "%%rdx"
 # define ESI "%%rsi"
@@ -198,7 +203,7 @@ static void average_sse2(const uint8_t *src1, const uint8_t *src2,
     }
 }
 
-#endif  /* ARCH_X86 || ARCH_X86_64 */
+#endif  /* HAVE_ASM_SSE2 */
 
 /*************************************************************************/
 /*************************************************************************/
@@ -209,13 +214,15 @@ int ac_average_init(int accel)
 {
     average_ptr = average;
 
-#if defined(ARCH_X86)
+#if defined(HAVE_ASM_MMX) && defined(ARCH_X86)
     if (HAS_ACCEL(accel, AC_MMX))
         average_ptr = average_mmx;
+#endif
+#if defined(HAVE_ASM_SSE) && defined(ARCH_X86)
     if (HAS_ACCEL(accel, AC_SSE))
         average_ptr = average_sse;
 #endif
-#if defined(ARCH_X86) || defined(ARCH_X86_64)
+#if defined(HAVE_ASM_SSE2)
     if (HAS_ACCEL(accel, AC_SSE2))
         average_ptr = average_sse2;
 #endif

@@ -47,9 +47,9 @@ static void rescale(const uint8_t *src1, const uint8_t *src2,
 
 /*************************************************************************/
 
-#ifdef ARCH_X86
-
 /* MMX version */
+
+#if defined(HAVE_ASM_MMX) && defined(ARCH_X86)  /* i.e. not x86_64 */
 
 static void rescale_mmx(const uint8_t *src1, const uint8_t *src2,
                         uint8_t *dest, int bytes,
@@ -114,8 +114,13 @@ static void rescale_mmx(const uint8_t *src1, const uint8_t *src2,
     }
 }
 
+#endif  /* HAVE_ASM_MMX && ARCH_X86 */
+
+/*************************************************************************/
 
 /* MMXEXT version (also for SSE) */
+
+#if (defined(HAVE_ASM_MMXEXT) || defined(HAVE_ASM_SSE)) && defined(ARCH_X86)
 
 static void rescale_mmxext(const uint8_t *src1, const uint8_t *src2,
                            uint8_t *dest, int bytes,
@@ -166,13 +171,13 @@ static void rescale_mmxext(const uint8_t *src1, const uint8_t *src2,
     }
 }
 
-#endif  /* ARCH_X86 */
+#endif  /* (HAVE_ASM_MMXEXT || HAVE_ASM_SSE) && ARCH_X86 */
 
 /*************************************************************************/
 
-#if defined(ARCH_X86) || defined(ARCH_X86_64)
-
 /* SSE2 version */
+
+#if defined(HAVE_ASM_SSE2)
 
 #ifdef ARCH_X86_64
 # define ECX "%%rcx"
@@ -235,7 +240,7 @@ static void rescale_sse2(const uint8_t *src1, const uint8_t *src2,
     }
 }
 
-#endif  /* ARCH_X86 || ARCH_X86_64 */
+#endif  /* HAVE_ASM_SSE2 */
 
 /*************************************************************************/
 /*************************************************************************/
@@ -246,13 +251,15 @@ int ac_rescale_init(int accel)
 {
     rescale_ptr = rescale;
 
-#if defined(ARCH_X86)
+#if defined(HAVE_ASM_MMX) && defined(ARCH_X86)
     if (HAS_ACCEL(accel, AC_MMX))
         rescale_ptr = rescale_mmx;
+#endif
+#if (defined(HAVE_ASM_MMXEXT) || defined(HAVE_ASM_SSE)) && defined(ARCH_X86)
     if (HAS_ACCEL(accel, AC_MMXEXT) || HAS_ACCEL(accel, AC_SSE))
         rescale_ptr = rescale_mmxext;
 #endif
-#if defined(ARCH_X86) || defined(ARCH_X86_64)
+#if defined(HAVE_ASM_SSE2)
     if (HAS_ACCEL(accel, AC_SSE2))
         rescale_ptr = rescale_sse2;
 #endif

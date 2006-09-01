@@ -248,9 +248,9 @@ static int uyvy_y8(uint8_t **src, uint8_t **dest, int width, int height)
 /*************************************************************************/
 /*************************************************************************/
 
-#if defined(ARCH_X86) || defined(ARCH_X86_64)
+#if defined(HAVE_ASM_SSE2)
 
-/* SSE2 routines.  See comments img_x86_common.h for why we don't bother
+/* SSE2 routines.  See comments in img_x86_common.h for why we don't bother
  * unrolling the loops. */
 
 /* Common macros/data for x86 code */
@@ -829,7 +829,7 @@ static int uyvy_y8_sse2(uint8_t **src, uint8_t **dest, int width, int height)
 
 /*************************************************************************/
 
-#endif  /* ARCH_X86 || ARCH_X86_64 */
+#endif  /* HAVE_ASM_SSE2 */
 
 /*************************************************************************/
 /*************************************************************************/
@@ -873,7 +873,7 @@ int ac_imgconvert_init_yuv_mixed(int accel)
         return 0;
     }
 
-#if defined(ARCH_X86) || defined(ARCH_X86_64)
+#if defined(HAVE_ASM_SSE2)
     if (accel & AC_SSE2) {
         if (!register_conversion(IMG_YUV420P, IMG_YUY2,    yuv420p_yuy2_sse2)
          || !register_conversion(IMG_YUV411P, IMG_YUY2,    yuv411p_yuy2_sse2)

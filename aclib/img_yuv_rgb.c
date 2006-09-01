@@ -494,7 +494,7 @@ static int rgb24_y8(uint8_t **src, uint8_t **dest, int width, int height)
 
 /* Common constant values used in routines: */
 
-#if defined(ARCH_X86) || defined(ARCH_X86_64)
+#if defined(HAVE_ASM_MMX)
 
 #include "img_x86_common.h"
 
@@ -563,14 +563,14 @@ static const struct { uint16_t n[32]; } __attribute__((aligned(16))) gray_data =
         roll $8, %%ebx          # EBX: 00 B1 G1 R1                      \n\
         andl $0x00FFFFFF, %%eax # EAX: 00 B0 G0 R0"
 
-#endif  /* ARCH_X86 || ARCH_X86_64 */
+#endif  /* HAVE_ASM_MMX */
 
 /*************************************************************************/
 /*************************************************************************/
 
 /* MMX routines */
 
-#if defined(ARCH_X86)
+#if defined(HAVE_ASM_MMX) && defined(ARCH_X86)  /* i.e. not x86_64 */
 
 static inline void mmx_yuv42Xp_to_rgb(uint8_t *srcY, uint8_t *srcU,
                                       uint8_t *srcV);
@@ -739,14 +739,14 @@ static inline void mmx_store_rgb24(uint8_t *dest)
     );
 }
 
-#endif  /* ARCH_X86 */
+#endif  /* HAVE_ASM_MMX && ARCH_X86 */
 
 /*************************************************************************/
 /*************************************************************************/
 
 /* SSE2 routines */
 
-#if defined(ARCH_X86) || defined(ARCH_X86_64)
+#if defined(HAVE_ASM_SSE2)
 
 /*************************************************************************/
 
@@ -2000,7 +2000,7 @@ static int rgb24_y8_sse2(uint8_t **src, uint8_t **dest, int width, int height)
 
 /*************************************************************************/
 
-#endif  /* ARCH_X86 || ARCH_X86_64 */
+#endif  /* HAVE_ASM_SSE2 */
 
 /*************************************************************************/
 /*************************************************************************/
@@ -2048,7 +2048,7 @@ int ac_imgconvert_init_yuv_rgb(int accel)
         return 0;
     }
 
-#if defined(ARCH_X86)
+#if defined(HAVE_ASM_MMX) && defined(ARCH_X86)
     if (accel & AC_MMX) {
         if (!register_conversion(IMG_YUV420P, IMG_RGB24,   yuv420p_rgb24_mmx)
          || !register_conversion(IMG_YUV422P, IMG_RGB24,   yuv422p_rgb24_mmx)
@@ -2058,7 +2058,7 @@ int ac_imgconvert_init_yuv_rgb(int accel)
     }
 #endif
 
-#if defined(ARCH_X86) || defined(ARCH_X86_64)
+#if defined(HAVE_ASM_SSE2)
     if (HAS_ACCEL(accel, AC_SSE2)) {
         if (!register_conversion(IMG_YUV420P, IMG_RGB24,   yuv420p_rgb24_sse2)
          || !register_conversion(IMG_YUV411P, IMG_RGB24,   yuv411p_rgb24_sse2)

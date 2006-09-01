@@ -27,7 +27,12 @@ void *ac_memcpy(void *dest, const void *src, size_t size)
 /*************************************************************************/
 /*************************************************************************/
 
-#if defined(ARCH_X86)
+/* Note the check for ARCH_X86 here: this is to prevent compilation of this
+ * code on x86_64, since all x86_64 processors support SSE2, and because
+ * this code is not set up to use the 64-bit registers for addressing on
+ * x86_64. */
+
+#if defined(HAVE_ASM_MMX) && defined(ARCH_X86)
 
 /* MMX-optimized routine, intended for PMMX/PII processors.
  * Nonstandard instructions used:
@@ -147,11 +152,11 @@ mmx.memcpy_last:                                                        \n\
     return dest;
 }
 
-#endif  /* ARCH_X86 */
+#endif  /* HAVE_ASM_MMX && ARCH_X86 */
 
 /*************************************************************************/
 
-#if defined(ARCH_X86)
+#if defined(HAVE_ASM_SSE) && defined(ARCH_X86)
 
 /* SSE-optimized routine.  Backported from AMD64 routine below.
  * Nonstandard instructions used:
@@ -301,11 +306,11 @@ sse.memcpy_end:                                                         \n\
     return dest;
 }
 
-#endif  /* ARCH_X86 */
+#endif  /* HAVE_ASM_SSE && ARCH_X86 */
 
 /*************************************************************************/
 
-#if defined(ARCH_X86_64)
+#if defined(HAVE_ASM_SSE2) && defined(ARCH_X86_64)
 
 /* AMD64-optimized routine, using SSE2.  Derived from AMD64 optimization
  * guide section 5.13: Appropriate Memory Copying Routines.
@@ -461,7 +466,7 @@ amd64.memcpy_last:                                                      \n\
     return dest;
 }
 
-#endif  /* ARCH_X86_64 */
+#endif  /* HAVE_ASM_SSE2 && ARCH_X86_64 */
 
 /*************************************************************************/
 
@@ -471,14 +476,17 @@ int ac_memcpy_init(int accel)
 {
     memcpy_ptr = memmove;
 
-#if defined(ARCH_X86)
+#if defined(HAVE_ASM_MMX) && defined(ARCH_X86)
     if (HAS_ACCEL(accel, AC_MMX))
         memcpy_ptr = memcpy_mmx;
+#endif
+
+#if defined(HAVE_ASM_SSE) && defined(ARCH_X86)
     if (HAS_ACCEL(accel, AC_CMOVE|AC_SSE))
         memcpy_ptr = memcpy_sse;
 #endif
 
-#if defined(ARCH_X86_64)
+#if defined(HAVE_ASM_SSE2) && defined(ARCH_X86_64)
     if (HAS_ACCEL(accel, AC_CMOVE|AC_SSE2))
         memcpy_ptr = memcpy_amd64;
 #endif

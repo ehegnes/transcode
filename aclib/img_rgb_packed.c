@@ -390,6 +390,8 @@ static int rgba_alpha03_x86(uint8_t **src, uint8_t **dest, int width, int height
 
 /* MMX routines */
 
+#if defined(HAVE_ASM_MMX) && defined(ARCH_X86)  /* i.e. not x86_64 */
+
 /* RGBA<->ABGR and ARGB<->BGRA: reverse byte order */
 static int rgba_swapall_mmx(uint8_t **src, uint8_t **dest, int width, int height)
 {
@@ -425,9 +427,13 @@ static int rgba_alpha03_mmx(uint8_t **src, uint8_t **dest, int width, int height
     return 1;
 }
 
+#endif  /* HAVE_ASM_MMX && ARCH_X86 */
+
 /*************************************************************************/
 
 /* SSE2 routines */
+
+#if defined(HAVE_ASM_SSE2)
 
 static const struct { uint32_t n[4]; } __attribute__((aligned(16))) rgb_bgr_data = {{
     0xFF0000FF, 0x00FF0000, 0x0000FF00, 0x00000000
@@ -907,6 +913,8 @@ static int gray8_argb32_sse2(uint8_t **src, uint8_t **dest, int width, int heigh
     return 1;
 }
 
+#endif  /* HAVE_ASM_SSE2 */
+
 /*************************************************************************/
 
 #endif  /* ARCH_X86 || ARCH_X86_64 */
@@ -1000,6 +1008,7 @@ int ac_imgconvert_init_rgb_packed(int accel)
         }
     }
 
+#if defined(HAVE_ASM_MMX) && defined(ARCH_X86)
     if (accel & AC_MMX) {
         if (!register_conversion(IMG_RGBA32,  IMG_ABGR32,  rgba_swapall_mmx)
          || !register_conversion(IMG_RGBA32,  IMG_ARGB32,  rgba_alpha30_mmx)
@@ -1020,7 +1029,9 @@ int ac_imgconvert_init_rgb_packed(int accel)
             return 0;
         }
     }
+#endif
 
+#if defined(HAVE_ASM_SSE2)
     if (accel & AC_SSE2) {
         if (!register_conversion(IMG_RGB24,   IMG_BGR24,   rgb24_bgr24_sse2)
          || !register_conversion(IMG_RGB24,   IMG_RGBA32,  rgb24_rgba32_sse2)
@@ -1074,8 +1085,9 @@ int ac_imgconvert_init_rgb_packed(int accel)
             return 0;
         }
     }
-
 #endif
+
+#endif  /* ARCH_X86 || ARCH_X86_64 */
 
     return 1;
 }
