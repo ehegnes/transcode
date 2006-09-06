@@ -1,3 +1,7 @@
+2006-09-06 Andrew Church <achurch at achurch dot org>
+  * import/import_mplayer.c
+  Fix a silly copy/paste typo in an error message.
+
 2006-09-01 Andrew Church <achurch at achurch dot org>
   * configure.in
   Ensure that the user-supplied --{enable,disable}-{mmx,3dnow,sse,sse2}

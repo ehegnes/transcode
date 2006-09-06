@@ -62,7 +62,7 @@ MOD_open
     case TC_VIDEO:
       tc_snprintf(videopipe, sizeof(videopipe), VIDEOPIPE_TEMPLATE);
       if (!mktemp(videopipe)) {
-        tc_log_perror(MOD_NAME, "mktemp audiopipe failed");
+        tc_log_perror(MOD_NAME, "mktemp videopipe failed");
         return(TC_IMPORT_ERROR);
       }
       if (mkfifo(videopipe, 00660) == -1) {
