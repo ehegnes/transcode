@@ -72,6 +72,33 @@ int main(void)
     tc_log_error(huge, "%s%s%s%s", huge, huge, huge, huge);
     fprintf(stderr, "round 9: larger than life (end)\n");
     
+    fprintf(stderr, "round 10: multiline (begin)\n");
+    tc_log_msg("multiline", "%s:\n"
+               "line number 1, nothing particular here\n"
+               "line number 2, nothing particular here\n"
+               "line number 3, nothing particular here\n"
+               "line number 4, nothing particular here\n",
+               "multiline");
+    tc_log_info("multiline", "%s:\n"
+                "line number 1, nothing particular here\n"
+                "line number 2, nothing particular here\n"
+                "line number 3, nothing particular here\n"
+                "line number 4, nothing particular here\n",
+                "multiline");
+    tc_log_warn("multiline", "%s:\n"
+                "line number 1, nothing particular here\n"
+                "line number 2, nothing particular here\n"
+                "line number 3, nothing particular here\n"
+                "line number 4, nothing particular here\n",
+                "multiline");
+    tc_log_error("multiline", "%s:\n"
+                 "line number 1, nothing particular here\n"
+                 "line number 2, nothing particular here\n"
+                 "line number 3, nothing particular here\n"
+                 "line number 4, nothing particular here\n",
+                 "multiline");
+    fprintf(stderr, "round 10: multiline (end)\n");
+    
     return 0;
 }
 
