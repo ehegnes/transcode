@@ -14,6 +14,9 @@
   * libtc/libtc.h libtc/tcframes.c
   typos.
 
+  * filter/filter_slowmo.c
+  minor updates in more STYLEish direction.
+
 2006-09-06 Andrew Church <achurch at achurch dot org>
   * import/import_mplayer.c
   Fix a silly copy/paste typo in an error message.

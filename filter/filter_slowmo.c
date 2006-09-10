@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_slowmo.so"
-#define MOD_VERSION "v0.3 (2003-29-11)"
+#define MOD_VERSION "v0.3.1 (2006-09-10)"
 #define MOD_CAP     "very cheap slow-motion effect"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
@@ -39,118 +39,100 @@
 
 static void help_optstr(void)
 {
-   tc_log_info (MOD_NAME, "(%s) help\n"
-"* Overview\n"
+    tc_log_info(MOD_NAME, "(%s) help", MOD_CAP);
+    tc_log_info(MOD_NAME,
+"\n* Overview\n"
 "   This filter produces a simple slow-motion effect by\n"
 "   duplicating certain frames. I have seen this effect\n"
 "   on TV and despite its the simple algorithm it works\n"
-"   quite well. The filter has no options.\n"
-		, MOD_CAP);
+"   quite well. The filter has no options.\n");
 }
 
-static int do_clone (int id)
+static int do_clone(int id)
 {
     static int last = 0;
+
     if ((id) % 3 == 0) {
-	last = 0;
-	return 1;
+        last = 0;
+        return 1;
     }
-    if (last>0) {
-	last--;
-	return 0;
+    if (last > 0) {
+        last--;
+        return 0;
     }
-
     if (last == 0) {
-	last = -1;
-	return 1;
+        last = -1;
+        return 1;
     }
+    return 0;
+}
 
+static inline int slowmo_init(const char *options)
+{
+    if (verbose) {
+        tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
+    }
+    if (options != NULL) {
+        if (verbose) {
+            tc_log_info(MOD_NAME, "options=%s", options);
+        }
+        if (optstr_lookup(options, "help") != NULL) {
+            help_optstr();
+        }
+    }
+    return 0;
+}
+ 
+static inline int slowmo_exec(vframe_list_t *ptr)
+{
+    /*
+     * tag variable indicates, if we are called before
+     * transcodes internal video/audo frame processing routines
+     * or after and determines video/audio context
+     *
+     *  1 <-
+     *  2 <-
+     *  3 = 2
+     *  4 <-
+     *  5 = 4
+     *  6 <-
+     *  7 <-
+     *  8 = 7
+     *  9 <-
+     * 10 = 9
+     * 11 <-
+     * 12 <-
+     * 13 = 12
+     * 14 <-
+     * 15 = 14
+     */
 
+    if (ptr->tag & TC_PRE_S_PROCESS && ptr->tag & TC_VIDEO) {
+        if (!(ptr->tag & TC_FRAME_WAS_CLONED) && do_clone(ptr->id))  {
+	        ptr->attributes |= TC_FRAME_IS_CLONED;
+        }
+    }
     return 0;
 }
 
 int tc_filter(frame_list_t *ptr_, char *options)
 {
-  vframe_list_t *ptr = (vframe_list_t *)ptr_;
-  vob_t *vob=NULL;
+    vframe_list_t *ptr = (vframe_list_t*)ptr_;
 
-  //----------------------------------
-  //
-  // filter init
-  //
-  //----------------------------------
-
-  if(ptr->tag & TC_FILTER_INIT) {
-
-    if((vob = tc_get_vob())==NULL) return(-1);
-
-    // filter init ok.
-
-    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-
-    if (options) {
-	if (verbose) tc_log_info(MOD_NAME, "options=%s", options);
-	if (optstr_lookup(options, "help")!=NULL) help_optstr();
+    if (ptr->tag & TC_FILTER_INIT) {
+        return slowmo_init(options);
     }
 
-    return(0);
-  }
-
-  //----------------------------------
-  //
-  // filter close
-  //
-  //----------------------------------
-
-  if(ptr->tag & TC_FILTER_CLOSE) {
-    return(0);
-  }
-
-  //----------------------------------
-  //
-  // filter read configure
-  //
-  //----------------------------------
-
-  if(ptr->tag & TC_FILTER_GET_CONFIG) {
-      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VRYE", "1");
-  }
-
-  //----------------------------------
-  //
-  // filter frame routine
-  //
-  //----------------------------------
-
-  // tag variable indicates, if we are called before
-  // transcodes internal video/audo frame processing routines
-  // or after and determines video/audio context
-
-  //  1 <-
-  //  2 <-
-  //  3 = 2
-  //  4 <-
-  //  5 = 4
-  //  6 <-
-  //  7 <-
-  //  8 = 7
-  //  9 <-
-  // 10 = 9
-  // 11 <-
-  // 12 <-
-  // 13 = 12
-  // 14 <-
-  // 15 = 14
-
-  if(ptr->tag & TC_PRE_S_PROCESS && ptr->tag & TC_VIDEO) {
-
-    if(!(ptr->tag & TC_FRAME_WAS_CLONED) && do_clone(ptr->id))  {
-	//cloning frame
-	ptr->attributes |= TC_FRAME_IS_CLONED;
+    if (ptr->tag & TC_FILTER_CLOSE) {
+        return 0;
     }
 
-  }
+    if (ptr->tag & TC_FILTER_GET_CONFIG) {
+        optstr_filter_desc(options, MOD_NAME, MOD_CAP,
+                           MOD_VERSION, MOD_AUTHOR, "VRYE", "1");
+        return 0;
+    }
 
-  return(0);
+    return slowmo_exec(ptr);
 }
 
