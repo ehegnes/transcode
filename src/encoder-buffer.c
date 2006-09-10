@@ -31,7 +31,6 @@
 #include "decoder.h"
 #include "encoder.h"
 #include "filter.h"
-#include "dl_loader.h"
 #include "framebuffer.h"
 #include "counter.h"
 #include "video_trans.h"

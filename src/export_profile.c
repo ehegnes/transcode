@@ -437,10 +437,10 @@ static int tc_load_single_export_profile(int i, TCConfigEntry *config,
  * of functions
  */
 
-#define CLEANUP_STRING(field) do { \
-    if (info->field != NULL) {\
-        tc_free(info->field); \
-        info->field = NULL; \
+#define CLEANUP_STRING(FIELD) do { \
+    if (info->FIELD != NULL) {\
+        tc_free(info->FIELD); \
+        info->FIELD = NULL; \
     } \
 } while (0)
 

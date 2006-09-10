@@ -2,6 +2,15 @@
   * import/probe_wav.c
   fix copyright notice and format help trailer.
 
+  * src/tc_defaults.h
+  remove no longer used (trusting grep -R :) ) port identifers.
+
+  * src/encoder-buffer.c
+  we don't need dl_loader here
+
+  * src/export_profile.c
+  minor macro improvement.
+
 2006-09-06 Andrew Church <achurch at achurch dot org>
   * import/import_mplayer.c
   Fix a silly copy/paste typo in an error message.

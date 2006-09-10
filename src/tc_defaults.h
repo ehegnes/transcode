@@ -198,10 +198,6 @@
 #define TC_INFO_MPEG_ES         4
 #define TC_INFO_MPEG_PES        8
 
-#define TC_DEFAULT_PPORT     19630
-#define TC_DEFAULT_APORT     19631
-#define TC_DEFAULT_VPORT     19632
-
 #define TC_FRAME_DV_PAL     144000
 #define TC_FRAME_DV_NTSC    120000
 
