@@ -24,19 +24,19 @@ int tc_video_planes_size(size_t psizes[3],
       case CODEC_RAW: /* worst case paranoia, fallback */
       case CODEC_RAW_RGB: /* worst case paranoia again, fallback */
       case CODEC_RAW_YUV: /* worst case paranoia again, fallback */
-      case CODEC_RGB: /* backwared compatibility, fallback */
+      case CODEC_RGB: /* backward compatibility, fallback */
       case TC_CODEC_RGB:
         psizes[0] = width * height;
         psizes[1] = width * height;
         psizes[2] = width * height;
         break;
-      case CODEC_YUV422: /* backwared compatibility, fallback */
+      case CODEC_YUV422: /* backward compatibility, fallback */
       case TC_CODEC_YUV422P:
         psizes[0] = width * height;
         psizes[1] = width * height / 2;
         psizes[2] = width * height / 2;
         break;
-      case CODEC_YUV: /* backwared compatibility, fallback */
+      case CODEC_YUV: /* backward compatibility, fallback */
       case TC_CODEC_YUV420P:
         psizes[0] = width * height;
         psizes[1] = width * height / 4;

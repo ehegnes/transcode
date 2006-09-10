@@ -753,6 +753,7 @@ extern pthread_mutex_t tc_libavcodec_mutex;
 #define TC_LOCK_LIBAVCODEC	(pthread_mutex_lock(&tc_libavcodec_mutex))
 #define TC_UNLOCK_LIBAVCODEC	(pthread_mutex_unlock(&tc_libavcodec_mutex))
 
+
 #ifdef __cplusplus
 }
 #endif
