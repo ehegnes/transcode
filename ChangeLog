@@ -1,6 +1,7 @@
 2006-09-11 Andrew Church <achurch at achurch dot org>
   * src/transcode.h
-  Add missing external declarations of tc_niceness and tc_dvd_access_delay.
+  Add missing external declarations of keepasr, fast_resize, tc_niceness,
+  and tc_dvd_access_delay.
 
   * src/transcode.c
   Eliminate mostly-unused RED/GREEN/etc. string constants, replacing them

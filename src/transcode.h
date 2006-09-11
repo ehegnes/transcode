@@ -401,6 +401,8 @@ extern int resize2;
 extern int decolor;
 extern int zoom;
 extern int dgamma;
+extern int keepasr;
+extern int fast_resize;
 
 // Core parameters
 
