@@ -419,6 +419,7 @@ extern int tc_accel;
 extern unsigned int tc_avi_limit;
 extern pid_t tc_probe_pid;
 extern int tc_niceness;
+extern int tc_dvd_access_delay;
 
 // Various constants
 
