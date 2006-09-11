@@ -3,6 +3,10 @@
   Eliminate mostly-unused RED/GREEN/etc. string constants, replacing them
   with tclib's COL_RED/COL_GREEN/etc. where necessary.
 
+  * contrib/tccomplete.source docs/man/transcode.1 src/transcode.c
+  While we're at it, eliminate the --color option entirely, since it's not
+  doing much of anything anyway.
+
 2006-09-10 Francesco Romani <fromani at gmail dot com>
   * import/probe_wav.c
   fix copyright notice and format help trailer.

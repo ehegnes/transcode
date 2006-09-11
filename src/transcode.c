@@ -145,7 +145,6 @@ enum {
   SOCKET_FILE,
   DV_YUY2_MODE,
   LAME_PRESET,
-  COLOR_LEVEL,
   VIDEO_MAX_BITRATE,
   AVI_COMMENTS,
   DIVX5_VBV_PROF,
@@ -156,8 +155,6 @@ enum {
   EXPORT_PROF,
   MPLAYER_PROBE,
 };
-
-int color_level = 0;
 
 //-------------------------------------------------------------
 // core parameter
@@ -364,7 +361,6 @@ static void usage(int status)
   //internal flags
   printf("--progress_meter N   select type of progress meter [1]\n");
   printf("--progress_rate N    print progress every N frames [1]\n");
-  printf("--color N            level of color in transcodes output [1]\n");
   printf("--write_pid file     write pid of signal thread to \"file\" [off]\n");
   printf("--nice N             set niceness to N [off]\n");
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
@@ -756,7 +752,6 @@ int main(int argc, char *argv[]) {
       {"socket", required_argument, NULL, SOCKET_FILE},
       {"dv_yuy2_mode", no_argument, NULL, DV_YUY2_MODE},
       {"lame_preset", required_argument, NULL, LAME_PRESET},
-      {"color", required_argument, NULL, COLOR_LEVEL},
       {"video_max_bitrate", required_argument, NULL, VIDEO_MAX_BITRATE},
       {"avi_comments", required_argument, NULL, AVI_COMMENTS},
       {"divx_vbv_prof", required_argument, NULL, DIVX5_VBV_PROF},
@@ -784,11 +779,6 @@ int main(int argc, char *argv[]) {
       tc_progress_meter = 1;
     } else {
       tc_progress_meter = 0;
-    }
-
-    // don't do colors if writing to a file
-    if (!isatty(STDOUT_FILENO) || !isatty(STDERR_FILENO)) {
-      color_level = 0;
     }
 
     //main thread id
@@ -2215,12 +2205,6 @@ int main(int argc, char *argv[]) {
 
 	  break;
 
-	case COLOR_LEVEL:
-	  if( ( n = sscanf( optarg, "%d", &color_level) ) == 0 )
-	    tc_error( "invalid parameter for option --color_level" );
-
-	  break;
-
 	case SOCKET_FILE:
 	  socket_file = optarg;
 	  break;
@@ -2366,8 +2350,7 @@ int main(int argc, char *argv[]) {
       if(verbose) {
 	printf("[%s] %s %s (%s%s%s)\n", PACKAGE, "auto-probing source",
 	    ((video_in_file==NULL)? audio_in_file:video_in_file),
-	    (color_level ? (result ? COL_GREEN : COL_RED) : ""),
-	    (result ? "ok" : "failed"), (color_level ? COL_GRAY : ""));
+	    result ? COL_GREEN : COL_RED, result ? "ok" : "failed", COL_GRAY);
 
 	printf("[%s] V: %-16s | %s %s (module=%s)\n", PACKAGE, "import format",
 	       codec2str(vob->v_codec_flag), mformat2str(vob->v_format_flag),
