@@ -52,14 +52,6 @@
 #endif
 
 
-const char *RED    = COL_RED;
-const char *GREEN  = COL_GREEN;
-const char *YELLOW = COL_YELLOW;
-const char *BLUE   = COL_BLUE;
-const char *WHITE  = COL_WHITE;
-const char *GRAY   = COL_GRAY;
-
-
 /* ------------------------------------------------------------
  *
  * default options
@@ -797,12 +789,6 @@ int main(int argc, char *argv[]) {
     // don't do colors if writing to a file
     if (!isatty(STDOUT_FILENO) || !isatty(STDERR_FILENO)) {
       color_level = 0;
-      RED    = "";
-      GREEN  = "";
-      YELLOW = "";
-      WHITE  = "";
-      GRAY   = "";
-      BLUE   = "";
     }
 
     //main thread id
@@ -2233,16 +2219,6 @@ int main(int argc, char *argv[]) {
 	  if( ( n = sscanf( optarg, "%d", &color_level) ) == 0 )
 	    tc_error( "invalid parameter for option --color_level" );
 
-	  // --color
-	  if (isatty(STDOUT_FILENO)==0 || isatty(STDERR_FILENO)==0 || color_level == 0) {
-	    RED    = "";
-	    GREEN  = "";
-	    YELLOW = "";
-	    WHITE  = "";
-	    GRAY   = "";
-	    BLUE   = "";
-	  }
-
 	  break;
 
 	case SOCKET_FILE:
@@ -2390,7 +2366,8 @@ int main(int argc, char *argv[]) {
       if(verbose) {
 	printf("[%s] %s %s (%s%s%s)\n", PACKAGE, "auto-probing source",
 	    ((video_in_file==NULL)? audio_in_file:video_in_file),
-	    (result ? GREEN : RED), (result ? "ok" : "failed"), GRAY);
+	    (color_level ? (result ? COL_GREEN : COL_RED) : ""),
+	    (result ? "ok" : "failed"), (color_level ? COL_GRAY : ""));
 
 	printf("[%s] V: %-16s | %s %s (module=%s)\n", PACKAGE, "import format",
 	       codec2str(vob->v_codec_flag), mformat2str(vob->v_format_flag),
