@@ -1,4 +1,7 @@
 2006-09-11 Andrew Church <achurch at achurch dot org>
+  * src/transcode.h
+  Add missing external declaration of tc_niceness.
+
   * src/transcode.c
   Eliminate mostly-unused RED/GREEN/etc. string constants, replacing them
   with tclib's COL_RED/COL_GREEN/etc. where necessary.

@@ -418,6 +418,7 @@ extern pthread_t tc_pthread_main;
 extern int tc_accel;
 extern unsigned int tc_avi_limit;
 extern pid_t tc_probe_pid;
+extern int tc_niceness;
 
 // Various constants
 
