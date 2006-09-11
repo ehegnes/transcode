@@ -1,3 +1,16 @@
+2006-09-12 Andrew Church <achurch at achurch dot org>
+  * Added files: src/cmdline.c src/cmdline.h src/cmdline_defs.h
+  New command line parsing code, allowing option names, descriptions, and
+  processing code to be collected in the same place.  The -h option list is
+  much cleaner, and option processing itself has been completely rewritten.
+
+  * src/Makefile.am
+  Add new files.
+
+  * src/transcode.c
+  Hook into new command line parser.  The old code can be re-enabled by
+  commenting out the NEW_CMDLINE_CODE #define.
+
 2006-09-11 Andrew Church <achurch at achurch dot org>
   * src/transcode.h
   Add missing external declarations of keepasr, fast_resize, tc_niceness,

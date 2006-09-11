@@ -41,10 +41,16 @@
 #include <ctype.h>
 #include <math.h>
 
-#ifdef HAVE_GETOPT_LONG_ONLY
-#include <getopt.h>
-#else
-#include "libtc/getopt.h"
+#define NEW_CMDLINE_CODE  // the stuff in cmdline.[ch]
+
+#include "cmdline.h"  // included either way (variables in cmdline.c)
+
+#ifndef NEW_CMDLINE_CODE
+# ifdef HAVE_GETOPT_LONG_ONLY
+#  include <getopt.h>
+# else
+#  include "libtc/getopt.h"
+# endif
 #endif
 
 #ifdef HAVE_X11
@@ -80,14 +86,8 @@ int fast_resize = TC_FALSE;
 static vob_t *vob;
 int verbose = TC_INFO;
 
-static int core_mode=TC_MODE_DEFAULT;
-
-static int tcversion = 0;
 static int sig_int   = 0;
 static int sig_tstp  = 0;
-
-static char *im_aud_mod = NULL, *im_vid_mod = NULL;
-static char *ex_aud_mod = NULL, *ex_vid_mod = NULL, *ex_mplex_mod = NULL;
 
 static pthread_t thread_signal=(pthread_t)0;
 int tc_signal_thread     =  0;
@@ -96,8 +96,7 @@ sigset_t sigs_to_block;
 // for initializing export_pvm
 pthread_mutex_t s_channel_lock=PTHREAD_MUTEX_INITIALIZER;
 
-static char *plugins_string = NULL;
-pid_t writepid = 0;
+//pid_t writepid = 0;  // to cmdline.c
 pthread_mutex_t writepid_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t writepid_cond = PTHREAD_COND_INITIALIZER;
 
@@ -105,6 +104,7 @@ pthread_cond_t writepid_cond = PTHREAD_COND_INITIALIZER;
 int tc_encode_stream = 0;
 int tc_decode_stream = 0;
 
+#ifndef NEW_CMDLINE_CODE
 enum {
   ZOOM_FILTER = CHAR_MAX+1,
   CLUSTER_PERCENTAGE,
@@ -155,6 +155,7 @@ enum {
   EXPORT_PROF,
   MPLAYER_PROBE,
 };
+#endif  // NEW_CMDLINE_CODE
 
 //-------------------------------------------------------------
 // core parameter
@@ -188,11 +189,13 @@ pthread_t tc_pthread_main;
 void version(void)
 {
   /* id string */
+  static int tcversion = 0;
   if(tcversion++) return;
   fprintf(stderr, "%s v%s (C) 2001-2003 Thomas Oestreich, 2003-2004 T. Bitterberg\n", PACKAGE, VERSION);
 }
 
 
+#ifndef NEW_CMDLINE_CODE
 static void usage(int status)
 {
   version();
@@ -413,6 +416,7 @@ static int source_check(char *import_file)
     tc_error("invalid filename \"%s\": %s", import_file, strerror(errno));
     return(1);
 }
+#endif  // NEW_CMDLINE_CODE
 
 
 static void signal_thread(void)
@@ -592,31 +596,23 @@ int main(int argc, char *argv[]) {
     int s_tcxmlcheck_resize;
     char *p_tcxmlcheck_buffer;
 #endif
-    char
-      *audio_in_file=NULL, *audio_out_file=NULL,
-      *video_in_file=NULL, *video_out_file=NULL,
-      *nav_seek_file=NULL, *socket_file=NULL;
 
-    int n=0, ch1, ch2, fa, fb;
-
-    int psu_frame_threshold=12; //psu with less/equal frames are skipped.
-
-    int
-	no_vin_codec=1, no_ain_codec=1,
-	no_v_out_codec=1, no_a_out_codec=1;
-
-    int
-	frame_a=TC_FRAME_FIRST,   // defaults to all frames
-	frame_b=TC_FRAME_LAST,
-	splitavi_frames=0,
-	psu_mode=TC_FALSE;
+#ifndef NEW_CMDLINE_CODE
+    int n=0;
+#endif
+    int ch1, ch2, fa, fb;
 
     char
-      base[TC_BUF_MIN], buf[TC_BUF_MAX],
-      *chbase=NULL, *psubase=NULL, // *dirbase=NULL,
+      buf[TC_BUF_MAX],
+#ifndef NEW_CMDLINE_CODE
+      base[TC_BUF_MIN],
+      *chbase=NULL, // *dirbase=NULL,
       abuf1[TC_BUF_MIN], vbuf1[TC_BUF_MIN],
-      abuf2[TC_BUF_MIN], vbuf2[TC_BUF_MIN], mbuf[TC_BUF_MIN];
+      abuf2[TC_BUF_MIN], vbuf2[TC_BUF_MIN], mbuf[TC_BUF_MIN],
+#endif
+      *psubase=NULL;
 
+#ifndef NEW_CMDLINE_CODE
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
     char
       *accel=NULL;
@@ -627,6 +623,7 @@ int main(int argc, char *argv[]) {
 
     char *aux_str;
     char **endptr=&aux_str;
+#endif
 
 #if 0
     const char *dir_name, *dir_fname;
@@ -636,26 +633,18 @@ int main(int argc, char *argv[]) {
     double fch, asr;
     int leap_bytes1, leap_bytes2;
 
-    int preset_flag=0, auto_probe=1, seek_range=1;
-
     void *thread_status;
 
-    int option_index = 0;
-
-    char *zoom_filter="Lanczos3";
-
     struct fc_time *tstart = NULL;
-    char *fc_ttime_separator = ",";
-    char *fc_ttime_string = NULL;
-    int sync_seconds=0;
 
-    int no_audio_adjust=TC_FALSE, no_split=TC_FALSE;
-
+#ifndef NEW_CMDLINE_CODE
     long sret;  /* used for string function return values */
+#endif
     TCFrameSpecs specs;
 
 //    TCDirList tcdir;
 
+#ifndef NEW_CMDLINE_CODE
     size_t size_plugstr = 0;
 
     static struct option long_options[] =
@@ -767,6 +756,7 @@ int main(int argc, char *argv[]) {
     };
 
     if(argc==1) short_usage(EXIT_FAILURE);
+#endif
 
 #ifdef HAVE_X11
     if (XInitThreads() == 0) {
@@ -1001,7 +991,11 @@ int main(int argc, char *argv[]) {
      *
      * ------------------------------------------------------------*/
 
-    while ((ch1 = getopt_long_only(argc, argv, "n:m:y:h?u:i:o:a:t:p:f:zdkr:j:w:b:c:x:s:e:g:q:vlD:AV:B:Z:C:I:KP:T:U:L:Q:R:J:F:E:S:M:Y:G:OX:H:N:W:", long_options, &option_index)) != -1) {
+#ifdef NEW_CMDLINE_CODE
+    if (!parse_cmdline(argc, argv, vob))
+        exit(EXIT_FAILURE);
+#else
+    while ((ch1 = getopt_long_only(argc, argv, "n:m:y:h?u:i:o:a:t:p:f:zdkr:j:w:b:c:x:s:e:g:q:vlD:AV:B:Z:C:I:KP:T:U:L:Q:R:J:F:E:S:M:Y:G:OX:H:N:W:", long_options, NULL)) != -1) {
 
 	switch (ch1) {
 
@@ -1495,7 +1489,7 @@ int main(int argc, char *argv[]) {
 	  ex_aud_mod = vbuf2;
 	  ex_vid_mod = vbuf2;
 	  no_v_out_codec=0;
-	  vob->export_attributes |= TC_EXPORT_ATTRIBUTE_AMODULE;
+	  vob->export_attributes |= TC_EXPORT_ATTRIBUTE_VMODULE;
 	}
 
 	if(n>=2) {
@@ -1753,8 +1747,8 @@ int main(int argc, char *argv[]) {
           }
           vob->ex_v_fcc = optarg;
         }
-	break;
 	vob->export_attributes |= TC_EXPORT_ATTRIBUTE_VCODEC;
+	break;
 
       case 'o':
 
@@ -2306,6 +2300,8 @@ int main(int argc, char *argv[]) {
     }
 #endif
 
+#endif  // NEW_CMDLINE_CODE
+
     if ( psu_mode ) {
 
       if(video_out_file==NULL) tc_error("please specify output file name for psu mode");
@@ -2482,25 +2478,22 @@ int main(int argc, char *argv[]) {
      *
      * ------------------------------------------------------------*/
 
-    // get -c from string
+    // set up ttime from -c or default
     if (fc_ttime_string) {
-      if( parse_fc_time_string( fc_ttime_string, vob->fps,
-	    fc_ttime_separator, (verbose>1?1:0), &vob->ttime ) == -1 )
-	usage(EXIT_FAILURE);
-
-      frame_a = vob->ttime->stf;
-      frame_b = vob->ttime->etf;
-      vob->ttime->vob_offset = 0;
-
-      tstart=vob->ttime;
+      // FIXME: should be in -c handler, but we need to know vob->fps first
+      if (parse_fc_time_string(fc_ttime_string, vob->fps, ",",
+			       (verbose>1 ? 1 : 0), &vob->ttime) == -1)
+	  exit(EXIT_FAILURE);
     } else {
       vob->ttime = new_fc_time();
-      frame_a = vob->ttime->stf = TC_FRAME_FIRST;
-      frame_b = vob->ttime->etf = TC_FRAME_LAST;
-      vob->ttime->vob_offset = 0;
-      tstart = vob->ttime;
-      tstart->next = NULL;
+      vob->ttime->stf = TC_FRAME_FIRST;
+      vob->ttime->etf = TC_FRAME_LAST;
+      vob->ttime->next = NULL;
     }
+    frame_a = vob->ttime->stf;
+    frame_b = vob->ttime->etf;
+    vob->ttime->vob_offset = 0;
+    tstart = vob->ttime;
     counter_on(); //activate
 
     // determine -S,-c,-L option parameter for distributed processing

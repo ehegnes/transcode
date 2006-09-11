@@ -33,6 +33,8 @@ transcode_LDADD = \
 
 EXTRA_DIST = \
 	audio_trans.h \
+	cmdline.h \
+	cmdline_def.h \
 	counter.h \
 	decoder.h \
 	dl_loader.h \
@@ -51,6 +53,7 @@ EXTRA_DIST = \
 transcode_SOURCES = \
 	transcode.c \
 	audio_trans.c \
+	cmdline.c \
 	counter.c \
 	decoder.c \
 	dl_loader.c \
