@@ -91,11 +91,12 @@ static TCRingFrameBuffer tc_video_ringbuffer;
  * because I want to be free to change it if needed
  */
 static TCFrameSpecs tc_specs = {
-    /* PAL defaults */
-    .frc = 3,
-    .width = PAL_W,
-    .height = PAL_H,
-    .format = TC_CODEC_YUV420P,
+    /* Largest supported values, to ensure the buffer is always big enough
+     * (see FIXME in tc_ring_framebuffer_set_specs()) */
+    .frc = 3,  // PAL, why not
+    .width = TC_MAX_V_FRAME_WIDTH,
+    .height = TC_MAX_V_FRAME_HEIGHT,
+    .format = TC_CODEC_RGB,
     .rate = RATE,
     .channels = CHANNELS,
     .bits = BITS,
@@ -177,6 +178,16 @@ void tc_ring_framebuffer_set_specs(const TCFrameSpecs *specs)
 
         /* raw copy first */
         ac_memcpy(&tc_specs, specs, sizeof(TCFrameSpecs));
+
+        /* restore width/height/bpp
+         * (FIXME: temp until we have a way to know the max size that will
+         *         be used through the decode/process/encode chain; without
+         *         this, -V yuv420p -y raw -F rgb (e.g.) crashes with a
+         *         buffer overrun)
+         */
+        tc_specs.width  = TC_MAX_V_FRAME_WIDTH;
+        tc_specs.height = TC_MAX_V_FRAME_HEIGHT;
+        tc_specs.format = TC_CODEC_RGB;
 
         /* then deduct missing parameters */
         if (tc_frc_code_to_value(tc_specs.frc, &fps) == TC_NULL_MATCH) {
