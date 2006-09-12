@@ -69,9 +69,6 @@ my %VideoData;        # for saving raw output data to compare against
 &add_test("-y ffmpeg", ["-x ffmpeg (raw)"],
           "Test output using export_ffmpeg",
           \&test_export_x_ffmpeg, "ffmpeg", CSP_YUV, "mpeg4");
-&add_test("-y mjpeg", ["-x ffmpeg (raw)"],
-          "Test output using export_mjpeg",
-          \&test_export_x_ffmpeg, "mjpeg", CSP_YUV);
 &add_test("-y xvid4", ["-x ffmpeg (raw)"],
           "Test output using export_xvid4",
           \&test_export_x_ffmpeg, "xvid4", CSP_YUV);

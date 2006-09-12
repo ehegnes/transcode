@@ -5,6 +5,7 @@
 
   * testsuite/newtest.pl
   Add -T option to assume certain tests have succeeded without running them.
+  Also remove test for obsolete -y mjpeg.
 
 2006-09-12 Andrew Church <achurch at achurch dot org>
   * Added files: src/cmdline.c src/cmdline.h src/cmdline_defs.h
