@@ -3,6 +3,9 @@
   Fix video data disappearing when the ffmpeg line stride is the same as
   the frame width.
 
+  * src/cmdline_def.h
+  Fix bugs in handling -X, -B, and -Z.
+
   * src/framebuffer.c
   Force all video frame buffers to maximum size, to avoid crashes with
   -y raw -F rgb.

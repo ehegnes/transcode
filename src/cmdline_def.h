@@ -1001,7 +1001,7 @@ TC_OPTION(expand,             'X', "n[,m[,M]]",
                 "expand to height+n*M rows, width+m*M columns [0,0,32]",
                 vob->hori_resize2 = 0;
                 if (sscanf(optarg, "%d,%d,%d", &vob->vert_resize2,
-                           &vob->hori_resize2, &vob->resize2_mult) < 2
+                           &vob->hori_resize2, &vob->resize2_mult) < 1
                 ) {
                     tc_error("Invalid argument for -X/--expand");
                     goto short_usage;
@@ -1020,7 +1020,7 @@ TC_OPTION(shrink,             'B', "n[,m[,M]]",
                 "shrink to height-n*M rows, width-m*M columns [0,0,32]",
                 vob->hori_resize1 = 0;
                 if (sscanf(optarg, "%d,%d,%d", &vob->vert_resize1,
-                           &vob->hori_resize1, &vob->resize1_mult) < 2
+                           &vob->hori_resize1, &vob->resize1_mult) < 1
                 ) {
                     tc_error("Invalid argument for -X/--expand");
                     goto short_usage;
@@ -1062,6 +1062,7 @@ TC_OPTION(zoom,               'Z', "[W]x[H][,mode]",
                 } else {
                     vob->zoom_height = 0;
                 }
+                zoom = TC_TRUE;
                 if (*s == ',') {
                     s++;
                     if (strncmp(s, "fast", strlen(s)) == 0)
