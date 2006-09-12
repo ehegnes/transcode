@@ -20,9 +20,12 @@
 
 /*************************************************************************/
 
-/**** FIXME use M_PI ****/
 #ifndef PI
-# define PI 3.14159265358979323846264338327950
+# ifdef M_PI
+#  define PI M_PI
+# else
+#  define PI 3.14159265358979323846264338327950
+# endif
 #endif
 
 /* Antialiasing threshold for determining whether two pixels are the same
