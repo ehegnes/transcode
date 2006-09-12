@@ -30,6 +30,7 @@ my $KeepTemp = 0;     # keep temporary directory/files around?
 my $ListTests = 0;    # list available tests instead of running them?
 my $AccelMode = "";   # acceleration flags for transcode
 my %TestsToRun = ();  # user-specified list of tests to run
+my @TestsToSkip = (); # user-specified list of tests to assume passed
 my %VideoData;        # for saving raw output data to compare against
 
 ########
@@ -292,6 +293,10 @@ foreach $test (@vidcore_tests) {
 # Run all (or specified) tests
 my $exitcode = 0;
 if (!$ListTests) {
+    foreach $test (@TestsToSkip) {
+        $Tests{$test}{'run'} = 1;
+        $Tests{$test}{'succeeded'} = 1;
+    }
     foreach $test (@Tests) {
         $exitcode ||= !&run_test($test) if !%TestsToRun || $TestsToRun{$test};
     }
@@ -320,6 +325,7 @@ sub init
                 print STDERR "     -l: list tests available\n";
                 print STDERR "     -a: specify acceleration types (transcode --accel)\n";
                 print STDERR "     -t: specify test(s) to run\n";
+                print STDERR "     -T: specify test(s) to assume passed\n";
                 exit 0;
             } elsif ($option eq "-k") {
                 $KeepTemp = 1;
@@ -333,6 +339,9 @@ sub init
             } elsif ($option eq "-t") {
                 $optval = $ARGV[++$i] if $optval eq "";
                 $TestsToRun{$optval} = 1;
+            } elsif ($option eq "-T") {
+                $optval = $ARGV[++$i] if $optval eq "";
+                push @TestsToSkip, $optval;
             } else {
                 &fatal("Invalid option `$option' ($0 -h for help)");
             }
@@ -465,41 +474,36 @@ sub run_test
         $Tests{$name}{'succeeded'} = 0;
         return 0;
     }
-    $Tests{$name}{'recurse'}++;
-    foreach $dep (@{$Tests{$name}{'deps'}}) {
-        my $res2 = 0;
-        if (!$Tests{$dep}) {
-            $res2 = &run_test($dep);  # will print error message
-        } elsif (!$Tests{$dep}{'run'}) {
-            if ($Tests{$dep}{'recurse'}) {
-		$result = "dependency loop in test script";
-            } else {
-		$res2 = &run_test($dep);
-	    }
+    if (!$Tests{$name}{'run'}) {
+        if ($Tests{$name}{'recurse'}) {
+            $result = "dependency loop in test script";
         } else {
-	    $res2 = $Tests{$dep}{'succeeded'};
-	}
-        if (!$res2) {
-	    $result = "dependency `$dep' failed" if !defined($result);
+            $Tests{$name}{'recurse'}++;
+            foreach $dep (@{$Tests{$name}{'deps'}}) {
+                my $res2 = &run_test($dep);
+                if (!$res2) {
+                    $result = "dependency `$dep' failed" if !defined($result);
+                }
+            }
+            $Tests{$name}{'recurse'}--;
+        }
+        my $func = $Tests{$name}{'func'};
+        my $args = $Tests{$name}{'args'};
+        if ($func) {
+            print "$name... ";
+            if (!defined($result)) {
+                $result = &$func(@$args);
+            }
+        }
+        $Tests{$name}{'run'} = 1;
+        if (defined($result)) {
+            print "FAILED ($result)\n" if $func;
+            $Tests{$name}{'succeeded'} = 0;
+        } else {
+            print "ok\n" if $func;
+            $Tests{$name}{'succeeded'} = 1;
         }
     }
-    my $func = $Tests{$name}{'func'};
-    my $args = $Tests{$name}{'args'};
-    if ($func) {
-	print "$name... ";
-	if (!defined($result)) {
-	    $result = &$func(@$args);
-	}
-    }
-    $Tests{$name}{'run'} = 1;
-    if (defined($result)) {
-        print "FAILED ($result)\n" if $func;
-        $Tests{$name}{'succeeded'} = 0;
-    } else {
-        print "ok\n" if $func;
-        $Tests{$name}{'succeeded'} = 1;
-    }
-    $Tests{$name}{'recurse'}--;
     return $Tests{$name}{'succeeded'};
 }
 

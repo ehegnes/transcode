@@ -3,6 +3,9 @@
   Force all video frame buffers to maximum size, to avoid crashes with
   -y raw -F rgb.
 
+  * testsuite/newtest.pl
+  Add -T option to assume certain tests have succeeded without running them.
+
 2006-09-12 Andrew Church <achurch at achurch dot org>
   * Added files: src/cmdline.c src/cmdline.h src/cmdline_defs.h
   New command line parsing code, allowing option names, descriptions, and
