@@ -1,4 +1,8 @@
 2006-09-12 Andrew Church <achurch at achurch dot org>
+  * import/import_ffmpeg.c
+  Fix video data disappearing when the ffmpeg line stride is the same as
+  the frame width.
+
   * src/framebuffer.c
   Force all video frame buffers to maximum size, to avoid crashes with
   -y raw -F rgb.
