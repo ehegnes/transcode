@@ -195,6 +195,22 @@ static int do_process_frame(vob_t *vob, vframe_list_t *ptr)
 {
     video_trans_data_t vtd;  /* for passing to subroutines */
 
+
+    /**** Sanity check and initialization ****/
+
+    if (ptr->video_buf_Y[0] == ptr->video_buf_Y[1]) {
+        tc_log_error(__FILE__, "video frame has no temporary buffer!");
+        return -1;
+    }
+    if (ptr->video_buf == ptr->video_buf_Y[ptr->free]) {
+        static int warned = 0;
+        if (!warned) {
+            tc_log_warn(__FILE__, "ptr->video_buf points to wrong buffer"
+                        " (BUG in transcode or modules)");
+            warned = 1;
+        }
+        ptr->free = !ptr->free;
+    }
     set_vtd(&vtd, ptr);
 
     /**** -j: clip frame (import) ****/

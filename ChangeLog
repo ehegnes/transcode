@@ -7,6 +7,9 @@
   Force all video frame buffers to maximum size, to avoid crashes with
   -y raw -F rgb.
 
+  * src/video_trans.c
+  Add sanity checks on video frame parameters.
+
   * testsuite/newtest.pl
   Add -T option to assume certain tests have succeeded without running them.
   Also remove test for obsolete -y mjpeg.
