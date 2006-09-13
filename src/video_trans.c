@@ -205,7 +205,7 @@ static int do_process_frame(vob_t *vob, vframe_list_t *ptr)
     if (ptr->video_buf == ptr->video_buf_Y[ptr->free]) {
         static int warned = 0;
         if (!warned) {
-            tc_log_warn(__FILE__, "ptr->video_buf points to wrong buffer"
+            tc_log_warn(__FILE__, "ptr->free points to wrong buffer"
                         " (BUG in transcode or modules)");
             warned = 1;
         }
