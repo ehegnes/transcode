@@ -98,6 +98,7 @@ void tc_init_video_frame(vframe_list_t *vptr,
 
     vptr->video_buf = vptr->internal_video_buf_0;
     vptr->video_buf2 = vptr->internal_video_buf_1;
+    vptr->free = 1;
 
     vptr->video_size = psizes[0] + psizes[1] + psizes[2];
     vptr->video_len = vptr->video_size; /* default */
