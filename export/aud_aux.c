@@ -455,13 +455,6 @@ int audio_init(vob_t *vob, int v)
 	/*
 	 * Sanity checks
 	 */
-	if (!(tc_decode_stream & TC_AUDIO))
-	{
-		tc_warn("No Audio Module probed. Muting.");
-		audio_encode_function=audio_mute;
-		return(TC_EXPORT_OK);
-	}
-
 	if((sample_size == 0) &&
 	   (vob->im_a_codec != CODEC_NULL))
 	{
