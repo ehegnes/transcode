@@ -485,7 +485,6 @@ void vimport_thread(vob_t *vob)
   int ret=0, vbytes;
   vframe_list_t *ptr=NULL;
   transfer_t import_para;
-  struct fc_time *t;
 
 
   if(verbose & TC_DEBUG) fprintf(stderr, "(%s) video thread id=%ld\n", __FILE__, (unsigned long)pthread_self());
@@ -541,13 +540,10 @@ void vimport_thread(vob_t *vob)
     ptr->attributes=0;
 
     /* Set skip attribute based on -c */
-    ptr->attributes |= TC_FRAME_IS_OUT_OF_RANGE;
-    for (t = vob->ttime; t; t = t->next) {
-        if (t->stf <= ptr->id && ptr->id < t->etf)  {
-            ptr->attributes &= ~TC_FRAME_IS_OUT_OF_RANGE;
-            break;
-        }
-    }
+    if (fc_time_contains(vob->ttime, ptr->id))
+        ptr->attributes &= ~TC_FRAME_IS_OUT_OF_RANGE;
+    else
+        ptr->attributes |= TC_FRAME_IS_OUT_OF_RANGE;
 
     // read video frame
 
@@ -679,7 +675,6 @@ void aimport_thread(vob_t *vob)
   int ret=0, abytes;
   aframe_list_t *ptr=NULL;
   transfer_t import_para;
-  struct fc_time *t;
 
 
   if(verbose & TC_DEBUG) fprintf(stderr, "(%s) audio thread id=%ld\n", __FILE__, (unsigned long)pthread_self());
@@ -743,13 +738,10 @@ void aimport_thread(vob_t *vob)
     ptr->attributes=0;
 
     /* Set skip attribute based on -c */
-    ptr->attributes |= TC_FRAME_IS_OUT_OF_RANGE;
-    for (t = vob->ttime; t; t = t->next) {
-        if (t->stf <= ptr->id && ptr->id < t->etf)  {
-            ptr->attributes &= ~TC_FRAME_IS_OUT_OF_RANGE;
-            break;
-        }
-    }
+    if (fc_time_contains(vob->ttime, ptr->id))
+        ptr->attributes &= ~TC_FRAME_IS_OUT_OF_RANGE;
+    else
+        ptr->attributes |= TC_FRAME_IS_OUT_OF_RANGE;
 
     // read audio frame
 

@@ -2,6 +2,9 @@
   * libtc/framecode.c
   Make set_fc_time() robust against an invalid range parameter.
 
+  * src/decoder.c
+  Use fc_time_contains() rather than checking frame ranges manually.
+
   * src/probe.c src/probe.h
   Add probe_source_xml(), which runs tcxmlcheck to probe data from XML
   files.
