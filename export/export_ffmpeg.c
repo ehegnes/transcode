@@ -340,8 +340,10 @@ MOD_init {
                 codec->name);
         return TC_EXPORT_ERROR;
     }
-    tc_log_info(MOD_NAME, "Using FFMPEG codec '%s' (FourCC '%s', %s).",
-            codec->name, codec->fourCC, codec->comments);
+    if (verbose) {
+	tc_log_info(MOD_NAME, "Using FFMPEG codec '%s' (FourCC '%s', %s).",
+		    codec->name, codec->fourCC, codec->comments);
+    }
 
     lavc_venc_context = avcodec_alloc_context();
     lavc_venc_frame   = avcodec_alloc_frame();
@@ -384,13 +386,17 @@ MOD_init {
             lavc_venc_context->gop_size = 250; /* reasonable default for mpeg4 (and others) */
 
     if (pseudo_codec != pc_none) { /* using profiles */
-        tc_log_info(MOD_NAME, "Selected %s profile, %s video type for video",
-                 pseudo_codec_name[pseudo_codec], vt_name[video_template]);
+	if (verbose) {
+	    tc_log_info(MOD_NAME,
+			"Selected %s profile, %s video type for video",
+			pseudo_codec_name[pseudo_codec],
+			vt_name[video_template]);
+	}
 
         if(!(vob->export_attributes & TC_EXPORT_ATTRIBUTE_FIELDS)) {
-            if(video_template == vt_pal)
+            if(video_template == vt_pal) {
                 vob->encode_fields = 1;  /* top first */
-            else
+            } else {
                 if(video_template == vt_ntsc)
                     vob->encode_fields = 2; /* bottom first */
                 else {
@@ -398,21 +404,29 @@ MOD_init {
                                "select video type with profile");
                     vob->encode_fields = 3; /* unknown */
                 }
+	    }
 
-            tc_log_info(MOD_NAME, "Set interlacing to %s", il_name[vob->encode_fields]);
+	    if (verbose) {
+		tc_log_info(MOD_NAME, "Set interlacing to %s",
+			    il_name[vob->encode_fields]);
+	    }
         }
 
         if (!(vob->export_attributes & TC_EXPORT_ATTRIBUTE_FRC)) {
-            if(video_template == vt_pal)
+            if(video_template == vt_pal) {
                 vob->ex_frc = 3;
-            else
+            } else {
                 if(video_template == vt_ntsc)
                     vob->ex_frc = 4;
                 else
                     vob->ex_frc = 0; /* unknown */
+	    }
 
-            tc_log_info(MOD_NAME, "Set frame rate to %s", vob->ex_frc == 3 ? "25" :
-                    (vob->ex_frc == 4 ? "29.97" : "unknown"));
+	    if (verbose) {
+		tc_log_info(MOD_NAME, "Set frame rate to %s",
+			    vob->ex_frc == 3 ? "25" :
+			    vob->ex_frc == 4 ? "29.97" : "unknown");
+	    }
         }
     } else { /* no profile active */
         if (!(vob->export_attributes & TC_EXPORT_ATTRIBUTE_FIELDS)) {
@@ -434,7 +448,9 @@ MOD_init {
                 tc_log_warn(MOD_NAME, "Video bitrate not 1150 kbps as required");
         } else {
             vob->divxbitrate = 1150;
-            tc_log_info(MOD_NAME, "Set video bitrate to 1150");
+	    if (verbose) {
+		tc_log_info(MOD_NAME, "Set video bitrate to 1150");
+	    }
         }
 
         if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_GOP) {
@@ -442,7 +458,9 @@ MOD_init {
                 tc_log_warn(MOD_NAME, "GOP size not < 10 as required");
         } else {
             vob->divxkeyframes = 9;
-            tc_log_info(MOD_NAME, "Set GOP size to 9");
+	    if (verbose) {
+		tc_log_info(MOD_NAME, "Set GOP size to 9");
+	    }
         }
 
         lavc_venc_context->gop_size = vob->divxkeyframes;
@@ -542,7 +560,9 @@ MOD_init {
                 tc_log_warn(MOD_NAME, "Video bitrate not between 1000 and 9800 kbps as required");
         } else {
             vob->divxbitrate = 5000;
-            tc_log_info(MOD_NAME, "Set video bitrate to 5000");
+	    if (verbose) {
+		tc_log_info(MOD_NAME, "Set video bitrate to 5000");
+	    }
         }
 
         if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_GOP) {
@@ -554,7 +574,10 @@ MOD_init {
             else
                 vob->divxkeyframes = 15;
 
-            tc_log_info(MOD_NAME, "Set GOP size to %d", vob->divxkeyframes);
+	    if (verbose) {
+		tc_log_info(MOD_NAME, "Set GOP size to %d",
+			    vob->divxkeyframes);
+	    }
         }
 
         lavc_venc_context->gop_size = vob->divxkeyframes;
@@ -566,7 +589,9 @@ MOD_init {
         break;
 
     case(pc_none): /* leave everything alone, prevent gcc warning */
-        tc_log_info(MOD_NAME, "No profile selected");
+	if (verbose) {
+	    tc_log_info(MOD_NAME, "No profile selected");
+	}
 
         break;
     }
@@ -815,7 +840,10 @@ MOD_init {
 
     lavc_venc_context->thread_count = lavc_param_threads;
 
-    tc_log_info(MOD_NAME, "Starting %d thread(s)", lavc_venc_context->thread_count);
+    if (verbose) {
+	tc_log_info(MOD_NAME, "Starting %d thread(s)",
+		    lavc_venc_context->thread_count);
+    }
 
     avcodec_thread_init(lavc_venc_context, lavc_param_threads);
 
@@ -835,8 +863,11 @@ MOD_init {
         if (i != 64) {
             free(lavc_venc_context->intra_matrix);
             lavc_venc_context->intra_matrix = NULL;
-        } else
-            tc_log_info(MOD_NAME, "Using user specified intra matrix");
+        } else {
+	    if (verbose) {
+		tc_log_info(MOD_NAME, "Using user specified intra matrix");
+	    }
+	}
     }
 
     if (lavc_param_inter_matrix) {
@@ -855,8 +886,11 @@ MOD_init {
         if (i != 64) {
             free(lavc_venc_context->inter_matrix);
             lavc_venc_context->inter_matrix = NULL;
-        } else
-            tc_log_info(MOD_NAME, "Using user specified inter matrix");
+        } else {
+	    if (verbose) {
+		tc_log_info(MOD_NAME, "Using user specified inter matrix");
+	    }
+	}
     }
 
     p = lavc_param_rc_override_string;
@@ -945,9 +979,13 @@ MOD_init {
 		    return(TC_EXPORT_ERROR);
                 }
 
-                tc_log_info(MOD_NAME, "Display aspect ratio calculated as %f", dar);
                 sar = dar * ((double)vob->ex_v_height / (double)vob->ex_v_width);
-                tc_log_info(MOD_NAME, "Sample aspect ratio calculated as %f", sar);
+		if (verbose) {
+		    tc_log_info(MOD_NAME, "Display aspect ratio calculated"
+				" as %f", dar);
+		    tc_log_info(MOD_NAME, "Sample aspect ratio calculated"
+				" as %f", sar);
+		}
                 lavc_venc_context->sample_aspect_ratio.num = (int)(sar * 1000);
                 lavc_venc_context->sample_aspect_ratio.den = 1000;
             } else {
@@ -955,7 +993,9 @@ MOD_init {
 		return(TC_EXPORT_ERROR);
 	    }
         } else { /* user did not specify asr at all, assume no change */
-            tc_log_info(MOD_NAME, "Set display aspect ratio to input");
+	    if (verbose) {
+		tc_log_info(MOD_NAME, "Set display aspect ratio to input");
+	    }
             /*
              * sar = (4.0 * ((double)vob->ex_v_height) / (3.0 * (double)vob->ex_v_width));
              * lavc_venc_context->sample_aspect_ratio.num = (int)(sar * 1000);
@@ -1224,8 +1264,12 @@ MOD_init {
             int resample_active = tc_filter_find("resample") != 0;
             int rate = pseudo_codec_rate[target];
 
-            tc_log_info(MOD_NAME, "Selected %s profile for audio", pseudo_codec_name[target]);
-            tc_log_info(MOD_NAME, "Resampling filter %sactive", resample_active ? "already " : "in");
+	    if (verbose) {
+		tc_log_info(MOD_NAME, "Selected %s profile for audio",
+			    pseudo_codec_name[target]);
+		tc_log_info(MOD_NAME, "Resampling filter %sactive",
+			    resample_active ? "already " : "in");
+	    }
 
             if(vob->export_attributes & TC_EXPORT_ATTRIBUTE_ACHANS)
             {
@@ -1235,7 +1279,9 @@ MOD_init {
             else
             {
                 vob->dm_chan = 2;
-                tc_log_info(MOD_NAME, "Set number of audio channels to 2");
+		if (verbose) {
+		    tc_log_info(MOD_NAME, "Set number of audio channels to 2");
+		}
             }
 
             if(vob->export_attributes & TC_EXPORT_ATTRIBUTE_ABITS)
@@ -1246,7 +1292,9 @@ MOD_init {
             else
             {
                 vob->dm_bits = 16;
-                tc_log_info(MOD_NAME, "Set number of audio bits to 16");
+		if (verbose) {
+		    tc_log_info(MOD_NAME, "Set number of audio bits to 16");
+		}
             }
 
             if(resample_active)
@@ -1256,16 +1304,24 @@ MOD_init {
 
                 if(vob->export_attributes & TC_EXPORT_ATTRIBUTE_ARATE)
                 {
-                    if((rate == -1) || (vob->a_rate == rate))
-                        tc_log_info(MOD_NAME, "No audio resampling necessary");
-                    else
-                        tc_log_info(MOD_NAME, "Resampling audio from %d Hz to %d Hz as required",
-					      vob->a_rate, rate);
+		    if (verbose) {
+			if((rate == -1) || (vob->a_rate == rate)) {
+			    tc_log_info(MOD_NAME,
+					"No audio resampling necessary");
+			} else {
+			    tc_log_info(MOD_NAME, "Resampling audio from"
+					" %d Hz to %d Hz as required",
+					vob->a_rate, rate);
+			}
+		    }
                 }
                 else if (rate != -1)
                 {
                     vob->a_rate = rate;
-                    tc_log_info(MOD_NAME, "Set audio sample rate to %d Hz", rate);
+		    if (verbose) {
+			tc_log_info(MOD_NAME, "Set audio sample rate to %d Hz",
+				    rate);
+		    }
                 }
             }
             else
@@ -1282,13 +1338,17 @@ MOD_init {
                 }
                 else
                 {
-                    if(vob->a_rate == rate && vob->mp3frequency == rate)
-                        tc_log_info(MOD_NAME, "Set audio sample rate to %d Hz",
-					      rate);
-                    else if (vob->a_rate == rate && vob->mp3frequency == 0) {
+                    if(vob->a_rate == rate && vob->mp3frequency == rate) {
+			if (verbose) {
+			    tc_log_info(MOD_NAME, "Set audio sample rate"
+					" to %d Hz", rate);
+			}
+                    } else if (vob->a_rate == rate && vob->mp3frequency == 0) {
                         vob->mp3frequency = rate;
-                        tc_log_info(MOD_NAME, "No audio resampling necessary, using %d Hz",
-					      rate);
+			if (verbose) {
+			    tc_log_info(MOD_NAME, "No audio resampling"
+					" necessary, using %d Hz", rate);
+			}
                     }
                     else
                     {
@@ -1319,7 +1379,9 @@ MOD_init {
             else
             {
                 vob->mp3bitrate = 224;
-                tc_log_info(MOD_NAME, "Set audio bit rate to 224 kbps");
+		if (verbose) {
+		    tc_log_info(MOD_NAME, "Set audio bit rate to 224 kbps");
+		}
             }
 
             if(vob->export_attributes & TC_EXPORT_ATTRIBUTE_ACODEC)
@@ -1340,12 +1402,16 @@ MOD_init {
                 if(target != pc_dvd)
                 {
                     vob->ex_a_codec = CODEC_MP2;
-                    tc_log_info(MOD_NAME, "Set audio codec to mp2");
+		    if (verbose) {
+			tc_log_info(MOD_NAME, "Set audio codec to mp2");
+		    }
                 }
                 else
                 {
                     vob->ex_a_codec = CODEC_AC3;
-                    tc_log_info(MOD_NAME, "Set audio codec to ac3");
+		    if (verbose) {
+			tc_log_info(MOD_NAME, "Set audio codec to ac3");
+		    }
                 }
             }
         }

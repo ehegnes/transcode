@@ -327,14 +327,17 @@ void decode_dv(decode_t *decode)
 
     /**** Print a stream information summary ****/
 
-    if (decode->format == TC_CODEC_PCM) {
-        tc_log_info(__FILE__, "audio: %d Hz, %d channels",
-                    decoder->audio->frequency, decoder->audio->num_channels);
-    } else {
-        tc_log_info(__FILE__, "%s video: %dx%d framesize=%lu sampling=%d",
-                    ispal ? "PAL" : "NTSC", decoder->width,
-                    decoder->height, (unsigned long)decoder->frame_size,
-                    decoder->sampling);
+    if (verbose) {
+        if (decode->format == TC_CODEC_PCM) {
+            tc_log_info(__FILE__, "audio: %d Hz, %d channels",
+                        decoder->audio->frequency,
+                        decoder->audio->num_channels);
+        } else {
+            tc_log_info(__FILE__, "%s video: %dx%d framesize=%lu sampling=%d",
+                        ispal ? "PAL" : "NTSC", decoder->width,
+                        decoder->height, (unsigned long)decoder->frame_size,
+                        decoder->sampling);
+        }
     }
 
     /**** Allocate video buffers ****/
