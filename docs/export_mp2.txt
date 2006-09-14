@@ -85,16 +85,16 @@ fps_code = VALUE
 
 where VALUE has the same range and meaning as transcode's frame rate code (-f 0,N)
 
-VALUE   means
-0       use transcodes fps settings, this is the default
-1       23.976 fps
-2       24
-3       25
-4       29.970
-5       30
-6       50
-7       59.940
-8       60
+VALUE   means
+0       use transcodes fps settings, this is the default
+1       23.976 fps
+2       24
+3       25
+4       29.970
+5       30
+6       50
+7       59.940
+8       60
 
 If this option is set, all transcode frame rate settings (-f, --export_fps or
 autoprobed values) are ignored. The encoder frame rate is set to the

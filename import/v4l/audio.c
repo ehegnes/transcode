@@ -1,7 +1,7 @@
 /*
  *  audio.c
  *
- *  Copyright (C) Thomas Östreich - January 2002
+ *  Copyright (C) Thomas Oestreich - January 2002
  *  some code from xawtv: (c) 1997-2001 Gerd Knorr <kraxel@bytesex.org>
  *
  *  This file is part of transcode, a video stream processing tool

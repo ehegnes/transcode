@@ -1,7 +1,7 @@
 /*
  *  extract_ac3.c
  *
- *  Copyright (C) Thomas Östreich - June 2001
+ *  Copyright (C) Thomas Oestreich - June 2001
  *  Copyright (C) Aaron Holtzman <aholtzma@ess.engr.uvic.ca> - June 1999
  *
  *  Ideas and bitstream syntax info borrowed from code written

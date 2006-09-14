@@ -1,7 +1,7 @@
 /*
  *  video.c
  *
- *  Copyright (C) Thomas Östreich - January 2002
+ *  Copyright (C) Thomas Oestreich - January 2002
  *  some code from xawtv: (c) 1997-2001 Gerd Knorr <kraxel@bytesex.org>
  *  updates for general channel selection and .xavtv processing by
  *  Chris C. Hoover <cchoover@charter.net>

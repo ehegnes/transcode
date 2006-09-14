@@ -1,7 +1,7 @@
 /*
  *  filter_extsub.c
  *
- *  Copyright (C) Thomas Östreich - January 2002
+ *  Copyright (C) Thomas Oestreich - January 2002
  *
  *  This file is part of transcode, a video stream processing tool
  *
@@ -101,7 +101,7 @@ static int subtitle_retrieve(void)
       pthread_mutex_unlock(&sframe_list_lock);
 
       if((sptr = sframe_retrieve())==NULL) {
-	  //this shouldn´t happen
+	  //this shouldn't happen
 	  tc_log_error(MOD_NAME, "internal error (S)");
 	  return(-1);
       }

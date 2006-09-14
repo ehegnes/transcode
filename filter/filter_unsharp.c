@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2002 Rémi Guyomarch <rguyom@pobox.com>
+    Copyright (C) 2002 Remi Guyomarch <rguyom@pobox.com>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

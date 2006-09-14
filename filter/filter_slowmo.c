@@ -1,7 +1,7 @@
 /*
  *  filter_slowmo.c
  *
- *  Copyright (C) Thomas Östreich - August 2002
+ *  Copyright (C) Thomas Oestreich - August 2002
  *
  *  This file is part of transcode, a video stream processing tool
  *

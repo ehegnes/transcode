@@ -20,27 +20,27 @@ In your case of a 720x576 vob in 16:9 aspect ratio, you should use
 The resulting video will look like expected on PCs with e.g. mplayer,
 which will honore the aspect ratio, but many consumer players have problems
 switching to 16:9 format in VCD/SVCD mode -> in this case you need a resizer
-capable of generating  black bars on top/bottom of your video.
+capable of generating black bars on top/bottom of your video.
 
-This can´t be done with the trancode resizer, but with the internal mpeg-
+This can't be done with the trancode resizer, but with the internal mpeg-
 module resizer (I mean -y mpeg not -y mpeg2enc). You can also mix the resizer
 of transcode with the resizer of the mpeg-module too.
- 
+
 On base of this knoweledge you will concluse, that following options
 should produce a "original" looking picture on a 4:3 aspect ratio:
 
 "-B 5 -y mpeg -F s,3 ..."
 
-"-B 5"   => 720x416 (formats image near to 16:9),
+"-B 5"   => 720x416 (formats image near to 16:9),
 
 "-F s,3" => 480x576 (formats image to SVCD size with black bars on top
 (80 pixels) and botton (80 pixels), so it will look well on 4:3 display.
 
 Because of using only high speed resizing options, the transcoding
 process will run in better speed than using zoom or other slow rescaling
-options. Unfortunately transcode itself can´t handle black bars for output
+options. Unfortunately transcode itself can't handle black bars for output
 video (in AVI world there is no need of this feature and transcode begans as
-AVI transcoding tool). Of cause this described solution won´t work
+AVI transcoding tool). Of cause this described solution won't work
 with other export modules e.g. "mpeg2enc" (it lacks of internal black bar
 resizer).
 
@@ -49,7 +49,7 @@ There is no suggestion to calculate filesize for mpegs with variable bitrate
 source video (luminances, motion etc.) and the quality value (quant_value)
 you are using while encoding. Only the max. possible size is known by the
 max. bitrate restriction for SVCD and the count of frames.
-to avoid problems with oversized mpeg-files (won´t fit on CD), the mpeg-
+to avoid problems with oversized mpeg-files (won't fit on CD), the mpeg-
 encoder module can forced to split the encoded file in several parts.
 The size per part in MB is given by the "max_file_size"-Parameter used in
 conjunction with a user-profile
@@ -64,7 +64,7 @@ bitrate for all frames of one GOP (group of pictures) and if the max.
 bitrate limit is exceeded, the whole GOP will be encoded again with a higher
 quantizer value until bitrate fit into limit. Bitrate (for SVCDS) depends
 mainly from "quant_value" (lower value / better quality -> higher
-bitrate). In conclusion higher quality leads often to lower speed, so it´s
+bitrate). In conclusion higher quality leads often to lower speed, so it's
 your decision what is more worth for you :-)
 But there there are some tricks to reduce bitrate for mpeg-2 typed streams
 without loosing much quality:
@@ -79,7 +79,7 @@ To observe actual bitrate during encoding you should set transcode option
 settings.
 
 To test the maximum encoding speed you should use option -F 1,3
-so You´ll see how much the SVCD bitrate control will drop speed.
+so you'll see how much the SVCD bitrate control will drop speed.
 
 Common problems:
 ----------------

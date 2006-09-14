@@ -375,7 +375,7 @@ static void work_with_yuv_frame(char *buffer, int width, int height, int instanc
 
       break;
 
-  case 1: // SOLID //FIXME : "Ränder" entfernen
+  case 1: // SOLID //FIXME : "Raender" entfernen
 
       /* Y */
       for(row=data[instance]->ypos; row<data[instance]->height; ++row) {

@@ -1,7 +1,7 @@
 /**
  *  @file filter_null.c Demo filter
  *
- *  Copyright (C) Thomas Östreich - June 2001
+ *  Copyright (C) Thomas Oestreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
  *
@@ -46,7 +46,7 @@
 #define MOD_CAP     "demo filter plugin; does nothing"
 
 /// Author of the filter plugin
-#define MOD_AUTHOR  "Thomas Östreich, Thomas Wehrspann"
+#define MOD_AUTHOR  "Thomas Oestreich, Thomas Wehrspann"
 
 /* -------------------------------------------------
  *

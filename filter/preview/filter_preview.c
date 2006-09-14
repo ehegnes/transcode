@@ -1,7 +1,7 @@
 /*
  *  filter_preview.c
  *
- *  Copyright (C) Thomas Östreich - December 2001
+ *  Copyright (C) Thomas Oestreich - December 2001
  *
  *  This file is part of transcode, a video stream processing tool
  *

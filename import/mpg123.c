@@ -1,7 +1,7 @@
 /*
  *  mpg123.c
  *
- *  Copyright (C) Thomas Östreich - June 2001
+ *  Copyright (C) Thomas Oestreich - June 2001
  *  Copyright (c) 1999 Albert L Faber
  *
  *  This file is part of transcode, a video stream processing tool

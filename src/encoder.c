@@ -1,7 +1,7 @@
 /*
  *  encoder.c
  *
- *  Copyright (C) Thomas Östreich - June 2001
+ *  Copyright (C) Thomas Oestreich - June 2001
  *  Updated and partially rewritten by
  *  Francesco Romani - January 2006
  *  New rotation code written by

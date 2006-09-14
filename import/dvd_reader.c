@@ -1,7 +1,7 @@
 /*
  *  dvd_reader.c
  *
- *  Copyright (C) Thomas Östreich - June 2001
+ *  Copyright (C) Thomas Oestreich - June 2001
  *  Copyright (C) 2001 Billy Biggs <vektor@dumbterm.net>.
  *
  *  This file is part of transcode, a video stream processing tool

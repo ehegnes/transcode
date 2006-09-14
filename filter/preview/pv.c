@@ -1,7 +1,7 @@
 /*
  *  pv.c
  *
- *  Copyright (C) Thomas Östreich - October 2002
+ *  Copyright (C) Thomas Oestreich - October 2002
  *
  *  based on "display.c
  *     Copyright (C) Charles 'Buck' Krasic - April 2000

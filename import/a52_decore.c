@@ -1,7 +1,7 @@
 /*
  *  a52_decore.c
  *
- *  Copyright (C) Thomas Östreich - June 2001
+ *  Copyright (C) Thomas Oestreich - June 2001
  *  changes by Joerg Sauer <js-mail@gmx.net> for liba52-0.7.3
  *
  *  This file is part of transcode, a video stream processing tool

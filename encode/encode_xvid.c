@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  - XviD Transcode Export Module -
  *
- *  Copyright (C) 2001-2003 - Thomas Östreich
+ *  Copyright (C) 2001-2003 - Thomas Oestreich
  *
  *  Author : Edouard Gomez <ed.gomez@free.fr>
  *

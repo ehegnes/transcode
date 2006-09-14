@@ -1,7 +1,7 @@
 /*
  *  iodir.h
  *
- *  Copyright (C) Thomas Östreich - June 2001
+ *  Copyright (C) Thomas Oestreich - June 2001
  *  Updates:
  *  Copyright (C) Francesco Romani - November 2005
  *

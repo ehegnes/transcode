@@ -1,7 +1,7 @@
 /*
  *  sub_proc.c
  *
- *  Copyright (C) Thomas Östreich - February 2002
+ *  Copyright (C) Thomas Oestreich - February 2002
  *
  *  code based on ExtSub - A subtitle extractor for VOB files Version 1.00
  *  by Sham Gardner (risctaker@risctaker.de)

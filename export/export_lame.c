@@ -1,7 +1,7 @@
 /*
  *  export_lame.c
  *
- *  Copyright (C) Thomas Östreich - November 2002
+ *  Copyright (C) Thomas Oestreich - November 2002
  *
  *  This file is part of transcode, a video stream processing tool
  *

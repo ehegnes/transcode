@@ -1,7 +1,7 @@
 /*
  *  tccodecs.h
  *
- *  Copyright (C) Thomas Östreich - June 2001
+ *  Copyright (C) Thomas Oestreich - June 2001
  *  ripped from 'magic.h' by Francesco Romani - November 2005
  *
  *  This file is part of transcode, a video stream  processing tool

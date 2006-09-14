@@ -1,7 +1,7 @@
 /*
  *  filter_pv.c
  *
- *  Copyright (C) Thomas Östreich - October 2002
+ *  Copyright (C) Thomas Oestreich - October 2002
  *
  *  This file is part of transcode, a video stream processing tool
  *

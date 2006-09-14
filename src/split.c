@@ -1,7 +1,7 @@
 /*
  *  split.c
  *
- *  Copyright (C) Thomas Östreich - January 2002
+ *  Copyright (C) Thomas Oestreich - January 2002
  *
  *  This file is part of transcode, a video stream processing tool
  *

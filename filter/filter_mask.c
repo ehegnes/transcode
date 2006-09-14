@@ -1,7 +1,7 @@
 /*
  *  filter_mask.c
  *
- *  Copyright (C) Thomas Östreich, Chad Page - February, March 2002
+ *  Copyright (C) Thomas Oestreich, Chad Page - February, March 2002
  *
  *  This file is part of transcode, a video stream processing tool
  *
@@ -24,7 +24,7 @@
 #define MOD_NAME    "filter_mask.so"
 #define MOD_VERSION "v0.2.3 (2003-10-12)"
 #define MOD_CAP     "Filter through a rectangular Mask"
-#define MOD_AUTHOR  "Thomas Östreich, Chad Page"
+#define MOD_AUTHOR  "Thomas Oestreich, Chad Page"
 
 #include "transcode.h"
 #include "filter.h"

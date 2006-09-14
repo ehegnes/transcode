@@ -1,7 +1,7 @@
 /*
  *  export_mov.c
  *
- *  Copyright (C) Thomas Östreich - June 2001
+ *  Copyright (C) Thomas Oestreich - June 2001
  *  Copyright (C) (2002) Christian Vogelgsang
  *  <Vogelgsang@informatik.uni-erlangen.de> (extension for all codecs supported
  *  by quicktime4linux

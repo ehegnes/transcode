@@ -1,7 +1,7 @@
 /*
  *  export_divx5.c
  *
- *  Copyright (C) Thomas Östreich - June 2001
+ *  Copyright (C) Thomas Oestreich - June 2001
  *
  *  2-pass code OpenDivX port: "-R 1", "-R 2"
  *  Copyright (C) 2001 Christoph Lampert <gruel@web.de>

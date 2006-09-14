@@ -1,7 +1,7 @@
 ------------------------------------------
 Original Author of transcode (core):
 ------------------------------------------
-	Thomas Östreich <ostreich@theorie.physik.uni-goettingen.de>
+	Thomas Oestreich <ostreich@theorie.physik.uni-goettingen.de>
 
 ------------------------------------------
 Current and Previous Maintainers of transcode (core):
@@ -96,7 +96,7 @@ Contributors: (c.f. ChangeLog):
 	Chad Page <cpage@silcom.com>
 		o see filter plug-ins
 
-	Andreas Påhlsson <andreas.pahlsson@tjohoo.se>
+	Andreas Pahlsson <andreas.pahlsson@tjohoo.se>
 		o import_nuv.c
 
 	Jan Panteltje <panteltje@yahoo.com>
@@ -182,8 +182,8 @@ o encore2
 
 o dvdread
   Copyright (C) 2000, 2001 by:
-  Björn Englund <d4bjorn@dtek.chalmers.se>,
-  Håkan Hjort <d95hjort@dtek.chalmers.se>,
+  Bjorn Englund <d4bjorn@dtek.chalmers.se>,
+  Hakan Hjort <d95hjort@dtek.chalmers.se>,
   Billy Biggs <vektor@dumbterm.net>
 
 o extsub

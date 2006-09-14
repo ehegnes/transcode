@@ -1,7 +1,7 @@
 /*
  *  ts_reader.c
  *
- *  Copyright (C) Thomas Östreich - December 2002
+ *  Copyright (C) Thomas Oestreich - December 2002
  *
  *  based on extract_mpeg2.c
  *  Copyright (C) 2000-2002 Michel Lespinasse <walken@zoy.org>

@@ -43,7 +43,7 @@ home page at
 
   http://www.theorie.physik.uni-goettingen.de/~ostreich/transcode/
 
-Written by Thomas Östreich <ostreich@theorie.physik.uni-goettingen.de>
+Written by Thomas Oestreich <ostreich@theorie.physik.uni-goettingen.de>
 Currently maintained by Tilmann Bitterberg <transcode@tibit.org>
 See the Authors file for contributions from the transcode community.
 See the file COPYING for license details.
@@ -92,11 +92,11 @@ install -m 644 AUTHORS COPYING ChangeLog README TODO $RPM_BUILD_ROOT%{_defaultdo
 - man pages go to /usr/share/man
 - modified for snapshot releases
 
-* Wed Jul 11 2001 Thomas Östreich
+* Wed Jul 11 2001 Thomas Oestreich
 - update to transcode v0.3.3
 - small changes suggested by VM
 
-* Tue Jul 10 2001 Thomas Östreich
+* Tue Jul 10 2001 Thomas Oestreich
 - update to transcode v0.3.2
 - added pkgdir in install section
 

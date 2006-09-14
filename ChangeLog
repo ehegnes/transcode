@@ -1,4 +1,11 @@
 2006-09-14 Andrew Church <achurch at achurch dot org>
+  * (all files)
+  Replaced high-ASCII characters like \xD6 (O-umlaut) with their ASCII
+  equivalents in text files and source comments.  (Sorry, ThOe, but I'm
+  tired of having to manually set the encoding every time I load transcode
+  source files...)
+
+2006-09-14 Andrew Church <achurch at achurch dot org>
   * export/export_ffmpeg.c import/decode_dv.c
   Avoid writing info messages with -q 0.
 
@@ -5465,7 +5472,7 @@ transcode-0.6.13
   * contrib/V2divx.pl:
   Updated script. Can now encode NTSC vob files.
 
-2004-01-23 Stéphane Gourichon <gouri at free.fr>
+2004-01-23 Stephane Gourichon <gouri at free.fr>
 
   * export/export_ppm.c:
   Check return of open.
@@ -6023,7 +6030,7 @@ transcode-0.6.12 Fri Jan  8 23:59:59 CET 2004
   src/{audio_buffer.c video_buffer.c}:
   Simple 64bit fixes (usually int -> long)
 
-200-12-20 Stéphane Gourichon <gouri at free.fr>
+2003-12-20 Stephane Gourichon <gouri at free.fr>
 
   * src/audio_trans.c:
   valgrind pointed out that a memcpy should be a memmove and of
@@ -7643,7 +7650,7 @@ transcode-0.6.9 Tue Aug  5 09:22:09 CEST 2003
   - New filter modfps; convert framerate X to framerate Y
   - New filter msharpen; spatial sharpening
   - New tool tcmp3cut which can cut mp3 streams at milliseconds positions
-  - No more Latin-1 characters -- Sorry Thomas Ö.
+  - No more Latin-1 characters -- Sorry Thomas Oe.
   - Option -b now takes a 4th argument; lame encoding mode
   - Re-enable detection of DIV3 keyframes with -x divx
   - The linear blend deinterlace now also deinterlaces chroma
@@ -8641,7 +8648,7 @@ transcode-0.6.8 Mon Jul 7 08:36:58 CEST 2003
    bitstream problem: resyncing...
    fatal error. MAXFRAMESIZE not large enough.
 
-  Pointed out by Cornelius Kölbel.
+  Pointed out by Cornelius Koelbel.
 
   * filter/filter_tc_video.c:
   The telecide video filter produced wrong (not telecide but
@@ -8738,7 +8745,7 @@ transcode-0.6.8 Mon Jul 7 08:36:58 CEST 2003
   tcscan now prints a duration estimation for mp3 files. Its
   actually very accurate.
 
-2003-06-03 Zsolt László BÉRCZES" <arris at gmx.at>
+2003-06-03 Zsolt Laszlo BERCZES" <arris at gmx.at>
 
   * filter/filter_text.c:
   Fix a copy and paste error
@@ -9165,7 +9172,7 @@ transcode-0.6.4.20030409
 - configure check for libXpm and Xaw. Fixed lve detection.
 
 - Very preleminary MacOS X support. Compiling and running still needs
-  some tweaking. Thansk to the great help from Håvard Dahle
+  some tweaking. Thansk to the great help from Havard Dahle
   <havardda AT orakel.ntnu.no>. The port included various real bugfixes
   even in transcode core and in some of the import and export modules.
 
@@ -9382,7 +9389,7 @@ have been fixed since 0.6.3
 
 - Read back attributes set from the encoder (for clone)
 
-- Bug in export_raw pointed out by Loïc
+- Bug in export_raw pointed out by Loic
 
 - Manpage and -h update for `-c' with multiple ranges. Also removed the
   --duration and --record_v4l options as they are obsolete now and broken
@@ -9542,7 +9549,7 @@ transcode-0.6.3.20030116 Thu Jan 16 22:54:20 CET 2003
 -----------------------------------------------------
 transcode-0.6.3.20030109 Thu Jan  9 21:58:40 CET 2003
 
-- subtitle patch by Jarno Elonen <elonen@iki.fi>, updated by Jörn Reder
+- subtitle patch by Jarno Elonen <elonen@iki.fi>, updated by Joern Reder
   <joern@zyn.de>. This patch seems to fix the persistent rendering problems.
 
 - fixes and updates for xvid export by Edouard Gomez <ed.gomez@free.fr>.
@@ -9580,7 +9587,7 @@ transcode-0.6.3.20030109 Thu Jan  9 21:58:40 CET 2003
 
 - patch for probe_xml.c by Marzio Malanchini <marzio_malanchini AT vodafone.it>.
 
-- fix for the DivX green frame problem by Andreas Påhlsson <tml@pahlsson.info>.
+- fix for the DivX green frame problem by Andreas Pahlsson <tml@pahlsson.info>.
 - new yuvmedian filter added by Tilmann, a port from the mjpeg toolkit. It
   smoothes the frame using a median algorithm. (see -J yuvmedian=help)
 
@@ -9804,7 +9811,7 @@ transcode-0.6.2.20021107 Thu Nov  7 22:57:46 CET 2002
   there	is no 3dnow specific code added yet. "C" is the default plain C code.
   The new code is nasm dependent. More will be added soon.
 
-- Marco Zühlke <MZuehlke@myrealbox.com> added a patch to make transcode
+- Marco Zuehlke <MZuehlke@myrealbox.com> added a patch to make transcode
   compile with lzo-1.07.
 
 - small fix for export/xvid_vbr.c by Edouard Gomez.
@@ -12255,7 +12262,7 @@ transcode-0.5.0-pre8 Thu Oct 25 09:58:30 CEST 2001
   enabled with "-a 2".
 
 - added an import module "import_nuv.so" for NuppelVideo contributed
-  by Andreas Påhlsson. You need to provide the options "-V -e 44100"
+  by Andreas Pahlsson. You need to provide the options "-V -e 44100"
   to make it work, as well as the proper frame size.
 
 - Not working yet, but added code for import module "import_af6.so"

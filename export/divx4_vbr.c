@@ -1,7 +1,7 @@
 /*
  *  divx4_vbr.c
  *
- *  Copyright (C) Thomas Östreich - June 2001
+ *  Copyright (C) Thomas Oestreich - June 2001
  *
  *  2-pass code OpenDivX port:
  *  Copyright (C) 2001 Christoph Lampert <gruel@gmx.de>

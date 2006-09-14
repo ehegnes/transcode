@@ -1,7 +1,7 @@
 /*
  *  subtitle_buffer.h
  *
- *  Copyright (C) Thomas Östreich - February 2002
+ *  Copyright (C) Thomas Oestreich - February 2002
  *
  *  This file is part of transcode, a video stream processing tool
  *

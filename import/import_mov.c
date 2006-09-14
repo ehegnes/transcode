@@ -1,7 +1,7 @@
 /*
  *  import_mov.c
  *
- *  Copyright (C) Thomas Östreich - January 2002
+ *  Copyright (C) Thomas Oestreich - January 2002
  *  updated by Christian Vogelgsang <Vogelgsang@informatik.uni-erlangen.de>
  *
  *  This file is part of transcode, a video stream  processing tool

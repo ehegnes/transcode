@@ -1,7 +1,7 @@
 /*
  *  frame_info.c
  *
- *  Copyright (C) Thomas Östreich - June 2001
+ *  Copyright (C) Thomas Oestreich - June 2001
  *
  *  This file is part of transcode, a video stream processing tool
  *

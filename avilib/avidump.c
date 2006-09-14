@@ -1,7 +1,7 @@
 /*
  *  avidump.c
  *
- *  Copyright (C) Thomas Östreich - June 2001
+ *  Copyright (C) Thomas Oestreich - June 2001
  *
  *  based on code:
  *  (c)94 UP-Vision Computergrafik for c't

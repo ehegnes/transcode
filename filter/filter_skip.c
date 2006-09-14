@@ -1,7 +1,7 @@
 /**
  *  @file filter_skip.c Skip all listed frames
  *
- *  Copyright (C) Thomas Östreich - June 2001,
+ *  Copyright (C) Thomas Oestreich - June 2001,
  *                Thomas Wehrspann - January 2005
  *
  *  This file is part of transcode, a video stream processing tool
@@ -37,7 +37,7 @@
 #define MOD_NAME    "filter_skip.so"
 #define MOD_VERSION "v0.2 (2005-01-05)"
 #define MOD_CAP     "skip all listed frames"
-#define MOD_AUTHOR  "Thomas Östreich, Thomas Wehrspann"
+#define MOD_AUTHOR  "Thomas Oestreich, Thomas Wehrspann"
 
 #include "transcode.h"
 #include "filter.h"

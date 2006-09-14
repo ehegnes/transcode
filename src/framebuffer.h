@@ -1,7 +1,7 @@
 /*
  *  framebuffer.h
  *
- *  Copyright (C) Thomas Östreich - June 2001
+ *  Copyright (C) Thomas Oestreich - June 2001
  *  Updates and Enhancements
  *  (C) 2006 - Francesco Romani <fromani -at- gmail -dot- com>
  *
