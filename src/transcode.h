@@ -408,8 +408,6 @@ extern int fast_resize;
 
 extern int tc_buffer_delay_dec;
 extern int tc_buffer_delay_enc;
-extern int tc_encode_stream;
-extern int tc_decode_stream;
 extern int tc_cluster_mode;
 extern int tc_decoder_delay;
 extern int tc_x_preview;

@@ -8,6 +8,9 @@
   * export/aud_aux.c
   Remove extraneous (and sometimes broken) sanity check for import audio.
 
+  * src/transcode.c src/transcode.h
+  Remove (now-)unused variables tc_decode_stream and tc_encode_stream.
+
 2006-09-14 Andrew Church <achurch at achurch dot org>
   * libtc/framecode.c
   Make set_fc_time() robust against an invalid range parameter.

@@ -99,10 +99,6 @@ pthread_mutex_t s_channel_lock=PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t writepid_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t writepid_cond = PTHREAD_COND_INITIALIZER;
 
-//default
-int tc_encode_stream = 0;
-int tc_decode_stream = 0;
-
 #ifndef NEW_CMDLINE_CODE
 enum {
   ZOOM_FILTER = CHAR_MAX+1,
@@ -525,9 +521,6 @@ static int transcoder(int mode, vob_t *vob)
 
     case TC_ON:
 
-      if(im_aud_mod && strcmp(im_aud_mod,"null") != 0) tc_decode_stream|=TC_AUDIO;
-      if(im_vid_mod && strcmp(im_vid_mod,"null") != 0) tc_decode_stream|=TC_VIDEO;
-
       // load import modules and check capabilities
       if(import_init(vob, im_aud_mod, im_vid_mod)<0) {
 	fprintf(stderr,"[%s] failed to init import modules\n", PACKAGE);
@@ -537,9 +530,6 @@ static int transcoder(int mode, vob_t *vob)
       // load and initialize filters
       tc_filter_init();
       load_all_filters(plugins_string);
-
-      if(ex_aud_mod && strcmp(ex_aud_mod,"null") != 0) tc_encode_stream|=TC_AUDIO;
-      if(ex_vid_mod && strcmp(ex_vid_mod,"null") != 0) tc_encode_stream|=TC_VIDEO;
 
       /*
        * load export modules and check capabilities
