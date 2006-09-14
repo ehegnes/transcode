@@ -208,6 +208,9 @@ static void apply_video_filters(vframe_list_t *vptr, vob_t *vob)
         vptr->tag = TC_VIDEO|TC_POST_S_PROCESS;
         tc_filter_process((frame_list_t *)vptr);
         postprocess_vid_frame(vob, vptr);
+        /* preview _after_ all post-processing */
+        vptr->tag = TC_VIDEO|TC_PREVIEW;
+        tc_filter_process((frame_list_t *)vptr);
     }
 }
 
@@ -239,6 +242,9 @@ static void apply_audio_filters(aframe_list_t *aptr, vob_t *vob)
     if (!(aptr->attributes & TC_FRAME_IS_OUT_OF_RANGE)) {
         /* second stage post-processing - (synchronous) */
         aptr->tag = TC_AUDIO|TC_POST_S_PROCESS;
+        tc_filter_process((frame_list_t *)aptr);
+        /* preview _after_ all post-processing */
+        aptr->tag = TC_AUDIO|TC_PREVIEW;
         tc_filter_process((frame_list_t *)aptr);
     }
 }

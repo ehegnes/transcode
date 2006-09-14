@@ -159,8 +159,6 @@ int tc_buffer_delay_dec  = -1;
 int tc_buffer_delay_enc  = -1;
 int tc_cluster_mode      =  0;
 int tc_decoder_delay     =  0;
-int tc_x_preview         =  0;
-int tc_y_preview         =  0;
 int tc_progress_meter    =  -1;  // so we know whether it's set by the user
 int tc_progress_rate     =  1;
 int tc_accel             = AC_ALL;    //acceleration code
@@ -3349,11 +3347,6 @@ int main(int argc, char *argv[])
 	  break;
 	}
       }
-
-    //set preview frame size before post-processing
-
-    tc_x_preview = vob->ex_v_width;
-    tc_y_preview = vob->ex_v_height;
 
     // --POST_CLIP
 

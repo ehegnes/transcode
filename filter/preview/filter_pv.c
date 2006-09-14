@@ -176,8 +176,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     //init filter
 
-    w = tc_x_preview;
-    h = tc_y_preview;
+    w = vob->ex_v_width;
+    h = vob->ex_v_height;
 
     size = w*h* 3/2;
 
@@ -274,7 +274,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
 
-  pre = (ptr->tag & TC_POST_S_PROCESS)? 1:0;
+  pre = (ptr->tag & TC_PREVIEW)? 1:0;
   vid = (ptr->tag & TC_VIDEO)? 1:0;
 
   if( (ptr->tag & TC_PRE_PROCESS) && vid && cache_enabled) {

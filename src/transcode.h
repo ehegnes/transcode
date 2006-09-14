@@ -410,8 +410,6 @@ extern int tc_buffer_delay_dec;
 extern int tc_buffer_delay_enc;
 extern int tc_cluster_mode;
 extern int tc_decoder_delay;
-extern int tc_x_preview;
-extern int tc_y_preview;
 extern int tc_progress_meter;
 extern int tc_progress_rate;
 extern pthread_t tc_pthread_main;

@@ -1,4 +1,12 @@
 2006-09-14 Andrew Church <achurch at achurch dot org>
+  * filter/preview/filter_preview.c filter/preview/filter_pv.c
+    src/encoder-buffer.c src/tc_defaults.h
+  Show preview image after all processing, including --post_clip.
+
+  * src/transcode.c src/transcode.h tools/tcmodinfo.c
+  Remove no-longer-needed variables tc_x_preview and tc_y_preview.
+
+2006-09-14 Andrew Church <achurch at achurch dot org>
   * import/tccat.c
   Remove -L option, as it doesn't actually do anything.
 

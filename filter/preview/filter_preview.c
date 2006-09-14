@@ -111,8 +111,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
       if(strcasecmp(options,"xv")==0)  dv_player->display->arg_display=2;
     }
 
-    w = tc_x_preview;
-    h = tc_y_preview;
+    w = vob->ex_v_width;
+    h = vob->ex_v_height;
 
     if(verbose) tc_log_info(MOD_NAME, "preview window %dx%d", w, h);
 
@@ -189,7 +189,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
 
-  pre = (ptr->tag & TC_POST_S_PROCESS)? 1:0;
+  pre = (ptr->tag & TC_PREVIEW)? 1:0;
   vid = (ptr->tag & TC_VIDEO)? 1:0;
 
   if(pre && vid) {

@@ -140,9 +140,7 @@ int verbose  = TC_INFO;
 int rgbswap  = 0;
 int tc_accel = -1;    //acceleration code
 int flip = 0;
-int max_frame_buffer=0;
-int tc_x_preview = 32;
-int tc_y_preview = 32;
+int max_frame_buffer = 0;
 int gamma_table_flag = 0;
 int tc_socket_msgchar;
 int tc_socket_msg_lock;

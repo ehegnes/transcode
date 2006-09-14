@@ -122,15 +122,16 @@
 #define TC_INT_M_PROCESS       128
 #define TC_POST_M_PROCESS      256
 #define TC_POST_S_PROCESS      512
-#define TC_FILTER_CLOSE       1024
+#define TC_PREVIEW            1024
+#define TC_FILTER_CLOSE       2048
 #define TC_FILTER_GET_CONFIG  4096
+
+#define TC_IMPORT             8192
+#define TC_EXPORT            16384
 
 //for compatibility
 #define TC_PRE_PROCESS  TC_PRE_M_PROCESS
 #define TC_POST_PROCESS TC_POST_M_PROCESS
-
-#define TC_IMPORT             8192
-#define TC_EXPORT            16384
 
 #define TC_DELAY_MAX         40000
 #define TC_DELAY_MIN         10000
