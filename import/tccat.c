@@ -314,7 +314,7 @@ int main(int argc, char *argv[])
     int end_chapter, start_chapter;
     int title = 1, chapter1 = 1, chapter2 = -1, angle = 1;
     int max_chapters, max_angles, max_titles;
-    int n = 0, j, loop = 0, stream = 0, audio = 0, user = 0, source = 0;
+    int n = 0, j, stream = 0, audio = 0, user = 0, source = 0;
 
     int vob_offset = 0;
     int ch, ts_pid = 0x10;
@@ -353,18 +353,7 @@ int main(int argc, char *argv[])
                     tc_log_error(EXE, "invalid parameter for option -T");
                     exit(1);
                 }
-                if (chapter2 - chapter1 >= 1) {
-                    loop = 1;
-                }
             }
-            if (chapter1 == -1) {
-                loop = 1;
-            }
-            break;
-
-          case 'L':
-            loop = 1;
-            chapter2 = INT_MAX;
             break;
 
           case 'P':

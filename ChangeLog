@@ -1,4 +1,11 @@
 2006-09-14 Andrew Church <achurch at achurch dot org>
+  * import/tccat.c
+  Remove -L option, as it doesn't actually do anything.
+
+  * import/dvd_reader.c
+  Remove code to add now-obsolete -L option to tccat command line.
+
+2006-09-14 Andrew Church <achurch at achurch dot org>
   * libtc/framecode.c
   Make set_fc_time() robust against an invalid range parameter.
 
