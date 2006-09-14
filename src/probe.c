@@ -110,6 +110,91 @@ int probe_source(const char *vid_file, const char *aud_file, int range,
 /*************************************************************************/
 
 /**
+ * probe_source_xml:  Probe video or audio parameters from an XML file as
+ * specified by the vob_t data structure.
+ *
+ * Parameters:
+ *       vob: Global vob_t data structure.
+ *     which: PROBE_XML_VIDEO or PROBE_XML_AUDIO.
+ * Return value:
+ *     Nonzero on success, zero on error.
+ * Side effects:
+ *     Prints an error message on error.
+ */
+
+/* FIXME: is this the right place for these? */
+
+int probe_source_xml(vob_t *vob, int which)
+{
+#ifdef HAVE_LIBXML2
+    char buffer[TC_BUF_MAX];
+    FILE *tcxmlcheck_pipe;
+    int resize, i;
+
+    i = tc_snprintf(buffer, sizeof(buffer),
+                    "tcxmlcheck -i \"%s\" -S -B -%c",
+                    vob->video_in_file,
+                    which==PROBE_XML_VIDEO ? 'V' : 'A');
+    if (i < 0 || i >= sizeof(buffer)) {
+        tc_log_error(PACKAGE, "command buffer overflow");
+        return 0;
+    }
+    tcxmlcheck_pipe = popen(buffer, "w");
+    if (!tcxmlcheck_pipe) {
+        tc_log_error(PACKAGE, "Error opening pipe: %s", strerror(errno));
+        return 0;
+    }
+    if (fwrite(vob, sizeof(vob_t), 1, tcxmlcheck_pipe) != 1) {
+        tc_log_error(PACKAGE, "Error writing data to tcxmlcheck: %s",
+                     strerror(errno));
+        return 0;
+    }
+    pclose(tcxmlcheck_pipe);
+    memset(buffer, 0 ,TC_BUF_MAX);
+    i = tc_snprintf(buffer, sizeof(buffer),
+                    "tcxmlcheck -i \"%s\" -B -%c",
+                    vob->video_in_file,
+                    which==PROBE_XML_VIDEO ? 'V' : 'A');
+    if (i < 0 || i >= sizeof(buffer)) {
+        tc_log_error(PACKAGE, "command buffer overflow");
+        return 0;
+    }
+    tcxmlcheck_pipe = popen(buffer, "r");
+    if (!tcxmlcheck_pipe) {
+        tc_log_error(PACKAGE, "Error opening pipe: %s", strerror(errno));
+        return 0;
+    }
+    if (fread(vob, sizeof(vob_t), 1, tcxmlcheck_pipe) != 1) {
+        tc_log_error(PACKAGE, "Error reading data from tcxmlcheck");
+        return 0;
+    }
+    if (fread(&resize, sizeof(int), 1, tcxmlcheck_pipe) != 1) {
+	tc_log_error(PACKAGE, "Error reading data from tcxmlcheck 2");
+	return 0;
+    }
+    pclose(tcxmlcheck_pipe);
+    if (which == PROBE_XML_VIDEO && resize == 2) {
+        // XML forced resize, clear command line parameters
+        resize1 = TC_FALSE;
+        resize2 = TC_FALSE;
+        zoom = TC_FALSE;
+        vob->resize1_mult = 32;
+        vob->vert_resize1 = 0;
+        vob->hori_resize1 = 0;
+        vob->resize2_mult = 32;
+        vob->vert_resize2 = 0;
+        vob->hori_resize2 = 0;
+        vob->zoom_width   = 0;
+        vob->zoom_height  = 0;
+        vob->zoom_filter  = TCV_ZOOM_LANCZOS3;
+    }
+#endif  // HAVE_LIBXML2
+    return 1;
+}
+
+/*************************************************************************/
+
+/**
  * codec2str, aformat2str, mformat2str, asr2str:  Return a descriptive
  * string for the given codec, audio format, video format, or aspect ratio
  * flag, respectively.

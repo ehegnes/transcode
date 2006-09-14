@@ -1,4 +1,17 @@
 2006-09-14 Andrew Church <achurch at achurch dot org>
+  * src/probe.c src/probe.h
+  Add probe_source_xml(), which runs tcxmlcheck to probe data from XML
+  files.
+
+  * src/transcode.c
+  Move vob_t initialization code to a separate routine, new_vob().
+  Replace old XML probing code with calls to probe_source_xml().
+  Various STYLEish fixes.
+
+  * tools/tcexport.c
+  Add symbols now needed by probe.c.
+
+2006-09-14 Andrew Church <achurch at achurch dot org>
   * (all files)
   Replaced high-ASCII characters like \xD6 (O-umlaut) with their ASCII
   equivalents in text files and source comments.  (Sorry, ThOe, but I'm

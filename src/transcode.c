@@ -89,8 +89,7 @@ int verbose = TC_INFO;
 static int sig_int   = 0;
 static int sig_tstp  = 0;
 
-static pthread_t thread_signal=(pthread_t)0;
-int tc_signal_thread     =  0;
+static pthread_t thread_signal = (pthread_t)0;
 sigset_t sigs_to_block;
 
 // for initializing export_pvm
@@ -574,14 +573,215 @@ static void safe_exit (void)
 {
     void *thread_status;
 
-    if (tc_signal_thread) {
+    if (thread_signal) {
        pthread_cancel(thread_signal);
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
-       pthread_kill(thread_signal,SIGINT);
+       pthread_kill(thread_signal, SIGINT);
 #endif
        pthread_join(thread_signal, &thread_status);
     }
 }
+
+/*************************************************************************/
+
+/**
+ * new_vob:  Create a new vob_t structure and fill it with appropriate
+ * values.
+ *
+ * Parameters: None.
+ * Return value:
+ *     A pointer to the newly-created vob_t structure, or NULL on error.
+ * Notes:
+ *     On error, errno is valid.
+ */
+
+static vob_t *new_vob(void)
+{
+    vob_t *vob = (vob_t *)malloc(sizeof(vob_t));
+    if (!vob)
+        return NULL;
+
+    vob->divxbitrate         = VBITRATE;
+    vob->video_max_bitrate   = 0;           /* 0 = set by encoder */
+    vob->divxkeyframes       = VKEYFRAMES;
+    vob->divxquality         = VQUALITY;
+    vob->divxmultipass       = VMULTIPASS;
+    vob->divxcrispness       = VCRISPNESS;
+    vob->m2v_requant         = M2V_REQUANT_FACTOR;
+
+    vob->min_quantizer       = VMINQUANTIZER;
+    vob->max_quantizer       = VMAXQUANTIZER;
+
+    vob->rc_period           = RC_PERIOD;
+    vob->rc_reaction_period  = RC_REACTION_PERIOD;
+    vob->rc_reaction_ratio   = RC_REACTION_RATIO;
+
+    vob->divx5_vbv_prof      = DIVX5_VBV_PROFILE;
+    vob->divx5_vbv_bitrate   = DIVX5_VBV_BITRATE;
+    vob->divx5_vbv_size      = DIVX5_VBV_SIZE;
+    vob->divx5_vbv_occupancy = DIVX5_VBV_OCCUPANCY;
+
+    vob->mp3bitrate          = ABITRATE;
+    vob->mp3frequency        = 0;
+    vob->mp3quality          = AQUALITY;
+    vob->mp3mode             = AMODE;
+    vob->a_rate              = RATE;
+    vob->a_stream_bitrate    = 0;
+    vob->a_bits              = BITS;
+    vob->a_chan              = CHANNELS;
+    vob->a_padrate           = 0;
+
+    vob->dm_bits             = 0;
+    vob->dm_chan             = 0;
+
+    vob->im_a_size           = SIZE_PCM_FRAME;
+    vob->im_v_width          = PAL_W;
+    vob->im_v_height         = PAL_H;
+    vob->im_v_size           = SIZE_RGB_FRAME;
+    vob->ex_a_size           = SIZE_PCM_FRAME;
+    vob->ex_v_width          = PAL_W;
+    vob->ex_v_height         = PAL_H;
+    vob->ex_v_size           = SIZE_RGB_FRAME;
+    vob->a_track             = 0;
+    vob->v_track             = 0;
+    vob->volume              = 0;
+    vob->ac3_gain[0]         = 1.0;
+    vob->ac3_gain[1]         = 1.0;
+    vob->ac3_gain[2]         = 1.0;
+    vob->audio_out_file      = "/dev/null";
+    vob->video_out_file      = "/dev/null";
+    vob->avifile_in          = NULL;
+    vob->avifile_out         = NULL;
+    vob->avi_comment_fd      = -1;
+    vob->nav_seek_file       = NULL;
+    vob->out_flag            = 0;
+    vob->audio_in_file       = "/dev/zero";
+    vob->video_in_file       = "/dev/zero";
+    vob->in_flag             = 0;
+    vob->clip_count          = 0;
+    vob->ex_a_codec          = CODEC_MP3;  //or fall back to module default
+    vob->ex_v_codec          = CODEC_NULL; //determined by type of export module
+    vob->ex_v_fcc            = NULL;
+    vob->ex_a_fcc            = NULL;
+    vob->ex_profile_name     = NULL;
+    vob->fps                 = PAL_FPS;
+    vob->ex_fps              = 0;
+    vob->im_frc              = 0;
+    vob->ex_frc              = 0;
+    vob->pulldown            = 0;
+    vob->im_clip_top         = 0;
+    vob->im_clip_bottom      = 0;
+    vob->im_clip_left        = 0;
+    vob->im_clip_right       = 0;
+    vob->ex_clip_top         = 0;
+    vob->ex_clip_bottom      = 0;
+    vob->ex_clip_left        = 0;
+    vob->ex_clip_right       = 0;
+    vob->resize1_mult        = 32;
+    vob->vert_resize1        = 0;
+    vob->hori_resize1        = 0;
+    vob->resize2_mult        = 32;
+    vob->vert_resize2        = 0;
+    vob->hori_resize2        = 0;
+    vob->sync                = 0;
+    vob->sync_ms             = 0;
+    vob->dvd_title           = 1;
+    vob->dvd_chapter1        = 1;
+    vob->dvd_chapter2        = -1;
+    vob->dvd_max_chapters    = -1;
+    vob->dvd_angle           = 1;
+    vob->pass_flag           = 0;
+    vob->verbose             = TC_QUIET;
+    vob->antialias           = 0;
+    vob->deinterlace         = 0;
+    vob->decolor             = 0;
+    vob->im_a_codec          = CODEC_PCM; //PCM audio frames requested
+    // vob->im_v_codec          = CODEC_RGB; //RGB video frames requested
+    vob->im_v_codec          = CODEC_YUV;
+    vob->mod_path            = MOD_PATH;
+    vob->audiologfile        = NULL;
+    vob->divxlogfile         = NULL;
+    vob->ps_unit             = 0;
+    vob->ps_seq1             = 0;
+    vob->ps_seq2             = TC_FRAME_LAST;
+    vob->a_leap_frame        = TC_LEAP_FRAME;
+    vob->a_leap_bytes        = 0;
+    vob->demuxer             = -1;
+    vob->a_codec_flag        = CODEC_AC3;
+    vob->gamma               = 0.0;
+    vob->lame_flush          = 0;
+    vob->has_video           = 1;
+    vob->has_audio           = 1;
+    vob->has_audio_track     = 1;
+    vob->lang_code           = 0;
+    vob->v_format_flag       = 0;
+    vob->v_codec_flag        = 0;
+    vob->a_format_flag       = 0;
+    vob->im_asr              = 0;
+    vob->im_par              = 0;
+    vob->im_par_width        = 0;
+    vob->im_par_height       = 0;
+    vob->ex_asr              = -1;
+    vob->ex_par              = 0;
+    vob->ex_par_width        = 0;
+    vob->ex_par_height       = 0;
+    vob->quality             = VQUALITY;
+    vob->amod_probed         = "null";
+    vob->vmod_probed         = "null";
+    vob->amod_probed_xml     = NULL;
+    vob->vmod_probed_xml     = NULL;
+    vob->a_vbr               = 0;
+    vob->pts_start           = 0.0f;
+    vob->vob_offset          = 0;
+    vob->vob_chunk           = 0;
+    vob->vob_chunk_max       = 0;
+    vob->vob_chunk_num1      = 0;
+    vob->vob_chunk_num2      = 0;
+    vob->vob_psu_num1        = 0;
+    vob->vob_psu_num2        = INT_MAX;
+    vob->vob_info_file       = NULL;
+    vob->vob_percentage      = 0;
+    vob->im_a_string         = NULL;
+    vob->im_v_string         = NULL;
+    vob->ex_a_string         = NULL;
+    vob->ex_v_string         = NULL;
+
+    vob->reduce_h            = 1;
+    vob->reduce_w            = 1;
+
+    //-Z
+    vob->zoom_width          = 0;
+    vob->zoom_height         = 0;
+    vob->zoom_filter         = TCV_ZOOM_LANCZOS3;
+
+    vob->frame_interval      = 1; // write every frame
+
+    //anti-alias
+    vob->aa_weight           = TC_DEFAULT_AAWEIGHT;
+    vob->aa_bias             = TC_DEFAULT_AABIAS;
+
+    vob->a52_mode            = 0;
+    vob->encode_fields       = 0;
+
+    vob->ttime               = NULL;
+
+    vob->psu_offset          = 0.0f;
+    vob->bitreservoir        = TC_TRUE;
+    vob->lame_preset         = NULL;
+
+    vob->ts_pid1             = 0x0;
+    vob->ts_pid2             = 0x0;
+
+    vob->dv_yuy2_mode        = 0;
+    vob->hard_fps_flag       = 0;
+    vob->mpeg_profile        = PROF_NONE;
+
+    vob->export_attributes   = TC_EXPORT_ATTRIBUTE_NONE;
+
+    return vob;
+}
+
+/*************************************************************************/
 
 /* ------------------------------------------------------------
  *
@@ -589,14 +789,8 @@ static void safe_exit (void)
  *
  * ------------------------------------------------------------*/
 
-int main(int argc, char *argv[]) {
-
-#ifdef HAVE_LIBXML2
-    FILE *p_fd_tcxmlcheck;
-    int s_tcxmlcheck_resize;
-    char *p_tcxmlcheck_buffer;
-#endif
-
+int main(int argc, char *argv[])
+{
 #ifndef NEW_CMDLINE_CODE
     int n=0;
 #endif
@@ -623,7 +817,7 @@ int main(int argc, char *argv[]) {
 
     char *aux_str;
     char **endptr=&aux_str;
-#endif
+#endif  // NEW_CMDLINE_CODE
 
 #if 0
     const char *dir_name, *dir_fname;
@@ -756,7 +950,7 @@ int main(int argc, char *argv[]) {
     };
 
     if(argc==1) short_usage(EXIT_FAILURE);
-#endif
+#endif  // NEW_CMDLINE_CODE
 
 #ifdef HAVE_X11
     if (XInitThreads() == 0) {
@@ -767,212 +961,35 @@ int main(int argc, char *argv[]) {
     //main thread id
     tc_pthread_main=pthread_self();
 
-    //allocate vob structure
-    vob = (vob_t *) malloc(sizeof(vob_t));
-
     /* ------------------------------------------------------------
      *
      *  (I) set transcode defaults:
      *
-     * ------------------------------------------------------------*/
+     * ------------------------------------------------------------ */
 
-    vob->divxbitrate      = VBITRATE;
-    vob->video_max_bitrate= 0;           /* 0 = set by encoder */
-    vob->divxkeyframes    = VKEYFRAMES;
-    vob->divxquality      = VQUALITY;
-    vob->divxmultipass    = VMULTIPASS;
-    vob->divxcrispness    = VCRISPNESS;
-    vob->m2v_requant      = M2V_REQUANT_FACTOR;
+    // create global vob structure
+    vob = new_vob();
+    if (!vob) {
+        perror(PACKAGE ": initialization failed");
+        exit(EXIT_FAILURE);
+    }
 
-    vob->min_quantizer    = VMINQUANTIZER;
-    vob->max_quantizer    = VMAXQUANTIZER;
-
-    vob->rc_period          = RC_PERIOD;
-    vob->rc_reaction_period = RC_REACTION_PERIOD;
-    vob->rc_reaction_ratio  = RC_REACTION_RATIO;
-
-    vob->divx5_vbv_prof      = DIVX5_VBV_PROFILE;
-    vob->divx5_vbv_bitrate   = DIVX5_VBV_BITRATE;
-    vob->divx5_vbv_size      = DIVX5_VBV_SIZE;
-    vob->divx5_vbv_occupancy = DIVX5_VBV_OCCUPANCY;
-
-    vob->mp3bitrate       = ABITRATE;
-    vob->mp3frequency     = 0;
-    vob->mp3quality       = AQUALITY;
-    vob->mp3mode          = AMODE;
-    vob->a_rate           = RATE;
-    vob->a_stream_bitrate = 0;
-    vob->a_bits           = BITS;
-    vob->a_chan           = CHANNELS;
-    vob->a_padrate        = 0;
-
-    vob->dm_bits          = 0;
-    vob->dm_chan          = 0;
-
-    vob->im_a_size        = SIZE_PCM_FRAME;
-    vob->im_v_width       = PAL_W;
-    vob->im_v_height      = PAL_H;
-    vob->im_v_size        = SIZE_RGB_FRAME;
-    vob->ex_a_size        = SIZE_PCM_FRAME;
-    vob->ex_v_width       = PAL_W;
-    vob->ex_v_height      = PAL_H;
-    vob->ex_v_size        = SIZE_RGB_FRAME;
-    vob->a_track          = 0;
-    vob->v_track          = 0;
-    vob->volume           = 0;
-    vob->ac3_gain[0] = vob->ac3_gain[1] = vob->ac3_gain[2] = 1.0;
-    vob->audio_out_file   = "/dev/null";
-    vob->video_out_file   = "/dev/null";
-    vob->avifile_in       = NULL;
-    vob->avifile_out      = NULL;
-    vob->avi_comment_fd   = -1;
-    vob->nav_seek_file    = NULL;
-    vob->out_flag         = 0;
-    vob->audio_in_file    = "/dev/zero";
-    vob->video_in_file    = "/dev/zero";
-    vob->in_flag          = 0;
-    vob->clip_count       = 0;
-    vob->ex_a_codec       = CODEC_MP3;  //or fall back to module default
-    vob->ex_v_codec       = CODEC_NULL; //determined by type of export module
-    vob->ex_v_fcc         = NULL;
-    vob->ex_a_fcc         = NULL;
-    vob->ex_profile_name  = NULL;
-    vob->fps              = PAL_FPS;
-    vob->ex_fps           = 0;
-    vob->im_frc           = 0;
-    vob->ex_frc           = 0;
-    vob->pulldown         = 0;
-    vob->im_clip_top      = 0;
-    vob->im_clip_bottom   = 0;
-    vob->im_clip_left     = 0;
-    vob->im_clip_right    = 0;
-    vob->ex_clip_top      = 0;
-    vob->ex_clip_bottom   = 0;
-    vob->ex_clip_left     = 0;
-    vob->ex_clip_right    = 0;
-    vob->resize1_mult     = 32;
-    vob->vert_resize1     = 0;
-    vob->hori_resize1     = 0;
-    vob->resize2_mult     = 32;
-    vob->vert_resize2     = 0;
-    vob->hori_resize2     = 0;
-    vob->sync             = 0;
-    vob->sync_ms          = 0;
-    vob->dvd_title        = 1;
-    vob->dvd_chapter1     = 1;
-    vob->dvd_chapter2     = -1;
-    vob->dvd_max_chapters =-1;
-    vob->dvd_angle        = 1;
-    vob->pass_flag        = 0;
-    vob->verbose          = TC_QUIET;
-    vob->antialias        = 0;
-    vob->deinterlace      = 0;
-    vob->decolor          = 0;
-    vob->im_a_codec       = CODEC_PCM; //PCM audio frames requested
-    // vob->im_v_codec       = CODEC_RGB; //RGB video frames requested
-    vob->im_v_codec       = CODEC_YUV;
-    vob->mod_path         = MOD_PATH;
-    vob->audiologfile     = NULL;
-    vob->divxlogfile      = NULL;
-    vob->ps_unit          = 0;
-    vob->ps_seq1          = 0;
-    vob->ps_seq2          = TC_FRAME_LAST;
-    vob->a_leap_frame     = TC_LEAP_FRAME;
-    vob->a_leap_bytes     = 0;
-    vob->demuxer          = -1;
-    vob->a_codec_flag     = CODEC_AC3;
-    vob->gamma            = 0.0;
-    vob->lame_flush       = 0;
-    vob->has_video        = 1;
-    vob->has_audio        = 1;
-    vob->has_audio_track  = 1;
-    vob->lang_code        = 0;
-    vob->v_format_flag    = 0;
-    vob->v_codec_flag     = 0;
-    vob->a_format_flag    = 0;
-    vob->im_asr           = 0;
-    vob->im_par           = 0;
-    vob->im_par_width     = 0;
-    vob->im_par_height    = 0;
-    vob->ex_asr           = -1;
-    vob->ex_par           = 0;
-    vob->ex_par_width     = 0;
-    vob->ex_par_height    = 0;
-    vob->quality          = VQUALITY;
-    vob->amod_probed      = "null";
-    vob->vmod_probed      = "null";
-    vob->amod_probed_xml  = NULL;
-    vob->vmod_probed_xml  = NULL;
-    vob->a_vbr            = 0;
-    vob->pts_start        = 0.0f;
-    vob->vob_offset       = 0;
-    vob->vob_chunk        = 0;
-    vob->vob_chunk_max    = 0;
-    vob->vob_chunk_num1   = 0;
-    vob->vob_chunk_num2   = 0;
-    vob->vob_psu_num1     = 0;
-    vob->vob_psu_num2     = INT_MAX;
-    vob->vob_info_file    = NULL;
-    vob->vob_percentage   = 0;
-    vob->im_a_string      = NULL;
-    vob->im_v_string      = NULL;
-    vob->ex_a_string      = NULL;
-    vob->ex_v_string      = NULL;
-
-    vob->reduce_h         = 1;
-    vob->reduce_w         = 1;
-
-    //-Z
-    vob->zoom_width       = 0;
-    vob->zoom_height      = 0;
-    vob->zoom_filter      = TCV_ZOOM_LANCZOS3;
-
-    vob->frame_interval   = 1; // write every frame
-
-    //anti-alias
-    vob->aa_weight        = TC_DEFAULT_AAWEIGHT;
-    vob->aa_bias          = TC_DEFAULT_AABIAS;
-
-    vob->a52_mode         = 0;
-    vob->encode_fields    = 0;
-
-    vob->ttime            = NULL;
-
-    vob->psu_offset       = 0.0f;
-    vob->bitreservoir     = TC_TRUE;
-    vob->lame_preset      = NULL;
-
-    vob->ts_pid1          = 0x0;
-    vob->ts_pid2          = 0x0;
-
-    vob->dv_yuy2_mode     = 0;
-    vob->hard_fps_flag    = 0;
-    vob->mpeg_profile     = PROF_NONE;
-
-    vob->export_attributes= TC_EXPORT_ATTRIBUTE_NONE;
-
-    // prepare for SIGINT to catch
-
-    //signal(SIGINT, SIG_IGN);
-
+    // prepare for signal catching
     sigemptyset(&sigs_to_block);
-
-    sigaddset(&sigs_to_block,  SIGINT);
-    sigaddset(&sigs_to_block,  SIGTERM);
+    sigaddset(&sigs_to_block, SIGINT);
+    sigaddset(&sigs_to_block, SIGTERM);
     // enabling this breaks the import_vob module.
-    //sigaddset(&sigs_to_block,  SIGPIPE);
-
+    //sigaddset(&sigs_to_block, SIGPIPE);
     pthread_sigmask(SIG_BLOCK, &sigs_to_block, NULL);
 
     // start the signal handler thread
-    if(pthread_create(&thread_signal, NULL, (void *) signal_thread, NULL)!=0)
-      tc_error("failed to start signal handler thread");
-    tc_signal_thread=1;
+    if (pthread_create(&thread_signal, NULL, (void *)signal_thread, NULL) != 0)
+        tc_error("failed to start signal handler thread");
 
     /* writepid is set in signal_thread */
     pthread_mutex_lock(&writepid_mutex);
     while (writepid == 0)
-      pthread_cond_wait(&writepid_cond, &writepid_mutex);
+        pthread_cond_wait(&writepid_cond, &writepid_mutex);
     pthread_mutex_unlock(&writepid_mutex);
 
     // close all threads at exit
@@ -982,7 +999,7 @@ int main(int argc, char *argv[]) {
      *
      * (II) parse command line
      *
-     * ------------------------------------------------------------*/
+     * ------------------------------------------------------------ */
 
 #ifdef NEW_CMDLINE_CODE
     if (!parse_cmdline(argc, argv, vob))
@@ -2305,174 +2322,77 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    if ( psu_mode ) {
-
-      if(video_out_file==NULL) tc_error("please specify output file name for psu mode");
-
-      if(!strchr(video_out_file, '%') && !no_split) {
-	char *suffix = strrchr(video_out_file, '.');
-	if (suffix) {
-	  *suffix = '\0';
-	} else {
-	  suffix = "";
-	}
-	psubase = malloc(PATH_MAX);
-	tc_snprintf(psubase, PATH_MAX, "%s-psu%%02d%s", video_out_file,suffix);
-      } else {
-	psubase = video_out_file;
-      }
+    if (psu_mode) {
+        if (video_out_file == NULL)
+            tc_error("please specify output file name for psu mode");
+        if (!strchr(video_out_file, '%') && !no_split) {
+            char *suffix = strrchr(video_out_file, '.');
+            if (suffix) {
+                *suffix = '\0';
+            } else {
+                suffix = "";
+            }
+            psubase = malloc(PATH_MAX);
+            tc_snprintf(psubase, PATH_MAX, "%s-psu%%02d%s",
+                        video_out_file, suffix);
+        } else {
+            psubase = video_out_file;
+        }
     }
-
-      /* ------------------------------------------------------------
-       *
-       * (III) auto probe properties of input stream
-       *
-       * ------------------------------------------------------------*/
 
     // user doesn't want to start at all;-(
-    if(sig_int) goto summary;
+    if (sig_int)
+        goto summary;
 
     // display program version
-    if(verbose) version();
+    if (verbose)
+        version();
 
     if (tc_niceness) {
-      if (nice(tc_niceness)<0) {
-	tc_warn("setting nice to %d failed", tc_niceness);
-      }
-    }
-
-    // this will determine most source parameter
-    if(auto_probe) {
-      // interface to "tcprobe"
-      int result = probe_source(video_in_file, audio_in_file, seek_range,
-				preset_flag, vob);
-      if(verbose) {
-	printf("[%s] %s %s (%s%s%s)\n", PACKAGE, "auto-probing source",
-	    ((video_in_file==NULL)? audio_in_file:video_in_file),
-	    result ? COL_GREEN : COL_RED, result ? "ok" : "failed", COL_GRAY);
-
-	printf("[%s] V: %-16s | %s %s (module=%s)\n", PACKAGE, "import format",
-	       codec2str(vob->v_codec_flag), mformat2str(vob->v_format_flag),
-	       ((no_vin_codec==0)?im_vid_mod:vob->vmod_probed));
-	printf("[%s] A: %-16s | %s %s (module=%s)\n", PACKAGE, "import format",
-	       codec2str(vob->a_codec_flag), mformat2str(vob->a_format_flag),
-	       ((no_ain_codec==0)?im_aud_mod:vob->amod_probed));
-      }
-    }
-#ifdef HAVE_LIBXML2
-#define TC_BUF_MAX 1024
-    if (vob->vmod_probed_xml && strstr(vob->vmod_probed_xml,"xml") != NULL)
-    {
-	if (vob->video_in_file && strstr(vob->video_in_file,"/dev/zero") ==NULL)
-	{
-	      	p_tcxmlcheck_buffer=(char *)calloc(TC_BUF_MAX,1);
-		if (tc_snprintf(p_tcxmlcheck_buffer, TC_BUF_MAX, "tcxmlcheck -i \"%s\" -S -B -V",vob->video_in_file)<0)
-		{
-		  perror("command buffer overflow");
-		  exit(1);
-		}
-		if (verbose & TC_DEBUG) printf("XML check out video: %s\n", p_tcxmlcheck_buffer);
-    		if((p_fd_tcxmlcheck = popen(p_tcxmlcheck_buffer, "w"))== NULL)
-		{
-		  fprintf(stderr,"[%s] Error opening pipe\n",PACKAGE);
-		  exit(1);
-		}
-		if ((fwrite((char *)vob,sizeof(vob_t), 1, p_fd_tcxmlcheck))!=1)
-		{
-		  fprintf(stderr,"[%s] Error writing data to tcxmlcheck\n",PACKAGE);
-		  exit(1);
-		}
-		pclose (p_fd_tcxmlcheck);
-		memset(p_tcxmlcheck_buffer, 0 ,TC_BUF_MAX);
-		if (tc_snprintf(p_tcxmlcheck_buffer, TC_BUF_MAX, "tcxmlcheck -i \"%s\" -B -V",vob->video_in_file)<0)
-		{
-		  perror("command buffer overflow");
-		  exit(1);
-		}
-		if (verbose & TC_DEBUG) printf("XML check in video: %s\n", p_tcxmlcheck_buffer);
-    		if((p_fd_tcxmlcheck = popen(p_tcxmlcheck_buffer, "r"))== NULL)
-		{
-		  fprintf(stderr,"[%s] Error opening pipe\n",PACKAGE);
-		  exit(1);
-		}
-		if ((read(fileno(p_fd_tcxmlcheck),(char *)vob,sizeof(vob_t)))!=sizeof(vob_t))
-		{
-		  fprintf(stderr,"[%s] Error reading data from tcxmlcheck\n",PACKAGE);
-		  exit(1);
-		}
-		if ((read(fileno(p_fd_tcxmlcheck),&s_tcxmlcheck_resize,sizeof(int)))!=sizeof(int))
-		{
-		  fprintf(stderr,"[%s] Error reading data from tcxmlcheck 2\n",PACKAGE);
-		  exit(1);
-		}
-		pclose(p_fd_tcxmlcheck);
-		if (s_tcxmlcheck_resize == 2)	//if the xml force the resize i need to disable the parameter passed from command line
-		{
-			resize1=TC_FALSE;
-			resize2=TC_FALSE;
-			zoom=TC_FALSE;
-			vob->resize1_mult     = 32;
-			vob->vert_resize1     = 0;
-			vob->hori_resize1     = 0;
-			vob->resize2_mult     = 32;
-			vob->vert_resize2     = 0;
-			vob->hori_resize2     = 0;
-			vob->zoom_width       = 0;
-			vob->zoom_height      = 0;
-			vob->zoom_filter      = TCV_ZOOM_LANCZOS3;
-		}
-		free(p_tcxmlcheck_buffer);
-    	}
-    }
-    if (vob->amod_probed_xml && strstr(vob->amod_probed_xml,"xml") != NULL)
-    {
-	if (vob->audio_in_file && strstr(vob->audio_in_file,"/dev/zero") ==NULL)
-	{
-      		p_tcxmlcheck_buffer=(char *)calloc(TC_BUF_MAX,1);
-		if (tc_snprintf(p_tcxmlcheck_buffer, TC_BUF_MAX, "tcxmlcheck -p %s -S -B -A",vob->audio_in_file)<0)
-		{
-	  		perror("command buffer overflow");
-	  		exit(1);
-		}
-		if (verbose & TC_DEBUG) printf("XML check out audio: %s\n", p_tcxmlcheck_buffer);
-	    	if((p_fd_tcxmlcheck = popen(p_tcxmlcheck_buffer, "w"))== NULL)
-		{
-		  fprintf(stderr,"[%s] Error opening pipe\n",PACKAGE);
-		  exit(1);
-		}
-		if ((write(fileno(p_fd_tcxmlcheck),(char *)vob,sizeof(vob_t)))!=sizeof(vob_t))
-		{
-		  fprintf(stderr,"[%s] Error writing data to stdout\n",PACKAGE);
-		  exit(1);
-		}
-		pclose(p_fd_tcxmlcheck);
-		memset(p_tcxmlcheck_buffer,0 ,TC_BUF_MAX);
-		if (tc_snprintf(p_tcxmlcheck_buffer, TC_BUF_MAX, "tcxmlcheck -p %s -B -A",vob->audio_in_file)<0)
-		{
-		  perror("command buffer overflow");
-		  exit(1);
-		}
-		if (verbose & TC_DEBUG) printf("XML check in audio: %s\n", p_tcxmlcheck_buffer);
-    		if((p_fd_tcxmlcheck = popen(p_tcxmlcheck_buffer, "r"))== NULL)
-		{
-		  fprintf(stderr,"[%s] Error opening pipe\n",PACKAGE);
-		  exit(1);
-		}
-		if ((read(fileno(p_fd_tcxmlcheck),(char *)vob,sizeof(vob_t)))!=sizeof(vob_t))
-		{
-		  fprintf(stderr,"[%s] Error reading data to stdout\n",PACKAGE);
-		  exit(1);
-		}
-		if ((read(fileno(p_fd_tcxmlcheck),&s_tcxmlcheck_resize,sizeof(int)))!=sizeof(int))
-		{
-		  fprintf(stderr,"[%s] Error reading data to stdout\n",PACKAGE);
-		  exit(1);
-		}
-		pclose(p_fd_tcxmlcheck);
-		free(p_tcxmlcheck_buffer);
+        if (nice(tc_niceness) < 0) {
+            tc_warn("setting nice to %d failed", tc_niceness);
 	}
     }
-#endif
+
+    /* ------------------------------------------------------------
+     *
+     * (III) auto probe properties of input stream
+     *
+     * ------------------------------------------------------------ */
+
+    if (auto_probe) {
+        // interface to "tcprobe"
+        int result = probe_source(video_in_file, audio_in_file, seek_range,
+                                  preset_flag, vob);
+        if (verbose) {
+            printf("[%s] %s %s (%s%s%s)\n", PACKAGE, "auto-probing source",
+                   (video_in_file==NULL) ? audio_in_file : video_in_file,
+                   result ? COL_GREEN : COL_RED,
+                   result ? "ok" : "failed", COL_GRAY);
+            printf("[%s] V: %-16s | %s %s (module=%s)\n", PACKAGE,
+                   "import format", codec2str(vob->v_codec_flag),
+                   mformat2str(vob->v_format_flag),
+                   no_vin_codec==0 ? im_vid_mod : vob->vmod_probed);
+            printf("[%s] A: %-16s | %s %s (module=%s)\n", PACKAGE,
+                   "import format", codec2str(vob->a_codec_flag),
+                   mformat2str(vob->a_format_flag),
+                   no_ain_codec==0 ? im_aud_mod : vob->amod_probed);
+        }
+    }
+
+    if (vob->vmod_probed_xml && strstr(vob->vmod_probed_xml,"xml") != NULL
+     && vob->video_in_file   && strstr(vob->video_in_file,"/dev/zero") == NULL
+    ) {
+	if (!probe_source_xml(vob, PROBE_XML_VIDEO))
+	    exit(EXIT_FAILURE);
+    }
+    if (vob->amod_probed_xml && strstr(vob->amod_probed_xml,"xml") != NULL
+     && vob->audio_in_file   && strstr(vob->audio_in_file,"/dev/zero") == NULL
+    ) {
+	if (!probe_source_xml(vob, PROBE_XML_AUDIO))
+	    exit(EXIT_FAILURE);
+    }
+
     /* ------------------------------------------------------------
      *
      * (IV) autosplit stream for cluster processing
@@ -4474,7 +4394,7 @@ int main(int argc, char *argv[]) {
     if(verbose & TC_INFO) { printf(" unload modules |");fflush(stdout); }
 
     // cancel no longer used internal signal handler threads
-    if (tc_signal_thread) {
+    if (thread_signal) {
       if(verbose & TC_INFO) { printf(" cancel signal |");fflush(stdout); }
       if (thread_signal) {
 	pthread_cancel(thread_signal);
@@ -4484,7 +4404,6 @@ int main(int argc, char *argv[]) {
 	pthread_join(thread_signal, &thread_status);
       }
       thread_signal=(pthread_t)0;
-      tc_signal_thread=0;
     }
 
     if(verbose & TC_INFO) { printf(" internal threads |");fflush(stdout); }

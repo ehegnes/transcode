@@ -71,6 +71,7 @@ typedef struct {
 /* External interface */
 int probe_source(const char *vid_file, const char *aud_file, int range,
                  int flags, vob_t *vob);
+int probe_source_xml(vob_t *vob, int which);
 
 /* Flags for probe_source(), indicating which parameters were specified by
  * the user and shouldn't be overwritten */
@@ -89,6 +90,10 @@ int probe_source(const char *vid_file, const char *aud_file, int range,
 #define TC_PROBE_NO_AV_FINE  4096
 #define TC_PROBE_NO_IMASR    8192
 #define TC_PROBE_NO_BUILTIN 16384  // external probe (mplayer)
+
+/* `which' value for probe_xml() */
+#define PROBE_XML_VIDEO  0
+#define PROBE_XML_AUDIO  1
 
 /* Auxiliary info routines */
 const char *codec2str(int flag);

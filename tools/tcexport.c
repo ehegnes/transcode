@@ -507,12 +507,17 @@ uint32_t vbuffer_xx_fill_ctr = 0;
 int tc_progress_meter = 1;
 int tc_progress_rate = 1;
 
+int resize1 = 0;  // probe_source_xml()
+int resize2 = 0;  // probe_source_xml()
+int zoom = 0;  // probe_source_xml()
+
 /* more symbols needed by modules ***************************************/
 
 int verbose  = TC_INFO;
 int tc_accel = -1;    /* acceleration code */
 int tc_cluster_mode = 0;
 pid_t tc_probe_pid = 0;
+
 
 #define EXIT_IF(cond, msg, status) \
     if((cond)) { \
