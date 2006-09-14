@@ -1,6 +1,12 @@
 2006-09-14 Andrew Church <achurch at achurch dot org>
+  * AUTHORS
+  Update maintainer list.
+
   * src/filter.c
   Remove outdated comments.
+
+  * src/transcode.c
+  Update version message, and do lots more STYLEish fixes.
 
 2006-09-14 Andrew Church <achurch at achurch dot org>
   * docs/architecture.txt docs/clone.txt docs/filter-API.txt

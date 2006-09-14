@@ -1,18 +1,20 @@
-------------------------------------------
+------------------------------------
 Original Author of transcode (core):
-------------------------------------------
+------------------------------------
 	Thomas Oestreich <ostreich@theorie.physik.uni-goettingen.de>
 
-------------------------------------------
+-----------------------------------------------------
 Current and Previous Maintainers of transcode (core):
-------------------------------------------
+-----------------------------------------------------
 	Tilmann Bitterberg <transcode@tibit.org>
 	Erik Slagter <erik@oldconomy.com>
-	Jacob Meuser <jakemsr@jakemsr.com> (current)
+	Jacob Meuser <jakemsr@jakemsr.com>
+        Francesco Romani <fromani at gmail dot com> (current)
+        Andrew Church <achurch at achurch dot org> (current)
 
--------------------------------
-Contributors: (c.f. ChangeLog):
--------------------------------
+----------------------------------
+Contributors: (also see ChangeLog)
+----------------------------------
 	Tilmann Bitterberg <transcode@tibit.org>
 		o lots of filters
 		o import_nvrec.c

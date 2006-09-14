@@ -174,6 +174,8 @@ int tc_dvd_access_delay  = 3;
 pthread_t tc_pthread_main;
 
 /*************************************************************************/
+/*********************** Exported utility routines ***********************/
+/*************************************************************************/
 
 /**
  * version:  Print a version message.  The message is only printed for the
@@ -190,9 +192,28 @@ void version(void)
     static int tcversion = 0;
     if (tcversion++)
         return;
-    fprintf(stderr, "%s v%s (C) 2001-2003 Thomas Oestreich, 2003-2004 T. Bitterberg\n", PACKAGE, VERSION);
+    fprintf(stderr, "%s v%s (C) 2001-2003 Thomas Oestreich,"
+            " 2003-2006 transcode team\n", PACKAGE, VERSION);
 }
 
+/*************************************************************************/
+
+/**
+ * tc_get_vob:  Return a pointer to the global vob_t data structure.
+ *
+ * Parameters:
+ *     None.
+ * Return value:
+ *     A pointer to the global vob_t data structure.
+ */
+
+vob_t *tc_get_vob()
+{
+    return(vob);
+}
+
+/*************************************************************************/
+/*********************** Internal utility routines ***********************/
 /*************************************************************************/
 
 #ifndef NEW_CMDLINE_CODE
@@ -418,57 +439,87 @@ static int source_check(char *import_file)
 }
 #endif  // NEW_CMDLINE_CODE
 
+/**
+ * signal_thread:  Thread that watches for certain termination signals,
+ * terminating the transcode process cleanly.
+ *
+ * Parameters:
+ *     None.
+ * Return value:
+ *     None.
+ */
 
 static void signal_thread(void)
 {
+    /* Store the PID of this thread in the global variable writepid */
+    pthread_mutex_lock(&writepid_mutex);
+    writepid = getpid();
+    if (writepid > 0)
+        pthread_cond_signal(&writepid_cond);
+    pthread_mutex_unlock(&writepid_mutex);
 
-  int caught;
-  char *signame = NULL;
+    /* Loop waiting for signals */
+    for (;;) {
+        int caught;
+        const char *signame = "unknown signal";
 
-  pthread_mutex_lock(&writepid_mutex);
-  writepid = getpid();
-  if (writepid > 0)
-    pthread_cond_signal(&writepid_cond);
-  pthread_mutex_unlock(&writepid_mutex);
-
-  for (;;) {
-
-    /* sigs_to_block were blocked in main() */
-    sigwait(&sigs_to_block, &caught);
+        /* sigs_to_block were blocked in main() */
+        sigwait(&sigs_to_block, &caught);
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
-    pthread_testcancel();
+        pthread_testcancel();
 #endif
+        switch (caught) {
+          case SIGINT:  signame = "SIGINT"; break;
+          case SIGTERM: signame = "SIGTERM"; break;
+          case SIGPIPE: signame = "SIGPIPE"; break;
+        }
+        if (verbose & TC_INFO)
+            tc_log_info(PACKAGE, "(sighandler) %s received", signame);
 
-    switch (caught) {
-    case SIGINT:  signame = "SIGINT"; break;
-    case SIGTERM: signame = "SIGTERM"; break;
-    case SIGPIPE: signame = "SIGPIPE"; break;
+        /* Indicate that transcoding should stop */
+        sig_int = 1;
+
+        /* Kill the tcprobe process if it's running */
+        if (tc_probe_pid > 0)
+            kill(tc_probe_pid, SIGTERM);
+
+        /* Stop import processing */
+        tc_import_stop_nolock();
+        if (verbose & TC_DEBUG)
+            tc_log_info(PACKAGE, "(sighandler) import cancellation submitted");
+
+        /* Stop export processing */
+        tc_export_stop_nolock();
+        if (verbose & TC_DEBUG)
+            tc_log_info(PACKAGE, "(sighandler) export cancellation submitted");
+
+        pthread_testcancel();
     }
-
-    if (signame) {
-      if(verbose & TC_INFO) fprintf(stderr, "\n[%s] (sighandler) %s received\n", PACKAGE, signame);
-
-      sig_int=1;
-
-      if(tc_probe_pid>0) kill(tc_probe_pid, SIGTERM);
-
-      // import (termination signal)
-      tc_import_stop_nolock();
-
-      if(verbose & TC_DEBUG) fprintf(stderr, "[%s] (sighandler) import cancelation submitted\n", PACKAGE);
-
-      // export (termination signal)
-      tc_export_stop_nolock();
-
-      if(verbose & TC_DEBUG) fprintf(stderr, "[%s] (sighandler) export cancelation submitted\n", PACKAGE);
-
-      pthread_testcancel();
-
-    }
-  }
 }
 
-vob_t *tc_get_vob() {return(vob);}
+/*************************************************************************/
+
+/**
+ * safe_exit:  Called at exit (via atexit()) to ensure that the
+ * signal-catching thread is destroyed.
+ *
+ * Parameters:
+ *     None.
+ * Return value:
+ *     None.
+ */
+
+static void safe_exit(void)
+{
+    if (thread_signal) {
+        void *thread_status;
+        pthread_cancel(thread_signal);
+#ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
+        pthread_kill(thread_signal, SIGINT);
+#endif
+        pthread_join(thread_signal, &thread_status);
+    }
+}
 
 /*************************************************************************/
 
@@ -486,97 +537,78 @@ vob_t *tc_get_vob() {return(vob);}
 static void load_all_filters(char *filter_list)
 {
     if (!filter_list)
-	return;
+        return;
 
     while (*filter_list) {
-	char *s = filter_list + strcspn(filter_list, ",");
-	char *options;
+        char *s = filter_list + strcspn(filter_list, ",");
+        char *options;
 
-	while (*s && s > filter_list && s[-1] == '\\')
-	    s += 1 + strcspn(s+1, ",");
-	if (*s)
-	    *s++ = 0;
-	options = strchr(filter_list, '=');
-	if (options)
-	    *options++ = 0;
-	tc_filter_add(filter_list, options);
-	filter_list = s;
+        while (*s && s > filter_list && s[-1] == '\\')
+            s += 1 + strcspn(s+1, ",");
+        if (*s)
+            *s++ = 0;
+        options = strchr(filter_list, '=');
+        if (options)
+            *options++ = 0;
+        tc_filter_add(filter_list, options);
+        filter_list = s;
     }
 }
 
 /*************************************************************************/
 
-/* ------------------------------------------------------------
+/**
+ * transcoder:  Start or stop the transcoding engine.
  *
- * transcoder engine
- *
- * ------------------------------------------------------------*/
+ * Parameters:
+ *     mode: TC_ON to start the transcoding engine, TC_OFF to stop it.
+ *      vob: Pointer to the global vob_t data structure.
+ * Return value:
+ *     0 on success, -1 on error.
+ */
 
 static int transcoder(int mode, vob_t *vob)
 {
+    if (mode == TC_ON) {
+        /* load import modules and check capabilities */
+        if (import_init(vob, im_aud_mod, im_vid_mod) < 0) {
+            tc_log_error(PACKAGE, "failed to init import modules");
+            return -1;
+        }
 
-    switch(mode) {
+        /* load and initialize filters */
+        tc_filter_init();
+        load_all_filters(plugins_string);
 
-    case TC_ON:
+        /* load export modules and check capabilities
+         * (only create a TCModule factory if a multiplex module was given) */
+        if (export_init(tc_ringbuffer,
+                        ex_mplex_mod
+                            ? tc_new_module_factory(vob->mod_path,verbose)
+                            : NULL) < 0
+        ) {
+            tc_log_error(PACKAGE, "failed to init export layer");
+            return -1;
+        }
+        if (export_setup(vob, ex_aud_mod, ex_vid_mod, ex_mplex_mod) < 0) {
+            tc_log_error(PACKAGE, "failed to init export modules");
+            return -1;
+        }
 
-      // load import modules and check capabilities
-      if(import_init(vob, im_aud_mod, im_vid_mod)<0) {
-	fprintf(stderr,"[%s] failed to init import modules\n", PACKAGE);
-	return(-1);
-      }
+    } else if (mode == TC_OFF) {
+        /* unload import modules */
+        import_shutdown();
+        /* unload filters */
+        tc_filter_fini();
+        /* unload export modules */
+        export_shutdown();
 
-      // load and initialize filters
-      tc_filter_init();
-      load_all_filters(plugins_string);
-
-      /*
-       * load export modules and check capabilities
-       * (only create a TCModule factory if a multiplex module was given)
-       */
-      if(export_init(tc_ringbuffer,
-		     ex_mplex_mod ? tc_new_module_factory(vob->mod_path,verbose) : NULL) < 0) {
-      	tc_error("failed to init export layer");
-	return(-1);
-      }
-      if(export_setup(vob, ex_aud_mod, ex_vid_mod, ex_mplex_mod)<0) {
-      	tc_error("failed to init export modules");
-	return(-1);
-      }
-
-      break;
-
-    case TC_OFF:
-
-      // unload import modules
-      import_shutdown();
-
-      // unload filters
-      tc_filter_fini();
-
-      // unload export modules
-      export_shutdown();
-
-      break;
-
-    default:
-      return(-1);
+    } else {  // unknown mode
+        tc_log_warn(PACKAGE, "transcoder() called with bad mode %d", mode);
+        return -1;
     }
 
-    return(0);
-}
-
-// for atexit
-static void safe_exit (void)
-{
-    void *thread_status;
-
-    if (thread_signal) {
-       pthread_cancel(thread_signal);
-#ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
-       pthread_kill(thread_signal, SIGINT);
-#endif
-       pthread_join(thread_signal, &thread_status);
-    }
+    return 0;
 }
 
 /*************************************************************************/
@@ -780,11 +812,16 @@ static vob_t *new_vob(void)
 
 /*************************************************************************/
 
-/* ------------------------------------------------------------
+/**
+ * main:  transcode main routine.  Performs initialization, parses command
+ * line options, and calls the transcoding routines.
  *
- * parse the command line and start main program loop
- *
- * ------------------------------------------------------------*/
+ * Parameters:
+ *     argc: Command line argument count.
+ *     argv: Command line argument vector.
+ * Return value:
+ *     Zero on success, nonzero on error (exit code).
+ */
 
 int main(int argc, char *argv[])
 {
@@ -4452,5 +4489,14 @@ int main(int argc, char *argv[])
 #include "avilib/static_avilib.h"
 #include "avilib/static_wavlib.h"
 
-/* vim: sw=2 ts=8
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
  */
