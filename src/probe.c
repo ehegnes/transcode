@@ -39,14 +39,17 @@ static void select_modules(int flags, vob_t *vob);
  * probe_source:  Probe the given input file(s) and store the results in
  * the global data structure.
  *
- * Parameters: vid_file: Video file name, or NULL if none.
- *             aud_file: Audio file name, or NULL if none.
- *                range: Amount of input files to probe, in MB.
- *                flags: Flags indicating which global parameters should be
- *                       left alone (TC_PROBE_NO_xxx flags).
- *                  vob: Pointer to global data structure.
- * Return value: Nonzero on success, zero on error.
- * Preconditions: vob != NULL
+ * Parameters:
+ *     vid_file: Video file name, or NULL if none.
+ *     aud_file: Audio file name, or NULL if none.
+ *        range: Amount of input files to probe, in MB.
+ *        flags: Flags indicating which global parameters should be left
+ *               alone (TC_PROBE_NO_xxx flags).
+ *          vob: Pointer to global data structure.
+ * Return value:
+ *     Nonzero on success, zero on error.
+ * Preconditions:
+ *     vob != NULL
  */
 
 int probe_source(const char *vid_file, const char *aud_file, int range,
@@ -199,9 +202,10 @@ int probe_source_xml(vob_t *vob, int which)
  * string for the given codec, audio format, video format, or aspect ratio
  * flag, respectively.
  *
- * Parameters: flag: Flag to return string for.
- * Return value: String describing `flag'.
- * Preconditions: None.
+ * Parameters:
+ *     flag: Flag to return string for.
+ * Return value:
+ *     String describing `flag'.
  */
 
 const char *codec2str(int flag)
@@ -305,15 +309,18 @@ const char *asr2str(int flag)
 /**
  * do_probe:  Perform the actual probing of the source file.
  *
- * Parameters:          file: Filename to probe.
- *             nav_seek_file: Navigation file for `file', or NULL if none.
- *                     title: Title to probe for DVD probing.
- *                     range: Amount of file to probe, in MB.
- *              mplayer_flag: If nonzero, use mplayer to probe file.
- *              verbose_flag: Verbosity flag to pass to tcprobe.
- *                  info_ret: Structure to be filled in with probed data.
- * Return value: Nonzero on success, zero on failure.
- * Preconditions: file != NULL
+ * Parameters:
+ *              file: Filename to probe.
+ *     nav_seek_file: Navigation file for `file', or NULL if none.
+ *             title: Title to probe for DVD probing.
+ *             range: Amount of file to probe, in MB.
+ *      mplayer_flag: If nonzero, use mplayer to probe file.
+ *      verbose_flag: Verbosity flag to pass to tcprobe.
+ *          info_ret: Structure to be filled in with probed data.
+ * Return value:
+ *     Nonzero on success, zero on failure.
+ * Preconditions:
+ *     file != NULL
  */
 
 static int do_probe(const char *file, const char *nav_seek_file, int title,
@@ -359,14 +366,17 @@ static int do_probe(const char *file, const char *nav_seek_file, int title,
  * probe_to_vob:  Use the results of probing the input files to set global
  * parameters.
  *
- * Parameters: vinfo: Pointer to probe results for video file, or NULL if
- *                    no video file.
- *             ainfo: Pointer to probe results for audio file, or NULL if
- *                    no audio file.
- *             flags: TC_PROBE_NO_xxx flags.
- *               vob: Pointer to global data structure.
- * Return value: None.
- * Preconditions: vob != NULL
+ * Parameters:
+ *     vinfo: Pointer to probe results for video file, or NULL if no video
+ *            file.
+ *     ainfo: Pointer to probe results for audio file, or NULL if no audio
+ *            file.
+ *     flags: TC_PROBE_NO_xxx flags.
+ *       vob: Pointer to global data structure.
+ * Return value:
+ *     None.
+ * Preconditions:
+ *     vob != NULL
  */
 
 static void probe_to_vob(ProbeInfo *vinfo, ProbeInfo *ainfo, int flags,
@@ -530,10 +540,13 @@ static void probe_to_vob(ProbeInfo *vinfo, ProbeInfo *ainfo, int flags,
  * select_modules:  Use the results of probing the input files to set 
  * global parameters.
  *
- * Parameters: flags: TC_PROBE_NO_xxx flags.
- *               vob: Pointer to global data structure.
- * Return value: None.
- * Preconditions: vob != NULL
+ * Parameters:
+ *     flags: TC_PROBE_NO_xxx flags.
+ *       vob: Pointer to global data structure.
+ * Return value:
+ *     None.
+ * Preconditions:
+ *     vob != NULL
  */
 
 static void select_modules(int flags, vob_t *vob)

@@ -24,11 +24,11 @@ static TCAHandle handle = 0;
 /**
  * do_process_audio:  Perform actual audio processing.
  *
- * Parameters: vob: Global data pointer.
- *             ptr: Pointer to audio frame buffer.
- * Return value: 1 on success, 0 on failure.
- * Preconditions: None.
- * Postconditions: None.
+ * Parameters:
+ *     vob: Global data pointer.
+ *     ptr: Pointer to audio frame buffer.
+ * Return value:
+ *     1 on success, 0 on failure.
  */
 
 static int do_process_audio(vob_t *vob, aframe_list_t *ptr)
@@ -98,11 +98,11 @@ static int do_process_audio(vob_t *vob, aframe_list_t *ptr)
 /**
  * process_aud_frame:  Main audio frame processing routine.
  *
- * Parameters: vob: Global data pointer.
- *             ptr: Pointer to audio frame buffer.
- * Return value: 0 on success, -1 on failure.
- * Preconditions: None.
- * Postconditions: None.
+ * Parameters:
+ *     vob: Global data pointer.
+ *     ptr: Pointer to audio frame buffer.
+ * Return value:
+ *     0 on success, -1 on failure.
  */
 
 int process_aud_frame(vob_t *vob, aframe_list_t *ptr)

@@ -179,20 +179,27 @@ int tc_dvd_access_delay  = 3;
 
 pthread_t tc_pthread_main;
 
-/* ------------------------------------------------------------
+/*************************************************************************/
+
+/**
+ * version:  Print a version message.  The message is only printed for the
+ * first call.
  *
- * print a usage/version message
- *
- * ------------------------------------------------------------*/
+ * Parameters:
+ *     None.
+ * Return value:
+ *     None.
+ */
 
 void version(void)
 {
-  /* id string */
-  static int tcversion = 0;
-  if(tcversion++) return;
-  fprintf(stderr, "%s v%s (C) 2001-2003 Thomas Oestreich, 2003-2004 T. Bitterberg\n", PACKAGE, VERSION);
+    static int tcversion = 0;
+    if (tcversion++)
+        return;
+    fprintf(stderr, "%s v%s (C) 2001-2003 Thomas Oestreich, 2003-2004 T. Bitterberg\n", PACKAGE, VERSION);
 }
 
+/*************************************************************************/
 
 #ifndef NEW_CMDLINE_CODE
 static void usage(int status)
@@ -469,6 +476,7 @@ static void signal_thread(void)
 
 vob_t *tc_get_vob() {return(vob);}
 
+/*************************************************************************/
 
 /**
  * load_all_filters:  Loads all filters specified by the -J option.
@@ -502,6 +510,7 @@ static void load_all_filters(char *filter_list)
     }
 }
 
+/*************************************************************************/
 
 /* ------------------------------------------------------------
  *
@@ -588,7 +597,8 @@ static void safe_exit (void)
  * new_vob:  Create a new vob_t structure and fill it with appropriate
  * values.
  *
- * Parameters: None.
+ * Parameters:
+ *     None.
  * Return value:
  *     A pointer to the newly-created vob_t structure, or NULL on error.
  * Notes:
@@ -660,7 +670,7 @@ static vob_t *new_vob(void)
     vob->in_flag             = 0;
     vob->clip_count          = 0;
     vob->ex_a_codec          = CODEC_MP3;  //or fall back to module default
-    vob->ex_v_codec          = CODEC_NULL; //determined by type of export module
+    vob->ex_v_codec          = CODEC_NULL; //determined by export module type
     vob->ex_v_fcc            = NULL;
     vob->ex_a_fcc            = NULL;
     vob->ex_profile_name     = NULL;
@@ -695,8 +705,7 @@ static vob_t *new_vob(void)
     vob->antialias           = 0;
     vob->deinterlace         = 0;
     vob->decolor             = 0;
-    vob->im_a_codec          = CODEC_PCM; //PCM audio frames requested
-    // vob->im_v_codec          = CODEC_RGB; //RGB video frames requested
+    vob->im_a_codec          = CODEC_PCM;
     vob->im_v_codec          = CODEC_YUV;
     vob->mod_path            = MOD_PATH;
     vob->audiologfile        = NULL;
@@ -2404,14 +2413,16 @@ int main(int argc, char *argv[])
     // set up ttime from -c or default
     if (fc_ttime_string) {
       // FIXME: should be in -c handler, but we need to know vob->fps first
-      if (parse_fc_time_string(fc_ttime_string, vob->fps, ",",
-			       (verbose>1 ? 1 : 0), &vob->ttime) == -1)
-	  exit(EXIT_FAILURE);
+        free_fc_time(vob->ttime);
+        if (parse_fc_time_string(fc_ttime_string, vob->fps, ",",
+                                 (verbose>1 ? 1 : 0), &vob->ttime) == -1)
+            exit(EXIT_FAILURE);
     } else {
-      vob->ttime = new_fc_time();
-      vob->ttime->stf = TC_FRAME_FIRST;
-      vob->ttime->etf = TC_FRAME_LAST;
-      vob->ttime->next = NULL;
+        vob->ttime = new_fc_time();
+        vob->ttime->fps = vob->fps;
+        vob->ttime->stf = TC_FRAME_FIRST;
+        vob->ttime->etf = TC_FRAME_LAST;
+        vob->ttime->next = NULL;
     }
     frame_a = vob->ttime->stf;
     frame_b = vob->ttime->etf;

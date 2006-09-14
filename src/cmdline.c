@@ -181,8 +181,10 @@ static struct option tc_options[] = {
 /**
  * usage:  Print a command-line help message.
  *
- * Parameters:  None.
- * Return value:  None.
+ * Parameters:
+ *     None.
+ * Return value:
+ *     None.
  */
 
 static void usage(void)

@@ -37,8 +37,10 @@ static void print_counter_line(int encoding, int frame, int first, int last,
 /**
  * counter_on:  Activate the counter display.
  *
- * Parameters: None.
- * Return value: None.
+ * Parameters:
+ *     None.
+ * Return value:
+ *     None.
  */
 
 void counter_on(void)
@@ -51,8 +53,10 @@ void counter_on(void)
 /**
  * counter_off:  Deactivate the counter display.
  *
- * Parameters: None.
- * Return value: None.
+ * Parameters:
+ *     None.
+ * Return value:
+ *     None.
  * Side effects:
  *     When in human-readable mode (tc_progress_meter == 1), if the counter
  *     has been displayed at least once, a newline is written to standard
@@ -80,7 +84,8 @@ void counter_off(void)
  *       last: Last frame of range.
  *     encode: True (nonzero) if frames are to be encoded.
  *             False (zero) if frames are being skipped.
- * Return value: None.
+ * Return value:
+ *     None.
  */
 
 void counter_add_range(int first, int last, int encode)
@@ -99,8 +104,10 @@ void counter_add_range(int first, int last, int encode)
 /**
  * counter_reset_ranges:  Reset the counter's stored range data.
  *
- * Parameters: None.
- * Return value: None.
+ * Parameters:
+ *     None.
+ * Return value:
+ *     None.
  */
 
 void counter_reset_ranges(void)
@@ -125,7 +132,8 @@ void counter_reset_ranges(void)
  *        frame: Current frame being encoded or skipped.
  *        first: First frame of current range.
  *         last: Last frame of current range, -1 if unknown.
- * Return value: None.
+ * Return value:
+ *     None.
  */
 
 void counter_print(int encoding, int frame, int first, int last)
@@ -303,7 +311,8 @@ void counter_print(int encoding, int frame, int first, int last)
  *     decodebuf: Number of buffered frames awaiting decoding.
  *     filterbuf: Number of buffered frames awaiting filtering.
  *     encodebuf: Number of buffered frames awaiting encoding.
- * Return value: None.
+ * Return value:
+ *     None.
  */
 
 static void print_counter_line(int encoding, int frame, int first, int last,
