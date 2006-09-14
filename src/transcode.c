@@ -166,7 +166,7 @@ int tc_cluster_mode      =  0;
 int tc_decoder_delay     =  0;
 int tc_x_preview         =  0;
 int tc_y_preview         =  0;
-int tc_progress_meter    =  1;
+int tc_progress_meter    =  -1;  // so we know whether it's set by the user
 int tc_progress_rate     =  1;
 int tc_accel             = AC_ALL;    //acceleration code
 unsigned int tc_avi_limit = (unsigned int)-1;
@@ -763,13 +763,6 @@ int main(int argc, char *argv[]) {
         tc_error("can't initialize X11 threading support");
     }
 #endif
-
-    // if we're sending output to a terminal default to no progress meter.
-    if (isatty(fileno(stdout))) {
-      tc_progress_meter = 1;
-    } else {
-      tc_progress_meter = 0;
-    }
 
     //main thread id
     tc_pthread_main=pthread_self();
@@ -2301,6 +2294,16 @@ int main(int argc, char *argv[]) {
 #endif
 
 #endif  // NEW_CMDLINE_CODE
+
+    if (tc_progress_meter < 0) {
+        // if we're sending output to a file or have verbosity disabled,
+        // default to no progress meter.
+        if (isatty(fileno(stdout)) && verbose) {
+            tc_progress_meter = 1;
+        } else {
+            tc_progress_meter = 0;
+        }
+    }
 
     if ( psu_mode ) {
 
@@ -4455,6 +4458,9 @@ int main(int argc, char *argv[]) {
      * 3) cancel internal signal/server thread
      *
      * ------------------------------------------------------------*/
+
+    // turn counter off
+    counter_off();
 
     // shutdown
     if(verbose & TC_INFO) { printf("\nclean up |"); fflush(stdout); }

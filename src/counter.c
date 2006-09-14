@@ -24,6 +24,8 @@ static int skipped_frames = 0;    /* Number of frames skipped so far */
 static double skipped_time = 0;   /* Time spent skipping so far */
 static int highest_frame = 0;     /* Highest frame number to be seen */
 
+static int printed = 0;           /* Have we printed a line? */
+
 static void print_counter_line(int encoding, int frame, int first, int last,
                                double fps, double done, double timestamp,
                                int secleft, int decodebuf, int filterbuf,
@@ -37,8 +39,6 @@ static void print_counter_line(int encoding, int frame, int first, int last,
  *
  * Parameters: None.
  * Return value: None.
- * Preconditions: None.
- * Postconditions: None.
  */
 
 void counter_on(void)
@@ -53,12 +53,19 @@ void counter_on(void)
  *
  * Parameters: None.
  * Return value: None.
- * Preconditions: None.
- * Postconditions: None.
+ * Side effects:
+ *     When in human-readable mode (tc_progress_meter == 1), if the counter
+ *     has been displayed at least once, a newline is written to standard
+ *     output.
  */
 
 void counter_off(void)
 {
+    if (printed) {
+        if (tc_progress_meter == 1)
+            printf("\n");
+        printed = 0;
+    }
     counter_active = 0;
 }
 
@@ -68,13 +75,12 @@ void counter_off(void)
  * counter_add_range:  Add the given range of frames to the total number of
  * frames to be encoded or skipped.
  *
- * Parameters:  first: First frame of range.
- *               last: Last frame of range.
- *             encode: True (nonzero) if frames are to be encoded,
- *                     false (zero) if frames are being skipped.
+ * Parameters:
+ *      first: First frame of range.
+ *       last: Last frame of range.
+ *     encode: True (nonzero) if frames are to be encoded.
+ *             False (zero) if frames are being skipped.
  * Return value: None.
- * Preconditions: None.
- * Postconditions: None.
  */
 
 void counter_add_range(int first, int last, int encode)
@@ -95,8 +101,6 @@ void counter_add_range(int first, int last, int encode)
  *
  * Parameters: None.
  * Return value: None.
- * Preconditions: None.
- * Postconditions: None.
  */
 
 void counter_reset_ranges(void)
@@ -115,14 +119,13 @@ void counter_reset_ranges(void)
 /**
  * counter_print:  Display the progress counter, if active.
  *
- * Parameters: encoding: True (nonzero) if frames are being encoded,
- *                       false (zero) if frames are being skipped.
- *                frame: Current frame being encoded or skipped.
- *                first: First frame of current range.
- *                 last: Last frame of current range, -1 if unknown.
+ * Parameters:
+ *     encoding: True (nonzero) if frames are being encoded.
+ *               False (zero) if frames are being skipped.
+ *        frame: Current frame being encoded or skipped.
+ *        first: First frame of current range.
+ *         last: Last frame of current range, -1 if unknown.
  * Return value: None.
- * Preconditions: None.
- * Postconditions: None.
  */
 
 void counter_print(int encoding, int frame, int first, int last)
@@ -286,22 +289,21 @@ void counter_print(int encoding, int frame, int first, int last)
  * print_counter_line:  Helper function to format display arguments into a
  * progress counter line depending on settings.
  *
- * Parameters:  encoding: True (nonzero) if frames are being encoded,
- *                        false (zero) if frames are being skipped.
- *                 frame: Current frame being encoded or skipped.
- *                 first: First frame of current range.
- *                  last: Last frame of current range, -1 if unknown.
- *                   fps: Estimated frames processed per second.
- *                  done: Completion ratio (0..1), -1 if unknown.
- *             timestamp: Timestamp of current frame, in seconds.
- *               secleft: Estimated time remaining to completion, in
- *                        seconds (-1 if unknown).
- *             decodebuf: Number of buffered frames awaiting decoding.
- *             filterbuf: Number of buffered frames awaiting filtering.
- *             encodebuf: Number of buffered frames awaiting encoding.
+ * Parameters:
+ *      encoding: True (nonzero) if frames are being encoded.
+ *                False (zero) if frames are being skipped.
+ *         frame: Current frame being encoded or skipped.
+ *         first: First frame of current range.
+ *          last: Last frame of current range, -1 if unknown.
+ *           fps: Estimated frames processed per second.
+ *          done: Completion ratio (0..1), -1 if unknown.
+ *     timestamp: Timestamp of current frame, in seconds.
+ *       secleft: Estimated time remaining to completion, in seconds (-1 if
+ *                unknown).
+ *     decodebuf: Number of buffered frames awaiting decoding.
+ *     filterbuf: Number of buffered frames awaiting filtering.
+ *     encodebuf: Number of buffered frames awaiting encoding.
  * Return value: None.
- * Preconditions: None.
- * Postconditions: None.
  */
 
 static void print_counter_line(int encoding, int frame, int first, int last,
@@ -344,6 +346,7 @@ static void print_counter_line(int encoding, int frame, int first, int last,
                decodebuf, filterbuf, encodebuf
         );
     }
+    printed = 1;
 }
 
 /*************************************************************************/

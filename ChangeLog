@@ -2,6 +2,17 @@
   * export/export_ffmpeg.c import/decode_dv.c
   Avoid writing info messages with -q 0.
 
+  * src/counter.c
+  Output a newline when counter_off() is called in human-readable counter
+  mode.
+
+  * src/encode.c
+  Make counter output depend (properly) on --progress_meter, not -q.
+
+  * src/transcode.c
+  Disable progress meter by default with -q 0; ensure counter_off() is
+  called at exit.
+
 2006-09-13 Francesco Romani <fromani at gmail dot com>
   * libtc/tcframes.c
   Properly initialize vframe_list_t.free field.

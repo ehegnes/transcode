@@ -827,7 +827,7 @@ static int encoder_export(TCEncoderData *data, vob_t *vob)
     }
     data->error_flag = TC_ROTATE_IF_NEEDED(&encdata.rotor_data, vob, ret);
 
-    if (verbose >= TC_INFO) {
+    if (tc_progress_meter) {
         int last = (data->frame_last == TC_FRAME_LAST)
                         ?(-1) :data->frame_last;
         if (!data->fill_flag) {
@@ -1142,7 +1142,7 @@ static int OLD_encoder_export(TCEncoderData *data, vob_t *vob)
         data->buffer->aptr->attributes = data->export_para.attributes;
     }
 
-    if (verbose & TC_INFO) {
+    if (tc_progress_meter) {
         int last = (data->frame_last == TC_FRAME_LAST) ?(-1) :data->frame_last;
         if (!data->fill_flag) {
             data->fill_flag = 1;
@@ -1229,7 +1229,7 @@ void tc_outstream_rotate(void)
  */
 static void encoder_skip(TCEncoderData *data)
 {
-    if (verbose >= TC_INFO) {
+    if (tc_progress_meter) {
         if (!data->fill_flag) {
             data->fill_flag = 1;
         }
