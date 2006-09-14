@@ -8,6 +8,10 @@
   * src/transcode.c
   Update version message, and do lots more STYLEish fixes.
 
+  * testsuite/Makefile.am
+  Add newtest.pl to distribution list, and add test-{low,high,all} targets
+  for running tests.
+
 2006-09-14 Andrew Church <achurch at achurch dot org>
   * docs/architecture.txt docs/clone.txt docs/filter-API.txt
     filter/filter_32drop.c filter/filter_ascii.c filter/filter_compare.c

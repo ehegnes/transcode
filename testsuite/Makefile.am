@@ -1,6 +1,7 @@
 # # Process this file with automake to produce Makefile.in.
 
 EXTRA_DIST = \
+	newtest.pl \
 	test.pl
 
 AM_CPPFLAGS = \
@@ -77,3 +78,32 @@ test-tclog$(EXEEXT): CFLAGS := $(CFLAGS) -Wno-format-zero-length
 test-tclog$(EXEEXT): $(test_tclog_OBJECTS) $(test_tclog_DEPENDENCIES) 
 	@rm -f test-tclog$(EXEEXT)
 	$(LINK) $(test_tclog_LDFLAGS) $(test_tclog_OBJECTS) $(test_tclog_LDADD) $(LIBS)
+
+
+### Targets to run the tests
+
+.PHONY: test-low test-high test-all
+
+# Low-level tests for specific routines or functionality
+LOWTESTS = test-acmemcpy test-bufalloc test-framealloc test-framecode \
+           test-imgconvert test-iodir test-ratiocodes test-resize-values \
+           test-tcmoduleinfo test-tcstrdup
+test-low: $(LOWTESTS)
+	./test-acmemcpy
+	./test-bufalloc
+	./test-framealloc
+	./test-framecode
+	./test-imgconvert -C -v
+	./test-iodir
+	./test-ratiocodes
+	./test-resize-values
+	./test-tcmoduleinfo
+	./test-tcstrdup
+
+# High-level tests for transcode as a whole
+# FIXME xvid broken?
+test-high: newtest.pl
+	perl newtest.pl -T'-y xvid4'
+
+# Run all tests
+test-all: test-low test-high
