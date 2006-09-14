@@ -83,13 +83,18 @@ void free_fc_time(struct fc_time *list)
  *       end: The frame index for the end time, or -1 for no change.
  * Return value:
  *     None.
- * Preconditions:
- *     range != NULL
- *     range->fps > 0
+ * Side effects:
+ *     Prints an error message if the `range' parameter is invalid (either
+ *     the parameter is NULL or it points to a range whose `fps' field is
+ *     not a positive value).
  */
 
 void set_fc_time(struct fc_time *range, int start, int end)
 {
+    if (!range || range->fps <= 0) {
+        tc_log_error(__FILE__, "set_fc_time() with invalid range!");
+        return;
+    }
     if (start >= 0) {
         range->sh = 0;
         range->sm = 0;

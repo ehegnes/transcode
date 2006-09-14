@@ -1,4 +1,7 @@
 2006-09-14 Andrew Church <achurch at achurch dot org>
+  * libtc/framecode.c
+  Make set_fc_time() robust against an invalid range parameter.
+
   * src/probe.c src/probe.h
   Add probe_source_xml(), which runs tcxmlcheck to probe data from XML
   files.
