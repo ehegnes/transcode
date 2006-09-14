@@ -129,10 +129,6 @@
 #define TC_IMPORT             8192
 #define TC_EXPORT            16384
 
-//for compatibility
-#define TC_PRE_PROCESS  TC_PRE_M_PROCESS
-#define TC_POST_PROCESS TC_POST_M_PROCESS
-
 #define TC_DELAY_MAX         40000
 #define TC_DELAY_MIN         10000
 

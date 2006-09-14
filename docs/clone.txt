@@ -26,11 +26,11 @@ The encoder then deletes the flag and sets another flag named
 TC_FRAME_WAS_CLONED. This is necessary for the filter because
 frame IDs never get incremented.
 
-The filter has to live in the TC_POST_PROCESS or in the
+The filter has to live in the TC_POST_M_PROCESS or in the
 TC_POST_S_PROCESS (synchronous) slot for this to work and its
-quite a difference between TC_POST_PROCESS and TC_POST_S_PROCESS
+quite a difference between TC_POST_M_PROCESS and TC_POST_S_PROCESS
 
-TC_POST_PROCESS:
+TC_POST_M_PROCESS:
   The filter can set the the clone flag which causes the frame
   to get encoded twice. The filter WON'T see the frame again, so
   it cannot make modifications to the frame. This is what the

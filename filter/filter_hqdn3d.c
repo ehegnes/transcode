@@ -303,8 +303,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
   //actually do the filter
 
-  if(((ptr->tag & TC_PRE_PROCESS  && mfd[instance]->pre) ||
-	  (ptr->tag & TC_POST_PROCESS && !mfd[instance]->pre)) &&
+  if(((ptr->tag & TC_PRE_M_PROCESS  && mfd[instance]->pre) ||
+	  (ptr->tag & TC_POST_M_PROCESS && !mfd[instance]->pre)) &&
 	  !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
 
       ac_memcpy (buffer[instance], ptr->video_buf, ptr->video_size);

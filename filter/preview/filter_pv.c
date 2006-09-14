@@ -277,7 +277,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   pre = (ptr->tag & TC_PREVIEW)? 1:0;
   vid = (ptr->tag & TC_VIDEO)? 1:0;
 
-  if( (ptr->tag & TC_PRE_PROCESS) && vid && cache_enabled) {
+  if( (ptr->tag & TC_PRE_M_PROCESS) && vid && cache_enabled) {
       process_ctr_cur = (process_ctr_cur+1)%3;
       ac_memcpy (process_buffer[process_ctr_cur], ptr->video_buf, ptr->video_size);
       return 0;

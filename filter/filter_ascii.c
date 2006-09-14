@@ -354,7 +354,7 @@ int tc_filter(frame_list_t *ptr_, char *options){
   //
   //----------------------------------
 
-	if(ptr->tag & TC_POST_PROCESS && ptr->tag & TC_VIDEO && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
+	if(ptr->tag & TC_POST_M_PROCESS && ptr->tag & TC_VIDEO && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
 
 		frame_slot = find_empty_slot(ptr->id, slots);
 		switch(vob->im_v_codec){

@@ -307,8 +307,8 @@ static int levels_filter(TCModuleInstance *self,
     pd = self->userdata;
 
     if (!(vframe->attributes & TC_FRAME_IS_SKIPPED)
-       && (((vframe->tag & TC_POST_PROCESS) && !pd->is_prefilter)
-         || ((vframe->tag & TC_PRE_PROCESS) && pd->is_prefilter))) {
+       && (((vframe->tag & TC_POST_M_PROCESS) && !pd->is_prefilter)
+         || ((vframe->tag & TC_PRE_M_PROCESS) && pd->is_prefilter))) {
 
         levels_process(pd, vframe->video_buf,
                        vframe->v_width, vframe->v_height);
@@ -347,8 +347,8 @@ int tc_filter(frame_list_t *vframe_, char *options)
     }  /* if INIT */
 
     if (!(vframe->attributes & TC_FRAME_IS_SKIPPED)
-       && (((tag & TC_POST_PROCESS) && !pd->is_prefilter)
-         || ((tag & TC_PRE_PROCESS) && pd->is_prefilter))) {
+       && (((tag & TC_POST_M_PROCESS) && !pd->is_prefilter)
+         || ((tag & TC_PRE_M_PROCESS) && pd->is_prefilter))) {
         levels_process(pd, vframe->video_buf,
                        vframe->v_width, vframe->v_height);
     }

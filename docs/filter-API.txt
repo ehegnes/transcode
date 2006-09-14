@@ -124,8 +124,8 @@ int tc_filter(frame_list_t *ptr, char *options)
   // or after and determines video/audio context
 
 
-      if(ptr->tag & TC_PRE_PROCESS)  pre=1;
-      if(ptr->tag & TC_POST_PROCESS) pre=0;
+      if(ptr->tag & TC_PRE_M_PROCESS)  pre=1;
+      if(ptr->tag & TC_POST_M_PROCESS) pre=0;
 
       if(ptr->tag & TC_VIDEO) vid=1;
       if(ptr->tag & TC_AUDIO) vid=0;

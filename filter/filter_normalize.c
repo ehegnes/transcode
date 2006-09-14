@@ -232,7 +232,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
 
-  if((ptr->tag & TC_PRE_PROCESS) && (ptr->tag & TC_AUDIO) && !(ptr->attributes & TC_FRAME_IS_SKIPPED))  {
+  if((ptr->tag & TC_PRE_M_PROCESS) && (ptr->tag & TC_AUDIO) && !(ptr->attributes & TC_FRAME_IS_SKIPPED))  {
 
 
 #define CLAMP(x,m,M) do { if ((x)<(m)) (x) = (m); else if ((x)>(M)) (x) = (M); } while(0)

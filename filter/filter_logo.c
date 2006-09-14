@@ -616,7 +616,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     // transcodes internal video/audo frame processing routines
     // or after and determines video/audio context
 
-    if ((ptr->tag & TC_POST_PROCESS)
+    if ((ptr->tag & TC_POST_M_PROCESS)
         && (ptr->tag & TC_VIDEO)
         && !(ptr->attributes & TC_FRAME_IS_SKIPPED)
     ) {

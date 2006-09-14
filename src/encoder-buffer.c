@@ -223,7 +223,7 @@ static void apply_audio_filters(aframe_list_t *aptr, vob_t *vob)
 
         if (!(aptr->attributes & TC_FRAME_IS_OUT_OF_RANGE)) {
             /* external plugin pre-processing */
-            aptr->tag = TC_AUDIO|TC_PRE_PROCESS;
+            aptr->tag = TC_AUDIO|TC_PRE_M_PROCESS;
             tc_filter_process((frame_list_t *)aptr);
 
             /* internal processing of audio */
@@ -231,7 +231,7 @@ static void apply_audio_filters(aframe_list_t *aptr, vob_t *vob)
             process_aud_frame(vob, aptr);
 
             /* external plugin post-processing */
-            aptr->tag = TC_AUDIO|TC_POST_PROCESS;
+            aptr->tag = TC_AUDIO|TC_POST_M_PROCESS;
             tc_filter_process((frame_list_t *)aptr);
         }
 

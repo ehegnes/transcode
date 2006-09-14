@@ -1439,7 +1439,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 ///////////////////////////////////////////////////////////////////////////
 
   //if(ptr->tag & TC_PRE_S_PROCESS && ptr->tag & TC_VIDEO && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
-  if(ptr->tag & TC_PRE_PROCESS && ptr->tag & TC_VIDEO && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
+  if(ptr->tag & TC_PRE_M_PROCESS && ptr->tag & TC_VIDEO && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
 
 	  int U  = ptr->v_width*ptr->v_height;
 	  int V  = ptr->v_width*ptr->v_height*5/4;

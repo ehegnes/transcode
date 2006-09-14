@@ -458,8 +458,8 @@ if(verbose & TC_STATS)
 	or after and determines video/audio context
    	*/
 
-	if(pfl->tag & TC_PRE_PROCESS) pre = 1;
-	if(pfl->tag & TC_POST_PROCESS) pre = 0;
+	if(pfl->tag & TC_PRE_M_PROCESS) pre = 1;
+	if(pfl->tag & TC_POST_M_PROCESS) pre = 0;
 
 	if(pfl->tag & TC_VIDEO) vid = 1;
 	if(pfl->tag & TC_AUDIO) vid = 0;
@@ -475,11 +475,11 @@ add the subtitles, after the coding, else edges in text get bad
 */
 if(use_pre_processing_flag)
 	{
-	a = (pfl->tag & TC_PRE_PROCESS) && (pfl->tag & TC_VIDEO);
+	a = (pfl->tag & TC_PRE_M_PROCESS) && (pfl->tag & TC_VIDEO);
 	}
 else
 	{
-	a = (pfl->tag & TC_POST_PROCESS) && (pfl->tag & TC_VIDEO);
+	a = (pfl->tag & TC_POST_M_PROCESS) && (pfl->tag & TC_VIDEO);
 	}
 
 if(a)
@@ -1040,7 +1040,7 @@ if(a)
 
 		} /* end if show_output_flag */
 
-	} /* end if TC_VIDEO && TC_POST_PROCESS */
+	} /* end if TC_VIDEO && TC_POST_M_PROCESS */
 
 /* return OK */
 return 0;

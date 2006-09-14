@@ -178,8 +178,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	} // CLOSE
 
 
-	if(((ptr->tag & TC_PRE_PROCESS  && pre) ||
-		(ptr->tag & TC_POST_PROCESS && !pre)) &&
+	if(((ptr->tag & TC_PRE_M_PROCESS  && pre) ||
+		(ptr->tag & TC_POST_M_PROCESS && !pre)) &&
 		!(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
 
 	    unsigned int y_size  = ptr->v_width*ptr->v_height;

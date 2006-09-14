@@ -140,7 +140,7 @@ static int null_filter(TCModuleInstance *self,
          * or after and determines video/audio context
          */
 
-        if (frame->tag & TC_PRE_PROCESS) {
+        if (frame->tag & TC_PRE_M_PROCESS) {
             pre = TC_TRUE;
         }
 
@@ -259,8 +259,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
     // transcodes internal video/audo frame processing routines
     // or after and determines video/audio context
 
-    if(ptr->tag & TC_PRE_PROCESS) pre=1;
-    if(ptr->tag & TC_POST_PROCESS) pre=0;
+    if(ptr->tag & TC_PRE_M_PROCESS) pre=1;
+    if(ptr->tag & TC_POST_M_PROCESS) pre=0;
 
     if(ptr->tag & TC_VIDEO) vid=1;
     if(ptr->tag & TC_AUDIO) vid=0;

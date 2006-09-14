@@ -1,4 +1,21 @@
 2006-09-14 Andrew Church <achurch at achurch dot org>
+  * docs/architecture.txt docs/clone.txt docs/filter-API.txt
+    filter/filter_32drop.c filter/filter_ascii.c filter/filter_compare.c
+    filter/filter_cpaudio.c filter/filter_denoise3d.c filter/filter_dnr.c
+    filter/filter_facemask.c filter/filter_hqdn3d.c filter/filter_invert.c
+    filter/filter_levels.c filter/filter_logo.c filter/filter_logoaway.c
+    filter/filter_msharpen.c filter/filter_normalize.c filter/filter_null.c
+    filter/filter_smartdeinter.c filter/filter_smartyuv.c
+    filter/filter_smooth.c filter/filter_testframe.c filter/filter_text.c
+    filter/filter_unsharp.c filter/filter_xsharpen.c
+    filter/divxkey/filter_divxkey.c filter/preview/filter_pv.c
+    filter/subtitler/filter_subtitler.c filter/yuvdenoise/filter_yuvdenoise.c
+    filter/yuvdenoise/filter_yuvmedian.c src/encoder-buffer.c
+    src/tc_defaults.h
+  Get rid of compatibility constants TC_{PRE,POST}_PROCESS, replacing them
+  with TC_{PRE,POST}_M_PROCESS.
+
+2006-09-14 Andrew Church <achurch at achurch dot org>
   * filter/preview/filter_preview.c filter/preview/filter_pv.c
     src/encoder-buffer.c src/tc_defaults.h
   Show preview image after all processing, including --post_clip.

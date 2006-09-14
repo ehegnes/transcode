@@ -232,7 +232,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   } /* TC_FILTER_CLOSE */
 
 ///////////////////////////////////////////////////////////////////////////
-  if(ptr->tag & TC_POST_PROCESS && ptr->tag & TC_VIDEO) {
+  if(ptr->tag & TC_POST_M_PROCESS && ptr->tag & TC_VIDEO) {
 
 
 	const int	width  = ptr->v_width;

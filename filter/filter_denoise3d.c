@@ -400,7 +400,7 @@ int tc_filter(frame_list_t *vframe_, char * options)
 		}
 	}
 
-	if(((tag & TC_PRE_PROCESS  && pd->prefilter) || (tag & TC_POST_PROCESS && !pd->prefilter)) &&
+	if(((tag & TC_PRE_M_PROCESS  && pd->prefilter) || (tag & TC_POST_M_PROCESS && !pd->prefilter)) &&
 		!(vframe->attributes & TC_FRAME_IS_SKIPPED))
 	{
 		int plane_index, coef[2];

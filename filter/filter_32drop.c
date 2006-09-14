@@ -165,7 +165,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   // transcodes internal video/audo frame processing routines
   // or after and determines video/audio context
 
-  if((ptr->tag & TC_PRE_PROCESS) && (ptr->tag & TC_VIDEO))  {
+  if((ptr->tag & TC_PRE_M_PROCESS) && (ptr->tag & TC_VIDEO))  {
 
     if(vob->im_v_codec==CODEC_RGB) {
       isint = interlace_test(ptr->video_buf, 3*ptr->v_width, ptr->v_height, ptr->id, 1);
