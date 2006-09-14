@@ -20,6 +20,9 @@
     src/encoder-buffer.c src/tc_defaults.h
   Show preview image after all processing, including --post_clip.
 
+  * docs/architecture.txt
+  Document new preview filter behavior.
+
   * src/transcode.c src/transcode.h tools/tcmodinfo.c
   Remove no-longer-needed variables tc_x_preview and tc_y_preview.
 
