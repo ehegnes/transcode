@@ -13,6 +13,10 @@
   Audio import will come later, and directory mode will
   be reintroduced soon.
 
+  * import/import_x11.c import/probe_x11.c
+    import/x11source.c import/x11source.h
+  Let X11Source to emit frames in YUV formats too (still testing).
+
 2006-09-14 Andrew Church <achurch at achurch dot org>
   * AUTHORS
   Update maintainer list.

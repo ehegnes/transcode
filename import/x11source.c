@@ -43,7 +43,7 @@ int tc_x11source_probe(TCX11Source *handle, ProbeInfo *info)
     if (handle != NULL && info != NULL) {
         info->width = handle->width;
         info->height = handle->height;
-        info->codec = TC_CODEC_RGB;
+        info->codec = handle->out_fmt;
         info->magic = TC_MAGIC_X11; /* enforce */
         info->asr = 1; /* force 1:1 ASR (XXX) */
         /* FPS/FRC MUST BE choosed by user; that's only a kind suggestion */
@@ -75,10 +75,16 @@ static int tc_x11source_acquire_data_plain(TCX11Source *handle,
     } else {
         size = (int)tc_video_frame_size(handle->image->width,
                                         handle->image->height,
-                                        TC_CODEC_RGB);
+                                        handle->out_fmt);
         if (size <= maxdata) {
+            uint8_t *planes[3] = { NULL, NULL, NULL };
+
+            YUV_INIT_PLANES(planes, data, handle->conv_fmt,
+                            handle->image->width,
+                            handle->image->height);
             ac_imgconvert((uint8_t**)&handle->image->data, IMG_BGRA32,
-                          (uint8_t**)&data,                IMG_RGB24,
+                          (handle->out_fmt == TC_CODEC_RGB) ?(uint8_t**)&data :planes,
+                          handle->conv_fmt,
                           handle->image->width, handle->image->height);
         } else {
             size = 0;
@@ -115,15 +121,21 @@ static int tc_x11source_acquire_data_shm(TCX11Source *handle,
     ret = XShmGetImage(handle->dpy, handle->pix, handle->image,
                        0, 0, AllPlanes);
 
-    if (!ret || handle->image->data == NULL) {
+    if (!ret || handle->image == NULL || handle->image->data == NULL) {
         tc_log_error(__FILE__, "cannot get X image (using SHM)");
     } else {
         size = (int)tc_video_frame_size(handle->image->width,
                                         handle->image->height,
-                                        TC_CODEC_RGB);
+                                        handle->out_fmt);
         if (size <= maxdata) {
+            uint8_t *planes[3] = { NULL, NULL, NULL };
+
+            YUV_INIT_PLANES(planes, data, handle->conv_fmt,
+                            handle->image->width,
+                            handle->image->height);
             ac_imgconvert((uint8_t**)&handle->image->data, IMG_BGRA32,
-                          (uint8_t**)&data,                IMG_RGB24,
+                          (handle->out_fmt == TC_CODEC_RGB) ?(uint8_t**)&data :planes,
+                          handle->conv_fmt,
                           handle->image->width, handle->image->height);
         } else {
             size = 0;
@@ -210,6 +222,45 @@ xshm_failed:
 
 #endif /* X11_SHM */
 
+static int tc_x11source_map_format(TCX11Source *handle, uint32_t format)
+{
+    int ret = -1;
+
+    if (handle != NULL) {
+        ret = 0;
+        switch (format) {
+          case CODEC_RGB: /* compatibility */
+          case TC_CODEC_RGB:
+            handle->out_fmt = TC_CODEC_RGB;
+            handle->conv_fmt = IMG_RGB24;
+            if (verbose >= TC_DEBUG) {
+                tc_log_info(__FILE__, "output colorspace: RGB24");
+            }
+            break;
+          case CODEC_YUV: /* compatibility */
+          case TC_CODEC_YUV420P:
+            handle->out_fmt = TC_CODEC_YUV420P;
+            handle->conv_fmt = IMG_YUV420P;
+            if (verbose >= TC_DEBUG) {
+                tc_log_info(__FILE__, "output colorspace: YUV420P");
+            }
+            break;
+          case CODEC_YUV422: /* compatibility */
+          case TC_CODEC_YUV422P:
+            handle->out_fmt = TC_CODEC_YUV422P;
+            handle->conv_fmt = IMG_YUV422P;
+            if (verbose >= TC_DEBUG) {
+                tc_log_info(__FILE__, "output colorspace: YUV4222");
+            }
+            break;
+          default:
+            tc_log_error(__FILE__, "unknown colorspace requested: 0x%x",
+                         format);
+            ret = -1;
+        }
+    }
+    return ret;
+}
 
 int tc_x11source_acquire(TCX11Source *handle, uint8_t *data, int maxdata)
 {
@@ -260,13 +311,19 @@ int tc_x11source_close(TCX11Source *handle)
     return 0;
 }
 
-int tc_x11source_open(TCX11Source *handle, const char *display, int mode)
+int tc_x11source_open(TCX11Source *handle, const char *display,
+                      int mode, uint32_t format)
 {
     XWindowAttributes winfo;
     Status ret;
+    int err;
 
     if (handle == NULL) {
         return 1;
+    }
+    err = tc_x11source_map_format(handle, format);
+    if (err != 0) {
+        return err;
     }
 
     handle->mode = mode;

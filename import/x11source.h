@@ -72,6 +72,8 @@ struct tcX11source_ {
     int depth;
 
     int mode;
+    uint32_t out_fmt; /* TC internal identifier */
+    int conv_fmt; /* precomputed aclib identifier */
 
     int (*acquire_data)(TCX11Source *handle, uint8_t *data, int maxdata);
     int (*fini)(TCX11Source *handle);
@@ -127,12 +129,17 @@ int tc_x11source_probe(TCX11Source *handle, ProbeInfo *info);
  *               be handled by caller).
  *      display: LOCAL X11 display identifier to connect on.
  *         mode: select X extensions to use, if avalaible.
+ *       format: image (colorspace) format to be used in
+ *               tc_x11source_acquire. Currently only following
+ *               formats are supported:
+ *               TC_CODEC_RGB, TC_CODEC_YUV420P, TC_CODEC_YUV422P
  * Return Value:
  *      -1: error on connection, reason will be tc_log_*()'d out.
  *       0: succesfull
  *       1: wrong (NULL) parameters.
  */
-int tc_x11source_open(TCX11Source *handle, const char *display, int mode);
+int tc_x11source_open(TCX11Source *handle, const char *display,
+                      int mode, uint32_t format);
 
 /*
  * tc_x11source_close:

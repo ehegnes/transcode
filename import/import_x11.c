@@ -104,7 +104,8 @@ static int tc_x11_configure(TCModuleInstance *self,
         return TC_IMPORT_ERROR;
     }
 
-    ret = tc_x11source_open(&priv->src, vob->video_in_file, TC_X11_MODE_BEST);
+    ret = tc_x11source_open(&priv->src, vob->video_in_file,
+                            TC_X11_MODE_BEST, vob->im_v_codec);
     if (ret != 0) {
         tc_log_error(MOD_NAME, "configure: failed to open X11 connection"
                                " to '%s'", vob->video_in_file);
@@ -195,7 +196,8 @@ static int tc_x11_demultiplex(TCModuleInstance *self,
 static const int tc_x11_codecs_in[] = { TC_CODEC_ERROR };
 
 /* a multiplexor is at the end of pipeline */
-static const int tc_x11_codecs_out[] = { TC_CODEC_RGB, TC_CODEC_ERROR };
+static const int tc_x11_codecs_out[] = { 
+    TC_CODEC_RGB, TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_ERROR };
 
 static const TCModuleInfo tc_x11_info = {
     .features    = TC_MODULE_FEATURE_DEMULTIPLEX|TC_MODULE_FEATURE_VIDEO,
@@ -232,7 +234,7 @@ extern const TCModuleClass *tc_plugin_setup(void)
 static TCModuleInstance mod_video;
 
 static int verbose_flag;
-static int capability_flag = TC_CAP_RGB;
+static int capability_flag = TC_CAP_YUV|TC_CAP_RGB|TC_CAP_YUV422|TC_CAP_VID;
 
 #define MOD_PRE x11
 #define MOD_CODEC "(video) X11"

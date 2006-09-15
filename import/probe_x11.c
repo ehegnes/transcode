@@ -1,24 +1,11 @@
 /*
- *  probe_wav.c
+ * probe_x11.c - X11 source probing code adaptor.
+ * (C) 2006 - Francesco Romani <fromani -at- gmail -dot- com>
  *
- *  Copyright (C) Thomas Oestreich - June 2001
- *
- *  This file is part of transcode, a video stream processing tool
- *
- *  transcode is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2, or (at your option)
- *  any later version.
- *
- *  transcode is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
- *
+ * This file is part of transcode, a video stream processing tool.
+ * transcode is free software, distributable under the terms of the GNU
+ * General Public License (version 2 or later).  See the file COPYING
+ * for details.
  */
 
 #include "transcode.h"
@@ -32,7 +19,9 @@ void probe_x11(info_t *ipipe)
 {
 #ifdef HAVE_X11
     TCX11Source xsrc;
-    int err = tc_x11source_open(&xsrc, ipipe->name, TC_X11_MODE_PLAIN);
+    int err = tc_x11source_open(&xsrc, ipipe->name,
+                                TC_X11_MODE_PLAIN, TC_CODEC_RGB);
+    /* performances and colorspaces doesn't really matters here */
     if (err == 0) {
         tc_x11source_probe(&xsrc, ipipe->probe_info);
         tc_x11source_close(&xsrc);
