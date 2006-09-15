@@ -2,6 +2,8 @@
  *  import_ffmpeg.c
  *
  *  Copyright (C) Moritz Bunkus - October 2002
+ *  libavformat support and misc updates:
+ *  Copyright (C) Francesco Romani - September 2006
  *
  *  This file is part of transcode, a video stream processing tool
  *
@@ -26,8 +28,8 @@
 #define MOD_CODEC   "(video) libavformat/libavcodec"
 
 #include "transcode.h"
-#include "libtc/libtc.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/tcframes.h"
 
 static int verbose_flag = TC_QUIET;
