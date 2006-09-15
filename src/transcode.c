@@ -627,7 +627,7 @@ static int transcoder(int mode, vob_t *vob)
 
 static vob_t *new_vob(void)
 {
-    vob_t *vob = (vob_t *)malloc(sizeof(vob_t));
+    vob_t *vob = tc_malloc(sizeof(vob_t));
     if (!vob)
         return NULL;
 

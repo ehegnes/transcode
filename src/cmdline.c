@@ -122,7 +122,7 @@ static void print_option_help(const char *name, char shortopt,
         }
         /* Only print indent if there's more text */
         printf("%.*s\n%-*s",
-               t-s, s,
+               (int)(t-s), s,
                *next ? optwidth+7+3 : 0, "");
         s = next;
         /* Indent subsequent lines 3 spaces (the +3 above is also for this) */
