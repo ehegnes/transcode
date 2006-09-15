@@ -128,9 +128,9 @@ import_dvd_la_LDFLAGS = -module -avoid-version
 import_dvd_la_LIBADD = $(LIBDVDREAD_LIBS)
 
 import_ffmpeg_la_SOURCES = import_ffmpeg.c
-import_ffmpeg_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBAVCODEC_CFLAGS)
+import_ffmpeg_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBAVFORMAT_CFLAGS)
 import_ffmpeg_la_LDFLAGS = -module -avoid-version
-import_ffmpeg_la_LIBADD = $(LIBAVCODEC_LIBS)
+import_ffmpeg_la_LIBADD = $(LIBAVFORMAT_LIBS)
 
 import_im_la_SOURCES = import_im.c
 import_im_la_CPPFLAGS = $(AM_CPPFLAGS) $(IMAGEMAGICK_CFLAGS)

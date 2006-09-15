@@ -1,3 +1,18 @@
+2006-09-15 Francesco Romani <fromani at gmail dot com>
+  * src/cmdline.c
+  make gcc happy on amd64
+
+  * src/transcode.c
+  use tc_malloc instead plain malloc in new_vob
+
+  * configure.in
+  bump up libavcodec rewuirements and check for libavformat too.
+
+  * import/Makefile.am import/import_ffmpeg.c
+  rewrite module almost enterely by adding libavformat support.
+  Audio import will come later, and directory mode will
+  be reintroduced soon.
+
 2006-09-14 Andrew Church <achurch at achurch dot org>
   * AUTHORS
   Update maintainer list.
