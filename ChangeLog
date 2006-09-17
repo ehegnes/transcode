@@ -1,3 +1,9 @@
+2006-09-14 Andrew Church <achurch at achurch dot org>
+  * src/transcode.c
+  Revert tc_malloc change (the use of plain malloc is intentional, as
+  this is called before any libtc-related setup is performed, particularly
+  before any future --color or similar command line option is processed).
+
 2006-09-15 Francesco Romani <fromani at gmail dot com>
   * src/cmdline.c
   make gcc happy on amd64
