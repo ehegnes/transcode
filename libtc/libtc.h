@@ -80,6 +80,34 @@ typedef enum {
      */
 } TCLogLevel;
 
+
+typedef enum {
+    LIBTC_FLAG_NONE = 0,
+    LIBTC_FLAG_NO_COLORED_LOG = 1, /* disable tc_log*() colored output */
+} LibTCFlags;
+
+
+/*
+ * libtc_setup:
+ *     tune up some libtc settings.
+ *     You DO NOT always NEED to use this function since libtc has it
+ *     (most of time) sane defaults; just use this function to adapt
+ *     libtc behaviour to some unusual conditions, like if stderr is a file
+ *     and not a terminal.
+ *     If you use this function, you MUST call it BEFORE any other libtc call,
+ *     or you will experience undefined behaviours.
+ *
+ * Parameters:
+ *     flags: flag to tune libtc behaviour (see above)
+ * Return Value:
+ *     N/A
+ * Side effects:
+ *     various. See description of flags above.
+ * Preconditions:
+ *     this function, IF used, MUST be called BEFORE any other libtc function.
+ */
+void libtc_setup(uint32_t flags);
+
 /*
  * tc_log:
  *     main libtc logging function. Log arbitrary messages according

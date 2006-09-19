@@ -1,3 +1,8 @@
+2006-09-19 Francesco Romani <fromani at gmail dot com>
+ * libtc/libtc.h libtc/tc_functions.c
+ (start to) introduce libtc_setup() to tune up libtc
+ behaviour (=disable coloured tc_log*, yet).
+
 2006-09-14 Andrew Church <achurch at achurch dot org>
   * src/transcode.c
   Revert tc_malloc change (the use of plain malloc is intentional, as
@@ -12,7 +17,7 @@
   use tc_malloc instead plain malloc in new_vob
 
   * configure.in
-  bump up libavcodec rewuirements and check for libavformat too.
+  bump up libavcodec requirements and check for libavformat too.
 
   * import/Makefile.am import/import_ffmpeg.c
   rewrite module almost enterely by adding libavformat support.

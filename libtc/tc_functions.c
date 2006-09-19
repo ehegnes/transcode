@@ -60,11 +60,27 @@ static const char *tc_log_preambles[] = {
     "%s%s" /* tag placeholder must be present but tag will be ignored */
 };
 
+static int tc_log_use_colors = TC_TRUE;
+/* 
+ * I'm not so proud of doing so. If someone has a better (cleaner)
+ * solution, just speak up. -- fromani 20060919
+ */
+
+
+void libtc_setup(uint32_t flags)
+{
+    if (flags & LIBTC_FLAG_NO_COLORED_LOG) {
+        tc_log_use_colors = TC_FALSE;
+    }
+}
+
+
+
 int tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
 {
     char buf[TC_MSG_BUF_SIZE];
     char *msg = buf;
-    size_t size = 0;
+    size_t size = sizeof(buf);
     int dynbuf = TC_FALSE, truncated = TC_FALSE;
     /* flag: we must use a dynamic (larger than static) buffer? */
     va_list ap;
@@ -73,6 +89,11 @@ int tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
     level = (level < TC_LOG_ERR) ?TC_LOG_ERR :level;
     level = (level > TC_LOG_EXTRA) ?TC_LOG_EXTRA :level;
     /* sanity check, avoid dealing with NULL as much as we can */
+    if (!tc_log_use_colors && level != TC_LOG_EXTRA) {
+        /* TC_LOG_EXTRA and TC_LOG_MSG must not use colors */
+        level = TC_LOG_MSG;
+    }
+
     tag = (tag != NULL) ?tag :"";
     fmt = (fmt != NULL) ?fmt :"";
     /* TC_LOG_EXTRA special handling: force always empty tag */
@@ -81,7 +102,7 @@ int tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
     size = strlen(tc_log_preambles[level])
            + strlen(tag) + strlen(fmt) + 1;
 
-    if (size > TC_MSG_BUF_SIZE) {
+    if (size > sizeof(buf)) {
         /* 
          * we use malloc/fprintf instead of tc_malloc because
          * we want custom error messages
@@ -95,17 +116,20 @@ int tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
                     __FILE__);
             /* force reset to default values */
             msg = buf;
-            size = TC_MSG_BUF_SIZE - 1;
+            size = sizeof(buf) - 1;
             truncated = TC_TRUE;
         }
     } else {
-        size = TC_MSG_BUF_SIZE - 1;
+        size = sizeof(buf) - 1;
     }
 
     /* construct real format string */
     tc_snprintf(msg, size, tc_log_preambles[level], tag, fmt);
-    msg[size] = '\0';
-    /* `size' value was already scaled for the final '\0' */
+//    msg[size] = '\0';
+//    /* `size' value was already scaled for the final '\0' */
+//    trusting valgrind, this assignement don't help us and can
+//    lead to troubles. So it's temporary disable until I gain
+//    some time to experiment -- fromani 20060919
 
     va_start(ap, fmt);
     vfprintf(stderr, msg, ap);
