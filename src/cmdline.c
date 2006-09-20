@@ -54,6 +54,7 @@ char *fc_ttime_string = NULL;
 int sync_seconds=0;
 pid_t writepid = 0;
 
+
 /*************************************************************************/
 
 /* Utility routines used by option processing. */

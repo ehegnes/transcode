@@ -189,7 +189,6 @@ _TCO_INIT
 /*************************************************************************/
 
 /* The actual option definitions. */
-
 TC_OPTION(help,               'h', 0,
                 "print this usage message and exit",
                 usage();
@@ -1462,6 +1461,10 @@ TC_OPTION(chapter_mode,       'U', "base",
 
 /********/ TC_HEADER("Miscellaneous options") /********/
 
+TC_OPTION(no_colored_log,      0,  0,
+                "disable colors in log messages [use colors]",
+                libtc_setup(LIBTC_FLAG_NO_COLORED_LOG);
+)
 TC_OPTION(buffers,            'u', "N",
                 "use N framebuffers for AV processing [10]",
                 /* FIXME: threads ought to be a separate option */
