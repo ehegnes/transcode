@@ -993,7 +993,7 @@ int main(int argc, char *argv[])
 #endif
 
     //main thread id
-    tc_pthread_main=pthread_self();
+    tc_pthread_main = pthread_self();
 
     /* ------------------------------------------------------------
      *
@@ -2399,10 +2399,9 @@ int main(int argc, char *argv[])
         int result = probe_source(video_in_file, audio_in_file, seek_range,
                                   preset_flag, vob);
         if (verbose) {
-            printf("[%s] %s %s (%s%s%s)\n", PACKAGE, "auto-probing source",
+            printf("[%s] %s %s (%s)\n", PACKAGE, "auto-probing source",
                    (video_in_file==NULL) ? audio_in_file : video_in_file,
-                   result ? COL_GREEN : COL_RED,
-                   result ? "ok" : "failed", COL_GRAY);
+                   result ? "ok" : "FAILED");
             printf("[%s] V: %-16s | %s %s (module=%s)\n", PACKAGE,
                    "import format", codec2str(vob->v_codec_flag),
                    mformat2str(vob->v_format_flag),

@@ -5,6 +5,9 @@
   Also note that unlike other transcode option the usage order for
   this function MATTERS, I'd like to improve this if feasible.
 
+  * src/transcode.c
+  Do not use colours directly in printf.
+
 2006-09-19 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h libtc/tc_functions.c
   (start to) introduce libtc_setup() to tune up libtc
