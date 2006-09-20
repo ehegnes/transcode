@@ -96,6 +96,8 @@ typedef enum {
  *     and not a terminal.
  *     If you use this function, you MUST call it BEFORE any other libtc call,
  *     or you will experience undefined behaviours.
+ *     It's safe to call libtc_setup multiple times BEFORE to call any other
+ *     libtc function.
  *
  * Parameters:
  *     flags: flag to tune libtc behaviour (see above)

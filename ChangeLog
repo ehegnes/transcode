@@ -8,6 +8,9 @@
   * src/transcode.c
   Do not use colours directly in printf.
 
+  * libtc/libtc,h
+  update libtc_setup documentation.
+
 2006-09-19 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h libtc/tc_functions.c
   (start to) introduce libtc_setup() to tune up libtc
