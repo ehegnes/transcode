@@ -181,10 +181,6 @@ void tcprobe_thread(info_t *ipipe)
         probe_xml(ipipe);
         break;
 
-      case TC_MAGIC_TS:
-        probe_ts(ipipe);
-        break;
-
       case TC_MAGIC_WAV:
         probe_wav(ipipe);
         break;

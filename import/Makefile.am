@@ -421,7 +421,6 @@ tcprobe_SOURCES = \
 	ioxml.c \
 	mpg123.c \
 	scan_pes.c \
-	ts_reader.c \
 	decode_dv.c \
 	extract_avi.c \
 	extract_mxf.c \
