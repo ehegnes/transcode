@@ -3,6 +3,11 @@
   Don't use anymore existing TS probing code, it hurts more than it helps.
   Such code will replaced wit libavformat-based code soon.
 
+  * added file: import/probe_ffmpeg.c
+
+  * import/tc.h import/probe_stream.c import/Makefile.am
+  Add foundation to probe streams using libavcodec/libavformat.
+
 2006-09-20 Francesco Romani <fromani at gmail dot com>
   * src/cmdline.c src/cmdline_def.h
   add no_colored_log option (should be self-explicative).

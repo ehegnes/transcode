@@ -215,18 +215,30 @@ void tcprobe_thread(info_t *ipipe)
         break;
 
       default:
-        ipipe->error=2;
+        /* libavcodec/libavformat it's a catchall too */
+        probe_ffmpeg(ipipe);
     }
     if (ipipe->magic == TC_MAGIC_XML) {
-        ipipe->probe_info->magic_xml=TC_MAGIC_XML;
+        ipipe->probe_info->magic_xml = TC_MAGIC_XML;
         /*
          * used in transcode to load import_xml and to have
          * the correct type of the video/audio
          */
     } else {
-        ipipe->probe_info->magic_xml=ipipe->probe_info->magic;
+        ipipe->probe_info->magic_xml = ipipe->probe_info->magic;
     }
 
     return;
 }
 
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */

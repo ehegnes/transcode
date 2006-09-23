@@ -441,10 +441,13 @@ tcprobe_SOURCES = \
 	probe_wav.c \
 	probe_xml.c \
 	probe_mplayer.c \
+	probe_ffmpeg.c \
 	probe_x11.c \
 	x11source.c
 
 tcprobe_LDADD = \
+	$(LIBAVFORMAT_LIBS) \
+	$(LIBAVCODEC_LIBS) \
 	$(AVILIB_LIBS) \
 	$(WAVLIB_LIBS) \
 	$(LIBDV_LIBS) \
@@ -465,6 +468,8 @@ tcprobe_LDADD = \
 	-lm
 
 tcprobe_CFLAGS = $(AM_CFLAGS) \
+	$(LIBAVFORMAT_CFLAGS) \
+	$(LIBAVCODEC_CFLAGS) \
 	$(LIBDV_CFLAGS) \
 	$(LIBDVDREAD_CFLAGS) \
 	$(IMAGEMAGICK_CFLAGS) \
