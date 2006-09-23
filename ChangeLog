@@ -11,6 +11,10 @@
   * filter/filter_levels.c filter/filter_logo.c
   Add format helper trailer.
 
+  * export/export_dvraw.c
+  audio samples fix derived from
+  http://bugs.gentoo.org/show_bug.cgi?id=146307
+
 2006-09-20 Francesco Romani <fromani at gmail dot com>
   * src/cmdline.c src/cmdline_def.h
   add no_colored_log option (should be self-explicative).

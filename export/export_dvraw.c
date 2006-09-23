@@ -284,7 +284,12 @@ MOD_encode
       dv_encode_full_frame(encoder, pixels, (format)?e_dv_color_yuv:e_dv_color_rgb, target);
 
     }//no pass-through
-      encoder->samples_this_frame=param->size;
+      /* 
+       * samples * channels * bits = size;
+       * so
+       * samples = size / (channels * bits)
+       */
+      encoder->samples_this_frame = param->size / (chans * sizeof(int16_t));
       dv_encode_metadata(target, encoder->isPAL, encoder->is16x9, &now, 0);
       dv_encode_timecode(target, encoder->isPAL, 0);
 
