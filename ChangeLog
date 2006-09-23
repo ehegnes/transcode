@@ -8,6 +8,9 @@
   * import/tc.h import/probe_stream.c import/Makefile.am
   Add foundation to probe streams using libavcodec/libavformat.
 
+  * filter/filter_levels.c filter/filter_logo.c
+  Add format helper trailer.
+
 2006-09-20 Francesco Romani <fromani at gmail dot com>
   * src/cmdline.c src/cmdline_def.h
   add no_colored_log option (should be self-explicative).
