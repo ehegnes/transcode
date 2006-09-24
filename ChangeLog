@@ -1,3 +1,10 @@
+2006-09-24 Francesco Romani <fromani at gmail dot com>
+  * added file: docs/LIBRARIES
+
+  documentation deserve some attention as well, so introduce
+  a little overview of our internal new fancy libraries
+  organization.
+
 2006-09-23 Francesco Romani <fromani at gmail dot com>
   * import/probe_stream.c import/Makefile,am
   Don't use anymore existing TS probing code, it hurts more than it helps.
