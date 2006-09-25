@@ -1,5 +1,5 @@
 /*
- * probe_wav.c - WAV probing code using wavlib.
+ * probe_ffmpeg.c - libavcodec/libavformat based probing code
  * (C) 2006 - Francesco Romani <fromani -at- gmail -dot- com>
  *
  * This file is part of transcode, a video stream processing tool.
@@ -13,14 +13,69 @@
 #include "ioaux.h"
 #include "tc.h"
 #include "libtc/libtc.h"
+#include "libtc/ratiocodes.h"
 
 #include <ffmpeg/avformat.h>
 #include <ffmpeg/avcodec.h>
+#include <ffmpeg/avutil.h>
+
+static void translate_info(const AVFormatContext *ctx, ProbeInfo *info)
+{
+    AVStream *st = NULL;
+    int i = 0, j = 0;
+
+    if (ctx == NULL || info == NULL) {
+        return;
+    }
+
+    /* first of all, video */
+    for (i = 0; i < ctx->nb_streams; i++) {
+        st = ctx->streams[i];
+
+        if (st->codec->codec_type == CODEC_TYPE_VIDEO) {
+            info->bitrate = st->codec->bit_rate / 1000;
+            info->width = st->codec->width;
+            info->height = st->codec->height;
+            if (st->r_frame_rate.num > 0 && st->r_frame_rate.den > 0) {
+                info->fps = av_q2d(st->r_frame_rate);
+            } else {
+                /* watch out here */
+                info->fps = 1.0/av_q2d(st->codec->time_base);
+            }
+            tc_frc_code_from_value(&info->frc, info->fps);
+            break;
+        }
+    }
+    /* then audio track(s) */
+    for (i = 0; i < ctx->nb_streams; i++) {
+        st = ctx->streams[i];
+
+        if (st->codec->codec_type == CODEC_TYPE_AUDIO
+         && j < TC_MAX_AUD_TRACKS) {
+            info->track[j].format = 0x1; /* known wrong */
+            info->track[j].chan = st->codec->channels;
+            info->track[j].samplerate = st->codec->sample_rate;
+            info->track[j].bitrate = st->codec->bit_rate / 1000;
+            /* XXX: known wrong for PCM */
+
+            info->track[j].bits = BITS;
+            /* 
+             * XXX where libavcodec/libaformat provide this?
+             * Should be inferred by CODEC_ID used?
+             * */
+            info->track[j].pts_start = 0; /* XXX: ?!? */
+
+            j++;
+        }
+    }
+
+    info->num_tracks = j;
+}
+
+
 
 void probe_ffmpeg(info_t *ipipe)
 {
-    ipipe->error = 2;
-#if 0
     /* to be completed */
     AVFormatContext *lavf_dmx_context = NULL;
     int ret = 0;
@@ -50,11 +105,10 @@ void probe_ffmpeg(info_t *ipipe)
         return;
     }
 
-    /* translate probing */
+    translate_info(lavf_dmx_context, ipipe->probe_info);
 
     av_close_input_file(lavf_dmx_context);
     return;
-#endif
 }
 
 

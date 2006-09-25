@@ -1,3 +1,8 @@
+2006-09-25 Francesco Romani <fromani at gmail dot com>
+  * import/probe_ffmpeg.c
+  first bits of ffmpeg-based probing. CODEC_ID translation
+  still missing.
+
 2006-09-24 Francesco Romani <fromani at gmail dot com>
   * added file: docs/LIBRARIES
 
