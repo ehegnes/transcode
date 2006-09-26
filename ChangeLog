@@ -1,3 +1,7 @@
+2006-09-26 Francesco Romani <fromani at gmail dot com>
+  * import/x11source.c
+  resync prototypes with/without X11 import support.
+
 2006-09-25 Francesco Romani <fromani at gmail dot com>
   * import/probe_ffmpeg.c
   first bits of ffmpeg-based probing. CODEC_ID translation
