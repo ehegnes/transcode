@@ -1,3 +1,7 @@
+2006-09-27 Andrew Church <achurch at achurch dot org>
+  * import/Makefile.am
+  Ensure that X11 libraries are linked into tcprobe as well as import_x11.
+
 2006-09-26 Francesco Romani <fromani at gmail dot com>
   * import/x11source.c
   resync prototypes with/without X11 import support.
@@ -15,7 +19,7 @@
   organization.
 
 2006-09-23 Francesco Romani <fromani at gmail dot com>
-  * import/probe_stream.c import/Makefile,am
+  * import/probe_stream.c import/Makefile.am
   Don't use anymore existing TS probing code, it hurts more than it helps.
   Such code will replaced wit libavformat-based code soon.
 
@@ -41,7 +45,7 @@
   * src/transcode.c
   Do not use colours directly in printf.
 
-  * libtc/libtc,h
+  * libtc/libtc.h
   update libtc_setup documentation.
 
 2006-09-19 Francesco Romani <fromani at gmail dot com>

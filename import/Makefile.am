@@ -57,6 +57,7 @@ endif
 
 if HAVE_X11
 IMPORT_X11 = import_x11.la
+X11SOURCE_LIBS = $(X_LIBS) $(X_PRE_LIBS) -lXext -lX11 $(X_EXTRA_LIBS)
 endif
 
 if HAVE_MJPEGTOOLS
@@ -202,12 +203,7 @@ import_xvid_la_LDFLAGS = -module -avoid-version
 import_x11_la_SOURCES = import_x11.c x11source.c
 import_x11_la_CPPFLAGS = $(AM_CPPFLAGS) $(X_CFLAGS)
 import_x11_la_LDFLAGS = -module -avoid-version
-import_x11_la_LIBADD = \
-	$(X_LIBS) \
-	$(X_PRE_LIBS) \
-	-lXext \
-	-lX11 \
-	$(X_EXTRA_LIBS)
+import_x11_la_LIBADD = $(X11SOURCE_LIBS)
 
 import_yuv4mpeg_la_SOURCES = import_yuv4mpeg.c
 import_yuv4mpeg_la_CPPFLAGS = $(AM_CPPFLAGS) $(MJPEGTOOLS_CFLAGS)
@@ -462,6 +458,7 @@ tcprobe_LDADD = \
 	$(XIO_LIBS) \
 	$(LIBXML2_LIBS) \
 	$(BSDAV_LIBS) \
+	$(X11SOURCE_LIBS) \
 	$(DLDARWIN_LIBS) \
 	$(ACLIB_LIBS) \
 	$(LIBTC_LIBS) \
