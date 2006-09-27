@@ -115,7 +115,7 @@
 #  error More than one TC_OPTIONS symbol defined!
 # endif
 # define TC_OPTION(name,shortopt,argname,helptext,code) \
-    { #name, !!argname, NULL, OPT_##name },
+    { #name, (argname) ? required_argument : no_argument, NULL, OPT_##name },
 # define TC_HEADER(name)  /* nothing */
 #endif
 
@@ -452,7 +452,7 @@ TC_OPTION(import_as,          'x', "vmod[,amod]",
                                  " module");
                         goto short_usage;
                     }
-                    vob->im_v_string = s+1;
+                    vob->im_v_string = s;
                 }
                 if (n >= 2) {
                     im_aud_mod = abuf;
@@ -464,7 +464,7 @@ TC_OPTION(import_as,          'x', "vmod[,amod]",
                                      " module");
                             goto short_usage;
                         }
-                        vob->im_a_string = s+1;
+                        vob->im_a_string = s;
                     }
                 } else {
                     im_aud_mod = im_vid_mod;
@@ -648,7 +648,7 @@ TC_OPTION(export_as,          'y', "vm[,am[,mm]]",
                                  " module");
                         goto short_usage;
                     }
-                    vob->ex_v_string = s+1;
+                    vob->ex_v_string = s;
                 }
                 if (n >= 2) {
                     ex_aud_mod = abuf;
@@ -660,7 +660,7 @@ TC_OPTION(export_as,          'y', "vm[,am[,mm]]",
                                      " module");
                             goto short_usage;
                         }
-                        vob->ex_a_string = s+1;
+                        vob->ex_a_string = s;
                     }
                 } else {
                     ex_aud_mod = ex_vid_mod;
@@ -674,7 +674,7 @@ TC_OPTION(export_as,          'y', "vm[,am[,mm]]",
                                      " module");
                             goto short_usage;
                         }
-                        // vob->ex_m_string = s+1;  // FIXME not defined
+                        // vob->ex_m_string = s;  // FIXME not defined
                     }
                 }
 )

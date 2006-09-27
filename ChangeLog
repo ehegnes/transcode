@@ -2,6 +2,11 @@
   * import/Makefile.am
   Ensure that X11 libraries are linked into tcprobe as well as import_x11.
 
+  * src/cmdline_def.h
+  Use named constants in struct option (also working around a bug in GCC
+  3.4.6).  Also fix a bug causing the first character of module option
+  strings to get cut off.
+
 2006-09-26 Francesco Romani <fromani at gmail dot com>
   * import/x11source.c
   resync prototypes with/without X11 import support.
