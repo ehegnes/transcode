@@ -368,12 +368,14 @@ TC_OPTION(title,              'T', "t[,c[-d][,a]]",
                     tc_error("Invalid title for -T/--title");
                     goto short_usage;
                 }
-                if (vob->dvd_chapter1 < 1
-                    || (vob->dvd_chapter2 != -1
-                        && vob->dvd_chapter2 < vob->dvd_chapter1)
-                ) {
-                    tc_error("Invalid chapter(s) for -T/--title");
-                    goto short_usage;
+                if (vob->dvd_chapter1 != -1) {
+                    if (vob->dvd_chapter1 < 1
+                        || (vob->dvd_chapter2 != -1
+                            && vob->dvd_chapter2 < vob->dvd_chapter1)
+                    ) {
+                        tc_error("Invalid chapter(s) for -T/--title");
+                        goto short_usage;
+                    }
                 }
                 if (vob->dvd_angle < 1) {
                     tc_error("Invalid angle for -T/--title");
