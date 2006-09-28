@@ -1,4 +1,8 @@
 2006-09-28 Andrew Church <achurch at achurch dot org>
+  * src/cmdline_def.h
+  Fix -y setting multiplex module to the wrong value.
+
+2006-09-28 Andrew Church <achurch at achurch dot org>
   * export/aud_aux.c export/export_ffmpeg.c export/export_raw.c
     pvm3/export_pvm_slave.c src/socket.c src/transcode.c src/transcode.h
   Rename vob->out_flag field to vob->audio_file_flag.

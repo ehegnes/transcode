@@ -669,7 +669,7 @@ TC_OPTION(export_as,          'y', "vm[,am[,mm]]",
                     ex_aud_mod = ex_vid_mod;
                 }
                 if (n >= 3) {
-                    ex_mplex_mod = abuf;
+                    ex_mplex_mod = mbuf;
                     if ((s = strchr(ex_mplex_mod, '=')) != NULL) {
                         *s++ = 0;
                         if (!*s) {
