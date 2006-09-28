@@ -110,7 +110,7 @@ MOD_open
     im_v_codec = vob->im_v_codec;
 
     // open out file
-    if(param->flag==TC_AUDIO && vob->out_flag) goto further;
+    if(param->flag==TC_AUDIO && vob->audio_file_flag) goto further;
     if(param->flag==TC_VIDEO
        && vob->v_codec_flag == TC_CODEC_MPEG2
        && (vob->pass_flag & TC_VIDEO)

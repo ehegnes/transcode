@@ -551,7 +551,7 @@ int audio_init(vob_t *vob, int v)
 
 		case CODEC_AC3:
 			tc_info("AC3->AC3");
-			if (vob->out_flag) {
+			if (vob->audio_file_flag) {
 				audio_encode_function = audio_pass_through;
 			} else {
 				audio_encode_function = audio_pass_through_ac3;
@@ -602,7 +602,7 @@ int audio_open(vob_t *vob, avi_t *avifile)
 {
 	if (audio_encode_function != audio_mute)
 	{
-		if(vob->out_flag)
+		if(vob->audio_file_flag)
 		{
 			if(! fd)
 			{

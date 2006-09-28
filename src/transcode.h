@@ -289,7 +289,7 @@ typedef struct _vob_t {
     avi_t *avifile_out;
     int avi_comment_fd;         // Text file to read AVI header comments from
 
-    int out_flag;
+    int audio_file_flag;        // Nonzero if audio goes to its own file
 
     // Encoding parameters
 

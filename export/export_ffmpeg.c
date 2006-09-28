@@ -1435,7 +1435,7 @@ MOD_open
   // open output file
 
   /* Open file */
-  if ( (param->flag == TC_VIDEO && !is_mpegvideo) || (param->flag == TC_AUDIO && !vob->out_flag)) {
+  if ( (param->flag == TC_VIDEO && !is_mpegvideo) || (param->flag == TC_AUDIO && !vob->audio_file_flag)) {
     if (vob->avifile_out==NULL) {
 
       vob->avifile_out = AVI_open_output_file(vob->video_out_file);

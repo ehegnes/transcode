@@ -684,7 +684,7 @@ static vob_t *new_vob(void)
     vob->avifile_out         = NULL;
     vob->avi_comment_fd      = -1;
     vob->nav_seek_file       = NULL;
-    vob->out_flag            = 0;
+    vob->audio_file_flag     = 0;
     vob->audio_in_file       = "/dev/zero";
     vob->video_in_file       = "/dev/zero";
     vob->in_flag             = 0;
@@ -1808,7 +1808,7 @@ int main(int argc, char *argv[])
 	audio_out_file = optarg;
 	vob->audio_out_file = optarg;
 
-	vob->out_flag = 1;
+	vob->audio_file_flag = 1;
 	break;
 
       case 'D':
@@ -4207,7 +4207,7 @@ int main(int argc, char *argv[])
 	    }
 
 	    vob->audio_out_file = buf;
-	    vob->out_flag=1;
+	    vob->audio_file_flag = 1;
 	  } else {
 	    vob->video_out_file = buf;
 	  }

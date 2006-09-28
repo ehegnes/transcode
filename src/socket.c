@@ -242,7 +242,7 @@ static void dump_vob(int sock)
     SEND(avifile_in, "%p");  // not sure if there's any point sending these...
     SEND(avifile_out, "%p");
     SEND(avi_comment_fd, "%d");
-    SEND(out_flag, "%d");
+    SEND(audio_file_flag, "%d");
     SEND(divxbitrate, "%d");
     SEND(divxkeyframes, "%d");
     SEND(divxquality, "%d");

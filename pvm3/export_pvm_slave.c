@@ -634,7 +634,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 				vob->ex_v_fcc=p_param1;		/*override the default*/
 				vob->ex_a_fcc=p_param2;		/*override the default*/
 				vob->ex_profile_name=p_param3;	/*override the default*/
-				vob->out_flag=1;	/*force audio track on different file*/
+				vob->audio_file_flag=1;	/*force audio track on different file*/
 				vob->verbose=verbose;
 				memset(s_filename_log,'\0',sizeof(s_filename_log));
 				tc_snprintf(s_filename_log,sizeof(s_filename_log),"%s-log-%s-%d-%d%s",p_out_file_name,p_hostname,getpid(),s_serial,p_suffix);
