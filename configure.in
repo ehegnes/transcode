@@ -655,7 +655,7 @@ AC_ARG_ENABLE(libavformat-static,
     *) AC_MSG_ERROR(bad value ${enableval} for --enable-libavformat-static) ;;
   esac],
   [enable_libavformat_static=no])
-LIBAVFORMAT_EXTRA_LIBS="$LIBAVFORMAT_EXTRA_LIBS $LIBAVCODEC_EXTRA_LIBS -lavcodec"
+LIBAVFORMAT_EXTRA_LIBS="$LIBAVFORMAT_EXTRA_LIBS -lavcodec $LIBAVCODEC_EXTRA_LIBS"
 TC_PKG_CHECK(libavformat, required, LIBAVFORMAT, no, [ffmpeg/avformat.h],
  avformat, av_register_all, libavformat, [http://www.ffmpeg.org/])
 if test x"$have_libavformat" = x"yes" ; then

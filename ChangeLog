@@ -1,3 +1,8 @@
+2006-09-28 Andrew Church <achurch at achurch dot org>
+  * configure.in
+  Fix library order error in libavformat test, while wishing that linkers
+  would finally get smart enough to resolve symbols regardless of order...
+
 2006-09-27 Andrew Church <achurch at achurch dot org>
   * import/Makefile.am
   Ensure that X11 libraries are linked into tcprobe as well as import_x11.
