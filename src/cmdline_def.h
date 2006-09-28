@@ -288,6 +288,7 @@ TC_OPTION(audio_output,       'm', "file",
                     goto short_usage;
                 vob->audio_out_file = optarg;
                 audio_out_file = optarg;
+                vob->audio_file_flag = 1;
 )
 TC_OPTION(nav_seek,           0,   "file",
                 "use VOB navigation file [off]",

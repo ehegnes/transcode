@@ -3,6 +3,9 @@
     pvm3/export_pvm_slave.c src/socket.c src/transcode.c src/transcode.h
   Rename vob->out_flag field to vob->audio_file_flag.
 
+  * src/cmdline_def.h
+  Fix -m (vob->audio_file_flag was not being set).
+
 2006-09-28 Andrew Church <achurch at achurch dot org>
   * configure.in
   Fix library order error in libavformat test, while wishing that linkers
