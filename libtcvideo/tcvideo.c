@@ -119,7 +119,8 @@ TCVHandle tcv_init(void)
 /*************************************************************************/
 
 /**
- * tcv_free:  Free resources allocated for the given handle.
+ * tcv_free:  Free resources allocated for the given handle.  Does nothing
+ * if handle is zero.
  *
  * Parameters: handle: tcvideo handle.
  * Return value: None.
