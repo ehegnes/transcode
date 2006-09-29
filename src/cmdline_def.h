@@ -360,7 +360,7 @@ TC_OPTION(title,              'T', "t[,c[-d][,a]]",
                                   &vob->dvd_chapter1, &vob->dvd_angle) >= 1
                 ) {
                     /* Single (or no) chapter given */
-                    /* FIXME: this should probably set chapter2 = chapter1 */
+                    vob->dvd_chapter2 = -1;  /* indicate single chapter */
                 } else {
                     tc_error("Invalid argument for -T/--title");
                     goto short_usage;

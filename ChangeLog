@@ -1,3 +1,8 @@
+2006-09-29 Andrew Church <achurch at achurch dot org>
+  * src/cmdline_def.h
+  Make sure that -T t,c selects only a single chapter, regardless of any
+  previous -T options.
+
 2006-09-28 Andrew Church <achurch at achurch dot org>
   * src/cmdline_def.h
   Fix -y setting multiplex module to the wrong value.
