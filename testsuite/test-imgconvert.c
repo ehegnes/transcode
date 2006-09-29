@@ -242,6 +242,7 @@ static const char *accel_flags(int accel)
     return buf;
 }
 
+
 int main(int argc, char **argv)
 {
     static uint8_t srcbuf[WIDTH*HEIGHT*4];

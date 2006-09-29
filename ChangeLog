@@ -25,6 +25,9 @@
     import/x11source.h import/v4l/import_v4l2.c src/video_trans.c
   Use tcv_convert() rather than ac_imgconvert() where possible.
 
+  * testsuite/test-imgconvert.c
+  Minor acceleration-related cleanups.
+
 2006-09-29 Andrew Church <achurch at achurch dot org>
   * filter/Makefile.am
     Removed: filter/filter_clone.c
