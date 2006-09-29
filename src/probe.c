@@ -13,6 +13,8 @@
 #include "libtc/ratiocodes.h"
 #include "import/magic.h"
 
+#include <sys/wait.h>  // for waitpid()
+
 /*************************************************************************/
 
 /* Handy macro to check whether the probe flags allow setting of a
@@ -130,52 +132,77 @@ int probe_source(const char *vid_file, const char *aud_file, int range,
 int probe_source_xml(vob_t *vob, int which)
 {
 #ifdef HAVE_LIBXML2
-    char buffer[TC_BUF_MAX];
-    FILE *tcxmlcheck_pipe;
-    int resize, i;
+    int tochild[2], fromchild[2];  /* pipes */
+    pid_t pid;
+    int resize, retval = 1;
 
-    i = tc_snprintf(buffer, sizeof(buffer),
-                    "tcxmlcheck -i \"%s\" -S -B -%c",
-                    vob->video_in_file,
-                    which==PROBE_XML_VIDEO ? 'V' : 'A');
-    if (i < 0 || i >= sizeof(buffer)) {
-        tc_log_error(PACKAGE, "command buffer overflow");
+    if (pipe(tochild) == -1) {
+        tc_log_perror(PACKAGE, "probe_source_xml(): pipe(tochild) failed");
         return 0;
     }
-    tcxmlcheck_pipe = popen(buffer, "w");
-    if (!tcxmlcheck_pipe) {
-        tc_log_error(PACKAGE, "Error opening pipe: %s", strerror(errno));
+    if (pipe(fromchild) == -1) {
+        tc_log_perror(PACKAGE, "probe_source_xml(): pipe(fromchild) failed");
+        close(tochild[0]);
+        close(tochild[1]);
         return 0;
     }
-    if (fwrite(vob, sizeof(vob_t), 1, tcxmlcheck_pipe) != 1) {
+    pid = fork();
+    if (pid == -1) {
+        tc_log_perror(PACKAGE, "probe_source_xml(): fork failed");
+        return 0;
+    } else if (pid > 0) {
+        /* Child process */
+        const char *new_argv[6];
+        close(tochild[1]);
+        close(fromchild[0]);
+        if (tochild[0] != 0) {
+            if (dup2(tochild[0], 0) == -1) {
+                tc_log_perror(PACKAGE, "probe_source_xml(): dup2(0) failed");
+                exit(-1);
+            }
+            close(tochild[0]);
+        }
+        if (fromchild[1] != 1) {  // theoretically always true, but JIC
+            if (dup2(fromchild[1], 1) == -1) {
+                tc_log_perror(PACKAGE, "probe_source_xml(): dup2(1) failed");
+                exit(-1);
+            }
+            close(fromchild[1]);
+        }
+        new_argv[0] = "tcxmlcheck";
+        new_argv[1] = "-i";
+        new_argv[2] = vob->video_in_file;
+        new_argv[3] = "-B";
+        new_argv[4] = (which==PROBE_XML_VIDEO ? "-V" : "-A");
+        new_argv[5] = NULL;
+        execvp("tcxmlcheck", (char **)new_argv);
+        tc_log_perror(PACKAGE, "probe_source_xml(): exec(tcxmlcheck) failed");
+        exit(-1);
+    }
+    /* Parent process */
+    retval = 0;
+    close(tochild[0]);
+    close(fromchild[1]);
+    if (write(tochild[1], vob, sizeof(vob_t)) != sizeof(vob_t)) {
         tc_log_error(PACKAGE, "Error writing data to tcxmlcheck: %s",
                      strerror(errno));
-        return 0;
+        close(tochild[1]);
+        close(fromchild[0]);
+        /* Can't just return--need to reap the child */
+        goto reapchild;
     }
-    pclose(tcxmlcheck_pipe);
-    memset(buffer, 0 ,TC_BUF_MAX);
-    i = tc_snprintf(buffer, sizeof(buffer),
-                    "tcxmlcheck -i \"%s\" -B -%c",
-                    vob->video_in_file,
-                    which==PROBE_XML_VIDEO ? 'V' : 'A');
-    if (i < 0 || i >= sizeof(buffer)) {
-        tc_log_error(PACKAGE, "command buffer overflow");
-        return 0;
-    }
-    tcxmlcheck_pipe = popen(buffer, "r");
-    if (!tcxmlcheck_pipe) {
-        tc_log_error(PACKAGE, "Error opening pipe: %s", strerror(errno));
-        return 0;
-    }
-    if (fread(vob, sizeof(vob_t), 1, tcxmlcheck_pipe) != 1) {
+    close(tochild[1]);
+    if (read(fromchild[0], vob, sizeof(vob_t)) != sizeof(vob_t)) {
         tc_log_error(PACKAGE, "Error reading data from tcxmlcheck");
-        return 0;
+        close(fromchild[0]);
+        goto reapchild;
     }
-    if (fread(&resize, sizeof(int), 1, tcxmlcheck_pipe) != 1) {
+    if (read(fromchild[0], &resize, sizeof(int)) != sizeof(int)) {
 	tc_log_error(PACKAGE, "Error reading data from tcxmlcheck 2");
-	return 0;
+        close(fromchild[0]);
+        goto reapchild;
     }
-    pclose(tcxmlcheck_pipe);
+    close(fromchild[0]);
     if (which == PROBE_XML_VIDEO && resize == 2) {
         // XML forced resize, clear command line parameters
         resize1 = TC_FALSE;
@@ -191,8 +218,13 @@ int probe_source_xml(vob_t *vob, int which)
         vob->zoom_height  = 0;
         vob->zoom_filter  = TCV_ZOOM_LANCZOS3;
     }
+    retval = 1;
+
+  reapchild:  // clean up after the child process
+    waitpid(pid, NULL, 0);
 #endif  // HAVE_LIBXML2
-    return 1;
+
+    return retval;
 }
 
 /*************************************************************************/

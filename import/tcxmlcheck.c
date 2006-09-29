@@ -23,8 +23,6 @@
 
 #include "transcode.h"
 
-#include <sys/ipc.h>
-#include <sys/shm.h>
 #include <math.h>
 
 #include "ioxml.h"
@@ -126,12 +124,11 @@ static int f_complete_vob_info(vob_t *p_vob,int s_type_check)
 int main(int argc, char *argv[])
 {
 
-	vob_t s_vob,*p_vob;
+	vob_t s_vob;
 	const char *p_in_v_file="/dev/stdin",*p_in_a_file=NULL,*p_audio_tmp=NULL,*p_video_tmp=NULL;
 	pid_t s_pid;
-	int s_bin_dump=0,s_type_check=VIDEO_MODE|AUDIO_MODE,s_shmem=0;
-	int s_shm,s_rc,s_cmd;
-	key_t s_key=0x00112233;
+	int s_bin_dump=0,s_type_check=VIDEO_MODE|AUDIO_MODE;
+	int s_rc,s_cmd;
 
 	//proper initialization
 	memset(&s_vob, 0, sizeof(vob_t));
@@ -164,9 +161,6 @@ int main(int argc, char *argv[])
 			case 'V':
 		  		s_type_check = VIDEO_MODE;
 		  	break;
-			case 'S':
-		  		s_shmem = 1;
-		  	break;
 			case 'v':
 		  		version();
 		  		exit(0);
@@ -192,49 +186,13 @@ int main(int argc, char *argv[])
 	 *
 	 * ------------------------------------------------------------*/
 
-	if ((s_bin_dump) && (s_shmem))
+	if (s_bin_dump)
 	{
-		if((s_shm = shmget(s_key, 0, 0600)) != -1)
-			shmctl(s_shm, IPC_RMID, NULL);
-
 		if((tc_pread(STDIN_FILENO, (uint8_t *) &s_vob, sizeof(vob_t))) != sizeof(vob_t))
 		{
 			tc_log_error(EXE,"Error reading data from stdin");
 			exit(1);
 		}
-		if((s_shm=shmget(s_key,sizeof(vob_t),IPC_CREAT|0600)) == -1)
-		{
-			tc_log_error(EXE,"Cannot create shared memory segment");
-			exit(1);
-		}
-		if ((p_vob=(vob_t *)shmat(s_shm,NULL,0)) == (vob_t *)-1)
-		{
-			shmctl( s_shm, IPC_RMID, NULL );
-			(int) shmdt(p_vob);
-			tc_log_error(EXE,"Cannot attach shared memory segment");
-			exit(1);
-		}
-		ac_memcpy((char *)p_vob,(char *) &s_vob, sizeof(vob_t));
-		(int) shmdt(p_vob);
-		exit(0);
-	}
-	else if (s_bin_dump)
-	{
-		if((s_shm=shmget(s_key,sizeof(vob_t),0600)) == -1)
-		{
-			tc_log_error(EXE,"Cannot create shared memory segment: use -S option to create it");
-			exit(1);
-		}
-		if ((p_vob=(vob_t *)shmat(s_shm,NULL,0)) == (vob_t *)-1)
-		{
-			shmctl( s_shm, IPC_RMID, NULL );
-			(int) shmdt(p_vob);
-			tc_log_error(EXE,"Cannot attach shared memory segment");
-			exit(1);
-		}
-		ac_memcpy((char *)&s_vob,(char *) p_vob, sizeof(vob_t));
-		shmctl( s_shm, IPC_RMID, NULL );
-		(int) shmdt(p_vob);
 		p_video_tmp=s_vob.video_in_file;
 		p_audio_tmp=s_vob.audio_in_file;
 	}
