@@ -271,12 +271,12 @@ static int tc_xvid_encode_video(TCModuleInstance *self,
      */
     if(vob->im_v_codec == CODEC_YUV422) {
         /* Convert to UYVY */
-        tcv_convert(pd->tcvhandle, inframe->video_buf, vob->ex_v_width,
-                    vob->ex_v_height, IMG_YUV422P, IMG_UYVY);
+        tcv_convert(pd->tcvhandle, inframe->video_buf, inframe->video_buf,
+		    vob->ex_v_width, vob->ex_v_height, IMG_YUV422P, IMG_UYVY);
     } else if (vob->im_v_codec == CODEC_RGB) {
         /* Convert to BGR (why isn't RGB supported??) */
-        tcv_convert(pd->tcvhandle, inframe->video_buf, vob->ex_v_width,
-                    vob->ex_v_height, IMG_RGB24, IMG_BGR24);
+        tcv_convert(pd->tcvhandle, inframe->video_buf, inframe->video_buf,
+		    vob->ex_v_width, vob->ex_v_height, IMG_RGB24, IMG_BGR24);
     }
 
     /* Init the stat structure */

@@ -369,12 +369,14 @@ MOD_encode
 	if(vob->im_v_codec == CODEC_YUV422) {
 		/* Convert to UYVY */
 		vob_t *vob = tc_get_vob();
-		tcv_convert(thismod.tcvhandle, param->buffer, vob->ex_v_width,
-			    vob->ex_v_height, IMG_YUV422P, IMG_UYVY);
+		tcv_convert(thismod.tcvhandle, param->buffer, param->buffer,
+			    vob->ex_v_width, vob->ex_v_height,
+			    IMG_YUV422P, IMG_UYVY);
 	} else if (vob->im_v_codec == CODEC_RGB) {
 		/* Convert to BGR (why isn't RGB supported??) */
-		tcv_convert(thismod.tcvhandle, param->buffer, vob->ex_v_width,
-			    vob->ex_v_height, IMG_RGB24, IMG_BGR24);
+		tcv_convert(thismod.tcvhandle, param->buffer, param->buffer,
+			    vob->ex_v_width, vob->ex_v_height,
+			    IMG_RGB24, IMG_BGR24);
         }
 
 	/* Init the stat structure */

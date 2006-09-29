@@ -369,8 +369,8 @@ MOD_encode
 
     if (srcfmt && destfmt) {
       vob_t *vob = tc_get_vob();
-      if (!tcv_convert(tcvhandle, param->buffer, vob->ex_v_width,
-		       vob->ex_v_height, srcfmt, destfmt)) {
+      if (!tcv_convert(tcvhandle, param->buffer, param->buffer,
+		       vob->ex_v_width, vob->ex_v_height, srcfmt, destfmt)) {
 	tc_log_warn(MOD_NAME, "image conversion failed");
 	return(TC_EXPORT_ERROR);
       }

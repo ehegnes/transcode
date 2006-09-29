@@ -243,13 +243,13 @@ int tc_filter(frame_list_t *ptr_, char *options){
 
 			case CODEC_YUV:
 
-				if (!tcv_convert(parameters->tcvhandle, ptr->video_buf, ptr->v_width, ptr->v_height, IMG_YUV_DEFAULT, IMG_RGB24)){
+				if (!tcv_convert(parameters->tcvhandle, ptr->video_buf, ptr->video_buf, ptr->v_width, ptr->v_height, IMG_YUV_DEFAULT, IMG_RGB24)){
 					tc_log_error(MOD_NAME, "cannot convert YUV stream to RGB format !");
 					return -1;
 				}
 
 				if ((print_mask(parameters->xpos, parameters->ypos, parameters->xresolution, parameters->yresolution, parameters->xdim, parameters->ydim, ptr))<0) return -1;
-				if (!tcv_convert(parameters->tcvhandle, ptr->video_buf, ptr->v_width, ptr->v_height, IMG_RGB24, IMG_YUV_DEFAULT)){
+				if (!tcv_convert(parameters->tcvhandle, ptr->video_buf, ptr->video_buf, ptr->v_width, ptr->v_height, IMG_RGB24, IMG_YUV_DEFAULT)){
 					tc_log_error(MOD_NAME, "cannot convert RGB stream to YUV format !");
 					return -1;
 				}

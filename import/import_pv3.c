@@ -627,8 +627,7 @@ static int pv3_decode_video(TCModuleInstance *self,
 {
     vob_t *vob = tc_get_vob();  // for output codec--will this be in outframe?
     PrivateData *pd;
-    /* FIXME: a tcv_convert() taking two buffers would be nice */
-    // static uint8_t yuy2_frame[2040*2040*2];  // max PV3 frame size
+    static uint8_t yuy2_frame[2040*2040*2];  // max PV3 frame size
 
     if (!self || !inframe || !outframe) {
         tc_log_error(MOD_NAME, "decode_video: NULL parameter(s)!");
@@ -636,13 +635,13 @@ static int pv3_decode_video(TCModuleInstance *self,
     }
     pd = self->userdata;
 
-    if (!pv3_decode_frame(pd, inframe->video_buf, outframe->video_buf, NULL))
+    if (!pv3_decode_frame(pd, inframe->video_buf, yuy2_frame, NULL))
         return -1;
 
     outframe->v_width = pd->framebuf[4] * 8;   // FIXME: do we set these here?
     outframe->v_height = pd->framebuf[5] * 8;  // FIXME: set anything else too?
 
-    if (!tcv_convert(pd->tcvhandle, outframe->video_buf,
+    if (!tcv_convert(pd->tcvhandle, yuy2_frame, outframe->video_buf,
                      outframe->v_width, outframe->v_height, IMG_YUY2,
                      vob->im_v_codec==CODEC_YUV422 ? IMG_YUV422P : IMG_YUV420P)
     ) {

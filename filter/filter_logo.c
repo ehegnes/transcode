@@ -241,7 +241,7 @@ static int flogo_convert_image(TCVHandle    tcvhandle,
         }
     }
 
-    ret = tcv_convert(tcvhandle, dst, width, height, IMG_RGB24, ifmt);
+    ret = tcv_convert(tcvhandle, dst, dst, width, height, IMG_RGB24, ifmt);
     if (ret == 0) {
         tc_log_error(MOD_NAME, "RGB->YUV conversion failed");
         return 0;

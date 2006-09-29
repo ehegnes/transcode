@@ -1,17 +1,32 @@
 2006-09-29 Andrew Church <achurch at achurch dot org>
+  * libtcvideo/tcvideo.c libtcvideo/tcvideo.h
+  Change tcv_convert() to take two image pointers, source and destination,
+  rather than a single image that is then modified in place.  (The same
+  pointer can be used for both source and destination.)
+
+  * encode/encode_xvid.c export/export_mpeg2enc.c export/export_raw.c
+    export/export_xvid4.c export/export_yuv4mpeg.c filter/filter_ascii.c
+    filter/filter_facemask.c filter/filter_logo.c filter/filter_msharpen.c
+    filter/filter_smartbob.c filter/filter_smartdeinter.c
+    filter/filter_whitebalance.c import/import_pv3.c
+  Use the new tcv_convert() calling format.
+
+2006-09-29 Andrew Church <achurch at achurch dot org>
   * filter/Makefile.am
     Removed: filter/filter_clone.c
   Remove "clone" filter, as the only thing it does (15->25fps conversion)
   is done better by modfps, it's not documented, and Google says it's not
   in use anyway.
 
-  * src/cmdline_def.h
-  Make sure that -T t,c selects only a single chapter, regardless of any
-  previous -T options.
-
+2006-09-29 Andrew Church <achurch at achurch dot org>
   * import/tcxmlcheck.c src/probe.c
   Change XML probing code to use a two-way pipe to tcxmlcheck rather than
   sharing memory across two executions (untested).
+
+2006-09-29 Andrew Church <achurch at achurch dot org>
+  * src/cmdline_def.h
+  Make sure that -T t,c selects only a single chapter, regardless of any
+  previous -T options.
 
   * src/framebuffer.h
   Minor comment update.

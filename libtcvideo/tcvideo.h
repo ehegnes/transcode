@@ -86,8 +86,8 @@ int tcv_antialias(TCVHandle handle,
                   uint8_t *src, uint8_t *dest, int width, int height,
                   int Bpp, double weight, double bias);
 
-int tcv_convert(TCVHandle handle, uint8_t *image, int width, int height,
-                ImageFormat srcfmt, ImageFormat destfmt);
+int tcv_convert(TCVHandle handle, uint8_t *src, uint8_t *dest, int width,
+                int height, ImageFormat srcfmt, ImageFormat destfmt);
 
 /*************************************************************************/
 
