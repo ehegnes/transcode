@@ -53,6 +53,10 @@ enum tcbufferstatus_ {
 };
 
 /*
+ * NOTE: The following warning will become irrelevant once NMS is
+ *       in place, and frame_list_t can go away completely.  --AC
+ *       (here's a FIXME tag so we don't forget)
+ *
  * BIG FAT WARNING:
  *
  * These structures must be kept in sync: meaning that if you add
