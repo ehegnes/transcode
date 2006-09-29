@@ -51,7 +51,7 @@ static int capability_flag	= TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422 | TC_CAP_PC
 #include "videodev2.h"
 #endif
 
-#include "aclib/imgconvert.h"
+#include "libtcvideo/tcvideo.h"
 
 
 /*
@@ -160,6 +160,8 @@ static char *	v4l2_resync_previous_frame = 0;
 static char		v4l2_crop_parm[128] = "";
 static char		v4l2_format_string[128] = "";
 
+static TCVHandle v4l2_tcvhandle = 0;
+
 static v4l2_parameter_t v4l2_parameters[] =
 {
 	{ v4l2_param_int, 		"resync_margin",	0,							{ .integer	= &v4l2_resync_margin_frames }},
@@ -203,18 +205,11 @@ static void v4l2_format_convert(uint8_t *source, uint8_t *dest,
                                 int width, int height)
 {
     v4l2_format_convert_table_t *conv;
-    uint8_t *srcplanes[3], *destplanes[3];
-
     if (v4l2_convert_index < 0)
         return;
     conv = &v4l2_format_convert_table[v4l2_convert_index];
-    srcplanes[0] = source;
-    destplanes[0] = dest;
-    if (IS_YUV_FORMAT(conv->from))
-        YUV_INIT_PLANES(srcplanes, source, conv->from, width, height);
-    if (IS_YUV_FORMAT(conv->to))
-        YUV_INIT_PLANES(destplanes, dest, conv->to, width, height);
-    ac_imgconvert(srcplanes, conv->from, destplanes, conv->to, width, height);
+    tcv_convert(v4l2_tcvhandle,
+		source, dest, width, height, conv->from, conv->to);
 }
 
 /* ============================================================
@@ -449,6 +444,12 @@ static int v4l2_video_init(int layout, const char * device, int width,
 			tc_log_error(MOD_NAME, "layout (%d) must be one of CODEC_RGB, CODEC_YUV or CODEC_YUV422", layout);
 			return(1);
 		}
+	}
+
+	v4l2_tcvhandle = tcv_init();
+	if (!v4l2_tcvhandle) {
+		tc_log_error(MOD_NAME, "tcv_init() failed");
+		return(1);
 	}
 
 	v4l2_parse_options(options);
@@ -944,6 +945,9 @@ static int v4l2_video_grab_stop(void)
 
 	free(v4l2_resync_previous_frame);
 	v4l2_resync_previous_frame = 0;
+
+	tcv_free(v4l2_tcvhandle);
+	v4l2_tcvhandle = 0;
 
 	return(0);
 }

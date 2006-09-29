@@ -30,7 +30,7 @@
 #include "transcode.h"
 #include "libtc/libtc.h"
 #include "libtc/optstr.h"
-#include "aclib/imgconvert.h"
+#include "libtcvideo/tcvideo.h"
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422;
@@ -117,6 +117,7 @@ u_int	 bktr_vsource = METEOR_INPUT_DEV1;  /* tuner */
 u_int	 bktr_asource = AUDIO_TUNER;
 int	 bktr_hwfps = 0;
 int	 bktr_mute = 0;
+TCVHandle bktr_tcvhandle = 0;
 
 
 void bktr_usage(void)
@@ -285,6 +286,12 @@ int bktr_init(int video_codec, const char *video_device,
             "import height %d too large! "
             "PAL max height = 576, NTSC max height = 480",
             height);
+        return(1);
+    }
+
+    bktr_tcvhandle = tcv_init();
+    if (!bktr_tcvhandle) {
+        tcv_log_warn(MOD_NAME, "tcv_init() failed");
         return(1);
     }
 
@@ -511,13 +518,13 @@ static void copy_buf_yuv422(char *dest, size_t size)
 {
     uint8_t *planes;
 
-    if (bktr_buffer_size != size)
+    if (bktr_buffer_size != size) {
         tc_log_warn(MOD_NAME,
             "buffer sizes do not match (input %lu != output %lu)",
             (unsigned long)bktr_buffer_size, (unsigned long)size);
-
-    YUV_INIT_PLANES(planes, dest, IMG_YUV422P, size/2, 1);
-    ac_imgconvert(&bktr_buffer, IMG_UYVY, planes, IMG_YUV422P, size/2, 1);
+    }
+    tcv_convert(bktr_tcvhandle, bktr_buffer, dest, size/2, 1,
+		IMG_UYVY, IMG_YUV422P);
 }
 
 static void copy_buf_yuv(char *dest, size_t size)
@@ -551,8 +558,8 @@ static void copy_buf_rgb(char *dest, size_t size)
 
     /* bktr_buffer_size was set to width * height * 4 (32 bits) */
     /* so width * height = bktr_buffer_size / 4                 */
-    ac_imgconvert(&bktr_buffer, IMG_ARGB32, &dest, IMG_RGB24,
-		  bktr_buffer_size/4, 1);
+    tcv_convert(bktr_buffer, dest, bktr_buffer_size/4, 1,
+                IMG_ARGB32, IMG_RGB24);
 }
 
 

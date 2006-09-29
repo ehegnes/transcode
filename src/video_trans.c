@@ -12,7 +12,6 @@
 #include "transcode.h"
 #include "framebuffer.h"
 #include "video_trans.h"
-#include "aclib/imgconvert.h"
 #include "libtcvideo/tcvideo.h"
 
 /*************************************************************************/
@@ -381,11 +380,12 @@ static int do_process_frame(vob_t *vob, vframe_list_t *ptr)
 
     if (decolor) {
         if (ptr->v_codec == CODEC_RGB) {
-            /* Convert to 8-bit grayscale, then back to RGB24 */
-            ac_imgconvert(vtd.planes, IMG_RGB24, vtd.tmpplanes, IMG_GRAY8,
-                          ptr->v_width, ptr->v_height);
-            ac_imgconvert(vtd.tmpplanes, IMG_GRAY8, vtd.planes, IMG_RGB24,
-                          ptr->v_width, ptr->v_height);
+            /* Convert to 8-bit grayscale, then back to RGB24.  Just
+             * averaging the values won't give us the right intensity. */
+            tcv_convert(handle, vtd.planes[0], vtd.tmpplanes[0],
+                        ptr->v_width, ptr->v_height, IMG_RGB24, IMG_GRAY8);
+            tcv_convert(handle, vtd.tmpplanes[0], vtd.planes[0],
+                        ptr->v_width, ptr->v_height, IMG_GRAY8, IMG_RGB24);
         } else {
             /* YUV is easy: just set U and V to 128 */
             int UVsize = (ptr->v_width  / vtd.width_div[1])

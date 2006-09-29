@@ -22,7 +22,7 @@
  */
 
 #include "transcode.h"
-#include "aclib/imgconvert.h"
+#include "libtcvideo/tcvideo.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,6 +43,7 @@ static int capability_flag=TC_CAP_YUV|TC_CAP_RGB|TC_CAP_PCM|TC_CAP_AUD;
 static char buf2[PATH_MAX];
 
 static uint8_t *tmp_buffer; //[SIZE_RGB_FRAME];
+static TCVHandle tcvhandle;
 
 static int codec, width, height;
 
@@ -88,16 +89,25 @@ MOD_init
 
       image_info->quality = quality;
 
-      if (!tmp_buffer) tmp_buffer = malloc (vob->ex_v_width*vob->ex_v_height*3);
-      if (!tmp_buffer) return 1;
+      if (!tmp_buffer)
+	tmp_buffer = malloc (vob->ex_v_width*vob->ex_v_height*3);
+      if (!tmp_buffer)
+	return TC_EXPORT_ERROR;
 
-      return(0);
+      tcvhandle = tcv_init();
+      if (!tcvhandle) {
+	tc_log_error(MOD_NAME, "tcv_init() failed");
+	return TC_EXPORT_ERROR;
+      }
+
+      return TC_EXPORT_OK;
     }
 
-    if(param->flag == TC_AUDIO) return(0);
+    if(param->flag == TC_AUDIO)
+      return TC_EXPORT_OK;
 
     // invalid flag
-    return(TC_EXPORT_ERROR);
+    return TC_EXPORT_ERROR;
 }
 
 /* ------------------------------------------------------------
@@ -172,10 +182,8 @@ MOD_encode
     }
 
     if(codec==CODEC_YUV) {
-      uint8_t *planes[3];
-      YUV_INIT_PLANES(planes, param->buffer, IMG_YUV_DEFAULT, width, height);
-      ac_imgconvert(planes, IMG_YUV_DEFAULT, &tmp_buffer, IMG_RGB24,
-		    width, height);
+      tcv_convert(tcvhandle, param->buffer, tmp_buffer, width, height,
+		  IMG_YUV_DEFAULT, IMG_RGB24);
       out_buffer = tmp_buffer;
     }
 
@@ -209,8 +217,10 @@ MOD_stop
     DestroyConstitute();
     DestroyMagick();
 
-    if (tmp_buffer) free(tmp_buffer);
+    free(tmp_buffer);
     tmp_buffer = NULL;
+    tcv_free(tcvhandle);
+    tcvhandle = 0;
 
     return(0);
   }

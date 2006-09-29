@@ -26,9 +26,9 @@
 #define MOD_CODEC   "(video) DV | (audio) PCM"
 
 #include "transcode.h"
-#include "aclib/imgconvert.h"
 #include "libtc/libtc.h"
 #include "libtc/xio.h"
+#include "libtcvideo/tcvideo.h"
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_DV |
@@ -44,6 +44,7 @@ static int frame_size=0;
 static FILE *fd=NULL;
 static uint8_t *tmpbuf = NULL;
 static int yuv422_mode = 0, width, height;
+static TCVHandle tcvhandle = 0;
 
 /* ------------------------------------------------------------
  *
@@ -139,6 +140,12 @@ MOD_open
       tmpbuf = tc_malloc(frame_size);
       if (!tmpbuf) {
 	tc_log_error(MOD_NAME, "out of memory");
+	return(TC_IMPORT_ERROR);
+      }
+
+      tcvhandle = tcv_init();
+      if (!tcvhandle) {
+	tc_log_error(MOD_NAME, "tcv_init() failed");
 	return(TC_IMPORT_ERROR);
       }
 
@@ -248,11 +255,10 @@ MOD_decode
     param->size = frame_size;
 
     if (yuv422_mode) {
-        uint8_t *planes[3];
         if (fread(tmpbuf, frame_size, 1, fd) !=1)
             return(TC_IMPORT_ERROR);
-        YUV_INIT_PLANES(planes, param->buffer, IMG_YUV422P, width, height);
-	ac_imgconvert(&tmpbuf, IMG_YUY2, planes, IMG_YUV422P, width, height);
+	tcv_convert(tcvhandle, tmpbuf, param->buffer, width, height,
+		    IMG_YUY2, IMG_YUV422P);
     } else {
         if (fread(param->buffer, frame_size, 1, fd) !=1)
             return(TC_IMPORT_ERROR);
@@ -278,6 +284,10 @@ MOD_close
 
     if(fd) pclose(fd);
     fd=NULL;
+
+    if (tcvhandle)
+      tcv_free(tcvhandle);
+    tcvhandle=0;
 
     free(tmpbuf);
     tmpbuf=NULL;

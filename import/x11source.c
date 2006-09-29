@@ -20,7 +20,7 @@
 #include "libtc/ratiocodes.h"
 #include "libtc/tccodecs.h"
 #include "libtc/tcframes.h"
-#include "aclib/imgconvert.h"
+#include "libtcvideo/tcvideo.h"
 
 #ifdef HAVE_X11
 
@@ -77,15 +77,9 @@ static int tc_x11source_acquire_data_plain(TCX11Source *handle,
                                         handle->image->height,
                                         handle->out_fmt);
         if (size <= maxdata) {
-            uint8_t *planes[3] = { NULL, NULL, NULL };
-
-            YUV_INIT_PLANES(planes, data, handle->conv_fmt,
-                            handle->image->width,
-                            handle->image->height);
-            ac_imgconvert((uint8_t**)&handle->image->data, IMG_BGRA32,
-                          (handle->out_fmt == TC_CODEC_RGB) ?(uint8_t**)&data :planes,
-                          handle->conv_fmt,
-                          handle->image->width, handle->image->height);
+            tcv_convert(handle->tcvhandle, handle->image->data, data,
+                        handle->image->width, handle->image->height,
+                        IMG_BGRA32, handle->conv_fmt);
         } else {
             size = 0;
         }
@@ -128,15 +122,9 @@ static int tc_x11source_acquire_data_shm(TCX11Source *handle,
                                         handle->image->height,
                                         handle->out_fmt);
         if (size <= maxdata) {
-            uint8_t *planes[3] = { NULL, NULL, NULL };
-
-            YUV_INIT_PLANES(planes, data, handle->conv_fmt,
-                            handle->image->width,
-                            handle->image->height);
-            ac_imgconvert((uint8_t**)&handle->image->data, IMG_BGRA32,
-                          (handle->out_fmt == TC_CODEC_RGB) ?(uint8_t**)&data :planes,
-                          handle->conv_fmt,
-                          handle->image->width, handle->image->height);
+            tcv_convert(handle->tcvhandle, handle->image->data, data,
+                        handle->image->width, handle->image->height,
+                        IMG_BGRA32, handle->conv_fmt);
         } else {
             size = 0;
         }
@@ -296,8 +284,10 @@ int tc_x11source_close(TCX11Source *handle)
                 return ret;
             }
 
+            tcv_free(handle->tcvhandle);
+
             XFreePixmap(handle->dpy, handle->pix); /* XXX */
-	        XFreeGC(handle->dpy, handle->gc); /* XXX */
+            XFreeGC(handle->dpy, handle->gc); /* XXX */
 
             ret = XCloseDisplay(handle->dpy);
             if (ret == 0) {
@@ -366,23 +356,34 @@ int tc_x11source_open(TCX11Source *handle, const char *display,
         goto pix_failed;
     }
  
-	handle->gc = XCreateGC(handle->dpy, handle->root, 0, 0);
+    handle->gc = XCreateGC(handle->dpy, handle->root, 0, 0);
     /* FIXME: what about failures? */
+
+    handle->tcvhandle = tcv_init();
+    if (!handle->tcvhandle)
+        goto tcv_failed;
 
 #ifdef HAVE_X11_SHM
     if (XShmQueryExtension(handle->dpy) != 0
       && (mode & TC_X11_MODE_SHM)) {
         tc_log_info(__FILE__, "using XShm extension");
-        return tc_x11source_init_shm(handle);
-    }
+        if (tc_x11source_init_shm(handle) < 0)
+            goto init_failed;
+    } else
 #endif /* X11_SHM */
-    return tc_x11source_init_plain(handle);
+    if (tc_x11source_init_plain(handle) < 0)
+        goto init_failed;
+    return 0;
 
-pix_failed:
+  init_failed:
+    tcv_free(handle->tcvhandle);
+  tcv_failed:
+    XFreeGC(handle->dpy, handle->gc);
     XFreePixmap(handle->dpy, handle->pix);
-link_failed:
+  pix_failed:
+  link_failed:
     XCloseDisplay(handle->dpy);
-open_failed:
+  open_failed:
     return -1;
 }
 

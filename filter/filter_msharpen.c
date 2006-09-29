@@ -171,9 +171,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		return (-1);
 	}
 
-	if (vob->im_v_codec == CODEC_YUV) {
-		mfd->tcvhandle = tcv_init();
-	}
+	mfd->tcvhandle = tcv_init();
 
 	// filter init ok.
 	if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
@@ -222,6 +220,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	mfd->work = NULL;
 
 	tcv_free(mfd->tcvhandle);
+	mfd->tcvhandle = 0;
 
 	if (mfd)
 		free(mfd);
@@ -249,15 +248,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	// const int	srcpitch = ptr->v_width*4;
 	const int	dstpitch = ptr->v_width*4;
 
-	if (vob->im_v_codec == CODEC_YUV) {
-		tcv_convert(mfd->tcvhandle, ptr->video_buf, ptr->video_buf,
-			    ptr->v_width, ptr->v_height,
-			    IMG_YUV_DEFAULT, IMG_RGB24);
-	}
-
-	ac_imgconvert(&ptr->video_buf, IMG_RGB24,
-		      &mfd->convertFrameIn, IMG_BGRA32,
-		      ptr->v_width, ptr->v_height);
+	tcv_convert(mfd->tcvhandle, ptr->video_buf, mfd->convertFrameIn,
+		    ptr->v_width, ptr->v_height,
+		    vob->im_v_codec==CODEC_YUV ? IMG_YUV_DEFAULT : IMG_RGB24,
+		    IMG_BGRA32);
 
 	src = mfd->convertFrameIn;
 	dst = mfd->convertFrameOut;
@@ -485,15 +479,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		blurp += bwidth;
 	}
 
-	ac_imgconvert(&mfd->convertFrameOut, IMG_BGRA32,
-		      &ptr->video_buf, IMG_RGB24,
-		      ptr->v_width, ptr->v_height);
-
-	if (vob->im_v_codec == CODEC_YUV) {
-		tcv_convert(mfd->tcvhandle, ptr->video_buf, ptr->video_buf,
-			    ptr->v_width, ptr->v_height,
-			    IMG_RGB24, IMG_YUV_DEFAULT);
-	}
+	tcv_convert(mfd->tcvhandle, mfd->convertFrameOut, ptr->video_buf,
+		    ptr->v_width, ptr->v_height, IMG_BGRA32,
+		    vob->im_v_codec==CODEC_YUV ? IMG_YUV_DEFAULT : IMG_RGB24);
 
 	return 0;
   }

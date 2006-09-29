@@ -10,7 +10,7 @@
 
 #include "transcode.h"
 #include "tcinfo.h"
-#include "aclib/imgconvert.h"
+#include "libtcvideo/tcvideo.h"
 #include "ioaux.h"  /* for import_exit() prototype */
 #include "tc.h"  /* for function prototypes */
 
@@ -33,11 +33,12 @@
  * check_yuy2:  Internal routine to check whether libdv returns YUY2 or
  * YV12 data for PAL DV frames.
  *
- * Parameters: None.
- * Return value:  1 if the decoded video data is in YUY2 format,
- *                0 if the decoded video data is in YV12 format,
- *               -1 if the decoded video data format is unknown.
- * Preconditions: None.
+ * Parameters:
+ *     None.
+ * Return value:
+ *      1 if the decoded video data is in YUY2 format,
+ *      0 if the decoded video data is in YV12 format,
+ *     -1 if the decoded video data format is unknown.
  */
 
 static int check_yuy2(void)
@@ -201,9 +202,10 @@ static int check_yuy2(void)
  * decode_dv:  DV decoding loop, called from tcdecode.  Reads raw DV frames
  * from stdin and writes the decoded video or audio data to stdout.
  *
- * Parameters: decode: Pointer to decoding parameter structure.
- * Return value: None.
- * Preconditions: None.
+ * Parameters:
+ *     decode: Pointer to decoding parameter structure.
+ * Return value:
+ *     None.
  */
 
 void decode_dv(decode_t *decode)
@@ -215,6 +217,7 @@ void decode_dv(decode_t *decode)
     uint8_t framebuf[DV_FRAME_SIZE_625_50];    /* Buffer for input frame */
     uint8_t *video[3];                         /* Decoded video data */
     uint8_t *video_conv_buf[3];                /* For YUY2/420P conversion */
+    TCVHandle tcvhandle;                       /* For YUY2/420P conversion */
     ImageFormat srcfmt = 0, destfmt = 0;       /* For YUY2/420P conversion */
     dv_color_space_t colorspace = 0;           /* For dv_decode_full_frame() */
     int linesize[3], planesize[3];             /* video[] line/plane size */
@@ -239,6 +242,15 @@ void decode_dv(decode_t *decode)
     audio_inptr[1] = audio_in[1];
     audio_inptr[2] = audio_in[2];
     audio_inptr[3] = audio_in[3];
+
+    /**** Initialize libtcvideo for potential image format conversion ****/
+
+    tcvhandle = tcv_init();
+    if (!tcvhandle) {
+        tc_log_error(__FILE__, "Unable to initialize libtcvideo");
+        import_exit(1);
+        return;
+    }
 
     /**** Initialize libdv decoder ****/
 
@@ -345,26 +357,19 @@ void decode_dv(decode_t *decode)
     /* Plane 0: packed RGB, packed YUV, or planar Y */
     linesize[0] = (linesize[0] * decoder->width) / 16;
     planesize[0] = linesize[0] * decoder->height;
-    if (planesize[0])
-        video[0] = tc_bufalloc(planesize[0]);
-    else
-        video[0] = NULL;
 
     /* Plane 1: planar U (half height) */
     linesize[1] = (linesize[1] * decoder->width) / 16;
     planesize[1] = linesize[1] * (decoder->height/2);
-    if (planesize[1])
-        video[1] = tc_bufalloc(planesize[1]);
-    else
-        video[1] = NULL;
 
     /* Plane 2: planar V (half height) */
     linesize[2] = (linesize[2] * decoder->width) / 16;
     planesize[2] = linesize[2] * (decoder->height/2);
-    if (planesize[2])
-        video[2] = tc_bufalloc(planesize[2]);
-    else
-        video[2] = NULL;
+
+    /* Set up pointers into a contiguous buffer */
+    video[0] = tc_bufalloc(planesize[0] + planesize[1] + planesize[2]);
+    video[1] = video[0] + planesize[0];
+    video[2] = video[1] + planesize[1];
 
     /* Conversion buffer (allocate just in case) */
     video_conv_buf[0] = tc_bufalloc(decoder->width * decoder->height * 2);
@@ -372,15 +377,9 @@ void decode_dv(decode_t *decode)
     video_conv_buf[2] = video_conv_buf[1] + (decoder->width/2)*decoder->height;
 
     /* Make sure we got everything we need */
-    if ((planesize[0] && !video[0])
-     || (planesize[1] && !video[1])
-     || (planesize[2] && !video[2])
-     || !video_conv_buf[0]
-    ) {
+    if (!video[0] || !video_conv_buf[0]) {
         tc_log_error(__FILE__, "No memory for video buffers!");
         tc_buffree(video_conv_buf[0]);
-        tc_buffree(video[2]);
-        tc_buffree(video[1]);
         tc_buffree(video[0]);
         import_exit(1);
         return;
@@ -433,8 +432,9 @@ void decode_dv(decode_t *decode)
             } else {
                 dv_decode_full_frame(decoder, framebuf, colorspace,
                                      video_conv_buf, video_conv_linesize);
-                if (!ac_imgconvert(video_conv_buf, srcfmt, video, destfmt,
-                                   decoder->width, decoder->height)) {
+                if (!tcv_convert(tcvhandle, video_conv_buf[0], video[0],
+                                 decoder->width, decoder->height,
+                                 srcfmt, destfmt)) {
                     tc_log_error(__FILE__, "Image format conversion failed!");
                     error = 1;
                     goto done;
@@ -502,10 +502,9 @@ void decode_dv(decode_t *decode)
 
   done:
     tc_buffree(video_conv_buf[0]);
-    tc_buffree(video[2]);
-    tc_buffree(video[1]);
     tc_buffree(video[0]);
     dv_decoder_free(decoder);
+    tcv_free(tcvhandle);
 
     import_exit(error ? 1 : 0);
 

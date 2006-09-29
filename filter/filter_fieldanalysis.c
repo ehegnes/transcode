@@ -36,7 +36,7 @@
 #include "filter.h"
 #include "libtc/libtc.h"
 #include "libtc/optstr.h"
-#include "aclib/imgconvert.h"
+#include "libtcvideo/tcvideo.h"
 
 #include <assert.h>
 
@@ -78,6 +78,8 @@ typedef struct {
     int   progressiveFrames;
     int   fieldShiftFrames;
     int   telecineFrames;
+
+    TCVHandle tcvhandle;
 
 } myfilter_t;
 
@@ -392,8 +394,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	if (! (vob = tc_get_vob ()))
 	    return -1;
 
-	if (! (myf = myf_global = calloc (1, sizeof (myfilter_t)))) {
-	    tc_log_error(MOD_NAME, "calloc() failed");
+	if (! (myf = myf_global = tc_zalloc (sizeof (myfilter_t)))) {
+	    return -1;
+	}
+
+	if (! (myf->tcvhandle = tcv_init())) {
+	    tc_log_error(MOD_NAME, "tcv_init() failed");
+	    free(myf);
+	    myf = myf_global = NULL;
 	    return -1;
 	}
 
@@ -541,6 +549,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	else
 	    tc_log_info (MOD_NAME, "mixed video, no conclusion. Use deinterlacer for processing.");
 
+	tcv_free(myf->tcvhandle);
+	myf->tcvhandle = 0;
+
 	return 0;
     }
 
@@ -584,22 +595,20 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	/* Convert / Copy to luminance only */
 	switch (myf->codec) {
 	case CODEC_RGB:
-	    ac_imgconvert(&ptr->video_buf, IMG_RGB_DEFAULT,
-			  &myf->lumIn, IMG_Y8,
-			  myf->width, myf->height);
+	    tcv_convert(myf->tcvhandle, ptr->video_buf, myf->lumIn,
+			myf->width, myf->height, IMG_RGB_DEFAULT, IMG_Y8);
 	    break;
 	case CODEC_YUY2:
-	    ac_imgconvert(&ptr->video_buf, IMG_YUY2,
-			  &myf->lumIn, IMG_Y8,
-			  myf->width, myf->height);
+	    tcv_convert(myf->tcvhandle, ptr->video_buf, myf->lumIn,
+			myf->width, myf->height, IMG_YUY2, IMG_Y8);
 	    break;
 	case CODEC_YUV:
-	    ac_memcpy (myf->lumIn, ptr->video_buf, myf->size);
+	    tcv_convert(myf->tcvhandle, ptr->video_buf, myf->lumIn,
+			myf->width, myf->height, IMG_YUV_DEFAULT, IMG_Y8);
 	    break;
 	case CODEC_YUV422:
-	    ac_imgconvert(&ptr->video_buf, IMG_YUV422P,
-			  &myf->lumIn, IMG_Y8,
-			  myf->width, myf->height);
+	    tcv_convert(myf->tcvhandle, ptr->video_buf, myf->lumIn,
+			myf->width, myf->height, IMG_YUV422P, IMG_Y8);
 	    break;
 	default:
 	    assert (0);

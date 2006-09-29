@@ -32,7 +32,6 @@
 #define DS_HISTORY_SIZE 4		/* Need 4 fields(!) for tomsmocomp */
 
 #include "filter_tomsmocomp.h"
-#include "aclib/imgconvert.h"
 #include <assert.h>
 
 static tomsmocomp_t *tmc_global = NULL;
@@ -55,7 +54,7 @@ static void help_optstr (void) {
 "\n"
 "* Options:\n"
 "  topfirst - assume the top field, lines 0,2,4,... should be displayed\n"
-"    first.  The default is TopFirst, which seems to occure most.\n"
+"    first.  The default is TopFirst, which seems to occur most.\n"
 "    Note: DV video is usually BottomFirst!\n"
 "    You may have to look at a few frames to see which looks best.\n"
 "    The difference will be hardly visible, though.\n"
@@ -158,8 +157,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	if (! (vob = tc_get_vob ()))
 	    return -1;
 
-	if (! (tmc = tmc_global = calloc (1, sizeof (tomsmocomp_t)))) {
-	    tc_log_msg(MOD_NAME, "calloc() failed");
+	if (! (tmc = tmc_global = tc_zalloc (sizeof (tomsmocomp_t)))) {
+	    return -1;
+	}
+
+	if (! (tmc->tcvhandle = tcv_init())) {
+	    tc_log_error(MOD_NAME, "tcv_init() failed");
 	    return -1;
 	}
 
@@ -245,6 +248,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	free (tmc->frameIn);
 	free (tmc->frameOut);
 	tmc->framePrev = tmc->frameIn = tmc->frameOut = NULL;
+	tcv_free(tmc->tcvhandle);
+	tmc->tcvhandle = 0;
 	return 0;
     }
 
@@ -283,12 +288,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    ac_memcpy (tmc->frameIn, ptr->video_buf, tmc->size);
 	    break;
 	case CODEC_YUV:
-	    ac_imgconvert (planes, IMG_YUV_DEFAULT, &tmc->frameIn, IMG_YUY2,
-			   tmc->width, tmc->height);
+	    tcv_convert(tmc->tcvhandle, ptr->video_buf, tmc->frameIn,
+			tmc->width, tmc->height, IMG_YUV_DEFAULT, IMG_YUY2);
 	    break;
 	case CODEC_YUV422:
-	    ac_imgconvert (planes, IMG_YUV422P, &tmc->frameIn, IMG_YUY2,
-			   tmc->width, tmc->height);
+	    tcv_convert(tmc->tcvhandle, ptr->video_buf, tmc->frameIn,
+			tmc->width, tmc->height, IMG_YUV422P, IMG_YUY2);
 	    break;
 	}
 
@@ -303,14 +308,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		ac_memcpy (ptr->video_buf, tmc->frameOut, tmc->size);
 		break;
 	    case CODEC_YUV:
-		ac_imgconvert (&tmc->frameOut, IMG_YUY2,
-			       planes, IMG_YUV_DEFAULT,
-			       tmc->width, tmc->height);
+		tcv_convert(tmc->tcvhandle, tmc->frameOut,  ptr->video_buf,
+			    tmc->width, tmc->height, IMG_YUY2, IMG_YUV_DEFAULT);
 		break;
 	    case CODEC_YUV422:
-		ac_imgconvert (&tmc->frameOut, IMG_YUY2,
-			       planes, IMG_YUV422P,
-			       tmc->width, tmc->height);
+		tcv_convert(tmc->tcvhandle, tmc->frameOut,  ptr->video_buf,
+			    tmc->width, tmc->height, IMG_YUY2, IMG_YUV422P);
 		break;
 	    default:
 		tc_log_error(MOD_NAME, "codec: %x\n", tmc->codec);

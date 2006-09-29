@@ -225,6 +225,23 @@ static int checkall(uint8_t *srcimage, int accel, const char *name)
 
 /*************************************************************************/
 
+static const char *accel_flags(int accel)
+{
+    static char buf[1000];
+    snprintf(buf, sizeof(buf), "%s%s%s%s%s%s%s%s%s%s",
+           !accel                ? " none"     : "",
+           (accel & AC_IA32ASM ) ? " ia32asm"  : "",
+           (accel & AC_AMD64ASM) ? " amd64asm" : "",
+           (accel & AC_CMOVE   ) ? " cmove"    : "",
+           (accel & AC_MMX     ) ? " mmx"      : "",
+           (accel & AC_MMXEXT  ) ? " mmxext"   : "",
+           (accel & AC_3DNOW   ) ? " 3dnow"    : "",
+           (accel & AC_SSE     ) ? " sse"      : "",
+           (accel & AC_SSE2    ) ? " sse2"     : "",
+           (accel & AC_SSE3    ) ? " sse3"     : "");
+    return buf;
+}
+
 int main(int argc, char **argv)
 {
     static uint8_t srcbuf[WIDTH*HEIGHT*4];
@@ -232,7 +249,6 @@ int main(int argc, char **argv)
         height = HEIGHT;
     int i, j;
 
-    accel = ac_cpuinfo();
     while (argc > 1) {
         if (strcmp(argv[--argc],"-h") == 0) {
             fprintf(stderr,
@@ -329,6 +345,17 @@ int main(int argc, char **argv)
             return 1;
         }
     }
+    if (accel) {
+        if (accel & ~ac_cpuinfo()) {
+            fprintf(stderr, "Unavailable accel type(s):%s\n",
+                    accel_flags(accel & ~ac_cpuinfo()));
+            fprintf(stderr, "Supported on this machine:%s\n",
+                    accel_flags(ac_cpuinfo()));
+            return 1;
+        }
+    } else {
+        accel = ac_cpuinfo();
+    }
 
     srandom(0);  /* to give a standard "image" */
     for (i = 0; i < sizeof(srcbuf); i++)
@@ -354,17 +381,7 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    printf("Acceleration flags:%s%s%s%s%s%s%s%s%s%s\n",
-           !accel                ? " none"     : "",
-           (accel & AC_IA32ASM ) ? " ia32asm"  : "",
-           (accel & AC_AMD64ASM) ? " amd64asm" : "",
-           (accel & AC_CMOVE   ) ? " cmove"    : "",
-           (accel & AC_MMX     ) ? " mmx"      : "",
-           (accel & AC_MMXEXT  ) ? " mmxext"   : "",
-           (accel & AC_3DNOW   ) ? " 3dnow"    : "",
-           (accel & AC_SSE     ) ? " sse"      : "",
-           (accel & AC_SSE2    ) ? " sse2"     : "",
-           (accel & AC_SSE3    ) ? " sse3"     : "");
+    printf("Acceleration flags:%s\n", accel_flags(accel));
     if (compare)
         printf("Units: conversions/time (unaccelerated = 100)\n\n");
     else

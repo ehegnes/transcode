@@ -59,6 +59,7 @@ typedef struct MyFilterData {
 	int		threshold;
 	int		srcPitch;
 	int		dstPitch;
+	TCVHandle	tcvhandle;
 } MyFilterData;
 
 static MyFilterData *mfd;
@@ -162,6 +163,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	}
 	memset(mfd->convertFrameOut, 0, width*height*sizeof(Pixel32));
 
+	mfd->tcvhandle = tcv_init();
+
 	// filter init ok.
 	if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
@@ -195,6 +198,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		free (mfd->convertFrameOut);
 	mfd->convertFrameOut = NULL;
 
+	tcv_free(mfd->tcvhandle);
+	mfd->tcvhandle = 0;
+
 	if (mfd)
 		free(mfd);
 	mfd = NULL;
@@ -221,10 +227,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	Pixel32 * dst_buf;
 	Pixel32 * src_buf;
 
-	ac_imgconvert(&ptr->video_buf, IMG_RGB24,
-		      (uint8_t **)&mfd->convertFrameIn,
-		      ac_endian()==AC_LITTLE_ENDIAN ? IMG_BGRA32 : IMG_ARGB32,
-		      ptr->v_width, ptr->v_height);
+	tcv_convert(mfd->tcvhandle, ptr->video_buf,
+		    (uint8_t *)mfd->convertFrameIn,
+		    ptr->v_width, ptr->v_height, IMG_RGB24, IMG_BGRA32);
 
 	src_buf = mfd->convertFrameIn;
 	dst_buf = mfd->convertFrameOut;
@@ -445,10 +450,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
 		dst	= (Pixel *)((char *)dst + dstpitch);
 	}
 
-	ac_imgconvert((uint8_t **)&mfd->convertFrameOut,
-		      ac_endian()==AC_LITTLE_ENDIAN ? IMG_BGRA32 : IMG_ARGB32,
-		      &ptr->video_buf, IMG_RGB24,
-		      ptr->v_width, ptr->v_height);
+	tcv_convert(mfd->tcvhandle, (uint8_t *)mfd->convertFrameOut,
+		    ptr->video_buf, ptr->v_width, ptr->v_height,
+		    IMG_BGRA32, IMG_RGB24);
 
 	return 0;
      }

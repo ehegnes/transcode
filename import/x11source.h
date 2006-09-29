@@ -73,7 +73,8 @@ struct tcX11source_ {
 
     int mode;
     uint32_t out_fmt; /* TC internal identifier */
-    int conv_fmt; /* precomputed aclib identifier */
+    int conv_fmt; /* precomputed tcv_convert identifier */
+    TCVHandle tcvhandle;
 
     int (*acquire_data)(TCX11Source *handle, uint8_t *data, int maxdata);
     int (*fini)(TCX11Source *handle);

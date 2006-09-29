@@ -311,9 +311,9 @@ tcdecode_LDADD = \
 	$(VORBISFILE) \
 	$(XIO_LIBS) \
 	$(DLDARWIN_LIBS) \
+	$(LIBTCVIDEO_LIBS) \
 	$(ACLIB_LIBS) \
-	$(LIBTC_LIBS) \
-	$(LIBTCVIDEO_LIBS)
+	$(LIBTC_LIBS)
 
 tcdecode_CFLAGS = $(AM_CFLAGS) \
 	$(LIBAVCODEC_CFLAGS) \
@@ -460,6 +460,7 @@ tcprobe_LDADD = \
 	$(BSDAV_LIBS) \
 	$(X11SOURCE_LIBS) \
 	$(DLDARWIN_LIBS) \
+	$(LIBTCVIDEO_LIBS) \
 	$(ACLIB_LIBS) \
 	$(LIBTC_LIBS) \
 	-lm

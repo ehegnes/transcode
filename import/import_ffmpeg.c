@@ -31,6 +31,7 @@
 #include "filter.h"
 #include "libtc/libtc.h"
 #include "libtc/tcframes.h"
+#include "libtcvideo/tcvideo.h"
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_YUV | TC_CAP_RGB;
@@ -41,8 +42,6 @@ static int capability_flag = TC_CAP_YUV | TC_CAP_RGB;
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/avformat.h>
 
-#include "aclib/imgconvert.h"
-
 /*
  * libavcodec is not thread-safe. We must protect concurrent access to it.
  * this is visible (without the mutex of course) with
@@ -50,10 +49,12 @@ static int capability_flag = TC_CAP_YUV | TC_CAP_RGB;
  */
 
 
-typedef void (*AdaptImageFn)(uint8_t *src_planes[3], uint8_t *frame,
-                             AVCodecContext *lavc_dec_context, AVFrame *picture);
+typedef void (*AdaptImageFn)(uint8_t *frame,
+                             AVCodecContext *lavc_dec_context,
+                             AVFrame *picture);
 
 static AdaptImageFn        img_adaptor = NULL;
+static TCVHandle           tcvhandle = 0;
 static int                 levels_handle = -1;
 static AVFormatContext    *lavf_dmx_context = NULL;
 static AVCodecContext     *lavc_dec_context = NULL;
@@ -94,9 +95,14 @@ static inline void enable_levels_filter(void)
  * Can't do this now, unfortunately. -- fromani
  */
 
-static void adapt_image_yuv420p(uint8_t *src_planes[3], uint8_t *frame,
-                                AVCodecContext *lavc_dec_context, AVFrame *picture)
+static void adapt_image_yuv420p(uint8_t *frame,
+                                AVCodecContext *lavc_dec_context,
+                                AVFrame *picture)
 {
+    uint8_t *src_planes[3];
+    YUV_INIT_PLANES(src_planes, frame, src_fmt,
+                    lavc_dec_context->width, lavc_dec_context->height);
+
     // Remove "dead space" at right edge of planes, if any
     if (picture->linesize[0] != lavc_dec_context->width) {
         int y;
@@ -124,9 +130,14 @@ static void adapt_image_yuv420p(uint8_t *src_planes[3], uint8_t *frame,
 } 
 
 
-static void adapt_image_yuv411p(uint8_t *src_planes[3], uint8_t *frame,
-                                AVCodecContext *lavc_dec_context, AVFrame *picture)
+static void adapt_image_yuv411p(uint8_t *frame,
+                                AVCodecContext *lavc_dec_context,
+                                AVFrame *picture)
 {
+    uint8_t *src_planes[3];
+    YUV_INIT_PLANES(src_planes, frame, src_fmt,
+                    lavc_dec_context->width, lavc_dec_context->height);
+
     if (picture->linesize[0] != lavc_dec_context->width) {
         int y;
         for (y = 0; y < lavc_dec_context->height; y++) {
@@ -151,9 +162,14 @@ static void adapt_image_yuv411p(uint8_t *src_planes[3], uint8_t *frame,
 }
 
 
-static void adapt_image_yuv422p(uint8_t *src_planes[3], uint8_t *frame,
-                                AVCodecContext *lavc_dec_context, AVFrame *picture)
+static void adapt_image_yuv422p(uint8_t *frame,
+                                AVCodecContext *lavc_dec_context,
+                                AVFrame *picture)
 {
+    uint8_t *src_planes[3];
+    YUV_INIT_PLANES(src_planes, frame, src_fmt,
+                    lavc_dec_context->width, lavc_dec_context->height);
+
     if (picture->linesize[0] != lavc_dec_context->width) {
         int y;
         for (y = 0; y < lavc_dec_context->height; y++) {
@@ -178,9 +194,14 @@ static void adapt_image_yuv422p(uint8_t *src_planes[3], uint8_t *frame,
 }
 
 
-static void adapt_image_yuv444p(uint8_t *src_planes[3], uint8_t *frame,
-                                AVCodecContext *lavc_dec_context, AVFrame *picture)
+static void adapt_image_yuv444p(uint8_t *frame,
+                                AVCodecContext *lavc_dec_context,
+                                AVFrame *picture)
 {
+    uint8_t *src_planes[3];
+    YUV_INIT_PLANES(src_planes, frame, src_fmt,
+                    lavc_dec_context->width, lavc_dec_context->height);
+
     if (picture->linesize[0] != lavc_dec_context->width) {
 	    int y;
         for (y = 0; y < lavc_dec_context->height; y++) {
@@ -344,8 +365,6 @@ MOD_open
 MOD_decode 
 {
     int got_picture, ret, status;
-    uint8_t *src_planes[3];
-    uint8_t *dst_planes[3];
     AVPacket packet;
     AVFrame picture;
 
@@ -366,19 +385,11 @@ MOD_decode
             /* TODO: check status code */
 
             if (got_picture) {
-                YUV_INIT_PLANES(src_planes, frame, src_fmt,
-                                lavc_dec_context->width,
-                                lavc_dec_context->height);
-                YUV_INIT_PLANES(dst_planes, param->buffer, dst_fmt,
-                                lavc_dec_context->width,
-                                lavc_dec_context->height);
-
-                img_adaptor(src_planes, frame,
-                            lavc_dec_context, &picture);
-
-                ac_imgconvert(src_planes, src_fmt, dst_planes, dst_fmt,
-                              lavc_dec_context->width,
-                              lavc_dec_context->height);
+                img_adaptor(frame, lavc_dec_context, &picture);
+                tcv_convert(tcvhandle, frame, param->buffer,
+                            lavc_dec_context->width,
+                            lavc_dec_context->height,
+                            src_fmt, dst_fmt);
                 param->size = frame_size;
                 return TC_IMPORT_OK;
             } else {
@@ -414,6 +425,9 @@ MOD_close
             av_close_input_file(lavf_dmx_context);
             lavf_dmx_context = NULL;
         }
+
+        tcv_free(tcvhandle);
+        tcvhandle = 0;
 
         return TC_IMPORT_OK;
     }

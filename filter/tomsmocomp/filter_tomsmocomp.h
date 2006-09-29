@@ -27,6 +27,7 @@
 #include "filter.h"
 #include "libtc/libtc.h"
 #include "libtc/optstr.h"
+#include "libtcvideo/tcvideo.h"
 
 #include <stdint.h>
 
@@ -50,5 +51,7 @@ typedef struct {
     uint8_t *frameIn, *framePrev, *frameOut;
 
     TDeinterlaceInfo DSinfo;
+
+    TCVHandle tcvhandle;
 
 } tomsmocomp_t;

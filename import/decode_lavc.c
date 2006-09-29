@@ -298,6 +298,8 @@ void decode_lavc(decode_t *decode)
 		    }
 		}
 	    }
+            /* FIXME: we can't use tcv_convert here because it assumes
+             * contiguous planes, which libavcodec might not give us  --AC */
 	    ac_imgconvert(picture.data, IMG_YUV420P, planes,
 			  pix_fmt==TC_CODEC_YUV420P ? IMG_YUV420P : IMG_RGB_DEFAULT,
 			  lavc_dec_context->width, lavc_dec_context->height);

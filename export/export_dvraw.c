@@ -28,7 +28,7 @@
 #include "transcode.h"
 #include "libtc/libtc.h"
 #include "libtc/optstr.h"
-#include "aclib/imgconvert.h"
+#include "libtcvideo/tcvideo.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,6 +48,7 @@ static uint8_t *target, *vbuf;
 
 static dv_encoder_t *encoder = NULL;
 static uint8_t *pixels[3], *tmp_buf;
+static TCVHandle tcvhandle;
 
 static int frame_size=0, format=0;
 static int pass_through=0;
@@ -94,6 +95,8 @@ MOD_init
   if(param->flag == TC_VIDEO) {
     target = tc_bufalloc(TC_FRAME_DV_PAL);
     vbuf = tc_bufalloc(PAL_W*PAL_H*3);
+
+    tcvhandle = tcv_init();
 
     if(vob->dv_yuy2_mode == 1) {
       tmp_buf = tc_bufalloc(PAL_W*PAL_H*2); //max frame
@@ -252,33 +255,25 @@ MOD_encode
 
     if(!pass_through) {
 
-      pixels[0] = vbuf;
-      if(encoder->isPAL) {
-	pixels[1] = pixels[0] + PAL_W*PAL_H;
-	pixels[2] = pixels[1] + (PAL_W/2)*(format==2?PAL_H:PAL_H/2);
-      } else {
-	pixels[1] = pixels[0] + NTSC_W*NTSC_H;
-	pixels[2] = pixels[1] + (NTSC_W/2)*(format==2?NTSC_H:NTSC_H/2);
-      }
-
-      if(dv_yuy2_mode && !dv_uyvy_mode) {
-	if (format==2)
-	  ac_imgconvert(pixels, IMG_YUV422P, &tmp_buf, IMG_YUY2,
-			PAL_W, (encoder->isPAL)? PAL_H : NTSC_H);
-	else
-	  ac_imgconvert(pixels, IMG_YUV420P, &tmp_buf, IMG_YUY2,
-			PAL_W, (encoder->isPAL)? PAL_H : NTSC_H);
-	pixels[0]=tmp_buf;
-      }
-
       if (dv_uyvy_mode) {
-	if (format==2)
-	  ac_imgconvert(pixels, IMG_YUV422P, &tmp_buf, IMG_UYVY,
-			PAL_W, (encoder->isPAL)? PAL_H : NTSC_H);
-	else
-	  ac_imgconvert(pixels, IMG_YUV420P, &tmp_buf, IMG_UYVY,
-			PAL_W, (encoder->isPAL)? PAL_H : NTSC_H);
-	pixels[0]=tmp_buf;
+	tcv_convert(tcvhandle,
+		    vbuf, tmp_buf, PAL_W, (encoder->isPAL) ? PAL_H : NTSC_H,
+		    (format==2) ? IMG_YUV422P : IMG_YUV420P, IMG_UYVY);
+	pixels[0] = pixels[1] = pixels[2] = tmp_buf;
+      } else if (dv_yuy2_mode) {
+	tcv_convert(tcvhandle,
+		    vbuf, tmp_buf, PAL_W, (encoder->isPAL) ? PAL_H : NTSC_H,
+		    (format==2) ? IMG_YUV422P : IMG_YUV420P, IMG_YUY2);
+	pixels[0] = pixels[1] = pixels[2] = tmp_buf;
+      } else {
+	pixels[0] = vbuf;
+	if (encoder->isPAL) {
+	  pixels[1] = pixels[0] + PAL_W*PAL_H;
+	  pixels[2] = pixels[1] + (PAL_W/2)*(format==2?PAL_H:PAL_H/2);
+	} else {
+	  pixels[1] = pixels[0] + NTSC_W*NTSC_H;
+	  pixels[2] = pixels[1] + (NTSC_W/2)*(format==2?NTSC_H:NTSC_H/2);
+	}
       }
 
       dv_encode_full_frame(encoder, pixels, (format)?e_dv_color_yuv:e_dv_color_rgb, target);
@@ -349,6 +344,7 @@ MOD_stop
   if(param->flag == TC_VIDEO) {
 
     dv_encoder_free(encoder);
+    tcv_free(tcvhandle);
 
     return(0);
   }

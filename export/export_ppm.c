@@ -28,7 +28,7 @@
 #include "transcode.h"
 #include "avilib/avilib.h"
 #include "aud_aux.h"
-#include "aclib/imgconvert.h"
+#include "libtcvideo/tcvideo.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,6 +52,8 @@ static const char *type;
 static int interval=1;
 static unsigned int int_counter=0;
 
+static TCVHandle tcvhandle;
+
 /* ------------------------------------------------------------
  *
  * init codec
@@ -74,8 +76,16 @@ MOD_init
 
 	codec =  CODEC_YUV;
 
-	if (!tmp_buffer) tmp_buffer = malloc (vob->ex_v_width*vob->ex_v_height*3);
-	if (!tmp_buffer) return 1;
+	if (!tmp_buffer)
+	  tmp_buffer = malloc (vob->ex_v_width*vob->ex_v_height*3);
+	if (!tmp_buffer)
+	  return -1;
+
+	tcvhandle = tcv_init();
+	if (!tcvhandle) {
+	  tc_log_error(MOD_NAME, "tcv_init() failed");
+	  return -1;
+	}
       }
 
       /* this supports output of 4:2:2 YUV material, ie CODEC_YUV422 */
@@ -90,8 +100,16 @@ MOD_init
 	codec =  CODEC_YUV422;
 
 	/* this is for the output, one byte each for R, G and B per pixel */
-	if (!tmp_buffer) tmp_buffer = malloc (vob->ex_v_width*vob->ex_v_height*3);
-	if (!tmp_buffer) return 1;
+	if (!tmp_buffer)
+	  tmp_buffer = malloc (vob->ex_v_width*vob->ex_v_height*3);
+	if (!tmp_buffer)
+	  return -1;
+
+	tcvhandle = tcv_init();
+	if (!tcvhandle) {
+	  tc_log_error(MOD_NAME, "tcv_init() failed");
+	  return -1;
+	}
       }
 
       /* source stream encoding format not supported */
@@ -172,25 +190,23 @@ MOD_encode
 
 
     if(codec==CODEC_YUV) {
-      uint8_t *planes[3];
-      YUV_INIT_PLANES(planes, param->buffer, IMG_YUV_DEFAULT, width, height);
-      ac_imgconvert(planes, IMG_YUV_DEFAULT, &tmp_buffer, IMG_RGB24,
-		    width, height);
+      tcv_convert(tcvhandle, param->buffer, tmp_buffer, width, height,
+                  IMG_YUV_DEFAULT, IMG_RGB24);
       out_buffer = tmp_buffer;
       out_size = height * 3 *width;
     }
 
     if(codec==CODEC_YUV422) {
-      uint8_t *planes[3];
-      YUV_INIT_PLANES(planes, param->buffer, IMG_YUV422P, width, height);
-      ac_imgconvert(planes, IMG_YUV422P, &tmp_buffer, IMG_RGB24,
-		    width, height);
+      tcv_convert(tcvhandle, param->buffer, tmp_buffer, width, height,
+                  IMG_YUV422P, IMG_RGB24);
       out_buffer = tmp_buffer;
       out_size = height * 3 *width;
     }
 
     if(strncmp(type, "P5", 2)==0) {
 	out_size /= 3;
+	//tcv_convert(tcvhandle, tmp_buffer, tmp_buffer, width, height,
+	//            IMG_RGB24, IMG_GRAY8);
 	for (n=0; n<out_size; ++n) out_buffer[n] = out_buffer[3*n];
 	tc_snprintf(buf2, sizeof(buf2), "%s%06d.pgm", prefix, counter++);
     } else
@@ -232,8 +248,10 @@ MOD_stop
   if(param->flag == TC_VIDEO) return(0);
   if(param->flag == TC_AUDIO) return(audio_stop());
 
-  if (tmp_buffer) free(tmp_buffer);
+  free(tmp_buffer);
   tmp_buffer = NULL;
+  tcv_free(tcvhandle);
+  tcvhandle = 0;
 
   return(TC_EXPORT_ERROR);
 }

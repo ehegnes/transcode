@@ -1532,6 +1532,7 @@ MOD_encode
                 avpicture_fill((AVPicture *)lavc_venc_frame, yuv42xP_buffer,
                                PIX_FMT_YUV422P, lavc_venc_context->width,
                                lavc_venc_context->height);
+		/* FIXME: can't use tcv_convert (see decode_lavc.c) */
                 ac_imgconvert(src, IMG_YUV_DEFAULT,
                               lavc_venc_frame->data, IMG_YUV422P,
                               lavc_venc_context->width,

@@ -14,6 +14,17 @@
     filter/filter_whitebalance.c import/import_pv3.c
   Use the new tcv_convert() calling format.
 
+  * export/export_dv.c export/export_dvraw.c export/export_ffmpeg.c
+    export/export_im.c export/export_ppm.c filter/filter_fieldanalysis.c
+    filter/filter_msharpen.c filter/filter_smartbob.c
+    filter/filter_smartdeinter.c filter/filter_xsharpen.c
+    filter/preview/filter_pv.c filter/tomsmocomp/filter_tomsmocomp.c
+    filter/tomsmocomp/filter_tomsmocomp.h import/Makefile.am
+    import/decode_dv.c import/decode_lavc.c import/import_bktr.c
+    import/import_dv.c import/import_ffmpeg.c import/x11source.c
+    import/x11source.h import/v4l/import_v4l2.c src/video_trans.c
+  Use tcv_convert() rather than ac_imgconvert() where possible.
+
 2006-09-29 Andrew Church <achurch at achurch dot org>
   * filter/Makefile.am
     Removed: filter/filter_clone.c

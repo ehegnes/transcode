@@ -29,7 +29,7 @@
 #include "transcode.h"
 #include "filter.h"
 #include "libtc/optstr.h"
-#include "aclib/imgconvert.h"
+#include "libtcvideo/tcvideo.h"
 
 #include "video_trans.h"
 
@@ -76,6 +76,8 @@ static char *run_buffer[2] = {NULL, NULL};
 static char *process_buffer[3] = {NULL, NULL, NULL};
 
 static int process_ctr_cur=0;
+
+static TCVHandle tcvhandle;
 
 
 /* global variables */
@@ -183,6 +185,12 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if(verbose) tc_log_info(MOD_NAME, "preview window %dx%d", w, h);
 
+    tcvhandle = tcv_init();
+    if (!tcvhandle) {
+      tc_log_error(MOD_NAME, "tcv_init() failed");
+      return -1;
+    }
+
     switch(vob->im_v_codec) {
 
     case CODEC_YUV422:
@@ -252,6 +260,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if(size) xv_display_exit(xv_player->display);
 
+    tcv_free(tcvhandle);
+    tcvhandle = 0;
+
     return(0);
   }
 
@@ -292,11 +303,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
       if (use_secondary_buffer) {
           ac_memcpy(xv_player->display->pixels[0], ptr->video_buf2, size);
       } else if (srcfmt != IMG_NONE && destfmt != IMG_NONE) {
-          uint8_t *planes[3];
-          YUV_INIT_PLANES(planes, ptr->video_buf, srcfmt, w, h);
-          ac_imgconvert(planes, srcfmt,
-                        (uint8_t **)xv_player->display->pixels, destfmt,
-                        w, h);
+	  tcv_convert(tcvhandle, ptr->video_buf,
+		      (uint8_t *)xv_player->display->pixels,
+		      w, h, srcfmt, destfmt);
       } else {
           ac_memcpy(xv_player->display->pixels[0], ptr->video_buf, size);
       }
