@@ -1,4 +1,10 @@
 2006-09-29 Andrew Church <achurch at achurch dot org>
+  * filter/Makefile.am
+    Removed: filter/filter_clone.c
+  Remove "clone" filter, as the only thing it does (15->25fps conversion)
+  is done better by modfps, it's not documented, and Google says it's not
+  in use anyway.
+
   * src/cmdline_def.h
   Make sure that -T t,c selects only a single chapter, regardless of any
   previous -T options.
