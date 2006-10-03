@@ -1,3 +1,7 @@
+2006-10-03 Andrew Church <achurch at achurch dot org>
+  * src/cmdline_def.h
+  Fix parsing of command line options containing spaces.
+
 2006-09-29 Andrew Church <achurch at achurch dot org>
   * aclib/img_yuv_rgb.c
   Added support for converting between all RGB formats and all YUV formats.

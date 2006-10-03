@@ -262,7 +262,7 @@ TC_OPTION(split,              't', "n,base",
                  * 1000 characters--EXCLUDING the trailing null, so a
                  * buffer of 1001 bytes is needed! */
                 char buf[1001] = "";
-                if (sscanf(optarg, "%d,%1000s", &splitavi_frames, buf) != 2
+                if (sscanf(optarg, "%d,%1000[^,]", &splitavi_frames, buf) != 2
                  || splitavi_frames <= 0
                 ) {
                     tc_error("Invalid argument for -t/--split");
@@ -441,7 +441,7 @@ TC_OPTION(import_as,          'x', "vmod[,amod]",
                 static char abuf[65];
                 char *s;
                 int n;
-                if ((n = sscanf(optarg, "%64[^,],%64s", vbuf, abuf)) < 1) {
+                if ((n = sscanf(optarg, "%64[^,],%64[^,]", vbuf, abuf)) < 1) {
                     tc_error("Invalid argument for -x/--import_as");
                     goto short_usage;
                 }
@@ -635,7 +635,7 @@ TC_OPTION(export_as,          'y', "vm[,am[,mm]]",
                 static char mbuf[65];
                 char *s;
                 int n;
-                if ((n = sscanf(optarg, "%64[^,],%64[^,],%64s",
+                if ((n = sscanf(optarg, "%64[^,],%64[^,],%64[^,]",
                                 vbuf, abuf, mbuf)) < 1
                 ) {
                     tc_error("Invalid argument for -y/--export_as");
@@ -713,7 +713,7 @@ TC_OPTION(export_codec,       'N', "format",
                     char vcodec[33];
                     int n;
                     /* new behaviour */
-                    n = sscanf(optarg, "%32[^,],%32s", vcodec, acodec);
+                    n = sscanf(optarg, "%32[^,],%32[^,]", vcodec, acodec);
                     /* codecs in reversed order for backward compatibility */
                     switch (n) {
                       case 2: /* audio AND video codec */
@@ -746,7 +746,7 @@ TC_OPTION(multipass,          'R', "N[,vf[,af]]",
                 "enable multi-pass encoding (0-3) [0,divx4.log,pcm.log]",
                 static char vlogfile[1001] = "divx4.log";
                 static char alogfile[1001] = "pcm.log";
-                if (sscanf(optarg, "%d,%1000[^,],%1000s",
+                if (sscanf(optarg, "%d,%1000[^,],%1000[^,]",
                            &vob->divxmultipass, vlogfile, alogfile) < 1
                  || vob->divxmultipass < 0 || vob->divxmultipass > 3
                  || !*vlogfile
@@ -1402,7 +1402,7 @@ TC_OPTION(a52_dolby_off,      0,   0,
 TC_OPTION(autosplit,          'W', "n,m[,file]",
                 "autosplit and process part n of m (VOB only) [off]",
                 static char vob_logfile[1001] = "";
-                if (sscanf(optarg, "%d,%d,%1000s", &vob->vob_chunk,
+                if (sscanf(optarg, "%d,%d,%1000[^,]", &vob->vob_chunk,
                            &vob->vob_chunk_max, vob_logfile) < 2
                  || vob->vob_chunk < 0
                  || vob->vob_chunk_max <= 0
