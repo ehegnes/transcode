@@ -158,9 +158,9 @@ static int yw_open_video(YWPrivateData *pd, vob_t *vob)
         }
     }
     
-	pd->tcvhandle = tcv_init();
+    pd->tcvhandle = tcv_init();
     if (!pd->tcvhandle) {
-	    tc_log_error(MOD_NAME, "image conversion init failed");
+	tc_log_error(MOD_NAME, "image conversion init failed");
         return(TC_EXPORT_ERROR);
     }
 
