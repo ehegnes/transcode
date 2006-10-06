@@ -633,6 +633,7 @@ static void select_modules(int flags, vob_t *vob)
 
       case TC_MAGIC_V4L2_VIDEO:
         vob->vmod_probed = "v4l2";
+        vob->amod_probed = "v4l2";
         if (MAY_SET(FRAMESIZE)) {
             vob->im_v_width  = PAL_W/2;
             vob->im_v_height = PAL_H/2;
@@ -740,13 +741,16 @@ static void select_modules(int flags, vob_t *vob)
         case TC_MAGIC_V4L_AUDIO:   vob->amod_probed = "v4l";   break;
         case TC_MAGIC_V4L2_AUDIO:  vob->amod_probed = "v4l2";  break;
         case TC_MAGIC_SUNAU_AUDIO: vob->amod_probed = "sunau"; break;
-        case TC_MAGIC_OSS_AUDIO:   vob->amod_probed = "oss";   break;
         case TC_MAGIC_BSDAV:       vob->amod_probed = "bsdav"; break;
         case TC_MAGIC_WAV:         vob->amod_probed = "raw";   break;
         case TC_MAGIC_MOV:         vob->amod_probed = "mov";   break;
         case TC_MAGIC_TS:          vob->amod_probed = "ts";    break;
         case TC_MAGIC_MP3:         vob->amod_probed = "mp3";   break;
         case TC_MAGIC_AC3:         vob->amod_probed = "ac3";   break;
+        case TC_MAGIC_OSS_AUDIO:
+          if (!vob->amod_probed)
+              vob->amod_probed = "oss";
+          break;
         case TC_MAGIC_AVI:
           if (vob->pass_flag & TC_AUDIO)
               vob->amod_probed = "avi";

@@ -1,3 +1,10 @@
+2006-10-06 Francesco Romani <fromani at gmail dot com>
+  * src/probe.c
+  select audio import module to v4l2 if video import module is v4l2
+  too in order to improve synchronization.
+  For post-1.1.0 a better and more generic synchronization code
+  is definitively needed.
+
 2006-10-06 Andrew Church <achurch at achurch dot org>
   * import/v4l2/import_v4l2.c
   Fix typo bugs in V4L2 device capability checking.
