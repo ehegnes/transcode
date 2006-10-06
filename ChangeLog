@@ -3,6 +3,10 @@
   Fix bug in colorspace conversion.
 
 2006-10-06 Francesco Romani <fromani at gmail dot com>
+  * export/export_yuv4mpeg.c
+  STYLEish cleanup.
+  chroma mode must be specified.
+
   * src/probe.c
   select audio import module to v4l2 if video import module is v4l2
   too in order to improve synchronization.

@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "export_yuv4mpeg.so"
-#define MOD_VERSION "v0.1.8 (2003-08-23)"
+#define MOD_VERSION "v0.1.10 (2006-10-06)"
 #define MOD_CODEC   "(video) YUV4MPEG2 | (audio) MPEG/AC3/PCM"
 
 #include "transcode.h"
@@ -66,204 +66,193 @@ static ImageFormat srcfmt;
 
 static y4m_stream_info_t y4mstream;
 
-/* ------------------------------------------------------------
- *
- * init codec
- *
- * ------------------------------------------------------------*/
 
 MOD_init
 {
+    if (param->flag == TC_VIDEO) {
+        if (vob->im_v_codec == CODEC_YUV) {
+	        srcfmt = IMG_YUV_DEFAULT;
+        } else if (vob->im_v_codec == CODEC_YUV422) {
+	        srcfmt = IMG_YUV422P;
+    	} else if (vob->im_v_codec == CODEC_RGB) {
+	        srcfmt = IMG_RGB_DEFAULT;
+    	} else {
+	        tc_log_warn(MOD_NAME, "unsupported video format %d",
+		                vob->im_v_codec);
+            return TC_EXPORT_ERROR;
+        }
+        tcvhandle = tcv_init();
+        if (!tcvhandle) {
+    	    tc_log_warn(MOD_NAME, "image conversion init failed");
+	        return TC_EXPORT_ERROR;
+        }
 
-    if(param->flag == TC_VIDEO) {
-
-	if (vob->im_v_codec == CODEC_YUV) {
-	    srcfmt = IMG_YUV_DEFAULT;
-	} else if (vob->im_v_codec == CODEC_YUV422) {
-	    srcfmt = IMG_YUV422P;
-	} else if (vob->im_v_codec == CODEC_RGB) {
-	    srcfmt = IMG_RGB_DEFAULT;
-	} else {
-	    tc_log_warn(MOD_NAME, "unsupported video format %d",
-		    vob->im_v_codec);
-	    return(TC_EXPORT_ERROR);
-	}
-	if (!(tcvhandle = tcv_init())) {
-	    tc_log_warn(MOD_NAME, "image conversion init failed");
-	    return(TC_EXPORT_ERROR);
-	}
-
-	return(0);
+        return TC_EXPORT_OK;
     }
 
-    if(param->flag == TC_AUDIO) return(audio_init(vob, verbose_flag));
+    if (param->flag == TC_AUDIO) {
+        return audio_init(vob, verbose_flag);
+    }
 
-    // invalid flag
-    return(TC_EXPORT_ERROR);
+    return TC_EXPORT_ERROR;
 }
 
 static void asrcode2asrratio(int asr, y4m_ratio_t *r)
 {
     switch (asr) {
-    case 2: *r = dar_4_3; break;
-    case 3: *r = dar_16_9; break;
-    case 4: *r = dar_221_100; break;
-    case 1: r->n = 1; r->d = 1; break;
-    case 0: default: *r = sar_UNKNOWN; break;
+      case 2: *r = dar_4_3; break;
+      case 3: *r = dar_16_9; break;
+      case 4: *r = dar_221_100; break;
+      case 1: r->n = 1; r->d = 1; break;
+      case 0: default: *r = sar_UNKNOWN; break;
     }
 }
 
-/* ------------------------------------------------------------
- *
- * open outputfile
- *
- * ------------------------------------------------------------*/
 
 MOD_open
 {
+    if (param->flag == TC_VIDEO) {
+        int asr, ret;
+        // char dar_tag[20];
+        y4m_ratio_t framerate;
+        y4m_ratio_t asr_rate;
 
-  int asr;
-  //char dar_tag[20];
-  y4m_ratio_t framerate;
-  y4m_ratio_t asr_rate;
+        //note: this is the real framerate of the raw stream
+        framerate = (vob->ex_frc == 0)
+                         ?mpeg_conform_framerate(vob->ex_fps)
+                         :mpeg_framerate(vob->ex_frc);
+        if (framerate.n == 0 && framerate.d == 0) {
+        	framerate.n = vob->ex_fps*1000;
+        	framerate.d = 1000;
+        }
 
+        asr = (vob->ex_asr<0) ?vob->im_asr :vob->ex_asr;
+        asrcode2asrratio(asr, &asr_rate);
 
-  if(param->flag == TC_VIDEO) {
+        y4m_init_stream_info(&y4mstream);
+        y4m_si_set_framerate(&y4mstream, framerate);
+        y4m_si_set_interlace(&y4mstream, vob->encode_fields );
+        y4m_si_set_sampleaspect(&y4mstream, y4m_guess_sar(vob->ex_v_width, vob->ex_v_height, asr_rate));
+        /*
+        tc_snprintf( dar_tag, 19, "XM2AR%03d", asr );
+        y4m_xtag_add( y4m_si_xtags(&y4mstream), dar_tag );
+        */
+        y4m_si_set_height(&y4mstream, vob->ex_v_height);
+        y4m_si_set_width(&y4mstream, vob->ex_v_width);
+        y4m_si_set_chroma(&y4mstream, Y4M_CHROMA_420JPEG); // XXX
 
-    // video
+        size = vob->ex_v_width * vob->ex_v_height * 3/2;
 
-    //note: this is the real framerate of the raw stream
-    framerate = (vob->ex_frc==0) ? mpeg_conform_framerate(vob->ex_fps):mpeg_framerate(vob->ex_frc);
-    if (framerate.n==0 && framerate.d==0) {
-	framerate.n=vob->ex_fps*1000;
-	framerate.d=1000;
+        fd = open(vob->video_out_file, O_RDWR|O_CREAT|O_TRUNC,
+           		  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH);
+        if (fd < 0) {
+            tc_log_perror(MOD_NAME, "open file");
+	        return(TC_EXPORT_ERROR);
+        }
+
+        ret = y4m_write_stream_header(fd, &y4mstream);
+        if (ret != Y4M_OK){
+            tc_log_error(MOD_NAME, "write stream header (err=%i)", ret);
+            tc_log_perror(MOD_NAME, "error");
+            return(TC_EXPORT_ERROR);
+        }
+
+        return TC_EXPORT_OK;
     }
 
-    asr = (vob->ex_asr<0) ? vob->im_asr:vob->ex_asr;
-    asrcode2asrratio(asr, &asr_rate);
-
-    y4m_init_stream_info(&y4mstream);
-    y4m_si_set_framerate(&y4mstream,framerate);
-    y4m_si_set_interlace(&y4mstream,vob->encode_fields );
-    y4m_si_set_sampleaspect(&y4mstream, y4m_guess_sar(vob->ex_v_width, vob->ex_v_height, asr_rate));
-    /*
-    tc_snprintf( dar_tag, 19, "XM2AR%03d", asr );
-    y4m_xtag_add( y4m_si_xtags(&y4mstream), dar_tag );
-    */
-    y4m_si_set_height(&y4mstream,vob->ex_v_height);
-    y4m_si_set_width(&y4mstream,vob->ex_v_width);
-
-    size = vob->ex_v_width * vob->ex_v_height * 3/2;
-
-    if((fd = open(vob->video_out_file, O_RDWR|O_CREAT|O_TRUNC,
-		  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))<0) {
-	  tc_log_perror(MOD_NAME, "open file");
-	  return(TC_EXPORT_ERROR);
+    if (param->flag == TC_AUDIO) {
+        return audio_open(vob, NULL);
     }
 
-    if( y4m_write_stream_header( fd, &y4mstream ) != Y4M_OK ){
-      tc_log_perror(MOD_NAME, "write stream header");
-      return(TC_EXPORT_ERROR);
-    }
-
-    return(0);
-  }
-
-
-  if(param->flag == TC_AUDIO) return(audio_open(vob, NULL));
-
-  // invalid flag
-  return(TC_EXPORT_ERROR);
+    return TC_EXPORT_ERROR;
 }
 
-/* ------------------------------------------------------------
- *
- * encode and export
- *
- * ------------------------------------------------------------*/
 
 MOD_encode
 {
-    y4m_frame_info_t info;
+    if (param->flag == TC_VIDEO) {
+        vob_t *vob = tc_get_vob();
+        y4m_frame_info_t info;
 
-    if(param->flag == TC_VIDEO) {
-	vob_t *vob = tc_get_vob();
-
-	if (!tcv_convert(tcvhandle, param->buffer, param->buffer,
-			 vob->ex_v_width, vob->ex_v_height,
-			 srcfmt, IMG_YUV420P)) {
-	    tc_log_warn(MOD_NAME, "image format conversion failed");
-	    return(TC_EXPORT_ERROR);
-	}
+        if (!tcv_convert(tcvhandle, param->buffer, param->buffer,
+		                 vob->ex_v_width, vob->ex_v_height,
+                         srcfmt, IMG_YUV420P)) {
+            tc_log_warn(MOD_NAME, "image format conversion failed");
+            return TC_EXPORT_ERROR;
+        }
 
 #ifdef USE_NEW_MJPEGTOOLS_CODE
-	y4m_init_frame_info(&info);
+        y4m_init_frame_info(&info);
 
-	if(y4m_write_frame_header( fd, &y4mstream, &info ) != Y4M_OK )
-	{
-	    tc_log_perror(MOD_NAME, "write frame header");
-	    return(TC_EXPORT_ERROR);
-	}
+        if (y4m_write_frame_header(fd, &y4mstream, &info) != Y4M_OK) {
+    	    tc_log_perror(MOD_NAME, "write frame header");
+	        return TC_EXPORT_ERROR;
+        }
 #else
-	y4m_init_frame_info(&info);
+        y4m_init_frame_info(&info);
 
-	if(y4m_write_frame_header( fd, &info) != Y4M_OK )
-	{
-	    tc_log_perror(MOD_NAME, "write frame header");
-	    return(TC_EXPORT_ERROR);
-	}
+        if(y4m_write_frame_header(fd, &info) != Y4M_OK) {
+            tc_log_perror(MOD_NAME, "write frame header");
+            return TC_EXPORT_ERROR;
+        }
 #endif
 
-	//do not trust param->size
-	if(tc_pwrite(fd, param->buffer, size) != size) {
-	    tc_log_perror(MOD_NAME, "write frame");
-	    return(TC_EXPORT_ERROR);
-	}
+        /*
+         * do not trust param->size
+         * -- Looks like there is an outdated comment,
+         *  a latent issue or both FR
+         */
+	    if (tc_pwrite(fd, param->buffer, size) != size) {
+            tc_log_perror(MOD_NAME, "write frame");
+            return TC_EXPORT_ERROR;
+        }
 
-	return(0);
+        return TC_EXPORT_OK;
     }
 
-    if(param->flag == TC_AUDIO) return(audio_encode(param->buffer, param->size, NULL));
+    if (param->flag == TC_AUDIO) {
+        return audio_encode(param->buffer, param->size, NULL);
+    }
 
-    // invalid flag
-    return(TC_EXPORT_ERROR);
+    return TC_EXPORT_ERROR;
 }
 
-/* ------------------------------------------------------------
- *
- * stop encoder
- *
- * ------------------------------------------------------------*/
 
 MOD_stop
 {
-
-  if(param->flag == TC_VIDEO) {
-
-      return(0);
-  }
-  if(param->flag == TC_AUDIO) return(audio_stop());
-
-  return(TC_EXPORT_ERROR);
+    if (param->flag == TC_VIDEO) {
+        return TC_EXPORT_OK;
+    }
+    if (param->flag == TC_AUDIO) {
+        return audio_stop();
+    }
+    return TC_EXPORT_ERROR;
 }
 
-/* ------------------------------------------------------------
- *
- * close outputfiles
- *
- * ------------------------------------------------------------*/
 
 MOD_close
 {
+    if (param->flag == TC_VIDEO) {
+        tcv_free(tcvhandle);
+        close(fd);
+        return TC_EXPORT_OK;
+    }
 
-  if(param->flag == TC_AUDIO) return(audio_close());
-  if(param->flag == TC_VIDEO) {
-    tcv_free(tcvhandle);
-    close(fd);
-    return(0);
-  }
-  return(TC_EXPORT_ERROR);
+    if (param->flag == TC_AUDIO) {
+        return audio_close();
+    }
 
+    return TC_EXPORT_ERROR;
 }
 
+/*************************************************************************/
 
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */
