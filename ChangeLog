@@ -1,3 +1,7 @@
+2006-10-06 Andrew Church <achurch at achurch dot org>
+  * import/v4l2/import_v4l2.c
+  Fix typo bugs in V4L2 device capability checking.
+
 2006-10-03 Andrew Church <achurch at achurch dot org>
   * src/cmdline_def.h
   Fix parsing of command line options containing spaces.

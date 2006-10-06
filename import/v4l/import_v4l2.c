@@ -487,13 +487,13 @@ static int v4l2_video_init(int layout, const char * device, int width,
 		return(1);
 	}
 
-	if((!caps.capabilities & V4L2_CAP_VIDEO_CAPTURE))
+	if(!(caps.capabilities & V4L2_CAP_VIDEO_CAPTURE))
 	{
 		tc_log_error(MOD_NAME, "driver does not support video capture");
 		return(1);
 	}
 
-	if((!caps.capabilities & V4L2_CAP_STREAMING))
+	if(!(caps.capabilities & V4L2_CAP_STREAMING))
 	{
 		tc_log_error(MOD_NAME, "driver does not support streaming (mmap) video capture");
 		return(1);
