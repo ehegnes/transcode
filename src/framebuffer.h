@@ -92,7 +92,7 @@ enum tcbufferstatus_ {
  *
  * Size represent the effective size of audio/video buffer,
  * while length represent the amount of valid data into buffer.
- * Until 1.1.0, there isn;t such distinction, and 'size'
+ * Until 1.1.0, there isn't such distinction, and 'size'
  * have approximatively a mixed meaning of above.
  *
  * Now the interesting part is the following:
@@ -106,12 +106,16 @@ enum tcbufferstatus_ {
  * between encoder and multiplexor.
  * Compresed frame (unless something REALLY wrong is going on)
  * are supposed to be not larger then uncompressed frame,
+ *     [[[ FIXME -- this isn't true!  e.g. transcoding from raw YUV420 ]]]
+ *     [[[          to raw RGB will result in a larger output frame    ]]]
+ *     [[[          than the original "uncompressed" data!  --AC       ]]]
  * so they must fit on avaible buffers.
- * They are expected to be smaller, so tbe need for
+ * They are expected to be smaller, so the need for
  * length field arise.
  *
  * The advantage of doing this way instead trickying the 'size'
- * fields si that buffer size it's always known at any time.
+ * fields is that buffer size is always known at any time.
+ *
  */
 
 typedef struct frame_list frame_list_t;
