@@ -351,6 +351,12 @@ MOD_open
             return TC_IMPORT_ERROR;
         }
 
+        tcvhandle = tcv_init();
+        if (!tcvhandle) {
+	    tc_log_error(MOD_NAME, "Image conversion init failed");
+            return TC_EXPORT_ERROR;
+        }
+
         param->fd = NULL;
         return TC_IMPORT_OK;
     }
