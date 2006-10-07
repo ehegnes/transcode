@@ -1,12 +1,13 @@
 2006-20-06 Francesco Romani <fromani at gmail dot com>
   * filter/filter_compare.c
-  avoid hangup; misc minor fixes.
+  avoid hangup.
+  misc minor fixes.
 
   * filter/filter_logo.c
   avoid hangup.
 
   * src/filter.c
-  avoid to break whne using long option string for filters.
+  avoid to break when using long option string for filters.
 
   * libtc/libtc.h
   export symbols as C ones, without C++ mangling.
