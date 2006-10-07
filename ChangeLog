@@ -1,3 +1,10 @@
+2006-10-07 Francesco Romani <fromani at gmail dot com>
+  * libtc/tccodecs.h
+  add LPCM codec id. As soon as I'll shore that no longer
+  code relies on actual *value* of identifiers (see TC_MAGIC_*
+  usage) I'll very happily move all those #define into a much
+  nicer enum.
+
 2006-10-06 Andrew Church <achurch at achurch dot org>
   * import/import_ffmpeg.c
   Fix bug in colorspace conversion.

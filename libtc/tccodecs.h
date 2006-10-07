@@ -41,6 +41,7 @@ typedef uint32_t TCCodecID;
 #define TC_CODEC_UNKNOWN               0x00000000
 #define TC_CODEC_RAW                   0xFEFEFEFE
 #define TC_CODEC_PCM                   0x00000001
+#define TC_CODEC_LPCM                  0x00010001
 #define TC_CODEC_RGB                   0x00000024
 #define TC_CODEC_AC3                   0x00002000
 #define TC_CODEC_DTS                   0x0001000f
