@@ -95,27 +95,36 @@ enum tcbufferstatus_ {
  * Until 1.1.0, there isn't such distinction, and 'size'
  * have approximatively a mixed meaning of above.
  *
- * Now the interesting part is the following:
- * after the decoder, and before the encoder (included),
- * the frame length is equal to frame size. This happens
- * because buffers are intentionally allocated so a decoded
- * A/V frame will exactly fit on them. So on those processing
- * stages, length == size, so length isn't significant here.
+ * In the long shot[1] (post-1.1.0) transcode will start
+ * intelligently allocate frame buffers based on highest
+ * request of all modules (core included) through filter
+ * mangling pipeline. This will lead on circumstances on
+ * which valid data into a buffer is less than buffer size:
+ * think to demuxer->decoder transition or RGB24->YUV420.
+ * 
+ * There also are more specific cases like a full-YUV420P
+ * pipeline with final conversion to RGB24 and raw output,
+ * so we can have something like
  *
- * Things changes between demultiplexor and decoder and
- * between encoder and multiplexor.
- * Compresed frame (unless something REALLY wrong is going on)
- * are supposed to be not larger then uncompressed frame,
- *     [[[ FIXME -- this isn't true!  e.g. transcoding from raw YUV420 ]]]
- *     [[[          to raw RGB will result in a larger output frame    ]]]
- *     [[[          than the original "uncompressed" data!  --AC       ]]]
- * so they must fit on avaible buffers.
- * They are expected to be smaller, so the need for
- * length field arise.
+ * framebuffer size = sizeof(RGB24_frame)
+ * after demuxer:
+ *     frame length << frame size (compressed data)
+ * after decoder:
+ *     frame length < frame size (YUV420P smaller than RGB 24)
+ * in filtering:
+ *      frame length < frame size (as above)
+ * after encoding (in fact just colorspace transition):
+ *     frame length == frame size (data becomes RGB24)
+ * into muxer:
+ *     frame length == frame size (as above)
  *
- * The advantage of doing this way instead trickying the 'size'
- * fields is that buffer size is always known at any time.
+ * In all those cases having a distinct 'lenght' fields help
+ * make things nicier and easier.
  *
+ * +++
+ *
+ * [1] in 1.1.0 that not happens due to module interface constraints
+ * since we're still bound to Old Module System.
  */
 
 typedef struct frame_list frame_list_t;
@@ -127,9 +136,9 @@ struct frame_list {
     int size;    /* buffer size avalaible */
     int len;     /* how much data is valid? */
 
-    int param1; // v_width or a_rate
-    int param2; // v_height or a_bits
-    int param3; // v_bpp or a_chan
+    int param1;  /* v_width or a_rate */
+    int param2;  /* v_height or a_bits */
+    int param3;  /* v_bpp or a_chan */
 
     struct frame_list *next;
     struct frame_list *prev;
