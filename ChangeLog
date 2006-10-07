@@ -1,4 +1,7 @@
 2006-20-06 Francesco Romani <fromani at gmail dot com>
+  * configure.in
+  transcode-1.0.3rc0
+
   * configure.in acinclude.m4
   misc build fixes backported from HEAD.
   Allow configure to work with newer autoconf.
