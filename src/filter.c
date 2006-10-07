@@ -149,6 +149,9 @@ int load_plugin(char *path) {
       break;
     }
   }
+  if (strlen(filter[id].name) > MAX_FILTER_NAME_LEN) {
+    return -1;
+  }
 
   filter_unquote_options(filter[id].options);
 
@@ -345,14 +348,12 @@ int load_single_plugin (char *mfilter_string)
 {
   int id = filter_next_free_id()+1;
   vob_t *vob = tc_get_vob();
-  long sret;
 
   fprintf(stderr, "[%s] Loading (%s) ..\n", __FILE__, mfilter_string);
 
   filter[id].namelen = strlen(mfilter_string);
-  filter[id].name    = (char *) malloc (filter[id].namelen+1);
-  sret = strlcpy(filter[id].name, mfilter_string, MAX_FILTER_NAME_LEN);
-  if (tc_test_string(__FILE__, __LINE__, MAX_FILTER_NAME_LEN, sret, errno))
+  filter[id].name    = strdup(mfilter_string);
+  if (!filter[id].name)
     return(1);
 
   if (load_plugin(vob->mod_path)==0)  {
