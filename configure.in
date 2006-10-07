@@ -641,7 +641,7 @@ main()
 ],
     [LIBAVCODEC_VERSION="`./conftest$ac_exeext | sed -ne 's,VER=\(.*\),\1,p'`"
       LIBAVCODEC_BUILD="`./conftest$ac_exeext | sed -ne 's,BUILD=\(.*\),\1,p'`"],
-    [TC_PKG_ERROR(libavcodec, ffmpeg/avcodec.h, required, FFmpeg, [http://www.ffmpeg.org],
+    [TC_PKG_ERROR(libavcodec, ffmpeg/avcodec.h, required, libavcodec, [http://www.ffmpeg.org],
       [cannot compile ffmpeg/avcodec.h])],
     [echo $ac_n "cross compiling; assumed OK... $ac_c"
       LIBAVCODEC_VERSION=""
@@ -794,7 +794,7 @@ dnl
 dnl libpostproc
 dnl
 TC_PKG_CHECK(libpostproc, no, LIBPOSTPROC, no, postprocess.h,
-  postproc, pp_postprocess, FFmpeg, [http://www.ffmpeg.org/])
+  postproc, pp_postprocess, libpostproc, [http://www.ffmpeg.org/])
 TC_PKG_HAVE(libpostproc, LIBPOSTPROC)
 
 dnl
@@ -1032,7 +1032,7 @@ dnl
 dnl A52
 dnl
 A52_EXTRA_LIBS="$A52_EXTRA_LIBS -lm"
-TC_PKG_CHECK(a52, no, A52, no, [a52dec/a52.h], a52, a52_init, a52dec,
+TC_PKG_CHECK(a52, no, A52, no, [a52dec/a52.h], a52, a52_init, liba52,
  [http://liba52.sourceforge.net/])
 if test x"$have_a52" = x"yes" ; then
   # whether to use liba52 as the default A52/AC3 decoder
