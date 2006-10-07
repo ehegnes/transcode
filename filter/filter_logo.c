@@ -146,6 +146,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
   }
 
   if(ptr->tag & TC_FILTER_INIT) {
+    int dry_run = 0;
 
     if((vob = tc_get_vob())==NULL) return(-1);
 
@@ -181,8 +182,10 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	if (optstr_get (options, "rgbswap", "") >= 0) mfd->rgbswap=!mfd->rgbswap;
 	if (optstr_get (options, "grayout", "") >= 0) mfd->grayout=!mfd->grayout;
 
-	if (optstr_get (options, "help", "") >= 0)
+	if (optstr_get (options, "help", "") >= 0) {
 	    help_optstr();
+	    dry_run = 1;
+	}
     }
 
     if (verbose > 1) {
@@ -194,6 +197,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
 	printf ("              flip = %d\n", mfd->flip);
 	printf ("       ignoredelay = %d\n", mfd->ignoredelay);
 	printf ("           rgbswap = %d\n", mfd->rgbswap);
+    }
+    if (dry_run) {
+	return(0);
     }
 
     InitializeMagick("");

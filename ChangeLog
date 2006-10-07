@@ -1,4 +1,7 @@
 2006-20-06 Francesco Romani <fromani at gmail dot com>
+  * filter/filter_logo.c
+  avoid hangup.
+
   * src/filter.c
   avoid to break whne using long option string for filters.
 
