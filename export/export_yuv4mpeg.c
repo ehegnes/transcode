@@ -71,20 +71,20 @@ MOD_init
 {
     if (param->flag == TC_VIDEO) {
         if (vob->im_v_codec == CODEC_YUV) {
-	        srcfmt = IMG_YUV_DEFAULT;
+            srcfmt = IMG_YUV_DEFAULT;
         } else if (vob->im_v_codec == CODEC_YUV422) {
-	        srcfmt = IMG_YUV422P;
-    	} else if (vob->im_v_codec == CODEC_RGB) {
-	        srcfmt = IMG_RGB_DEFAULT;
-    	} else {
-	        tc_log_warn(MOD_NAME, "unsupported video format %d",
-		                vob->im_v_codec);
+            srcfmt = IMG_YUV422P;
+        } else if (vob->im_v_codec == CODEC_RGB) {
+            srcfmt = IMG_RGB_DEFAULT;
+        } else {
+            tc_log_warn(MOD_NAME, "unsupported video format %d",
+                        vob->im_v_codec);
             return TC_EXPORT_ERROR;
         }
         tcvhandle = tcv_init();
         if (!tcvhandle) {
-    	    tc_log_warn(MOD_NAME, "image conversion init failed");
-	        return TC_EXPORT_ERROR;
+            tc_log_warn(MOD_NAME, "image conversion init failed");
+            return TC_EXPORT_ERROR;
         }
 
         return TC_EXPORT_OK;
@@ -122,8 +122,8 @@ MOD_open
                          ?mpeg_conform_framerate(vob->ex_fps)
                          :mpeg_framerate(vob->ex_frc);
         if (framerate.n == 0 && framerate.d == 0) {
-        	framerate.n = vob->ex_fps*1000;
-        	framerate.d = 1000;
+            framerate.n = vob->ex_fps*1000;
+            framerate.d = 1000;
         }
 
         asr = (vob->ex_asr<0) ?vob->im_asr :vob->ex_asr;
@@ -144,10 +144,10 @@ MOD_open
         size = vob->ex_v_width * vob->ex_v_height * 3/2;
 
         fd = open(vob->video_out_file, O_RDWR|O_CREAT|O_TRUNC,
-           		  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH);
+                  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH);
         if (fd < 0) {
             tc_log_perror(MOD_NAME, "open file");
-	        return(TC_EXPORT_ERROR);
+            return(TC_EXPORT_ERROR);
         }
 
         ret = y4m_write_stream_header(fd, &y4mstream);
@@ -175,7 +175,7 @@ MOD_encode
         y4m_frame_info_t info;
 
         if (!tcv_convert(tcvhandle, param->buffer, param->buffer,
-		                 vob->ex_v_width, vob->ex_v_height,
+                         vob->ex_v_width, vob->ex_v_height,
                          srcfmt, IMG_YUV420P)) {
             tc_log_warn(MOD_NAME, "image format conversion failed");
             return TC_EXPORT_ERROR;
@@ -185,8 +185,8 @@ MOD_encode
         y4m_init_frame_info(&info);
 
         if (y4m_write_frame_header(fd, &y4mstream, &info) != Y4M_OK) {
-    	    tc_log_perror(MOD_NAME, "write frame header");
-	        return TC_EXPORT_ERROR;
+            tc_log_perror(MOD_NAME, "write frame header");
+            return TC_EXPORT_ERROR;
         }
 #else
         y4m_init_frame_info(&info);
@@ -202,7 +202,7 @@ MOD_encode
          * -- Looks like there is an outdated comment,
          *  a latent issue or both FR
          */
-	    if (tc_pwrite(fd, param->buffer, size) != size) {
+        if (tc_pwrite(fd, param->buffer, size) != size) {
             tc_log_perror(MOD_NAME, "write frame");
             return TC_EXPORT_ERROR;
         }
