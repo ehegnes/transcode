@@ -22,72 +22,89 @@ typedef struct {
     const char *fourcc;  /* real-world fourcc */
     const char *comment;
     int multipass;       /* multipass capable */
+    int flags;
 } TCCodecInfo;
+
 
 /*
  * this table is *always* accessed in RO mode, so there is no need
  * to protect it with threading locks
  */
-const TCCodecInfo tc_codecs_info[] = {
+static const TCCodecInfo tc_codecs_info[] = {
     /* video codecs */
-    { TC_CODEC_RGB, "rgb", "RGB", "RGB uncompressed", 0 },
-    { TC_CODEC_YUV420P, "yuv420p", "I420", "YUV 4:2:0 uncompressed", 0 },
-    { TC_CODEC_YUV422P, "yuv422p", "UYVY", "YUV 4:2:2 uncompressed", 0 },
-    { TC_CODEC_YUY2, "yuy2", "YUY2", "YUY2 uncompressed stream", 0 },
+    { TC_CODEC_RGB, "rgb", "RGB", "RGB/BGR", 0, TC_VIDEO },
+    { TC_CODEC_YUV420P, "yuv420p", "I420", "YUV420P", 0, TC_VIDEO },
+    { TC_CODEC_YUV422P, "yuv422p", "UYVY", "YUV422P", 0, TC_VIDEO },
+    { TC_CODEC_YUY2, "yuy2", "YUY2", "YUY2", 0 },
     // XXX: right fcc?
-    { TC_CODEC_MPEG1VIDEO, "mpeg1video", "mpg1",
-                           "MPEG 1 compliant video", 1 },
-    { TC_CODEC_MPEG2VIDEO, "mpeg2video", "mpg2",
-                           "MPEG 2 compliant video", 1 },
-    { TC_CODEC_MPEG4VIDEO, "mpeg4video", "mpg4",                    // XXX
-                           "MPEG 4 compliant video", 1 },
-    { TC_CODEC_XVID, "xvid", "XVID", "MPEG 4 compliant video", 1 },
-    { TC_CODEC_DIVX3, "divx3", "DIV3",
-                      "old DivX 3 (msmpeg4v3) compatible video", 1 },
-    { TC_CODEC_DIVX4, "divx4", "DIVX", "MPEG 4 compliant video", 1 }, // XXX
-    { TC_CODEC_DIVX5, "divx5", "DX50", "MPEG 4 compliant video", 1 }, // XXX
-    { TC_CODEC_MJPG, "mjpeg", "MJPG", "Motion JPEG", 0 },
-    { TC_CODEC_DV, "dvvideo", "DVSD", "Digital Video", 0 },
-    { TC_CODEC_LZO1, "lzo1", "LZO1",
-                     "Fast lossless video codec version 1", 0 },
-    { TC_CODEC_LZO2, "lzo2", "LZO2",
-                     "Fast lossless video codec version 2", 0 },
-    { TC_CODEC_MP42, "msmpeg4v2", "MP42",
-                     "DivX3 compatible video (older version)", 1 },
-    { TC_CODEC_RV10, "realvideo10", "RV10", "old RealVideo", 0 },
-    { TC_CODEC_WMV1, "wmv1", "WMV1", "Windows Media Video v1", 1 },
-    { TC_CODEC_WMV2, "wmv2", "WMV2", "Windows Media Video v2", 1 },
-    { TC_CODEC_HUFFYUV, "huffyuv", "HFYU", "Lossless video", 1 },
-    { TC_CODEC_H263P, "h263p", "H263", "h.263 plus video ", 1 },
+    { TC_CODEC_MPEG1VIDEO, "mpeg1video", "mpg1", "MPEG1 ES", 1, TC_VIDEO },
+    { TC_CODEC_MPEG2VIDEO, "mpeg2video", "mpg2", "MPEG2 ES", 1, TC_VIDEO },
+    { TC_CODEC_MPEG4VIDEO, "mpeg4video", "mpg4", "MPEG4 ES", 1, TC_VIDEO },
+    { TC_CODEC_XVID, "xvid", "XVID", "XviD", 1, TC_VIDEO },
+    { TC_CODEC_DIVX3, "divx3", "DIV3", "DivX;-)", 1, TC_VIDEO },
+    { TC_CODEC_DIVX4, "divx4", "DIVX", "DivX 4.x", 1, TC_VIDEO },
+    { TC_CODEC_DIVX5, "divx5", "DX50", "DivX 5.x", 1, TC_VIDEO },
+    { TC_CODEC_MJPG, "mjpeg", "MJPG", "MJPEG", 0, TC_VIDEO },
+    { TC_CODEC_DV, "dvvideo", "DVSD", "DV", 0, TC_VIDEO },
+    { TC_CODEC_LZO1, "lzo1", "LZO1", "LZO v1", 0, TC_VIDEO },
+    { TC_CODEC_LZO2, "lzo2", "LZO2", "LZO v2", 0, TC_VIDEO },
+    { TC_CODEC_MP42, "msmpeg4v2", "MP42", "MS MPEG4 v2", 1, TC_VIDEO },
+    { TC_CODEC_MP43, "msmpeg4v3", "MP43", "MS MPEG4 v3", 1, TC_VIDEO },
+    { TC_CODEC_RV10, "realvideo10", "RV10", "RealVideo (old)", 0, TC_VIDEO },
+    { TC_CODEC_WMV1, "wmv1", "WMV1", "WMV v1 (WMP7)", 1, TC_VIDEO },
+    { TC_CODEC_WMV2, "wmv2", "WMV2", "WMV v2 (WMP8)", 1, TC_VIDEO },
+    { TC_CODEC_H264, "h264", "H264", "h.264 (AVC)", 1, TC_VIDEO },
+    { TC_CODEC_H263P, "h263p", "H263", "h.263 plus", 1, TC_VIDEO },
     // XXX: right fcc?
-    { TC_CODEC_H263I, "h263", "H263", "h.263 video", 0 },
+    { TC_CODEC_H263I, "h263", "H263", "h.263", 0, TC_VIDEO },
+
+    { TC_CODEC_HUFFYUV, "huffyuv", "HFYU", "HuffYUV", 1, TC_VIDEO },
     // XXX: right fcc?
-    { TC_CODEC_FFV1, "ffv1", "FFV1",
-                    "Experimental lossless ffmpeg codec", 1 },
-    { TC_CODEC_ASV1, "asusvideo1", "ASV1", "ASUS video codec, v1", 0 },
-    { TC_CODEC_ASV2, "asusvideo2", "ASV2", "ASUS video codec, v2", 0 },
-    { TC_CODEC_H264, "h264", "H264", "h.264 (AVC) video", 1 },
-    /* miscelanous; XXX: drop from here */
-    { TC_CODEC_MPEG, "MPEG", NULL, "MPEG program stream", 0 },
-    { TC_CODEC_MPEG1, "MPEG1", NULL, "MPEG 1 program stream", 0 },
-    { TC_CODEC_MPEG2, "MPEG2", NULL, "MPEG 2 program stream", 0 },
+    { TC_CODEC_FFV1, "ffv1", "FFV1", "FFV1 (experimental)", 1, TC_VIDEO },
+    { TC_CODEC_ASV1, "asusvideo1", "ASV1", "ASUS codec v1", 0, TC_VIDEO },
+    { TC_CODEC_ASV2, "asusvideo2", "ASV2", "ASUS codec v2", 0, TC_VIDEO },
+    { TC_CODEC_PV3, "pv3", "PV3", "PV3", 0, TC_VIDEO }, /* XXX */
+    { TC_CODEC_NUV, "nuv", "NUV", "RTjpeg", 0, TC_VIDEO }, /* XXX */
 
     /* FIXME: add more codec informations, on demand */
 
     /* audio codecs */
-    { TC_CODEC_PCM, "pcm", NULL, NULL, 0 },
-    { TC_CODEC_MP3, "mp3", NULL, NULL, 0 },
-    { TC_CODEC_MP2, "mp2", NULL, NULL, 0 },
-    { TC_CODEC_AC3, "ac3", NULL, NULL, 0 },
-    { TC_CODEC_VORBIS, "vorbis", NULL, NULL, 0 },
+    { TC_CODEC_PCM, "pcm", NULL, "PCM", 0, TC_AUDIO },
+    { TC_CODEC_LPCM, "lpcm", NULL, "LPCM", 0, TC_AUDIO },
+    { TC_CODEC_AC3, "ac3", NULL, "AC3", 0, TC_AUDIO },
+    { TC_CODEC_MP3, "mp3", NULL, "MPEG ES Layer 3", 0, TC_AUDIO },
+    { TC_CODEC_MP2, "mp2", NULL, "MPEG ES Layer 2", 0, TC_AUDIO },
+    { TC_CODEC_VORBIS, "vorbis", NULL, "ogg/vorbis", 0, TC_AUDIO },
+    { TC_CODEC_VAG, "vag", NULL, "PS-VAG", 0, TC_AUDIO },
     /* FIXME: add more codec informations, on demand */
 
+    /* miscelanous; XXX: drop from here */
+    { TC_CODEC_MPEG, "MPEG", NULL, "MPEG program stream", 0, TC_VIDEO|TC_AUDIO },
+    { TC_CODEC_MPEG1, "MPEG-1", NULL, "MPEG 1 program stream", 0, TC_VIDEO|TC_AUDIO },
+    { TC_CODEC_MPEG2, "MPEG-2", NULL, "MPEG 2 program stream", 0, TC_VIDEO|TC_AUDIO },
+
     /* special codecs*/
-    { TC_CODEC_ANY, "everything", NULL, NULL, 0 },
-    { TC_CODEC_UNKNOWN, "unknown", NULL, NULL, 0 },
-    { TC_CODEC_ERROR, "error", NULL, NULL, 0 }, // XXX
+    { TC_CODEC_ANY, "everything", NULL, NULL, 0, 0 },
+    { TC_CODEC_UNKNOWN, "unknown", NULL, NULL, 0, 0 },
+    { TC_CODEC_ERROR, "error", NULL, NULL, 0, 0 }, // XXX
     /* this MUST be the last one */
 };
+
+/* compatibility */
+int tc_translate_codec_id(int codec)
+{
+    switch (codec) {
+      case CODEC_AC3:    return TC_CODEC_AC3;
+      case CODEC_MP3:    return TC_CODEC_MP3;
+      case CODEC_MP2:    return TC_CODEC_MP2;
+      case CODEC_PCM:    return TC_CODEC_PCM;
+      case CODEC_LPCM:   return TC_CODEC_LPCM;
+      case CODEC_VORBIS: return TC_CODEC_VORBIS;
+      case CODEC_VAG:    return TC_CODEC_VAG;
+    }
+    return TC_CODEC_ERROR;
+}
+
 
 /*
  * TCCodecMatcher:
@@ -188,6 +205,17 @@ static int find_tc_codec(const TCCodecInfo *infos,
 }
 
 /* public API ************************************************************/
+
+const char* tc_codec_to_comment(int codec)
+{
+    int idx = find_tc_codec(tc_codecs_info, id_matcher, &codec);
+
+    if (idx == TC_NULL_MATCH) { /* not found */
+        return "unknown";
+    }
+    return tc_codecs_info[idx].comment; /* can be NULL */
+}
+
 
 const char* tc_codec_to_string(int codec)
 {

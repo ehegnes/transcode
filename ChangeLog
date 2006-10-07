@@ -5,6 +5,12 @@
   usage) I'll very happily move all those #define into a much
   nicer enum.
 
+  * libtc/libtc,h libtc/tccodecs.c
+  prepare land to replace codec2str, aformat2str and other
+  (duplicated) code found on src/*.
+  Review again a little codecs table, adding TC_CODEC_ `kind'
+  (audio, video, both...) and using more sensible comments.
+
 2006-10-06 Andrew Church <achurch at achurch dot org>
   * import/import_ffmpeg.c
   Fix bug in colorspace conversion.

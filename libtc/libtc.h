@@ -206,7 +206,7 @@ __attribute__((format(printf,3,4)))
  * Return value:
  *      1: bad parameter(s) (NULL)
  *      0: succesfull
- *     -1: bad usage: given the option but not it's value
+ *     -1: bad usage: given option, not value.
  * Postconditions:
  *      this function must operate trasparently by always leaving
  *      argc/argv in an usable and consistent state.
@@ -596,14 +596,42 @@ int tc_probe_path(const char *name);
 /* codec helpers ***********************************************************/
 
 /*
- * tc_codec_to_string:
- *     give a string representation of a given codec identifier
+ * tc_translate_codec_id:
+ *     translate a CODEC_* value to corresponding TC_CODEC_* one.
  *
  * Parameters:
- *     codec: TC_CODEC_ value to represent
+ *     codec: CODEC_* value to translate.
+ * Return value:
+ *     corresponding TC_CODEC_* value, or
+ *     TC_CODEC_ERROR if given CODEC_XXX hasn't corresponding TC_CODEC_XXX
+ *     or if it;s just unknown.
+ */
+int tc_translate_codec_id(int codec);
+
+/*
+ * tc_codec_to_string:
+ *     return a short constant descriptive string given codec identifier,
+ *
+ * Parameters:
+ *     codec: TC_CODEC_* value to represent.
  * Return value:
  *     a constant string representing the given codec (there is no need to
- *     free() it NULL of codec is (yet) unknown
+ *     free() it).
+ * Postconditions:
+ *     Always return something sensible, even if unknown codec id was given.
+ */
+const char* tc_codec_to_comment(int codec);
+
+/*
+ * tc_codec_to_string:
+ *     return the codec name as a constant string given codec identifier
+ *
+ * Parameters:
+ *     codec: TC_CODEC_* value to represent
+ * Return value:
+ *     a constant string representing the given codec (there is no need to
+ *     free() it).
+ *     NULL of codec is (yet) unknown
  */
 const char* tc_codec_to_string(int codec);
 
