@@ -1,4 +1,8 @@
 2006-20-06 Francesco Romani <fromani at gmail dot com>
+  * libtc/libtc.h
+  export symbols as C ones, without C++ mangling.
+  (needed to fix some avifile issues).
+
   * configure.in
   detect newer libavcodec.
 

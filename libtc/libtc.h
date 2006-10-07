@@ -35,6 +35,10 @@
 #include <string.h>
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void tc_error(char *fmt, ...);
 void tc_info(char *fmt, ...);
 void tc_warn(char *fmt, ...);
@@ -80,5 +84,9 @@ size_t strlcat(char *dst, const char *src, size_t size);
  */
 
 int tc_test_string(char *file, int line, int limit, long ret, int errnum);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* _LIBTC_H */
