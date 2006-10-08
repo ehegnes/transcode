@@ -281,6 +281,53 @@ static TCConfigEntry conf[] ={
 /*************************************************************************/
 
 /**
+ * x264_log:  Logging routine for x264 library.
+ *
+ * Parameters:
+ *     userdata: Unused.
+ *        level: x264 log level (X264_LOG_*).
+ *       format: Log message format string.
+ *         args: Log message format arguments.
+ * Return value:
+ *     None.
+ */
+
+static void x264_log(void *userdata, int level, const char *format,
+                     va_list args)
+{
+    TCLogLevel tclevel;
+    char buf[1000];
+
+    if (!format)
+        return;
+    switch (level) {
+      case X264_LOG_ERROR:
+        tclevel = TC_LOG_ERR;
+        break;
+      case X264_LOG_WARNING:
+        tclevel = TC_LOG_WARN;
+        break;
+      case X264_LOG_INFO:
+        if (!(verbose & TC_INFO))
+            return;
+        tclevel = TC_LOG_INFO;
+        break;
+      case X264_LOG_DEBUG:
+        if (!(verbose & TC_DEBUG))
+            return;
+        tclevel = TC_LOG_MSG;
+        break;
+      default:
+        return;
+    }
+    tc_vsnprintf(buf, sizeof(buf), format, args);
+    buf[strcspn(buf,"\r\n")] = 0;  /* delete trailing newline */
+    tc_log(tclevel, MOD_NAME, "%s", buf);
+}
+
+/*************************************************************************/
+
+/**
  * vob_get_sample_aspect_ratio:  Set $sar_num and $sar_den to the sample
  * aspect ratio (also called pixel aspect ratio) described by $vob->ex_par,
  * $vob->ex_par_width, $vob->ex_par_height and vob->ex_asr.
@@ -458,17 +505,20 @@ static int x264params_check(x264_param_t *params)
  * transcodes CLI or autodetection are applied to x264s $params here
  * (and I hope nowhere else).
  *
- * TODO: check for NULL-pointers.
- *
  * Parameters:
  *     params: x264_param_t structure to apply changes to
  *        vob: transcodes vob_t structure to copy values from
  * Return value:
  *     0 on success, nonzero otherwise.
+ * Preconditions:
+ *     params != NULL
+ *     vob != NULL
  */
 
 static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
 {
+    /* Set video/bitstream parameters */
+
     params->i_width = vob->ex_v_width;
     params->i_height = vob->ex_v_height;
 
@@ -506,10 +556,10 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
         return -1;
     }
 
-    /* TODO: change x264's logging function (code in comments down
-                                             there is from lavc) */
-    /*         params->pf_log = X264_log; */
-    /*         params->p_log_private = avctx;  */
+    /* Set logging function */
+
+    params->pf_log = x264_log;
+    params->p_log_private = NULL;
 
     return 0;
 }
@@ -535,7 +585,7 @@ static int x264_init(TCModuleInstance *self)
     pd = tc_malloc(sizeof(X264PrivateData));
     if (!pd) {
         tc_log_error(MOD_NAME, "init: out of memory!");
-        return TC_EXPORT_ERROR;
+        return -1;
     }
     pd->framenum = 0;
     pd->enc = NULL;
@@ -545,7 +595,7 @@ static int x264_init(TCModuleInstance *self)
     }
     self->userdata = pd;
 
-    return TC_EXPORT_OK;
+    return 0;
 }
 
 /*************************************************************************/
@@ -570,7 +620,7 @@ static int x264_fini(TCModuleInstance *self)
 
     tc_free(self->userdata);
     self->userdata = NULL;
-    return TC_EXPORT_OK;
+    return 0;
 }
 
 /*************************************************************************/
@@ -584,6 +634,7 @@ static int x264_configure(TCModuleInstance *self,
                          const char *options, vob_t *vob)
 {
     X264PrivateData *pd = NULL;
+    char *s;
 
     TC_MODULE_SELF_CHECK(self, "configure");
 
@@ -596,12 +647,24 @@ static int x264_configure(TCModuleInstance *self,
     /* Read settings from configuration file */
     module_read_config(X264_CONFIG_FILE, NULL, conf, MOD_NAME);
 
+    /* Parse options given in -y option string (format:
+     * "name1=value1:name2=value2:...") */
+    for (s = (vob->ex_v_string ? strtok(vob->ex_v_string,":") : NULL);
+         s != NULL;
+         s = strtok(NULL,":")
+    ) {
+        if (!module_read_config_line(s, conf, MOD_NAME)) {
+            tc_log_error(MOD_NAME, "Error parsing module options");
+            return -1;
+        }
+    }
+
     /* Apply extra settings to $x264params */
     if (0 != x264params_set_multipass(&confdata.x264params, vob->divxmultipass,
                                       vob->divxlogfile)
     ) {
         tc_log_error(MOD_NAME, "Failed to apply multipass settings.");
-        return TC_EXPORT_ERROR;
+        return -1;
     }
 
     /* Copy parameter block to module private data */
@@ -612,12 +675,12 @@ static int x264_configure(TCModuleInstance *self,
      * override any settings done before. */
     if (0 != x264params_set_by_vob(&pd->x264params, vob)) {
         tc_log_error(MOD_NAME, "Failed to evaluate vob_t values.");
-        return TC_EXPORT_ERROR;
+        return -1;
     }
 
     /* Test if the set parameters fit together. */
     if (0 != x264params_check(&pd->x264params)) {
-        return TC_EXPORT_ERROR;
+        return -1;
     }
 
     /* Now we've set all parameters gathered from transcode and the config
@@ -630,10 +693,10 @@ static int x264_configure(TCModuleInstance *self,
     pd->enc = x264_encoder_open(&pd->x264params);
     if (!pd->enc) {
         tc_log_error(MOD_NAME, "x264_encoder_open() returned NULL - sorry.");
-        return TC_EXPORT_ERROR;
+        return -1;
     }
 
-    return TC_EXPORT_OK;
+    return 0;
 }
 
 /*************************************************************************/
@@ -656,7 +719,7 @@ static int x264_stop(TCModuleInstance *self)
         pd->enc = NULL;
     }
 
-    return TC_EXPORT_OK;
+    return 0;
 }
 
 /*************************************************************************/
@@ -672,22 +735,23 @@ static int x264_inspect(TCModuleInstance *self,
     X264PrivateData *pd = NULL;
     static char buf[TC_BUF_MAX];
 
-    TC_MODULE_SELF_CHECK(self, "inspect");
-    TC_MODULE_SELF_CHECK(param, "inspect"); /* hackish? */
-    TC_MODULE_SELF_CHECK(value, "inspect"); /* hackish? */
-
+    if (!self || !param || !value) {
+        return -1;
+    }
     pd = self->userdata;
 
     if (optstr_lookup(param, "help")) {
         tc_snprintf(buf, sizeof(buf),
-                "Overview:\n"
-                "    Encodes video in h.264 format using the x264 library.\n"
-                "Options available:\n"
-                "    [todo]\n");
+"Overview:\n"
+"    Encodes video in h.264 format using the x264 library.\n"
+"Options available:\n"
+"    All options in x264.cfg can be specified on the command line\n"
+"    using the format: -y x264=name1=value1:name2=value2:...\n");
         *value = buf;
     }
+    /* FIXME: go through the option list to find a match to param */
 
-    return TC_EXPORT_OK;
+    return 0;
 }
 
 /*************************************************************************/
@@ -706,7 +770,7 @@ static int x264_encode_video(TCModuleInstance *self,
     x264_picture_t pic, pic_out;
 
     if (!self) {
-        return TC_EXPORT_ERROR;
+        return 0;
     }
     pd = self->userdata;
 

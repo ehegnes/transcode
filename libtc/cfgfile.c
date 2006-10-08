@@ -20,8 +20,14 @@
 
 static char *config_dir = NULL;
 
-static void parse_line(char *buf, TCConfigEntry *conf, const char *tag,
-                       const char *filename, int line);
+static int parse_line(const char *buf, TCConfigEntry *conf, const char *tag,
+                      const char *filename, int line);
+static void parse_line_error(const char *buf, const char *filename, int line,
+                             const char *tag, const char *format, ...)
+#ifdef HAVE_ATTRIBUTE_FORMAT
+__attribute__((format(printf,5,6)))
+#endif
+;
 
 /*************************************************************************/
 
@@ -149,6 +155,34 @@ int module_read_config(const char *filename, const char *section,
 /*************************************************************************/
 
 /**
+ * module_read_config_line:  Processes a string as if it were a line read
+ * from a configuration file.  The string must have all leading and
+ * trailing whitespace stripped.
+ *
+ * Parameters:
+ *     string: String to process.
+ *       conf: Array of configuration entries.
+ *        tag: Tag to use in log messages.
+ * Return value:
+ *     Nonzero if the string was successfully processed, else zero.
+ */
+
+int module_read_config_line(const char *string, TCConfigEntry *conf,
+                            const char *tag)
+{
+    if (!tag)
+        tag = __FILE__;
+    if (!string || !conf) {
+        tc_log_error(tag, "module_read_config_line(): %s == NULL!",
+                     !string ? "string" : !conf ? "conf" : "???");
+        return 0;
+    }
+    return parse_line(string, conf, tag, NULL, 0);
+}
+
+/*************************************************************************/
+
+/**
  * module_print_config:  Prints the given array of configuration data.
  *
  * Parameters:
@@ -201,28 +235,35 @@ void module_print_config(const TCConfigEntry *conf, const char *tag)
  *               (including newlines) are assumed to have been stripped.
  *         conf: Array of configuration entries.
  *          tag: Tag to use in log messages.
- *     filename: Name of file being processed.
+ *     filename: Name of file being processed, or NULL if none.
  *         line: Current line number in file.
  * Return value:
- *     None.
+ *     Nonzero if the buffer was successfully parsed, else 0.
  * Preconditions:
  *     buf != NULL
  *     conf != NULL
  *     tag != NULL
- *     filename != NULL
  */
 
-static void parse_line(char *buf, TCConfigEntry *conf, const char *tag,
-                       const char *filename, int line)
+static int parse_line(const char *buf, TCConfigEntry *conf, const char *tag,
+                      const char *filename, int line)
 {
+    char workbuf[TC_BUF_MAX];
     char *name, *value, *s;
 
+    /* Make a working copy of the string */
+    if (strlcpy(workbuf, buf, sizeof(workbuf)) >= sizeof(workbuf)) {
+        parse_line_error(buf, filename, line, tag,
+                         "Buffer overflow while parsing configuration data");
+        return 0;
+    }
+
     /* Split string into name and value */
-    name = buf;
-    s = strchr(buf, '=');
+    name = workbuf;
+    s = strchr(workbuf, '=');
     if (s) {
         value = s+1;
-        while (s > buf && isspace(s[-1]))
+        while (s > workbuf && isspace(s[-1]))
             s--;
         *s = 0;
         while (isspace(*value))
@@ -231,13 +272,14 @@ static void parse_line(char *buf, TCConfigEntry *conf, const char *tag,
         value = NULL;
     }
     if (!*name) {
-        tc_log_warn(tag, "%s:%d: Syntax error (missing variable name)",
-                    filename, line);
-        return;
-    } else if (!*value) {
-        tc_log_warn(tag, "%s:%d: Syntax error (missing value)",
-                    filename, line);
-        return;
+        parse_line_error(buf, filename, line, tag,
+                         "Syntax error in option (missing variable name)");
+        return 0;
+    } else if ((!value && conf->type != TCCONF_TYPE_FLAG)
+            || (value && !*value)) {
+        parse_line_error(buf, filename, line, tag,
+                         "Syntax error in option (missing value)");
+        return 0;
     }
 
     /* Look for a matching configuration entry */
@@ -247,16 +289,17 @@ static void parse_line(char *buf, TCConfigEntry *conf, const char *tag,
         conf++;
     }
     if (!conf->name) {
-        tc_log_warn(tag, "%s:%d: Unknown configuration variable `%s'",
-                    filename, line, name);
-        return;
+        parse_line_error(buf, filename, line, tag,
+                         "Unknown configuration variable `%s'", name);
+        return 0;
     }
 
     /* Set the value appropriately */
 
     switch (conf->type) {
       case TCCONF_TYPE_FLAG:
-        if (strcmp(value,"1"   ) == 0
+        if (!value
+         || strcmp(value,"1"   ) == 0
          || strcmp(value,"yes" ) == 0
          || strcmp(value,"on " ) == 0
          || strcmp(value,"true") == 0
@@ -269,8 +312,10 @@ static void parse_line(char *buf, TCConfigEntry *conf, const char *tag,
         ) {
             *((int *)(conf->ptr)) = 0;
         } else {
-            tc_log_warn(tag, "%s:%d: Value for variable `%s' must be"
-                        " either 1 or 0", filename, line, name);
+            parse_line_error(buf, filename, line, tag,
+                             "Value for variable `%s' must be either 1 or 0",
+                             name);
+            return 0;
         }
         break;
 
@@ -279,8 +324,10 @@ static void parse_line(char *buf, TCConfigEntry *conf, const char *tag,
         errno = 0;
         lvalue = strtol(value, &value, 0);
         if (*value) {
-            tc_log_warn(tag, "%s:%d: Value for variable `%s' must be an"
-                        " integer", filename, line, name);
+            parse_line_error(buf, filename, line, tag,
+                             "Value for variable `%s' must be an integer",
+                             name);
+            return 0;
         } else if (errno == ERANGE
 #if LONG_MIN < INT_MIN
                 || lvalue < INT_MIN
@@ -291,8 +338,9 @@ static void parse_line(char *buf, TCConfigEntry *conf, const char *tag,
                 || ((conf->flags & TCCONF_FLAG_MIN) && lvalue < conf->min)
                 || ((conf->flags & TCCONF_FLAG_MAX) && lvalue > conf->max)
         ) {
-            tc_log_warn(tag, "%s:%d: Value for variable `%s' is out of"
-                        " range", filename, line, name);
+            parse_line_error(buf, filename, line, tag,
+                             "Value for variable `%s' is out of range", name);
+            return 0;
         } else {
             *((int *)(conf->ptr)) = (int)lvalue;
         }
@@ -308,14 +356,16 @@ static void parse_line(char *buf, TCConfigEntry *conf, const char *tag,
         fvalue = (float)strtod(value, &value);
 #endif
         if (*value) {
-            tc_log_warn(tag, "%s:%d: Value for variable `%s' must be a"
-                        " number", filename, line, name);
+            parse_line_error(buf, filename, line, tag,
+                             "Value for variable `%s' must be a number", name);
+            return 0;
         } else if (errno == ERANGE
                 || ((conf->flags & TCCONF_FLAG_MIN) && fvalue < conf->min)
                 || ((conf->flags & TCCONF_FLAG_MAX) && fvalue > conf->max)
         ) {
-            tc_log_warn(tag, "%s:%d: Value for variable `%s' is out of"
-                        " range", filename, line, name);
+            parse_line_error(buf, filename, line, tag,
+                             "Value for variable `%s' is out of range", name);
+            return 0;
         } else {
             *((float *)(conf->ptr)) = fvalue;
         }
@@ -325,8 +375,9 @@ static void parse_line(char *buf, TCConfigEntry *conf, const char *tag,
       case TCCONF_TYPE_STRING: {
         char *newval = tc_strdup(value);
         if (!newval) {
-            tc_log_warn(tag, "%s:%d: Out of memory setting variable `%s'",
-                        filename, line, name);
+            parse_line_error(buf, filename, line, tag,
+                             "Out of memory setting variable `%s'", name);
+            return 0;
         } else {
             *((char **)(conf->ptr)) = newval;
         }
@@ -334,11 +385,51 @@ static void parse_line(char *buf, TCConfigEntry *conf, const char *tag,
       }
 
       default:
-        tc_log_warn(tag, "%s:%d: Unknown type %d for variable `%s' (bug?)",
-                    filename, line, conf->type, name);
-        break;
+        parse_line_error(buf, filename, line, tag,
+                         "Unknown type %d for variable `%s' (bug?)",
+                         conf->type, name);
+        return 0;
 
     } /* switch (conf->type) */
+
+    return 1;
+}
+
+/*************************************************************************/
+
+/**
+ * parse_line_error:  Helper routine for parse_line() to print an error
+ * message, formatted appropriately depending on whether a filename was
+ * given or not.
+ *
+ * Parameters:
+ *          buf: String that caused the error.
+ *     filename: Name of file being processed, or NULL if none.
+ *         line: Current line number in file.
+ *          tag: Tag to use in log message.
+ *       format: Format string for message.
+ * Return value:
+ *     None.
+ * Preconditions:
+ *     buf != NULL
+ *     tag != NULL
+ *     format != NULL
+ */
+
+static void parse_line_error(const char *buf, const char *filename, int line,
+                             const char *tag, const char *format, ...)
+{
+    char msgbuf[1000];
+    va_list args;
+
+    va_start(args, format);
+    tc_vsnprintf(msgbuf, sizeof(msgbuf), format, args);
+    va_end(args);
+    if (filename) {
+        tc_log_warn(tag, "%s:%d: %s", filename, line, msgbuf);
+    } else {
+        tc_log_warn(tag, "\"%s\": %s", buf, msgbuf);
+    }
 }
 
 /*************************************************************************/

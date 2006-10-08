@@ -45,6 +45,10 @@ void tc_set_config_dir(const char *dir);
 int module_read_config(const char *filename, const char *section,
                        TCConfigEntry *conf, const char *tag);
 
+/* Process a string as if it were a line from a configuration file. */
+int module_read_config_line(const char *string, TCConfigEntry *conf,
+                            const char *tag);
+
 /* Print module configuration data. */
 void module_print_config(const TCConfigEntry *conf, const char *tag);
 

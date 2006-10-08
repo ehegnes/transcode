@@ -1,4 +1,13 @@
 2006-10-09 Andrew Church <achurch at achurch dot org>
+  * libtc/cfgfile.c libtc/cfgfile.h
+  Add module_read_config_line() (bad name...) to parse an arbitrary string
+  as if it were a configuration file line.
+
+  * encode/encode_x264.c
+  Allow x264.cfg options to be specified as module options in -y
+  (-y x264=name1=value1:name2=value2:...).
+
+2006-10-09 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c encode/x264.cfg
   Rewrite the x264 parameter processing code entirely.  A few option names
   have been changed (not a big deal since they were already different from
