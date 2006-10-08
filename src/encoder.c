@@ -654,7 +654,7 @@ int encoder_open(vob_t *vob)
         return OLD_encoder_open(vob);
 #endif
 
-    options = (vob->ex_m_string) ?vob->ex_m_string :"";
+    options = vob->ex_m_string ? vob->ex_m_string : "";
     ret = tc_module_configure(encdata.mplex_mod, options, vob);
     if (ret == TC_EXPORT_ERROR) {
         tc_log_warn(__FILE__, "multiplexor module error: init failed");
