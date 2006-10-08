@@ -667,7 +667,7 @@
 2006-06-25 Francesco Romani <fromani at gmail dot com>
   * src/framebuffer.h src/encoder.c src/transcode.c
     src/video_buffer.c tools/tcexport.c
-  drop tc_adjust_frame_buffer and remove 
+  drop tc_adjust_frame_buffer and remove
   tc_framw_{width, height}_max symbols. The idea is to reduce both
   module interdependencies and to avoid to use globals; same result
   can be achieved with a very simple API change at vframe_alloc
@@ -833,7 +833,7 @@
   for RTjpeg).
 
   * Removed files: import/nuv/LICENSE.Nuppelvideo import/nuv/lzoconf.h
-        import/nuv/minilzo.c import/nuv/minilzo.h import/nuv/resampl.h 
+        import/nuv/minilzo.c import/nuv/minilzo.h import/nuv/resampl.h
         import/nuv/resample.c import/nuv/resample.h
         import/nuv/rtjpeg_aud_plugin.c import/nuv/rtjpeg_aud_plugin.h
         import/nuv/rtjpeg_vid_plugin.c import/nuv/rtjpeg_vid_plugin.h
@@ -1031,7 +1031,7 @@
   small profile fixes (profiles are still experimental)
   and fix athe obvious typo left in.
 
-  * Added files: export/svcd-ntsc.cfg export/svcd-pal.cfg 
+  * Added files: export/svcd-ntsc.cfg export/svcd-pal.cfg
                  export/vcd-ntsc.cfg  export/vcd-pal.cfg
 		 export/xvcd-ntsc.cfg export/xvcd-pal.cfg
   Add more (experimental) profile data.
@@ -1070,7 +1070,7 @@
   documentation for new profile support
 
   * docs/man/transcode.1
-  warn about possible future renaming of --export_prof 
+  warn about possible future renaming of --export_prof
   (to --export_profile)
 
   * Added files: src/export_profile.c src/export_profile.h
@@ -1175,7 +1175,7 @@
   Remove outdated help text.
 
 2006-05-05 Andrew Church <achurch at achurch dot org>
-  * src/filter.c src/filter.h 
+  * src/filter.c src/filter.h
   Rewrite, using a new tc_filter_* interface.
 
   * export/export_ffmpeg.c filter/filter_32detect.c filter/filter_compare.c
@@ -1686,7 +1686,7 @@
   * libtc/ratiocodes.c libtc/ratiocodes.h
   refactor and generalize tc_*_code_{from,to}_ratio, providing back
   compatibility macro goodies. Add support for par ratios/codes.
- 
+
   * docs/man/tcexport.1
   rewrite some statements, add return value section
 
