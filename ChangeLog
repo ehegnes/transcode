@@ -1,3 +1,11 @@
+2006-10-08 Francesco Romani <fromani at gmail dot com>
+  * import/import_oss.c
+  change setting sample rate ioctl to avoid misbehaviour
+  with nasty OSS-compatible sources like saa7134 card.
+  There isn't yet a clean way to detect limited devices
+  just like saa7134.
+  minor (mostyle cosmetical) fixes.
+
 2006-10-07 Francesco Romani <fromani at gmail dot com>
   * libtc/tccodecs.h
   add LPCM codec id. As soon as I'll shore that no longer

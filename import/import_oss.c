@@ -21,9 +21,9 @@
  *
  */
 
-#define MOD_NAME	"import_oss.so"
-#define MOD_VERSION	"v0.0.1 (2005-05-12)"
-#define MOD_CODEC	"(audio) pcm"
+#define MOD_NAME    "import_oss.so"
+#define MOD_VERSION "v0.0.2 (2006-10-06)"
+#define MOD_CODEC   "(audio) pcm"
 
 #include "transcode.h"
 
@@ -47,51 +47,52 @@ static int capability_flag = TC_CAP_PCM;
 
 static int oss_fd = -1;
 
-int oss_init(const char *, int, int, int);
-int oss_grab(size_t, char *);
-int oss_stop(void);
+static int oss_init(const char *, int, int, int);
+static int oss_grab(size_t, char *);
+static int oss_stop(void);
 
 
-int oss_init(const char *audio_device,
+static int oss_init(const char *audio_device,
                     int sample_rate, int precision, int channels)
 {
     int encoding;
 
-    if (!strcmp(audio_device, "/dev/null") || !strcmp(audio_device, "/dev/zero"))
-        return(0);
+    if (!strcmp(audio_device, "/dev/null")
+     || !strcmp(audio_device, "/dev/zero")) {
+        return TC_IMPORT_OK;
+    }
 
     if (precision != 8 && precision != 16) {
-        tc_log_warn(MOD_NAME,
-            "bits/sample must be 8 or 16");
-        return(1);
+        tc_log_warn(MOD_NAME, "bits/sample must be 8 or 16");
+        return TC_IMPORT_ERROR;
     }
 
     encoding = (precision == 8) ? AFMT_U8 : AFMT_S16_LE;
 
     if ((oss_fd = open(audio_device, O_RDONLY)) < 0) {
-        tc_log_perror(MOD_NAME, MOD_NAME "open audio device");
-        return(1);
+        tc_log_perror(MOD_NAME, "open audio device");
+        return TC_IMPORT_ERROR;
     }
 
     if (ioctl(oss_fd, SNDCTL_DSP_SETFMT, &encoding) < 0) {
         tc_log_perror(MOD_NAME, "SNDCTL_DSP_SETFMT");
-        return(1);
+        return TC_IMPORT_ERROR;
     }
 
     if (ioctl(oss_fd, SNDCTL_DSP_CHANNELS, &channels) < 0) {
         tc_log_perror(MOD_NAME, "SNDCTL_DSP_CHANNELS");
-        return(1);
+        return TC_IMPORT_ERROR;
     }
 
-    if (ioctl(oss_fd, SOUND_PCM_READ_RATE, &sample_rate) < 0) {
-        tc_log_perror(MOD_NAME, "SOUND_PCM_READ_RATE");
-        return(1);
+    if (ioctl(oss_fd, SNDCTL_DSP_SPEED, &sample_rate) < 0) {
+        tc_log_perror(MOD_NAME, "SNDCTL_DSP_SPEED");
+        return TC_IMPORT_ERROR;
     }
 
-    return(0);
+    return TC_IMPORT_OK;
 }
 
-int oss_grab(size_t size, char *buffer)
+static int oss_grab(size_t size, char *buffer)
 {
     int left;
     int offset;
@@ -100,48 +101,44 @@ int oss_grab(size_t size, char *buffer)
     for (left = size, offset = 0; left > 0;) {
         received = read(oss_fd, buffer + offset, left);
         if (received == 0) {
-            tc_log_warn(MOD_NAME,
-                "audio grab: received == 0");
+            tc_log_warn(MOD_NAME, "audio grab: received == 0");
         }
         if (received < 0) {
             if (errno == EINTR) {
                 received = 0;
             } else {
-                tc_log_perror(MOD_NAME, MOD_NAME "audio grab");
-                return(1);
+                tc_log_perror(MOD_NAME, "audio grab");
+                return TC_IMPORT_ERROR;
             }
         }
         if (received > left) {
             tc_log_warn(MOD_NAME,
-                "read returns more bytes than requested; "
-                "requested: %d, returned: %d",
-                left, received);
-            return(1);
+                        "read returns more bytes than requested; "
+                        "requested: %d, returned: %d",
+                        left, received);
+            return TC_IMPORT_ERROR;
         }
         offset += received;
         left -= received;
     }
-    return(0);
+    return TC_IMPORT_OK;
 }
 
-int oss_stop(void)
+static int oss_stop(void)
 {
     close(oss_fd);
     oss_fd = -1;
 
     if (verbose_flag & TC_STATS) {
-        tc_log_warn(MOD_NAME,
-            "totals: (not implemented)");
+        tc_log_warn(MOD_NAME, "totals: (not implemented)");
     }
 
-    return(0);
+    return TC_IMPORT_OK;
 }
 
 
 /* ------------------------------------------------------------
- *
- * open stream
- *
+ * Module interface
  * ------------------------------------------------------------*/
 
 MOD_open
@@ -150,36 +147,27 @@ MOD_open
 
     switch (param->flag) {
       case TC_VIDEO:
-        tc_log_warn(MOD_NAME,
-            "unsupported request (init video)");
+        tc_log_warn(MOD_NAME, "unsupported request (init video)");
         ret = TC_IMPORT_ERROR;
         break;
       case TC_AUDIO:
         if (verbose_flag & TC_DEBUG) {
-            tc_log_info(MOD_NAME,
-                "OSS audio grabbing");
+            tc_log_info(MOD_NAME, "OSS audio grabbing");
         }
         if (oss_init(vob->audio_in_file,
-                      vob->a_rate, vob->a_bits, vob->a_chan)) {
+                     vob->a_rate, vob->a_bits, vob->a_chan)) {
             ret = TC_IMPORT_ERROR;
         }
         break;
       default:
-        tc_log_warn(MOD_NAME,
-            "unsupported request (init)");
+        tc_log_warn(MOD_NAME, "unsupported request (init)");
         ret = TC_IMPORT_ERROR;
         break;
     }
 
-    return(ret);
+    return ret;
 }
 
-
-/* ------------------------------------------------------------
- *
- * decode  stream
- *
- * ------------------------------------------------------------*/
 
 MOD_decode
 {
@@ -187,8 +175,7 @@ MOD_decode
 
     switch (param->flag) {
       case TC_VIDEO:
-        tc_log_warn(MOD_NAME,
-            "unsupported request (decode video)");
+        tc_log_warn(MOD_NAME, "unsupported request (decode video)");
         ret = TC_IMPORT_ERROR;
         break;
       case TC_AUDIO:
@@ -203,14 +190,9 @@ MOD_decode
         break;
     }
 
-    return(ret);
+    return ret;
 }
 
-/* ------------------------------------------------------------
- *
- * close stream
- *
- * ------------------------------------------------------------*/
 
 MOD_close
 {
@@ -218,19 +200,30 @@ MOD_close
 
     switch (param->flag) {
       case TC_VIDEO:
-        tc_log_warn(MOD_NAME,
-            "unsupported request (close video)");
+        tc_log_warn(MOD_NAME, "unsupported request (close video)");
         ret = TC_IMPORT_ERROR;
         break;
       case TC_AUDIO:
         oss_stop();
         break;
       default:
-        tc_log_warn(MOD_NAME,
-            "unsupported request (close)");
+        tc_log_warn(MOD_NAME, "unsupported request (close)");
         ret = TC_IMPORT_ERROR;
         break;
     }
 
-    return(ret);
+    return ret;
 }
+
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */
+
