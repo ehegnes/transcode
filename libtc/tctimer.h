@@ -59,7 +59,7 @@ int tc_timer_init_soft(TCTimer *timer, uint16_t frequency);
  *     0 : succesfull.
  *     -1: error.
  */
-static inline int tc_timer_fini(TCTimer *timer)
+static int tc_timer_fini(TCTimer *timer)
 {
     return timer->fini(timer);
 }
@@ -78,7 +78,7 @@ static inline int tc_timer_fini(TCTimer *timer)
  * Side Effects:
  *     Update internal timestamp.
  */
-static inline uint32_t tc_timer_elapsed(TCTimer *timer)
+static uint32_t tc_timer_elapsed(TCTimer *timer)
 {
     return timer->elapsed(timer);
 }
@@ -102,7 +102,7 @@ static inline uint32_t tc_timer_elapsed(TCTimer *timer)
  *         (see note above)
  *     -1: failed: an error has caused premature return.
  */
-static inline int tc_timer_sleep(TCTimer *timer, uint32_t amount)
+static int tc_timer_sleep(TCTimer *timer, uint32_t amount)
 {
     return timer->sleep(timer, amount);
 }

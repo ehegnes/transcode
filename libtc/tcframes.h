@@ -51,6 +51,7 @@ int tc_video_planes_size(size_t psizes[3],
  * Return Value:
  *     size in bytes of video frame
  */
+// FIXME: remove inline, maybe move to macro
 static inline size_t tc_video_frame_size(int width, int height, int format)
 {
     size_t psizes[3] = { 0, 0, 0 };
