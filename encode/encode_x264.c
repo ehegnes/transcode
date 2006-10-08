@@ -57,7 +57,7 @@
 
 
 #define MOD_NAME    "encode_x264.so"
-#define MOD_VERSION "v0.1.1 (2006-06-29)"
+#define MOD_VERSION "v0.2.0 (2006-10-09)"
 #define MOD_CAP     "x264 encoder"
 
 
@@ -77,292 +77,205 @@ typedef struct {
 /* Static structure to provide pointers for configuration entries */
 static struct confdata_struct {
     x264_param_t x264params;
-
-    /* configfile options that don't modify entries in x264_param_t directly */
-    int turbo;     /* turbo mode for first pass like in mencoder*/
-                   /* -> affects: i_frame_reference, i_subpel_refine,
-                         analyse.inter, i_trellis, i_me_method,
-                         b_transform_8x8, b_weighted_bipred */
-    int me_method; /* motion estimation method (i_me_method) */
-    int me_range;  /* TODO: what is it?
-                    Looks like Motion Estimation range, so it influence
-                    the extension, the accuracy and the computational cost
-                    of motion estimation. No more that a guess, yet. FR*/
+    /* No local parameters at the moment */
 } confdata;
 
 /*************************************************************************/
 
 /* This array describes all option-names, pointers to where their
- * values are stored and the allowed ranges. It's needet to parse the
- * x264.cfg file using transcodes libioaux.
- *
- * C++-style comments (//) contain the entries in x264_param_t that
- * can't be set directly through x264.cfg (ATM). Some of them are set from
- * transcodes CLI or autodetected values. The entries in the array are
- * in the same order as in the struct's definition in x264.h - so I
- * won't miss to integrate the missing ones later (at least I hope
- * so).
- */
+ * values are stored and the allowed ranges. It's needed to parse the
+ * x264.cfg file using libtc. */
+
+/* Use e.g. OPTION("overscan", vui.i_overscan) for x264params.vui.i_overscan */
+#define OPTION(field,name,type,flag,low,high) \
+    {name, &confdata.x264params.field, (type), (flag), (low), (high)},
+
+/* Option to turn a flag on or off; the off version will have "no" prepended */
+#define OPT_FLAG(field,name) \
+    OPTION(field,      name, TCCONF_TYPE_FLAG, 0, 0, 1) \
+    OPTION(field, "no" name, TCCONF_TYPE_FLAG, 0, 1, 0)
+/* Integer option with range */
+#define OPT_RANGE(field,name,low,high) \
+    OPTION(field, name, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, (low), (high))
+/* Floating-point option */
+#define OPT_FLOAT(field,name) \
+    OPTION(field, name, TCCONF_TYPE_FLOAT, 0, 0, 0)
+/* Floating-point option with range */
+#define OPT_RANGF(field,name,low,high) \
+    OPTION(field, name, TCCONF_TYPE_FLOAT, TCCONF_FLAG_RANGE, (low), (high))
+/* String option */
+#define OPT_STR(field,name) \
+    OPTION(field, name, TCCONF_TYPE_STRING, 0, 0, 0)
+/* Dummy entry that doesn't generate an option (placeholder) */
+#define OPT_NONE(field) /*nothing*/
 
 static TCConfigEntry conf[] ={
 
-//  /* CPU flags */
-//  unsigned int cpu;
-    /* divide each frame into multiple slices, encode in parallel */
-    {"threads",            &confdata.x264params.i_threads, TCCONF_TYPE_INT,
-     TCCONF_FLAG_RANGE, 1, 4},
-//
-//  /* Video Properties */
-//  int         i_width;
-//  int         i_height;
-//  int         i_csp;  /* CSP of encoded bitstream, only i420 supported */
+    /* CPU flags */
+
+    /* CPU acceleration flags (we leave the x264 default alone) */
+    OPT_NONE (cpu)
+    /* Divide each frame into multiple slices, encode in parallel */
+    OPT_RANGE(i_threads,                  "threads",        1,     4)
+
+    /* Video Properties */
+
+    OPT_NONE (i_width)
+    OPT_NONE (i_height)
+    OPT_NONE (i_csp)  /* CSP of encoded bitstream, only i420 supported */
+    /* H.264 level (1.0 ... 5.1) */
+    OPT_RANGE(i_level_idc,                "level_idc",     10,    51)
+    OPT_NONE (i_frame_total) /* number of frames to encode if known, else 0 */
+
+    /* they will be reduced to be 0 < x <= 65535 and prime */
+    OPT_NONE (vui.i_sar_height)
+    OPT_NONE (vui.i_sar_width)
+
+    /* 0=undef, 1=show, 2=crop */
+    OPT_RANGE(vui.i_overscan,             "overscan",       0,     2)
+
+    /* 0=component 1=PAL 2=NTSC 3=SECAM 4=Mac 5=undef */
+    OPT_RANGE(vui.i_vidformat,            "vidformat",      0,     5)
+    OPT_FLAG (vui.b_fullrange,            "fullrange")
+    /* 1=bt709 2=undef 4=bt470m 5=bt470bg 6=smpte170m 7=smpte240m 8=film */
+    OPT_RANGE(vui.i_colorprim,            "colorprim",      0,     8)
+    /* 1..7 as above, 8=linear, 9=log100, 10=log316 */
+    OPT_RANGE(vui.i_transfer,             "transfer",       0,    10)
+    /* 0=GBR 1=bt709 2=undef 4=fcc 5=bt470bg 6=smpte170m 7=smpte240m 8=YCgCo */
+    OPT_RANGE(vui.i_colmatrix,            "colmatrix",      0,     8)
     /* ??? */
-    {"level_idc",         &confdata.x264params.i_level_idc,
-     TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 10, 51},
-//  int         i_frame_total; /* number of frames to encode if known, else 0 */
-//
-//  struct
-//  {
-//      /* they will be reduced to be 0 < x <= 65535 and prime */
-//      int         i_sar_height;
-//      int         i_sar_width;
-//
-//      int         i_overscan;    /* 0=undef, 1=no overscan, 2=overscan */
-//
-//      /* see h264 annex E for the values of the following */
-//      int         i_vidformat;
-//      int         b_fullrange;
-//      int         i_colorprim;
-//      int         i_transfer;
-//      int         i_colmatrix;
-//      int         i_chroma_loc;    /* both top & bottom */
-//  } vui;
-//
-//  int         i_fps_num;
-//  int         i_fps_den;
-//
-//  /* Bitstream parameters */
+    OPT_RANGE(vui.i_chroma_loc,           "chroma_loc",     0,     5)
+
+    OPT_NONE (i_fps_num)
+    OPT_NONE (i_fps_den)
+
+    /* Bitstream parameters */
+
     /* Maximum number of reference frames */
-    {"frameref",          &confdata.x264params.i_frame_reference,
-     TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 1, 16},
+    OPT_RANGE(i_frame_reference,          "frameref",       1,    16)
     /* Force an IDR keyframe at this interval */
-    {"keyint",            &confdata.x264params.i_keyint_max,
-     TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 24000000},
+    OPT_RANGE(i_keyint_max,               "keyint",         1,999999)
     /* Scenecuts closer together than this are coded as I, not IDR. */
-    {"keyint_min",        &confdata.x264params.i_keyint_min,
-     TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 24000000},
-    /* how aggressively to insert extra I frames */
-    {"scenecut",          &confdata.x264params.i_scenecut_threshold,
-     TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, -1, 100},
-    /* how many b-frame between 2 references pictures */
-    {"bframes",           &confdata.x264params.i_bframe,
-     TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 16},
-    /* ??? */
-    {"b_adapt",           &confdata.x264params.b_bframe_adaptive,
-     TCCONF_TYPE_FLAG, 0, 0, 1},
-    /* ??? */
-    {"nob_adapt",         &confdata.x264params.b_bframe_adaptive,
-     TCCONF_TYPE_FLAG, 0, 1, 0},
-    /* ??? */
-    {"b_bias",            &confdata.x264params.i_bframe_bias,
-     TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, -100, 100},
+    OPT_RANGE(i_keyint_min,               "keyint_min",     1,999999)
+    /* How aggressively to insert extra I frames */
+    OPT_RANGE(i_scenecut_threshold,       "scenecut",      -1,   100)
+    /* How many B-frames between 2 reference pictures */
+    OPT_RANGE(i_bframe,                   "bframes",        0,    16)
+    /* Use adaptive B-frame encoding */
+    OPT_FLAG (b_bframe_adaptive,          "b_adapt")
+    /* How often B-frames are used */
+    OPT_RANGE(i_bframe_bias,              "b_bias",       -90,   100)
     /* Keep some B-frames as references */
-    {"b_pyramid",         &confdata.x264params.b_bframe_pyramid,
-     TCCONF_TYPE_FLAG, 0, 0, 1},
-    /* Keep some B-frames as references */
-    {"nob_pyramid",       &confdata.x264params.b_bframe_pyramid,
-     TCCONF_TYPE_FLAG, 0, 1, 0},
+    OPT_FLAG (b_bframe_pyramid,           "b_pyramid")
 
-    /* ??? */
-    {"deblock",           &confdata.x264params.b_deblocking_filter,
-     TCCONF_TYPE_FLAG, 0, 0, 1},
-    /* ??? */
-    {"nodeblock",         &confdata.x264params.b_deblocking_filter,
-     TCCONF_TYPE_FLAG, 0, 1, 0},
+    /* Use deblocking filter */
+    OPT_FLAG (b_deblocking_filter,        "deblock")
     /* [-6, 6] -6 light filter, 6 strong */
-    {"deblockalpha",      &confdata.x264params.i_deblocking_filter_alphac0,
-     TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, -6, 6},
+    OPT_RANGE(i_deblocking_filter_alphac0,"deblockalpha",  -6,     6)
     /* [-6, 6]  idem */
-    {"deblockbeta",       &confdata.x264params.i_deblocking_filter_beta,
-     TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, -6, 6},
+    OPT_RANGE(i_deblocking_filter_beta,   "deblockbeta",   -6,     6)
 
-    /* ??? */
-    {"cabac",             &confdata.x264params.b_cabac,
-     TCCONF_TYPE_FLAG, 0, 0, 1},
-    /* ??? */
-    {"nocabac",           &confdata.x264params.b_cabac,
-     TCCONF_TYPE_FLAG, 0, 1, 0},
-//  int         i_cabac_init_idc;
-//
-//  int         i_cqm_preset;
-//  char        *psz_cqm_file;      /* JM format */
-//  uint8_t     cqm_4iy[16];        /* used only if i_cqm_preset == X264_CQM_CUSTOM */
-//  uint8_t     cqm_4ic[16];
-//  uint8_t     cqm_4py[16];
-//  uint8_t     cqm_4pc[16];
-//  uint8_t     cqm_8iy[64];
-//  uint8_t     cqm_8py[64];
-//
-//  /* Log */
-//  void        (*pf_log)( void *, int i_level, const char *psz, va_list );
-//  void        *p_log_private;
-//  int         i_log_level;
-//  int         b_visualize;
-//
-//  /* Encoder analyser parameters */
-//  struct
-//  {
-    /* ??? */
-    {"8x8dct",            &confdata.x264params.analyse.b_transform_8x8,
-     TCCONF_TYPE_FLAG, 0, 0, 1},
-    /* ??? */
-    {"no8x8dct",          &confdata.x264params.analyse.b_transform_8x8,
-     TCCONF_TYPE_FLAG, 0, 1, 0},
-    /* implicit weighting for B-frames */
-    {"weight_b",          &confdata.x264params.analyse.b_weighted_bipred,
-     TCCONF_TYPE_FLAG, 0, 0, 1},
-    /* implicit weighting for B-frames */
-    {"noweight_b",        &confdata.x264params.analyse.b_weighted_bipred,
-     TCCONF_TYPE_FLAG, 0, 1, 0},
-    /* spatial vs temporal mv prediction */
-    {"direct_pred",       &confdata.x264params.analyse.i_direct_mv_pred,
-     TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 3},
-    /* ??? */
-    {"chroma_qp_offset",  &confdata.x264params.analyse.i_chroma_qp_offset,
-     TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, -12, 12},
+    /* Use context-adaptive binary arithmetic coding */
+    OPT_FLAG (b_cabac,                    "cabac")
+    /* Initial data for CABAC? */
+    OPT_RANGE(i_cabac_init_idc,           "cabac_init_idc", 0,     2)
 
-    /* motion estimation algorithm to use (X264_ME_*) */
-    {"me",                &confdata.me_method,
-     TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 1, 4},
-    /* integer pixel motion estimation search range (from predicted mv) */
-    {"me_range",          &confdata.x264params.analyse.i_me_range,
-     TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 4, 64},
-//      int          i_mv_range; /* maximum length of a mv (in pixels) */
-    /* subpixel motion estimation quality */
-    {"subq",              &confdata.x264params.analyse.i_subpel_refine,
-     TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 1, 7},
-    /* chroma ME for subpel and mode decision in P-frames */
-    {"chroma_me",         &confdata.x264params.analyse.b_chroma_me,
-     TCCONF_TYPE_FLAG, 0, 0, 1},
-    /* chroma ME for subpel and mode decision in P-frames */
-    {"nochroma_me",       &confdata.x264params.analyse.b_chroma_me,
-     TCCONF_TYPE_FLAG, 0, 1, 0},
+    /* Quantization matrix selection: 0=flat 1=JVT 2=custom */
+    OPT_RANGE(i_cqm_preset,               "cqm",            0,     2)
+    /* Custom quant matrix filename */
+    OPT_STR  (psz_cqm_file,               "cqm_file")
+    /* Quant matrix arrays set up by library */
+
+    /* Logging */
+
+    OPT_NONE (pf_log)
+    OPT_NONE (p_log_private)
+    OPT_NONE (i_log_level)
+    OPT_NONE (b_visualize)
+
+    /* Encoder analyser parameters */
+
+    /* Allow integer 8x8 DCT transforms */
+    OPT_FLAG (analyse.b_transform_8x8,    "8x8dct")
+    /* Implicit weighting for B-frames */
+    OPT_FLAG (analyse.b_weighted_bipred,  "weight_b")
+    /* Spatial vs temporal MV prediction, 0=none 1=spatial 2=temporal 3=auto */
+    OPT_RANGE(analyse.i_direct_mv_pred,   "direct_pred",    0,     3)
+    /* QP difference between chroma and luma */
+    OPT_RANGE(analyse.i_chroma_qp_offset, "chroma_qp_offset",-12, 12)
+
+    /* Motion estimation algorithm to use (X264_ME_*) 0=dia 1=hex 2=umh 3=esa*/
+    OPT_RANGE(analyse.i_me_method,        "me",             0,     3)
+    /* Integer pixel motion estimation search range (from predicted MV) */
+    OPT_RANGE(analyse.i_me_range,         "me_range",       4,    64)
+    /* Maximum length of a MV (in pixels), 32-2048 or -1=auto */
+    OPT_RANGE(analyse.i_mv_range,         "mv_range",      -1,  2048)
+    /* Subpixel motion estimation quality: 1=fast, 7=best */
+    OPT_RANGE(analyse.i_subpel_refine,    "subq",           1,     7)
+    /* Chroma ME for subpel and mode decision in P-frames */
+    OPT_FLAG (analyse.b_chroma_me,        "chroma_me")
     /* RD based mode decision for B-frames */
-    {"brdo",              &confdata.x264params.analyse.b_bframe_rdo,
-     TCCONF_TYPE_FLAG, 0, 0, 1},
-    /* RD based mode decision for B-frames */
-    {"nobrdo",            &confdata.x264params.analyse.b_bframe_rdo,
-     TCCONF_TYPE_FLAG, 0, 1, 0},
-    /* allow each mb partition in P-frames to have it's own reference number */
-    {"mixed_refs",        &confdata.x264params.analyse.b_mixed_references,
-     TCCONF_TYPE_FLAG, 0, 0, 1},
-    /* allow each mb partition in P-frames to have it's own reference number */
-    {"nomixed_refs",      &confdata.x264params.analyse.b_mixed_references,
-     TCCONF_TYPE_FLAG, 0, 1, 0},
-    /* trellis RD quantization */
-    {"trellis",           &confdata.x264params.analyse.i_trellis,
-     TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 2},
-//      int          b_fast_pskip; /* early SKIP detection on P-frames */
-//      int          i_noise_reduction; /* adaptive pseudo-deadzone */
-//
-    /* Do we compute PSNR stats (save a few % of cpu) */
-    {"psnr",              &confdata.x264params.analyse.b_psnr,
-     TCCONF_TYPE_FLAG, 0, 0, 1},
-    /* Do we compute PSNR stats (save a few % of cpu) */
-    {"nopsnr",            &confdata.x264params.analyse.b_psnr,
-     TCCONF_TYPE_FLAG, 0, 1, 0},
-//  } analyse;
-//
-//  /* Rate control parameters */
-//  struct
-//  {
-    /* 0-51 */
-    {"qp_constant",       &confdata.x264params.rc.i_qp_constant,
-     TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 51},
-    /* 0-51 */
-    {"qp",                &confdata.x264params.rc.i_qp_constant,
-     TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 51},
-    /* min allowed QP value */
-    {"qp_min",            &confdata.x264params.rc.i_qp_min,
-     TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 51},
-    /* max allowed QP value */
-    {"qp_max",            &confdata.x264params.rc.i_qp_max,
-     TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 51},
-    /* max QP step between frames */
-    {"qp_step",           &confdata.x264params.rc.i_qp_step,
-     TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 50},
-//
-//      int         b_cbr;          /* use bitrate instead of CQP */
-//      int         i_bitrate;
-    /* 1pass VBR, nominal QP */
-    {"crf",               &confdata.x264params.rc.i_rf_constant,
-     TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 1, 50},
-    /* ??? */
-    {"ratetol",           &confdata.x264params.rc.f_rate_tolerance,
-     TCCONF_TYPE_FLOAT, TCCONF_FLAG_RANGE, 0.1, 100.0},
-    /* ??? */
-    {"vbv_maxrate",       &confdata.x264params.rc.i_vbv_max_bitrate,
-     TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 24000000},
-    /* ??? */
-    {"vbv_bufsize",       &confdata.x264params.rc.i_vbv_buffer_size,
-     TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 24000000},
-    /* ??? */
-    {"vbv_init",          &confdata.x264params.rc.f_vbv_buffer_init,
-     TCCONF_TYPE_FLOAT, TCCONF_FLAG_RANGE, 0.0, 1.0},
-    /* ??? */
-    {"ip_factor",         &confdata.x264params.rc.f_ip_factor,
-     TCCONF_TYPE_FLOAT, TCCONF_FLAG_RANGE, -10.0, 10.0},
-    /* ??? */
-    {"pb_factor",         &confdata.x264params.rc.f_pb_factor,
-     TCCONF_TYPE_FLOAT, TCCONF_FLAG_RANGE, -10.0, 10.0},
+    OPT_FLAG (analyse.b_bframe_rdo,       "brdo")
+    /* Allow each MB partition in P-frames to have its own reference number */
+    OPT_FLAG (analyse.b_mixed_references, "mixed_refs")
+    /* Trellis RD quantization */
+    OPT_RANGE(analyse.i_trellis,          "trellis",        0,     2)
+    /* Early SKIP detection on P-frames */
+    OPT_FLAG (analyse.b_fast_pskip,       "fast_pskip")
+    /* Noise reduction */
+    OPT_RANGE(analyse.i_noise_reduction,  "nr",             0, 65536)
+    /* Compute PSNR stats, at the cost of a few % of CPU time */
+    OPT_FLAG (analyse.b_psnr,             "psnr")
 
-    /* 2pass params (same as ffmpeg ones) */
-    /* 2 pass rate control equation */
-    {"rc_eq",             &confdata.x264params.rc.psz_rc_eq,
-     TCCONF_TYPE_STRING},
-    /* 0.0 => cbr, 1.0 => constant qp */
-    {"qcomp",             &confdata.x264params.rc.f_qcompress,
-     TCCONF_TYPE_FLOAT, TCCONF_FLAG_RANGE, 0.0, 1.0},
-    /* temporally blur quants */
-    {"qblur",             &confdata.x264params.rc.f_qblur,
-     TCCONF_TYPE_FLOAT, TCCONF_FLAG_RANGE, 0.0, 99.0},
-    /* temporally blur complexity */
-    {"cplx_blur",         &confdata.x264params.rc.f_complexity_blur,
-     TCCONF_TYPE_FLOAT, TCCONF_FLAG_RANGE, 0.0, 999.0},
-//      x264_zone_t *zones;         /* ratecontrol overrides */
-//      int         i_zones;        /* sumber of zone_t's */
-    /* alternate method of specifying zones */
-    {"zones",             &confdata.x264params.rc.psz_zones,
-     TCCONF_TYPE_STRING},
-    {"turbo",             &confdata.turbo,
-     TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 2},
-//  } rc;
-//
-//  int b_aud;                  /* generate access unit delimiters */
-//  int b_repeat_headers;       /* put SPS/PPS before each keyframe */
-//} x264_param_t;
+    /* Rate control parameters */
+
+    /* QP value for constant-quality encoding (to be a transcode option,
+     * eventually--FIXME) */
+    OPT_NONE (rc.i_qp_constant)
+    /* Minimum allowed QP value */
+    OPT_RANGE(rc.i_qp_min,                "qp_min",         0,    51)
+    /* Maximum allowed QP value */
+    OPT_RANGE(rc.i_qp_max,                "qp_max",         0,    51)
+    /* Maximum QP difference between frames */
+    OPT_RANGE(rc.i_qp_step,               "qp_step",        0,    50)
+    /* Bitrate (transcode -w) */
+    OPT_NONE (rc.i_bitrate)
+    /* Nominal QP for 1-pass VBR */
+    OPT_RANGE(rc.i_rf_constant,           "crf",            0,    51)
+    /* Allowed variance from average bitrate */
+    OPT_FLOAT(rc.f_rate_tolerance,        "ratetol")
+    /* Maximum local bitrate (kbit/s) */
+    OPT_RANGE(rc.i_vbv_max_bitrate,       "vbv_maxrate",    0,240000)
+    /* Size of VBV buffer for CBR encoding */
+    OPT_RANGE(rc.i_vbv_buffer_size,       "vbv_bufsize",    0,240000)
+    /* Initial occupancy of VBV buffer */
+    OPT_RANGF(rc.f_vbv_buffer_init,       "vbv_init",     0.0,   1.0)
+    /* QP ratio between I and P frames */
+    OPT_FLOAT(rc.f_ip_factor,             "ip_ratio")
+    /* QP ratio between P and B frames */
+    OPT_FLOAT(rc.f_pb_factor,             "pb_ratio")
+
+    /* Rate control equation for 2-pass encoding (like FFmpeg) */
+    OPT_STR  (rc.psz_rc_eq,               "rc_eq")
+    /* Complexity blurring before QP compression */
+    OPT_RANGF(rc.f_complexity_blur,       "cplx_blur",    0.0, 999.0)
+    /* QP curve compression: 0.0 = constant bitrate, 1.0 = constant quality */
+    OPT_RANGF(rc.f_qcompress,             "qcomp",        0.0,   1.0)
+    /* QP blurring after compression */
+    OPT_RANGF(rc.f_qblur,                 "qblur",        0.0,  99.0)
+    /* Rate control override zones (not supported by transcode) */
+    OPT_NONE (rc.zones)
+    OPT_NONE (rc.i_zones)
+    /* Alternate method of specifying zones */
+    OPT_STR  (rc.psz_zones,               "zones")
+
+    /* Other parameters */
+
+    OPT_NONE (b_aud)
+    OPT_NONE (b_repeat_headers)
+
     {NULL}
 };
-
-
-/* Some more prepared options (for experiments only) */
-/*     {"devel", "option names like in x264.h's x264_param_t", TCCONF_TYPE_SECTION, 0, 0, 0}, */
-/*     {"i_vidformat",       &confdata.x264params.vui.i_vidformat,             TCCONF_TYPE_INT,     TCCONF_FLAG_RANGE, -127, 127}, /\* ??? *\/ */
-/*     {"b_fullrange",       &confdata.x264params.vui.b_fullrange,             TCCONF_TYPE_INT,     TCCONF_FLAG_RANGE, -127, 127}, /\* ??? *\/ */
-/*     {"i_colorprim",       &confdata.x264params.vui.i_colorprim,             TCCONF_TYPE_INT,     TCCONF_FLAG_RANGE, -127, 127}, /\* ??? *\/ */
-/*     {"i_transfer",        &confdata.x264params.vui.i_transfer,              TCCONF_TYPE_INT,     TCCONF_FLAG_RANGE, -127, 127}, /\* ??? *\/ */
-/*     {"i_colmatrix",       &confdata.x264params.vui.i_colmatrix,             TCCONF_TYPE_INT,     TCCONF_FLAG_RANGE, -127, 127}, /\* ??? *\/ */
-/*     {"i_chroma_loc",      &confdata.x264params.vui.i_chroma_loc,            TCCONF_TYPE_INT,     TCCONF_FLAG_RANGE, -127, 127}, /\* both top & bottom *\/ */
-/*     {"i_overscan",        &confdata.x264params.vui.i_overscan,              TCCONF_TYPE_INT,     TCCONF_FLAG_RANGE,    0,   2}, /\* 0=undef, 1=no overscan, 2=overscan *\/ */
-/*     {"i_cabac_init_idc",  &confdata.x264params.i_cabac_init_idc,            TCCONF_TYPE_INT,     TCCONF_FLAG_RANGE, -127, 127}, /\* ??? *\/ */
-
-/*     {"i_cqm_preset",      &confdata.x264params.i_cqm_preset,                TCCONF_TYPE_INT,     TCCONF_FLAG_RANGE, 0, 1}, /\* ??? *\/ */
-/*     {"i_mv_range",        &confdata.x264params.analyse.i_mv_range,          TCCONF_TYPE_INT,     TCCONF_FLAG_RANGE, -127, 127}, /\* maximum length of a mv (in pixels) *\/ */
-/*     {"b_cbr",             &confdata.x264params.rc.b_cbr,                    TCCONF_TYPE_FLAG,    0,             0,   1}, /\* use bitrate instead of CQP *\/ */
-/*     {"i_bitrate",         &confdata.x264params.rc.i_bitrate,                TCCONF_TYPE_INT,     TCCONF_FLAG_RANGE, 0, MAX_INT}, /\* ??? *\/ */
-/*     {"b_aud",             &confdata.x264params.b_aud,                       TCCONF_TYPE_FLAG,    0,             0,   1}, /\* generate access unit delimiters *\/ */
-/*     {"intra",             &confdata.x264params.analyse.intra,               TCCONF_TYPE_INT,     TCCONF_FLAG_RANGE,    0,         255}, /\* intra partitions (unsigned int)*\/ */
-/*     {"inter",             &confdata.x264params.analyse.inter,               TCCONF_TYPE_INT,     TCCONF_FLAG_RANGE,    0,         255}, /\* inter partitions (unsigned int)*\/ */
 
 /*************************************************************************/
 /*************************************************************************/
@@ -451,13 +364,7 @@ static int vob_get_sample_aspect_ratio(const vob_t *vob,
 /*************************************************************************/
 
 /**
- * x264params_set_multipass:  Does all settings related to multipass with
- * respect to turbo-mode for the first pass - this code is borrowed from
- * mencoder.
- *
- * This function encapsulates any code related to multipass encoding.
- *
- * TODO: check for NULL-pointer.
+ * x264params_set_multipass:  Does all settings related to multipass.
  *
  * Parameters:
  *              pass: 0 = single pass
@@ -465,23 +372,16 @@ static int vob_get_sample_aspect_ratio(const vob_t *vob,
  *                    2 = 2nd pass
  *                    3 = Nth pass, must also be used for 2nd pass
  *                                  of multipass encoding.
- *
- *             turbo: 0   = high quality first pass encoding
- *                    1,2 = boost speed in first pass.
- *
  *     statsfilename: where to read and write multipass stat data.
  * Return value:
  *     always 0.
  * Preconditions:
- *     in x264 $params the following entries must be set before:
- *         i_frame_reference,
- *         i_subpel_refine,
- *         analyse.inter.
+ *     params != NULL
+ *     pass == 0 || statsfilename != NULL
  */
 
 static int x264params_set_multipass(x264_param_t *params,
-                                    int pass, int turbo,
-                                    const char *statsfilename)
+                                    int pass, const char *statsfilename)
 {
     /* Drop the const and hope that x264 treats it as const anyway */
     params->rc.psz_stat_in  = (char *)statsfilename;
@@ -494,23 +394,6 @@ static int x264params_set_multipass(x264_param_t *params,
         params->rc.b_stat_read = 0;
         break;
       case 1:
-        /* MP Adjust or disable some flags to gain speed in the first pass */
-        if (turbo == 1) {
-            params->i_frame_reference = (params->i_frame_reference + 1) / 2;
-            params->analyse.i_subpel_refine =
-                TC_CLAMP(params->analyse.i_subpel_refine - 1, 1, 3);
-            params->analyse.inter &= ~X264_ANALYSE_PSUB8x8;
-            params->analyse.inter &= ~X264_ANALYSE_BSUB16x16;
-            params->analyse.i_trellis = 0;
-        } else if (turbo == 2) {
-            params->i_frame_reference = 1;
-            params->analyse.i_subpel_refine = 1;
-            params->analyse.i_me_method = X264_ME_DIA;
-            params->analyse.inter = 0;
-            params->analyse.b_transform_8x8 = 0;
-            params->analyse.b_weighted_bipred = 0;
-            params->analyse.i_trellis = 0;
-        }
         params->rc.b_stat_write = 1;
         params->rc.b_stat_read = 0;
         break;
@@ -523,61 +406,6 @@ static int x264params_set_multipass(x264_param_t *params,
         params->rc.b_stat_read = 1;
         break;
     }
-    return 0;
-}
-
-/*************************************************************************/
-
-/**
- * x264params_configur:e  Apply cfg-file options from $mencopts to
- * $x264params - this code is transcode-independent.
- *
- * Entries in $mencopts require additional checks before they can be
- * applied to $x264params.
- * All entries in $mencopts should be independent from transcode. So lets
- * apply them separate from transcode dependent settings (CLI-options).
- *
- * TODO: check NULL-pointers.
- *
- * Parameters:
- *     mpstat_filename: filename for multi-pass statistics
- *                pass: pass number
- * Return value:
- *     0 on success, nonzero otherwise.
- */
-
-static int x264params_configure(const char *mpstat_filename, int pass)
-{
-    switch (confdata.me_method) {
-      case 1:
-        confdata.x264params.analyse.i_me_method = X264_ME_DIA;
-        break;
-      case 2:
-        confdata.x264params.analyse.i_me_method = X264_ME_HEX;
-        break;
-      case 3:
-        confdata.x264params.analyse.i_me_method = X264_ME_UMH;
-        break;
-      case 4:
-        confdata.x264params.analyse.i_me_method = X264_ME_ESA;
-        break;
-    }
-
-    /* turbo mode might change $i_me_method, which influences $i_me_range */
-    if (0 != x264params_set_multipass(&confdata.x264params, pass,
-                                      confdata.turbo, mpstat_filename)
-    ) {
-        tc_log_error(MOD_NAME, "Failed to apply multipass settings.");
-        return -1;
-    }
-
-    /* don't know if there's a need for this check, but mencoder does so */
-    if (confdata.x264params.analyse.i_me_method >= X264_ME_UMH
-     && confdata.me_range != 0
-    ) {
-        confdata.x264params.analyse.i_me_range = confdata.me_range;
-    }
-
     return 0;
 }
 
@@ -769,8 +597,10 @@ static int x264_configure(TCModuleInstance *self,
     module_read_config(X264_CONFIG_FILE, NULL, conf, MOD_NAME);
 
     /* Apply extra settings to $x264params */
-    if (0 != x264params_configure(vob->divxlogfile, vob->divxmultipass)) {
-        tc_log_error(MOD_NAME, "Failed to apply settings to $x264params.");
+    if (0 != x264params_set_multipass(&confdata.x264params, vob->divxmultipass,
+                                      vob->divxlogfile)
+    ) {
+        tc_log_error(MOD_NAME, "Failed to apply multipass settings.");
         return TC_EXPORT_ERROR;
     }
 

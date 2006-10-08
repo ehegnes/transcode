@@ -1,4 +1,12 @@
 2006-10-09 Andrew Church <achurch at achurch dot org>
+  * encode/encode_x264.c encode/x264.cfg
+  Rewrite the x264 parameter processing code entirely.  A few option names
+  have been changed (not a big deal since they were already different from
+  mencoder), the "turbo" option has been removed (since changing options
+  between passes can confuse the rate control), and x264.cfg has been
+  replaced with a full, commented list of options.
+
+2006-10-08 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c
   Check for NTSC 24fps and 60fps as well as 30fps.
 
@@ -8,7 +16,7 @@
   * src/transcode.c
   Fix some uninitialized fields in vob_t.
 
-2006-10-09 Andrew Church <achurch at achurch dot org>
+2006-10-08 Andrew Church <achurch at achurch dot org>
   * configure.in
   Fix typo in --enable-pv3 handling.
 
