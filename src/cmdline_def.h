@@ -677,7 +677,7 @@ TC_OPTION(export_as,          'y', "vm[,am[,mm]]",
                                      " module");
                             goto short_usage;
                         }
-                        // vob->ex_m_string = s;  // FIXME not defined
+                        vob->ex_m_string = s;
                     }
                 }
 )

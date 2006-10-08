@@ -64,17 +64,12 @@
 /* Module configuration file */
 #define X264_CONFIG_FILE "x264.cfg"
 
-/* Buffer size like in x264.c */
-#define BUFFER_SIZE 3000000
-
 /* Private data for this module */
 typedef struct {
     int framenum;
     int interval;
     int width;
     int height;
-//    uint8_t buffer[BUFFER_SIZE];
-
     x264_param_t x264params;
     x264_t *enc;
 } X264PrivateData;
@@ -372,8 +367,6 @@ static TCConfigEntry conf[] ={
 /*************************************************************************/
 /*************************************************************************/
 
-/*************************************************************************/
-
 /**
  * vob_get_sample_aspect_ratio:  Set $sar_num and $sar_den to the sample
  * aspect ratio (also called pixel aspect ratio) described by $vob->ex_par,
@@ -663,8 +656,14 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
                                               &params->i_fps_num,
                                               &params->i_fps_den)
     ) {
-        if (vob->ex_fps > 29 && vob->ex_fps < 30) {
+        if (vob->ex_fps > 29.9 && vob->ex_fps < 30) {
             params->i_fps_num = 30000;
+            params->i_fps_den = 1001;
+        } else if (vob->ex_fps > 23.9 && vob->ex_fps < 24) {
+            params->i_fps_num = 24000;
+            params->i_fps_den = 1001;
+        } else if (vob->ex_fps > 59.9 && vob->ex_fps < 60) {
+            params->i_fps_num = 60000;
             params->i_fps_den = 1001;
         } else {
             params->i_fps_num = vob->ex_fps * 1000;
@@ -908,8 +907,6 @@ static int x264_encode_video(TCModuleInstance *self,
         return TC_EXPORT_ERROR;
     }
 
-    // tc_log_msg("saving %d NAL(s)", nnal);
-    /* modified code from x264.c down there (IIRC). */
     outframe->video_len = 0;
     for (i = 0; i < nnal; i++) {
         int size, ret;

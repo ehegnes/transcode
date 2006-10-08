@@ -1,3 +1,23 @@
+2006-10-09 Andrew Church <achurch at achurch dot org>
+  * encode/encode_x264.c
+  Check for NTSC 24fps and 60fps as well as 30fps.
+
+  * src/cmdline_def.h
+  Set vob->ex_m_string on "-y ,,mmod=opts".
+
+  * src/transcode.c
+  Fix some uninitialized fields in vob_t.
+
+2006-10-09 Andrew Church <achurch at achurch dot org>
+  * configure.in
+  Fix typo in --enable-pv3 handling.
+
+  * import/import_pv3.c
+  Fix small bug in file handling.
+
+  * import/w32dll.c
+  Fix compilation problem with recent Linux kernels.
+
 2006-10-08 Francesco Romani <fromani at gmail dot com>
   * import/import_oss.c
   change setting sample rate ioctl to avoid misbehaviour

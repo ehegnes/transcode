@@ -774,6 +774,7 @@ static vob_t *new_vob(void)
     vob->im_v_string         = NULL;
     vob->ex_a_string         = NULL;
     vob->ex_v_string         = NULL;
+    vob->ex_m_string         = NULL;
 
     vob->reduce_h            = 1;
     vob->reduce_w            = 1;
@@ -782,6 +783,7 @@ static vob_t *new_vob(void)
     vob->zoom_width          = 0;
     vob->zoom_height         = 0;
     vob->zoom_filter         = TCV_ZOOM_LANCZOS3;
+    vob->zoom_interlaced     = 0;
 
     vob->frame_interval      = 1; // write every frame
 
@@ -805,6 +807,7 @@ static vob_t *new_vob(void)
     vob->hard_fps_flag       = 0;
     vob->mpeg_profile        = PROF_NONE;
 
+    vob->attributes          = 0;
     vob->export_attributes   = TC_EXPORT_ATTRIBUTE_NONE;
 
     return vob;
