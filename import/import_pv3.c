@@ -416,7 +416,7 @@ static int pv3_fini(TCModuleInstance *self)
     pd = self->userdata;
 
     pd->framenum = -1;
-    if (pd->fd) {
+    if (pd->fd != -1) {
         close(pd->fd);
         pd->fd = -1;
     }
@@ -482,7 +482,7 @@ static int pv3_stop(TCModuleInstance *self)
     pd = self->userdata;
 
     pd->framenum = -1;
-    if (pd->fd >= 0) {
+    if (pd->fd != -1) {
         close(pd->fd);
         pd->fd = -1;
     }
@@ -503,7 +503,7 @@ static int pv3_inspect(TCModuleInstance *self,
     static char buf[TC_BUF_MAX];
 
     if (!self || !param)
-       return NULL;
+       return 0;
     pd = self->userdata;
 
     if (optstr_lookup(param, "help")) {
@@ -754,7 +754,6 @@ MOD_open
 MOD_close
 {
     TCModuleInstance *mod = NULL;
-    PrivateData *pd = NULL;
 
     if (param->flag == TC_VIDEO) {
         mod = &mod_video;
@@ -763,9 +762,7 @@ MOD_close
     } else {
         return -1;
     }
-    pd = mod->userdata;
 
-    close(pd->fd);
     pv3_fini(mod);
     return 0;
 }

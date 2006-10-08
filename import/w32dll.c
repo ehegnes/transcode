@@ -1028,7 +1028,7 @@ static char *w32dll_read_asciiz(int fd)
  *     On error, errno is set appropriately.
  */
 
-#if defined(__linux__)  // FIXME: to an OS_xxx symbol
+#if defined(OS_LINUX)
 # include <asm/unistd.h>
 # include <asm/ldt.h>
 // This doesn't work, because of PIC:
@@ -1040,7 +1040,12 @@ static int modify_ldt(int func, void *ptr, unsigned long bytecount) {
                       : "0" (__NR_modify_ldt), "S" ((long)(func)),
                         "c" ((long)(ptr)), "d" ((long)(bytecount))
                       : "memory");
-    __syscall_return(int, __res);
+    /* Errors are from -1 to -128, according to <asm/unistd.h> */
+    if ((__res & 0xFFFFFF80UL) == 0xFFFFFF80UL) {
+        errno = -__res & 0xFF;
+        __res = (unsigned long)-1;
+    }
+    return (int)__res;
 }
 #else
 # error OS not supported in w32dll_init_fs()
@@ -1051,7 +1056,7 @@ static int w32dll_init_fs(void)
     int fd;
     void *base;
     int segment;
-#ifdef __linux__
+#if defined(OS_LINUX)
     struct user_desc ldt;
 #endif
 
@@ -1069,7 +1074,7 @@ static int w32dll_init_fs(void)
     close(fd);
     *(void **)((uint8_t *)base + 0x18) = base;
 
-#ifdef __linux__
+#if defined(OS_LINUX)
     memset(&ldt, 0, sizeof(ldt)); 
     /* Pick a random number that's hopefully unused.  How does one
      * determine which segment numbers are in use? */

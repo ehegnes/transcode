@@ -1228,7 +1228,7 @@ AC_ARG_ENABLE(pv3,
   esac],
   [enable_pv3=no])
 AC_MSG_RESULT($enable_pv3)
-AM_CONDITIONAL(ENABLE_PV3, test x"yes" = "$enable_pv3")
+AM_CONDITIONAL(ENABLE_PV3, test "yes" = "$enable_pv3")
 
 dnl
 dnl import_nuv
