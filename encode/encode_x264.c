@@ -198,12 +198,17 @@ static TCConfigEntry conf[] ={
 
     /* Encoder analyser parameters */
 
+    /* Partition selection (we always enable everything) */
+    OPT_NONE (analyse.intra);
+    OPT_NONE (analyse.inter);
     /* Allow integer 8x8 DCT transforms */
     OPT_FLAG (analyse.b_transform_8x8,    "8x8dct")
     /* Implicit weighting for B-frames */
     OPT_FLAG (analyse.b_weighted_bipred,  "weight_b")
     /* Spatial vs temporal MV prediction, 0=none 1=spatial 2=temporal 3=auto */
     OPT_RANGE(analyse.i_direct_mv_pred,   "direct_pred",    0,     3)
+    /* Forbid 4x4 direct partitions (-1 = auto) */
+    OPT_FLAG (analyse.i_direct_8x8_inference, "direct_8x8")
     /* QP difference between chroma and luma */
     OPT_RANGE(analyse.i_chroma_qp_offset, "chroma_qp_offset",-12, 12)
 
@@ -659,6 +664,10 @@ static int x264_configure(TCModuleInstance *self,
     /* Initialize parameter block */
     memset(&confdata, 0, sizeof(confdata));
     x264_param_default(&confdata.x264params);
+
+    /* Parameters not (yet) settable via options: */
+    confdata.x264params.analyse.intra = ~0;
+    confdata.x264params.analyse.inter = ~0;
 
     /* Read settings from configuration file */
     module_read_config(X264_CONFIG_FILE, NULL, conf, MOD_NAME);
