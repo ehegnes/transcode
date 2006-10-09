@@ -1,4 +1,10 @@
 2006-10-09 Andrew Church <achurch at achurch dot org>
+  * encode/encode_x264.c
+  Set x264 acceleration flags based on transcode's flags, and add extra
+  checks for output buffer overflow (because the x264 library currently
+  doesn't check).
+
+2006-10-09 Andrew Church <achurch at achurch dot org>
   * libtc/cfgfile.c libtc/cfgfile.h
   Add module_read_config_line() (bad name...) to parse an arbitrary string
   as if it were a configuration file line.

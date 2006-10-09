@@ -434,9 +434,8 @@ static int x264params_set_multipass(x264_param_t *params,
     params->rc.psz_stat_in  = (char *)statsfilename;
     params->rc.psz_stat_out = (char *)statsfilename;
 
-    /* Multipass handling code, borrowed from MPlayer  */
     switch (pass) {
-      case 0:
+      default:
         params->rc.b_stat_write = 0;
         params->rc.b_stat_read = 0;
         break;
@@ -556,10 +555,16 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
         return -1;
     }
 
-    /* Set logging function */
-
+    /* Set logging function and acceleration flags */
     params->pf_log = x264_log;
     params->p_log_private = NULL;
+    params->cpu = 0;
+    if (tc_accel & AC_MMX)      params->cpu |= X264_CPU_MMX;
+    if (tc_accel & AC_MMXEXT)   params->cpu |= X264_CPU_MMXEXT;
+    if (tc_accel & AC_SSE)      params->cpu |= X264_CPU_SSE;
+    if (tc_accel & AC_SSE2)     params->cpu |= X264_CPU_SSE2;
+    if (tc_accel & AC_3DNOW)    params->cpu |= X264_CPU_3DNOW;
+    if (tc_accel & AC_3DNOWEXT) params->cpu |= X264_CPU_3DNOWEXT;
 
     return 0;
 }
@@ -798,7 +803,7 @@ static int x264_encode_video(TCModuleInstance *self,
     pic.i_pts = (int64_t) pd->framenum * pd->x264params.i_fps_den;
 
     if (x264_encoder_encode(pd->enc, &nal, &nnal, &pic, &pic_out) != 0) {
-        return TC_EXPORT_ERROR;
+        return -1;
     }
 
     outframe->video_len = 0;
@@ -806,16 +811,20 @@ static int x264_encode_video(TCModuleInstance *self,
         int size, ret;
 
         size = outframe->video_size - outframe->video_len;
+        if (size <= 0) {
+            tc_log_error(MOD_NAME, "output buffer overflow");
+            return -1;
+        }
         ret = x264_nal_encode(outframe->video_buf + outframe->video_len,
                               &size, 1, &nal[i]);
-        if (ret < 0) {
+        if (ret < 0 || size > outframe->video_size - outframe->video_len) {
             tc_log_error(MOD_NAME, "output buffer overflow");
             break;
         }
         outframe->video_len += size;
     }
 
-    return TC_EXPORT_OK;
+    return 0;
 }
 
 /*************************************************************************/
