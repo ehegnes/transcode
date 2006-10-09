@@ -24,7 +24,7 @@ static int parse_line(const char *buf, TCConfigEntry *conf, const char *tag,
                       const char *filename, int line);
 static void parse_line_error(const char *buf, const char *filename, int line,
                              const char *tag, const char *format, ...)
-#ifdef HAVE_ATTRIBUTE_FORMAT
+#ifdef HAVE_GCC_ATTRIBUTES
 __attribute__((format(printf,5,6)))
 #endif
 ;

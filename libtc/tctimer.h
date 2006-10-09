@@ -59,6 +59,9 @@ int tc_timer_init_soft(TCTimer *timer, uint16_t frequency);
  *     0 : succesfull.
  *     -1: error.
  */
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
 static int tc_timer_fini(TCTimer *timer)
 {
     return timer->fini(timer);
@@ -78,6 +81,9 @@ static int tc_timer_fini(TCTimer *timer)
  * Side Effects:
  *     Update internal timestamp.
  */
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
 static uint32_t tc_timer_elapsed(TCTimer *timer)
 {
     return timer->elapsed(timer);
@@ -102,6 +108,9 @@ static uint32_t tc_timer_elapsed(TCTimer *timer)
  *         (see note above)
  *     -1: failed: an error has caused premature return.
  */
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
 static int tc_timer_sleep(TCTimer *timer, uint32_t amount)
 {
     return timer->sleep(timer, amount);

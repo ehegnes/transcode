@@ -127,8 +127,8 @@ AC_C_BIGENDIAN([words_bigendian=true
   AC_DEFINE([WORDS_BIGENDIAN], 1, [Define if your CPU is big-endian.])],
   words_bigendian=false)
 AM_CONDITIONAL(WORDS_BIGENDIAN, test x"$words_bigendian" = x"true")
+TC_C_GCC_ATTRIBUTES
 TC_C_ATTRIBUTE_ALIGNED
-TC_C_ATTRIBUTE_FORMAT
 
 dnl Checks for library functions.
 AC_FUNC_MALLOC

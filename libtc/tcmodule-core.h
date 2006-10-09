@@ -43,23 +43,35 @@ struct tcmodule_ {
  * interface helpers, using shortened notation                           *
  *************************************************************************/
 
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
 static int tc_module_configure(TCModule handle,
                                       const char *options, vob_t *vob)
 {
     return handle->klass->configure(&(handle->instance), options, vob);
 }
 
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
 static int tc_module_stop(TCModule handle)
 {
     return handle->klass->stop(&(handle->instance));
 }
 
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
 static int tc_module_inspect(TCModule handle,
                                     const char *param, const char **value)
 {
     return handle->klass->inspect(&(handle->instance), param, value);
 }
 
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
 static int tc_module_encode_video(TCModule handle,
                                          vframe_list_t *inframe,
                                          vframe_list_t *outframe)
@@ -68,6 +80,9 @@ static int tc_module_encode_video(TCModule handle,
                                        inframe, outframe);
 }
 
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
 static int tc_module_encode_audio(TCModule handle,
                                          aframe_list_t *inframe,
                                          aframe_list_t *outframe)
@@ -76,6 +91,9 @@ static int tc_module_encode_audio(TCModule handle,
                                        inframe, outframe);
 }
 
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
 static int tc_module_decode_video(TCModule handle,
                                          vframe_list_t *inframe,
                                          vframe_list_t *outframe)
@@ -84,6 +102,9 @@ static int tc_module_decode_video(TCModule handle,
                                        inframe, outframe);
 }
 
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
 static int tc_module_decode_audio(TCModule handle,
                                          aframe_list_t *inframe,
                                          aframe_list_t *outframe)
@@ -92,18 +113,27 @@ static int tc_module_decode_audio(TCModule handle,
                                        inframe, outframe);
 }
 
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
 static int tc_module_filter_video(TCModule handle,
                                          vframe_list_t *frame)
 {
     return handle->klass->filter_video(&(handle->instance), frame);
 }
 
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
 static int tc_module_filter_audio(TCModule handle,
                                          aframe_list_t *frame)
 {
     return handle->klass->filter_audio(&(handle->instance), frame);
 }
 
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
 static int tc_module_multiplex(TCModule handle,
                                       vframe_list_t *vframe,
                                       aframe_list_t *aframe)
@@ -111,6 +141,9 @@ static int tc_module_multiplex(TCModule handle,
     return handle->klass->multiplex(&(handle->instance), vframe, aframe);
 }
 
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
 static int tc_module_demultiplex(TCModule handle,
                                         vframe_list_t *vframe,
                                         aframe_list_t *aframe)
@@ -118,11 +151,17 @@ static int tc_module_demultiplex(TCModule handle,
     return handle->klass->demultiplex(&(handle->instance), vframe, aframe);
 }
 
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
 static const TCModuleInfo *tc_module_get_info(TCModule handle)
 {
     return handle->klass->info;
 }
 
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
 static int tc_module_match(int codec,
                                   TCModule handle, TCModule other)
 {
@@ -130,12 +169,18 @@ static int tc_module_match(int codec,
                                 handle->klass->info, other->klass->info);
 }
 
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
 static void tc_module_show_info(TCModule handle, int verbose)
 {
     tc_module_info_log(handle->klass->info, verbose);
 }
 
 /* XXX: can be further improved. */
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
 static void tc_module_pass_extradata(TCModule source, TCModule dest)
 {
     if (source != NULL && dest != NULL) {

@@ -98,7 +98,7 @@ const char * optstr_lookup(const char *haystack, const char *needle);
  *     none
  */
 int optstr_get(const char *options, const char *name, const char *fmt, ...)
-#ifdef HAVE_ATTRIBUTE_FORMAT
+#ifdef HAVE_GCC_ATTRIBUTES
 __attribute__((format(scanf,3,4)))
 #endif
 ;

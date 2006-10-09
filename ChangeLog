@@ -1,4 +1,15 @@
 2006-10-09 Andrew Church <achurch at achurch dot org>
+  * acinclude.m4 configure.in
+  Rename TC_C_ATTRIBUTE_FORMAT and HAVE_ATTRIBUTE_FORMAT to
+  TC_C_GCC_ATTRIBUTES and HAVE_GCC_ATTRIBUTES, and test for the "unused"
+  attribute as well.
+
+  * libtc/cfgfile.c libtc/libtc.h libtc/optstr.h
+  Use the new define name.
+
+  * libtc/tcmodule-code.h libtc/tctimer.h
+  Add __attribute__((unused)) before static functions in headers.
+
   * encode/encode_x264.c
   Set x264 acceleration flags based on transcode's flags, and add extra
   checks for output buffer overflow (because the x264 library currently

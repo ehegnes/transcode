@@ -102,38 +102,40 @@ ac_includes_default="\
 
 dnl -----------------------------------------------------------------------
 
+dnl TC_C_GCC_ATTRIBUTES
+dnl See if __attribute__((format(...))) and __attribute__((unused)) are
+dnl available.
+dnl
+AC_DEFUN([TC_C_GCC_ATTRIBUTES],
+    [AC_CACHE_CHECK([__attribute__((...)) support],
+        [ac_cv_c_gcc_attributes],
+        [AC_TRY_COMPILE([],
+            [extern int foo(char *,...) __attribute__((format(printf,1,2)));
+             __attribute__((unused)) static int bar;],
+            [ac_cv_c_gcc_attributes=yes],
+            [ac_cv_c_gcc_attributes=no])])
+    if test x"$ac_cv_c_gcc_attributes" = x"yes"; then
+        AC_DEFINE([HAVE_GCC_ATTRIBUTES], 1,
+               [Compiler understands __attribute__((...))])
+    fi])
+
+dnl -----------------------------------------------------------------------
+
 dnl TC_C_ATTRIBUTE_ALIGNED
 dnl Define ATTRIBUTE_ALIGNED_MAX to the maximum alignment if this is supported.
 dnl
 AC_DEFUN([TC_C_ATTRIBUTE_ALIGNED],
-    [AC_CACHE_CHECK([__attribute__ ((aligned())) support],
+    [AC_CACHE_CHECK([__attribute__((aligned())) support],
 	[ac_cv_c_attribute_aligned],
 	[ac_cv_c_attribute_aligned=0
 	for ac_cv_c_attr_align_try in 2 4 8 16 32 64; do
 	    AC_TRY_COMPILE([],
-		[static char c __attribute__ ((aligned($ac_cv_c_attr_align_try))) = 0; return c;],
+		[static char c __attribute__((aligned($ac_cv_c_attr_align_try))) = 0; return c;],
 		[ac_cv_c_attribute_aligned=$ac_cv_c_attr_align_try])
 	done])
     if test x"$ac_cv_c_attribute_aligned" != x"0"; then
 	AC_DEFINE_UNQUOTED([ATTRIBUTE_ALIGNED_MAX],
 	    [$ac_cv_c_attribute_aligned],[maximum supported data alignment])
-    fi])
-
-dnl -----------------------------------------------------------------------
-
-dnl TC_C_ATTRIBUTE_FORMAT
-dnl See if __attribute__((format(...))) is available.
-dnl
-AC_DEFUN([TC_C_ATTRIBUTE_FORMAT],
-    [AC_CACHE_CHECK([__attribute__ ((format())) support],
-        [ac_cv_c_attribute_format],
-        [AC_TRY_COMPILE([],
-            [extern int foo(char *,...) __attribute__((format(printf,1,2)));],
-            [ac_cv_c_attribute_format=yes],
-            [ac_cv_c_attribute_format=no])])
-    if test x"$ac_cv_c_attribute_format" = x"yes"; then
-        AC_DEFINE([HAVE_ATTRIBUTE_FORMAT], 1,
-               [Compiler understands __attribute__ ((format(...)))])
     fi])
 
 dnl -----------------------------------------------------------------------

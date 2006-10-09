@@ -138,7 +138,7 @@ void libtc_setup(uint32_t flags);
  *     truncated to fit in avalaible static buffer.
  */
 int tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
-#ifdef HAVE_ATTRIBUTE_FORMAT
+#ifdef HAVE_GCC_ATTRIBUTES
 __attribute__((format(printf,3,4)))
 #endif
 ;
