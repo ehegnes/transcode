@@ -4,6 +4,9 @@
   checks for output buffer overflow (because the x264 library currently
   doesn't check).
 
+  * multiplex/multiplex_avi.c
+  Add MP2 (audio) to list of allowed codecs.
+
 2006-10-09 Andrew Church <achurch at achurch dot org>
   * libtc/cfgfile.c libtc/cfgfile.h
   Add module_read_config_line() (bad name...) to parse an arbitrary string
