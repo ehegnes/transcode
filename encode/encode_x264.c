@@ -180,6 +180,9 @@ static TCConfigEntry conf[] ={
     /* Initial data for CABAC? */
     OPT_RANGE(i_cabac_init_idc,           "cabac_init_idc", 0,     2)
 
+    /* Enable interlaced encoding (--encode_fields) */
+    OPT_NONE (b_interlaced)
+
     /* Quantization matrix selection: 0=flat 1=JVT 2=custom */
     OPT_RANGE(i_cqm_preset,               "cqm",            0,     2)
     /* Custom quant matrix filename */
@@ -212,6 +215,8 @@ static TCConfigEntry conf[] ={
     OPT_RANGE(analyse.i_mv_range,         "mv_range",      -1,  2048)
     /* Subpixel motion estimation quality: 1=fast, 7=best */
     OPT_RANGE(analyse.i_subpel_refine,    "subq",           1,     7)
+    /* Bidirectional motion estimation *?
+    OPT_FLAG (analyse.b_bidir_me,         "bidir_me")
     /* Chroma ME for subpel and mode decision in P-frames */
     OPT_FLAG (analyse.b_chroma_me,        "chroma_me")
     /* RD based mode decision for B-frames */
@@ -222,10 +227,14 @@ static TCConfigEntry conf[] ={
     OPT_RANGE(analyse.i_trellis,          "trellis",        0,     2)
     /* Early SKIP detection on P-frames */
     OPT_FLAG (analyse.b_fast_pskip,       "fast_pskip")
+    /* Transform coefficient thresholding on P-frames */
+    OPT_FLAG (analyse.b_dct_decimate,     "dct_decimate")
     /* Noise reduction */
     OPT_RANGE(analyse.i_noise_reduction,  "nr",             0, 65536)
     /* Compute PSNR stats, at the cost of a few % of CPU time */
     OPT_FLAG (analyse.b_psnr,             "psnr")
+    /* Compute SSIM stats, at the cost of a few % of CPU time */
+    OPT_FLAG (analyse.b_ssim,             "ssim")
 
     /* Rate control parameters */
 
@@ -273,6 +282,7 @@ static TCConfigEntry conf[] ={
 
     OPT_NONE (b_aud)
     OPT_NONE (b_repeat_headers)
+    OPT_NONE (i_sps_id)
 
     {NULL}
 };
@@ -520,6 +530,7 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
 
     params->i_width = vob->ex_v_width;
     params->i_height = vob->ex_v_height;
+    params->b_interlaced = (vob->encode_fields==1 || vob->encode_fields==2);
 
     /* TODO: allow other modes than cbr */
 #if X264_BUILD >= 48

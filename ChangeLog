@@ -1,4 +1,9 @@
 2006-10-09 Andrew Church <achurch at achurch dot org>
+  * encode/encode_x264.c encode/x264.cfg
+  Add support for new x264 parameters: interlacing (handled automatically),
+  bidir_me, dct_decimate, ssim.
+
+2006-10-09 Andrew Church <achurch at achurch dot org>
   * encode/Makefile.am
     Added: encode/encode_lame.c
   Add LAME encoding module.
