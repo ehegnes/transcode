@@ -1,4 +1,9 @@
 2006-10-09 Andrew Church <achurch at achurch dot org>
+  * encode/Makefile.am
+    Added: encode/encode_lame.c
+  Add LAME encoding module.
+
+2006-10-09 Andrew Church <achurch at achurch dot org>
   * acinclude.m4 configure.in
   Rename TC_C_ATTRIBUTE_FORMAT and HAVE_ATTRIBUTE_FORMAT to
   TC_C_GCC_ATTRIBUTES and HAVE_GCC_ATTRIBUTES, and test for the "unused"
