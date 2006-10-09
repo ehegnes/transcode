@@ -1,7 +1,8 @@
 2006-10-09 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c encode/x264.cfg
   Add support for new x264 parameters: interlacing (handled automatically),
-  direct_8x8, bidir_me, dct_decimate, ssim.
+  direct_8x8, bidir_me, dct_decimate, ssim.  Also add keyint_max as an
+  alias for keyint.
 
   * libtc/cfgfile.c
   Fix handling of flag options.

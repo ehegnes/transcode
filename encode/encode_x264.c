@@ -21,28 +21,6 @@
 - Various smaller things -> search for "TODO" and for "QUESTIONS" in
   the rest of the code
 
-- ATM only CBR encoding is supported. Mencoder doesn't set some
-  switches when other modes than CBR are chosen. Have a look at this
-  code, before adding other encoding-modes!
- 
-  MEncoder code:
-
-  |  if(bitrate > 0) {
-  |      if((vbv_maxrate > 0) != (vbv_bufsize > 0)) {
-  |          mp_msg(MSGT_MENCODER, MSGL_ERR,
-  |                 "VBV requires both vbv_maxrate and vbv_bufsize.\n");
-  |          return 0;
-  |      }
-  |      mod->param.rc.b_cbr = 1;
-  |      mod->param.rc.i_bitrate = bitrate;
-  |      mod->param.rc.f_rate_tolerance = ratetol;
-  |      mod->param.rc.i_vbv_max_bitrate = vbv_maxrate;
-  |      mod->param.rc.i_vbv_buffer_size = vbv_bufsize;
-  |      mod->param.rc.f_vbv_buffer_init = vbv_init;
-  |  }
-
-  QUESTION: May I set f_rate_tolerance, i_bitrate, etc. when in other
-            mode than CBR?
 */
 
 
@@ -155,6 +133,7 @@ static TCConfigEntry conf[] ={
     OPT_RANGE(i_frame_reference,          "frameref",       1,    16)
     /* Force an IDR keyframe at this interval */
     OPT_RANGE(i_keyint_max,               "keyint",         1,999999)
+    OPT_RANGE(i_keyint_max,               "keyint_max",     1,999999)
     /* Scenecuts closer together than this are coded as I, not IDR. */
     OPT_RANGE(i_keyint_min,               "keyint_min",     1,999999)
     /* How aggressively to insert extra I frames */
