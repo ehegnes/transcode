@@ -275,8 +275,7 @@ static int parse_line(const char *buf, TCConfigEntry *conf, const char *tag,
         parse_line_error(buf, filename, line, tag,
                          "Syntax error in option (missing variable name)");
         return 0;
-    } else if ((!value && conf->type != TCCONF_TYPE_FLAG)
-            || (value && !*value)) {
+    } else if (value && !*value) {
         parse_line_error(buf, filename, line, tag,
                          "Syntax error in option (missing value)");
         return 0;
@@ -291,6 +290,12 @@ static int parse_line(const char *buf, TCConfigEntry *conf, const char *tag,
     if (!conf->name) {
         parse_line_error(buf, filename, line, tag,
                          "Unknown configuration variable `%s'", name);
+        return 0;
+    }
+    /* Make sure non-flag entries have values */
+    if (conf->type != TCCONF_TYPE_FLAG && !value) {
+        parse_line_error(buf, filename, line, tag,
+                         "Syntax error in option (missing value)");
         return 0;
     }
 

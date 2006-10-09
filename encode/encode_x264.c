@@ -199,8 +199,8 @@ static TCConfigEntry conf[] ={
     /* Encoder analyser parameters */
 
     /* Partition selection (we always enable everything) */
-    OPT_NONE (analyse.intra);
-    OPT_NONE (analyse.inter);
+    OPT_NONE (analyse.intra)
+    OPT_NONE (analyse.inter)
     /* Allow integer 8x8 DCT transforms */
     OPT_FLAG (analyse.b_transform_8x8,    "8x8dct")
     /* Implicit weighting for B-frames */
@@ -220,7 +220,7 @@ static TCConfigEntry conf[] ={
     OPT_RANGE(analyse.i_mv_range,         "mv_range",      -1,  2048)
     /* Subpixel motion estimation quality: 1=fast, 7=best */
     OPT_RANGE(analyse.i_subpel_refine,    "subq",           1,     7)
-    /* Bidirectional motion estimation *?
+    /* Bidirectional motion estimation */
     OPT_FLAG (analyse.b_bidir_me,         "bidir_me")
     /* Chroma ME for subpel and mode decision in P-frames */
     OPT_FLAG (analyse.b_chroma_me,        "chroma_me")
