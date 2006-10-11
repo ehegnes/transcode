@@ -1028,6 +1028,13 @@ TC_PKG_CHECK(a52, no, A52, no, [a52dec/a52.h], a52, a52_init, liba52,
 TC_PKG_HAVE(a52, A52)
 
 dnl
+dnl FAAC
+dnl
+TC_PKG_CHECK(faac, no, FAAC, no, [faac.h], faac, faacEncGetVersion, no,
+  [http://www.audiocoding.com/])
+TC_PKG_HAVE(faac, FAAC)
+
+dnl
 dnl libxml2
 dnl
 LIBXML2_EXTRA_LIBS="$LIBXML2_EXTRA_LIBS -lz -lm"

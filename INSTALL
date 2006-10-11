@@ -182,7 +182,7 @@ Optional packages:
       --with-libpostproc-libs=DIR (/usr/lib)
           directory where libpostproc library [libpostproc.so] is installed
     affected modules: filter_pp.so
-    NOTE: It is highly recommended to use a share libpostproc.  To
+    NOTE: It is highly recommended to use a shared libpostproc.  To
           build a shared libpostproc, build FFmpeg with
           '--enable-pp --enable-shared-pp'.
 
@@ -210,6 +210,18 @@ Optional packages:
           directory where liba52 libraries are installed
     affected modules: a52_decore.so
 
+  faac  http://www.audiocoding.com/
+    related options:
+      --enable-faac (disabled)
+          build with support for AC3/FAAC audio decoding
+      --with-faac-prefix=PFX (/usr)
+          prefix where libfaac is installed
+      --with-faac-includes=DIR (/usr/include)
+          directory where libfaac headers are installed
+      --with-faac-libs=DIR (/usr/lib)
+          directory where libfaac libraries are installed
+    affected modules: encode_faac.so
+     
   mjpegtools  http://mjpeg.sourceforge.net/
   You need version >= 1.8.0 of mjpegtools.
     related options:
@@ -246,8 +258,8 @@ Optional packages:
           directory where lame headers are installed
       --with-lame-libs=DIR (/usr/lib)
           directory where lame libraries are installed
-    affected modules: export_dv.so, export_raw.so, export_divx5.so,
-      export_ppm.so, export_ffmpeg.so, export_lame.so,
+    affected modules: encode_lame.so, export_dv.so, export_raw.so,
+      export_divx5.so, export_ppm.so, export_ffmpeg.so, export_lame.so,
       export_yuv4mpeg.so, export_mpeg2enc.so, export_mp2enc.so,
       export_xvid4.so, import_mp3.so
 
@@ -298,6 +310,18 @@ Optional packages:
       --with-theora-libs=DIR (/usr/lib)
           directory where theora libraries [libtheora.so] are installed
       affected modules: none
+
+  x264  http://www.videolan.org/x264.html
+    related options:
+      --enable-x264 (disabled)
+          build with support for encoding x264 video
+      --with-x264-prefix=PFX (/usr)
+          prefix where x264 is installed
+      --with-x264-includes=DIR (/usr/include)
+          directory where x264 headers [x264.h] are installed
+      --with-x264-libs=DIR (/usr/lib)
+          directory where x264 libraries [libx264.so] are installed
+      affected modules: encode_x264.so
 
   libdvdread  http://www.dtek.chalmers.se/groups/dvd/
     related options:

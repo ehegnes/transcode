@@ -17,7 +17,7 @@
 #include <lame/lame.h>
 
 #define MOD_NAME    	"encode_lame.so"
-#define MOD_VERSION 	"v1.0.0 (2006-10-09)"
+#define MOD_VERSION 	"v1.0 (2006-10-09)"
 #define MOD_CAP         "Encodes audio to MP3 using LAME"
 #define MOD_AUTHOR      "Andrew Church"
 
@@ -283,7 +283,7 @@ static int lame_inspect(TCModuleInstance *self,
     if (optstr_lookup(param, "help")) {
         tc_snprintf(buf, sizeof(buf),
                 "Overview:\n"
-                "    Encodes audio using the LAME library.\n"
+                "    Encodes audio to MP3 using the LAME library.\n"
                 "No options available.\n");
         *value = buf;
     }

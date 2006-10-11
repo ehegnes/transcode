@@ -1,4 +1,13 @@
 2006-10-11 Andrew Church <achurch at achurch dot org>
+  * INSTALL configure.in encode/Makefile.am libtc/tccodecs.h
+    multiplex/multiplex_avi.c
+    Added: encode/encode_faac.c
+  Add preliminary FAAC encoding module (doesn't seem to work properly yet).
+
+  * encode/encode_lame.c
+  Cosmetic fixes.
+
+2006-10-11 Andrew Church <achurch at achurch dot org>
   * Makefile.am configure.in
     Removed: contrib/*
   Remove outdated/obsolete contrib directory.

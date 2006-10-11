@@ -8,6 +8,10 @@ AM_CPPFLAGS = \
 
 pkgdir = $(MOD_PATH)
 
+if HAVE_FAAC
+ENCODE_FAAC = encode_faac.la
+endif
+
 if HAVE_LAME
 ENCODE_LAME = encode_lame.la
 endif
@@ -26,6 +30,7 @@ endif
 
 pkg_LTLIBRARIES = \
 	encode_copy.la \
+	$(ENCODE_FAAC) \
 	$(ENCODE_LAME) \
 	$(ENCODE_LZO) \
 	encode_null.la \
@@ -34,6 +39,11 @@ pkg_LTLIBRARIES = \
 
 encode_copy_la_SOURCES = encode_copy.c
 encode_copy_la_LDFLAGS = -module -avoid-version
+
+encode_faac_la_SOURCES = encode_faac.c
+encode_faac_la_CPPFLAGS = $(AM_CPPFLAGS) $(FAAC_CFLAGS)
+encode_faac_la_LDFLAGS = -module -avoid-version
+encode_faac_la_LIBADD = $(FAAC_LIBS)
 
 encode_lame_la_SOURCES = encode_lame.c
 encode_lame_la_CPPFLAGS = $(AM_CPPFLAGS) $(LAME_CFLAGS)

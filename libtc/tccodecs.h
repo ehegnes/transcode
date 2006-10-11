@@ -34,6 +34,7 @@ typedef uint32_t TCCodecID;
  * codecs identifiers.
  * Each one must fit in exactly 32 bits.
  * And they should be probably moved to an enum.
+ * (WARNING: avilib relies on these values, at least for audio)
  */
 
 #define TC_CODEC_ERROR                 0xFFFFFFFF
@@ -61,6 +62,7 @@ typedef uint32_t TCCodecID;
 #define TC_CODEC_DV                    0x00001000
 #define TC_CODEC_MP3                   0x00000055
 #define TC_CODEC_MP2                   0x00000050
+#define TC_CODEC_AAC                   0x000000FF  // seems to be right for AVI
 #define TC_CODEC_NUV                   0x4e757070
 #define TC_CODEC_PS1                   0x00007001
 #define TC_CODEC_PS2                   0x00007002
