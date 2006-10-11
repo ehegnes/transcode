@@ -1,3 +1,7 @@
+2006-10-11 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_faac.c
+  implement 'quality' module option.
+
 2006-10-11 Andrew Church <achurch at achurch dot org>
   * INSTALL configure.in encode/Makefile.am libtc/tccodecs.h
     multiplex/multiplex_avi.c

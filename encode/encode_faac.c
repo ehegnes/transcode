@@ -87,6 +87,7 @@ static int faac_configure(TCModuleInstance *self,
 {
     PrivateData *pd;
     int samplerate = vob->mp3frequency ? vob->mp3frequency : vob->a_rate;
+    int ret;
     unsigned long dummy;
     faacEncConfiguration conf;
 
@@ -107,7 +108,8 @@ static int faac_configure(TCModuleInstance *self,
         return -1;
     }
 
-    /* Set up audio parameters */
+    /* Set up our default audio parameters */
+    /* why can't just use a pointer here? -- FR */
     conf = *faacEncGetCurrentConfiguration(pd->handle);
     conf.mpegVersion = MPEG4;
     conf.aacObjectType = MAIN;
@@ -124,6 +126,14 @@ static int faac_configure(TCModuleInstance *self,
     }
     conf.inputFormat = FAAC_INPUT_16BIT;
     conf.shortctl = SHORTCTL_NORMAL;
+
+    ret = optstr_get(options, "quality", "%li", &conf.quantqual);
+    if (ret >= 0) {
+        if (verbose >= TC_INFO) {
+            tc_log_info(MOD_NAME, "using quality=%li", conf.quantqual);
+        }
+    }
+
     if (!faacEncSetConfiguration(pd->handle, &conf)) {
         tc_log_error(MOD_NAME, "Failed to set FAAC configuration");
         faacEncClose(pd->handle);
@@ -164,7 +174,8 @@ static int faac_inspect(TCModuleInstance *self,
         tc_snprintf(buf, sizeof(buf),
                 "Overview:\n"
                 "    Encodes audio to AAC using the FAAC library.\n"
-                "No options available.\n");
+                "Options:\n"
+                "    quality: set encoder quality [0-100]\n");
         *value = buf;
     }
     return 0;
