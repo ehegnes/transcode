@@ -18,6 +18,9 @@
   * encode/Makefile.am
   Fix typo.
 
+  * encode/encode_lame.c
+  Ensure local data is initialized correctly.
+
 2006-10-09 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c encode/x264.cfg
   Add support for new x264 parameters: interlacing (handled automatically),

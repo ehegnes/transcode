@@ -18,7 +18,7 @@
 
 #define MOD_NAME    	"encode_lame.so"
 #define MOD_VERSION 	"v1.0.0 (2006-10-09)"
-#define MOD_CAP         "Encodes audio using LAME"
+#define MOD_CAP         "Encodes audio to MP3 using LAME"
 #define MOD_AUTHOR      "Andrew Church"
 
 /*************************************************************************/
@@ -95,6 +95,7 @@ static int lamemod_init(TCModuleInstance *self)
         tc_log_error(MOD_NAME, "init: out of memory!");
         return -1;
     }
+    pd->lgf = NULL;
 
     /* FIXME: shouldn't this test a specific flag? */
     if (verbose) {
