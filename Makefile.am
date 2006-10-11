@@ -26,7 +26,6 @@ SUBDIRS = \
 	src \
 	testsuite \
 	tools \
-	contrib \
 	docs
 
 EXTRA_DIST = STYLE transcode.spec

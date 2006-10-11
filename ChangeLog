@@ -1,5 +1,6 @@
 2006-10-11 Andrew Church <achurch at achurch dot org>
-  * Removed: contrib/*
+  * Makefile.am configure.in
+    Removed: contrib/*
   Remove outdated/obsolete contrib directory.
 
 2006-10-09 Andrew Church <achurch at achurch dot org>

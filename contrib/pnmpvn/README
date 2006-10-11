@@ -1,3 +1,0 @@
-PVN viewer by Jacob (Jack) Gryn jgryn AT cs DOT yorku DOT ca
-Read the specs from pvnspecs.html
-To build do a make -f makefile-pvn

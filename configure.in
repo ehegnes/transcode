@@ -1354,8 +1354,6 @@ AC_OUTPUT([
 	Makefile
 	aclib/Makefile
 	avilib/Makefile
-	contrib/Makefile
-	contrib/pnmpvn/Makefile
 	docs/Makefile
 	docs/html/Makefile
 	docs/man/Makefile
