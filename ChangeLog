@@ -1,3 +1,7 @@
+2006-10-11 Andrew Church <achurch at achurch dot org>
+  * Removed: contrib/*
+  Remove outdated/obsolete contrib directory.
+
 2006-10-09 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c encode/x264.cfg
   Add support for new x264 parameters: interlacing (handled automatically),
