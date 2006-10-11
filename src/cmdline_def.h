@@ -249,7 +249,7 @@ TC_OPTION(avi_limit,          0,   "size",
                     tc_avi_limit = (unsigned int)-1;
 )
 TC_OPTION(avi_comments,       0,   "file",
-                "read AVI header comments from file (see transcode(1)) [off]",
+                "read AVI header comments from file [off]",
                 vob->avi_comment_fd = xio_open(optarg, O_RDONLY);
                 if (vob->avi_comment_fd == -1) {
                     tc_error("Cannot open comment file \"%s\"", optarg);
@@ -350,7 +350,7 @@ TC_OPTION(frame_interval,     0,   "N",
                 }
 )
 TC_OPTION(title,              'T', "t[,c[-d][,a]]",
-                "select DVD title[,chapter(s)[,angle]] [1,all,1]",
+                "select DVD title[,chapters[,angle]] [1,all,1]",
                 if (sscanf(optarg, "%d,%d-%d,%d", &vob->dvd_title,
                            &vob->dvd_chapter1, &vob->dvd_chapter2,
                            &vob->dvd_angle) >= 3
@@ -428,10 +428,10 @@ TC_OPTION(probe,              'H', "n",
                     auto_probe = 0;
 )
 TC_OPTION(mplayer_probe,      0,   0,
-                "use (external) mplayer for probing source [off]",
+                "use (external) mplayer to probe source [off]",
                 preset_flag |= TC_PROBE_NO_BUILTIN;
 )
-TC_OPTION(import_as,          'x', "vmod[,amod]",
+TC_OPTION(import_with,        'x', "vmod[,amod]",
                 "video[,audio] import modules [null]",
                 /* Careful here!  "static char vbuf[64], abuf[64]" will be
                  * treated as two separate macro arguments by the
@@ -442,7 +442,7 @@ TC_OPTION(import_as,          'x', "vmod[,amod]",
                 char *s;
                 int n;
                 if ((n = sscanf(optarg, "%64[^,],%64[^,]", vbuf, abuf)) < 1) {
-                    tc_error("Invalid argument for -x/--import_as");
+                    tc_error("Invalid argument for -x/--import_with");
                     goto short_usage;
                 }
                 im_vid_mod = vbuf;
@@ -579,7 +579,7 @@ TC_OPTION(import_codec,       'n', "0xNN",
                 preset_flag |= TC_PROBE_NO_ACODEC;
 )
 TC_OPTION(no_audio_adjust,    0,   0,
-                "disable audio frame sample adjustment [enabled]",
+                "disable audio frame size adjustment [enabled]",
                 no_audio_adjust = TC_TRUE;
 )
 
@@ -628,7 +628,7 @@ TC_OPTION(export_prof,        0,   "profile",
                     tc_error("Invalid argument for --export_prof");
                 }
 )
-TC_OPTION(export_as,          'y', "vm[,am[,mm]]",
+TC_OPTION(export_with,        'y', "vm[,am[,mm]]",
                 "video[,audio[,mplex]] export modules [null]",
                 static char vbuf[65];
                 static char abuf[65];
@@ -638,7 +638,7 @@ TC_OPTION(export_as,          'y', "vm[,am[,mm]]",
                 if ((n = sscanf(optarg, "%64[^,],%64[^,],%64[^,]",
                                 vbuf, abuf, mbuf)) < 1
                 ) {
-                    tc_error("Invalid argument for -y/--export_as");
+                    tc_error("Invalid argument for -y/--export_with");
                     goto short_usage;
                 }
                 ex_vid_mod = vbuf;
@@ -797,7 +797,7 @@ TC_OPTION(video_max_bitrate,  0,   "r",
                 }
 )
 TC_OPTION(export_fps,         0,   "f[,c]",
-                "output video frame rate[,code] [as input] [25.000,3]",
+                "output video frame rate[,code] [as input]",
                 int n = sscanf(optarg, "%lf,%d", &vob->ex_fps, &vob->ex_frc);
                 if (n < 1 || n > 2) {
                     tc_error("Invalid argument for --export_fps");
@@ -821,7 +821,7 @@ TC_OPTION(export_fps,         0,   "f[,c]",
 )
 TC_OPTION(export_frc,         0,   "C",
                 "set export frame rate code C independently of actual"
-                " frame rate [as input or --export_fps]",
+                " frame rate [derived from export FPS]",
                 vob->ex_frc = strtol(optarg, &optarg, 10);
                 if (*optarg || vob->ex_frc < 0 || vob->ex_frc > 15) {
                     tc_error("Invalid frc value for --export_frc");
@@ -875,9 +875,9 @@ TC_OPTION(export_par,         0,   "{C | N,D}",
                 vob->export_attributes |= TC_EXPORT_ATTRIBUTE_PAR;
 )
 TC_OPTION(encode_fields,      0,   "C",
-                "enable field-based encoding, if supported [off]\n"
-                "C is one of t (top-first), b (bottom-first),\n"
-                "            p (progressive), u (unknown)",
+                "enable field-based encoding if supported [off]\n"
+                "C can be t (top-first), b (bottom-first),\n"
+                "         p (progressive), u (unknown)",
                 switch (*optarg) {
                   case 't':
                     vob->encode_fields = 0; break;
@@ -992,7 +992,7 @@ TC_OPTION(im_clip,            'j', "t[,l[,b[,r]]]",
                     vob->im_clip_right  = vob->im_clip_left;
 )
 TC_OPTION(deinterlace,        'I', "mode",
-                "de-interlace video using given mode (1-5) [off]",
+                "deinterlace video using given mode (1-5) [off]",
                 vob->deinterlace = strtol(optarg, &optarg, 10);
                 if (*optarg || vob->deinterlace < 1 || vob->deinterlace > 5) {
                     tc_error("Invalid argument for -I/--deinterlace");
@@ -1400,7 +1400,7 @@ TC_OPTION(a52_dolby_off,      0,   0,
 /********/ TC_HEADER("Cluster/PSU/chapter mode processing") /********/
 
 TC_OPTION(autosplit,          'W', "n,m[,file]",
-                "autosplit and process part n of m (VOB only) [off]",
+                "autosplit VOB and process part n of m [off]",
                 static char vob_logfile[1001] = "";
                 if (sscanf(optarg, "%d,%d,%1000[^,]", &vob->vob_chunk,
                            &vob->vob_chunk_max, vob_logfile) < 2
@@ -1416,7 +1416,7 @@ TC_OPTION(autosplit,          'W', "n,m[,file]",
                 tc_cluster_mode = TC_ON;
 )
 TC_OPTION(cluster_percentage, 0,   0,
-                "use percentage mode for cluster encoding -W [off]",
+                "use percentage mode for cluster encoding [off]",
                 vob->vob_percentage = TC_TRUE;
 )
 TC_OPTION(cluster_chunks,     0,   "a-b",
@@ -1438,7 +1438,7 @@ TC_OPTION(psu_mode,           0,   0,
                 tc_cluster_mode = TC_ON;
 )
 TC_OPTION(psu_chunks,         0,   "a-b",
-                "process only selected units a-b for PSU mode [all]",
+                "process only units a-b for PSU mode [all]",
                 if (sscanf(optarg, "%d-%d,%d",
                            &vob->vob_psu_num1, &vob->vob_psu_num2,
                            &psu_frame_threshold) < 2

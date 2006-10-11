@@ -10,6 +10,11 @@
   * src/transcode.c
   Remove old command-line handling code (already #ifdef'd out).
 
+  * src/cmdline_def.h
+  Rename --import_as and --export_as to --import_with and --export_with,
+  to reflect that they name modules, not formats; also edit some help
+  strings.
+
 2006-10-09 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c encode/x264.cfg
   Add support for new x264 parameters: interlacing (handled automatically),
@@ -96,7 +101,7 @@
   usage) I'll very happily move all those #define into a much
   nicer enum.
 
-  * libtc/libtc,h libtc/tccodecs.c
+  * libtc/libtc.h libtc/tccodecs.c
   prepare land to replace codec2str, aformat2str and other
   (duplicated) code found on src/*.
   Review again a little codecs table, adding TC_CODEC_ `kind'
@@ -965,7 +970,7 @@
   net stream support final removal [8/9]:
   never start info_server thread (no longer needed).
 
-  * libtc/libtc,h libtc/tc_functions.c
+  * libtc/libtc.h libtc/tc_functions.c
   net stream support final removal [7/9]:
   remove netstream support in file type guess routines.
 
