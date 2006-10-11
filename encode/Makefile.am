@@ -8,7 +8,7 @@ AM_CPPFLAGS = \
 
 pkgdir = $(MOD_PATH)
 
-if HAVE_LZO
+if HAVE_LAME
 ENCODE_LAME = encode_lame.la
 endif
 

@@ -15,6 +15,9 @@
   to reflect that they name modules, not formats; also edit some help
   strings.
 
+  * encode/Makefile.am
+  Fix typo.
+
 2006-10-09 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c encode/x264.cfg
   Add support for new x264 parameters: interlacing (handled automatically),
