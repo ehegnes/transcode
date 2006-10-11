@@ -7,6 +7,9 @@
     Removed: libac3/*
   Remove libac3, as no problems have been reported without it.
 
+  * src/transcode.c
+  Remove old command-line handling code (already #ifdef'd out).
+
 2006-10-09 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c encode/x264.cfg
   Add support for new x264 parameters: interlacing (handled automatically),
