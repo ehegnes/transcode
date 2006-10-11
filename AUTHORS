@@ -164,9 +164,6 @@ o avilib
 o export_qt.c (obsolete)
   Copyright (C) ken@hero.com 2001 (Module Author)
 
-o libac3
-  Written by Aaron Holtzman (aholtzma@engr.uvic.ca)
-
 o liba52
   Aaron Holtzman <aholtzma@ess.engr.uvic.ca> started the project and
   made the initial working implementation.
