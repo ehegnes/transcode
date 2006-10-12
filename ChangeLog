@@ -1,3 +1,10 @@
+2006-10-12 Francesco Romani <fromani at gmail dot com>
+  * export/Makefile.am import/Makefile.am import/fileinfo.c import/magic.h
+    import/probe_stream.c import/tc.h src/probe.c
+    Added: export/export_pvn.c import/import_pvn.c import/probe_pvn.c
+  Rewrite and restore PVN import and export modules, at the request of
+  Jacob (Jack) Gryn (jgryn at cse dot yorku dot ca).
+
 2006-10-11 Francesco Romani <fromani at gmail dot com>
   * encode/encode_faac.c
   implement 'quality' module option.

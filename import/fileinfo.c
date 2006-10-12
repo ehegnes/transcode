@@ -366,6 +366,15 @@ long fileinfo(int fdes, int skip)
     goto exit;
   }
 
+  // PVN
+  if (buf[0]=='P' && buf[1]=='V'
+   && (buf[2]>='4' && buf[2]<='6')
+   && (buf[3]=='a' || buf[3]=='b' || buf[3]=='d' || buf[3]=='f')
+  ) {
+    id = TC_MAGIC_PVN;
+    goto exit;
+  }
+
 
   // MP3 audio + odd 0 padding
 

@@ -313,6 +313,7 @@ const char *mformat2str(int flag)
         case TC_MAGIC_WAV:       return "RIFF data, WAVE";
         case TC_MAGIC_V4L_VIDEO: return "V4L";
         case TC_MAGIC_V4L_AUDIO: return "V4L";
+        case TC_MAGIC_PVN:       return "PVN video";
     }
     return "";
 }
@@ -729,6 +730,10 @@ static void select_modules(int flags, vob_t *vob)
       case TC_MAGIC_PV3:
         vob->vmod_probed = "pv3";
         vob->amod_probed = "pv3";  // really just BE raw after demuxing
+        break;
+
+      case TC_MAGIC_PVN:
+        vob->vmod_probed = "pvn";
         break;
 
       case TC_MAGIC_X11:

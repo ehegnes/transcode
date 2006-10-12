@@ -214,6 +214,10 @@ void tcprobe_thread(info_t *ipipe)
         probe_x11(ipipe);
         break;
 
+      case TC_MAGIC_PVN:
+        probe_pvn(ipipe);
+        break;
+
       default:
         /* libavcodec/libavformat it's a catchall too */
         probe_ffmpeg(ipipe);

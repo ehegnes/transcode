@@ -57,6 +57,7 @@ pkg_LTLIBRARIES = \
 	export_ogg.la \
 	export_ppm.la \
 	$(EXPORT_PVM) \
+	export_pvn.la \
 	export_raw.la \
 	export_toolame.la \
 	export_wav.la \
@@ -136,6 +137,9 @@ export_ppm_la_LIBADD = $(LIBAVCODEC_LIBS) $(LAME_LIBS)
 export_pvm_la_SOURCES = export_pvm.c ../pvm3/pvm_interface.c ../pvm3/pvm_parser.c ../pvm3/external_codec.c ../pvm3/vob_pack_unpack.c
 export_pvm_la_CPPFLAGS = $(AM_CPPFLAGS) $(PVM3_CFLAGS)
 export_pvm_la_LDFLAGS = -module -avoid-version
+
+export_pvn_la_SOURCES = export_pvn.c
+export_pvn_la_LDFLAGS = -module -avoid-version
 
 export_raw_la_SOURCES = export_raw.c aud_aux.c
 export_raw_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBAVCODEC_CFLAGS) $(LAME_CFLAGS)

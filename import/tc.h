@@ -90,4 +90,6 @@ void probe_x11(info_t *ipipe);
 
 void probe_ffmpeg(info_t *ipipe);
 
+void probe_pvn(info_t *ipipe);
+
 #endif

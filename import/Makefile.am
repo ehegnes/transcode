@@ -91,6 +91,7 @@ pkg_LTLIBRARIES = \
 	import_ogg.la \
 	$(IMPORT_OSS) \
 	$(IMPORT_PV3) \
+	import_pvn.la \
 	import_raw.la \
 	$(IMPORT_SUNAU) \
 	import_vag.la \
@@ -175,6 +176,9 @@ import_oss_la_LDFLAGS = -module -avoid-version
 
 import_pv3_la_SOURCES = import_pv3.c w32dll.c w32dll-emu.c
 import_pv3_la_LDFLAGS = -module -avoid-version
+
+import_pvn_la_SOURCES = import_pvn.c
+import_pvn_la_LDFLAGS = -module -avoid-version
 
 import_raw_la_SOURCES = import_raw.c
 import_raw_la_LDFLAGS = -module -avoid-version
@@ -439,7 +443,8 @@ tcprobe_SOURCES = \
 	probe_mplayer.c \
 	probe_ffmpeg.c \
 	probe_x11.c \
-	x11source.c
+	x11source.c \
+	probe_pvn.c
 
 tcprobe_LDADD = \
 	$(LIBAVFORMAT_LIBS) \
