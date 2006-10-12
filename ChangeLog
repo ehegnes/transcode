@@ -3,6 +3,10 @@
   Fix libpostproc test; also work around insane stupidity in avformat.h
   (declaring as deprecated structures the header itself uses?? WTF??)
 
+  * import/import_ffmpeg.c
+  Revert to pre-9/16 version, as the avformat code causes some input
+  frames to be dropped (resulting in corrupt video).
+
 2006-10-12 Andrew Church <achurch at achurch dot org>
   * export/Makefile.am import/Makefile.am import/fileinfo.c import/magic.h
     import/probe_stream.c import/tc.h src/probe.c
