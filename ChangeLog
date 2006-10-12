@@ -1,4 +1,8 @@
-2006-10-12 Francesco Romani <fromani at gmail dot com>
+2006-10-12 Andrew Church <achurch at achurch dot org>
+  * configure.in
+  Fix libpostproc test.
+
+2006-10-12 Andrew Church <achurch at achurch dot org>
   * export/Makefile.am import/Makefile.am import/fileinfo.c import/magic.h
     import/probe_stream.c import/tc.h src/probe.c
     Added: export/export_pvn.c import/import_pvn.c import/probe_pvn.c

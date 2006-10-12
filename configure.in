@@ -785,6 +785,7 @@ AC_CHECK_HEADERS([encore2.h])
 dnl
 dnl libpostproc
 dnl
+LIBPOSTPROC_EXTRA_LIBS="-lavutil $LIBPOSTPROC_EXTRA_LIBS"
 TC_PKG_CHECK(libpostproc, no, LIBPOSTPROC, no, [postproc/postprocess.h],
   postproc, pp_postprocess, libpostproc, [http://www.ffmpeg.org/])
 TC_PKG_HAVE(libpostproc, LIBPOSTPROC)
