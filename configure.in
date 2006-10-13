@@ -852,13 +852,10 @@ int main () {
   CFLAGS="$ac_save_CFLAGS"
   LIBS="$ac_save_LIBS"
 
-  if test $lame_version -lt 389 ; then
+  if test $lame_version -lt 393 ; then
     have_lame="no"
     TC_PKG_ERROR(lame, lame.h, yes, lame, [http://www.mp3dev.org/],
-      [lame version < 3.89])
-  fi
-  if test x"$have_lame" = x"yes" ; then
-    AC_DEFINE_UNQUOTED([TC_LAME_VERSION], $lame_version, [lame version])
+      [lame version < 3.93])
   fi
 fi
 TC_PKG_HAVE(lame, LAME)

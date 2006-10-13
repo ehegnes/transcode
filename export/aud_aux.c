@@ -145,9 +145,7 @@ static int audio_init_lame(vob_t *vob, int o_codec)
 	if(initialized==0)
 	{
 #ifdef HAVE_LAME
-#if TC_LAME_VERSION >= 392
 		int preset = 0;
-#endif
 		lgf=lame_init();
 		if(lgf<0)
 		{
@@ -202,7 +200,6 @@ static int audio_init_lame(vob_t *vob, int o_codec)
 		lame_set_in_samplerate(lgf, vob->a_rate);
 		lame_set_out_samplerate(lgf, avi_aud_rate);
 
-#	if TC_LAME_VERSION >= 392
 		/* Optimisations */
 		if(tc_accel & AC_MMX)
 			lame_set_asm_optimizations(lgf, MMX, 1);
@@ -233,13 +230,11 @@ static int audio_init_lame(vob_t *vob, int o_codec)
 				preset = fast?STANDARD_FAST:STANDARD;
 				vob->a_vbr = 1;
 			}
-#		if TC_LAME_VERSION >= 393
 			else if (strcmp (vob->lame_preset, "medium") == 0)
 			{
 				preset = fast?MEDIUM_FAST:MEDIUM;
 				vob->a_vbr = 1;
 			}
-#		endif /* LAME 393 */
 			else if (strcmp (vob->lame_preset, "extreme") == 0)
 			{
 				preset = fast?EXTREME_FAST:EXTREME;
@@ -271,7 +266,6 @@ static int audio_init_lame(vob_t *vob, int o_codec)
 				lame_set_preset(lgf, preset);
 			}
 		}
-#	endif /* LAME 392 */
 
 		/* Init Lame ! */
 		lame_init_params(lgf);

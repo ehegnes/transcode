@@ -1,10 +1,14 @@
+2006-10-13 Andrew Church <achurch at achurch dot org>
+  * configure.in export/aud_aux.c
+  Drop support for versions of LAME before 3.93.
+
 2006-10-12 Andrew Church <achurch at achurch dot org>
   * configure.in
   Fix libpostproc test; also work around insane stupidity in avformat.h
   (declaring as deprecated structures the header itself uses?? WTF??)
 
   * import/import_ffmpeg.c
-  Revert to pre-9/16 version, as the avformat code causes some input
+  Revert to pre-9/15 version, as the avformat code causes some input
   frames to be dropped (resulting in corrupt video).
 
 2006-10-12 Andrew Church <achurch at achurch dot org>
