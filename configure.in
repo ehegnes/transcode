@@ -13,6 +13,7 @@ AM_CONFIG_HEADER(config.h)
 AM_MAINTAINER_MODE
 
 dnl Checks for programs.
+AC_LANG([C])
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_AWK
@@ -140,7 +141,7 @@ AM_CONDITIONAL(HAVE_GETTIMEOFDAY, test x"$ac_cv_func_gettimeofday" = x"yes")
 
 dnl Special check for sysconf() to ensure _SC_PAGESIZE is also available.
 AC_CACHE_CHECK([for sysconf(_SC_PAGESIZE)], ac_cv_sysconf_with_sc_pagesize,
-    [AC_TRY_COMPILE([#include <unistd.h>], [sysconf(_SC_PAGESIZE)],
+    [AC_COMPILE_IFELSE(AC_LANG_PROGRAM([#include <unistd.h>], [sysconf(_SC_PAGESIZE)])],
         [ac_cv_sysconf_with_sc_pagesize=yes],
         [ac_cv_sysconf_with_sc_pagesize=no])])
 if test x"$ac_cv_sysconf_with_sc_pagesize" = x"yes"; then
@@ -261,8 +262,7 @@ AC_ARG_ENABLE(mmx,
 have_asm_mmx="no"
 if test x"$use_mmx" = x"yes" ; then
   AC_MSG_CHECKING([if \$CC groks MMX inline assembly])
-  AC_TRY_COMPILE([],
-    [void *p;asm volatile("packuswb %%mm1,%%mm2"::"r"(p));],
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [void *p;asm volatile("packuswb %%mm1,%%mm2"::"r"(p));])],
     [have_asm_mmx="yes"])
   if test x"$have_asm_mmx" = x"yes" ; then
     AC_DEFINE([HAVE_ASM_MMX], 1,
@@ -302,8 +302,7 @@ AC_ARG_ENABLE(3dnow,
 have_asm_3dnow="no"
 if test x"$use_3dnow" = x"yes" ; then
   AC_MSG_CHECKING([if \$CC groks 3DNow inline assembly])
-  AC_TRY_COMPILE([],
-    [void *p;asm volatile("pfmul %%mm3,%%mm4"::"r"(p));],
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [void *p;asm volatile("pfmul %%mm3,%%mm4"::"r"(p));])],
     [have_asm_3dnow="yes"])
   if test x"$have_asm_3dnow" = x"yes" ; then
     AC_DEFINE([HAVE_ASM_3DNOW], 1,
@@ -344,8 +343,7 @@ AC_ARG_ENABLE(sse,
 have_asm_sse="no"
 if test x"$use_sse" = x"yes" ; then
   AC_MSG_CHECKING([if \$CC groks SSE inline assembly])
-  AC_TRY_COMPILE([],
-    [void *p; asm volatile("movntps  %%xmm0, 0"::"r"(p));],
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [void *p; asm volatile("movntps  %%xmm0, 0"::"r"(p));])],
     [have_asm_sse=yes])
   if test x"$have_asm_sse" = x"yes" ; then
     AC_DEFINE([HAVE_ASM_SSE], 1,
@@ -386,8 +384,7 @@ AC_ARG_ENABLE(sse2,
 have_asm_sse2="no"
 if test x"$use_sse2" = x"yes" ; then
   AC_MSG_CHECKING([if \$CC can handle SSE2 inline asm])
-  AC_TRY_COMPILE([],
-    [void *p; asm volatile("movdqa  %%xmm2, %%xmm3"::"r"(p));],
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [void *p; asm volatile("movdqa  %%xmm2, %%xmm3"::"r"(p));])],
     [have_asm_sse2=yes])
   if test x"$have_asm_sse2" = x"yes" ; then
     AC_DEFINE([HAVE_ASM_SSE2], 1,
@@ -432,13 +429,11 @@ dnl fi
 AC_MSG_CHECKING([if \$CC groks AltiVec inline assembly])
 have_asm_altivec=no
 if test x"$use_altivec" = x"yes" ; then
-  AC_TRY_COMPILE([],
-    [asm volatile("vperm 0,1,2,3");],
+  AC_COMPILE_IFELSE([AC_LANG_SOURCE([], [asm volatile("vperm 0,1,2,3");])],
     [have_asm_altivec=yes],
     [save_CFLAGS="$CFLAGS"
       CFLAGS="$CFLAGS -Wa,-m7400"
-      AC_TRY_COMPILE([],
-        [asm volatile("vperm 0,1,2,3");],
+      AC_COMPILE_IFELSE([AC_LANG_SOURCE([], [asm volatile("vperm 0,1,2,3");])],
         [have_asm_altivec=yes])
       CFLAGS="$save_CFLAGS"])
 fi
@@ -454,14 +449,12 @@ if test x"$use_altivec" = x"yes" ; then
   # Darwin test
   save_CFLAGS="$CFLAGS"
   CFLAGS="$CFLAGS -faltivec"
-  AC_TRY_COMPILE([],
-    [vec_mtvscr((vector unsigned int)(0));],
+  AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [vec_mtvscr((vector unsigned int)(0));])],
     [have_c_altivec=yes
       ALTIVEC_CFLAGS="-faltivec"],
     [# Linux/PPC test
       CFLAGS="${save_CFLAGS} -fvec"
-      AC_TRY_COMPILE([],
-        [vec_mtvscr((vector unsigned int)(0));],
+      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([], [vec_mtvscr((vector unsigned int)(0));])],
         [have_c_altivec=yes
           ALTIVEC_CFLAGS="-fvec"])
     ])
@@ -480,7 +473,7 @@ if test x"$use_altivec" = x"yes" ; then
   save_LDFLAGS="$LDFLAGS"
   LDFLAGS="$LDFLAGS -framework vecLib"
   ld_altivec=no
-  AC_TRY_LINK([], [], [ld_altivec=yes])
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([],[])], [ld_altivec=yes])
   LDFLAGS="$save_LDFLAGS"
 fi
 AC_MSG_RESULT($ld_altivec)
@@ -593,7 +586,7 @@ TC_PKG_CHECK(libavcodec, required, LIBAVCODEC, no, [ffmpeg/avcodec.h],
 if test x"$have_libavcodec" = x"yes" ; then
   save_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$CPPFLAGS $LIBAVCODEC_CFLAGS"
-  AC_TRY_RUN([
+  AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <stdio.h>
 #include <ffmpeg/avcodec.h>
 int
@@ -611,12 +604,13 @@ main()
   printf("BUILD=%d\n", LIBAVCODEC_BUILD);
   return(0);
 }
-],
+]])],
     [LIBAVCODEC_VERSION="`./conftest$ac_exeext | sed -ne 's,VER=\(.*\),\1,p'`"
       LIBAVCODEC_BUILD="`./conftest$ac_exeext | sed -ne 's,BUILD=\(.*\),\1,p'`"],
-    [TC_PKG_ERROR(libavcodec, ffmpeg/avcodec.h, required, FFmpeg, [http://www.ffmpeg.org],
+    [AC_MSG_RESULT([failed])
+     TC_PKG_ERROR(libavcodec, ffmpeg/avcodec.h, required, FFmpeg, [http://www.ffmpeg.org],
       [cannot compile ffmpeg/avcodec.h])],
-    [echo $ac_n "cross compiling; assumed OK... $ac_c"
+    [AC_MSG_RESULT([cross compiling; assumed OK...])
       LIBAVCODEC_VERSION=""
       LIBAVCODEC_BUILD=""])
   if test x"$enable_libavcodec_static" = x"yes" ; then
@@ -626,12 +620,10 @@ main()
     save_LIBS="$LIBS"
     dnl $_w_libavcodec_l comes from TC_PKG_CHECK()
     LIBS="$LIBS $w_libavcodec_l${deflib}/libavcodec.a $LIBAVCODEC_EXTRA_LIBS"
-    AC_TRY_LINK([
-#include <ffmpeg/avcodec.h>
-],[
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <ffmpeg/avcodec.h>],[[
 AVCodecContext *ctx = (void *)0;
 avcodec_thread_init(ctx, 0);
-],
+]])],
       [LIBAVCODEC_LIBS="$w_libavcodec_l${deflib}/libavcodec.a $LIBAVCODEC_EXTRA_LIBS"],
       [AC_MSG_ERROR([cannot link statically with libavcodec])])
     LIBS="$save_LIBS"
@@ -661,7 +653,7 @@ TC_PKG_CHECK(libavformat, required, LIBAVFORMAT, no, [ffmpeg/avformat.h],
 if test x"$have_libavformat" = x"yes" ; then
   save_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$CPPFLAGS $LIBAVFORMAT_CFLAGS"
-  AC_TRY_RUN([
+  AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <stdio.h>
 #include <ffmpeg/avformat.h>
 #include <ffmpeg/avcodec.h>
@@ -680,12 +672,13 @@ main()
   printf("BUILD=%d\n", LIBAVFORMAT_BUILD);
   return(0);
 }
-],
+]])],
     [LIBAVFORMAT_VERSION="`./conftest$ac_exeext | sed -ne 's,VER=\(.*\),\1,p'`"
       LIBAVFORMAT_BUILD="`./conftest$ac_exeext | sed -ne 's,BUILD=\(.*\),\1,p'`"],
-    [TC_PKG_ERROR(libavformat, ffmpeg/avformat.h, required, FFmpeg, [http://www.ffmpeg.org],
+    [AC_MSG_RESULT([failed])
+     TC_PKG_ERROR(libavformat, ffmpeg/avformat.h, required, FFmpeg, [http://www.ffmpeg.org],
       [cannot compile ffmpeg/avformat.h])],
-    [echo $ac_n "cross compiling; assumed OK... $ac_c"
+    [AC_MSG_RESULT([cross compiling; assumed OK...])
       LIBAVCODEC_VERSION=""
       LIBAVCODEC_BUILD=""])
   if test x"$enable_libavformat_static" = x"yes" ; then
@@ -695,11 +688,9 @@ main()
     save_LIBS="$LIBS"
     dnl $_w_libavcodec_l comes from TC_PKG_CHECK()
     LIBS="$LIBS $w_libavcodec_l${deflib}/libavcodec.a $w_libavformat_l${deflib}/libavformat.a $LIBAVFORMAT_EXTRA_LIBS"
-    AC_TRY_LINK([
-#include <ffmpeg/avcodec.h>
-],[
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <ffmpeg/avcodec.h>],[[
 av_register_all();
-],
+]])],
       [LIBAVFORMAT_LIBS="$LIBS $w_libavcodec_l${deflib}/libavcodec.a $w_libavformat_l${deflib}/libavformat.a $LIBAVFORMAT_EXTRA_LIBS"],
       [AC_MSG_ERROR([cannot link statically with libavformat])])
     LIBS="$save_LIBS"
@@ -828,7 +819,7 @@ if test x"$have_lame" = x"yes" ; then
   ac_save_LIBS="$LIBS"
   CFLAGS="$CFLAGS $LAME_CFLAGS"
   LIBS="$LIBS $LAME_LIBS"
-  AC_TRY_RUN([
+  AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <stdio.h>
 
 #ifdef HAVE_LAME_INC
@@ -844,15 +835,16 @@ int main () {
   printf("%d%d\n", lv.major, lv.minor);
   return 0;
 }
-],
+]])],
     [lame_version="`./conftest$ac_exeext`"],
-    [TC_PKG_ERROR(lame, lame.h, yes, lame, [http://www.mp3dev.org/],
+    [AC_MSG_RESULT([failed])
+     TC_PKG_ERROR(lame, lame.h, yes, lame, [http://www.mp3dev.org/],
       [cannot compile and run a test program])],,
-    [echo $ac_n "cross compiling; assumed OK... $ac_c"])
+    [AC_MSG_RESULT([cross compiling; assumed OK...])])
   CFLAGS="$ac_save_CFLAGS"
   LIBS="$ac_save_LIBS"
 
-  if test $lame_version -lt 393 ; then
+  if test 393 -ge "$lame_version" ; then
     have_lame="no"
     TC_PKG_ERROR(lame, lame.h, yes, lame, [http://www.mp3dev.org/],
       [lame version < 3.93])
@@ -867,7 +859,7 @@ TC_PKG_CHECK(xvid, no, xvid, no, xvid.h, xvidcore, xvid_global, xvid,
  [http://www.xvid.org/])
 if test x"$have_xvid" = x"yes" ; then
   AC_MSG_CHECKING([xvid version >= 1.0])
-  AC_TRY_RUN([
+  AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <stdio.h>
 #include <xvid.h>
 
@@ -875,11 +867,12 @@ int main() {
 	printf("%s\n", (XVID_API >= XVID_MAKE_API(4, 0)) ?"yes" :"no");
 	return 0;
 }
-],
+]])],
     [xvid_version_ok="`./conftest$ac_exeext`"],
-    [TC_PKG_ERROR(xvid, xvid.h, yes, xvid, [http://www.xvid.org/],
+    [AC_MSG_RESULT([failed])
+     TC_PKG_ERROR(xvid, xvid.h, yes, xvid, [http://www.xvid.org/],
       [cannot compile and run a test program])],,
-    [echo $ac_n "cross compiling; assumed OK... $ac_c"])
+    [AC_MSG_RESULT([cross compiling; assumed OK...])])
   if test x"$xvid_version_ok" = x"yes"; then
     XVID_LIBS="-lxvidcore"
   else
@@ -895,6 +888,32 @@ dnl x264
 dnl
 TC_PKG_CHECK(x264, no, X264, no, [x264.h], x264, x264_param_default, x264,
  [http://developers.videolan.org/x264.html])
+if test x"$have_x264" = x"yes" ; then
+  AC_MSG_CHECKING([x264 version])
+  AC_RUN_IFELSE([AC_LANG_SOURCE([[
+#include <stdio.h>
+#include <stdint.h>  /* required by x264.h */
+#include <x264.h>
+
+int main() {
+	printf("%d\n", X264_BUILD);
+	return 0;
+}
+]])],
+    [x264_version="`./conftest$ac_exeext`"],
+    [AC_MSG_RESULT([failed])
+     TC_PKG_ERROR(x264, x264.h, yes, x264,
+                  [http://developers.videolan.org/x264.html],
+                  [cannot compile and run a test program])],
+    [AC_MSG_RESULT([cross compiling; assumed OK...])
+     x264_version=54])
+  if test 54 -gt "$x264_version"; then
+    have_x264="no"
+    TC_PKG_ERROR(x264, x264.h, yes, x264,
+                 [http://developers.videolan.org/x264.html],
+                 [x264 version too old (must be at least 54)])
+  fi
+fi
 TC_PKG_HAVE(x264, X264)
 
 dnl
@@ -959,7 +978,7 @@ TC_PKG_CHECK(pvm3, no, PVM3, no, pvm3.h, pvm3, pvm_initsend,
 if test x"$have_pvm3" = x"yes" ; then
   save_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$CPPFLAGS $PVM3_CFLAGS"
-  AC_TRY_RUN([
+  AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <stdio.h>
 #include <pvm3.h>
 int main ()
@@ -976,11 +995,11 @@ int main ()
   }
   return 0;
 }
-],
+]])],
   [have_pvm3="yes"],
   [have_pvm3="no"],
-  [echo $ac_n "cross compiling; assumed OK... $ac_c"
-    have_pvm3="yes"])
+  [AC_MSG_RESULT([cross compiling; assumed OK...])
+   have_pvm3="yes"])
   CPPFLAGS="$save_CPPFLAGS"
   # also include the in-tree pvm3 headers
   PVM3_CFLAGS="$PVM3_CFLAGS -I\$(top_srcdir)/pvm3"
@@ -1069,7 +1088,7 @@ if test x"$have_mjpegtools" = x"yes" ; then
   save_LIBS="$LIBS"
   CFLAGS="$CFLAGS $MJPEGTOOLS_CFLAGS"
   LIBS="$LIBS $MJPEGTOOLS_LIBS"
-  AC_TRY_LINK([
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([
 #if defined(HAVE_MJPEGTOOLS_INC)
 #include "yuv4mpeg.h"
 #include "mpegconsts.h"
@@ -1078,7 +1097,7 @@ if test x"$have_mjpegtools" = x"yes" ; then
 #include "mjpegtools/mpegconsts.h"
 #endif
 ],
-    [y4m_write_frame_header(1, NULL, NULL)],
+    [y4m_write_frame_header(1, NULL, NULL)])],
     [AC_DEFINE([USE_NEW_MJPEGTOOLS_CODE], [1],
       [using mjpegtools post Mar 31 2004])])
   CFLAGS="$save_CFLAGS"
@@ -1097,7 +1116,7 @@ if test x"$have_sdl" = x"yes" ; then
   sdl_micro_version=6
   save_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
-  AC_TRY_RUN([
+  AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1120,11 +1139,11 @@ int main (int argc, char *argv[])
       return 1;
     }
 }
-],
+]])],
   [have_sdl="yes"],
   [have_sdl="no"],
-  [echo $ac_n "cross compiling; assumed OK... $ac_c"
-    have_sdl="yes"])
+  [AC_MSG_RESULT([cross compiling; assumed OK...])
+   have_sdl="yes"])
   CPPFLAGS="$save_CPPFLAGS"
 fi
 TC_PKG_HAVE(sdl, SDL)
