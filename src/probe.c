@@ -131,10 +131,11 @@ int probe_source(const char *vid_file, const char *aud_file, int range,
 
 int probe_source_xml(vob_t *vob, int which)
 {
+    int retval = 1;
 #ifdef HAVE_LIBXML2
     int tochild[2], fromchild[2];  /* pipes */
     pid_t pid;
-    int resize, retval = 1;
+    int resize;
 
     if (pipe(tochild) == -1) {
         tc_log_perror(PACKAGE, "probe_source_xml(): pipe(tochild) failed");
