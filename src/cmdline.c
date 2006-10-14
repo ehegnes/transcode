@@ -152,6 +152,8 @@ static int validate_source_path(const char *path)
         tc_error("No filename given");
         return 0;
     }
+    if (strcmp(path, "-") == 0)  // allow stdin (maybe also /dev/stdin? FIXME)
+        return 1;
     if (*path == '!' || *path == ':')  /* from transcode.c -- why? */
         return 1;
     if (xio_stat(path, &st) == 0)
@@ -237,8 +239,8 @@ int parse_cmdline(int argc, char **argv, vob_t *vob)
 #undef TC_OPTIONS_TO_CODE
           default:
           short_usage:  /* error-handling label */
-            printf("'transcode -h | more' shows a list of available"
-                   " command line options.\n");
+            fprintf(stderr, "'transcode -h | more' shows a list of available"
+                            " command line options.\n");
             return 0;
         }
     }

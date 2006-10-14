@@ -1954,14 +1954,13 @@ This might be useful for cluster mode.
 .B \-\-progress_meter \fIN\fP
 select type of progress meter [1]
 .br
-Selects the type of progress message printed by transcode on standard output:
+Selects the type of progress message printed by transcode:
     0: no progress meter
     1: standard progress meter
-    2: raw progress data
-Transcode defaults to type 1 if standard output is a terminal, type 0 (no
-progress meter) if standard output is a file or pipe.  Scripts that need
-progress data should use type 2, since the format of type 1 is subject to
-change without notice.
+    2: raw progress data (written to standard output)
+.br
+Scripts that need progress data should use type 2, since the format of
+type 1 is subject to change without notice.
 
 .TP
 .B \-\-progress_rate \fIN\fP

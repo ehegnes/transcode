@@ -15,7 +15,7 @@
 #include "libtc/tcmodule-plugin.h"
 #include "libtcvideo/tcvideo.h"
 
-#define MOD_NAME        "import_pvn.so"
+#define MOD_NAME        "export_pvn.so"
 #define MOD_VERSION     "v1.0 (2006-10-06)"
 #define MOD_CAP         "Writes PVN video files"
 #define MOD_AUTHOR      "Andrew Church"
@@ -132,7 +132,7 @@ static int pvn_stop(TCModuleInstance *self)
                 char buf[11];
                 int len = tc_snprintf(buf, sizeof(buf), "%10d",pd->framecount);
                 if (len > 0)
-                    write(pd->fd, buf, len);
+                    tc_pwrite(pd->fd, buf, len);
             }
         }
         close(pd->fd);
@@ -194,7 +194,9 @@ static int pvn_multiplex(TCModuleInstance *self,
         tc_log_error(MOD_NAME, "Invalid codec for video frame!");
         return -1;
     }
-    if (write(pd->fd,vframe->video_buf,vframe->video_len)!=vframe->video_len) {
+    if (tc_pwrite(pd->fd, vframe->video_buf, vframe->video_len)
+        != vframe->video_len
+    ) {
         tc_log_error(MOD_NAME, "Error writing frame %d to output file: %s",
                      pd->framecount, strerror(errno));
         return -1;
@@ -267,17 +269,22 @@ MOD_open
 
     pd->width = vob->ex_v_width;
     pd->height = vob->ex_v_height;
-    pd->fd = open(vob->video_out_file, O_WRONLY | O_CREAT | O_TRUNC, 0666);
-    if (pd->fd < 0) {
-        tc_log_error(MOD_NAME, "Unable to open %s: %s", vob->video_out_file,
-                     strerror(errno));
-        goto fail;
+    /* FIXME: stdout should be handled in a more standard fashion */
+    if (strcmp(vob->video_out_file, "-") == 0) {  // allow /dev/stdout too?
+        pd->fd = 1;
+    } else {
+        pd->fd = open(vob->video_out_file, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        if (pd->fd < 0) {
+            tc_log_error(MOD_NAME, "Unable to open %s: %s",
+                         vob->video_out_file, strerror(errno));
+            goto fail;
+        }
     }
     len = tc_snprintf(buf, sizeof(buf), "PV6a\r\n%d %d\r\n",
                       pd->width, pd->height);
     if (len < 0)
         goto fail;
-    if (write(pd->fd, buf, len) != len) {
+    if (tc_pwrite(pd->fd, buf, len) != len) {
         tc_log_error(MOD_NAME, "Unable to write header to %s: %s",
                      vob->video_out_file, strerror(errno));
         goto fail;
@@ -287,7 +294,7 @@ MOD_open
                       0, (double)vob->ex_fps);
     if (len < 0)
         goto fail;
-    if (write(pd->fd, buf, len) != len) {
+    if (tc_pwrite(pd->fd, buf, len) != len) {
         tc_log_error(MOD_NAME, "Unable to write header to %s: %s",
                      vob->video_out_file, strerror(errno));
         goto fail;

@@ -119,7 +119,7 @@ void frame_threads_init(vob_t *vob, int vworkers, int aworkers)
 
     have_vframe_threads=1;
 
-    if(verbose & TC_DEBUG) printf("[%s] starting %d frame processing thread(s)\n", PACKAGE, vworkers);
+    if(verbose & TC_DEBUG) tc_log_msg(PACKAGE, "starting %d frame processing thread(s)", vworkers);
 
     // start the thread pool
 
@@ -138,7 +138,7 @@ void frame_threads_init(vob_t *vob, int vworkers, int aworkers)
 
     have_aframe_threads=1;
 
-    if(verbose & TC_DEBUG) printf("[%s] starting %d frame processing thread(s)\n", PACKAGE, aworkers);
+    if(verbose & TC_DEBUG) tc_log_msg(PACKAGE, "starting %d frame processing thread(s)", aworkers);
 
     // start the thread pool
 
@@ -201,7 +201,7 @@ void frame_threads_close()
 #endif
     for(n=0; n<have_aframe_workers; ++n) pthread_join(afthread[n], &status);
 
-    if(verbose & TC_DEBUG) fprintf(stderr, "(%s) audio frame processing threads canceled\n", __FILE__);
+    if(verbose & TC_DEBUG) tc_log_msg(PACKAGE, "audio frame processing threads canceled");
 
     //video
 
@@ -221,7 +221,7 @@ void frame_threads_close()
 #endif
     for(n=0; n<have_vframe_workers; ++n) pthread_join(vfthread[n], &status);
 
-    if(verbose & TC_DEBUG) fprintf(stderr, "(%s) video frame processing threads canceled\n", __FILE__);
+    if(verbose & TC_DEBUG) tc_log_msg(PACKAGE, "video frame processing threads canceled");
 
 }
 
@@ -388,7 +388,7 @@ void process_vframe(vob_t *vob)
     ptr = vframe_retrieve_status(FRAME_WAIT, FRAME_LOCKED);
 
     if(ptr==NULL) {
-      if(verbose & TC_DEBUG) fprintf(stderr, "(%s) internal error (V|%d)\n", __FILE__, vbuffer_im_fill_ctr);
+      if(verbose & TC_DEBUG) tc_log_msg(PACKAGE, "internal error (V|%d)", vbuffer_im_fill_ctr);
 
       pthread_testcancel();
       continue;
@@ -500,7 +500,7 @@ void process_aframe(vob_t *vob)
     ptr = aframe_retrieve_status(FRAME_WAIT, FRAME_LOCKED);
 
     if(ptr==NULL) {
-      if(verbose & TC_DEBUG) fprintf(stderr, "(%s) internal error (A|%d)\n", __FILE__, abuffer_im_fill_ctr);
+      if(verbose & TC_DEBUG) tc_log_msg(PACKAGE, "internal error (A|%d)", abuffer_im_fill_ctr);
 
       pthread_testcancel();
       continue;

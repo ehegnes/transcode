@@ -618,9 +618,8 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
 
     if (tc_progress_meter < 0) {
-        // if we're sending output to a file or have verbosity disabled,
-        // default to no progress meter.
-        if (isatty(fileno(stdout)) && verbose) {
+        // if we have verbosity disabled, default to no progress meter.
+        if (verbose) {
             tc_progress_meter = 1;
         } else {
             tc_progress_meter = 0;
@@ -670,17 +669,17 @@ int main(int argc, char *argv[])
         int result = probe_source(video_in_file, audio_in_file, seek_range,
                                   preset_flag, vob);
         if (verbose) {
-            printf("[%s] %s %s (%s)\n", PACKAGE, "auto-probing source",
-                   (video_in_file==NULL) ? audio_in_file : video_in_file,
-                   result ? "ok" : "FAILED");
-            printf("[%s] V: %-16s | %s %s (module=%s)\n", PACKAGE,
-                   "import format", codec2str(vob->v_codec_flag),
-                   mformat2str(vob->v_format_flag),
-                   no_vin_codec==0 ? im_vid_mod : vob->vmod_probed);
-            printf("[%s] A: %-16s | %s %s (module=%s)\n", PACKAGE,
-                   "import format", codec2str(vob->a_codec_flag),
-                   mformat2str(vob->a_format_flag),
-                   no_ain_codec==0 ? im_aud_mod : vob->amod_probed);
+            tc_log_info(PACKAGE, "%s %s (%s)", "auto-probing source",
+                        (video_in_file==NULL) ? audio_in_file : video_in_file,
+                        result ? "ok" : "FAILED");
+            tc_log_info(PACKAGE, "V: %-16s | %s %s (module=%s)",
+                        "import format", codec2str(vob->v_codec_flag),
+                        mformat2str(vob->v_format_flag),
+                        no_vin_codec==0 ? im_vid_mod : vob->vmod_probed);
+            tc_log_info(PACKAGE, "A: %-16s | %s %s (module=%s)",
+                        "import format", codec2str(vob->a_codec_flag),
+                        mformat2str(vob->a_format_flag),
+                        no_ain_codec==0 ? im_aud_mod : vob->amod_probed);
         }
     }
 
@@ -757,14 +756,12 @@ int main(int argc, char *argv[])
       if (!is_aviindex) {
       while(tmptime){
         flag=0;
-        if(verbose & TC_DEBUG) printf("searching %s for frame %d\n", nav_seek_file, tmptime->stf);
         for(; fgets(buf, sizeof(buf), fp); line_count++) {
   	  int L, new_frame_a;
 
 	  if(2 == sscanf(buf, "%*d %*d %*d %*d %d %d ", &L, &new_frame_a)) {
 	      if(line_count == tmptime->stf) {
 		  int len = tmptime->etf - tmptime->stf;
-		  if(verbose & TC_DEBUG) printf("%s: -c %d-%d -> -L %d -c %d-%d\n", nav_seek_file, tmptime->stf, tmptime->etf, L, new_frame_a, new_frame_a+len);
 		  tmptime->stf = frame_a = new_frame_a;
 		  tmptime->etf = frame_b = new_frame_a + len;
 		  tmptime->vob_offset = L;
@@ -789,7 +786,6 @@ int main(int argc, char *argv[])
 	double ms=0.0;
         flag=0;
 
-        if(verbose & TC_DEBUG) printf("searching %s for frame %d\n", nav_seek_file, tmptime->stf);
         for(; fgets(buf, sizeof(buf), fp); line_count++) {
 
 	  // TAG TYPE CHUNK CHUNK/TYPE POS LEN KEY MS
@@ -798,7 +794,6 @@ int main(int argc, char *argv[])
 	  {
 	    if (type!=1) continue;
 	    if(key) {
-	      //printf("type (%d) key (%d) chunkptype(%ld)\n", type, key, chunkptype);
 	      last_keyframe = chunkptype;
 	    }
 	    if(chunkptype == tmptime->stf) {
@@ -813,9 +808,6 @@ int main(int argc, char *argv[])
 		lenf += (chunkptype - last_keyframe);
 	      }
 
-	      if(verbose & TC_DEBUG)
-		printf("%s: -c %d-%d -> -L %ld -c %d-%d\n",
-		    nav_seek_file, tmptime->stf, tmptime->etf, last_keyframe, new_frame_a, new_frame_a+lenf);
 	      tmptime->stf = frame_a = new_frame_a;
 	      tmptime->etf = frame_b = new_frame_a + lenf;
 	      tmptime->vob_offset = last_keyframe;
@@ -833,8 +825,9 @@ int main(int argc, char *argv[])
 
       if(!flag) {
 	  //frame not found
-	  printf("%s: frame %d out of range (%d frames found)\n", nav_seek_file, frame_a, line_count);
-	  tc_error("invalid option parameter for -c / --nav_seek\n");
+	  tc_warn("%s: frame %d out of range (%d frames found)",
+                  nav_seek_file, frame_a, line_count);
+	  tc_error("invalid option parameter for -c / --nav_seek");
       }
     }
 
@@ -861,23 +854,28 @@ int main(int argc, char *argv[])
       switch(vob->demuxer) {
 
       case 0:
-	printf("[%s] V: %-16s | %s\n", PACKAGE, "AV demux/sync", "(0) sync AV at PTS start - demuxer disabled");
+	tc_log_info(PACKAGE, "V: %-16s | %s", "AV demux/sync",
+                    "(0) sync AV at PTS start - demuxer disabled");
 	break;
 
       case 1:
-	printf("[%s] V: %-16s | %s\n", PACKAGE, "AV demux/sync", "(1) sync AV at initial MPEG sequence");
+	tc_log_info(PACKAGE, "V: %-16s | %s", "AV demux/sync",
+                    "(1) sync AV at initial MPEG sequence");
 	break;
 
       case 2:
-	printf("[%s] V: %-16s | %s\n", PACKAGE, "AV demux/sync", "(2) initial MPEG sequence / enforce frame rate");
+	tc_log_info(PACKAGE, "V: %-16s | %s", "AV demux/sync",
+                    "(2) initial MPEG sequence / enforce frame rate");
 	break;
 
       case 3:
-	printf("[%s] V: %-16s | %s\n", PACKAGE, "AV demux/sync", "(3) sync AV at initial PTS");
+	tc_log_info(PACKAGE, "V: %-16s | %s", "AV demux/sync",
+                    "(3) sync AV at initial PTS");
 	break;
 
       case 4:
-	printf("[%s] V: %-16s | %s\n", PACKAGE, "AV demux/sync", "(4) initial PTS / enforce frame rate");
+	tc_log_info(PACKAGE, "V: %-16s | %s", "AV demux/sync",
+                    "(4) initial PTS / enforce frame rate");
 	break;
       }
     } else vob->demuxer=1;
@@ -897,7 +895,8 @@ int main(int argc, char *argv[])
       if(no_a_out_codec) ex_aud_mod="raw";
       no_a_out_codec=0;
 
-      if(verbose & TC_INFO) printf("[%s] V: %-16s | yes\n", PACKAGE, "pass-through");
+      if(verbose & TC_INFO)
+        tc_log_info(PACKAGE, "V: %-16s | yes", "pass-through");
     }
 
 
@@ -937,8 +936,13 @@ int main(int argc, char *argv[])
 	}
     }
     if(verbose & TC_INFO) {
-      (vob->im_v_width && vob->im_v_height) ?
-	printf("[%s] V: %-16s | %03dx%03d  %4.2f:1  %s\n", PACKAGE, "import frame", vob->im_v_width, vob->im_v_height, asr, asr2str(vob->im_asr)):printf("[%s] V: %-16s | disabled\n", PACKAGE, "import frame");
+      if (vob->im_v_width && vob->im_v_height) {
+	tc_log_info(PACKAGE, "V: %-16s | %03dx%03d  %4.2f:1  %s",
+                    "import frame", vob->im_v_width, vob->im_v_height,
+                    asr, asr2str(vob->im_asr));
+      } else {
+        tc_log_info(PACKAGE, "V: %-16s | disabled", "import frame");
+      }
     }
 
     // init frame size with cmd line frame size
@@ -1175,10 +1179,12 @@ int main(int argc, char *argv[])
       vob->ex_v_height -= (vob->pre_im_clip_top + vob->pre_im_clip_bottom);
       vob->ex_v_width  -= (vob->pre_im_clip_left + vob->pre_im_clip_right);
 
-      if(verbose & TC_INFO) printf("[%s] V: %-16s | %03dx%03d (%d,%d,%d,%d)\n", PACKAGE,
-	  "pre clip frame", vob->ex_v_width, vob->ex_v_height,
-	  vob->pre_im_clip_top, vob->pre_im_clip_left,
-	  vob->pre_im_clip_bottom, vob->pre_im_clip_right);
+      if(verbose & TC_INFO) {
+        tc_log_info(PACKAGE, "V: %-16s | %03dx%03d (%d,%d,%d,%d)",
+                    "pre clip frame", vob->ex_v_width, vob->ex_v_height,
+                    vob->pre_im_clip_top, vob->pre_im_clip_left,
+                    vob->pre_im_clip_bottom, vob->pre_im_clip_right);
+      }
     }
 
 
@@ -1215,7 +1221,10 @@ int main(int argc, char *argv[])
       vob->ex_v_height -= (vob->im_clip_top + vob->im_clip_bottom);
       vob->ex_v_width  -= (vob->im_clip_left + vob->im_clip_right);
 
-      if(verbose & TC_INFO) printf("[%s] V: %-16s | %03dx%03d\n", PACKAGE, "clip frame (<-)", vob->ex_v_width, vob->ex_v_height);
+      if(verbose & TC_INFO) {
+        tc_log_info(PACKAGE, "V: %-16s | %03dx%03d", "clip frame (<-)",
+                    vob->ex_v_width, vob->ex_v_height);
+      }
     }
 
 
@@ -1229,23 +1238,23 @@ int main(int argc, char *argv[])
 	break;
 
       case 1:
-	printf("[%s] V: %-16s | (mode=1) interpolate scanlines (fast)\n", PACKAGE, "de-interlace");
+	tc_log_info(PACKAGE, "V: %-16s | (mode=1) interpolate scanlines (fast)", "de-interlace");
 	break;
 
       case 2:
-	printf("[%s] V: %-16s | (mode=2) handled by encoder (if available)\n", PACKAGE, "de-interlace");
+	tc_log_info(PACKAGE, "V: %-16s | (mode=2) handled by encoder (if available)", "de-interlace");
 	break;
 
       case 3:
-	printf("[%s] V: %-16s | (mode=3) zoom to full frame (slow)\n", PACKAGE, "de-interlace");
+	tc_log_info(PACKAGE, "V: %-16s | (mode=3) zoom to full frame (slow)", "de-interlace");
 	break;
 
       case 4:
-	printf("[%s] V: %-16s | (mode=4) drop field / half height (fast)\n", PACKAGE, "de-interlace");
+	tc_log_info(PACKAGE, "V: %-16s | (mode=4) drop field / half height (fast)", "de-interlace");
 	break;
 
       case 5:
-	printf("[%s] V: %-16s | (mode=5) interpolate scanlines / blend frames\n", PACKAGE, "de-interlace");
+	tc_log_info(PACKAGE, "V: %-16s | (mode=5) interpolate scanlines / blend frames", "de-interlace");
 	break;
 
       default:
@@ -1296,13 +1305,12 @@ int main(int argc, char *argv[])
       // align
       if (vob->zoom_height%8 != 0) vob->zoom_height += 8-(vob->zoom_height%8);
       if (vob->zoom_width%8 != 0) vob->zoom_width += 8-(vob->zoom_width%8);
-      //printf("New %%8s %d X %d\n", vob->zoom_width, vob->zoom_height);
       oldr = ((float)vob->zoom_width/(float)vob->zoom_height-oldr)*100.0;
       oldr = oldr<0?-oldr:oldr;
 
-      printf("[%s] V: %-16s | %03dx%03d  %4.2f:1 error %.2f%%\n",
-	  PACKAGE, "auto resize", vob->zoom_width, vob->zoom_height,
-	  (float)vob->zoom_width/(float)vob->zoom_height, oldr);
+      tc_log_info(PACKAGE, "V: %-16s | %03dx%03d  %4.2f:1 error %.2f%%",
+                  "auto resize", vob->zoom_width, vob->zoom_height,
+                  (float)vob->zoom_width/(float)vob->zoom_height, oldr);
 
     }
 
@@ -1319,16 +1327,18 @@ int main(int argc, char *argv[])
         else
           resize2 = TC_TRUE;
 
-        if(verbose & TC_INFO)
-          printf("[%s] V: %-16s | Using -B %d,%d,8 -X %d,%d,8\n",
-                 PACKAGE, "fast resize",
-                 vob->vert_resize1, vob->hori_resize1,
-                 vob->vert_resize2, vob->hori_resize2);
+        if(verbose & TC_INFO) {
+          tc_log_info(PACKAGE, "V: %-16s | Using -B %d,%d,8 -X %d,%d,8",
+                      "fast resize",
+                      vob->vert_resize1, vob->hori_resize1,
+                      vob->vert_resize2, vob->hori_resize2);
+        }
         zoom = TC_FALSE;
       } else {
-        if(verbose & TC_INFO)
-          printf("[%s] V: %-16s | requested but can't be used (W or H mod 8 != 0)\n",
-                 PACKAGE, "fast resize");
+        if(verbose & TC_INFO) {
+          tc_log_info(PACKAGE, "V: %-16s | requested but can't be used (W or H mod 8 != 0)",
+                      "fast resize");
+        }
       }
     }
 
@@ -1365,7 +1375,7 @@ int main(int argc, char *argv[])
         vob->vert_resize2 *= (vob->resize2_mult/8);
         vob->hori_resize2 *= (vob->resize2_mult/8);
 
-	if(verbose & TC_INFO && vob->ex_v_height>0) printf("[%s] V: %-16s | %03dx%03d  %4.2f:1 (-X)\n", PACKAGE, "new aspect ratio", vob->ex_v_width, vob->ex_v_height, asr);
+	if(verbose & TC_INFO && vob->ex_v_height>0) tc_log_info(PACKAGE, "V: %-16s | %03dx%03d  %4.2f:1 (-X)", "new aspect ratio", vob->ex_v_width, vob->ex_v_height, asr);
     }
 
 
@@ -1399,7 +1409,7 @@ int main(int argc, char *argv[])
         vob->vert_resize1 *= (vob->resize1_mult/8);
         vob->hori_resize1 *= (vob->resize1_mult/8);
 
-	if(verbose & TC_INFO && vob->ex_v_height>0) printf("[%s] V: %-16s | %03dx%03d  %4.2f:1 (-B)\n", PACKAGE, "new aspect ratio", vob->ex_v_width, vob->ex_v_height, asr);
+	if(verbose & TC_INFO && vob->ex_v_height>0) tc_log_info(PACKAGE, "V: %-16s | %03dx%03d  %4.2f:1 (-B)", "new aspect ratio", vob->ex_v_width, vob->ex_v_height, asr);
     }
 
 
@@ -1413,7 +1423,7 @@ int main(int argc, char *argv[])
         vob->ex_v_width  = vob->zoom_width;
         vob->ex_v_height = vob->zoom_height;
 
-        if(verbose & TC_INFO && vob->ex_v_height>0 ) printf("[%s] V: %-16s | %03dx%03d  %4.2f:1 (%s)\n", PACKAGE, "zoom", vob->ex_v_width, vob->ex_v_height, asr, zoom_filter);
+        if(verbose & TC_INFO && vob->ex_v_height>0 ) tc_log_info(PACKAGE, "V: %-16s | %03dx%03d  %4.2f:1 (%s)", "zoom", vob->ex_v_width, vob->ex_v_height, asr, zoom_filter);
     }
 
 
@@ -1452,7 +1462,7 @@ int main(int argc, char *argv[])
       vob->ex_v_height -= (vob->ex_clip_top + vob->ex_clip_bottom);
       vob->ex_v_width -= (vob->ex_clip_left + vob->ex_clip_right);
 
-      if(verbose & TC_INFO) printf("[%s] V: %-16s | %03dx%03d\n", PACKAGE, "clip frame (->)", vob->ex_v_width, vob->ex_v_height);
+      if(verbose & TC_INFO) tc_log_info(PACKAGE, "V: %-16s | %03dx%03d", "clip frame (->)", vob->ex_v_width, vob->ex_v_height);
     }
 
     // -r
@@ -1464,7 +1474,7 @@ int main(int argc, char *argv[])
 
       //new aspect ratio:
       asr *= (double)vob->ex_v_width/vob->ex_v_height*(vob->reduce_h*vob->ex_v_height)/(vob->reduce_w*vob->ex_v_width);
-      if(verbose & TC_INFO) printf("[%s] V: %-16s | %03dx%03d  %4.2f:1 (-r)\n", PACKAGE, "rescale frame", vob->ex_v_width, vob->ex_v_height,asr);
+      if(verbose & TC_INFO) tc_log_info(PACKAGE, "V: %-16s | %03dx%03d  %4.2f:1 (-r)", "rescale frame", vob->ex_v_width, vob->ex_v_height,asr);
 
       // sanity check for YUV
       if(vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
@@ -1512,17 +1522,11 @@ int main(int argc, char *argv[])
 	  int clipH = (vob->im_clip_left+vob->im_clip_right);
 	  int clip1 = 0;
 	  int clip2 = 0;
+
 	  zoomto = (int)((double)(vob->ex_v_width) /
 		        ( ((double)(vob->im_v_width -clipH) / (vob->im_v_width/asr_cor/vob->im_v_height) )/
 		         (double)(vob->im_v_height-clipV))+.5);
-
-
 	  clip = vob->ex_v_height - zoomto;
-	  /*
-	  printf("clip %d, zoomto %d cor %f ducor %f imw %d imh %d\n",
-	      clip, zoomto, asr_cor, vob->im_v_width/asr_cor/vob->im_v_height, vob->im_v_width, vob->im_v_height);
-	      */
-
 	  if (zoomto%2 != 0) (clip>0?zoomto--:zoomto++);
 	  clip = vob->ex_v_height - zoomto;
 	  clip /= 2;
@@ -1569,34 +1573,34 @@ int main(int argc, char *argv[])
       if(vob->ex_v_width - vob->ex_clip_left - vob->ex_clip_right <= 0)
 	tc_error("invalid left/right clip parameter calculated from --keep_asr");
 
-      if(verbose & TC_INFO) printf("[%s] V: %-16s | yes (%d,%d,%d,%d)\n", PACKAGE, "keep aspect",
+      if(verbose & TC_INFO) tc_log_info(PACKAGE, "V: %-16s | yes (%d,%d,%d,%d)", "keep aspect",
 	    vob->ex_clip_top, vob->ex_clip_left, vob->ex_clip_bottom, vob->ex_clip_right);
     }
 
     // -z
 
     if(flip && verbose & TC_INFO)
-      printf("[%s] V: %-16s | yes\n", PACKAGE, "flip frame");
+      tc_log_info(PACKAGE, "V: %-16s | yes", "flip frame");
 
     // -l
 
     if(mirror && verbose & TC_INFO)
-      printf("[%s] V: %-16s | yes\n", PACKAGE, "mirror frame");
+      tc_log_info(PACKAGE, "V: %-16s | yes", "mirror frame");
 
     // -k
 
     if(rgbswap && verbose & TC_INFO)
-      printf("[%s] V: %-16s | yes\n", PACKAGE, "rgb2bgr");
+      tc_log_info(PACKAGE, "V: %-16s | yes", "rgb2bgr");
 
     // -K
 
     if(decolor && verbose & TC_INFO)
-      printf("[%s] V: %-16s | yes\n", PACKAGE, "b/w reduction");
+      tc_log_info(PACKAGE, "V: %-16s | yes", "b/w reduction");
 
     // -G
 
     if(dgamma && verbose & TC_INFO)
-      printf("[%s] V: %-16s | %.3f\n", PACKAGE, "gamma correction", vob->gamma);
+      tc_log_info(PACKAGE, "V: %-16s | %.3f", "gamma correction", vob->gamma);
 
     // number of bits/pixel
     //
@@ -1627,8 +1631,7 @@ int main(int argc, char *argv[])
       else
 	judge = "";
 
-      printf("[%s] V: %-16s | %.3f%s\n",
-	  PACKAGE, "bits/pixel", bpp, judge);
+      tc_log_info(PACKAGE, "V: %-16s | %.3f%s", "bits/pixel", bpp, judge);
     }
 
 
@@ -1642,13 +1645,13 @@ int main(int argc, char *argv[])
 	switch(vob->antialias) {
 
 	case 1:
-	  printf("[%s] V: %-16s | (mode=%d|%.2f|%.2f) de-interlace effects only\n", PACKAGE, "anti-alias", vob->antialias, vob->aa_weight, vob->aa_bias);
+	  tc_log_info(PACKAGE, "V: %-16s | (mode=%d|%.2f|%.2f) de-interlace effects only", "anti-alias", vob->antialias, vob->aa_weight, vob->aa_bias);
 	  break;
 	case 2:
-	  printf("[%s] V: %-16s | (mode=%d|%.2f|%.2f) resize effects only\n", PACKAGE, "anti-alias", vob->antialias, vob->aa_weight, vob->aa_bias);
+	  tc_log_info(PACKAGE, "V: %-16s | (mode=%d|%.2f|%.2f) resize effects only", "anti-alias", vob->antialias, vob->aa_weight, vob->aa_bias);
 	  break;
 	case 3:
-	  printf("[%s] V: %-16s | (mode=%d|%.2f|%.2f) process full frame (slow)\n", PACKAGE, "anti-alias", vob->antialias, vob->aa_weight, vob->aa_bias);
+	  tc_log_info(PACKAGE, "V: %-16s | (mode=%d|%.2f|%.2f) process full frame (slow)", "anti-alias", vob->antialias, vob->aa_weight, vob->aa_bias);
 	  break;
 	default:
 	  break;
@@ -1690,7 +1693,7 @@ int main(int argc, char *argv[])
       vob->ex_v_height -= (vob->post_ex_clip_top + vob->post_ex_clip_bottom);
       vob->ex_v_width -= (vob->post_ex_clip_left + vob->post_ex_clip_right);
 
-      if(verbose & TC_INFO) printf("[%s] V: %-16s | %03dx%03d\n", PACKAGE, "post clip frame", vob->ex_v_width, vob->ex_v_height);
+      if(verbose & TC_INFO) tc_log_info(PACKAGE, "V: %-16s | %03dx%03d", "post clip frame", vob->ex_v_width, vob->ex_v_height);
     }
 
 
@@ -1705,7 +1708,7 @@ int main(int argc, char *argv[])
     // -f
 
     if(verbose & TC_INFO)
-      printf("[%s] V: %-16s | %.3f,%d\n", PACKAGE, "decoding fps,frc", vob->fps, vob->im_frc);
+      tc_log_info(PACKAGE, "V: %-16s | %.3f,%d", "decoding fps,frc", vob->fps, vob->im_frc);
 
     // -R
 
@@ -1714,16 +1717,16 @@ int main(int argc, char *argv[])
       switch(vob->divxmultipass) {
 
       case 1:
-	printf("[%s] V: %-16s | (mode=%d) %s %s\n", PACKAGE, "multi-pass", vob->divxmultipass, "writing data (pass 1) to", vob->divxlogfile);
+	tc_log_info(PACKAGE, "V: %-16s | (mode=%d) %s %s", "multi-pass", vob->divxmultipass, "writing data (pass 1) to", vob->divxlogfile);
 	break;
 
       case 2:
-	printf("[%s] V: %-16s | (mode=%d) %s %s\n", PACKAGE, "multi-pass", vob->divxmultipass, "reading data (pass2) from", vob->divxlogfile);
+	tc_log_info(PACKAGE, "V: %-16s | (mode=%d) %s %s", "multi-pass", vob->divxmultipass, "reading data (pass2) from", vob->divxlogfile);
 	break;
 
       case 3:
 	if(vob->divxbitrate > VMAXQUANTIZER) vob->divxbitrate = VQUANTIZER;
-	printf("[%s] V: %-16s | (mode=%d) %s (quant=%d)\n", PACKAGE, "single-pass", vob->divxmultipass, "constant quantizer/quality", vob->divxbitrate);
+	tc_log_info(PACKAGE, "V: %-16s | (mode=%d) %s (quant=%d)", "single-pass", vob->divxmultipass, "constant quantizer/quality", vob->divxbitrate);
 	break;
       }
     }
@@ -1741,14 +1744,14 @@ int main(int argc, char *argv[])
     if(vob->im_v_codec==CODEC_YUV) {
       vob->ex_v_size = (3*vob->ex_v_height * vob->ex_v_width)>>1;
       vob->im_v_size = (3*vob->im_v_height * vob->im_v_width)>>1;
-      if(verbose & TC_INFO) printf("[%s] V: %-16s | YUV420 (4:2:0) aka I420\n", PACKAGE, "video format");
+      if(verbose & TC_INFO) tc_log_info(PACKAGE, "V: %-16s | YUV420 (4:2:0) aka I420", "video format");
     } else if (vob->im_v_codec==CODEC_YUV422) {
       vob->ex_v_size = (2*vob->ex_v_height * vob->ex_v_width);
       vob->im_v_size = (2*vob->im_v_height * vob->im_v_width);
-      if(verbose & TC_INFO) printf("[%s] V: %-16s | YUV422 (4:2:2)\n", PACKAGE, "video format");
+      if(verbose & TC_INFO) tc_log_info(PACKAGE, "V: %-16s | YUV422 (4:2:2)", "video format");
     } else {
       vob->ex_v_size = vob->ex_v_height * vob->ex_v_width * BPP/8;
-      if(verbose & TC_INFO) printf("[%s] V: %-16s | RGB24\n", PACKAGE, "video format");
+      if(verbose & TC_INFO) tc_log_info(PACKAGE, "V: %-16s | RGB24", "video format");
     }
 
     // -p
@@ -1768,7 +1771,8 @@ int main(int argc, char *argv[])
 
       if (vob->amod_probed==NULL || strcmp(vob->amod_probed,"null")==0) {
 
-	if(verbose & TC_DEBUG) printf("[%s] problems detecting audio format - using 'null' module\n", PACKAGE);
+	if(verbose & TC_DEBUG)
+          tc_log_warn(PACKAGE, "problems detecting audio format - using 'null' module");
 	vob->a_codec_flag=0;
       }
     }
@@ -1786,15 +1790,15 @@ int main(int argc, char *argv[])
     //audio import disabled
 
     if(vob->a_codec_flag==0) {
-      if(verbose & TC_INFO) printf("[%s] A: %-16s | disabled\n", PACKAGE, "import");
+      if(verbose & TC_INFO) tc_log_info(PACKAGE, "A: %-16s | disabled", "import");
       im_aud_mod="null";
     } else {
       //audio format, if probed sucessfully
       if(verbose & TC_INFO) {
 	if (vob->a_stream_bitrate)
-	  printf("[%s] A: %-16s | 0x%-5lx %-12s [%4d,%2d,%1d] %4d kbps\n", PACKAGE, "import format", vob->a_codec_flag, aformat2str(vob->a_codec_flag), vob->a_rate, vob->a_bits, vob->a_chan, vob->a_stream_bitrate);
+	  tc_log_info(PACKAGE, "A: %-16s | 0x%-5lx %-12s [%4d,%2d,%1d] %4d kbps", "import format", vob->a_codec_flag, aformat2str(vob->a_codec_flag), vob->a_rate, vob->a_bits, vob->a_chan, vob->a_stream_bitrate);
 	else
-	  printf("[%s] A: %-16s | 0x%-5lx %-12s [%4d,%2d,%1d]\n", PACKAGE, "import format", vob->a_codec_flag, aformat2str(vob->a_codec_flag), vob->a_rate, vob->a_bits, vob->a_chan);
+	  tc_log_info(PACKAGE, "A: %-16s | 0x%-5lx %-12s [%4d,%2d,%1d]", "import format", vob->a_codec_flag, aformat2str(vob->a_codec_flag), vob->a_rate, vob->a_bits, vob->a_chan);
       }
     }
 
@@ -1804,12 +1808,12 @@ int main(int argc, char *argv[])
       // what modules will actually have presented to them.
 
       if(verbose & TC_INFO)
-	printf("[%s] A: %-16s | %d channels -> %d channels\n", PACKAGE, "downmix", vob->a_chan, 2);
+	tc_log_info(PACKAGE, "A: %-16s | %d channels -> %d channels", "downmix", vob->a_chan, 2);
       vob->a_chan = 2;
     }
 
     if(vob->ex_a_codec==0 || vob->a_codec_flag==0 || ex_aud_mod == NULL || strcmp(ex_aud_mod, "null")==0) {
-      if(verbose & TC_INFO) printf("[%s] A: %-16s | disabled\n", PACKAGE, "export");
+      if(verbose & TC_INFO) tc_log_info(PACKAGE, "A: %-16s | disabled", "export");
       ex_aud_mod="null";
     } else {
 
@@ -1837,17 +1841,17 @@ int main(int argc, char *argv[])
 
       if(verbose & TC_INFO) {
 	if(vob->pass_flag & TC_AUDIO)
-	  printf("[%s] A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps\n", PACKAGE,
+	  tc_log_info(PACKAGE, "A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps",
                  "export format", vob->im_a_codec, aformat2str(vob->im_a_codec),
 		 vob->a_rate, vob->a_bits, vob->a_chan, vob->a_stream_bitrate);
 	else
-	  printf("[%s] A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps\n", PACKAGE,
+	  tc_log_info(PACKAGE, "A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps",
                  "export format", vob->ex_a_codec, aformat2str(vob->ex_a_codec),
 		 ((vob->mp3frequency>0)? vob->mp3frequency:vob->a_rate),
 		 ((vob->dm_bits>0)?vob->dm_bits:vob->a_bits),
 		 ((vob->dm_chan>0)?vob->dm_chan:vob->a_chan),
 		 vob->mp3bitrate);
-        printf("[%s] V: %-16s | %s%s\n", PACKAGE, "export format",
+        tc_log_info(PACKAGE, "V: %-16s | %s%s", "export format",
                tc_codec_to_string(vob->ex_v_codec),
                (vob->ex_v_codec == 0) ?" (module dependant)" :"");
       }
@@ -1863,52 +1867,41 @@ int main(int argc, char *argv[])
     // -f and --export_fps/export_frc
     //
     // set import/export frc/fps
-    //printf("XXX: 1 | %f,%d %f,%c\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);
     if (vob->im_frc == 0)
       tc_frc_code_from_value(&vob->im_frc, vob->fps);
-    //printf("XXX: 2 | %f,%d %f,%c\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);
 
     // ex_fps given, but not ex_frc
     if (vob->ex_frc == 0 && (vob->ex_fps != 0.0))
       tc_frc_code_from_value(&vob->ex_frc, vob->ex_fps);
-    //printf("XXX: 3 | %f,%d %f,%c\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);
 
     if (vob->ex_frc == 0 && vob->im_frc != 0)
       vob->ex_frc = vob->im_frc;
-    //printf("XXX: 4 | %f,%d %f,%c\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);
 
     // ex_frc always overwrites ex_fps
     if (vob->ex_frc > 0) {
       tc_frc_code_to_value(vob->ex_frc, &vob->ex_fps);
     }
 
-    //printf("XXX: 4 | %f,%d %f,%c\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);
-
     if (vob->im_frc <= 0 && vob->ex_frc <= 0 && vob->ex_fps == 0)
       vob->ex_fps = vob->fps;
-    //printf("XXX: 4 | %f,%d %f,%c\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);
 
     if (vob->im_frc == -1) vob->im_frc = 0;
     if (vob->ex_frc == -1) vob->ex_frc = 0;
-    /*
-    */
 
     // --export_fps
 
     if(verbose & TC_INFO)
-      printf("[%s] V: %-16s | %.3f,%d\n", PACKAGE, "encoding fps,frc", vob->ex_fps, vob->ex_frc);
+      tc_log_info(PACKAGE, "V: %-16s | %.3f,%d", "encoding fps,frc", vob->ex_fps, vob->ex_frc);
 
-
-    //printf("FPS: %f,%d | %f,%d\n", vob->fps, vob->im_frc, vob->ex_fps, vob->ex_frc);
 
     // --a52_demux
 
     if((vob->a52_mode & TC_A52_DEMUX) && (verbose & TC_INFO))
-      printf("[%s] A: %-16s | %s\n", PACKAGE, "A52 demuxing", "(yes) 3 front, 2 rear, 1 LFE (5.1)");
+      tc_log_info(PACKAGE, "A: %-16s | %s", "A52 demuxing", "(yes) 3 front, 2 rear, 1 LFE (5.1)");
 
     //audio language, if probed sucessfully
     if(vob->lang_code > 0 && (verbose & TC_INFO))
-      printf("[%s] A: %-16s | %c%c\n", PACKAGE, "language", vob->lang_code>>8, vob->lang_code & 0xff);
+      tc_log_info(PACKAGE, "A: %-16s | %c%c", "language", vob->lang_code>>8, vob->lang_code & 0xff);
 
     // recalculate audio bytes per frame since video frames per second
     // may have changed
@@ -1938,15 +1931,15 @@ int main(int argc, char *argv[])
     // final size in bytes
     vob->ex_a_size = vob->im_a_size;
 
-    if(verbose & TC_INFO) printf("[%s] A: %-16s | %d (%.6f)\n", PACKAGE, "bytes per frame", vob->im_a_size, fch);
+    if(verbose & TC_INFO) tc_log_info(PACKAGE, "A: %-16s | %d (%.6f)", "bytes per frame", vob->im_a_size, fch);
 
     if(no_audio_adjust) {
       vob->a_leap_bytes=0;
 
-      if(verbose & TC_INFO) printf("[%s] A: %-16s | disabled\n", PACKAGE, "adjustment");
+      if(verbose & TC_INFO) tc_log_info(PACKAGE, "A: %-16s | disabled", "adjustment");
 
     } else
-      if(verbose & TC_INFO) printf("[%s] A: %-16s | %d@%d\n", PACKAGE, "adjustment", vob->a_leap_bytes, vob->a_leap_frame);
+      if(verbose & TC_INFO) tc_log_info(PACKAGE, "A: %-16s | %d@%d", "adjustment", vob->a_leap_bytes, vob->a_leap_frame);
 
     // -s
 
@@ -1954,7 +1947,7 @@ int main(int argc, char *argv[])
       //tc_error("option -s not yet implemented for mono streams");
     }
 
-    if(vob->volume > 0 && (verbose & TC_INFO)) printf("[%s] A: %-16s | %5.3f\n", PACKAGE, "rescale stream", vob->volume);
+    if(vob->volume > 0 && (verbose & TC_INFO)) tc_log_info(PACKAGE, "A: %-16s | %5.3f", "rescale stream", vob->volume);
 
     // -D
 
@@ -1964,11 +1957,11 @@ int main(int argc, char *argv[])
       vob->sync_ms -= vob->sync * (int) (1000.0/vob->ex_fps);
     }
 
-    if((vob->sync || vob->sync_ms) &&(verbose & TC_INFO)) printf("[%s] A: %-16s | %d ms [ %d (A) | %d ms ]\n", PACKAGE, "AV shift", vob->sync * (int) (1000.0/vob->ex_fps) + vob->sync_ms, vob->sync, vob->sync_ms);
+    if((vob->sync || vob->sync_ms) &&(verbose & TC_INFO)) tc_log_info(PACKAGE, "A: %-16s | %d ms [ %d (A) | %d ms ]", "AV shift", vob->sync * (int) (1000.0/vob->ex_fps) + vob->sync_ms, vob->sync, vob->sync_ms);
 
     // -d
 
-    if(pcmswap) if(verbose & TC_INFO) printf("[%s] A: %-16s | yes\n", PACKAGE, "swap bytes");
+    if(pcmswap) if(verbose & TC_INFO) tc_log_info(PACKAGE, "A: %-16s | yes", "swap bytes");
 
     // -E
 
@@ -1985,7 +1978,7 @@ int main(int argc, char *argv[])
       if(no_a_out_codec) ex_aud_mod="raw";
       no_a_out_codec=0;
 
-      if(verbose & TC_INFO) printf("[%s] A: %-16s | yes\n", PACKAGE, "pass-through");
+      if(verbose & TC_INFO) tc_log_info(PACKAGE, "A: %-16s | yes", "pass-through");
     }
 
     // -m
@@ -1997,7 +1990,7 @@ int main(int argc, char *argv[])
     // --accel
 
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
-    if(verbose & TC_INFO) printf("[%s] V: IA32/AMD64 accel | %s \n", PACKAGE, ac_flagstotext(tc_accel & ac_cpuinfo()));
+    if(verbose & TC_INFO) tc_log_info(PACKAGE, "V: IA32/AMD64 accel | %s ", ac_flagstotext(tc_accel & ac_cpuinfo()));
 #endif
 
     ac_init(tc_accel);
@@ -2042,7 +2035,9 @@ int main(int argc, char *argv[])
     if(tc_buffer_delay_enc==-1) //adjust core parameter
       tc_buffer_delay_enc = (vob->pass_flag & TC_VIDEO || ex_vid_mod==NULL || strcmp(ex_vid_mod, "null")==0) ? TC_DELAY_MIN:TC_DELAY_MAX;
 
-    if(verbose & TC_DEBUG) printf("[%s] encoder delay = decode=%d encode=%d usec\n", PACKAGE, tc_buffer_delay_dec, tc_buffer_delay_enc);
+    if(verbose & TC_DEBUG)
+        tc_log_msg(PACKAGE, "encoder delay = decode=%d encode=%d usec",
+                   tc_buffer_delay_dec, tc_buffer_delay_enc);
 
     if (socket_file) {
       if (!tc_socket_init(socket_file))
@@ -2082,15 +2077,17 @@ int main(int argc, char *argv[])
     tc_ring_framebuffer_set_specs(&specs);
 
     if(verbose & TC_INFO) {
-      printf("[%s] V: video buffer     | %i @ %ix%i [0x%x]\n", PACKAGE,
+      tc_log_info(PACKAGE, "V: video buffer     | %i @ %ix%i [0x%x]",
              max_frame_buffer, specs.width, specs.height, specs.format);
-      printf("[%s] A: audio buffer     | %i @ %ix%ix%i\n", PACKAGE,
+      tc_log_info(PACKAGE, "A: audio buffer     | %i @ %ix%ix%i",
              max_frame_buffer, specs.rate, specs.channels, specs.bits);
     }
 
 #ifdef STATBUFFER
     // allocate buffer
-    if(verbose & TC_DEBUG) printf("[%s] allocating %d framebuffer (static)\n", PACKAGE, max_frame_buffer);
+    if(verbose & TC_DEBUG)
+        tc_log_msg(PACKAGE, "allocating %d framebuffers (static)",
+                   max_frame_buffer);
 
     if(vframe_alloc(max_frame_buffer) < 0)
         tc_error("static framebuffer allocation failed");
@@ -2098,7 +2095,9 @@ int main(int argc, char *argv[])
         tc_error("static framebuffer allocation failed");
 
 #else
-    if(verbose & TC_DEBUG) printf("[%s] %d framebuffer (dynamical) requested\n", PACKAGE, max_frame_buffer);
+    if(verbose & TC_DEBUG)
+        tc_log_msg(PACKAGE, "%d framebuffers (dynamic) requested",
+                   max_frame_buffer);
 #endif
 
     // load import/export modules and filters plugins
@@ -2254,7 +2253,8 @@ int main(int argc, char *argv[])
 	frame_a += splitavi_frames;
 	if(frame_a >= frame_b) break;
 
-	if(verbose & TC_DEBUG) fprintf(stderr, "(%s) import status=%d\n", __FILE__, import_status());
+	if(verbose & TC_DEBUG)
+            tc_log_msg(PACKAGE, "import status=%d", import_status());
 
 	// check for user cancelation request
 	if(sig_int || sig_tstp) break;
@@ -2313,7 +2313,9 @@ int main(int argc, char *argv[])
 	  // update vob structure
 	  vob->video_out_file = buf;
 
-	  if(verbose & TC_INFO) printf("[%s] using output filename %s\n", PACKAGE, vob->video_out_file);
+	  if(verbose & TC_INFO)
+              tc_log_info(PACKAGE, "using output filename %s",
+                          vob->video_out_file);
 	}
 
 	// get seek/frame information for next PSU
@@ -2323,7 +2325,9 @@ int main(int argc, char *argv[])
 
 	ret=split_stream(vob, nav_seek_file, ch1, &fa, &fb, 0);
 
-	if(verbose & TC_DEBUG) printf("(%s) processing PSU %d, -L %d -c %d-%d %s (ret=%d)\n", __FILE__, ch1, vob->vob_offset, fa, fb, buf, ret);
+	if(verbose & TC_DEBUG)
+            tc_log_msg(PACKAGE,"processing PSU %d, -L %d -c %d-%d %s (ret=%d)",
+                       ch1, vob->vob_offset, fa, fb, buf, ret);
 
 	// exit condition
 	if(ret<0 || ch1 == vob->vob_psu_num2) break;
@@ -2354,7 +2358,7 @@ int main(int argc, char *argv[])
 	  if(!no_split) {
 	    if(encoder_close()<0)
 	      tc_warn("failed to close encoder - non fatal");
-	  } else printf("\n");
+	  }
 
 	  //debugging code since PSU mode still alpha code
 	  vframe_fill_print(0);
@@ -2374,7 +2378,13 @@ int main(int argc, char *argv[])
 
 	  vob->psu_offset += (double) (fb-fa);
 
-	} else printf("skipping PSU %d with %d frame(s)\n", ch1, fb-fa);
+	} else {
+
+          if (verbose & TC_INFO)
+            tc_log_info(PACKAGE, "skipping PSU %d with %d frame(s)",
+                        ch1, fb-fa);
+
+        }
 
 	++ch1;
 
@@ -2416,7 +2426,9 @@ int main(int argc, char *argv[])
 
       dir_fcnt = tc_dirlist_file_count(&tcdir);
 
-      printf("(%s) processing %d file(s) in directory %s\n", __FILE__, dir_fcnt, dir_name);
+      if (verbose & TC_INFO)
+        tc_log_info(PACKAGE, "processing %d file(s) in directory %s",
+                    dir_fcnt, dir_name);
 
       if(dir_fcnt==0) tc_error("no valid input files found");
       dir_fcnt=0;
@@ -2611,7 +2623,8 @@ int main(int argc, char *argv[])
 	import_threads_create(vob);
 
 	if(verbose & TC_DEBUG)
-	  fprintf(stderr, "%d chapters for title %d detected\n", vob->dvd_max_chapters, vob->dvd_title);
+	  tc_log_msg(PACKAGE, "%d chapters for title %d detected",
+                     vob->dvd_max_chapters, vob->dvd_title);
 
 
 	// encode
@@ -2660,7 +2673,8 @@ int main(int argc, char *argv[])
 
     case TC_MODE_DEBUG:
 
-      printf("[%s] debug \"core\" mode", PACKAGE);
+      /* FIXME: get rid of this? */
+      tc_log_msg(PACKAGE, "debug \"core\" mode");
 
       break;
 
@@ -2684,19 +2698,19 @@ int main(int argc, char *argv[])
     counter_off();
 
     // shutdown
-    if(verbose & TC_INFO) { printf("\nclean up |"); fflush(stdout); }
+    if(verbose & TC_DEBUG) { fprintf(stderr, "clean up |"); fflush(stderr); }
 
     // stop and cancel frame processing threads
     frame_threads_close();
-    if(verbose & TC_INFO) { printf(" frame threads |"); fflush(stdout); }
+    if(verbose & TC_DEBUG) { fprintf(stderr, " frame threads |"); fflush(stderr); }
 
     // unload all external modules
     transcoder(TC_OFF, NULL);
-    if(verbose & TC_INFO) { printf(" unload modules |");fflush(stdout); }
+    if(verbose & TC_DEBUG) { fprintf(stderr, " unload modules |");fflush(stderr); }
 
     // cancel no longer used internal signal handler threads
     if (thread_signal) {
-      if(verbose & TC_INFO) { printf(" cancel signal |");fflush(stdout); }
+      if(verbose & TC_DEBUG) { fprintf(stderr, " cancel signal |");fflush(stderr); }
       if (thread_signal) {
 	pthread_cancel(thread_signal);
         pthread_kill(thread_signal,SIGINT);
@@ -2707,38 +2721,39 @@ int main(int argc, char *argv[])
       thread_signal=(pthread_t)0;
     }
 
-    if(verbose & TC_INFO) { printf(" internal threads |");fflush(stdout); }
+    if(verbose & TC_DEBUG) { fprintf(stderr, " internal threads |");fflush(stderr); }
 
     // shut down control socket, if active
     tc_socket_fini();
 
-    if(verbose & TC_INFO) { printf(" control socket |");fflush(stdout); }
+    if(verbose & TC_DEBUG) { fprintf(stderr, " control socket |");fflush(stderr); }
 
     // all done
-    if(verbose & TC_INFO) printf(" done\n");
+    if(verbose & TC_DEBUG) fprintf(stderr, " done\n");
 
  summary:
 
     // print a summary
     if((verbose & TC_INFO) && vob->clip_count)
-      fprintf(stderr, "[%s] clipped %d audio samples\n", PACKAGE, vob->clip_count/2);
+      tc_log_info(PACKAGE, "clipped %d audio samples", vob->clip_count/2);
 
     if(verbose & TC_INFO) {
 
       long drop = - tc_get_frames_dropped();
 
-      fprintf(stderr, "[%s] encoded %ld frames (%ld dropped, %ld cloned),"
-                      " clip length %6.2f s\n",
-        	      PACKAGE, (long)tc_get_frames_encoded(), drop,
-                      (long)tc_get_frames_cloned(),
-                      tc_get_frames_encoded()/vob->ex_fps);
+      tc_log_info(PACKAGE, "encoded %ld frames (%ld dropped, %ld cloned),"
+                           " clip length %6.2f s",
+                  (long)tc_get_frames_encoded(), drop,
+                  (long)tc_get_frames_cloned(),
+                  tc_get_frames_encoded()/vob->ex_fps);
     }
 
 #ifdef STATBUFFER
     // free buffers
     vframe_free();
     aframe_free();
-    if(verbose & TC_DEBUG) fprintf(stderr, "[%s] buffer released\n", PACKAGE);
+    if(verbose & TC_DEBUG)
+      tc_log_msg(PACKAGE, "buffer released");
 #endif
 
     if (vob) free(vob);

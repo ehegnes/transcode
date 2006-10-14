@@ -192,7 +192,7 @@ static int parse_pvn_header(PrivateData *pd)
             range = maxval;
         } else if (*fieldbuf == '-') {
             base = -maxval;
-            range = 0;
+            range = maxval;
         } else {
             base = -maxval;
             range = maxval*2;
@@ -425,7 +425,7 @@ static int pvn_demultiplex(TCModuleInstance *self,
         return -1;
     }
 
-    if (read(pd->fd, pd->buffer, pd->framesize) != pd->framesize) {
+    if (tc_pread(pd->fd, pd->buffer, pd->framesize) != pd->framesize) {
         if (verbose)
             tc_log_info(MOD_NAME, "End of stream reached");
         return -1;
@@ -885,12 +885,17 @@ MOD_open
     }
 
     param->fd = NULL;  /* we handle the reading ourselves */
-    pd->fd = open(vob->video_in_file, O_RDONLY);
-    if (pd->fd < 0) {
-        tc_log_error(MOD_NAME, "Unable to open %s: %s", vob->video_in_file,
-                     strerror(errno));
-        pvn_fini(&mod);
-        return -1;
+    /* FIXME: stdin should be handled in a more standard fashion */
+    if (strcmp(vob->video_in_file, "-") == 0) {  // allow /dev/stdin too?
+        pd->fd = 0;
+    } else {
+        pd->fd = open(vob->video_in_file, O_RDONLY);
+        if (pd->fd < 0) {
+            tc_log_error(MOD_NAME, "Unable to open %s: %s",
+                         vob->video_in_file, strerror(errno));
+            pvn_fini(&mod);
+            return -1;
+        }
     }
     if (!parse_pvn_header(pd)) {
         pvn_fini(&mod);

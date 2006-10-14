@@ -1208,13 +1208,13 @@ void tc_outstream_rotate(void)
   tc_snprintf(buf, sizeof(buf), "%s-%03d", base, rotate_ctr++);
 
   //rename old outputfile
-  if(xio_rename(base, buf)<0) tc_error("failed to rename output file\n");
+  if(xio_rename(base, buf)<0) tc_error("failed to rename output file");
 
   // reopen output
   if(encoder_open(vob)<0)
     tc_error("failed to open output");
 
-  fprintf(stderr, "\n(%s) outfile %s saved to %s\n", __FILE__, base, buf);
+  tc_log_info(__FILE__, "outfile %s saved to %s", base, buf);
 
   free(base);
 
@@ -1300,7 +1300,7 @@ void encoder_loop(vob_t *vob, int frame_first, int frame_last)
 
         if (is_last_frame(&encdata, tc_cluster_mode)) {
             if (verbose >= TC_DEBUG) {
-                tc_log_info(__FILE__, "\nencoder last frame finished (%d/%d)",
+                tc_log_info(__FILE__, "encoder last frame finished (%d/%d)",
                             encdata.buffer->frame_id, encdata.frame_last);
             }
             return;

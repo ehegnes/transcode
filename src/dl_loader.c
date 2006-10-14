@@ -46,12 +46,12 @@ int (*TCA_import)(int opt, void *para1, void *para2);
 
 static void watch_export_module(char *s, int opt, transfer_t *para)
 {
-    printf("module=%s [option=%02d, flag=%d]\n", s, opt, ((para==NULL)? -1:para->flag));
+    tc_log_msg(__FILE__, "module=%s [option=%02d, flag=%d]", s, opt, ((para==NULL)? -1:para->flag));
 }
 
 static void watch_import_module(char *s, int opt, transfer_t *para)
 {
-    printf("module=%s [option=%02d, flag=%d]\n", s, opt, ((para==NULL)? -1:para->flag));
+    tc_log_msg(__FILE__, "module=%s [option=%02d, flag=%d]", s, opt, ((para==NULL)? -1:para->flag));
     fflush(stdout);
 }
 
@@ -65,11 +65,11 @@ int tcv_export(int opt, void *para1, void *para2)
 
   ret = TCV_export(opt, para1, para2);
 
-  if(ret==TC_EXPORT_ERROR && verbose & TC_DEBUG)
-    printf("video export module error\n");
+  if(ret==TC_EXPORT_ERROR && (verbose & TC_DEBUG))
+    tc_log_msg(__FILE__, "video export module error");
 
-  if(ret==TC_EXPORT_UNKNOWN && verbose & TC_DEBUG)
-    printf("option %d unsupported by video export module\n", opt);
+  if(ret==TC_EXPORT_UNKNOWN && (verbose & TC_DEBUG))
+    tc_log_msg(__FILE__, "option %d unsupported by video export module", opt);
 
   return(ret);
 }
@@ -84,11 +84,11 @@ int tca_export(int opt, void *para1, void *para2)
 
   ret = TCA_export(opt, para1, para2);
 
-  if(ret==TC_EXPORT_ERROR && verbose & TC_DEBUG)
-    printf("audio export module error\n");
+  if(ret==TC_EXPORT_ERROR && (verbose & TC_DEBUG))
+    tc_log_msg(__FILE__, "audio export module error");
 
-  if(ret==TC_EXPORT_UNKNOWN && verbose & TC_DEBUG)
-    printf("option %d unsupported by audio export module\n", opt);
+  if(ret==TC_EXPORT_UNKNOWN && (verbose & TC_DEBUG))
+    tc_log_msg(__FILE__, "option %d unsupported by audio export module", opt);
 
   return(ret);
 }
@@ -103,11 +103,11 @@ int tcv_import(int opt, void *para1, void *para2)
 
   ret = TCV_import(opt, para1, para2);
 
-  if(ret==TC_IMPORT_ERROR && verbose & TC_DEBUG)
-    printf("(%s) video import module error\n", __FILE__);
+  if(ret==TC_IMPORT_ERROR && (verbose & TC_DEBUG))
+    tc_log_msg(__FILE__, "video import module error");
 
-  if(ret==TC_IMPORT_UNKNOWN && verbose & TC_DEBUG)
-    printf("option %d unsupported by video import module\n", opt);
+  if(ret==TC_IMPORT_UNKNOWN && (verbose & TC_DEBUG))
+    tc_log_msg(__FILE__, "option %d unsupported by video import module", opt);
 
   return(ret);
 }
@@ -121,11 +121,11 @@ int tca_import(int opt, void *para1, void *para2)
 
   ret = TCA_import(opt, para1, para2);
 
-  if(ret==TC_IMPORT_ERROR && verbose & TC_DEBUG)
-    printf("(%s) audio import module error\n", __FILE__);
+  if(ret==TC_IMPORT_ERROR && (verbose & TC_DEBUG))
+    tc_log_msg(__FILE__, "audio import module error");
 
-  if(ret==TC_IMPORT_UNKNOWN && verbose & TC_DEBUG)
-    printf("option %d unsupported by audio import module\n", opt);
+  if(ret==TC_IMPORT_UNKNOWN && (verbose & TC_DEBUG))
+    tc_log_msg(__FILE__, "option %d unsupported by audio import module", opt);
 
   return(ret);
 }
@@ -141,7 +141,7 @@ void *load_module(char *mod_name, int mode)
     tc_snprintf(module, sizeof(module), "%s/export_%s.so", ((mod_path==NULL)? TC_DEFAULT_MOD_PATH:mod_path), mod_name);
 
     if(verbose & TC_DEBUG)
-      printf("loading %s export module %s\n", ((mode & TC_VIDEO)? "video": "audio"), module);
+      tc_log_msg(__FILE__, "loading %s export module %s", ((mode & TC_VIDEO)? "video": "audio"), module);
 
     handle = dlopen(module, RTLD_GLOBAL| RTLD_LAZY);
 
@@ -179,7 +179,7 @@ void *load_module(char *mod_name, int mode)
     tc_snprintf(module, sizeof(module), "%s/import_%s.so", ((mod_path==NULL)? TC_DEFAULT_MOD_PATH:mod_path), mod_name);
 
     if(verbose & TC_DEBUG)
-      printf("loading %s import module %s\n", ((mode & TC_VIDEO)? "video": "audio"), module);
+      tc_log_msg(__FILE__, "loading %s import module %s", ((mode & TC_VIDEO)? "video": "audio"), module);
 
     handle = dlopen(module, RTLD_GLOBAL| RTLD_LAZY);
 

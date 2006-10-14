@@ -79,7 +79,7 @@ static void tc_import_stop(void)
   frame_threads_notify(TC_VIDEO);
   frame_threads_notify(TC_AUDIO);
 
-  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) import stop requested by client=%ld (main=%ld) import status=%d\n", __FILE__, (unsigned long)pthread_self(), (unsigned long)tc_pthread_main, import_status());
+  if(verbose & TC_DEBUG) tc_log_msg(__FILE__, "import stop requested by client=%ld (main=%ld) import status=%d", (unsigned long)pthread_self(), (unsigned long)tc_pthread_main, import_status());
 
 }
 
@@ -107,7 +107,7 @@ void import_threads_cancel()
 #endif
 
   if (tc_decoder_delay)
-      printf("\n(%s) sleeping for %d seconds to cool down\n", __FILE__, 2*tc_decoder_delay);
+      tc_log_info(__FILE__, "sleeping for %d seconds to cool down", 2*tc_decoder_delay);
 
   // notify import threads, if not yet done, that task is done
   tc_import_stop();
@@ -117,11 +117,11 @@ void import_threads_cancel()
 
   if(verbose & TC_DEBUG) {
 
-    if(cc1 == ESRCH) fprintf(stderr, "(%s) video thread already terminated\n", __FILE__);
+    if(cc1 == ESRCH) tc_log_msg(__FILE__, "video thread already terminated");
 
-    if(cc2 == ESRCH) fprintf(stderr, "(%s) audio thread already terminated\n", __FILE__);
+    if(cc2 == ESRCH) tc_log_msg(__FILE__, "audio thread already terminated");
 
-    fprintf(stderr, "(%s) A/V import canceled (%ld) (%ld)\n", __FILE__, (unsigned long)pthread_self(), (unsigned long)tc_pthread_main);
+    tc_log_msg(__FILE__, "A/V import canceled (%ld) (%ld)", (unsigned long)pthread_self(), (unsigned long)tc_pthread_main);
 
   }
 
@@ -134,7 +134,7 @@ void import_threads_cancel()
 #endif
   cc1=pthread_join(vthread, &status);
 
-  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) video thread exit (ret_code=%d) (status_code=%lu)\n", __FILE__, cc1, (unsigned long)status);
+  if(verbose & TC_DEBUG) tc_log_msg(__FILE__, "video thread exit (ret_code=%d) (status_code=%lu)", cc1, (unsigned long)status);
 
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
   pthread_cond_signal(&aframe_list_full_cv);
@@ -144,16 +144,16 @@ void import_threads_cancel()
 #endif
   cc2=pthread_join(athread, &status);
 
-  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) audio thread exit (ret_code=%d) (status_code=%lu)\n", __FILE__, cc2, (unsigned long) status);
+  if(verbose & TC_DEBUG) tc_log_msg(__FILE__, "audio thread exit (ret_code=%d) (status_code=%lu)", cc2, (unsigned long) status);
 
   cc1 = pthread_mutex_trylock(&vframe_list_lock);
 
-  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) vframe_list_lock=%s\n", __FILE__, (cc1==EBUSY)? "BUSY":"0");
+  if(verbose & TC_DEBUG) tc_log_msg(__FILE__, "vframe_list_lock=%s", (cc1==EBUSY)? "BUSY":"0");
   if(cc1 == 0) pthread_mutex_unlock(&vframe_list_lock);
 
   cc2 = pthread_mutex_trylock(&aframe_list_lock);
 
-  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) aframe_list_lock=%s\n", __FILE__, (cc2==EBUSY)? "BUSY":"0");
+  if(verbose & TC_DEBUG) tc_log_msg(__FILE__, "aframe_list_lock=%s", (cc2==EBUSY)? "BUSY":"0");
   if(cc2 == 0) pthread_mutex_unlock(&aframe_list_lock);
 
   return;
@@ -200,8 +200,8 @@ int import_init(vob_t *vob, char *a_mod, char *v_mod)
 
 	if((import_ahandle=load_module(((a_mod==NULL)? TC_DEFAULT_IMPORT_AUDIO: a_mod), TC_IMPORT+TC_AUDIO))==NULL)
 	{
-		fprintf(stderr, "Loading audio import module failed\n");
-		fprintf(stderr, "Did you enable this module when you ran configure?\n");
+		tc_log_error(PACKAGE, "Loading audio import module failed");
+		tc_log_error(PACKAGE, "Did you enable this module when you ran configure?");
 		return(-1);
 	}
 
@@ -211,8 +211,8 @@ int import_init(vob_t *vob, char *a_mod, char *v_mod)
 
 	if((import_vhandle=load_module(((v_mod==NULL)? TC_DEFAULT_IMPORT_VIDEO: v_mod), TC_IMPORT+TC_VIDEO))==NULL)
 	{
-		fprintf(stderr, "Loading video import module failed\n");
-		fprintf(stderr, "Did you enable this module when you ran configure?\n");
+		tc_log_error(PACKAGE, "Loading video import module failed");
+		tc_log_error(PACKAGE, "Did you enable this module when you ran configure?");
 		return(-1);
 	}
 
@@ -227,7 +227,7 @@ int import_init(vob_t *vob, char *a_mod, char *v_mod)
 	{
 		// module returned capability flag
 		if(verbose & TC_DEBUG)
-			fprintf(stderr, "Audio capability flag 0x%x | 0x%x\n", import_para.flag, vob->im_a_codec);
+			tc_log_msg(__FILE__, "Audio capability flag 0x%x | 0x%x", import_para.flag, vob->im_a_codec);
 
 		switch (vob->im_a_codec)
 		{
@@ -261,7 +261,7 @@ int import_init(vob_t *vob, char *a_mod, char *v_mod)
 
 	if(!cc)
 	{
-		fprintf(stderr, "Audio format not supported by import module\n");
+		tc_log_error(PACKAGE, "Audio format not supported by import module");
 		return(-1);
 	}
 
@@ -273,7 +273,7 @@ int import_init(vob_t *vob, char *a_mod, char *v_mod)
 		// module returned capability flag
 
 		if(verbose & TC_DEBUG)
-			fprintf(stderr, "Video capability flag 0x%x | 0x%x\n", import_para.flag, vob->im_v_codec);
+			tc_log_msg(__FILE__, "Video capability flag 0x%x | 0x%x", import_para.flag, vob->im_v_codec);
 
 		switch (vob->im_v_codec)
 		{
@@ -313,8 +313,8 @@ int import_init(vob_t *vob, char *a_mod, char *v_mod)
 
 	if(!cc)
 	{
-		fprintf(stderr, "Video format not supported by import module\n");
-		fprintf(stderr, "Please try -V yuv422p or -V rgb24\n");
+		tc_log_error(PACKAGE, "Video format not supported by import module");
+		tc_log_error(PACKAGE, "Please try -V yuv422p or -V rgb24");
 		return(-1);
 	}
 
@@ -340,7 +340,7 @@ int import_open(vob_t *vob)
   import_para.flag=TC_AUDIO;
 
   if(tca_import(TC_IMPORT_OPEN, &import_para, vob)<0) {
-    fprintf(stderr, "audio import module error: OPEN failed\n");
+    tc_log_error(PACKAGE, "audio import module error: OPEN failed");
     return(-1);
   }
 
@@ -352,7 +352,7 @@ int import_open(vob_t *vob)
   import_para.flag=TC_VIDEO;
 
   if(tcv_import(TC_IMPORT_OPEN, &import_para, vob)<0) {
-    fprintf(stderr, "video import module error: OPEN failed\n");
+    tc_log_error(PACKAGE, "video import module error: OPEN failed");
     return(-1);
   }
 
@@ -387,7 +387,7 @@ int import_close(void)
     import_para.fd   = fd_ppm;
 
     if((ret=tcv_import(TC_IMPORT_CLOSE, &import_para, NULL))==TC_IMPORT_ERROR) {
-      fprintf(stderr, "video import module error: CLOSE failed\n");
+      tc_log_warn(PACKAGE, "video import module error: CLOSE failed");
       return(-1);
     }
     fd_ppm = NULL;
@@ -401,7 +401,7 @@ int import_close(void)
     import_para.fd   = fd_pcm;
 
     if((ret=tca_import(TC_IMPORT_CLOSE, &import_para, NULL))==TC_IMPORT_ERROR) {
-      fprintf(stderr, "audio import module error: CLOSE failed\n");
+      tc_log_warn(PACKAGE, "audio import module error: CLOSE failed");
       return(-1);
     }
     fd_pcm = NULL;
@@ -428,7 +428,7 @@ static int vimport_test_shutdown(void)
     pthread_mutex_unlock(&import_v_lock);
 
     if(verbose & TC_DEBUG) {
-      fprintf(stderr, "(%s) video import cancelation requested\n", __FILE__);
+      tc_log_msg(__FILE__, "video import cancelation requested");
     }
 
     return(1);  // notify thread to exit immediately
@@ -487,7 +487,7 @@ void vimport_thread(vob_t *vob)
   transfer_t import_para;
 
 
-  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) video thread id=%ld\n", __FILE__, (unsigned long)pthread_self());
+  if(verbose & TC_DEBUG) tc_log_msg(__FILE__, "video thread id=%ld", (unsigned long)pthread_self());
 
   // bytes per video frame
   vbytes = vob->im_v_size;
@@ -498,7 +498,7 @@ void vimport_thread(vob_t *vob)
 
     memset(&import_para, 0, sizeof(transfer_t));
 
-    if(verbose >= TC_STATS) printf("\n%10s [%ld] V=%d bytes\n", "requesting", i, vbytes);
+    if(verbose >= TC_STATS) tc_log_msg(__FILE__, "%10s [%ld] V=%d bytes", "requesting", i, vbytes);
 
     pthread_testcancel();
 
@@ -564,9 +564,7 @@ void vimport_thread(vob_t *vob)
       import_para.flag       = TC_VIDEO;
       import_para.attributes = ptr->attributes;
 
-      //fprintf(stderr, "DECODE 1\n");
       ret = tcv_import(TC_IMPORT_DECODE, &import_para, vob);
-      //fprintf(stderr, "DECODE 2\n");
 
       // import module return information on true frame size
       // in import_para.size
@@ -578,7 +576,7 @@ void vimport_thread(vob_t *vob)
     }
 
     if (ret<0) {
-      if(verbose & TC_DEBUG) fprintf(stderr, "(%s) video data read failed - end of stream\n", __FILE__);
+      if(verbose & TC_DEBUG) tc_log_msg(__FILE__, "video data read failed - end of stream");
 
       // stop decoder
       vframe_remove(ptr);
@@ -625,7 +623,7 @@ void vimport_thread(vob_t *vob)
       pthread_mutex_unlock(&vbuffer_im_fill_lock);
     }
 
-    if(verbose & TC_STATS) printf("%10s [%ld] V=%d bytes\n", "received", i, ptr->video_size);
+    if(verbose & TC_STATS) tc_log_msg(__FILE__, "%10s [%ld] V=%d bytes", "received", i, ptr->video_size);
 
     // check for pending shutdown via ^C
     if(vimport_test_shutdown()) pthread_exit( (int *)14);
@@ -651,7 +649,7 @@ static int aimport_test_shutdown(int mode)
     pthread_mutex_unlock(&import_a_lock);
 
     if(verbose & TC_DEBUG) {
-      fprintf(stderr, "(%s) audio import cancelation requested (%d)\n", __FILE__, mode);
+      tc_log_msg(__FILE__, "audio import cancelation requested (%d)", mode);
     }
 
     return(1);  // notify thread to exit immediately
@@ -677,7 +675,7 @@ void aimport_thread(vob_t *vob)
   transfer_t import_para;
 
 
-  if(verbose & TC_DEBUG) fprintf(stderr, "(%s) audio thread id=%ld\n", __FILE__, (unsigned long)pthread_self());
+  if(verbose & TC_DEBUG) tc_log_msg(__FILE__, "audio thread id=%ld", (unsigned long)pthread_self());
 
   // bytes per audio frame
   abytes = vob->im_a_size;
@@ -696,7 +694,7 @@ void aimport_thread(vob_t *vob)
       abytes = vob->im_a_size;
     }
 
-    if(verbose >= TC_STATS) printf("\n%10s [%ld] A=%d bytes\n", "requesting", i, abytes);
+    if(verbose >= TC_STATS) tc_log_msg(__FILE__, "%10s [%ld] A=%d bytes", "requesting", i, abytes);
 
     pthread_testcancel();
 
@@ -805,14 +803,14 @@ void aimport_thread(vob_t *vob)
     // silence
     if(vob->sync<0) {
       if(verbose & TC_DEBUG)
-	fprintf(stderr, "\n\n zero padding %d", vob->sync);
+	tc_log_msg(__FILE__, " zero padding %d", vob->sync);
       memset(ptr->audio_buf, 0, abytes);
       ptr->audio_size = abytes;
       ++vob->sync;
     }
 
     if(ret<0) {
-      if(verbose & TC_DEBUG) fprintf(stderr, "(%s) audio data read failed - end of stream\n", __FILE__);
+      if(verbose & TC_DEBUG) tc_log_msg(__FILE__, "audio data read failed - end of stream");
 
       // stop decoder
       aframe_remove(ptr);
@@ -857,7 +855,7 @@ void aimport_thread(vob_t *vob)
 	pthread_mutex_unlock(&abuffer_im_fill_lock);
     }
 
-    if(verbose & TC_STATS) printf("%10s [%ld] A=%d bytes\n", "received", i, ptr->audio_size);
+    if(verbose & TC_STATS) tc_log_msg(__FILE__, "%10s [%ld] A=%d bytes", "received", i, ptr->audio_size);
 
     // check for pending shutdown via ^C
     if(aimport_test_shutdown(TEST_ON_INTERUPT)) pthread_exit((int *)14);
@@ -878,14 +876,14 @@ void import_shutdown()
 {
 
   if(verbose & TC_DEBUG) {
-    printf("(%s) unloading audio import module\n", __FILE__);
+    tc_log_msg(__FILE__, "unloading audio import module");
   }
 
   unload_module(import_ahandle);
   import_ahandle = NULL;
 
   if(verbose & TC_DEBUG) {
-    printf("(%s) unloading video import module\n", __FILE__);
+    tc_log_msg(__FILE__, "unloading video import module");
   }
 
   unload_module(import_vhandle);

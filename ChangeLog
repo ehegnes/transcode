@@ -1,3 +1,29 @@
+2006-10-14 Andrew Church <achurch at achurch dot org>
+  * import/import_pvn.c
+  Fix divide-by-zero bug with negative maxvals.
+  Handle reading from pipes properly.
+  Allow "-" for input from stdin.
+
+  * export/export_pvn.c
+  Fix typo in module name.
+  Handle writing to pipes properly.
+  Allow "-" for output to stdout.
+
+  * src/cmdline.c
+  Allow "-" as an input filename.
+
+  * src/cmdline_def.h
+  Allow "-" as an output filename.
+
+  * src/cmdline.c src/counter.c src/decoder.c src/dl_loader.c src/encoder.c
+    src/frame_threads.c src/split.c src/transcode.c
+  Make sure all messages go to stderr, and change the "cleanup countdown"
+  messages to debug-only output.  (Raw progress meter data, with
+  --progress_meter 2, still goes to stdout.)
+
+  * src/transcode.c
+  Always default to --progress_meter 1, since it no longer pollutes stdout.
+
 2006-10-13 Andrew Church <achurch at achurch dot org>
   * configure.in export/aud_aux.c
   Drop support for versions of LAME before 3.93.

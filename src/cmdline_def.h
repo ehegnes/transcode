@@ -233,8 +233,6 @@ TC_OPTION(dir_mode,           0,   "base",
 #endif
 TC_OPTION(output,             'o', "file",
                 "output file name",
-                if (*optarg == '-')
-                    goto short_usage;
                 vob->video_out_file = optarg;
                 video_out_file = optarg;
 )

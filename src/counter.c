@@ -67,7 +67,7 @@ void counter_off(void)
 {
     if (printed) {
         if (tc_progress_meter == 1)
-            printf("\n");
+            fprintf(stderr, "\n");
         printed = 0;
     }
     counter_active = 0;
@@ -187,7 +187,7 @@ void counter_print(int encoding, int frame, int first, int last)
         /* In human-readable mode, start a new counter line for each range
          * if we don't know the total number of frames to be encoded. */
         if (tc_progress_meter == 1 && old_first != -1 && frames_to_encode == 0)
-            printf("\n");
+            fprintf(stderr, "\n");
         start_time = now;
         old_first = first;
         old_last = last;
@@ -329,13 +329,13 @@ static void print_counter_line(int encoding, int frame, int first, int last,
                timestamp, secleft, decodebuf, filterbuf, encodebuf);
     } else if (last < 0 || done < 0 || secleft < 0) {
         int timeint = floor(timestamp);
-        printf("%s frames [%d-%d], %6.2f fps, CFT: %d:%02d:%02d,"
-               "  (%2d|%2d|%2d) \r",
-               encoding ? "encoding" : "skipping",
-               first, frame,
-               fps,
-               timeint/3600, (timeint/60) % 60, timeint % 60,
-               decodebuf, filterbuf, encodebuf
+        fprintf(stderr, "%s frames [%d-%d], %6.2f fps, CFT: %d:%02d:%02d,"
+                        "  (%2d|%2d|%2d) \r",
+                encoding ? "encoding" : "skipping",
+                first, frame,
+                fps,
+                timeint/3600, (timeint/60) % 60, timeint % 60,
+                decodebuf, filterbuf, encodebuf
         );
     } else {
         char eta_buf[100];
@@ -345,14 +345,14 @@ static void print_counter_line(int encoding, int frame, int first, int last,
             snprintf(eta_buf, sizeof(eta_buf), "%d:%02d:%02d",
                      secleft/3600, (secleft/60) % 60, secleft % 60);
         }
-        printf("%s frame [%d/%d], %6.2f fps, %5.1f%%, ETA: %s,"
-               " (%2d|%2d|%2d) \r",
-               encoding ? "encoding" : "skipping",
-               frame, last+1,
-               fps,
-               100*done,
-               eta_buf,
-               decodebuf, filterbuf, encodebuf
+        fprintf(stderr, "%s frame [%d/%d], %6.2f fps, %5.1f%%, ETA: %s,"
+                        " (%2d|%2d|%2d)  \r",
+                encoding ? "encoding" : "skipping",
+                frame, last+1,
+                fps,
+                100*done,
+                eta_buf,
+                decodebuf, filterbuf, encodebuf
         );
     }
     printed = 1;

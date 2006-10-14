@@ -63,7 +63,7 @@ static int split_stream_core(const char *file, const char *source)
 	// popen
 	if((fd = popen(split_cmd_buf, "r"))== NULL) debug_return;
 
-	printf("(%s) generating auto-split information from file \"%s\"\n", __FILE__, source);
+	tc_log_info(__FILE__, "generating auto-split information from file \"%s\"", source);
 
 	// open temp. file
 	tmp = tmpfile();
@@ -80,7 +80,7 @@ static int split_stream_core(const char *file, const char *source)
 
 	if((fd = fopen(file, "r"))==NULL) debug_return;
 
-	printf("(%s) reading auto-split information from file \"%s\"\n", __FILE__, file);
+	tc_log_info(__FILE__, "reading auto-split information from file \"%s\"", file);
 
 	// determine number of lines
 
@@ -157,11 +157,11 @@ int split_stream(vob_t *vob, const char *file, int this_unit, int *fa, int *fb, 
   int startc, chunks;
 
   if(split_stream_core(file, ((vob->vob_chunk == vob->vob_chunk_max) ? vob->audio_in_file:vob->video_in_file))<0) {
-    fprintf(stderr, "(%s) failed to read VOB navigation file %s\n", __FILE__, file);
+    tc_log_error(__FILE__, "failed to read VOB navigation file %s", file);
     return(-1);
   }
 
-  printf("(%s) done reading %d entries\n", __FILE__, entries);
+  tc_log_info(__FILE__, "done reading %d entries", entries);
 
   //analyze data:
 
@@ -187,18 +187,18 @@ int split_stream(vob_t *vob, const char *file, int this_unit, int *fa, int *fb, 
       }
 
       if(this_unit > unit_ctr) {
-	if(verbose &TC_DEBUG) fprintf(stderr, "(%s) invalid PSU %s\n", __FILE__, file);
+	if(verbose &TC_DEBUG) tc_log_msg(__FILE__, "invalid PSU %s", file);
 	return(-1);
       }
 
       if(-1 < this_unit) unit = this_unit;
 
-      if(verbose &TC_DEBUG) printf("(%s) unit=%d, frames=%ld, offset=%ld (%d)\n", __FILE__, n, uframe[n], unit_offset[n], vob->ps_unit);
+      if(verbose &TC_DEBUG) tc_log_msg(__FILE__, "unit=%d, frames=%ld, offset=%ld (%d)", n, uframe[n], unit_offset[n], vob->ps_unit);
   }
 
   // (II) determine largest (main) presentation unit
 
-  if(verbose &TC_DEBUG) printf("(%s) selecting unit %d, frames=%ld, offset=%ld\n", __FILE__, unit, uframe[unit], unit_offset[unit]);
+  if(verbose &TC_DEBUG) tc_log_msg(__FILE__, "selecting unit %d, frames=%ld, offset=%ld", unit, uframe[unit], unit_offset[unit]);
 
 
   // video or audio mode ?
@@ -230,7 +230,7 @@ int split_stream(vob_t *vob, const char *file, int this_unit, int *fa, int *fb, 
 
   frame_inc = (vob->vob_percentage) ? (long) ((startc * uframe[unit])/100) : (long) ((startc * uframe[unit])/vob->vob_chunk_max);
 
-  if(verbose &TC_DEBUG) printf("(%s) estimated chunk offset = %ld\n", __FILE__, frame_inc);
+  if(verbose &TC_DEBUG) tc_log_msg(__FILE__, "estimated chunk offset = %ld", frame_inc);
 
   _n = get_frame_index(unit, frame_inc);
 
@@ -245,7 +245,7 @@ int split_stream(vob_t *vob, const char *file, int this_unit, int *fa, int *fb, 
 
   s1 = seq[_n]->seq;
 
-  if(verbose &TC_DEBUG) printf("(%s) chunk %d starts at frame %ld, pack offset %ld, finc=%d\n", __FILE__, startc, _n, poff, foff);
+  if(verbose &TC_DEBUG) tc_log_msg(__FILE__, "chunk %d starts at frame %ld, pack offset %ld, finc=%d", startc, _n, poff, foff);
 
 
   // (IV) determine end of chunk(s)
@@ -275,7 +275,7 @@ int split_stream(vob_t *vob, const char *file, int this_unit, int *fa, int *fb, 
   vob->ps_seq1 = 0;
   vob->ps_seq2 = (s2==0 && _n) ? seq[_n-1]->seq-s1+3 : s2-s1+2;
 
-  printf("(%s) chunk %d/%d PU=%d (-L 0 -c %ld-%ld) mapped onto (-L %ld -c %d-%d)\n", __FILE__, vob->vob_chunk, vob->vob_chunk_max-1, unit, _fa, _fb, poff, *fa, *fb);
+  tc_log_msg(__FILE__, "chunk %d/%d PU=%d (-L 0 -c %ld-%ld) mapped onto (-L %ld -c %d-%d)", vob->vob_chunk, vob->vob_chunk_max-1, unit, _fa, _fb, poff, *fa, *fb);
 
 
   //---------------------------------------------------------------------
@@ -288,7 +288,7 @@ int split_stream(vob_t *vob, const char *file, int this_unit, int *fa, int *fb, 
       vob->amod_probed="null";
       vob->has_audio=0;
 
-      printf("(%s) video mode\n", __FILE__);
+      tc_log_info(__FILE__, "video mode");
 
     } else {
 
@@ -299,7 +299,7 @@ int split_stream(vob_t *vob, const char *file, int this_unit, int *fa, int *fb, 
       vob->vob_offset = poff;
       vob->ps_unit = 0;
 
-      printf("(%s) audio mode\n", __FILE__);
+      tc_log_info(__FILE__, "audio mode");
     }
   }
 
