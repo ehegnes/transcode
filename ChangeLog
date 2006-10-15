@@ -1,3 +1,8 @@
+2006-10-15 Andrew Church <achurch at achurch dot org>
+  * acinclude.m4
+  Modify TC_PKG_* macros to use variables rather than temporary files
+  for package reports.
+
 2006-10-14 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c
   x264 API change: i_rf_constant -> f_rf_constant

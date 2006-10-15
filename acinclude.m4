@@ -620,34 +620,21 @@ if test x"$3" = x"required" ; then
 else
   prob="option '--enable-$1' failed"
 fi
-
-cat >> $tc_pkg_err_file <<EOF
-ERROR: $prob: $6
+msg="ERROR: $prob: $6
 $2 can be found in the following packages:
   $4  $5
 
-EOF
+"
+tc_pkg_err_text="$tc_pkg_err_text$msg"
 ])
 
 dnl -----------------------------------------------------------------------
 
-dnl TC_PKG_INIT(rptfile, errfile)
+dnl TC_PKG_INIT
 dnl
 AC_DEFUN([TC_PKG_INIT],
 [
 tc_pkg_err="no"
-tc_pkg_err_file="tc_pkg_err_file"
-tc_pkg_rpt_file="tc_pkg_rpt_file"
-
-if test x"$1" != x"" ; then
-  tc_pkg_rpt_file="$1"
-fi
-echo -n > $tc_pkg_rpt_file
-
-if test x"$2" != x"" ; then
-  tc_pkg_err_file="$2"
-fi
-echo -n > $tc_pkg_err_file
 ])
 
 dnl -----------------------------------------------------------------------
@@ -663,11 +650,9 @@ AM_CONDITIONAL(HAVE_$2, test x"$have_$1" = x"yes")
 AC_SUBST($2_CFLAGS)
 AC_SUBST($2_LIBS)
 
-if test -w "$tc_pkg_rpt_file" ; then
-  printf "%-30s %s\n" "$1" "$have_$1" >> $tc_pkg_rpt_file
-else
-  AC_MSG_ERROR([tc_pkg_rpt_file missing!])
-fi
+msg=`printf "%-30s %s" "$1" "$have_$1"`
+tc_pkg_rpt_text="$tc_pkg_rpt_text$msg
+"
 ])
 
 dnl -----------------------------------------------------------------------
@@ -676,17 +661,11 @@ dnl TC_PKG_REPORT()
 dnl
 AC_DEFUN([TC_PKG_REPORT],
 [
-if test -r "$tc_pkg_rpt_file" ; then
-  cat $tc_pkg_rpt_file
-  echo ""
-else
-  AC_MSG_ERROR([tc_pkg_rpt_file missing!])
-fi
+echo "$tc_pkg_rpt_text"
+echo ""
 
 if test x"$tc_pkg_err" = x"yes" ; then
-  if test -s "$tc_pkg_err_file" ; then
-    cat "$tc_pkg_err_file"
-  fi
+  echo "$tc_pkg_err_text"
   echo ""
   echo "Please see the INSTALL file in the top directory of the"
   echo "transcode sources for more information about building"
