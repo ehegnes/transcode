@@ -1,3 +1,8 @@
+2006-10-17 Andrew Church <achurch at achurch dot org>
+  * import/import_pvn.c
+  Allow a framerate field of 0 (defaulting to 15 fps), and do not use SSE2
+  code if SSE2 acceleration is disabled (--accel) or unavailable.
+
 2006-10-15 Andrew Church <achurch at achurch dot org>
   * acinclude.m4
   Modify TC_PKG_* macros to use variables rather than temporary files

@@ -226,9 +226,11 @@ static int parse_pvn_header(PrivateData *pd)
     if (!(ch = pvn_read_field(pd->fd, fieldbuf, sizeof(fieldbuf))))
         return 0;
     pd->framerate = strtod(fieldbuf, &s);
-    if (*s || pd->framerate <= 0) {
+    if (*s || pd->framerate < 0) {
         tc_log_error(MOD_NAME, "Invalid frame rate in header: %s", fieldbuf);
         return 0;
+    } else if (pd->framerate == 0) {
+        pd->framerate = 15.0;  // default
     }
 
     /* Skip past the final newline */
@@ -437,7 +439,9 @@ static int pvn_demultiplex(TCModuleInstance *self,
             ac_memcpy(vframe->video_buf, pd->buffer, pd->framesize);
             return pd->framesize;
 #ifdef HAVE_ASM_SSE2
-        } else if (decode_pvn_sse2(pd, vframe->video_buf)) {
+        } else if ((tc_accel & AC_SSE2)
+                && decode_pvn_sse2(pd, vframe->video_buf)
+        ) {
             return pd->framesize;
 #endif
         }
