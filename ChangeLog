@@ -1,3 +1,7 @@
+2006-10-19 Francesco Romani <fromani at gmail dot com>
+  * import/tcprobe.c
+  implement first draft of new output mode.
+
 2006-10-18 Francesco Romani <fromani at gmail dot com>
   * import/tcprobe.c
   restore old output (well, almost identical :) ) as default

@@ -507,7 +507,7 @@ static void dump_info_old(info_t *ipipe)
 {
     long frame_time = 0;
     int is_std = TC_TRUE; /* flag: select PROBED_??? above */
-    int nsubs = 0, n = 0;
+    int nsubs = 0, i = 0;
     char extrabuf[TC_BUF_MIN] = { '\0' };
     int extrabuf_ready = TC_FALSE;
     size_t len = 0;
@@ -577,19 +577,19 @@ static void dump_info_old(info_t *ipipe)
     }
 
     /* audio next. */
-    for (n = 0; n < TC_MAX_AUD_TRACKS; n++) {
+    for (i = 0; i < TC_MAX_AUD_TRACKS; i++) {
         int D_arg = 0, D_arg_ms = 0;
         double pts_diff = 0.;
 
-        if (ipipe->probe_info->track[n].format != 0
-         && ipipe->probe_info->track[n].chan > 0) {
+        if (ipipe->probe_info->track[i].format != 0
+         && ipipe->probe_info->track[i].chan > 0) {
             extrabuf_ready = TC_FALSE;
             extrabuf[0] = '\0';
 
-	        if (ipipe->probe_info->track[n].samplerate != RATE
-             || ipipe->probe_info->track[n].chan != CHANNELS
-             || ipipe->probe_info->track[n].bits != BITS
-             || ipipe->probe_info->track[n].format != CODEC_AC3) {
+	        if (ipipe->probe_info->track[i].samplerate != RATE
+             || ipipe->probe_info->track[i].chan != CHANNELS
+             || ipipe->probe_info->track[i].bits != BITS
+             || ipipe->probe_info->track[i].format != CODEC_AC3) {
                 is_std = TC_FALSE;
             } else {
                 is_std = TC_TRUE;
@@ -597,26 +597,26 @@ static void dump_info_old(info_t *ipipe)
 
             printf("%18s -a %d [0] -e %d,%d,%d [%d,%d,%d] -n 0x%x [0x%x] %s\n",
                    "audio track:",
-                   ipipe->probe_info->track[n].tid,
-                   ipipe->probe_info->track[n].samplerate,
-                   ipipe->probe_info->track[n].bits,
-                   ipipe->probe_info->track[n].chan,
+                   ipipe->probe_info->track[i].tid,
+                   ipipe->probe_info->track[i].samplerate,
+                   ipipe->probe_info->track[i].bits,
+                   ipipe->probe_info->track[i].chan,
                    RATE, BITS, CHANNELS,
-                   ipipe->probe_info->track[n].format,
+                   ipipe->probe_info->track[i].format,
                    CODEC_AC3,
                    MARK_EXPECTED(is_std));
 
             /* audio track extra info */
-            if (ipipe->probe_info->track[n].pts_start) {
+            if (ipipe->probe_info->track[i].pts_start) {
                 tc_snprintf(extrabuf, sizeof(extrabuf), "PTS=%.4f",
-                            ipipe->probe_info->track[n].pts_start);
+                            ipipe->probe_info->track[i].pts_start);
                 extrabuf_ready = TC_TRUE;
             }
-            if (ipipe->probe_info->track[n].bitrate) {
+            if (ipipe->probe_info->track[i].bitrate) {
                 size_t len = strlen(extrabuf);
                 tc_snprintf(extrabuf + len, sizeof(extrabuf) - len,
                             "%sbitrate=%i kbps", (extrabuf_ready) ?", " :"",
-                            ipipe->probe_info->track[n].bitrate);
+                            ipipe->probe_info->track[i].bitrate);
                 extrabuf_ready = TC_TRUE;
             }
             if (extrabuf_ready) {
@@ -627,10 +627,10 @@ static void dump_info_old(info_t *ipipe)
 
             /* audio track A/V sync suggestion */
             if (ipipe->probe_info->pts_start > 0
-             && ipipe->probe_info->track[n].pts_start > 0
+             && ipipe->probe_info->track[i].pts_start > 0
              && ipipe->probe_info->fps != 0) {
                 pts_diff = ipipe->probe_info->pts_start \
-                           - ipipe->probe_info->track[n].pts_start;
+                           - ipipe->probe_info->track[i].pts_start;
                 D_arg = (int)(pts_diff * ipipe->probe_info->fps);
                 D_arg_ms = (int)((pts_diff - D_arg/ipipe->probe_info->fps)*1000);
 
@@ -639,7 +639,7 @@ static void dump_info_old(info_t *ipipe)
             }
         }
         /* have subtitles here? */
-        if (ipipe->probe_info->track[n].attribute & PACKAGE_SUBTITLE) {
+        if (ipipe->probe_info->track[i].attribute & PACKAGE_SUBTITLE) {
             nsubs++;
         }
     }
@@ -782,194 +782,96 @@ static void dump_info_raw(info_t *ipipe)
  * Return Value:
  *      None
  */
-static void dump_info_user(info_t *ipipe)
+static void dump_info_new(info_t *ipipe)
 {
-    long frame_time = 0;
-    int is_std = TC_TRUE; /* flag: select PROBED_??? above */
-    int nsubs = 0, n = 0;
-    char extrabuf[TC_BUF_MIN] = { '\0' };
-    int extrabuf_ready = TC_FALSE;
-    size_t len = 0;
+    int i = 0, j = 0;
+    unsigned long dur_ms = 0;
+    unsigned int dur_h = 0, dur_min = 0, dur_s = 0;
+    long frame_time = (ipipe->probe_info->fps != 0) 
+                       ? (long)(1. / ipipe->probe_info->fps * 1000) : 0;
 
-    printf("summary for %s, %s = not default, 0 = not detected\n",
-           ((ipipe->magic == TC_STYPE_STDIN) ?"-" :ipipe->name),
-           PROBED_NEW);
-
-    if (ipipe->probe_info->width != PAL_W
-     || ipipe->probe_info->height != PAL_H) {
-        is_std = TC_FALSE;
+    if (ipipe->probe_info->fps < 0.100) {
+        dur_ms = (long)ipipe->probe_info->frames * frame_time;
+    } else {
+        dur_ms = (long)((float)ipipe->probe_info->frames * 1000
+                   /ipipe->probe_info->fps);
     }
-
-    /* we want last probed value here */
-    printf("%18s %s\n", "stream type:", filetype(ipipe->probe_info->magic));
-    printf("%18s %s\n", "video format:",
-           tc_codec_to_string(ipipe->probe_info->codec));
+    dur_h = dur_ms / 3600000;
+    dur_min = (dur_ms %= 3600000) / 60000;
+    dur_s = (dur_ms %= 60000) / 1000;
+    dur_ms %= 1000;
+ 
+    printf("* container:\n");
+    printf("%18s: %s\n", "format",
+           filetype(ipipe->probe_info->magic));
+    printf("%18s: '%s'\n", "source",
+           ((ipipe->magic == TC_STYPE_STDIN) ?"-" :ipipe->name));
+    printf("%18s: %li\n", "frames",
+           ipipe->probe_info->frames);
+    printf("%18s: %u:%02u:%02u.%03lu\n", "duration",
+           dur_h, dur_min, dur_s, dur_ms);
+    printf("%18s: %i\n", "SCR reset",
+           ipipe->probe_info->unit_cnt + 1);
 
     /* video first. */
     if (ipipe->probe_info->width > 0 && ipipe->probe_info->height > 0) {
         int n, d;
 
-        extrabuf_ready = TC_FALSE;
-
-        printf("%18s %dx%d [%dx%d] (-g) %s\n",
-               "import frame size:",
-               ipipe->probe_info->width, ipipe->probe_info->height,
-               PAL_W, PAL_H, MARK_EXPECTED(is_std));
-
         tc_asr_code_to_ratio(ipipe->probe_info->asr, &n, &d);
-        printf("%18s %i:%i asr=%i (--import_asr) %s\n",
-               "aspect ratio:",
-               n, d, ipipe->probe_info->asr,
-               CHECK_MARK_EXPECTED(ipipe->probe_info->asr, 1));
 
-
-        frame_time = (ipipe->probe_info->fps != 0) ?
-                     (long)(1. / ipipe->probe_info->fps * 1000) : 0;
-
-        printf("%18s %.3f [%.3f] frc=%d (-f) %s\n",
-               "frame rate:",
-               ipipe->probe_info->fps, PAL_FPS, ipipe->probe_info->frc,
-               CHECK_MARK_EXPECTED(ipipe->probe_info->frc, 3));
-
-        tc_snprintf(extrabuf, sizeof(extrabuf), "%18s ", "");
-        /* empty string to have a nice justification */
-        /* video track extra info */
-        if (ipipe->probe_info->pts_start) {
-            len = strlen(extrabuf);
-            tc_snprintf(extrabuf + len, sizeof(extrabuf) - len,
-                        "PTS=%.4f, frame_time=%ld ms",
-                        ipipe->probe_info->pts_start, frame_time);
-            extrabuf_ready = TC_TRUE;
-        }
-        if (ipipe->probe_info->bitrate) {
-            len = strlen(extrabuf);
-            tc_snprintf(extrabuf + len, sizeof(extrabuf) - len,
-                        "%sbitrate=%li kbps",
-                        (extrabuf_ready) ?", " :"",
-                        /*
-                         * add seeparator only if we alread
-                         * written something in buffer
-                         */
-                        ipipe->probe_info->bitrate);
-            extrabuf_ready = TC_TRUE;
-            /* at this point extrabuf flag willa lways be set to on */
-        }
-        if (extrabuf_ready) {
-            printf("%s\n", extrabuf);
-        }
+        printf("* video track #0:\n");
+        printf("%18s: %s\n", "format",
+               tc_codec_to_string(ipipe->probe_info->codec));
+        printf("%18s: %ix%i\n", "frame size",
+               ipipe->probe_info->width, ipipe->probe_info->height);
+        printf("%18s: %i:%i (asr=%i)\n", "aspect ratio",
+               n, d, ipipe->probe_info->asr);
+        printf("%18s: %.3f (frc=%i)\n", "frame rate",
+               ipipe->probe_info->fps, ipipe->probe_info->frc);
+        printf("%18s: %li kbps\n", "bitrate", ipipe->probe_info->bitrate);
+        printf("%18s: %.4f\n", "starting PTS",
+               ipipe->probe_info->pts_start);
+        printf("%18s: %li ms\n", "frame time", frame_time);
     }
 
-    /* audio next. */
-    for (n = 0; n < TC_MAX_AUD_TRACKS; n++) {
-        int D_arg = 0, D_arg_ms = 0;
-        double pts_diff = 0.;
-
-        if (ipipe->probe_info->track[n].format != 0
-         && ipipe->probe_info->track[n].chan > 0) {
-            extrabuf_ready = TC_FALSE;
-
-	        if (ipipe->probe_info->track[n].samplerate != RATE
-             || ipipe->probe_info->track[n].chan != CHANNELS
-             || ipipe->probe_info->track[n].bits != BITS
-             || ipipe->probe_info->track[n].format != CODEC_AC3) {
-                is_std = TC_FALSE;
-            } else {
-                is_std = TC_TRUE;
-            }
-
-            printf("%18s id=%i [0] (-a) format=0x%x [0x%x] (-n) %s\n",
-                   "audio track:",
-                   ipipe->probe_info->track[n].tid,
-                   ipipe->probe_info->track[n].format,
-                   CODEC_AC3,
-                   MARK_EXPECTED(is_std));
-            printf("%18s rate,bits,channels=%d,%d,%d "
-                   "[%d,%d,%d] (-e)\n",
-                   "", /* empty string to have a nice justification */
-                   ipipe->probe_info->track[n].samplerate,
-                   ipipe->probe_info->track[n].bits,
-                   ipipe->probe_info->track[n].chan,
-                   RATE, BITS, CHANNELS);
-
-            /* audio track extra info */
-            if (ipipe->probe_info->track[n].pts_start) {
-                tc_snprintf(extrabuf, sizeof(extrabuf), "PTS=%.4f",
-                            ipipe->probe_info->track[n].pts_start);
-                extrabuf_ready = TC_TRUE;
-            }
-            if (ipipe->probe_info->track[n].bitrate) {
-                size_t len = strlen(extrabuf);
-                tc_snprintf(extrabuf + len, sizeof(extrabuf) - len,
-                            "%sbitrate=%i kbps", (extrabuf_ready) ?", " :"",
-                            ipipe->probe_info->track[n].bitrate);
-                extrabuf_ready = TC_TRUE;
-            }
-            if (extrabuf_ready) {
-                printf("%18s %s\n",
-                       "", /* empty string for a nice justification */
-                       extrabuf);
-            }
-
-            /* audio track A/V sync suggestion */
+    j = 0;
+    for (i = 0; i < TC_MAX_AUD_TRACKS; i++) {
+        if (ipipe->probe_info->track[i].format != 0
+         && ipipe->probe_info->track[i].chan > 0) {
+            double pts_diff = 0.0;
+            int hint_frames = 0, hint_ms = 0;
             if (ipipe->probe_info->pts_start > 0
-             && ipipe->probe_info->track[n].pts_start > 0
+             && ipipe->probe_info->track[i].pts_start > 0
              && ipipe->probe_info->fps != 0) {
-                pts_diff = ipipe->probe_info->pts_start \
-                           - ipipe->probe_info->track[n].pts_start;
-                D_arg = (int)(pts_diff * ipipe->probe_info->fps);
-                D_arg_ms = (int)((pts_diff - D_arg/ipipe->probe_info->fps)*1000);
-
-                printf("%18s audio delay: %i frames/%i ms "
-                       "(-D/--av_fine_ms) [0/0]\n",
-                       "", /* empty string for nice justification */
-                       D_arg, D_arg_ms);
+                pts_diff = ipipe->probe_info->pts_start - ipipe->probe_info->track[i].pts_start;
+                hint_frames = (int)(pts_diff * ipipe->probe_info->fps);
+                hint_ms = (int)((pts_diff - hint_frames / ipipe->probe_info->fps) * 1000);
             }
-        }
-        /* have subtitles here? */
-        if (ipipe->probe_info->track[n].attribute & PACKAGE_SUBTITLE) {
-            nsubs++;
-        }
-    }
 
-    /* no audio */
-    if (ipipe->probe_info->num_tracks == 0) {
-        printf("%18s %s", "no audio track:",
-               "(use \"null\" import module for audio)\n");
-    }
-    if (nsubs > 0) {
-        printf("detected (%d) subtitle(s)\n", nsubs);
-    }
+            printf("* audio track #%i:\n", j);
+            /* XXX */
+            printf("%18s: %i\n", "track id",
+                   ipipe->probe_info->track[i].tid);
+            /* XXX */
+            printf("%18s: 0x%x\n", "format:",
+                   ipipe->probe_info->track[i].format);
+            printf("%18s: %i\n", "channels",
+                   ipipe->probe_info->track[i].chan);
+            printf("%18s: %i Hz\n", "sample rate",
+                   ipipe->probe_info->track[i].samplerate);
+            printf("%18s: %i\n", "bits for sample",
+                   ipipe->probe_info->track[i].bits);
 
-    /* P-units */
-    if (ipipe->probe_info->unit_cnt) {
-        printf("detected (%d) presentation unit(s) (SCR reset)\n",
-                    ipipe->probe_info->unit_cnt+1);
-    }
-
-    /* DVD only: coder bitrate infos */
-    if (ipipe->magic == TC_MAGIC_DVD_PAL || ipipe->magic == TC_MAGIC_DVD_NTSC
-     || ipipe->magic == TC_MAGIC_DVD) {
-        enc_bitrate((long)ceil(ipipe->probe_info->fps * ipipe->probe_info->time),
-                     ipipe->probe_info->fps, bitrate*1000, 0);
-    } else {
-        if (ipipe->probe_info->frames > 0) {
-            unsigned long dur_ms;
-            unsigned int dur_h, dur_min, dur_s;
-            if (ipipe->probe_info->fps < 0.100) {
-                dur_ms = (long)ipipe->probe_info->frames*frame_time;
-            } else {
-                dur_ms = (long)((float)ipipe->probe_info->frames * 1000
-                                /ipipe->probe_info->fps);
-            }
-            dur_h = dur_ms/3600000;
-            dur_min = (dur_ms %= 3600000)/60000;
-            dur_s = (dur_ms %= 60000)/1000;
-            dur_ms %= 1000;
-            printf("%18s %ld frames, frame_time=%ld msec,"
-                        " duration=%u:%02u:%02u.%03lu\n",
-                   "length:",
-                   ipipe->probe_info->frames, frame_time,
-                   dur_h, dur_min, dur_s, dur_ms);
+            printf("%18s: %i kbps\n", "bitrate",
+                   ipipe->probe_info->track[i].bitrate);
+            printf("%18s: %.4f\n", "starting PTS",
+                   ipipe->probe_info->track[i].pts_start);
+            printf("%18s: %i frames/%i ms\n", "A/V sync hint",
+                    hint_frames, hint_ms);
+            /* have subtitles here? */
+            printf("%18s: %s\n", "subtitles", 
+                   (ipipe->probe_info->track[i].attribute & PACKAGE_SUBTITLE) ?"yes" :"no");
+            j++;
         }
     }
 }
@@ -1089,7 +991,7 @@ int main(int argc, char *argv[])
             output_handler = dump_info_raw;
             break;
           case 'X':
-            output_handler = dump_info_user;
+            output_handler = dump_info_new;
             break;
           case 'T':
             VALIDATE_OPTION;
