@@ -122,7 +122,6 @@ static void dump_vob(int sock)
     SEND(video_in_file, "%s");
     SEND(audio_in_file, "%s");
     SEND(nav_seek_file, "%s");
-    SEND(in_flag, "%d");
     SEND(has_audio, "%d");
     SEND(has_audio_track, "%d");
     SEND(has_video, "%d");

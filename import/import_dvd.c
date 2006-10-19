@@ -100,7 +100,7 @@ MOD_open
 
   if(param->flag == TC_AUDIO) {
 
-    if(query==0 || vob->in_flag==1) {
+    if(query==0) {
       // query DVD first:
 
       int max_titles, max_chapters, max_angles;

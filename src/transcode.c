@@ -401,7 +401,6 @@ static vob_t *new_vob(void)
     vob->audio_file_flag     = 0;
     vob->audio_in_file       = "/dev/zero";
     vob->video_in_file       = "/dev/zero";
-    vob->in_flag             = 0;
     vob->clip_count          = 0;
     vob->ex_a_codec          = CODEC_MP3;  //or fall back to module default
     vob->ex_v_codec          = CODEC_NULL; //determined by export module type

@@ -111,8 +111,6 @@ typedef struct _vob_t {
 
     const char *nav_seek_file;  // Seek/index information
 
-    int in_flag;
-
     int has_audio;              // Does the stream have audio?
     int has_audio_track;        // Does the requested audio track exist?
     int has_video;              // Does the stream have video?
