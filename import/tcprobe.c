@@ -853,7 +853,7 @@ static void dump_info_new(info_t *ipipe)
             printf("%18s: %i\n", "track id",
                    ipipe->probe_info->track[i].tid);
             /* XXX */
-            printf("%18s: 0x%x\n", "format:",
+            printf("%18s: 0x%x\n", "format",
                    ipipe->probe_info->track[i].format);
             printf("%18s: %i\n", "channels",
                    ipipe->probe_info->track[i].chan);
