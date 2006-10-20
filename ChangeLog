@@ -1,3 +1,9 @@
+2006-10-20 Francesco Romani <fromani at gmail dot com>
+  * libtc/libtc.h
+  add TC_{OK,ERROR,UNKNOWN} generic enums, so we can
+  start to get rid of TC_IMPORT/EXPORT_* counterparts.
+  New enums use back-compatible values.
+
 2006-10-19 Francesco Romani <fromani at gmail dot com>
   * src/transcode.c src/transcode.h src/socket.c import/import_dvd.c
   remove vob_t.in_flag field since nobody uses it anymore

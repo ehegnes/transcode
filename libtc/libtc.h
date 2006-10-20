@@ -67,6 +67,18 @@ extern "C" {
 #define COL_WHITE           COL(37)
 #define COL_GRAY            "\033[0m"
 
+/* Made to be compatible with 
+ *      TC_IMPORT_{OK,ERROR,UNKNOWN}
+ *      TC_EXPORT_{OK,ERROR,UNKNOWN}
+ * see src/transcode.h
+ */
+typedef enum {
+    TC_ERROR = -1,
+    TC_OK = 0,
+    TC_UNKNOWN,
+} TCReturnCode;
+
+
 typedef enum {
     TC_LOG_ERR = 0, /* critical error condition */
     TC_LOG_WARN,    /* non-critical error condition */
