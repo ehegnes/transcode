@@ -1,3 +1,7 @@
+2006-10-21 Andrew Church <achurch at achurch dot org>
+  * import/import_vag.c
+  Trivial debug message fix.
+
 2006-10-20 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h
   add TC_{OK,ERROR,UNKNOWN} generic enums, so we can

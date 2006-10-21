@@ -329,7 +329,7 @@ static void do_decode(const uint8_t *inbuf, int16_t *outbuf, int chan,
                             prev1>=0 ? '+' : '-', prev1 & 0xFFFF,
                             prev0>=0 ? '+' : '-', prev0 & 0xFFFF,
                             val & 0xFFFF, type, 16-scale,
-                            i%2==0 ? inbuf[i/2]&0x0F : inbuf[i/2]>>4);
+                            i%2==0 ? inbuf[2+i/2]&0x0F : inbuf[2+i/2]>>4);
             }
             val = 0x7FFF;
         }
@@ -340,7 +340,7 @@ static void do_decode(const uint8_t *inbuf, int16_t *outbuf, int chan,
                             prev1>=0 ? '+' : '-', prev1 & 0xFFFF,
                             prev0>=0 ? '+' : '-', prev0 & 0xFFFF,
                             val & 0xFFFF, type, 16-scale,
-                            i%2==0 ? inbuf[i/2]&0x0F : inbuf[i/2]>>4);
+                            i%2==0 ? inbuf[2+i/2]&0x0F : inbuf[2+i/2]>>4);
             }
             val = -0x8000;
         }
