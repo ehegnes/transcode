@@ -1,4 +1,4 @@
-2006-10-23 Andrew Church <achurch at achurch dot org>
+2006-10-23 Francesco Romani <fromani at gmail dot com>
   * import/decode_lavc.c import/extract_avi.c src/probe.c
   TC_CODEC_MPG1 must die (too generic, redundant).
 
