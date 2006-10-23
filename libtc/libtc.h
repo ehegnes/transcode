@@ -67,7 +67,8 @@ extern "C" {
 #define COL_WHITE           COL(37)
 #define COL_GRAY            "\033[0m"
 
-/* Made to be compatible with 
+/* 
+ * Made to be compatible with 
  *      TC_IMPORT_{OK,ERROR,UNKNOWN}
  *      TC_EXPORT_{OK,ERROR,UNKNOWN}
  * see src/transcode.h

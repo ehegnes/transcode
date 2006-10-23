@@ -347,7 +347,7 @@ static int vob_get_sample_aspect_ratio(const vob_t *vob,
     int num, den;
 
     if (!vob || !sar_num || !sar_den)
-        return -1;
+        return TC_ERROR;
 
     /* Aspect Ratio Calculations (modified code from export_ffmpeg.c) */
     if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_PAR) {
@@ -399,7 +399,7 @@ static int vob_get_sample_aspect_ratio(const vob_t *vob,
 
     *sar_num = num;
     *sar_den = den;
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -446,7 +446,7 @@ static int x264params_set_multipass(x264_param_t *params,
         params->rc.b_stat_read = 1;
         break;
     }
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -477,10 +477,10 @@ static int x264params_check(x264_param_t *params)
         ) {
             tc_log_error(MOD_NAME,
                          "VBV requires both vbv_maxrate and vbv_bufsize.");
-            return -1;
+            return TC_ERROR;
         }
     }
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -539,7 +539,7 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
                                          &params->vui.i_sar_width,
                                          &params->vui.i_sar_height)
     ) {
-        return -1;
+        return TC_ERROR;
     }
 
     /* Set logging function and acceleration flags */
@@ -553,7 +553,7 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
     if (tc_accel & AC_3DNOW)    params->cpu |= X264_CPU_3DNOW;
     if (tc_accel & AC_3DNOWEXT) params->cpu |= X264_CPU_3DNOWEXT;
 
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -577,7 +577,7 @@ static int x264_init(TCModuleInstance *self)
     pd = tc_malloc(sizeof(X264PrivateData));
     if (!pd) {
         tc_log_error(MOD_NAME, "init: out of memory!");
-        return -1;
+        return TC_ERROR;
     }
     pd->framenum = 0;
     pd->enc = NULL;
@@ -587,7 +587,7 @@ static int x264_init(TCModuleInstance *self)
     }
     self->userdata = pd;
 
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -612,7 +612,7 @@ static int x264_fini(TCModuleInstance *self)
 
     tc_free(self->userdata);
     self->userdata = NULL;
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -651,7 +651,7 @@ static int x264_configure(TCModuleInstance *self,
     ) {
         if (!module_read_config_line(s, conf, MOD_NAME)) {
             tc_log_error(MOD_NAME, "Error parsing module options");
-            return -1;
+            return TC_ERROR;
         }
     }
 
@@ -660,7 +660,7 @@ static int x264_configure(TCModuleInstance *self,
                                       vob->divxlogfile)
     ) {
         tc_log_error(MOD_NAME, "Failed to apply multipass settings.");
-        return -1;
+        return TC_ERROR;
     }
 
     /* Copy parameter block to module private data */
@@ -671,12 +671,12 @@ static int x264_configure(TCModuleInstance *self,
      * override any settings done before. */
     if (0 != x264params_set_by_vob(&pd->x264params, vob)) {
         tc_log_error(MOD_NAME, "Failed to evaluate vob_t values.");
-        return -1;
+        return TC_ERROR;
     }
 
     /* Test if the set parameters fit together. */
     if (0 != x264params_check(&pd->x264params)) {
-        return -1;
+        return TC_ERROR;
     }
 
     /* Now we've set all parameters gathered from transcode and the config
@@ -689,10 +689,10 @@ static int x264_configure(TCModuleInstance *self,
     pd->enc = x264_encoder_open(&pd->x264params);
     if (!pd->enc) {
         tc_log_error(MOD_NAME, "x264_encoder_open() returned NULL - sorry.");
-        return -1;
+        return TC_ERROR;
     }
 
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -715,7 +715,7 @@ static int x264_stop(TCModuleInstance *self)
         pd->enc = NULL;
     }
 
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -732,7 +732,7 @@ static int x264_inspect(TCModuleInstance *self,
     static char buf[TC_BUF_MAX];
 
     if (!self || !param || !value) {
-        return -1;
+        return TC_ERROR;
     }
     pd = self->userdata;
 
@@ -747,7 +747,7 @@ static int x264_inspect(TCModuleInstance *self,
     }
     /* FIXME: go through the option list to find a match to param */
 
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -766,7 +766,7 @@ static int x264_encode_video(TCModuleInstance *self,
     x264_picture_t pic, pic_out;
 
     if (!self) {
-        return 0;
+        return TC_OK;
     }
     pd = self->userdata;
 
@@ -794,7 +794,7 @@ static int x264_encode_video(TCModuleInstance *self,
     pic.i_pts = (int64_t) pd->framenum * pd->x264params.i_fps_den;
 
     if (x264_encoder_encode(pd->enc, &nal, &nnal, &pic, &pic_out) != 0) {
-        return -1;
+        return TC_ERROR;
     }
 
     outframe->video_len = 0;
@@ -804,7 +804,7 @@ static int x264_encode_video(TCModuleInstance *self,
         size = outframe->video_size - outframe->video_len;
         if (size <= 0) {
             tc_log_error(MOD_NAME, "output buffer overflow");
-            return -1;
+            return TC_ERROR;
         }
         ret = x264_nal_encode(outframe->video_buf + outframe->video_len,
                               &size, 1, &nal[i]);
@@ -815,7 +815,7 @@ static int x264_encode_video(TCModuleInstance *self,
         outframe->video_len += size;
     }
 
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/

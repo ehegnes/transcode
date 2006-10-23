@@ -173,7 +173,7 @@ static int tc_xvid_configure(TCModuleInstance *self,
     ret = xvid_global(NULL, XVID_GBL_INIT, &pd->xvid_gbl_init, NULL);
     if (ret < 0) {
         tc_log_error(MOD_NAME, "configure: library initialization failed");
-        return TC_EXPORT_ERROR;
+        return TC_ERROR;
     }
 
     /* Combine both the config settings with the transcode direct options
@@ -184,13 +184,13 @@ static int tc_xvid_configure(TCModuleInstance *self,
     if (ret < 0) {
         tc_log_error(MOD_NAME, "configure: encoder initialization failed"
                                " (XviD returned %i)", ret);
-        return TC_EXPORT_ERROR;
+        return TC_ERROR;
     }
 
     /* Attach returned instance */
     pd->instance = pd->xvid_enc_create.handle;
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 
@@ -205,13 +205,13 @@ static int tc_xvid_init(TCModuleInstance *self)
     if (vob->ex_v_width % 2 || vob->ex_v_height % 2) {
         tc_log_warn(MOD_NAME, "init: only even dimensions allowed (%dx%d)",
                               vob->ex_v_width, vob->ex_v_height);
-        return TC_EXPORT_ERROR;
+        return TC_ERROR;
     }
 
     pd = tc_malloc(sizeof(XviDPrivateData));
     if (!pd) {
         tc_log_error(MOD_NAME, "init: can't allocate XviD private data");
-        return TC_EXPORT_ERROR;
+        return TC_ERROR;
     }
 
     /* Buffer allocation
@@ -234,12 +234,12 @@ static int tc_xvid_init(TCModuleInstance *self)
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     }
-    return TC_EXPORT_OK;
+    return TC_OK;
 
 init_failed:
     tc_free(pd);
     self->userdata = NULL; /* paranoia */
-    return TC_EXPORT_ERROR;
+    return TC_ERROR;
 }
 
 static int tc_xvid_inspect(TCModuleInstance *self,
@@ -251,7 +251,7 @@ static int tc_xvid_inspect(TCModuleInstance *self,
         *value = xvid_help;
     }
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int tc_xvid_encode_video(TCModuleInstance *self,
@@ -266,9 +266,6 @@ static int tc_xvid_encode_video(TCModuleInstance *self,
 
     pd = self->userdata;
 
-    /*
-     * XXX: we can skip don't use tcv_convert (to save an ac_memcpy) here?
-     */
     if(vob->im_v_codec == CODEC_YUV422) {
         /* Convert to UYVY */
         tcv_convert(pd->tcvhandle, inframe->video_buf, inframe->video_buf,
@@ -295,7 +292,7 @@ static int tc_xvid_encode_video(TCModuleInstance *self,
         tc_log_error(MOD_NAME, "encode_video: xvidcore returned"
                                " an error: \"%s\"",
                                errorstring(bytes));
-        return TC_EXPORT_ERROR;
+        return TC_ERROR;
     }
     outframe->video_len = bytes;
 
@@ -312,14 +309,14 @@ static int tc_xvid_encode_video(TCModuleInstance *self,
     if (bytes == 0) {
         outframe->attributes |= TC_FRAME_IS_DELAYED;
         outframe->video_len = 0; /* paranoia */
-        return TC_EXPORT_OK;
+        return TC_OK;
     }
 
     if (pd->xvid_enc_frame.out_flags & XVID_KEYFRAME) {
         outframe->attributes |= TC_FRAME_IS_KEYFRAME;
     }
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 #define SSE2PSNR(sse, width, height) \
@@ -341,7 +338,7 @@ static int tc_xvid_stop(TCModuleInstance *self)
         ret = xvid_encore(pd->instance, XVID_ENC_DESTROY, NULL, NULL);
         if (ret < 0) {
             tc_log_warn(MOD_NAME, "stop: encoder instance releasing failed");
-            return TC_EXPORT_ERROR;
+            return TC_ERROR;
         }
 
         /* Print stats before resting the complete module structure */
@@ -372,7 +369,7 @@ static int tc_xvid_stop(TCModuleInstance *self)
         }
         pd->instance = NULL;
     }
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 #undef SSE2PSNR
 
@@ -396,7 +393,7 @@ static int tc_xvid_fini(TCModuleInstance *self)
     tc_free(self->userdata);
     self->userdata = NULL;
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 /*************************************************************************/

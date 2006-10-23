@@ -50,7 +50,7 @@ static int tc_lzo_configure(TCModuleInstance *self,
     if (pd->work_mem == NULL) {
         tc_log_error(MOD_NAME, "configure: can't allocate LZO"
                                " compression buffer");
-        return TC_EXPORT_ERROR;
+        return TC_ERROR;
     }
 
     ret = lzo_init();
@@ -60,10 +60,10 @@ static int tc_lzo_configure(TCModuleInstance *self,
 
         tc_log_error(MOD_NAME, "configure: failed to initialize"
                                " LZO encoder");
-        return TC_EXPORT_ERROR;
+        return TC_ERROR;
     }
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int tc_lzo_stop(TCModuleInstance *self)
@@ -78,7 +78,7 @@ static int tc_lzo_stop(TCModuleInstance *self)
         lzo_free(pd->work_mem);
         pd->work_mem = NULL;
     }
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int tc_lzo_init(TCModuleInstance *self)
@@ -90,7 +90,7 @@ static int tc_lzo_init(TCModuleInstance *self)
     pd = tc_malloc(sizeof(LZOPrivateData));
     if (!pd) {
         tc_log_error(MOD_NAME, "init: can't allocate private data");
-        return TC_EXPORT_ERROR;
+        return TC_ERROR;
     }
     /* sane defaults */
     pd->work_mem = NULL;
@@ -100,7 +100,7 @@ static int tc_lzo_init(TCModuleInstance *self)
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     }
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int tc_lzo_fini(TCModuleInstance *self)
@@ -115,7 +115,7 @@ static int tc_lzo_fini(TCModuleInstance *self)
 
     tc_free(self->userdata);
     self->userdata = NULL;
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int tc_lzo_inspect(TCModuleInstance *self,
@@ -131,7 +131,7 @@ static int tc_lzo_inspect(TCModuleInstance *self,
         *value = tc_lzo_help;
     }
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 /* ------------------------------------------------------------
@@ -200,7 +200,7 @@ static int tc_lzo_encode_video(TCModuleInstance *self,
         /* this should NEVER happen */
         tc_log_warn(MOD_NAME, "encode_video: LZO compression failed"
                               " (errcode=%i)", ret);
-        return TC_EXPORT_ERROR;
+        return TC_ERROR;
     }
 
     /* check for an incompressible block */
@@ -236,7 +236,7 @@ static int tc_lzo_encode_video(TCModuleInstance *self,
     outframe->video_len = out_len + TC_LZO_HDR_SIZE;
     outframe->attributes |= TC_FRAME_IS_KEYFRAME;
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 /*************************************************************************/

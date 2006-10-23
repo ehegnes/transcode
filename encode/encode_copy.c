@@ -30,7 +30,7 @@ static int copy_init(TCModuleInstance *self)
 {
     if (self == NULL) {
         tc_log_error(MOD_NAME, "init: bad instance data reference");
-        return TC_EXPORT_ERROR;
+        return TC_ERROR;
     }
 
     if (verbose) {
@@ -38,14 +38,14 @@ static int copy_init(TCModuleInstance *self)
     }
     self->userdata = NULL;
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int copy_fini(TCModuleInstance *self)
 {
     TC_MODULE_SELF_CHECK(self, "fini");
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int copy_inspect(TCModuleInstance *self,
@@ -57,7 +57,7 @@ static int copy_inspect(TCModuleInstance *self,
         *value = copy_help;
     }
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int copy_configure(TCModuleInstance *self,
@@ -65,14 +65,14 @@ static int copy_configure(TCModuleInstance *self,
 {
     TC_MODULE_SELF_CHECK(self, "configure");
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int copy_stop(TCModuleInstance *self)
 {
     TC_MODULE_SELF_CHECK(self, "stop");
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int copy_encode_video(TCModuleInstance *self,
@@ -84,7 +84,7 @@ static int copy_encode_video(TCModuleInstance *self,
     /* enforce full length (we deal with uncompressed frames */
     outframe->video_len = outframe->video_size;
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int copy_encode_audio(TCModuleInstance *self,
@@ -96,7 +96,7 @@ static int copy_encode_audio(TCModuleInstance *self,
     /* enforce full lenbgth (we deal with uncompressed frames */
     outframe->audio_len = outframe->audio_size;
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 

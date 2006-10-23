@@ -12,7 +12,6 @@
 #include "libtc/libtc.h"
 #include "libtc/optstr.h"
 #include "libtc/tcmodule-plugin.h"
-#include "libtcvideo/tcvideo.h"
 
 #include <faac.h>
 
@@ -52,13 +51,13 @@ static int faac_init(TCModuleInstance *self)
 
     if (!self) {
         tc_log_error(MOD_NAME, "init: self == NULL!");
-        return -1;
+        return TC_ERROR;
     }
 
     self->userdata = pd = tc_malloc(sizeof(PrivateData));
     if (!pd) {
         tc_log_error(MOD_NAME, "init: out of memory!");
-        return -1;
+        return TC_ERROR;
     }
     pd->handle = 0;
     pd->audiobuf = NULL;
@@ -72,7 +71,7 @@ static int faac_init(TCModuleInstance *self)
             tc_log_info(MOD_NAME, "Using FAAC %s", id);
         }
     }
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -92,7 +91,7 @@ static int faac_configure(TCModuleInstance *self,
     faacEncConfiguration conf;
 
     if (!self) {
-       return -1;
+       return TC_ERROR;
     }
     pd = self->userdata;
 
@@ -105,7 +104,7 @@ static int faac_configure(TCModuleInstance *self,
     pd->handle = faacEncOpen(samplerate, vob->dm_chan, &pd->framesize, &dummy);
     if (!pd->handle) {
         tc_log_error(MOD_NAME, "FAAC initialization failed");
-        return -1;
+        return TC_ERROR;
     }
 
     /* Set up our default audio parameters */
@@ -122,7 +121,7 @@ static int faac_configure(TCModuleInstance *self,
     conf.outputFormat = 1;
     if (vob->dm_bits != 16) {
         tc_log_error(MOD_NAME, "Only 16-bit samples supported");
-        return -1;
+        return TC_ERROR;
     }
     conf.inputFormat = FAAC_INPUT_16BIT;
     conf.shortctl = SHORTCTL_NORMAL;
@@ -138,7 +137,7 @@ static int faac_configure(TCModuleInstance *self,
         tc_log_error(MOD_NAME, "Failed to set FAAC configuration");
         faacEncClose(pd->handle);
         pd->handle = 0;
-        return -1;
+        return TC_ERROR;
     }
 
     /* Allocate local audio buffer */
@@ -149,10 +148,10 @@ static int faac_configure(TCModuleInstance *self,
         tc_log_error(MOD_NAME, "Unable to allocate audio buffer");
         faacEncClose(pd->handle);
         pd->handle = 0;
-        return -1;
+        return TC_ERROR;
     }
 
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -168,7 +167,7 @@ static int faac_inspect(TCModuleInstance *self,
     static char buf[TC_BUF_MAX];
 
     if (!self || !param)
-       return -1;
+       return TC_ERROR;
 
     if (optstr_lookup(param, "help")) {
         tc_snprintf(buf, sizeof(buf),
@@ -178,7 +177,7 @@ static int faac_inspect(TCModuleInstance *self,
                 "    quality: set encoder quality [0-100]\n");
         *value = buf;
     }
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -193,7 +192,7 @@ static int faac_stop(TCModuleInstance *self)
     PrivateData *pd;
 
     if (!self) {
-       return -1;
+       return TC_ERROR;
     }
     pd = self->userdata;
 
@@ -202,7 +201,7 @@ static int faac_stop(TCModuleInstance *self)
         pd->handle = NULL;
     }
 
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -215,12 +214,12 @@ static int faac_stop(TCModuleInstance *self)
 static int faac_fini(TCModuleInstance *self)
 {
     if (!self) {
-       return -1;
+       return TC_ERROR;
     }
     faac_stop(self);
     tc_free(self->userdata);
     self->userdata = NULL;
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -239,7 +238,7 @@ static int faac_encode(TCModuleInstance *self,
 
     if (!self) {
         tc_log_error(MOD_NAME, "encode: self == NULL!");
-        return -1;
+        return TC_ERROR;
     }
     pd = self->userdata;
 
@@ -265,7 +264,7 @@ static int faac_encode(TCModuleInstance *self,
         if (res > out->audio_size - out->audio_len) {
             tc_log_error(MOD_NAME,
                          "Output buffer overflow!  Try a lower bitrate.");
-            return -1;
+            return TC_ERROR;
         }
         out->audio_len += res;
     }
@@ -275,7 +274,7 @@ static int faac_encode(TCModuleInstance *self,
                   nsamples*pd->bps);
         pd->audiobuf_len += nsamples;
     }
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/

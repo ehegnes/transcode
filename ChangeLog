@@ -1,3 +1,9 @@
+2006-10-23 Andrew Church <achurch at achurch dot org>
+  * encode/encode_copy.c encode/encode_faac.c encode/encode_lame.c
+    encode/encode_lzo.c encode/encode_null.c encode/encode_x264.c
+    encode/encode_xvid.c
+  move return codes to new TC_OK/TC_ERROR
+
 2006-10-21 Andrew Church <achurch at achurch dot org>
   * import/import_vag.c
   Trivial debug message fix.

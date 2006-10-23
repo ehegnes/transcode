@@ -12,7 +12,6 @@
 #include "libtc/libtc.h"
 #include "libtc/optstr.h"
 #include "libtc/tcmodule-plugin.h"
-#include "libtcvideo/tcvideo.h"
 
 #include <lame/lame.h>
 
@@ -45,7 +44,7 @@ typedef struct {
 
 static void lame_log_error(const char *format, va_list args)
 {
-    char buf[1000];
+    char buf[TC_BUF_MAX];
     tc_vsnprintf(buf, sizeof(buf), format, args);
     tc_log_error(MOD_NAME, "%s", buf);
 }
@@ -53,7 +52,7 @@ static void lame_log_error(const char *format, va_list args)
 static void lame_log_msg(const char *format, va_list args)
 {
     if (verbose & TC_INFO) {
-        char buf[1000];
+        char buf[TC_BUF_MAX];
         tc_vsnprintf(buf, sizeof(buf), format, args);
         tc_log_info(MOD_NAME, "%s", buf);
     }
@@ -62,7 +61,7 @@ static void lame_log_msg(const char *format, va_list args)
 static void lame_log_debug(const char *format, va_list args)
 {
     if (verbose & TC_DEBUG) {
-        char buf[1000];
+        char buf[TC_BUF_MAX];
         tc_vsnprintf(buf, sizeof(buf), format, args);
         tc_log_msg(MOD_NAME, "%s", buf);
     }
@@ -87,13 +86,13 @@ static int lamemod_init(TCModuleInstance *self)
 
     if (!self) {
         tc_log_error(MOD_NAME, "init: self == NULL!");
-        return -1;
+        return TC_ERROR;
     }
 
     self->userdata = pd = tc_malloc(sizeof(PrivateData));
     if (!pd) {
         tc_log_error(MOD_NAME, "init: out of memory!");
-        return -1;
+        return TC_ERROR;
     }
     pd->lgf = NULL;
 
@@ -103,7 +102,7 @@ static int lamemod_init(TCModuleInstance *self)
         if (verbose & TC_INFO)
             tc_log_info(MOD_NAME, "Using LAME %s", get_lame_version());
     }
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -122,7 +121,7 @@ static int lame_configure(TCModuleInstance *self,
     MPEG_mode mode;
 
     if (!self) {
-       return -1;
+       return TC_ERROR;
     }
     pd = self->userdata;
 
@@ -135,7 +134,7 @@ static int lame_configure(TCModuleInstance *self,
     pd->lgf = lame_init();
     if (!pd->lgf) {
         tc_log_error(MOD_NAME, "LAME initialization failed");
-        return -1;
+        return TC_ERROR;
     }
 
     /* Set up logging functions (assume no failure) */
@@ -146,31 +145,31 @@ static int lame_configure(TCModuleInstance *self,
     /* Set up audio parameters */
     if (vob->dm_bits != 16) {
         tc_log_error(MOD_NAME, "Only 16-bit samples supported");
-        return -1;
+        return TC_ERROR;
     }
     if (lame_set_in_samplerate(pd->lgf, samplerate) < 0) {
         tc_log_error(MOD_NAME, "lame_set_in_samplerate(%d) failed",samplerate);
-        return -1;
+        return TC_ERROR;
     }
     if (lame_set_num_channels(pd->lgf, vob->dm_chan) < 0) {
         tc_log_error(MOD_NAME, "lame_set_num_channels(%d) failed",
                      vob->dm_chan);
-        return -1;
+        return TC_ERROR;
     }
     if (lame_set_scale(pd->lgf, vob->volume) < 0) {
         tc_log_error(MOD_NAME, "lame_set_scale(%f) failed", vob->volume);
-        return -1;
+        return TC_ERROR;
     }
     if (lame_set_bWriteVbrTag(pd->lgf, (vob->a_vbr!=0)) < 0) {
         tc_log_error(MOD_NAME, "lame_set_bWriteVbrTag(%d) failed",
                      (vob->a_vbr!=0));
-        return -1;
+        return TC_ERROR;
     }
     quality = vob->mp3quality<0.0 ? 0 : vob->mp3quality>9.0 ? 9 :
         (int)vob->mp3quality;
     if (lame_set_quality(pd->lgf, quality) < 0) {
         tc_log_error(MOD_NAME, "lame_set_quality(%d) failed", quality);
-        return -1;
+        return TC_ERROR;
     }
     switch (vob->mp3mode) {
       case 0: mode = JOINT_STEREO; break;
@@ -183,11 +182,11 @@ static int lame_configure(TCModuleInstance *self,
     }
     if (lame_set_mode(pd->lgf, mode) < 0) {
         tc_log_error(MOD_NAME, "lame_set_mode(%d) failed", mode);
-        return -1;
+        return TC_ERROR;
     }
     if (lame_set_brate(pd->lgf, vob->mp3bitrate) < 0) {
         tc_log_error(MOD_NAME, "lame_set_brate(%d) failed", vob->mp3bitrate);
-        return -1;
+        return TC_ERROR;
     }
     /* Ugly preset handling */
     if (vob->lame_preset) {
@@ -216,14 +215,14 @@ static int lame_configure(TCModuleInstance *self,
             if (*s || preset < 8 || preset > 320) {
                 tc_log_error(MOD_NAME, "Invalid preset \"%s\"",
                              vob->lame_preset);
-                return -1;
+                return TC_ERROR;
             } else {
                 vob->a_vbr = 1;
             }
         }
         if (lame_set_preset(pd->lgf, preset) < 0) {
             tc_log_error(MOD_NAME, "lame_set_preset(%d) failed", preset);
-            return -1;
+            return TC_ERROR;
         }
     }  // if (vob->lame_preset)
     /* Acceleration setting failures aren't fatal */
@@ -241,28 +240,28 @@ static int lame_configure(TCModuleInstance *self,
      * really expose it to the user? */
     if (!vob->bitreservoir && lame_set_disable_reservoir(pd->lgf, 1) < 0) {
         tc_log_error(MOD_NAME, "lame_set_disable_reservoir(1) failed");
-        return -1;
+        return TC_ERROR;
     }
     if (lame_set_VBR(pd->lgf, vob->a_vbr ? vbr_default : vbr_off) < 0) {
         tc_log_error(MOD_NAME, "lame_set_VBR(%d) failed",
                      vob->a_vbr ? vbr_default : vbr_off);
-        return -1;
+        return TC_ERROR;
     }
     if (vob->a_vbr) {
         /* FIXME: we should have a separate VBR quality control */
         if (lame_set_VBR_q(pd->lgf, quality) < 0) {
             tc_log_error(MOD_NAME, "lame_set_VBR_q(%d) failed", quality);
-            return -1;
+            return TC_ERROR;
         }
     }
 
     /* Initialize encoder */
     if (lame_init_params(pd->lgf) < 0) {
         tc_log_error(MOD_NAME, "lame_init_params() failed");
-        return -1;
+        return TC_ERROR;
     }
 
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -278,7 +277,7 @@ static int lame_inspect(TCModuleInstance *self,
     static char buf[TC_BUF_MAX];
 
     if (!self || !param)
-       return -1;
+       return TC_ERROR;
 
     if (optstr_lookup(param, "help")) {
         tc_snprintf(buf, sizeof(buf),
@@ -287,7 +286,7 @@ static int lame_inspect(TCModuleInstance *self,
                 "No options available.\n");
         *value = buf;
     }
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -302,7 +301,7 @@ static int lame_stop(TCModuleInstance *self)
     PrivateData *pd;
 
     if (!self) {
-       return -1;
+       return TC_ERROR;
     }
     pd = self->userdata;
 
@@ -311,7 +310,7 @@ static int lame_stop(TCModuleInstance *self)
         pd->lgf = NULL;
     }
 
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -324,12 +323,12 @@ static int lame_stop(TCModuleInstance *self)
 static int lame_fini(TCModuleInstance *self)
 {
     if (!self) {
-       return -1;
+       return TC_ERROR;
     }
     lame_stop(self);
     tc_free(self->userdata);
     self->userdata = NULL;
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -347,7 +346,7 @@ static int lame_encode(TCModuleInstance *self,
 
     if (!self) {
         tc_log_error(MOD_NAME, "encode: self == NULL!");
-        return -1;
+        return TC_ERROR;
     }
     pd = self->userdata;
 
@@ -367,10 +366,10 @@ static int lame_encode(TCModuleInstance *self,
         } else {
             tc_log_error(MOD_NAME, "Audio encoding failed!");
         }
-        return -1;
+        return TC_ERROR;
     }
     out->audio_len = res;
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
