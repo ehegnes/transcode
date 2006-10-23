@@ -63,7 +63,7 @@ static struct ffmpeg_codec ffmpeg_codecs[] = {
     {"DIVX", "XVID", "MP4S", "M4S2", "MP4V", "UMP4", "DX50", ""}},
   {CODEC_ID_MJPEG, TC_CODEC_MJPG, "mjpeg",
     {"MJPG", "AVRN", "AVDJ", "JPEG", "MJPA", "JFIF", ""}},
-  {CODEC_ID_MPEG1VIDEO, TC_CODEC_MPG1, "mpeg1video",
+  {CODEC_ID_MPEG1VIDEO, TC_CODEC_MPEG1VIDEO, "mpeg1video",
     {"MPG1", ""}},
   {CODEC_ID_DVVIDEO, TC_CODEC_DV, "dvvideo",
     {"DVSD", ""}},

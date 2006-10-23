@@ -128,7 +128,7 @@ void probe_avi(info_t *ipipe)
 	  ipipe->probe_info->codec=TC_CODEC_RV10;
 
 	if(strcasecmp(codec,"MPG1")==0)
-	  ipipe->probe_info->codec=TC_CODEC_MPG1;
+	  ipipe->probe_info->codec=TC_CODEC_MPEG1VIDEO;
 
 	if(strcasecmp(codec,"LZO1")==0)
 	  ipipe->probe_info->codec=TC_CODEC_LZO1;
@@ -150,7 +150,7 @@ void probe_avi(info_t *ipipe)
 
 	if(strcasecmp(codec,"H264")==0
         || strcasecmp(codec,"X264")==0
-	|| strcasecmp(codec,"avc1")==0)
+        || strcasecmp(codec,"avc1")==0)
 	  ipipe->probe_info->codec=TC_CODEC_H264;
 
       }

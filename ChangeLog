@@ -1,4 +1,7 @@
 2006-10-23 Andrew Church <achurch at achurch dot org>
+  * import/decode_lavc.c import/extract_avi.c src/probe.c
+  TC_CODEC_MPG1 must die (too generic, redundant).
+
   * encode/encode_copy.c encode/encode_faac.c encode/encode_lame.c
     encode/encode_lzo.c encode/encode_null.c encode/encode_x264.c
     encode/encode_xvid.c
