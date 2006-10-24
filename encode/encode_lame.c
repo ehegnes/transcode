@@ -26,8 +26,8 @@
 
 typedef struct {
     lame_global_flags *lgf;
-    int bps;  // bytes per sample
-    int flush_flag; /* compatibility with old code (see aud_aux.c) */
+    int bps;  /* bytes per sample */
+    int flush_flag;  /* compatibility with old code (see aud_aux.c) */
 } PrivateData;
 
 /*************************************************************************/
