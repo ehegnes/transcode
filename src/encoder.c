@@ -702,14 +702,17 @@ int encoder_close(void)
 {
     int ret;
 
-#ifndef SUPPORT_OLD_ENCODER
+#ifdef SUPPORT_OLD_ENCODER
+    if (!encdata.factory)
+        return OLD_encoder_close();
+#endif
+
     /* old style code handle flushing in modules, not here */
     ret = encoder_flush(&encdata);
     if (ret == TC_ERROR) {
         tc_log_warn(__FILE__, "error while closing encoder: flush failed");
         return -1;
     }
-#endif
 
     ret = tc_module_stop(encdata.mplex_mod);
     if (ret == TC_ERROR) {
@@ -1114,7 +1117,10 @@ static int OLD_encoder_open(vob_t *vob)
 
 static int OLD_encoder_close(void)
 {
-    /* close, errors not fatal */
+    /* 
+     * close, errors not fatal.
+     * flushing handled internally by export modules.
+     */
 
     encdata.export_para.flag = TC_AUDIO;
     tca_export(TC_EXPORT_CLOSE, &encdata.export_para, NULL);
