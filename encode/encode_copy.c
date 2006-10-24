@@ -92,9 +92,11 @@ static int copy_encode_audio(TCModuleInstance *self,
 {
     TC_MODULE_SELF_CHECK(self, "encode_audio");
 
-    aframe_copy(outframe, inframe, 1);
-    /* enforce full lenbgth (we deal with uncompressed frames */
-    outframe->audio_len = outframe->audio_size;
+    if (inframe != NULL) {
+        aframe_copy(outframe, inframe, 1);
+        /* enforce full lenbgth (we deal with uncompressed frames */
+        outframe->audio_len = outframe->audio_size;
+    }
 
     return TC_OK;
 }

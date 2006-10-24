@@ -1,4 +1,11 @@
 2006-10-23 Francesco Romani <fromani at gmail dot com>
+  * src/encoder.c libtc/tcmodule-data.h encode/encode_copy.c
+    encode/encode_lame.c
+  Introduce flushing support for audio encoder.
+  Currently BROKEN (need more testing, and encoder core deserve
+  a refactoring and more documentation).
+
+2006-10-23 Francesco Romani <fromani at gmail dot com>
   * import/decode_lavc.c import/extract_avi.c src/probe.c
   TC_CODEC_MPG1 must die (too generic, redundant).
 

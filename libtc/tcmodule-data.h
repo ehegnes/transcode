@@ -250,6 +250,12 @@ struct tcmoduleclass_ {
  *      for decoding/encoding will cause an undefined behaviour.
  *      outframe != NULL.
  *
+ * SPECIAL NOTE FOR encode_audio operation:
+ * if a NULL input frame pointer is given, but a VALID (not NULL)
+ * output frame pointer is given as well, a flush operation will performed.
+ * This means that encoder will emit all buffered audio data, in order
+ * to complete an audio frame and avoid data truncation/loss in output.
+ *
  *
  * filter_{audio,video}:
  *      apply an in-place transformation to a given audio/video frame.

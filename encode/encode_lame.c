@@ -27,6 +27,7 @@
 typedef struct {
     lame_global_flags *lgf;
     int bps;  // bytes per sample
+    int flush_flag; /* compatibility with old code (see aud_aux.c) */
 } PrivateData;
 
 /*************************************************************************/
@@ -125,6 +126,7 @@ static int lame_configure(TCModuleInstance *self,
     }
     pd = self->userdata;
 
+    pd->flush_flag = vob->lame_flush;
     /* Save bytes per sample */
     pd->bps = (vob->dm_chan * vob->dm_bits) / 8;
 
@@ -338,6 +340,8 @@ static int lame_fini(TCModuleInstance *self)
  * function details.
  */
 
+#define LAME_FLUSH_BUFFER_SIZE  7200 /* from lame/lame.h */
+
 static int lame_encode(TCModuleInstance *self,
                        aframe_list_t *in, aframe_list_t *out)
 {
@@ -350,23 +354,44 @@ static int lame_encode(TCModuleInstance *self,
     }
     pd = self->userdata;
 
-    res = lame_encode_buffer_interleaved(
-        pd->lgf,
-        (short *)in->audio_buf, in->audio_size / pd->bps,
-        out->audio_buf, out->audio_size
-    );
-    if (res < 0) {
-        if (verbose & TC_DEBUG) {
-            tc_log_error(MOD_NAME, "lame_encode_buffer_interleaved() failed"
-                         " (%d: %s)", res,
-                         res==-1 ? "output buffer overflow" :
-                         res==-2 ? "out of memory" :
-                         res==-3 ? "not initialized" :
-                         res==-4 ? "psychoacoustic problems" : "unknown");
-        } else {
-            tc_log_error(MOD_NAME, "Audio encoding failed!");
+    if (in == NULL && pd->flush_flag) {
+        /* flush request */
+        if (out->audio_size < LAME_FLUSH_BUFFER_SIZE) {
+            /* paranoia is a vritue */
+            tc_log_error(MOD_NAME, "output buffer too small for flushing");
+            return TC_ERROR;
         }
-        return TC_ERROR;
+
+        /*
+         * Looks like _nogap should behave better when 
+         * splitting/rotating output files.
+         * Moreover, our streams should'nt contain any ID3 tag, 
+         * -- FR
+         */
+        res = lame_encode_flush_nogap(pd->lgf, out->audio_buf, 0);
+        if (verbose & TC_DEBUG) {
+            tc_log_info(MOD_NAME, "flushing %d audio bytes", res);
+		}
+    } else {
+        /* regular encoding */
+        res = lame_encode_buffer_interleaved(
+            pd->lgf,
+            (short *)in->audio_buf, in->audio_size / pd->bps,
+            out->audio_buf, out->audio_size
+        );
+        if (res < 0) {
+            if (verbose & TC_DEBUG) {
+                tc_log_error(MOD_NAME, "lame_encode_buffer_interleaved() failed"
+                             " (%d: %s)", res,
+                             res==-1 ? "output buffer overflow" :
+                             res==-2 ? "out of memory" :
+                             res==-3 ? "not initialized" :
+                             res==-4 ? "psychoacoustic problems" : "unknown");
+            } else {
+                tc_log_error(MOD_NAME, "Audio encoding failed!");
+            }
+            return TC_ERROR;
+        }
     }
     out->audio_len = res;
     return TC_OK;
