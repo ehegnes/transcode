@@ -193,7 +193,16 @@ void tc_ring_framebuffer_set_specs(const TCFrameSpecs *specs)
         if (tc_frc_code_to_value(tc_specs.frc, &fps) == TC_NULL_MATCH) {
             fps = 1.0; /* sane, very worst case value */
         }
-        tc_specs.samples = (double)tc_specs.rate/fps;
+/*        tc_specs.samples = (double)tc_specs.rate/fps; */
+        tc_specs.samples = (double)tc_specs.rate;
+        /* 
+         * FIXME
+         * ok, so we use a MUCH larger buffer (big enough to store 1 *second*
+         * of raw audio, not 1 *frame*) than needed for reasons similar as 
+         * seen for above video.
+         * Most notably, this helps in keeping buffers large enough to be
+         * suitable for encoder flush (see encode_lame.c first).
+         */
     }
 }
 

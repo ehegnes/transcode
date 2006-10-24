@@ -1,4 +1,10 @@
 2006-10-23 Francesco Romani <fromani at gmail dot com>
+  * src/framebuffer.c
+  enlarge audio buffers too (see new comment) to make
+  encoded buffers suitable for encoder flush and make lame happy.
+  For post-1.1.0 buffer (size) management really need to be reviewd
+  again.
+
   * src/encoder.c libtc/tcmodule-data.h encode/encode_copy.c
     encode/encode_lame.c
   Introduce flushing support for audio encoder.
