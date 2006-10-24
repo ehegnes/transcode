@@ -27,7 +27,6 @@
 typedef struct {
     lame_global_flags *lgf;
     int bps;  /* bytes per sample */
-    int flush_flag;  /* compatibility with old code (see aud_aux.c) */
 } PrivateData;
 
 /*************************************************************************/
@@ -126,7 +125,6 @@ static int lame_configure(TCModuleInstance *self,
     }
     pd = self->userdata;
 
-    pd->flush_flag = vob->lame_flush;
     /* Save bytes per sample */
     pd->bps = (vob->dm_chan * vob->dm_bits) / 8;
 
@@ -354,10 +352,10 @@ static int lame_encode(TCModuleInstance *self,
     }
     pd = self->userdata;
 
-    if (in == NULL && pd->flush_flag) {
+    if (in == NULL) {
         /* flush request */
         if (out->audio_size < LAME_FLUSH_BUFFER_SIZE) {
-            /* paranoia is a vritue */
+            /* paranoia is a virtue */
             tc_log_error(MOD_NAME, "output buffer too small for flushing");
             return TC_ERROR;
         }
