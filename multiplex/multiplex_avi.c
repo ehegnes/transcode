@@ -19,6 +19,9 @@
 #define MOD_VERSION "v0.0.2 (2005-12-29)"
 #define MOD_CAP     "create an AVI stream using avilib"
 
+/* default FourCC to use if given one isn't known or if it's just absent */
+#define DEFAULT_FOURCC "RGB"
+
 static const char *avi_help = ""
     "Overview:\n"
     "    this module create an AVI stream using avilib.\n"
@@ -59,7 +62,11 @@ static int avi_configure(TCModuleInstance *self,
     TC_MODULE_SELF_CHECK(vob, "configure"); /* hackish? */
 
     pd = self->userdata;
+
     fcc = tc_codec_fourcc(vob->ex_v_codec);
+    if (fcc == NULL) {
+        fcc = DEFAULT_FOURCC;
+    }
 
     /* FIXME: switch to new TC_CODEC_XXX */
     if (vob->ex_v_codec == CODEC_RGB || vob->ex_v_codec == CODEC_YUV
