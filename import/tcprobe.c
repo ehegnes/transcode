@@ -555,13 +555,13 @@ static void dump_info_old(info_t *ipipe)
         if (ipipe->probe_info->pts_start) {
             len = strlen(extrabuf);
             tc_snprintf(extrabuf + len, sizeof(extrabuf) - len,
-                        "PTS=%.4f, frame_time=%ld ms",
+                        "PTS=%.4f, frame_time=%ldms",
                         ipipe->probe_info->pts_start, frame_time);
             if (ipipe->probe_info->bitrate) {
                 len = strlen(extrabuf);
                 tc_snprintf(extrabuf + len, sizeof(extrabuf) - len,
                             "%sbitrate=%li kbps",
-                            (extrabuf_ready) ?", " :"",
+                            (extrabuf_ready) ?", " :" ",
                             /*
                              * add seeparator only if we alread
                              * written something in buffer
