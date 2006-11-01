@@ -290,7 +290,7 @@ static void x264_log(void *userdata, int level, const char *format,
                      va_list args)
 {
     TCLogLevel tclevel;
-    char buf[1000];
+    char buf[TC_BUF_MAX];
 
     if (!format)
         return;
@@ -731,9 +731,10 @@ static int x264_inspect(TCModuleInstance *self,
     X264PrivateData *pd = NULL;
     static char buf[TC_BUF_MAX];
 
-    if (!self || !param || !value) {
-        return TC_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "inspect");
+    TC_MODULE_SELF_CHECK(param, "inspect");
+    TC_MODULE_SELF_CHECK(value, "inspect");
+
     pd = self->userdata;
 
     if (optstr_lookup(param, "help")) {
@@ -765,9 +766,8 @@ static int x264_encode_video(TCModuleInstance *self,
     int nnal, i;
     x264_picture_t pic, pic_out;
 
-    if (!self) {
-        return TC_OK;
-    }
+    TC_MODULE_SELF_CHECK(self, "encode_video");
+
     pd = self->userdata;
 
     pd->framenum++;

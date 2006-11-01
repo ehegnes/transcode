@@ -85,10 +85,7 @@ static int lamemod_init(TCModuleInstance *self)
 {
     PrivateData *pd;
 
-    if (!self) {
-        tc_log_error(MOD_NAME, "init: self == NULL!");
-        return TC_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "init");
 
     self->userdata = pd = tc_malloc(sizeof(PrivateData));
     if (!pd) {
@@ -121,9 +118,7 @@ static int lame_configure(TCModuleInstance *self,
     int quality;
     MPEG_mode mode;
 
-    if (!self) {
-       return TC_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "configure");
     pd = self->userdata;
 
     /* Save bytes per sample */
@@ -280,8 +275,8 @@ static int lame_inspect(TCModuleInstance *self,
 {
     static char buf[TC_BUF_MAX];
 
-    if (!self || !param)
-       return TC_ERROR;
+    TC_MODULE_SELF_CHECK(self, "inspect");
+    TC_MODULE_SELF_CHECK(param, "inspect");
 
     if (optstr_lookup(param, "help")) {
         tc_snprintf(buf, sizeof(buf),
@@ -304,9 +299,8 @@ static int lame_stop(TCModuleInstance *self)
 {
     PrivateData *pd;
 
-    if (!self) {
-       return TC_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "stop");
+
     pd = self->userdata;
 
     if (pd->lgf) {
@@ -326,9 +320,8 @@ static int lame_stop(TCModuleInstance *self)
 
 static int lame_fini(TCModuleInstance *self)
 {
-    if (!self) {
-       return TC_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "fini");
+    
     lame_stop(self);
     tc_free(self->userdata);
     self->userdata = NULL;
@@ -350,10 +343,8 @@ static int lame_encode(TCModuleInstance *self,
     PrivateData *pd;
     int res;
 
-    if (!self) {
-        tc_log_error(MOD_NAME, "encode: self == NULL!");
-        return TC_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "encode");
+
     pd = self->userdata;
 
     if (in == NULL) {
