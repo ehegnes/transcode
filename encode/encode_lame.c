@@ -16,7 +16,7 @@
 #include <lame/lame.h>
 
 #define MOD_NAME    	"encode_lame.so"
-#define MOD_VERSION 	"v1.0 (2006-10-09)"
+#define MOD_VERSION 	"v1.1 (2006-11-01)"
 #define MOD_CAP         "Encodes audio to MP3 using LAME"
 #define MOD_AUTHOR      "Andrew Church"
 
@@ -27,6 +27,7 @@
 typedef struct {
     lame_global_flags *lgf;
     int bps;  /* bytes per sample */
+    int channels;
 } PrivateData;
 
 /*************************************************************************/
@@ -127,6 +128,8 @@ static int lame_configure(TCModuleInstance *self,
 
     /* Save bytes per sample */
     pd->bps = (vob->dm_chan * vob->dm_bits) / 8;
+    /* And audio channels */
+    pd->channels = vob->dm_chan;
 
     /* Create LAME object (freeing any old one that might be left over) */
     if (pd->lgf)
@@ -151,9 +154,9 @@ static int lame_configure(TCModuleInstance *self,
         tc_log_error(MOD_NAME, "lame_set_in_samplerate(%d) failed",samplerate);
         return TC_ERROR;
     }
-    if (lame_set_num_channels(pd->lgf, vob->dm_chan) < 0) {
+    if (lame_set_num_channels(pd->lgf, pd->channels) < 0) {
         tc_log_error(MOD_NAME, "lame_set_num_channels(%d) failed",
-                     vob->dm_chan);
+                     pd->channels);
         return TC_ERROR;
     }
     if (lame_set_scale(pd->lgf, vob->volume) < 0) {
@@ -180,6 +183,7 @@ static int lame_configure(TCModuleInstance *self,
         mode = JOINT_STEREO;
         break;
     }
+    /* FIXME: add coherency check with given audio channels? */
     if (lame_set_mode(pd->lgf, mode) < 0) {
         tc_log_error(MOD_NAME, "lame_set_mode(%d) failed", mode);
         return TC_ERROR;
@@ -356,14 +360,17 @@ static int lame_encode(TCModuleInstance *self,
         /* flush request */
         if (out->audio_size < LAME_FLUSH_BUFFER_SIZE) {
             /* paranoia is a virtue */
-            tc_log_error(MOD_NAME, "output buffer too small for flushing");
+            tc_log_error(MOD_NAME, "output buffer too small for"
+                                   " flushing (%i|%i)",
+                                   out->audio_size,
+                                   LAME_FLUSH_BUFFER_SIZE);
             return TC_ERROR;
         }
 
         /*
-         * Looks like _nogap should behave better when 
+         * Looks like _nogap should behave better when
          * splitting/rotating output files.
-         * Moreover, our streams should'nt contain any ID3 tag, 
+         * Moreover, our streams should'nt contain any ID3 tag,
          * -- FR
          */
         res = lame_encode_flush_nogap(pd->lgf, out->audio_buf, 0);
@@ -372,11 +379,21 @@ static int lame_encode(TCModuleInstance *self,
 		}
     } else {
         /* regular encoding */
-        res = lame_encode_buffer_interleaved(
-            pd->lgf,
-            (short *)in->audio_buf, in->audio_size / pd->bps,
-            out->audio_buf, out->audio_size
-        );
+		if (pd->channels == 1) { /* mono */
+			res = lame_encode_buffer(pd->lgf,
+                    				 (short *)(in->audio_buf),
+                                     (short *)(in->audio_buf),
+                                     in->audio_size / pd->bps,
+                                     out->audio_buf,
+                                     out->audio_size);
+        } else { /* all stereo flavours */
+            res = lame_encode_buffer_interleaved(pd->lgf,
+                                                 (short *)in->audio_buf,
+                                                 in->audio_size / pd->bps,
+                                                 out->audio_buf,
+                                                 out->audio_size);
+        }
+
         if (res < 0) {
             if (verbose & TC_DEBUG) {
                 tc_log_error(MOD_NAME, "lame_encode_buffer_interleaved() failed"
