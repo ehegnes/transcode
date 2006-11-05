@@ -25,77 +25,84 @@
 #ifndef TC_CODECS_H
 #define TC_CODECS_H
 
-#include <stdint.h>
-
-typedef uint32_t TCCodecID;
-/* just an unsigned integer big enough to store any TC_CODEC_* */
-
 /*
  * codecs identifiers.
- * Each one must fit in exactly 32 bits.
- * And they should be probably moved to an enum.
- * (WARNING: avilib relies on these values, at least for audio)
+ * (WARNING: avilib relies on these _values_, at least for audio)
  */
 
-#define TC_CODEC_ERROR                 0xFFFFFFFF
-#define TC_CODEC_ANY                   0xFFFFFFFE
-#define TC_CODEC_UNKNOWN               0x00000000
-#define TC_CODEC_RAW                   0xFEFEFEFE
-#define TC_CODEC_PCM                   0x00000001
-#define TC_CODEC_LPCM                  0x00010001
-#define TC_CODEC_RGB                   0x00000024
-#define TC_CODEC_AC3                   0x00002000
-#define TC_CODEC_DTS                   0x0001000f
-#define TC_CODEC_YV12                  0x32315659
-#define TC_CODEC_YUV420P               0x30323449  /* I420 */
-#define TC_CODEC_YUV422P               0x42323459  /* Y42B, see lavc/raw.c */
-#define TC_CODEC_UYVY                  0x59565955
-#define TC_CODEC_YUV2                  0x32565559
-#define TC_CODEC_YUY2                  0x32595559
-#define TC_CODEC_M2V                   0x000001b3
-#define TC_CODEC_MPEG                  0x01000000
-#define TC_CODEC_MPEG1                 0x00100000
-#define TC_CODEC_MPEG1VIDEO            0x00100002
-#define TC_CODEC_MPEG2                 0x00010000
-#define TC_CODEC_MPEG2VIDEO            0x00010002
-#define TC_CODEC_MPEG4VIDEO            0x00001002
-#define TC_CODEC_DV                    0x00001000
-#define TC_CODEC_MP3                   0x00000055
-#define TC_CODEC_MP2                   0x00000050
-#define TC_CODEC_AAC                   0x000000FF  // seems to be right for AVI
-#define TC_CODEC_NUV                   0x4e757070
-#define TC_CODEC_PS1                   0x00007001
-#define TC_CODEC_PS2                   0x00007002
-#define TC_CODEC_DIVX3                 0x000031B3
-#define TC_CODEC_MP42                  0x000031B4
-#define TC_CODEC_MP43                  0x000031B5
-#define TC_CODEC_DIVX4                 0x000041B6
-#define TC_CODEC_DIVX5                 0x000051B6
-#define TC_CODEC_XVID                  0x58766944
-#define TC_CODEC_H264                  0x34363248
-#define TC_CODEC_MJPG                  0xA0000010
-#define TC_CODEC_MPG1                  0xA0000012
-#define TC_CODEC_SUB                   0xA0000011
-#define TC_CODEC_THEORA                0x00001234
-#define TC_CODEC_VORBIS                0x0000FFFE
-#define TC_CODEC_LZO1                  0x0001FFFE
-#define TC_CODEC_RV10                  0x0002FFFE
-#define TC_CODEC_SVQ1                  0x0003FFFE
-#define TC_CODEC_SVQ3                  0x0004FFFE
-#define TC_CODEC_VP3                   0x0005FFFE
-#define TC_CODEC_4XM                   0x0006FFFE
-#define TC_CODEC_WMV1                  0x0007FFFE
-#define TC_CODEC_WMV2                  0x0008FFFE
-#define TC_CODEC_HUFFYUV               0x0009FFFE
-#define TC_CODEC_INDEO3                0x000AFFFE
-#define TC_CODEC_H263P                 0x000BFFFE
-#define TC_CODEC_H263I                 0x000CFFFE
-#define TC_CODEC_LZO2                  0x000DFFFE
-#define TC_CODEC_FRAPS                 0x000EFFFE
-#define TC_CODEC_FFV1                  0x000FFFFE
-#define TC_CODEC_ASV1                  0x0010FFFE
-#define TC_CODEC_ASV2                  0x0011FFFE
-#define TC_CODEC_VAG                   0x0000FEED
-#define TC_CODEC_PV3                   0x50563301
+typedef enum {
+    /* ok, now the real codecs */
+    TC_CODEC_PCM        = 0x00000001,
+    TC_CODEC_LPCM       = 0x00010001,
+
+    TC_CODEC_AC3        = 0x00002000,
+    TC_CODEC_DTS        = 0x0001000f,
+    TC_CODEC_MP3        = 0x00000055,
+    TC_CODEC_MP2        = 0x00000050,
+    TC_CODEC_AAC        = 0x000000FF,
+    TC_CODEC_VORBIS     = 0x0000FFFE,
+
+    /* we need special values here? */
+    TC_CODEC_RGB        = 0x00000024,
+    TC_CODEC_YV12       = 0x32315659,
+    TC_CODEC_YUV420P    = 0x30323449,
+    TC_CODEC_YUV422P    = 0x42323459,
+    TC_CODEC_UYVY       = 0x59565955,
+    TC_CODEC_YUV2       = 0x32565559,
+    TC_CODEC_YUY2       = 0x32595559,
+
+    /* this group should be probably removed or changed */
+    TC_CODEC_M2V        = 0x000001b3,
+    TC_CODEC_MPEG       = 0x01000000,
+    TC_CODEC_MPEG1      = 0x00100000,
+    TC_CODEC_MPEG2      = 0x00010000,
+    TC_CODEC_PS1        = 0x00007001,
+    TC_CODEC_PS2        = 0x00007002,
+    TC_CODEC_SUB        = 0xA0000011,
+
+    /* we really need a specific value for those? */
+    TC_CODEC_DV         = 0x00001000,
+    TC_CODEC_VAG        = 0x0000FEED,
+    TC_CODEC_PV3        = 0x50563301,
+    /* no special meaning, just enumeration from here */
+    TC_CODEC_DIVX3      = 0xFFFE0001,
+    TC_CODEC_MP42,
+    TC_CODEC_MP43,
+    TC_CODEC_DIVX4,
+    TC_CODEC_DIVX5,
+    TC_CODEC_XVID,
+    TC_CODEC_H264,
+    TC_CODEC_MJPG,
+    TC_CODEC_MPG1,
+    TC_CODEC_NUV,
+    TC_CODEC_LZO1,
+    TC_CODEC_RV10,
+    TC_CODEC_SVQ1,
+    TC_CODEC_SVQ3,
+    TC_CODEC_VP3,
+    TC_CODEC_4XM,
+    TC_CODEC_WMV1,
+    TC_CODEC_WMV2,
+    TC_CODEC_HUFFYUV,
+    TC_CODEC_INDEO3,
+    TC_CODEC_H263P,
+    TC_CODEC_H263I,
+    TC_CODEC_LZO2,
+    TC_CODEC_FRAPS,
+    TC_CODEC_FFV1,
+    TC_CODEC_ASV1,
+    TC_CODEC_ASV2,
+    TC_CODEC_THEORA,
+    TC_CODEC_MPEG1VIDEO,
+    TC_CODEC_MPEG2VIDEO,
+    TC_CODEC_MPEG4VIDEO,
+
+    /* special (pseudo)codecs */
+    TC_CODEC_UNKNOWN    = 0x00000000,
+    TC_CODEC_RAW        = 0xFEFEFEFE,
+    TC_CODEC_ANY        = 0xFFFFFFFE,
+    /* this one MUST be the last */
+    TC_CODEC_ERROR      = 0xFFFFFFFF
+} TCCodecID;
 
 #endif // TC_CODECS_H

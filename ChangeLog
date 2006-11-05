@@ -1,6 +1,9 @@
 2006-11-05 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule-plugin.h
-  use parameter name in log
+  use parameter name in log.
+
+  * libtc/tccodecs.h
+  from #define to enum.
 
 2006-11-01 Francesco Romani <fromani at gmail dot com>
   * encode/encode_lame.c encode/encode_lzo.c encode/encode_x264.c
