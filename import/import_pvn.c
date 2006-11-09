@@ -407,7 +407,14 @@ static int pvn_fini(TCModuleInstance *self)
  *     frame that takes 8x as much space (for PV6d) as the decoded frame.
  */
 
-#ifdef HAVE_ASM_SSE2
+#undef USE_DECODE_PVN_SSE2
+#if defined(HAVE_ASM_SSE2) && defined(ATTRIBUTE_ALIGNED_MAX)
+# if ATTRIBUTE_ALIGNED_MAX >= 16
+#  define USE_DECODE_PVN_SSE2 1
+# endif
+#endif
+
+#if USE_DECODE_PVN_SSE2
 /* Accelerated decode function, defined below */
 static int decode_pvn_sse2(const PrivateData *pd, uint8_t *video_buf);
 #endif
@@ -438,7 +445,7 @@ static int pvn_demultiplex(TCModuleInstance *self,
         if (pd->datatype == UINT8) {
             ac_memcpy(vframe->video_buf, pd->buffer, pd->framesize);
             return pd->framesize;
-#ifdef HAVE_ASM_SSE2
+#if USE_DECODE_PVN_SSE2
         } else if ((tc_accel & AC_SSE2)
                 && decode_pvn_sse2(pd, vframe->video_buf)
         ) {
@@ -538,7 +545,7 @@ static int pvn_demultiplex(TCModuleInstance *self,
 
 /************************************/
 
-#ifdef HAVE_ASM_SSE2
+#if USE_DECODE_PVN_SSE2
 
 /**
  * decode_pvn_sse2:  Accelerated routine to convert PVN frames to RGB.
@@ -720,11 +727,13 @@ static int decode_pvn_sse2(const PrivateData *pd, uint8_t *video_buf)
 
       case SINGLE: {
         uint32_t mxcsr, mxcsr_save;
-        const struct {float f[8];} __attribute__((aligned(16)))
-            single_data = {{pd->single_base,      pd->single_base,
-                            pd->single_base,      pd->single_base,
-                            pd->single_range/255, pd->single_range/255,
-                            pd->single_range/255, pd->single_range/255}};
+        /* This could theoretically go on the stack, but at least some GCC
+         * versions seem to forget to align it in that case...  --AC */
+        static struct {float f[8];} __attribute__((aligned(16))) single_data;
+        single_data.f[0] = single_data.f[1] =
+            single_data.f[2] = single_data.f[3] = pd->single_base;
+        single_data.f[4] = single_data.f[5] =
+            single_data.f[6] = single_data.f[7] = pd->single_range/255;
         asm("movdqa ("ESI"), %%xmm6; movdqa 16("ESI"), %%xmm7"
             : : "S" (&single_data), "m" (single_data));
         asm("stmxcsr %0" : "=m" (mxcsr_save));
@@ -766,9 +775,9 @@ static int decode_pvn_sse2(const PrivateData *pd, uint8_t *video_buf)
 
       case DOUBLE: {
         uint32_t mxcsr, mxcsr_save;
-        const struct {double d[8];} __attribute__((aligned(16)))
-            double_data = {{pd->double_base,      pd->double_base,
-                            pd->double_range/255, pd->double_range/255}};
+        static struct {double d[4];} __attribute__((aligned(16))) double_data;
+        double_data.d[0] = double_data.d[1] = pd->double_base;
+        double_data.d[2] = double_data.d[3] = pd->double_range/255;
         asm("movdqa ("ESI"), %%xmm6; movdqa 16("ESI"), %%xmm7"
             : : "S" (&double_data), "m" (double_data));
         asm("stmxcsr %0" : "=m" (mxcsr_save));
@@ -822,7 +831,7 @@ static int decode_pvn_sse2(const PrivateData *pd, uint8_t *video_buf)
     return 1;
 }
 
-#endif
+#endif  // USE_DECODE_PVN_SSE2
 
 /*************************************************************************/
 

@@ -2,6 +2,10 @@
   * configure.in
   Add AM_PROG_CC_C_O as requested by automake 1.10.
 
+  * import/import_pvn.c
+  Add workaround for broken compilers that can't align stack-based structures
+  (and update/clean up the #if's).
+
 2006-11-05 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule-plugin.h
   use parameter name in log.
