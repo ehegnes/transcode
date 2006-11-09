@@ -1,3 +1,7 @@
+2006-11-09 Andrew Church <achurch at achurch dot org>
+  * configure.in
+  Add AM_PROG_CC_C_O as requested by automake 1.10.
+
 2006-11-05 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule-plugin.h
   use parameter name in log.
