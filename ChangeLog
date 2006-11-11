@@ -22,6 +22,9 @@
   switch to TCCodecID/TCFormatID when declaring module properties.
   (In filling TCModuleInfo)
 
+  * encode/encode_lzo.c
+  staticize encoder buffer as part as module's PrivateData.
+
 2006-11-11 Andrew Church <achurch at achurch dot org>
   * import/import_pvn.c
   Fix processing of floating-point files with negative maxvals.
