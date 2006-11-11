@@ -2,6 +2,9 @@
   * import/import_pvn.c
   Fix processing of floating-point files with negative maxvals.
 
+  * export/export_pvn.c
+  Write grayscale (PV5a) files when -K is given to transcode.
+
 2006-11-09 Andrew Church <achurch at achurch dot org>
   * configure.in
   Add AM_PROG_CC_C_O as requested by automake 1.10.

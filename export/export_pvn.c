@@ -102,6 +102,8 @@ static int pvn_inspect(TCModuleInstance *self,
         tc_snprintf(buf, sizeof(buf),
                 "Overview:\n"
                 "    Writes a PVN video stream (format PV6a, 8-bit data).\n"
+                "    A grayscale file (PV5a) is written instead if the -K\n"
+                "    switch is given to transcode.\n"
                 "    The RGB colorspace must be used (-V rgb24).\n"
                 "No options available.\n");
         *value = buf;
@@ -190,8 +192,10 @@ static int pvn_multiplex(TCModuleInstance *self,
         tc_log_error(MOD_NAME, "Invalid codec for video frame!");
         return -1;
     }
-    if (vframe->video_len != pd->width * pd->height * 3) {
-        tc_log_error(MOD_NAME, "Invalid codec for video frame!");
+    if (vframe->video_len != pd->width * pd->height * 3
+     && vframe->video_len != pd->width * pd->height  // for grayscale
+    ) {
+        tc_log_error(MOD_NAME, "Invalid size for video frame!");
         return -1;
     }
     if (tc_pwrite(pd->fd, vframe->video_buf, vframe->video_len)
@@ -280,7 +284,8 @@ MOD_open
             goto fail;
         }
     }
-    len = tc_snprintf(buf, sizeof(buf), "PV6a\r\n%d %d\r\n",
+    len = tc_snprintf(buf, sizeof(buf), "PV%da\r\n%d %d\r\n",
+                      tc_get_vob()->decolor ? 5 : 6,
                       pd->width, pd->height);
     if (len < 0)
         goto fail;
@@ -333,6 +338,13 @@ MOD_encode
     vframe.video_len = param->size;
     if (!vframe.v_codec)
         vframe.v_codec = CODEC_RGB;  // assume it's correct
+    if (tc_get_vob()->decolor) {
+        // Assume the data is already decolored and just take every third byte
+        int i;
+        vframe.video_len /= 3;
+        for (i = 0; i < vframe.video_len; i++)
+            vframe.video_buf[i] = vframe.video_buf[i*3];
+    }
     if (pvn_multiplex(&mod, &vframe, NULL) < 0)
         return -1;
 
