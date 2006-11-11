@@ -41,6 +41,9 @@
 # endif
 #endif
 
+#include "tccodecs.h"
+#include "tcformats.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -619,7 +622,7 @@ int tc_probe_path(const char *name);
  *     TC_CODEC_ERROR if given CODEC_XXX hasn't corresponding TC_CODEC_XXX
  *     or if it;s just unknown.
  */
-int tc_translate_codec_id(int codec);
+int tc_translate_codec_id(TCCodecID codec);
 
 /*
  * tc_codec_to_string:
@@ -633,7 +636,7 @@ int tc_translate_codec_id(int codec);
  * Postconditions:
  *     Always return something sensible, even if unknown codec id was given.
  */
-const char* tc_codec_to_comment(int codec);
+const char* tc_codec_to_comment(TCCodecID codec);
 
 /*
  * tc_codec_to_string:
@@ -646,7 +649,7 @@ const char* tc_codec_to_comment(int codec);
  *     free() it).
  *     NULL of codec is (yet) unknown
  */
-const char* tc_codec_to_string(int codec);
+const char* tc_codec_to_string(TCCodecID codec);
 
 /*
  * tc_codec_from_string:
@@ -671,7 +674,7 @@ int tc_codec_from_string(const char *codec);
  *     is no need to free() it NULL of codec's FOURCC is (yet) unknown or
  *     given codec has _not_ FOURCC (es: audio codec identifiers).
  */
-const char* tc_codec_fourcc(int codec);
+const char* tc_codec_fourcc(TCCodecID codec);
 
 /*
  * tc_codec_description:
@@ -686,7 +689,7 @@ const char* tc_codec_fourcc(int codec);
  *     +1 truncation error (given buffer too small).
  *     0  no errors.
  */
-int tc_codec_description(int codec, char *buf, size_t bufsize);
+int tc_codec_description(TCCodecID codec, char *buf, size_t bufsize);
 
 /*************************************************************************/
 

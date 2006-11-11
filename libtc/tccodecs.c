@@ -91,7 +91,7 @@ static const TCCodecInfo tc_codecs_info[] = {
 };
 
 /* compatibility */
-int tc_translate_codec_id(int codec)
+int tc_translate_codec_id(TCCodecID codec)
 {
     switch (codec) {
       case CODEC_AC3:    return TC_CODEC_AC3;
@@ -101,6 +101,7 @@ int tc_translate_codec_id(int codec)
       case CODEC_LPCM:   return TC_CODEC_LPCM;
       case CODEC_VORBIS: return TC_CODEC_VORBIS;
       case CODEC_VAG:    return TC_CODEC_VAG;
+      default:           return TC_CODEC_ERROR; /* can't happen */
     }
     return TC_CODEC_ERROR;
 }
@@ -206,7 +207,7 @@ static int find_tc_codec(const TCCodecInfo *infos,
 
 /* public API ************************************************************/
 
-const char* tc_codec_to_comment(int codec)
+const char* tc_codec_to_comment(TCCodecID codec)
 {
     int idx = find_tc_codec(tc_codecs_info, id_matcher, &codec);
 
@@ -217,7 +218,7 @@ const char* tc_codec_to_comment(int codec)
 }
 
 
-const char* tc_codec_to_string(int codec)
+const char* tc_codec_to_string(TCCodecID codec)
 {
     int idx = find_tc_codec(tc_codecs_info, id_matcher, &codec);
 
@@ -237,7 +238,7 @@ int tc_codec_from_string(const char *codec)
     return tc_codecs_info[idx].id;
 }
 
-const char* tc_codec_fourcc(int codec)
+const char* tc_codec_fourcc(TCCodecID codec)
 {
     int idx = find_tc_codec(tc_codecs_info, id_matcher, &codec);
 
@@ -247,7 +248,7 @@ const char* tc_codec_fourcc(int codec)
     return tc_codecs_info[idx].fourcc; /* can be NULL */
 }
 
-int tc_codec_description(int codec, char *buf, size_t bufsize)
+int tc_codec_description(TCCodecID codec, char *buf, size_t bufsize)
 {
     int idx = find_tc_codec(tc_codecs_info, id_matcher, &codec);
     int ret;

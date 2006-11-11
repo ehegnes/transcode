@@ -5,6 +5,9 @@
   * libtc/tcmodule-info.h
   Add supported formats for modules, useful for de/multiplexors.
 
+  * libtc/libtc.h libtc/tccodecs.c
+  Since we have now TCCodecID, use it instead of plain `int'.
+
 2006-11-11 Andrew Church <achurch at achurch dot org>
   * import/import_pvn.c
   Fix processing of floating-point files with negative maxvals.
