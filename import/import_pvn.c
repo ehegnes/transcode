@@ -191,8 +191,8 @@ static int parse_pvn_header(PrivateData *pd)
             base = 0;
             range = maxval;
         } else if (*fieldbuf == '-') {
-            base = -maxval;
-            range = maxval;
+            base = maxval;
+            range = -maxval;
         } else {
             base = -maxval;
             range = maxval*2;

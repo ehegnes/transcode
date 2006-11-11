@@ -1,3 +1,7 @@
+2006-11-11 Andrew Church <achurch at achurch dot org>
+  * import/import_pvn.c
+  Fix processing of floating-point files with negative maxvals.
+
 2006-11-09 Andrew Church <achurch at achurch dot org>
   * configure.in
   Add AM_PROG_CC_C_O as requested by automake 1.10.
