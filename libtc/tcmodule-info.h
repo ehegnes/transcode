@@ -17,6 +17,9 @@
 
 #include <stdint.h>
 
+#include "tccodecs.h"
+#include "tcformats.h"
+
 /* FIXME: move to a enum? */
 /* actions */
 #define TC_MODULE_FEATURE_NONE          0x00000000
@@ -51,8 +54,15 @@ struct tcmoduleinfo_ {
      * the following two MUST point to an array of TC_CODEC_*
      * terminated by a TC_CODEC_ERROR value
      */
-    const int *codecs_in;
-    const int *codecs_out;
+    const TCCodecID *codecs_in;
+    const TCCodecID *codecs_out;
+
+    /*
+     * the following two MUST point to an array of TC_FORMAT_*
+     * terminated by a TC_FORMAT_ERROR value
+     */
+    const TCFormatID *formats_in;
+    const TCFormatID *formats_out;
 };
 
 /*

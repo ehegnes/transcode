@@ -1,3 +1,10 @@
+2006-11-11 Francesco Romani <fromani at gmail dot com>
+  * Added file: libtc/tcformat.h
+  Add known formats specifier much like already done for codecs.
+
+  * libtc/tcmodule-info.h
+  Add supported formats for modules, useful for de/multiplexors.
+
 2006-11-11 Andrew Church <achurch at achurch dot org>
   * import/import_pvn.c
   Fix processing of floating-point files with negative maxvals.
