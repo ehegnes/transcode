@@ -189,16 +189,18 @@ static int avi_fini(TCModuleInstance *self)
 
 /*************************************************************************/
 
-static const int avi_codecs_in[] = {
+static const TCCodecID avi_codecs_in[] = {
     TC_CODEC_PCM, TC_CODEC_AC3, TC_CODEC_MP2, TC_CODEC_MP3, TC_CODEC_AAC,
     TC_CODEC_YUV420P, TC_CODEC_DV, TC_CODEC_DIVX3, TC_CODEC_DIVX4,
     TC_CODEC_DIVX5, TC_CODEC_XVID, TC_CODEC_H264, TC_CODEC_MJPG,
     TC_CODEC_LZO1, TC_CODEC_LZO2, TC_CODEC_RGB,
     TC_CODEC_ERROR
 };
+static const TCFormatID avi_formats_out[] = { TC_FORMAT_AVI, TC_FORMAT_ERROR };
 
 /* a multiplexor is at the end of pipeline */
-static const int avi_codecs_out[] = { TC_CODEC_ERROR };
+static const TCCodecID avi_codecs_out[] = { TC_CODEC_ERROR };
+static const TCFormatID avi_formats_in[] = { TC_FORMAT_ERROR };
 
 static const TCModuleInfo avi_info = {
     .features    = TC_MODULE_FEATURE_MULTIPLEX|TC_MODULE_FEATURE_VIDEO
@@ -208,7 +210,9 @@ static const TCModuleInfo avi_info = {
     .version     = MOD_VERSION,
     .description = MOD_CAP,
     .codecs_in   = avi_codecs_in,
-    .codecs_out  = avi_codecs_out
+    .codecs_out  = avi_codecs_out,
+    .formats_in  = avi_formats_in,
+    .formats_out = avi_formats_out
 };
 
 static const TCModuleClass avi_class = {

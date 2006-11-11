@@ -323,11 +323,15 @@ static int yw_fini(TCModuleInstance *self)
 
 /*************************************************************************/
 
-static const int yw_codecs_in[] = { TC_CODEC_YUV420P, TC_CODEC_PCM,
+static const TCCodecID yw_codecs_in[] = { TC_CODEC_YUV420P, TC_CODEC_PCM,
                                      TC_CODEC_ERROR };
 
 /* a multiplexor is at the end of pipeline */
-static const int yw_codecs_out[] = { TC_CODEC_ERROR };
+static const TCCodecID yw_codecs_out[] = { TC_CODEC_ERROR };
+static const TCFormatID yw_formats_in[] = { TC_FORMAT_ERROR };
+static const TCFormatID yw_formats_out[] = { 
+    TC_FORMAT_YUV4MPEG, TC_FORMAT_WAV, TC_FORMAT_ERROR
+};
 
 static const TCModuleInfo yw_info = {
     .features    = TC_MODULE_FEATURE_MULTIPLEX|TC_MODULE_FEATURE_VIDEO
@@ -337,7 +341,9 @@ static const TCModuleInfo yw_info = {
     .version     = MOD_VERSION,
     .description = MOD_CAP,
     .codecs_in   = yw_codecs_in,
-    .codecs_out  = yw_codecs_out
+    .codecs_out  = yw_codecs_out,
+    .formats_in  = yw_formats_in,
+    .formats_out = yw_formats_out
 };
 
 static const TCModuleClass yw_class = {

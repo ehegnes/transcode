@@ -92,9 +92,10 @@ static int null_encode_audio(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const int null_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static const TCCodecID null_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static const TCCodecID null_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static const TCFormatID null_formats[] = { TC_FORMAT_ERROR };
 
-static const int null_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
 
 static const TCModuleInfo null_info = {
     .features    = TC_MODULE_FEATURE_ENCODE|TC_MODULE_FEATURE_VIDEO
@@ -104,7 +105,9 @@ static const TCModuleInfo null_info = {
     .version     = MOD_VERSION,
     .description = MOD_CAP,
     .codecs_in   = null_codecs_in,
-    .codecs_out  = null_codecs_out
+    .codecs_out  = null_codecs_out,
+    .formats_in  = null_formats,
+    .formats_out = null_formats
 };
 
 static const TCModuleClass null_class = {

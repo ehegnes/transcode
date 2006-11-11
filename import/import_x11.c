@@ -56,11 +56,11 @@ static int tc_x11_init(TCModuleInstance *self)
     }
     priv = tc_malloc(sizeof(TCX11PrivateData));
     if (priv == NULL) {
-        return TC_IMPORT_ERROR;
+        return TC_ERROR;
     }
 
     self->userdata = priv;    
-    return TC_IMPORT_OK;
+    return TC_OK;
 }
 
 static int tc_x11_fini(TCModuleInstance *self)
@@ -70,7 +70,7 @@ static int tc_x11_fini(TCModuleInstance *self)
     tc_free(self->userdata);
     self->userdata = NULL;
 
-    return TC_IMPORT_OK;
+    return TC_OK;
 }
 
 static int tc_x11_configure(TCModuleInstance *self,
@@ -93,7 +93,7 @@ static int tc_x11_configure(TCModuleInstance *self,
     ret = tc_timer_init_soft(&priv->timer, 0); /* XXX */
     if (ret != 0) {
         tc_log_error(MOD_NAME, "configure: can't initialize timer");
-        return TC_IMPORT_ERROR;
+        return TC_ERROR;
     }
 
     /* nothing to do here, yet */
@@ -101,7 +101,7 @@ static int tc_x11_configure(TCModuleInstance *self,
     if (ret == TC_FALSE) {
         tc_log_error(MOD_NAME, "configure: given source doesn't look like"
                                " a DISPLAY specifier");
-        return TC_IMPORT_ERROR;
+        return TC_ERROR;
     }
 
     ret = tc_x11source_open(&priv->src, vob->video_in_file,
@@ -109,10 +109,10 @@ static int tc_x11_configure(TCModuleInstance *self,
     if (ret != 0) {
         tc_log_error(MOD_NAME, "configure: failed to open X11 connection"
                                " to '%s'", vob->video_in_file);
-        return TC_IMPORT_ERROR;
+        return TC_ERROR;
     }
 
-    return TC_IMPORT_OK;
+    return TC_OK;
 }
 
 static int tc_x11_inspect(TCModuleInstance *self,
@@ -124,7 +124,7 @@ static int tc_x11_inspect(TCModuleInstance *self,
         *value = tc_x11_help;
     }
 
-    return TC_IMPORT_OK;
+    return TC_OK;
 }
 
 static int tc_x11_stop(TCModuleInstance *self)
@@ -139,20 +139,20 @@ static int tc_x11_stop(TCModuleInstance *self)
     ret = tc_x11source_close(&priv->src);
     if (ret != 0) {
         tc_log_error(MOD_NAME, "stop: failed to close X11 connection");
-        return TC_IMPORT_ERROR;
+        return TC_ERROR;
     }
 
     ret = tc_timer_fini(&priv->timer);
     if (ret != 0) {
         tc_log_error(MOD_NAME, "stop: failed to stop timer");
-        return TC_IMPORT_ERROR;
+        return TC_ERROR;
     }
 
     if (verbose >= TC_DEBUG) {
         tc_log_info(MOD_NAME, "expired frames count: %lu",
                               (unsigned long)priv->expired);
     }
-    return TC_IMPORT_OK;
+    return TC_OK;
 }
 
 static int tc_x11_demultiplex(TCModuleInstance *self,
@@ -193,11 +193,15 @@ static int tc_x11_demultiplex(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const int tc_x11_codecs_in[] = { TC_CODEC_ERROR };
+static const TCCodecID tc_x11_codecs_in[] = { TC_CODEC_ERROR };
 
 /* a multiplexor is at the end of pipeline */
-static const int tc_x11_codecs_out[] = { 
-    TC_CODEC_RGB, TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_ERROR };
+static const TCCodecID tc_x11_codecs_out[] = { 
+    TC_CODEC_RGB, TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_ERROR 
+};
+
+static const TCFormatID tc_x11_formats_in[] = { TC_FORMAT_X11, TC_FORMAT_ERROR };
+static const TCFormatID tc_x11_formats_out[] = { TC_FORMAT_ERROR };
 
 static const TCModuleInfo tc_x11_info = {
     .features    = TC_MODULE_FEATURE_DEMULTIPLEX|TC_MODULE_FEATURE_VIDEO,
@@ -206,7 +210,9 @@ static const TCModuleInfo tc_x11_info = {
     .version     = MOD_VERSION,
     .description = MOD_CAP,
     .codecs_in   = tc_x11_codecs_in,
-    .codecs_out  = tc_x11_codecs_out
+    .codecs_out  = tc_x11_codecs_out,
+    .formats_in  = tc_x11_formats_in,
+    .formats_out = tc_x11_formats_out
 };
 
 static const TCModuleClass tc_x11_class = {
@@ -244,14 +250,14 @@ static int capability_flag = TC_CAP_YUV|TC_CAP_RGB|TC_CAP_YUV422|TC_CAP_VID;
 /*************************************************************************/
 
 #define RETURN_IF_FAILED(ret) do { \
-    if ((ret) != TC_IMPORT_OK) { \
+    if ((ret) != TC_OK) { \
         return ret; \
     } \
 } while (0)
 
 #define COMMON_CHECK(param) do { \
     if ((param)->flag != TC_VIDEO) { \
-        return TC_IMPORT_ERROR; \
+        return TC_ERROR; \
     } \
 } while (0)
 
@@ -268,7 +274,7 @@ MOD_open
     ret = tc_x11_configure(&mod_video, "", vob);
     RETURN_IF_FAILED(ret);
 
-    return TC_IMPORT_OK;
+    return TC_OK;
 }
 
 MOD_decode
@@ -286,12 +292,12 @@ MOD_decode
 
     if (ret <= 0) {
         /* well, frames from X11 never "ends", really :) */
-        return TC_IMPORT_ERROR;
+        return TC_ERROR;
     }
 
     param->size = ret;
     param->attributes = vframe.attributes;
-    return TC_IMPORT_OK;
+    return TC_OK;
 }
 
 MOD_close
@@ -306,7 +312,7 @@ MOD_close
     ret = tc_x11_fini(&mod_video);
     RETURN_IF_FAILED(ret);
 
-    return TC_IMPORT_OK;
+    return TC_OK;
 }
 
 /*************************************************************************/

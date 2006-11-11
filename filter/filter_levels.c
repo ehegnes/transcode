@@ -358,8 +358,9 @@ int tc_filter(frame_list_t *vframe_, char *options)
 
 /*************************************************************************/
 
-static const int levels_codecs_in[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
-static const int levels_codecs_out[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
+static const TCCodecID levels_codecs_in[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
+static const TCCodecID levels_codecs_out[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
+static const TCFormatID levels_formats[] = { TC_FORMAT_ERROR };
 
 /* new module support */
 static const TCModuleInfo levels_info = {
@@ -369,7 +370,9 @@ static const TCModuleInfo levels_info = {
     .version     = MOD_VERSION,
     .description = MOD_CAP,
     .codecs_in   = levels_codecs_in,
-    .codecs_out  = levels_codecs_out
+    .codecs_out  = levels_codecs_out,
+    .formats_in  = levels_formats,
+    .formats_out = levels_formats
 };
 
 static const TCModuleClass levels_class = {

@@ -30,7 +30,8 @@ static const char *tc_lzo_help = ""
     "    help    produce module overview and options explanations\n";
 
 typedef struct {
-    lzo_byte *work_mem; /* needed by encoder to work properly */
+    lzo_byte work_mem[LZO1X_1_MEM_COMPRESS];
+    /* needed by encoder to work properly */
 
     int codec;
 } LZOPrivateData;
@@ -46,18 +47,8 @@ static int tc_lzo_configure(TCModuleInstance *self,
     pd = self->userdata;
     pd->codec = vob->im_v_codec;
 
-    pd->work_mem = (lzo_bytep)lzo_malloc(LZO1X_1_MEM_COMPRESS);
-    if (pd->work_mem == NULL) {
-        tc_log_error(MOD_NAME, "configure: can't allocate LZO"
-                               " compression buffer");
-        return TC_ERROR;
-    }
-
     ret = lzo_init();
     if (ret != LZO_E_OK) {
-        lzo_free(pd->work_mem);
-        pd->work_mem = NULL;
-
         tc_log_error(MOD_NAME, "configure: failed to initialize"
                                " LZO encoder");
         return TC_ERROR;
@@ -74,10 +65,6 @@ static int tc_lzo_stop(TCModuleInstance *self)
 
     pd = self->userdata;
 
-    if (pd->work_mem != NULL) {
-        lzo_free(pd->work_mem);
-        pd->work_mem = NULL;
-    }
     return TC_OK;
 }
 
@@ -93,7 +80,6 @@ static int tc_lzo_init(TCModuleInstance *self)
         return TC_ERROR;
     }
     /* sane defaults */
-    pd->work_mem = NULL;
     pd->codec = CODEC_YUV;
 
     self->userdata = pd;
@@ -241,14 +227,11 @@ static int tc_lzo_encode_video(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const int tc_lzo_codecs_in[] = {
+static const TCCodecID tc_lzo_codecs_in[] = {
     TC_CODEC_YUY2, TC_CODEC_RGB, TC_CODEC_YUV420P, TC_CODEC_ERROR
 };
-
-static const int tc_lzo_codecs_out[] = {
-    TC_CODEC_LZO2,
-    TC_CODEC_ERROR
-};
+static const TCCodecID tc_lzo_codecs_out[] = { TC_CODEC_LZO2, TC_CODEC_ERROR };
+static const TCFormatID tc_lzo_formats[] = { TC_FORMAT_ERROR };
 
 static const TCModuleInfo tc_lzo_info = {
     .features    = TC_MODULE_FEATURE_ENCODE|TC_MODULE_FEATURE_VIDEO,
@@ -258,6 +241,8 @@ static const TCModuleInfo tc_lzo_info = {
     .description = MOD_CAP,
     .codecs_in   = tc_lzo_codecs_in,
     .codecs_out  = tc_lzo_codecs_out,
+    .formats_in  = tc_lzo_formats,
+    .formats_out = tc_lzo_formats
 };
 
 static const TCModuleClass tc_lzo_class = {

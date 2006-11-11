@@ -820,8 +820,10 @@ static int x264_encode_video(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const int x264_codecs_in[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
-static const int x264_codecs_out[] = { TC_CODEC_H264, TC_CODEC_ERROR };
+static const TCCodecID x264_codecs_in[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
+static const TCCodecID x264_codecs_out[] = { TC_CODEC_H264, TC_CODEC_ERROR };
+static const TCFormatID x264_formats[] = { TC_FORMAT_ERROR };
+
 
 static const TCModuleInfo x264_info = {
     .features    = TC_MODULE_FEATURE_ENCODE
@@ -831,7 +833,9 @@ static const TCModuleInfo x264_info = {
     .version     = MOD_VERSION,
     .description = MOD_CAP,
     .codecs_in   = x264_codecs_in,
-    .codecs_out  = x264_codecs_out
+    .codecs_out  = x264_codecs_out,
+    .formats_in  = x264_formats,
+    .formats_out = x264_formats
 };
 
 static const TCModuleClass x264_class = {

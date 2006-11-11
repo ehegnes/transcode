@@ -11,6 +11,17 @@
   * libtc/tcmodule.c
   fill format fields for dummy internal class too.
 
+  * encode/encode_copy.c encode/encode_faac.c encode/encode_lame.c
+    encode/encode_lzo.c encode/encode_null.c encode/encode_x264.c
+    encode/encode_xvid.c export/export_pvn.c filter/filter_doublefps.c
+    filter/filter_levels.c filter/filter_null.c import/import_pv3.c
+    import/import_pvn.c import/import_vag.c import/import_x11.c
+    import/nuv/import_nuv.c multiplex/multiplex_avi.c
+    multiplex/multiplex_null.c multiplex/multiplex_raw.c
+    multiplex/multiplex_y4m.c testsuite/test-tcmoduleinfo.c
+  switch to TCCodecID/TCFormatID when declaring module properties.
+  (In filling TCModuleInfo)
+
 2006-11-11 Andrew Church <achurch at achurch dot org>
   * import/import_pvn.c
   Fix processing of floating-point files with negative maxvals.

@@ -96,18 +96,18 @@ static int null_init(TCModuleInstance *self)
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     }
 
-    return 0;
+    return TC_OK;
 }
 
 static int null_fini(TCModuleInstance *self)
 {
-    return 0;
+    return TC_OK;
 }
 
 static int null_configure(TCModuleInstance *self,
 			  const char *options, vob_t *vob)
 {
-    return 0;
+    return TC_OK;
 }
 
 static int null_inspect(TCModuleInstance*self,
@@ -116,12 +116,12 @@ static int null_inspect(TCModuleInstance*self,
     if (optstr_lookup(param, "help")) {
         *value = null_help;
     }
-    return 0;
+    return TC_OK;
 }
 
 static int null_stop(TCModuleInstance *self)
 {
-    return 0;
+    return TC_OK;
 }
 
 static int null_filter(TCModuleInstance *self,
@@ -153,7 +153,7 @@ static int null_filter(TCModuleInstance *self,
                     (pre) ?"pre-process filter" :"post-process filter");
     }
 
-    return 0;
+    return TC_OK;
 }
 
 /**
@@ -162,7 +162,7 @@ static int null_filter(TCModuleInstance *self,
  * @param ptr     frame accounting structure
  * @param options command-line options of the filter
  *
- * @return 0, if everything went OK.
+ * @return TC_OK, if everything went OK.
  *********************************************************/
 int tc_filter(frame_list_t *ptr_, char *options)
 {
@@ -207,7 +207,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VARY4EO", "1");
 
     optstr_param (options, "help", "Prints out a short help", "", "0");
-    return 0;
+    return TC_OK;
   }
 
   //----------------------------------
@@ -228,10 +228,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if (options)
       if (optstr_lookup (options, "help")) {
         help_optstr();
-        return(0);
+        return TC_OK;
       }
 
-    return(0);
+    return TC_OK;
   }
 
   //----------------------------------
@@ -240,7 +240,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   //
   //----------------------------------
   if(ptr->tag & TC_FILTER_CLOSE) {
-    return(0);
+    return TC_OK;
   }
 
   //----------------------------------
@@ -271,13 +271,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
   }
 
-  return(0);
+  return TC_OK;
 }
 
 /*************************************************************************/
 
-static const int null_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
-static const int null_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static const TCCodecID null_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static const TCCodecID null_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static const TCFormatID null_formats[] = { TC_FORMAT_ERROR };
 
 static const TCModuleInfo null_info = {
     .features    = TC_MODULE_FEATURE_FILTER|TC_MODULE_FEATURE_VIDEO
@@ -287,7 +288,9 @@ static const TCModuleInfo null_info = {
     .version     = MOD_VERSION,
     .description = MOD_CAP,
     .codecs_in   = null_codecs_in,
-    .codecs_out  = null_codecs_out
+    .codecs_out  = null_codecs_out,
+    .formats_in  = null_formats,
+    .formats_out = null_formats
 };
 
 static const TCModuleClass null_class = {

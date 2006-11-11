@@ -439,10 +439,11 @@ static int doublefps_filter_audio(TCModuleInstance *self, aframe_list_t *frame)
 
 /*************************************************************************/
 
-static const int doublefps_codecs_in[] =
+static const TCCodecID doublefps_codecs_in[] =
     { TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_PCM, TC_CODEC_ERROR };
-static const int doublefps_codecs_out[] =
+static const TCCodecID doublefps_codecs_out[] =
     { TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_PCM, TC_CODEC_ERROR };
+static const TCFormatID doublefps_formats[] = { TC_FORMAT_ERROR};
 
 static const TCModuleInfo doublefps_info = {
     .features    = TC_MODULE_FEATURE_FILTER
@@ -453,7 +454,9 @@ static const TCModuleInfo doublefps_info = {
     .version     = MOD_VERSION,
     .description = MOD_CAP,
     .codecs_in   = doublefps_codecs_in,
-    .codecs_out  = doublefps_codecs_out
+    .codecs_out  = doublefps_codecs_out,
+    .formats_in  = doublefps_formats,
+    .formats_out = doublefps_formats
 };
 
 static const TCModuleClass doublefps_class = {

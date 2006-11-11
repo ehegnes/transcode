@@ -663,9 +663,11 @@ static int pv3_decode_video(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const int pv3_codecs_in[] = { TC_CODEC_PV3, TC_CODEC_ERROR };
-static const int pv3_codecs_out[] = { TC_CODEC_YUV420P, TC_CODEC_YUV422P,
-                                      TC_CODEC_ERROR };
+static const TCCodecID pv3_codecs_in[] = { TC_CODEC_PV3, TC_CODEC_ERROR };
+static const TCCodecID pv3_codecs_out[] = { TC_CODEC_YUV420P, TC_CODEC_YUV422P,
+                                            TC_CODEC_ERROR };
+static const TCFormatID pv_formats_in[] = { TC_FORMAT_PV3, TC_FORMAT_ERROR };
+static const TCFormatID pv_formats_out[] = { TC_FORMAT_ERROR };
 
 static const TCModuleInfo pv3_info = {
     .features    = TC_MODULE_FEATURE_DEMULTIPLEX
@@ -676,7 +678,9 @@ static const TCModuleInfo pv3_info = {
     .version     = MOD_VERSION,
     .description = MOD_CAP,
     .codecs_in   = pv3_codecs_in,
-    .codecs_out  = pv3_codecs_out
+    .codecs_out  = pv3_codecs_out,
+    .formats_in  = pv3_formats_in,
+    .formats_out = pv3_formats_out
 };
 
 static const TCModuleClass pv3_class = {

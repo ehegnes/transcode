@@ -15,7 +15,7 @@
 #include "libtc/tcmodule-info.h"
 #include "libtc/tccodecs.h"
 
-static const int empty_codecs[] = { TC_CODEC_ERROR };
+static const TCCodecID empty_codecs[] = { TC_CODEC_ERROR };
 static TCModuleInfo empty = {
     TC_MODULE_FEATURE_NONE,
     TC_MODULE_FLAG_NONE,
@@ -26,7 +26,7 @@ static TCModuleInfo empty = {
     empty_codecs
 };
 
-static const int pass_enc_codecs[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static const TCCodecID pass_enc_codecs[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
 static TCModuleInfo pass_enc = {
     TC_MODULE_FEATURE_ENCODE | TC_MODULE_FEATURE_VIDEO
         | TC_MODULE_FEATURE_AUDIO | TC_MODULE_FEATURE_EXTRA,
@@ -38,7 +38,7 @@ static TCModuleInfo pass_enc = {
     pass_enc_codecs
 };
 
-static const int fake_pcm_codecs[] = { TC_CODEC_PCM, TC_CODEC_ERROR };
+static const TCCodecID fake_pcm_codecs[] = { TC_CODEC_PCM, TC_CODEC_ERROR };
 static TCModuleInfo fake_wav_mplex = {
     TC_MODULE_FEATURE_MULTIPLEX | TC_MODULE_FEATURE_AUDIO,
     TC_MODULE_FLAG_RECONFIGURABLE,
@@ -49,7 +49,7 @@ static TCModuleInfo fake_wav_mplex = {
     empty_codecs
 };
 
-static const int fake_yuv_codecs[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
+static const TCCodecID fake_yuv_codecs[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
 static TCModuleInfo fake_y4m_mplex = {
     TC_MODULE_FEATURE_MULTIPLEX | TC_MODULE_FEATURE_VIDEO,
     TC_MODULE_FLAG_RECONFIGURABLE,
@@ -61,7 +61,7 @@ static TCModuleInfo fake_y4m_mplex = {
 };
 
 
-static const int fake_mplex_codecs[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static const TCCodecID fake_mplex_codecs[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
 static TCModuleInfo fake_mplex = {
     TC_MODULE_FEATURE_MULTIPLEX | TC_MODULE_FEATURE_VIDEO
         | TC_MODULE_FEATURE_AUDIO | TC_MODULE_FEATURE_EXTRA,
@@ -73,7 +73,7 @@ static TCModuleInfo fake_mplex = {
     empty_codecs
 };
 
-static const int pcm_pass_codecs[] = { TC_CODEC_PCM, TC_CODEC_ERROR };
+static const TCCodecID pcm_pass_codecs[] = { TC_CODEC_PCM, TC_CODEC_ERROR };
 static TCModuleInfo pcm_pass = {
     TC_MODULE_FEATURE_ENCODE | TC_MODULE_FEATURE_AUDIO,
     TC_MODULE_FLAG_RECONFIGURABLE,
@@ -84,7 +84,7 @@ static TCModuleInfo pcm_pass = {
     pcm_pass_codecs
 };
 
-static const int yuv_pass_codecs[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
+static const TCCodecID yuv_pass_codecs[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
 static TCModuleInfo yuv_pass = {
     TC_MODULE_FEATURE_ENCODE | TC_MODULE_FEATURE_VIDEO,
     TC_MODULE_FLAG_RECONFIGURABLE,
@@ -95,8 +95,8 @@ static TCModuleInfo yuv_pass = {
     yuv_pass_codecs
 };
 
-static const int fake_mpeg_codecs_in[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
-static const int fake_mpeg_codecs_out[] = { TC_CODEC_MPEG1VIDEO, TC_CODEC_MPEG2VIDEO, TC_CODEC_XVID, TC_CODEC_ERROR };
+static const TCCodecID fake_mpeg_codecs_in[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
+static const TCCodecID fake_mpeg_codecs_out[] = { TC_CODEC_MPEG1VIDEO, TC_CODEC_MPEG2VIDEO, TC_CODEC_XVID, TC_CODEC_ERROR };
 static TCModuleInfo fake_mpeg_enc = {
     TC_MODULE_FEATURE_ENCODE | TC_MODULE_FEATURE_VIDEO,
     TC_MODULE_FLAG_NONE,
@@ -107,8 +107,8 @@ static TCModuleInfo fake_mpeg_enc = {
     fake_mpeg_codecs_out
 };
 
-static const int fake_vorbis_codecs_in[] = { TC_CODEC_PCM, TC_CODEC_ERROR };
-static const int fake_vorbis_codecs_out[] = { TC_CODEC_VORBIS, TC_CODEC_ERROR };
+static const TCCodecID fake_vorbis_codecs_in[] = { TC_CODEC_PCM, TC_CODEC_ERROR };
+static const TCCodecID fake_vorbis_codecs_out[] = { TC_CODEC_VORBIS, TC_CODEC_ERROR };
 static TCModuleInfo fake_vorbis_enc = {
     TC_MODULE_FEATURE_ENCODE | TC_MODULE_FEATURE_AUDIO,
     TC_MODULE_FLAG_NONE,
@@ -119,7 +119,7 @@ static TCModuleInfo fake_vorbis_enc = {
     fake_vorbis_codecs_out
 };
 
-static const int fake_avi_codecs_in[] = {
+static const TCCodecID fake_avi_codecs_in[] = {
         TC_CODEC_MPEG1VIDEO, TC_CODEC_XVID, TC_CODEC_YUV420P,
         TC_CODEC_MP3, TC_CODEC_PCM,
         TC_CODEC_ERROR

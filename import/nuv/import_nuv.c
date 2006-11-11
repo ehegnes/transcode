@@ -518,8 +518,11 @@ static int nuv_decode_video(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const int nuv_codecs_in[] = { TC_CODEC_NUV, TC_CODEC_ERROR };
-static const int nuv_codecs_out[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
+static const TCCodecID nuv_codecs_in[] = { TC_CODEC_NUV, TC_CODEC_ERROR };
+static const TCCodecID nuv_codecs_out[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
+
+static const TCFormatID nuv_formats_in[] = { TC_FORMAT_NUV, TC_FORMAT_ERROR };
+static const TCFormatID nuv_formats_out[] = { TC_FORMAT_ERROR };
 
 static const TCModuleInfo nuv_info = {
     .features    = TC_MODULE_FEATURE_DEMULTIPLEX
@@ -530,7 +533,9 @@ static const TCModuleInfo nuv_info = {
     .version     = MOD_VERSION,
     .description = MOD_CAP,
     .codecs_in   = nuv_codecs_in,
-    .codecs_out  = nuv_codecs_out
+    .codecs_out  = nuv_codecs_out,
+    .formats_in  = nuv_formats_in,
+    .formats_out = nuv_formats_out
 };
 
 static const TCModuleClass nuv_class = {

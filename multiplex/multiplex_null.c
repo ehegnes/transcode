@@ -90,10 +90,12 @@ static int null_multiplex(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const int null_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static const TCCodecID null_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
 
 /* a multiplexor is at the end of pipeline */
-static const int null_codecs_out[] = { TC_CODEC_ERROR };
+static const TCCodecID null_codecs_out[] = { TC_CODEC_ERROR };
+static const TCFormatID null_formats_in[] = { TC_FORMAT_ERROR };
+static const TCFormatID null_formats_out[] = { TC_FORMAT_NULL, TC_FORMAT_ERROR };
 
 static const TCModuleInfo null_info = {
     .features    = TC_MODULE_FEATURE_MULTIPLEX|TC_MODULE_FEATURE_VIDEO
@@ -103,7 +105,9 @@ static const TCModuleInfo null_info = {
     .version     = MOD_VERSION,
     .description = MOD_CAP,
     .codecs_in   = null_codecs_in,
-    .codecs_out  = null_codecs_out
+    .codecs_out  = null_codecs_out,
+    .formats_in  = null_formats_in,
+    .formats_out = null_formats_out
 };
 
 static const TCModuleClass null_class = {

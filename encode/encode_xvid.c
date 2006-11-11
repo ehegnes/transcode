@@ -398,15 +398,16 @@ static int tc_xvid_fini(TCModuleInstance *self)
 
 /*************************************************************************/
 
-static const int tc_xvid_codecs_in[] = {
+static const TCCodecID tc_xvid_codecs_in[] = {
     TC_CODEC_RGB, TC_CODEC_YUV422P, TC_CODEC_YUV420P,
     TC_CODEC_ERROR
 };
 
-static const int tc_xvid_codecs_out[] = {
+static const TCCodecID tc_xvid_codecs_out[] = {
     TC_CODEC_XVID,
     TC_CODEC_ERROR
 };
+static const TCFormatID tc_xvid_formats[] = { TC_FORMAT_ERROR };
 
 static const TCModuleInfo tc_xvid_info = {
     .features    = TC_MODULE_FEATURE_ENCODE|TC_MODULE_FEATURE_VIDEO,
@@ -415,7 +416,9 @@ static const TCModuleInfo tc_xvid_info = {
     .version     = MOD_VERSION,
     .description = MOD_CAP,
     .codecs_in   = tc_xvid_codecs_in,
-    .codecs_out  = tc_xvid_codecs_out
+    .codecs_out  = tc_xvid_codecs_out,
+    .formats_in  = tc_xvid_formats,
+    .formats_out = tc_xvid_formats
 };
 
 static const TCModuleClass xvid_class = {

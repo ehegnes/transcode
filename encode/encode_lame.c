@@ -405,8 +405,9 @@ static int lame_encode(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const int lame_codecs_in[] = { TC_CODEC_PCM, TC_CODEC_ERROR };
-static const int lame_codecs_out[] = { TC_CODEC_MP3, TC_CODEC_ERROR };
+static const TCCodecID lame_codecs_in[] = { TC_CODEC_PCM, TC_CODEC_ERROR };
+static const TCCodecID lame_codecs_out[] = { TC_CODEC_MP3, TC_CODEC_ERROR };
+static const TCFormatID lame_formats[] = { TC_FORMAT_ERROR };
 
 static const TCModuleInfo lame_info = {
     .features    = TC_MODULE_FEATURE_ENCODE
@@ -416,7 +417,9 @@ static const TCModuleInfo lame_info = {
     .version     = MOD_VERSION,
     .description = MOD_CAP,
     .codecs_in   = lame_codecs_in,
-    .codecs_out  = lame_codecs_out
+    .codecs_out  = lame_codecs_out,
+    .formats_in  = lame_formats,
+    .formats_out = lame_formats
 };
 
 static const TCModuleClass lame_class = {

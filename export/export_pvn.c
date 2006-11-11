@@ -211,8 +211,10 @@ static int pvn_multiplex(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const int pvn_codecs_in[] = { TC_CODEC_RGB, TC_CODEC_ERROR };
-static const int pvn_codecs_out[] = { TC_CODEC_ERROR };
+static const TCCodecID pvn_codecs_in[] = { TC_CODEC_RGB, TC_CODEC_ERROR };
+static const TCCodecID pvn_codecs_out[] = { TC_CODEC_ERROR };
+static const TCFormatID pvn_formats_in[] = { TC_FORMAT_ERROR };
+static const TCFormatID pvn_formats_out[] = { TC_FORMAT_PVN, TC_CODEC_ERROR };
 
 static const TCModuleInfo pvn_info = {
     .features    = TC_MODULE_FEATURE_MULTIPLEX
@@ -222,7 +224,9 @@ static const TCModuleInfo pvn_info = {
     .version     = MOD_VERSION,
     .description = MOD_CAP,
     .codecs_in   = pvn_codecs_in,
-    .codecs_out  = pvn_codecs_out
+    .codecs_out  = pvn_codecs_out,
+    .formats_in  = pvn_formats_in,
+    .formats_out = pvn_formats_out
 };
 
 static const TCModuleClass pvn_class = {
