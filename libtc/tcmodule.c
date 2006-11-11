@@ -187,8 +187,10 @@ static int dummy_demultiplex(TCModuleInstance *self,
 #undef DUMMY_HEAVY_CHECK
 #undef DUMMY_CHECK
 
-static int dummy_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
-static int dummy_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static TCCodecID dummy_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static TCCodecID dummy_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static TCFormatID dummy_formats_in[] = { TC_FORMAT_RAW, TC_FORMAT_ERROR };
+static TCFormatID dummy_formats_out[] = { TC_FORMAT_RAW, TC_FORMAT_ERROR };
 
 static TCModuleInfo dummy_info = {
     .features    = TC_MODULE_FEATURE_NONE,
@@ -197,7 +199,9 @@ static TCModuleInfo dummy_info = {
     .version     = "internal fake module class",
     .description = "can't do anyhing",
     .codecs_in   = dummy_codecs_in,
-    .codecs_out  = dummy_codecs_out
+    .codecs_out  = dummy_codecs_out,
+    .formats_in  = dummy_formats_in,
+    .formats_out = dummy_formats_out
 };
 
 static const TCModuleClass dummy_class = {

@@ -5,8 +5,11 @@
   * libtc/tcmodule-info.h
   Add supported formats for modules, useful for de/multiplexors.
 
-  * libtc/libtc.h libtc/tccodecs.c
+  * libtc/libtc.h libtc/tccodecs.c libtc/tcmoduleinfo.c
   Since we have now TCCodecID, use it instead of plain `int'.
+
+  * libtc/tcmodule.c
+  fill format fields for dummy internal class too.
 
 2006-11-11 Andrew Church <achurch at achurch dot org>
   * import/import_pvn.c

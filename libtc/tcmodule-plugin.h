@@ -17,7 +17,6 @@
 
 #include <stdint.h>
 
-#include "tccodecs.h"
 #include "tcmodule-info.h"
 #include "tcmodule-data.h"
 
