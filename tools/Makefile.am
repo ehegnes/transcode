@@ -17,6 +17,7 @@ bin_PROGRAMS = \
 	avisync \
 	tcexport \
 	tcmodinfo \
+	tcmodchain \
 	tcmp3cut
 
 avisync_SOURCES = \
@@ -93,6 +94,20 @@ tcmodinfo_LDADD = \
 	$(PTHREAD_LIBS) \
 	-lm
 tcmodinfo_LDFLAGS = -export-dynamic
+
+tcmodchain_SOURCES = tcmodchain.c tcstub.c
+tcmodchain_CPPFLAGS = $(AM_CPPFLAGS) \
+	$(DLDARWIN_CFLAGS)
+tcmodchain_LDADD = \
+	$(DLDARWIN_LIBS) \
+	$(ACLIB_LIBS) \
+	$(AVILIB_LIBS) \
+	$(WAVLIB_LIBS) \
+	$(LIBTC_LIBS) \
+	$(LIBTCVIDEO_LIBS) \
+	$(PTHREAD_LIBS) \
+	-lm
+tcmodchain_LDFLAGS = -export-dynamic
 
 tcexport_SOURCES = tcexport.c \
 	tcstub.c \
