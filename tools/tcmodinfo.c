@@ -23,41 +23,9 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <pthread.h>
-
-#ifdef HAVE_DLFCN_H
-#include <dlfcn.h>
-#else
-# ifdef OS_DARWIN
-#  include "libdldarwin/dlfcn.h"
-# endif
-#endif
-
-#include "framebuffer.h"
-#include "transcode.h"
-#include "filter.h"
-#include "video_trans.h"
-
-#include "libtc/cfgfile.h"
-#include "libtc/tcmodule-core.h"
+#include "tcstub.h"
 
 #define EXE "tcmodinfo"
-#define OPTS_SIZE 8192 //Buffersize
-#define NAME_LEN 256
 
 enum {
     STATUS_OK = 0,
@@ -66,36 +34,7 @@ enum {
     STATUS_MODULE_ERROR,
     STATUS_NO_SOCKET,
     STATUS_SOCKET_ERROR,
-};
-
-/* FIXME: this should use the routines from filter.c */
-static struct {
-  int id;
-  int status;
-  int unload;
-  char *options;
-  void *handle;
-  char *name;
-  int namelen;
-  int (*entry)(void *ptr, void *options);
-} filter[MAX_FILTERS];
-static vob_t vob = {
-    // some arbitrary values for the modules
-    .fps = PAL_FPS,
-    .im_v_width = 32,
-    .ex_v_width = 32,
-    .im_v_height= 32,
-    .ex_v_height= 32,
-    .im_v_codec = CODEC_YUV,
-
-    .mp3frequency = RATE,
-    .a_rate = RATE,
-    .a_chan = CHANNELS,
-    .a_bits = BITS,
-    .a_vbr = AVBR,
-
-    .video_in_file = "/dev/zero",
-    .audio_in_file = "/dev/zero",
+    STATUS_BAD_MODULES,
 };
 
 void version(void)
@@ -116,94 +55,6 @@ static void usage(void)
     fprintf(stderr, "    -s socket         Connect to transcode socket\n");
     fprintf(stderr, "    -t type           Type of module (filter, encode, multiplex)\n");
     fprintf(stderr, "\n");
-}
-
-// dependencies
-// Yeah, this sucks
-vob_t *tc_get_vob()
-{
-    return &vob;
-}
-
-int tc_filter_add(const char *name, const char *options)
-{
-    return 0;
-}
-
-int tc_filter_find(const char *name)
-{
-    return 0;
-}
-
-/* symbols needed by modules */
-int verbose  = TC_INFO;
-int rgbswap  = 0;
-int tc_accel = -1;    //acceleration code
-int flip = 0;
-int max_frame_buffer = 0;
-int gamma_table_flag = 0;
-int tc_socket_msgchar;
-int tc_socket_msg_lock;
-
-void tc_socket_config(void);
-void tc_socket_disable(void);
-void tc_socket_enable(void);
-void tc_socket_list(void);
-void tc_socket_load(void);
-void tc_socket_parameter(void);
-void tc_socket_preview(void);
-void tc_socket_config(void) {}
-void tc_socket_disable(void) {}
-void tc_socket_enable(void) {}
-void tc_socket_list(void) {}
-void tc_socket_load(void) {}
-void tc_socket_parameter(void) {}
-void tc_socket_preview(void) {}
-
-static int load_plugin(const char *path, int id, int verbose)
-{
-    const char *error;
-    char module[TC_BUF_MAX];
-    int n;
-
-    if (!filter[id].name) {
-        return -1;
-    }
-
-    filter[id].options=NULL;
-
-    /* replace "=" by "/0" in filter name */
-    for (n = 0; n < strlen(filter[id].name); ++n) {
-        if (filter[id].name[n] == '=') {
-            filter[id].name[n] = '\0';
-            filter[id].options = filter[id].name + n + 1;
-            break;
-        }
-    }
-
-    tc_snprintf(module, sizeof(module), "%s/filter_%s.so", path, filter[id].name);
-
-    /* try transcode's module directory */
-    filter[id].handle = dlopen(module, RTLD_LAZY);
-
-    if (!filter[id].handle) {
-        if (verbose) {
-            tc_log_error(EXE, "loading filter module '%s' failed (reason: %s)",
-                         module, dlerror());
-        }
-        return -1;
-    } else {
-        filter[id].entry = dlsym(filter[id].handle, "tc_filter");
-    }
-
-    if ((error = dlerror()) != NULL)  {
-        if (verbose) {
-            tc_log_error(EXE, "error while loading '%s': %s\n",
-                         module, error);
-        }
-        return -1;
-    }
-    return 0;
 }
 
 static int do_connect_socket(const char *socketfile)
@@ -461,17 +312,14 @@ int main(int argc, char *argv[])
    return status;
 }
 
-#include "libtc/ratiocodes.h"
-void dummy_misc(void);
-void dummy_misc(void)
-{
-    int n, d;
-    tc_frc_code_to_ratio(3, &n, &d);
-}
+/*************************************************************************/
 
-#include "libtc/static_optstr.h"
-#include "avilib/static_avilib.h"
-#include "avilib/static_wavlib.h"
-
-/* vim: sw=4
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
  */

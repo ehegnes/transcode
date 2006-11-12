@@ -1,3 +1,10 @@
+2006-11-12 Francesco Romani <fromani at gmail dot com>
+  * Added files: tools/tcstub.c tools/tcstub.h
+  refactorize and extract stub code needed by helper tools.
+
+  * tools/Makefile.am tools/tcmodinfo.c tools/tcexport.c
+  port to new stub code.
+
 2006-11-11 Francesco Romani <fromani at gmail dot com>
   * Added file: libtc/tcformat.h
   Add known formats specifier much like already done for codecs.
