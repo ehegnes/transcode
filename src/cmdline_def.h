@@ -1,5 +1,5 @@
 /*
- * cmdline.h -- transcode command line option definitions
+ * cmdline_def.h -- transcode command line option definitions
  * Written by Andrew Church <achurch@achurch.org>
  *
  * This file is part of transcode, a video stream processing tool.
