@@ -80,7 +80,7 @@ avisplit_LDADD = \
 	$(ACLIB_LIBS) \
 	$(LIBTC_LIBS)
 
-tcmodinfo_SOURCES = tcmodinfo.c
+tcmodinfo_SOURCES = tcmodinfo.c tcstub.c
 tcmodinfo_CPPFLAGS = $(AM_CPPFLAGS) \
 	$(DLDARWIN_CFLAGS)
 tcmodinfo_LDADD = \
@@ -95,6 +95,7 @@ tcmodinfo_LDADD = \
 tcmodinfo_LDFLAGS = -export-dynamic
 
 tcexport_SOURCES = tcexport.c \
+	tcstub.c \
 	rawsource.c \
 	rawsource.h \
 	../src/probe.c \
@@ -124,3 +125,4 @@ tcmp3cut_SOURCES = \
 	aud_scan.h
 tcmp3cut_LDADD = \
 	$(LIBTC_LIBS)
+
