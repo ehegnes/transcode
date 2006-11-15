@@ -1462,7 +1462,7 @@ TC_OPTION(chapter_mode,       'U', "base",
 
 /********/ TC_HEADER("Miscellaneous options") /********/
 
-TC_OPTION(no_colored_log,      0,  0,
+TC_OPTION(no_log_color,      0,  0,
                 "disable colors in log messages [use colors]",
                 libtc_setup(LIBTC_FLAG_NO_COLORED_LOG);
 )
