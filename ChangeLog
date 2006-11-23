@@ -1,3 +1,9 @@
+2006-11-23 Francesco Romani <fromani at gmail dot com>
+  * import/decode_mpeg2.c
+  make more STYLE compliant
+  review RGB24 handling
+  small (and mostyl cosmetical) fixes
+
 2006-11-15 Francesco Romani <fromani at gmail dot com>
   * src/cmdline_def.h docs/man/transcode.1
   review a bit --no_log_color option and update manpage accordingly.
