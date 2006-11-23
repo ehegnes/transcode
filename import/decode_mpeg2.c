@@ -92,11 +92,6 @@ static void write_yuv420p(decode_t *decode, const mpeg2_info_t *info,
     WRITE_YUV_PLANE(2, len);
 }
 
-typedef int mpeg2_convert_t (int stage, void * id,
-			     const mpeg2_sequence_t * sequence, int stride,
-			     uint32_t accel, void * arg,
-			     mpeg2_convert_init_t * result);
-
 
 /* ------------------------------------------------------------
  * decoder entry point
