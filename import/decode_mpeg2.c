@@ -42,93 +42,141 @@
 #define BUFFER_SIZE 262144
 static uint8_t buffer[BUFFER_SIZE];
 
-/* ------------------------------------------------------------ 
- *
- * decoder thread
- *
+/* ------------------------------------------------------------
+ * helper functions
  * ------------------------------------------------------------*/
 
-static void
-show_accel(uint32_t mp_ac) {
-	fprintf (stderr, "[%s] libmpeg2 acceleration: ", __FILE__);
-	if (mp_ac & MPEG2_ACCEL_X86_3DNOW)
-		fprintf (stderr, "3dnow\n");
-	else if (mp_ac & MPEG2_ACCEL_X86_MMXEXT)
-		fprintf (stderr, "mmxext\n");
-	else if(mp_ac & MPEG2_ACCEL_X86_MMX)
-		fprintf (stderr, "mmx\n");
-	else
-		fprintf (stderr, "none (plain C)\n");
+typedef void (*WriteDataFn)(decode_t *decode, const mpeg2_info_t *info,
+                            const mpeg2_sequence_t *sequence);
+
+static void show_accel(uint32_t mp_ac)
+{
+    fprintf(stderr, "[%s] libmpeg2 acceleration: %s",
+                __FILE__,
+                (mp_ac & MPEG2_ACCEL_X86_3DNOW)  ? "3dnow" :
+                (mp_ac & MPEG2_ACCEL_X86_MMXEXT) ? "mmxext" :
+                (mp_ac & MPEG2_ACCEL_X86_MMX)    ? "mmx" :
+                                                   "none (plain C)");
 }
 
+#define WRITE_DATA(PBUF, LEN, TAG) do { \
+    int ret = p_write(decode->fd_out, PBUF, LEN); \
+    if(LEN != ret) { \
+        fprintf(stderr, "[%s] failed to write %s data" \
+                         " of frame (len=%i)", \
+                         __FILE__, TAG, ret); \
+        import_exit(1); \
+    } \
+} while (0)
+
+#define WRITE_YUV_PLANE(ID, LEN) do { \
+    static const char *plane_id[] = { "Y", "U", "V" }; \
+    WRITE_DATA(info->display_fbuf->buf[ID], LEN, plane_id[ID]); \
+} while (0)
+
+
+static void write_rgb24(decode_t *decode, const mpeg2_info_t *info,
+                        const mpeg2_sequence_t *sequence)
+{
+    int len = 0;
+    /* FIXME: move to libtc/tcframes routines? */
+
+    len = 3 * info->sequence->width * info->sequence->height;
+    WRITE_DATA(info->display_fbuf->buf[0], len, "RGB"); 
+}
+
+static void write_yuv420p(decode_t *decode, const mpeg2_info_t *info,
+                          const mpeg2_sequence_t *sequence)
+{
+    int len = 0;
+    /* FIXME: move to libtc/tcframes routines? */
+
+    len = sequence->width * sequence->height;
+    WRITE_YUV_PLANE(0, len);
+                
+    len = sequence->chroma_width * sequence->chroma_height;
+    WRITE_YUV_PLANE(1, len);
+    WRITE_YUV_PLANE(2, len);
+}
+
+
+/* ------------------------------------------------------------
+ * decoder entry point
+ * ------------------------------------------------------------*/
 
 void decode_mpeg2(decode_t *decode)
 {
-    mpeg2dec_t * decoder;
-    const mpeg2_info_t * info;
-    const mpeg2_sequence_t * sequence;
+    int framenum = 0;
+    mpeg2dec_t *decoder = NULL;
+    const mpeg2_info_t *info = NULL;
+    const mpeg2_sequence_t *sequence = NULL;
     mpeg2_state_t state;
     size_t size;
-    int framenum = 0, len = 0;
-    uint32_t ac;
+    uint32_t ac = 0;
 
-    fprintf (stderr, "[%s] libmpeg2 0.4.0b loop decoder\n", 
-		    __FILE__);
-    
-    ac = mpeg2_accel (MPEG2_ACCEL_DETECT);
-    
-    show_accel (ac);
-    
-    decoder = mpeg2_init ();
-    if (decoder == NULL) {
-	fprintf (stderr, "Could not allocate a decoder object.\n");
-	import_exit(1);
+    WriteDataFn writer = write_yuv420p;
+    if (decode->format == TC_CODEC_RGB) {
+        fprintf(stderr, "[%s] using libmpeg2convert"
+                        " RGB24 conversion", __FILE__);
+        writer = write_rgb24;
     }
-    info = mpeg2_info (decoder);
+
+    ac = mpeg2_accel(MPEG2_ACCEL_DETECT);
+    show_accel(ac);
+
+    decoder = mpeg2_init();
+    if (decoder == NULL) {
+        fprintf(stderr, "[%s] Could not allocate a decoder object.",
+                __FILE__);
+        import_exit(1);
+    }
+    info = mpeg2_info(decoder);
 
     size = (size_t)-1;
     do {
-	state = mpeg2_parse (decoder);
-	sequence = info->sequence;
-	switch (state) {
-	case STATE_BUFFER:
-	    size = p_read (decode->fd_in, buffer, BUFFER_SIZE);
-	    mpeg2_buffer (decoder, buffer, buffer + size);
-	    break;
-	case STATE_SEQUENCE:
-    	    if(decode->format == TC_CODEC_RGB) {
-	        mpeg2_convert (decoder, mpeg2convert_rgb24, NULL);
-	    }	    
-	    break;
-	case STATE_SLICE:
-	case STATE_END:
-	case STATE_INVALID_END:
-	    if (info->display_fbuf) {
-		if (decode->verbose >= 4) {
-			fprintf (stderr, "[%s] decoded frame #%09i\r", 
-					__FILE__, framenum++);
-		}
-		len = sequence->width * sequence->height;
-		if(len != p_write (decode->fd_out, info->display_fbuf->buf[0], len)) {
-			fprintf (stderr, "failed to write Y plane of frame");
-			import_exit (1);
-		}
-		len = sequence->chroma_width * sequence->chroma_height;
-		if (len != p_write (decode->fd_out, info->display_fbuf->buf[2], len)) {
-			fprintf (stderr, "failed to write U plane of frame");
-			import_exit (1);
-		}
-		if (len != p_write (decode->fd_out, info->display_fbuf->buf[1], len)) {
-			fprintf (stderr, "failed to write V plane of frame");
-			import_exit (1);
-		}
-	    }
-	    break;
-	default:
-	    break;
-	}
+        state = mpeg2_parse(decoder);
+        sequence = info->sequence;
+        switch (state) {
+          case STATE_BUFFER:
+            size = p_read(decode->fd_in, buffer, BUFFER_SIZE);
+            mpeg2_buffer(decoder, buffer, buffer + size);
+            break;
+          case STATE_SEQUENCE:
+            if (decode->format == TC_CODEC_RGB) {
+                mpeg2_convert(decoder, mpeg2convert_rgb24, NULL);
+            }
+            break;
+          case STATE_SLICE:
+          case STATE_END:
+          case STATE_INVALID_END:
+            if (info->display_fbuf) {
+                if (decode->verbose >= 4) {
+                    fprintf(stderr, "[%s] decoded frame #%09i\r",
+                                    __FILE__, framenum);
+                    framenum++;
+                }
+                writer(decode, info, sequence);
+            }
+            break;
+          default:
+            /* can't happen */
+            break;
+        }
     } while (size);
 
-    mpeg2_close (decoder);
+    mpeg2_close(decoder);
     import_exit(0);
 }
+
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */
+
