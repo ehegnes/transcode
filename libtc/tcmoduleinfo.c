@@ -8,9 +8,9 @@
  * for details.
  */
 
-#include "src/transcode.h"
 #include "libtc.h"
 #include "tcmodule-info.h"
+#include "transcode.h"
 
 #include <string.h>
 
