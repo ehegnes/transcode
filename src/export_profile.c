@@ -109,7 +109,6 @@ static TCExportProfile prof_data = {
     .info.audio.bit_reservoir = TC_TRUE,
 };
 
-
 /* private helpers: declaration *******************************************/
 
 /*
@@ -152,7 +151,6 @@ static TCExportProfile prof_data = {
 static int tc_load_single_export_profile(int i, TCConfigEntry *config,
                                          const char *sys_path,
                                          const char *user_path);
-
 
 /* utilities used internally (yet) */
 
@@ -199,8 +197,8 @@ int tc_setup_export_profile(int *argc, char ***argv)
 
     /* guess package name from command line */
     package = (*argv)[0];
-    ret = tc_mangle_cmdline(argc, argv, TC_EXPORT_PROFILE_OPT,
-                            &optval);
+    ret = tc_mangle_cmdline(argc, argv,
+                            TC_EXPORT_PROFILE_OPT, &optval);
     if (ret == 0) { /* success */
         prof_data.profiles = tc_strsplit(optval, ',',
                                          &prof_data.profile_count);
@@ -222,11 +220,9 @@ void tc_cleanup_export_profile(void)
 
 const TCExportInfo *tc_load_export_profile(void)
 {
-    char home_path[PATH_MAX + 1];
-    const char *home = NULL;
-    int i = 0;
-    /* not all setting swill be accessible from here */
-    TCConfigEntry profile_conf[] = {
+    /* not all settings will be accessible from here */
+    /* note static here */
+    static TCConfigEntry profile_conf[] = { 
         /* video stuff */
         { "video_codec", &(prof_data.video_codec),
                         TCCONF_TYPE_STRING, 0, 0, 0 },
@@ -291,7 +287,9 @@ const TCExportInfo *tc_load_export_profile(void)
                         TCCONF_TYPE_STRING, 0, 0, 0 },
         { NULL, NULL, 0, 0, 0, 0 }
     };
-    home = getenv("HOME");
+    char home_path[PATH_MAX + 1];
+    const char *home = getenv("HOME");
+    int i = 0;
 
     if (home != NULL) {
         tc_snprintf(home_path, sizeof(home_path), "%s/%s",
@@ -488,3 +486,15 @@ static int setup_clip_area(const char *str, TCArea *area)
 
     return 1;
 }
+
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */
