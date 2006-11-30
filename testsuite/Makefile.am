@@ -22,6 +22,7 @@ noinst_PROGRAMS = \
 	test-framealloc \
 	test-imgconvert \
 	test-iodir \
+	test-mangle-cmdline \
 	test-ratiocodes \
 	test-resize-values \
 	test-tclog \
@@ -64,6 +65,9 @@ test_tcmoduleinfo_LDADD = $(LIBTC_LIBS)
 
 test_tcstrdup_SOURCES = test-tcstrdup.c
 test_tcstrdup_LDADD = $(LIBTC_LIBS)
+
+test_mangle_cmdline_SOURCES = test-mangle-cmdline.c
+test_mangle_cmdline_LDADD = $(LIBTC_LIBS)
 
 test_export_profile_SOURCES = test-export-profile.c ../src/export_profile.c
 test_export_profile_LDADD = $(LIBTC_LIBS)

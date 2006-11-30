@@ -1,4 +1,9 @@
 2006-11-30 Francesco Romani <fromani at gmail dot com>
+  * added file: testsuite/test-mangle-cmdline.c
+
+  * testsuite/Makefile.am
+  add basic testsuite for tc_mangle_cmdline()
+
   * libtc/libtc.h libtc/tc_functions.c
   allow tc_mangle_cmdline to handle options without values.
 
