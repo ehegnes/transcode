@@ -1,7 +1,7 @@
 /*
- * test-tcstrdup.c - testsuite for tc_*strdup* family (tc_functions.c);
- *                   everyone feel free to add more tests and improve
- *                   existing ones.
+ * test-mangle-cmdline - testsuite for tc_mangle_cmdline() function;
+ *                       everyone feel free to add more tests and improve
+ *                       existing ones.
  * (C) 2006 - Francesco Romani <fromani -at- gmail -dot- com>
  *
  * This file is part of transcode, a video stream processing tool.
