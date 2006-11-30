@@ -149,22 +149,26 @@ int tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
 int tc_mangle_cmdline(int *argc, char ***argv,
                       const char *opt, const char **optval)
 {
-    int i, found = TC_FALSE;
+    int i = 0, skew = (optval == NULL) ?1 :2, err = 1;
 
-    if (argc == NULL || argv == NULL || opt == NULL || optval == NULL) {
-        return 1;
+    if (argc == NULL || argv == NULL || opt == NULL) {
+        return err;
     }
 
+    err = -1; /* no option and/or value found */
     /* first we looking for our option (and it's value) */
     for (i = 1; i < *argc; i++) {
         if ((*argv)[i] && strcmp((*argv)[i], opt) == 0) {
-            if (i + 1 >= *argc || (*argv)[i + 1][0] == '-') {
-                /* report bad usage */
-                tc_log_warn(__FILE__, "wrong usage for option '%s'", opt);
-                return -1;
+            if (optval == NULL) {
+                err = 0; /* we're set */
             } else {
-                found = TC_TRUE;
-                *optval = (*argv)[i + 1];
+                /* don't peek after the end... */
+                if (i + 1 >= *argc || (*argv)[i + 1][0] == '-') {
+                    tc_log_warn(__FILE__, "wrong usage for option '%s'", opt);
+                } else {
+                    *optval = (*argv)[i + 1];
+                    err = 0;
+                }
             }
             break;
         }
@@ -174,14 +178,14 @@ int tc_mangle_cmdline(int *argc, char ***argv,
      * if we've found our option, now we must shift back all
      * the other options after the ours and we must also update argc.
      */
-    if (found) {
-        for (; i < (*argc - 2); i++) {
-            (*argv)[i] = (*argv)[i + 2];
+    if (!err) {
+        for (; i < (*argc - skew); i++) {
+            (*argv)[i] = (*argv)[i + skew];
         }
-        (*argc) -= 2;
+        (*argc) -= skew;
     }
 
-    return 0;
+    return err;
 }
 
 
@@ -812,7 +816,7 @@ void tc_print_matrix(uint8_t *m8, uint16_t *m16)
             tc_log_info("print_matrix",
                         "%3d %3d %3d %3d "
                         "%3d %3d %3d %3d",
-                        (int)m8[i],   (int)m8[i+1],
+                        (int)m8[i  ], (int)m8[i+1],
                         (int)m8[i+2], (int)m8[i+3],
                         (int)m8[i+4], (int)m8[i+5],
                         (int)m8[i+6], (int)m8[i+7]);
@@ -820,7 +824,7 @@ void tc_print_matrix(uint8_t *m8, uint16_t *m16)
             tc_log_info("print_matrix",
                         "%3d %3d %3d %3d "
                         "%3d %3d %3d %3d",
-                        (int)m16[i],   (int)m16[i+1],
+                        (int)m16[i  ], (int)m16[i+1],
                         (int)m16[i+2], (int)m16[i+3],
                         (int)m16[i+4], (int)m16[i+5],
                         (int)m16[i+6], (int)m16[i+7]);

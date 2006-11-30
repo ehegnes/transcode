@@ -1,4 +1,7 @@
 2006-11-30 Francesco Romani <fromani at gmail dot com>
+  * libtc/libtc.h libtc/tc_functions.c
+  allow tc_mangle_cmdline to handle options without values.
+
   * libtc/tccodecs.c libtc/tccodecs.h
   add another helper function: multipass capability check.
 
