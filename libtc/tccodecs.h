@@ -72,7 +72,7 @@ typedef enum {
     TC_CODEC_DIVX5,
     TC_CODEC_XVID,
     TC_CODEC_H264,
-    TC_CODEC_MJPG,
+    TC_CODEC_MJPG,	/* FIXME: will become MJPEG soon */
     TC_CODEC_MPG1,
     TC_CODEC_NUV,
     TC_CODEC_LZO1,
@@ -96,6 +96,7 @@ typedef enum {
     TC_CODEC_MPEG1VIDEO,
     TC_CODEC_MPEG2VIDEO,
     TC_CODEC_MPEG4VIDEO,
+    TC_CODEC_LJPEG,	/* lossless (motion) JPEG */
 
     /* special (pseudo)codecs */
     TC_CODEC_UNKNOWN    = 0x00000000,

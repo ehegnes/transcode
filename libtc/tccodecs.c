@@ -265,6 +265,16 @@ int tc_codec_description(TCCodecID codec, char *buf, size_t bufsize)
     return ret;
 }
 
+int tc_codec_is_multipass(TCCodecID codec)
+{
+    int idx = find_tc_codec(tc_codecs_info, id_matcher, &codec);
+
+    if (idx == TC_NULL_MATCH) { /* not found */
+        return TC_FALSE;
+    }
+    return tc_codecs_info[idx].multipass;
+}
+
 /*************************************************************************/
 
 /*

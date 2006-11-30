@@ -1,3 +1,7 @@
+2006-11-30 Francesco Romani <fromani at gmail dot com>
+  * libtc/tccodecs.c libtc/tccodecs.h
+  add another helper function: multipass capability check.
+
 2006-11-23 Francesco Romani <fromani at gmail dot com>
   * import/decode_mpeg2.c
   make more STYLE compliant
