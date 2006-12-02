@@ -70,6 +70,9 @@ extern "C" {
 #define COL_WHITE           COL(37)
 #define COL_GRAY            "\033[0m"
 
+#define TC_LOG_COLOR_ENV_VAR	"TRANSCODE_LOG_COLOR"
+#define TC_LOG_COLOR_OPTION     "--no_log_color"
+
 /* 
  * Made to be compatible with 
  *      TC_IMPORT_{OK,ERROR,UNKNOWN}
@@ -97,12 +100,6 @@ typedef enum {
 } TCLogLevel;
 
 
-typedef enum {
-    LIBTC_FLAG_NONE = 0,
-    LIBTC_FLAG_NO_COLORED_LOG = 1, /* disable tc_log*() colored output */
-} LibTCFlags;
-
-
 /*
  * libtc_setup:
  *     tune up some libtc settings.
@@ -124,7 +121,7 @@ typedef enum {
  * Preconditions:
  *     this function, IF used, MUST be called BEFORE any other libtc function.
  */
-void libtc_setup(uint32_t flags);
+void libtc_init(int *argc, char ***argv);
 
 /*
  * tc_log:
@@ -692,6 +689,18 @@ const char* tc_codec_fourcc(TCCodecID codec);
  *     0  no errors.
  */
 int tc_codec_description(TCCodecID codec, char *buf, size_t bufsize);
+
+/* 
+ * tc_codec_is_multipass:
+ *     tell if a given codec is multipass capable or not.
+ *
+ * Parameters:
+ *     codec: TC_CODEC_* value to inquiry.
+ * Return value:
+ *     TC_TRUE: given codec is multipass capable.
+ *     TC_FALSE: given codec is NOT multipass capable OR is not known.
+ */
+int tc_codec_is_multipass(TCCodecID codec);
 
 /*************************************************************************/
 

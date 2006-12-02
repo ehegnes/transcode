@@ -1,3 +1,12 @@
+2006-12-02 Francesco Romani <fromani at gmail dot com>
+  * libtc/libtc.h
+  Forgot to add header for tc_codec_is_multipass :)
+  Add new libtc_init to handle disabling of colored logging.
+  libtc_setup is now gone.
+
+  * libtc/tc_functions.c
+  drop libtc_setup, enter libtc_init.
+
 2006-11-30 Francesco Romani <fromani at gmail dot com>
   * added file: testsuite/test-mangle-cmdline.c
 

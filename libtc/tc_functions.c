@@ -67,10 +67,17 @@ static int tc_log_use_colors = TC_TRUE;
  */
 
 
-void libtc_setup(uint32_t flags)
+void libtc_init(int *argc, char ***argv)
 {
-    if (flags & LIBTC_FLAG_NO_COLORED_LOG) {
+    int ret = tc_mangle_cmdline(argc, argv, TC_LOG_COLOR_OPTION, NULL);
+
+    if (ret == 0) {
         tc_log_use_colors = TC_FALSE;
+    } else {
+        const char *envvar = getenv(TC_LOG_COLOR_ENV_VAR);
+        if (envvar != NULL) {
+                tc_log_use_colors = TC_FALSE;
+        }
     }
 }
 
