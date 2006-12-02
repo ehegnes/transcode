@@ -104,6 +104,8 @@ int main(int argc, char *argv[])
     decode.frame_limit[0]=0;
     decode.frame_limit[1]=LONG_MAX;
 
+    libtc_init(&argc, &argv);
+
     while ((ch = getopt(argc, argv, "Q:t:d:x:i:a:g:vy:s:YC:A:z:?h")) != -1) {
 	switch (ch) {
 

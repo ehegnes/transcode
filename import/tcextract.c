@@ -103,6 +103,7 @@ int main(int argc, char *argv[])
     ipipe.frame_limit[0]=0;
     ipipe.frame_limit[1]=LONG_MAX;
 
+    libtc_init(&argc, &argv);
 
     while ((ch = getopt(argc, argv, "d:x:i:f:a:vt:C:?h")) != -1) {
 

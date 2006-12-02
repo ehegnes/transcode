@@ -1704,7 +1704,9 @@ int main (int argc, char *argv[])
 	fact_x = 1.25;
 	byte_stuff = 1;
 
-	while ((ch = getopt(argc, argv, "b:d:i:o:f:v?h")) != -1) {
+    libtc_init(&argc, &argv);
+
+    while ((ch = getopt(argc, argv, "b:d:i:o:f:v?h")) != -1) {
 
 	    switch (ch) {
 

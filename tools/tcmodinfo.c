@@ -161,7 +161,9 @@ int main(int argc, char *argv[])
         return STATUS_BAD_PARAM;
     }
 
-    while(1) {
+    libtc_init(&argc, &argv);
+
+    while (1) {
         ch = getopt(argc, argv, "d:i:?vhpm:M:s:t:");
         if (ch == -1) {
             break;

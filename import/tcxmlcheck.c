@@ -138,6 +138,8 @@ int main(int argc, char *argv[])
 	s_vob.audio_in_file= "/dev/zero";
 	s_vob.video_in_file= "/dev/zero";
 
+    libtc_init(&argc, &argv);
+
 	while ((s_cmd = getopt(argc, argv, "i:p:vSBAVh")) != -1)
 	{
 		switch (s_cmd)

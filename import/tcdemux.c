@@ -133,6 +133,8 @@ int main(int argc, char *argv[])
 
     for(n=0; n<5; ++n) pass[n]=0;
 
+    libtc_init(&argc, &argv);
+
     while ((ch = getopt(argc, argv, "A:a:d:x:i:vt:S:M:f:P:WHs:O?h")) != -1) {
 
       switch (ch) {

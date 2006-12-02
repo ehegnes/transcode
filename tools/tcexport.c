@@ -173,7 +173,9 @@ static int parse_options(int argc, char** argv, TCEncConf *conf)
         return STATUS_BAD_PARAM;
     }
 
-    while(1) {
+    libtc_init(&argc, &argv);
+
+    while (1) {
         ch = getopt(argc, argv, "b:c:Dd:hi:m:N:o:p:R:y:w:v?");
         if (ch == -1) {
             break;

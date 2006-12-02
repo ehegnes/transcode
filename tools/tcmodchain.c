@@ -1,6 +1,6 @@
 /*
- * tcexport.c - standalone encoder frontend for transcode
- * Copyright (C) Francesco Romani - February 2006
+ * tcmodchain.c - simple module system explorer frontend
+ * Copyright (C) Francesco Romani - November 2006
  *
  * This file is part of transcode, a video stream processing tool.
  * transcode is free software, distributable under the terms of the GNU
@@ -136,6 +136,8 @@ int main(int argc, char *argv[])
     for (i = 0; i < MAX_MODS; i++) {
         modrequest_init(&mods[i]);
     }
+
+    libtc_init(&argc, &argv);
 
     while (1) {
         ch = getopt(argc, argv, "d:?vhm:");

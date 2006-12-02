@@ -233,6 +233,8 @@ int main(int argc, char *argv[])
   //proper initialization
   memset(&ipipe, 0, sizeof(info_t));
 
+  libtc_init(&argc, &argv);
+
   while ((ch = getopt(argc, argv, "c:b:e:i:vx:f:d:w:?h")) != -1) {
 
     switch (ch) {

@@ -613,6 +613,12 @@ int main(int argc, char *argv[])
      *
      * ------------------------------------------------------------ */
 
+    /* 
+     * A *FEW* special options that deserve separate treatment.
+     * PLEASE keep VERY LOW the number of this special cases.
+     */
+    libtc_init(&argc, &argv);
+
     if (!parse_cmdline(argc, argv, vob))
         exit(EXIT_FAILURE);
 

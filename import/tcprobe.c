@@ -952,6 +952,8 @@ int main(int argc, char *argv[])
     ipipe.factor = 1;
     ipipe.dvd_title = 1;
 
+    libtc_init(&argc, &argv);
+
     while ((ch = getopt(argc, argv, "i:vBMRXd:T:f:b:s:H:?h")) != -1) {
         switch (ch) {
           case 'b':
