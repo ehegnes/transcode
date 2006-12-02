@@ -70,7 +70,7 @@ extern "C" {
 #define COL_WHITE           COL(37)
 #define COL_GRAY            "\033[0m"
 
-#define TC_LOG_COLOR_ENV_VAR	"TRANSCODE_LOG_COLOR"
+#define TC_LOG_COLOR_ENV_VAR	"TRANSCODE_NO_LOG_COLOR"
 #define TC_LOG_COLOR_OPTION     "--no_log_color"
 
 /* 
