@@ -1462,10 +1462,14 @@ TC_OPTION(chapter_mode,       'U', "base",
 
 /********/ TC_HEADER("Miscellaneous options") /********/
 
+#ifdef TC_OPTIONS_TO_HELP
+/* produce ONLY help messages since this option require special tratment */
 TC_OPTION(no_log_color,      0,  0,
                 "disable colors in log messages [use colors]",
-                libtc_setup(LIBTC_FLAG_NO_COLORED_LOG);
+                ; /* nothing */
 )
+#endif /* TC_OPTIONS_TO_HELP */
+
 TC_OPTION(buffers,            'u', "N",
                 "use N framebuffers for AV processing [10]",
                 /* FIXME: threads ought to be a separate option */
