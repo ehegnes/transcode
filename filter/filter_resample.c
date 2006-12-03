@@ -58,6 +58,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if  (ptr->tag & TC_FILTER_INIT) {
         double samples_per_frame, ratio;
+
         vob = tc_get_vob();
         if (vob == NULL) {
             return TC_ERROR;
@@ -145,7 +146,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
             if (verbose & TC_STATS)
                 tc_log_info(MOD_NAME, "outbuf: %i", ptr->audio_size);
 
-            if (ptr->audio_size<0)
+            if (ptr->audio_size < 0)
                 ptr->audio_size = 0;
 
             ac_memcpy(ptr->audio_buf, resample_buffer, ptr->audio_size);

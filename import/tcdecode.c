@@ -251,8 +251,8 @@ int main(int argc, char *argv[])
 	else if (!strcmp(codec, "divx")) decode.codec = TC_CODEC_DIVX4;
 	else if (!strcmp(codec, "divx4")) decode.codec = TC_CODEC_DIVX4;
 	else if (!strcmp(codec, "mp42")) decode.codec = TC_CODEC_MP42;
-	else if (!strcmp(codec, "mjpg")) decode.codec = TC_CODEC_MJPG;
-	else if (!strcmp(codec, "mjpeg")) decode.codec = TC_CODEC_MJPG;
+	else if (!strcmp(codec, "mjpg")) decode.codec = TC_CODEC_MJPEG;
+	else if (!strcmp(codec, "mjpeg")) decode.codec = TC_CODEC_MJPEG;
 	else if (!strcmp(codec, "rv10")) decode.codec = TC_CODEC_RV10;
 	else if (!strcmp(codec, "svq1")) decode.codec = TC_CODEC_SVQ1;
 	else if (!strcmp(codec, "svq3")) decode.codec = TC_CODEC_SVQ3;

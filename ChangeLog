@@ -1,4 +1,11 @@
 2006-12-03 Francesco Romani <fromani at gmail dot com>
+  * export/export_mov.c import/decode_lavc.c import/extract_avi.c
+    import/import_ffmpeg.c import/probe_mov.c import/probe_ogg.c
+    import/tcdecode.c libtc/tccodecs.c libtc/tccodecs.h
+    multiplex/multiplex_avi.c src/probe.c
+  TC_CODEC_MJPG -> TC_CODEC_MJPEG, as planned some time ago
+  (just a rename).
+
   * docs/man/transcode.1
   add basic documentation for newly introduced environment variable.
 

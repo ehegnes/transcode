@@ -44,7 +44,7 @@ static const TCCodecInfo tc_codecs_info[] = {
     { TC_CODEC_DIVX3, "divx3", "DIV3", "DivX;-)", 1, TC_VIDEO },
     { TC_CODEC_DIVX4, "divx4", "DIVX", "DivX 4.x", 1, TC_VIDEO },
     { TC_CODEC_DIVX5, "divx5", "DX50", "DivX 5.x", 1, TC_VIDEO },
-    { TC_CODEC_MJPG, "mjpeg", "MJPG", "MJPEG", 0, TC_VIDEO },
+    { TC_CODEC_MJPEG, "mjpeg", "MJPG", "MJPEG", 0, TC_VIDEO },
     { TC_CODEC_DV, "dvvideo", "DVSD", "DV", 0, TC_VIDEO },
     { TC_CODEC_LZO1, "lzo1", "LZO1", "LZO v1", 0, TC_VIDEO },
     { TC_CODEC_LZO2, "lzo2", "LZO2", "LZO v2", 0, TC_VIDEO },

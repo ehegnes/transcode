@@ -260,7 +260,7 @@ void probe_ogg(info_t *ipipe)
 				ipipe->probe_info->codec=TC_CODEC_XVID;
 
 			    if(strcasecmp(vid_codec,"MJPG")==0)
-				ipipe->probe_info->codec=TC_CODEC_MJPG;
+				ipipe->probe_info->codec=TC_CODEC_MJPEG;
 			}
 
 			idx = natracks + MAX_AUDIO_TRACKS;

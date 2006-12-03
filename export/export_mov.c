@@ -298,7 +298,7 @@ MOD_init
             /* set out output codec to input codec */
             if(qt_codec == NULL || strlen(qt_codec)==0) {
                 switch (vob->v_codec_flag) {
-                    case TC_CODEC_MJPG:
+                    case TC_CODEC_MJPEG:
                         quicktime_set_video(qtfile, 1, w, h, vob->ex_fps,"jpeg");
                         break;
 

@@ -72,7 +72,7 @@ typedef enum {
     TC_CODEC_DIVX5,
     TC_CODEC_XVID,
     TC_CODEC_H264,
-    TC_CODEC_MJPG,	/* FIXME: will become MJPEG soon */
+    TC_CODEC_MJPEG,
     TC_CODEC_MPG1,
     TC_CODEC_NUV,
     TC_CODEC_LZO1,

@@ -115,7 +115,7 @@ void probe_mov(info_t *ipipe)
 	ipipe->probe_info->codec=TC_CODEC_DIVX5;
 
       if(strcasecmp(codec,"MJPG")==0 || strcasecmp(codec,"JPEG")==0)
-	ipipe->probe_info->codec=TC_CODEC_MJPG;
+	ipipe->probe_info->codec=TC_CODEC_MJPEG;
 
       if(strcasecmp(codec,"YUV2")==0)
 	ipipe->probe_info->codec=TC_CODEC_YUV2;

@@ -245,7 +245,7 @@ const char *codec2str(int flag)
 {
     switch (flag) {
       case TC_CODEC_MPEG2:      return "MPEG-2";
-      case TC_CODEC_MJPG:       return "MJPEG";
+      case TC_CODEC_MJPEG:      return "MJPEG";
       case TC_CODEC_MPG1: /* fallthrough, must die soon */
       case TC_CODEC_MPEG1VIDEO: return "mpg1";
       case TC_CODEC_LZO1:       return "LZO1";
@@ -802,7 +802,7 @@ static void select_modules(int flags, vob_t *vob)
             vob->amod_probed = vob->has_audio ? "vob" : "null";
         break;
 
-      case TC_CODEC_MJPG:
+      case TC_CODEC_MJPEG:
       case TC_CODEC_MPG1:
       case TC_CODEC_MP42:
       case TC_CODEC_MP43:

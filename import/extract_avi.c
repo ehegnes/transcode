@@ -122,7 +122,7 @@ void probe_avi(info_t *ipipe)
 	  ipipe->probe_info->codec=TC_CODEC_XVID;
 
 	if(strcasecmp(codec,"MJPG")==0)
-	  ipipe->probe_info->codec=TC_CODEC_MJPG;
+	  ipipe->probe_info->codec=TC_CODEC_MJPEG;
 
 	if(strcasecmp(codec,"RV10")==0)
 	  ipipe->probe_info->codec=TC_CODEC_RV10;
