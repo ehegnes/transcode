@@ -132,7 +132,6 @@ transcode \- LINUX video stream processing tool
 [ --config_dir dir ]
 .br
 [ --export_prof S ]
-.br
 [ --mplayer_probe ]
 .br
 [ -q level ]
@@ -3796,6 +3795,12 @@ Run as a PRE filter
 .RE
 .RE
 .\" Here ends the generated filter part, produced by make-filter-man.sh
+.PP
+.SH ENVIRONMENT
+.TP
+.I
+TRANSCODE_NO_LOG_COLOR
+if set, forces the colored logging off for all the tools of transcode suite.
 .PP
 .SH NOTES
 .TP

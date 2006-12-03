@@ -1,3 +1,7 @@
+2006-12-03 Francesco Romani <fromani at gmail dot com>
+  * docs/man/transcode.1
+  add basic documentation for newly introduced environment variable.
+
 2006-12-02 Francesco Romani <fromani at gmail dot com>
   * filter/filter_resample.c
   make more STYLEish before to start looking for segfault recently
