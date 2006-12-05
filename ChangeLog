@@ -1,3 +1,7 @@
+2006-12-05 Andrew Church <achurch at achurch dot org>
+  * import/import_pv3.c
+  Typo fix.
+
 2006-12-03 Francesco Romani <fromani at gmail dot com>
   * export/export_mov.c import/decode_lavc.c import/extract_avi.c
     import/import_ffmpeg.c import/probe_mov.c import/probe_ogg.c
