@@ -99,6 +99,7 @@ test-low: $(LOWTESTS)
 	./test-framecode
 	./test-imgconvert -C -v
 	./test-iodir
+	./test-mangle-cmdline
 	./test-ratiocodes
 	./test-resize-values
 	./test-tcmoduleinfo
