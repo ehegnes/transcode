@@ -323,7 +323,11 @@ MOD_encode
       
     }//no pass-through
 #ifdef LIBDV_099
-      encoder->samples_this_frame=param->size;
+        encoder->samples_this_frame = param->size / (sizeof(int16_t) * 2);
+        /* 
+         * real sample number is 
+         * amount of data / (sample size * channel number)
+         */
 #endif
       dv_encode_metadata(target, encoder->isPAL, encoder->is16x9, &now, 0);
       dv_encode_timecode(target, encoder->isPAL, 0);

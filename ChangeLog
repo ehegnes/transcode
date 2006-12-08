@@ -1,3 +1,14 @@
+2006-12-08 Francesco Romani <fromani at gmail dot com>
+  * import/decode_mpeg2.c
+  REALLY fix yv12/rgb24 behaviour.
+
+  * export/export_dvraw.c
+  apply (slightly modified version of) patch found at
+  http://bugs.gentoo.org/show_bug.cgi?id=146307
+
+  * configure.in
+  transcode-1.0.3rc1
+
 2006-11-23 Francesco Romani <fromani at gmail dot com>
   * import/decode_mpeg2.c
   backport RGB24 fixes from HEAD.

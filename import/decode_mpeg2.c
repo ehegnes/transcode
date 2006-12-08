@@ -63,15 +63,10 @@ static void show_accel(uint32_t mp_ac)
     int ret = p_write(decode->fd_out, PBUF, LEN); \
     if(LEN != ret) { \
         fprintf(stderr, "[%s] failed to write %s data" \
-                         " of frame (len=%i)", \
-                         __FILE__, TAG, ret); \
+                        " of frame (len=%i)", \
+                        __FILE__, TAG, ret); \
         import_exit(1); \
     } \
-} while (0)
-
-#define WRITE_YUV_PLANE(ID, LEN) do { \
-    static const char *plane_id[] = { "Y", "U", "V" }; \
-    WRITE_DATA(info->display_fbuf->buf[ID], LEN, plane_id[ID]); \
 } while (0)
 
 
@@ -88,17 +83,18 @@ static void write_rgb24(decode_t *decode, const mpeg2_info_t *info,
 static void write_yuv420p(decode_t *decode, const mpeg2_info_t *info,
                           const mpeg2_sequence_t *sequence)
 {
+    static const char *plane_id[] = { "Y", "U", "V" };
     int len = 0;
     /* FIXME: move to libtc/tcframes routines? */
 
     len = sequence->width * sequence->height;
-    WRITE_YUV_PLANE(0, len);
-                
+    WRITE_DATA(info->display_fbuf->buf[0], len, plane_id[0]);
+    
+    /* YV12 (AKA YVU420P) is our default here */
     len = sequence->chroma_width * sequence->chroma_height;
-    WRITE_YUV_PLANE(1, len);
-    WRITE_YUV_PLANE(2, len);
+    WRITE_DATA(info->display_fbuf->buf[2], len, plane_id[2]);
+    WRITE_DATA(info->display_fbuf->buf[1], len, plane_id[1]);
 }
-
 
 /* ------------------------------------------------------------
  * decoder entry point
