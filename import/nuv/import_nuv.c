@@ -206,7 +206,7 @@ static int nuv_inspect(TCModuleInstance *self,
     static char buf[TC_BUF_MAX];
 
     if (!self || !param)
-       return NULL;
+       return 0;
     pd = self->userdata;
 
     if (optstr_lookup(param, "help")) {
