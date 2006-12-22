@@ -1,3 +1,8 @@
+2006-12-22 Francesco Romani <fromani at gmail dot com>
+  * export/export_pcm.c
+  major module refactoring.
+  Don't open output file for inexistent channels.
+
 2006-12-08 Francesco Romani <fromani at gmail dot com>
   * import/decode_mpeg2.c
   REALLY fix yv12/rgb24 behaviour.

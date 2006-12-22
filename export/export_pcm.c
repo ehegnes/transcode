@@ -23,14 +23,18 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <errno.h>
 
 #include "transcode.h"
 #include "avilib.h"
 #include "ioaux.h"
 
 #define MOD_NAME    "export_pcm.so"
-#define MOD_VERSION "v0.0.4 (2003-09-30)"
+#define MOD_VERSION "v0.0.5 (2006-01-30)"
 #define MOD_CODEC   "(audio) PCM (non-interleaved)"
+
+extern int errno;
 
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;
@@ -39,26 +43,27 @@ static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;
 #include "export_def.h"
 
 static struct wave_header rtf;
-static int fd_r, fd_l, fd_c, fd_ls, fd_rs, fd_lfe;
+static int fd_r = -1, fd_l = -1, fd_c = -1;
+static int fd_ls = -1, fd_rs = -1, fd_lfe = -1;
 
-#if 0  /* gte this from ioaux.c */
-static int p_write (int fd, char *buf, size_t len)
-{
-   size_t n = 0;
-   size_t r = 0;
+typedef enum {
+    CHANNEL_CENTER = 1,
+    CHANNEL_STEREO = 2,
+    CHANNEL_FRONT = 4,
+    CHANNEL_LFE = 8
+} PCMChannels;
 
-   while (r < len) {
-      n = write (fd, buf + r, len - r);
-      if (n < 0)
-         return n;
-      
-      r += n;
-   }
-   return r;
-}
-#endif
+static PCMChannels chan_settings[8] = {
+    0,                                                       /* 0: nothing */
+    CHANNEL_CENTER,                                          /* 1: mono */
+    CHANNEL_STEREO,                                          /* 2: stereo */
+    CHANNEL_STEREO|CHANNEL_CENTER,                           /* 3: 2.1 */   
+    CHANNEL_STEREO|CHANNEL_FRONT,                            /* 4: 2+2 */
+    CHANNEL_STEREO|CHANNEL_FRONT|CHANNEL_CENTER,             /* 5: 2+2+1 */
+    CHANNEL_STEREO|CHANNEL_FRONT|CHANNEL_CENTER|CHANNEL_LFE, /* 6: 5.1 */
+    0,                                                       /* nothing */
+};
 
- 
 /* ------------------------------------------------------------ 
  *
  * init codec
@@ -67,47 +72,53 @@ static int p_write (int fd, char *buf, size_t len)
 
 MOD_init
 {
-  
-  int rate;
+    int rate;
 
-  if(param->flag == TC_VIDEO) return(0);
-  if(param->flag == TC_AUDIO) {
-
-    memset((char *) &rtf, 0, sizeof(rtf));
-    
-    strncpy(rtf.riff.id, "RIFF", 4);
-    strncpy(rtf.riff.wave_id, "WAVE",4);
-    strncpy(rtf.format.id, "fmt ",4);
-    
-    rtf.format.len = sizeof(struct common_struct);
-    rtf.common.wFormatTag=CODEC_PCM;
-    
-    rate=(vob->mp3frequency != 0) ? vob->mp3frequency : vob->a_rate;
-
-    rtf.common.dwSamplesPerSec=rate;
-    rtf.common.dwAvgBytesPerSec = vob->dm_chan * rate * vob->dm_bits/8;
-    rtf.common.wChannels=vob->dm_chan;
-    rtf.common.wBitsPerSample=vob->dm_bits;
-    rtf.common.wBlockAlign=vob->dm_chan*vob->dm_bits/8;
-
-    if (!vob->fixme_a_codec ||
-        !rtf.common.wChannels || 
-	!rtf.common.dwSamplesPerSec ||
-	!rtf.common.wBitsPerSample ||
-	!rtf.common.wBlockAlign) {
-	    tc_warn("Cannot export PCM, invalid format (no audio track at all?)");
-	    return TC_EXPORT_ERROR;
+    if (param->flag == TC_VIDEO) {
+        return(TC_EXPORT_OK);
     }
+    if (param->flag == TC_AUDIO) {
+        memset(&rtf, 0, sizeof(rtf));
+    
+        strlcpy(rtf.riff.id, "RIFF", 4);
+        strlcpy(rtf.riff.wave_id, "WAVE", 4);
+        strlcpy(rtf.format.id, "fmt ", 4);
+    
+        rtf.format.len = sizeof(struct common_struct);
+        rtf.common.wFormatTag = CODEC_PCM;
+    
+        rate = (vob->mp3frequency != 0) ?vob->mp3frequency :vob->a_rate;
 
-    rtf.riff.len=0x7FFFFFFF;
-    rtf.data.len=0x7FFFFFFF;
+        rtf.common.dwSamplesPerSec = rate;
+        rtf.common.dwAvgBytesPerSec = vob->dm_chan * rate * vob->dm_bits/8;
+        rtf.common.wBitsPerSample = vob->dm_bits;
+        rtf.common.wBlockAlign = vob->dm_chan*vob->dm_bits/8;
+        
+        if(vob->dm_chan >= 1 && vob->dm_chan <= 6) { /* sanity check */
+            rtf.common.wChannels=vob->dm_chan;
+        } else {
+            fprintf(stderr, "[%s] Bad PCM channel number: %i\n",
+                            MOD_NAME, vob->dm_chan);
+            return(TC_EXPORT_ERROR);
+        }
+        if (!vob->fixme_a_codec
+          || !rtf.common.dwSamplesPerSec
+          || !rtf.common.wBitsPerSample
+          || !rtf.common.wBlockAlign) {
+            fprintf(stderr, "[%s] Cannot export PCM, invalid format "
+                            "(no audio track at all?)", MOD_NAME);
+            return(TC_EXPORT_ERROR);
+        }
 
-    strncpy(rtf.data.id, "data",4);
+        rtf.riff.len = 0x7FFFFFFF;
+        rtf.data.len = 0x7FFFFFFF;
 
-    return(0);
-  }
-  // invalid flag
-  return(TC_EXPORT_ERROR); 
+        strlcpy(rtf.data.id, "data",4);
+
+        return(TC_EXPORT_OK);
+    }
+    // invalid flag
+    return(TC_EXPORT_ERROR); 
 }
 
 /* ------------------------------------------------------------ 
@@ -116,89 +127,64 @@ MOD_init
  *
  * ------------------------------------------------------------*/
 
+/* XXX */
+#define FD_OPEN(fd) do { \
+    fd = open(fname, O_RDWR|O_CREAT|O_TRUNC, \
+	                 S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH); \
+    if (fd < 0) { \
+        fprintf(stderr, "[%s] opening file: %s\n", \
+                        MOD_NAME, strerror(errno)); \
+        return(TC_EXPORT_ERROR); \
+    } \
+} while (0)
+
 MOD_open
 {
+    char fname[256];
+    int chan_flags = chan_settings[rtf.common.wChannels];  
 
-  char fname[256];
+    if (param->flag == TC_AUDIO) {
+        if (chan_flags & CHANNEL_LFE) {
+            snprintf(fname, sizeof(fname), "%s_lfe.pcm",
+                     vob->audio_out_file);
+            FD_OPEN(fd_lfe);
+        }
+	
+        if (chan_flags & CHANNEL_FRONT) {
+	        snprintf(fname, sizeof(fname), "%s_ls.pcm",
+                            vob->audio_out_file);
+            FD_OPEN(fd_ls);
+	  
+            snprintf(fname, sizeof(fname), "%s_rs.pcm",
+                            vob->audio_out_file);
+            FD_OPEN(fd_rs);
+        }
+ 
+        if (chan_flags & CHANNEL_STEREO) {
+	        snprintf(fname, sizeof(fname), "%s_l.pcm",
+                            vob->audio_out_file);
+            FD_OPEN(fd_l);
+	  
+            snprintf(fname, sizeof(fname), "%s_r.pcm",
+                            vob->audio_out_file);
+	        FD_OPEN(fd_r); 
+        }
 
-  if(param->flag == TC_AUDIO) {
-      
-      switch(rtf.common.wChannels) {
+        if (chan_flags & CHANNEL_CENTER) {
+	        snprintf(fname, sizeof(fname), "%s_c.pcm",
+                            vob->audio_out_file);
+            FD_OPEN(fd_c);
+        }
 
-	  
-      case 6:
-	  
-	  snprintf(fname, sizeof(fname), "%s_ls.pcm", vob->audio_out_file);
-	  
-	  if((fd_ls = open(fname, O_RDWR|O_CREAT|O_TRUNC,
-			   S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))
-	     <0) {
-	      perror("open file");
-	      return(TC_EXPORT_ERROR);
-	  }     
-	  
-	  
-	  snprintf(fname, sizeof(fname), "%s_rs.pcm", vob->audio_out_file);
-	  
-	  if((fd_rs = open(fname, O_RDWR|O_CREAT|O_TRUNC,
-			   S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))
-	     <0) {
-	      perror("open file");
-	      return(TC_EXPORT_ERROR);
-	  }     
-	  
-	  
-	  snprintf(fname, sizeof(fname), "%s_lfe.pcm", vob->audio_out_file);
-	  
-	  if((fd_lfe = open(fname, O_RDWR|O_CREAT|O_TRUNC,
-			    S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))
-	     <0) {
-	      perror("open file");
-	      return(TC_EXPORT_ERROR);
-	  }     
-	  
-	  
-      case 2:
-	  
-	  snprintf(fname, sizeof(fname), "%s_l.pcm", vob->audio_out_file);
-	  
-	  if((fd_l = open(fname, O_RDWR|O_CREAT|O_TRUNC,
-			  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))
-	     <0) {
-	      perror("open file");
-	      return(TC_EXPORT_ERROR);
-	  }     
-	  
-	  snprintf(fname, sizeof(fname), "%s_r.pcm", vob->audio_out_file);
-	  
-	  if((fd_r = open(fname, O_RDWR|O_CREAT|O_TRUNC,
-			  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))
-	     <0) {
-	      perror("open file");
-	      return(TC_EXPORT_ERROR);
-	  }     
-	  
-      case 1:
-	  
-	  
-	  snprintf(fname, sizeof(fname), "%s_c.pcm", vob->audio_out_file);
-	  
-	  if((fd_c = open(fname, O_RDWR|O_CREAT|O_TRUNC,
-			  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH))
-	     <0) {
-	      perror("open file");
-	      return(TC_EXPORT_ERROR);
-	  }     
-      }      
-      
-      return(0);
-  }
+        return(TC_EXPORT_OK);
+    }
+
+    if (param->flag == TC_VIDEO) {
+        return(TC_EXPORT_OK);
+    }
   
-  
-  if(param->flag == TC_VIDEO) return(0);
-  
-  // invalid flag
-  return(TC_EXPORT_ERROR); 
+    // invalid flag
+    return(TC_EXPORT_ERROR); 
 }   
 
 /* ------------------------------------------------------------ 
@@ -207,80 +193,47 @@ MOD_open
  *
  * ------------------------------------------------------------*/
 
+#define FD_WRITE(fd, buf, size) do { \
+      if(fd != -1 && p_write(fd, buf, size) != size) { \
+          fprintf(stderr, "[%s] writing audio frame: %s\n", \
+                          MOD_NAME, strerror(errno)); \
+          return(TC_EXPORT_ERROR); \
+      } \
+} while (0)
+
 MOD_encode
 {
-
-  if(param->flag == TC_AUDIO) { 
-    int size = (int) (param->size/rtf.common.wChannels);
-    
-    switch(rtf.common.wChannels) {
-      
-    case 6:
-      
-      if(p_write(fd_rs, param->buffer + 5*size, size) != size) {
-	perror("write audio frame");
-	return(TC_EXPORT_ERROR);
-      }     
-      
-      if(p_write(fd_ls, param->buffer + 4*size, size) != size) {    
-	perror("write audio frame");
-	return(TC_EXPORT_ERROR);
-      }
-      
-      if(p_write(fd_r, param->buffer + 3*size, size) != size) {    
-	perror("write audio frame");
-	return(TC_EXPORT_ERROR);
-      }     
-      
-      if(p_write(fd_c, param->buffer + 2*size, size) != size) {    
-	perror("write audio frame");
-	return(TC_EXPORT_ERROR);
-      }
-
-      if(p_write(fd_l, param->buffer + size, size) != size) {    
-	perror("write audio frame");
-	return(TC_EXPORT_ERROR);
-      }
-      
-      if(p_write(fd_lfe, param->buffer, size) != size) {    
-	perror("write audio frame");
-	return(TC_EXPORT_ERROR);
-      }
-      
-      break;
-      
-      
-    case 2:
-      
-      if(p_write(fd_r, param->buffer + size, size) != size) {    
-	perror("write audio frame");
-	return(TC_EXPORT_ERROR);
-      }
-      
-      if(p_write(fd_l, param->buffer, size) != size) {    
-	perror("write audio frame");
-	return(TC_EXPORT_ERROR);
-      }
-      
-      break;
-      
-    case 1:
-      
-      if(p_write(fd_c, param->buffer, size) != size) {    
-	perror("write audio frame");
-	return(TC_EXPORT_ERROR);
-      }
-      
-      break;
+    if (param->flag == TC_VIDEO) {
+        return(TC_EXPORT_OK);
     }
+    if (param->flag == TC_AUDIO) { 
+        int size = (int)(param->size/rtf.common.wChannels);
     
-    return(0);
-  }
+        switch (rtf.common.wChannels) {
+          case 6:
+            FD_WRITE(fd_rs, param->buffer + 5*size, size);
+            FD_WRITE(fd_ls, param->buffer + 4*size, size);
+            FD_WRITE(fd_r, param->buffer + 3*size, size);
+            FD_WRITE(fd_c, param->buffer + 2*size, size);
+            FD_WRITE(fd_l, param->buffer + size, size);
+            FD_WRITE(fd_lfe, param->buffer, size);
+            break;
+
+          case 2:
+            FD_WRITE(fd_r, param->buffer + size, size);
+            FD_WRITE(fd_l, param->buffer, size);
+            break;
+      
+          case 1:
+            FD_WRITE(fd_c, param->buffer, size);
+            break;
+        }
+
+        return(TC_EXPORT_OK);
+    }
   
-  if(param->flag == TC_VIDEO) return(0);
-  
-  // invalid flag
-  return(TC_EXPORT_ERROR);
+    // invalid flag
+    return(TC_EXPORT_ERROR);
 }
 
 /* ------------------------------------------------------------ 
@@ -289,23 +242,27 @@ MOD_encode
  *
  * ------------------------------------------------------------*/
 
+#define FD_CLOSE(fd) do { \
+        if (fd != -1) { \
+            close(fd);\
+        } \
+} while (0)
+
 MOD_close
 {  
-  
-  if(param->flag == TC_VIDEO) return(0);
-  if(param->flag == TC_AUDIO) {
-      
-      close(fd_l);
-      close(fd_c);
-      close(fd_r);
-      close(fd_ls);
-      close(fd_rs);
-      close(fd_lfe);
-
-    return(0);
-  }
-  return(TC_EXPORT_ERROR);  
-  
+    if (param->flag == TC_VIDEO) {
+        return(TC_EXPORT_OK);
+    }
+    if (param->flag == TC_AUDIO) {
+        FD_CLOSE(fd_l);
+        FD_CLOSE(fd_c);
+        FD_CLOSE(fd_r);
+        FD_CLOSE(fd_ls);
+        FD_CLOSE(fd_rs);
+        FD_CLOSE(fd_lfe);
+        return(TC_EXPORT_OK);
+    }
+    return(TC_EXPORT_ERROR);  
 }
 
 /* ------------------------------------------------------------ 
@@ -316,9 +273,12 @@ MOD_close
 
 MOD_stop 
 {
-  if(param->flag == TC_VIDEO) return(0);
-  if(param->flag == TC_AUDIO) return(0);
-  
-  return(TC_EXPORT_ERROR);
+    if (param->flag == TC_VIDEO) {
+        return(TC_EXPORT_OK);
+    }
+    if (param->flag == TC_AUDIO) {
+        return(TC_EXPORT_OK);
+    }
+    return(TC_EXPORT_ERROR);
 }
 
