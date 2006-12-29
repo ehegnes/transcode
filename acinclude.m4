@@ -465,7 +465,7 @@ AC_ARG_WITH($1-includes,
 
 AC_ARG_WITH($1-libs,
   AC_HELP_STRING([--with-$1-libs=DIR],
-    [directory where $1 libararies (lib$6.so) are installed (/usr/lib)]),
+    [directory where $1 libraries (lib$6.so) are installed (/usr/lib)]),
   w_$1_l="$withval", w_$1_l="")
 
 have_$1="no"
