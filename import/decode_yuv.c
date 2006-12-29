@@ -68,46 +68,43 @@ typedef struct vo_s {
 	ac_imgconvert((instp)->yuv, IMG_YUV420P, &(instp)->rgb, IMG_RGB24, \
 		      (instp)->width, (instp)->height)
 
+#define READ_PLANE(fd, V, H, plane) do { \
+    int i, bytes; \
+    \
+    for (i = 0; i < (V); i++) { \
+       bytes = tc_pread((fd), (plane) + i * (H), (H)); \
+       if (bytes != (H)) { \
+    	   if (bytes < 0) \
+	          tc_log_error(__FILE__, "read failed: %s", strerror(errno)); \
+    	   return 0; \
+       } \
+    } \
+} while (0) 
+
 /*
  * legacy (and working :) ) code:
  * read one YUV420P plane at time from file descriptor (pipe, usually)
  * and store it in internal buffer
  */
-static int vo_read_yuv (vo_t *vo, int fd)
+static int vo_read_yuv(vo_t *vo, int fd)
 {
-   unsigned int v = vo->height, h = vo->width;
-   int i, bytes;
+    unsigned int v = vo->height, h = vo->width;
 
-   /* Read luminance scanlines */
+    /* Read luminance scanlines */
 
-   for (i = 0; i < v; i++)
-       if ((bytes = tc_pread (fd, vo->yuv[0] + i * h, h)) != h) {
-	   if (bytes < 0)
-	      tc_log_error(__FILE__, "read failed: %s", strerror(errno));
-	   return 0;
-       }
+    READ_PLANE(fd, v, h, vo->yuv[0]);
+    
+    v /= 2;
+    h /= 2;
 
-   v /= 2;
-   h /= 2;
+    /* Read chrominance scanlines */
+    READ_PLANE(fd, v, h, vo->yuv[1]);
+    READ_PLANE(fd, v, h, vo->yuv[2]);
 
-   /* Read chrominance scanlines */
-
-   for (i = 0; i < v; i++)
-       if ((bytes = tc_pread (fd, vo->yuv[1] + i * h, h)) != h) {
-	   if (bytes < 0)
-	       tc_log_error(__FILE__, "read failed: %s", strerror(errno));
-	   return 0;
-       }
-
-   for (i = 0; i < v; i++)
-       if ((bytes = tc_pread (fd, vo->yuv[2] + i * h, h)) != h) {
-	   if (bytes < 0)
-	       tc_log_error(__FILE__, "read failed: %s", strerror(errno));
-	   return 0;
-       }
-
-   return 1;
+    return 1;
 }
+
+#undef READ_PLANE
 
 /*
  * simpler than above:
@@ -117,12 +114,12 @@ static int vo_read_yuv (vo_t *vo, int fd)
  */
 static int vo_write_rgb (vo_t *vo, int fd)
 {
-    int framesize = vo->width * vo->height * 3, bytes = 0;
-    bytes = tc_pwrite (fd, vo->rgb, framesize);
+    int framesize = vo->width * vo->height * 3;
+    int bytes = tc_pwrite(fd, vo->rgb, framesize);
     if (bytes != framesize) {
-	if (bytes < 0)
-	    tc_log_error(__FILE__, "read failed: %s", strerror(errno));
-	return 0;
+    	if (bytes < 0)
+	        tc_log_error(__FILE__, "read failed: %s", strerror(errno));
+    	return 0;
     }
     return 1;
 }
@@ -133,17 +130,17 @@ static int vo_write_rgb (vo_t *vo, int fd)
  */
 static void vo_clean (vo_t *vo)
 {
-    free (vo->yuv[0]);
-    free (vo->yuv[1]);
-    free (vo->yuv[2]);
-    free (vo->rgb);
+    free(vo->yuv[0]);
+    free(vo->yuv[1]);
+    free(vo->yuv[2]);
+    free(vo->rgb);
 }
 
 /*
  * initialize a vo structure, allocate internal buffers
  * and so on
  */
-static int vo_alloc (vo_t *vo, int width, int height)
+static int vo_alloc(vo_t *vo, int width, int height)
 {
     if (width <= 0 || height <= 0) {
         return -1;
@@ -152,31 +149,31 @@ static int vo_alloc (vo_t *vo, int width, int height)
     vo->width = (unsigned int)width;
     vo->height = (unsigned int)height;
 
-    vo->yuv[0] = tc_zalloc (width * height);
+    vo->yuv[0] = tc_zalloc(width * height);
     if (!vo->yuv[0]) {
         tc_log_error(__FILE__, "out of memory");
-	return -1;
+    	return -1;
     }
-    vo->yuv[1] = tc_zalloc ((width/2) * (height/2));
+    vo->yuv[1] = tc_zalloc((width/2) * (height/2));
     if (!vo->yuv[1]) {
         tc_log_error(__FILE__, "out of memory");
-	free (vo->yuv[0]);
-	return -1;
+	    free(vo->yuv[0]);
+    	return -1;
     }
-    vo->yuv[2] = tc_zalloc ((width/2) * (height/2));
-    if(!vo->yuv[2]) {
+    vo->yuv[2] = tc_zalloc((width/2) * (height/2));
+    if (!vo->yuv[2]) {
         tc_log_error(__FILE__, "out of memory");
-	free (vo->yuv[0]);
-	free (vo->yuv[1]);
-	return -1;
+    	free(vo->yuv[0]);
+	    free(vo->yuv[1]);
+    	return -1;
     }
 
-    vo->rgb = tc_zalloc (width * height * 3);
-    if(!vo->rgb) {
+    vo->rgb = tc_zalloc(width * height * 3);
+    if (!vo->rgb) {
         tc_log_error(__FILE__, "out of memory");
-	free (vo->yuv[0]);
-	free (vo->yuv[1]);
-	free (vo->yuv[2]);
+    	free(vo->yuv[0]);
+	    free(vo->yuv[1]);
+    	free(vo->yuv[2]);
         return -1;
     }
 
@@ -192,25 +189,36 @@ static int vo_alloc (vo_t *vo, int width, int height)
 
 void decode_yuv(decode_t *decode)
 {
-  vo_t vo;
+    vo_t vo;
 
-  if(decode->width <= 0 || decode->height <= 0) {
-     tc_log_error(__FILE__, "invalid frame parameter %dx%d",
-                  decode->width, decode->height);
-     import_exit(1);
-  }
+    if (decode->width <= 0 || decode->height <= 0) {
+        tc_log_error(__FILE__, "invalid frame parameter %dx%d",
+                     decode->width, decode->height);
+        import_exit(1);
+    }
 
-  vo_alloc(&vo, decode->width, decode->height);
+    vo_alloc(&vo, decode->width, decode->height);
 
-  // read frame by frame - decode into RGB - pipe to stdout
+    // read frame by frame - decode into RGB - pipe to stdout
+    while (vo_read_yuv(&vo, decode->fd_in)) {
+        vo_convert(&vo);
+        vo_write_rgb(&vo, decode->fd_out);
+    }
 
-  while(vo_read_yuv(&vo, decode->fd_in)) {
-    vo_convert(&vo);
-    vo_write_rgb(&vo, decode->fd_out);
-  }
+    // ends
+    vo_clean(&vo);
 
-  // ends
-  vo_clean(&vo);
-
-  import_exit(0);
+    import_exit(0);
 }
+
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */

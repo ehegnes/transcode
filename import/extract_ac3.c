@@ -225,7 +225,10 @@ static void pes_ac3_loop (void)
 	    tc_log_msg(__FILE__, "track code 0x%x", *tmp1);
 
 	  if(vdr_work_around) {
-	    if (tmp1 < tmp2) fwrite (tmp1, tmp2-tmp1, 1, out_file);
+	    if (tmp1 < tmp2) {
+            TC_PIPE_WRITE(fileno(out_file), tmp1, tmp2-tmp1);
+            /* yeah, I know that's ugly -- FR */
+        }
 	  } else {
 
 	    //subtitle
@@ -282,16 +285,19 @@ static void pes_ac3_loop (void)
 	    //ac3 package
 
 	    if (*tmp1 == track_code && track_code >= 0x80) {
-		tmp1 += 4;
-
-		//test
-		if(0) {
-		    ac_memcpy(pack_buf, &buf[6], 16);
-		    get_pts_dts(pack_buf, &i_pts, &i_dts);
-		    tc_log_msg(__FILE__, "AC3 PTS=%f", (double) i_pts/90000.);
-		}
-
-		if (tmp1 < tmp2) fwrite (tmp1, tmp2-tmp1, 1, out_file);
+    		tmp1 += 4;
+#if 0
+	    	//test
+		    if(0) {
+    		    ac_memcpy(pack_buf, &buf[6], 16);
+	    	    get_pts_dts(pack_buf, &i_pts, &i_dts);
+		        tc_log_msg(__FILE__, "AC3 PTS=%f", (double) i_pts/90000.);
+    		}
+#endif
+    		if (tmp1 < tmp2) {
+                TC_PIPE_WRITE(fileno(out_file), tmp1, tmp2-tmp1);
+                /* yeah, I know that's ugly -- FR */
+            }
 	    }
 	  }
 
@@ -365,116 +371,90 @@ static int get_ac3_framesize(uint8_t *ptr)
 
 static int ac3scan(int infd, int outfd)
 {
+    int pseudo_frame_size = 0, j = 0, i = 0, s = 0;
+    unsigned long k = 0;
+#ifdef DDBUG
+    int n = 0;
+#endif
+    char buffer[SIZE_PCM_FRAME];
+    int frame_size, bitrate;
+    float rbytes;
+    uint16_t sync_word = 0;
+    ssize_t bytes_read;
 
-  int pseudo_frame_size=0, j=0, i=0, s=0;
+    // need to find syncframe:
+    for (;;) {
+        k = 0;
+        for (;;) {
+            bytes_read = tc_pread(infd, &buffer[s], 1);
+            if (bytes_read <= 0) {
+                // ac3 sync frame scan failed
+                if (bytes_read == 0)  /* EOF */
+                    return 0;
+                else
+                    return ERROR_INVALID_HEADER;
+            }
 
-  unsigned long k=0;
+            sync_word = (sync_word << 8) + (uint8_t) buffer[s];
+
+            s = (s + 1) % 2;
+            ++i;
+            ++k;
+
+            if (sync_word == 0x0b77) {
+                break;
+            }
+
+            if (k > (1 << 20)) {
+                tc_log_error(__FILE__, "no AC3 sync frame found within 1024 kB of stream");
+	            return 1;
+            }
+        }
+        i = i - 2;
+#ifdef DDBUG
+        tc_log_msg(__FILE__, "found sync frame at offset %d (%d)", i, j);
+#endif
+        // read rest of header
+        if (tc_pread(infd, &buffer[2], 3) !=3) {
+            return ERROR_INVALID_HEADER;
+        }
+
+        if ((frame_size = 2 * get_ac3_framesize(&buffer[2])) < 1) {
+            tc_log_error(__FILE__, "ac3 framesize %d invalid", frame_size);
+            return 1;
+        }
+
+        //FIXME: I assume that a single AC3 frame contains 6kB PCM bytes
+
+        rbytes = (float) SIZE_PCM_FRAME/1024/6 * frame_size;
+        pseudo_frame_size = (int) rbytes;
+
+        if ((bitrate = get_ac3_bitrate(&buffer[2])) < 1) {
+            tc_log_error(__FILE__, "ac3 bitrate invalid");
+            return 1;
+        }
+
+        // write out frame header
 
 #ifdef DDBUG
-  int n=0;
+        tc_log_msg(__FILE__, "[%05d] %04d bytes, pcm pseudo frame %04d bytes, bitrate %03d kBits/s",
+	               n++, frame_size, pseudo_frame_size, bitrate);
 #endif
 
-  char *buffer = tc_malloc (SIZE_PCM_FRAME);
+        // s points directly at first byte of syncword
+        tc_pwrite(outfd, &buffer[s], 1);
+        s = (s + 1) % 2;
+        tc_pwrite(outfd, &buffer[s], 1);
+        s = (s + 1) % 2;
 
-  int frame_size, bitrate;
+        // read packet
+        tc_pread(infd, &buffer[5], frame_size-5);
+        tc_pwrite(outfd, &buffer[2], frame_size-2);
 
-  float rbytes;
-
-  uint16_t sync_word = 0;
-
-  ssize_t bytes_read;
-
-  if (!buffer) {
-    tc_log_error(__FILE__, "%s:%d no memory", __FILE__, __LINE__);
-    return 1;
-  }
-
-  // need to find syncframe:
-
-  for(;;) {
-
-    k=0;
-
-    for(;;) {
-      bytes_read = tc_pread(infd, &buffer[s], 1);
-      if (bytes_read <= 0) {
-	//ac3 sync frame scan failed
-	free (buffer);
-	if (bytes_read == 0)  /* EOF */
-	  return(0);
-	else
-	  return(ERROR_INVALID_HEADER);
-      }
-
-      sync_word = (sync_word << 8) + (uint8_t) buffer[s];
-
-      s = (s+1)%2;
-
-      ++i;
-      ++k;
-
-      if(sync_word == 0x0b77) break;
-
-      if(k>(1<<20)) {
-	tc_log_error(__FILE__, "no AC3 sync frame found within 1024 kB of stream");
-	free (buffer);
-	return(1);
-      }
+        i += frame_size;
+        j = i;
     }
-
-    i=i-2;
-
-#ifdef DDBUG
-    tc_log_msg(__FILE__, "found sync frame at offset %d (%d)", i, j);
-#endif
-
-    // read rest of header
-    if (tc_pread(infd, &buffer[2], 3) !=3) {
-      //ac3 header read failed
-      free (buffer);
-      return(ERROR_INVALID_HEADER);
-    }
-
-    if((frame_size = 2*get_ac3_framesize(&buffer[2])) < 1) {
-      tc_log_error(__FILE__, "ac3 framesize %d invalid", frame_size);
-      free (buffer);
-      return(1);
-    }
-
-    //FIXME: I assume that a single AC3 frame contains 6kB PCM bytes
-
-    rbytes = (float) SIZE_PCM_FRAME/1024/6 * frame_size;
-    pseudo_frame_size = (int) rbytes;
-
-    if((bitrate = get_ac3_bitrate(&buffer[2])) < 1) {
-      tc_log_error(__FILE__, "ac3 bitrate invalid");
-      free (buffer);
-      return(1);
-    }
-
-    // write out frame header
-
-#ifdef DDBUG
-    tc_log_msg(__FILE__, "[%05d] %04d bytes, pcm pseudo frame %04d bytes, bitrate %03d kBits/s",
-	       n++, frame_size, pseudo_frame_size, bitrate);
-#endif
-
-    // s points directly at first byte of syncword
-    tc_pwrite(outfd, &buffer[s], 1);
-    s = (s+1)%2;
-    tc_pwrite(outfd, &buffer[s], 1);
-    s = (s+1)%2;
-
-    // read packet
-    tc_pread(infd, &buffer[5], frame_size-5);
-    tc_pwrite(outfd, &buffer[2], frame_size-2);
-
-    i+=frame_size;
-    j=i;
-  }
-
-  free (buffer);
-  return(0);
+    return 0;
 }
 
 

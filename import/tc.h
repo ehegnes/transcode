@@ -24,6 +24,17 @@
 #ifndef _TC_H
 #define _TC_H
 
+#include "libtc/libtc.h"
+
+#define TC_PIPE_WRITE(FD, BUF, SIZE) do { \
+    ssize_t w = tc_pwrite((FD), (BUF), (SIZE)); \
+    if (w != (ssize_t)(SIZE)) { /* XXX: watch here */ \
+        /* XXX: what about memleaks? */ \
+	tc_log_perror(__FILE__, "error while writing output data"); \
+	import_exit(1); \
+    } \
+} while (0)
+
 void decode_a52(decode_t *decode);
 void extract_ac3(info_t *ipipe);
 

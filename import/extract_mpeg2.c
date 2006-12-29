@@ -131,9 +131,10 @@ static void ps_loop (void)
 	    tmp1 += mpeg1_skip_table [*tmp1 >> 4];
 	  }
 
-	  if (tmp1 < tmp2)
-	    if (fwrite (tmp1, tmp2-tmp1, 1, out_file) != 1)
-	      import_exit(0); /* decoder has exited */
+	  if (tmp1 < tmp2) {
+        TC_PIPE_WRITE(fileno(out_file), tmp1, tmp2-tmp1);
+        /* yeah, I know that's ugly -- FR */
+      }
 	  buf = tmp2;
 	  break;
 

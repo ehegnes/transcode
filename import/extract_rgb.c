@@ -21,6 +21,8 @@
  *
  */
 
+#include <stdint.h>
+
 #include "transcode.h"
 #include "libtc/libtc.h"
 #include "tcinfo.h"
@@ -42,94 +44,71 @@
 
 void extract_rgb(info_t *ipipe)
 {
-
-    avi_t *avifile=NULL;
-    char *video;
-
-    int key, error=0;
-
+    uint8_t video[SIZE_RGB_FRAME];
+    avi_t *avifile = NULL;
+    int key, error = 0;
     long frames, bytes, n;
 
-
-    /* ------------------------------------------------------------
-     *
-     * AVI
-     *
-     * ------------------------------------------------------------*/
-
-    switch(ipipe->magic) {
-
-    case TC_MAGIC_AVI:
-
-	// scan file
-	if (ipipe->nav_seek_file) {
-	  if(NULL == (avifile = AVI_open_indexfd(ipipe->fd_in,0,ipipe->nav_seek_file))) {
-	    AVI_print_error("AVI open");
-	    import_exit(1);
-	  }
-	} else {
-	  if(NULL == (avifile = AVI_open_fd(ipipe->fd_in,1))) {
-	    AVI_print_error("AVI open");
-	    import_exit(1);
-	  }
-	}
-
-	// read video info;
-
-	frames =  AVI_video_frames(avifile);
-        if (ipipe->frame_limit[1] < frames)
-        {
-                frames=ipipe->frame_limit[1];
+    switch (ipipe->magic) {
+      case TC_MAGIC_AVI:
+	    if (ipipe->nav_seek_file) {
+            avifile = AVI_open_indexfd(ipipe->fd_in, 0, ipipe->nav_seek_file);
+        } else {
+            avifile = AVI_open_fd(ipipe->fd_in, 1);
+        }
+        if (NULL == avifile) {
+            AVI_print_error("AVI open");
+            import_exit(1);
         }
 
+        frames = AVI_video_frames(avifile);
+        if (ipipe->frame_limit[1] < frames) {
+            frames = ipipe->frame_limit[1];
+        }
 
-	if(ipipe->verbose & TC_STATS)
-	    tc_log_msg(__FILE__, "%ld video frames", frames);
+        if (ipipe->verbose & TC_STATS) {
+            tc_log_msg(__FILE__, "%ld video frames", frames);
+        }
 
-	// allocate space, assume max buffer size
-	if((video = tc_zalloc(SIZE_RGB_FRAME))==NULL) {
-	    tc_log_error(__FILE__, "out of memory");
-	    error=1;
-	    break;
-	}
+        AVI_set_video_position(avifile, ipipe->frame_limit[0]);
+        for (n = ipipe->frame_limit[0]; n <= frames; n++) {
+            bytes = AVI_read_frame(avifile, video, &key);
+            if (bytes < 0) {
+                error = 1;
+                break;
+            }
+            if (tc_pwrite(ipipe->fd_out, video, bytes) != bytes) {
+                error = 1;
+                break;
+            }
+        }
+        break;
 
-        (int)AVI_set_video_position(avifile,ipipe->frame_limit[0]);
-        for (n=ipipe->frame_limit[0]; n<=frames; ++n) {
+      case TC_MAGIC_RAW: /* fallthrough */
+      default:
+        if (ipipe->magic == TC_MAGIC_UNKNOWN) {
+            tc_log_warn(__FILE__, "no file type specified, assuming %s",
+			            filetype(TC_MAGIC_RAW));
 
-	    // video
-	    if((bytes = AVI_read_frame(avifile, video, &key))<0) {
-		error=1;
-		break;
-	    }
-	    if(tc_pwrite(ipipe->fd_out, video, bytes)!=bytes) {
-		error=1;
-		break;
-	    }
-	}
+            error = tc_preadwrite(ipipe->fd_in, ipipe->fd_out);
+            break;
+        }
+    }
 
-	free(video);
-
-	break;
-
-
-	/* ------------------------------------------------------------
-	 *
-	 * RAW
-	 *
-	 * ------------------------------------------------------------*/
-
-
-    case TC_MAGIC_RAW:
-
-    default:
-
-	if(ipipe->magic == TC_MAGIC_UNKNOWN)
-	    tc_log_warn(__FILE__, "no file type specified, assuming %s",
-			filetype(TC_MAGIC_RAW));
-
-	error=tc_preadwrite(ipipe->fd_in, ipipe->fd_out);
-
-	break;
+    if (error) {
+        tc_log_perror(__FILE__, "error while writing data");
+      	import_exit(error);
     }
 }
 
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */

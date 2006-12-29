@@ -114,6 +114,7 @@ static int extract_yuv_y4m(info_t *ipipe)
         for (i = 0; i < 3; i++) {
             ret = tc_pwrite(ipipe->fd_out, planes[i], planesize[i]);
             if (ret != planesize[i]) {
+                tc_log_perror(__FILE__, "error while writing output data");
                 break;
             }
         }
@@ -167,6 +168,7 @@ static int extract_yuv_avi(info_t *ipipe)
             return 1;
         }
         if (tc_pwrite(ipipe->fd_out, video, bytes) != bytes) {
+            tc_log_perror(__FILE__, "error while writing output data");
             return 1;
         }
     }
@@ -200,7 +202,10 @@ void extract_yuv(info_t *ipipe)
         error = extract_yuv_raw(ipipe);
         break;
     }
-    import_exit(error);
+    if (error) {
+        tc_log_error(__FILE__, "write failed");
+        import_exit(error);
+    }
 }
 
 void probe_yuv(info_t *ipipe)
@@ -257,3 +262,15 @@ void probe_yuv(info_t * ipipe)
 }
 
 #endif /* HAVE_MJPEGTOOLS */
+
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */

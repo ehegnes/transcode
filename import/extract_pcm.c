@@ -431,7 +431,20 @@ void extract_pcm(info_t *ipipe)
       break;
   }
 
-  if(error) //need
+  if(error) {
+    tc_log_perror(__FILE__, "error while writing data");
   	import_exit(error);
+  }
 }
 
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */

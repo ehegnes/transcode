@@ -153,9 +153,10 @@ static void ps_loop (void)
 	  }
 
 	  if((buf[3] & 0xff) == demux_track) {
-	      if (tmp1 < tmp2)
-		if (fwrite (tmp1, tmp2-tmp1, 1, out_file) != 1)
-		  import_exit(0); /* decoder exited */
+	      if (tmp1 < tmp2) {
+            TC_PIPE_WRITE(fileno(out_file), tmp1, tmp2-tmp1);
+            /* yeah, I know that's ugly -- FR */
+          }
 	  }
 	  buf = tmp2;
 

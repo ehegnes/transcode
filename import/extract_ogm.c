@@ -113,11 +113,20 @@ static int extraction_requested(unsigned char *s, int stream, int type) {
 
 static void flush_pages(stream_t *stream, ogg_packet *op) {
   ogg_page page;
-  int ih, ib;
 
   while (ogg_stream_flush(&stream->outstate, &page)) {
-    ih = write(stream->fd, page.header, page.header_len);
-    ib = write(stream->fd, page.body, page.body_len);
+    int ih, ib;
+
+    ih = tc_pwrite(stream->fd, page.header, page.header_len);
+    if (ih != page.header_len) {
+        tc_log_error(__FILE__, "error while writing page header");
+        import_exit(1); /* XXX ugly */
+    }
+    ib = tc_pwrite(stream->fd, page.body, page.body_len);
+    if (ib != page.body_len) {
+        tc_log_error(__FILE__, "error while writing page bofy");
+        import_exit(1); /* XXX ugly */
+    }
     if (verbose_flag & TC_DEBUG)
       tc_log_msg(__FILE__, "x/a%d: %d + %d written", stream->sno, ih, ib);
   }
@@ -125,18 +134,27 @@ static void flush_pages(stream_t *stream, ogg_packet *op) {
 
 static void write_pages(stream_t *stream, ogg_packet *op) {
   ogg_page page;
-  int ih, ib;
 
   while (ogg_stream_pageout(&stream->outstate, &page)) {
-    ih = write(stream->fd, page.header, page.header_len);
-    ib = write(stream->fd, page.body, page.body_len);
+    int ih, ib;
+
+    ih = tc_pwrite(stream->fd, page.header, page.header_len);
+    if (ih != page.header_len) {
+        tc_log_error(__FILE__, "error while writing page header");
+        import_exit(1); /* XXX ugly */
+    }
+    ib = tc_pwrite(stream->fd, page.body, page.body_len);
+    if (ib != page.body_len) {
+        tc_log_error(__FILE__, "error while writing page bofy");
+        import_exit(1); /* XXX ugly */
+    }
     if (verbose_flag & TC_DEBUG)
       tc_log_msg(__FILE__, "x/a%d: %d + %d written", stream->sno, ih, ib);
   }
 }
 
 static void handle_packet(stream_t *stream, ogg_packet *pack, ogg_page *page) {
-  int i, hdrlen, end;
+  int i, w, hdrlen, end;
   long long lenbytes;
   char *sub;
   char out[100];
@@ -180,8 +198,12 @@ static void handle_packet(stream_t *stream, ogg_packet *pack, ogg_page *page) {
       if (((*pack->packet & 3) == OGM_PACKET_TYPE_HEADER) ||
           ((*pack->packet & 3) == OGM_PACKET_TYPE_COMMENT))
         return;
-      i = write(stream->fd, (char *)&pack->packet[hdrlen + 1],
-	  pack->bytes - 1 - hdrlen);
+      i = tc_pwrite(stream->fd, (char *)&pack->packet[hdrlen + 1],
+                    pack->bytes - 1 - hdrlen);
+      if (i != pack->bytes - 1 - hdrlen) {
+        tc_log_error(__FILE__, "error while writing data");
+        import_exit(1); /* XXX ugly */
+      }
       if (verbose_flag & TC_DEBUG)
         tc_log_msg(__FILE__, "x/v%d: %d written", stream->sno, i);
       break;
@@ -191,8 +213,12 @@ static void handle_packet(stream_t *stream, ogg_packet *pack, ogg_page *page) {
         return;
 
       if (xraw) {
-        i = write(stream->fd, (char *)&pack->packet[hdrlen + 1],
-                  pack->bytes - 1 - hdrlen);
+        i = tc_pwrite(stream->fd, (char *)&pack->packet[hdrlen + 1],
+                      pack->bytes - 1 - hdrlen);
+        if (i != pack->bytes - 1 - hdrlen) {
+          tc_log_error(__FILE__, "error while writing data");
+          import_exit(1); /* XXX ugly */
+        }
         if (verbose_flag & TC_DEBUG)
           tc_log_msg(__FILE__, "x/t%d: %d written", stream->sno, i);
         return;
@@ -212,14 +238,30 @@ static void handle_packet(stream_t *stream, ogg_packet *pack, ogg_page *page) {
 		    (int)(pgp / 60000) % 60,
 		    (int)(pgp / 1000) % 60,
 		    (int)(pgp % 1000));
-        i = write(stream->fd, out, strlen(out));
+        i = tc_pwrite(stream->fd, out, strlen(out));
+        if (i != strlen(out)) {
+          tc_log_error(__FILE__, "error while writing data");
+          import_exit(1); /* XXX ugly */
+        }
         end = strlen(sub) - 1;
         while ((end >= 0) && ((sub[end] == '\n') || (sub[end] == '\r'))) {
           sub[end] = 0;
           end--;
         }
-        i += write(stream->fd, sub, strlen(sub));
-        i += write(stream->fd, "\r\n\r\n", 4);
+        w = tc_pwrite(stream->fd, sub, strlen(sub));
+        if (i == strlen(sub)) {
+            i += w;
+        } else {
+            tc_log_error(__FILE__, "error while writing data");
+            import_exit(1);
+        }
+        w = tc_pwrite(stream->fd, "\r\n\r\n", 4);
+        if (w == 4) {
+            i += w;
+        } else {
+            tc_log_error(__FILE__, "error while writing data");
+            import_exit(1);
+        }
         stream->subnr++;
         if (verbose_flag & TC_DEBUG)
           tc_log_msg(__FILE__, "x/t%d: %d written", stream->sno, i);
@@ -229,11 +271,20 @@ static void handle_packet(stream_t *stream, ogg_packet *pack, ogg_page *page) {
       switch (stream->acodec) {
         case ACVORBIS:
           if (xraw) {
-            if (stream->packetno == 0)
-              i = write(stream->fd, (char *)pack->packet, pack->bytes);
-            else
-              i = write(stream->fd, (char *)&pack->packet[1],
+            if (stream->packetno == 0) {
+              i = tc_pwrite(stream->fd, (char *)pack->packet, pack->bytes);
+              if (i != pack->bytes) {
+                tc_log_error(__FILE__, "error while writing data");
+                import_exit(1); /* XXX ugly */
+              }
+            } else {
+              i = tc_pwrite(stream->fd, (char *)&pack->packet[1],
                         pack->bytes - 1);
+              if (i != pack->bytes - 1) {
+                tc_log_error(__FILE__, "error while writing data");
+                import_exit(1); /* XXX ugly */
+              }
+            }
             if (verbose_flag & TC_DEBUG)
               tc_log_msg(__FILE__, "x/a%d: %d written", stream->sno, i);
             return;
@@ -254,8 +305,12 @@ static void handle_packet(stream_t *stream, ogg_packet *pack, ogg_page *page) {
               ((*pack->packet & 3) == OGM_PACKET_TYPE_COMMENT))
             return;
 
-          i = write(stream->fd, pack->packet + 1 + hdrlen,
-                    pack->bytes - 1 - hdrlen);
+          i = tc_pwrite(stream->fd, pack->packet + 1 + hdrlen,
+                        pack->bytes - 1 - hdrlen);
+          if (i != pack->bytes - 1 - hdrlen) {
+            tc_log_error(__FILE__, "error while writing data");
+            import_exit(1); /* XXX ugly */
+          }
           stream->bwritten += i;
           if (verbose_flag & TC_DEBUG)
             tc_log_msg(__FILE__, "x/a%d: %d written", stream->sno, i);

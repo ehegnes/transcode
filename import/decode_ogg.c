@@ -21,6 +21,8 @@
  *
  */
 
+#include <stdint.h>
+
 #include "transcode.h"
 #include "libtc/libtc.h"
 #include "tcinfo.h"
@@ -31,10 +33,7 @@
 #if (HAVE_OGG && HAVE_VORBIS)
 #include <vorbis/vorbisfile.h>
 
-static int quiet = 0;
-static int bits = 16;
-static int endian = 0;
-static int sign = 1;
+#define TC_OGG_BUF_SIZE 8192
 
 /* ------------------------------------------------------------
  *
@@ -42,68 +41,70 @@ static int sign = 1;
  *
  * ------------------------------------------------------------*/
 
-static int decode_ogg_file(int fdin, int fdout)
+static int decode_ogg_file(int fdin, int fdout, int verbose)
 {
-    FILE *in, *out=NULL;
+    FILE *in = NULL;
     OggVorbis_File vf;
-    int bs = 0;
-    char buf[8192];
-    int buflen = 8192;
+    uint8_t buf[TC_OGG_BUF_SIZE];
     unsigned int written = 0;
-    int ret;
     ogg_int64_t length = 0;
+#if 0    
     ogg_int64_t done = 0;
-    int size = 0;
-    int seekable = 0;
+#endif
+    int ret, bs = 0, size = 0, bits = 16, r = 0;
+    int seekable = 0, endian = 0, sign = 1;
+#if 0    
     int percent = 0;
+#endif
 
-    in  = fdopen (fdin,  "rb");
-    out = fdopen (fdout, "wb");
+    in  = fdopen(fdin,  "rb");
 
-    if(ov_open(in, &vf, NULL, 0) < 0) {
+    ret = ov_open(in, &vf, NULL, 0);
+    if (ret < 0) {
         tc_log_error(__FILE__, "Failed to open input as vorbis");
         fclose(in);
-        fclose(out);
         return 1;
     }
 
-    if(ov_seekable(&vf)) {
+    if (ov_seekable(&vf)) {
         seekable = 1;
         length = ov_pcm_total(&vf, 0);
         size = bits/8 * ov_info(&vf, 0)->channels;
     }
 
-    while((ret = ov_read(&vf, buf, buflen, endian, bits/8, sign, &bs)) != 0) {
-        if(bs != 0) {
+    while ((r = ov_read(&vf, buf, TC_OGG_BUF_SIZE,
+                        endian, bits/8, sign, &bs)) != 0) {
+        if (bs != 0) {
             tc_log_error(__FILE__, "Only one logical bitstream currently supported");
             break;
         }
 
-        if(ret < 0 && !quiet) {
+        if (r < 0 && verbose) {
             tc_log_warn(__FILE__, "hole in data");
             continue;
         }
 
-        if(fwrite(buf, 1, ret, out) != ret) {
+        ret = tc_pwrite(fdout, buf, r);
+        if (ret != r) {
             tc_log_perror(__FILE__, "Error writing to file");
             ov_clear(&vf);
-            fclose(out);
             return 1;
         }
 
         written += ret;
-        if(!quiet && seekable) {
+#if 0        
+        if(verbose && seekable) {
             done += ret/size;
             if((double)done/(double)length * 200. > (double)percent) {
                 percent = (double)done/(double)length *200;
                 fprintf(stderr, "\r[%5.1f%%]", (double)percent/2.);
             }
         }
+#endif
     }
 
     ov_clear(&vf);
 
-    fclose(out);
     return 0;
 }
 #endif // HAVE_OGG
@@ -114,10 +115,7 @@ void decode_ogg(decode_t *decode)
 
 #if (HAVE_OGG && HAVE_VORBIS)
 
-  quiet = decode->verbose;
-  //bits = decode->a_bits;
-  decode_ogg_file(decode->fd_in, decode->fd_out);
-
+  decode_ogg_file(decode->fd_in, decode->fd_out, decode->verbose);
   import_exit(0);
 
 #else
@@ -128,3 +126,15 @@ void decode_ogg(decode_t *decode)
 #endif
 
 }
+
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */
