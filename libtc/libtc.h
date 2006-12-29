@@ -239,7 +239,7 @@ int tc_mangle_cmdline(int *argc, char ***argv,
  *     name: name of program to look for.
  * Return Value:
  *     0 if program was found in PATH.
- *     ENOENT if program was not fount in PATH
+ *     ENOENT if program was not found in PATH
  *     value of errno if program was found in PATH but it wasn't accessible
  *     for some reason.
  */
