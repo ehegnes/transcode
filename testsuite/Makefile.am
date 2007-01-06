@@ -2,7 +2,8 @@
 
 EXTRA_DIST = \
 	newtest.pl \
-	test.pl
+	test.pl \
+	test-tcmodchain.sh
 
 AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
@@ -107,8 +108,9 @@ test-low: $(LOWTESTS)
 
 # High-level tests for transcode as a whole
 # FIXME xvid broken?
-test-high: newtest.pl
+test-high: newtest.pl test-tcmodchain.sh
 	perl newtest.pl -T'-y xvid4'
+	bash test-tchmodchain.sh
 
 # Run all tests
 test-all: test-low test-high

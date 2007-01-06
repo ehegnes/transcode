@@ -1,3 +1,18 @@
+2007-01-06 Francesco Romani <fromani at gmail dot com>
+  * tools/tcstub.c tools/Makefile.am
+  add {a,v}frame_copy stubs.
+
+  * tools/tcmodchain.c
+  revamp tcmodchain, adding list mode support.
+
+  * testsuite/Makefile.am
+  * added file: testsuite/test-tcmodchain.sh
+  basic tcmodchain test (more to come).
+
+  * docs/man/Makefile.am
+  * added file: docs/man/tcmodchain.1
+  basic tcmodchain man page.
+
 2006-12-29 Francesco Romani <fromani at gmail dot com>
   * import/decode_mov.c import/decode_mp3.c import/decode_ogg.c
     import/decode_yuv.c import/extract_ac3.c import/extract_mp3.c

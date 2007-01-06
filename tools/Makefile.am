@@ -97,7 +97,8 @@ tcmodinfo_LDFLAGS = -export-dynamic
 
 tcmodchain_SOURCES = tcmodchain.c tcstub.c
 tcmodchain_CPPFLAGS = $(AM_CPPFLAGS) \
-	$(DLDARWIN_CFLAGS)
+	$(DLDARWIN_CFLAGS) \
+	-DTC_FRAMEBUFFER_STUBS=1
 tcmodchain_LDADD = \
 	$(DLDARWIN_LIBS) \
 	$(ACLIB_LIBS) \
@@ -131,6 +132,7 @@ tcexport_LDADD = \
 	$(LIBTCVIDEO_LIBS) \
 	$(LIBTCAUDIO_LIBS) \
 	$(XIO_LIBS) \
+	$(PTHREAD_LIBS) \
 	-lm
 tcexport_LDFLAGS = -export-dynamic
 

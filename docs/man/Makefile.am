@@ -8,6 +8,7 @@ man_MANS = \
 	tcextract.1 \
 	tcdecode.1 \
 	tcmodinfo.1 \
+	tcmodchain.1 \
 	tcxmlcheck.1 \
 	tcpvmexportd.1 \
 	avisplit.1 \

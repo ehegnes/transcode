@@ -109,6 +109,20 @@ uint32_t vbuffer_ex_fill_ctr = 0;
 pthread_mutex_t vbuffer_xx_fill_lock = PTHREAD_MUTEX_INITIALIZER;
 uint32_t vbuffer_xx_fill_ctr = 0;
 
+
+#ifdef TC_FRAMEBUFFER_STUBS
+void vframe_copy(vframe_list_t *dst, vframe_list_t *src, int copy_data)
+{
+    return;
+}
+
+void aframe_copy(aframe_list_t *dst, aframe_list_t *src, int copy_data)
+{
+    return;
+}
+#endif /* TC_FRAMEBUFFER_STUBS */
+
+
 int tc_progress_meter = 1;
 int tc_progress_rate = 1;
 
