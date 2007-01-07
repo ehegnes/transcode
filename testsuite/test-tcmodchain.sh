@@ -16,7 +16,7 @@ fi
 # test helper
 
 # $1, $2 -> modules
-# $3, expected result
+# $3, expected return code
 function check_test() {
 	if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
 		echo "bad test parameters (skipped)" 1>&2
@@ -25,12 +25,32 @@ function check_test() {
 	$TCMODCHAIN -C $1 $2 -d 0 # silent operation
 	local RET="$?"
 	if [ "$RET" == "$3" ]; then
-		printf "testing (%16s) with (%16s) | OK\n" $1 $2
+		printf "testing check (%16s) with (%16s) | OK\n" $1 $2
 	else
-		printf "testing (%16s) with (%16s) | >> FAILED << [exp=%i|got=%i]\n" $1 $2 $3 $RET
+		printf "testing check (%16s) with (%16s) | >> FAILED << [exp=%i|got=%i]\n" $1 $2 $3 $RET
 	fi
 	return $RET
 }
+
+# $1, $2 -> modules
+# $3, expected result list
+function list_test() {
+	if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
+		echo "bad test parameters (skipped)" 1>&2
+		return 1
+	fi
+	local GOT=$( $TCMODCHAIN -L $1 $2 | sort | tr '\n' ' ' | sed s/\ $//g )
+	if [ "$GOT" == "$3" ]; then
+		printf "testing list  (%16s) with (%16s) | OK\n" $1 $2
+	else
+		printf "testing list  (%16s) with (%16s) | >> FAILED <<\n" $1 $2
+		printf "    expected=\"%s\"" $3
+		printf "    received=\"%s\"" $GOT
+	fi
+	return $RET
+}
+
+
 
 ## `check' (-C) tests first
 #
@@ -67,3 +87,17 @@ check_test "encode:lame" "multiplex:y4m" 3
 check_test "encode:faac" "multiplex:y4m" 3
 check_test "encode:lzo"  "multiplex:y4m" 3
 #
+## `check' (-L) tests then
+#
+list_test "encode:*" "multiplex:null" "copy faac lame lzo null x264 xvid"
+list_test "encode:*" "multiplex:raw"  "copy faac lame lzo null x264 xvid"
+list_test "encode:*" "multiplex:avi"  "copy faac lame lzo null x264 xvid"
+list_test "encode:*" "multiplex:y4m"  "copy null"
+#
+list_test "encode:copy" "multiplex:*" "avi null raw y4m"
+list_test "encode:faac" "multiplex:*" "avi null raw"
+list_test "encode:lame" "multiplex:*" "avi null raw"
+list_test "encode:lzo"  "multiplex:*" "avi null raw"
+list_test "encode:null" "multiplex:*" "avi null raw y4m"
+list_test "encode:x264" "multiplex:*" "avi null raw"
+list_test "encode:xvid" "multiplex:*" "avi null raw"
