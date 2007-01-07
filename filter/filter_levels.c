@@ -18,7 +18,7 @@
 */
 
 #define MOD_NAME    "filter_levels.so"
-#define MOD_VERSION "v1.1.2 (2005-12-29)"
+#define MOD_VERSION "v1.1.3 (2007-01-07)"
 #define MOD_CAP     "Luminosity level scaler"
 #define MOD_AUTHOR  "Bryan Mayland"
 
@@ -155,7 +155,7 @@ static int levels_init_data(LevelsPrivateData *pd, const vob_t *vob,
 {
     if(!pd || !vob) {
         /* should never happen */
-        return -1;
+        return TC_ERROR;
     }
 
     pd->parameter.in_black = DEFAULT_IN_BLACK;
@@ -168,7 +168,7 @@ static int levels_init_data(LevelsPrivateData *pd, const vob_t *vob,
     if (options != NULL) {
         if (optstr_lookup(options, "help")) {
             help_optstr();
-            return 0;
+            return TC_OK;
         }
 
         optstr_get(options, "input", "%d-%d", &pd->parameter.in_black, &pd->parameter.in_white );
@@ -179,7 +179,7 @@ static int levels_init_data(LevelsPrivateData *pd, const vob_t *vob,
 
     if(vob->im_v_codec != CODEC_YUV) {
         tc_log_error(MOD_NAME, "This filter is only capable of YUV mode");
-        return -1;
+        return TC_ERROR;
     }
 
     build_map(pd->lumamap, pd->parameter.in_black, pd->parameter.in_white, pd->parameter.in_gamma,
@@ -194,7 +194,7 @@ static int levels_init_data(LevelsPrivateData *pd, const vob_t *vob,
         tc_log_info(MOD_NAME, "%s-processing filter",
                     (pd->is_prefilter) ?"pre" :"post");
     }
-    return 0;
+    return TC_OK;
 }
 
 static int levels_inspect(TCModuleInstance *self,
@@ -202,9 +202,9 @@ static int levels_inspect(TCModuleInstance *self,
 {
     LevelsPrivateData *pd = NULL;
 
-    if (!param) {
-       return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "inspect");
+    TC_MODULE_SELF_CHECK(param, "inspect");
+    
     pd = self->userdata;
 
     if (optstr_lookup(param, "help")) {
@@ -224,17 +224,16 @@ static int levels_inspect(TCModuleInstance *self,
     }
     *value = pd->conf_str;
 
-    return 0;
+    return TC_OK;
 }
 
 static int levels_configure(TCModuleInstance *self,
-			    const char *options, vob_t *vob)
+            			    const char *options, vob_t *vob)
 {
     LevelsPrivateData *pd = NULL;
 
-    if (!self) {
-       return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "configure");
+
     pd = self->userdata;
 
     optstr_get(options, "input", "%d-%d", &pd->parameter.in_black, &pd->parameter.in_white);
@@ -246,24 +245,25 @@ static int levels_configure(TCModuleInstance *self,
               pd->parameter.in_gamma,
               pd->parameter.out_black, pd->parameter.out_white);
 
-    return 0;
+    return TC_OK;
 }
 
 static int levels_init(TCModuleInstance *self)
 {
     vob_t *vob = tc_get_vob();
 
-    if (!self) {
-        tc_log_error(MOD_NAME, "init: bad instance data reference");
-        return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "init");
 
     if(vob->im_v_codec != CODEC_YUV) {
         tc_log_error(MOD_NAME, "This filter is only capable of YUV mode");
-        return -1;
+        return TC_ERROR;
     }
 
     self->userdata = tc_malloc(sizeof(LevelsPrivateData));
+    if (self->userdata == NULL) {
+        tc_log_error(MOD_NAME, "init: out of memory!");
+        return TC_ERROR;
+    }
 
     /* default configuration! */
     levels_configure(self, "input=0-255:gamma=1.0:output=0-255:pre=0",
@@ -273,47 +273,43 @@ static int levels_init(TCModuleInstance *self)
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     }
 
-    return 0;
+    return TC_OK;
 }
 
 static int levels_fini(TCModuleInstance *self)
 {
-    if (!self) {
-       return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "fini");
 
     tc_free(self->userdata);
     self->userdata = NULL;
-    return 0;
+    return TC_OK;
 }
 
 static int levels_stop(TCModuleInstance *self)
 {
-    if (!self) {
-       return -1;
-    }
-    return 0;
+    TC_MODULE_SELF_CHECK(self, "stop");
+
+    return TC_OK;
 }
 
 static int levels_filter(TCModuleInstance *self,
                          vframe_list_t *frame)
 {
-    vframe_list_t *vframe = (vframe_list_t*)frame;
     LevelsPrivateData *pd = NULL;
 
-    if (!self || !frame) {
-       return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "filter");
+    TC_MODULE_SELF_CHECK(frame, "filter");
+
     pd = self->userdata;
 
-    if (!(vframe->attributes & TC_FRAME_IS_SKIPPED)
-       && (((vframe->tag & TC_POST_M_PROCESS) && !pd->is_prefilter)
-         || ((vframe->tag & TC_PRE_M_PROCESS) && pd->is_prefilter))) {
+    if (!(frame->attributes & TC_FRAME_IS_SKIPPED)
+       && (((frame->tag & TC_POST_M_PROCESS) && !pd->is_prefilter)
+         || ((frame->tag & TC_PRE_M_PROCESS) && pd->is_prefilter))) {
 
-        levels_process(pd, vframe->video_buf,
-                       vframe->v_width, vframe->v_height);
+        levels_process(pd, frame->video_buf,
+                       frame->v_width, frame->v_height);
     }
-    return 0;
+    return TC_OK;
 }
 
 int tc_filter(frame_list_t *vframe_, char *options)
@@ -323,7 +319,7 @@ int tc_filter(frame_list_t *vframe_, char *options)
     int tag = vframe->tag;
 
     if (tag & TC_AUDIO) {
-        return 0;
+        return TC_OK;
     }
 
     pd = &levels_private_data[vframe->filter_id];
@@ -337,7 +333,7 @@ int tc_filter(frame_list_t *vframe_, char *options)
         vob_t *vob = tc_get_vob();
 
         if (vob == NULL) {
-            return -1;
+            return TC_ERROR;
         }
 
         ret = levels_init_data(pd, vob, options, vframe->filter_id);
@@ -353,7 +349,7 @@ int tc_filter(frame_list_t *vframe_, char *options)
                        vframe->v_width, vframe->v_height);
     }
 
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
