@@ -18,7 +18,7 @@
 
 /* Quick summary:
  * This code acts as generic ringbuffer implementation, with
- * specializations for main (auido and video) ringbufffers
+ * specializations for main (audio and video) ringbufffers
  * in order to cope legacy constraints from 1.0.x series.
  * It replaces former src/{audio,video}_buffer.c in (hopefully!)
  * a more generic, clean, maintanable, compact way.
@@ -28,7 +28,8 @@
  * possibly more). They will be merged lately or will be dropped
  * or reworked.
  *
- * This code can, of course, be further improved, but doing so
+ * This code can, of course, be further improved (and GREATLY improved,
+ * especially for multithreading safeness), but doing so
  * hasn't high priority on my TODO list, I've covered with this
  * piece of code most urgent todos for 1.1.0.      -- FR
  */
@@ -49,7 +50,7 @@ vframe_list_t *vframe_list_tail = NULL;
 
 /*
  * Layered, custom allocator/disposer for ringbuffer structures.
- * THe idea is to semplify (from ringbufdfer viewpoint!) frame
+ * The idea is to simplify (from ringbufdfer viewpoint!) frame
  * allocation/disposal and to make it as much generic as is possible
  * (avoif if()s and so on).
  */
@@ -398,7 +399,7 @@ static int tc_ring_framebuffer_release_frame(TCRingFrameBuffer *rfb,
 
 /*
  * tc_ring_framebuffer_register_frame: (NOT thread safe)
- *      retrieve and register a framebuffer froma a ringbuffer by
+ *      retrieve and register a framebuffer from a ringbuffer by
  *      attaching an ID to it, setup properly status and updating
  *      internal ringbuffer counters.
  *
@@ -462,7 +463,7 @@ static TCFramePtr tc_ring_framebuffer_register_frame(TCRingFrameBuffer *rfb,
  *      also updates internal ringbuffer counters.
  *      
  *      That's the function that client code is supposed to use.
- *      In general, dont' use release_frame directly, use remove_frame
+ *      In general, don't use release_frame directly, use remove_frame
  *      instead.
  *
  * Parameters:
@@ -534,7 +535,7 @@ static int tc_ring_framebuffer_flush(TCRingFrameBuffer *rfb)
 }
 
 /*
- * tc_ring_framebuffer_chack_status:
+ * tc_ring_framebuffer_check_status:
  *      checks if there is at least one frame in a given state
  *      in given ring framebuffer.
  *
@@ -617,7 +618,7 @@ void vframe_free(void)
  *
  * I've used generic code and TCFramePtr in every place I was
  * capable to introduce them in a *clean* way without using any
- * casting. Of course there is still room for improvements,
+ * casting. Of course there is still a lot of room for improvements,
  * but back compatibility is an issue too. I'd like to get rid
  * of all those macro and swtich to pure generic code of course,
  * so this will be improved in future revisions. In the
@@ -740,8 +741,8 @@ vframe_list_t *vframe_dup(vframe_list_t *f)
     if (!TCFRAMEPTR_IS_NULL(frame)) {
         vframe_copy(frame.video, f, 1);
 
-        /* currently noone cares about this */
-        frame.video->clone_flag = f->clone_flag+1;
+        /* currently noone seems to care about this */
+        frame.video->clone_flag = f->clone_flag + 1;
 
         LIST_FRAME_LINK(frame.video, f, vframe_list_tail);
 #ifdef STATBUFFER

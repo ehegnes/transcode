@@ -85,9 +85,10 @@ static int resample_configure(TCModuleInstance *self,
         tc_log_error(MOD_NAME, "Invalid settings");
         return TC_ERROR;
     }
-    tc_log_info(MOD_NAME, "%i Hz -> %i Hz", vob->a_rate, vob->mp3frequency);
+    tc_log_info(MOD_NAME, "resampling: %i Hz -> %i Hz",
+                vob->a_rate, vob->mp3frequency);
     if (vob->a_rate == vob->mp3frequency) {
-        tc_log_error(MOD_NAME, "Frequencies are too similar,"
+        tc_log_error(MOD_NAME, "Frequencies are identical,"
                      " filter skipped");
         return TC_ERROR;
     }

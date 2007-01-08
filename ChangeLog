@@ -1,3 +1,10 @@
+2007-01-09 Francesco Romani <fromani at gmail dot com>
+  * filter/filter_resample.c
+  better log messages.
+
+  * src/framebuffer.c
+  fix a bunch of typos.
+
 2007-01-07 Francesco Romani <fromani at gmail dot com>
   * filter/filter_levels.c
   port to last macros.
