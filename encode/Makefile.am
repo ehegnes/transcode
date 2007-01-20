@@ -31,6 +31,7 @@ endif
 pkg_LTLIBRARIES = \
 	encode_copy.la \
 	$(ENCODE_FAAC) \
+	encode_lavc.la \
 	$(ENCODE_LAME) \
 	$(ENCODE_LZO) \
 	encode_null.la \
@@ -44,6 +45,11 @@ encode_faac_la_SOURCES = encode_faac.c
 encode_faac_la_CPPFLAGS = $(AM_CPPFLAGS) $(FAAC_CFLAGS)
 encode_faac_la_LDFLAGS = -module -avoid-version
 encode_faac_la_LIBADD = $(FAAC_LIBS)
+
+encode_lavc_la_SOURCES = encode_lavc.c
+encode_lavc_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBAVCODEC_CFLAGS)
+encode_lavc_la_LDFLAGS = -module -avoid-version
+encode_lavc_la_LIBADD = $(LIBAVCODEC_LIBS)
 
 encode_lame_la_SOURCES = encode_lame.c
 encode_lame_la_CPPFLAGS = $(AM_CPPFLAGS) $(LAME_CFLAGS)
@@ -68,5 +74,6 @@ encode_xvid_la_LDFLAGS = -module -avoid-version
 encode_xvid_la_LIBADD = $(XVID_LIBS)
 
 EXTRA_DIST = \
+	lavc.cfg \
 	x264.cfg \
 	xvid.cfg

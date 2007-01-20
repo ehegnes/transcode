@@ -1,4 +1,9 @@
 2007-01-20 Francesco Romani <fromani at gmail dot com>
+  * added files: encode/encode_lavc.c encode/lavc.cfg
+  add stub for libavcodec-based encoder.
+  ***KNOWN BROKEN*** -> don't use it yet. I'm working on.
+  Suggestions/patches welcome as usual ;)
+
   * encode/encode_x264.c
   (private) vob_get_sample_aspect_ratio()
   =>
