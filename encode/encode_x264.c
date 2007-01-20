@@ -322,89 +322,6 @@ static void x264_log(void *userdata, int level, const char *format,
 /*************************************************************************/
 
 /**
- * vob_get_sample_aspect_ratio:  Set $sar_num and $sar_den to the sample
- * aspect ratio (also called pixel aspect ratio) described by $vob->ex_par,
- * $vob->ex_par_width, $vob->ex_par_height and vob->ex_asr.
- *
- * This function might return quite high values in $sar_num and
- * $sar_den. Depending on what codec these parameters are given to,
- * eventually a common factor should be reduced first. In case of x264
- * this is not needed, since it's done in x264's code.
- *
- * QUESTION: should this be the job of an export-module?
- *
- * Parameters:
- *     sar_num: integer to store SAR-numerator in.
- *     sar_den: integer to store SAR-denominator in.
- *
- * Returns:
- *     0 on success, nonzero otherwise (this means bad parameters).
- */
-
-static int vob_get_sample_aspect_ratio(const vob_t *vob,
-                                       int *sar_num, int *sar_den)
-{
-    int num, den;
-
-    if (!vob || !sar_num || !sar_den)
-        return TC_ERROR;
-
-    /* Aspect Ratio Calculations (modified code from export_ffmpeg.c) */
-    if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_PAR) {
-        if (vob->ex_par > 0) {
-            /* 
-             * vob->ex_par MUST be guarantee to be in a sane range
-             * by core (transcode/tcexport 
-             */
-            tc_par_code_to_ratio(vob->ex_par, &num, &den);
-        } else {
-            /* same as above */
-            num = vob->ex_par_width;
-            den = vob->ex_par_height;
-        }
-        tc_log_info(MOD_NAME, "DAR value ratio calculated as"
-                              " %f = %d/%d",
-                              (double)num/(double)den, num, den);
-    } else {
-        if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_ASR) {
-            /* same as above for PAR stuff */
-            tc_asr_code_to_ratio(vob->ex_asr, &num, &den);
-            tc_log_info(MOD_NAME, "Display aspect ratio calculated as"
-                                  " %f = %d/%d",
-                                 (double)num/(double)den, num, den);
-
-            /* ffmpeg FIXME:
-             * This original code might lead to rounding/truncating errors
-             * and maybe produces too high values for "den" and
-             * "num" for -y ffmpeg -F mpeg4
-             *
-             * sar = dar * ((double)vob->ex_v_height / (double)vob->ex_v_width);
-             * lavc_venc_context->sample_aspect_ratio.num = (int)(sar * 1000);
-             * lavc_venc_context->sample_aspect_ratio.den = 1000;
-             */
-
-             num *= vob->ex_v_height;
-             den *= vob->ex_v_width;
-             /* I don't need to reduce since x264 does it itself :-) */
-             tc_log_info(MOD_NAME, "Sample aspect ratio calculated as"
-                                   " %f = %d/%d",
-                                   (double)num/(double)den, num, den);
-
-        } else { /* user did not specify asr at all, assume no change */
-            tc_log_info(MOD_NAME, "Set display aspect ratio to input");
-            num = 1;
-            den = 1;
-        }
-    }
-
-    *sar_num = num;
-    *sar_den = den;
-    return TC_OK;
-}
-
-/*************************************************************************/
-
-/**
  * x264params_set_multipass:  Does all settings related to multipass.
  *
  * Parameters:
@@ -535,10 +452,11 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
         }
     }
 
-    if (0 != vob_get_sample_aspect_ratio(vob,
-                                         &params->vui.i_sar_width,
-                                         &params->vui.i_sar_height)
+    if (0 != tc_find_best_aspect_ratio(vob,
+                                       &params->vui.i_sar_width,
+                                       &params->vui.i_sar_height)
     ) {
+        tc_log_error(MOD_NAME, "unable to find sane value for SAR");
         return TC_ERROR;
     }
 

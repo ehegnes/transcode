@@ -1,4 +1,9 @@
 2007-01-20 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_x264.c
+  (private) vob_get_sample_aspect_ratio()
+  =>
+  (libtc)   tc_find_best_aspect_ratio()
+
   * libtc/libtc.h libtc/tc_functions.c
   move 'best' ASR finding helper code for encoder into
   a new function on libtc. Algorythm used was the one found
