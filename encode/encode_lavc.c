@@ -20,7 +20,7 @@
 #include "libtc/tcmodule-plugin.h"
 
 #include <math.h>
-#include <lavc/avcodec.h>
+#include <ffmpeg/avcodec.h>
 
 #define MOD_NAME    "encode_lavc.so"
 #define MOD_VERSION "v0.0.1 (2007-01-11)"
