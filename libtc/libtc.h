@@ -742,6 +742,29 @@ int tc_compute_fast_resize_values(void *_vob, int strict);
 
 /*************************************************************************/
 
+/**
+ * tc_find_best_aspect_ratio:
+ * 	set sar_num and sar_den to the sample aspect ratio (also called
+ * 	pixel aspect ratio) described by vob->ex_par,
+ * 	vob->ex_par_width, vob->ex_par_height and vob->ex_asr.
+ *
+ * This function might return quite high values in sar_num and
+ * sar_den. Depending on what codec these parameters are given to,
+ * eventually a common factor should be reduced first. In case of x264
+ * this is not needed, since it's done in x264's code.
+ *
+ * Parameters:
+ *     sar_num: integer to store SAR-numerator in.
+ *     sar_den: integer to store SAR-denominator in.
+ *
+ * Returns:
+ *     0 on success, nonzero otherwise (this means bad parameters).
+ */
+int tc_find_best_aspect_ratio(const void *_vob,
+                              int *sar_num, int *sar_den);
+
+/*************************************************************************/
+
 /*
  * XXX: add some general notes about quantization matrices stored
  * into files (format etc. etc.)

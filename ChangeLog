@@ -1,3 +1,12 @@
+2007-01-20 Francesco Romani <fromani at gmail dot com>
+  * libtc/libtc.h libtc/tc_functions.c
+  move 'best' ASR finding helper code for encoder into
+  a new function on libtc. Algorythm used was the one found
+  formerly in a private copy on encode_x264.c, and deserve
+  some more care.
+  encode_x264.c and upcoming encode_ffmpeg.c will be ported
+  soon to new code.
+
 2007-01-09 Francesco Romani <fromani at gmail dot com>
   * filter/filter_resample.c
   better log messages.

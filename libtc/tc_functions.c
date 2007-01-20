@@ -38,6 +38,8 @@
 
 #include "transcode.h"
 
+#include "ratiocodes.h"
+
 /*************************************************************************/
 
 pthread_mutex_t tc_libavcodec_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -648,6 +650,72 @@ int tc_compute_fast_resize_values(void *_vob, int strict)
 
 #undef RESIZE_DIV
 #undef DIM_IS_OK
+
+/*************************************************************************/
+
+
+int tc_find_best_aspect_ratio(const void *_vob,
+                              int *sar_num, int *sar_den)
+{
+    const vob_t *vob = _vob; /* adjust pointer */
+    int num, den;
+
+    if (!vob || !sar_num || !sar_den) {
+        return TC_ERROR;
+    }
+
+    /* Aspect Ratio Calculations (modified code from export_ffmpeg.c) */
+    if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_PAR) {
+        if (vob->ex_par > 0) {
+            /* 
+             * vob->ex_par MUST be guarantee to be in a sane range
+             * by core (transcode/tcexport 
+             */
+            tc_par_code_to_ratio(vob->ex_par, &num, &den);
+        } else {
+            /* same as above */
+            num = vob->ex_par_width;
+            den = vob->ex_par_height;
+        }
+        tc_log_info(__FILE__, "DAR value ratio calculated as"
+                              " %f = %d/%d",
+                              (double)num/(double)den, num, den);
+    } else {
+        if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_ASR) {
+            /* same as above for PAR stuff */
+            tc_asr_code_to_ratio(vob->ex_asr, &num, &den);
+            tc_log_info(__FILE__, "Display aspect ratio calculated as"
+                                  " %f = %d/%d",
+                                 (double)num/(double)den, num, den);
+
+            /* ffmpeg FIXME:
+             * This original code might lead to rounding/truncating errors
+             * and maybe produces too high values for "den" and
+             * "num" for -y ffmpeg -F mpeg4
+             *
+             * sar = dar * ((double)vob->ex_v_height / (double)vob->ex_v_width);
+             * lavc_venc_context->sample_aspect_ratio.num = (int)(sar * 1000);
+             * lavc_venc_context->sample_aspect_ratio.den = 1000;
+             */
+
+             num *= vob->ex_v_height;
+             den *= vob->ex_v_width;
+             /* I don't need to reduce since x264 does it itself :-) */
+             tc_log_info(__FILE__, "Sample aspect ratio calculated as"
+                                   " %f = %d/%d",
+                                   (double)num/(double)den, num, den);
+
+        } else { /* user did not specify asr at all, assume no change */
+            tc_log_info(__FILE__, "Set display aspect ratio to input");
+            num = 1;
+            den = 1;
+        }
+    }
+
+    *sar_num = num;
+    *sar_den = den;
+    return TC_OK;
+}
 
 /*************************************************************************/
 
