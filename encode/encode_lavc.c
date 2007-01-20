@@ -1,6 +1,6 @@
 /*
- *  encode_tc_lavc.c - produce empty )as in zero-sized) A/V frames.
- *  (C) 2005/2006 Francesco Romani <fromani at gmail dot com>
+ *  encode_lavc.c - encode A/V frames using libavcodec.
+ *  (C) 2007 Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
  * transcode is free software, distributable under the terms of the GNU
