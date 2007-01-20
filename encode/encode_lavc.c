@@ -12,6 +12,8 @@
 #include "framebuffer.h"
 #include "filter.h"
 
+#include "aclib/imgconvert.h"
+
 #include "libtc/optstr.h"
 #include "libtc/cfgfile.h"
 #include "libtc/ratiocodes.h"
@@ -27,7 +29,7 @@
 #define MOD_CAP     "libavcodec based encoder (" LIBAVCODEC_IDENT ")"
 
 #define LAVC_CONFIG_FILE "lavc.cfg"
-#define PSNR_LOG_FILE      "psnr.log"
+#define PSNR_LOG_FILE    "psnr.log"
 
 static const char *tc_lavc_help = ""
     "Overview:\n"
@@ -113,6 +115,7 @@ struct tclavcprivatedata_ {
     FILE *psnr_file;
 
     vframe_list_t *vframe_buf;
+    /* for colorspace conversions in prepare functions */
     PreEncodeVideoFn pre_encode_video;
 };
 
@@ -143,6 +146,28 @@ static const TCFormatID tc_lavc_formats[] = { TC_FORMAT_ERROR };
  * following helper private functions adapt stuff and do proper
  * colorspace conversion, if needed, preparing data for
  * later real encoding
+ */
+
+/*
+ * pre_encode_video_yuv420p:
+ * pre_encode_video_yuv420p_huffyuv:
+ * pre_encode_video_yuv422p:
+ * pre_encode_video_yuv420p_huffyuv:
+ * pre_encode_video_rgb24:
+ *      prepare internal structures for actual encoding, doing
+ *      colorspace conversion and/or any needed adaptation.
+ *
+ * Parameters:
+ *      pd: pointer to private module dataure
+ *  vframe: pointer to *SOURCE* video data frame
+ * Return Value:
+ *     none
+ * Preconditions:
+ *     module initialized and configured;
+ *     auxiliariy buffer space already allocated if needed
+ *     (pix fmt != yuv420p)
+ * Postconditions:
+ *     video data ready to be encoded through lavc.
  */
 
 static void pre_encode_video_yuv420p(TCLavcPrivateData *pd,
@@ -219,6 +244,15 @@ static void pre_encode_video_rgb24(TCLavcPrivateData *pd,
 #define INFINITY HUGE_VAL
 #endif
 
+/*
+ * psnr:
+ *      compute the psnr value of given data.
+ *
+ * Parameters:
+ *      d: value to be computed
+ * Return value:
+ *      psnr of `d'
+ */
 static double psnr(double d) {
     if (d == 0) {
         return INFINITY;
@@ -226,6 +260,22 @@ static double psnr(double d) {
     return -10.0 * log(d) / log(10);
 }
 
+/*
+ * tc_lavc_list_codecs:
+ *      (NOT Thread safe. But do anybody cares since
+ *      transcode encoder(.c) is single-threaded today
+ *      and in any foreseable future?)
+ *      return a buffer listing all supported codecs with
+ *      respective name and short description.
+ *
+ * Parameters:
+ *      None
+ * Return Value:
+ *      Read-only pointer to a char buffer holding the 
+ *      description data. Buffer is guaranted valid
+ *      at least until next call of this function.
+ *      You NEVER need to tc_free() the pointer.
+ */
 static const char* tc_lavc_list_codecs(void)
 {
     /* XXX: I feel a bad taste */
@@ -259,9 +309,27 @@ static const char* tc_lavc_list_codecs(void)
     return buf;
 }
 
+
+/*
+ * tc_lavc_read_matrices:
+ *      read and fill internal (as in internal module data)
+ *      custom quantization matrices from data stored on
+ *      disk files, using given paths, then passes them
+ *      to libavcodec for usage in encoders if loading was
+ *      succesfull.
+ *
+ * Parameters:
+ *                 pd: pointer to module private data to use.
+ *  intra_matrix_file: path of file containing intra matrix data.
+ *  inter_matrix_file: path of file containing inter matrix data.
+ * Return Value:
+ *      None
+ * Side Effects:
+ *      0-2 files on disk are opend, read, closed
+ */
 static void tc_lavc_read_matrices(TCLavcPrivateData *pd,
-                                    const char *intra_matrix_file,
-                                    const char *inter_matrix_file)
+                                  const char *intra_matrix_file,
+                                  const char *inter_matrix_file)
 {
     if (intra_matrix_file != NULL && strlen(intra_matrix_file) > 0) {
         /* looks like we've got something... */
@@ -290,13 +358,22 @@ static void tc_lavc_read_matrices(TCLavcPrivateData *pd,
     }
 }
 
+/*
+ * tc_lavc_load_filters:
+ *      request to transcode core filters needed by given parameters.
+ *
+ * Parameters:
+ *      pd: pointer to module private data.
+ * Return Value:
+ *      None.
+ */
 static void tc_lavc_load_filters(TCLavcPrivateData *pd)
 {
     if (pd->tc_vcodec == TC_CODEC_MJPEG || pd->tc_vcodec == TC_CODEC_LJPEG) {
         int handle;
 
         tc_log_info(MOD_NAME, "output is mjpeg or ljpeg, extending range from "
-			      "YUV420P to YUVJ420P (full range)");
+			        "YUV420P to YUVJ420P (full range)");
 
         handle = tc_filter_add("levels", "input=16-240");
         if (!handle) {
@@ -306,16 +383,30 @@ static void tc_lavc_load_filters(TCLavcPrivateData *pd)
 }
 
 /*************************************************************************/
+/* PSNR-log stuff */
 
 #define PSNR_REQUESTED(PD) ((PD)->confdata.flags.psnr)
 
-/* PSNR-log stuff */
+/*
+ * psnr_open:
+ *      open psnr log file and prepare internal data to write out
+ *      PSNR stats
+ *
+ * Parameters:
+ *      pd: pointer to private module data.
+ * Return Value:
+ *      TC_OK: succesfull (log file open and avalaible and so on)
+ *      TC_ERROR: otherwise
+ */
 static int psnr_open(TCLavcPrivateData *pd)
 {
     pd->psnr_file = NULL;
 
     pd->psnr_file = fopen(PSNR_LOG_FILE, "w");
-    if (pd->psnr_file == NULL) {
+    if (pd->psnr_file != NULL) {
+        /* add a little reminder */
+        fprintf(pd->psnr_file, "# Num Qual Size Y U V Tot Type");
+    } else {
         tc_log_warn(MOD_NAME, "can't open psnr log file '%s'",
                     PSNR_LOG_FILE);
         return TC_ERROR;
@@ -325,7 +416,19 @@ static int psnr_open(TCLavcPrivateData *pd)
 
 #define PFRAME(PD) ((PD)->ff_vcontext.coded_frame)
 
-static int psnr_write(TCLavcPrivateData *pd, int size)
+/*
+ * psnr_write:
+ *      fetch and write to log file, if avalaible, PSNR statistics
+ *      for last encoded frames. Format is human-readable.
+ *      If psnr log file isn't avalaible, silently doesn nothing.
+ *
+ * Parameters:
+ *        pd: pointer to private module data.
+ *      size: size (bytes) of last encoded frame.
+ * Return Value:
+ *      None.
+ */
+static void psnr_write(TCLavcPrivateData *pd, int size)
 {
     if (pd->psnr_file != NULL) {
         const char pict_type[5] = { '?', 'I', 'P', 'B', 'S' };
@@ -345,11 +448,22 @@ static int psnr_write(TCLavcPrivateData *pd, int size)
                 psnr((err[0] + err[1] + err[2]) / (f * 1.5)),
                 pict_type[PFRAME(pd)->pict_type]);
     }
-    return TC_ERROR;
 }
 
 #undef PFRAME
 
+/*
+ * psnr_close:
+ *      close psnr log file, free acquired resource.
+ *      It's safe to perform this call even if psnr_open()
+ *      was NOT called previously.
+ *
+ * Parameters:
+ *      pd: pointer to private module data.
+ * Return Value:
+ *      TC_OK: succesfull (log file closed correctly)
+ *      TC_ERROR: otherwise
+ */
 static int psnr_close(TCLavcPrivateData *pd)
 {
     if (pd->psnr_file != NULL) {
@@ -360,6 +474,15 @@ static int psnr_close(TCLavcPrivateData *pd)
     return TC_OK;
 }
 
+/*
+ * psnr_print:
+ *      tc_log out summary of *overall* PSNR stats.
+ *
+ * Parameters:
+ *      pd: pointer to private module data.
+ * Return Value:
+ *      None.
+ */
 static void psnr_print(TCLavcPrivateData *pd)
 {
     double f = pd->ff_vcontext.width * pd->ff_vcontext.height * 255.0 * 255.0;
@@ -378,13 +501,28 @@ static void psnr_print(TCLavcPrivateData *pd)
 
 
 /*************************************************************************/
-
 /* 
  * configure() helpers, libavcodec allow very detailed
  * configuration step
  */
 
-/* FIXME: move to TC_CODEC_* colorspaces */
+
+/*
+ * tc_lavc_set_pix_fmt:
+ *      choose the right pixel format and setup all internal module
+ *      fields depending on this value.
+ *      Please note that this function SHALL NOT allocate resources
+ *      (i.e.: buffers) that's job of other specific functions.
+ *
+ * Parameters:
+ *        pd: pointer to private module data.
+ *       vob: pointer to vob_t structure.
+ * Return Value:
+ *      TC_OK: succesfull;
+ *      TC_ERROR: wrong/erroneous/unsupported pixel format.
+ *
+ * FIXME: move to TC_CODEC_* colorspaces
+ */
 static int tc_lavc_set_pix_fmt(TCLavcPrivateData *pd, const vob_t *vob)
 {
     switch (vob->im_v_codec) {
@@ -420,7 +558,7 @@ static int tc_lavc_set_pix_fmt(TCLavcPrivateData *pd, const vob_t *vob)
         break;
       default:
         tc_log_warn(MOD_NAME, "Unknown pixel format %i", vob->im_v_codec);
-        return TC_EXPORT_ERROR;
+        return TC_ERROR;
     }
 
     tc_log_info(MOD_NAME, "internal pixel format: %s",
@@ -436,8 +574,23 @@ static int tc_lavc_set_pix_fmt(TCLavcPrivateData *pd, const vob_t *vob)
         return TC_ERROR; \
     } \
 } while (0)
- 
 
+/*
+ * tc_lavc_init_multipass:
+ *      setup internal (avcodec) parameters for multipass translating
+ *      values from vob_t structure, and handle multipass log file data,
+ *      reading it or creating it if needed.
+ *
+ * Parameters:
+ *        pd: pointer to private module data.
+ *       vob: pointer to vob_t structure.
+ * Return Value:
+ *      TC_OK: succesfull
+ *      TC_ERROR: error (mostly I/O related; reason will tc_log*()'d out)
+ * Side effects:
+ *      A file on disk will be open'd, and possibly read.
+ *      Seeks are possible as well.
+ */
 static int tc_lavc_init_multipass(TCLavcPrivateData *pd, const vob_t *vob)
 {
     int multipass_flag = tc_codec_is_multipass(pd->tc_vcodec);
@@ -495,6 +648,16 @@ static int tc_lavc_init_multipass(TCLavcPrivateData *pd, const vob_t *vob)
 
 #undef CAN_DO_MULTIPASS
 
+/*
+ * tc_lavc_fini_multipass:
+ *      release multipass resources, most notably but NOT exclusively
+ *      close log file open'd on disk.
+ *
+ * Parameters:
+ *        pd: pointer to private module data.
+ * Return Value:
+ *      None.
+ */
 static void tc_lavc_fini_multipass(TCLavcPrivateData *pd)
 {
     if (pd->ff_vcontext.stats_in != NULL) {
@@ -507,6 +670,19 @@ static void tc_lavc_fini_multipass(TCLavcPrivateData *pd)
     }
 }
 
+/*
+ * tc_lavc_init_rc_override:
+ *      parse Rate Control override string given in format understood
+ *      by libavcodec and store result in internal avcodec context.
+ *
+ * Parameters:
+ *        pd: pointer to private module data.
+ *       str: RC override string to parse.
+ * Return Value:
+ *      None.
+ * Side Effects:
+ *      some memory will be allocated.
+ */
 static void tc_lavc_init_rc_override(TCLavcPrivateData *pd, const char *str)
 {
     int i = 0;
@@ -524,7 +700,7 @@ static void tc_lavc_init_rc_override(TCLavcPrivateData *pd, const char *str)
             }
             pd->ff_vcontext.rc_override = 
                 tc_realloc(pd->ff_vcontext.rc_override,
-                           sizeof(RcOverride) * (i + 1));
+                           sizeof(RcOverride) * (i + 1)); /* XXX */
             pd->ff_vcontext.rc_override[i].start_frame = start;
             pd->ff_vcontext.rc_override[i].end_frame   = end;
             if (q > 0) {
@@ -543,7 +719,18 @@ static void tc_lavc_init_rc_override(TCLavcPrivateData *pd, const char *str)
     pd->ff_vcontext.rc_override_count = i;
 }
 
-
+/*
+ * tc_lavc_fini_rc_override:
+ *      free Rate Control override resources acquired by
+ *      former call of tc_lavc_init_rc_override.
+ *      It's safe to call this function even if
+ *      tc_lavc_init_rc_override was NOT called previously.
+ *
+ * Parameters:
+ *        pd: pointer to private module data.
+ * Return Value:
+ *      None.
+ */
 static void tc_lavc_fini_rc_override(TCLavcPrivateData *pd)
 {
     if (pd->ff_vcontext.rc_override != NULL) {
@@ -552,9 +739,25 @@ static void tc_lavc_fini_rc_override(TCLavcPrivateData *pd)
     }
 }
 
+/*
+ * tc_lavc_init_buf:
+ *      allocate internal colorspace conversion buffer, if needed
+ *      (depending by internal pixel format),
+ *
+ * Parameters:
+ *        pd: pointer to private module data.
+ *       vob: pointer to vob_t structure.
+ * Return Value:
+ *      TC_OK: succesfull
+ *      TC_ERROR: error (can't allocate buffers)
+ * Preconditions:
+ *      INTERNAL pixel format already determined using
+ *      tc_lavc_set_pix_fmt().
+ */
+
 static int tc_lavc_init_buf(TCLavcPrivateData *pd, const vob_t *vob)
 {
-    if (pd->tc_pix_fmt != TC_CODEC_YUV420P) { /*yuv420p it's out default */
+    if (pd->tc_pix_fmt != TC_CODEC_YUV420P) { /*yuv420p it's our default */
         pd->vframe_buf = tc_new_video_frame(vob->im_v_width, vob->im_v_height,
                                             pd->tc_pix_fmt, TC_TRUE);
         if (pd->vframe_buf == NULL) {
@@ -565,12 +768,28 @@ static int tc_lavc_init_buf(TCLavcPrivateData *pd, const vob_t *vob)
     return TC_OK;
 }
 
+/* release internal colorspace conversion buffers. */
 #define tc_lavc_fini_buf(PD) do { \
     if ((PD) != NULL && (PD)->vframe_buf != NULL) { \
         tc_del_video_frame((PD)->vframe_buf); \
     } \
 } while (0)
 
+
+/*
+ * tc_lavc_settings_from_vob:
+ *      translate vob settings and store them in module
+ *      private data and in avcodec context, in correct format.
+ *
+ * Parameters:
+ *        pd: pointer to private module data.
+ *       vob: pointer to vob_t structure.
+ * Return Value:
+ *      TC_OK: succesfull
+ *      TC_ERROR: error (various reasons, all will be tc_log*()'d out)
+ * Side Effects:
+ *      various helper subroutines will be called.
+ */
 static int tc_lavc_settings_from_vob(TCLavcPrivateData *pd, const vob_t *vob)
 {
     int ret = 0;
@@ -640,8 +859,14 @@ static int tc_lavc_settings_from_vob(TCLavcPrivateData *pd, const vob_t *vob)
 #define PAUX(field) &(pd->confdata.field)
 
 /*
- * setup sane values for auxiliary config, and setup *transcode's*
- * AVCodecContext default settings.
+ * tc_lavc_config_defaults:
+ *      setup sane values for auxiliary config, and setup *transcode's*
+ *      AVCodecContext default settings.
+ *
+ * Parameters:
+ *        pd: pointer to private module data.
+ * Return Value:
+ *      None
  */
 static void tc_lavc_config_defaults(TCLavcPrivateData *pd)
 {
@@ -720,9 +945,16 @@ static void tc_lavc_config_defaults(TCLavcPrivateData *pd)
 /* FIXME: it is too nasty? */
 #define SET_FLAG(pd, field) (pd)->ff_vcontext.flags |= (pd)->confdata.flags.field
 
-/* 
- * translate auxiliary configuration into context values;
- * also does some consistency verifications
+/*
+ * tc_lavc_dispatch_settings:
+ *      translate auxiliary configuration into context values;
+ *      also does some consistency verifications.
+ *
+ * Parameters:
+ *        pd: pointer to private module data.
+ *       vob: pointer to vob_t structure.
+ * Return Value:
+ *      None.
  */
 static void tc_lavc_dispatch_settings(TCLavcPrivateData *pd)
 {
@@ -773,7 +1005,7 @@ static void tc_lavc_dispatch_settings(TCLavcPrivateData *pd)
 
 /* FIXME: I'm a bit worried about heavy stack usage of this function... */
 static int tc_lavc_read_config(TCLavcPrivateData *pd,
-                                  const char *options)
+                               const char *options)
 {
     char intra_matrix_file[PATH_MAX] = { '\0' };
     char inter_matrix_file[PATH_MAX] = { '\0' };
@@ -912,7 +1144,7 @@ static int tc_lavc_read_config(TCLavcPrivateData *pd,
 
     /* gracefully go ahead if no matrices are given */
     tc_lavc_read_matrices(pd, intra_matrix_file, inter_matrix_file);
-    /* gracefully go ahead if no matrices are given */
+    /* gracefully go ahead if no rc override is given */
     tc_lavc_init_rc_override(pd, rc_override_buf);
 
     if (verbose >= TC_DEBUG) {
@@ -926,6 +1158,7 @@ static int tc_lavc_read_config(TCLavcPrivateData *pd,
 
 #undef PCTX
 #undef PAUX
+
 
 static int tc_lavc_write_logs(TCLavcPrivateData *pd, int size)
 {
@@ -1138,7 +1371,7 @@ static int tc_lavc_encode_video(TCModuleInstance *self,
     if (outframe->video_len < 0) {
         tc_log_warn(MOD_NAME, "encoder error: size (%i)",
                     outframe->video_len);
-        return TC_EXPORT_ERROR;
+        return TC_ERROR;
     }
 
     return tc_lavc_write_logs(pd, outframe->video_len);
