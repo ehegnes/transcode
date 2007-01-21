@@ -1,3 +1,8 @@
+2007-01-21 Francesco Romani <fromani at gmail dot com>
+  * configure.in
+  Warn about deprecation status and future removal of our internal
+  libac3.
+
 2006-12-22 Francesco Romani <fromani at gmail dot com>
   * configure.in
   transcode-1.0.3rc2

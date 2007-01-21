@@ -1050,10 +1050,15 @@ if test x"$have_a52" = x"yes" ; then
   if test x"${enable_a52_default_decoder}" = x"yes"; then
     AC_DEFINE([USE_LIBA52_DECODER], 1,
       [Use the liba52 A52/AC3 decoder as default])
+  else
+    AC_MSG_WARN([it is recommended to use liba52 ad default decoder.])
+    AC_MSG_WARN([internal libac3 decoder is deprecated and will be removed in future releases.])
   fi
 else
+  enable_a52_default_decoder="no"
   AC_MSG_CHECKING(use libac3 as default decoder)
   AC_MSG_RESULT(yes)
+  AC_MSG_WARN([internal libac3 decoder is deprecated and will be removed in future releases.])
 fi
 TC_PKG_HAVE(a52, A52)
 
