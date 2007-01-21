@@ -1002,8 +1002,32 @@ static void tc_lavc_dispatch_settings(TCLavcPrivateData *pd)
 #undef SET_FLAG
 
 
-
-/* FIXME: I'm a bit worried about heavy stack usage of this function... */
+/*
+ * tc_lavc_read_config:
+ *      read configuration values from
+ *      1) configuration file (if found)
+ *      2) command line (overrides configuration file in case
+ *         of conflicts).
+ *      Also read related informations like RC override string
+ *      and custom quantization matrices; translate all settings
+ *      in libavcodec-friendly values (if needed), then finally
+ *      perform some coherency checks and feed avcodec context
+ *      with gathered data.
+ *
+ * Parameters:
+ *           pd: pointer to private module data.
+ *      options: command line options of *THIS MODULE*.
+ * Return Value:
+ *      TC_OK: succesfull
+ *      TC_ERROR: error. Mostly I/O related or badly broken
+ *                (meaningless) value. Exact reason will tc_log*()'d out.
+ * Side Effects:
+ *      Quite a lot, since various (and quite complex) subroutines
+ *      are involved. Most notably, various files can be opened/read/closed
+ *      on disk, and some memory could be allocated.
+ *
+ * FIXME: I'm a bit worried about heavy stack usage of this function...
+ */
 static int tc_lavc_read_config(TCLavcPrivateData *pd,
                                const char *options)
 {
@@ -1159,7 +1183,19 @@ static int tc_lavc_read_config(TCLavcPrivateData *pd,
 #undef PCTX
 #undef PAUX
 
-
+/*
+ * tc_lavc_write_logs:
+ *      write on disk file encoding logs. That means encoder
+ *      multipass log file, but that can also include PSNR
+ *      statistics, if requested.
+ *
+ * Parameters:
+ *           pd: pointer to private module data.
+ *         size: size of last encoded frame.
+ * Return Value:
+ *      TC_OK: succesfull
+ *      TC_ERROR: I/O error. Exact reason will tc_log*()'d out.
+ */
 static int tc_lavc_write_logs(TCLavcPrivateData *pd, int size)
 {
     /* store stats if there are any */
@@ -1181,6 +1217,8 @@ static int tc_lavc_write_logs(TCLavcPrivateData *pd, int size)
 }
 
 /*************************************************************************/
+/* see libtc/tcmodule-data.h for functions meaning and purposes          */
+
 
 static int tc_lavc_init(TCModuleInstance *self)
 {
@@ -1194,6 +1232,7 @@ static int tc_lavc_init(TCModuleInstance *self)
         return TC_ERROR;
     }
 
+    /* enforce NULL-ness of dangerous (segfault-friendly) stuff */
     pd->psnr_file = NULL;
     pd->stats_file = NULL;
 
@@ -1205,15 +1244,18 @@ static int tc_lavc_init(TCModuleInstance *self)
     return TC_OK;
 }
 
+
 static int tc_lavc_fini(TCModuleInstance *self)
 {
     TC_MODULE_SELF_CHECK(self, "fini");
 
+    /* _stop() does the magic; FIXME: recall from here? */
     tc_free(self->userdata);
     self->userdata = NULL;
 
     return TC_OK;
 }
+
 
 #define ABORT_IF_NOT_OK(RET) do { \
     if ((RET) != TC_OK) { \
@@ -1233,6 +1275,7 @@ static int tc_lavc_configure(TCModuleInstance *self,
 
     pd = self->userdata;
 
+    /* FIXME: move into core? */
     TC_LOCK_LIBAVCODEC;
     avcodec_init();
     avcodec_register_all();
@@ -1299,7 +1342,7 @@ failed:
 
 
 static int tc_lavc_inspect(TCModuleInstance *self,
-                        const char *param, const char **value)
+                           const char *param, const char **value)
 {
     TC_MODULE_SELF_CHECK(self, "inspect");
     TC_MODULE_SELF_CHECK(value, "inspect");
@@ -1347,8 +1390,8 @@ static int tc_lavc_stop(TCModuleInstance *self)
 
 
 static int tc_lavc_encode_video(TCModuleInstance *self,
-                                  vframe_list_t *inframe,
-                                  vframe_list_t *outframe)
+                                vframe_list_t *inframe,
+                                vframe_list_t *outframe)
 {
     TCLavcPrivateData *pd = NULL;
 
