@@ -365,7 +365,7 @@ Optional packages:
           directory where libdv libraries [libdv.so] are installed
     affected modules: export_dvraw.so, export_dv.so, filter_preview.so
 
-  libquicktime  http://libquicktime.sourceforge.net/
+  libquicktime  http://libquicktime.sourceforge.net/ (requested version >= 0.9.8)
     related options:
       --enable-libquicktime (disabled)
           build with libquicktime support for reading and writing MOV files

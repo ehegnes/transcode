@@ -121,7 +121,7 @@ void decode_mov(decode_t *decode)
 					p_write (decode->fd_out, p_buffer, s_buff_size);
 				}
 			}
-      			else 
+            else 
 			{
 				s_sample >>= 1;
 				p_mask1=(short *)p_buffer;
@@ -153,29 +153,7 @@ void decode_mov(decode_t *decode)
 				free(p_mask2);
 			}
 			free(p_buffer);
-		} 
-#if !defined(LIBQUICKTIME_000904)
-		else if((strcasecmp(p_a_codec,QUICKTIME_RAW)==0) || (strcasecmp(p_a_codec,QUICKTIME_TWOS)==0)) 
-		{
-			s_sample=(1.00 * s_channel * s_bits *s_audio_rate)/(s_fps*8);
-			s_buff_size=s_sample * sizeof(short);
-			p_buffer=(char *)malloc(s_buff_size);
-			s_qt_pos=quicktime_audio_position(p_qt_structure,0);
-			quicktime_set_audio_position(p_qt_structure,s_qt_pos+decode->frame_limit[0],0);
-			for (;s_audio_size>0;s_audio_size-=s_buff_size)
-			{
-				if ( quicktime_read_audio(p_qt_structure,p_buffer, s_buff_size, 0) < 0)
-				{
-					quicktime_close(p_qt_structure);
-					fprintf(stderr,"(%s) error: reading quicktime audio frame\n",__FILE__);
-					import_exit(1);
-				}
-				p_write (decode->fd_out, p_buffer, s_buff_size);
-			}
-			quicktime_close(p_qt_structure);
-			free(p_buffer);
 		}
-#endif
 		else 
 		{
 			quicktime_close(p_qt_structure);

@@ -276,16 +276,11 @@ MOD_init
             return(TC_EXPORT_ERROR);
         }
 
-#if !defined(LIBQUICKTIME_000904)
-        /* set proposed video codec */
-        lqt_set_video(qtfile, 1, w, h, vob->ex_fps,qt_codec_info[0]);
-#else
 	fprintf(stderr, "\n \n  %i \n \n", tc_quicktime_get_timescale(vob->ex_fps));
         /* set proposed video codec */
         lqt_set_video(qtfile, 1, w, h,
 		tc_quicktime_get_timescale(vob->ex_fps) / vob->ex_fps+0.5,
 		tc_quicktime_get_timescale(vob->ex_fps), qt_codec_info[0]);
-#endif
     }
 
     /* set color model */

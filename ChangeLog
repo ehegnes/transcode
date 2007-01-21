@@ -1,4 +1,10 @@
 2007-01-21 Francesco Romani <fromani at gmail dot com>
+  * INSTALL configure.in export/export_mov.c import/decode_mov.c
+    import/fileinfo.c import/import_mov.c
+  Update libquicktime modules. Now minimum libquicktime requested
+  is 0.9.8, as stated in INSTALL file.
+  Patch courtesy of Stefan Scheffler <stefanscheffler at gmx dot net>
+
   * configure.in
   Warn about deprecation status and future removal of our internal
   libac3.

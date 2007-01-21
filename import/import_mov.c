@@ -50,9 +50,6 @@ static unsigned char **row_ptr = NULL;
 /* raw or decode frame */
 static int rawVideoMode = 0;
 
-/* raw or decode audio */
-static int rawAudioMode = 0;
-
 /* frame size */
 static int w=0, h=0;
 
@@ -138,18 +135,7 @@ MOD_open
     }
 
     /* check if audio compressor is supported */
-    if(quicktime_supported_audio(qt_audio, 0)!=0) {
-      rawAudioMode = 0;
-    } 
-#if !defined(LIBQUICKTIME_000904)
-    /* RAW PCM is directly supported */
-    else if(strcasecmp(codec,QUICKTIME_RAW)==0) {
-      rawAudioMode = 1;
-      fprintf(stderr,"[%s] using RAW audio mode!\n",MOD_NAME);
-    }
-#endif
-    /* unsupported codec */
-    else {
+    if(!quicktime_supported_audio(qt_audio, 0)) {
       fprintf(stderr, "error: quicktime audio codec '%s' not supported!\n",
 	      codec);
       return(TC_IMPORT_ERROR);
@@ -162,7 +148,9 @@ MOD_open
     double fps;
     char *codec;
     int numTrk;
-
+    int rowspan = 0;
+    int rowspan_uv = 0;
+    
     param->fd = NULL;
 
     /* open movie for video extraction */
@@ -207,20 +195,19 @@ MOD_open
 	     return(TC_IMPORT_ERROR);
     }
 
-
     /* set color model */
     switch(vob->im_v_codec) {
         case CODEC_RGB:
               /* use raw mode when possible */
               /* not working ?*/
-              /*if (strcmp(qt_codec, "raw ")) rawVideo=1; */
-	      	    /* allocate buffer for row pointers */
-	      	    row_ptr = malloc(h*sizeof(char *));
-	      	    if(row_ptr==0) {
-		        fprintf(stderr,"error: can't alloc row pointers\n");
-			return(TC_IMPORT_ERROR);
-	      	    }
-
+              /* if (strcmp(qt_codec, "raw ")) rawVideo=1; */
+              /* allocate buffer for row pointers */
+              row_ptr = lqt_rows_alloc(w, h, BC_RGB888, &rowspan, &rowspan_uv);
+              if(row_ptr==0) {
+                  fprintf(stderr,"error: can't alloc row pointers\n");
+                  return(TC_IMPORT_ERROR);
+              }
+              
               quicktime_set_cmodel(qt_video, BC_RGB888); qt_cm = BC_RGB888;
               break;
               
@@ -228,15 +215,16 @@ MOD_open
               /* use raw mode when possible */
               /* not working ?*/
               /* if (strcmp(qt_codec, "yv12")) rawVideo=1; */
-	      	    /* allocate buffer for row pointers */
-	      	    row_ptr = malloc(3*sizeof(char *));
-                    if(row_ptr==0) {
-		        fprintf(stderr,"error: can't alloc row pointers\n");
-			return(TC_IMPORT_ERROR);
-	      	    }
-
+              /* allocate buffer for row pointers */
+              row_ptr = lqt_rows_alloc(w, h, BC_YUV420P, &rowspan, &rowspan_uv);
+              if(row_ptr==0) {
+                  fprintf(stderr,"error: can't alloc row pointers\n");
+                  return(TC_IMPORT_ERROR);
+              }
+              
               quicktime_set_cmodel(qt_video, BC_YUV420P); qt_cm = BC_YUV420P;
               break;
+
 /*TODO: implement YUV2  / Passthrough has issues */
         case CODEC_YUV422:
               /*fprintf(stderr," using yuv422\n"); */                 
@@ -342,80 +330,71 @@ MOD_decode
       param->size=0;
       return(TC_IMPORT_OK);
     }
+    
+    /* decode audio mode */
+    long pos = quicktime_audio_position(qt_audio,0);
+    long samples = param->size;
 
-    /* raw read mode */
-#if !defined(LIBQUICKTIME_000904)
-    if(rawAudioMode) {
-      bytes_read = quicktime_read_audio(qt_audio, 
-					param->buffer, param->size, 0);
-    } else
-#endif
-    {
-      /* decode audio mode */
-      long pos = quicktime_audio_position(qt_audio,0);
-      long samples = param->size;
-      if(bits==16)
-	samples >>= 1;
+    if(bits==16) samples >>= 1;
 
-      /* mono */
-      if(chan==1) {
-	/* direct copy */
-	bytes_read = quicktime_decode_audio(qt_audio,
-					    (int16_t *)param->buffer,NULL,
-					    samples,0);
+    /* mono */
+    if(chan==1) {
+      /* direct copy */
+      bytes_read = quicktime_decode_audio(qt_audio,
+                          (int16_t *)param->buffer,NULL,
+                          samples,0);
 
-	/* check result */
-	if(bytes_read<0) {
-	  if(verbose & TC_DEBUG) 
-	    fprintf(stderr,"error: reading quicktime audio frame!\n");
-	  return(TC_IMPORT_ERROR);
-	}
+      /* check result */
+      if(bytes_read<0) {
+        if(verbose & TC_DEBUG) 
+          fprintf(stderr,"error: reading quicktime audio frame!\n");
+        return(TC_IMPORT_ERROR);
       }
-      /* stereo */
-      else {
-	int16_t *tgt;
-	int16_t *tmp;
-	int s,t;
-
-	samples >>= 1;
-	tgt = (int16_t *)param->buffer;
-	tmp = (int16_t *)malloc(samples*sizeof(int16_t));
-
-	/* read first channel into target buffer */
-	bytes_read = quicktime_decode_audio(qt_audio,tgt,NULL,samples,0);
-	if(bytes_read<0) {
-	  if(verbose & TC_DEBUG) 
-	    fprintf(stderr,"error: reading quicktime audio frame!\n");
-	  return(TC_IMPORT_ERROR);
-	}
-
-	/* read second channel in temp buffer */
-	quicktime_set_audio_position(qt_audio,pos,0);
-	bytes_read = quicktime_decode_audio(qt_audio,tmp,NULL,samples,1);
-	if(bytes_read<0) {
-	  if(verbose & TC_DEBUG) 
-	    fprintf(stderr,"error: reading quicktime audio frame!\n");
-	  return(TC_IMPORT_ERROR);
-	}
-
-	/* spread first channel */
-	for(s=samples-1;s>=0;s--)
-	  tgt[s<<1] = tgt[s];
-
-	/* fill in second channel from temp buffer */
-	t = 1;
-	for(s=0;s<samples;s++) {
-	  tgt[t] = tmp[s];
-	  t += 2;
-	}
-
-	free(tmp);
-      }
-      quicktime_set_audio_position(qt_audio,pos+samples,0);
     }
+    /* stereo */
+    else {
+      int16_t *tgt;
+      int16_t *tmp;
+      int s,t;
+      
+      samples >>= 1;
+      tgt = (int16_t *)param->buffer;
+      tmp = (int16_t *)malloc(samples*sizeof(int16_t));
+      
+      /* read first channel into target buffer */
+      bytes_read = quicktime_decode_audio(qt_audio,tgt,NULL,samples,0);
+      if(bytes_read<0) {
+        if(verbose & TC_DEBUG) 
+          fprintf(stderr,"error: reading quicktime audio frame!\n");
+        return(TC_IMPORT_ERROR);
+      }
+
+      /* read second channel in temp buffer */
+      quicktime_set_audio_position(qt_audio,pos,0);
+      bytes_read = quicktime_decode_audio(qt_audio,tmp,NULL,samples,1);
+      if(bytes_read<0) {
+        if(verbose & TC_DEBUG) 
+          fprintf(stderr,"error: reading quicktime audio frame!\n");
+        return(TC_IMPORT_ERROR);
+      }
+
+      /* spread first channel */
+      for(s=samples-1;s>=0;s--)
+        tgt[s<<1] = tgt[s];
+
+      /* fill in second channel from temp buffer */
+      t = 1;
+      for(s=0;s<samples;s++) {
+        tgt[t] = tmp[s];
+        t += 2;
+      }
+      
+      free(tmp);
+    }
+    quicktime_set_audio_position(qt_audio,pos+samples,0);
 
     return(TC_IMPORT_OK);
-  }
+    }
 
   return(TC_IMPORT_ERROR);
 }
