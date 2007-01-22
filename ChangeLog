@@ -2,6 +2,9 @@
   * libtc/libtc,h libtc/tc_functions.c
   add tag field to tc_find_best_aspect_ratio
 
+  * ttols/tcstub.h tools/tcstub.c
+  frame allocation stubs.
+
 2007-01-20 Francesco Romani <fromani at gmail dot com>
   * added files: encode/encode_lavc.c encode/lavc.cfg
   add stub for libavcodec-based encoder.

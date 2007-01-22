@@ -120,6 +120,30 @@ void aframe_copy(aframe_list_t *dst, aframe_list_t *src, int copy_data)
 {
     return;
 }
+
+
+vframe_list_t *tc_new_video_frame(int width, int height, int format,
+                                  int partial)
+{
+    return NULL;
+}
+
+aframe_list_t *tc_new_audio_frame(double samples, int channels, int bits)
+{
+    return NULL;
+}
+
+void tc_del_video_frame(vframe_list_t *vptr)
+{
+    return;
+}
+
+void tc_del_audio_frame(aframe_list_t *aptr)
+{
+    return;
+}
+
+
 #endif /* TC_FRAMEBUFFER_STUBS */
 
 
