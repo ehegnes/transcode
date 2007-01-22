@@ -754,14 +754,17 @@ int tc_compute_fast_resize_values(void *_vob, int strict);
  * this is not needed, since it's done in x264's code.
  *
  * Parameters:
+ *         vob: constant pointer to vob structure.
  *     sar_num: integer to store SAR-numerator in.
  *     sar_den: integer to store SAR-denominator in.
+ *         tag: tag to use in log messages (if any).
  *
  * Returns:
  *     0 on success, nonzero otherwise (this means bad parameters).
  */
 int tc_find_best_aspect_ratio(const void *_vob,
-                              int *sar_num, int *sar_den);
+                              int *sar_num, int *sar_den,
+			      const char *tag);
 
 /*************************************************************************/
 

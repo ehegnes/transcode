@@ -655,7 +655,8 @@ int tc_compute_fast_resize_values(void *_vob, int strict)
 
 
 int tc_find_best_aspect_ratio(const void *_vob,
-                              int *sar_num, int *sar_den)
+                              int *sar_num, int *sar_den,
+                              const char *tag)
 {
     const vob_t *vob = _vob; /* adjust pointer */
     int num, den;
@@ -677,16 +678,14 @@ int tc_find_best_aspect_ratio(const void *_vob,
             num = vob->ex_par_width;
             den = vob->ex_par_height;
         }
-        tc_log_info(__FILE__, "DAR value ratio calculated as"
-                              " %f = %d/%d",
-                              (double)num/(double)den, num, den);
+        tc_log_info(tag, "DAR value ratio calculated as %f = %d/%d",
+                    (double)num/(double)den, num, den);
     } else {
         if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_ASR) {
             /* same as above for PAR stuff */
             tc_asr_code_to_ratio(vob->ex_asr, &num, &den);
-            tc_log_info(__FILE__, "Display aspect ratio calculated as"
-                                  " %f = %d/%d",
-                                 (double)num/(double)den, num, den);
+            tc_log_info(tag, "Display aspect ratio calculated as %f = %d/%d",
+                        (double)num/(double)den, num, den);
 
             /* ffmpeg FIXME:
              * This original code might lead to rounding/truncating errors
@@ -701,12 +700,12 @@ int tc_find_best_aspect_ratio(const void *_vob,
              num *= vob->ex_v_height;
              den *= vob->ex_v_width;
              /* I don't need to reduce since x264 does it itself :-) */
-             tc_log_info(__FILE__, "Sample aspect ratio calculated as"
-                                   " %f = %d/%d",
-                                   (double)num/(double)den, num, den);
+             tc_log_info(tag, "Sample aspect ratio calculated as"
+                              " %f = %d/%d",
+                              (double)num/(double)den, num, den);
 
         } else { /* user did not specify asr at all, assume no change */
-            tc_log_info(__FILE__, "Set display aspect ratio to input");
+            tc_log_info(tag, "Set display aspect ratio to input");
             num = 1;
             den = 1;
         }
