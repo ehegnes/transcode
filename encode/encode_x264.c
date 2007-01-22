@@ -454,7 +454,8 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
 
     if (0 != tc_find_best_aspect_ratio(vob,
                                        &params->vui.i_sar_width,
-                                       &params->vui.i_sar_height)
+                                       &params->vui.i_sar_height,
+                                       MOD_NAME)
     ) {
         tc_log_error(MOD_NAME, "unable to find sane value for SAR");
         return TC_ERROR;

@@ -813,7 +813,8 @@ static int tc_lavc_settings_from_vob(TCLavcPrivateData *pd, const vob_t *vob)
 
     ret = tc_find_best_aspect_ratio(vob,
                                     &pd->ff_vcontext.sample_aspect_ratio.num,
-                                    &pd->ff_vcontext.sample_aspect_ratio.den);
+                                    &pd->ff_vcontext.sample_aspect_ratio.den,
+                                    MOD_NAME);
     if (ret != TC_OK) {
         tc_log_error(MOD_NAME, "unable to find sane value for SAR");
         return TC_ERROR;
@@ -1034,13 +1035,14 @@ static int tc_lavc_read_config(TCLavcPrivateData *pd,
     char intra_matrix_file[PATH_MAX] = { '\0' };
     char inter_matrix_file[PATH_MAX] = { '\0' };
     char rc_override_buf[TC_BUF_MIN] = { '\0' }; /* XXX */
+    char namebuf[32] = { '\0' }; /* temporary storage */
     /* 
      * Please note that option names are INTENTIONALLY identical/similar
      * to mplayer/mencoder ones
      */
     TCConfigEntry lavc_conf[] = {
         { "threads", PAUX(thread_count), TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 1, 7 },
-        //  { "vcodec", PAUX(vcodec_name), TCCONF_TYPE_STRING, 0, 0, 0 },
+        { "vcodec", namebuf, TCCONF_TYPE_STRING, 0, 0, 0 }, /* placeholder */
         //  need special handling
         //  { "keyint", PCTX(gop_size), TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 1, 1000 },
         //  handled by transcode core

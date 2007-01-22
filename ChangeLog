@@ -2,8 +2,11 @@
   * libtc/libtc,h libtc/tc_functions.c
   add tag field to tc_find_best_aspect_ratio
 
-  * ttols/tcstub.h tools/tcstub.c
+  * tools/tcstub.h tools/tcstub.c
   frame allocation stubs.
+
+  * encode/encode_lavc.c encode/encode_x264.c
+  adapt code to new tc_find_best_aspect_ratio signature.
 
 2007-01-20 Francesco Romani <fromani at gmail dot com>
   * added files: encode/encode_lavc.c encode/lavc.cfg
