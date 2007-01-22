@@ -83,7 +83,8 @@ avisplit_LDADD = \
 
 tcmodinfo_SOURCES = tcmodinfo.c tcstub.c
 tcmodinfo_CPPFLAGS = $(AM_CPPFLAGS) \
-	$(DLDARWIN_CFLAGS)
+	$(DLDARWIN_CFLAGS) \
+	-DTC_FRAMEBUFFER_STUBS=1
 tcmodinfo_LDADD = \
 	$(DLDARWIN_LIBS) \
 	$(ACLIB_LIBS) \

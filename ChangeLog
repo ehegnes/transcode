@@ -8,6 +8,10 @@
   * encode/encode_lavc.c encode/encode_x264.c
   adapt code to new tc_find_best_aspect_ratio signature.
 
+  * tools/tcmodinfo.c tools/Makefile.am docs/man/tcmodinfo.1
+  add new (debug helper) option; also use new stubs to make
+  encode_lavc happy.
+
 2007-01-20 Francesco Romani <fromani at gmail dot com>
   * added files: encode/encode_lavc.c encode/lavc.cfg
   add stub for libavcodec-based encoder.

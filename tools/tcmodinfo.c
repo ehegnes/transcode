@@ -52,6 +52,7 @@ static void usage(void)
     fprintf(stderr, "    -d verbosity      Verbosity mode [1 == TC_INFO]\n");
     fprintf(stderr, "    -m path           Use PATH as module path\n");
     fprintf(stderr, "    -M element        Request to module informations about <element>\n");
+    fprintf(stderr, "    -C string         Request to configure module using configuration <string>\n");
     fprintf(stderr, "    -s socket         Connect to transcode socket\n");
     fprintf(stderr, "    -t type           Type of module (filter, encode, multiplex)\n");
     fprintf(stderr, "\n");
@@ -136,7 +137,8 @@ int main(int argc, char *argv[])
     const char *filename = NULL;
     const char *modpath = MOD_PATH;
     const char *modtype = "filter";
-    const char *modarg = NULL;
+    const char *modarg = ""; /* nothing */
+    const char *modcfg = ""; /* nothing */
     const char *socketfile = NULL;
     char options[OPTS_SIZE] = { '\0', };
     int print_mod = 0;
@@ -164,12 +166,15 @@ int main(int argc, char *argv[])
     libtc_init(&argc, &argv);
 
     while (1) {
-        ch = getopt(argc, argv, "d:i:?vhpm:M:s:t:");
+        ch = getopt(argc, argv, "C:d:i:?vhpm:M:s:t:");
         if (ch == -1) {
             break;
         }
 
         switch (ch) {
+          case 'C':
+            modcfg = optarg;
+            break;
           case 'd':
             if (optarg[0] == '-') {
                 usage();
@@ -241,6 +246,11 @@ int main(int argc, char *argv[])
         return STATUS_BAD_PARAM;
     }
 
+    if (strlen(modcfg) > 0 && strlen(modarg) > 0) {
+        tc_log_error(EXE, "Cannot configure and inspect module on the same time");
+        return STATUS_BAD_PARAM;
+    }
+
     if (!filename) {
         usage();
         return STATUS_BAD_PARAM;
@@ -259,25 +269,36 @@ int main(int argc, char *argv[])
         if (verbose >= TC_DEBUG) {
             tc_log_info(EXE, "using new module system");
         }
-        if (verbose >= TC_INFO) {
-            /* overview and options */
-            tc_module_inspect(module, "help", &answer);
-            puts(answer);
-            /* module capabilities */
-            tc_module_show_info(module, verbose);
-            /* current configuration */
-            puts("\ndefault module configuration:");
-            tc_module_inspect(module, "all", &answer);
-            puts(answer);
-        }
-        if (modarg != NULL) {
-            tc_log_info(EXE, "informations about '%s' for "
-                             "module:", modarg);
-            tc_module_inspect(module, modarg, &answer);
-            puts(answer);
+        if (strlen(modcfg) > 0) {
+            int ret = tc_module_configure(module, modcfg, tc_get_vob());
+            if (ret == TC_OK) {
+                status = STATUS_OK;
+            } else {
+                status = STATUS_MODULE_FAILED;
+                tc_log_error(EXE, "configure returned error");
+            }
+            tc_module_stop(module);
+        } else {
+            if (verbose >= TC_INFO) {
+                /* overview and options */
+                tc_module_inspect(module, "help", &answer);
+                puts(answer);
+                /* module capabilities */
+                tc_module_show_info(module, verbose);
+                /* current configuration */
+                puts("\ndefault module configuration:");
+                tc_module_inspect(module, "all", &answer);
+                puts(answer);
+            }
+            if (modarg != NULL) {
+                tc_log_info(EXE, "informations about '%s' for "
+                                 "module:", modarg);
+                tc_module_inspect(module, modarg, &answer);
+                puts(answer);
+            }
+            status = STATUS_OK;
         }
         tc_del_module(factory, module);
-        status = STATUS_OK;
     } else if (!strcmp(modtype, "filter")) {
         char namebuf[NAME_LEN];
         /* compatibility support only for filters */
