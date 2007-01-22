@@ -35,6 +35,7 @@ enum {
     STATUS_NO_SOCKET,
     STATUS_SOCKET_ERROR,
     STATUS_BAD_MODULES,
+    STATUS_MODULE_FAILED,
 };
 
 void version(void)
