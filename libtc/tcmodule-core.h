@@ -47,7 +47,7 @@ struct tcmodule_ {
 __attribute__((unused))
 #endif
 static int tc_module_configure(TCModule handle,
-                                      const char *options, vob_t *vob)
+                               const char *options, vob_t *vob)
 {
     return handle->klass->configure(&(handle->instance), options, vob);
 }
@@ -64,7 +64,7 @@ static int tc_module_stop(TCModule handle)
 __attribute__((unused))
 #endif
 static int tc_module_inspect(TCModule handle,
-                                    const char *param, const char **value)
+                             const char *param, const char **value)
 {
     return handle->klass->inspect(&(handle->instance), param, value);
 }
@@ -73,8 +73,8 @@ static int tc_module_inspect(TCModule handle,
 __attribute__((unused))
 #endif
 static int tc_module_encode_video(TCModule handle,
-                                         vframe_list_t *inframe,
-                                         vframe_list_t *outframe)
+                                  vframe_list_t *inframe,
+                                  vframe_list_t *outframe)
 {
     return handle->klass->encode_video(&(handle->instance),
                                        inframe, outframe);
@@ -84,8 +84,8 @@ static int tc_module_encode_video(TCModule handle,
 __attribute__((unused))
 #endif
 static int tc_module_encode_audio(TCModule handle,
-                                         aframe_list_t *inframe,
-                                         aframe_list_t *outframe)
+                                  aframe_list_t *inframe,
+                                  aframe_list_t *outframe)
 {
     return handle->klass->encode_audio(&(handle->instance),
                                        inframe, outframe);
@@ -95,8 +95,8 @@ static int tc_module_encode_audio(TCModule handle,
 __attribute__((unused))
 #endif
 static int tc_module_decode_video(TCModule handle,
-                                         vframe_list_t *inframe,
-                                         vframe_list_t *outframe)
+                                  vframe_list_t *inframe,
+                                  vframe_list_t *outframe)
 {
     return handle->klass->decode_video(&(handle->instance),
                                        inframe, outframe);
@@ -106,8 +106,8 @@ static int tc_module_decode_video(TCModule handle,
 __attribute__((unused))
 #endif
 static int tc_module_decode_audio(TCModule handle,
-                                         aframe_list_t *inframe,
-                                         aframe_list_t *outframe)
+                                  aframe_list_t *inframe,
+                                  aframe_list_t *outframe)
 {
     return handle->klass->decode_audio(&(handle->instance),
                                        inframe, outframe);
@@ -117,7 +117,7 @@ static int tc_module_decode_audio(TCModule handle,
 __attribute__((unused))
 #endif
 static int tc_module_filter_video(TCModule handle,
-                                         vframe_list_t *frame)
+                                  vframe_list_t *frame)
 {
     return handle->klass->filter_video(&(handle->instance), frame);
 }
@@ -126,7 +126,7 @@ static int tc_module_filter_video(TCModule handle,
 __attribute__((unused))
 #endif
 static int tc_module_filter_audio(TCModule handle,
-                                         aframe_list_t *frame)
+                                  aframe_list_t *frame)
 {
     return handle->klass->filter_audio(&(handle->instance), frame);
 }
@@ -135,8 +135,8 @@ static int tc_module_filter_audio(TCModule handle,
 __attribute__((unused))
 #endif
 static int tc_module_multiplex(TCModule handle,
-                                      vframe_list_t *vframe,
-                                      aframe_list_t *aframe)
+                               vframe_list_t *vframe,
+                               aframe_list_t *aframe)
 {
     return handle->klass->multiplex(&(handle->instance), vframe, aframe);
 }
@@ -145,8 +145,8 @@ static int tc_module_multiplex(TCModule handle,
 __attribute__((unused))
 #endif
 static int tc_module_demultiplex(TCModule handle,
-                                        vframe_list_t *vframe,
-                                        aframe_list_t *aframe)
+                                 vframe_list_t *vframe,
+                                 aframe_list_t *aframe)
 {
     return handle->klass->demultiplex(&(handle->instance), vframe, aframe);
 }
@@ -163,7 +163,7 @@ static const TCModuleInfo *tc_module_get_info(TCModule handle)
 __attribute__((unused))
 #endif
 static int tc_module_match(int codec,
-                                  TCModule handle, TCModule other)
+                           TCModule handle, TCModule other)
 {
     return tc_module_info_match(codec,
                                 handle->klass->info, other->klass->info);
@@ -185,7 +185,7 @@ static void tc_module_pass_extradata(TCModule source, TCModule dest)
 {
     if (source != NULL && dest != NULL) {
         /* soft copy */
-        dest->instance.extradata = source->instance.extradata; 
+        dest->instance.extradata      = source->instance.extradata; 
         dest->instance.extradata_size = source->instance.extradata_size;
     }
 }
