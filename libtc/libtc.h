@@ -660,7 +660,7 @@ const char* tc_codec_to_string(TCCodecID codec);
  *     the correspinding TC_CODEC_* of given string representation,
  *     or TC_CODEC_ERROR if string is unknown or wrong.
  */
-int tc_codec_from_string(const char *codec);
+TCCodecID tc_codec_from_string(const char *codec);
 
 /*
  * tc_codec_fourcc:

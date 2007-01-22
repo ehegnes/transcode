@@ -17,7 +17,7 @@
 /* internal usage only ***************************************************/
 
 typedef struct {
-    uint32_t id;         /* a TC_CODEC_* vlaue */
+    TCCodecID id;         /* a TC_CODEC_* vlaue */
     const char *name;    /* usually != fourcc */
     const char *fourcc;  /* real-world fourcc */
     const char *comment;
@@ -229,7 +229,7 @@ const char* tc_codec_to_string(TCCodecID codec)
     return tc_codecs_info[idx].name; /* can be NULL */
 }
 
-int tc_codec_from_string(const char *codec)
+TCCodecID tc_codec_from_string(const char *codec)
 {
     int idx = find_tc_codec(tc_codecs_info, name_matcher, codec);
 

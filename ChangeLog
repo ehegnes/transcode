@@ -12,6 +12,9 @@
   add new (debug helper) option; also use new stubs to make
   encode_lavc happy.
 
+  * libtc/libtc,h libtc/tccodecs.c
+  int -> TCCodecID where appropriate.
+
 2007-01-20 Francesco Romani <fromani at gmail dot com>
   * added files: encode/encode_lavc.c encode/lavc.cfg
   add stub for libavcodec-based encoder.
