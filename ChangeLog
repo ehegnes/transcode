@@ -1,4 +1,11 @@
 2007-01-22 Francesco Romani <fromani at gmail dot com>
+  * multiplex/multiplex_avi.c
+  add more supported formats, mark AAC as problematic 
+  (as is according to avalkaible data)
+
+  * tools/tcmodinfo.c
+  new argument usage fix.
+
   * encode/encode_lavc.c
   add docs for yesterday's functions and do some
   minor internal cleanup.

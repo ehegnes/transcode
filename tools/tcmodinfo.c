@@ -291,7 +291,7 @@ int main(int argc, char *argv[])
                 tc_module_inspect(module, "all", &answer);
                 puts(answer);
             }
-            if (modarg != NULL) {
+            if (strlen(modarg) > 0) {
                 tc_log_info(EXE, "informations about '%s' for "
                                  "module:", modarg);
                 tc_module_inspect(module, modarg, &answer);
