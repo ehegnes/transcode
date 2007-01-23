@@ -584,8 +584,8 @@ static int tc_lavc_set_video_codec(TCLavcPrivateData *pd,
                                pd->confdata.vcodec_name);
         return TC_ERROR;
     }
-    pd->codec_id = tc_codec_is_supported(tc_codec);
-    if (pd->codec_id == TC_NULL_MATCH) {
+    pd->vcodec_id = tc_codec_is_supported(tc_codec);
+    if (pd->vcodec_id == TC_NULL_MATCH) {
         tc_log_error(MOD_NAME, "unsupported codec `%s'",
                                pd->confdata.vcodec_name);
         return TC_ERROR;
