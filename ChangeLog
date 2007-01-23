@@ -9,6 +9,7 @@
   * encode/encode_lavc.c
   add docs for yesterday's functions and do some
   minor internal cleanup.
+  restrict optstr_get search range.
 
 2007-01-21 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc,h libtc/tc_functions.c

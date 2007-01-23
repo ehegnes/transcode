@@ -571,7 +571,7 @@ static int tc_lavc_set_video_codec(TCLavcPrivateData *pd,
 {
     int tc_codec = TC_CODEC_ERROR;
     /* first of all, get mandatory codec name and bail out if not found. */
-    int ret = optstr_get(options, "vcodec", "%15s", pd->confdata.vcodec_name);
+    int ret = optstr_get(options, "vcodec", "%15[^:]", pd->confdata.vcodec_name);
 
     pd->confdata.vcodec_name[15] = '\0'; /* paranoia */
     if (ret != 1) {
