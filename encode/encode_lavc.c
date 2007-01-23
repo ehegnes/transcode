@@ -93,9 +93,7 @@ typedef void (*PreEncodeVideoFn)(struct tclavcprivatedata_ *pd,
                                  vframe_list_t *vframe);
 
 struct tclavcprivatedata_ {
-    /* FIXME: I don't like this. */
-    enum CodecID ff_vcodec_id;
-    TCCodecID tc_vcodec_id;
+    int vcodec_id;
     TCCodecID tc_pix_fmt;
 
     AVFrame ff_venc_frame;
@@ -127,7 +125,14 @@ static const TCCodecID tc_lavc_codecs_in[] = {
     TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_RGB,
     TC_CODEC_ERROR
 };
+
+
+
+#define FF_VCODEC_ID(pd) (tc_lavc_internal_codecs[(pd)->vcodec_id])
+#define TC_VCODEC_ID(pd) (tc_lavc_codecs_out[(pd)->vcodec_id])
+
 /* WARNING: the two arrays below MUST BE KEPT SYNCHRONIZED! */
+
 static const TCCodecID tc_lavc_codecs_out[] = { 
     TC_CODEC_MPEG1VIDEO, TC_CODEC_MPEG2VIDEO, TC_CODEC_MPEG4VIDEO,
     TC_CODEC_H263I, TC_CODEC_H263P,
@@ -207,7 +212,6 @@ static void pre_encode_video_yuv420p_huffyuv(TCLavcPrivateData *pd,
     avpicture_fill((AVPicture *)&pd->ff_venc_frame, pd->vframe_buf->video_buf,
                    PIX_FMT_YUV422P,
                    pd->ff_vcontext.width, pd->ff_vcontext.height);
-    /* FIXME: can't use tcv_convert (see decode_lavc.c) */
     ac_imgconvert(src, IMG_YUV_DEFAULT,
                   pd->ff_venc_frame.data, IMG_YUV422P,
                   pd->ff_vcontext.width, pd->ff_vcontext.height);
@@ -258,7 +262,14 @@ static void pre_encode_video_rgb24(TCLavcPrivateData *pd,
 /* more helpers */
 
 /*
- * FIXME: WRITEME
+ * tc_codec_is_supported:
+ *      scan the module supported output codec looking for given one.
+ *
+ * Parameters:
+ *      codec: codec id to check against supported codec list.
+ * Return Value:
+ *      >= 0: index of codec, if supported, in output list
+ *      TC_NULL_MATCH: given codec isn't supported.
  */
 static int tc_codec_is_supported(TCCodecID codec)
 {
@@ -402,12 +413,12 @@ static void tc_lavc_read_matrices(TCLavcPrivateData *pd,
  */
 static void tc_lavc_load_filters(TCLavcPrivateData *pd)
 {
-    if (pd->tc_vcodec_id == TC_CODEC_MJPEG
-     || pd->tc_vcodec_id == TC_CODEC_LJPEG) {
+    if (TC_VCODEC_ID(pd) == TC_CODEC_MJPEG
+     || TC_VCODEC_ID(pd) == TC_CODEC_LJPEG) {
         int handle;
 
         tc_log_info(MOD_NAME, "output is mjpeg or ljpeg, extending range from "
-			        "YUV420P to YUVJ420P (full range)");
+                    "YUV420P to YUVJ420P (full range)");
 
         handle = tc_filter_add("levels", "input=16-240");
         if (!handle) {
@@ -541,12 +552,24 @@ static void psnr_print(TCLavcPrivateData *pd)
  */
 
 /*
- * FIXME: WRITEME
+ * tc_lavc_set_video_codec:
+ *     parse given option string looking for MANDATORY video codec option.
+ *     Fetch video codec option, validate it against supported (output)
+ *     codec list, then setup internal indexes.
+ *     Please note that this function will NOT alter in any
+ *     way given option string.
+ *
+ * Parametrs:
+ *           pd: pointer to private module data.
+ *      options: command line options of *THIS MODULE*.
+ * Return Value:
+ *      TC_OK: succesfull, found video codec option AND it's supported
+ *      TC_ERROR: something was gone wrong, reason will be tc_log*()'d out
  */
 static int tc_lavc_set_video_codec(TCLavcPrivateData *pd,
                                    const char *options)
 {
-    int idx = TC_NULL_MATCH;
+    int tc_codec = TC_CODEC_ERROR;
     /* first of all, get mandatory codec name and bail out if not found. */
     int ret = optstr_get(options, "vcodec", "%15s", pd->confdata.vcodec_name);
 
@@ -555,19 +578,18 @@ static int tc_lavc_set_video_codec(TCLavcPrivateData *pd,
         tc_log_error(MOD_NAME, "missing mandatory vcodec option");
         return TC_ERROR;
     }
-    pd->tc_vcodec_id = tc_codec_from_string(pd->confdata.vcodec_name);
-    if (pd->tc_vcodec_id == TC_NULL_MATCH) {
+    tc_codec = tc_codec_from_string(pd->confdata.vcodec_name);
+    if (tc_codec == TC_NULL_MATCH) {
         tc_log_error(MOD_NAME, "unknown codec `%s'",
                                pd->confdata.vcodec_name);
         return TC_ERROR;
     }
-    idx = tc_codec_is_supported(pd->tc_vcodec_id);
-    if (idx == TC_NULL_MATCH) {
+    pd->codec_id = tc_codec_is_supported(tc_codec);
+    if (pd->codec_id == TC_NULL_MATCH) {
         tc_log_error(MOD_NAME, "unsupported codec `%s'",
                                pd->confdata.vcodec_name);
         return TC_ERROR;
     }
-    pd->ff_vcodec_id = tc_lavc_internal_codecs[idx];
 
     return TC_OK;
 }
@@ -593,7 +615,7 @@ static int tc_lavc_set_pix_fmt(TCLavcPrivateData *pd, const vob_t *vob)
 {
     switch (vob->im_v_codec) {
       case CODEC_YUV:
-        if (pd->tc_vcodec_id == TC_CODEC_HUFFYUV) {
+        if (TC_VCODEC_ID(pd) == TC_CODEC_HUFFYUV) {
             pd->tc_pix_fmt = TC_CODEC_YUV422P;
             pd->ff_vcontext.pix_fmt = PIX_FMT_YUV422P;
             pd->pre_encode_video = pre_encode_video_yuv420p_huffyuv;
@@ -605,10 +627,10 @@ static int tc_lavc_set_pix_fmt(TCLavcPrivateData *pd, const vob_t *vob)
         break;
       case CODEC_YUV422:
         pd->tc_pix_fmt = TC_CODEC_YUV422P;
-        pd->ff_vcontext.pix_fmt = (pd->tc_vcodec_id == TC_CODEC_MJPEG) 
+        pd->ff_vcontext.pix_fmt = (TC_VCODEC_ID(pd) == TC_CODEC_MJPEG) 
                                    ? PIX_FMT_YUVJ422P
                                    : PIX_FMT_YUV422P;
-        if (pd->tc_vcodec_id == TC_CODEC_HUFFYUV) {
+        if (TC_VCODEC_ID(pd) == TC_CODEC_HUFFYUV) {
             pd->pre_encode_video = pre_encode_video_yuv422p_huffyuv;
         } else {
             pd->pre_encode_video = pre_encode_video_yuv422p;
@@ -616,9 +638,9 @@ static int tc_lavc_set_pix_fmt(TCLavcPrivateData *pd, const vob_t *vob)
         break;
       case CODEC_RGB:
         pd->tc_pix_fmt = TC_CODEC_RGB;
-        pd->ff_vcontext.pix_fmt = (pd->tc_vcodec_id == TC_CODEC_HUFFYUV)
+        pd->ff_vcontext.pix_fmt = (TC_VCODEC_ID(pd) == TC_CODEC_HUFFYUV)
                                         ? PIX_FMT_YUV422P
-                                        : (pd->tc_vcodec_id == TC_CODEC_MJPEG) 
+                                        : (TC_VCODEC_ID(pd) == TC_CODEC_MJPEG) 
                                            ? PIX_FMT_YUVJ420P
                                            : PIX_FMT_YUV420P;
         pd->pre_encode_video = pre_encode_video_rgb24;
@@ -660,7 +682,7 @@ static int tc_lavc_set_pix_fmt(TCLavcPrivateData *pd, const vob_t *vob)
  */
 static int tc_lavc_init_multipass(TCLavcPrivateData *pd, const vob_t *vob)
 {
-    int multipass_flag = tc_codec_is_multipass(pd->tc_vcodec_id);
+    int multipass_flag = tc_codec_is_multipass(TC_VCODEC_ID(pd));
     pd->stats_file = NULL;
     size_t fsize = 0;
 
@@ -870,8 +892,8 @@ static int tc_lavc_settings_from_vob(TCLavcPrivateData *pd, const vob_t *vob)
     if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_GOP) {
         pd->ff_vcontext.gop_size = vob->divxkeyframes;
     } else {
-        if (pd->tc_vcodec_id == TC_CODEC_MPEG1VIDEO
-         || pd->tc_vcodec_id == TC_CODEC_MPEG2VIDEO) {
+        if (TC_VCODEC_ID(pd) == TC_CODEC_MPEG1VIDEO
+         || TC_VCODEC_ID(pd) == TC_CODEC_MPEG2VIDEO) {
             pd->ff_vcontext.gop_size = 15; /* conservative default for mpeg1/2 svcd/dvd */
         } else {
             pd->ff_vcontext.gop_size = 250; /* reasonable default for mpeg4 (and others) */
@@ -1377,7 +1399,7 @@ static int tc_lavc_configure(TCModuleInstance *self,
     }
     avcodec_thread_init(&pd->ff_vcontext, pd->confdata.thread_count);
 
-    pd->ff_vcodec = avcodec_find_encoder(pd->ff_vcodec_id);
+    pd->ff_vcodec = avcodec_find_encoder(FF_VCODEC_ID(pd));
     if (pd->ff_vcodec == NULL) {
         tc_log_error(MOD_NAME, "unable to find a libavcodec encoder for `%s'",
                      pd->confdata.vcodec_name);

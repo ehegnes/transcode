@@ -1,3 +1,8 @@
+2007-01-22 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_lavc.c
+  add docs for yesterday's functions and do some
+  minor internal cleanup.
+
 2007-01-21 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc,h libtc/tc_functions.c
   add tag field to tc_find_best_aspect_ratio
