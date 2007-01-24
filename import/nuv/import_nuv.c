@@ -29,6 +29,7 @@ typedef struct {
     int fd;              // File descriptor to read from
     int width, height;   // Video dimensions
     double fps;          // Nominal frames per second
+    double tsoffset;     // Timestamp offset for multi-part capture files
     int framenum;        // Frame number of loaded frame
     int have_vframe;     // Do we have a video frame stored?
     double audiorate;    // Actual audio rate (from SA frame)
@@ -156,6 +157,7 @@ static int nuv_configure(TCModuleInstance *self,
     pd->width = hdr.width;
     pd->height = hdr.height;
     pd->fps = hdr.fps;
+    pd->tsoffset = 0;
     pd->framenum = 0;
     pd->have_vframe = 0;
     pd->audiorate = NUV_ARATE;
@@ -379,11 +381,18 @@ static int nuv_demultiplex(TCModuleInstance *self,
 
     /* Check the timecode on the video frame and read or clone as needed. */
     timestamp = (double)pd->framehdr.timecode / 1000;
-    if (verbose & TC_DEBUG) {
-        tc_log_msg(MOD_NAME,"<<< frame=%d[%.3f] timestamp=%.3f >>>",
-                   pd->framenum, pd->framenum/pd->fps, timestamp);
+    if (pd->framenum == 0) {
+        /* This is the first frame we've seen; treat the timestamp as zero,
+         * and offset subsequent timestamps by the same amount.  This is
+         * needed to handle multi-part capture files, where the timestamp
+         * may not start at zero. (From S. Hosgood, January 2007) */
+        pd->tsoffset = timestamp;
     }
-    if (timestamp < (pd->framenum+0.5)/pd->fps) {
+    if (verbose & TC_DEBUG) {
+        tc_log_msg(MOD_NAME,"<<< frame=%d[%.3f] timestamp=%.3f-%.3f >>>",
+                   pd->framenum, pd->framenum/pd->fps, timestamp, pd->tsoffset);
+    }
+    if ((timestamp - pd->tsoffset) < (pd->framenum+0.5)/pd->fps) {
         if (pd->framehdr.comptype != 'L') {  // 'L'ast frame: keep saved data
             if (pd->framehdr.packetlength > 0) {
                 if (read(pd->fd, pd->saved_vframe, pd->framehdr.packetlength) 

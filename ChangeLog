@@ -1,3 +1,9 @@
+2007-01-24 Andrew Church <achurch at achurch dot org>
+  * import/import_nuv.c
+  Fix handling of files that start with nonzero timestamps, such as the
+  second and later parts of multi-part capture streams.  Reported by Steve
+  Hosgood (steve at caederus dot com).
+
 2007-01-22 Francesco Romani <fromani at gmail dot com>
   * multiplex/multiplex_avi.c
   add more supported formats, mark AAC as problematic 
