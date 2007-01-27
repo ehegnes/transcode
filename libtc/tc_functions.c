@@ -158,13 +158,13 @@ int tc_log(TCLogLevel level, const char *tag, const char *fmt, ...)
 int tc_mangle_cmdline(int *argc, char ***argv,
                       const char *opt, const char **optval)
 {
-    int i = 0, skew = (optval == NULL) ?1 :2, err = 1;
+    int i = 0, skew = (optval == NULL) ?1 :2, err = -1;
 
     if (argc == NULL || argv == NULL || opt == NULL) {
         return err;
     }
 
-    err = -1; /* no option and/or value found */
+    err = 1;
     /* first we looking for our option (and it's value) */
     for (i = 1; i < *argc; i++) {
         if ((*argv)[i] && strcmp((*argv)[i], opt) == 0) {
@@ -174,6 +174,7 @@ int tc_mangle_cmdline(int *argc, char ***argv,
                 /* don't peek after the end... */
                 if (i + 1 >= *argc || (*argv)[i + 1][0] == '-') {
                     tc_log_warn(__FILE__, "wrong usage for option '%s'", opt);
+                    err = 1; /* no option and/or value found */
                 } else {
                     *optval = (*argv)[i + 1];
                     err = 0;
@@ -684,7 +685,7 @@ int tc_find_best_aspect_ratio(const void *_vob,
         if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_ASR) {
             /* same as above for PAR stuff */
             tc_asr_code_to_ratio(vob->ex_asr, &num, &den);
-            tc_log_info(tag, "Display aspect ratio calculated as %f = %d/%d",
+            tc_log_info(tag, "display aspect ratio calculated as %f = %d/%d",
                         (double)num/(double)den, num, den);
 
             /* ffmpeg FIXME:
@@ -700,12 +701,12 @@ int tc_find_best_aspect_ratio(const void *_vob,
              num *= vob->ex_v_height;
              den *= vob->ex_v_width;
              /* I don't need to reduce since x264 does it itself :-) */
-             tc_log_info(tag, "Sample aspect ratio calculated as"
+             tc_log_info(tag, "sample aspect ratio calculated as"
                               " %f = %d/%d",
                               (double)num/(double)den, num, den);
 
         } else { /* user did not specify asr at all, assume no change */
-            tc_log_info(tag, "Set display aspect ratio to input");
+            tc_log_info(tag, "set display aspect ratio to input");
             num = 1;
             den = 1;
         }

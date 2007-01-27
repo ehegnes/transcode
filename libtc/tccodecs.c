@@ -39,7 +39,8 @@ static const TCCodecInfo tc_codecs_info[] = {
     // XXX: right fcc?
     { TC_CODEC_MPEG1VIDEO, "mpeg1video", "mpg1", "MPEG1 ES", 1, TC_VIDEO },
     { TC_CODEC_MPEG2VIDEO, "mpeg2video", "mpg2", "MPEG2 ES", 1, TC_VIDEO },
-    { TC_CODEC_MPEG4VIDEO, "mpeg4video", "mpg4", "MPEG4 ES", 1, TC_VIDEO },
+    { TC_CODEC_MPEG4VIDEO, "mpeg4video", "mp4v", "MPEG4 ES", 1, TC_VIDEO },
+    /* FIXME; set up `DIVX' fcc for backward compatibility? */ 
     { TC_CODEC_XVID, "xvid", "XVID", "XviD", 1, TC_VIDEO },
     { TC_CODEC_DIVX3, "divx3", "DIV3", "DivX;-)", 1, TC_VIDEO },
     { TC_CODEC_DIVX4, "divx4", "DIVX", "DivX 4.x", 1, TC_VIDEO },

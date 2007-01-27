@@ -1,4 +1,11 @@
 2007-01-27 Francesco Romani <fromani at gmail dot com>
+  * libtc/tccodecs.c
+  change codec for MPEG4 video to avoid conflicts with MSMPEG4*.
+  The new one is at least mplayer friendlier.
+
+  * libtc/libtc,h libtc/tc_functions.c
+  change return values, being a bit more coherent and detailed.
+
   * encode/encode_lavc.c
   more sane video codec selection.
 

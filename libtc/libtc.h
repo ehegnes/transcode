@@ -218,10 +218,10 @@ __attribute__((format(printf,3,4)))
  *    optval: if !NULL, this function will expect a value for given option;
  *            if such value is found, `optval' will point to it.
  * Return value:
- *      1: bad parameter(s) (NULL)
+ *      1: no option found
  *      0: succesfull
- *     -1: bad usage: expected value for option, but not found,
- *                    OR not option found.
+ *     -1: bad parameter(s) (NULL)
+ *     -2: bad usage: expected value for option, but not found,
  * Postconditions:
  *      this function must operate trasparently by always leaving
  *      argc/argv in an usable and consistent state.
