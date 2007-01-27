@@ -25,7 +25,7 @@
 #include <ffmpeg/avcodec.h>
 
 #define MOD_NAME    "encode_lavc.so"
-#define MOD_VERSION "v0.0.1 (2007-01-11)"
+#define MOD_VERSION "v0.0.5 (2007-01-27)"
 #define MOD_CAP     "libavcodec based encoder (" LIBAVCODEC_IDENT ")"
 
 #define LAVC_CONFIG_FILE "lavc.cfg"
@@ -172,7 +172,7 @@ static const TCFormatID tc_lavc_formats[] = { TC_FORMAT_ERROR };
  * pre_encode_video_yuv420p:
  * pre_encode_video_yuv420p_huffyuv:
  * pre_encode_video_yuv422p:
- * pre_encode_video_yuv420p_huffyuv:
+ * pre_encode_video_yuv422p_huffyuv:
  * pre_encode_video_rgb24:
  *      prepare internal structures for actual encoding, doing
  *      colorspace conversion and/or any needed adaptation.
@@ -1465,6 +1465,10 @@ static int tc_lavc_encode_video(TCModuleInstance *self,
         tc_log_warn(MOD_NAME, "encoder error: size (%i)",
                     outframe->video_len);
         return TC_ERROR;
+    }
+    
+    if (pd->ff_vcontext.coded_frame->key_frame) {
+        outframe->attributes |= TC_FRAME_IS_KEYFRAME;
     }
 
     return tc_lavc_write_logs(pd, outframe->video_len);
