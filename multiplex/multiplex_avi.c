@@ -67,10 +67,13 @@ static int avi_configure(TCModuleInstance *self,
     if (fcc == NULL) {
         fcc = DEFAULT_FOURCC;
     }
+    if (verbose >= TC_DEBUG) {
+        tc_log_info(MOD_NAME, "AVI FourCC: '%s'", fcc);
+    }
 
-    /* FIXME: switch to new TC_CODEC_XXX */
-    if (vob->ex_v_codec == CODEC_RGB || vob->ex_v_codec == CODEC_YUV
-     || vob->ex_v_codec == CODEC_YUV422) {
+    if (vob->ex_v_codec == CODEC_RGB || vob->ex_v_codec == TC_CODEC_RGB
+     || vob->ex_v_codec == CODEC_YUV || vob->ex_v_codec == TC_CODEC_YUV420P
+     || vob->ex_v_codec == CODEC_YUV422 || vob->ex_v_codec == TC_CODEC_YUV422P) {
         pd->force_kf = TC_TRUE;
     } else {
         pd->force_kf = TC_FALSE;
@@ -130,7 +133,8 @@ static int avi_multiplex(TCModuleInstance *self,
                               vframe->video_len, key);
 
         if(ret < 0) {
-            tc_log_error(MOD_NAME, "avilib error: %s", AVI_strerror());
+            tc_log_error(MOD_NAME, "avilib error writing video: %s",
+                         AVI_strerror());
             return TC_EXPORT_ERROR;
         }
     }
@@ -139,7 +143,8 @@ static int avi_multiplex(TCModuleInstance *self,
  		ret = AVI_write_audio(pd->avifile, (const char*)aframe->audio_buf,
                               aframe->audio_len);
  		if (ret < 0) {
-            tc_log_error(MOD_NAME, "avilib error: %s", AVI_strerror());
+            tc_log_error(MOD_NAME, "avilib error writing audio: %s",
+                         AVI_strerror());
 			return TC_EXPORT_ERROR;
 		}
     }
@@ -193,7 +198,8 @@ static const TCCodecID avi_codecs_in[] = {
     TC_CODEC_PCM, TC_CODEC_AC3, TC_CODEC_MP2, TC_CODEC_MP3,
     TC_CODEC_AAC, /* FIXME: that means asking for troubles */
     TC_CODEC_YUV420P, TC_CODEC_DV, TC_CODEC_DIVX3, TC_CODEC_DIVX4,
-    TC_CODEC_DIVX5, TC_CODEC_XVID, TC_CODEC_H264,
+    TC_CODEC_DIVX5, TC_CODEC_XVID,
+    TC_CODEC_H264, /* FIXME: that means asking for troubles */
     TC_CODEC_MPEG4VIDEO, TC_CODEC_MPEG1VIDEO, TC_CODEC_MJPEG,
     TC_CODEC_LZO1, TC_CODEC_LZO2, TC_CODEC_RGB,
     TC_CODEC_ERROR

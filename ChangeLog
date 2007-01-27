@@ -1,4 +1,8 @@
 2007-01-27 Francesco Romani <fromani at gmail dot com>
+  * multiplex/multiplex_avi.c
+  recognize new-style codec identifiers too.
+  annotate supported but problematic input codecs.
+
   * src/cmdline_def.h
   typo.
 
