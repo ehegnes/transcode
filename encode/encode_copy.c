@@ -15,7 +15,7 @@
 #include "libtc/tcmodule-plugin.h"
 
 #define MOD_NAME    "encode_copy.so"
-#define MOD_VERSION "v0.0.2 (2005-12-29)"
+#define MOD_VERSION "v0.0.3 (2007-01-27)"
 #define MOD_CAP     "copy (passthrough) A/V frames"
 
 static const char *copy_help = ""
@@ -81,7 +81,9 @@ static int copy_encode_video(TCModuleInstance *self,
     TC_MODULE_SELF_CHECK(self, "encode_video");
 
     vframe_copy(outframe, inframe, 1);
-    /* enforce full length (we deal with uncompressed frames */
+    /* vframe_copy will not do this, so we copy attributes explicitely */
+    outframe->attributes = inframe->attributes;
+    /* enforce full length (we can deal with uncompressed frames) */
     outframe->video_len = outframe->video_size;
 
     return TC_OK;
@@ -92,7 +94,9 @@ static int copy_encode_audio(TCModuleInstance *self,
 {
     TC_MODULE_SELF_CHECK(self, "encode_audio");
 
-    if (inframe != NULL) {
+    if (inframe == NULL) {
+        outframe->audio_len = 0;
+    } else {
         aframe_copy(outframe, inframe, 1);
         /* enforce full length (we deal with uncompressed frames */
         outframe->audio_len = outframe->audio_size;
