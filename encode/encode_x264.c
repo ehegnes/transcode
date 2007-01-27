@@ -35,7 +35,7 @@
 
 
 #define MOD_NAME    "encode_x264.so"
-#define MOD_VERSION "v0.2.0 (2006-10-09)"
+#define MOD_VERSION "v0.2.1 (2006-01-27)"
 #define MOD_CAP     "x264 encoder"
 
 
@@ -682,8 +682,8 @@ static int x264_encode_video(TCModuleInstance *self,
 {
     X264PrivateData *pd;
     x264_nal_t *nal;
-    int nnal, i;
     x264_picture_t pic, pic_out;
+    int nnal, i;
 
     TC_MODULE_SELF_CHECK(self, "encode_video");
 
@@ -732,6 +732,14 @@ static int x264_encode_video(TCModuleInstance *self,
             break;
         }
         outframe->video_len += size;
+    }
+
+    /* FIXME: ok, that sucks. How to reformat it ina better way? -- fromani */
+    if ((pic_out.i_type == X264_TYPE_IDR)
+     || (pic_out.i_type == X264_TYPE_I
+      &&  pd->x264params.i_frame_reference == 1
+      && !pd->x264params.i_bframe)) {
+        outframe->attributes |= TC_FRAME_IS_KEYFRAME;
     }
 
     return TC_OK;
