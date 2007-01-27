@@ -37,8 +37,7 @@ static const char *tc_lavc_help = ""
     "    an huge variety of compressed formats, both audio and video.\n"
     "Options:\n"
     "    help     produce module overview and options explanations\n"
-    "    list     log out a list of supported A/V codecs\n"
-    "    vcodec=X use video codec X for encoding [mandatory]\n";
+    "    list     log out a list of supported A/V codecs\n";
 
 
 
