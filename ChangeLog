@@ -1,3 +1,7 @@
+2007-01-27 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_lavc.c
+  more sane video codec selection.
+
 2007-01-24 Andrew Church <achurch at achurch dot org>
   * import/import_nuv.c
   Fix handling of files that start with nonzero timestamps, such as the

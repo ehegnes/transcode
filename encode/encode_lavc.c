@@ -44,7 +44,6 @@ static const char *tc_lavc_help = ""
 
 typedef struct tclavcconfigdata_ TCLavcConfigData;
 struct tclavcconfigdata_ {
-    char vcodec_name[32];
     int thread_count;
 
     /* 
@@ -552,50 +551,6 @@ static void psnr_print(TCLavcPrivateData *pd)
  */
 
 /*
- * tc_lavc_set_video_codec:
- *     parse given option string looking for MANDATORY video codec option.
- *     Fetch video codec option, validate it against supported (output)
- *     codec list, then setup internal indexes.
- *     Please note that this function will NOT alter in any
- *     way given option string.
- *
- * Parametrs:
- *           pd: pointer to private module data.
- *      options: command line options of *THIS MODULE*.
- * Return Value:
- *      TC_OK: succesfull, found video codec option AND it's supported
- *      TC_ERROR: something was gone wrong, reason will be tc_log*()'d out
- */
-static int tc_lavc_set_video_codec(TCLavcPrivateData *pd,
-                                   const char *options)
-{
-    int tc_codec = TC_CODEC_ERROR;
-    /* first of all, get mandatory codec name and bail out if not found. */
-    int ret = optstr_get(options, "vcodec", "%15[^:]", pd->confdata.vcodec_name);
-
-    pd->confdata.vcodec_name[15] = '\0'; /* paranoia */
-    if (ret != 1) {
-        tc_log_error(MOD_NAME, "missing mandatory vcodec option");
-        return TC_ERROR;
-    }
-    tc_codec = tc_codec_from_string(pd->confdata.vcodec_name);
-    if (tc_codec == TC_NULL_MATCH) {
-        tc_log_error(MOD_NAME, "unknown codec `%s'",
-                               pd->confdata.vcodec_name);
-        return TC_ERROR;
-    }
-    pd->vcodec_id = tc_codec_is_supported(tc_codec);
-    if (pd->vcodec_id == TC_NULL_MATCH) {
-        tc_log_error(MOD_NAME, "unsupported codec `%s'",
-                               pd->confdata.vcodec_name);
-        return TC_ERROR;
-    }
-
-    return TC_OK;
-}
-
-
-/*
  * tc_lavc_set_pix_fmt:
  *      choose the right pixel format and setup all internal module
  *      fields depending on this value.
@@ -963,7 +918,6 @@ static void tc_lavc_config_defaults(TCLavcPrivateData *pd)
     /* first of all reinitialize lavc data */
     avcodec_get_context_defaults(&pd->ff_vcontext);
 
-    pd->confdata.vcodec_name[0] = '\0';
     pd->confdata.thread_count = 1;
 
     pd->confdata.vrate_tolerance = 8 * 1000;
@@ -1119,19 +1073,17 @@ static void tc_lavc_dispatch_settings(TCLavcPrivateData *pd)
  * FIXME: I'm a bit worried about heavy stack usage of this function...
  */
 static int tc_lavc_read_config(TCLavcPrivateData *pd,
-                               const char *options)
+                               const char *options, const vob_t *vob)
 {
     char intra_matrix_file[PATH_MAX] = { '\0' };
     char inter_matrix_file[PATH_MAX] = { '\0' };
     char rc_override_buf[TC_BUF_MIN] = { '\0' }; /* XXX */
-    char namebuf[32] = { '\0' }; /* temporary storage */
     /* 
      * Please note that option names are INTENTIONALLY identical/similar
      * to mplayer/mencoder ones
      */
     TCConfigEntry lavc_conf[] = {
         { "threads", PAUX(thread_count), TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 1, 7 },
-        { "vcodec", namebuf, TCCONF_TYPE_STRING, 0, 0, 0 }, /* placeholder */
         //  need special handling
         //  { "keyint", PCTX(gop_size), TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 1, 1000 },
         //  handled by transcode core
@@ -1227,17 +1179,24 @@ static int tc_lavc_read_config(TCLavcPrivateData *pd,
         /* End of the config file */
         { NULL, 0, 0, 0, 0, 0 }
     };
+    const char *vcodec_name = tc_codec_to_string(vob->ex_v_codec);
+
     /* 
      * we must do first since we NEED valid vcodec_name
      * ASAP to read right section of configuration file.
      */
-    int ret = tc_lavc_set_video_codec(pd, options);
-    if (ret != TC_OK) {
-        return ret;
+    if (verbose) {
+        tc_log_info(MOD_NAME, "using video codec '%s'", vcodec_name);
     }
 
-    module_read_config(LAVC_CONFIG_FILE, pd->confdata.vcodec_name,
-                       lavc_conf, MOD_NAME);
+    pd->vcodec_id = tc_codec_is_supported(vob->ex_v_codec);
+    if (pd->vcodec_id == TC_NULL_MATCH) {
+        tc_log_error(MOD_NAME, "unsupported codec `%s'", vcodec_name);
+        return TC_ERROR;
+    }
+
+
+    module_read_config(LAVC_CONFIG_FILE, vcodec_name, lavc_conf, MOD_NAME);
 
     if (options && strlen(options) > 0) {
         size_t i = 0, n = 0;
@@ -1357,7 +1316,7 @@ static int tc_lavc_fini(TCModuleInstance *self)
 
 
 static int tc_lavc_configure(TCModuleInstance *self,
-                               const char *options, vob_t *vob)
+                             const char *options, vob_t *vob)
 {
     TCLavcPrivateData *pd = NULL;
     int ret = TC_OK;
@@ -1387,7 +1346,7 @@ static int tc_lavc_configure(TCModuleInstance *self,
     ret = tc_lavc_init_buf(pd, vob);
     ABORT_IF_NOT_OK(ret);
 
-    ret = tc_lavc_read_config(pd, options);
+    ret = tc_lavc_read_config(pd, options, vob);
     ABORT_IF_NOT_OK(ret);
 
     tc_lavc_load_filters(pd);
@@ -1402,7 +1361,7 @@ static int tc_lavc_configure(TCModuleInstance *self,
     pd->ff_vcodec = avcodec_find_encoder(FF_VCODEC_ID(pd));
     if (pd->ff_vcodec == NULL) {
         tc_log_error(MOD_NAME, "unable to find a libavcodec encoder for `%s'",
-                     pd->confdata.vcodec_name);
+                     tc_codec_to_string(TC_VCODEC_ID(pd)));
         goto failed;
     }
 
