@@ -21,6 +21,9 @@
 
   * encode/encode_lavc.c
   more sane video codec selection.
+ correctly handle colorspace for MJPEG.
+ detect video codec as early as is possible to let the things work
+ properly.
 
 2007-01-24 Andrew Church <achurch at achurch dot org>
   * import/import_nuv.c

@@ -25,7 +25,7 @@
 #include <ffmpeg/avcodec.h>
 
 #define MOD_NAME    "encode_lavc.so"
-#define MOD_VERSION "v0.0.5 (2007-01-27)"
+#define MOD_VERSION "v0.0.6 (2007-01-27)"
 #define MOD_CAP     "libavcodec based encoder (" LIBAVCODEC_IDENT ")"
 
 #define LAVC_CONFIG_FILE "lavc.cfg"
@@ -575,7 +575,9 @@ static int tc_lavc_set_pix_fmt(TCLavcPrivateData *pd, const vob_t *vob)
             pd->pre_encode_video = pre_encode_video_yuv420p_huffyuv;
         } else {
             pd->tc_pix_fmt = TC_CODEC_YUV420P;
-            pd->ff_vcontext.pix_fmt = PIX_FMT_YUV420P;
+            pd->ff_vcontext.pix_fmt = (TC_VCODEC_ID(pd) == TC_CODEC_MJPEG) 
+                                       ? PIX_FMT_YUVJ420P
+                                       : PIX_FMT_YUV420P;
             pd->pre_encode_video = pre_encode_video_yuv420p;
         }
         break;
@@ -1178,24 +1180,10 @@ static int tc_lavc_read_config(TCLavcPrivateData *pd,
         /* End of the config file */
         { NULL, 0, 0, 0, 0, 0 }
     };
-    const char *vcodec_name = tc_codec_to_string(vob->ex_v_codec);
 
-    /* 
-     * we must do first since we NEED valid vcodec_name
-     * ASAP to read right section of configuration file.
-     */
-    if (verbose) {
-        tc_log_info(MOD_NAME, "using video codec '%s'", vcodec_name);
-    }
-
-    pd->vcodec_id = tc_codec_is_supported(vob->ex_v_codec);
-    if (pd->vcodec_id == TC_NULL_MATCH) {
-        tc_log_error(MOD_NAME, "unsupported codec `%s'", vcodec_name);
-        return TC_ERROR;
-    }
-
-
-    module_read_config(LAVC_CONFIG_FILE, vcodec_name, lavc_conf, MOD_NAME);
+    module_read_config(LAVC_CONFIG_FILE,
+                       tc_codec_to_string(vob->ex_v_codec),
+                       lavc_conf, MOD_NAME);
 
     if (options && strlen(options) > 0) {
         size_t i = 0, n = 0;
@@ -1317,6 +1305,7 @@ static int tc_lavc_fini(TCModuleInstance *self)
 static int tc_lavc_configure(TCModuleInstance *self,
                              const char *options, vob_t *vob)
 {
+    const char *vcodec_name = tc_codec_to_string(vob->ex_v_codec);
     TCLavcPrivateData *pd = NULL;
     int ret = TC_OK;
 
@@ -1337,6 +1326,19 @@ static int tc_lavc_configure(TCModuleInstance *self,
      * before any other operation
      */
     tc_lavc_config_defaults(pd);
+
+    /* 
+     * we must do first since we NEED valid vcodec_name
+     * ASAP to read right section of configuration file.
+     */
+    pd->vcodec_id = tc_codec_is_supported(vob->ex_v_codec);
+    if (pd->vcodec_id == TC_NULL_MATCH) {
+        tc_log_error(MOD_NAME, "unsupported codec `%s'", vcodec_name);
+        return TC_ERROR;
+    }
+    if (verbose) {
+        tc_log_info(MOD_NAME, "using video codec '%s'", vcodec_name);
+    }
 
     ret = tc_lavc_settings_from_vob(pd, vob);
     ABORT_IF_NOT_OK(ret);
