@@ -726,7 +726,7 @@ TC_OPTION(export_codec,       'N', "format",
                         memcpy(vcodec, acodec, sizeof(vcodec));
                         /* fallthrough */
                       case 1: /* audio codec */
-                        vob->ex_a_codec = tc_codec_from_string(vcodec);
+                        vob->ex_a_codec = tc_codec_from_string(acodec);
                         if (vob->ex_a_codec == TC_CODEC_ERROR) {
                             tc_error("Unknown audio format for"
                                      " -N/--export_format");
