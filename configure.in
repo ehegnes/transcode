@@ -1046,6 +1046,11 @@ A52_EXTRA_LIBS="$A52_EXTRA_LIBS -lm"
 TC_PKG_CHECK(a52, no, A52, no, [a52dec/a52.h], a52, a52_init, liba52,
  [http://liba52.sourceforge.net/])
 TC_PKG_HAVE(a52, A52)
+if test x"$have_a52" = x"yes" ; then
+  enable_a52_default_decoder="yes"
+else
+  enable_a52_default_decoder="no"
+fi
 
 dnl
 dnl FAAC
