@@ -1,3 +1,7 @@
+2007-01-28 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_faac.c
+  move sanity check to libtc macros.
+
 2007-01-27 Francesco Romani <fromani at gmail dot com>
   * encode/encode_x264.c encode/encode_lavc.c
   mark keyframes.

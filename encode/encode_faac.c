@@ -49,10 +49,7 @@
     {
         PrivateData *pd;
 
-        if (!self) {
-            tc_log_error(MOD_NAME, "init: self == NULL!");
-            return TC_ERROR;
-        }
+        TC_MODULE_SELF_CHECK(self, "init");
 
         self->userdata = pd = tc_malloc(sizeof(PrivateData));
         if (!pd) {
@@ -90,9 +87,8 @@
         unsigned long dummy;
         faacEncConfiguration conf;
 
-        if (!self) {
-           return TC_ERROR;
-        }
+        TC_MODULE_SELF_CHECK(self, "configure");
+
         pd = self->userdata;
 
         /* Save bytes per sample */
@@ -166,8 +162,8 @@ static int faac_inspect(TCModuleInstance *self,
 {
     static char buf[TC_BUF_MAX];
 
-    if (!self || !param)
-       return TC_ERROR;
+    TC_MODULE_SELF_CHECK(self, "inspect");
+    TC_MODULE_SELF_CHECK(param, "inspect");
 
     if (optstr_lookup(param, "help")) {
         tc_snprintf(buf, sizeof(buf),
@@ -191,9 +187,8 @@ static int faac_stop(TCModuleInstance *self)
 {
     PrivateData *pd;
 
-    if (!self) {
-       return TC_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "stop");
+
     pd = self->userdata;
 
     if (pd->handle) {
@@ -213,9 +208,8 @@ static int faac_stop(TCModuleInstance *self)
 
 static int faac_fini(TCModuleInstance *self)
 {
-    if (!self) {
-       return TC_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "fini");
+
     faac_stop(self);
     tc_free(self->userdata);
     self->userdata = NULL;
@@ -236,10 +230,8 @@ static int faac_encode(TCModuleInstance *self,
     uint8_t *inptr;
     int nsamples;
 
-    if (!self) {
-        tc_log_error(MOD_NAME, "encode: self == NULL!");
-        return TC_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "encode");
+
     pd = self->userdata;
 
     if (in) {
