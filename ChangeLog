@@ -2,6 +2,9 @@
   * encode/encode_faac.c
   move sanity check to libtc macros.
 
+  * encode/encode_copy.c
+  copy frame attributes for audio too.
+
 2007-01-27 Francesco Romani <fromani at gmail dot com>
   * encode/encode_x264.c encode/encode_lavc.c
   mark keyframes.

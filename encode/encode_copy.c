@@ -98,6 +98,8 @@ static int copy_encode_audio(TCModuleInstance *self,
         outframe->audio_len = 0;
     } else {
         aframe_copy(outframe, inframe, 1);
+        /* aframe_copy will not do this, so we copy attributes explicitely */
+        outframe->attributes = inframe->attributes;
         /* enforce full length (we deal with uncompressed frames */
         outframe->audio_len = outframe->audio_size;
     }
