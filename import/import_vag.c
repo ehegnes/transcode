@@ -617,9 +617,18 @@ static size_t xread(uint8_t *buf, size_t elsize, size_t els, FILE *f)
                 if (fread(readbuf, 1, 1, f) != 1)
                     break;
                 packetlen -= 1;
-                if (verbose & TC_DEBUG)
-                    tc_log_msg(MOD_NAME, "... stream code 0x%02X", readbuf[0]);
-                if (readbuf[0] != 0xFF) {
+                if (packetlen > 1) {
+                    if (fread(readbuf+1, 1, 1, f) != 1)
+                        break;
+                    packetlen -= 1;
+                } else {
+                    readbuf[1] = 0;  // anything but 0xA1
+                }
+                if (verbose & TC_DEBUG) {
+                    tc_log_msg(MOD_NAME, "... stream code %02X %02X",
+                               readbuf[0], readbuf[1]);
+                }
+                if (readbuf[0] != 0xFF || readbuf[1] != 0xA1) {
                     while (packetlen > 0) {
                         int toread = sizeof(readbuf);
                         if (toread > packetlen)
@@ -630,18 +639,17 @@ static size_t xread(uint8_t *buf, size_t elsize, size_t els, FILE *f)
                     }
                     if (packetlen > 0)  /* i.e. read failed */
                         break;
+                } else if (packetlen < 2) {
+                    /* okay, enough is enough */
+                    tc_log_error(MOD_NAME,
+                                 "private stream 1 packet too small!!");
+                    return 0;
                 } else {
                     /* A desired data packet, at last */
                     int toread;
-                    if (packetlen < 3) {
-                        /* okay, enough is enough */
-                        tc_log_error(MOD_NAME,
-                                     "private stream 1 packet too small!!");
-                        return 0;
-                    }
-                    if (fread(readbuf, 3, 1, f) != 1)
+                    if (fread(readbuf, 2, 1, f) != 1)
                         break;
-                    packetlen -= 3;
+                    packetlen -= 2;
                     /* FIXME: this won't work if we read 1 byte at a time */
                     if (mpeg_check_for_header
                      && packetlen >= 4
