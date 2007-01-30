@@ -73,24 +73,26 @@ struct tcfactory_ {
  * (but sometimes useless) pointers to every method.                     *
  *************************************************************************/
 
-#define DUMMY_HEAVY_CHECK(self, method_name) \
+#define DUMMY_HEAVY_CHECK(self, method_name) do { \
     if (self != NULL) { \
         tc_log_warn(self->type, "critical: module doesn't provide" \
                                 " %s method", method_name); \
     } else { \
         tc_log_error(__FILE__, "critical: %s method missing AND bad" \
                                " instance pointer", method_name); \
-    }
+    } \
+} while (0)
 
-
-#define DUMMY_CHECK(self, method_name) \
+#define DUMMY_CHECK(self, method_name) do { \
     if (self != NULL) { \
         tc_log_warn(self->type, \
                     "module doesn't provide %s method", method_name); \
     } else { \
         tc_log_error(__FILE__, "%s method missing AND bad" \
                                " instance pointer", method_name); \
-    }
+    } \
+} while (0)
+
 
 static int dummy_init(TCModuleInstance *self)
 {
@@ -187,10 +189,10 @@ static int dummy_demultiplex(TCModuleInstance *self,
 #undef DUMMY_HEAVY_CHECK
 #undef DUMMY_CHECK
 
-static TCCodecID dummy_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
-static TCCodecID dummy_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
-static TCFormatID dummy_formats_in[] = { TC_FORMAT_RAW, TC_FORMAT_ERROR };
-static TCFormatID dummy_formats_out[] = { TC_FORMAT_RAW, TC_FORMAT_ERROR };
+static const TCCodecID dummy_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static const TCCodecID dummy_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static const TCFormatID dummy_formats_in[] = { TC_FORMAT_RAW, TC_FORMAT_ERROR };
+static const TCFormatID dummy_formats_out[] = { TC_FORMAT_RAW, TC_FORMAT_ERROR };
 
 static TCModuleInfo dummy_info = {
     .features    = TC_MODULE_FEATURE_NONE,
@@ -502,6 +504,13 @@ static void make_modtype(char *buf, size_t bufsize,
  * Postconditions:
  *     destination class is a copy of source class.
  */
+
+#define COPY_IF_NOT_NULL(field) do { \
+    if (klass->field != NULL) { \
+        nklass->field = klass->field; \
+    } \
+} while (0)
+
 static int tc_module_class_copy(const TCModuleClass *klass,
                                 TCModuleClass *nklass,
                                 int soft_copy)
@@ -532,30 +541,14 @@ static int tc_module_class_copy(const TCModuleClass *klass,
     nklass->stop = klass->stop;
     nklass->inspect = klass->inspect;
 
-    if (klass->encode_audio != NULL) {
-        nklass->encode_audio = klass->encode_audio;
-    }
-    if (klass->encode_video != NULL) {
-        nklass->encode_video = klass->encode_video;
-    }
-    if (klass->decode_audio != NULL) {
-        nklass->decode_audio = klass->decode_audio;
-    }
-    if (klass->decode_video != NULL) {
-        nklass->decode_video = klass->decode_video;
-    }
-    if (klass->filter_audio != NULL) {
-        nklass->filter_audio = klass->filter_audio;
-    }
-    if (klass->filter_video != NULL) {
-        nklass->filter_video = klass->filter_video;
-    }
-    if (klass->multiplex != NULL) {
-        nklass->multiplex = klass->multiplex;
-    }
-    if (klass->demultiplex != NULL) {
-        nklass->demultiplex = klass->demultiplex;
-    }
+    COPY_IF_NOT_NULL(encode_audio);
+    COPY_IF_NOT_NULL(encode_video);
+    COPY_IF_NOT_NULL(decode_audio);
+    COPY_IF_NOT_NULL(decode_video);
+    COPY_IF_NOT_NULL(filter_audio);
+    COPY_IF_NOT_NULL(filter_video);
+    COPY_IF_NOT_NULL(multiplex);
+    COPY_IF_NOT_NULL(demultiplex);
 
     if (soft_copy == TC_TRUE) {
         memcpy((TCModuleInfo *)klass->info, nklass->info,
@@ -569,25 +562,31 @@ static int tc_module_class_copy(const TCModuleClass *klass,
     return ret;
 }
 
+#undef COPY_IF_NOT_NULL
+
+
 /*************************************************************************
  * main private helpers: _load and _unload                               *
  *************************************************************************/
 
-#define RETURN_IF_INVALID_STRING(str, msg, errval) \
+#define RETURN_IF_INVALID_STRING(str, msg, errval) do { \
     if (!str || !strlen(str)) { \
         tc_log_error(__FILE__, msg); \
         return (errval); \
-    }
+    } \
+} while (0)
 
-#define RETURN_IF_INVALID_QUIET(val, errval) \
+#define RETURN_IF_INVALID_QUIET(val, errval) do { \
     if (!(val)) { \
         return (errval); \
-    }
+    } \
+} while (0)
 
-#define TC_LOG_DEBUG(fp, level, format, ...) \
+#define TC_LOG_DEBUG(fp, level, format, ...) do { \
     if ((fp)->verbose >= level) { \
         tc_log_info(__FILE__, format, __VA_ARGS__); \
-    }
+    } \
+} while (0)
 
 
 /*
@@ -693,13 +692,14 @@ failed_dlopen:
     return -1;
 }
 
-#define CHECK_VALID_ID(id, where) \
+#define CHECK_VALID_ID(id, where) do { \
     if (id < 0 || id > TC_FACTORY_MAX_HANDLERS) { \
         if (factory->verbose >= TC_DEBUG) { \
             tc_log_error(__FILE__, "%s: invalid id (%i)", where, id); \
         } \
         return -1; \
-    }
+    } \
+} while (0)
 
 /*
  * tc_unload_module:
