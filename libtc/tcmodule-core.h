@@ -177,7 +177,7 @@ static void tc_module_show_info(TCModule handle, int verbose)
     tc_module_info_log(handle->klass->info, verbose);
 }
 
-/* XXX: can be further improved. */
+/* FIXME: that's just ugly. */
 #ifdef HAVE_GCC_ATTRIBUTES
 __attribute__((unused))
 #endif
