@@ -94,8 +94,6 @@ int main(int argc, char *argv[])
     int ch, done=0;
     char *codec=NULL, *format="rgb", *magic="none";
 
-    ac_init(AC_ALL);
-
     memset(&decode, 0, sizeof(decode));
     decode.magic = TC_MAGIC_UNKNOWN;
     decode.stype = TC_STYPE_UNKNOWN;
@@ -184,6 +182,8 @@ int main(int argc, char *argv[])
 	  usage(EXIT_FAILURE);
 	}
     }
+
+    ac_init(AC_ALL);
 
     /* ------------------------------------------------------------
      *

@@ -96,8 +96,6 @@ int main(int argc, char *argv[])
     int ch, done=0, track=0;
     char *magic=NULL, *codec=NULL, *name=NULL;
 
-    ac_init(AC_ALL);
-
     //proper initialization
     memset(&ipipe, 0, sizeof(info_t));
     ipipe.frame_limit[0]=0;
@@ -172,6 +170,8 @@ int main(int argc, char *argv[])
 	  usage(EXIT_FAILURE);
 	}
     }
+
+    ac_init(AC_ALL);
 
     /* ------------------------------------------------------------
      *

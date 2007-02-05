@@ -228,8 +228,6 @@ int main(int argc, char *argv[])
   uint16_t sync_word = 0;
   double cdsize = 0.0;
 
-  ac_init(AC_ALL);
-
   //proper initialization
   memset(&ipipe, 0, sizeof(info_t));
 
@@ -337,6 +335,8 @@ int main(int argc, char *argv[])
       usage(EXIT_FAILURE);
     }
   }
+
+  ac_init(AC_ALL);
 
   /* ------------------------------------------------------------
    *

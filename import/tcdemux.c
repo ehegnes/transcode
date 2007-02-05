@@ -126,8 +126,6 @@ int main(int argc, char *argv[])
     //defaults:
     int unit_seek=0, resync_seq1=0, resync_seq2=INT_MAX;
 
-    ac_init(AC_ALL);
-
     //proper initialization
     memset(&ipipe, 0, sizeof(info_t));
 
@@ -302,6 +300,8 @@ int main(int argc, char *argv[])
 	usage(EXIT_FAILURE);
       }
     }
+
+    ac_init(AC_ALL);
 
     /* ------------------------------------------------------------
      *
