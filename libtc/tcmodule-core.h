@@ -280,10 +280,11 @@ int tc_del_module_factory(TCFactory factory);
  *      method on given module. You should NOT do by yourself.
  *
  * Parameters:
- *      factory: use this factory instance to build the new module.
+ *       factory: use this factory instance to build the new module.
  *      modclass: class of module requested (filter, encoding,
  *                demultiplexing...).
- *      modnale: name of module requested.
+ *       modname: name of module requested.
+ *         media: media type for new module (TC_VIDEO, TC_AUDIO, TC_EXTRA)
  *
  * Return value:
  *      NULL: an error occurred, and notified via tc_log_*()
@@ -306,7 +307,7 @@ int tc_del_module_factory(TCFactory factory);
  *      TCModule my_module = tc_new_module("filter", "foobar");
  */
 TCModule tc_new_module(TCFactory factory,
-               const char *modclass, const char *modname);
+                       const char *modclass, const char *modname, int media);
 
 /*
  * tc_del_module:

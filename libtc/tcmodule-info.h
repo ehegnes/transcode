@@ -23,6 +23,7 @@
 /* FIXME: move to a enum? */
 /* actions */
 #define TC_MODULE_FEATURE_NONE          0x00000000
+
 #define TC_MODULE_FEATURE_FILTER        0x00000001
 #define TC_MODULE_FEATURE_DECODE        0x00000002
 #define TC_MODULE_FEATURE_ENCODE        0x00000004

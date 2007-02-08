@@ -565,19 +565,20 @@ int export_setup(vob_t *vob,
     }
 
     mod_name = (a_mod == NULL) ?TC_DEFAULT_EXPORT_AUDIO :a_mod;
-    encdata.aud_mod = tc_new_module(encdata.factory, "encode", mod_name);
+    encdata.aud_mod = tc_new_module(encdata.factory, "encode", mod_name, TC_AUDIO);
     if (!encdata.aud_mod) {
         tc_log_error(__FILE__, "can't load audio encoder");
         return -1;
     }
     mod_name = (v_mod == NULL) ?TC_DEFAULT_EXPORT_VIDEO :v_mod;
-    encdata.vid_mod = tc_new_module(encdata.factory, "encode", mod_name);
+    encdata.vid_mod = tc_new_module(encdata.factory, "encode", mod_name, TC_VIDEO);
     if (!encdata.vid_mod) {
         tc_log_error(__FILE__, "can't load video encoder");
         return -1;
     }
     mod_name = (m_mod == NULL) ?TC_DEFAULT_EXPORT_MPLEX :m_mod;
-    encdata.mplex_mod = tc_new_module(encdata.factory, "multiplex", mod_name);
+    encdata.mplex_mod = tc_new_module(encdata.factory, "multiplex", mod_name,
+                                      TC_VIDEO|TC_AUDIO);
     if (!encdata.mplex_mod) {
         tc_log_error(__FILE__, "can't load multiplexor");
         return -1;

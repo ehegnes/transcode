@@ -64,6 +64,7 @@ typedef struct tcmoduleinstance_ TCModuleInstance;
 struct tcmoduleinstance_ {
     int id; /* instance id; */
     const char *type; /* packed class + name of module */
+    uint32_t features; /* subset of enabled features for this instance */
 
     void *userdata; /* opaque to factory, used by each module */
 
@@ -91,7 +92,7 @@ struct tcmoduleclass_ {
     const TCModuleInfo *info;
 
     /* mandatory operations: */
-    int (*init)(TCModuleInstance *self);
+    int (*init)(TCModuleInstance *self, uint32_t features);
     int (*fini)(TCModuleInstance *self);
     int (*configure)(TCModuleInstance *self, const char *options, vob_t *vob);
     int (*stop)(TCModuleInstance *self);
@@ -129,7 +130,8 @@ struct tcmoduleclass_ {
  *      is requested. Request an operation in a initialized but unconfigured
  *      module will result in an undefined behaviour.
  * Parameters:
- *      self: pointer to module instance to initialize.
+ *          self: pointer to module instance to initialize.
+ *      features: select feature of this module to initialize.
  * Return Value:
  *      0  succesfull.
  *      -1 error occurred. A proper message should be sent to user using

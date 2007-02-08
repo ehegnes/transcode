@@ -29,6 +29,63 @@
 } while (0)
 
 
+#define TC_HAS_FEATURE(flags, feat) \
+    ((flags & (TC_MODULE_FEATURE_ ## feat)) ?1 :0)
+
+static inline int tc_module_av_check(uint32_t flags)
+{
+    int i = 0;
+
+    i += TC_HAS_FEATURE(flags, AUDIO);
+    i += TC_HAS_FEATURE(flags, VIDEO);
+    i += TC_HAS_FEATURE(flags, EXTRA);
+
+    return i;
+}
+
+static inline int tc_module_cap_check(uint32_t flags)
+{
+    int i = 0;
+
+    i += TC_HAS_FEATURE(flags, DECODE);
+    i += TC_HAS_FEATURE(flags, FILTER);
+    i += TC_HAS_FEATURE(flags, ENCODE);
+    i += TC_HAS_FEATURE(flags, MULTIPLEX);
+    i += TC_HAS_FEATURE(flags, DEMULTIPLEX);
+
+    return i;
+}
+
+#undef TC_HAS_FEATURE
+
+
+#define TC_MODULE_INIT_CHECK(self, FEATURES, feat) do { \
+    int j = tc_module_cap_check((feat)); \
+    \
+    if ((!((FEATURES) & TC_MODULE_FEATURE_MULTIPLEX) \
+      && !((FEATURES) & TC_MODULE_FEATURE_DEMULTIPLEX)) \
+     && (tc_module_av_check((feat)) > 1)) { \
+    	tc_log_error(MOD_NAME, "unsupported stream types for" \
+	                       " this module instance"); \
+	return TC_ERROR; \
+    } \
+    \
+    if (j != 0 && j != 1) { \
+    	tc_log_error(MOD_NAME, "feature request mismatch for" \
+	                       " this module instance (req=%i)", j); \
+	return TC_ERROR; \
+    } \
+    /* is perfectly fine to request to do nothing */ \
+    if ((feat != 0) && ((FEATURES) & (feat))) { \
+        (self)->features = (feat); \
+    } else { \
+        tc_log_error(MOD_NAME, "this module does not support" \
+                               " requested feature"); \
+        return TC_ERROR; \
+    } \
+} while (0)
+
+
 /*
  * plugin entry point prototype
  */

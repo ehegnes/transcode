@@ -29,8 +29,8 @@
 #define TC_FACTORY_MAX_HANDLERS     (16)
 #define MOD_TYPE_MAX_LEN            (TC_BUF_MIN * 2)
 
-#define tc_module_init(module) \
-    (module)->klass->init(&((module)->instance))
+#define tc_module_init(module, features) \
+    (module)->klass->init(&((module)->instance), features)
 #define tc_module_fini(module) \
     (module)->klass->fini(&((module)->instance))
 
@@ -94,7 +94,7 @@ struct tcfactory_ {
 } while (0)
 
 
-static int dummy_init(TCModuleInstance *self)
+static int dummy_init(TCModuleInstance *self, uint32_t features)
 {
     DUMMY_HEAVY_CHECK(self, "initialization");
     return -1;
@@ -233,36 +233,51 @@ static const TCModuleClass dummy_class = {
  *************************************************************************/
 
 /*
- * is_known_modclass:
+ * translate_modclass:
  *     validate a module class name, represented by a given string.
  *
  * Parameters:
  *     modclass: a class nome to validate.
  * Return Value:
- *     TC_TRUE if given class name can be understanded -and builded-
- *     by actual factory code.
- *     TC_FALSE otherwise
+ *     TC_MOFULE_FEATURE_* correspondent.
  */
-static int is_known_modclass(const char *modclass)
+static uint32_t translate_modclass(const char *modclass)
 {
-    int ret = TC_FALSE;
+    uint32_t ret = TC_MODULE_FEATURE_NONE;
 
     if (modclass != NULL) {
         if (!strcmp(modclass, "filter")) {
-            ret = TC_TRUE;
+            ret = TC_MODULE_FEATURE_FILTER;
         } else if (!strcmp(modclass, "demultiplex")
           || !strcmp(modclass, "demux")) {
-            ret = TC_TRUE;
+            ret = TC_MODULE_FEATURE_DEMULTIPLEX;
         } else if (!strcmp(modclass, "decode")) {
-            ret = TC_TRUE;
+            ret = TC_MODULE_FEATURE_DECODE;
         } else if (!strcmp(modclass, "encode")) {
-            ret = TC_TRUE;
+            ret = TC_MODULE_FEATURE_ENCODE;
         } else if (!strcmp(modclass, "multiplex")
           || !strcmp(modclass, "mplex")) {
-            ret = TC_TRUE;
-        } else {
-            ret = TC_FALSE;
+            ret = TC_MODULE_FEATURE_MULTIPLEX;
         }
+    }
+    return ret;
+}
+
+/* FIXME: writeme */
+static uint32_t translate_media(int media)
+{
+    uint32_t ret = TC_MODULE_FEATURE_NONE;
+
+    switch (media) {
+      case TC_VIDEO:
+        ret = TC_MODULE_FEATURE_VIDEO;
+        break;
+      case TC_AUDIO:
+        ret = TC_MODULE_FEATURE_AUDIO;
+        break;
+      case TC_EXTRA:
+        ret = TC_MODULE_FEATURE_EXTRA;
+        break;
     }
     return ret;
 }
@@ -786,14 +801,16 @@ int tc_del_module_factory(TCFactory factory)
 }
 
 TCModule tc_new_module(TCFactory factory,
-                       const char *modclass, const char *modname)
+                       const char *modclass, const char *modname,
+                       int media)
 {
     char modtype[MOD_TYPE_MAX_LEN];
+    uint32_t flags = translate_modclass(modclass);
     int id = -1, ret;
     TCModule module = NULL;
 
     RETURN_IF_INVALID_QUIET(factory, NULL);
-    if (!is_known_modclass(modclass)) {
+    if (flags == TC_MODULE_FEATURE_NONE) {
         TC_LOG_DEBUG(factory, TC_INFO, "unknown module class '%s'",
                       modclass);
         return NULL;
@@ -819,7 +836,7 @@ TCModule tc_new_module(TCFactory factory,
     module->instance.id = factory->instance_count + 1;
     module->klass = &(factory->descriptors[id].klass);
 
-    ret = tc_module_init(module);
+    ret = tc_module_init(module, flags|translate_media(media));
     if (ret != 0) {
         TC_LOG_DEBUG(factory, TC_DEBUG, "initialization of '%s' failed"
                      " (code=%i)", modtype, ret);

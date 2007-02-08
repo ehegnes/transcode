@@ -1,3 +1,9 @@
+2007-02-08 Francesco Romani <fromani at gmail dot com>
+  * libtc/tcmodule-core.h libtc/tcmodule-data.h libtc/tcmodule-info.h
+    libtc/tcmodule-plugin.h libtc/tcmodule.c src/encoder.c src/tc_defaults.h
+  NMS api change: specify to TCModule instances which feature are
+  expected from them.
+
 2007-02-05 Andrew Church <achurch at achurch dot org>
   * import/tcdecode.c import/tcdemux.c import/tcextract.c import/tcscan.c
   Don't call ac_init() until after command-line arguments have been
