@@ -24,10 +24,17 @@
 #define MOD_VERSION "v0.0.3 (2006-03-06)"
 #define MOD_CAP     "write each stream in a separate file"
 
+#define MOD_FEATURES \
+    TC_MODULE_FEATURE_MULTIPLEX|TC_MODULE_FEATURE_VIDEO|TC_MODULE_FEATURE_AUDIO
+
+#define MOD_FLAGS \
+    TC_MODULE_FLAG_RECONFIGURABLE
+
+
 #define RAW_VID_EXT "vid"
 #define RAW_AUD_EXT "aud"
 
-static const char *raw_help = ""
+static const char raw_help[] = ""
     "Overview:\n"
     "    this module simply write audio and video streams in\n"
     "    a separate plain file for each stream.\n"
@@ -166,11 +173,12 @@ static int raw_multiplex(TCModuleInstance *self,
     return (int)(w_vid + w_aud);
 }
 
-static int raw_init(TCModuleInstance *self)
+static int raw_init(TCModuleInstance *self, uint32_t features)
 {
     RawPrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "init");
+    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
     pd = tc_malloc(sizeof(RawPrivateData));
     if (pd == NULL) {
@@ -211,9 +219,8 @@ static const TCFormatID raw_formats_in[] = { TC_FORMAT_ERROR };
 static const TCFormatID raw_formats_out[] = { TC_FORMAT_RAW, TC_FORMAT_ERROR };
 
 static const TCModuleInfo raw_info = {
-    .features    = TC_MODULE_FEATURE_MULTIPLEX|TC_MODULE_FEATURE_VIDEO
-                   |TC_MODULE_FEATURE_AUDIO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .features    = MOD_FEATURES,
+    .flags       = MOD_FLAGS,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,

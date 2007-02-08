@@ -13,6 +13,11 @@
 #define MOD_CAP         "Imports PlayStation VAG-format audio"
 #define MOD_AUTHOR      "Andrew Church"
 
+#define MOD_FEATURES \
+    TC_MODULE_FEATURE_DECODE|TC_MODULE_FEATURE_AUDIO
+#define MOD_FLAGS \
+    TC_MODULE_FLAG_RECONFIGURABLE
+
 #include "transcode.h"
 #include "libtc/libtc.h"
 #include "libtc/optstr.h"
@@ -57,19 +62,17 @@ static void do_decode(const uint8_t *inbuf, int16_t *outbuf, int chan,
  * for function details.
  */
 
-static int vag_init(TCModuleInstance *self)
+static int vag_init(TCModuleInstance *self, uint32_t features)
 {
-    PrivateData *pd;
+    PrivateData *pd = NULL;
 
-    if (!self) {
-        tc_log_error(MOD_NAME, "init: self == NULL!");
-        return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "init");
+    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
     pd = tc_zalloc(sizeof(PrivateData));
     if (!pd) {
         tc_log_error(MOD_NAME, "init: out of memory!");
-        return -1;
+        return TC_ERROR;
     }
     pd->blocksize = DEF_STEREO_BLOCK;
     self->userdata = pd;
@@ -77,7 +80,7 @@ static int vag_init(TCModuleInstance *self)
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     }
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -89,12 +92,11 @@ static int vag_init(TCModuleInstance *self)
 
 static int vag_fini(TCModuleInstance *self)
 {
-    if (!self) {
-       return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "fini");
+
     tc_free(self->userdata);
     self->userdata = NULL;
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -107,10 +109,9 @@ static int vag_fini(TCModuleInstance *self)
 static int vag_configure(TCModuleInstance *self,
                          const char *options, vob_t *vob)
 {
-    if (!self) {
-       return -1;
-    }
-    return 0;
+    TC_MODULE_SELF_CHECK(self, "configure");
+
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -122,11 +123,10 @@ static int vag_configure(TCModuleInstance *self,
 
 static int vag_stop(TCModuleInstance *self)
 {
-    PrivateData *pd;
+    PrivateData *pd = NULL;
 
-    if (!self) {
-       return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "stop");
+
     pd = self->userdata;
 
     if (verbose & TC_DEBUG)
@@ -143,7 +143,7 @@ static int vag_stop(TCModuleInstance *self)
     pd->prevsamp[1][1] = 0;
     pd->totalread = 0;
 
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -156,11 +156,13 @@ static int vag_stop(TCModuleInstance *self)
 static int vag_inspect(TCModuleInstance *self,
                        const char *param, const char **value)
 {
-    PrivateData *pd;
+    PrivateData *pd = NULL;
     static char buf[TC_BUF_MAX];
 
-    if (!self || !param)
-       return TC_IMPORT_ERROR;
+    TC_MODULE_SELF_CHECK(self, "inspect");
+    TC_MODULE_SELF_CHECK(param, "inspect");
+    TC_MODULE_SELF_CHECK(value, "inspect");
+
     pd = self->userdata;
 
     if (optstr_lookup(param, "help")) {
@@ -189,8 +191,8 @@ static const TCFormatID vag_formats_in[] = { TC_FORMAT_ERROR };
 static const TCFormatID vag_formats_out[] = { TC_FORMAT_ERROR };
 
 static const TCModuleInfo vag_info = {
-    .features    = TC_MODULE_FEATURE_DECODE|TC_MODULE_FEATURE_AUDIO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .features    = MOD_FEATURES,
+    .flags       = MOD_FLAGS,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,
@@ -233,10 +235,10 @@ static int vag_decode(TCModuleInstance *self,
     int insize;
     int16_t *outptr;
 
-    if (!self || !inframe || !outframe) {
-        tc_log_error(MOD_NAME, "decode: NULL parameter(s)!");
-        return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "decode");
+    TC_MODULE_SELF_CHECK(inframe, "decode");
+    TC_MODULE_SELF_CHECK(outframe, "decode");
+
     pd = self->userdata;
     inptr = inframe->audio_buf;
     insize = inframe->audio_size;
@@ -250,7 +252,7 @@ static int vag_decode(TCModuleInstance *self,
             /* Not enough for a 16-byte block--copy and exit */
             memcpy(pd->databuf + pd->datalen, inframe->audio_buf, insize);
             pd->datalen += insize;
-            return 0;
+            return TC_OK;
         } else {
             /* Finish off the partial block */
             memcpy(pd->databuf + pd->datalen, inframe->audio_buf, needed);
@@ -275,7 +277,7 @@ static int vag_decode(TCModuleInstance *self,
         pd->datalen = insize;
     }
 
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -387,17 +389,17 @@ MOD_open
     uint8_t buf[16];
 
     if (param->flag != TC_AUDIO)
-        return -1;
+        return TC_ERROR;
 
     if (vob->a_chan != 1 && vob->a_chan != 2) {
         tc_log_error(MOD_NAME, "%d channels not supported (must be 1 or 2)",
                      vob->a_chan);
-        return -1;
+        return TC_ERROR;
     }
     if (vob->a_bits != 16) {
         tc_log_error(MOD_NAME, "%d bits not supported (must be 16)",
                      vob->a_bits);
-        return -1;
+        return TC_ERROR;
     }
 
     memset(&static_pd, 0, sizeof(static_pd));
@@ -407,11 +409,11 @@ MOD_open
         if (static_pd.blocksize<16 || static_pd.blocksize>MAX_STEREO_BLOCK) {
             tc_log_error(MOD_NAME, "Block size %d out of range (16...%d)",
                          static_pd.blocksize, MAX_STEREO_BLOCK);
-            return -1;
+            return TC_ERROR;
         } else if (static_pd.blocksize & 15) {
             tc_log_error(MOD_NAME, "Block size %d not a multiple of 16",
                          static_pd.blocksize);
-            return -1;
+            return TC_ERROR;
         }
     } else {
         static_pd.blocksize = DEF_STEREO_BLOCK;
@@ -423,7 +425,7 @@ MOD_open
     if (!file) {
         tc_log_error(MOD_NAME, "Unable to open %s: %s", vob->audio_in_file,
                      strerror(errno));
-        return -1;
+        return TC_ERROR;
     }
 
     /* Check whether this is an MPEG stream and enable the hacks if needed */
@@ -431,7 +433,7 @@ MOD_open
         tc_log_error(MOD_NAME, "File %s is empty!", vob->audio_in_file);
         fclose(file);
         file = NULL;
-        return -1;
+        return TC_ERROR;
     }
     if ((buf[0]<<24 | buf[1]<<16 | buf[2]<<8 | buf[3]) == TC_MAGIC_VOB) {
         mpeg_mode = 1;
@@ -476,12 +478,12 @@ MOD_open
         }
     }  /* if an MPEG stream */
 
-    return 0;
+    return TC_OK;
 
   close_and_abort:
     fclose(file);
     file = NULL;
-    return -1;
+    return TC_ERROR;
 }
 
 /*************************************************************************/
@@ -497,7 +499,7 @@ MOD_close
         fclose(file);
         file = NULL;
     }
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -518,7 +520,7 @@ static size_t xread(uint8_t *buf, size_t elsize, size_t els, FILE *f)
     if (!mpeg_mode)
         return fread(buf, elsize, els, f);
     if (mpeg_stop)
-        return 0;
+        return TC_OK;
 
     nread = 0;
     if (mpeg_packet_left > 0) {
@@ -529,7 +531,7 @@ static size_t xread(uint8_t *buf, size_t elsize, size_t els, FILE *f)
         } else {
             nread = fread(buf, 1, mpeg_packet_left, f);
             if (nread < mpeg_packet_left)  /* EOF */
-                return 0;
+                return TC_OK;
             mpeg_packet_left = 0;
         }
     }
@@ -643,7 +645,7 @@ static size_t xread(uint8_t *buf, size_t elsize, size_t els, FILE *f)
                     /* okay, enough is enough */
                     tc_log_error(MOD_NAME,
                                  "private stream 1 packet too small!!");
-                    return 0;
+                    return TC_OK;
                 } else {
                     /* A desired data packet, at last */
                     int toread;

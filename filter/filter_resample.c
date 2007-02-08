@@ -26,6 +26,11 @@
 #define MOD_CAP     "audio resampling filter plugin using libavcodec"
 #define MOD_AUTHOR  "Thomas Oestreich, Stefan Scheffler"
 
+#define MOD_FEATURES \
+    TC_MODULE_FEATURE_FILTER|TC_MODULE_FEATURE_AUDIO
+#define MOD_FLAGS \
+    TC_MODULE_FLAG_RECONFIGURABLE
+
 #include "transcode.h"
 #include "filter.h"
 #include "libtc/libtc.h"
@@ -44,7 +49,7 @@ typedef struct
     ReSampleContext *resample_ctx;
 } ResamplePrivateData;
 
-static const char *resample_help = ""
+static const char resample_help[] = ""
     "Overview:\n"
     "    This filter resample an audio stream using libavcodec facilties.\n"
     "    i.e. changes input sample rate to 22050 Hz to 48000 Hz.\n"
@@ -54,9 +59,10 @@ static const char *resample_help = ""
 
 /*-------------------------------------------------*/
 
-static int resample_init(TCModuleInstance *self)
+static int resample_init(TCModuleInstance *self, uint32_t features)
 {
     TC_MODULE_SELF_CHECK(self, "init");
+    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
     self->userdata = tc_malloc(sizeof(ResamplePrivateData));
     if (self->userdata == NULL) {
@@ -247,7 +253,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
     }
 
     if  (ptr->tag & TC_FILTER_INIT) {
-        int ret = resample_init(&mod);
+        /* XXX */
+        int ret = resample_init(&mod, TC_MODULE_FEATURE_FILTER);
         if (ret != TC_OK) {
             return ret;
         }
@@ -284,8 +291,8 @@ static const TCFormatID resample_formats[] = { TC_FORMAT_ERROR };
 
 /* new module support */
 static const TCModuleInfo resample_info = {
-    .features    = TC_MODULE_FEATURE_FILTER|TC_MODULE_FEATURE_AUDIO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .features    = MOD_FEATURES,
+    .flags       = MOD_FLAGS,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,

@@ -38,6 +38,12 @@
 #define MOD_VERSION "v0.2.1 (2006-01-27)"
 #define MOD_CAP     "x264 encoder"
 
+#define MOD_FEATURES \
+    TC_MODULE_FEATURE_ENCODE|TC_MODULE_FEATURE_VIDEO
+
+#define MOD_FLAGS \
+    TC_MODULE_FLAG_RECONFIGURABLE
+
 
 /* Module configuration file */
 #define X264_CONFIG_FILE "x264.cfg"
@@ -487,11 +493,12 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
  * for function details.
  */
 
-static int x264_init(TCModuleInstance *self)
+static int x264_init(TCModuleInstance *self, uint32_t features)
 {
     X264PrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "init");
+    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
     pd = tc_malloc(sizeof(X264PrivateData));
     if (!pd) {
@@ -753,9 +760,8 @@ static const TCFormatID x264_formats[] = { TC_FORMAT_ERROR };
 
 
 static const TCModuleInfo x264_info = {
-    .features    = TC_MODULE_FEATURE_ENCODE
-                 | TC_MODULE_FEATURE_VIDEO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .features    = MOD_FEATURES,
+    .flags       = MOD_FLAGS,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,

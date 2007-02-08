@@ -22,6 +22,13 @@
 #define MOD_CAP         "Imports NuppelVideo streams"
 #define MOD_AUTHOR      "Andrew Church"
 
+#define MOD_FEATURES \
+    TC_MODULE_FEATURE_DEMULTIPLEX|TC_MODULE_FEATURE_DECODE|TC_MODULE_FEATURE_VIDEO
+
+#define MOD_FLAGS \
+    TC_MODULE_FLAG_RECONFIGURABLE
+
+
 /*************************************************************************/
 
 /* Private data used by this module. */
@@ -59,19 +66,17 @@ typedef struct {
  * for function details.
  */
 
-static int nuv_init(TCModuleInstance *self)
+static int nuv_init(TCModuleInstance *self, uint32_t features)
 {
     PrivateData *pd;
 
-    if (!self) {
-        tc_log_error(MOD_NAME, "init: self == NULL!");
-        return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "init");
+    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
     self->userdata = pd = tc_malloc(sizeof(PrivateData));
     if (!pd) {
         tc_log_error(MOD_NAME, "init: out of memory!");
-        return -1;
+        return TC_ERROR;
     }
     pd->fd = -1;
     pd->dec_initted = 0;
@@ -80,7 +85,7 @@ static int nuv_init(TCModuleInstance *self)
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     }
 
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -94,9 +99,8 @@ static int nuv_fini(TCModuleInstance *self)
 {
     PrivateData *pd;
 
-    if (!self) {
-       return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "fini");
+
     pd = self->userdata;
 
     if (pd->fd) {
@@ -106,7 +110,7 @@ static int nuv_fini(TCModuleInstance *self)
 
     tc_free(self->userdata);
     self->userdata = NULL;
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -123,9 +127,8 @@ static int nuv_configure(TCModuleInstance *self,
     struct rtfileheader hdr;
     const char *filename = vob->video_in_file;
 
-    if (!self) {
-       return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "configure");
+
     pd = self->userdata;
 
     // FIXME: is this a good place for open()?  And how do we know which
@@ -134,25 +137,25 @@ static int nuv_configure(TCModuleInstance *self,
     if (pd->fd < 0) {
         tc_log_error(MOD_NAME, "Unable to open %s: %s", filename,
                      strerror(errno));
-        return 0;
+        return TC_OK;
     }
     if (read(pd->fd, &hdr, sizeof(hdr)) != sizeof(hdr)) {
         tc_log_error(MOD_NAME, "Unable to read file header from %s", filename);
         close(pd->fd);
         pd->fd = -1;
-        return 0;
+        return TC_OK;
     }
     if (strcmp(hdr.finfo, "NuppelVideo") != 0) {
         tc_log_error(MOD_NAME, "Bad file header in %s", filename);
         close(pd->fd);
         pd->fd = -1;
-        return 0;
+        return TC_OK;
     }
     if (strcmp(hdr.version, "0.05") != 0) {
         tc_log_error(MOD_NAME, "Bad format version in %s", filename);
         close(pd->fd);
         pd->fd = -1;
-        return 0;
+        return TC_OK;
     }
     pd->width = hdr.width;
     pd->height = hdr.height;
@@ -166,7 +169,7 @@ static int nuv_configure(TCModuleInstance *self,
     pd->saved_vframelen = 0;
     pd->saved_vcomptype = 'N';  // black frame
 
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -180,9 +183,8 @@ static int nuv_stop(TCModuleInstance *self)
 {
     PrivateData *pd;
 
-    if (!self) {
-       return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "stop");
+
     pd = self->userdata;
 
     if (pd->fd >= 0) {
@@ -191,7 +193,7 @@ static int nuv_stop(TCModuleInstance *self)
     }
     pd->dec_initted = 0;
 
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -207,8 +209,10 @@ static int nuv_inspect(TCModuleInstance *self,
     PrivateData *pd;
     static char buf[TC_BUF_MAX];
 
-    if (!self || !param)
-       return 0;
+    TC_MODULE_SELF_CHECK(self, "inspect");
+    TC_MODULE_SELF_CHECK(param, "inspect");
+    TC_MODULE_SELF_CHECK(value, "inspect");
+
     pd = self->userdata;
 
     if (optstr_lookup(param, "help")) {
@@ -236,14 +240,12 @@ static int nuv_demultiplex(TCModuleInstance *self,
     uint8_t *audiobuf = NULL;
     int audiolen = 0;
 
-    if (!self) {
-        tc_log_error(MOD_NAME, "demultiplex: self == NULL!");
-        return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "demultiplex");
+
     pd = self->userdata;
     if (pd->fd < 0) {
         tc_log_error(MOD_NAME, "demultiplex: no file opened!");
-        return -1;
+        return TC_ERROR;
     }
 
     /* Loop reading packets until we have a video frame. */
@@ -256,7 +258,7 @@ static int nuv_demultiplex(TCModuleInstance *self,
                 tc_log_info(MOD_NAME, "End of file reached");
             tc_free(audiobuf);
             nuv_stop(self);
-            return -1;
+            return TC_ERROR;
         }
 
         /* Check for a compressor data (DR) packet */
@@ -265,7 +267,7 @@ static int nuv_demultiplex(TCModuleInstance *self,
                 tc_log_warn(MOD_NAME, "Short compressor data packet");
                 tc_free(audiobuf);
                 nuv_stop(self);
-                return -1;
+                return TC_ERROR;
             }
             if (read(pd->fd, pd->cdata, sizeof(pd->cdata))
                 != sizeof(pd->cdata)
@@ -274,7 +276,7 @@ static int nuv_demultiplex(TCModuleInstance *self,
                             "File truncated in compressor data packet");
                 tc_free(audiobuf);
                 nuv_stop(self);
-                return -1;
+                return TC_ERROR;
             }
             hdr.packetlength -= sizeof(pd->cdata);
         }
@@ -297,13 +299,13 @@ static int nuv_demultiplex(TCModuleInstance *self,
                             hdr.comptype);
                 tc_free(audiobuf);
                 nuv_stop(self);
-                return -1;
+                return TC_ERROR;
             }
             audiobuf = tc_realloc(audiobuf, audiolen + hdr.packetlength);
             if (!audiobuf) {
                 tc_log_error(MOD_NAME, "No memory for audio!");
                 nuv_stop(self);
-                return -1;
+                return TC_ERROR;
             }
             if (read(pd->fd, audiobuf+audiolen, hdr.packetlength)
                 != hdr.packetlength
@@ -311,7 +313,7 @@ static int nuv_demultiplex(TCModuleInstance *self,
                 tc_log_warn(MOD_NAME, "File truncated in audio packet");
                 tc_free(audiobuf);
                 nuv_stop(self);
-                return -1;
+                return TC_ERROR;
             }
             audiolen += hdr.packetlength;
             hdr.packetlength = 0;
@@ -335,7 +337,7 @@ static int nuv_demultiplex(TCModuleInstance *self,
                 tc_log_warn(MOD_NAME, "File truncated in skipped packet");
                 tc_free(audiobuf);
                 nuv_stop(self);
-                return -1;
+                return TC_ERROR;
             }
             hdr.packetlength -= toread;
         }
@@ -400,7 +402,7 @@ static int nuv_demultiplex(TCModuleInstance *self,
                     ) {
                     tc_log_warn(MOD_NAME, "File truncated in video packet");
                     nuv_stop(self);
-                    return -1;
+                    return TC_ERROR;
                 }
             }
             pd->saved_vframelen = pd->framehdr.packetlength;
@@ -428,7 +430,7 @@ static int nuv_demultiplex(TCModuleInstance *self,
         vframe->v_codec = TC_CODEC_NUV;
     }
     pd->framenum++;
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -446,10 +448,10 @@ static int nuv_decode_video(TCModuleInstance *self,
     int in_framesize, out_framesize;
     int free_frame = 0;  // set to 1 if we need to free the decompress buffer
 
-    if (!self || !inframe || !outframe) {
-        tc_log_error(MOD_NAME, "decode_video: NULL parameter(s)!");
-        return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "decode_video");
+    TC_MODULE_SELF_CHECK(inframe, "decode_video");
+    TC_MODULE_SELF_CHECK(outframe, "decode_video");
+
     pd = self->userdata;
 
     if (!pd->dec_initted) {
@@ -472,7 +474,7 @@ static int nuv_decode_video(TCModuleInstance *self,
         decompressed_frame = tc_malloc(out_framesize);
         if (!decompressed_frame) {
             tc_log_error(MOD_NAME, "No memory for decompressed frame!");
-            return -1;
+            return TC_ERROR;
         }
         if (lzo1x_decompress(encoded_frame, in_framesize,
                              decompressed_frame, &len, NULL) == LZO_E_OK) {
@@ -522,7 +524,7 @@ static int nuv_decode_video(TCModuleInstance *self,
     if (free_frame)
         tc_free(encoded_frame);
     outframe->video_size = out_framesize;
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -534,10 +536,8 @@ static const TCFormatID nuv_formats_in[] = { TC_FORMAT_NUV, TC_FORMAT_ERROR };
 static const TCFormatID nuv_formats_out[] = { TC_FORMAT_ERROR };
 
 static const TCModuleInfo nuv_info = {
-    .features    = TC_MODULE_FEATURE_DEMULTIPLEX
-                 | TC_MODULE_FEATURE_DECODE
-                 | TC_MODULE_FEATURE_VIDEO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .features    = MOD_FEATURES,
+    .flags       = MOD_FLAGS,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,
@@ -593,18 +593,19 @@ MOD_open
     } else if (param->flag == TC_AUDIO) {
         mod = &mod_audio;
     } else {
-        return -1;
+        return TC_ERROR;
     }
 
-    if (nuv_init(mod) < 0)
-        return -1;
+    /* XXX */
+    if (nuv_init(mod, TC_MODULE_FEATURE_VIDEO) < 0)
+        return TC_ERROR;
     if (nuv_configure(mod, "", vob) < 0) {
         nuv_fini(mod);
-        return -1;
+        return TC_ERROR;
     }
 
     param->fd = NULL;  /* we handle the reading ourselves */
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -620,7 +621,7 @@ MOD_close
     } else if (param->flag == TC_AUDIO) {
         mod = &mod_audio;
     } else {
-        return -1;
+        return TC_ERROR;
     }
     return nuv_fini(mod);
 }
@@ -639,13 +640,13 @@ MOD_decode
     } else if (param->flag == TC_AUDIO) {
         mod = &mod_audio;
     } else {
-        return -1;
+        return TC_ERROR;
     }
     pd = mod->userdata;
 
     if (pd->fd < 0) {
         tc_log_error(MOD_NAME, "No file open in decode!");
-        return -1;
+        return TC_ERROR;
     }
 
     if (param->flag == TC_VIDEO) {
@@ -655,23 +656,23 @@ MOD_decode
         vframe2.video_buf = param->buffer;
         if (param->attributes & TC_FRAME_IS_OUT_OF_RANGE) {
             if (nuv_demultiplex(mod, &vframe2, NULL) < 0)
-                return -1;
+                return TC_ERROR;
         } else {
             if (nuv_demultiplex(mod, &vframe1, NULL) < 0)
-                return -1;
+                return TC_ERROR;
             if (nuv_decode_video(mod, &vframe1, &vframe2) < 0)
-                return -1;
+                return TC_ERROR;
         }
         param->size = vframe2.video_size;
     } else if (param->flag == TC_AUDIO) {
         aframe_list_t aframe;
         aframe.audio_buf = param->buffer;
         if (nuv_demultiplex(mod, NULL, &aframe) < 0)
-            return -1;
+            return TC_ERROR;
         param->size = aframe.audio_size;
     }
 
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/

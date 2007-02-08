@@ -38,6 +38,15 @@
 #define MOD_VERSION "v0.0.1 (2006-03-22)"
 #define MOD_CAP     "write YUV4MPEG2 video and WAVE audio streams"
 
+#define MOD_FEATURES \
+    TC_MODULE_FEATURE_MULTIPLEX|TC_MODULE_FEATURE_VIDEO|TC_MODULE_FEATURE_AUDIO
+    
+
+#define MOD_FLAGS \
+    TC_MODULE_FLAG_RECONFIGURABLE
+    
+
+
 #define YW_VID_EXT "y4m"
 #define YW_AUD_EXT "wav"
 
@@ -48,7 +57,7 @@
 
 
 /* XXX */
-static const char *yw_help = ""
+static const char yw_help[] = ""
     "Overview:\n"
     "    this module writes a yuv420p video stream using YUV4MPEG2 format\n"
     "    and/or a pcm stream using WAVE format.\n"
@@ -279,11 +288,12 @@ static int yw_multiplex(TCModuleInstance *self,
     return (int)(w_vid + w_aud);
 }
 
-static int yw_init(TCModuleInstance *self)
+static int yw_init(TCModuleInstance *self, uint32_t features)
 {
     YWPrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "init");
+    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
     pd = tc_malloc(sizeof(YWPrivateData));
     if (pd == NULL) {
@@ -307,10 +317,7 @@ static int yw_init(TCModuleInstance *self)
 
 static int yw_fini(TCModuleInstance *self)
 {
-    if (!self) {
-        tc_log_error(MOD_NAME, "fini: bad instance data reference");
-        return TC_EXPORT_ERROR;
-    }
+    TC_MODULE_SELF_CHECK(self, "fini");
 
     yw_stop(self);
 
@@ -334,9 +341,8 @@ static const TCFormatID yw_formats_out[] = {
 };
 
 static const TCModuleInfo yw_info = {
-    .features    = TC_MODULE_FEATURE_MULTIPLEX|TC_MODULE_FEATURE_VIDEO
-                   |TC_MODULE_FEATURE_AUDIO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .features    = MOD_FEATURES,
+    .flags       = MOD_FLAGS,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,

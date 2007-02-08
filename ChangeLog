@@ -8,6 +8,18 @@
   NMS api change (support): specify to TCModule instances which feature are
   expected from them.
 
+  * encode/encode_copy.c encode/encode_faac.c encode/encode_lame.c
+    encode/encode_lavc.c encode/encode_lzo.c encode/encode_null.c
+    encode/encode_x264.c encode/encode_xvid.c export/export_pvn.c
+    filter/filter_doublefps.c filter/filter_levels.c filter/filter_null.c
+    filter/filter_resample.c
+    import/import_pv3.c import/import_pvn.c import/import_vag.c
+    import/import_x11.c import/nuv/import_nuv.c
+   multiplex/multiplex_avi.c multiplex/multiplex_null.c
+   multiplex/multiplex_raw.c multiplex/multiplex_y4m.c
+  NMS api change (modules): specify to TCModule instances which feature are
+  expected from them.
+
 2007-02-05 Andrew Church <achurch at achurch dot org>
   * import/tcdecode.c import/tcdemux.c import/tcextract.c import/tcscan.c
   Don't call ac_init() until after command-line arguments have been

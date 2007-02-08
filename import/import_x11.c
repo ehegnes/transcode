@@ -27,7 +27,12 @@
 #define MOD_VERSION "v0.0.2 (2006-08-03)"
 #define MOD_CAP     "fetch full-screen frames from an X11 connection"
 
-static const char *tc_x11_help = ""
+#define MOD_FEATURES \
+    TC_MODULE_FEATURE_DEMULTIPLEX|TC_MODULE_FEATURE_VIDEO
+#define MOD_FLAGS \
+    TC_MODULE_FLAG_RECONFIGURABLE
+
+static const char tc_x11_help[] = ""
     "Overview:\n"
     "    This module acts as a bridge from transcode an a X11 server.\n"
     "    It grabs screenshots at fixed rate from X11 connection, allowing\n"
@@ -45,11 +50,12 @@ struct tcx11privatedata_ {
     uint32_t expired;
 };
 
-static int tc_x11_init(TCModuleInstance *self)
+static int tc_x11_init(TCModuleInstance *self, uint32_t features)
 {
     TCX11PrivateData *priv = NULL;
 
     TC_MODULE_SELF_CHECK(self, "init");
+    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
@@ -204,8 +210,8 @@ static const TCFormatID tc_x11_formats_in[] = { TC_FORMAT_X11, TC_FORMAT_ERROR }
 static const TCFormatID tc_x11_formats_out[] = { TC_FORMAT_ERROR };
 
 static const TCModuleInfo tc_x11_info = {
-    .features    = TC_MODULE_FEATURE_DEMULTIPLEX|TC_MODULE_FEATURE_VIDEO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .features    = MOD_FEATURES,
+    .flags       = MOD_FLAGS,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,
@@ -267,8 +273,9 @@ MOD_open
     int ret;
 
     COMMON_CHECK(param);
-    
-    ret = tc_x11_init(&mod_video);
+
+    /* XXX */
+    ret = tc_x11_init(&mod_video, TC_MODULE_FEATURE_DEMULTIPLEX);
     RETURN_IF_FAILED(ret);
 
     ret = tc_x11_configure(&mod_video, "", vob);

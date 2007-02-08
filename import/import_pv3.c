@@ -14,6 +14,11 @@
 #define MOD_CAP         "Imports Earth Soft PV3 codec audio/video streams"
 #define MOD_AUTHOR      "Andrew Church"
 
+#define MOD_FEATURES \
+    TC_MODULE_FEATURE_DEMULTIPLEX|TC_MODULE_FEATURE_DECODETC_MODULE_FEATURE_VIDEO
+#define MOD_FLAGS \
+    TC_MODULE_FLAG_RECONFIGURABLE
+
 #include "transcode.h"
 #include "libtc/libtc.h"
 #include "libtc/optstr.h"
@@ -206,7 +211,7 @@ static int pv3_load_dll(PrivateData *pd)
                      errno==ENOEXEC ? "Not a valid Win32 DLL file" :
                      errno==ETXTBSY ? "DLL initialization failed" :
                      strerror(errno));
-        return 0;
+        return TC_OK;
     }
 
     /* Save %fs and restore before each call, just in case */
@@ -216,14 +221,14 @@ static int pv3_load_dll(PrivateData *pd)
     if (!entry) {
         tc_log_error(MOD_NAME, "Cannot find dv.dll entry point");
         pv3_unload_dll(pd);
-        return 0;
+        return TC_OK;
     }
 
     pd->codec_handle = (*entry)();
     if (!pd->codec_handle) {
         tc_log_error(MOD_NAME, "Unable to initialize dv.dll");
         pv3_unload_dll(pd);
-        return 0;
+        return TC_OK;
     }
 
     pv3_call(pd->saved_fs, pd->codec_handle, pd->codec_handle->funcs->init,
@@ -235,7 +240,7 @@ static int pv3_load_dll(PrivateData *pd)
     if (!pd->video_handle || !pd->audio_handle) {
         tc_log_error(MOD_NAME, "Unable to retrieve codec handles");
         pv3_unload_dll(pd);
-        return 0;
+        return TC_OK;
     }
 
     return 1;
@@ -267,7 +272,7 @@ static int pv3_decode_frame(PrivateData *pd, uint8_t *in_frame,
 {
     if (!pd->codec_dll) {
         if (!pv3_load_dll(pd))
-            return 0;
+            return TC_OK;
     }
 
     if (out_video) {
@@ -277,7 +282,7 @@ static int pv3_decode_frame(PrivateData *pd, uint8_t *in_frame,
         char work_mem[0x800];
 
         if (!pd->video_handle)
-            return 0;
+            return TC_OK;
         memset(&in_vparams, 0, sizeof(in_vparams));
         in_vparams.w8 = ((uint8_t *)in_frame)[4];
         in_vparams.h8 = ((uint8_t *)in_frame)[5];
@@ -294,13 +299,13 @@ static int pv3_decode_frame(PrivateData *pd, uint8_t *in_frame,
         vparams.out_params = &out_vparams;
         if (pv3_call(pd->saved_fs, pd->video_handle,
                      pd->video_handle->funcs->decode, &vparams) < 0)
-            return 0;
+            return TC_OK;
 
         /* And second half of data */
         vparams.dataset = 1;
         if (pv3_call(pd->saved_fs, pd->video_handle,
                      pd->video_handle->funcs->decode, &vparams) < 0)
-            return 0;
+            return TC_OK;
     }
 
     if (out_audio) {
@@ -308,7 +313,7 @@ static int pv3_decode_frame(PrivateData *pd, uint8_t *in_frame,
         struct pv3_audio_params out_aparams;
 
         if (!pd->audio_handle)
-            return 0;
+            return TC_OK;
         memset(&in_aparams, 0, sizeof(in_aparams));
         in_aparams.frame = (void *)in_frame;
         memset(&out_aparams, 0, sizeof(out_aparams));
@@ -316,7 +321,7 @@ static int pv3_decode_frame(PrivateData *pd, uint8_t *in_frame,
         if (pv3_call(pd->saved_fs, pd->audio_handle,
                      pd->audio_handle->funcs->decode, &in_aparams,
                      &out_aparams) < 0)
-            return 0;
+            return TC_OK;
     }
 
     return 1;
@@ -363,19 +368,17 @@ static void pv3_unload_dll(PrivateData *pd)
  * for function details.
  */
 
-static int pv3_init(TCModuleInstance *self)
+static int pv3_init(TCModuleInstance *self, uint32_t features)
 {
     PrivateData *pd;
 
-    if (!self) {
-        tc_log_error(MOD_NAME, "init: self == NULL!");
-        return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "init");
+    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
     self->userdata = pd = tc_malloc(sizeof(PrivateData));
     if (!pd) {
         tc_log_error(MOD_NAME, "init: out of memory!");
-        return -1;
+        return TC_ERROR;
     }
     pd->dll_path = NULL;
     pd->codec_dll = 0;
@@ -390,13 +393,13 @@ static int pv3_init(TCModuleInstance *self)
         tc_log_error(MOD_NAME, "init: tcv_init() failed");
         free(pd);
         self->userdata = NULL;
-        return -1;
+        return TC_ERROR;
     }
 
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     }
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -410,9 +413,8 @@ static int pv3_fini(TCModuleInstance *self)
 {
     PrivateData *pd;
 
-    if (!self) {
-       return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "fini");
+
     pd = self->userdata;
 
     pd->framenum = -1;
@@ -434,7 +436,7 @@ static int pv3_fini(TCModuleInstance *self)
 
     tc_free(self->userdata);
     self->userdata = NULL;
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -447,10 +449,10 @@ static int pv3_fini(TCModuleInstance *self)
 static int pv3_configure(TCModuleInstance *self,
                          const char *options, vob_t *vob)
 {
-    PrivateData *pd;
-    if (!self) {
-       return -1;
-    }
+    PrivateData *pd = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "configure");
+
     pd = self->userdata;
 
     free(pd->dll_path);
@@ -462,7 +464,7 @@ static int pv3_configure(TCModuleInstance *self,
         if (*buf)
             pd->dll_path = tc_strdup(buf);
     }
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -474,11 +476,10 @@ static int pv3_configure(TCModuleInstance *self,
 
 static int pv3_stop(TCModuleInstance *self)
 {
-    PrivateData *pd;
+    PrivateData *pd = NULL;
 
-    if (!self) {
-       return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "stop");
+
     pd = self->userdata;
 
     pd->framenum = -1;
@@ -486,7 +487,7 @@ static int pv3_stop(TCModuleInstance *self)
         close(pd->fd);
         pd->fd = -1;
     }
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -502,8 +503,10 @@ static int pv3_inspect(TCModuleInstance *self,
     PrivateData *pd;
     static char buf[TC_BUF_MAX];
 
-    if (!self || !param)
-       return 0;
+    TC_MODULE_SELF_CHECK(self, "inspect");
+    TC_MODULE_SELF_CHECK(param, "inspect");
+    TC_MODULE_SELF_CHECK(value, "inspect");
+
     pd = self->userdata;
 
     if (optstr_lookup(param, "help")) {
@@ -540,14 +543,12 @@ static int pv3_demultiplex(TCModuleInstance *self,
     int framesize;
     off_t fpos;
 
-    if (!self) {
-        tc_log_error(MOD_NAME, "demultiplex: self == NULL!");
-        return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "demultiplex");
+
     pd = self->userdata;
     if (pd->fd < 0) {
         tc_log_error(MOD_NAME, "demultiplex: no file opened!");
-        return -1;
+        return TC_ERROR;
     }
     fpos = lseek(pd->fd, 0, SEEK_CUR);  // for error messages
 
@@ -555,17 +556,17 @@ static int pv3_demultiplex(TCModuleInstance *self,
     if (tc_pread(pd->fd, pd->framebuf, 512) != 512) {
         if (verbose & TC_DEBUG)
             tc_log_msg(MOD_NAME, "EOF reached");
-        return -1;
+        return TC_ERROR;
     }
     if (memcmp(pd->framebuf, "PV3", 3) != 0) {
         tc_log_warn(MOD_NAME, "Not a valid PV3 frame at frame %d (ofs=%llX)",
                     pd->framenum+1, fpos);
-        return -1;
+        return TC_ERROR;
     }
     if (pd->framebuf[3] != 1) {  // version number
         tc_log_warn(MOD_NAME, "Invalid PV3 version %d at frame %d (ofs=%llX)",
                     pd->framebuf[3], pd->framenum+1, fpos);
-        return -1;
+        return TC_ERROR;
     }
 
     /* Find total frame length and read */
@@ -584,7 +585,7 @@ static int pv3_demultiplex(TCModuleInstance *self,
     if (tc_pread(pd->fd, pd->framebuf+512, framesize-512) != framesize-512) {
         tc_log_warn(MOD_NAME, "Truncated frame at frame %d (ofs=%llX)",
                     pd->framenum+1, fpos);
-        return -1;
+        return TC_ERROR;
     }
     pd->framenum++;
 
@@ -629,14 +630,14 @@ static int pv3_decode_video(TCModuleInstance *self,
     PrivateData *pd;
     static uint8_t yuy2_frame[2040*2040*2];  // max PV3 frame size
 
-    if (!self || !inframe || !outframe) {
-        tc_log_error(MOD_NAME, "decode_video: NULL parameter(s)!");
-        return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "decode_video");
+    TC_MODULE_SELF_CHECK(inframe, "decode_video");
+    TC_MODULE_SELF_CHECK(outframe, "decode_video");
+
     pd = self->userdata;
 
     if (!pv3_decode_frame(pd, inframe->video_buf, yuy2_frame, NULL))
-        return -1;
+        return TC_ERROR;
 
     outframe->v_width = pd->framebuf[4] * 8;   // FIXME: do we set these here?
     outframe->v_height = pd->framebuf[5] * 8;  // FIXME: set anything else too?
@@ -646,7 +647,7 @@ static int pv3_decode_video(TCModuleInstance *self,
                      vob->im_v_codec==CODEC_YUV422 ? IMG_YUV422P : IMG_YUV420P)
     ) {
         tc_log_warn(MOD_NAME, "Video format conversion failed");
-        return -1;
+        return TC_ERROR;
     }
 
     outframe->video_size = outframe->v_width * outframe->v_height;
@@ -658,7 +659,7 @@ static int pv3_decode_video(TCModuleInstance *self,
             (outframe->v_width/2) * (outframe->v_height/2) * 2;
     }
 
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -670,10 +671,8 @@ static const TCFormatID pv3_formats_in[] = { TC_FORMAT_PV3, TC_FORMAT_ERROR };
 static const TCFormatID pv3_formats_out[] = { TC_FORMAT_ERROR };
 
 static const TCModuleInfo pv3_info = {
-    .features    = TC_MODULE_FEATURE_DEMULTIPLEX
-                 | TC_MODULE_FEATURE_DECODE
-                 | TC_MODULE_FEATURE_VIDEO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .features    = MOD_FEATURES,
+    .flags       = MOD_FLAGS,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,
@@ -730,11 +729,11 @@ MOD_open
         mod = &mod_audio;
         fname = vob->audio_in_file;
     } else {
-        return -1;
+        return TC_ERROR;
     }
 
     if (pv3_init(mod) < 0)
-        return -1;
+        return TC_ERROR;
     pd = mod->userdata;
     if (vob->im_v_string)
         pd->dll_path = tc_strdup(vob->im_v_string);
@@ -746,11 +745,11 @@ MOD_open
                      strerror(errno));
         free(pd->framebuf);
         pv3_fini(mod);
-        return -1;
+        return TC_ERROR;
     }
     /* Just blindly assume it's a valid file */
 
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -764,11 +763,11 @@ MOD_close
     } else if (param->flag == TC_AUDIO) {
         mod = &mod_audio;
     } else {
-        return -1;
+        return TC_ERROR;
     }
 
     pv3_fini(mod);
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -783,13 +782,13 @@ MOD_decode
     } else if (param->flag == TC_AUDIO) {
         mod = &mod_audio;
     } else {
-        return -1;
+        return TC_ERROR;
     }
     pd = mod->userdata;
 
     if (pd->fd < 0) {
         tc_log_error(MOD_NAME, "No file open in decode!");
-        return -1;
+        return TC_ERROR;
     }
 
     if (param->flag == TC_VIDEO) {
@@ -798,23 +797,23 @@ MOD_decode
         vframe2.video_buf = param->buffer;
         if (param->attributes & TC_FRAME_IS_OUT_OF_RANGE) {
             if (pv3_demultiplex(mod, &vframe2, NULL) < 0)
-                return -1;
+                return TC_ERROR;
         } else {
             if (pv3_demultiplex(mod, &vframe1, NULL) < 0)
-                return -1;
+                return TC_ERROR;
             if (pv3_decode_video(mod, &vframe1, &vframe2) < 0)
-                return -1;
+                return TC_ERROR;
         }
         param->size = vframe2.video_size;
     } else if (param->flag == TC_AUDIO) {
         aframe_list_t aframe;
         aframe.audio_buf = param->buffer;
         if (pv3_demultiplex(mod, NULL, &aframe) < 0)
-            return -1;
+            return TC_ERROR;
         param->size = aframe.audio_size;
     }
 
-    return 0;
+    return TC_OK;
 }
 
 #endif  // !PROBE_ONLY

@@ -48,6 +48,13 @@
 /// Author of the filter plugin
 #define MOD_AUTHOR  "Thomas Oestreich, Thomas Wehrspann"
 
+#define MOD_FEATURES \
+    TC_MODULE_FEATURE_FILTER|TC_MODULE_FEATURE_VIDEO|TC_MODULE_FEATURE_AUDIO
+
+#define MOD_FLAGS \
+    TC_MODULE_FLAG_RECONFIGURABLE
+
+
 /* -------------------------------------------------
  *
  * mandatory include files
@@ -61,7 +68,7 @@
 #include "libtc/tcmodule-plugin.h"
 
 
-static const char *null_help = ""
+static const char null_help[] = ""
     "Overview:\n"
     "    This filter exists for demonstration purposes only; it doesn nothing.\n"
     "Options:\n"
@@ -83,13 +90,9 @@ static void help_optstr(void)
   tc_log_info(MOD_NAME, "help :         'help' Prints out this help text");
 }
 
-static int null_init(TCModuleInstance *self)
+static int null_init(TCModuleInstance *self, uint32_t features)
 {
-    vob_t *vob = tc_get_vob();
-
-    if (vob ==NULL) {
-        return -1;
-    }
+    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
     /* following very close old module model... */
     if (verbose) {
@@ -281,9 +284,8 @@ static const TCCodecID null_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
 static const TCFormatID null_formats[] = { TC_FORMAT_ERROR };
 
 static const TCModuleInfo null_info = {
-    .features    = TC_MODULE_FEATURE_FILTER|TC_MODULE_FEATURE_VIDEO
-                   |TC_MODULE_FEATURE_AUDIO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .features    = MOD_FEATURES,
+    .flags       = MOD_FLAGS,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,

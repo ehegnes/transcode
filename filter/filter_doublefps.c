@@ -13,6 +13,11 @@
 #define MOD_CAP         "double frame rate by deinterlacing fields into frames"
 #define MOD_AUTHOR      "Andrew Church"
 
+#define MOD_FEATURES \
+    TC_MODULE_FEATURE_FILTER|TC_MODULE_FEATURE_VIDEO|TC_MODULE_FEATURE_AUDIO
+#define MOD_FLAGS \
+    TC_MODULE_FLAG_RECONFIGURABLE
+
 #include "transcode.h"
 #include "filter.h"
 #include "libtc/libtc.h"
@@ -47,20 +52,18 @@ typedef struct {
  * tcmodule-data.h for function details.
  */
 
-static int doublefps_init(TCModuleInstance *self)
+static int doublefps_init(TCModuleInstance *self, uint32_t features)
 {
     PrivateData *pd;
     vob_t *vob = tc_get_vob();
 
-    if (!self) {
-        tc_log_error(MOD_NAME, "init: self == NULL!");
-        return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "init");
+    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
     self->userdata = pd = tc_malloc(sizeof(PrivateData));
     if (!pd) {
         tc_log_error(MOD_NAME, "init: out of memory!");
-        return -1;
+        return TC_ERROR;
     }
     pd->topfirst = -1;
     pd->fullheight = 0;
@@ -85,7 +88,7 @@ static int doublefps_init(TCModuleInstance *self)
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     }
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -99,8 +102,8 @@ static int doublefps_fini(TCModuleInstance *self)
 {
     PrivateData *pd;
 
-    if (!self)
-       return -1;
+    TC_MODULE_SELF_CHECK(self, "fini");
+
     pd = self->userdata;
 
     if (pd->tcvhandle) {
@@ -110,7 +113,7 @@ static int doublefps_fini(TCModuleInstance *self)
 
     tc_free(self->userdata);
     self->userdata = NULL;
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -126,8 +129,8 @@ static int doublefps_configure(TCModuleInstance *self,
     PrivateData *pd;
     int new_topfirst = -1;
 
-    if (!self)
-       return -1;
+    TC_MODULE_SELF_CHECK(self, "configure");
+
     pd = self->userdata;
 
     if (options) {
@@ -158,7 +161,7 @@ static int doublefps_configure(TCModuleInstance *self,
         vob->export_attributes |= TC_EXPORT_ATTRIBUTE_FIELDS;
     }
 
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -170,12 +173,13 @@ static int doublefps_configure(TCModuleInstance *self,
 
 static int doublefps_stop(TCModuleInstance *self)
 {
-    PrivateData *pd;
-    if (!self)
-       return -1;
+    PrivateData *pd = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "stop");
+
     pd = self->userdata;
     pd->have_first_frame = pd->saved_width = pd->saved_height = 0;
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -188,11 +192,13 @@ static int doublefps_stop(TCModuleInstance *self)
 static int doublefps_inspect(TCModuleInstance *self,
                              const char *param, const char **value)
 {
-    PrivateData *pd;
+    PrivateData *pd = NULL;
     static char buf[TC_BUF_MAX];
 
-    if (!self || !param)
-       return -1;
+    TC_MODULE_SELF_CHECK(self, "inspect");
+    TC_MODULE_SELF_CHECK(param, "inspect");
+    TC_MODULE_SELF_CHECK(value, "inspect");
+
     pd = self->userdata;
 
     if (optstr_lookup(param, "help")) {
@@ -240,7 +246,7 @@ static int doublefps_inspect(TCModuleInstance *self,
         tc_snprintf(buf, sizeof(buf), "%d", pd->fullheight);
         *value = buf;
     }
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -255,11 +261,9 @@ static int doublefps_filter_video(TCModuleInstance *self, vframe_list_t *frame)
     PrivateData *pd;
     int w, h, hUV;
 
-    if (!self || !frame) {
-        tc_log_error(MOD_NAME, "filter_video: %s == NULL!",
-                     !self ? "self" : "frame");
-        return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "filter_video");
+    TC_MODULE_SELF_CHECK(frame, "filter_video");
+
     pd = self->userdata;
     /* If we have a saved frame size, restore it and clear the saved values */
     if (pd->saved_width && pd->saved_height) {
@@ -313,7 +317,7 @@ static int doublefps_filter_video(TCModuleInstance *self, vframe_list_t *frame)
                              dropsecond)
         ) {
             tc_log_warn(MOD_NAME, "tcv_deinterlace() failed!");
-            return -1;
+            return TC_ERROR;
         }
 
         frame->attributes |= TC_FRAME_IS_CLONED;
@@ -392,7 +396,7 @@ static int doublefps_filter_video(TCModuleInstance *self, vframe_list_t *frame)
     }  // switch (height mode + field number)
 
     pd->have_first_frame = 1;
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -404,13 +408,11 @@ static int doublefps_filter_video(TCModuleInstance *self, vframe_list_t *frame)
 
 static int doublefps_filter_audio(TCModuleInstance *self, aframe_list_t *frame)
 {
-    PrivateData *pd;
+    PrivateData *pd = NULL;
 
-    if (!self || !frame) {
-        tc_log_error(MOD_NAME, "filter_audio: %s == NULL!",
-                     !self ? "self" : "frame");
-        return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "filter_audio");
+    TC_MODULE_SELF_CHECK(frame, "filter_audio");
+
     pd = self->userdata;
 
     if (!(frame->attributes & TC_FRAME_WAS_CLONED)) {
@@ -434,7 +436,7 @@ static int doublefps_filter_audio(TCModuleInstance *self, aframe_list_t *frame)
             ac_memcpy(frame->audio_buf, pd->saved_audio, pd->saved_audio_len);
     }
 
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -446,10 +448,8 @@ static const TCCodecID doublefps_codecs_out[] =
 static const TCFormatID doublefps_formats[] = { TC_FORMAT_ERROR};
 
 static const TCModuleInfo doublefps_info = {
-    .features    = TC_MODULE_FEATURE_FILTER
-                 | TC_MODULE_FEATURE_VIDEO
-                 | TC_MODULE_FEATURE_AUDIO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .features    = MOD_FEATURES,
+    .flags       = MOD_FLAGS,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,
@@ -490,15 +490,16 @@ static TCModuleInstance mod;
 int tc_filter(frame_list_t *frame, char *options)
 {
     if (frame->tag & TC_FILTER_INIT) {
-        if (doublefps_init(&mod) < 0)
-            return -1;
+        /* XXX */
+        if (doublefps_init(&mod, TC_MODULE_FEATURE_FILTER) < 0)
+            return TC_ERROR;
         return doublefps_configure(&mod, options, tc_get_vob());
 
     } else if (frame->tag & TC_FILTER_GET_CONFIG) {
         const char *value = NULL;
         doublefps_inspect(&mod, "help", &value);
         tc_snprintf(options, ARG_CONFIG_LEN, "%s", value);
-        return 0;
+        return TC_OK;
 
     } else if (frame->tag & TC_PRE_M_PROCESS) {
         if (frame->tag & TC_VIDEO)
@@ -506,14 +507,14 @@ int tc_filter(frame_list_t *frame, char *options)
         else if (frame->tag & TC_AUDIO)
             return doublefps_filter_audio(&mod, (aframe_list_t *)frame);
         else
-            return 0;
+            return TC_OK;
 
     } else if (frame->tag & TC_FILTER_CLOSE) {
         return doublefps_fini(&mod);
 
     }
 
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/

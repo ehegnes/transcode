@@ -18,7 +18,13 @@
 #define MOD_VERSION "v0.0.3 (2007-01-27)"
 #define MOD_CAP     "copy (passthrough) A/V frames"
 
-static const char *copy_help = ""
+#define MOD_FEATURES \
+    TC_MODULE_FEATURE_ENCODE|TC_MODULE_FEATURE_VIDEO|TC_MODULE_FEATURE_AUDIO
+
+#define MOD_FLAGS \
+    TC_MODULE_FLAG_RECONFIGURABLE
+
+static const char copy_help[] = ""
     "Overview:\n"
     "    this module passthrough A/V frames copying them from input\n"
     "    to output.\n"
@@ -26,8 +32,11 @@ static const char *copy_help = ""
     "Options:\n"
     "    help    produce module overview and options explanations\n";
 
-static int copy_init(TCModuleInstance *self)
+
+static int copy_init(TCModuleInstance *self, uint32_t features)
 {
+    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
+
     if (self == NULL) {
         tc_log_error(MOD_NAME, "init: bad instance data reference");
         return TC_ERROR;
@@ -115,9 +124,8 @@ static const uint32_t copy_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
 static const TCFormatID copy_formats[] = { TC_FORMAT_ERROR };
 
 static const TCModuleInfo copy_info = {
-    .features    = TC_MODULE_FEATURE_ENCODE|TC_MODULE_FEATURE_VIDEO
-                   |TC_MODULE_FEATURE_AUDIO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .features    = MOD_FEATURES,
+    .flags       = MOD_FLAGS,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,

@@ -28,10 +28,16 @@
 #define MOD_VERSION "v0.0.6 (2007-01-27)"
 #define MOD_CAP     "libavcodec based encoder (" LIBAVCODEC_IDENT ")"
 
+#define MOD_FEATURES \
+    TC_MODULE_FEATURE_ENCODE|TC_MODULE_FEATURE_VIDEO
+
+#define MOD_FLAGS \
+    TC_MODULE_FLAG_RECONFIGURABLE
+
 #define LAVC_CONFIG_FILE "lavc.cfg"
 #define PSNR_LOG_FILE    "psnr.log"
 
-static const char *tc_lavc_help = ""
+static const char tc_lavc_help[] = ""
     "Overview:\n"
     "    this module uses libavcodec to encode given raw frames in\n"
     "    an huge variety of compressed formats, both audio and video.\n"
@@ -1258,11 +1264,12 @@ static int tc_lavc_write_logs(TCLavcPrivateData *pd, int size)
 /* see libtc/tcmodule-data.h for functions meaning and purposes          */
 
 
-static int tc_lavc_init(TCModuleInstance *self)
+static int tc_lavc_init(TCModuleInstance *self, uint32_t features)
 {
     TCLavcPrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "init");
+    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
     pd = tc_malloc(sizeof(TCLavcPrivateData));
     if (pd == NULL) {
@@ -1480,8 +1487,8 @@ static int tc_lavc_encode_video(TCModuleInstance *self,
 /*************************************************************************/
 
 static const TCModuleInfo tc_lavc_info = {
-    .features    = TC_MODULE_FEATURE_ENCODE|TC_MODULE_FEATURE_VIDEO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .features    = MOD_FEATURES,
+    .flags       = MOD_FLAGS,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,

@@ -19,10 +19,17 @@
 #define MOD_VERSION "v0.0.2 (2005-12-29)"
 #define MOD_CAP     "create an AVI stream using avilib"
 
+#define MOD_FEATURES \
+    TC_MODULE_FEATURE_MULTIPLEX|TC_MODULE_FEATURE_VIDEO|TC_MODULE_FEATURE_AUDIO
+
+#define MOD_FLAGS \
+    TC_MODULE_FLAG_RECONFIGURABLE
+
+
 /* default FourCC to use if given one isn't known or if it's just absent */
 #define DEFAULT_FOURCC "RGB"
 
-static const char *avi_help = ""
+static const char avi_help[] = ""
     "Overview:\n"
     "    this module create an AVI stream using avilib.\n"
     "    AVI streams produced by this module can have a\n"
@@ -154,11 +161,12 @@ static int avi_multiplex(TCModuleInstance *self,
     return (size_after - size_before);
 }
 
-static int avi_init(TCModuleInstance *self)
+static int avi_init(TCModuleInstance *self, uint32_t features)
 {
     AVIPrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "init");
+    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
     pd = tc_malloc(sizeof(AVIPrivateData));
     if (!pd) {
@@ -211,9 +219,8 @@ static const TCCodecID avi_codecs_out[] = { TC_CODEC_ERROR };
 static const TCFormatID avi_formats_in[] = { TC_FORMAT_ERROR };
 
 static const TCModuleInfo avi_info = {
-    .features    = TC_MODULE_FEATURE_MULTIPLEX|TC_MODULE_FEATURE_VIDEO
-                   |TC_MODULE_FEATURE_AUDIO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .features    = MOD_FEATURES,
+    .flags       = MOD_FLAGS,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,

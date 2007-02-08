@@ -20,6 +20,13 @@
 #define MOD_CAP         "Encodes audio to MP3 using LAME"
 #define MOD_AUTHOR      "Andrew Church"
 
+#define MOD_FEATURES \
+    TC_MODULE_FEATURE_ENCODE|TC_MODULE_FEATURE_AUDIO
+
+#define MOD_FLAGS \
+    TC_MODULE_FLAG_RECONFIGURABLE
+
+
 /*************************************************************************/
 
 /* Local data structure: */
@@ -81,11 +88,12 @@ static void lame_log_debug(const char *format, va_list args)
  * we don't want to conflict with libmp3lame's lame_init().
  */
 
-static int lamemod_init(TCModuleInstance *self)
+static int lamemod_init(TCModuleInstance *self, uint32_t features)
 {
     PrivateData *pd;
 
     TC_MODULE_SELF_CHECK(self, "init");
+    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
     self->userdata = pd = tc_malloc(sizeof(PrivateData));
     if (!pd) {
@@ -410,9 +418,8 @@ static const TCCodecID lame_codecs_out[] = { TC_CODEC_MP3, TC_CODEC_ERROR };
 static const TCFormatID lame_formats[] = { TC_FORMAT_ERROR };
 
 static const TCModuleInfo lame_info = {
-    .features    = TC_MODULE_FEATURE_ENCODE
-                 | TC_MODULE_FEATURE_AUDIO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .features    = MOD_FEATURES,
+    .flags       = MOD_FLAGS,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,

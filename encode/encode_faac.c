@@ -20,6 +20,12 @@
     #define MOD_CAP         "Encodes audio to AAC using FAAC (currently BROKEN)"
     #define MOD_AUTHOR      "Andrew Church"
 
+    #define MOD_FEATURES \
+        TC_MODULE_FEATURE_ENCODE|TC_MODULE_FEATURE_AUDIO
+
+    #define MOD_FLAGS \
+        TC_MODULE_FLAG_RECONFIGURABLE
+
     /*************************************************************************/
 
     /* Local data structure: */
@@ -45,11 +51,12 @@
      * tcmodule-data.h for function details.
      */
 
-    static int faac_init(TCModuleInstance *self)
+    static int faac_init(TCModuleInstance *self, uint32_t features)
     {
         PrivateData *pd;
 
         TC_MODULE_SELF_CHECK(self, "init");
+        TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
         self->userdata = pd = tc_malloc(sizeof(PrivateData));
         if (!pd) {
@@ -276,9 +283,8 @@ static const TCCodecID faac_codecs_out[] = { TC_CODEC_AAC, TC_CODEC_ERROR };
 static const TCFormatID faac_formats[] = { TC_FORMAT_ERROR };
 
 static const TCModuleInfo faac_info = {
-    .features    = TC_MODULE_FEATURE_ENCODE
-                 | TC_MODULE_FEATURE_AUDIO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .features    = MOD_FEATURES,
+    .flags       = MOD_FLAGS,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,

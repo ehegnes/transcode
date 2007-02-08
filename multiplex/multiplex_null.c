@@ -17,16 +17,25 @@
 #define MOD_VERSION "v0.0.2 (2005-12-29)"
 #define MOD_CAP     "discard each encoded frame"
 
-static const char *null_help = ""
+#define MOD_FEATURES \
+    TC_MODULE_FEATURE_MULTIPLEX|TC_MODULE_FEATURE_VIDEO|TC_MODULE_FEATURE_AUDIO
+    
+
+#define MOD_FLAGS \
+    TC_MODULE_FLAG_RECONFIGURABLE
+
+
+static const char null_help[] = ""
     "Overview:\n"
     "    this module simply discard given encoded write audio and video frames.\n"
     "    Is used for test, benchmark and debug purposes.\n"
     "Options:\n"
     "    help    produce module overview and options explanations\n";
 
-static int null_init(TCModuleInstance *self)
+static int null_init(TCModuleInstance *self, uint32_t features)
 {
     TC_MODULE_SELF_CHECK(self, "init");
+    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
@@ -98,9 +107,8 @@ static const TCFormatID null_formats_in[] = { TC_FORMAT_ERROR };
 static const TCFormatID null_formats_out[] = { TC_FORMAT_NULL, TC_FORMAT_ERROR };
 
 static const TCModuleInfo null_info = {
-    .features    = TC_MODULE_FEATURE_MULTIPLEX|TC_MODULE_FEATURE_VIDEO
-                   |TC_MODULE_FEATURE_AUDIO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .features    = MOD_FEATURES,
+    .flags       = MOD_FLAGS,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,

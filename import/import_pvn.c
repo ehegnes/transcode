@@ -14,6 +14,11 @@
 #define MOD_CAP         "Imports PVN video"
 #define MOD_AUTHOR      "Andrew Church"
 
+#define MOD_FEATURES \
+    TC_MODULE_FEATURE_DEMULTIPLEX|TC_MODULE_FEATURE_DECODE|TC_MODULE_FEATURE_VIDEO
+#define MOD_FLAGS \
+    TC_MODULE_FLAG_RECONFIGURABLE
+
 #include "transcode.h"
 #include "libtc/libtc.h"
 #include "libtc/optstr.h"
@@ -126,7 +131,7 @@ static int parse_pvn_header(PrivateData *pd)
 
     /* Read file type */
     if (!pvn_read_field(pd->fd, fieldbuf, sizeof(fieldbuf)))
-        return 0;
+        return TC_OK;
     if (fieldbuf[0] != 'P' || fieldbuf[1] != 'V'
      || (fieldbuf[2] != '4' && fieldbuf[2] != '5' &&  fieldbuf[2] != '6')
      || (fieldbuf[3] != 'a' && fieldbuf[3] != 'b'
@@ -135,7 +140,7 @@ static int parse_pvn_header(PrivateData *pd)
      || (fieldbuf[2] == '4' && fieldbuf[3] != 'a')  // PV4[bdf] not allowed
     ) {
         tc_log_error(MOD_NAME, "PVN header not found");
-        return 0;
+        return TC_OK;
     }
     pd->imagetype = (fieldbuf[2]=='4' ? BITMAP :
                      fieldbuf[2]=='5' ? GREY : RGB);
@@ -146,46 +151,46 @@ static int parse_pvn_header(PrivateData *pd)
 
     /* Read width */
     if (!pvn_read_field(pd->fd, fieldbuf, sizeof(fieldbuf)))
-        return 0;
+        return TC_OK;
     pd->width = (int)strtol(fieldbuf, &s, 10);
     if (*s || pd->width <= 0) {
         tc_log_error(MOD_NAME, "Invalid width in header: %s", fieldbuf);
-        return 0;
+        return TC_OK;
     }
 
     /* Read height */
     if (!pvn_read_field(pd->fd, fieldbuf, sizeof(fieldbuf)))
-        return 0;
+        return TC_OK;
     pd->height = (int)strtol(fieldbuf, &s, 10);
     if (*s || pd->width <= 0) {
         tc_log_error(MOD_NAME, "Invalid height in header: %s", fieldbuf);
-        return 0;
+        return TC_OK;
     }
 
     /* Read number of frames */
     if (!pvn_read_field(pd->fd, fieldbuf, sizeof(fieldbuf)))
-        return 0;
+        return TC_OK;
     pd->nframes = (int)strtol(fieldbuf, &s, 10);
     if (*s || pd->width <= 0) {
         tc_log_error(MOD_NAME, "Invalid frame count in header: %s", fieldbuf);
-        return 0;
+        return TC_OK;
     }
 
     /* Read maxval */
     if (!pvn_read_field(pd->fd, fieldbuf, sizeof(fieldbuf)))
-        return 0;
+        return TC_OK;
     if (pd->imagetype == BITMAP) {
         long maxval = strtol(fieldbuf, &s, 10);
         if (*s || maxval != 1) {
             tc_log_error(MOD_NAME, "Invalid maxval in header (must be 1 for"
                          " bitmaps): %s", fieldbuf);
-            return 0;
+            return TC_OK;
         }
     } else if (pd->datatype == SINGLE || pd->datatype == DOUBLE) {
         double maxval = strtod(fieldbuf, &s), base, range;
         if (*s || maxval == 0) {
             tc_log_error(MOD_NAME, "Invalid maxval in header: %s", fieldbuf);
-            return 0;
+            return TC_OK;
         }
         if (*fieldbuf == '+') {
             base = 0;
@@ -212,7 +217,7 @@ static int parse_pvn_header(PrivateData *pd)
          || (maxval!=8 && maxval!=16 && maxval!=24 && maxval!=32)
         ) {
             tc_log_error(MOD_NAME, "Invalid maxval in header: %s", fieldbuf);
-            return 0;
+            return TC_OK;
         }
         if (maxval >= 16)
             pd->datatype++;
@@ -224,11 +229,11 @@ static int parse_pvn_header(PrivateData *pd)
 
     /* Read frame rate */
     if (!(ch = pvn_read_field(pd->fd, fieldbuf, sizeof(fieldbuf))))
-        return 0;
+        return TC_OK;
     pd->framerate = strtod(fieldbuf, &s);
     if (*s || pd->framerate < 0) {
         tc_log_error(MOD_NAME, "Invalid frame rate in header: %s", fieldbuf);
-        return 0;
+        return TC_OK;
     } else if (pd->framerate == 0) {
         pd->framerate = 15.0;  // default
     }
@@ -238,7 +243,7 @@ static int parse_pvn_header(PrivateData *pd)
         uint8_t byte;
         if (read(pd->fd, &byte, 1) != 1) {
             tc_log_error(MOD_NAME, "End of stream while reading header");
-            return 0;
+            return TC_OK;
         }
         ch = byte;
     }
@@ -258,7 +263,7 @@ static int parse_pvn_header(PrivateData *pd)
         case DOUBLE: pd->samplebits = 64; break;
         case UNSET :
             tc_log_error(MOD_NAME, "Internal error: pd->datatype unset");
-            return 0;
+            return TC_OK;
     }
     pd->linesize  = (pd->samplebits * pd->width * (pd->imagetype==RGB?3:1)
                      + 7) / 8;
@@ -280,19 +285,17 @@ static int parse_pvn_header(PrivateData *pd)
  * for function details.
  */
 
-static int pvn_init(TCModuleInstance *self)
+static int pvn_init(TCModuleInstance *self, uint32_t features)
 {
-    PrivateData *pd;
+    PrivateData *pd = NULL;
 
-    if (!self) {
-        tc_log_error(MOD_NAME, "init: self == NULL!");
-        return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "init");
+    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
     self->userdata = pd = tc_malloc(sizeof(PrivateData));
     if (!pd) {
         tc_log_error(MOD_NAME, "init: out of memory!");
-        return -1;
+        return TC_ERROR;
     }
     pd->fd = -1;
     pd->datatype = UNSET;
@@ -303,7 +306,7 @@ static int pvn_init(TCModuleInstance *self)
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     }
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -316,13 +319,12 @@ static int pvn_init(TCModuleInstance *self)
 static int pvn_configure(TCModuleInstance *self,
                          const char *options, vob_t *vob)
 {
-    if (!self) {
-       return -1;
-    }
-    return 0;
+    TC_MODULE_SELF_CHECK(self, "configure");
+
+    return TC_OK;
 }
 
-/*************************************************************************/
+//*************************************************************************/
 
 /**
  * pvn_inspect:  Return the value of an option in this instance of the
@@ -334,8 +336,9 @@ static int pvn_inspect(TCModuleInstance *self,
 {
     static char buf[TC_BUF_MAX];
 
-    if (!self || !param)
-       return 0;
+    TC_MODULE_SELF_CHECK(self, "inspect");
+    TC_MODULE_SELF_CHECK(param, "inspect");
+    TC_MODULE_SELF_CHECK(value, "inspect");
 
     if (optstr_lookup(param, "help")) {
         tc_snprintf(buf, sizeof(buf),
@@ -356,11 +359,10 @@ static int pvn_inspect(TCModuleInstance *self,
 
 static int pvn_stop(TCModuleInstance *self)
 {
-    PrivateData *pd;
+    PrivateData *pd = NULL;
 
-    if (!self) {
-       return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "stop");
+
     pd = self->userdata;
 
     if (pd->fd != -1) {
@@ -373,7 +375,7 @@ static int pvn_stop(TCModuleInstance *self)
     pd->single_base = pd->single_range = 0;
     pd->double_base = pd->double_range = 0;
 
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -385,14 +387,12 @@ static int pvn_stop(TCModuleInstance *self)
 
 static int pvn_fini(TCModuleInstance *self)
 {
-    if (!self) {
-       return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "fini");
 
     pvn_stop(self);
     tc_free(self->userdata);
     self->userdata = NULL;
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -422,22 +422,20 @@ static int decode_pvn_sse2(const PrivateData *pd, uint8_t *video_buf);
 static int pvn_demultiplex(TCModuleInstance *self,
                            vframe_list_t *vframe, aframe_list_t *aframe)
 {
-    PrivateData *pd;
+    PrivateData *pd = NULL;
 
-    if (!self) {
-        tc_log_error(MOD_NAME, "demultiplex: self == NULL!");
-        return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "demultiplex");
+
     pd = self->userdata;
     if (pd->fd < 0) {
         tc_log_error(MOD_NAME, "demultiplex: no file opened!");
-        return -1;
+        return TC_ERROR;
     }
 
     if (tc_pread(pd->fd, pd->buffer, pd->framesize) != pd->framesize) {
         if (verbose)
             tc_log_info(MOD_NAME, "End of stream reached");
-        return -1;
+        return TC_ERROR;
     }
 
     /* Shortcuts for RGB->RGB */
@@ -825,7 +823,7 @@ static int decode_pvn_sse2(const PrivateData *pd, uint8_t *video_buf)
       }  // DOUBLE
 
       default:
-        return 0;
+        return TC_OK;
     }
 
     return 1;
@@ -841,10 +839,8 @@ static const TCFormatID pvn_formats_in[] = { TC_FORMAT_PVN, TC_FORMAT_ERROR };
 static const TCFormatID pvn_formats_out[] = { TC_FORMAT_ERROR };
 
 static const TCModuleInfo pvn_info = {
-    .features    = TC_MODULE_FEATURE_DEMULTIPLEX
-                 | TC_MODULE_FEATURE_DECODE
-                 | TC_MODULE_FEATURE_VIDEO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .features    = MOD_FEATURES,
+    .flags       = MOD_FLAGS,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,
@@ -891,14 +887,15 @@ MOD_open
     PrivateData *pd = NULL;
 
     if (param->flag != TC_VIDEO)
-        return -1;
-    if (pvn_init(&mod) < 0)
-        return -1;
+        return TC_ERROR;
+    /* XXX */
+    if (pvn_init(&mod, TC_MODULE_FEATURE_DEMULTIPLEX) < 0)
+        return TC_ERROR;
     pd = mod.userdata;
 
     if (vob->im_v_codec != CODEC_RGB) {
         tc_log_error(MOD_NAME, "The import_pvn module requires -V rgb24");
-        return -1;
+        return TC_ERROR;
     }
 
     param->fd = NULL;  /* we handle the reading ourselves */
@@ -911,21 +908,21 @@ MOD_open
             tc_log_error(MOD_NAME, "Unable to open %s: %s",
                          vob->video_in_file, strerror(errno));
             pvn_fini(&mod);
-            return -1;
+            return TC_ERROR;
         }
     }
     if (!parse_pvn_header(pd)) {
         pvn_fini(&mod);
-        return -1;
+        return TC_ERROR;
     }
     pd->buffer = tc_bufalloc(pd->framesize);
     if (!pd->buffer) {
         tc_log_error(MOD_NAME, "No memory for import frame buffer");
         pvn_fini(&mod);
-        return -1;
+        return TC_ERROR;
     }
 
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -933,9 +930,9 @@ MOD_open
 MOD_close
 {
     if (param->flag != TC_VIDEO)
-        return -1;
+        return TC_ERROR;
     pvn_fini(&mod);
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -946,19 +943,19 @@ MOD_decode
     vframe_list_t vframe;
 
     if (param->flag != TC_VIDEO)
-        return -1;
+        return TC_ERROR;
     pd = mod.userdata;
 
     if (pd->fd < 0) {
         tc_log_error(MOD_NAME, "No file open in decode!");
-        return -1;
+        return TC_ERROR;
     }
 
     vframe.video_buf = param->buffer;
     if (pvn_demultiplex(&mod, &vframe, NULL) < 0)
-        return -1;
+        return TC_ERROR;
     param->size = vframe.video_size;
-    return 0;
+    return TC_OK;
 }
 
 #endif  /* !PROBE_ONLY */

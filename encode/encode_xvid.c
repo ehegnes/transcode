@@ -65,9 +65,16 @@
 #define MOD_VERSION "v0.0.4 (2006-05-05)"
 #define MOD_CAP     "XviD 1.x encoder"
 
+#define MOD_FEATURES \
+    TC_MODULE_FEATURE_ENCODE|TC_MODULE_FEATURE_VIDEO
+
+#define MOD_FLAGS \
+    TC_MODULE_FLAG_RECONFIGURABLE
+
+
 #define XVID_CONFIG_FILE "xvid.cfg"
 
-static const char *xvid_help = ""
+static const char xvid_help[] = ""
     "Overview:\n"
     "    this module encodes raw RGB/YUV video frames in MPEG4, using XviD.\n"
     "    XviD is a high quality/performance ISO MPEG4 codec.\n"
@@ -194,12 +201,13 @@ static int tc_xvid_configure(TCModuleInstance *self,
 }
 
 
-static int tc_xvid_init(TCModuleInstance *self)
+static int tc_xvid_init(TCModuleInstance *self, uint32_t features)
 {
     XviDPrivateData *pd = NULL;
     vob_t *vob = tc_get_vob();
 
     TC_MODULE_SELF_CHECK(self, "init");
+    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
     /* Check frame dimensions */
     if (vob->ex_v_width % 2 || vob->ex_v_height % 2) {
@@ -410,8 +418,8 @@ static const TCCodecID tc_xvid_codecs_out[] = {
 static const TCFormatID tc_xvid_formats[] = { TC_FORMAT_ERROR };
 
 static const TCModuleInfo tc_xvid_info = {
-    .features    = TC_MODULE_FEATURE_ENCODE|TC_MODULE_FEATURE_VIDEO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .features    = MOD_FEATURES,
+    .flags       = MOD_FLAGS,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,

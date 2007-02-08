@@ -22,6 +22,11 @@
 #define MOD_CAP     "Luminosity level scaler"
 #define MOD_AUTHOR  "Bryan Mayland"
 
+#define MOD_FEATURES \
+    TC_MODULE_FEATURE_FILTER|TC_MODULE_FEATURE_VIDEO
+#define MOD_FLAGS \
+    TC_MODULE_FLAG_RECONFIGURABLE
+
 #include "transcode.h"
 #include "filter.h"
 #include "libtc/libtc.h"
@@ -80,7 +85,7 @@ static void build_map(uint8_t *map, int inlow, int inhigh,
    }  /* for i 0-255 */
 }
 
-static const char *levels_help = ""
+static const char levels_help[] = ""
     "Overview:\n"
     "    Scales luminosity values in the source image, similar to\n"
     "    VirtualDub's 'levels' filter.  This is useful to scale ITU-R601\n"
@@ -248,11 +253,12 @@ static int levels_configure(TCModuleInstance *self,
     return TC_OK;
 }
 
-static int levels_init(TCModuleInstance *self)
+static int levels_init(TCModuleInstance *self, uint32_t features)
 {
     vob_t *vob = tc_get_vob();
 
     TC_MODULE_SELF_CHECK(self, "init");
+    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
     if(vob->im_v_codec != CODEC_YUV) {
         tc_log_error(MOD_NAME, "This filter is only capable of YUV mode");
@@ -360,8 +366,8 @@ static const TCFormatID levels_formats[] = { TC_FORMAT_ERROR };
 
 /* new module support */
 static const TCModuleInfo levels_info = {
-    .features    = TC_MODULE_FEATURE_FILTER|TC_MODULE_FEATURE_VIDEO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .features    = MOD_FEATURES,
+    .flags       = MOD_FLAGS,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,

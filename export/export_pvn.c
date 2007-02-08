@@ -20,6 +20,14 @@
 #define MOD_CAP         "Writes PVN video files"
 #define MOD_AUTHOR      "Andrew Church"
 
+#define MOD_FEATURES \
+    TC_MODULE_FEATURE_MULTIPLEX|TC_MODULE_FEATURE_VIDEO
+    
+#define MOD_FLAGS \
+    TC_MODULE_FLAG_RECONFIGURABLE
+    
+
+
 /*************************************************************************/
 
 /* Local data structure: */
@@ -43,14 +51,12 @@ typedef struct {
  * for function details.
  */
 
-static int pvn_init(TCModuleInstance *self)
+static int pvn_init(TCModuleInstance *self, uint32_t features)
 {
     PrivateData *pd;
 
-    if (!self) {
-        tc_log_error(MOD_NAME, "init: self == NULL!");
-        return -1;
-    }
+    TC_MODULE_SELF_CHECK(self, "init");
+    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
     self->userdata = pd = tc_malloc(sizeof(PrivateData));
     if (!pd) {
@@ -217,9 +223,8 @@ static const TCFormatID pvn_formats_in[] = { TC_FORMAT_ERROR };
 static const TCFormatID pvn_formats_out[] = { TC_FORMAT_PVN, TC_CODEC_ERROR };
 
 static const TCModuleInfo pvn_info = {
-    .features    = TC_MODULE_FEATURE_MULTIPLEX
-                 | TC_MODULE_FEATURE_VIDEO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
+    .features    = MOD_FEATURES,
+    .flags       = MOD_FLAGS,
     .name        = MOD_NAME,
     .version     = MOD_VERSION,
     .description = MOD_CAP,
@@ -271,7 +276,7 @@ MOD_open
 
     if (param->flag != TC_VIDEO)
         return -1;
-    if (pvn_init(&mod) < 0)
+    if (pvn_init(&mod, TC_MODULE_FEATURE_MULTIPLEX|TC_MODULE_FEATURE_VIDEO) < 0)
         return -1;
     pd = mod.userdata;
 
