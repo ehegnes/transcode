@@ -164,7 +164,7 @@ static int modrequest_load(TCFactory factory,
     modr->type = modr->rawdata[0];
     modr->name = modr->rawdata[1];
 
-    modr->module = tc_new_module(factory, modr->type, modr->name);
+    modr->module = tc_new_module(factory, modr->type, modr->name, TC_NONE);
     if (modr->module == NULL) {
         tc_log_warn(EXE, "failed creation of module: %s", str);
         return TC_ERROR;

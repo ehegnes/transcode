@@ -262,7 +262,7 @@ int main(int argc, char *argv[])
      * first using new module system
      */
     factory = tc_new_module_factory(modpath, verbose);
-    module = tc_new_module(factory, modtype, filename);
+    module = tc_new_module(factory, modtype, filename, TC_NONE);
 
     if (module != NULL) {
         const char *answer = NULL;

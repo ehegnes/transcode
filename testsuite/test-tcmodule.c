@@ -85,7 +85,7 @@ static int test_bad_create(const char *modpath)
     err = (factory == NULL) ?-1 :0;
 
     test_result_helper("bad_create::init", err, 0);
-    module = tc_new_module(factory, "inexistent", "inexistent");
+    module = tc_new_module(factory, "inexistent", "inexistent", 0);
     if (module != NULL) {
         tc_log_error(__FILE__, "loaded inexistent module?!?!");
     }
@@ -100,7 +100,7 @@ static int test_create(const char *modpath)
     err = (factory == NULL) ?-1 :0;
 
     test_result_helper("create::init", err, 0);
-    module = tc_new_module(factory, "filter", "null");
+    module = tc_new_module(factory, "filter", "null", 0);
     if (module == NULL) {
         tc_log_error(__FILE__, "can't load filter_null");
     } else {
@@ -127,11 +127,11 @@ static int test_double_create(const char *modpath)
     err = (factory == NULL) ?-1 :0;
 
     test_result_helper("double_create::init", err, 0);
-    module1 = tc_new_module(factory, "filter", "null");
+    module1 = tc_new_module(factory, "filter", "null", TC_VIDEO);
     if (module1 == NULL) {
         tc_log_error(__FILE__, "can't load filter_null (1)");
     }
-    module2 = tc_new_module(factory, "filter", "null");
+    module2 = tc_new_module(factory, "filter", "null", TC_AUDIO);
     if (module2 == NULL) {
         tc_log_error(__FILE__, "can't load filter_null (1)");
     }
@@ -166,7 +166,7 @@ static int test_stress_create(const char *modpath)
     test_result_helper("stress_create::init", err, 0);
 
     for (i = 0; i < HOW_MUCH_STRESS; i++) {
-        module[i] = tc_new_module(factory, "filter", "null");
+        module[i] = tc_new_module(factory, "filter", "null", TC_VIDEO);
         if (module[i] == NULL) {
             tc_log_error(__FILE__, "can't load filter_null (%i)", i);
             break;
@@ -228,7 +228,7 @@ static int test_stress_load(const char *modpath)
     test_result_helper("stress_load::init", err, 0);
 
     for (i = 0; i < HOW_MUCH_STRESS; i++) {
-        module = tc_new_module(factory, "filter", "null");
+        module = tc_new_module(factory, "filter", "null", TC_VIDEO);
         if (module == NULL) {
             tc_log_error(__FILE__, "can't load filter_null (%i)", i);
             break;
@@ -282,11 +282,11 @@ static int test_load_filter_encode(const char *modpath)
     err = (factory == NULL) ?-1 :0;
 
     test_result_helper("load_filter_encode::init", err, 0);
-    module1 = tc_new_module(factory, "filter", "null");
+    module1 = tc_new_module(factory, "filter", "null", TC_AUDIO);
     if (module1 == NULL) {
         tc_log_error(__FILE__, "can't load filter_null (1)");
     }
-    module2 = tc_new_module(factory, "encode", "null");
+    module2 = tc_new_module(factory, "encode", "null", TC_VIDEO);
     if (module2 == NULL) {
         tc_log_error(__FILE__, "can't load encode_null (1)");
     }
@@ -317,11 +317,11 @@ static int test_load_encode_multiplex(const char *modpath)
     err = (factory == NULL) ?-1 :0;
 
     test_result_helper("load_encode_multiplex::init", err, 0);
-    module1 = tc_new_module(factory, "encode", "null");
+    module1 = tc_new_module(factory, "encode", "null", TC_VIDEO);
     if (module1 == NULL) {
         tc_log_error(__FILE__, "can't load encode_null (1)");
     }
-    module2 = tc_new_module(factory, "multiplex", "null");
+    module2 = tc_new_module(factory, "multiplex", "null", TC_VIDEO|TC_AUDIO);
     if (module2 == NULL) {
         tc_log_error(__FILE__, "can't load multiplex_null (1)");
     }
