@@ -42,10 +42,6 @@ static volatile int vimport = 0;
 static pthread_mutex_t import_v_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t import_a_lock = PTHREAD_MUTEX_INITIALIZER;
 
-//exported variables
-int max_frame_buffer = TC_FRAME_BUFFER;
-int max_frame_threads = TC_FRAME_THREADS;
-
 static pthread_t athread = 0, vthread = 0;
 
 #define TEST_ON_BUFFER_FULL    0
@@ -101,7 +97,7 @@ extern pthread_mutex_t xio_lock;
 
 void import_threads_cancel()
 {
-    void *status=NULL;
+    void *status = NULL;
     int vret, aret;
 
 #ifdef HAVE_IBP
@@ -195,36 +191,42 @@ void import_threads_create(vob_t *vob)
 //
 //-------------------------------------------------------------------------
 
+#define FAIL_IF_NULL(HANDLE, MEDIA) do { \
+    if ((HANDLE) == NULL) { \
+        tc_log_error(PACKAGE, "Loading %s import module failed", (MEDIA)); \
+        tc_log_error(PACKAGE, "Did you enable this module when you ran configure?"); \
+        return TC_ERROR; \
+    } \
+} while (0)
+
+#define FAIL_IF_NOT_SUPPORTED(CAPS, MEDIA) do { \
+    if (!(CAPS)) { \
+        tc_log_error(PACKAGE, "%s format not supported by import module", (MEDIA)); \
+        return TC_ERROR; \
+    } \
+} while (0)
+
+
 int import_init(vob_t *vob, char *a_mod, char *v_mod)
 {
     transfer_t import_para;
-    int cc;
-
-    memset(&import_para, 0, sizeof(transfer_t));
+    int caps;
 
     // load audio import module
 
     import_ahandle = load_module(((a_mod==NULL)? TC_DEFAULT_IMPORT_AUDIO: a_mod), TC_IMPORT+TC_AUDIO);
-    if (import_ahandle == NULL) {
-        tc_log_error(PACKAGE, "Loading audio import module failed");
-        tc_log_error(PACKAGE, "Did you enable this module when you ran configure?");
-        return TC_ERROR;
-    }
+    FAIL_IF_NULL(import_ahandle, "audio");
 
     aimport_start();
 
     // load video import module
 
     import_vhandle = load_module(((v_mod==NULL)? TC_DEFAULT_IMPORT_VIDEO: v_mod), TC_IMPORT+TC_VIDEO);
-    if (import_vhandle == NULL) {
-        tc_log_error(PACKAGE, "Loading video import module failed");
-        tc_log_error(PACKAGE, "Did you enable this module when you ran configure?");
-        return TC_ERROR;
-    }
+    FAIL_IF_NULL(import_vhandle, "video");
 
     vimport_start();
 
-    // check import module capability, inherit verbosity flag
+    memset(&import_para, 0, sizeof(transfer_t));
 
     import_para.flag = verbose;
     tca_import(TC_IMPORT_NAME, &import_para, NULL);
@@ -232,29 +234,28 @@ int import_init(vob_t *vob, char *a_mod, char *v_mod)
     if (import_para.flag != verbose) {
         // module returned capability flag
         if(verbose & TC_DEBUG)
-            tc_log_msg(__FILE__, "Audio capability flag 0x%x | 0x%x", import_para.flag, vob->im_a_codec);
+            tc_log_msg(__FILE__, "Audio capability flag 0x%x | 0x%x",
+                       import_para.flag, vob->im_a_codec);
 
         switch (vob->im_a_codec) {
           case CODEC_PCM:
-            cc=(import_para.flag & TC_CAP_PCM);
+            caps = (import_para.flag & TC_CAP_PCM);
             break;
           case CODEC_AC3:
-            cc=(import_para.flag & TC_CAP_AC3);
+            caps = (import_para.flag & TC_CAP_AC3);
             break;
           case CODEC_RAW:
-            cc=(import_para.flag & TC_CAP_AUD);
+            caps = (import_para.flag & TC_CAP_AUD);
             break;
           default:
-            cc=0;
+            caps = 0;
         }
     } else
-        cc = vob->im_a_codec == CODEC_PCM;
+        caps = vob->im_a_codec == CODEC_PCM;
 
+    FAIL_IF_NOT_SUPPORTED(caps, "audio");
 
-    if (!cc) {
-        tc_log_error(PACKAGE, "Audio format not supported by import module");
-        return TC_ERROR;
-    }
+    memset(&import_para, 0, sizeof(transfer_t));
 
     import_para.flag = verbose;
     tcv_import(TC_IMPORT_NAME, &import_para, NULL);
@@ -263,36 +264,37 @@ int import_init(vob_t *vob, char *a_mod, char *v_mod)
         // module returned capability flag
 
         if(verbose & TC_DEBUG)
-            tc_log_msg(__FILE__, "Video capability flag 0x%x | 0x%x", import_para.flag, vob->im_v_codec);
+            tc_log_msg(__FILE__, "Video capability flag 0x%x | 0x%x",
+                       import_para.flag, vob->im_v_codec);
 
         switch (vob->im_v_codec) {
           case CODEC_RGB:
-            cc=(import_para.flag & TC_CAP_RGB);
+            caps = (import_para.flag & TC_CAP_RGB);
             break;
           case CODEC_YUV:
-            cc=(import_para.flag & TC_CAP_YUV);
+            caps = (import_para.flag & TC_CAP_YUV);
             break;
           case CODEC_YUV422:
-            cc=(import_para.flag & TC_CAP_YUV422);
+            caps = (import_para.flag & TC_CAP_YUV422);
             break;
           case CODEC_RAW_YUV: /* fallthrough */
           case CODEC_RAW:
-            cc=(import_para.flag & TC_CAP_VID);
+            caps = (import_para.flag & TC_CAP_VID);
             break;
           default:
-            cc=0;
+            caps = 0;
         }
     } else
-        cc = vob->im_v_codec == CODEC_RGB;
+        caps = vob->im_v_codec == CODEC_RGB;
 
-    if(!cc) {
-        tc_log_error(PACKAGE, "Video format not supported by import module");
-        tc_log_error(PACKAGE, "Please try -V yuv422p or -V rgb24");
-        return TC_ERROR;
-    }
+    FAIL_IF_NOT_SUPPORTED(caps, "audio");
 
     return TC_OK;
 }
+
+#undef FAIL_IF_NULL
+#undef FAIL_IF_NOT_SUPPORTED
+
 
 //-------------------------------------------------------------------------
 //
@@ -309,7 +311,7 @@ int import_open(vob_t *vob)
     memset(&import_para, 0, sizeof(transfer_t));
 
     // start audio stream
-    import_para.flag=TC_AUDIO;
+    import_para.flag = TC_AUDIO;
 
     if (tca_import(TC_IMPORT_OPEN, &import_para, vob) < 0) {
         tc_log_error(PACKAGE, "audio import module error: OPEN failed");
@@ -321,7 +323,7 @@ int import_open(vob_t *vob)
     memset(&import_para, 0, sizeof(transfer_t));
 
     // start video stream
-    import_para.flag=TC_VIDEO;
+    import_para.flag = TC_VIDEO;
 
     if (tcv_import(TC_IMPORT_OPEN, &import_para, vob) < 0) {
         tc_log_error(PACKAGE, "video import module error: OPEN failed");
@@ -445,6 +447,15 @@ static void import_lock_cleanup (void *arg)
 //
 //-------------------------------------------------------------------------
 
+#define MARK_TIME_RANGE(PTR, VOB) do { \
+    /* Set skip attribute based on -c */ \
+    if (fc_time_contains((VOB)->ttime, (PTR)->id)) \
+        (PTR)->attributes &= ~TC_FRAME_IS_OUT_OF_RANGE; \
+    else \
+        (PTR)->attributes |= TC_FRAME_IS_OUT_OF_RANGE; \
+} while (0)
+
+
 void vimport_thread(vob_t *vob)
 {
     long int i = 0;
@@ -459,8 +470,8 @@ void vimport_thread(vob_t *vob)
     vbytes = vob->im_v_size;
 
     for(;;) {
-        // init structure
-        memset(&import_para, 0, sizeof(transfer_t));
+//        // init structure
+//        memset(&import_para, 0, sizeof(transfer_t));
 
         if (verbose >= TC_STATS)
             tc_log_msg(__FILE__, "%10s [%ld] V=%d bytes", "requesting", i, vbytes);
@@ -501,20 +512,17 @@ void vimport_thread(vob_t *vob)
 
         ptr->attributes = 0;
 
-        /* Set skip attribute based on -c */
-        if (fc_time_contains(vob->ttime, ptr->id))
-            ptr->attributes &= ~TC_FRAME_IS_OUT_OF_RANGE;
-        else
-            ptr->attributes |= TC_FRAME_IS_OUT_OF_RANGE;
+        MARK_TIME_RANGE(ptr, vob);
 
         // read video frame
         // check if import module reades data
 
         if (fd_ppm != NULL) {
             if (vbytes && (ret = mfread(ptr->video_buf, vbytes, 1, fd_ppm)) != 1)
-                ret=-1;
+                ret = -1;
             ptr->video_size = vbytes;
         } else {
+            import_para.fd         = NULL;
             import_para.buffer     = ptr->video_buf;
             import_para.buffer2    = ptr->video_buf2;
             import_para.size       = vbytes;
@@ -547,7 +555,8 @@ void vimport_thread(vob_t *vob)
         ptr->v_height   = vob->im_v_height;
         ptr->v_width    = vob->im_v_width;
         ptr->v_bpp      = BPP;
-        ptr->thread_id  = (int) getpid(); /* XXX: WTF?!? -- fromani */
+        /* XXX: according to grep -R, nobody uses it anymore */
+        // ptr->thread_id  = (int) getpid(); /* XXX: WTF?!? -- fromani */
 
         pthread_testcancel();
 
@@ -584,7 +593,7 @@ void vimport_thread(vob_t *vob)
         if (vimport_test_shutdown())
             pthread_exit( (int *)14);
 
-        ++i; // get next frame
+        i++; // get next frame
     }
 }
 
@@ -620,6 +629,25 @@ static int aimport_test_shutdown(int mode)
 //
 //-------------------------------------------------------------------------
 
+#define GET_AUDIO_FRAME do { \
+    if (fd_pcm != NULL) { \
+        if (abytes && (ret = mfread(ptr->audio_buf, abytes, 1, fd_pcm)) != 1) { \
+            ret = -1; \
+        } \
+        ptr->audio_size = abytes; \
+    } else { \
+        import_para.fd         = NULL; \
+        import_para.buffer     = ptr->audio_buf; \
+        import_para.size       = abytes; \
+        import_para.flag       = TC_AUDIO; \
+        import_para.attributes = ptr->attributes; \
+        \
+        ret = tca_import(TC_IMPORT_DECODE, &import_para, vob); \
+        \
+        ptr->audio_size = import_para.size; \
+    } \
+} while (0)
+
 void aimport_thread(vob_t *vob)
 {
     long int i = 0;
@@ -635,8 +663,8 @@ void aimport_thread(vob_t *vob)
     abytes = vob->im_a_size;
 
     for(;;) {
-        // init structure
-        memset(&import_para, 0, sizeof(transfer_t));
+//        // init structure
+//        memset(&import_para, 0, sizeof(transfer_t));
 
         // audio adjustment for non PAL frame rates:
         if (i != 0 && i % TC_LEAP_FRAME == 0) {
@@ -681,58 +709,25 @@ void aimport_thread(vob_t *vob)
             usleep(tc_buffer_delay_dec);
         }
 
-        ptr->attributes=0;
+        ptr->attributes = 0;
 
-        /* Set skip attribute based on -c */
-        if (fc_time_contains(vob->ttime, ptr->id))
-            ptr->attributes &= ~TC_FRAME_IS_OUT_OF_RANGE;
-        else
-            ptr->attributes |= TC_FRAME_IS_OUT_OF_RANGE;
+        MARK_TIME_RANGE(ptr, vob);
 
         // read audio frame
-        if(vob->sync>0) {
+        if(vob->sync > 0) {
             // discard vob->sync frames
             while (vob->sync--) {
-                if (fd_pcm != NULL) {
-                    if (abytes && (ret = mfread(ptr->audio_buf, abytes, 1, fd_pcm))!=1) {
-                        ret = -1;
-                        ptr->audio_size = abytes;
-                        break;
-                    }
+                GET_AUDIO_FRAME;
 
-                } else {
-                    import_para.buffer     = ptr->audio_buf;
-                    import_para.size       = abytes;
-                    import_para.flag       = TC_AUDIO;
-                    import_para.attributes = ptr->attributes;
-
-                    ret = tca_import(TC_IMPORT_DECODE, &import_para, vob);
-                    if (ret == -1)
-                        break;
-
-                    ptr->audio_size = import_para.size;
-                }
+                if (ret == -1)
+                    break;
             }
             vob->sync++;
         }
 
         // default
         if (vob->sync == 0) {
-            // check if import module reades data
-            if (fd_pcm != NULL) {
-                if (abytes && (ret = mfread(ptr->audio_buf, abytes, 1, fd_pcm))!=1)
-                    ret = -1;
-
-                ptr->audio_size = abytes;
-            } else {
-                import_para.buffer = ptr->audio_buf;
-                import_para.size   = abytes;
-                import_para.flag   = TC_AUDIO;
-
-                ret = tca_import(TC_IMPORT_DECODE, &import_para, vob);
-
-                ptr->audio_size = import_para.size;
-            }
+            GET_AUDIO_FRAME;
         }
 
         // silence
@@ -743,6 +738,7 @@ void aimport_thread(vob_t *vob)
             ptr->audio_size = abytes;
             vob->sync++;
         }
+
 
         if (ret < 0) {
             if (verbose & TC_DEBUG)
@@ -762,7 +758,8 @@ void aimport_thread(vob_t *vob)
         ptr->a_rate = vob->a_rate;
         ptr->a_bits = vob->a_bits;
         ptr->a_chan = vob->a_chan;
-        ptr->thread_id = (int) getpid(); /* XXX WTF?! -- fromani */
+        /* XXX: according to grep -R, nobody uses it anymore */
+        // ptr->thread_id = (int) getpid(); /* XXX WTF?! -- fromani */
 
         pthread_testcancel();
 
@@ -796,7 +793,7 @@ void aimport_thread(vob_t *vob)
         if (aimport_test_shutdown(TEST_ON_INTERUPT))
             pthread_exit((int *)14);
 
-        ++i; // get next frame
+        i++; // get next frame
     }
 }
 
@@ -896,13 +893,12 @@ int aimport_status()
     cc = aimport;
     pthread_mutex_unlock(&import_a_lock);
 
-    if (cc)
-        return 1;
-
-    // decoder finished, check for frame list
-    pthread_mutex_lock(&aframe_list_lock);
-    cc = (aframe_list_tail==NULL) ? 0 : 1;
-    pthread_mutex_unlock(&aframe_list_lock);
+    if (cc == 0) {
+        // decoder finished, check for frame list
+        pthread_mutex_lock(&aframe_list_lock);
+        cc = (aframe_list_tail == NULL) ?0 :1;
+        pthread_mutex_unlock(&aframe_list_lock);
+    }
     return cc;
 }
 
@@ -920,14 +916,13 @@ int vimport_status()
     cc = vimport;
     pthread_mutex_unlock(&import_v_lock);
 
-    if (cc)
-        return 1;
-
-    // decoder finished, check for frame list
-    pthread_mutex_lock(&vframe_list_lock);
-    cc = (vframe_list_tail==NULL) ? 0 : 1;
-    pthread_mutex_unlock(&vframe_list_lock);
-    return(cc);
+    if (cc == 0) {
+        // decoder finished, check for frame list
+        pthread_mutex_lock(&vframe_list_lock);
+        cc = (vframe_list_tail == NULL) ?0 :1;
+        pthread_mutex_unlock(&vframe_list_lock);
+    }
+    return cc;
 }
 
 //-------------------------------------------------------------------------

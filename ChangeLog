@@ -1,3 +1,11 @@
+2007-02-11 Francesco Romani <fromani at gmail dot com>
+  * src/decoder/c src/decoder.h
+  some internal cleanups. Sync code was change a little and needs
+  some serious testing.
+
+  * src/transcode.c /src/transcode.h
+  move frame variables where they are needed most. Still globals.
+
 2007-02-10 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c
   make more STYLEish.

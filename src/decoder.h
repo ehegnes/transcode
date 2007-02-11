@@ -49,7 +49,4 @@ int vimport_status(void);
 void aimport_thread(vob_t *vob);
 void vimport_thread(vob_t *vob);
 
-extern int max_frame_buffer;
-extern int max_frame_threads;
-
 #endif

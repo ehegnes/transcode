@@ -106,6 +106,9 @@ int tc_niceness          = 0;
 // for import_dvd
 int tc_dvd_access_delay  = 3;
 
+int max_frame_buffer = TC_FRAME_BUFFER;
+int max_frame_threads = TC_FRAME_THREADS;
+
 //-------------------------------------------------------------
 
 pthread_t tc_pthread_main;
@@ -554,6 +557,7 @@ int main(int argc, char *argv[])
 
     double fch, asr;
     int leap_bytes1, leap_bytes2;
+    int max_frame_buffer = TC_FRAME_BUFFER; 
 
     void *thread_status;
 

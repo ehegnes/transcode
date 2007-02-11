@@ -417,6 +417,9 @@ extern pid_t tc_probe_pid;
 extern int tc_niceness;
 extern int tc_dvd_access_delay;
 
+extern int max_frame_buffer;
+extern int max_frame_threads;
+
 // Various constants
 
 #define TC_EXPORT_NAME     10
