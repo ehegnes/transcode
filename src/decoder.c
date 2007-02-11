@@ -287,7 +287,7 @@ int import_init(vob_t *vob, char *a_mod, char *v_mod)
     } else
         caps = vob->im_v_codec == CODEC_RGB;
 
-    FAIL_IF_NOT_SUPPORTED(caps, "audio");
+    FAIL_IF_NOT_SUPPORTED(caps, "video");
 
     return TC_OK;
 }
