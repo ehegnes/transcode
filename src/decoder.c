@@ -605,7 +605,7 @@ void vimport_thread(vob_t *vob)
 //
 //-------------------------------------------------------------------------
 
-static int aimport_test_shutdown()
+static int aimport_test_shutdown(void)
 {
     int ret;
 
@@ -689,7 +689,7 @@ void aimport_thread(vob_t *vob)
 #endif
 
             // check for pending shutdown via ^C
-            if (aimport_test_shutdown(TEST_ON_BUFFER_FULL)) {
+            if (aimport_test_shutdown()) {
                 pthread_exit( (int *) 11);
             }
         }
@@ -701,7 +701,7 @@ void aimport_thread(vob_t *vob)
         while ((ptr = aframe_register(i)) == NULL) {
             pthread_testcancel();
             // check for pending shutdown via ^C
-            if (aimport_test_shutdown(TEST_ON_BUFFER_REQUEST)) {
+            if (aimport_test_shutdown()) {
                 pthread_exit( (int *) 12);
             }
 
@@ -790,7 +790,7 @@ void aimport_thread(vob_t *vob)
             tc_log_msg(__FILE__, "%10s [%ld] A=%d bytes", "received", i, ptr->audio_size);
 
         // check for pending shutdown via ^C
-        if (aimport_test_shutdown(TEST_ON_INTERUPT))
+        if (aimport_test_shutdown())
             pthread_exit((int *)14);
 
         i++; // get next frame
