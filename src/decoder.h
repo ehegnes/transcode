@@ -45,8 +45,5 @@ int import_status(void);
 int aimport_status(void);
 int vimport_status(void);
 
-// threads
-void aimport_thread(vob_t *vob);
-void vimport_thread(vob_t *vob);
 
 #endif

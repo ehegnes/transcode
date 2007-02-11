@@ -44,9 +44,9 @@ static pthread_mutex_t import_a_lock = PTHREAD_MUTEX_INITIALIZER;
 
 static pthread_t athread = 0, vthread = 0;
 
-#define TEST_ON_BUFFER_FULL    0
-#define TEST_ON_BUFFER_REQUEST 1
-#define TEST_ON_INTERUPT       2
+// threads
+static void aimport_thread(vob_t *vob);
+static void vimport_thread(vob_t *vob);
 
 //-------------------------------------------------------------------------
 //
@@ -105,7 +105,7 @@ void import_threads_cancel()
 #endif
 
     if (tc_decoder_delay)
-        tc_log_info(__FILE__, "sleeping for %d seconds to cool down", 2 * tc_decoder_delay);
+        tc_log_info(__FILE__, "sleeping for %d seconds to cool down", tc_decoder_delay);
 
     // notify import threads, if not yet done, that task is done
     tc_import_stop();
@@ -605,7 +605,7 @@ void vimport_thread(vob_t *vob)
 //
 //-------------------------------------------------------------------------
 
-static int aimport_test_shutdown(int mode)
+static int aimport_test_shutdown()
 {
     int ret;
 
@@ -615,7 +615,7 @@ static int aimport_test_shutdown(int mode)
 
     if(!aimport) {
         if(verbose & TC_DEBUG) {
-            tc_log_msg(__FILE__, "audio import cancelation requested (%d)", mode);
+            tc_log_msg(__FILE__, "audio import cancelation requested");
         }
 
         return 1;  // notify thread to exit immediately
