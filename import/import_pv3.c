@@ -15,7 +15,7 @@
 #define MOD_AUTHOR      "Andrew Church"
 
 #define MOD_FEATURES \
-    TC_MODULE_FEATURE_DEMULTIPLEX|TC_MODULE_FEATURE_DECODETC_MODULE_FEATURE_VIDEO
+    TC_MODULE_FEATURE_DEMULTIPLEX|TC_MODULE_FEATURE_DECODE|TC_MODULE_FEATURE_VIDEO
 #define MOD_FLAGS \
     TC_MODULE_FLAG_RECONFIGURABLE
 
@@ -373,7 +373,11 @@ static int pv3_init(TCModuleInstance *self, uint32_t features)
     PrivateData *pd;
 
     TC_MODULE_SELF_CHECK(self, "init");
-    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
+    if (features == ~(uint32_t)0) {  // i.e. if called from old-style code
+        self->features = MOD_FEATURES;
+    } else {
+        TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
+    }
 
     self->userdata = pd = tc_malloc(sizeof(PrivateData));
     if (!pd) {
@@ -732,7 +736,7 @@ MOD_open
         return TC_ERROR;
     }
 
-    if (pv3_init(mod) < 0)
+    if (pv3_init(mod, ~(uint32_t)0) < 0)
         return TC_ERROR;
     pd = mod->userdata;
     if (vob->im_v_string)

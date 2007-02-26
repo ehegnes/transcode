@@ -1,3 +1,7 @@
+2007-02-27 Andrew Church <achurch at achurch dot org>
+  * import/import_pv3.c
+  Fix compilation error.
+
 2007-02-11 Francesco Romani <fromani at gmail dot com>
   * src/decoder/c src/decoder.h
   some internal cleanups. Sync code was change a little and needs
