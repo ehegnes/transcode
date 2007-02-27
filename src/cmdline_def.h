@@ -431,18 +431,52 @@ TC_OPTION(mplayer_probe,      0,   0,
 )
 TC_OPTION(import_with,        'x', "vmod[,amod]",
                 "video[,audio] import modules [null]",
-                /* Careful here!  "static char vbuf[64], abuf[64]" will be
+                /* Careful here!  "static char vbuf[65], abuf[65]" will be
                  * treated as two separate macro arguments by the
                  * preprocessor, so we have to declare each variable in a
                  * separate statement. */
                 static char vbuf[65];
                 static char abuf[65];
+                char quote;
                 char *s;
                 int n;
-                if ((n = sscanf(optarg, "%64[^,],%64[^,]", vbuf, abuf)) < 1) {
+                /* Scan the string ourselves, rather than using scanf(),
+                 * so we can handle internal quotes properly for -x mplayer */
+                if (!*optarg) {
                     tc_error("Invalid argument for -x/--import_with");
                     goto short_usage;
                 }
+                *vbuf = *abuf = 0;
+                quote = 0;
+                n = 0;
+                s = vbuf;
+                while (*optarg) {
+                    if (*optarg == quote) {
+                        quote = 0;
+                    } else if (!quote && (*optarg == '"' || *optarg == '\'')) {
+                        quote = *optarg;
+                    } else if (!quote && *optarg == ',') {
+                        if (s == vbuf) {
+                            s = abuf;
+                            n = 0;
+                        } else {
+                            tc_error("Invalid argument for -x/--import_with");
+                            goto short_usage;
+                        }
+                    } else {
+                        if (n < (s==vbuf ? sizeof(vbuf) : sizeof(abuf))-1) {
+                            s[n++] = *optarg;
+                            s[n] = 0;
+                        }
+                    }
+                    optarg++;
+                }
+                if (quote) {
+                    tc_error("Invalid argument for -x/--import_with"
+                             " (unbalanced quotes)");
+                }
+                s[n] = 0;
+                n = (s==vbuf ? 1 : 2);
                 im_vid_mod = vbuf;
                 // FIXME: vin -> v_in to match no_v_out_codec (same w/audio)
                 no_vin_codec = 0;
@@ -633,6 +667,7 @@ TC_OPTION(export_with,        'y', "vm[,am[,mm]]",
                 static char mbuf[65];
                 char *s;
                 int n;
+                /* FIXME: handle embedded quotes like -x? */
                 if ((n = sscanf(optarg, "%64[^,],%64[^,],%64[^,]",
                                 vbuf, abuf, mbuf)) < 1
                 ) {
