@@ -112,8 +112,10 @@ int optstr_get(const char *options, const char *name, const char *fmt, ...)
         return 0;
     }
 
-    /* skip the `=' */
-    ch += (strlen(name) + 1);
+    /* skip the `=' (if it is one) */
+    ch += strlen( name );
+    if( *ch == '=' )
+        ch++;
 
     va_start(ap, fmt);
 
