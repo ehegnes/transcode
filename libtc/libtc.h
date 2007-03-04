@@ -54,6 +54,7 @@ extern "C" {
 #define TC_NULL_MATCH           -1
 
 #define TC_BUF_MAX            1024
+#define TC_BUF_LINE            256
 #define TC_BUF_MIN             128
 
 #define TC_MAX(a, b)		(((a) > (b)) ?(a) :(b))
