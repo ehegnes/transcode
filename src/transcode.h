@@ -129,6 +129,7 @@ typedef struct _vob_t {
     int dvd_chapter2;
     int dvd_max_chapters;
     int dvd_angle;
+    int dvd_access_delay;
 
     int ps_unit;
     int ps_seq1;
@@ -415,7 +416,6 @@ extern int tc_accel;
 extern unsigned int tc_avi_limit;
 extern pid_t tc_probe_pid;
 extern int tc_niceness;
-extern int tc_dvd_access_delay;
 
 extern int max_frame_buffer;
 extern int max_frame_threads;

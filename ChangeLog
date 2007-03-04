@@ -1,3 +1,10 @@
+2007-03-04 Francesco Romani <fromani at gmail dot com>
+  * import/import_dvd.c import/import_vnc.c
+    src/cmdline_def.h src/transcode.c src/transcode.h
+  Symbol interdependencies reduction, step M of N:
+  tc_dvd_access_delay -> vob.dvd_access_delay
+  (why it was outside before?)
+
 2007-03-03 Francesco Romani <fromani at gmail dot com>
   * libtc/optstr.c
   discard equal sign in option string only if there is really

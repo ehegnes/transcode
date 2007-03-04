@@ -69,9 +69,6 @@ int a_re_entry=0, v_re_entry=0;
 static char seq_buf[TMP_BUF_SIZE], dem_buf[TMP_BUF_SIZE],
             cha_buf[TMP_BUF_SIZE];
 
-// set in transcode.c
-extern int tc_dvd_access_delay;
-
 /* ------------------------------------------------------------
  *
  * open stream
@@ -394,12 +391,12 @@ MOD_open
 
     param->fd = NULL;
 
-    if (tc_dvd_access_delay) {
+    if (vob->dvd_access_delay > 0) {
       if(verbose_flag && !v_re_entry)
         tc_log_info(MOD_NAME, "delaying DVD access by %d second(s)",
-		    tc_dvd_access_delay);
+		    vob->dvd_access_delay);
 
-      n=tc_dvd_access_delay;
+      n=vob->dvd_access_delay;
       while(n--) {
 	if(verbose_flag) tc_log_info(MOD_NAME, "waiting...");
 	fflush(stdout);

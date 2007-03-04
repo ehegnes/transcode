@@ -113,12 +113,11 @@ MOD_decode
 	fd_set rfds;
 	struct timeval tv;
 	int n;
-	extern int tc_dvd_access_delay;
 
 	while (1) {
 
 	    // timeout to catch when vncrec died
-	    tv.tv_sec = tc_dvd_access_delay;
+	    tv.tv_sec = vob->dvd_access_delay;
 	    tv.tv_usec = 0;
 
 	    fd = open(fifo, O_RDONLY | O_NONBLOCK);

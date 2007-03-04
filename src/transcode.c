@@ -103,9 +103,6 @@ unsigned int tc_avi_limit = (unsigned int)-1;
 pid_t tc_probe_pid       = 0;
 int tc_niceness          = 0;
 
-// for import_dvd
-int tc_dvd_access_delay  = 3;
-
 int max_frame_buffer = TC_FRAME_BUFFER;
 int max_frame_threads = TC_FRAME_THREADS;
 
@@ -436,6 +433,7 @@ static vob_t *new_vob(void)
     vob->dvd_chapter2        = -1;
     vob->dvd_max_chapters    = -1;
     vob->dvd_angle           = 1;
+    vob->dvd_access_delay    = 3;
     vob->pass_flag           = 0;
     vob->verbose             = TC_QUIET;
     vob->antialias           = 0;
