@@ -73,7 +73,7 @@ int keepasr     = TC_FALSE;
 int fast_resize = TC_FALSE;
 
 // global information structure
-static vob_t *vob;
+static vob_t *vob = NULL;
 int verbose = TC_INFO;
 
 static int sig_int   = 0;
@@ -108,7 +108,7 @@ int max_frame_threads = TC_FRAME_THREADS;
 
 //-------------------------------------------------------------
 
-pthread_t tc_pthread_main;
+pthread_t tc_pthread_main = (ptread_t)0;
 
 /*************************************************************************/
 /*********************** Exported utility routines ***********************/
@@ -146,7 +146,7 @@ void version(void)
 
 vob_t *tc_get_vob()
 {
-    return(vob);
+    return vob;
 }
 
 /*************************************************************************/

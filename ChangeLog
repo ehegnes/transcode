@@ -1,4 +1,12 @@
+2007-03-10 Francesco Romani <fromani at gmail dot com>
+  * src/transcode.c
+  a bit more initializers.
+
 2007-03-04 Francesco Romani <fromani at gmail dot com>
+  * libtc/libtc,h
+  new buffer size symbol avalaible. This buffer size is usually
+  used for reading/parsing log/configuration file, so the name.
+
   * import/import_dvd.c import/import_vnc.c
     src/cmdline_def.h src/transcode.c src/transcode.h
   Symbol interdependencies reduction, step M of N:
