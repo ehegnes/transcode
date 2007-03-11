@@ -108,7 +108,7 @@ int max_frame_threads = TC_FRAME_THREADS;
 
 //-------------------------------------------------------------
 
-pthread_t tc_pthread_main = (ptread_t)0;
+pthread_t tc_pthread_main = (pthread_t)0;
 
 /*************************************************************************/
 /*********************** Exported utility routines ***********************/
