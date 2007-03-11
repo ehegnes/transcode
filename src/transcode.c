@@ -662,7 +662,7 @@ int main(int argc, char *argv[])
     if (tc_niceness) {
         if (nice(tc_niceness) < 0) {
             tc_warn("setting nice to %d failed", tc_niceness);
-	}
+        }
     }
 
     /* ------------------------------------------------------------
@@ -693,14 +693,14 @@ int main(int argc, char *argv[])
     if (vob->vmod_probed_xml && strstr(vob->vmod_probed_xml,"xml") != NULL
      && vob->video_in_file   && strstr(vob->video_in_file,"/dev/zero") == NULL
     ) {
-	if (!probe_source_xml(vob, PROBE_XML_VIDEO))
-	    exit(EXIT_FAILURE);
+    if (!probe_source_xml(vob, PROBE_XML_VIDEO))
+        exit(EXIT_FAILURE);
     }
     if (vob->amod_probed_xml && strstr(vob->amod_probed_xml,"xml") != NULL
      && vob->audio_in_file   && strstr(vob->audio_in_file,"/dev/zero") == NULL
     ) {
-	if (!probe_source_xml(vob, PROBE_XML_AUDIO))
-	    exit(EXIT_FAILURE);
+    if (!probe_source_xml(vob, PROBE_XML_AUDIO))
+        exit(EXIT_FAILURE);
     }
 
     /* ------------------------------------------------------------
@@ -733,119 +733,118 @@ int main(int argc, char *argv[])
 
     // determine -S,-c,-L option parameter for distributed processing
     if(nav_seek_file) {
-      FILE *fp;
-      struct fc_time *tmptime;
-      char buf[80];
-      int line_count;
-      int flag = 0;
-      int is_aviindex = 0;
+        FILE *fp = NULL;
+        struct fc_time *tmptime = NULL;
+        char buf[TC_BUF_MIN];
+        int line_count = 0;
+        int flag = 0;
+        int is_aviindex = 0;
 
-      if(vob->vob_offset) {
-	tc_warn("-L and --nav_seek are incompatible.");
-      }
-
-      if(NULL == (fp = fopen(nav_seek_file, "r"))) {
-	perror(nav_seek_file);
-	exit(EXIT_FAILURE);
-      }
-
-      tmptime = vob->ttime;
-      line_count = 0;
-
-      // check if this is an AVIIDX1 file
-      if (fgets(buf, sizeof(buf), fp)) {
-	if(strncasecmp(buf, "AVIIDX1", 7) == 0) is_aviindex=1;
-	fseek(fp, 0, SEEK_SET);
-      } else {
-	tc_error("An error happend while reading the nav_seek file");
-      }
-
-      if (!is_aviindex) {
-      while(tmptime){
-        flag=0;
-        for(; fgets(buf, sizeof(buf), fp); line_count++) {
-  	  int L, new_frame_a;
-
-	  if(2 == sscanf(buf, "%*d %*d %*d %*d %d %d ", &L, &new_frame_a)) {
-	      if(line_count == tmptime->stf) {
-		  int len = tmptime->etf - tmptime->stf;
-		  tmptime->stf = frame_a = new_frame_a;
-		  tmptime->etf = frame_b = new_frame_a + len;
-		  tmptime->vob_offset = L;
-		  flag=1;
-		  ++line_count;
-		  break;
-	      }
-  	  }
+        if (vob->vob_offset) {
+            tc_warn("-L and --nav_seek are incompatible.");
         }
-	tmptime = tmptime->next;
-      }
-      } else { // is_aviindex==1
 
-      fgets(buf, sizeof(buf), fp); // magic
-      fgets(buf, sizeof(buf), fp); // comment
+        fp = fopen(nav_seek_file, "r");
+        if(NULL == fp) {
+            perror(nav_seek_file);
+            exit(EXIT_FAILURE);
+        }
 
-      while(tmptime){
-	int new_frame_a, type, key;
-	long chunk, chunkptype, last_keyframe=0;
-	long long pos, len;
-	char tag[4];
-	double ms=0.0;
-        flag=0;
+        tmptime = vob->ttime;
+        line_count = 0;
 
-        for(; fgets(buf, sizeof(buf), fp); line_count++) {
+        // check if this is an AVIIDX1 file
+        if (fgets(buf, sizeof(buf), fp)) {
+            if (strncasecmp(buf, "AVIIDX1", 7) == 0)
+                is_aviindex=1;
+            fseek(fp, 0, SEEK_SET);
+        } else {
+            tc_error("An error happend while reading the nav_seek file");
+        }
 
-	  // TAG TYPE CHUNK CHUNK/TYPE POS LEN KEY MS
-	  if(sscanf(buf, "%s %d %ld %ld %lld %lld %d %lf",
-		      tag, &type, &chunk, &chunkptype, &pos, &len, &key, &ms))
-	  {
-	    if (type!=1) continue;
-	    if(key) {
-	      last_keyframe = chunkptype;
-	    }
-	    if(chunkptype == tmptime->stf) {
-	      int lenf = tmptime->etf - tmptime->stf;
-	      new_frame_a = chunkptype - last_keyframe;
+        if (!is_aviindex) {
+            while (tmptime){
+                flag = 0;
+                for (; fgets(buf, sizeof(buf), fp); line_count++) {
+                    int L, new_frame_a;
 
-	      // If we are doing pass-through, we cannot skip frames, but only start
-	      // passthrough on a keyframe boundary. At least, we respect the
-	      // last frame the user whishes.
-	      if(vob->pass_flag & TC_VIDEO) {
-		new_frame_a = 0;
-		lenf += (chunkptype - last_keyframe);
-	      }
+                    if (2 == sscanf(buf, "%*d %*d %*d %*d %d %d ", &L, &new_frame_a)) {
+                        if (line_count == tmptime->stf) {
+                            int len = tmptime->etf - tmptime->stf;
+                            tmptime->stf = frame_a = new_frame_a;
+                            tmptime->etf = frame_b = new_frame_a + len;
+                            tmptime->vob_offset = L;
+                            flag = 1;
+                            line_count++;
+                            break;
+                        }
+                    }
+                }
+                tmptime = tmptime->next;
+            }
+        } else { // is_aviindex==1
+            fgets(buf, sizeof(buf), fp); // magic
+            fgets(buf, sizeof(buf), fp); // comment
 
-	      tmptime->stf = frame_a = new_frame_a;
-	      tmptime->etf = frame_b = new_frame_a + lenf;
-	      tmptime->vob_offset = last_keyframe;
-	      flag=1;
-	      ++line_count;
-	      break;
-	    }
-	  }
-	}
-	tmptime = tmptime->next;
-      }
+            while (tmptime) {
+                int new_frame_a, type, key;
+                long chunk, chunkptype, last_keyframe = 0;
+                long long pos, len;
+                char tag[4];
+                double ms = 0.0;
+                flag = 0;
 
-      }
-      fclose(fp);
+                for (; fgets(buf, sizeof(buf), fp); line_count++) {
+                    // TAG TYPE CHUNK CHUNK/TYPE POS LEN KEY MS
+                    if (sscanf(buf, "%s %d %ld %ld %lld %lld %d %lf",
+                               tag, &type, &chunk, &chunkptype, &pos, &len, &key, &ms)) {
+                        if (type != 1)
+                            continue;
+                        if (key)
+                            last_keyframe = chunkptype;
+                        if (chunkptype == tmptime->stf) {
+                            int lenf = tmptime->etf - tmptime->stf;
+                            new_frame_a = chunkptype - last_keyframe;
 
-      if(!flag) {
-	  //frame not found
-	  tc_warn("%s: frame %d out of range (%d frames found)",
-                  nav_seek_file, frame_a, line_count);
-	  tc_error("invalid option parameter for -c / --nav_seek");
-      }
+                            // If we are doing pass-through, we cannot skip frames, but only start
+                            // passthrough on a keyframe boundary. At least, we respect the
+                            // last frame the user whishes.
+                            if (vob->pass_flag & TC_VIDEO) {
+                                new_frame_a = 0;
+                                lenf += (chunkptype - last_keyframe);
+                            }
+
+                            tmptime->stf = frame_a = new_frame_a;
+                            tmptime->etf = frame_b = new_frame_a + lenf;
+                            tmptime->vob_offset = last_keyframe;
+                            flag = 1;
+                            line_count++;
+                            break;
+                        }
+                    }
+                }
+                tmptime = tmptime->next;
+            }
+        }
+        fclose(fp);
+
+        if (!flag) {
+            //frame not found
+            tc_warn("%s: frame %d out of range (%d frames found)",
+                    nav_seek_file, frame_a, line_count);
+            tc_error("invalid option parameter for -c / --nav_seek");
+        }
     }
 
-    if(vob->vob_chunk_max) {
+    if (vob->vob_chunk_max) {
+        int this_unit = -1;
 
-      int this_unit=-1;
+        // overwrite tcprobe's unit preset:
+        if (preset_flag & TC_PROBE_NO_SEEK)
+            this_unit = vob->ps_unit;
 
-      //overwrite tcprobe's unit preset:
-      if(preset_flag & TC_PROBE_NO_SEEK) this_unit=vob->ps_unit;
-
-      if(split_stream(vob, vob->vob_info_file, this_unit, &frame_a, &frame_b, 1)<0) tc_error("cluster mode option -W error");
+        if (split_stream(vob, vob->vob_info_file, this_unit, &frame_a, &frame_b, 1) < 0)
+            tc_error("cluster mode option -W error");
     }
 
     /* ------------------------------------------------------------
@@ -855,75 +854,72 @@ int main(int argc, char *argv[])
      * ------------------------------------------------------------*/
 
     // -M
-
-    if(vob->demuxer!=-1 && (verbose & TC_INFO)) {
-
-      switch(vob->demuxer) {
-
-      case 0:
-	tc_log_info(PACKAGE, "V: %-16s | %s", "AV demux/sync",
-                    "(0) sync AV at PTS start - demuxer disabled");
-	break;
-
-      case 1:
-	tc_log_info(PACKAGE, "V: %-16s | %s", "AV demux/sync",
-                    "(1) sync AV at initial MPEG sequence");
-	break;
-
-      case 2:
-	tc_log_info(PACKAGE, "V: %-16s | %s", "AV demux/sync",
-                    "(2) initial MPEG sequence / enforce frame rate");
-	break;
-
-      case 3:
-	tc_log_info(PACKAGE, "V: %-16s | %s", "AV demux/sync",
-                    "(3) sync AV at initial PTS");
-	break;
-
-      case 4:
-	tc_log_info(PACKAGE, "V: %-16s | %s", "AV demux/sync",
-                    "(4) initial PTS / enforce frame rate");
-	break;
-      }
-    } else vob->demuxer=1;
+    if (vob->demuxer != -1 && (verbose & TC_INFO)) {
+        switch(vob->demuxer) {
+          case 0:
+            tc_log_info(PACKAGE, "V: %-16s | %s", "AV demux/sync",
+                        "(0) sync AV at PTS start - demuxer disabled");
+            break;
+          case 1:
+            tc_log_info(PACKAGE, "V: %-16s | %s", "AV demux/sync",
+                        "(1) sync AV at initial MPEG sequence");
+            break;
+          case 2:
+            tc_log_info(PACKAGE, "V: %-16s | %s", "AV demux/sync",
+                        "(2) initial MPEG sequence / enforce frame rate");
+            break;
+          case 3:
+            tc_log_info(PACKAGE, "V: %-16s | %s", "AV demux/sync",
+                        "(3) sync AV at initial PTS");
+            break;
+          case 4:
+            tc_log_info(PACKAGE, "V: %-16s | %s", "AV demux/sync",
+                        "(4) initial PTS / enforce frame rate");
+            break;
+        }
+    } else
+        vob->demuxer = 1;
 
 
     // -P
+    if (vob->pass_flag & TC_VIDEO) {
+        vob->im_v_codec = (vob->im_v_codec == CODEC_YUV) ?CODEC_RAW_YUV :CODEC_RAW;
+        vob->ex_v_codec = CODEC_RAW;
 
-    if(vob->pass_flag & TC_VIDEO) {
+        // suggestion:
+        if (no_v_out_codec)
+            ex_vid_mod = "raw";
+        no_v_out_codec = 0;
 
-      vob->im_v_codec = (vob->im_v_codec==CODEC_YUV) ? CODEC_RAW_YUV:CODEC_RAW;
-      vob->ex_v_codec=CODEC_RAW;
+        if (no_a_out_codec)
+            ex_aud_mod = "raw";
+        no_a_out_codec = 0;
 
-      //suggestion:
-      if(no_v_out_codec) ex_vid_mod="raw";
-      no_v_out_codec=0;
-
-      if(no_a_out_codec) ex_aud_mod="raw";
-      no_a_out_codec=0;
-
-      if(verbose & TC_INFO)
-        tc_log_info(PACKAGE, "V: %-16s | yes", "pass-through");
+        if (verbose & TC_INFO)
+            tc_log_info(PACKAGE, "V: %-16s | yes", "pass-through");
     }
 
-
     // -x
-
-    if(no_vin_codec && video_in_file!=NULL && vob->vmod_probed==NULL)
-	tc_warn("no option -x found, option -i ignored, reading from \"/dev/zero\"");
+    if (no_vin_codec && video_in_file != NULL && vob->vmod_probed == NULL)
+        tc_warn("no option -x found, option -i ignored, reading from \"/dev/zero\"");
 
 
     //overwrite results of autoprobing if modules are provided
-    if(no_vin_codec && vob->vmod_probed!=NULL) {
-        im_vid_mod=(char *)vob->vmod_probed_xml;                //need to load the correct module if the input file type is xml
+    if (no_vin_codec && vob->vmod_probed!=NULL) {
+        im_vid_mod = (char *)vob->vmod_probed_xml;
+        //need to load the correct module if the input file type is xml
     }
 
-    if(no_ain_codec && vob->amod_probed!=NULL) {
-        im_aud_mod=(char *)vob->amod_probed_xml;                //need to load the correct module if the input file type is xml
+    if (no_ain_codec && vob->amod_probed!=NULL) {
+        im_aud_mod = (char *)vob->amod_probed_xml;
+        //need to load the correct module if the input file type is xml
     }
 
     // make zero frame size default for no video
-    if(im_vid_mod != NULL && strcmp(im_vid_mod, "null")==0) vob->im_v_width=vob->im_v_height=0;
+    if (im_vid_mod != NULL && strcmp(im_vid_mod, "null") == 0) {
+        vob->im_v_width = 0;
+        vob->im_v_height = 0;
+    }
 
     //initial aspect ratio
     asr = (double) vob->im_v_width/vob->im_v_height;
@@ -932,24 +928,24 @@ int main(int argc, char *argv[])
 
     // import size
     // force to even for YUV mode
-    if(vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
-	if(vob->im_v_width%2 != 0) {
-	    tc_warn("frame width must be even in YUV/YUV422 mode");
-	    vob->im_v_width--;
-	}
-	if(vob->im_v_codec == CODEC_YUV && vob->im_v_height%2 != 0) {
-	    tc_warn("frame height must be even in YUV mode");
-	    vob->im_v_height--;
-	}
+    if (vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
+        if (vob->im_v_width % 2 != 0) {
+            tc_warn("frame width must be even in YUV/YUV422 mode");
+            vob->im_v_width--;
+        }
+        if (vob->im_v_codec == CODEC_YUV && vob->im_v_height % 2 != 0) {
+            tc_warn("frame height must be even in YUV mode");
+            vob->im_v_height--;
+        }
     }
-    if(verbose & TC_INFO) {
-      if (vob->im_v_width && vob->im_v_height) {
-	tc_log_info(PACKAGE, "V: %-16s | %03dx%03d  %4.2f:1  %s",
-                    "import frame", vob->im_v_width, vob->im_v_height,
-                    asr, asr2str(vob->im_asr));
-      } else {
-        tc_log_info(PACKAGE, "V: %-16s | disabled", "import frame");
-      }
+    if (verbose & TC_INFO) {
+        if (vob->im_v_width && vob->im_v_height) {
+            tc_log_info(PACKAGE, "V: %-16s | %03dx%03d  %4.2f:1  %s",
+                        "import frame", vob->im_v_width, vob->im_v_height,
+                        asr, asr2str(vob->im_asr));
+        } else {
+            tc_log_info(PACKAGE, "V: %-16s | disabled", "import frame");
+        }
     }
 
     // init frame size with cmd line frame size
@@ -965,649 +961,708 @@ int main(int argc, char *argv[])
     // --export_prof {vcd,vcd-pal,vcd-ntsc,svcd,svcd-pal,svcd-ntsc,dvd,dvd-pal,dvd-ntsc}
 
     if (vob->mpeg_profile != PROF_NONE) {
-      typedef struct ratio_t { int t, b; } ratio_t;
-      ratio_t asrs[] = { {1, 1}, {1, 1}, {4, 3}, {16, 9}, {221, 100}, {250, 100}, {125, 100}};
-      ratio_t imasr = asrs[0];
-      ratio_t exasr = asrs[0];
+        typedef struct ratio_t { int t, b; } ratio_t;
+        const ratio_t asrs[] = { {1, 1}, {1, 1}, {4, 3}, {16, 9}, {221, 100}, {250, 100}, {125, 100}};
+        ratio_t imasr = asrs[0];
+        ratio_t exasr = asrs[0];
 
-      int impal = 0;
-      int pre_clip;
+        int impal = 0;
+        int pre_clip;
 
-      //if(vob->im_v_codec == CODEC_RGB)
-	// vob->im_v_codec = CODEC_YUV; // mpeg is always YUV // will this always do?
+        // Make an educated guess if this is pal or ntsc
+        switch (vob->mpeg_profile) {
+          case VCD:
+          case SVCD:
+          case XVCD:
+          case DVD:
+            if (vob->im_v_height == 288 || vob->im_v_height == 576)
+                impal = 1;
+            if ((int)vob->fps == 25 || vob->im_frc == 3)
+                impal = 1;
+            break;
+          case VCD_PAL:
+          case SVCD_PAL:
+          case XVCD_PAL:
+          case DVD_PAL:
+            impal = 1;
+            break;
+          default:
+            break;
+        }
 
-      // Make an educated guess if this is pal or ntsc
-      switch (vob->mpeg_profile) {
-      case VCD:
-      case SVCD:
-      case XVCD:
-      case DVD:
-          if (vob->im_v_height == 288 || vob->im_v_height == 576) impal = 1;
-          if ((int)vob->fps == 25 || vob->im_frc == 3) impal = 1;
-          break;
-      case VCD_PAL:
-      case SVCD_PAL:
-      case XVCD_PAL:
-      case DVD_PAL:
-          impal = 1;
-          break;
-      default:
-          break;
-      }
+        // choose height dependent on pal or NTSC.
+        switch (vob->mpeg_profile) {
+          case VCD:
+          case VCD_PAL:
+          case VCD_NTSC:
+            if (!vob->zoom_height)
+                vob->zoom_height = impal ?288 :240;
+            break;
 
-      // choose height dependent on pal or NTSC.
-      switch (vob->mpeg_profile) {
-        case VCD_PAL: case VCD_NTSC: case VCD:
-          if (!vob->zoom_height)
-              vob->zoom_height = impal?288:240;
-          break;
+          case SVCD:
+          case SVCD_PAL:
+          case SVCD_NTSC:
+          case XVCD:
+          case XVCD_PAL:
+          case XVCD_NTSC:
+          case DVD:
+          case DVD_PAL:
+          case DVD_NTSC:
+            if (!vob->zoom_height)
+                vob->zoom_height = impal ?576 :480;
+            break;
 
-        case SVCD_PAL: case SVCD_NTSC: case SVCD:
-        case XVCD_PAL: case XVCD_NTSC: case XVCD:
-        case DVD_PAL: case DVD_NTSC: case DVD:
-          if (!vob->zoom_height)
-              vob->zoom_height = impal ? 576 : 480;
-          break;
+          default:
+            break;
+        }
 
-        default:
-          break;
-      }
+        // choose width if not set by user.
+        switch (vob->mpeg_profile) {
+          case VCD:
+          case VCD_PAL:
+          case VCD_NTSC:
+            if (!vob->zoom_width)
+                vob->zoom_width = 352;
+            vob->ex_asr = 2;
+            break;
+          case SVCD:
+          case SVCD_PAL:
+          case SVCD_NTSC:
+          case XVCD:
+          case XVCD_PAL:
+          case XVCD_NTSC:
+            if (!vob->zoom_width)
+                vob->zoom_width = 480;
+            vob->ex_asr = 2;
+            break;
+          case DVD:
+          case DVD_PAL:
+          case DVD_NTSC:
+            if (!vob->zoom_width)
+                vob->zoom_width = 720;
+            if (vob->ex_asr <= 0)
+                vob->ex_asr = 2; // assume 4:3
+            break;
+          default:
+            break;
+        }
 
-      // choose width if not set by user.
-      switch (vob->mpeg_profile) {
-        case VCD_PAL: case VCD_NTSC: case VCD:
-          if (!vob->zoom_width)
-              vob->zoom_width = 352;
-          vob->ex_asr = 2;
-          break;
-        case SVCD_PAL: case SVCD_NTSC: case SVCD:
-        case XVCD_PAL: case XVCD_NTSC: case XVCD:
-          if (!vob->zoom_width)
-              vob->zoom_width = 480;
-          vob->ex_asr = 2;
-          break;
-        case DVD_PAL: case DVD_NTSC: case DVD:
-          if (!vob->zoom_width)
-              vob->zoom_width = 720;
-          if (vob->ex_asr <= 0)
-              vob->ex_asr = 2; // assume 4:3
-          break;
-        default:
-          break;
-      }
+        // an input file without any aspect ratio setting (an AVI maybe?)
+        // so make a guess.
 
+        if (vob->im_asr == 0) {
+            int i, mini=0;
+            const ratio_t *r = &asrs[1];
+            double diffs[6] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+            double mindiff = 2.0;
 
-      // an input file without any aspect ratio setting (an AVI maybe?)
-      // so make a guess.
+            for (i = 0; i < 6; i++) {
+                diffs[i] = (double)(r->b*vob->im_v_width) / (double)(r->t*vob->im_v_height);
+                r++;
+            }
 
-      if (vob->im_asr == 0) {
+            // look for the diff which is closest to 1.0
 
-	int i, mini=0;
-	ratio_t *r = &asrs[1];
-	double diffs[6];
-	double mindiff = 2.0;
+            for (i = 0; i < 6; i++) {
+                double a = fabs(1.0 - diffs[i]);
+                if (a < mindiff) {
+                    mindiff = a;
+                    mini = i+1;
+                }
+            }
+            vob->im_asr = mini;
+        }
 
-	memset (diffs, 0, sizeof(diffs));
+        imasr = asrs[vob->im_asr];
+        exasr = asrs[vob->ex_asr];
 
-	for (i=0; i<6; i++) {
-	  diffs[i] = (double)(r->b*vob->im_v_width) / (double)(r->t*vob->im_v_height);
-	  r++;
-	}
+        pre_clip = vob->im_v_height - (vob->im_v_height * imasr.t * exasr.b ) / (imasr.b * exasr.t );
 
-	// look for the diff which is closest to 1.0
+        if (pre_im_clip == TC_FALSE) {
+            if (pre_clip % 2 != 0) {
+                vob->pre_im_clip_top = pre_clip/2+1;
+                vob->pre_im_clip_bottom = pre_clip/2-1;
+            } else {
+                vob->pre_im_clip_bottom = vob->pre_im_clip_top = pre_clip/2;
+            }
+            if (vob->pre_im_clip_top % 2 != 0 || vob->pre_im_clip_bottom % 2 != 0) {
+                vob->pre_im_clip_top--;
+                vob->pre_im_clip_bottom++;
+            }
+        }
 
-	for (i=0; i<6; i++) {
-	  double a = fabs(1.0 - diffs[i]);
-	  if (a < mindiff) {
-	    mindiff = a;
-	    mini = i+1;
-	  }
-	}
-	vob->im_asr = mini;
-      }
+        //FIXME hack, kludge, etc. EMS
+        if ((vob->im_v_height != vob->zoom_height)
+         || ((vob->im_v_width != vob->zoom_width) && (vob->ex_v_width != 704)))
+            zoom = TC_TRUE;
+        else
+            zoom = TC_FALSE;
 
-      imasr = asrs[vob->im_asr];
-      exasr = asrs[vob->ex_asr];
+        if (pre_clip) pre_im_clip = TC_TRUE;
 
-      pre_clip = vob->im_v_height - (vob->im_v_height * imasr.t * exasr.b ) / (imasr.b * exasr.t );
-
-      if(pre_im_clip == TC_FALSE) {
-
-	if (pre_clip%2 != 0) {
-	  vob->pre_im_clip_top = pre_clip/2+1;
-	  vob->pre_im_clip_bottom = pre_clip/2-1;
-	} else {
-	  vob->pre_im_clip_bottom = vob->pre_im_clip_top = pre_clip/2;
-	}
-	if (vob->pre_im_clip_top%2 != 0 || vob->pre_im_clip_bottom%2 != 0) {
-	  vob->pre_im_clip_top--;
-	  vob->pre_im_clip_bottom++;
-	}
-      }
-
-      //FIXME hack, kludge, etc. EMS
-      if( (vob->im_v_height != vob->zoom_height) ||
-	  ((vob->im_v_width != vob->zoom_width) && (vob->ex_v_width != 704)))
-	zoom = TC_TRUE;
-      else
-	zoom = TC_FALSE;
-
-      if (pre_clip) pre_im_clip = TC_TRUE;
-
-      // shall we really go this far?
-      // If yes, there can be much more settings adjusted.
-      if (ex_vid_mod == NULL || !strcmp(ex_vid_mod, "mpeg2enc")) {
+        // shall we really go this far?
+        // If yes, there can be much more settings adjusted.
+        if (ex_vid_mod == NULL || !strcmp(ex_vid_mod, "mpeg2enc")) {
 #ifdef HAVE_MJPEGTOOLS
-	if(!ex_aud_mod)
-	    ex_aud_mod = "mp2enc";
-	no_v_out_codec=0;
-	ex_vid_mod = "mpeg2enc";
-	//FIXME this should be in export_mpeg2enc.c
-	if(!vob->ex_v_fcc) {
-	  switch (vob->mpeg_profile) {
-	    case VCD_PAL: case VCD_NTSC: case VCD:
-	      vob->ex_v_fcc = "1";
-	      break;
-	    case SVCD_PAL: case SVCD_NTSC: case SVCD:
-		case XVCD_PAL: case XVCD_NTSC: case XVCD:
-	      vob->ex_v_fcc = "4";
-	      break;
-	    case DVD_PAL: case DVD_NTSC: case DVD:
-	      vob->ex_v_fcc = "8";
-	      break;
-	    default: break;
-	  }
-	}
+            if (!ex_aud_mod)
+                ex_aud_mod = "mp2enc";
+            no_v_out_codec = 0;
+            ex_vid_mod = "mpeg2enc";
+            //FIXME this should be in export_mpeg2enc.c
+            if (!vob->ex_v_fcc) {
+                switch (vob->mpeg_profile) {
+                  case VCD:
+                  case VCD_PAL:
+                  case VCD_NTSC:
+                    vob->ex_v_fcc = "1";
+                    break;
+                  case SVCD:
+                  case SVCD_PAL:
+                  case SVCD_NTSC:
+                  case XVCD:
+                  case XVCD_PAL:
+                  case XVCD_NTSC:
+                    vob->ex_v_fcc = "4";
+                    break;
+                  case DVD:
+                  case DVD_PAL:
+                  case DVD_NTSC:
+                    vob->ex_v_fcc = "8";
+                    break;
+                  default:
+                    break;
+                }
+            }
 #endif
-      } else if(!strcmp(ex_vid_mod, "ffmpeg")) {
+        } else if(!strcmp(ex_vid_mod, "ffmpeg")) {
+            if (!ex_aud_mod)
+                ex_aud_mod = "ffmpeg";
+            switch (vob->mpeg_profile) {
+              case VCD:
+                vob->ex_v_fcc = "vcd";
+                break;
+              case VCD_PAL:
+                vob->ex_v_fcc = "vcd-pal";
+                break;
+              case VCD_NTSC:
+                vob->ex_v_fcc = "vcd-ntsc";
+                break;
+              case SVCD:
+                vob->ex_v_fcc = "svcd";
+                break;
+              case SVCD_PAL:
+                vob->ex_v_fcc = "svcd-pal";
+                break;
+              case SVCD_NTSC:
+                vob->ex_v_fcc = "svcd-ntsc";
+                break;
+              case XVCD:
+                vob->ex_v_fcc = "xvcd";
+                break;
+              case XVCD_PAL:
+                vob->ex_v_fcc = "xvcd-pal";
+                break;
+              case XVCD_NTSC:
+                vob->ex_v_fcc = "xvcd-ntsc";
+                break;
+              case DVD:
+                vob->ex_v_fcc = "dvd";
+                break;
+              case DVD_PAL:
+                vob->ex_v_fcc = "dvd-pal";
+                break;
+              case DVD_NTSC:
+                vob->ex_v_fcc = "dvd-ntsc";
+                break;
+              case PROF_NONE:
+                break;
+            }
+        } // ffmpeg
 
-	if(!ex_aud_mod)
-	  ex_aud_mod = "ffmpeg";
-
-	switch(vob->mpeg_profile)
-	{
-	  case(VCD):		vob->ex_v_fcc = "vcd";		break;
-	  case(VCD_PAL):	vob->ex_v_fcc = "vcd-pal";	break;
-	  case(VCD_NTSC):	vob->ex_v_fcc = "vcd-ntsc";	break;
-	  case(SVCD):		vob->ex_v_fcc = "svcd";		break;
-	  case(SVCD_PAL):	vob->ex_v_fcc = "svcd-pal";	break;
-	  case(SVCD_NTSC):	vob->ex_v_fcc = "svcd-ntsc";break;
-	  case(XVCD):		vob->ex_v_fcc = "xvcd";		break;
-	  case(XVCD_PAL):	vob->ex_v_fcc = "xvcd-pal";	break;
-	  case(XVCD_NTSC):	vob->ex_v_fcc = "xvcd-ntsc";break;
-	  case(DVD):		vob->ex_v_fcc = "dvd";		break;
-	  case(DVD_PAL):	vob->ex_v_fcc = "dvd-pal";	break;
-	  case(DVD_NTSC):	vob->ex_v_fcc = "dvd-ntsc";	break;
-	  case(PROF_NONE):					break;
-	}
-      } // ffmpeg
-
-      if (ex_aud_mod == NULL) {
+        if (ex_aud_mod == NULL) {
 #ifdef HAVE_MJPEGTOOLS
-	  no_a_out_codec=0;
-	  ex_aud_mod = "mp2enc";
+            no_a_out_codec=0;
+            ex_aud_mod = "mp2enc";
 #endif
-	}
+        }
     } // mpeg_profile != PROF_NONE
 
-
     // --PRE_CLIP
+    if (pre_im_clip) {
+        // force to even for YUV mode
+        if (vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
+            if (vob->pre_im_clip_left % 2 != 0) {
+                tc_warn("left/right pre_clip must be even in YUV/YUV422 mode");
+                vob->pre_im_clip_left--;
+            }
+            if (vob->pre_im_clip_right % 2 != 0) {
+                tc_warn("left/right pre_clip must be even in YUV/YUV422 mode");
+                vob->pre_im_clip_right--;
+            }
+            if (vob->im_v_codec == CODEC_YUV && vob->pre_im_clip_top % 2 != 0) {
+                tc_warn("top/bottom pre_clip must be even in YUV mode");
+                vob->pre_im_clip_top--;
+            }
+            if (vob->im_v_codec == CODEC_YUV && vob->pre_im_clip_bottom % 2 != 0) {
+                tc_warn("top/bottom pre_clip must be even in YUV mode");
+                vob->pre_im_clip_bottom--;
+            }
+        }
 
-    if(pre_im_clip) {
+        //check against import parameter, this is pre processing!
+        if (vob->ex_v_height - vob->pre_im_clip_top - vob->pre_im_clip_bottom <= 0
+         || vob->ex_v_height - vob->pre_im_clip_top - vob->pre_im_clip_bottom > TC_MAX_V_FRAME_HEIGHT)
+            tc_error("invalid top/bottom clip parameter for option --pre_clip");
 
-      // force to even for YUV mode
-      if(vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
-	if(vob->pre_im_clip_left%2 != 0) {
-	    tc_warn("left/right pre_clip must be even in YUV/YUV422 mode");
-	    vob->pre_im_clip_left--;
-	}
-	if(vob->pre_im_clip_right%2 != 0) {
-	    tc_warn("left/right pre_clip must be even in YUV/YUV422 mode");
-	    vob->pre_im_clip_right--;
-	}
-	if(vob->im_v_codec == CODEC_YUV && vob->pre_im_clip_top%2 != 0) {
-	    tc_warn("top/bottom pre_clip must be even in YUV mode");
-	    vob->pre_im_clip_top--;
-	}
-	if(vob->im_v_codec == CODEC_YUV && vob->pre_im_clip_bottom%2 != 0) {
-	    tc_warn("top/bottom pre_clip must be even in YUV mode");
-	    vob->pre_im_clip_bottom--;
-	}
-      }
+        if (vob->ex_v_width - vob->pre_im_clip_left - vob->pre_im_clip_right <= 0
+         || vob->ex_v_width - vob->pre_im_clip_left - vob->pre_im_clip_right > TC_MAX_V_FRAME_WIDTH)
+            tc_error("invalid left/right clip parameter for option --pre_clip");
 
-      //check against import parameter, this is pre processing!
+        vob->ex_v_height -= (vob->pre_im_clip_top + vob->pre_im_clip_bottom);
+        vob->ex_v_width  -= (vob->pre_im_clip_left + vob->pre_im_clip_right);
 
-      if(vob->ex_v_height - vob->pre_im_clip_top - vob->pre_im_clip_bottom <= 0 ||
-	 vob->ex_v_height - vob->pre_im_clip_top - vob->pre_im_clip_bottom > TC_MAX_V_FRAME_HEIGHT) tc_error("invalid top/bottom clip parameter for option --pre_clip");
-
-      if( vob->ex_v_width - vob->pre_im_clip_left - vob->pre_im_clip_right <= 0 ||
-	  vob->ex_v_width - vob->pre_im_clip_left - vob->pre_im_clip_right > TC_MAX_V_FRAME_WIDTH) tc_error("invalid left/right clip parameter for option --pre_clip");
-
-      vob->ex_v_height -= (vob->pre_im_clip_top + vob->pre_im_clip_bottom);
-      vob->ex_v_width  -= (vob->pre_im_clip_left + vob->pre_im_clip_right);
-
-      if(verbose & TC_INFO) {
-        tc_log_info(PACKAGE, "V: %-16s | %03dx%03d (%d,%d,%d,%d)",
-                    "pre clip frame", vob->ex_v_width, vob->ex_v_height,
-                    vob->pre_im_clip_top, vob->pre_im_clip_left,
-                    vob->pre_im_clip_bottom, vob->pre_im_clip_right);
-      }
+        if (verbose & TC_INFO) {
+            tc_log_info(PACKAGE, "V: %-16s | %03dx%03d (%d,%d,%d,%d)",
+                       "pre clip frame", vob->ex_v_width, vob->ex_v_height,
+                       vob->pre_im_clip_top, vob->pre_im_clip_left,
+                       vob->pre_im_clip_bottom, vob->pre_im_clip_right);
+        }
     }
-
 
     // -j
+    if (im_clip) {
+        // force to even for YUV mode
+        if (vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
+            if (vob->im_clip_left % 2 != 0) {
+                tc_warn("left/right clip must be even in YUV/YUV422 mode");
+                vob->im_clip_left--;
+            }
+            if (vob->im_clip_right % 2 != 0) {
+                tc_warn("left/right clip must be even in YUV/YUV422 mode");
+                vob->im_clip_right--;
+            }
+            if (vob->im_v_codec == CODEC_YUV && vob->im_clip_top % 2 != 0) {
+                tc_warn("top/bottom clip must be even in YUV mode");
+                vob->im_clip_top--;
+            }
+            if (vob->im_v_codec == CODEC_YUV && vob->im_clip_bottom % 2 != 0) {
+                tc_warn("top/bottom clip must be even in YUV mode");
+                vob->im_clip_bottom--;
+            }
+        }
 
-    if(im_clip) {
+        if (vob->ex_v_height - vob->im_clip_top - vob->im_clip_bottom <= 0
+         || vob->ex_v_height - vob->im_clip_top - vob->im_clip_bottom > TC_MAX_V_FRAME_HEIGHT)
+            tc_error("invalid top/bottom clip parameter for option -j");
 
-      // force to even for YUV mode
-      if(vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
-	if(vob->im_clip_left%2 != 0) {
-	    tc_warn("left/right clip must be even in YUV/YUV422 mode");
-	    vob->im_clip_left--;
-	}
-	if(vob->im_clip_right%2 != 0) {
-	    tc_warn("left/right clip must be even in YUV/YUV422 mode");
-	    vob->im_clip_right--;
-	}
-	if(vob->im_v_codec == CODEC_YUV && vob->im_clip_top%2 != 0) {
-	    tc_warn("top/bottom clip must be even in YUV mode");
-	    vob->im_clip_top--;
-	}
-	if(vob->im_v_codec == CODEC_YUV && vob->im_clip_bottom%2 != 0) {
-	    tc_warn("top/bottom clip must be even in YUV mode");
-	    vob->im_clip_bottom--;
-	}
-      }
+        if (vob->ex_v_width - vob->im_clip_left - vob->im_clip_right <= 0
+         || vob->ex_v_width - vob->im_clip_left - vob->im_clip_right > TC_MAX_V_FRAME_WIDTH)
+            tc_error("invalid left/right clip parameter for option -j");
 
-      if(vob->ex_v_height - vob->im_clip_top - vob->im_clip_bottom <= 0 ||
-	 vob->ex_v_height - vob->im_clip_top - vob->im_clip_bottom > TC_MAX_V_FRAME_HEIGHT) tc_error("invalid top/bottom clip parameter for option -j");
+        vob->ex_v_height -= (vob->im_clip_top + vob->im_clip_bottom);
+        vob->ex_v_width  -= (vob->im_clip_left + vob->im_clip_right);
 
-      if( vob->ex_v_width - vob->im_clip_left - vob->im_clip_right <= 0 ||
-	  vob->ex_v_width - vob->im_clip_left - vob->im_clip_right > TC_MAX_V_FRAME_WIDTH) tc_error("invalid left/right clip parameter for option -j");
-
-      vob->ex_v_height -= (vob->im_clip_top + vob->im_clip_bottom);
-      vob->ex_v_width  -= (vob->im_clip_left + vob->im_clip_right);
-
-      if(verbose & TC_INFO) {
-        tc_log_info(PACKAGE, "V: %-16s | %03dx%03d", "clip frame (<-)",
-                    vob->ex_v_width, vob->ex_v_height);
-      }
+        if (verbose & TC_INFO) {
+            tc_log_info(PACKAGE, "V: %-16s | %03dx%03d", "clip frame (<-)",
+                        vob->ex_v_width, vob->ex_v_height);
+        }
     }
-
 
     // -I
-
-    if(verbose & TC_INFO) {
-
-      switch(vob->deinterlace) {
-
-      case 0:
-	break;
-
-      case 1:
-	tc_log_info(PACKAGE, "V: %-16s | (mode=1) interpolate scanlines (fast)", "de-interlace");
-	break;
-
-      case 2:
-	tc_log_info(PACKAGE, "V: %-16s | (mode=2) handled by encoder (if available)", "de-interlace");
-	break;
-
-      case 3:
-	tc_log_info(PACKAGE, "V: %-16s | (mode=3) zoom to full frame (slow)", "de-interlace");
-	break;
-
-      case 4:
-	tc_log_info(PACKAGE, "V: %-16s | (mode=4) drop field / half height (fast)", "de-interlace");
-	break;
-
-      case 5:
-	tc_log_info(PACKAGE, "V: %-16s | (mode=5) interpolate scanlines / blend frames", "de-interlace");
-	break;
-
-      default:
-	tc_error("invalid parameter for option -I");
-	break;
-      }
+    if (verbose & TC_INFO) {
+        switch(vob->deinterlace) {
+          case 0:
+            break;
+          case 1:
+            tc_log_info(PACKAGE,
+                        "V: %-16s | (mode=1) interpolate scanlines (fast)",
+                        "de-interlace");
+            break;
+          case 2:
+            tc_log_info(PACKAGE,
+                        "V: %-16s | (mode=2) handled by encoder (if available)",
+                        "de-interlace");
+            break;
+          case 3:
+            tc_log_info(PACKAGE,
+                        "V: %-16s | (mode=3) zoom to full frame (slow)",
+                        "de-interlace");
+            break;
+          case 4:
+            tc_log_info(PACKAGE,
+                        "V: %-16s | (mode=4) drop field / half height (fast)",
+                        "de-interlace");
+            break;
+          case 5:
+            tc_log_info(PACKAGE,
+                        "V: %-16s | (mode=5) interpolate scanlines / blend frames",
+                        "de-interlace");
+            break;
+          default:
+            tc_error("invalid parameter for option -I");
+            break;
+        }
     }
 
-    if(vob->deinterlace==4) vob->ex_v_height /= 2;
+    if (vob->deinterlace == 4)
+        vob->ex_v_height /= 2;
 
     // Calculate the missing w or h based on the ASR
     if (zoom && (vob->zoom_width == 0 || vob->zoom_height == 0)) {
+        typedef struct ratio_t { int t, b; } ratio_t;
+        enum missing_t { NONE, CALC_W, CALC_H, ALL } missing = ALL;
+        const ratio_t asrs[] = { {1, 1}, {1, 1}, {4, 3}, {16, 9}, {221, 100} };
+        ratio_t asr = asrs[0];
+        float oldr;
 
-      typedef struct ratio_t { int t, b; } ratio_t;
-      enum missing_t { NONE, CALC_W, CALC_H, ALL } missing = ALL;
-      ratio_t asrs[] = { {1, 1}, {1, 1}, {4, 3}, {16, 9}, {221, 100} };
-      ratio_t asr = asrs[0];
-      float oldr;
+        // check if we have at least on width or height
+        if (vob->zoom_width == 0 && vob->zoom_height == 0)
+            missing = ALL;
+        else if (vob->zoom_width == 0 && vob->zoom_height > 0)
+            missing = CALC_W;
+        else if (vob->zoom_width > 0 && vob->zoom_height == 0)
+            missing = CALC_H;
+        else if (vob->zoom_width > 0 && vob->zoom_height > 0)
+            missing = NONE;
 
-      // check if we have at least on width or height
-      if (vob->zoom_width==0 && vob->zoom_height==0) missing = ALL;
-      else if (vob->zoom_width==0 && vob->zoom_height>0) missing = CALC_W;
-      else if (vob->zoom_width>0 && vob->zoom_height==0) missing = CALC_H;
-      else if (vob->zoom_width>0 && vob->zoom_height>0) missing = NONE;
+        // try import
+        if (vob->im_asr > 0 && vob->im_asr < 5)
+            asr = asrs[vob->im_asr];
+        // try the export aspectratio
+        else if (vob->ex_asr > 0 && vob->ex_asr < 5)
+            asr = asrs[vob->ex_asr];
 
-      // try import
-      if (vob->im_asr>0 && vob->im_asr<5) asr = asrs[vob->im_asr];
-      // try the export aspectratio
-      else if (vob->ex_asr>0 && vob->ex_asr<5) asr = asrs[vob->ex_asr];
+        switch (missing) {
+          case ALL:
+            tc_error("Neither zoom width nor height set, can't guess anything");
+          case CALC_W:
+            vob->zoom_width = vob->zoom_height * asr.t; vob->zoom_width /= asr.b;
+            break;
+          case CALC_H:
+            vob->zoom_height = vob->zoom_width * asr.b; vob->zoom_height /= asr.t;
+            break;
+          case NONE:
+          default:
+            /* can't happen */
+            break;
+        }
 
-      switch (missing) {
-	case ALL:
-	  tc_error("Neither zoom width nor height set, can't guess anything");
-	case CALC_W:
-	  vob->zoom_width = vob->zoom_height * asr.t; vob->zoom_width /= asr.b;
-	  break;
-	case CALC_H:
-	  vob->zoom_height = vob->zoom_width * asr.b; vob->zoom_height /= asr.t;
-	  break;
-	case NONE: default:
-	  /* can't happen */
-	  break;
-      }
+        // for error printout
+        oldr = (float)vob->zoom_width/(float)vob->zoom_height;
 
-      // for error printout
-      oldr = (float)vob->zoom_width/(float)vob->zoom_height;
+        // align
+        if (vob->zoom_height % 8 != 0)
+            vob->zoom_height += 8-(vob->zoom_height%8);
+        if (vob->zoom_width % 8 != 0)
+            vob->zoom_width += 8-(vob->zoom_width%8);
+        oldr = ((float)vob->zoom_width/(float)vob->zoom_height-oldr)*100.0;
+        oldr = oldr<0?-oldr:oldr;
 
-      // align
-      if (vob->zoom_height%8 != 0) vob->zoom_height += 8-(vob->zoom_height%8);
-      if (vob->zoom_width%8 != 0) vob->zoom_width += 8-(vob->zoom_width%8);
-      oldr = ((float)vob->zoom_width/(float)vob->zoom_height-oldr)*100.0;
-      oldr = oldr<0?-oldr:oldr;
-
-      tc_log_info(PACKAGE, "V: %-16s | %03dx%03d  %4.2f:1 error %.2f%%",
-                  "auto resize", vob->zoom_width, vob->zoom_height,
-                  (float)vob->zoom_width/(float)vob->zoom_height, oldr);
-
+        tc_log_info(PACKAGE, "V: %-16s | %03dx%03d  %4.2f:1 error %.2f%%",
+                    "auto resize", vob->zoom_width, vob->zoom_height,
+                    (float)vob->zoom_width/(float)vob->zoom_height, oldr);
     }
 
     // -Z ...,fast
     if (fast_resize) {
-      int ret = tc_compute_fast_resize_values(vob, TC_FALSE);
-      if (ret == 0) {
-        if (vob->hori_resize1 == 0 && vob->vert_resize1 == 0)
-          resize1 = TC_FALSE;
-        else
-          resize1 = TC_TRUE;
-        if (vob->hori_resize2 == 0 && vob->vert_resize2 == 0)
-          resize2 = TC_FALSE;
-        else
-          resize2 = TC_TRUE;
+        int ret = tc_compute_fast_resize_values(vob, TC_FALSE);
+        if (ret == 0) {
+            if (vob->hori_resize1 == 0 && vob->vert_resize1 == 0)
+                resize1 = TC_FALSE;
+            else
+                resize1 = TC_TRUE;
+            if (vob->hori_resize2 == 0 && vob->vert_resize2 == 0)
+                resize2 = TC_FALSE;
+            else
+                resize2 = TC_TRUE;
 
-        if(verbose & TC_INFO) {
-          tc_log_info(PACKAGE, "V: %-16s | Using -B %d,%d,8 -X %d,%d,8",
-                      "fast resize",
-                      vob->vert_resize1, vob->hori_resize1,
-                      vob->vert_resize2, vob->hori_resize2);
+            if (verbose & TC_INFO) {
+                tc_log_info(PACKAGE, "V: %-16s | Using -B %d,%d,8 -X %d,%d,8",
+                            "fast resize",
+                            vob->vert_resize1, vob->hori_resize1,
+                            vob->vert_resize2, vob->hori_resize2);
+            }
+            zoom = TC_FALSE;
+        } else {
+            if(verbose & TC_INFO) {
+                tc_log_info(PACKAGE,
+                            "V: %-16s | requested but can't be used (W or H mod 8 != 0)",
+                            "fast resize");
+            }
         }
-        zoom = TC_FALSE;
-      } else {
-        if(verbose & TC_INFO) {
-          tc_log_info(PACKAGE, "V: %-16s | requested but can't be used (W or H mod 8 != 0)",
-                      "fast resize");
-        }
-      }
     }
 
     // -X
-
-    if(resize2) {
-
-        if(vob->resize2_mult % 8 != 0)
+    if (resize2) {
+        if (vob->resize2_mult % 8 != 0)
             tc_error("resize multiplier for option -X is not a multiple of 8");
 
         // works only for frame dimension beeing an integral multiple of vob->resize2_mult:
-
-
-        if(vob->vert_resize2 && (vob->vert_resize2 * vob->resize2_mult + vob->ex_v_height) % vob->resize2_mult != 0)
+        if (vob->vert_resize2
+         && (vob->vert_resize2 * vob->resize2_mult + vob->ex_v_height) % vob->resize2_mult != 0)
             tc_error("invalid frame height for option -X, check also option -j");
 
-        if(vob->hori_resize2 && (vob->hori_resize2 * vob->resize2_mult + vob->ex_v_width) % vob->resize2_mult != 0)
+        if (vob->hori_resize2
+         && (vob->hori_resize2 * vob->resize2_mult + vob->ex_v_width) % vob->resize2_mult != 0)
             tc_error("invalid frame width for option -X, check also option -j");
 
         vob->ex_v_height += (vob->vert_resize2 * vob->resize2_mult);
         vob->ex_v_width += (vob->hori_resize2 * vob->resize2_mult);
 
-	//check2:
+        //check2:
 
-	if(vob->ex_v_height > TC_MAX_V_FRAME_HEIGHT || vob->ex_v_width >TC_MAX_V_FRAME_WIDTH)
-	    tc_error("invalid resize parameter for option -X");
+        if (vob->ex_v_height > TC_MAX_V_FRAME_HEIGHT
+         || vob->ex_v_width >TC_MAX_V_FRAME_WIDTH)
+            tc_error("invalid resize parameter for option -X");
 
-	if(vob->vert_resize2 <0 || vob->hori_resize2 < 0)
-	    tc_error("invalid resize parameter for option -X");
+        if (vob->vert_resize2 <0 || vob->hori_resize2 < 0)
+            tc_error("invalid resize parameter for option -X");
 
-	//new aspect ratio:
-        asr *= (double) vob->ex_v_width * (vob->ex_v_height - vob->vert_resize2*vob->resize2_mult)/((vob->ex_v_width - vob->hori_resize2*vob->resize2_mult) * vob->ex_v_height);
+        // new aspect ratio:
+        asr *= (double) vob->ex_v_width * (vob->ex_v_height - vob->vert_resize2*vob->resize2_mult)/
+                ((vob->ex_v_width - vob->hori_resize2*vob->resize2_mult) * vob->ex_v_height);
 
         vob->vert_resize2 *= (vob->resize2_mult/8);
         vob->hori_resize2 *= (vob->resize2_mult/8);
 
-	if(verbose & TC_INFO && vob->ex_v_height>0) tc_log_info(PACKAGE, "V: %-16s | %03dx%03d  %4.2f:1 (-X)", "new aspect ratio", vob->ex_v_width, vob->ex_v_height, asr);
+        if (verbose & TC_INFO && vob->ex_v_height > 0)
+            tc_log_info(PACKAGE,
+                        "V: %-16s | %03dx%03d  %4.2f:1 (-X)",
+                        "new aspect ratio",
+                        vob->ex_v_width, vob->ex_v_height, asr);
     }
 
-
     // -B
-
-    if(resize1) {
-
-
-        if(vob->resize1_mult % 8 != 0)
+    if (resize1) {
+        if (vob->resize1_mult % 8 != 0)
             tc_error("resize multiplier for option -B is not a multiple of 8");
 
         // works only for frame dimension beeing an integral multiple of vob->resize1_mult:
-
-        if(vob->vert_resize1 && (vob->ex_v_height - vob->vert_resize1*vob->resize1_mult) % vob->resize1_mult != 0)
+        if (vob->vert_resize1
+         && (vob->ex_v_height - vob->vert_resize1*vob->resize1_mult) % vob->resize1_mult != 0)
             tc_error("invalid frame height for option -B, check also option -j");
 
-        if(vob->hori_resize1 && (vob->ex_v_width - vob->hori_resize1*vob->resize1_mult) % vob->resize1_mult != 0)
-	    tc_error("invalid frame width for option -B, check also option -j");
+        if (vob->hori_resize1
+         && (vob->ex_v_width - vob->hori_resize1*vob->resize1_mult) % vob->resize1_mult != 0)
+            tc_error("invalid frame width for option -B, check also option -j");
 
         vob->ex_v_height -= (vob->vert_resize1 * vob->resize1_mult);
         vob->ex_v_width -= (vob->hori_resize1 * vob->resize1_mult);
 
-	//check:
+        //check:
+        if (vob->vert_resize1 < 0 || vob->hori_resize1 < 0)
+            tc_error("invalid resize parameter for option -B");
 
-	if(vob->vert_resize1 < 0 || vob->hori_resize1 < 0)
-	    tc_error("invalid resize parameter for option -B");
-
-	//new aspect ratio:
-        asr *= (double) vob->ex_v_width * (vob->ex_v_height + vob->vert_resize1*vob->resize1_mult)/((vob->ex_v_width + vob->hori_resize1*vob->resize1_mult) * vob->ex_v_height);
+        //new aspect ratio:
+        asr *= (double) vob->ex_v_width * (vob->ex_v_height + vob->vert_resize1*vob->resize1_mult)/
+                       ((vob->ex_v_width + vob->hori_resize1*vob->resize1_mult) * vob->ex_v_height);
 
         vob->vert_resize1 *= (vob->resize1_mult/8);
         vob->hori_resize1 *= (vob->resize1_mult/8);
 
-	if(verbose & TC_INFO && vob->ex_v_height>0) tc_log_info(PACKAGE, "V: %-16s | %03dx%03d  %4.2f:1 (-B)", "new aspect ratio", vob->ex_v_width, vob->ex_v_height, asr);
+        if (verbose & TC_INFO && vob->ex_v_height > 0)
+            tc_log_info(PACKAGE,
+                        "V: %-16s | %03dx%03d  %4.2f:1 (-B)",
+                        "new aspect ratio",
+                        vob->ex_v_width, vob->ex_v_height, asr);
     }
 
-
     // -Z
-
-    if(zoom) {
-
-	//new aspect ratio:
-	asr *= (double) vob->zoom_width*vob->ex_v_height/(vob->ex_v_width * vob->zoom_height);
+    if (zoom) {
+        // new aspect ratio:
+        asr *= (double) vob->zoom_width*vob->ex_v_height/(vob->ex_v_width * vob->zoom_height);
 
         vob->ex_v_width  = vob->zoom_width;
         vob->ex_v_height = vob->zoom_height;
 
-        if(verbose & TC_INFO && vob->ex_v_height>0 ) tc_log_info(PACKAGE, "V: %-16s | %03dx%03d  %4.2f:1 (%s)", "zoom", vob->ex_v_width, vob->ex_v_height, asr, zoom_filter);
+        if (verbose & TC_INFO && vob->ex_v_height > 0)
+            tc_log_info(PACKAGE,
+                        "V: %-16s | %03dx%03d  %4.2f:1 (%s)",
+                        "zoom",
+                        vob->ex_v_width, vob->ex_v_height, asr, zoom_filter);
     }
 
-
     // -Y
+    if (ex_clip) {
+        // force to even for YUV mode
+        if (vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
+            if (vob->ex_clip_left % 2 != 0) {
+                tc_warn("left/right clip must be even in YUV/YUV422 mode");
+                vob->ex_clip_left--;
+            }
+            if (vob->ex_clip_right % 2 != 0) {
+                tc_warn("left/right clip must be even in YUV/YUV422 mode");
+                vob->ex_clip_right--;
+            }
+            if (vob->im_v_codec == CODEC_YUV && vob->ex_clip_top % 2 != 0) {
+                tc_warn("top/bottom clip must be even in YUV mode");
+                vob->ex_clip_top--;
+            }
+            if (vob->im_v_codec == CODEC_YUV && vob->ex_clip_bottom % 2 != 0) {
+                tc_warn("top/bottom clip must be even in YUV mode");
+                vob->ex_clip_bottom--;
+            }
+        }
 
-    if(ex_clip) {
+        //check against export parameter, this is post processing!
+        if (vob->ex_v_height - vob->ex_clip_top - vob->ex_clip_bottom <= 0
+         || vob->ex_v_height - vob->ex_clip_top - vob->ex_clip_bottom > TC_MAX_V_FRAME_HEIGHT)
+            tc_error("invalid top/bottom clip parameter for option -Y");
 
-      // force to even for YUV mode
-      if(vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
-	if(vob->ex_clip_left%2 != 0) {
-	    tc_warn("left/right clip must be even in YUV/YUV422 mode");
-	    vob->ex_clip_left--;
-	}
-	if(vob->ex_clip_right%2 != 0) {
-	    tc_warn("left/right clip must be even in YUV/YUV422 mode");
-	    vob->ex_clip_right--;
-	}
-	if(vob->im_v_codec == CODEC_YUV && vob->ex_clip_top%2 != 0) {
-	    tc_warn("top/bottom clip must be even in YUV mode");
-	    vob->ex_clip_top--;
-	}
-	if(vob->im_v_codec == CODEC_YUV && vob->ex_clip_bottom%2 != 0) {
-	    tc_warn("top/bottom clip must be even in YUV mode");
-	    vob->ex_clip_bottom--;
-	}
-      }
+        if (vob->ex_v_width - vob->ex_clip_left - vob->ex_clip_right <= 0
+         || vob->ex_v_width - vob->ex_clip_left - vob->ex_clip_right > TC_MAX_V_FRAME_WIDTH)
+            tc_error("invalid left/right clip parameter for option -Y");
 
-      //check against export parameter, this is post processing!
+        vob->ex_v_height -= (vob->ex_clip_top + vob->ex_clip_bottom);
+        vob->ex_v_width -= (vob->ex_clip_left + vob->ex_clip_right);
 
-	if(vob->ex_v_height - vob->ex_clip_top - vob->ex_clip_bottom <= 0 ||
-	   vob->ex_v_height - vob->ex_clip_top - vob->ex_clip_bottom > TC_MAX_V_FRAME_HEIGHT) tc_error("invalid top/bottom clip parameter for option -Y");
-
-	if(vob->ex_v_width - vob->ex_clip_left - vob->ex_clip_right <= 0 ||
-	   vob->ex_v_width - vob->ex_clip_left - vob->ex_clip_right > TC_MAX_V_FRAME_WIDTH) tc_error("invalid left/right clip parameter for option -Y");
-
-      vob->ex_v_height -= (vob->ex_clip_top + vob->ex_clip_bottom);
-      vob->ex_v_width -= (vob->ex_clip_left + vob->ex_clip_right);
-
-      if(verbose & TC_INFO) tc_log_info(PACKAGE, "V: %-16s | %03dx%03d", "clip frame (->)", vob->ex_v_width, vob->ex_v_height);
+        if (verbose & TC_INFO)
+            tc_log_info(PACKAGE,
+                        "V: %-16s | %03dx%03d", "clip frame (->)",
+                        vob->ex_v_width, vob->ex_v_height);
     }
 
     // -r
+    if (rescale) {
+        vob->ex_v_height /= vob->reduce_h;
+        vob->ex_v_width /= vob->reduce_w;
 
-    if(rescale) {
+        //new aspect ratio:
+        asr *= (double)vob->ex_v_width/vob->ex_v_height*(vob->reduce_h*vob->ex_v_height)/
+                (vob->reduce_w*vob->ex_v_width);
+        if (verbose & TC_INFO)
+            tc_log_info(PACKAGE,
+                        "V: %-16s | %03dx%03d  %4.2f:1 (-r)",
+                        "rescale frame",
+                        vob->ex_v_width, vob->ex_v_height,asr);
 
-      vob->ex_v_height /= vob->reduce_h;
-      vob->ex_v_width /= vob->reduce_w;
-
-      //new aspect ratio:
-      asr *= (double)vob->ex_v_width/vob->ex_v_height*(vob->reduce_h*vob->ex_v_height)/(vob->reduce_w*vob->ex_v_width);
-      if(verbose & TC_INFO) tc_log_info(PACKAGE, "V: %-16s | %03dx%03d  %4.2f:1 (-r)", "rescale frame", vob->ex_v_width, vob->ex_v_height,asr);
-
-      // sanity check for YUV
-      if(vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
-	if(vob->ex_v_width%2 != 0 || (vob->im_v_codec == CODEC_YUV && vob->ex_v_height%2 != 0)) {
-	    tc_error("rescaled width/height must be even for YUV mode, try -V rgb24");
-	}
-      }
+        // sanity check for YUV
+        if (vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
+            if (vob->ex_v_width%2 != 0 || (vob->im_v_codec == CODEC_YUV && vob->ex_v_height % 2 != 0)) {
+                tc_error("rescaled width/height must be even for YUV mode, try -V rgb24");
+            }
+        }
     }
 
     // --keep_asr
-
     if (keepasr) {
-      int clip, zoomto;
-      double asr_out = (double)vob->ex_v_width/(double)vob->ex_v_height;
-      double asr_in  = (double)vob->im_v_width/(double)vob->im_v_height;
-      double delta   = 0.01;
-      double asr_cor = 1.0;
+        int clip, zoomto;
+        double asr_out = (double)vob->ex_v_width/(double)vob->ex_v_height;
+        double asr_in  = (double)vob->im_v_width/(double)vob->im_v_height;
+        double delta   = 0.01;
+        double asr_cor = 1.0;
 
 
-      if (vob->im_asr) {
-	switch (vob->im_asr) {
-	  case 1:
-	    asr_cor = (1.0);
-	    break;
-	  case 2:
-	    asr_cor = (4.0/3.0);
-	    break;
-	  case 3:
-	    asr_cor = (16.0/9.0);
-	    break;
-	  case 4:
-	    asr_cor = (2.21);
-	    break;
-	}
-      }
+        if (vob->im_asr) {
+            switch (vob->im_asr) {
+              case 1:
+                asr_cor = (1.0);
+                break;
+              case 2:
+                asr_cor = (4.0/3.0);
+                break;
+              case 3:
+                asr_cor = (16.0/9.0);
+                break;
+              case 4:
+                asr_cor = (2.21);
+                break;
+            }
+        }
 
-      if (!zoom) tc_error ("keep_asr only works with -Z");
+        if (!zoom)
+            tc_error ("keep_asr only works with -Z");
 
-      if (asr_in-delta < asr_out && asr_out < asr_in+delta)
-	  tc_error ("Aspect ratios are too similar, don't use --keep_asr ");
+        if (asr_in-delta < asr_out && asr_out < asr_in+delta)
+            tc_error ("Aspect ratios are too similar, don't use --keep_asr ");
 
-      if (asr_in > asr_out) {
-	  /* adjust height */
-	  int clipV = (vob->im_clip_top +vob->im_clip_bottom);
-	  int clipH = (vob->im_clip_left+vob->im_clip_right);
-	  int clip1 = 0;
-	  int clip2 = 0;
+        if (asr_in > asr_out) {
+            /* adjust height */
+            int clipV = (vob->im_clip_top +vob->im_clip_bottom);
+            int clipH = (vob->im_clip_left+vob->im_clip_right);
+            int clip1 = 0;
+            int clip2 = 0;
 
-	  zoomto = (int)((double)(vob->ex_v_width) /
-		        ( ((double)(vob->im_v_width -clipH) / (vob->im_v_width/asr_cor/vob->im_v_height) )/
-		         (double)(vob->im_v_height-clipV))+.5);
-	  clip = vob->ex_v_height - zoomto;
-	  if (zoomto%2 != 0) (clip>0?zoomto--:zoomto++);
-	  clip = vob->ex_v_height - zoomto;
-	  clip /= 2;
-	  clip1 = clip2 = clip;
+            zoomto = (int)((double)(vob->ex_v_width) /
+                       ( ((double)(vob->im_v_width -clipH) / (vob->im_v_width/asr_cor/vob->im_v_height) )/
+                        (double)(vob->im_v_height-clipV))+.5);
+            clip = vob->ex_v_height - zoomto;
+            if (zoomto % 2 != 0)
+                (clip>0?zoomto--:zoomto++); // XXX
+            clip = vob->ex_v_height - zoomto;
+            clip /= 2;
+            clip1 = clip2 = clip;
 
-	  if (clip&1) { clip1--; clip2++; }
-	  ex_clip = TC_TRUE;
-	  vob->ex_clip_top = -clip1;
-	  vob->ex_clip_bottom = -clip2;
+            if (clip & 1) {
+                clip1--;
+                clip2++;
+            }
+            ex_clip = TC_TRUE;
+            vob->ex_clip_top = -clip1;
+            vob->ex_clip_bottom = -clip2;
 
-	  vob->zoom_height = zoomto;
+            vob->zoom_height = zoomto;
+        } else {
+            /* adjust width */
+            int clipV = (vob->im_clip_top +vob->im_clip_bottom);
+            int clipH = (vob->im_clip_left+vob->im_clip_right);
+            int clip1 = 0;
+            int clip2 = 0;
+            zoomto = (int)((double)vob->ex_v_height * (
+                      ( ((double)(vob->im_v_width-clipH)) / (vob->im_v_width/asr_cor/vob->im_v_height) ) /
+                        (double)(vob->im_v_height-clipV)) +.5);
 
-      } else {
-	  /* adjust width */
-	  int clipV = (vob->im_clip_top +vob->im_clip_bottom);
-	  int clipH = (vob->im_clip_left+vob->im_clip_right);
-	  int clip1 = 0;
-	  int clip2 = 0;
-	  zoomto = (int)((double)vob->ex_v_height * (
-		        ( ((double)(vob->im_v_width-clipH)) / (vob->im_v_width/asr_cor/vob->im_v_height) ) /
-		           (double)(vob->im_v_height-clipV)) +.5);
+            clip = vob->ex_v_width - zoomto;
 
-	  clip = vob->ex_v_width - zoomto;
+            if (zoomto % 2 != 0)
+                (clip>0?zoomto--:zoomto++); // XXX
+            clip = vob->ex_v_width - zoomto;
+            clip /= 2;
+            clip1 = clip2 = clip;
 
-	  /*
-	      */
+            if (clip & 1) {
+                clip1--;
+                clip2++;
+            }
+            ex_clip = TC_TRUE;
+            vob->ex_clip_left = -clip1;
+            vob->ex_clip_right = -clip2;
 
-	  if (zoomto%2 != 0) (clip>0?zoomto--:zoomto++);
-	  clip = vob->ex_v_width - zoomto;
-	  clip /= 2;
-	  clip1 = clip2 = clip;
+            vob->zoom_width = zoomto;
+        }
 
-	  if (clip&1) { clip1--; clip2++; }
-	  ex_clip = TC_TRUE;
-	  vob->ex_clip_left = -clip1;
-	  vob->ex_clip_right = -clip2;
+       if (vob->ex_v_height - vob->ex_clip_top - vob->ex_clip_bottom <= 0)
+            tc_error("invalid top/bottom clip parameter calculated from --keep_asr");
 
-	  vob->zoom_width = zoomto;
-      }
+        if (vob->ex_v_width - vob->ex_clip_left - vob->ex_clip_right <= 0)
+            tc_error("invalid left/right clip parameter calculated from --keep_asr");
 
-      if(vob->ex_v_height - vob->ex_clip_top - vob->ex_clip_bottom <= 0)
-	tc_error("invalid top/bottom clip parameter calculated from --keep_asr");
-
-      if(vob->ex_v_width - vob->ex_clip_left - vob->ex_clip_right <= 0)
-	tc_error("invalid left/right clip parameter calculated from --keep_asr");
-
-      if(verbose & TC_INFO) tc_log_info(PACKAGE, "V: %-16s | yes (%d,%d,%d,%d)", "keep aspect",
-	    vob->ex_clip_top, vob->ex_clip_left, vob->ex_clip_bottom, vob->ex_clip_right);
+        if (verbose & TC_INFO)
+            tc_log_info(PACKAGE, "V: %-16s | yes (%d,%d,%d,%d)", "keep aspect",
+                        vob->ex_clip_top, vob->ex_clip_left,
+                        vob->ex_clip_bottom, vob->ex_clip_right);
     }
 
     // -z
 
-    if(flip && verbose & TC_INFO)
-      tc_log_info(PACKAGE, "V: %-16s | yes", "flip frame");
+    if (flip && verbose & TC_INFO)
+        tc_log_info(PACKAGE, "V: %-16s | yes", "flip frame");
 
     // -l
-
-    if(mirror && verbose & TC_INFO)
-      tc_log_info(PACKAGE, "V: %-16s | yes", "mirror frame");
+    if (mirror && verbose & TC_INFO)
+        tc_log_info(PACKAGE, "V: %-16s | yes", "mirror frame");
 
     // -k
-
-    if(rgbswap && verbose & TC_INFO)
-      tc_log_info(PACKAGE, "V: %-16s | yes", "rgb2bgr");
+    if (rgbswap && verbose & TC_INFO)
+        tc_log_info(PACKAGE, "V: %-16s | yes", "rgb2bgr");
 
     // -K
-
-    if(decolor && verbose & TC_INFO)
-      tc_log_info(PACKAGE, "V: %-16s | yes", "b/w reduction");
+    if (decolor && verbose & TC_INFO)
+        tc_log_info(PACKAGE, "V: %-16s | yes", "b/w reduction");
 
     // -G
-
-    if(dgamma && verbose & TC_INFO)
-      tc_log_info(PACKAGE, "V: %-16s | %.3f", "gamma correction", vob->gamma);
+    if (dgamma && verbose & TC_INFO)
+        tc_log_info(PACKAGE, "V: %-16s | %.3f", "gamma correction", vob->gamma);
 
     // number of bits/pixel
     //
@@ -1621,95 +1676,105 @@ int main(int argc, char *argv[])
     // For my tests, this corresponded roughly to a fixed quantizer of 4,
     // which is not brilliant, but okay.
 
-    if(vob->divxbitrate > 0 && vob->divxmultipass != 3 && verbose & TC_INFO) {
-      double div = vob->ex_v_width * vob->ex_v_height * vob->fps;
-      double bpp = vob->divxbitrate * 1000;
-      char *judge;
+    if (vob->divxbitrate > 0 && vob->divxmultipass != 3
+      && verbose & TC_INFO) {
+        double div = vob->ex_v_width * vob->ex_v_height * vob->fps;
+        double bpp = vob->divxbitrate * 1000;
+        const char *judge = "";
 
-      if (div < 1.0)
-	bpp = 0.0;
-      else
-	bpp /= div;
+        if (div < 1.0)
+            bpp = 0.0;
+        else
+            bpp /= div;
 
-      if (bpp <= 0.0)
-	judge = " (unknown)";
-      else if (bpp > 0.0  && bpp <= 0.15)
-	judge = " (low)";
-      else
-	judge = "";
+        if (bpp <= 0.0)
+            judge = " (unknown)";
+        else if (bpp > 0.0  && bpp <= 0.15)
+            judge = " (low)";
 
-      tc_log_info(PACKAGE, "V: %-16s | %.3f%s", "bits/pixel", bpp, judge);
+        tc_log_info(PACKAGE, "V: %-16s | %.3f%s", "bits/pixel", bpp, judge);
     }
 
 
     // -C
-
-    if(vob->antialias<0)
-      tc_error("invalid parameter for option -C");
+    if (vob->antialias<0)
+        tc_error("invalid parameter for option -C");
     else
-      if((verbose & TC_INFO) && vob->antialias) {
-
-	switch(vob->antialias) {
-
-	case 1:
-	  tc_log_info(PACKAGE, "V: %-16s | (mode=%d|%.2f|%.2f) de-interlace effects only", "anti-alias", vob->antialias, vob->aa_weight, vob->aa_bias);
-	  break;
-	case 2:
-	  tc_log_info(PACKAGE, "V: %-16s | (mode=%d|%.2f|%.2f) resize effects only", "anti-alias", vob->antialias, vob->aa_weight, vob->aa_bias);
-	  break;
-	case 3:
-	  tc_log_info(PACKAGE, "V: %-16s | (mode=%d|%.2f|%.2f) process full frame (slow)", "anti-alias", vob->antialias, vob->aa_weight, vob->aa_bias);
-	  break;
-	default:
-	  break;
-	}
-      }
+        if ((verbose & TC_INFO) && vob->antialias) {
+            switch (vob->antialias) {
+              case 1:
+                tc_log_info(PACKAGE,
+                            "V: %-16s | (mode=%d|%.2f|%.2f) de-interlace effects only",
+                            "anti-alias",
+                            vob->antialias, vob->aa_weight, vob->aa_bias);
+                break;
+              case 2:
+                tc_log_info(PACKAGE,
+                            "V: %-16s | (mode=%d|%.2f|%.2f) resize effects only",
+                            "anti-alias",
+                            vob->antialias, vob->aa_weight, vob->aa_bias);
+                break;
+              case 3:
+                tc_log_info(PACKAGE,
+                            "V: %-16s | (mode=%d|%.2f|%.2f) process full frame (slow)",
+                            "anti-alias",
+                            vob->antialias, vob->aa_weight, vob->aa_bias);
+                break;
+              default:
+                break;
+            }
+        }
 
     // --POST_CLIP
 
-    if(post_ex_clip) {
+    if (post_ex_clip) {
+        // force to even for YUV mode
+        if (vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
+            if (vob->post_ex_clip_left % 2 != 0) {
+                tc_warn("left/right post_clip must be even in YUV/YUV422 mode");
+                vob->post_ex_clip_left--;
+            }
+            if (vob->post_ex_clip_right % 2 != 0) {
+                tc_warn("left/right post_clip must be even in YUV/YUV422 mode");
+                vob->post_ex_clip_right--;
+            }
+            if (vob->im_v_codec == CODEC_YUV && vob->post_ex_clip_top % 2 != 0) {
+                tc_warn("top/bottom post_clip must be even in YUV mode");
+                vob->post_ex_clip_top--;
+            }
+            if (vob->im_v_codec == CODEC_YUV && vob->post_ex_clip_bottom % 2 != 0) {
+                tc_warn("top/bottom post_clip must be even in YUV mode");
+                vob->post_ex_clip_bottom--;
+            }
+        }
 
-      // force to even for YUV mode
-      if(vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
-	if(vob->post_ex_clip_left%2 != 0) {
-	    tc_warn("left/right post_clip must be even in YUV/YUV422 mode");
-	    vob->post_ex_clip_left--;
-	}
-	if(vob->post_ex_clip_right%2 != 0) {
-	    tc_warn("left/right post_clip must be even in YUV/YUV422 mode");
-	    vob->post_ex_clip_right--;
-	}
-	if(vob->im_v_codec == CODEC_YUV && vob->post_ex_clip_top%2 != 0) {
-	    tc_warn("top/bottom post_clip must be even in YUV mode");
-	    vob->post_ex_clip_top--;
-	}
-	if(vob->im_v_codec == CODEC_YUV && vob->post_ex_clip_bottom%2 != 0) {
-	    tc_warn("top/bottom post_clip must be even in YUV mode");
-	    vob->post_ex_clip_bottom--;
-	}
-      }
+        // check against export parameter, this is post processing!
+        if (vob->ex_v_height - vob->post_ex_clip_top - vob->post_ex_clip_bottom <= 0
+         || vob->ex_v_height - vob->post_ex_clip_top - vob->post_ex_clip_bottom > TC_MAX_V_FRAME_HEIGHT)
+            tc_error("invalid top/bottom clip parameter for option --post_clip");
 
-      //check against export parameter, this is post processing!
+        if (vob->ex_v_width - vob->post_ex_clip_left - vob->post_ex_clip_right <= 0
+         || vob->ex_v_width - vob->post_ex_clip_left - vob->post_ex_clip_right > TC_MAX_V_FRAME_WIDTH)
+            tc_error("invalid left/right clip parameter for option --post_clip");
 
-      if(vob->ex_v_height - vob->post_ex_clip_top - vob->post_ex_clip_bottom <= 0 ||
-	 vob->ex_v_height - vob->post_ex_clip_top - vob->post_ex_clip_bottom > TC_MAX_V_FRAME_HEIGHT) tc_error("invalid top/bottom clip parameter for option --post_clip");
+        vob->ex_v_height -= (vob->post_ex_clip_top + vob->post_ex_clip_bottom);
+        vob->ex_v_width -= (vob->post_ex_clip_left + vob->post_ex_clip_right);
 
-      if(vob->ex_v_width - vob->post_ex_clip_left - vob->post_ex_clip_right <= 0 ||
-	 vob->ex_v_width - vob->post_ex_clip_left - vob->post_ex_clip_right > TC_MAX_V_FRAME_WIDTH) tc_error("invalid left/right clip parameter for option --post_clip");
-
-      vob->ex_v_height -= (vob->post_ex_clip_top + vob->post_ex_clip_bottom);
-      vob->ex_v_width -= (vob->post_ex_clip_left + vob->post_ex_clip_right);
-
-      if(verbose & TC_INFO) tc_log_info(PACKAGE, "V: %-16s | %03dx%03d", "post clip frame", vob->ex_v_width, vob->ex_v_height);
+        if (verbose & TC_INFO)
+            tc_log_info(PACKAGE,
+                        "V: %-16s | %03dx%03d",
+                        "post clip frame",
+                        vob->ex_v_width, vob->ex_v_height);
     }
 
 
     // -W
-
-    if(vob->vob_percentage) {
-      if(vob->vob_chunk < 0 || vob->vob_chunk < 0) tc_error("invalid parameter for option -W");
+    if (vob->vob_percentage) {
+        if (vob->vob_chunk < 0 || vob->vob_chunk < 0)
+            tc_error("invalid parameter for option -W");
     } else {
-      if(vob->vob_chunk < 0 || vob->vob_chunk > vob->vob_chunk_max) tc_error("invalid parameter for option -W");
+        if (vob->vob_chunk < 0 || vob->vob_chunk > vob->vob_chunk_max)
+            tc_error("invalid parameter for option -W");
     }
 
     // -f
@@ -1724,17 +1789,17 @@ int main(int argc, char *argv[])
       switch(vob->divxmultipass) {
 
       case 1:
-	tc_log_info(PACKAGE, "V: %-16s | (mode=%d) %s %s", "multi-pass", vob->divxmultipass, "writing data (pass 1) to", vob->divxlogfile);
-	break;
+    tc_log_info(PACKAGE, "V: %-16s | (mode=%d) %s %s", "multi-pass", vob->divxmultipass, "writing data (pass 1) to", vob->divxlogfile);
+    break;
 
       case 2:
-	tc_log_info(PACKAGE, "V: %-16s | (mode=%d) %s %s", "multi-pass", vob->divxmultipass, "reading data (pass2) from", vob->divxlogfile);
-	break;
+    tc_log_info(PACKAGE, "V: %-16s | (mode=%d) %s %s", "multi-pass", vob->divxmultipass, "reading data (pass2) from", vob->divxlogfile);
+    break;
 
       case 3:
-	if(vob->divxbitrate > VMAXQUANTIZER) vob->divxbitrate = VQUANTIZER;
-	tc_log_info(PACKAGE, "V: %-16s | (mode=%d) %s (quant=%d)", "single-pass", vob->divxmultipass, "constant quantizer/quality", vob->divxbitrate);
-	break;
+    if(vob->divxbitrate > VMAXQUANTIZER) vob->divxbitrate = VQUANTIZER;
+    tc_log_info(PACKAGE, "V: %-16s | (mode=%d) %s (quant=%d)", "single-pass", vob->divxmultipass, "constant quantizer/quality", vob->divxbitrate);
+    break;
       }
     }
 
@@ -1778,9 +1843,9 @@ int main(int argc, char *argv[])
 
       if (vob->amod_probed==NULL || strcmp(vob->amod_probed,"null")==0) {
 
-	if(verbose & TC_DEBUG)
+    if(verbose & TC_DEBUG)
           tc_log_warn(PACKAGE, "problems detecting audio format - using 'null' module");
-	vob->a_codec_flag=0;
+    vob->a_codec_flag=0;
       }
     }
 
@@ -1789,8 +1854,8 @@ int main(int argc, char *argv[])
     } else {
 
       if(!vob->has_audio_track && vob->has_audio) {
-	tc_warn("requested audio track %d not found - using 'null' module", vob->a_track);
-	vob->a_codec_flag=0;
+    tc_warn("requested audio track %d not found - using 'null' module", vob->a_track);
+    vob->a_codec_flag=0;
       }
     }
 
@@ -1802,10 +1867,10 @@ int main(int argc, char *argv[])
     } else {
       //audio format, if probed sucessfully
       if(verbose & TC_INFO) {
-	if (vob->a_stream_bitrate)
-	  tc_log_info(PACKAGE, "A: %-16s | 0x%-5lx %-12s [%4d,%2d,%1d] %4d kbps", "import format", vob->a_codec_flag, aformat2str(vob->a_codec_flag), vob->a_rate, vob->a_bits, vob->a_chan, vob->a_stream_bitrate);
-	else
-	  tc_log_info(PACKAGE, "A: %-16s | 0x%-5lx %-12s [%4d,%2d,%1d]", "import format", vob->a_codec_flag, aformat2str(vob->a_codec_flag), vob->a_rate, vob->a_bits, vob->a_chan);
+    if (vob->a_stream_bitrate)
+      tc_log_info(PACKAGE, "A: %-16s | 0x%-5lx %-12s [%4d,%2d,%1d] %4d kbps", "import format", vob->a_codec_flag, aformat2str(vob->a_codec_flag), vob->a_rate, vob->a_bits, vob->a_chan, vob->a_stream_bitrate);
+    else
+      tc_log_info(PACKAGE, "A: %-16s | 0x%-5lx %-12s [%4d,%2d,%1d]", "import format", vob->a_codec_flag, aformat2str(vob->a_codec_flag), vob->a_rate, vob->a_bits, vob->a_chan);
       }
     }
 
@@ -1815,7 +1880,7 @@ int main(int argc, char *argv[])
       // what modules will actually have presented to them.
 
       if(verbose & TC_INFO)
-	tc_log_info(PACKAGE, "A: %-16s | %d channels -> %d channels", "downmix", vob->a_chan, 2);
+    tc_log_info(PACKAGE, "A: %-16s | %d channels -> %d channels", "downmix", vob->a_chan, 2);
       vob->a_chan = 2;
     }
 
@@ -1827,37 +1892,37 @@ int main(int argc, char *argv[])
       //audio format
 
       if(ex_aud_mod && strlen(ex_aud_mod) != 0) {
-	if (strcmp(ex_aud_mod, "mpeg")==0) vob->ex_a_codec=CODEC_MP2;
-	if (strcmp(ex_aud_mod, "mp2enc")==0) vob->ex_a_codec=CODEC_MP2;
-	if (strcmp(ex_aud_mod, "mp1e")==0) vob->ex_a_codec=CODEC_MP2;
+    if (strcmp(ex_aud_mod, "mpeg")==0) vob->ex_a_codec=CODEC_MP2;
+    if (strcmp(ex_aud_mod, "mp2enc")==0) vob->ex_a_codec=CODEC_MP2;
+    if (strcmp(ex_aud_mod, "mp1e")==0) vob->ex_a_codec=CODEC_MP2;
       }
 
       // calc export bitrate
       switch (vob->ex_a_codec) {
       case 0x1: // PCM
-	vob->mp3bitrate = ((vob->mp3frequency>0)? vob->mp3frequency:vob->a_rate) *
-	                  ((vob->dm_bits>0)?vob->dm_bits:vob->a_bits) *
-			  ((vob->dm_chan>0)?vob->dm_chan:vob->a_chan) / 1000;
-	break;
+    vob->mp3bitrate = ((vob->mp3frequency>0)? vob->mp3frequency:vob->a_rate) *
+                      ((vob->dm_bits>0)?vob->dm_bits:vob->a_bits) *
+              ((vob->dm_chan>0)?vob->dm_chan:vob->a_chan) / 1000;
+    break;
       case 0x2000: // PCM
-	if (vob->im_a_codec == CODEC_AC3) {
-	  vob->mp3bitrate = vob->a_stream_bitrate;
-	}
-	break;
+    if (vob->im_a_codec == CODEC_AC3) {
+      vob->mp3bitrate = vob->a_stream_bitrate;
+    }
+    break;
       }
 
       if(verbose & TC_INFO) {
-	if(vob->pass_flag & TC_AUDIO)
-	  tc_log_info(PACKAGE, "A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps",
+    if(vob->pass_flag & TC_AUDIO)
+      tc_log_info(PACKAGE, "A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps",
                  "export format", vob->im_a_codec, aformat2str(vob->im_a_codec),
-		 vob->a_rate, vob->a_bits, vob->a_chan, vob->a_stream_bitrate);
-	else
-	  tc_log_info(PACKAGE, "A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps",
+         vob->a_rate, vob->a_bits, vob->a_chan, vob->a_stream_bitrate);
+    else
+      tc_log_info(PACKAGE, "A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps",
                  "export format", vob->ex_a_codec, aformat2str(vob->ex_a_codec),
-		 ((vob->mp3frequency>0)? vob->mp3frequency:vob->a_rate),
-		 ((vob->dm_bits>0)?vob->dm_bits:vob->a_bits),
-		 ((vob->dm_chan>0)?vob->dm_chan:vob->a_chan),
-		 vob->mp3bitrate);
+         ((vob->mp3frequency>0)? vob->mp3frequency:vob->a_rate),
+         ((vob->dm_bits>0)?vob->dm_bits:vob->a_bits),
+         ((vob->dm_chan>0)?vob->dm_chan:vob->a_chan),
+         vob->mp3bitrate);
         tc_log_info(PACKAGE, "V: %-16s | %s%s", "export format",
                tc_codec_to_string(vob->ex_v_codec),
                (vob->ex_v_codec == 0) ?" (module dependant)" :"");
@@ -1929,10 +1994,10 @@ int main(int argc, char *argv[])
     leap_bytes2 = (leap_bytes2 >>2)<<2;
 
     if(leap_bytes1<leap_bytes2) {
-	vob->a_leap_bytes = leap_bytes1;
+    vob->a_leap_bytes = leap_bytes1;
     } else {
-	vob->a_leap_bytes = -leap_bytes2;
-	vob->im_a_size += (vob->a_bits/8) * vob->a_chan;
+    vob->a_leap_bytes = -leap_bytes2;
+    vob->im_a_size += (vob->a_bits/8) * vob->a_chan;
     }
 
     // final size in bytes
@@ -2013,23 +2078,23 @@ int main(int argc, char *argv[])
       // -o
 
       if(video_out_file == NULL && audio_out_file == NULL && core_mode == TC_MODE_DEFAULT)
-	tc_warn("no option -o found, encoded frames send to \"%s\"", vob->video_out_file);
+    tc_warn("no option -o found, encoded frames send to \"%s\"", vob->video_out_file);
 
       // -y
 
       if(core_mode == TC_MODE_DEFAULT && video_out_file != NULL && no_v_out_codec)
-	tc_warn("no option -y found, option -o ignored, writing to \"/dev/null\"");
+    tc_warn("no option -y found, option -o ignored, writing to \"/dev/null\"");
 
       if(core_mode == TC_MODE_AVI_SPLIT && no_v_out_codec)
-	tc_warn("no option -y found, option -t ignored, writing to \"/dev/null\"");
+    tc_warn("no option -y found, option -t ignored, writing to \"/dev/null\"");
 
       if( vob->im_v_codec==CODEC_YUV && (vob->im_clip_left%2!=0 ||
-	    vob->im_clip_right%2 || vob->im_clip_top%2!=0 || vob->im_clip_bottom%2!=0))
-	tc_warn ("Odd import clipping paramter(s) detected, may cause distortion");
+        vob->im_clip_right%2 || vob->im_clip_top%2!=0 || vob->im_clip_bottom%2!=0))
+    tc_warn ("Odd import clipping paramter(s) detected, may cause distortion");
 
       if( vob->im_v_codec==CODEC_YUV && (vob->ex_clip_left%2!=0 ||
-	    vob->ex_clip_right%2 || vob->ex_clip_top%2!=0 || vob->ex_clip_bottom%2!=0))
-	tc_warn ("Odd export clipping paramter(s) detected, may cause distortion");
+        vob->ex_clip_right%2 || vob->ex_clip_top%2!=0 || vob->ex_clip_bottom%2!=0))
+    tc_warn ("Odd export clipping paramter(s) detected, may cause distortion");
 
 
     }
@@ -2048,7 +2113,7 @@ int main(int argc, char *argv[])
 
     if (socket_file) {
       if (!tc_socket_init(socket_file))
-	tc_error("failed to initialize socket handler");
+    tc_error("failed to initialize socket handler");
     }
 
 
@@ -2131,7 +2196,7 @@ int main(int argc, char *argv[])
 
       // init decoder and open the source
       if (0 != vob->ttime->vob_offset){
-	vob->vob_offset = vob->ttime->vob_offset;
+    vob->vob_offset = vob->ttime->vob_offset;
       }
       if(import_open(vob)<0) tc_error("failed to open input source");
 
@@ -2148,18 +2213,18 @@ int main(int argc, char *argv[])
       // tell counter about all encoding ranges
       counter_reset_ranges();
       if (!tc_cluster_mode) {
-	int last_etf = 0;
-	for (tstart = vob->ttime; tstart; tstart = tstart->next) {
-	  if (tstart->etf == TC_FRAME_LAST) {
+    int last_etf = 0;
+    for (tstart = vob->ttime; tstart; tstart = tstart->next) {
+      if (tstart->etf == TC_FRAME_LAST) {
             // variable length range, oh well
             counter_reset_ranges();
             break;
           }
-	  if (tstart->stf > last_etf)
+      if (tstart->stf > last_etf)
             counter_add_range(last_etf, tstart->stf-1, 0);
           counter_add_range(tstart->stf, tstart->etf-1, 1);
           last_etf = tstart->etf;
-	}
+    }
       }
 
       // get start interval
@@ -2175,25 +2240,25 @@ int main(int argc, char *argv[])
         // main encoding loop, returns when done with all frames
         encoder_loop(vob, frame_a, frame_b);
 
-	// check for user cancelation request
-	if (sig_int || sig_tstp) break;
+    // check for user cancelation request
+    if (sig_int || sig_tstp) break;
 
         // next range
         tstart = tstart->next;
-	// see if we're using vob_offset
-	if ((tstart != NULL) && (tstart->vob_offset != 0)){
-	  tc_decoder_delay=3;
-	  import_threads_cancel();
-	  import_close();
-	  aframe_flush();
+    // see if we're using vob_offset
+    if ((tstart != NULL) && (tstart->vob_offset != 0)){
+      tc_decoder_delay=3;
+      import_threads_cancel();
+      import_close();
+      aframe_flush();
           tc_flush_audio_counters();
-	  vframe_flush();
+      vframe_flush();
           tc_flush_video_counters();
-	  vob->vob_offset = tstart->vob_offset;
-	  vob->sync = sync_seconds;
-	  if(import_open(vob)<0) tc_error("failed to open input source");
-	  import_threads_create(vob);
-	}
+      vob->vob_offset = tstart->vob_offset;
+      vob->sync = sync_seconds;
+      if(import_open(vob)<0) tc_error("failed to open input source");
+      import_threads_create(vob);
+    }
       }
 
       // close output files
@@ -2234,37 +2299,37 @@ int main(int argc, char *argv[])
 
       do {
 
-	if (!base || !strlen(base))
-	  strlcpy(base, vob->video_out_file, TC_BUF_MIN);
+    if (!base || !strlen(base))
+      strlcpy(base, vob->video_out_file, TC_BUF_MIN);
 
-	// create new filename
-	tc_snprintf(buf, sizeof(buf), "%s%03d.avi", base, ch1++);
+    // create new filename
+    tc_snprintf(buf, sizeof(buf), "%s%03d.avi", base, ch1++);
 
-	// update vob structure
-	vob->video_out_file = buf;
-	vob->audio_out_file = buf;
+    // update vob structure
+    vob->video_out_file = buf;
+    vob->audio_out_file = buf;
 
-	// open output
-	if(encoder_open(vob)<0)
-	  tc_error("failed to open output");
+    // open output
+    if(encoder_open(vob)<0)
+      tc_error("failed to open output");
 
-	fa = frame_a;
-	fb = frame_a + splitavi_frames;
+    fa = frame_a;
+    fb = frame_a + splitavi_frames;
 
-	encoder_loop(vob, fa, ((fb > frame_b) ? frame_b : fb));
+    encoder_loop(vob, fa, ((fb > frame_b) ? frame_b : fb));
 
-	// close output
-	encoder_close();
+    // close output
+    encoder_close();
 
-	// restart
-	frame_a += splitavi_frames;
-	if(frame_a >= frame_b) break;
+    // restart
+    frame_a += splitavi_frames;
+    if(frame_a >= frame_b) break;
 
-	if(verbose & TC_DEBUG)
+    if(verbose & TC_DEBUG)
             tc_log_msg(PACKAGE, "import status=%d", import_status());
 
-	// check for user cancelation request
-	if(sig_int || sig_tstp) break;
+    // check for user cancelation request
+    if(sig_int || sig_tstp) break;
 
       } while(import_status());
 
@@ -2288,15 +2353,15 @@ int main(int argc, char *argv[])
 
       // encoder init
       if(encoder_init(vob)<0)
-	tc_error("failed to init encoder");
+    tc_error("failed to init encoder");
 
       // open output
       if(no_split) {
 
-	vob->video_out_file = psubase;
+    vob->video_out_file = psubase;
 
-	if(encoder_open(vob)<0)
-	  tc_error("failed to open output");
+    if(encoder_open(vob)<0)
+      tc_error("failed to open output");
       }
 
       // 1 sec delay after decoder closing
@@ -2310,82 +2375,82 @@ int main(int argc, char *argv[])
 
       for(;;) {
 
-	int ret;
+    int ret;
 
-	memset(buf, 0, sizeof buf);
-	if(!no_split) {
-	  // create new filename
-	  tc_snprintf(buf, sizeof(buf), psubase, ch1);
+    memset(buf, 0, sizeof buf);
+    if(!no_split) {
+      // create new filename
+      tc_snprintf(buf, sizeof(buf), psubase, ch1);
 
-	  // update vob structure
-	  vob->video_out_file = buf;
+      // update vob structure
+      vob->video_out_file = buf;
 
-	  if(verbose & TC_INFO)
+      if(verbose & TC_INFO)
               tc_log_info(PACKAGE, "using output filename %s",
                           vob->video_out_file);
-	}
+    }
 
-	// get seek/frame information for next PSU
-	// need to process whole PSU
-	vob->vob_chunk=0;
-	vob->vob_chunk_max=1;
+    // get seek/frame information for next PSU
+    // need to process whole PSU
+    vob->vob_chunk=0;
+    vob->vob_chunk_max=1;
 
-	ret=split_stream(vob, nav_seek_file, ch1, &fa, &fb, 0);
+    ret=split_stream(vob, nav_seek_file, ch1, &fa, &fb, 0);
 
-	if(verbose & TC_DEBUG)
+    if(verbose & TC_DEBUG)
             tc_log_msg(PACKAGE,"processing PSU %d, -L %d -c %d-%d %s (ret=%d)",
                        ch1, vob->vob_offset, fa, fb, buf, ret);
 
-	// exit condition
-	if(ret<0 || ch1 == vob->vob_psu_num2) break;
+    // exit condition
+    if(ret<0 || ch1 == vob->vob_psu_num2) break;
 
-	//do not process units with a small frame number, assume it is junk
-	if((fb-fa) > psu_frame_threshold) {
+    //do not process units with a small frame number, assume it is junk
+    if((fb-fa) > psu_frame_threshold) {
 
-	  // start new decoding session with updated vob structure
-	  // this starts the full decoder setup, including the threads
-	  if(import_open(vob)<0) tc_error("failed to open input source");
+      // start new decoding session with updated vob structure
+      // this starts the full decoder setup, including the threads
+      if(import_open(vob)<0) tc_error("failed to open input source");
 
-	  // start the AV import threads that load the frames into transcode
-	  import_threads_create(vob);
+      // start the AV import threads that load the frames into transcode
+      import_threads_create(vob);
 
-	  // open new output file
-	  if(!no_split) {
-	    if(encoder_open(vob)<0)
-	      tc_error("failed to open output");
-	  }
+      // open new output file
+      if(!no_split) {
+        if(encoder_open(vob)<0)
+          tc_error("failed to open output");
+      }
 
-	  // core
-	  // we try to encode more frames and let the decoder safely
-	  // drain the queue to avoid threads not stopping
+      // core
+      // we try to encode more frames and let the decoder safely
+      // drain the queue to avoid threads not stopping
 
-	  encoder_loop(vob, fa, TC_FRAME_LAST);
+      encoder_loop(vob, fa, TC_FRAME_LAST);
 
-	  // close output file
-	  if(!no_split) {
-	    if(encoder_close()<0)
-	      tc_warn("failed to close encoder - non fatal");
-	  }
+      // close output file
+      if(!no_split) {
+        if(encoder_close()<0)
+          tc_warn("failed to close encoder - non fatal");
+      }
 
-	  //debugging code since PSU mode still alpha code
-	  vframe_fill_print(0);
-	  aframe_fill_print(0);
+      //debugging code since PSU mode still alpha code
+      vframe_fill_print(0);
+      aframe_fill_print(0);
 
-	  // cancel import threads
-	  import_threads_cancel();
+      // cancel import threads
+      import_threads_cancel();
 
-	  // stop decoder and close the source
-	  import_close();
+      // stop decoder and close the source
+      import_close();
 
-	  // flush all buffers before we proceed to next PSU
-	  aframe_flush();
+      // flush all buffers before we proceed to next PSU
+      aframe_flush();
           tc_flush_audio_counters();
-	  vframe_flush();
+      vframe_flush();
           tc_flush_video_counters();
 
-	  vob->psu_offset += (double) (fb-fa);
+      vob->psu_offset += (double) (fb-fa);
 
-	} else {
+    } else {
 
           if (verbose & TC_INFO)
             tc_log_info(PACKAGE, "skipping PSU %d with %d frame(s)",
@@ -2393,16 +2458,16 @@ int main(int argc, char *argv[])
 
         }
 
-	++ch1;
+    ++ch1;
 
-	if (sig_int || sig_tstp) break;
+    if (sig_int || sig_tstp) break;
 
       }//next PSU
 
       // close output
       if(no_split) {
-	if(encoder_close()<0)
-	  tc_warn("failed to close encoder - non fatal");
+    if(encoder_close()<0)
+      tc_warn("failed to close encoder - non fatal");
       }
 
       encoder_stop();
@@ -2427,8 +2492,8 @@ int main(int argc, char *argv[])
       dir_fcnt = 0;
 
       if(tc_dirlist_open(&tcdir, dir_name, 1)<0) {
-	tc_error("unable to open directory \"%s\"", dir_name);
-	exit(1);
+    tc_error("unable to open directory \"%s\"", dir_name);
+    exit(1);
       }
 
       dir_fcnt = tc_dirlist_file_count(&tcdir);
@@ -2442,115 +2507,115 @@ int main(int argc, char *argv[])
 
       // encoder init
       if(encoder_init(vob)<0)
-	tc_error("failed to init encoder");
+    tc_error("failed to init encoder");
 
       // open output
       if(no_split) {
 
-	// create single output filename
-	tc_snprintf(buf, sizeof(buf), "%s.avi", dirbase);
+    // create single output filename
+    tc_snprintf(buf, sizeof(buf), "%s.avi", dirbase);
 
-	// update vob structure
-	if(dir_audio) {
+    // update vob structure
+    if(dir_audio) {
 
-	  switch(vob->ex_a_codec) {
+      switch(vob->ex_a_codec) {
 
-	  case CODEC_MP3:
-	    tc_snprintf(buf, sizeof(buf), "%s-%03d.mp3", dirbase, dir_fcnt);
-	    break;
-	  }
+      case CODEC_MP3:
+        tc_snprintf(buf, sizeof(buf), "%s-%03d.mp3", dirbase, dir_fcnt);
+        break;
+      }
 
-	  vob->audio_out_file = buf;
+      vob->audio_out_file = buf;
 
-	} else {
-	  vob->video_out_file = buf;
-	}
+    } else {
+      vob->video_out_file = buf;
+    }
 
-	if(encoder_open(vob)<0)
-	  tc_error("failed to open output");
+    if(encoder_open(vob)<0)
+      tc_error("failed to open output");
       }
 
       // need to loop with directory content for this option
 
       while((dir_fname=tc_dirlist_scan(&tcdir))!=NULL) {
 
-	// update vob structure
-	if(dir_audio) {
-	  vob->audio_in_file = (char *)dir_fname;
-	} else {
-	  vob->video_in_file = (char *)dir_fname;
-	  vob->audio_in_file = (char *)dir_fname;
-	}
+    // update vob structure
+    if(dir_audio) {
+      vob->audio_in_file = (char *)dir_fname;
+    } else {
+      vob->video_in_file = (char *)dir_fname;
+      vob->audio_in_file = (char *)dir_fname;
+    }
 
-	if(!no_split) {
-	  // create new filename
-	  tc_snprintf(buf, sizeof(buf), "%s-%03d.avi", dirbase, dir_fcnt);
+    if(!no_split) {
+      // create new filename
+      tc_snprintf(buf, sizeof(buf), "%s-%03d.avi", dirbase, dir_fcnt);
 
-	  // update vob structure
-	  if(dir_audio) {
+      // update vob structure
+      if(dir_audio) {
 
-	    switch(vob->ex_a_codec) {
+        switch(vob->ex_a_codec) {
 
-	    case CODEC_MP3:
-	      tc_snprintf(buf, sizeof(buf), "%s-%03d.mp3", dirbase, dir_fcnt);
-	      break;
-	    }
+        case CODEC_MP3:
+          tc_snprintf(buf, sizeof(buf), "%s-%03d.mp3", dirbase, dir_fcnt);
+          break;
+        }
 
-	    vob->audio_out_file = buf;
-	    vob->audio_file_flag = 1;
-	  } else {
-	    vob->video_out_file = buf;
-	  }
-	}
+        vob->audio_out_file = buf;
+        vob->audio_file_flag = 1;
+      } else {
+        vob->video_out_file = buf;
+      }
+    }
 
-	// start new decoding session with updated vob structure
-	if(import_open(vob)<0) tc_error("failed to open input source");
+    // start new decoding session with updated vob structure
+    if(import_open(vob)<0) tc_error("failed to open input source");
 
-	// start the AV import threads that load the frames into transcode
-	import_threads_create(vob);
+    // start the AV import threads that load the frames into transcode
+    import_threads_create(vob);
 
-	// open output
-	if(!no_split) {
-	  if(encoder_open(vob)<0)
-	    tc_error("failed to open output");
-	}
+    // open output
+    if(!no_split) {
+      if(encoder_open(vob)<0)
+        tc_error("failed to open output");
+    }
 
-	// get start interval
-	tstart = vob->ttime;
+    // get start interval
+    tstart = vob->ttime;
 
-	while (tstart) {
+    while (tstart) {
 
-	  // main encoding loop, return when done with all frames
-	  encoder_loop(vob, tstart->stf, tstart->etf);
+      // main encoding loop, return when done with all frames
+      encoder_loop(vob, tstart->stf, tstart->etf);
 
-	  // check for user cancelation request
-	  if (sig_int || sig_tstp) break;
+      // check for user cancelation request
+      if (sig_int || sig_tstp) break;
 
-	  // next range
-	  tstart = tstart->next;
-	}
+      // next range
+      tstart = tstart->next;
+    }
 
-	// close output
-	if(!no_split) {
-	  if(encoder_close()<0)
-	    tc_warn("failed to close encoder - non fatal");
-	}
+    // close output
+    if(!no_split) {
+      if(encoder_close()<0)
+        tc_warn("failed to close encoder - non fatal");
+    }
 
-	// cancel import threads
-	import_threads_cancel();
+    // cancel import threads
+    import_threads_cancel();
 
-	// stop decoder and close the source
-	import_close();
+    // stop decoder and close the source
+    import_close();
 
-	// flush all buffers before we proceed to next file
-	aframe_flush();
+    // flush all buffers before we proceed to next file
+    aframe_flush();
         tc_flush_audio_counters();
         vframe_flush();
         tc_flush_video_counters();
 
-	++dir_fcnt;
+    ++dir_fcnt;
 
-	if (sig_int || sig_tstp) break;
+    if (sig_int || sig_tstp) break;
 
       }//next directory entry
 
@@ -2558,8 +2623,8 @@ int main(int argc, char *argv[])
 
       // close output
       if(no_split) {
-	if(encoder_close()<0)
-	  tc_warn("failed to close encoder - non fatal");
+    if(encoder_close()<0)
+      tc_warn("failed to close encoder - non fatal");
       }
 
       encoder_stop();
@@ -2583,20 +2648,20 @@ int main(int argc, char *argv[])
 
       // encoder init
       if(encoder_init(vob)<0)
-	tc_error("failed to init encoder");
+    tc_error("failed to init encoder");
 
       // open output
       if(no_split) {
 
-	// create new filename
-	tc_snprintf(buf, sizeof(buf), "%s.avi", chbase);
+    // create new filename
+    tc_snprintf(buf, sizeof(buf), "%s.avi", chbase);
 
-	// update vob structure
-	vob->video_out_file = buf;
-	vob->audio_out_file = buf;
+    // update vob structure
+    vob->video_out_file = buf;
+    vob->audio_out_file = buf;
 
-	if(encoder_open(vob)<0)
-	  tc_error("failed to open output");
+    if(encoder_open(vob)<0)
+      tc_error("failed to open output");
       }
 
       // 1 sec delay after decoder closing
@@ -2611,66 +2676,66 @@ int main(int argc, char *argv[])
 
       for(;;) {
 
-	vob->dvd_chapter1 = ch1;
-	vob->dvd_chapter2 =  -1;
+    vob->dvd_chapter1 = ch1;
+    vob->dvd_chapter2 =  -1;
 
-	if(!no_split) {
-	  // create new filename
-	  tc_snprintf(buf, sizeof(buf), "%s-ch%02d.avi", chbase, ch1);
+    if(!no_split) {
+      // create new filename
+      tc_snprintf(buf, sizeof(buf), "%s-ch%02d.avi", chbase, ch1);
 
-	  // update vob structure
-	  vob->video_out_file = buf;
-	  vob->audio_out_file = buf;
-	}
+      // update vob structure
+      vob->video_out_file = buf;
+      vob->audio_out_file = buf;
+    }
 
-	// start decoding with updated vob structure
-	if(import_open(vob)<0) tc_error("failed to open input source");
+    // start decoding with updated vob structure
+    if(import_open(vob)<0) tc_error("failed to open input source");
 
-	// start the AV import threads that load the frames into transcode
-	import_threads_create(vob);
+    // start the AV import threads that load the frames into transcode
+    import_threads_create(vob);
 
-	if(verbose & TC_DEBUG)
-	  tc_log_msg(PACKAGE, "%d chapters for title %d detected",
+    if(verbose & TC_DEBUG)
+      tc_log_msg(PACKAGE, "%d chapters for title %d detected",
                      vob->dvd_max_chapters, vob->dvd_title);
 
 
-	// encode
-	if(!no_split) {
-	  if(encoder_open(vob)<0)
-	    tc_error("failed to init encoder");
-	}
+    // encode
+    if(!no_split) {
+      if(encoder_open(vob)<0)
+        tc_error("failed to init encoder");
+    }
 
-	// main encoding loop, selecting an interval won't work
-	encoder_loop(vob, frame_a, frame_b);
+    // main encoding loop, selecting an interval won't work
+    encoder_loop(vob, frame_a, frame_b);
 
-	if(!no_split) {
-	  if(encoder_close()<0)
-	    tc_warn("failed to close encoder - non fatal");
-	}
+    if(!no_split) {
+      if(encoder_close()<0)
+        tc_warn("failed to close encoder - non fatal");
+    }
 
-	// cancel import threads
-	import_threads_cancel();
+    // cancel import threads
+    import_threads_cancel();
 
-	// stop decoder and close the source
-	import_close();
+    // stop decoder and close the source
+    import_close();
 
-	// flush all buffers before we proceed
-	aframe_flush();
+    // flush all buffers before we proceed
+    aframe_flush();
         tc_flush_audio_counters();
-	vframe_flush();
+    vframe_flush();
         tc_flush_video_counters();
 
-	//exit, i) if import module could not determine max_chapters
-	//      ii) all chapters are done
-	//      iii) someone hit ^C
+    //exit, i) if import module could not determine max_chapters
+    //      ii) all chapters are done
+    //      iii) someone hit ^C
 
-	if(vob->dvd_max_chapters==-1 || ch1==vob->dvd_max_chapters || sig_int || sig_tstp || ch1 == ch2) break;
-	ch1++;
+    if(vob->dvd_max_chapters==-1 || ch1==vob->dvd_max_chapters || sig_int || sig_tstp || ch1 == ch2) break;
+    ch1++;
       }
 
       if(no_split) {
-	if(encoder_close()<0)
-	  tc_warn("failed to close encoder - non fatal");
+    if(encoder_close()<0)
+      tc_warn("failed to close encoder - non fatal");
       }
 
       encoder_stop();
@@ -2719,11 +2784,11 @@ int main(int argc, char *argv[])
     if (thread_signal) {
       if(verbose & TC_DEBUG) { fprintf(stderr, " cancel signal |");fflush(stderr); }
       if (thread_signal) {
-	pthread_cancel(thread_signal);
+    pthread_cancel(thread_signal);
         pthread_kill(thread_signal,SIGINT);
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
 #endif
-	pthread_join(thread_signal, &thread_status);
+    pthread_join(thread_signal, &thread_status);
       }
       thread_signal=(pthread_t)0;
     }
