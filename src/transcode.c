@@ -226,7 +226,8 @@ static void signal_thread(void)
 static void safe_exit(void)
 {
     if (thread_signal) {
-        void *thread_status;
+        void *thread_status = NULL;
+
         pthread_cancel(thread_signal);
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
         pthread_kill(thread_signal, SIGINT);
@@ -341,7 +342,7 @@ static int transcoder(int mode, vob_t *vob)
 
 static vob_t *new_vob(void)
 {
-    vob_t *vob = malloc(sizeof(vob_t));
+    vob_t *vob = tc_malloc(sizeof(vob_t));
     if (!vob)
         return NULL;
 
@@ -544,9 +545,8 @@ int main(int argc, char *argv[])
 {
     int ch1, ch2, fa, fb;
 
-    char
-      buf[TC_BUF_MAX],
-      *psubase=NULL;
+    char buf[TC_BUF_MAX];
+    char *psubase=NULL;
 
 #if 0
     const char *dir_name, *dir_fname;
@@ -557,7 +557,7 @@ int main(int argc, char *argv[])
     int leap_bytes1, leap_bytes2;
     int max_frame_buffer = TC_FRAME_BUFFER; 
 
-    void *thread_status;
+    void *thread_status = NULL;
 
     struct fc_time *tstart = NULL;
 
