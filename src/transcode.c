@@ -1779,154 +1779,188 @@ int main(int argc, char *argv[])
 
     // -f
 
-    if(verbose & TC_INFO)
-      tc_log_info(PACKAGE, "V: %-16s | %.3f,%d", "decoding fps,frc", vob->fps, vob->im_frc);
+    if (verbose & TC_INFO)
+        tc_log_info(PACKAGE, "V: %-16s | %.3f,%d",
+                    "decoding fps,frc",
+                    vob->fps, vob->im_frc);
 
     // -R
-
-    if(vob->divxmultipass && verbose & TC_INFO) {
-
-      switch(vob->divxmultipass) {
-
-      case 1:
-    tc_log_info(PACKAGE, "V: %-16s | (mode=%d) %s %s", "multi-pass", vob->divxmultipass, "writing data (pass 1) to", vob->divxlogfile);
-    break;
-
-      case 2:
-    tc_log_info(PACKAGE, "V: %-16s | (mode=%d) %s %s", "multi-pass", vob->divxmultipass, "reading data (pass2) from", vob->divxlogfile);
-    break;
-
-      case 3:
-    if(vob->divxbitrate > VMAXQUANTIZER) vob->divxbitrate = VQUANTIZER;
-    tc_log_info(PACKAGE, "V: %-16s | (mode=%d) %s (quant=%d)", "single-pass", vob->divxmultipass, "constant quantizer/quality", vob->divxbitrate);
-    break;
-      }
+    if (vob->divxmultipass && verbose & TC_INFO) {
+        switch (vob->divxmultipass) {
+          case 1:
+            tc_log_info(PACKAGE,
+                        "V: %-16s | (mode=%d) %s %s",
+                        "multi-pass",
+                        vob->divxmultipass,
+                        "writing data (pass 1) to",
+                        vob->divxlogfile);
+            break;
+          case 2:
+            tc_log_info(PACKAGE,
+                        "V: %-16s | (mode=%d) %s %s",
+                        "multi-pass",
+                        vob->divxmultipass,
+                        "reading data (pass2) from",
+                        vob->divxlogfile);
+            break;
+          case 3:
+            if (vob->divxbitrate > VMAXQUANTIZER)
+                vob->divxbitrate = VQUANTIZER;
+            tc_log_info(PACKAGE,
+                        "V: %-16s | (mode=%d) %s (quant=%d)",
+                        "single-pass",
+                        vob->divxmultipass,
+                        "constant quantizer/quality",
+                        vob->divxbitrate);
+            break;
+        }
     }
 
-
     // export frame size final check
-
-    if(vob->ex_v_height < 0 || vob->ex_v_width < 0) {
-      tc_warn("invalid export frame combination %dx%d", vob->ex_v_width, vob->ex_v_height);
-      tc_error("invalid frame processing requested");
+    if (vob->ex_v_height < 0 || vob->ex_v_width < 0) {
+        tc_warn("invalid export frame combination %dx%d", vob->ex_v_width, vob->ex_v_height);
+        tc_error("invalid frame processing requested");
     }
 
     // -V
-
-    if(vob->im_v_codec==CODEC_YUV) {
-      vob->ex_v_size = (3*vob->ex_v_height * vob->ex_v_width)>>1;
-      vob->im_v_size = (3*vob->im_v_height * vob->im_v_width)>>1;
-      if(verbose & TC_INFO) tc_log_info(PACKAGE, "V: %-16s | YUV420 (4:2:0) aka I420", "video format");
-    } else if (vob->im_v_codec==CODEC_YUV422) {
-      vob->ex_v_size = (2*vob->ex_v_height * vob->ex_v_width);
-      vob->im_v_size = (2*vob->im_v_height * vob->im_v_width);
-      if(verbose & TC_INFO) tc_log_info(PACKAGE, "V: %-16s | YUV422 (4:2:2)", "video format");
+    if (vob->im_v_codec == CODEC_YUV) {
+        vob->ex_v_size = (3*vob->ex_v_height * vob->ex_v_width)>>1;
+        vob->im_v_size = (3*vob->im_v_height * vob->im_v_width)>>1;
+        if (verbose & TC_INFO)
+            tc_log_info(PACKAGE,
+                        "V: %-16s | YUV420 (4:2:0) aka I420",
+                        "video format");
+    } else if (vob->im_v_codec == CODEC_YUV422) {
+        vob->ex_v_size = (2*vob->ex_v_height * vob->ex_v_width);
+        vob->im_v_size = (2*vob->im_v_height * vob->im_v_width);
+        if (verbose & TC_INFO)
+            tc_log_info(PACKAGE,
+                        "V: %-16s | YUV422 (4:2:2)",
+                        "video format");
     } else {
-      vob->ex_v_size = vob->ex_v_height * vob->ex_v_width * BPP/8;
-      if(verbose & TC_INFO) tc_log_info(PACKAGE, "V: %-16s | RGB24", "video format");
+        vob->ex_v_size = vob->ex_v_height * vob->ex_v_width * BPP/8;
+        if (verbose & TC_INFO)
+            tc_log_info(PACKAGE,
+                        "V: %-16s | RGB24",
+                        "video format");
     }
 
     // -p
-
     // video/audio from same source?
-    if(audio_in_file==NULL) vob->audio_in_file=vob->video_in_file;
+    if (audio_in_file == NULL)
+        vob->audio_in_file = vob->video_in_file;
 
     // -m
-
     // different audio/video output files not yet supported
-    if(audio_out_file==NULL) vob->audio_out_file=vob->video_out_file;
+    if (audio_out_file == NULL)
+        vob->audio_out_file = vob->video_out_file;
 
     // -n
-
-    if(no_ain_codec==1 && vob->has_audio==0 &&
-       vob->a_codec_flag==CODEC_AC3) {
-
-      if (vob->amod_probed==NULL || strcmp(vob->amod_probed,"null")==0) {
-
-    if(verbose & TC_DEBUG)
-          tc_log_warn(PACKAGE, "problems detecting audio format - using 'null' module");
-    vob->a_codec_flag=0;
-      }
+    if (no_ain_codec == 1 && vob->has_audio == 0
+     && vob->a_codec_flag == CODEC_AC3) {
+        if (vob->amod_probed == NULL || strcmp(vob->amod_probed,"null") == 0) {
+            if (verbose & TC_DEBUG)
+                tc_log_warn(PACKAGE,
+                            "problems detecting audio format - using 'null' module");
+            vob->a_codec_flag = 0;
+        }
     }
 
-    if(preset_flag & TC_PROBE_NO_TRACK) {
-      //tracks specified by user
+    if (preset_flag & TC_PROBE_NO_TRACK) {
+        //tracks specified by user
     } else {
-
-      if(!vob->has_audio_track && vob->has_audio) {
-    tc_warn("requested audio track %d not found - using 'null' module", vob->a_track);
-    vob->a_codec_flag=0;
-      }
+        if (!vob->has_audio_track && vob->has_audio) {
+            tc_warn("requested audio track %d not found - using 'null' module", vob->a_track);
+            vob->a_codec_flag = 0;
+        }
     }
 
     //audio import disabled
-
-    if(vob->a_codec_flag==0) {
-      if(verbose & TC_INFO) tc_log_info(PACKAGE, "A: %-16s | disabled", "import");
-      im_aud_mod="null";
+    if (vob->a_codec_flag == 0) {
+        if (verbose & TC_INFO)
+            tc_log_info(PACKAGE, "A: %-16s | disabled", "import");
+        im_aud_mod = "null";
     } else {
-      //audio format, if probed sucessfully
-      if(verbose & TC_INFO) {
-    if (vob->a_stream_bitrate)
-      tc_log_info(PACKAGE, "A: %-16s | 0x%-5lx %-12s [%4d,%2d,%1d] %4d kbps", "import format", vob->a_codec_flag, aformat2str(vob->a_codec_flag), vob->a_rate, vob->a_bits, vob->a_chan, vob->a_stream_bitrate);
-    else
-      tc_log_info(PACKAGE, "A: %-16s | 0x%-5lx %-12s [%4d,%2d,%1d]", "import format", vob->a_codec_flag, aformat2str(vob->a_codec_flag), vob->a_rate, vob->a_bits, vob->a_chan);
-      }
+        //audio format, if probed sucessfully
+        if (verbose & TC_INFO) {
+            if (vob->a_stream_bitrate)
+                tc_log_info(PACKAGE,
+                            "A: %-16s | 0x%-5lx %-12s [%4d,%2d,%1d] %4d kbps",
+                            "import format",
+                            vob->a_codec_flag, aformat2str(vob->a_codec_flag),
+                            vob->a_rate, vob->a_bits, vob->a_chan,
+                            vob->a_stream_bitrate);
+            else
+                tc_log_info(PACKAGE,
+                            "A: %-16s | 0x%-5lx %-12s [%4d,%2d,%1d]",
+                            "import format",
+                            vob->a_codec_flag, aformat2str(vob->a_codec_flag),
+                            vob->a_rate, vob->a_bits, vob->a_chan);
+        }
     }
 
-    if(vob->im_a_codec==CODEC_PCM && vob->a_chan > 2 && !(vob->pass_flag & TC_AUDIO)) {
-      // Input is more than 2 channels (i.e. 5.1 AC3) but PCM internal
-      // representation can't handle that, adjust the channel count to reflect
-      // what modules will actually have presented to them.
-
-      if(verbose & TC_INFO)
-    tc_log_info(PACKAGE, "A: %-16s | %d channels -> %d channels", "downmix", vob->a_chan, 2);
-      vob->a_chan = 2;
+    if (vob->im_a_codec == CODEC_PCM && vob->a_chan > 2 && !(vob->pass_flag & TC_AUDIO)) {
+        // Input is more than 2 channels (i.e. 5.1 AC3) but PCM internal
+        // representation can't handle that, adjust the channel count to reflect
+        // what modules will actually have presented to them.
+        if (verbose & TC_INFO)
+            tc_log_info(PACKAGE,
+                        "A: %-16s | %d channels -> %d channels",
+                        "downmix", vob->a_chan, 2);
+        vob->a_chan = 2;
     }
 
-    if(vob->ex_a_codec==0 || vob->a_codec_flag==0 || ex_aud_mod == NULL || strcmp(ex_aud_mod, "null")==0) {
-      if(verbose & TC_INFO) tc_log_info(PACKAGE, "A: %-16s | disabled", "export");
-      ex_aud_mod="null";
+    if (vob->ex_a_codec == 0 || vob->a_codec_flag == 0
+     || ex_aud_mod == NULL || strcmp(ex_aud_mod, "null") == 0) {
+        if (verbose & TC_INFO)
+            tc_log_info(PACKAGE, "A: %-16s | disabled", "export");
+        ex_aud_mod = "null";
     } else {
+        // audio format
+        if (ex_aud_mod && strlen(ex_aud_mod) != 0) {
+            if (strcmp(ex_aud_mod, "mpeg") == 0)
+                vob->ex_a_codec = CODEC_MP2;
+            if (strcmp(ex_aud_mod, "mp2enc") == 0)
+                vob->ex_a_codec = CODEC_MP2;
+            if (strcmp(ex_aud_mod, "mp1e") == 0)
+                vob->ex_a_codec=CODEC_MP2;
+        }
 
-      //audio format
+        // calc export bitrate
+        switch (vob->ex_a_codec) {
+          case 0x1: // PCM
+            vob->mp3bitrate = ((vob->mp3frequency > 0) ?vob->mp3frequency :vob->a_rate) *
+                               ((vob->dm_bits > 0) ?vob->dm_bits :vob->a_bits) *
+                                ((vob->dm_chan > 0) ?vob->dm_chan :vob->a_chan) / 1000;
+            break;
+          case 0x2000: // PCM
+            if (vob->im_a_codec == CODEC_AC3) {
+                vob->mp3bitrate = vob->a_stream_bitrate;
+            }
+            break;
+        }
 
-      if(ex_aud_mod && strlen(ex_aud_mod) != 0) {
-    if (strcmp(ex_aud_mod, "mpeg")==0) vob->ex_a_codec=CODEC_MP2;
-    if (strcmp(ex_aud_mod, "mp2enc")==0) vob->ex_a_codec=CODEC_MP2;
-    if (strcmp(ex_aud_mod, "mp1e")==0) vob->ex_a_codec=CODEC_MP2;
-      }
-
-      // calc export bitrate
-      switch (vob->ex_a_codec) {
-      case 0x1: // PCM
-    vob->mp3bitrate = ((vob->mp3frequency>0)? vob->mp3frequency:vob->a_rate) *
-                      ((vob->dm_bits>0)?vob->dm_bits:vob->a_bits) *
-              ((vob->dm_chan>0)?vob->dm_chan:vob->a_chan) / 1000;
-    break;
-      case 0x2000: // PCM
-    if (vob->im_a_codec == CODEC_AC3) {
-      vob->mp3bitrate = vob->a_stream_bitrate;
-    }
-    break;
-      }
-
-      if(verbose & TC_INFO) {
-    if(vob->pass_flag & TC_AUDIO)
-      tc_log_info(PACKAGE, "A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps",
-                 "export format", vob->im_a_codec, aformat2str(vob->im_a_codec),
-         vob->a_rate, vob->a_bits, vob->a_chan, vob->a_stream_bitrate);
-    else
-      tc_log_info(PACKAGE, "A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps",
-                 "export format", vob->ex_a_codec, aformat2str(vob->ex_a_codec),
-         ((vob->mp3frequency>0)? vob->mp3frequency:vob->a_rate),
-         ((vob->dm_bits>0)?vob->dm_bits:vob->a_bits),
-         ((vob->dm_chan>0)?vob->dm_chan:vob->a_chan),
-         vob->mp3bitrate);
-        tc_log_info(PACKAGE, "V: %-16s | %s%s", "export format",
-               tc_codec_to_string(vob->ex_v_codec),
-               (vob->ex_v_codec == 0) ?" (module dependant)" :"");
-      }
+        if (verbose & TC_INFO) {
+            if (vob->pass_flag & TC_AUDIO)
+                tc_log_info(PACKAGE,
+                            "A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps",
+                            "export format",
+                            vob->im_a_codec, aformat2str(vob->im_a_codec),
+                            vob->a_rate, vob->a_bits, vob->a_chan,
+                            vob->a_stream_bitrate);
+            else
+                tc_log_info(PACKAGE,
+                            "A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps",
+                            "export format",
+                            vob->ex_a_codec, aformat2str(vob->ex_a_codec),
+                             ((vob->mp3frequency > 0) ?vob->mp3frequency :vob->a_rate),
+                             ((vob->dm_bits > 0) ?vob->dm_bits :vob->a_bits),
+                             ((vob->dm_chan > 0) ?vob->dm_chan :vob->a_chan),
+                            vob->mp3bitrate);
+            tc_log_info(PACKAGE, "V: %-16s | %s%s", "export format",
+                        tc_codec_to_string(vob->ex_v_codec),
+                        (vob->ex_v_codec == 0) ?" (module dependant)" :"");
+        }
     }
 
     // Do not run out of audio-data
@@ -1934,46 +1968,55 @@ int main(int argc, char *argv[])
     // (previous versions always returned "2"). This breakes transcode
     // when doing -A --tibit
     if (vob->im_a_codec == CODEC_AC3)
-      vob->a_chan = vob->a_chan>2?2:vob->a_chan;
+        vob->a_chan = vob->a_chan > 2 ?2 :vob->a_chan;
 
     // -f and --export_fps/export_frc
     //
     // set import/export frc/fps
     if (vob->im_frc == 0)
-      tc_frc_code_from_value(&vob->im_frc, vob->fps);
+        tc_frc_code_from_value(&vob->im_frc, vob->fps);
 
     // ex_fps given, but not ex_frc
     if (vob->ex_frc == 0 && (vob->ex_fps != 0.0))
-      tc_frc_code_from_value(&vob->ex_frc, vob->ex_fps);
+        tc_frc_code_from_value(&vob->ex_frc, vob->ex_fps);
 
     if (vob->ex_frc == 0 && vob->im_frc != 0)
-      vob->ex_frc = vob->im_frc;
+        vob->ex_frc = vob->im_frc;
 
     // ex_frc always overwrites ex_fps
-    if (vob->ex_frc > 0) {
-      tc_frc_code_to_value(vob->ex_frc, &vob->ex_fps);
-    }
+    if (vob->ex_frc > 0)
+        tc_frc_code_to_value(vob->ex_frc, &vob->ex_fps);
 
     if (vob->im_frc <= 0 && vob->ex_frc <= 0 && vob->ex_fps == 0)
-      vob->ex_fps = vob->fps;
+        vob->ex_fps = vob->fps;
 
-    if (vob->im_frc == -1) vob->im_frc = 0;
-    if (vob->ex_frc == -1) vob->ex_frc = 0;
+    if (vob->im_frc == -1)
+        vob->im_frc = 0;
+    if (vob->ex_frc == -1)
+        vob->ex_frc = 0;
 
     // --export_fps
 
     if(verbose & TC_INFO)
-      tc_log_info(PACKAGE, "V: %-16s | %.3f,%d", "encoding fps,frc", vob->ex_fps, vob->ex_frc);
+        tc_log_info(PACKAGE,
+                    "V: %-16s | %.3f,%d",
+                    "encoding fps,frc",
+                    vob->ex_fps, vob->ex_frc);
 
 
     // --a52_demux
 
-    if((vob->a52_mode & TC_A52_DEMUX) && (verbose & TC_INFO))
-      tc_log_info(PACKAGE, "A: %-16s | %s", "A52 demuxing", "(yes) 3 front, 2 rear, 1 LFE (5.1)");
+    if ((vob->a52_mode & TC_A52_DEMUX) && (verbose & TC_INFO))
+        tc_log_info(PACKAGE,
+                    "A: %-16s | %s", "A52 demuxing",
+                    "(yes) 3 front, 2 rear, 1 LFE (5.1)");
 
     //audio language, if probed sucessfully
     if(vob->lang_code > 0 && (verbose & TC_INFO))
-      tc_log_info(PACKAGE, "A: %-16s | %c%c", "language", vob->lang_code>>8, vob->lang_code & 0xff);
+        tc_log_info(PACKAGE,
+                    "A: %-16s | %c%c",
+                    "language",
+                    vob->lang_code >> 8, vob->lang_code & 0xff);
 
     // recalculate audio bytes per frame since video frames per second
     // may have changed
@@ -1983,142 +2026,162 @@ int main(int argc, char *argv[])
 
     // bytes per audio frame
     vob->im_a_size = (int)(fch * (vob->a_bits/8) * vob->a_chan);
-    vob->im_a_size =  (vob->im_a_size>>2)<<2;
+    vob->im_a_size =  (vob->im_a_size >> 2) << 2;
 
     // rest:
     fch *= (vob->a_bits/8) * vob->a_chan;
 
     leap_bytes1 = TC_LEAP_FRAME * (fch - vob->im_a_size);
     leap_bytes2 = - leap_bytes1 + TC_LEAP_FRAME * (vob->a_bits/8) * vob->a_chan;
-    leap_bytes1 = (leap_bytes1 >>2)<<2;
-    leap_bytes2 = (leap_bytes2 >>2)<<2;
+    leap_bytes1 = (leap_bytes1 >> 2) << 2;
+    leap_bytes2 = (leap_bytes2 >> 2) << 2;
 
     if(leap_bytes1<leap_bytes2) {
-    vob->a_leap_bytes = leap_bytes1;
+        vob->a_leap_bytes = leap_bytes1;
     } else {
-    vob->a_leap_bytes = -leap_bytes2;
-    vob->im_a_size += (vob->a_bits/8) * vob->a_chan;
+        vob->a_leap_bytes = -leap_bytes2;
+        vob->im_a_size += (vob->a_bits/8) * vob->a_chan;
     }
 
     // final size in bytes
     vob->ex_a_size = vob->im_a_size;
 
-    if(verbose & TC_INFO) tc_log_info(PACKAGE, "A: %-16s | %d (%.6f)", "bytes per frame", vob->im_a_size, fch);
+    if (verbose & TC_INFO)
+        tc_log_info(PACKAGE,
+                    "A: %-16s | %d (%.6f)",
+                    "bytes per frame", vob->im_a_size, fch);
 
     if(no_audio_adjust) {
-      vob->a_leap_bytes=0;
+        vob->a_leap_bytes=0;
 
-      if(verbose & TC_INFO) tc_log_info(PACKAGE, "A: %-16s | disabled", "adjustment");
+        if (verbose & TC_INFO)
+            tc_log_info(PACKAGE, "A: %-16s | disabled", "adjustment");
 
     } else
-      if(verbose & TC_INFO) tc_log_info(PACKAGE, "A: %-16s | %d@%d", "adjustment", vob->a_leap_bytes, vob->a_leap_frame);
+        if (verbose & TC_INFO)
+            tc_log_info(PACKAGE,
+                        "A: %-16s | %d@%d", "adjustment",
+                        vob->a_leap_bytes, vob->a_leap_frame);
 
     // -s
 
-    if(vob->volume > 0 && vob->a_chan != 2) {
-      //tc_error("option -s not yet implemented for mono streams");
+    if (vob->volume > 0 && vob->a_chan != 2) {
+        //tc_error("option -s not yet implemented for mono streams");
     }
 
-    if(vob->volume > 0 && (verbose & TC_INFO)) tc_log_info(PACKAGE, "A: %-16s | %5.3f", "rescale stream", vob->volume);
+    if (vob->volume > 0 && (verbose & TC_INFO))
+        tc_log_info(PACKAGE,
+                    "A: %-16s | %5.3f",
+                    "rescale stream", vob->volume);
 
     // -D
-
-    if(vob->sync_ms >= (int) (1000.0/vob->ex_fps)
-       || vob->sync_ms <= - (int) (1000.0/vob->ex_fps)) {
-      vob->sync     = (int) (vob->sync_ms/1000.0*vob->ex_fps);
-      vob->sync_ms -= vob->sync * (int) (1000.0/vob->ex_fps);
+    if (vob->sync_ms >= (int) (1000.0/vob->ex_fps)
+      || vob->sync_ms <= - (int) (1000.0/vob->ex_fps)) {
+        vob->sync     = (int) (vob->sync_ms/1000.0*vob->ex_fps);
+        vob->sync_ms -= vob->sync * (int) (1000.0/vob->ex_fps);
     }
 
-    if((vob->sync || vob->sync_ms) &&(verbose & TC_INFO)) tc_log_info(PACKAGE, "A: %-16s | %d ms [ %d (A) | %d ms ]", "AV shift", vob->sync * (int) (1000.0/vob->ex_fps) + vob->sync_ms, vob->sync, vob->sync_ms);
+    if ((vob->sync || vob->sync_ms) && (verbose & TC_INFO))
+        tc_log_info(PACKAGE,
+                    "A: %-16s | %d ms [ %d (A) | %d ms ]",
+                    "AV shift",
+                    vob->sync * (int) (1000.0/vob->ex_fps) + vob->sync_ms,
+                    vob->sync, vob->sync_ms);
 
     // -d
-
-    if(pcmswap) if(verbose & TC_INFO) tc_log_info(PACKAGE, "A: %-16s | yes", "swap bytes");
+    if (pcmswap)
+        if (verbose & TC_INFO)
+            tc_log_info(PACKAGE, "A: %-16s | yes", "swap bytes");
 
     // -E
 
     //set export parameter to input parameter, if no re-sampling is requested
-    if(vob->dm_chan==0) vob->dm_chan=vob->a_chan;
-    if(vob->dm_bits==0) vob->dm_bits=vob->a_bits;
+    if (vob->dm_chan == 0)
+        vob->dm_chan = vob->a_chan;
+    if (vob->dm_bits == 0)
+        vob->dm_bits = vob->a_bits;
 
     // -P
+    if (vob->pass_flag & TC_AUDIO) {
+        vob->im_a_codec = CODEC_RAW;
+        vob->ex_a_codec = CODEC_RAW;
+        //suggestion:
+        if (no_a_out_codec)
+            ex_aud_mod = "raw";
+        no_a_out_codec = 0;
 
-    if(vob->pass_flag & TC_AUDIO) {
-      vob->im_a_codec=CODEC_RAW;
-      vob->ex_a_codec=CODEC_RAW;
-      //suggestion:
-      if(no_a_out_codec) ex_aud_mod="raw";
-      no_a_out_codec=0;
-
-      if(verbose & TC_INFO) tc_log_info(PACKAGE, "A: %-16s | yes", "pass-through");
+        if (verbose & TC_INFO)
+            tc_log_info(PACKAGE, "A: %-16s | yes", "pass-through");
     }
 
     // -m
-
     // different audio/video output files need two export modules
-    if(no_a_out_codec==0 && vob->audio_out_file==NULL &&strcmp(ex_vid_mod,ex_aud_mod) !=0) tc_error("different audio/export modules require use of option -m");
+    if (no_a_out_codec == 0 && vob->audio_out_file == NULL
+     && strcmp(ex_vid_mod, ex_aud_mod) !=0)
+        tc_error("different audio/export modules require use of option -m");
 
 
     // --accel
-
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
-    if(verbose & TC_INFO) tc_log_info(PACKAGE, "V: IA32/AMD64 accel | %s ", ac_flagstotext(tc_accel & ac_cpuinfo()));
+    if (verbose & TC_INFO)
+        tc_log_info(PACKAGE, "V: IA32/AMD64 accel | %s ",
+                    ac_flagstotext(tc_accel & ac_cpuinfo()));
 #endif
 
     ac_init(tc_accel);
 
     // more checks with warnings
 
-    if(verbose & TC_INFO) {
+    if (verbose & TC_INFO) {
+        // -i
+        if (video_in_file == NULL)
+            tc_warn("no option -i found, reading from \"%s\"",
+                    vob->video_in_file);
 
-      // -i
+        // -o
+        if (video_out_file == NULL && audio_out_file == NULL
+         && core_mode == TC_MODE_DEFAULT)
+            tc_warn("no option -o found, encoded frames send to \"%s\"",
+                    vob->video_out_file);
 
-      if(video_in_file==NULL) tc_warn("no option -i found, reading from \"%s\"", vob->video_in_file);
+        // -y
+        if (core_mode == TC_MODE_DEFAULT
+         && video_out_file != NULL && no_v_out_codec)
+            tc_warn("no option -y found, option -o ignored, writing to \"/dev/null\"");
 
-      // -o
+        if (core_mode == TC_MODE_AVI_SPLIT && no_v_out_codec)
+            tc_warn("no option -y found, option -t ignored, writing to \"/dev/null\"");
 
-      if(video_out_file == NULL && audio_out_file == NULL && core_mode == TC_MODE_DEFAULT)
-    tc_warn("no option -o found, encoded frames send to \"%s\"", vob->video_out_file);
+        if (vob->im_v_codec == CODEC_YUV
+         && (vob->im_clip_left % 2 != 0 || vob->im_clip_right % 2
+         || vob->im_clip_top % 2 != 0 || vob->im_clip_bottom % 2 != 0))
+            tc_warn ("Odd import clipping paramter(s) detected, may cause distortion");
 
-      // -y
-
-      if(core_mode == TC_MODE_DEFAULT && video_out_file != NULL && no_v_out_codec)
-    tc_warn("no option -y found, option -o ignored, writing to \"/dev/null\"");
-
-      if(core_mode == TC_MODE_AVI_SPLIT && no_v_out_codec)
-    tc_warn("no option -y found, option -t ignored, writing to \"/dev/null\"");
-
-      if( vob->im_v_codec==CODEC_YUV && (vob->im_clip_left%2!=0 ||
-        vob->im_clip_right%2 || vob->im_clip_top%2!=0 || vob->im_clip_bottom%2!=0))
-    tc_warn ("Odd import clipping paramter(s) detected, may cause distortion");
-
-      if( vob->im_v_codec==CODEC_YUV && (vob->ex_clip_left%2!=0 ||
-        vob->ex_clip_right%2 || vob->ex_clip_top%2!=0 || vob->ex_clip_bottom%2!=0))
-    tc_warn ("Odd export clipping paramter(s) detected, may cause distortion");
-
-
+        if (vob->im_v_codec == CODEC_YUV
+         && (vob->ex_clip_left % 2 != 0 || vob->ex_clip_right % 2
+         || vob->ex_clip_top % 2 != 0 || vob->ex_clip_bottom % 2 != 0))
+            tc_warn ("Odd export clipping paramter(s) detected, may cause distortion");
     }
 
     // -u
+    if (tc_buffer_delay_dec == -1) //adjust core parameter
+        tc_buffer_delay_dec = (vob->pass_flag & TC_VIDEO || ex_vid_mod==NULL || strcmp(ex_vid_mod, "null") == 0)
+                                ?TC_DELAY_MIN :TC_DELAY_MAX;
 
-    if(tc_buffer_delay_dec==-1) //adjust core parameter
-      tc_buffer_delay_dec = (vob->pass_flag & TC_VIDEO || ex_vid_mod==NULL || strcmp(ex_vid_mod, "null")==0) ? TC_DELAY_MIN:TC_DELAY_MAX;
+    if (tc_buffer_delay_enc == -1) //adjust core parameter
+        tc_buffer_delay_enc = (vob->pass_flag & TC_VIDEO || ex_vid_mod==NULL || strcmp(ex_vid_mod, "null") == 0)
+                                ?TC_DELAY_MIN :TC_DELAY_MAX;
 
-    if(tc_buffer_delay_enc==-1) //adjust core parameter
-      tc_buffer_delay_enc = (vob->pass_flag & TC_VIDEO || ex_vid_mod==NULL || strcmp(ex_vid_mod, "null")==0) ? TC_DELAY_MIN:TC_DELAY_MAX;
-
-    if(verbose & TC_DEBUG)
+    if (verbose & TC_DEBUG)
         tc_log_msg(PACKAGE, "encoder delay = decode=%d encode=%d usec",
                    tc_buffer_delay_dec, tc_buffer_delay_enc);
 
-    if (socket_file) {
-      if (!tc_socket_init(socket_file))
-    tc_error("failed to initialize socket handler");
-    }
+    if (socket_file)
+        if (!tc_socket_init(socket_file))
+            tc_error("failed to initialize socket handler");
 
-
-    if(core_mode == TC_MODE_AVI_SPLIT && !strlen(base) && !video_out_file)
-      tc_error("no option -o found, no base for -t given, so what?");
+    if (core_mode == TC_MODE_AVI_SPLIT && !strlen(base) && !video_out_file)
+        tc_error("no option -o found, no base for -t given, so what?");
 
     /* -------------------------------------------------------------
      *
@@ -2127,9 +2190,8 @@ int main(int argc, char *argv[])
      * ------------------------------------------------------------- */
 
     //this will speed up in pass-through mode
-    if(vob->pass_flag && !(preset_flag & TC_PROBE_NO_BUFFER)) {
+    if(vob->pass_flag && !(preset_flag & TC_PROBE_NO_BUFFER))
         max_frame_buffer = 50;
-    }
 
     if (vob->fps >= vob->ex_fps) {
         /* worst case -> lesser fps (more audio samples for second) */
@@ -2148,22 +2210,22 @@ int main(int argc, char *argv[])
 
     tc_ring_framebuffer_set_specs(&specs);
 
-    if(verbose & TC_INFO) {
-      tc_log_info(PACKAGE, "V: video buffer     | %i @ %ix%i [0x%x]",
-             max_frame_buffer, specs.width, specs.height, specs.format);
-      tc_log_info(PACKAGE, "A: audio buffer     | %i @ %ix%ix%i",
-             max_frame_buffer, specs.rate, specs.channels, specs.bits);
+    if (verbose & TC_INFO) {
+        tc_log_info(PACKAGE, "V: video buffer     | %i @ %ix%i [0x%x]",
+                    max_frame_buffer, specs.width, specs.height, specs.format);
+        tc_log_info(PACKAGE, "A: audio buffer     | %i @ %ix%ix%i",
+                    max_frame_buffer, specs.rate, specs.channels, specs.bits);
     }
 
 #ifdef STATBUFFER
     // allocate buffer
-    if(verbose & TC_DEBUG)
+    if (verbose & TC_DEBUG)
         tc_log_msg(PACKAGE, "allocating %d framebuffers (static)",
                    max_frame_buffer);
 
-    if(vframe_alloc(max_frame_buffer) < 0)
+    if (vframe_alloc(max_frame_buffer) < 0)
         tc_error("static framebuffer allocation failed");
-    if(aframe_alloc(max_frame_buffer) < 0)
+    if (aframe_alloc(max_frame_buffer) < 0)
         tc_error("static framebuffer allocation failed");
 
 #else
@@ -2173,7 +2235,8 @@ int main(int argc, char *argv[])
 #endif
 
     // load import/export modules and filters plugins
-    if(transcoder(TC_ON, vob)<0) tc_error("plug-in initialization failed");
+    if (transcoder(TC_ON, vob) < 0)
+        tc_error("plug-in initialization failed");
 
     // start frame processing threads
     frame_threads_init(vob, max_frame_threads, max_frame_threads);
