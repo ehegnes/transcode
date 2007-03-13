@@ -431,7 +431,7 @@ aframe_list_t *aframe_dup(aframe_list_t *f);
 
 /*
  * vframe_retrieve_status, aframe_retrieve_status: (thread safe)
- *      scan the claimed (!FRAME_NULL) respectiveli video or audio
+ *      scan the claimed (!FRAME_NULL) respectively video or audio
  *      framebuffer list looking for first frame with given status
  *      (old_status); change framebuffer status to given one (new_status).
  *      update ringbuffer counters and finally returns a pointer to
