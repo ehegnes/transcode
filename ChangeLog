@@ -1,3 +1,9 @@
+2007-03-13 Francesco Romani <fromani at gmail dot com>
+  * src/decoder.c src/frame_threads/c src/frame_threads.h
+  STYLEish cleanup and micro updates: remove dead/unused code and
+  minor refactoring. No functional changes. Regression test still
+  not run (coming soon).
+
 2007-03-11 Francesco Romani <fromani at gmail dot com>
   * src/transcode.c
   make more STYLEish.

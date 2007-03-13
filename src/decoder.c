@@ -72,8 +72,8 @@ static void tc_import_stop(void)
     vimport_stop();
     aimport_stop();
 
-    frame_threads_notify(TC_VIDEO);
-    frame_threads_notify(TC_AUDIO);
+    frame_threads_notify_video();
+    frame_threads_notify_audio();
 
     if(verbose & TC_DEBUG)
         tc_log_msg(__FILE__, "import stop requested by client=%ld"

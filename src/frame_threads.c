@@ -30,42 +30,38 @@
 
 #include "frame_threads.h"
 
-static pthread_t master_thread_id=0;
-
 static pthread_t afthread[TC_FRAME_THREADS_MAX];
 static pthread_t vfthread[TC_FRAME_THREADS_MAX];
 
-pthread_cond_t abuffer_fill_cv=PTHREAD_COND_INITIALIZER;
-pthread_mutex_t abuffer_im_fill_lock=PTHREAD_MUTEX_INITIALIZER;
-uint32_t abuffer_im_fill_ctr=0;
+pthread_cond_t abuffer_fill_cv = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t abuffer_im_fill_lock = PTHREAD_MUTEX_INITIALIZER;
+uint32_t abuffer_im_fill_ctr = 0;
 
-pthread_mutex_t abuffer_xx_fill_lock=PTHREAD_MUTEX_INITIALIZER;
-uint32_t abuffer_xx_fill_ctr=0;
+pthread_mutex_t abuffer_xx_fill_lock = PTHREAD_MUTEX_INITIALIZER;
+uint32_t abuffer_xx_fill_ctr = 0;
 
-pthread_mutex_t abuffer_ex_fill_lock=PTHREAD_MUTEX_INITIALIZER;
-uint32_t abuffer_ex_fill_ctr=0;
+pthread_mutex_t abuffer_ex_fill_lock = PTHREAD_MUTEX_INITIALIZER;
+uint32_t abuffer_ex_fill_ctr = 0;
 
-pthread_cond_t vbuffer_fill_cv=PTHREAD_COND_INITIALIZER;
-pthread_mutex_t vbuffer_im_fill_lock=PTHREAD_MUTEX_INITIALIZER;
-uint32_t vbuffer_im_fill_ctr=0;
+pthread_cond_t vbuffer_fill_cv = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t vbuffer_im_fill_lock = PTHREAD_MUTEX_INITIALIZER;
+uint32_t vbuffer_im_fill_ctr = 0;
 
-pthread_mutex_t vbuffer_xx_fill_lock=PTHREAD_MUTEX_INITIALIZER;
-uint32_t vbuffer_xx_fill_ctr=0;
+pthread_mutex_t vbuffer_xx_fill_lock = PTHREAD_MUTEX_INITIALIZER;
+uint32_t vbuffer_xx_fill_ctr = 0;
 
-pthread_mutex_t vbuffer_ex_fill_lock=PTHREAD_MUTEX_INITIALIZER;
-uint32_t vbuffer_ex_fill_ctr=0;
+pthread_mutex_t vbuffer_ex_fill_lock = PTHREAD_MUTEX_INITIALIZER;
+uint32_t vbuffer_ex_fill_ctr = 0;
 
-int have_aframe_threads=0, have_aframe_workers=0;
-static int aframe_threads_shutdown=0;
+int have_aframe_threads = 0;
+int have_aframe_workers = 0;
+static int aframe_threads_shutdown = 0;
 
-int have_vframe_threads=0, have_vframe_workers=0;
-static int vframe_threads_shutdown=0;
+int have_vframe_threads = 0;
+int have_vframe_workers = 0;
+static int vframe_threads_shutdown = 0;
 
 
-//video only for thread safe zooming
-static pthread_t fthread_id[TC_FRAME_THREADS_MAX];
-pthread_mutex_t fth_id_lock=PTHREAD_MUTEX_INITIALIZER;
-int fthread_index=0;
 
 void tc_flush_audio_counters(void)
 {
@@ -105,166 +101,144 @@ void tc_flush_video_counters(void)
 
 void frame_threads_init(vob_t *vob, int vworkers, int aworkers)
 {
-
-    int n;
-
-    master_thread_id=pthread_self();
-
+    int n = 0;
 
     //video
-
     have_vframe_workers = vworkers;
 
-    if(vworkers==0) return;
+    if (vworkers > 0) {
+        have_vframe_threads = 1;
 
-    have_vframe_threads=1;
+        if (verbose & TC_DEBUG)
+            tc_log_msg(PACKAGE, "starting %d frame processing thread(s)", vworkers);
 
-    if(verbose & TC_DEBUG) tc_log_msg(PACKAGE, "starting %d frame processing thread(s)", vworkers);
-
-    // start the thread pool
-
-    for(n=0; n<vworkers; ++n) {
-
-	if(pthread_create(&vfthread[n], NULL, (void *) process_vframe, vob)!=0)
-	    tc_error("failed to start video frame processing thread");
+        // start the thread pool
+        for (n = 0; n < vworkers; n++) {
+            if (pthread_create(&vfthread[n], NULL, (void*)process_vframe, vob) != 0)
+	            tc_error("failed to start video frame processing thread");
+        }
     }
-
 
     //audio
-
     have_aframe_workers = aworkers;
 
-    if(aworkers==0) return;
+    if (aworkers > 0) {
+        have_aframe_threads = 1;
 
-    have_aframe_threads=1;
+        if (verbose & TC_DEBUG)
+            tc_log_msg(PACKAGE, "starting %d frame processing thread(s)", aworkers);
 
-    if(verbose & TC_DEBUG) tc_log_msg(PACKAGE, "starting %d frame processing thread(s)", aworkers);
-
-    // start the thread pool
-
-    for(n=0; n<aworkers; ++n) {
-
-	if(pthread_create(&afthread[n], NULL, (void *) process_aframe, vob)!=0)
-	    tc_error("failed to start audio frame processing thread");
+        // start the thread pool
+        for (n = 0; n < aworkers; n++) {
+            if (pthread_create(&afthread[n], NULL, (void*)process_aframe, vob) != 0)
+	            tc_error("failed to start audio frame processing thread");
+        }
     }
-
 }
 
-void frame_threads_notify(int what)
+void frame_threads_notify_audio(void)
 {
-  if(what==TC_AUDIO) {
-
     pthread_mutex_lock(&abuffer_im_fill_lock);
-
     //notify all threads to check for status
     pthread_cond_broadcast(&abuffer_fill_cv);
-
     pthread_mutex_unlock(&abuffer_im_fill_lock);
-    return;
-  }
-
-  if(what==TC_VIDEO) {
-
+}
+    
+void frame_threads_notify_video(void)
+{
     pthread_mutex_lock(&vbuffer_im_fill_lock);
-
     //notify all threads to check for status
     pthread_cond_broadcast(&vbuffer_fill_cv);
-
     pthread_mutex_unlock(&vbuffer_im_fill_lock);
-    return;
-  }
 }
 
 
 void frame_threads_close()
 {
+    int n = 0;
+    void *status = NULL;
 
-    int n;
-    void *status;
+    // audio
+    if (have_aframe_threads > 0) {
+        pthread_mutex_lock(&abuffer_im_fill_lock);
+        aframe_threads_shutdown = 1;
+        pthread_mutex_unlock(&abuffer_im_fill_lock);
 
-    //audio
+        //notify all threads of shutdown
+        frame_threads_notify_audio();
 
-    if(have_aframe_threads==0) return;
-
-    pthread_mutex_lock(&abuffer_im_fill_lock);
-    aframe_threads_shutdown=1;
-    pthread_mutex_unlock(&abuffer_im_fill_lock);
-
-    //notify all threads of shutdown
-    frame_threads_notify(TC_AUDIO);
-
-    for(n=0; n<have_aframe_workers; ++n) pthread_cancel(afthread[n]);
+        for (n = 0; n < have_aframe_workers; n++)
+            pthread_cancel(afthread[n]);
 
     //wait for threads to terminate
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
-    pthread_cond_broadcast(&abuffer_fill_cv);
+        pthread_cond_broadcast(&abuffer_fill_cv);
 #endif
-    for(n=0; n<have_aframe_workers; ++n) pthread_join(afthread[n], &status);
+        for (n = 0; n < have_aframe_workers; n++)
+            pthread_join(afthread[n], &status);
 
-    if(verbose & TC_DEBUG) tc_log_msg(PACKAGE, "audio frame processing threads canceled");
+        if (verbose & TC_DEBUG)
+            tc_log_msg(PACKAGE, "audio frame processing threads canceled");
+    }
 
     //video
+    if (have_vframe_threads > 0) {
+        pthread_mutex_lock(&vbuffer_im_fill_lock);
+        vframe_threads_shutdown = 1;
+        pthread_mutex_unlock(&vbuffer_im_fill_lock);
 
-    if(have_vframe_threads==0) return;
-
-    pthread_mutex_lock(&vbuffer_im_fill_lock);
-    vframe_threads_shutdown=1;
-    pthread_mutex_unlock(&vbuffer_im_fill_lock);
-
-    //notify all threads of shutdown
-    frame_threads_notify(TC_VIDEO);
-    for(n=0; n<have_vframe_workers; ++n) pthread_cancel(vfthread[n]);
+        //notify all threads of shutdown
+        frame_threads_notify_video();
+        for (n = 0; n < have_vframe_workers; n++)
+            pthread_cancel(vfthread[n]);
 
     //wait for threads to terminate
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
-    pthread_cond_broadcast(&vbuffer_fill_cv);
+        pthread_cond_broadcast(&vbuffer_fill_cv);
 #endif
-    for(n=0; n<have_vframe_workers; ++n) pthread_join(vfthread[n], &status);
+        for (n = 0; n < have_vframe_workers; n++)
+            pthread_join(vfthread[n], &status);
 
-    if(verbose & TC_DEBUG) tc_log_msg(PACKAGE, "video frame processing threads canceled");
-
+        if (verbose & TC_DEBUG)
+            tc_log_msg(PACKAGE, "video frame processing threads canceled");
+    }
 }
 
 #define DUP_vptr_if_cloned(vptr) \
-    if(vptr->attributes & TC_FRAME_IS_CLONED) {  \
-	vframe_list_t *tmptr = vframe_dup(vptr);  \
-  \
-	if (!tmptr) {  \
-  \
-	    /* No free slot free to clone ptr */ \
-  \
-	    /* put ptr back into working cue */ \
-	    vframe_set_status (vptr, FRAME_WAIT);  \
-  \
-	    pthread_mutex_lock(&vbuffer_im_fill_lock);  \
-	    ++vbuffer_im_fill_ctr;  \
-	    pthread_mutex_unlock(&vbuffer_im_fill_lock);  \
-  \
-	    pthread_mutex_lock(&vbuffer_xx_fill_lock);  \
-	    --vbuffer_xx_fill_ctr;  \
-	    pthread_mutex_unlock(&vbuffer_xx_fill_lock);  \
-  \
-	    continue;  \
-  \
-	} else {  \
-  \
-	    /* ptr was successfully cloned */ \
-  \
-	    /* delete clone flag */ \
-	    tmptr->attributes &= ~TC_FRAME_IS_CLONED;  \
-	    vptr->attributes  &= ~TC_FRAME_IS_CLONED;  \
-  \
-	    /* set info for filters */ \
-	    tmptr->attributes |= TC_FRAME_WAS_CLONED;  \
-  \
-	    /* this frame is to be processed _after_ the current one */ \
-	    /* so put it back into the queue */ \
-	    vframe_set_status (tmptr, FRAME_WAIT);  \
-  \
-	    pthread_mutex_lock(&vbuffer_im_fill_lock);  \
-	    ++vbuffer_im_fill_ctr;  \
-	    pthread_mutex_unlock(&vbuffer_im_fill_lock);  \
-	}  \
+    if(vptr->attributes & TC_FRAME_IS_CLONED) { \
+    	vframe_list_t *tmptr = vframe_dup(vptr); \
+        \
+    	if (!tmptr) {  \
+	        /* No free slot free to clone ptr */ \
+	        /* put ptr back into working cue */ \
+    	    vframe_set_status (vptr, FRAME_WAIT); \
+            \
+	        pthread_mutex_lock(&vbuffer_im_fill_lock); \
+	        vbuffer_im_fill_ctr++; \
+    	    pthread_mutex_unlock(&vbuffer_im_fill_lock); \
+            \
+	        pthread_mutex_lock(&vbuffer_xx_fill_lock); \
+    	    vbuffer_xx_fill_ctr--; \
+	        pthread_mutex_unlock(&vbuffer_xx_fill_lock); \
+            \
+	        continue; \
+    	} else {  \
+	        /* ptr was successfully cloned */ \
+	        /* delete clone flag */ \
+    	    tmptr->attributes &= ~TC_FRAME_IS_CLONED; \
+	        vptr->attributes  &= ~TC_FRAME_IS_CLONED; \
+            \
+    	    /* set info for filters */ \
+	        tmptr->attributes |= TC_FRAME_WAS_CLONED; \
+            \
+    	    /* this frame is to be processed _after_ the current one */ \
+	        /* so put it back into the queue */ \
+	        vframe_set_status (tmptr, FRAME_WAIT); \
+            \
+            pthread_mutex_lock(&vbuffer_im_fill_lock); \
+	        vbuffer_im_fill_ctr++; \
+    	    pthread_mutex_unlock(&vbuffer_im_fill_lock); \
+	    } \
     }
 
 #define DROP_vptr_if_skipped(ptr) \
@@ -344,256 +318,176 @@ void frame_threads_close()
 static void
 process_frame_lock_cleanup (void *arg)
 {
-  pthread_mutex_unlock ((pthread_mutex_t *)arg);
+    pthread_mutex_unlock((pthread_mutex_t *)arg);
 }
 
 void process_vframe(vob_t *vob)
 {
+    vframe_list_t *ptr = NULL;
 
-  int id;
-  vframe_list_t *ptr = NULL;
+    for (;;) {
+        pthread_testcancel();
 
-  pthread_mutex_lock(&fth_id_lock);
-
-  id = fthread_index++;
-
-  fthread_id[id] = pthread_self();
-
-  pthread_mutex_unlock(&fth_id_lock);
-
-  for(;;) {
-
-    pthread_testcancel();
-
-    pthread_mutex_lock(&vbuffer_im_fill_lock);
-
-    pthread_cleanup_push (process_frame_lock_cleanup, &vbuffer_im_fill_lock);
-
-    while(vbuffer_im_fill_ctr==0) {
-      pthread_cond_wait(&vbuffer_fill_cv, &vbuffer_im_fill_lock);
+        pthread_mutex_lock(&vbuffer_im_fill_lock);
+        pthread_cleanup_push(process_frame_lock_cleanup, &vbuffer_im_fill_lock);
+        while (vbuffer_im_fill_ctr == 0) {
+            pthread_cond_wait(&vbuffer_fill_cv, &vbuffer_im_fill_lock);
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
-      pthread_testcancel();
+            pthread_testcancel();
 #endif
+            if (vframe_threads_shutdown) {
+                pthread_exit(0);
+            }
+        }
+        pthread_cleanup_pop(0);
+        pthread_mutex_unlock(&vbuffer_im_fill_lock);
 
-      //exit
-      if(vframe_threads_shutdown) {
-	pthread_exit(0);
-      }
+        ptr = vframe_retrieve_status(FRAME_WAIT, FRAME_LOCKED);
+        if (ptr == NULL) {
+            if (verbose & TC_DEBUG)
+                tc_log_msg(PACKAGE, "internal error (V|%d)", vbuffer_im_fill_ctr);
+
+            pthread_testcancel();
+            continue;
+        }
+
+        pthread_testcancel();
+
+        pthread_mutex_lock(&vbuffer_im_fill_lock);
+        vbuffer_im_fill_ctr--;
+        pthread_mutex_unlock(&vbuffer_im_fill_lock);
+
+        pthread_mutex_lock(&vbuffer_xx_fill_lock);
+        vbuffer_xx_fill_ctr++;
+        pthread_mutex_unlock(&vbuffer_xx_fill_lock);
+
+        DROP_vptr_if_skipped(ptr)
+
+        if (!(ptr->attributes & TC_FRAME_IS_OUT_OF_RANGE)) {
+            // external plugin pre-processing
+            ptr->tag = TC_VIDEO|TC_PRE_M_PROCESS;
+            tc_filter_process((frame_list_t *)ptr);
+
+            DROP_vptr_if_skipped(ptr)
+
+            // clone if the filter told us to do so.
+            DUP_vptr_if_cloned(ptr)
+
+            // internal processing of video
+            ptr->tag = TC_VIDEO;
+            process_vid_frame(vob, ptr);
+
+            // external plugin post-processing
+            ptr->tag = TC_VIDEO|TC_POST_M_PROCESS;
+            tc_filter_process((frame_list_t *)ptr);
+
+            // Won't work, because the frame is already rescaled and such
+            //DUP_vptr_if_cloned(ptr);
+
+            DROP_vptr_if_skipped(ptr)
+        }
+
+        pthread_testcancel();
+        vframe_set_status(ptr, FRAME_READY);
+
+        pthread_mutex_lock(&vbuffer_xx_fill_lock);
+        vbuffer_xx_fill_ctr--;
+        pthread_mutex_unlock(&vbuffer_xx_fill_lock);
+
+        pthread_mutex_lock(&vbuffer_ex_fill_lock);
+        vbuffer_ex_fill_ctr++;
+        pthread_mutex_unlock(&vbuffer_ex_fill_lock);
     }
-
-    pthread_cleanup_pop (0);
-
-    pthread_mutex_unlock(&vbuffer_im_fill_lock);
-
-    ptr = vframe_retrieve_status(FRAME_WAIT, FRAME_LOCKED);
-
-    if(ptr==NULL) {
-      if(verbose & TC_DEBUG) tc_log_msg(PACKAGE, "internal error (V|%d)", vbuffer_im_fill_ctr);
-
-      pthread_testcancel();
-      continue;
-      //goto invalid_vptr; // this shouldn't happen but is non-fatal
-    }
-
-    pthread_testcancel();
-
-    // regain lock
-    pthread_mutex_lock(&vbuffer_im_fill_lock);
-
-    //adjust counter
-    --vbuffer_im_fill_ctr;
-
-    //release lock
-    pthread_mutex_unlock(&vbuffer_im_fill_lock);
-
-
-    // regain lock
-    pthread_mutex_lock(&vbuffer_xx_fill_lock);
-
-    //adjust counter
-    ++vbuffer_xx_fill_ctr;
-
-    //release lock
-    pthread_mutex_unlock(&vbuffer_xx_fill_lock);
-
-
-
-    //------
-    // video
-    //------
-
-    DROP_vptr_if_skipped(ptr)
-
-    if (!(ptr->attributes & TC_FRAME_IS_OUT_OF_RANGE)) {
-	// external plugin pre-processing
-	ptr->tag = TC_VIDEO|TC_PRE_M_PROCESS;
-	tc_filter_process((frame_list_t *)ptr);
-
-	DROP_vptr_if_skipped(ptr)
-
-	// clone if the filter told us to do so.
-	DUP_vptr_if_cloned(ptr)
-
-	// internal processing of video
-	ptr->tag = TC_VIDEO;
-	process_vid_frame(vob, ptr);
-
-	// external plugin post-processing
-	ptr->tag = TC_VIDEO|TC_POST_M_PROCESS;
-	tc_filter_process((frame_list_t *)ptr);
-
-	// Won't work, because the frame is already rescaled and such
-	//DUP_vptr_if_cloned(ptr);
-
-	DROP_vptr_if_skipped(ptr)
-    }
-
-    pthread_testcancel();
-
-    // ready for encoding
-    vframe_set_status(ptr, FRAME_READY);
-
-    pthread_mutex_lock(&vbuffer_xx_fill_lock);
-    --vbuffer_xx_fill_ctr;
-    pthread_mutex_unlock(&vbuffer_xx_fill_lock);
-
-    pthread_mutex_lock(&vbuffer_ex_fill_lock);
-    ++vbuffer_ex_fill_ctr;
-    pthread_mutex_unlock(&vbuffer_ex_fill_lock);
-
-    //invalid_vptr:
-  }
-
-  return;
+    return;
 }
 
 
 void process_aframe(vob_t *vob)
 {
+    aframe_list_t *ptr = NULL;
 
-  aframe_list_t *ptr = NULL;
+    for (;;) {
+        pthread_testcancel();
 
-  for(;;) {
+        pthread_mutex_lock(&abuffer_im_fill_lock);
+        pthread_cleanup_push(process_frame_lock_cleanup, &abuffer_im_fill_lock);
 
-    pthread_testcancel();
-
-    pthread_mutex_lock(&abuffer_im_fill_lock);
-
-    pthread_cleanup_push (process_frame_lock_cleanup, &abuffer_im_fill_lock);
-
-    while(abuffer_im_fill_ctr==0) {
-      pthread_cond_wait(&abuffer_fill_cv, &abuffer_im_fill_lock);
+        while (abuffer_im_fill_ctr == 0) {
+            pthread_cond_wait(&abuffer_fill_cv, &abuffer_im_fill_lock);
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
-      pthread_testcancel();
+            pthread_testcancel();
 #endif
+            if (aframe_threads_shutdown) {
+                pthread_exit(0);
+            }
+        }
 
-      //exit
-      if(aframe_threads_shutdown) {
-	pthread_exit(0);
-      }
+        pthread_cleanup_pop(0);
+        pthread_mutex_unlock(&abuffer_im_fill_lock);
+
+        ptr = aframe_retrieve_status(FRAME_WAIT, FRAME_LOCKED);
+        if (ptr == NULL) {
+            if (verbose & TC_DEBUG)
+                tc_log_msg(PACKAGE, "internal error (A|%d)", abuffer_im_fill_ctr);
+
+            pthread_testcancel();
+            continue;
+        }
+
+        pthread_testcancel();
+
+        pthread_mutex_lock(&abuffer_im_fill_lock);
+        abuffer_im_fill_ctr--;
+        pthread_mutex_unlock(&abuffer_im_fill_lock);
+
+        pthread_mutex_lock(&abuffer_xx_fill_lock);
+        abuffer_xx_fill_ctr++;
+        pthread_mutex_unlock(&abuffer_xx_fill_lock);
+
+        DROP_aptr_if_skipped(ptr)
+
+        if (!(ptr->attributes & TC_FRAME_IS_OUT_OF_RANGE)) {
+	        // external plugin pre-processing
+        	ptr->tag = TC_AUDIO|TC_PRE_M_PROCESS;
+        	tc_filter_process((frame_list_t *)ptr);
+
+        	DUP_aptr_if_cloned(ptr)
+
+        	DROP_aptr_if_skipped(ptr)
+
+        	// internal processing of audio
+        	ptr->tag = TC_AUDIO;
+        	process_aud_frame(vob, ptr);
+
+            // external plugin post-processing
+        	ptr->tag = TC_AUDIO|TC_POST_M_PROCESS;
+        	tc_filter_process((frame_list_t *)ptr);
+
+        	DROP_aptr_if_skipped(ptr)
+        }
+
+        pthread_testcancel();
+        aframe_set_status(ptr, FRAME_READY);
+
+        pthread_mutex_lock(&abuffer_xx_fill_lock);
+        abuffer_xx_fill_ctr--;
+        pthread_mutex_unlock(&abuffer_xx_fill_lock);
+
+        pthread_mutex_lock(&abuffer_ex_fill_lock);
+        abuffer_ex_fill_ctr++;
+        pthread_mutex_unlock(&abuffer_ex_fill_lock);
     }
-
-    pthread_cleanup_pop (0);
-
-    pthread_mutex_unlock(&abuffer_im_fill_lock);
-
-    ptr = aframe_retrieve_status(FRAME_WAIT, FRAME_LOCKED);
-
-    if(ptr==NULL) {
-      if(verbose & TC_DEBUG) tc_log_msg(PACKAGE, "internal error (A|%d)", abuffer_im_fill_ctr);
-
-      pthread_testcancel();
-      continue;
-      //goto invalid_aptr; // this shouldn't happen but is non-fatal
-    }
-
-    pthread_testcancel();
-
-    // regain locked during operation
-    pthread_mutex_lock(&abuffer_im_fill_lock);
-
-    --abuffer_im_fill_ctr;
-
-    //release lock
-    pthread_mutex_unlock(&abuffer_im_fill_lock);
-
-    // regain locked during operation
-    pthread_mutex_lock(&abuffer_xx_fill_lock);
-
-    ++abuffer_xx_fill_ctr;
-
-    //release lock
-    pthread_mutex_unlock(&abuffer_xx_fill_lock);
-
-
-    //------
-    // audio
-    //------
-
-    DROP_aptr_if_skipped(ptr)
-
-    if (!(ptr->attributes & TC_FRAME_IS_OUT_OF_RANGE)) {
-	// external plugin pre-processing
-	ptr->tag = TC_AUDIO|TC_PRE_M_PROCESS;
-	tc_filter_process((frame_list_t *)ptr);
-
-	DUP_aptr_if_cloned(ptr)
-
-	DROP_aptr_if_skipped(ptr)
-
-	// internal processing of audio
-	ptr->tag = TC_AUDIO;
-	process_aud_frame(vob, ptr);
-
-	// external plugin post-processing
-	ptr->tag = TC_AUDIO|TC_POST_M_PROCESS;
-	tc_filter_process((frame_list_t *)ptr);
-
-	DROP_aptr_if_skipped(ptr)
-    }
-
-    pthread_testcancel();
-
-    // ready for encoding
-    aframe_set_status(ptr, FRAME_READY);
-
-    pthread_mutex_lock(&abuffer_xx_fill_lock);
-    --abuffer_xx_fill_ctr;
-    pthread_mutex_unlock(&abuffer_xx_fill_lock);
-
-    pthread_mutex_lock(&abuffer_ex_fill_lock);
-    ++abuffer_ex_fill_ctr;
-    pthread_mutex_unlock(&abuffer_ex_fill_lock);
-
-    //invalid_aptr:
-  }
-
-  return;
+    return;
 }
 
+/*************************************************************************/
 
-//video only:
-
-int get_fthread_id(int flag)
-{
-  int n;
-
-  pthread_t id;
-
-  static int cc1=0, cc2;
-
-  if(have_vframe_workers==0) return(0);
-
-  id = pthread_self();
-
-  if(id==master_thread_id) return(((flag)?cc1++:cc2++));
-
-  for(n=0; n<TC_FRAME_THREADS_MAX; ++n) {
-    if(fthread_id[n] == id) return(n);
-  }
-
-  tc_error("frame processing thread not registered");
-
-  return(-1);
-}
-
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */
