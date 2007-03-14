@@ -1,3 +1,8 @@
+2007-03-14 Francesco Romani <fromani at gmail dot com>
+  * src/framebuffer.c
+  make *fill_level implementation (hopefully) clearer.
+  No functional changes expected.
+
 2007-03-13 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c src/frame_threads/c src/frame_threads.h
   STYLEish cleanup and micro updates: remove dead/unused code and

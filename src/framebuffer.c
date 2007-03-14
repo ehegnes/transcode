@@ -41,10 +41,11 @@ aframe_list_t *aframe_list_head = NULL;
 aframe_list_t *aframe_list_tail = NULL;
 
 pthread_mutex_t vframe_list_lock = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t vframe_list_full_cv = PTHREAD_COND_INITIALIZER;
+pthread_cond_t vrame_list_full_cv = PTHREAD_COND_INITIALIZER;
 
 vframe_list_t *vframe_list_head = NULL;
 vframe_list_t *vframe_list_tail = NULL;
+
 
 /* ------------------------------------------------------------------ */
 
@@ -550,19 +551,26 @@ static int tc_ring_framebuffer_flush(TCRingFrameBuffer *rfb)
 static int tc_ring_framebuffer_check_status(const TCRingFrameBuffer *rfb,
                                             int status)
 {
-    if (status == TC_BUFFER_FULL  && rfb->fill >= rfb->last - 1)  {
-        return 1;
+    int ret = 0;
+
+    switch (status) {
+      case TC_BUFFER_FULL:
+        ret = (rfb->fill >= rfb->last - 1);
+        break;
+      case TC_BUFFER_READY:
+        ret = (rfb->ready > 0);
+        break;
+      case TC_BUFFER_EMPTY:
+        ret = (rfb->fill == 0);
+        break;
+      case TC_BUFFER_LOCKED:
+        ret = (rfb->locked > 0);
+        break;
+      default:
+        ret = 0; /* yes, that's called paranoia */
+        break;
     }
-    if (status == TC_BUFFER_READY && rfb->ready > 0) {
-        return 1;
-    }
-    if (status == TC_BUFFER_EMPTY && rfb->fill == 0) {
-        return 1;
-    }
-    if (status == TC_BUFFER_LOCKED && rfb->locked > 0) {
-        return 1;
-    }
-    return 0;
+    return ret;
 }
 
 
@@ -998,7 +1006,7 @@ int aframe_fill_level(int status)
         tc_ring_framebuffer_log_fill_level(&tc_audio_ringbuffer,
                                            "audio fill level", status);
     }
-    /* user has to lock aframe_list_lock to obtain a proper result */
+    /* user has to lock aframe_list_lock to get proper results */
     return tc_ring_framebuffer_check_status(&tc_audio_ringbuffer, status);
 }
 
@@ -1008,7 +1016,7 @@ int vframe_fill_level(int status)
         tc_ring_framebuffer_log_fill_level(&tc_video_ringbuffer,
                                            "video fill level", status);
     }
-    /* user has to lock aframe_list_lock to obtain a proper result */
+    /* user has to lock vframe_list_lock to get proper results */
     return tc_ring_framebuffer_check_status(&tc_video_ringbuffer, status);
 }
 
