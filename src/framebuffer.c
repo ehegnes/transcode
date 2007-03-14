@@ -41,7 +41,7 @@ aframe_list_t *aframe_list_head = NULL;
 aframe_list_t *aframe_list_tail = NULL;
 
 pthread_mutex_t vframe_list_lock = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t vrame_list_full_cv = PTHREAD_COND_INITIALIZER;
+pthread_cond_t vframe_list_full_cv = PTHREAD_COND_INITIALIZER;
 
 vframe_list_t *vframe_list_head = NULL;
 vframe_list_t *vframe_list_tail = NULL;
