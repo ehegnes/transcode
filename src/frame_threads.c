@@ -33,23 +33,20 @@
 static pthread_t afthread[TC_FRAME_THREADS_MAX];
 static pthread_t vfthread[TC_FRAME_THREADS_MAX];
 
-pthread_cond_t abuffer_fill_cv = PTHREAD_COND_INITIALIZER;
+static pthread_cond_t abuffer_fill_cv = PTHREAD_COND_INITIALIZER;
+static pthread_cond_t vbuffer_fill_cv = PTHREAD_COND_INITIALIZER;
+
 pthread_mutex_t abuffer_im_fill_lock = PTHREAD_MUTEX_INITIALIZER;
 uint32_t abuffer_im_fill_ctr = 0;
-
 pthread_mutex_t abuffer_xx_fill_lock = PTHREAD_MUTEX_INITIALIZER;
 uint32_t abuffer_xx_fill_ctr = 0;
-
 pthread_mutex_t abuffer_ex_fill_lock = PTHREAD_MUTEX_INITIALIZER;
 uint32_t abuffer_ex_fill_ctr = 0;
 
-pthread_cond_t vbuffer_fill_cv = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t vbuffer_im_fill_lock = PTHREAD_MUTEX_INITIALIZER;
 uint32_t vbuffer_im_fill_ctr = 0;
-
 pthread_mutex_t vbuffer_xx_fill_lock = PTHREAD_MUTEX_INITIALIZER;
 uint32_t vbuffer_xx_fill_ctr = 0;
-
 pthread_mutex_t vbuffer_ex_fill_lock = PTHREAD_MUTEX_INITIALIZER;
 uint32_t vbuffer_ex_fill_ctr = 0;
 
@@ -136,19 +133,25 @@ void frame_threads_init(vob_t *vob, int vworkers, int aworkers)
     }
 }
 
-void frame_threads_notify_audio(void)
+void frame_threads_notify_audio(int broadcast)
 {
     pthread_mutex_lock(&abuffer_im_fill_lock);
-    //notify all threads to check for status
-    pthread_cond_broadcast(&abuffer_fill_cv);
+    if (broadcast) {
+        pthread_cond_broadcast(&abuffer_fill_cv);
+    } else {
+        pthread_cond_signal(&abuffer_fill_cv);
+    }
     pthread_mutex_unlock(&abuffer_im_fill_lock);
 }
     
-void frame_threads_notify_video(void)
+void frame_threads_notify_video(int broadcast)
 {
     pthread_mutex_lock(&vbuffer_im_fill_lock);
-    //notify all threads to check for status
-    pthread_cond_broadcast(&vbuffer_fill_cv);
+    if (broadcast) {
+        pthread_cond_broadcast(&vbuffer_fill_cv);
+    } else {
+        pthread_cond_signal(&vbuffer_fill_cv);
+    }
     pthread_mutex_unlock(&vbuffer_im_fill_lock);
 }
 
@@ -165,7 +168,7 @@ void frame_threads_close()
         pthread_mutex_unlock(&abuffer_im_fill_lock);
 
         //notify all threads of shutdown
-        frame_threads_notify_audio();
+        frame_threads_notify_audio(TC_TRUE);
 
         for (n = 0; n < have_aframe_workers; n++)
             pthread_cancel(afthread[n]);
@@ -188,7 +191,7 @@ void frame_threads_close()
         pthread_mutex_unlock(&vbuffer_im_fill_lock);
 
         //notify all threads of shutdown
-        frame_threads_notify_video();
+        frame_threads_notify_video(TC_TRUE);
         for (n = 0; n < have_vframe_workers; n++)
             pthread_cancel(vfthread[n]);
 
@@ -249,10 +252,7 @@ void frame_threads_close()
       --vbuffer_xx_fill_ctr; \
       pthread_mutex_unlock(&vbuffer_xx_fill_lock); \
  \
-      /* notify sleeping import thread */ \
-      pthread_mutex_lock(&vframe_list_lock); \
-      pthread_cond_signal(&vframe_list_full_cv); \
-      pthread_mutex_unlock(&vframe_list_lock); \
+      tc_import_video_notify(); \
  \
       continue; \
     }
@@ -307,10 +307,7 @@ void frame_threads_close()
       --abuffer_xx_fill_ctr; \
       pthread_mutex_unlock(&abuffer_xx_fill_lock); \
  \
-      /* notify sleeping import thread */ \
-      pthread_mutex_lock(&aframe_list_lock); \
-      pthread_cond_signal(&aframe_list_full_cv); \
-      pthread_mutex_unlock(&aframe_list_lock); \
+      tc_import_audio_notify(); \
  \
       continue; \
     }

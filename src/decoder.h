@@ -45,5 +45,7 @@ int import_status(void);
 int aimport_status(void);
 int vimport_status(void);
 
+void tc_import_audio_notify(void);
+void tc_import_video_notify(void);
 
 #endif

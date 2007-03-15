@@ -1,3 +1,9 @@
+2007-03-15 Francesco Romani <fromani at gmail dot com>
+  * src/decoder.c src/decoder.h src/encoder-buffer.c
+    src/frame_threads.c src/frame_threads.h
+    src/framebuffer.c src/framebuffer.h
+  make condition variables private.
+
 2007-03-14 Francesco Romani <fromani at gmail dot com>
   * src/framebuffer.c
   make *fill_level implementation (hopefully) clearer.

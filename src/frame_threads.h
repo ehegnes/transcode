@@ -30,13 +30,12 @@ void frame_threads_init(vob_t *vob, int vworkers, int aworkers);
 void process_vframe(vob_t *vob);
 void process_aframe(vob_t *vob);
 void frame_threads_close(void);
-void frame_threads_notify_audio(void);
-void frame_threads_notify_video(void);
+void frame_threads_notify_audio(int broadcast);
+void frame_threads_notify_video(int broadcast);
 
 extern int have_aframe_threads;
 extern int have_vframe_threads;
 
-extern pthread_cond_t vbuffer_fill_cv;
 extern pthread_mutex_t vbuffer_im_fill_lock;
 extern uint32_t vbuffer_im_fill_ctr;
 
@@ -46,7 +45,6 @@ extern uint32_t vbuffer_xx_fill_ctr;
 extern pthread_mutex_t vbuffer_ex_fill_lock;
 extern uint32_t vbuffer_ex_fill_ctr;
 
-extern pthread_cond_t abuffer_fill_cv;
 extern pthread_mutex_t abuffer_im_fill_lock;
 extern uint32_t abuffer_im_fill_ctr;
 

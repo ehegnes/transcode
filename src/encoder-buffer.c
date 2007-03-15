@@ -400,10 +400,7 @@ static int encoder_acquire_vframe(TCEncoderBuffer *buf, vob_t *vob)
             ) {
                 vframe_remove(buf->vptr);
 
-                /* notify sleeping import thread */
-                pthread_mutex_lock(&vframe_list_lock);
-                pthread_cond_signal(&vframe_list_full_cv);
-                pthread_mutex_unlock(&vframe_list_lock);
+                tc_import_video_notify(); 
 
                 /* reset pointer for next retrieve */
                 buf->vptr = NULL;
@@ -446,10 +443,7 @@ static int encoder_acquire_aframe(TCEncoderBuffer *buf, vob_t *vob)
             ) {
                 aframe_remove(buf->aptr);
 
-                /* notify sleeping import thread */
-                pthread_mutex_lock(&aframe_list_lock);
-                pthread_cond_signal(&aframe_list_full_cv);
-                pthread_mutex_unlock(&aframe_list_lock);
+                tc_import_audio_notify();
 
                 /* reset pointer for next retrieve */
                 buf->aptr = NULL;
@@ -504,10 +498,7 @@ static void encoder_dispose_vframe(TCEncoderBuffer *buf)
     ) {
         vframe_remove(buf->vptr);
 
-        /* notify sleeping import thread */
-        pthread_mutex_lock(&vframe_list_lock);
-        pthread_cond_signal(&vframe_list_full_cv);
-        pthread_mutex_unlock(&vframe_list_lock);
+        tc_import_video_notify();
 
         /* reset pointer for next retrieve */
         buf->vptr = NULL;
@@ -552,10 +543,7 @@ static void encoder_dispose_aframe(TCEncoderBuffer *buf)
     ) {
         aframe_remove(buf->aptr);
 
-        /* notify sleeping import thread */
-        pthread_mutex_lock(&aframe_list_lock);
-        pthread_cond_signal(&aframe_list_full_cv);
-        pthread_mutex_unlock(&aframe_list_lock);
+        tc_import_audio_notify();
 
         /* reset pointer for next retrieve */
         buf->aptr = NULL;

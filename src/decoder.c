@@ -48,6 +48,9 @@ static pthread_t athread = 0, vthread = 0;
 static void aimport_thread(vob_t *vob);
 static void vimport_thread(vob_t *vob);
 
+static pthread_cond_t aframe_list_full_cv = PTHREAD_COND_INITIALIZER;
+static pthread_cond_t vframe_list_full_cv = PTHREAD_COND_INITIALIZER;
+
 //-------------------------------------------------------------------------
 //
 // signal handler callback
@@ -72,8 +75,8 @@ static void tc_import_stop(void)
     vimport_stop();
     aimport_stop();
 
-    frame_threads_notify_video();
-    frame_threads_notify_audio();
+    frame_threads_notify_video(TC_TRUE);
+    frame_threads_notify_audio(TC_TRUE);
 
     if(verbose & TC_DEBUG)
         tc_log_msg(__FILE__, "import stop requested by client=%ld"
@@ -561,7 +564,7 @@ void vimport_thread(vob_t *vob)
         pthread_testcancel();
 
         pthread_mutex_lock(&vbuffer_im_fill_lock);
-        ++vbuffer_im_fill_ctr;
+        vbuffer_im_fill_ctr++;
         pthread_mutex_unlock(&vbuffer_im_fill_lock);
 
         if (!(ptr->attributes & TC_FRAME_IS_OUT_OF_RANGE)) {
@@ -581,9 +584,7 @@ void vimport_thread(vob_t *vob)
             vframe_set_status(ptr, FRAME_READY);
         } else {
             //notify sleeping frame processing threads
-            pthread_mutex_lock(&vbuffer_im_fill_lock);
-            pthread_cond_signal(&vbuffer_fill_cv);
-            pthread_mutex_unlock(&vbuffer_im_fill_lock);
+            frame_threads_notify_video(TC_FALSE);
         }
 
         if (verbose & TC_STATS)
@@ -764,7 +765,7 @@ void aimport_thread(vob_t *vob)
         pthread_testcancel();
 
         pthread_mutex_lock(&abuffer_im_fill_lock);
-        ++abuffer_im_fill_ctr;
+        abuffer_im_fill_ctr++;
         pthread_mutex_unlock(&abuffer_im_fill_lock);
 
         if (!(ptr->attributes & TC_FRAME_IS_OUT_OF_RANGE)) {
@@ -781,9 +782,7 @@ void aimport_thread(vob_t *vob)
             aframe_set_status(ptr, FRAME_READY);
         } else {
             //notify sleeping frame processing threads
-            pthread_mutex_lock(&abuffer_im_fill_lock);
-            pthread_cond_signal(&abuffer_fill_cv);
-            pthread_mutex_unlock(&abuffer_im_fill_lock);
+            frame_threads_notify_audio(TC_FALSE);
         }
 
         if (verbose & TC_STATS)
@@ -939,6 +938,24 @@ int import_status()
     if (vimport_status() && aimport_status())
         return 1;
     return 0;
+}
+
+/*************************************************************************/
+
+void tc_import_audio_notify(void)
+{
+    /* notify sleeping import thread */
+    pthread_mutex_lock(&aframe_list_lock);
+    pthread_cond_signal(&aframe_list_full_cv);
+    pthread_mutex_unlock(&aframe_list_lock);
+}
+
+void tc_import_video_notify(void)
+{
+    /* notify sleeping import thread */
+    pthread_mutex_lock(&vframe_list_lock);
+    pthread_cond_signal(&vframe_list_full_cv);
+    pthread_mutex_unlock(&vframe_list_lock);
 }
 
 /*************************************************************************/

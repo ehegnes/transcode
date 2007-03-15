@@ -538,15 +538,11 @@ void aframe_fill_print(int r);
  * I'm mostly OK (at least in principles) for doing so for lock and conditions,
  * but codebase still deserve an audit. -- FR.
  */
-extern pthread_mutex_t vframe_list_lock;
-extern pthread_cond_t vframe_list_full_cv;
-
 extern pthread_mutex_t aframe_list_lock;
-extern pthread_cond_t aframe_list_full_cv;
-
 extern aframe_list_t *aframe_list_head;
 extern aframe_list_t *aframe_list_tail;
 
+extern pthread_mutex_t vframe_list_lock;
 extern vframe_list_t *vframe_list_head;
 extern vframe_list_t *vframe_list_tail;
 
