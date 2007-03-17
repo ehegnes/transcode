@@ -65,7 +65,7 @@
 #define NAME_LEN 256
 
 /* FIXME: this should use the routines from filter.c */
-static struct {
+struct filter_struct {
   int id;
   int status;
   int unload;
@@ -74,7 +74,9 @@ static struct {
   char *name;
   int namelen;
   int (*entry)(void *ptr, void *options);
-} filter[MAX_FILTERS];
+};
+
+extern struct filter_struct filter[MAX_FILTERS];
 
 int load_plugin(const char *path, int id, int verbose);
 

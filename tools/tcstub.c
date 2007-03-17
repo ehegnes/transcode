@@ -26,6 +26,8 @@
 
 #include "tcstub.h"
 
+struct filter_struct filter[MAX_FILTERS];
+
 /* FIXME: what about ex_asr and ex_par ? */
 static vob_t vob = {
     .verbose = TC_INFO,
@@ -159,7 +161,7 @@ int tc_cluster_mode = 0;
 pid_t tc_probe_pid = 0;
 
 /* symbols needed by modules */
-int verbose  = TC_QUIET;
+int verbose  = TC_INFO;
 int rgbswap  = 0;
 int tc_accel = -1;    //acceleration code
 int flip = 0;
@@ -184,18 +186,20 @@ void tc_socket_poll(void) {}
 
 int load_plugin(const char *path, int id, int verbose)
 {
-    const char *error;
+    const char *error = NULL;
     char module[TC_BUF_MAX];
     int n;
 
-    if (!filter[id].name) {
+    if (filter[id].name == NULL) {
+        tc_log_error(__FILE__, "bad filter#%i name (%s)",
+                     id, filter[id].name);
         return -1;
     }
 
-    filter[id].options=NULL;
+    filter[id].options = NULL;
 
     /* replace "=" by "/0" in filter name */
-    for (n = 0; n < strlen(filter[id].name); ++n) {
+    for (n = 0; n < strlen(filter[id].name); n++) {
         if (filter[id].name[n] == '=') {
             filter[id].name[n] = '\0';
             filter[id].options = filter[id].name + n + 1;
@@ -208,17 +212,18 @@ int load_plugin(const char *path, int id, int verbose)
     /* try transcode's module directory */
     filter[id].handle = dlopen(module, RTLD_LAZY);
 
-    if (!filter[id].handle) {
+    if (filter[id].handle != NULL) {
+        filter[id].entry = dlsym(filter[id].handle, "tc_filter");
+    } else {
         if (verbose) {
             tc_log_error(__FILE__, "loading filter module '%s' failed (reason: %s)",
                          module, dlerror());
         }
         return -1;
-    } else {
-        filter[id].entry = dlsym(filter[id].handle, "tc_filter");
     }
 
-    if ((error = dlerror()) != NULL)  {
+    error = dlerror();
+    if (error != NULL)  {
         if (verbose) {
             tc_log_error(__FILE__, "error while loading '%s': %s\n",
                          module, error);

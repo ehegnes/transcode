@@ -1,3 +1,10 @@
+2007-03-17 Francesco Romani <fromani at gmail dot com>
+  * tools/tcstub.c tools/tcstub.h tools/tcmodinfo.c
+  Fix former filter array static nonsense.
+  Make tcmodinfo a little more verbose on errors.
+  Increase default verbosiness.
+  Make output more like 1.0.x branch.
+
 2007-03-15 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c src/decoder.h src/encoder-buffer.c
     src/frame_threads.c src/frame_threads.h

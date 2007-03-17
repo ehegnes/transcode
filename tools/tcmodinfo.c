@@ -307,11 +307,15 @@ int main(int argc, char *argv[])
             tc_log_info(EXE, "using old module system");
         }
         /* ok, fallback to old module system */
+        strlcpy(namebuf, filename, NAME_LEN);
         filter[0].name = namebuf;
-        tc_snprintf(filter[0].name, NAME_LEN, "%s", filename);
     
         ret = load_plugin(modpath, 0, verbose);
-        if (ret == 0) {
+        if (ret != 0) {
+            tc_log_error(__FILE__, "unable to load filter `%s' (path=%s)",
+                                   filter[0].name, modpath);
+            status = STATUS_NO_MODULE;
+        } else {
             strlcpy(options, "help", OPTS_SIZE);
             ptr.tag = TC_FILTER_INIT;
             if ((ret = filter[0].entry(&ptr, options)) != 0) {
@@ -323,7 +327,9 @@ int main(int argc, char *argv[])
 
                 if (ret == 0) {
                     if (verbose >= TC_INFO) {
+                        fputs("START\n", stdout);
                         fputs(options, stdout);
+                        fputs("END\n", stdout);
                     }
                     status = STATUS_OK;
                 }
