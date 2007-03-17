@@ -5,6 +5,10 @@
   Increase default verbosiness.
   Make output more like 1.0.x branch.
 
+  * src/transcode.c
+  sig_tstp is never used, so it's time to drop it.
+  rename sig_int in something more meaningful.
+
 2007-03-15 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c src/decoder.h src/encoder-buffer.c
     src/frame_threads.c src/frame_threads.h

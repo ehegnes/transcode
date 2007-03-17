@@ -76,8 +76,7 @@ int fast_resize = TC_FALSE;
 static vob_t *vob = NULL;
 int verbose = TC_INFO;
 
-static int sig_int   = 0;
-static int sig_tstp  = 0;
+static int interrupt_flag   = 0;
 
 static pthread_t thread_signal = (pthread_t)0;
 sigset_t sigs_to_block;
@@ -191,7 +190,7 @@ static void signal_thread(void)
             tc_log_info(PACKAGE, "(sighandler) %s received", signame);
 
         /* Indicate that transcoding should stop */
-        sig_int = 1;
+        interrupt_flag = 1;
 
         /* Kill the tcprobe process if it's running */
         if (tc_probe_pid > 0)
@@ -652,7 +651,7 @@ int main(int argc, char *argv[])
     }
 
     // user doesn't want to start at all;-(
-    if (sig_int)
+    if (interrupt_flag)
         goto summary;
 
     // display program version
@@ -2302,7 +2301,7 @@ int main(int argc, char *argv[])
             encoder_loop(vob, frame_a, frame_b);
 
             // check for user cancelation request
-            if (sig_int || sig_tstp)
+            if (interrupt_flag)
                 break;
 
             // next range
@@ -2384,7 +2383,7 @@ int main(int argc, char *argv[])
                 tc_log_msg(PACKAGE, "import status=%d", import_status());
 
             // check for user cancelation request
-            if (sig_int || sig_tstp)
+            if (interrupt_flag)
                 break;
 
         } while (import_status());
@@ -2505,7 +2504,7 @@ int main(int argc, char *argv[])
             }
 
             ch1++;
-            if (sig_int || sig_tstp)
+            if (interrupt_flag)
                 break;
 
         }//next PSU
@@ -2635,7 +2634,7 @@ int main(int argc, char *argv[])
       encoder_loop(vob, tstart->stf, tstart->etf);
 
       // check for user cancelation request
-      if (sig_int || sig_tstp) break;
+      if (interrupt_flag) break;
 
       // next range
       tstart = tstart->next;
@@ -2661,7 +2660,7 @@ int main(int argc, char *argv[])
 
     ++dir_fcnt;
 
-    if (sig_int || sig_tstp) break;
+    if (interrupt_flag) break;
 
       }//next directory entry
 
@@ -2768,7 +2767,7 @@ int main(int argc, char *argv[])
 
             if (vob->dvd_max_chapters ==- 1
              || ch1 == vob->dvd_max_chapters || ch1 == ch2
-             || sig_int || sig_tstp)
+             || interrupt_flag)
                 break;
             ch1++;
         }
@@ -2884,7 +2883,7 @@ int main(int argc, char *argv[])
         free(vob);
 
     //exit at last
-    if (sig_int || sig_tstp)
+    if (interrupt_flag)
         return 127;
     return 0;
 }
