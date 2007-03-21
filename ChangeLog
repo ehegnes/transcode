@@ -1,3 +1,18 @@
+2007-03-21 Francesco Romani <fromani at gmail dot com>
+  * Added directory: docs/tech
+  documentation reorganization: add separate technical documentation
+  directory.
+
+  * Added files: 
+  docs/tech/LIBRARIES docs/tech/Makefile.am docs/tech/OPTIMIZERS
+  docs/tech/architecture.txt docs/tech/avi_comments.txt
+  docs/tech/clone.txt docs/tech/export-API.txt docs/tech/filter-API.txt
+  docs/tech/ibp_support.txt docs/tech/import-API.txt
+  docs/tech/module-system-API.txt
+  docs/Makefile.am
+  
+  Move technical doc into separate subdir 1/2: add files into subdir
+
 2007-03-17 Francesco Romani <fromani at gmail dot com>
   * tools/tcstub.c tools/tcstub.h tools/tcmodinfo.c
   Fix former filter array static nonsense.
