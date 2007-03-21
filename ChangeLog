@@ -23,6 +23,9 @@
   Move technical doc into separate subdir 2/2: remove files from
   former directory.
 
+  * docs/Makefile.am docs/tech/Makefile.am
+  Finally update makefiles.
+
 2007-03-17 Francesco Romani <fromani at gmail dot com>
   * tools/tcstub.c tools/tcstub.h tools/tcmodinfo.c
   Fix former filter array static nonsense.
