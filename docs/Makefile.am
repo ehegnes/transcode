@@ -10,7 +10,8 @@ EXTRA_DIST = \
 
 SUBDIRS = \
 	man \
-	html
+	html \
+	tech
 
 docsdir = $(datadir)/doc/transcode
 

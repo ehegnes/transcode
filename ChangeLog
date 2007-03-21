@@ -11,7 +11,17 @@
   docs/tech/module-system-API.txt
   docs/Makefile.am
   
-  Move technical doc into separate subdir 1/2: add files into subdir
+  Move technical doc into separate subdir 1/2: add files into 
+  new specific subdirectory.
+
+  * Removed files:
+  docs/LIBRARIES docs/OPTIMIZERS docs/architecture.txt
+  docs/avi_comments.txt docs/clone.txt docs/export-API.txt
+  docs/filter-API.txt docs/ibp_support.txt docs/import-API.txt
+  docs/module-system-API.txt
+
+  Move technical doc into separate subdir 2/2: remove files from
+  former directory.
 
 2007-03-17 Francesco Romani <fromani at gmail dot com>
   * tools/tcstub.c tools/tcstub.h tools/tcmodinfo.c
