@@ -1,6 +1,11 @@
 # # Process this file with automake to produce Makefile.in.
 
 EXTRA_DIST = \
+	$(docs_DATA)
+
+docsdir = $(datadir)/doc/transcode/tech
+
+docs_DATA = \
 	LIBRARIES \
 	OPTIMIZERS \
 	architecture.txt \
@@ -11,6 +16,4 @@ EXTRA_DIST = \
 	ibp_support.txt \
 	import-API.txt \
 	module-system-API.txt
-
-docsdir = $(datadir)/doc/transcode/tech
 
