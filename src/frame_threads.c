@@ -25,7 +25,7 @@
 #include "framebuffer.h"
 #include "video_trans.h"
 #include "audio_trans.h"
-
+#include "decoder.h"
 #include "filter.h"
 
 #include "frame_threads.h"
