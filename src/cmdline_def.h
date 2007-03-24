@@ -1361,8 +1361,21 @@ TC_OPTION(dv_yuy2_mode,       0,   0,
                 " try this option.",
                 vob->dv_yuy2_mode = TC_TRUE;
 )
+TC_OPTION(quantizers,         0,   "min,max",
+                "min/max quantizer, for MPEG-like codecs [2,31]",
+                if (sscanf(optarg, "%d,%d", &vob->min_quantizer,
+                           &vob->max_quantizer) != 2
+                 || vob->min_quantizer < 1 || vob->min_quantizer > 31
+                 || vob->max_quantizer < 1 || vob->max_quantizer > 31
+                ) {
+                    tc_error("Invalid argument for --quantizers");
+                    goto short_usage;
+                }
+)
 TC_OPTION(divx_quant,         0,   "min,max",
-                "(DivX) min/max quantizer [2,31]",
+                "(DivX) min/max quantizer (deprecated) [2,31]",
+                tc_warn("--divx_quant option is deprecated and will be removed soon.");
+                tc_warn("use --quantizers instead.");
                 if (sscanf(optarg, "%d,%d", &vob->min_quantizer,
                            &vob->max_quantizer) != 2
                  || vob->min_quantizer < 1 || vob->min_quantizer > 31

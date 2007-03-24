@@ -1,3 +1,7 @@
+2007-03-24 Francesco Romani <fromani at gmail dot com>
+  * docs/man/transcode.1 src/cmdline_def.h
+  deprecate --divx_quant, introduce --quantizers.
+
 2007-03-23 Andrew Church <achurch at achurch dot org>
   * src/frame_threads.c
   Add missing #include "decoder.h"

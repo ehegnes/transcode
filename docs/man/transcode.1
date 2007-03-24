@@ -83,7 +83,7 @@ transcode \- LINUX video stream processing tool
 .br
 [ -R n[,f1[,f2]] ]
 [ -Q n[,m] ]
-[ --divx_quant min,max ]
+[ --quantizers min,max ]
 .br
 [ --divx_rc p,rp,rr ]
 [ --divx_vbv_prof N ]
@@ -1647,8 +1647,9 @@ Using this option without mplayer import modules (-x mplayer)
 can lead to unpredictable and possibly wrong results.
 
 .TP
-.B \-\-divx_quant \fImin,max\fP
-divx encoder min/max quantizer [2,31]
+.B \-\-quantizers \fImin,max\fP
+set encoder min/max quantizer. This is meaningfull only for video codecs
+of MPEG family. For other kind of codecs, this options is harmless. [2,31]
 
 .TP
 .B \-\-divx_rc \fIp\fP,\fIrp\fP,\fIrr\fP
