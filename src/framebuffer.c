@@ -74,6 +74,7 @@ struct tcringframebuffer_ {
     int locked;
     int empty;
     int wait;
+    int null;
 
     /* *de(allocation helpers */
     const TCFrameSpecs *specs;
@@ -274,6 +275,7 @@ static int tc_init_ring_framebuffer(TCRingFrameBuffer *rfb,
     rfb->locked = 0;
     rfb->empty = 0;
     rfb->wait = 0;
+    rfb->null = size;
 
     if (verbose >= TC_STATS) {
         tc_log_info(__FILE__, "allocated %i frames in ringbuffer", size);
@@ -354,6 +356,7 @@ static TCFramePtr tc_ring_framebuffer_retrieve_frame(TCRingFrameBuffer *rfb)
                                       rfb->next, ptr.generic->bufid);
             }
             /* adjust internal pointer */
+            rfb->null--;
             rfb->next++;
             rfb->next %= rfb->last;
         }
@@ -390,6 +393,7 @@ static int tc_ring_framebuffer_release_frame(TCRingFrameBuffer *rfb,
                         frame.generic->bufid, rfb->next);
         }
         frame.generic->status = FRAME_NULL;
+        rfb->null++;
     }
     return 0;
 }
@@ -553,6 +557,9 @@ static int tc_ring_framebuffer_check_status(const TCRingFrameBuffer *rfb,
       case TC_BUFFER_FULL:
         ret = (rfb->fill >= rfb->last - 1);
         break;
+      case TC_BUFFER_NULL:
+        ret = (rfb->null > 0);
+        break;
       case TC_BUFFER_READY:
         ret = (rfb->ready > 0);
         break;
@@ -573,10 +580,10 @@ static int tc_ring_framebuffer_check_status(const TCRingFrameBuffer *rfb,
 static void tc_ring_framebuffer_log_fill_level(const TCRingFrameBuffer *rfb,
                              const char *id, int tag)
 {
-    tc_log_msg(__FILE__, "%s: fill=%i/%i, empty=%i wait=%i"
-                         " locked=%i, ready=%i tag=%i",
-                         id, rfb->fill, rfb->last, rfb->empty, rfb->wait,
-                         rfb->locked, rfb->ready, tag);
+    tc_log_msg(__FILE__, "%s: fill=%i/%i, null=%i empty=%i"
+                         " wait=%i locked=%i, ready=%i tag=%i",
+                         id, rfb->fill, rfb->last, rfb->null, rfb->empty,
+                         rfb->wait, rfb->locked, rfb->ready, tag);
 }
 
 

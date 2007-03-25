@@ -44,12 +44,14 @@ enum tcframestatus_ {
     FRAME_WAIT,
 };
 
+/* FIXME: naming schme deserve a deep review */
 typedef enum tcbufferstatus_ TCBufferStatus;
 enum tcbufferstatus_ {
-    TC_BUFFER_EMPTY = 0,
-    TC_BUFFER_FULL,
-    TC_BUFFER_READY,
-    TC_BUFFER_LOCKED,
+    TC_BUFFER_EMPTY = 0, /* claimed frame, but holds null data */
+    TC_BUFFER_FULL,      
+    TC_BUFFER_NULL,      /* unclaimed frame */
+    TC_BUFFER_LOCKED,    /* frame is in filtering stage */
+    TC_BUFFER_READY,     /* frame is ready to be encoded */
 };
 
 /*

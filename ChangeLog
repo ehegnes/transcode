@@ -1,3 +1,7 @@
+2007-03-25 Francesco Romani <fromani at gmail dot com>
+  * src/framebuffer.c src/framebuffer.c
+  add explicit TC_BUFFER_NULL handling.
+
 2007-03-24 Francesco Romani <fromani at gmail dot com>
   * docs/man/transcode.1 src/cmdline_def.h
   deprecate --divx_quant, introduce --quantizers.
