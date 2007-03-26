@@ -9,6 +9,9 @@
   KNOWN ISSUES:
   ^C causes hangup in some circumstances. Still work in progress.
 
+  * import/tccat.c src/transcode.c tools/tcexport.c tools/tcmodchain.c
+  extend copyright year to 2007 (I surely forgot something).
+
 2007-03-25 Francesco Romani <fromani at gmail dot com>
   * src/framebuffer.c src/framebuffer.c
   add explicit TC_BUFFER_NULL handling.

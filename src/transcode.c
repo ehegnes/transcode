@@ -129,7 +129,7 @@ void version(void)
     if (tcversion++)
         return;
     fprintf(stderr, "%s v%s (C) 2001-2003 Thomas Oestreich,"
-            " 2003-2006 transcode team\n", PACKAGE, VERSION);
+            " 2003-2007 transcode team\n", PACKAGE, VERSION);
 }
 
 /*************************************************************************/
