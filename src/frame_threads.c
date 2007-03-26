@@ -29,6 +29,7 @@
 #include "filter.h"
 
 #include "frame_threads.h"
+#include "encoder.h"
 
 static pthread_t afthread[TC_FRAME_THREADS_MAX];
 static pthread_t vfthread[TC_FRAME_THREADS_MAX];
@@ -385,7 +386,6 @@ void process_vframe(vob_t *vob)
         }
 
         pthread_testcancel();
-        vframe_set_status(ptr, FRAME_READY);
 
         pthread_mutex_lock(&vbuffer_xx_fill_lock);
         vbuffer_xx_fill_ctr--;
@@ -394,6 +394,9 @@ void process_vframe(vob_t *vob)
         pthread_mutex_lock(&vbuffer_ex_fill_lock);
         vbuffer_ex_fill_ctr++;
         pthread_mutex_unlock(&vbuffer_ex_fill_lock);
+
+        vframe_set_status(ptr, FRAME_READY);
+        tc_export_video_notify();
     }
     return;
 }
@@ -464,7 +467,6 @@ void process_aframe(vob_t *vob)
         }
 
         pthread_testcancel();
-        aframe_set_status(ptr, FRAME_READY);
 
         pthread_mutex_lock(&abuffer_xx_fill_lock);
         abuffer_xx_fill_ctr--;
@@ -473,6 +475,9 @@ void process_aframe(vob_t *vob)
         pthread_mutex_lock(&abuffer_ex_fill_lock);
         abuffer_ex_fill_ctr++;
         pthread_mutex_unlock(&abuffer_ex_fill_lock);
+
+        aframe_set_status(ptr, FRAME_READY);
+        tc_export_audio_notify();
     }
     return;
 }

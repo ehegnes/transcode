@@ -28,6 +28,7 @@
 #include "video_trans.h"
 #include "audio_trans.h"
 #include "decoder.h"
+#include "encoder.h"
 #include "frame_threads.h"
 
 // stream handle
@@ -576,13 +577,12 @@ void vimport_thread(vob_t *vob)
             tc_filter_process((frame_list_t *)ptr);
         }
 
-        // done and ready for encoder
-        vframe_set_status(ptr, FRAME_WAIT);
-
-        //no frame threads?
         if (have_vframe_threads == 0) {
             vframe_set_status(ptr, FRAME_READY);
+            tc_export_video_notify();
         } else {
+            // done and ready for encoder
+            vframe_set_status(ptr, FRAME_WAIT);
             //notify sleeping frame processing threads
             frame_threads_notify_video(TC_FALSE);
         }
@@ -774,13 +774,13 @@ void aimport_thread(vob_t *vob)
             tc_filter_process((frame_list_t *)ptr);
         }
 
-        // done and ready for encoder
-        aframe_set_status(ptr, FRAME_WAIT);
-
         //no frame threads?
         if (have_aframe_threads == 0) {
             aframe_set_status(ptr, FRAME_READY);
+            tc_export_audio_notify();
         } else {
+            // done and ready for encoder
+            aframe_set_status(ptr, FRAME_WAIT);
             //notify sleeping frame processing threads
             frame_threads_notify_audio(TC_FALSE);
         }

@@ -1,3 +1,14 @@
+2007-03-26 Francesco Romani <fromani at gmail dot com>
+  * src/decoder.c src/encoder-buffer.c src/encoder.h src/frame_threads.c
+  make encoder a bit smarter avoiding sleep()s and polling for
+  new frames.
+  New code is (supposed to be) cleaner, more elegant, maintenable
+  and delivers a nice ~1200% speedup in absolutely useless testcase
+  (transcode -x null -y null).
+
+  KNOWN ISSUES:
+  ^C causes hangup in some circumstances. Still work in progress.
+
 2007-03-25 Francesco Romani <fromani at gmail dot com>
   * src/framebuffer.c src/framebuffer.c
   add explicit TC_BUFFER_NULL handling.

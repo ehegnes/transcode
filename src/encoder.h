@@ -61,6 +61,9 @@ typedef struct tcencoderbuffer_ TCEncoderBuffer;
 struct tcencoderbuffer_ {
     int frame_id; /* current frame identifier (both for A and V, yet) */
 
+    pthread_cond_t vframe_ready_cv; 
+    pthread_cond_t aframe_ready_cv; 
+
     vframe_list_t *vptr; /* current video frame */
     aframe_list_t *aptr; /* current audio frame */
 
@@ -75,6 +78,22 @@ struct tcencoderbuffer_ {
 
 /* default main transcode buffer */
 extern TCEncoderBuffer *tc_ringbuffer;
+
+
+/**
+ * tc_export_{audio,video}_notify:
+ *      notify encoder that a new {audio,video} frame is ready
+ *      to be encoded.
+ *      You NEED to call those functions to properly syncronize encoder
+ *      and avoid deadlocks.
+ *
+ * Parameters:
+ *      None.
+ * Return Value:
+ *      None.
+ */
+void tc_export_audio_notify(void);
+void tc_export_video_notify(void);
 
 /*************************************************************************/
 
@@ -247,7 +266,6 @@ int encoder_open(vob_t *vob);
  *      Encoding usually halts with last frame in range is encountered, but
  *      it can also stop if some error happens when acquiring new frames,
  *      or, of course, if there is an asynchronous stop request
- *      (see tc_export_stop_nolock()).
  *      Please note that FIRST frame in given range will be encoded, but
  *      LAST frame in given range will NOT.
  *

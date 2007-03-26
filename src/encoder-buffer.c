@@ -252,79 +252,60 @@ static void apply_audio_filters(aframe_list_t *aptr, vob_t *vob)
 
 static int encoder_wait_vframe(TCEncoderBuffer *buf)
 {
-    int ready = TC_FALSE;
-    int have_frame = TC_FALSE;
+    int ret = TC_OK;
 
-    while (!have_frame) {
-        /* check buffer fill level */
+    while (ret != TC_ERROR && buf->vptr == NULL) {
+        //check buffer fill level
         pthread_mutex_lock(&vframe_list_lock);
-        ready = vframe_fill_level(TC_BUFFER_READY);
-        pthread_mutex_unlock(&vframe_list_lock);
 
-        if (ready) {
-            buf->vptr = vframe_retrieve();
-            if (buf->vptr != NULL) {
-                have_frame = TC_TRUE;
-                break;
-            }
-        } else { /* !ready */
-            /* check import status */
+        while (!vframe_fill_level(TC_BUFFER_READY)) {
+            pthread_cond_wait(&(buf->vframe_ready_cv), &vframe_list_lock);
+
             if (!vimport_status() || tc_export_stop_requested())  {
-                if (verbose & TC_DEBUG) {
+                if (verbose >= TC_DEBUG) {
                     tc_log_warn(__FILE__, "import closed - buffer empty (V)");
                 }
-                return -1;
-            }
-            if (verbose & TC_STATS) {
-                tc_log_info(__FILE__, "waiting for video frames");
+                ret = TC_ERROR;
+                break;
             }
         }
 
-        /*
-         * no frame available at this time
-         * pthread_yield is probably a cleaner solution, but it's a GNU extension
-         */
-        usleep(tc_buffer_delay_enc);
+        pthread_mutex_unlock(&vframe_list_lock);
+
+        if (ret == TC_OK) {
+            buf->vptr = vframe_retrieve();
+        }
     }
-    return 0;
+    return ret;
 }
 
 static int encoder_wait_aframe(TCEncoderBuffer *buf)
 {
-    int ready = TC_FALSE;
-    int have_frame = TC_FALSE;
+    int ret = TC_OK;
 
-    while (!have_frame) {
-        /* check buffer fill level */
+    while (ret != TC_ERROR && buf->aptr == NULL) {
+        //check buffer fill level
         pthread_mutex_lock(&aframe_list_lock);
-        ready = aframe_fill_level(TC_BUFFER_READY);
-        pthread_mutex_unlock(&aframe_list_lock);
 
-        if (ready) {
-            buf->aptr = aframe_retrieve();
-            if (buf->aptr != NULL) {
-                have_frame = 1;
-                break;
-            }
-        } else { /* !ready */
-            /* check import status */
-            if (!aimport_status() || tc_export_stop_requested()) {
-                if (verbose & TC_DEBUG) {
+        while (!aframe_fill_level(TC_BUFFER_READY)) {
+            pthread_cond_wait(&(buf->aframe_ready_cv), &aframe_list_lock);
+
+            if (!aimport_status() || tc_export_stop_requested())  {
+                if (verbose >= TC_DEBUG) {
                     tc_log_warn(__FILE__, "import closed - buffer empty (A)");
                 }
-                return -1;
-            }
-            if (verbose & TC_STATS) {
-                tc_log_info(__FILE__, "waiting for audio frames");
+                ret = TC_ERROR;
+                break;
             }
         }
-        /*
-         * no frame available at this time
-         * pthread_yield is probably a cleaner solution, but it's a GNU extension
-         */
-        usleep(tc_buffer_delay_enc);
+
+        pthread_mutex_unlock(&aframe_list_lock);
+
+        if (ret == TC_OK) {
+            buf->aptr = aframe_retrieve();
+        }
     }
-    return 0;
+    return ret;
 }
 
 
@@ -578,6 +559,9 @@ static int encoder_have_data(TCEncoderBuffer *buf)
 static TCEncoderBuffer tc_builtin_buffer = {
     .frame_id = 0,
 
+    .vframe_ready_cv = PTHREAD_COND_INITIALIZER,
+    .aframe_ready_cv = PTHREAD_COND_INITIALIZER,
+
     .vptr = NULL,
     .aptr = NULL,
 
@@ -589,6 +573,27 @@ static TCEncoderBuffer tc_builtin_buffer = {
     .have_data = encoder_have_data,
 };
 TCEncoderBuffer *tc_ringbuffer = &tc_builtin_buffer;
+
+/*************************************************************************/
+
+/* 
+ * OK, that sucks. I know that sucks. In order to doing better,
+ * much deeper refactoring is needed (i.e.: kill frame_list s
+ */
+
+void tc_export_audio_notify(void)
+{
+    pthread_mutex_lock(&aframe_list_lock);
+    pthread_cond_signal(&tc_builtin_buffer.aframe_ready_cv);
+    pthread_mutex_unlock(&aframe_list_lock);
+}
+
+void tc_export_video_notify(void)
+{
+    pthread_mutex_lock(&vframe_list_lock);
+    pthread_cond_signal(&tc_builtin_buffer.vframe_ready_cv);
+    pthread_mutex_unlock(&vframe_list_lock);
+}
 
 /*************************************************************************/
 
