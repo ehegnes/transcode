@@ -42,7 +42,6 @@ pthread_mutex_t vframe_list_lock = PTHREAD_MUTEX_INITIALIZER;
 vframe_list_t *vframe_list_head = NULL;
 vframe_list_t *vframe_list_tail = NULL;
 
-
 /* ------------------------------------------------------------------ */
 
 /*
@@ -76,7 +75,7 @@ struct tcringframebuffer_ {
     int wait;
     int null;
 
-    /* *de(allocation helpers */
+    /* (de)allocation helpers */
     const TCFrameSpecs *specs;
     TCFrameAllocFn alloc;
     TCFrameFreeFn free;
