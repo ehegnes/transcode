@@ -884,6 +884,8 @@ void aimport_start()
 //
 //-------------------------------------------------------------------------
 
+/* preconditions: caller holds aframe_list_lock */
+
 int aimport_status()
 {
     int cc;
@@ -892,11 +894,9 @@ int aimport_status()
     cc = aimport;
     pthread_mutex_unlock(&import_a_lock);
 
+    /* FIXME: split me up */
     if (cc == 0) {
-        // decoder finished, check for frame list
-        pthread_mutex_lock(&aframe_list_lock);
         cc = (aframe_list_tail == NULL) ?0 :1;
-        pthread_mutex_unlock(&aframe_list_lock);
     }
     return cc;
 }
@@ -907,6 +907,8 @@ int aimport_status()
 //
 //-------------------------------------------------------------------------
 
+/* preconditions: caller holds vframe_list_lock */
+
 int vimport_status()
 {
     int cc;
@@ -915,11 +917,9 @@ int vimport_status()
     cc = vimport;
     pthread_mutex_unlock(&import_v_lock);
 
+    /* FIXME: split me up */
     if (cc == 0) {
-        // decoder finished, check for frame list
-        pthread_mutex_lock(&vframe_list_lock);
         cc = (vframe_list_tail == NULL) ?0 :1;
-        pthread_mutex_unlock(&vframe_list_lock);
     }
     return cc;
 }
@@ -935,9 +935,17 @@ int vimport_status()
 
 int import_status()
 {
-    if (vimport_status() && aimport_status())
-        return 1;
-    return 0;
+    int vstatus = 0, astatus = 0;
+
+    pthread_mutex_lock(&vframe_list_lock);
+    vstatus = vimport_status();
+    pthread_mutex_unlock(&vframe_list_lock);
+
+    pthread_mutex_lock(&aframe_list_lock);
+    astatus = aimport_status();
+    pthread_mutex_unlock(&aframe_list_lock);
+
+    return vstatus && astatus;
 }
 
 /*************************************************************************/

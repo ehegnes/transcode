@@ -203,6 +203,10 @@ static void signal_thread(void)
 
         /* Stop export processing */
         tc_export_stop_nolock();
+
+        tc_export_audio_notify();
+        tc_export_video_notify();
+
         if (verbose & TC_DEBUG)
             tc_log_info(PACKAGE, "(sighandler) export cancellation submitted");
 

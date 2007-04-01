@@ -252,60 +252,52 @@ static void apply_audio_filters(aframe_list_t *aptr, vob_t *vob)
 
 static int encoder_wait_vframe(TCEncoderBuffer *buf)
 {
-    int ret = TC_OK;
+    buf->vptr = NULL;
 
-    while (ret != TC_ERROR && buf->vptr == NULL) {
+    while (buf->vptr == NULL && !tc_export_stop_requested()) {
         //check buffer fill level
         pthread_mutex_lock(&vframe_list_lock);
 
         while (!vframe_fill_level(TC_BUFFER_READY)) {
             pthread_cond_wait(&(buf->vframe_ready_cv), &vframe_list_lock);
 
-            if (!vimport_status() || tc_export_stop_requested())  {
+            if (!vimport_status() || tc_export_stop_requested()) {
                 if (verbose >= TC_DEBUG) {
                     tc_log_warn(__FILE__, "import closed - buffer empty (V)");
                 }
-                ret = TC_ERROR;
                 break;
             }
         }
-
         pthread_mutex_unlock(&vframe_list_lock);
 
-        if (ret == TC_OK) {
-            buf->vptr = vframe_retrieve();
-        }
+        buf->vptr = vframe_retrieve();
     }
-    return ret;
+    return (buf->vptr != NULL) ?TC_OK :TC_ERROR;
 }
 
 static int encoder_wait_aframe(TCEncoderBuffer *buf)
 {
-    int ret = TC_OK;
+    buf->aptr = NULL;
 
-    while (ret != TC_ERROR && buf->aptr == NULL) {
+    while (buf->aptr == NULL && !tc_export_stop_requested()) {
         //check buffer fill level
         pthread_mutex_lock(&aframe_list_lock);
 
         while (!aframe_fill_level(TC_BUFFER_READY)) {
             pthread_cond_wait(&(buf->aframe_ready_cv), &aframe_list_lock);
 
-            if (!aimport_status() || tc_export_stop_requested())  {
+            if (!aimport_status() || tc_export_stop_requested()) {
                 if (verbose >= TC_DEBUG) {
                     tc_log_warn(__FILE__, "import closed - buffer empty (A)");
                 }
-                ret = TC_ERROR;
                 break;
             }
         }
-
         pthread_mutex_unlock(&aframe_list_lock);
 
-        if (ret == TC_OK) {
-            buf->aptr = aframe_retrieve();
-        }
+        buf->aptr = aframe_retrieve();
     }
-    return ret;
+    return (buf->aptr != NULL) ?TC_OK :TC_ERROR;
 }
 
 
