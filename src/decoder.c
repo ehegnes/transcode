@@ -484,9 +484,9 @@ void vimport_thread(vob_t *vob)
 
         //check buffer fill level
         pthread_mutex_lock(&vframe_list_lock);
-        pthread_cleanup_push (import_lock_cleanup, &vframe_list_lock);
+        pthread_cleanup_push(import_lock_cleanup, &vframe_list_lock);
 
-        while (vframe_fill_level(TC_BUFFER_FULL)) {
+        while (!vframe_fill_level(TC_BUFFER_NULL)) {
             pthread_cond_wait(&vframe_list_full_cv, &vframe_list_lock);
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
             pthread_testcancel();
@@ -494,28 +494,21 @@ void vimport_thread(vob_t *vob)
 
             // check for pending shutdown via ^C
             if (vimport_test_shutdown()) {
-                pthread_exit( (int *) 11);
+                pthread_exit((int *)11);
             }
         }
 
-        pthread_cleanup_pop (0);
+        pthread_cleanup_pop(0);
         pthread_mutex_unlock(&vframe_list_lock);
 
-        // get a frame buffer or wait
-        while ((ptr = vframe_register(i))==NULL) {
-            pthread_testcancel();
-
-            // check for pending shutdown via ^C
-            if (vimport_test_shutdown()) {
-                pthread_exit ( (int *) 12);
-            }
-
-            //next buffer in row may be still locked
-            usleep(tc_buffer_delay_dec);
+        ptr = vframe_register(i);
+        /* ok, that's pure paranoia */
+        if (ptr == NULL) {
+            tc_log_error(__FILE__, "frame registration failed (V)");
+            pthread_exit((int *)63);
         }
 
         ptr->attributes = 0;
-
         MARK_TIME_RANGE(ptr, vob);
 
         // read video frame
@@ -681,9 +674,9 @@ void aimport_thread(vob_t *vob)
 
         //check buffer fill level
         pthread_mutex_lock(&aframe_list_lock);
-        pthread_cleanup_push (import_lock_cleanup, &aframe_list_lock);
+        pthread_cleanup_push(import_lock_cleanup, &aframe_list_lock);
 
-        while (aframe_fill_level(TC_BUFFER_FULL)) {
+        while (!aframe_fill_level(TC_BUFFER_NULL)) {
             pthread_cond_wait(&aframe_list_full_cv, &aframe_list_lock);
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
             pthread_testcancel();
@@ -691,27 +684,21 @@ void aimport_thread(vob_t *vob)
 
             // check for pending shutdown via ^C
             if (aimport_test_shutdown()) {
-                pthread_exit( (int *) 11);
+                pthread_exit((int *)11);
             }
         }
 
-        pthread_cleanup_pop (0);
+        pthread_cleanup_pop(0);
         pthread_mutex_unlock(&aframe_list_lock);
 
-        // get a frame buffer or wait
-        while ((ptr = aframe_register(i)) == NULL) {
-            pthread_testcancel();
-            // check for pending shutdown via ^C
-            if (aimport_test_shutdown()) {
-                pthread_exit( (int *) 12);
-            }
-
-            //next buffer in row may be still locked
-            usleep(tc_buffer_delay_dec);
+        ptr = aframe_register(i);
+        /* ok, that's pure paranoia */
+        if (ptr == NULL) {
+            tc_log_error(__FILE__, "frame registration failed (A)");
+            pthread_exit((int *)63);
         }
 
         ptr->attributes = 0;
-
         MARK_TIME_RANGE(ptr, vob);
 
         // read audio frame
