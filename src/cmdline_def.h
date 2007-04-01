@@ -1342,7 +1342,7 @@ TC_OPTION(av_fine_ms,         0,   "time",
                 }
                 preset_flag |= TC_PROBE_NO_AV_FINE;
 )
-TC_OPTION(demuxer_sync,       0,   "N",
+TC_OPTION(demuxer_sync,     'M',   "N",
                 "demuxer PES AV sync mode\n"
                 "(0=off|1=PTS only|2=full) [1]",
                 vob->demuxer = strtol(optarg, &optarg, 10);
