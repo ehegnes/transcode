@@ -310,7 +310,7 @@ int aframe_alloc(int num);
  *     tc_del_video_frame or tc_del_audio_frame.
  *
  * Parameters:
- * 	None
+ *      None
  * Return Value:
  *      respectively a pointer to a vframe_list_t or aframe_list_t,
  *      like, tc_new_video_frame() or tc_new_audio_frame() called
@@ -535,17 +535,29 @@ int aframe_fill_level(int status);
 void vframe_fill_print(int r);
 void aframe_fill_print(int r);
 
+/*
+ * vframe_have_data, aframe_have)data: (NOT thread safe)
+ *      check if video/audio frame list is empty or not.
+ *
+ * Parameters:
+ *      None
+ * Return Value:
+ *      !0 if frame list has at least one frame
+ *       0 otherwise
+ * Precinditions:
+ *      caller must hold vframe_list_lock to get valid data.
+ */
+int vframe_have_data(void);
+int aframe_have_data(void);
+
+
 /* 
  * Some legacy code still access directly those variables.
  * I'm mostly OK (at least in principles) for doing so for lock and conditions,
  * but codebase still deserve an audit. -- FR.
  */
 extern pthread_mutex_t aframe_list_lock;
-extern aframe_list_t *aframe_list_head;
-extern aframe_list_t *aframe_list_tail;
-
 extern pthread_mutex_t vframe_list_lock;
-extern vframe_list_t *vframe_list_head;
-extern vframe_list_t *vframe_list_tail;
+
 
 #endif /* FRAMEBUFFFER_H */

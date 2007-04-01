@@ -1034,6 +1034,16 @@ void vframe_fill_print(int r)
                                        "video fill level", r);
 }
 
+int vframe_have_data(void)
+{
+    return (vframe_list_tail == NULL) ?0 :1;
+}
+
+int aframe_have_data(void)
+{
+    return (aframe_list_tail == NULL) ?0 :1;
+}
+
 /* ------------------------------------------------------------------ */
 /* Frame copying routines                                             */
 /* ------------------------------------------------------------------ */

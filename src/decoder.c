@@ -884,8 +884,6 @@ void aimport_start()
 //
 //-------------------------------------------------------------------------
 
-/* preconditions: caller holds aframe_list_lock */
-
 int aimport_status()
 {
     int cc;
@@ -894,11 +892,7 @@ int aimport_status()
     cc = aimport;
     pthread_mutex_unlock(&import_a_lock);
 
-    /* FIXME: split me up */
-    if (cc == 0) {
-        cc = (aframe_list_tail == NULL) ?0 :1;
-    }
-    return cc;
+    return (cc || aframe_have_data());
 }
 
 //-------------------------------------------------------------------------
@@ -906,8 +900,6 @@ int aimport_status()
 // check video import status flag and buffer fill level
 //
 //-------------------------------------------------------------------------
-
-/* preconditions: caller holds vframe_list_lock */
 
 int vimport_status()
 {
@@ -917,11 +909,7 @@ int vimport_status()
     cc = vimport;
     pthread_mutex_unlock(&import_v_lock);
 
-    /* FIXME: split me up */
-    if (cc == 0) {
-        cc = (vframe_list_tail == NULL) ?0 :1;
-    }
-    return cc;
+    return (cc || vframe_have_data());
 }
 
 //-------------------------------------------------------------------------
