@@ -302,7 +302,7 @@ TC_OPTION(socket,             0,   "file",
                 socket_file = optarg;
 )
 TC_OPTION(write_pid,          0,   "file",
-                "write pid of signal thread to \"file\" [off]",
+                "write pid of transcode process to \"file\" [off]",
                 FILE *f;
                 if (*optarg == '-')
                     goto short_usage;

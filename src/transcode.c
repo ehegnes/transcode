@@ -84,10 +84,6 @@ sigset_t sigs_to_block;
 // for initializing export_pvm
 pthread_mutex_t s_channel_lock=PTHREAD_MUTEX_INITIALIZER;
 
-//pid_t writepid = 0;  // to cmdline.c
-pthread_mutex_t writepid_mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t writepid_cond = PTHREAD_COND_INITIALIZER;
-
 //-------------------------------------------------------------
 // core parameter
 
@@ -164,13 +160,6 @@ vob_t *tc_get_vob()
 
 static void signal_thread(void)
 {
-    /* Store the PID of this thread in the global variable writepid */
-    pthread_mutex_lock(&writepid_mutex);
-    writepid = getpid();
-    if (writepid > 0)
-        pthread_cond_signal(&writepid_cond);
-    pthread_mutex_unlock(&writepid_mutex);
-
     /* Loop waiting for signals */
     for (;;) {
         int caught;
@@ -577,6 +566,7 @@ int main(int argc, char *argv[])
 
     //main thread id
     tc_pthread_main = pthread_self();
+    writepid = getpid();
 
     /* ------------------------------------------------------------
      *
@@ -602,12 +592,6 @@ int main(int argc, char *argv[])
     // start the signal handler thread
     if (pthread_create(&thread_signal, NULL, (void *)signal_thread, NULL) != 0)
         tc_error("failed to start signal handler thread");
-
-    /* writepid is set in signal_thread */
-    pthread_mutex_lock(&writepid_mutex);
-    while (writepid == 0)
-        pthread_cond_wait(&writepid_cond, &writepid_mutex);
-    pthread_mutex_unlock(&writepid_mutex);
 
     // close all threads at exit
     atexit(safe_exit);
