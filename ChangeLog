@@ -8,6 +8,10 @@
   detect mp4 atoms.
   Patch courtesy of Stefan Scheffler <stefanscheffler at gmx dot net>
 
+  * src/decoder.c src/framebuffer.h
+  effectively drop *frame_list_t.thread_id, since nobody wants it
+  anymore.
+
 2007-04-04 Francesco Romani <fromani at gmail dot com>
   * src/cmdline_def.h src/transcode.c
   Simplify writepide handling.

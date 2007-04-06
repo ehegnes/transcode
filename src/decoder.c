@@ -552,8 +552,6 @@ void vimport_thread(vob_t *vob)
         ptr->v_height   = vob->im_v_height;
         ptr->v_width    = vob->im_v_width;
         ptr->v_bpp      = BPP;
-        /* XXX: according to grep -R, nobody uses it anymore */
-        // ptr->thread_id  = (int) getpid(); /* XXX: WTF?!? -- fromani */
 
         pthread_testcancel();
 
@@ -746,8 +744,6 @@ void aimport_thread(vob_t *vob)
         ptr->a_rate = vob->a_rate;
         ptr->a_bits = vob->a_bits;
         ptr->a_chan = vob->a_chan;
-        /* XXX: according to grep -R, nobody uses it anymore */
-        // ptr->thread_id = (int) getpid(); /* XXX WTF?! -- fromani */
 
         pthread_testcancel();
 

@@ -85,8 +85,7 @@ enum tcbufferstatus_ {
     int tag;        /* init, open, close, ... */ \
     int filter_id;  /* filter instance to run */ \
     int status;     /* FIXME: comment */ \
-    int attributes; /* FIXME: comment */ \
-    int thread_id;
+    int attributes; /* FIXME: comment */
 /* BEWARE: semicolon NOT NEEDED */
 
 /* 
