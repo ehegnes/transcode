@@ -1,10 +1,15 @@
+2007-04-06 Francesco Romani <fromani at gmail dot com>
+  * import/fileinfo.c
+  detect mp4 atoms.
+  Patch courtesy of Stefan Scheffler <stefanscheffler at gmx dot net>
+
 2007-04-04 Francesco Romani <fromani at gmail dot com>
   * src/cmdline_def.h src/transcode.c
   Simplify writepide handling.
   An educated guess of the reasons behind old code follows.
   Former implementation was created to cope with LinuxThreads
   limitations, so formerly to use the PID (different, at time)
-  fo the signal thread was a need. Now we have NPTL, that is 
+  of the signal thread was a need. Now we have NPTL, that is 
   much more POSIX-ly, and new code relies on that.
 
 2007-04-01 Francesco Romani <fromani at gmail dot com>
