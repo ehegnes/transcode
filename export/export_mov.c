@@ -32,8 +32,7 @@
 #include "transcode.h"
 #include "import/magic.h"
 #include "encoder.h"
-#include "aclib/imgconvert.h"
-
+#include "libtcvideo/tcvideo.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -75,11 +74,12 @@ static uint8_t *tmp_buf;
 static int rawVideo = 0;
 static int rawAudio = 0;
 
-/* qt colormodel */
+/* colormodels */
+static ImageFormat tc_cm = 0;
 static int qt_cm = 0;
 
 /* store frame dimension */
-static int w = 0,h = 0;
+static int w = 0, h = 0;
 
 /* audio channels */
 static int channels = 0;
@@ -96,6 +96,8 @@ struct qt_codec_list {
     char *internal_name;
     char *comments;
 };
+
+static TCVHandle tcvhandle = 0;
 
 /* special paramters not retrievable from lqt */
 struct qt_codec_list qt_param_list[] = {
@@ -265,7 +267,6 @@ MOD_init
         /* set proposed video codec */
         lqt_set_video(qtfile, 1, w, h, vob->ex_fps,qt_codec_info[0]);
 #else
-	tc_log_info(MOD_NAME, "%i\n", tc_quicktime_get_timescale(vob->ex_fps));
         /* set proposed video codec */
         lqt_set_video(qtfile, 1, w, h,
 		tc_quicktime_get_timescale(vob->ex_fps) / vob->ex_fps+0.5,
@@ -276,19 +277,23 @@ MOD_init
     /* set color model */
     switch(vob->im_v_codec) {
         case CODEC_RGB:
-            quicktime_set_cmodel(qtfile, BC_RGB888); qt_cm = BC_RGB888;
+            qt_cm = BC_RGB888;
+            tc_cm = IMG_RGB_DEFAULT;
             break;
 
         case CODEC_YUV:
-            quicktime_set_cmodel(qtfile, BC_YUV420P); qt_cm = BC_YUV420P;
+            qt_cm = BC_YUV420P;
+            tc_cm = IMG_YUV_DEFAULT;
             break;
 
         case CODEC_YUV422:
-            quicktime_set_cmodel(qtfile, BC_YUV422P); qt_cm = BC_YUV422P;
+            tc_cm = IMG_YUV422P;
+            qt_cm = BC_YUV422P;
             break;
 
         case CODEC_YUY2:
-            quicktime_set_cmodel(qtfile, BC_YUV422); qt_cm = BC_YUV422;
+            tc_cm = IMG_YUY2;
+            qt_cm = BC_YUV422;
             break;
 
          /* passthrough */
@@ -360,14 +365,26 @@ MOD_init
             return(TC_EXPORT_ERROR);
             break;
     }
-
-    /* Inform user about lqts internal cs conversation */
+    
+    /* if cs conversation not supported for codec do conversation */
     /* not required for pass through */
     if (vob->im_v_codec != CODEC_RAW && vob->im_v_codec != CODEC_RAW_YUV && vob->im_v_codec != CODEC_RAW_RGB) {
-        if (quicktime_writes_cmodel(qtfile, qt_cm ,0) != 1) {
-                if (verbose_flag != TC_QUIET)
-                    tc_log_info(MOD_NAME, "Colorspace conversation required you may want to try");
-		    tc_log_info(MOD_NAME, "a different mode (rgb, yuv, yuv422) to speed up encoding");
+        if (quicktime_writes_cmodel(qtfile, qt_cm, 0) != 1) { 
+            if (verbose_flag != TC_QUIET) {
+                tc_log_info(MOD_NAME,"Colorspace not supported for this codec converting to RGB");
+            }
+            
+            qt_cm = BC_RGB888;
+            lqt_set_cmodel(qtfile, 0, qt_cm);
+	    
+            tcvhandle = tcv_init();
+            if (!tcvhandle) {
+                tc_log_warn(MOD_NAME, "image conversion init failed");
+                return TC_EXPORT_ERROR;
+            }
+            
+        } else {
+            lqt_set_cmodel(qtfile, 0, qt_cm);
         }
     }
 
@@ -608,6 +625,8 @@ MOD_encode
 {
   /* video -------------------------------------------------------- */
   if(param->flag == TC_VIDEO) {
+    vob_t *vob = tc_get_vob();
+    
     /* raw mode is easy */
     if(rawVideo) {
         /* add divx keyframes if needed */
@@ -620,11 +639,21 @@ MOD_encode
 
     /* encode frame */
     else {
-        char *ptr = param->buffer;
+        uint8_t *ptr = param->buffer;
         int iy;
 
         switch(qt_cm) {
             case BC_RGB888:
+                /* convert to rgb if unsupported */
+                if (tc_cm != IMG_RGB24) {
+                    if (!tcv_convert(tcvhandle, param->buffer, param->buffer,
+                                     vob->ex_v_width, vob->ex_v_height,
+                                     tc_cm, IMG_RGB24)) {
+                        tc_log_warn(MOD_NAME, "image format conversion failed");
+                        return TC_EXPORT_ERROR;
+                    }
+                }
+
                 /* setup row pointers for RGB */
                 for (iy = 0; iy < h; iy++) {
                     row_ptr[iy] = ptr;
