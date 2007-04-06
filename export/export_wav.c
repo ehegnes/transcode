@@ -69,7 +69,6 @@ chunk_struct) + sizeof(struct common_struct);
 
     rtf.common.dwSamplesPerSec = rate; 
     rtf.common.dwAvgBytesPerSec = vob->dm_chan * rate * vob->dm_bits/8;
-    rtf.common.dwAvgBytesPerSec = rate * vob->dm_bits/8;
     rtf.common.wChannels=vob->dm_chan;
     rtf.common.wBitsPerSample=vob->dm_bits;
     rtf.common.wBlockAlign=vob->dm_chan*vob->dm_bits/8;

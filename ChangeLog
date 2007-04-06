@@ -1,3 +1,7 @@
+2007-04-06 Francesco Romani <fromani at gmail dot com>
+  * export/export_wav.c
+  do not (wrongly) overwrite byte x second value.
+
 2007-01-21 Francesco Romani <fromani at gmail dot com>
   * INSTALL configure.in export/export_mov.c import/decode_mov.c
     import/fileinfo.c import/import_mov.c
