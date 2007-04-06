@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include "import/magic.h"
 #include "transcode.h"
+#include "vid_aux.h"
 
 #define MOD_NAME    "export_mov.so"
 #define MOD_VERSION "v0.1.2 (2004-01-19)"
@@ -65,20 +66,21 @@ static quicktime_t *qtfile = NULL;
 static unsigned char** row_ptr = NULL;
 
 /* temporary buffer*/
-static char *tmp_buf;
+static unsigned char *tmp_buf = NULL;
 
 /* toggle for raw frame export */
 static int rawVideo = 0;
 static int rawAudio = 0;
-
-/* qt colormodel */
-static int qt_cm = 0;
 
 /* store frame dimension */
 static int w = 0,h = 0;
 
 /* audio channels */
 static int channels = 0;
+
+/* colormodels */
+static int tc_cm = 0;
+static int qt_cm = 0;
 
 /* sample size */
 static int bits = 0;
@@ -102,7 +104,6 @@ struct qt_codec_list qt_param_list[] = {
   {"info", "",  "Info string (no '=' or ',' allowed) "},
   {NULL, NULL, NULL}};
 
-#ifdef LIBQUICKTIME_000904
 /* from libquicktime */
 int tc_quicktime_get_timescale(double frame_rate)
 {
@@ -115,7 +116,7 @@ int tc_quicktime_get_timescale(double frame_rate)
 			timescale = (int)(frame_rate * 100 + 0.5);
 	return timescale;
 }
-#endif
+
 
 /* print list of things. Shamelessly stolen from export_ffmpeg.c */ 
 static int list(char *list_type) 
@@ -162,7 +163,7 @@ return 1;
 
 /* stolen from vid_aux.c */
 /* due to a name clash between libvo and lqt, vid_aux can't be used */
-void qt_uyvytoyuy2(char *input, char *output, int width, int height)
+void qt_uyvytoyuy2(unsigned char *input, unsigned char *output, int width, int height)
 {
   int i;
   
@@ -240,7 +241,7 @@ MOD_init
 
     char *qt_codec;
     int divx_bitrate;
-    
+
     /* fetch frame size */
     w = vob->ex_v_width;
     h = vob->ex_v_height;
@@ -276,34 +277,30 @@ MOD_init
             return(TC_EXPORT_ERROR);
         }
 
-	fprintf(stderr, "\n \n  %i \n \n", tc_quicktime_get_timescale(vob->ex_fps));
         /* set proposed video codec */
-        lqt_set_video(qtfile, 1, w, h,
+        lqt_add_video_track(qtfile, w, h,
 		tc_quicktime_get_timescale(vob->ex_fps) / vob->ex_fps+0.5,
 		tc_quicktime_get_timescale(vob->ex_fps), qt_codec_info[0]);
     }
-
+    
     /* set color model */
     switch(vob->im_v_codec) {
         case CODEC_RGB:
-            quicktime_set_cmodel(qtfile, BC_RGB888); qt_cm = BC_RGB888;
+            qt_cm = BC_RGB888;
             break;
               
         case CODEC_YUV:
-            /*fprintf(stderr," using yuv420\n");*/
-            quicktime_set_cmodel(qtfile, BC_YUV420P); qt_cm = BC_YUV420P;
+            qt_cm = BC_YUV420P;
             break;
 
-        case CODEC_YUV422:
-            /*fprintf(stderr," using yuv422\n"); */
-            quicktime_set_cmodel(qtfile, BC_YUV422); qt_cm = BC_YUV422;
+        case CODEC_YUV422:    
+            qt_cm = BC_YUV422P;
             break;
-                         
+
         case CODEC_YUY2:
-            /*fprintf(stderr," using yuy2\n");*/
-            quicktime_set_cmodel(qtfile, BC_YUV422); qt_cm = CODEC_YUY2;
+            qt_cm = BC_YUV422;
             break;
-
+ 
          /* passthrough */
         case CODEC_RAW_RGB:
         case CODEC_RAW_YUV:
@@ -376,17 +373,27 @@ MOD_init
             break;
     }
     
-    /* Inform user about lqts internal cs conversation */
+    /* store tc and lqt colormodel */
+    tc_cm = vob->im_v_codec;
+    
+    /* if cs conversation not supported for codec do conversation */
     /* not required for pass through */
     if (vob->im_v_codec != CODEC_RAW && vob->im_v_codec != CODEC_RAW_YUV && vob->im_v_codec != CODEC_RAW_RGB) {
-        if (quicktime_writes_cmodel(qtfile, qt_cm ,0) != 1) { 
-                if (verbose_flag != TC_QUIET)
-                    fprintf(stderr,"[%s] INFO: Colorspace conversation required you may want to try\n"
-                                   "[%s]       a different mode (rgb, yuv, uyvy) to speed up encoding\n", 
+        if (quicktime_writes_cmodel(qtfile, qt_cm, 0) != 1) { 
+            if (verbose_flag != TC_QUIET) {
+                fprintf(stderr,"[%s] INFO: Colorspace not supported for this codec\n"
+                               "[%s]       converting to RGB\n", 
                         MOD_NAME, MOD_NAME);
+            }
+            
+            qt_cm = BC_RGB888;
+            lqt_set_cmodel(qtfile, 0, qt_cm);
+            yuv2rgb_init(24, MODE_BGR);
+        } else {
+            lqt_set_cmodel(qtfile, 0, qt_cm);
         }
     }
-
+    
     /* set codec parameters */
     /* tc uses kb */
     divx_bitrate = vob->divxbitrate * 1000; 
@@ -505,7 +512,7 @@ MOD_init
                 param[j] = (char)NULL;
                 j=-1; /* set to 0 by for loop above */
                 
-                for(i++,k=0;i<=strlen(vob->ex_profile_name), vob->ex_profile_name[i] != (char)NULL;i++,k++) {
+                for(i++,k=0;i<=strlen(vob->ex_profile_name) && vob->ex_profile_name[i] != (char)NULL;i++,k++) {
                     /* try to catch bad input */        
                     if (vob->ex_profile_name[i] == '=') {
                         fprintf(stderr, "[%s] bad -F option found, aborting ...\n"
@@ -540,8 +547,8 @@ MOD_init
     /* alloc row pointers for frame encoding */
     row_ptr = malloc (sizeof(char *) * h);        
 
-    /* same for temp buffer ... used during yuy2 encoding*/
-    tmp_buf = malloc (w*h*2);
+    /* allocate tmp buffer cs conversation */
+    tmp_buf = malloc (w * h * 3);
 
     /* verbose */
     fprintf(stderr,"[%s] video codec='%s' w=%d h=%d fps=%g\n",
@@ -628,11 +635,14 @@ MOD_encode
 {
   /* video -------------------------------------------------------- */
   if(param->flag == TC_VIDEO) {
+    unsigned char *ptr = (unsigned char *)param->buffer;
+    
     /* raw mode is easy */
     if(rawVideo) {
         /* add divx keyframes if needed */
-        if(quicktime_divx_is_key(param->buffer, param->size) == 1) quicktime_insert_keyframe(qtfile, (int)tc_get_frames_encoded, 0);
-        if(quicktime_write_frame(qtfile,param->buffer,param->size,0)<0) {
+        if(quicktime_divx_is_key(ptr, (unsigned char)param->size) == 1)
+            quicktime_insert_keyframe(qtfile, (int)tc_get_frames_encoded, 0);
+        if(quicktime_write_frame(qtfile, ptr, param->size,0)<0) {
             fprintf(stderr, "[%s] error writing raw video frame\n",
                 MOD_NAME);
             return(TC_EXPORT_ERROR);
@@ -641,11 +651,17 @@ MOD_encode
 
     /* encode frame */
     else {
-        char *ptr = param->buffer;
         int iy,sl;
-
+	
         switch(qt_cm) {
             case BC_RGB888:
+                if (tc_cm == CODEC_YUV) {
+                    yuv2rgb((void *)tmp_buf,
+                        ptr, ptr + w*h, ptr + (w*h*5)/4,
+                        w, h, w*3, w, w/2);
+                    ptr = tmp_buf;
+                }
+		
                 /* setup row pointers for RGB: inverse! */
                 sl = w*3;
                 for(iy=0;iy<h;iy++){
@@ -658,8 +674,8 @@ MOD_encode
                 /* setup row pointers for YUV420P: inverse! */
                 row_ptr[0] = ptr;
                 ptr = ptr + (h * w);
-                row_ptr[2] = ptr;  
-                ptr = ptr + (h * w )/4;
+                row_ptr[2] = ptr;
+                ptr = ptr + (h * w) / 4;
                 row_ptr[1] = ptr;
                 break;
 
@@ -667,7 +683,7 @@ MOD_encode
             case BC_YUV422:
                 /* setup row pointers for YUV422: inverse ?*/
                 sl = w*2;                        
-                if (qt_cm != CODEC_YUY2){
+                if (qt_cm != CODEC_YUY2) {
                     /* convert uyvy to yuy2 */   /* find out if lqt supports uyvy byteorder */ 
                     qt_uyvytoyuy2(ptr, tmp_buf, w, h);
                     ptr = tmp_buf;
@@ -692,7 +708,7 @@ MOD_encode
     /* raw mode is easy */
     if(rawAudio) {
         if(quicktime_write_frame(qtfile,
-            param->buffer,param->size,0)<0) {
+            (unsigned char *)param->buffer,param->size,0)<0) {
             fprintf(stderr, "[%s] error writing raw audio frame\n",
                 MOD_NAME);
             return(TC_EXPORT_ERROR);
@@ -768,6 +784,8 @@ MOD_stop
     /* free row pointers */
     if(row_ptr!=NULL)
         free(row_ptr);
+    if(tmp_buf!=NULL)
+        free(tmp_buf);
     return(0);
   }
   

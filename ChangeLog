@@ -2,6 +2,13 @@
   * export/export_wav.c
   do not (wrongly) overwrite byte x second value.
 
+  * export/Makefile.am export/export_mov.c
+  minor updates to export_mov module.
+  Also add a slow but safe path to fix green images problem
+  when using YUV420 colorspace.
+  Patch courtesy of
+  Stefan Scheffler <stefanscheffler at gmx dot net>
+
 2007-01-21 Francesco Romani <fromani at gmail dot com>
   * INSTALL configure.in export/export_mov.c import/decode_mov.c
     import/fileinfo.c import/import_mov.c

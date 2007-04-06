@@ -213,9 +213,9 @@ export_mjpeg_la_LDFLAGS = -module -avoid-version
 export_mjpeg_la_LIBADD = $(LIBJPEG_LIBS) $(LAME_LIBS) $(LIBVO_LIBS) $(AC3_LIBS) $(LIBAVCODEC_LIBS)
 
 # MODS_LIBQUICKTIME
-export_mov_la_SOURCES = export_mov.c
+export_mov_la_SOURCES = export_mov.c vid_aux.c
 export_mov_la_LDFLAGS = -module -avoid-version
-export_mov_la_LIBADD = $(LIBQUICKTIME_LIBS) -lm
+export_mov_la_LIBADD = $(LIBQUICKTIME_LIBS) $(LIBVO_LIBS) -lm
 
 # MODS_LZO
 export_lzo_la_SOURCES = export_lzo.c aud_aux.c
