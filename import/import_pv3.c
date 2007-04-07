@@ -211,7 +211,7 @@ static int pv3_load_dll(PrivateData *pd)
                      errno==ENOEXEC ? "Not a valid Win32 DLL file" :
                      errno==ETXTBSY ? "DLL initialization failed" :
                      strerror(errno));
-        return TC_OK;
+        return 0;
     }
 
     /* Save %fs and restore before each call, just in case */
@@ -221,14 +221,14 @@ static int pv3_load_dll(PrivateData *pd)
     if (!entry) {
         tc_log_error(MOD_NAME, "Cannot find dv.dll entry point");
         pv3_unload_dll(pd);
-        return TC_OK;
+        return 0;
     }
 
     pd->codec_handle = (*entry)();
     if (!pd->codec_handle) {
         tc_log_error(MOD_NAME, "Unable to initialize dv.dll");
         pv3_unload_dll(pd);
-        return TC_OK;
+        return 0;
     }
 
     pv3_call(pd->saved_fs, pd->codec_handle, pd->codec_handle->funcs->init,
@@ -240,7 +240,7 @@ static int pv3_load_dll(PrivateData *pd)
     if (!pd->video_handle || !pd->audio_handle) {
         tc_log_error(MOD_NAME, "Unable to retrieve codec handles");
         pv3_unload_dll(pd);
-        return TC_OK;
+        return 0;
     }
 
     return 1;
@@ -272,7 +272,7 @@ static int pv3_decode_frame(PrivateData *pd, uint8_t *in_frame,
 {
     if (!pd->codec_dll) {
         if (!pv3_load_dll(pd))
-            return TC_OK;
+            return 0;
     }
 
     if (out_video) {
@@ -282,7 +282,7 @@ static int pv3_decode_frame(PrivateData *pd, uint8_t *in_frame,
         char work_mem[0x800];
 
         if (!pd->video_handle)
-            return TC_OK;
+            return 0;
         memset(&in_vparams, 0, sizeof(in_vparams));
         in_vparams.w8 = ((uint8_t *)in_frame)[4];
         in_vparams.h8 = ((uint8_t *)in_frame)[5];
@@ -299,13 +299,13 @@ static int pv3_decode_frame(PrivateData *pd, uint8_t *in_frame,
         vparams.out_params = &out_vparams;
         if (pv3_call(pd->saved_fs, pd->video_handle,
                      pd->video_handle->funcs->decode, &vparams) < 0)
-            return TC_OK;
+            return 0;
 
         /* And second half of data */
         vparams.dataset = 1;
         if (pv3_call(pd->saved_fs, pd->video_handle,
                      pd->video_handle->funcs->decode, &vparams) < 0)
-            return TC_OK;
+            return 0;
     }
 
     if (out_audio) {
@@ -313,7 +313,7 @@ static int pv3_decode_frame(PrivateData *pd, uint8_t *in_frame,
         struct pv3_audio_params out_aparams;
 
         if (!pd->audio_handle)
-            return TC_OK;
+            return 0;
         memset(&in_aparams, 0, sizeof(in_aparams));
         in_aparams.frame = (void *)in_frame;
         memset(&out_aparams, 0, sizeof(out_aparams));
@@ -321,7 +321,7 @@ static int pv3_decode_frame(PrivateData *pd, uint8_t *in_frame,
         if (pv3_call(pd->saved_fs, pd->audio_handle,
                      pd->audio_handle->funcs->decode, &in_aparams,
                      &out_aparams) < 0)
-            return TC_OK;
+            return 0;
     }
 
     return 1;
