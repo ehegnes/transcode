@@ -49,6 +49,7 @@ struct pv3_input_vframe_params {
     uint8_t h8;         // height / 8
     uint16_t unknown1;
     uint32_t unknown2;
+    int progressive;    // Version 2 only
 };
 
 /* Output video frame parameters */
@@ -59,23 +60,39 @@ struct pv3_output_vframe_params {
 
 /* video_functable.decode() parameter block */
 struct pv3_video_decode_params {
-    int dataset;        // Selects data set 0 or 1 (see pv3_decode())
-    void *workbuf;      // Work buffer of at lest 0x424? bytes
+    uint32_t dataset;       // Selects data set 0 or 1 (see pv3_decode())
+    void *workbuf;          // Work buffer of at least 0x424? bytes
     struct pv3_input_vframe_params *in_params;
     const void **frameptr;  // Pointer to input frame
     struct pv3_output_vframe_params *out_params;
 };
 
-/* Video codec handle and function table */
+/* Video codec handle and function table. Note that particular versions of
+ * dv.dll only handle a single file format; it is necessary to use the
+ * proper version of dv.dll for the file to be transcoded. */
 struct pv3_video_handle {
-    struct {
-        void *func0;
-        void *func1;
-        void *func2;
-        void *func3;
-        void *func4;
-        void (*decode)(struct pv3_video_decode_params *params);
-    } *funcs;
+    union {
+        struct {
+            void *func0;
+            void *func1;
+            void *func2;
+            void *func3;
+            void *func4;
+            void (*decode)(struct pv3_video_decode_params *params);
+        } *funcs_v1;
+        struct {
+            void *func0;
+            void *func1;
+            void *func2;
+            void *func3;
+            void *func4;
+            void *func5;
+            void *func6;
+            /* `unknown' here points to at least 0x500 bytes of memory */
+            void (*set_quantizers)(void *unknown, const uint16_t *quantizers);
+            void (*decode)(struct pv3_video_decode_params *params);
+        } *funcs_v2;
+    } u;
 };
 
 /* Raw audio data parameters */
@@ -105,15 +122,10 @@ struct pv3_audio_handle {
     } *funcs;
 };
 
-
-/* Various handles and pointers.  Note that we keep two copies of the DLL
- * open to avoid corruption issues between threads (the DLL interface code
- * doesn't support threading). */
-
 /*************************************************************************/
 
-/* Maximum encoded frame size (note that PV3's AviUtl plugin uses 0x140000) */
-#define MAX_FRAME_SIZE  0x200000
+/* Maximum encoded frame size (as in PV3's AviUtl plugin) */
+#define MAX_FRAME_SIZE  0x400000
 
 /* Private data used by this module. */
 typedef struct {
@@ -127,6 +139,10 @@ typedef struct {
     TCVHandle tcvhandle;                // tcvideo handle for YUY2->planar
 
     int fd;                             // File descriptor to read from
+    int pv3_version;                    // PV3 file version (1 or 2)
+    int width, height;                  // Width and height for v2 files
+    int progressive;                    // Progressive flag for v2, 0=interlace
+    uint16_t qtable[128];               // Quantizer tables for v2 files
     int framenum;                       // Frame number of loaded frame
     uint8_t framebuf[MAX_FRAME_SIZE];   // Buffer for loaded frame
 } PrivateData;
@@ -232,7 +248,7 @@ static int pv3_load_dll(PrivateData *pd)
     }
 
     pv3_call(pd->saved_fs, pd->codec_handle, pd->codec_handle->funcs->init,
-             4, 2);  /* magic numbers */
+             4, pd->pv3_version==1 ? 2 : 122);  /* magic numbers */
     pd->video_handle = (void *)pv3_call(pd->saved_fs, pd->codec_handle,
                                 pd->codec_handle->funcs->get_video_handle);
     pd->audio_handle = (void *)pv3_call(pd->saved_fs, pd->codec_handle,
@@ -280,48 +296,70 @@ static int pv3_decode_frame(PrivateData *pd, uint8_t *in_frame,
         struct pv3_output_vframe_params out_vparams;
         struct pv3_video_decode_params vparams;
         char work_mem[0x800];
+        int i;
 
         if (!pd->video_handle)
             return 0;
         memset(&in_vparams, 0, sizeof(in_vparams));
-        in_vparams.w8 = ((uint8_t *)in_frame)[4];
-        in_vparams.h8 = ((uint8_t *)in_frame)[5];
+        if (pd->pv3_version == 1) {
+            in_vparams.w8 = ((uint8_t *)in_frame)[4];
+            in_vparams.h8 = ((uint8_t *)in_frame)[5];
+        } else {
+            in_vparams.w8 = pd->width/8;
+            in_vparams.h8 = pd->height/8;
+            in_vparams.progressive = pd->progressive;
+        }
         memset(&out_vparams, 0, sizeof(out_vparams));
         out_vparams.stride = in_vparams.w8 * 8 * 2;
         out_vparams.outbuf = out_video;
         memset(&vparams, 0, sizeof(vparams));
 
-        /* Process first half of data */
-        vparams.dataset = 0;
+        /* Set up quantizers for version 2 */
+        if (pd->pv3_version == 2) {
+            pv3_call(pd->saved_fs, pd->video_handle,
+                     pd->video_handle->u.funcs_v2->set_quantizers,
+                     work_mem, pd->qtable);
+        }
+
+        /* Process each set of data */
         vparams.workbuf = work_mem;
         vparams.in_params = &in_vparams;
         vparams.frameptr = (const void **)&in_frame;
         vparams.out_params = &out_vparams;
-        if (pv3_call(pd->saved_fs, pd->video_handle,
-                     pd->video_handle->funcs->decode, &vparams) < 0)
-            return 0;
-
-        /* And second half of data */
-        vparams.dataset = 1;
-        if (pv3_call(pd->saved_fs, pd->video_handle,
-                     pd->video_handle->funcs->decode, &vparams) < 0)
-            return 0;
+        for (i = 0; i < (pd->pv3_version==2 && !pd->progressive ? 4 : 2); i++){
+            if (pd->pv3_version == 1) {
+                vparams.dataset = i;
+            } else {
+                vparams.dataset = 1<<i;
+            }
+            if (pv3_call(pd->saved_fs, pd->video_handle,
+                         pd->pv3_version == 1
+                             ? pd->video_handle->u.funcs_v1->decode
+                             : pd->video_handle->u.funcs_v2->decode,
+                         &vparams) < 0
+            ) {
+                return 0;
+            }
+        }
     }
 
     if (out_audio) {
-        struct pv3_audio_encoded_params in_aparams;
-        struct pv3_audio_params out_aparams;
+        int nsamples, i;
+        uint16_t *dest = (uint16_t *)out_audio;
 
-        if (!pd->audio_handle)
-            return 0;
-        memset(&in_aparams, 0, sizeof(in_aparams));
-        in_aparams.frame = (void *)in_frame;
-        memset(&out_aparams, 0, sizeof(out_aparams));
-        out_aparams.audiobuf = out_audio;
-        if (pv3_call(pd->saved_fs, pd->audio_handle,
-                     pd->audio_handle->funcs->decode, &in_aparams,
-                     &out_aparams) < 0)
-            return 0;
+        if (pd->pv3_version == 1) {
+            nsamples = in_frame[24]<<8 | in_frame[25];
+        } else {  // PV3 version 2
+            nsamples = in_frame[6]<<8 | in_frame[7];
+        }
+        if (nsamples > 0x800) {
+            tc_log_warn(MOD_NAME, "Too many audio samples (%d) in frame %d,"
+                        " truncating to %d", nsamples, pd->framenum, 0x800);
+            nsamples = 0x800;
+        }
+        for (i = 0; i < nsamples*2; i++) {
+            dest[i] = in_frame[0x200+i*2]<<8 | in_frame[0x201+i*2];
+        }
     }
 
     return 1;
@@ -556,36 +594,51 @@ static int pv3_demultiplex(TCModuleInstance *self,
     }
     fpos = lseek(pd->fd, 0, SEEK_CUR);  // for error messages
 
-    /* Read frame header */
-    if (tc_pread(pd->fd, pd->framebuf, 512) != 512) {
+    /* Read frame header (but if this is a version 1 file and we're on the
+     * first frame, the header will already have been read in) */
+    if (!(pd->pv3_version == 1 && pd->framenum == -1)
+     && (tc_pread(pd->fd, pd->framebuf, 512) != 512)
+    ) {
         if (verbose & TC_DEBUG)
             tc_log_msg(MOD_NAME, "EOF reached");
         return TC_ERROR;
     }
-    if (memcmp(pd->framebuf, "PV3", 3) != 0) {
-        tc_log_warn(MOD_NAME, "Not a valid PV3 frame at frame %d (ofs=%llX)",
+    if (pd->pv3_version == 1 && memcmp(pd->framebuf, "PV3\1", 4) != 0) {
+        tc_log_warn(MOD_NAME, "Not a valid PV3-1 frame at frame %d (ofs=%llX)",
                     pd->framenum+1, fpos);
-        return TC_ERROR;
-    }
-    if (pd->framebuf[3] != 1) {  // version number
-        tc_log_warn(MOD_NAME, "Invalid PV3 version %d at frame %d (ofs=%llX)",
-                    pd->framebuf[3], pd->framenum+1, fpos);
         return TC_ERROR;
     }
 
     /* Find total frame length and read */
-    framesize  = 512;                                           // header
-    framesize += (pd->framebuf[24]<<8 | pd->framebuf[25]) * 4;  // audio
-    framesize  = (framesize+0xFFF) & -0x1000;                   // align
-    /* Seems to reserve 8192-512 bytes for audio no matter what */
-    if (framesize < 8192)
-        framesize = 8192;
-    framesize += pd->framebuf[28]<<24 | pd->framebuf[29]<<16    // video 0
-               | pd->framebuf[30]<<8  | pd->framebuf[31];
-    framesize  = (framesize+0x1F) & -0x20;                      // align
-    framesize += pd->framebuf[32]<<24 | pd->framebuf[33]<<16    // video 1
-               | pd->framebuf[34]<<8  | pd->framebuf[35];
-    framesize  = (framesize+0xFFF) & -0x1000;                   // align
+    framesize  = 512;  // header
+    if (pd->pv3_version == 1) {
+        framesize += (pd->framebuf[24]<<8 | pd->framebuf[25]) * 4;  // audio
+        framesize  = (framesize+0xFFF) & -0x1000;                   // align
+        /* Seems to reserve 8192-512 bytes for audio no matter what */
+        if (framesize < 8192)
+            framesize = 8192;
+        framesize += pd->framebuf[28]<<24 | pd->framebuf[29]<<16    // video 0
+                   | pd->framebuf[30]<< 8 | pd->framebuf[31];
+        framesize  = (framesize+0x1F) & -0x20;                      // align
+        framesize += pd->framebuf[32]<<24 | pd->framebuf[33]<<16    // video 1
+                   | pd->framebuf[34]<< 8 | pd->framebuf[35];
+        framesize  = (framesize+0xFFF) & -0x1000;                   // align
+    } else {  // PV3 version 2
+        framesize += (pd->framebuf[6]<<8 | pd->framebuf[7]) * 4;    // audio
+        framesize  = (framesize+0xFFF) & -0x1000;                   // align
+        framesize += pd->framebuf[384]<<24 | pd->framebuf[385]<<16  // video 0
+                   | pd->framebuf[386]<< 8 | pd->framebuf[387];
+        framesize  = (framesize+0x1F) & -0x20;                      // align
+        framesize += pd->framebuf[388]<<24 | pd->framebuf[389]<<16  // video 1
+                   | pd->framebuf[390]<< 8 | pd->framebuf[391];
+        framesize  = (framesize+0x1F) & -0x20;                      // align
+        framesize += pd->framebuf[392]<<24 | pd->framebuf[393]<<16  // video 2
+                   | pd->framebuf[394]<< 8 | pd->framebuf[395];
+        framesize  = (framesize+0x1F) & -0x20;                      // align
+        framesize += pd->framebuf[396]<<24 | pd->framebuf[397]<<16  // video 3
+                   | pd->framebuf[398]<< 8 | pd->framebuf[399];
+        framesize  = (framesize+0xFFF) & -0x1000;                   // align
+    }
     if (tc_pread(pd->fd, pd->framebuf+512, framesize-512) != framesize-512) {
         tc_log_warn(MOD_NAME, "Truncated frame at frame %d (ofs=%llX)",
                     pd->framenum+1, fpos);
@@ -602,13 +655,21 @@ static int pv3_demultiplex(TCModuleInstance *self,
     if (aframe) {
         /* The full frame won't fit in an audio buffer, so just decode it
          * here and pass it on as PCM. */
-        aframe->a_rate = pd->framebuf[12] << 24
-                       | pd->framebuf[13] << 16
-                       | pd->framebuf[14] <<  8
-                       | pd->framebuf[15];
+        if (pd->pv3_version == 1) {
+            aframe->a_rate = pd->framebuf[12] << 24
+                           | pd->framebuf[13] << 16
+                           | pd->framebuf[14] <<  8
+                           | pd->framebuf[15];
+            aframe->audio_size = (pd->framebuf[24]<<8 | pd->framebuf[25]) * 4;
+        } else {  // PV3 version 2
+            aframe->a_rate = pd->framebuf[ 8] << 24
+                           | pd->framebuf[ 9] << 16
+                           | pd->framebuf[10] <<  8
+                           | pd->framebuf[11];
+            aframe->audio_size = (pd->framebuf[6]<<8 | pd->framebuf[7]) * 4;
+        }
         aframe->a_bits = 16;
         aframe->a_chan = 2;
-        aframe->audio_size = (pd->framebuf[24]<<8 | pd->framebuf[25]) * 4;
         if (!pv3_decode_frame(pd, pd->framebuf, NULL, aframe->audio_buf)) {
             tc_log_warn(MOD_NAME,
                         "demultiplex: decode audio failed, inserting silence");
@@ -643,8 +704,14 @@ static int pv3_decode_video(TCModuleInstance *self,
     if (!pv3_decode_frame(pd, inframe->video_buf, yuy2_frame, NULL))
         return TC_ERROR;
 
-    outframe->v_width = pd->framebuf[4] * 8;   // FIXME: do we set these here?
-    outframe->v_height = pd->framebuf[5] * 8;  // FIXME: set anything else too?
+    // FIXME: do we set these here?
+    if (pd->pv3_version == 1) {
+        outframe->v_width = pd->framebuf[4] * 8;
+        outframe->v_height = pd->framebuf[5] * 8;
+    } else {
+        outframe->v_width = pd->width;
+        outframe->v_height = pd->height;
+    }
 
     if (!tcv_convert(pd->tcvhandle, yuy2_frame, outframe->video_buf,
                      outframe->v_width, outframe->v_height, IMG_YUY2,
@@ -725,6 +792,7 @@ MOD_open
     TCModuleInstance *mod = NULL;
     PrivateData *pd = NULL;
     const char *fname = NULL;
+    uint8_t buf[512];
 
     if (param->flag == TC_VIDEO) {
         mod = &mod_video;
@@ -751,7 +819,51 @@ MOD_open
         pv3_fini(mod);
         return TC_ERROR;
     }
-    /* Just blindly assume it's a valid file */
+    if (tc_pread(pd->fd, buf, 512) != 512) {
+        tc_log_error(MOD_NAME, "%s is too short", fname);
+        free(pd->framebuf);
+        pv3_fini(mod);
+        return TC_ERROR;
+    }
+    if (memcmp(buf, "PV3", 3) != 0) {
+        tc_log_warn(MOD_NAME, "%s is not a valid PV3 file", fname);
+        free(pd->framebuf);
+        pv3_fini(mod);
+        return TC_ERROR;
+    }
+    if (buf[3] != 1 && buf[3] != 2) {
+        tc_log_warn(MOD_NAME, "Invalid PV3 version %d in %s", buf[3], fname);
+        free(pd->framebuf);
+        pv3_fini(mod);
+        return TC_ERROR;
+    }
+    pd->pv3_version = buf[3];
+    if (pd->pv3_version == 1) {
+        /* For version 1 files, copy the 512-byte header we just read
+         * into the frame buffer, so that the demultiplexer has access
+         * to it without requiring a seek on the input file */
+        memcpy(pd->framebuf, buf, 512);
+    } else {  /* A version 2 file */
+        /* Copy file header data into private data structure */
+        int i;
+        pd->width = buf[4] * 16;
+        pd->height = buf[5] * 8;
+        pd->progressive = buf[6] & 1;
+        for (i = 0; i < 128; i++) {
+            pd->qtable[i] = buf[256+i*2]<<8 | buf[257+i*2];
+        }
+        /* Skip to the first frame header */
+        {
+            uint8_t dummy[16384-512];
+            if (tc_pread(pd->fd, dummy, sizeof(dummy)) != sizeof(dummy)) {
+                tc_log_error(MOD_NAME, "Unexpected EOF reading %s header",
+                             fname);
+                free(pd->framebuf);
+                pv3_fini(mod);
+                return TC_ERROR;
+            }
+        }
+    }
 
     return TC_OK;
 }
@@ -832,7 +944,8 @@ MOD_decode
 
 void probe_pv3(info_t *ipipe)
 {
-    uint8_t buf[512];
+    uint8_t buf[0x4200];
+    int aspect_w, aspect_h, interlaced;
 
     if (tc_pread(ipipe->fd_in, buf, sizeof(buf)) != sizeof(buf)) {
         tc_log_warn(MOD_NAME, "Premature end of input file");
@@ -845,7 +958,7 @@ void probe_pv3(info_t *ipipe)
         ipipe->error = 1;
         return;
     }
-    if (buf[3] != 1) {  /* version number */
+    if (buf[3] != 1 && buf[3] != 2) {  /* version number */
         tc_log_warn(MOD_NAME, "Invalid PV3 version %d", buf[3]);
         ipipe->error = 1;
         return;
@@ -854,19 +967,32 @@ void probe_pv3(info_t *ipipe)
     ipipe->probe_info->magic = TC_MAGIC_PV3;
     ipipe->probe_info->codec = TC_CODEC_PV3;
 
-    ipipe->probe_info->width = buf[4] * 8;
-    ipipe->probe_info->height = buf[5] * 8;
-    if (buf[6] == 4 && buf[7] == 3)
+    if (buf[3] == 1) {
+        /* Version 1 file processing */
+        ipipe->probe_info->width = buf[4] * 8;
+        ipipe->probe_info->height = buf[5] * 8;
+        aspect_w = buf[6];
+        aspect_h = buf[7];
+        interlaced = !(buf[8] & 1);
+        ipipe->probe_info->track[0].samplerate =
+            buf[12]<<24 | buf[13]<<16 | buf[14]<<8 | buf[15];
+    } else {
+        /* Version 2 file processing */
+        ipipe->probe_info->width = buf[4] * 16;
+        ipipe->probe_info->height = buf[5] * 8;
+        aspect_w = buf[0x4100]<<8 | buf[0x4101];
+        aspect_h = buf[0x4102]<<8 | buf[0x4103];
+        interlaced = !(buf[6] & 1);
+        ipipe->probe_info->track[0].samplerate =
+            buf[0x4008]<<24 | buf[0x4009]<<16 | buf[0x400A]<<8 | buf[0x400B];
+    }
+    if (aspect_w == 4 && aspect_h == 3)
         ipipe->probe_info->asr = 2;
-    else if (buf[6] == 16 && buf[7] == 9)
+    else if (aspect_w == 16 && aspect_h == 9)
         ipipe->probe_info->asr = 3;
-    ipipe->probe_info->fps = 30/1.001;  // argh stupid NTSC
-    ipipe->probe_info->frc = 4;
-    /* (buf[8] & 1) != 0 indicates interlaced video; 480i is bottom-first,
-     * 1080i is top-first */
+    ipipe->probe_info->fps = (interlaced ? 30 : 60)/1.001;  // argh stupid NTSC
+    ipipe->probe_info->frc = (interlaced ? 4 : 7);
 
-    ipipe->probe_info->track[0].samplerate =
-        buf[12]<<24 | buf[13]<<16 | buf[14]<<8 | buf[15];
     ipipe->probe_info->track[0].bits = 16;
     ipipe->probe_info->track[0].chan = 2;
     ipipe->probe_info->track[0].bitrate =

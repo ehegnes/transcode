@@ -361,7 +361,7 @@ long fileinfo(int fdes, int skip)
   }
 
   // PV3
-  if (memcmp(buf, "PV3\1", 4) == 0) {
+  if (memcmp(buf, "PV3\1", 4) == 0 || memcmp(buf, "PV3\2", 4) == 0) {
     id = TC_MAGIC_PV3;
     goto exit;
   }
