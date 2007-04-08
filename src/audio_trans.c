@@ -69,24 +69,43 @@ static int do_process_audio(vob_t *vob, aframe_list_t *ptr)
 
     /* --av_fine_ms: Shift audio */
     if (vob->sync_ms != 0) {
-        /* Note that we adjust based on the source rate */
-        int newsamps = (-vob->sync_ms * vob->a_rate / 1000) * vob->dm_chan;
-        if (newsamps > 0) {
-            memmove((uint8_t *)ptr->audio_buf + newsamps, ptr->audio_buf,
-                    ptr->audio_size);
-            memset(ptr->audio_buf, 0, newsamps * (vob->dm_bits/8));
-        } else {
-            memmove(ptr->audio_buf, (uint8_t *)ptr->audio_buf - newsamps,
-                    ptr->audio_size + (newsamps * (vob->dm_bits/8)));
-        }
-        nsamples += newsamps;
-        ptr->audio_size += newsamps * (vob->dm_bits/8);
+        /* This is the first time here: convert time (ms) to samples.
+         * Note that we adjust based on the source rate */
+        vob->sync_samples = (vob->sync_ms * vob->a_rate / 1000) * vob->dm_chan;
         if (verbose & TC_DEBUG) {
-            tc_log_info(__FILE__, "adjusted %d PCM samples (%d ms)",
-                        -newsamps, vob->sync_ms);
+            if (vob->sync_samples < 0) {
+                tc_log_info(__FILE__, "inserting %d PCM samples (%d ms)",
+                            -vob->sync_samples, -vob->sync_ms);
+            } else {
+                tc_log_info(__FILE__, "deleting %d PCM samples (%d ms)",
+                            vob->sync_samples, vob->sync_ms);
+            }
         }
-        /* Only do it once */
-        vob->sync_ms = 0;
+        vob->sync_ms = 0;  // Clear it so we don't come here again
+    }
+    if (vob->sync_samples < 0) {
+        int new_samples = -vob->sync_samples;
+        int new_bytes = new_samples * (vob->dm_bits/8);
+        memmove((uint8_t *)ptr->audio_buf + new_bytes, ptr->audio_buf,
+                ptr->audio_size);
+        memset(ptr->audio_buf, 0, new_bytes);
+        nsamples += new_samples;
+        ptr->audio_size += new_bytes;
+        vob->sync_samples = 0;
+    } else if (vob->sync_samples > 0) {
+        int del_samples = vob->sync_samples;
+        if (del_samples >= nsamples) {
+            del_samples = nsamples;
+            nsamples = 0;
+            ptr->audio_size = 0;
+        } else {
+            int del_bytes = del_samples * (vob->dm_bits/8);
+            memmove(ptr->audio_buf, (uint8_t *)ptr->audio_buf + del_bytes,
+                    ptr->audio_size - del_bytes);
+            nsamples -= del_samples;
+            ptr->audio_size -= del_bytes;
+        }
+        vob->sync_samples -= del_samples;
     }
 
     /* All done */

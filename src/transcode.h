@@ -123,6 +123,7 @@ typedef struct _vob_t {
 
     int sync;                   // Frame offset for audio/video synchronization
     int sync_ms;                // Fine-tuning for audio/video synchronization
+    int sync_samples;           // sync_ms converted to samples
 
     int dvd_title;
     int dvd_chapter1;
