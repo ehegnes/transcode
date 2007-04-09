@@ -149,15 +149,17 @@ static int doublefps_configure(TCModuleInstance *self,
     }
 
     if (!pd->fullheight) {
-        if (vob->encode_fields == 1 || vob->encode_fields == 2) {
-            pd->topfirst = (vob->encode_fields == 1) ? 1 : 0;
+        if (vob->encode_fields == TC_ENCODE_FIELDS_TOP_FIRST
+         || vob->encode_fields == TC_ENCODE_FIELDS_BOTTOM_FIRST
+        ) {
+            pd->topfirst = (vob->encode_fields == TC_ENCODE_FIELDS_TOP_FIRST);
             if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_FIELDS) {
                 tc_log_warn(MOD_NAME, "Use \"-J doublefps=topfirst=%d\","
                             " not \"--encode_fields %c\"", pd->topfirst,
-                            vob->encode_fields == 1 ? 't' : 'b');
+                            pd->topfirst ? 't' : 'b');
             }
         }
-        vob->encode_fields = 0;
+        vob->encode_fields = TC_ENCODE_FIELDS_PROGRESSIVE;
         vob->export_attributes |= TC_EXPORT_ATTRIBUTE_FIELDS;
     }
 

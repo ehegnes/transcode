@@ -395,14 +395,14 @@ MOD_init {
 
         if(!(vob->export_attributes & TC_EXPORT_ATTRIBUTE_FIELDS)) {
             if(video_template == vt_pal) {
-                vob->encode_fields = 1;  /* top first */
+                vob->encode_fields = TC_ENCODE_FIELDS_T;  /* top first */
             } else {
                 if(video_template == vt_ntsc)
-                    vob->encode_fields = 2; /* bottom first */
+                    vob->encode_fields = TC_ENCODE_FIELDS_B; /* bottom first */
                 else {
                     tc_log_warn(MOD_NAME, "Interlacing parameters unknown, "
                                "select video type with profile");
-                    vob->encode_fields = 3; /* unknown */
+                    vob->encode_fields = TC_ENCODE_FIELDS_UNKNOWN;
                 }
 	    }
 
@@ -431,7 +431,7 @@ MOD_init {
     } else { /* no profile active */
         if (!(vob->export_attributes & TC_EXPORT_ATTRIBUTE_FIELDS)) {
             tc_log_warn(MOD_NAME, "Interlacing parameters unknown, use --encode_fields");
-            vob->encode_fields = 3; /* unknown */
+            vob->encode_fields = TC_ENCODE_FIELDS_UNKNOWN;
         }
     }
 
@@ -1039,11 +1039,11 @@ MOD_init {
         lavc_venc_context->flags |= CODEC_FLAG_NORMALIZE_AQP;
 
     switch(vob->encode_fields) {
-    case 1:
+    case TC_ENCODE_FIELDS_TOP_FIRST:
         interlacing_active = 1;
         interlacing_top_first = 1;
         break;
-    case 2:
+    case TC_ENCODE_FIELDS_BOTTOM_FIRST:
         interlacing_active = 1;
         interlacing_top_first = 0;
         break;

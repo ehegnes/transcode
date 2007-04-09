@@ -123,7 +123,13 @@ static int yw_open_video(YWPrivateData *pd, const char *filename,
 
     y4m_init_stream_info(&(pd->streaminfo));
     y4m_si_set_framerate(&(pd->streaminfo), framerate);
-    y4m_si_set_interlace(&(pd->streaminfo), vob->encode_fields);
+    if (vob->encode_fields == TC_ENCODE_FIELDS_TOP_FIRST) {
+        y4m_si_set_interlace(&(pd->streaminfo), Y4M_ILACE_TOP_FIRST);
+    } else if (vob->encode_fields == TC_ENCODE_FIELDS_BOTTOM_FIRST) {
+        y4m_si_set_interlace(&(pd->streaminfo), Y4M_ILACE_BOTTOM_FIRST);
+    } else if (vob->encode_fields == TC_ENCODE_FIELDS_PROGRESSIVE) {
+        y4m_si_set_interlace(&(pd->streaminfo), Y4M_ILACE_NONE);
+    }
     /* XXX */
     y4m_si_set_sampleaspect(&(pd->streaminfo),
                             y4m_guess_sar(pd->width,

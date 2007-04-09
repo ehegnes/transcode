@@ -913,13 +913,13 @@ TC_OPTION(encode_fields,      0,   "C",
                 "         p (progressive), u (unknown)",
                 switch (*optarg) {
                   case 't':
-                    vob->encode_fields = 0; break;
+                    vob->encode_fields = TC_ENCODE_FIELDS_TOP_FIRST;    break;
                   case 'b':
-                    vob->encode_fields = 1; break;
+                    vob->encode_fields = TC_ENCODE_FIELDS_BOTTOM_FIRST; break;
                   case 'p':
-                    vob->encode_fields = 2; break;
+                    vob->encode_fields = TC_ENCODE_FIELDS_PROGRESSIVE;  break;
                   case 'u':
-                    vob->encode_fields = 3; break;
+                    vob->encode_fields = TC_ENCODE_FIELDS_UNKNOWN;      break;
                   default:
                     tc_error("Invalid argument for --encode_fields");
                     goto short_usage;

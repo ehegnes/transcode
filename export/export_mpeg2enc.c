@@ -141,7 +141,8 @@ MOD_open
   int frc=0, asr=0;
   char *tv_type="-n p";
   char *pulldown="";
-  int fields = !!vob->encode_fields;
+  int fields = (vob->encode_fields == TC_ENCODE_FIELDS_TOP_FIRST
+	     || vob->encode_fields == TC_ENCODE_FIELDS_BOTTOM_FIRST);
 
   /* check for mpeg2enc */
   if (tc_test_program("mpeg2enc") != 0) return (TC_EXPORT_ERROR);
@@ -164,7 +165,13 @@ MOD_open
 
     y4m_init_stream_info(&y4mstream);
     y4m_si_set_framerate(&y4mstream,framerate);
-    y4m_si_set_interlace(&y4mstream,vob->encode_fields );
+    if (vob->encode_fields == TC_ENCODE_FIELDS_TOP_FIRST) {
+	y4m_si_set_interlace(&y4mstream, Y4M_ILACE_TOP_FIRST);
+    } else if (vob->encode_fields == TC_ENCODE_FIELDS_BOTTOM_FIRST) {
+	y4m_si_set_interlace(&y4mstream, Y4M_ILACE_BOTTOM_FIRST);
+    } else if (vob->encode_fields == TC_ENCODE_FIELDS_PROGRESSIVE) {
+	y4m_si_set_interlace(&y4mstream, Y4M_ILACE_NONE);
+    }
     y4m_si_set_sampleaspect(&y4mstream, y4m_guess_sar(vob->ex_v_width, vob->ex_v_height, dar));
     /*
     tc_snprintf( dar_tag, 19, "XM2AR%03d", asr );

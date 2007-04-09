@@ -1,3 +1,11 @@
+2007-04-09 Andrew Church <achurch at achurch dot org>
+  * encode/encode_lavc.c encode/encode_x264.c
+    export/export_ffmpeg.c export/export_mpeg2enc.c export/export_yuv4mpeg.c
+    filter/filter_doublefps.c multiplex/multiplex_y4m.c
+    src/cmdline_def.h src/tcinfo.h src/transcode.h
+  Use named constants for vob->encode_fields, and fix incorrect processing
+  of --encode_fields parameter.
+
 2007-04-08 Andrew Church <achurch at achurch dot org>
   * src/audio_trans.c src/transcode.h
   Fix incorrect handling of --av_fine_ms.

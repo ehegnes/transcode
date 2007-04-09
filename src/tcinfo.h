@@ -91,14 +91,6 @@ typedef struct {
 
 #include "libtc/tccodecs.h"
 
-typedef enum tcencodefieldsid_ TCEncodeFieldsID;
-enum tcencodefieldsid_ {
-    TC_ENCODE_FIELDS_PROGRESSIVE = 0,
-    TC_ENCODE_FIELDS_TOP_FIRST,
-    TC_ENCODE_FIELDS_BOTTOM_FIRST,
-    TC_ENCODE_FIELDS_UNKNOWN,
-};
-
 typedef struct tcarea_ TCArea;
 struct tcarea_ {
     int top;
@@ -158,7 +150,7 @@ struct tcexportinfo_ {
         int frc; /* frame rate code */
         int par;
         /* pixel aspect ratio; 1:1 by default, overridden by user in case */
-        TCEncodeFieldsID encode_fields;
+        int encode_fields;
         /* field based encoding selection */
 
         TCArea pre_clip;

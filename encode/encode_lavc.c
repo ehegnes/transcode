@@ -886,11 +886,11 @@ static int tc_lavc_settings_from_vob(TCLavcPrivateData *pd, const vob_t *vob)
     }
 
     switch(vob->encode_fields) {
-      case 1:
+      case TC_ENCODE_FIELDS_TOP_FIRST:
         pd->interlacing.active    = 1;
         pd->interlacing.top_first = 1;
         break;
-      case 2:
+      case TC_ENCODE_FIELDS_BOTTOM_FIRST:
         pd->interlacing.active    = 1;
         pd->interlacing.top_first = 0;
         break;

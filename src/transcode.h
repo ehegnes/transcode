@@ -461,6 +461,13 @@ extern int max_frame_threads;
 #define TC_MODE_DIRECTORY         16
 #define TC_MODE_DEBUG             32
 
+enum {
+    TC_ENCODE_FIELDS_PROGRESSIVE = 0,
+    TC_ENCODE_FIELDS_TOP_FIRST,
+    TC_ENCODE_FIELDS_BOTTOM_FIRST,
+    TC_ENCODE_FIELDS_UNKNOWN,
+};
+
 /*************************************************************************/
 
 #endif  // _TRANSCODE_H

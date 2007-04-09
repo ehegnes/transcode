@@ -433,7 +433,8 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
 
     params->i_width = vob->ex_v_width;
     params->i_height = vob->ex_v_height;
-    params->b_interlaced = (vob->encode_fields==1 || vob->encode_fields==2);
+    params->b_interlaced = (vob->encode_fields==TC_ENCODE_FIELDS_TOP_FIRST
+                         || vob->encode_fields==TC_ENCODE_FIELDS_BOTTOM_FIRST);
 
     /* TODO: allow other modes than cbr */
     params->rc.i_rc_method = X264_RC_ABR; /* use bitrate instead of CQP */
