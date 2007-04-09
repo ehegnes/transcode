@@ -395,10 +395,10 @@ MOD_init {
 
         if(!(vob->export_attributes & TC_EXPORT_ATTRIBUTE_FIELDS)) {
             if(video_template == vt_pal) {
-                vob->encode_fields = TC_ENCODE_FIELDS_T;  /* top first */
+                vob->encode_fields = TC_ENCODE_FIELDS_TOP_FIRST;
             } else {
                 if(video_template == vt_ntsc)
-                    vob->encode_fields = TC_ENCODE_FIELDS_B; /* bottom first */
+                    vob->encode_fields = TC_ENCODE_FIELDS_BOTTOM_FIRST;
                 else {
                     tc_log_warn(MOD_NAME, "Interlacing parameters unknown, "
                                "select video type with profile");
