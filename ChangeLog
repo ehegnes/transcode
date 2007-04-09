@@ -6,6 +6,14 @@
   Use named constants for vob->encode_fields, and fix incorrect processing
   of --encode_fields parameter.
 
+  * src/encoder.c src/transcode.c
+  Move encoder buffer alloc/free from encoder_loop to encoder_{init,stop}
+  to fix a segfault when encoder_close() tries to flush audio.  Also make
+  use of TC_OK/TC_ERROR in export code.
+
+  * encode/encode_lame.c
+  Add an extra sanity check.
+
 2007-04-08 Andrew Church <achurch at achurch dot org>
   * src/audio_trans.c src/transcode.h
   Fix incorrect handling of --av_fine_ms.

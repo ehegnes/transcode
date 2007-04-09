@@ -148,8 +148,8 @@ static void free_buffers(TCEncoderData *data);
  *    bytes: total size of byte encoded (Audio + Video) in last
  *           rencoding loop.
  * Return value:
- *    0 successfull.
- *   !0 error happened and notified using tc_log*().
+ *    TC_OK: successful.
+ *    TC_ERROR: error happened and notified using tc_log*().
  *
  *    Of course no error can happen if rotating condition isn't met
  *    (so no rotation it's supposed to happen).
@@ -346,14 +346,14 @@ static int tc_rotate_if_needed_null(TCRotateContext *rotor,
                                     vob_t *vob, uint32_t bytes)
 {
     ROTATE_UPDATE_COUNTERS(bytes);
-    return 0;
+    return TC_OK;
 }
 
 #define ROTATE_COMMON_CODE(rotor, vob) do { \
     ret = encoder_close(); \
-    if (ret != 0) { \
+    if (ret != TC_OK) { \
         tc_log_error(__FILE__, "unable to close output stream"); \
-        ret = 1; \
+        ret = TC_ERROR; \
     } else { \
         tc_rotate_output_name((rotor), (vob)); \
         tc_log_info(__FILE__, "rotating video output stream to %s", \
@@ -361,9 +361,9 @@ static int tc_rotate_if_needed_null(TCRotateContext *rotor,
         tc_log_info(__FILE__, "rotating audio output stream to %s", \
                                (rotor)->audio_path_buf); \
         ret = encoder_open((vob)); \
-        if (ret != 0) { \
+        if (ret != TC_OK) { \
             tc_log_error(__FILE__, "unable to reopen output stream"); \
-            ret = 1; \
+            ret = TC_ERROR; \
         } \
     } \
 } while (0)
@@ -372,7 +372,7 @@ static int tc_rotate_if_needed_null(TCRotateContext *rotor,
 static int tc_rotate_if_needed_by_frames(TCRotateContext *rotor,
                                          vob_t *vob, uint32_t bytes)
 {
-    int ret = 0;
+    int ret = TC_OK;
     ROTATE_UPDATE_COUNTERS(bytes);
 
     if (tc_get_frames_encoded() >= rotor->chunk_frames) {
@@ -384,7 +384,7 @@ static int tc_rotate_if_needed_by_frames(TCRotateContext *rotor,
 static int tc_rotate_if_needed_by_bytes(TCRotateContext *rotor,
                                         vob_t *vob, uint32_t bytes)
 {
-    int ret = 0;
+    int ret = TC_OK;
     ROTATE_UPDATE_COUNTERS(bytes);
 
     if (rotor->encoded_bytes >= rotor->chunk_bytes) {
@@ -473,7 +473,7 @@ static TCEncoderData encdata = {
  *      cluster_mode: boolean flag. When in cluster mode we need to take
  *                    some special care.
  * Return value:
- *     !0: current frame it's supposed to be the last one
+ *     !0: current frame is supposed to be the last one
  *      0: otherwise
  */
 static int is_last_frame(TCEncoderData *encdata, int cluster_mode)
@@ -535,18 +535,18 @@ int export_init(TCEncoderBuffer *buffer, TCFactory factory)
 {
     if (buffer == NULL) {
         tc_log_error(__FILE__, "missing encoder buffer reference");
-        return 1;
+        return TC_ERROR;
     }
     encdata.buffer = buffer;
 
 #ifndef SUPPORT_OLD_ENCODER  // factory==NULL to signal use of old code
     if (factory == NULL) {
         tc_log_error(__FILE__, "missing factory reference");
-        return 1;
+        return TC_ERROR;
     }
 #endif
     encdata.factory = factory;
-    return 0;
+    return TC_OK;
 }
 
 int export_setup(vob_t *vob,
@@ -568,20 +568,20 @@ int export_setup(vob_t *vob,
     encdata.aud_mod = tc_new_module(encdata.factory, "encode", mod_name, TC_AUDIO);
     if (!encdata.aud_mod) {
         tc_log_error(__FILE__, "can't load audio encoder");
-        return -1;
+        return TC_ERROR;
     }
     mod_name = (v_mod == NULL) ?TC_DEFAULT_EXPORT_VIDEO :v_mod;
     encdata.vid_mod = tc_new_module(encdata.factory, "encode", mod_name, TC_VIDEO);
     if (!encdata.vid_mod) {
         tc_log_error(__FILE__, "can't load video encoder");
-        return -1;
+        return TC_ERROR;
     }
     mod_name = (m_mod == NULL) ?TC_DEFAULT_EXPORT_MPLEX :m_mod;
     encdata.mplex_mod = tc_new_module(encdata.factory, "multiplex", mod_name,
                                       TC_VIDEO|TC_AUDIO);
     if (!encdata.mplex_mod) {
         tc_log_error(__FILE__, "can't load multiplexor");
-        return -1;
+        return TC_ERROR;
     }
     export_update_formats(vob, tc_module_get_info(encdata.vid_mod),
                                tc_module_get_info(encdata.aud_mod));
@@ -591,19 +591,19 @@ int export_setup(vob_t *vob,
     if (!match) {
         tc_log_error(__FILE__, "audio encoder incompatible "
                                "with multiplexor");
-        return -1;
+        return TC_ERROR;
     }
     match = tc_module_match(vob->ex_v_codec,
                             encdata.vid_mod, encdata.mplex_mod);
     if (!match) {
         tc_log_error(__FILE__, "video encoder incompatible "
                                "with multiplexor");
-        return -1;
+        return TC_ERROR;
     }
     tc_rotate_init(&encdata.rotor_data,
                    vob->video_out_file, vob->audio_out_file);
 
-    return 0;
+    return TC_OK;
 }
 
 /* ------------------------------------------------------------
@@ -645,21 +645,27 @@ int encoder_init(vob_t *vob)
         return OLD_encoder_init(vob);
 #endif
 
+    ret = alloc_buffers(&encdata);
+    if (ret != TC_OK) {
+        tc_log_error(__FILE__, "can't allocate encoder buffers");
+        return TC_ERROR;
+    }
+
     options = (vob->ex_v_string) ?vob->ex_v_string :"";
     ret = tc_module_configure(encdata.vid_mod, options, vob);
-    if (ret == TC_ERROR) {
+    if (ret != TC_OK) {
         tc_log_warn(__FILE__, "video export module error: init failed");
-        return -1;
+        return TC_ERROR;
     }
 
     options = (vob->ex_a_string) ?vob->ex_a_string :"";
     ret = tc_module_configure(encdata.aud_mod, options, vob);
-    if (ret == TC_ERROR) {
+    if (ret != TC_OK) {
         tc_log_warn(__FILE__, "audio export module error: init failed");
-        return -1;
+        return TC_ERROR;
     }
 
-    return 0;
+    return TC_OK;
 }
 
 
@@ -683,13 +689,13 @@ int encoder_open(vob_t *vob)
     ret = tc_module_configure(encdata.mplex_mod, options, vob);
     if (ret == TC_ERROR) {
         tc_log_warn(__FILE__, "multiplexor module error: init failed");
-        return -1;
+        return TC_ERROR;
     }
 
     // XXX
     tc_module_pass_extradata(encdata.vid_mod, encdata.mplex_mod);
 
-    return 0;
+    return TC_OK;
 }
 
 
@@ -710,21 +716,21 @@ int encoder_close(void)
 
     /* old style code handle flushing in modules, not here */
     ret = encoder_flush(&encdata);
-    if (ret == TC_ERROR) {
+    if (ret != TC_OK) {
         tc_log_warn(__FILE__, "error while closing encoder: flush failed");
-        return -1;
+        return TC_ERROR;
     }
 
     ret = tc_module_stop(encdata.mplex_mod);
-    if (ret == TC_ERROR) {
+    if (ret != TC_OK) {
         tc_log_warn(__FILE__, "multiplexor module error: stop failed");
-        return -1;
+        return TC_ERROR;
     }
 
     if(verbose >= TC_DEBUG) {
         tc_log_info(__FILE__, "encoder closed");
     }
-    return 0;
+    return TC_OK;
 }
 
 
@@ -744,21 +750,23 @@ int encoder_stop(void)
 #endif
 
     ret = tc_module_stop(encdata.vid_mod);
-    if (ret == TC_ERROR) {
+    if (ret != TC_OK) {
         tc_log_warn(__FILE__, "video export module error: stop failed");
-        return -1;
+        return TC_ERROR;
     }
 
     ret = tc_module_stop(encdata.aud_mod);
-    if (ret == TC_ERROR) {
+    if (ret != TC_OK) {
         tc_log_warn(__FILE__, "audio export module error: stop failed");
-        return -1;
+        return TC_ERROR;
     }
+
+    free_buffers(&encdata);
 
     if(verbose >= TC_DEBUG) {
         tc_log_info(__FILE__, "encoder stopped");
     }
-    return 0;
+    return TC_OK;
 }
 
 /* ------------------------------------------------------------
@@ -769,11 +777,6 @@ int encoder_stop(void)
 
 static int alloc_buffers(TCEncoderData *data)
 {
-#ifdef SUPPORT_OLD_ENCODER
-    if (!encdata.factory)
-        return 0;
-#endif
-
     data->venc_ptr = vframe_alloc_single();
     if (data->venc_ptr == NULL) {
         goto no_vframe;
@@ -782,20 +785,16 @@ static int alloc_buffers(TCEncoderData *data)
     if (data->aenc_ptr == NULL) {
         goto no_aframe;
     }
-    return 0;
+    return TC_OK;
 
 no_aframe:
     tc_del_video_frame(data->venc_ptr);
 no_vframe:
-    return -1;
+    return TC_ERROR;
 }
 
 static void free_buffers(TCEncoderData *data)
 {
-#ifdef SUPPORT_OLD_ENCODER
-    if (!encdata.factory)
-        return;
-#endif
     tc_del_video_frame(data->venc_ptr);
     tc_del_audio_frame(data->aenc_ptr);
 }
@@ -853,6 +852,8 @@ static int encoder_export(TCEncoderData *data, vob_t *vob)
     }
 
     /* step 3: multiplex and rotate */
+    // FIXME: Do we really need bytes-written returned from this, or can
+    //        we just return TC_OK/TC_ERROR like other functions? --AC
     ret = tc_module_multiplex(data->mplex_mod,
                               data->venc_ptr, data->aenc_ptr);
     if (ret < 0) {
@@ -872,7 +873,7 @@ static int encoder_export(TCEncoderData *data, vob_t *vob)
     }
 
     tc_update_frames_encoded(1);
-    return data->error_flag;
+    return data->error_flag ? TC_ERROR : TC_OK;
 }
 
 static int encoder_flush(TCEncoderData *data)
@@ -885,7 +886,7 @@ static int encoder_flush(TCEncoderData *data)
     ret = tc_module_encode_audio(data->aud_mod, NULL, data->aenc_ptr);
     if (ret != TC_OK) {
         tc_log_error(__FILE__, "error encoding final audio frame");
-        ret = 1;
+        ret = TC_ERROR;
     } else if (data->aenc_ptr->audio_len > 0) {
         /* 
          * paranoia check, every multiplexor is supposed to handle
@@ -894,7 +895,7 @@ static int encoder_flush(TCEncoderData *data)
         ret = tc_module_multiplex(data->mplex_mod, NULL, data->aenc_ptr);
         if (ret < 0) {
             tc_log_error(__FILE__, "error multiplexing final audio frame");
-            ret = 1;
+            ret = TC_ERROR;
         }
         /* DO NOT rotate here, this data belongs to current chunk */
     }
@@ -946,14 +947,14 @@ static int OLD_export_setup(vob_t *vob,
     encdata.ex_a_handle = load_module((char*)mod_name, TC_EXPORT + TC_AUDIO);
     if (encdata.ex_a_handle == NULL) {
         tc_log_warn(__FILE__, "loading audio export module failed");
-        return -1;
+        return TC_ERROR;
    }
 
     mod_name = (v_mod==NULL) ?TC_DEFAULT_EXPORT_VIDEO :v_mod;
     encdata.ex_v_handle = load_module((char*)mod_name, TC_EXPORT + TC_VIDEO);
     if (encdata.ex_v_handle == NULL) {
         tc_log_warn(__FILE__, "loading video export module failed");
-        return -1;
+        return TC_ERROR;
     }
 
     encdata.export_para.flag = verbose;
@@ -984,12 +985,12 @@ static int OLD_export_setup(vob_t *vob,
 
         if (cc == 0) {
             tc_log_warn(__FILE__, "audio codec not supported by export module");
-            return -1;
+            return TC_ERROR;
         }
     } else { /* encdata.export_para.flag == verbose */
         if (vob->im_a_codec != CODEC_PCM) {
             tc_log_warn(__FILE__, "audio codec not supported by export module");
-            return -1;
+            return TC_ERROR;
         }
     }
 
@@ -1025,16 +1026,16 @@ static int OLD_export_setup(vob_t *vob,
 
         if (cc == 0) {
             tc_log_warn(__FILE__, "video codec not supported by export module");
-            return -1;
+            return TC_ERROR;
         }
     } else { /* encdata.export_para.flag == verbose */
         if (vob->im_v_codec != CODEC_RGB) {
             tc_log_warn(__FILE__, "video codec not supported by export module");
-            return -1;
+            return TC_ERROR;
         }
     }
 
-    return 0;
+    return TC_OK;
 }
 
 /* ------------------------------------------------------------
@@ -1066,19 +1067,19 @@ static int OLD_encoder_init(vob_t *vob)
 
     encdata.export_para.flag = TC_VIDEO;
     ret = tcv_export(TC_EXPORT_INIT, &encdata.export_para, vob);
-    if (ret == TC_ERROR) {
+    if (ret != TC_OK) {
         tc_log_warn(__FILE__, "video export module error: init failed");
-        return -1;
+        return TC_ERROR;
     }
 
     encdata.export_para.flag = TC_AUDIO;
     ret = tca_export(TC_EXPORT_INIT, &encdata.export_para, vob);
-    if (ret == TC_ERROR) {
+    if (ret != TC_OK) {
         tc_log_warn(__FILE__, "audio export module error: init failed");
-        return -1;
+        return TC_ERROR;
     }
 
-    return 0;
+    return TC_OK;
 }
 
 
@@ -1094,19 +1095,19 @@ static int OLD_encoder_open(vob_t *vob)
 
     encdata.export_para.flag = TC_VIDEO;
     ret = tcv_export(TC_EXPORT_OPEN, &encdata.export_para, vob);
-    if (ret == TC_ERROR) {
+    if (ret != TC_OK) {
         tc_log_warn(__FILE__, "video export module error: open failed");
-        return -1;
+        return TC_ERROR;
     }
 
     encdata.export_para.flag = TC_AUDIO;
     ret = tca_export(TC_EXPORT_OPEN, &encdata.export_para, vob);
-    if (ret == TC_ERROR) {
+    if (ret != TC_OK) {
         tc_log_warn(__FILE__, "audio export module error: open failed");
-        return -1;
+        return TC_ERROR;
     }
 
-    return 0;
+    return TC_OK;
 }
 
 
@@ -1132,7 +1133,7 @@ static int OLD_encoder_close(void)
     if(verbose & TC_DEBUG) {
         tc_log_info(__FILE__, "encoder closed");
     }
-    return 0;
+    return TC_OK;
 }
 
 
@@ -1148,18 +1149,19 @@ static int OLD_encoder_stop(void)
 
     encdata.export_para.flag = TC_VIDEO;
     ret = tcv_export(TC_EXPORT_STOP, &encdata.export_para, NULL);
-    if (ret == TC_ERROR) {
+    if (ret != TC_OK) {
         tc_log_warn(__FILE__, "video export module error: stop failed");
-        return -1;
+        return TC_ERROR;
     }
 
     encdata.export_para.flag = TC_AUDIO;
     ret = tca_export(TC_EXPORT_STOP, &encdata.export_para, NULL);
-    if (ret == TC_ERROR) {
+    if (ret != TC_OK) {
         tc_log_warn(__FILE__, "audio export module error: stop failed");
-        return -1;
+        return TC_ERROR;
     }
-    return 0;
+
+    return TC_OK;
 }
 
 /*
@@ -1218,7 +1220,7 @@ static int OLD_encoder_export(TCEncoderData *data, vob_t *vob)
 
     // XXX: _always_ update?
     tc_update_frames_encoded(1);
-    return data->error_flag;
+    return data->error_flag ? TC_ERROR : TC_OK;
 }
 
 
@@ -1326,12 +1328,6 @@ void encoder_loop(vob_t *vob, int frame_first, int frame_last)
     encdata.frame_last = frame_last;
     encdata.saved_frame_last = encdata.old_frame_last;
 
-    err = alloc_buffers(&encdata);
-    if (err) {
-        tc_log_error(__FILE__, "can't allocate encoder buffers");
-        return;
-    }
-
     do {
         /* check for ^C signal */
         if (tc_export_stop_requested()) {
@@ -1385,8 +1381,6 @@ void encoder_loop(vob_t *vob, int frame_first, int frame_last)
 
     } while (encdata.buffer->have_data(encdata.buffer) && !encdata.error_flag);
     /* main frame decoding loop */
-
-    free_buffers(&encdata);
 
     if (verbose >= TC_DEBUG) {
         tc_log_info(__FILE__, "export terminated - buffer(s) empty");

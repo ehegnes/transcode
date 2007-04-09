@@ -292,12 +292,12 @@ static int transcoder(int mode, vob_t *vob)
         if (export_init(tc_ringbuffer,
                         ex_mplex_mod
                             ? tc_new_module_factory(vob->mod_path,verbose)
-                            : NULL) < 0
+                            : NULL) != TC_OK
         ) {
             tc_log_error(PACKAGE, "failed to init export layer");
             return -1;
         }
-        if (export_setup(vob, ex_aud_mod, ex_vid_mod, ex_mplex_mod) < 0) {
+        if (export_setup(vob, ex_aud_mod, ex_vid_mod, ex_mplex_mod) != TC_OK) {
             tc_log_error(PACKAGE, "failed to init export modules");
             return -1;
         }
@@ -2252,11 +2252,11 @@ int main(int argc, char *argv[])
         import_threads_create(vob);
 
         // init encoder
-        if (encoder_init(vob) < 0)
+        if (encoder_init(vob) != TC_OK)
             tc_error("failed to init encoder");
 
         // open output files
-        if (encoder_open(vob) < 0)
+        if (encoder_open(vob) != TC_OK)
             tc_error("failed to open output");
 
         // tell counter about all encoding ranges
@@ -2334,7 +2334,7 @@ int main(int argc, char *argv[])
         import_threads_create(vob);
 
         // encoder init
-        if (encoder_init(vob) < 0)
+        if (encoder_init(vob) != TC_OK)
             tc_error("failed to init encoder");
 
         // need to loop for this option
@@ -2351,7 +2351,7 @@ int main(int argc, char *argv[])
             vob->audio_out_file = buf;
 
             // open output
-            if (encoder_open(vob) < 0)
+            if (encoder_open(vob) != TC_OK)
                 tc_error("failed to open output");
 
             fa = frame_a;
@@ -2391,13 +2391,13 @@ int main(int argc, char *argv[])
          * --------------------------------------------------------------*/
 
         // encoder init
-        if (encoder_init(vob) < 0)
+        if (encoder_init(vob) != TC_OK)
             tc_error("failed to init encoder");
 
         // open output
         if (no_split) {
             vob->video_out_file = psubase;
-            if (encoder_open(vob) < 0)
+            if (encoder_open(vob) != TC_OK)
                 tc_error("failed to open output");
         }
 
@@ -2452,7 +2452,7 @@ int main(int argc, char *argv[])
 
                 // open new output file
                 if (!no_split) {
-                    if (encoder_open(vob) < 0)
+                    if (encoder_open(vob) != TC_OK)
                         tc_error("failed to open output");
                 }
 
@@ -2464,7 +2464,7 @@ int main(int argc, char *argv[])
 
                 // close output file
                 if (!no_split) {
-                    if (encoder_close() < 0)
+                    if (encoder_close() != TC_OK)
                         tc_warn("failed to close encoder - non fatal");
                 }
 
@@ -2499,7 +2499,7 @@ int main(int argc, char *argv[])
 
         // close output
         if (no_split) {
-            if (encoder_close() < 0)
+            if (encoder_close() != TC_OK)
                 tc_warn("failed to close encoder - non fatal");
         }
 
@@ -2539,7 +2539,7 @@ int main(int argc, char *argv[])
       dir_fcnt=0;
 
       // encoder init
-      if(encoder_init(vob)<0)
+      if(encoder_init(vob) != TC_OK)
     tc_error("failed to init encoder");
 
       // open output
@@ -2564,7 +2564,7 @@ int main(int argc, char *argv[])
       vob->video_out_file = buf;
     }
 
-    if(encoder_open(vob)<0)
+    if(encoder_open(vob) != TC_OK)
       tc_error("failed to open output");
       }
 
@@ -2609,7 +2609,7 @@ int main(int argc, char *argv[])
 
     // open output
     if(!no_split) {
-      if(encoder_open(vob)<0)
+      if(encoder_open(vob) != TC_OK)
         tc_error("failed to open output");
     }
 
@@ -2630,7 +2630,7 @@ int main(int argc, char *argv[])
 
     // close output
     if(!no_split) {
-      if(encoder_close()<0)
+      if(encoder_close() != TC_OK)
         tc_warn("failed to close encoder - non fatal");
     }
 
@@ -2656,7 +2656,7 @@ int main(int argc, char *argv[])
 
       // close output
       if(no_split) {
-    if(encoder_close()<0)
+    if(encoder_close() != TC_OK)
       tc_warn("failed to close encoder - non fatal");
       }
 
@@ -2675,7 +2675,7 @@ int main(int argc, char *argv[])
         // given DVD title
 
         // encoder init
-        if (encoder_init(vob) < 0)
+        if (encoder_init(vob) != TC_OK)
             tc_error("failed to init encoder");
 
         // open output
@@ -2686,7 +2686,7 @@ int main(int argc, char *argv[])
             vob->video_out_file = buf;
             vob->audio_out_file = buf;
 
-            if (encoder_open(vob) < 0)
+            if (encoder_open(vob) != TC_OK)
                 tc_error("failed to open output");
         }
 
@@ -2726,7 +2726,7 @@ int main(int argc, char *argv[])
 
             // encode
             if (!no_split) {
-                if (encoder_open(vob) < 0)
+                if (encoder_open(vob) != TC_OK)
                     tc_error("failed to init encoder");
             }
 
@@ -2734,7 +2734,7 @@ int main(int argc, char *argv[])
             encoder_loop(vob, frame_a, frame_b);
 
             if (!no_split) {
-                if (encoder_close() < 0)
+                if (encoder_close() != TC_OK)
                     tc_warn("failed to close encoder - non fatal");
             }
 
@@ -2761,7 +2761,7 @@ int main(int argc, char *argv[])
         }
 
         if (no_split) {
-            if (encoder_close() < 0)
+            if (encoder_close() != TC_OK)
                 tc_warn("failed to close encoder - non fatal");
         }
 
