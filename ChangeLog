@@ -1,3 +1,8 @@
+2007-04-09 Francesco Romani <fromani at gmail dot com>
+  * src/encoder.c
+  return value of a module multiplex operation is not usable as
+  direct failure(TC_ERROR)/success(TC_OK) indicator.
+
 2007-04-09 Andrew Church <achurch at achurch dot org>
   * encode/encode_lavc.c encode/encode_x264.c
     export/export_ffmpeg.c export/export_mpeg2enc.c export/export_yuv4mpeg.c

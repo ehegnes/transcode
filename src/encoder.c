@@ -893,7 +893,9 @@ static int encoder_flush(TCEncoderData *data)
          * safely zero-length encoded frames.
          */
         ret = tc_module_multiplex(data->mplex_mod, NULL, data->aenc_ptr);
-        if (ret < 0) {
+        if (ret >= 0) {
+            ret = TC_OK;
+        } else {
             tc_log_error(__FILE__, "error multiplexing final audio frame");
             ret = TC_ERROR;
         }
