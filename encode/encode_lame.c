@@ -15,8 +15,8 @@
 
 #include <lame/lame.h>
 
-#define MOD_NAME    	"encode_lame.so"
-#define MOD_VERSION 	"v1.1 (2006-11-01)"
+#define MOD_NAME        "encode_lame.so"
+#define MOD_VERSION     "v1.1 (2006-11-01)"
 #define MOD_CAP         "Encodes audio to MP3 using LAME"
 #define MOD_AUTHOR      "Andrew Church"
 
@@ -375,12 +375,12 @@ static int lame_encode(TCModuleInstance *self,
         res = lame_encode_flush_nogap(pd->lgf, out->audio_buf, 0);
         if (verbose & TC_DEBUG) {
             tc_log_info(MOD_NAME, "flushing %d audio bytes", res);
-		}
+        }
     } else {
         /* regular encoding */
-		if (pd->channels == 1) { /* mono */
-			res = lame_encode_buffer(pd->lgf,
-                    				 (short *)(in->audio_buf),
+        if (pd->channels == 1) { /* mono */
+            res = lame_encode_buffer(pd->lgf,
+                                     (short *)(in->audio_buf),
                                      (short *)(in->audio_buf),
                                      in->audio_size / pd->bps,
                                      out->audio_buf,
