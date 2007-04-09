@@ -352,6 +352,10 @@ static int lame_encode(TCModuleInstance *self,
     int res;
 
     TC_MODULE_SELF_CHECK(self, "encode");
+    if (out == NULL) {
+        tc_log_error(MOD_NAME, "no output buffer supplied");
+        return TC_ERROR;
+    }
 
     pd = self->userdata;
 
