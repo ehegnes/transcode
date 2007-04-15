@@ -1,3 +1,7 @@
+2007-04-15 Francesco Romani <fromani at gmail dot com>
+  * src/transcode.h
+  some #define -> enum.
+
 2007-04-09 Francesco Romani <fromani at gmail dot com>
   * src/encoder.c
   return value of a module multiplex operation is not usable as

@@ -423,43 +423,56 @@ extern int max_frame_threads;
 
 // Various constants
 
-#define TC_EXPORT_NAME     10
-#define TC_EXPORT_OPEN     11
-#define TC_EXPORT_INIT     12
-#define TC_EXPORT_ENCODE   13
-#define TC_EXPORT_CLOSE    14
-#define TC_EXPORT_STOP     15
+enum {
+    TC_EXPORT_NAME = 10,
+    TC_EXPORT_OPEN,
+    TC_EXPORT_INIT,
+    TC_EXPORT_ENCODE,
+    TC_EXPORT_CLOSE,
+    TC_EXPORT_STOP,
+};
 
-#define TC_EXPORT_ERROR    -1
-#define TC_EXPORT_UNKNOWN   1
-#define TC_EXPORT_OK        0
+enum {
+    TC_EXPORT_ERROR   = -1,
+    TC_EXPORT_OK      =  0,
+    TC_EXPORT_UNKNOWN =  1,
+};
 
-#define TC_IMPORT_NAME     20
-#define TC_IMPORT_OPEN     21
-#define TC_IMPORT_DECODE   22
-#define TC_IMPORT_CLOSE    23
+enum {
+    TC_IMPORT_NAME = 20,
+    TC_IMPORT_OPEN,
+    TC_IMPORT_DECODE,
+    TC_IMPORT_CLOSE,
+};
 
-#define TC_IMPORT_UNKNOWN   1
-#define TC_IMPORT_ERROR    -1
-#define TC_IMPORT_OK        0
+enum {
+    TC_IMPORT_ERROR    = -1,
+    TC_IMPORT_OK       =  0,
+    TC_IMPORT_UNKNOWN  =  1,
+};
 
-#define TC_CAP_PCM          1
-#define TC_CAP_RGB          2
-#define TC_CAP_AC3          4
-#define TC_CAP_YUV          8
-#define TC_CAP_AUD         16
-#define TC_CAP_VID         32
-#define TC_CAP_MP3         64
-#define TC_CAP_YUY2       128
-#define TC_CAP_DV         256
-#define TC_CAP_YUV422     512
+enum {
+    TC_CAP_NONE   =   0,
+    TC_CAP_PCM    =   1,
+    TC_CAP_RGB    =   2,
+    TC_CAP_AC3    =   4,
+    TC_CAP_YUV    =   8,
+    TC_CAP_AUD    =  16,
+    TC_CAP_VID    =  32,
+    TC_CAP_MP3    =  64,
+    TC_CAP_YUY2   = 128,
+    TC_CAP_DV     = 256,
+    TC_CAP_YUV422 = 512,
+};
 
-#define TC_MODE_DEFAULT            0
-#define TC_MODE_AVI_SPLIT          1
-#define TC_MODE_DVD_CHAPTER        2
-#define TC_MODE_PSU                4
-#define TC_MODE_DIRECTORY         16
-#define TC_MODE_DEBUG             32
+enum {
+    TC_MODE_DEFAULT     =  0,
+    TC_MODE_AVI_SPLIT   =  1,
+    TC_MODE_DVD_CHAPTER =  2,
+    TC_MODE_PSU         =  4,
+    TC_MODE_DIRECTORY   = 16,
+    TC_MODE_DEBUG       = 32,
+};
 
 enum {
     TC_ENCODE_FIELDS_PROGRESSIVE = 0,
