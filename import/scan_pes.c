@@ -1364,6 +1364,6 @@ void probe_pes(info_t *ipipe)
 
     } while (end == buffer + BUFFER_SIZE);
 
-    adjust_info(info_t *ipipe);
+    adjust_info(ipipe);
     return;
 }
