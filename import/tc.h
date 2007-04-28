@@ -35,71 +35,31 @@
     } \
 } while (0)
 
-void decode_a52(decode_t *decode);
-void extract_ac3(info_t *ipipe);
+#include "probe_stream.h"
 
-void decode_mp2(decode_t *decode);
-void decode_mp3(decode_t *decode);
-void extract_mp3(info_t *ipipe);
 
 void decode_mpeg2(decode_t *decode);
-void extract_mpeg2(info_t *ipipe);
-
+void decode_a52(decode_t *decode);
+void decode_mp2(decode_t *decode);
+void decode_mp3(decode_t *decode);
 void decode_yuv(decode_t *decode);
-void extract_yuv(info_t *ipipe);
-
-void extract_pcm(info_t *ipipe);
-void extract_rgb(info_t *ipipe);
-
-void extract_dv(info_t *ipipe);
 void decode_dv(decode_t *decode);
-void probe_dv(info_t *ipipe);
-
-void probe_stream(info_t *ipipe);
-
-void extract_avi(info_t *ipipe);
-
 void decode_lavc(decode_t *decode);
 void decode_mov(decode_t *decode);
-
-void extract_lzo(info_t *ipipe);
 void decode_lzo(decode_t *decode);
-
-void probe_yuv(info_t *ipipe);
-void probe_nuv(info_t *ipipe);
-void probe_wav(info_t *ipipe);
-void probe_ac3(info_t *ipipe);
-void probe_dts(info_t *ipipe);
-void probe_mp3(info_t *ipipe);
-void probe_avi(info_t *ipipe);
-void probe_net(info_t *ipipe);
-void probe_tiff(info_t *ipipe);
-void probe_im(info_t *ipipe);
-void probe_mov(info_t *ipipe);
-void probe_xml(info_t *ipipe);
-void probe_ogg(info_t *ipipe);
-void extract_ogm(info_t *ipipe);
 void decode_ogg(decode_t *decode);
-void probe_vnc(info_t *ipipe);
-void probe_v4l(info_t *ipipe);
-void probe_bktr(info_t *ipipe);
-void probe_sunau(info_t *ipipe);
-void probe_bsdav(info_t *ipipe);
-void probe_oss(info_t *ipipe);
 
-void probe_mxf(info_t *ipipe);
+
+void extract_mp3(info_t *ipipe);
+void extract_ac3(info_t *ipipe);
+void extract_mpeg2(info_t *ipipe);
+void extract_yuv(info_t *ipipe);
+void extract_pcm(info_t *ipipe);
+void extract_rgb(info_t *ipipe);
+void extract_dv(info_t *ipipe);
+void extract_avi(info_t *ipipe);
+void extract_lzo(info_t *ipipe);
+void extract_ogm(info_t *ipipe);
 void extract_mxf(info_t *ipipe);
-
-void probe_dvd(info_t *ipipe);
-
-void probe_mplayer(info_t *ipipe);
-
-void probe_pv3(info_t *ipipe);
-
-void probe_x11(info_t *ipipe);
-
-void probe_ffmpeg(info_t *ipipe);
-
-void probe_pvn(info_t *ipipe);
 
 #endif

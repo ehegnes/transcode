@@ -23,6 +23,12 @@
   Please also note that this patch remove a previous line that
   forced TC_MAGIC_DV_PAL for every DV probed.
 
+  * added file: import/probe_stream.h
+
+  * import/tc.h import/Makefile.am
+  move declarations of probe subsystem in a separate file (included
+  by tc.h for full backward compatibility), and also clean a bit tc.h
+
 2007-04-15 Francesco Romani <fromani at gmail dot com>
   * src/transcode.h
   some #define -> enum.

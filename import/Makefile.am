@@ -235,7 +235,8 @@ EXTRA_DIST = \
 	seqinfo.h \
 	putvlc.h \
 	getvlc.h \
-	tc.h
+	tc.h \
+	probe_stream.h
 
 bin_PROGRAMS = \
 	tccat \
