@@ -64,4 +64,6 @@ void scan_pack_payload(char *video, size_t size, int n, int verb);
 
 void tcdemux_pass_through(info_t *ipipe, int *pass);
 
+void tcdemux_thread(info_t *ipipe);
+
 #endif

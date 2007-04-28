@@ -1,4 +1,7 @@
 2007-04-28 Francesco Romani <fromani at gmail dot com>
+  * import/tc.h import/demuxer.h
+  move tcdemux_thread declaration into demuxer.h, where it belongs.
+
   * libtc/libtc.h
   some #define -> enum; also add a new symbol.
 
