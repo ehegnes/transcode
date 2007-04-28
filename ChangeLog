@@ -14,6 +14,15 @@
   in the caller. A little cleaner (I hope), even if still not
   good (we need to get rid/rewrite scan_pes.c enterely).
 
+  * import/probe_stream.c
+  modularize probing separating probing of plain files from probing
+  of special stuff (devices, mplayer probing...)
+  Also do not longer adjust probe data, any specifi probing function
+  must do this, if needed, by it's own.
+
+  Please also note that this patch remove a previous line that
+  forced TC_MAGIC_DV_PAL for every DV probed.
+
 2007-04-15 Francesco Romani <fromani at gmail dot com>
   * src/transcode.h
   some #define -> enum.

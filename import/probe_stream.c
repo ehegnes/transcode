@@ -31,32 +31,11 @@
 
 static ProbeInfo probe_info;
 
-void probe_stream(info_t *ipipe)
+void probe_file(info_t *ipipe)
 {
-    verbose = ipipe->verbose;
-
-    ipipe->probe_info = &probe_info;
-    ipipe->probe = 1;
-
-    /* data structure will be filled by subroutines */
-    memset((char*) &probe_info, 0, sizeof(ProbeInfo));
-    probe_info.magic = ipipe->magic;
-
-    /* ------------------------------------------------------------
-     * check file type/magic and take action to probe for contents
-     * ------------------------------------------------------------*/
-
-    switch(ipipe->magic) {
-      case TC_MAGIC_MPLAYER:
-        probe_mplayer(ipipe);
-        break;
-
+    switch (ipipe->magic) {
       case TC_MAGIC_AVI:
         probe_avi(ipipe);
-        break;
-
-      case TC_MAGIC_VNC:
-        probe_vnc(ipipe);
         break;
 
       case TC_MAGIC_TIFF1:   /* image formats (multiple fallbacks) */
@@ -75,94 +54,27 @@ void probe_stream(info_t *ipipe)
         probe_mxf(ipipe);
         break;
 
-      case TC_MAGIC_V4L_VIDEO:
-      case TC_MAGIC_V4L_AUDIO:
-        probe_v4l(ipipe);
-        break;
-
-      case TC_MAGIC_BKTR_VIDEO:
-        probe_bktr(ipipe);
-        break;
-
-      case TC_MAGIC_SUNAU_AUDIO:
-        probe_sunau(ipipe);
-        break;
-
-      case TC_MAGIC_BSDAV:
-        probe_bsdav(ipipe);
-        break;
-
-      case TC_MAGIC_OSS_AUDIO:
-        probe_oss(ipipe);
-        break;
-
       case TC_MAGIC_OGG:
         probe_ogg(ipipe);
         break;
 
       case TC_MAGIC_CDXA:
         probe_pes(ipipe);
-        ipipe->probe_info->attributes |= TC_INFO_NO_DEMUX;
         break;
 
       case TC_MAGIC_MPEG_PS: /* MPEG Program Stream */
       case TC_MAGIC_VOB:     /* backward compatibility fallback */
         probe_pes(ipipe);
-        /* NTSC video/film check */
-        if (verbose >= TC_DEBUG) {
-            tc_log_msg(__FILE__, "att0=%d, att1=%d",
-                       ipipe->probe_info->ext_attributes[0],
-                       ipipe->probe_info->ext_attributes[1]);
-        }
-        if (ipipe->probe_info->codec == TC_CODEC_MPEG2
-         && ipipe->probe_info->height == 480
-         && ipipe->probe_info->width == 720) {
-            if (ipipe->probe_info->ext_attributes[0] > 2 * ipipe->probe_info->ext_attributes[1]
-             || ipipe->probe_info->ext_attributes[1] == 0) {
-                ipipe->probe_info->is_video = 1;
-            }
-
-            if (ipipe->probe_info->is_video) {
-                ipipe->probe_info->fps = NTSC_VIDEO;
-                ipipe->probe_info->frc = 4;
-            } else {
-                ipipe->probe_info->fps = NTSC_FILM;
-                ipipe->probe_info->frc = 1;
-            }
-        }
-
-        if (ipipe->probe_info->codec == TC_CODEC_MPEG1) {
-            ipipe->probe_info->magic=TC_MAGIC_MPEG_PS;
-        }
-
-        /*
-         * check for need of special import module,
-         * that does not rely on 2k packs
-         */
-        if (ipipe->probe_info->attributes & TC_INFO_NO_DEMUX) {
-            ipipe->probe_info->codec = TC_CODEC_MPEG;
-            ipipe->probe_info->magic=TC_MAGIC_MPEG_PS; /* XXX: doubtful */
-        }
         break;
 
       case TC_MAGIC_MPEG_ES: /* MPEG Elementary Stream */
       case TC_MAGIC_M2V:     /* backward compatibility fallback */
         probe_pes(ipipe);
-        /* make sure not to use the demuxer */
-        ipipe->probe_info->codec=TC_CODEC_MPEG;
-        ipipe->probe_info->magic=TC_MAGIC_MPEG_ES;
         break;
 
       case TC_MAGIC_MPEG_PES:/* MPEG Packetized Elementary Stream */
       case TC_MAGIC_MPEG:    /* backward compatibility fallback */
         probe_pes(ipipe);
-        ipipe->probe_info->attributes |= TC_INFO_NO_DEMUX;
-        break;
-
-      case TC_MAGIC_DVD:
-      case TC_MAGIC_DVD_PAL:
-      case TC_MAGIC_DVD_NTSC:
-        probe_dvd(ipipe);
         break;
 
       case TC_MAGIC_YUV4MPEG:
@@ -175,10 +87,6 @@ void probe_stream(info_t *ipipe)
 
       case TC_MAGIC_MOV:
         probe_mov(ipipe);
-        break;
-
-      case TC_MAGIC_XML:
-        probe_xml(ipipe);
         break;
 
       case TC_MAGIC_WAV:
@@ -203,15 +111,10 @@ void probe_stream(info_t *ipipe)
       case TC_MAGIC_DV_PAL:
       case TC_MAGIC_DV_NTSC:
         probe_dv(ipipe);
-        ipipe->probe_info->magic=TC_MAGIC_DV_PAL;
         break;
 
       case TC_MAGIC_PV3:
         probe_pv3(ipipe);
-        break;
-
-      case TC_MAGIC_X11:
-        probe_x11(ipipe);
         break;
 
       case TC_MAGIC_PVN:
@@ -222,6 +125,74 @@ void probe_stream(info_t *ipipe)
         /* libavcodec/libavformat it's a catchall too */
         probe_ffmpeg(ipipe);
     }
+    return;
+}
+
+void probe_stream(info_t *ipipe)
+{
+    verbose = ipipe->verbose;
+
+    ipipe->probe_info = &probe_info;
+    ipipe->probe = 1;
+
+    /* data structure will be filled by subroutines */
+    memset(&probe_info, 0, sizeof(ProbeInfo));
+    probe_info.magic = ipipe->magic;
+
+    /* ------------------------------------------------------------
+     * check file type/magic and take action to probe for contents
+     * ------------------------------------------------------------*/
+
+    /* not-plain-old-file stuff */
+    switch (ipipe->magic) {
+      case TC_MAGIC_MPLAYER:
+        probe_mplayer(ipipe);
+        break;
+
+      case TC_MAGIC_VNC:
+        probe_vnc(ipipe);
+        break;
+
+      case TC_MAGIC_V4L_VIDEO:
+      case TC_MAGIC_V4L_AUDIO:
+        probe_v4l(ipipe);
+        break;
+
+      case TC_MAGIC_BKTR_VIDEO:
+        probe_bktr(ipipe);
+        break;
+
+      case TC_MAGIC_SUNAU_AUDIO:
+        probe_sunau(ipipe);
+        break;
+
+      case TC_MAGIC_BSDAV:
+        probe_bsdav(ipipe);
+        break;
+
+      case TC_MAGIC_OSS_AUDIO:
+        probe_oss(ipipe);
+        break;
+
+      case TC_MAGIC_DVD:
+      case TC_MAGIC_DVD_PAL:
+      case TC_MAGIC_DVD_NTSC:
+        probe_dvd(ipipe);
+        break;
+
+      case TC_MAGIC_XML:
+        probe_xml(ipipe);
+        break;
+
+      case TC_MAGIC_X11:
+        probe_x11(ipipe);
+        break;
+
+      default: /* fallback to P.O.D. file... */
+        probe_file(ipipe);
+        break; /* for coherency */
+    }
+
     if (ipipe->magic == TC_MAGIC_XML) {
         ipipe->probe_info->magic_xml = TC_MAGIC_XML;
         /*
