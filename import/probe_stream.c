@@ -24,12 +24,13 @@
 #include "transcode.h"
 #include "tcinfo.h"
 #include "ioaux.h"
-#include "tc.h"
-#include "aux_pes.h"
+#include "probe_stream.h"
+
 #include "libtc/libtc.h"
 
 
 static ProbeInfo probe_info;
+
 
 void probe_file(info_t *ipipe)
 {
@@ -127,6 +128,7 @@ void probe_file(info_t *ipipe)
     }
     return;
 }
+
 
 void probe_stream(info_t *ipipe)
 {
