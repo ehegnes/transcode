@@ -55,7 +55,7 @@ void extract_dv(info_t *ipipe);
 void decode_dv(decode_t *decode);
 void probe_dv(info_t *ipipe);
 
-void tcprobe_thread(info_t *ipipe);
+void probe_stream(info_t *ipipe);
 
 void extract_avi(info_t *ipipe);
 

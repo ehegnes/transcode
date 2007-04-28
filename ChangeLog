@@ -1,9 +1,12 @@
 2007-04-28 Francesco Romani <fromani at gmail dot com>
+  * libtc/libtc.h
+  some #define -> enum; also add a new symbol.
+
   * import/tc.h import/demuxer.h
   move tcdemux_thread declaration into demuxer.h, where it belongs.
 
-  * libtc/libtc.h
-  some #define -> enum; also add a new symbol.
+  * import/tc.h import/probe_stream.c import/tcprobe.c
+  just rename: tcprobe_thread() -> probe_stream() (more meaningful)
 
 2007-04-15 Francesco Romani <fromani at gmail dot com>
   * src/transcode.h

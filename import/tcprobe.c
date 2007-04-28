@@ -377,7 +377,7 @@ static int tc_scan_directory_info(const char *dname,
  *      first-step setup above). This measn set at least:
  *          ipipe.verbose, ipipe.fd_in, ipipe.name = name;
  * Postconditions:
- *      given info_t is ready to be used in tcprobe_thread()
+ *      given info_t is ready to be used in probe_stream()
  *
  */
 static int info_setup(info_t *ipipe, int skip, int mplayer_probe, int want_dvd)
@@ -1057,7 +1057,7 @@ int main(int argc, char *argv[])
      * note: user provided values overwrite autodetection!
      * ------------------------------------------------------------*/
 
-    tcprobe_thread(&ipipe);
+    probe_stream(&ipipe);
 
     if (ipipe.error == 0) {
         output_handler(&ipipe);

@@ -31,7 +31,7 @@
 
 static ProbeInfo probe_info;
 
-void tcprobe_thread(info_t *ipipe)
+void probe_stream(info_t *ipipe)
 {
     verbose = ipipe->verbose;
 
