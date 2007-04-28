@@ -1388,8 +1388,9 @@ AC_CONFIG_FILES([
 	avilib/Makefile
 	docs/Makefile
 	docs/html/Makefile
-	docs/tech/Makefile
 	docs/man/Makefile
+	docs/tech/Makefile
+	docs/tech/html/Makefile
 	encode/Makefile
 	export/Makefile
 	filter/Makefile
