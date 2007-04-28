@@ -48,8 +48,10 @@
 extern "C" {
 #endif
 
-#define TC_TRUE          	1
-#define TC_FALSE         	0
+enum {
+    TC_FALSE,
+    TC_TRUE
+};
 
 #define TC_NULL_MATCH           -1
 
@@ -81,9 +83,10 @@ extern "C" {
  * see src/transcode.h
  */
 typedef enum {
-    TC_ERROR = -1,
-    TC_OK = 0,
-    TC_UNKNOWN,
+    TC_ERROR     = -1,
+    TC_OK        =  0,
+    TC_INTERRUPT =  1,
+    TC_UNKNOWN, /* MUST always be the last one */
 } TCReturnCode;
 
 
