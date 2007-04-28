@@ -35,8 +35,12 @@
                  docs/tech/html/tc_internals.html
 		 docs/tech/html/tc_logo.png
                  docs/tech/html/tc_template_page.html
+		 docs/tech/html/Makefile.am
     start to add new-style technical documentation. Only
     placeholders right now.
+
+   * docs/tech/Makefile.am configure.in
+   add makefile infrastructure for new docs.
 
 2007-04-15 Francesco Romani <fromani at gmail dot com>
   * src/transcode.h

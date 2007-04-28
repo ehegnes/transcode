@@ -3,6 +3,8 @@
 EXTRA_DIST = \
 	$(docs_DATA)
 
+SUBDIRS = html
+
 docsdir = $(datadir)/doc/transcode/tech
 
 docs_DATA = \
