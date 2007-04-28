@@ -8,6 +8,12 @@
   * import/tc.h import/probe_stream.c import/tcprobe.c
   just rename: tcprobe_thread() -> probe_stream() (more meaningful)
 
+  * import/scan_pes.c
+  sometimes information probed by probe_pes need some adjustements,
+  so let's do them at the end of probe_pes instead than outside,
+  in the caller. A little cleaner (I hope), even if still not
+  good (we need to get rid/rewrite scan_pes.c enterely).
+
 2007-04-15 Francesco Romani <fromani at gmail dot com>
   * src/transcode.h
   some #define -> enum.

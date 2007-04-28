@@ -198,6 +198,74 @@ static int mpeg1_skip_table[16] = {
  *
  *------------------------------------------------------------------*/
 
+/* 
+ * helper. Ok, that's no much more than a crude movement from
+ * probe_stream. Isn't really a big leap forward. Yet.
+ */
+static void adjust_info(info_t *ipipe)
+{
+    switch(ipipe->magic) {
+      case TC_MAGIC_CDXA:
+        ipipe->probe_info->attributes |= TC_INFO_NO_DEMUX;
+        break;
+
+      case TC_MAGIC_MPEG_PS: /* MPEG Program Stream */
+      case TC_MAGIC_VOB:     /* backward compatibility fallback */
+        /* NTSC video/film check */
+        if (verbose >= TC_DEBUG) {
+            tc_log_msg(__FILE__, "att0=%d, att1=%d",
+                       ipipe->probe_info->ext_attributes[0],
+                       ipipe->probe_info->ext_attributes[1]);
+        }
+        if (ipipe->probe_info->codec == TC_CODEC_MPEG2
+         && ipipe->probe_info->height == 480
+         && ipipe->probe_info->width == 720) {
+            if (ipipe->probe_info->ext_attributes[0] > 2 * ipipe->probe_info->ext_attributes[1]
+             || ipipe->probe_info->ext_attributes[1] == 0) {
+                ipipe->probe_info->is_video = 1;
+            }
+
+            if (ipipe->probe_info->is_video) {
+                ipipe->probe_info->fps = NTSC_VIDEO;
+                ipipe->probe_info->frc = 4;
+            } else {
+                ipipe->probe_info->fps = NTSC_FILM;
+                ipipe->probe_info->frc = 1;
+            }
+        }
+
+        if (ipipe->probe_info->codec == TC_CODEC_MPEG1) {
+            ipipe->probe_info->magic = TC_MAGIC_MPEG_PS;
+        }
+
+        /*
+         * check for need of special import module,
+         * that does not rely on 2k packs
+         */
+        if (ipipe->probe_info->attributes & TC_INFO_NO_DEMUX) {
+            ipipe->probe_info->codec = TC_CODEC_MPEG;
+            ipipe->probe_info->magic = TC_MAGIC_MPEG_PS; /* XXX: doubtful */
+        }
+        break;
+
+      case TC_MAGIC_MPEG_ES: /* MPEG Elementary Stream */
+      case TC_MAGIC_M2V:     /* backward compatibility fallback */
+        /* make sure not to use the demuxer */
+        ipipe->probe_info->codec = TC_CODEC_MPEG;
+        ipipe->probe_info->magic = TC_MAGIC_MPEG_ES;
+        break;
+
+      case TC_MAGIC_MPEG_PES:/* MPEG Packetized Elementary Stream */
+      case TC_MAGIC_MPEG:    /* backward compatibility fallback */
+        ipipe->probe_info->attributes |= TC_INFO_NO_DEMUX;
+        break;
+    }
+    return;
+}
+
+
+
+
 void scan_pes(int verbose, FILE *in_file)
 {
   int n, has_pts_dts=0;
@@ -1296,5 +1364,6 @@ void probe_pes(info_t *ipipe)
 
     } while (end == buffer + BUFFER_SIZE);
 
+    adjust_info(info_t *ipipe);
     return;
 }
