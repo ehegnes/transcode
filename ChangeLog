@@ -1,4 +1,11 @@
 2007-04-28 Francesco Romani <fromani at gmail dot com>
+  * added file: docs/tech/html/tc_libraries.html
+
+  * docs/tech/LIBRARIES docs/tech/html/tc_input_rotation.html
+    docs/tech/html/tc_internals.html docs/tech/html/tc_template_page.html
+  Documentation update.
+
+2007-04-28 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h
   some #define -> enum; also add a new symbol.
 

@@ -1,6 +1,8 @@
 TRANSCODE LIBRARIES ORGANIZATION
 ================================
 
+(OBSOLETE SINCE 20070427, see html documentation for an up-to-date information)
+
 >>> Introduction
 
 As part of 1.1.0 development cycle, an huge internal reorganization
