@@ -59,7 +59,7 @@ PENTIUM_CACHE_BLOCK = (PENTIUM_CACHE_SIZE/2 - PENTIUM_LINE_SIZE)        \n\
         # First align destination address to a multiple of 8 bytes      \n\
         mov $8, %%eax           # EAX <- (8-dest) & 7                   \n\
         sub %%edi, %%eax                                                \n\
-        and $0b111, %%eax       # ... which is the number of bytes to copy\n\
+        and $7, %%eax           # ... which is the number of bytes to copy\n\
         lea 0f, %%edx           # Use a computed jump--faster than a loop\n\
         sub %%eax, %%edx                                                \n\
         jmp *%%edx              # Execute 0-7 MOVSB's                   \n\
@@ -133,7 +133,7 @@ mmx.memcpy_last:                                                        \n\
         movsd                                                           \n\
         movsd                                                           \n\
         movsd                                                           \n\
-0:      and $0b11, %%ecx        # ECX <- ECX & 3                        \n\
+0:      and $3, %%ecx           # ECX <- ECX & 3                        \n\
         lea 0f, %%edx                                                   \n\
         sub %%ecx, %%edx                                                \n\
         jmp *%%edx              # Execute 0-3 MOVSB's                   \n\
@@ -180,7 +180,7 @@ static void *memcpy_sse(void *dest, const void *src, size_t bytes)
         # First align destination address to a multiple of 8 bytes      \n\
         mov $8, %%eax           # EAX <- (8-dest) & 7                   \n\
         sub %%edi, %%eax                                                \n\
-        and $0b111, %%eax       # ... which is the number of bytes to copy\n\
+        and $7, %%eax           # ... which is the number of bytes to copy\n\
         lea 0f, %%edx           # Use a computed jump--faster than a loop\n\
         sub %%eax, %%edx                                                \n\
         jmp *%%edx              # Execute 0-7 MOVSB's                   \n\
@@ -206,7 +206,7 @@ sse.memcpy_small:               # Small block copy routine--no prefetch \n"
         mov %%edx, %%eax        # Leave remainder in ECX for later      \n\
         shl $3, %%eax                                                   \n\
         sub %%eax, %%ecx                                                \n\
-        .align 16                                                       \n\
+        .balign 16                                                      \n\
 0:      movq (%%esi), %%mm0     # Copy 8 bytes of data                  \n\
         movq %%mm0, (%%edi)                                             \n\
         add $8, %%esi           # Update pointers                       \n\
@@ -220,14 +220,14 @@ sse.memcpy_small:               # Small block copy routine--no prefetch \n"
 "       # It appears that a simple rep movs is faster than cleverness   \n\
         # with movq...                                                  \n\
         mov %%ecx, %%edx        # EDX <- ECX & 3                        \n\
-        and $0b11, %%edx                                                \n\
+        and $3, %%edx                                                   \n\
         shr $2, %%ecx           # ECX <- ECX >> 2                       \n\
         rep movsl               # Copy away!                            \n\
         mov %%edx, %%ecx        # Take care of last 0-3 bytes           \n\
         rep movsb                                                       \n\
         jmp sse.memcpy_end      # And exit                              \n\
                                                                         \n\
-        .align 16                                                       \n\
+        .balign 16                                                      \n\
         nop                                                             \n\
         nop                                                             \n"
 #endif
@@ -285,7 +285,7 @@ sse.memcpy_last:                                                        \n\
         movsd                                                           \n\
         movsd                                                           \n\
         movsd                                                           \n\
-0:      and $0b11, %%ecx        # ECX <- ECX & 3                        \n\
+0:      and $3, %%ecx           # ECX <- ECX & 3                        \n\
         lea sse.memcpy_end, %%edx                                       \n\
         sub %%ecx, %%edx                                                \n\
         jmp *%%edx              # Execute 0-3 MOVSB's                   \n\
@@ -373,7 +373,7 @@ static void *memcpy_amd64(void *dest, const void *src, size_t bytes)
         # First align destination address to a multiple of 16 bytes     \n\
         mov $8, %%eax           # EAX <- (8-dest) & 7                   \n\
         sub %%edi, %%eax        # (we don't care about the top 32 bits) \n\
-        and $0b111, %%eax       # ... which is the number of bytes to copy\n\
+        and $7, %%eax           # ... which is the number of bytes to copy\n\
         lea 0f(%%rip), %%rdx    # Use a computed jump--faster than a loop\n\
         sub %%rax, %%rdx                                                \n\
         jmp *%%rdx              # Execute 0-7 MOVSB's                   \n\
@@ -385,7 +385,7 @@ static void *memcpy_amd64(void *dest, const void *src, size_t bytes)
         movsb                                                           \n\
         movsb                                                           \n\
 0:      sub %%rax, %%rcx        # Update count                          \n\
-        test $0b1000, %%edi     # Is destination not 16-byte aligned?   \n\
+        test $8, %%edi          # Is destination not 16-byte aligned?   \n\
         je 1f                                                           \n\
         movsq                   # Then move 8 bytes to align it         \n\
         sub $8, %%rcx                                                   \n\
@@ -395,7 +395,7 @@ static void *memcpy_amd64(void *dest, const void *src, size_t bytes)
                                 # write combining seem to start becoming\n\
                                 # faster)                               \n\
         jb amd64.memcpy_small   # Nope, use small copy (no prefetch/WC) \n\
-        test $0b1111, %%esi     # Is source also 16-byte aligned?       \n\
+        test $15, %%esi         # Is source also 16-byte aligned?       \n\
                                 # (use ESI to save a REX prefix byte)   \n\
         jnz amd64.memcpy_normal_bp # Nope, use slow copy                \n\
         jmp amd64.memcpy_fast_bp # Yup, use fast copy                   \n\
@@ -406,7 +406,7 @@ amd64.memcpy_small:             # Small block copy routine--no prefetch \n\
         mov %%edx, %%eax        # Leave remainder in ECX for later      \n\
         shl $4, %%eax                                                   \n\
         sub %%eax, %%ecx                                                \n\
-        .align 16                                                       \n\
+        .balign 16                                                      \n\
 0:      movdqu (%%rsi), %%xmm0  # Copy 16 bytes of data                 \n\
         movdqa %%xmm0, (%%rdi)                                          \n\
         add $16, %%rsi          # Update pointers                       \n\
@@ -415,14 +415,14 @@ amd64.memcpy_small:             # Small block copy routine--no prefetch \n\
         jnz 0b                                                          \n\
         jmp amd64.memcpy_last   # Copy any remaining bytes              \n\
                                                                         \n\
-        .align 16                                                       \n\
+        .balign 16                                                      \n\
         nop                                                             \n\
         nop                                                             \n\
 amd64.memcpy_fast_bp:           # Fast block prefetch loop              \n"
 AMD64_BLOCK_MEMCPY(movdqa)
 "       jmp amd64.memcpy_last   # Copy any remaining bytes              \n\
                                                                         \n\
-        .align 16                                                       \n\
+        .balign 16                                                      \n\
         nop                                                             \n\
         nop                                                             \n\
 amd64.memcpy_normal_bp:         # Normal (unaligned) block prefetch loop\n"
@@ -443,7 +443,7 @@ amd64.memcpy_last:                                                      \n\
         movsq                                                           \n\
         movsq                                                           \n\
         movsq                                                           \n\
-0:      and $0b111, %%ecx       # ECX <- ECX & 7                        \n\
+0:      and $7, %%ecx           # ECX <- ECX & 7                        \n\
         lea 0f(%%rip), %%rdx                                            \n\
         sub %%rcx, %%rdx                                                \n\
         jmp *%%rdx              # Execute 0-7 MOVSB's                   \n\

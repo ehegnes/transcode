@@ -1,3 +1,8 @@
+2007-04-30 Andrew Church <achurch at achurch dot org>
+  * aclib/memcpy.c
+  Avoid binary constants and the .align directive, as some versions of
+  binutils seem to choke on them.
+
 2007-04-28 Francesco Romani <fromani at gmail dot com>
   * added file: docs/tech/html/tc_libraries.html
 
