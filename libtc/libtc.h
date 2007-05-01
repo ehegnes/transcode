@@ -32,6 +32,7 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include <sys/types.h>
+#include <sys/param.h>
 #include <string.h>
 #include <pthread.h>
 

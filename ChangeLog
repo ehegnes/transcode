@@ -1,3 +1,8 @@
+2007-05-01 Francesco Romani <fromani at gmail dot com>
+  * libtc/libtc.h
+  include <sys/param.h> that should define PATH_MAX on OSX and
+  should be harmless on linux/BSD.
+
 2007-05-01 Andrew Church <achurch at achurch dot org>
   * testsuite/test-acmemcpy.c testsuite/test-acmemcpy-speed.c
   Don't try to test accelerated functions if they've been disabled with
