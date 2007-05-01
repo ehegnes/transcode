@@ -6,6 +6,13 @@
   * testsuite/test-tcstrdup.c
   Avoid using strndup(), since it's not a standard function.
 
+  * libtc/libtc.h
+  Edit tc_strndup() documentation to reflect the fact that strndup() is
+  not standard.
+
+  * libtc/libxio.c
+  Use tc_strndup() rather than strndup().
+
 2007-04-30 Andrew Church <achurch at achurch dot org>
   * aclib/memcpy.c
   Avoid binary constants and the .align directive, as some versions of

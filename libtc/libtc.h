@@ -472,8 +472,9 @@ void tc_buffree(void *ptr);
  * tc_strdup: a macro wrapper on top of _tc_strndup, like tc_malloc, above
  * tc_strndup: like tc_strdup, but copies only N byte of given string
  *
- * This function does the same thing of libc's standard functions
- * strdup(3) an strndup(3), but using the libtc's tc_malloc features.
+ * This function does the same thing of libc's standard function
+ * strdup(3) and the GNU extension strndup(3), but using libtc's
+ * tc_malloc features.
  */
 #define tc_strdup(s) \
             _tc_strndup(__FILE__, __LINE__, s, strlen(s))

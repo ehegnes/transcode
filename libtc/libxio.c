@@ -32,7 +32,6 @@
 #endif
 #include <stdio.h>
 #include <stdlib.h>
-char *strndup(const char *s, size_t n);
 #include <pthread.h>
 #include <string.h>
 #include <sys/types.h>
@@ -42,6 +41,7 @@ char *strndup(const char *s, size_t n);
 #include <errno.h>
 #include <stdarg.h>
 
+#include "libtc.h"
 #include "xio.h"
 
 #define MAX_HANDLES 256
@@ -159,13 +159,13 @@ ibp_open(const char *uri, int mode, int m)
         // get LBONE_SERVER from URI
         if(strchr(uri, ':')) {
             // port is defined
-            handle->lbone_server = strndup(uri,
+            handle->lbone_server = tc_strndup(uri,
                     strchr(uri, ':')-uri);
             uri = (char *)(strchr(uri, ':')+1);
             handle->lbone_port = atoi(uri);
         } else {
             // only host
-            handle->lbone_server = strndup(uri,
+            handle->lbone_server = tc_strndup(uri,
                     (int)(strchr(uri, '/')-uri));
         }
         uri = (char *)(strchr(uri, '/')+1);
@@ -178,7 +178,7 @@ ibp_open(const char *uri, int mode, int m)
         handle->filename = strdup(uri);
     } else {
         // parse options
-        handle->filename = strndup(uri, (int)(strchr(uri, '?')-uri));
+        handle->filename = tc_strndup(uri, (int)(strchr(uri, '?')-uri));
         uri = strchr(uri, '?')+1;
         while(uri != (char *)1) {
             if(strncmp(uri, "bs", 2) == 0) {
@@ -561,7 +561,7 @@ ibp_lorstoname(char *file_name)
     if(!strchr(uri, '?')) {
         return strdup(uri);
     }
-    return strndup(uri, (int)(strchr(uri, '?')-uri));
+    return tc_strndup(uri, (int)(strchr(uri, '?')-uri));
 }
 
 static int
