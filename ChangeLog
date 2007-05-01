@@ -1,3 +1,11 @@
+2007-05-01 Andrew Church <achurch at achurch dot org>
+  * testsuite/test-acmemcpy.c testsuite/test-acmemcpy-speed.c
+  Don't try to test accelerated functions if they've been disabled with
+  --disable-mmx, etc.
+
+  * testsuite/test-tcstrdup.c
+  Avoid using strndup(), since it's not a standard function.
+
 2007-04-30 Andrew Church <achurch at achurch dot org>
   * aclib/memcpy.c
   Avoid binary constants and the .align directive, as some versions of

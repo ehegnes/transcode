@@ -35,11 +35,13 @@ exit $?
 #include "../aclib/memcpy.c"
 #undef ac_memcpy
 /* Make sure all names are available, to simplify function table */
-#if !defined(ARCH_X86)
+#if !defined(ARCH_X86) || !defined(HAVE_ASM_MMX)
 # define memcpy_mmx memcpy
+#endif
+#if !defined(ARCH_X86) || !defined(HAVE_ASM_SSE)
 # define memcpy_sse memcpy
 #endif
-#if !defined(ARCH_X86_64)
+#if !defined(ARCH_X86_64) || !defined(HAVE_ASM_SSE2)
 # define memcpy_amd64 memcpy
 #endif
 
@@ -133,6 +135,21 @@ static void testit(void *(*func)(void *, const void *, size_t), int size,
 #else
 # define defined_ARCH_X86_64 0
 #endif
+#if defined(HAVE_ASM_MMX)
+# define defined_HAVE_ASM_MMX 1
+#else
+# define defined_HAVE_ASM_MMX 0
+#endif
+#if defined(HAVE_ASM_SSE)
+# define defined_HAVE_ASM_SSE 1
+#else
+# define defined_HAVE_ASM_SSE 0
+#endif
+#if defined(HAVE_ASM_SSE2)
+# define defined_HAVE_ASM_SSE2 1
+#else
+# define defined_HAVE_ASM_SSE2 0
+#endif
 
 /* List of routines to test, NULL-terminated */
 static struct {
@@ -141,10 +158,14 @@ static struct {
     int acflags;       /* required ac_cpuinfo() flags */
     void *(*func)(void *, const void *, size_t);
 } testfuncs[] = {
-    { "libc ", 1,                   0,                memcpy },
-    { " mmx ", defined_ARCH_X86,    AC_MMX,           memcpy_mmx },
-    { " sse ", defined_ARCH_X86,    AC_CMOVE|AC_SSE,  memcpy_sse },
-    { "amd64", defined_ARCH_X86_64, AC_CMOVE|AC_SSE2, memcpy_amd64 },
+    { "libc ", 1,                   
+               0,                memcpy },
+    { " mmx ", defined_ARCH_X86 && defined_HAVE_ASM_MMX,
+               AC_MMX,           memcpy_mmx },
+    { " sse ", defined_ARCH_X86 && defined_HAVE_ASM_SSE,
+               AC_CMOVE|AC_SSE,  memcpy_sse },
+    { "amd64", defined_ARCH_X86_64 && defined_HAVE_ASM_SSE2,
+               AC_CMOVE|AC_SSE2, memcpy_amd64 },
     { NULL }
 };
 

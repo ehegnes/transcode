@@ -66,7 +66,11 @@ static int test_strndup(size_t n)
 
     tc_info("test_strndup(%lu) begin", (unsigned long)n);
 
-    s2 = strndup(s1, n);
+    s2 = malloc(n+1);
+    if (n > 0) {
+        strncpy(s2, s1, n);
+    }
+    s2[n] = 0;
     s3 = tc_strndup(s1, n);
 
     if (strlen(s2) != strlen(s3)) {
