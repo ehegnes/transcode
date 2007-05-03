@@ -136,7 +136,7 @@ MOD_open
 
       sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
 			 "mplayer -hardframedrop -vo null -ao pcm:nowaveheader"
-			 " -ao pcm:file=\"%s\" %s \"%s\" > /dev/null 2>&1",
+			 ":file=\"%s\" %s \"%s\" > /dev/null 2>&1",
 			 audiopipe, (vob->im_a_string ? vob->im_a_string : ""),
 			 vob->audio_in_file);
       if (sret < 0) {

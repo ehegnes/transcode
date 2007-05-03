@@ -1,3 +1,9 @@
+2007-05-03 Andrew Church <achurch at achurch dot org>
+  * import/import_mplayer.c
+  Change mplayer command line to use a single -ao option rather than two
+  (avoids a click at the beginning of the audio from a WAVE header
+  embedded in the audio data).
+
 2007-05-01 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h
   include <sys/param.h> that should define PATH_MAX on OSX and
