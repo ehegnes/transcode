@@ -75,25 +75,30 @@ int probe_source_xml(vob_t *vob, int which);
 
 /* Flags for probe_source(), indicating which parameters were specified by
  * the user and shouldn't be overwritten */
-#define TC_PROBE_NO_FRAMESIZE   1
-#define TC_PROBE_NO_FPS         2
-#define TC_PROBE_NO_DEMUX       4
-#define TC_PROBE_NO_RATE        8
-#define TC_PROBE_NO_CHAN       16
-#define TC_PROBE_NO_BITS       32
-#define TC_PROBE_NO_SEEK       64
-#define TC_PROBE_NO_TRACK     128
-#define TC_PROBE_NO_BUFFER    256
-//#define TC_PROBE_NO_FRC       512  // unused
-#define TC_PROBE_NO_ACODEC   1024
-#define TC_PROBE_NO_AVSHIFT  2048
-#define TC_PROBE_NO_AV_FINE  4096
-#define TC_PROBE_NO_IMASR    8192
-#define TC_PROBE_NO_BUILTIN 16384  // external probe (mplayer)
+enum {
+    TC_PROBE_NO_FRAMESIZE =     1,
+    TC_PROBE_NO_FPS       =     2,
+    TC_PROBE_NO_DEMUX     =     4,
+    TC_PROBE_NO_RATE      =     8,
+    TC_PROBE_NO_CHAN      =    16,
+    TC_PROBE_NO_BITS      =    32,
+    TC_PROBE_NO_SEEK      =    64,
+    TC_PROBE_NO_TRACK     =   128,
+    TC_PROBE_NO_BUFFER    =   256,
+//    TC_PROBE_NO_FRC       =   512,  // unused
+    TC_PROBE_NO_ACODEC    =  1024,
+    TC_PROBE_NO_AVSHIFT   =  2048,
+    TC_PROBE_NO_AV_FINE   =  4096,
+    TC_PROBE_NO_IMASR     =  8192,
+    TC_PROBE_NO_BUILTIN   = 16384, // external probe (mplayer)
+    TC_PROBE_NO_MODULES   = 32768,
+};
 
 /* `which' value for probe_xml() */
-#define PROBE_XML_VIDEO  0
-#define PROBE_XML_AUDIO  1
+enum {
+    PROBE_XML_VIDEO = 0,
+    PROBE_XML_AUDIO,
+};
 
 /* Auxiliary info routines */
 const char *codec2str(int flag);
