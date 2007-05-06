@@ -323,6 +323,8 @@ static int transcode_fini(vob_t *vob)
     return 0;
 }
 
+
+
 /*************************************************************************/
 
 /**
@@ -527,6 +529,17 @@ static vob_t *new_vob(void)
 
 /*************************************************************************/
 
+/*
+ * parse_navigation_file:
+ *      parse navigation data file and setup vob data fields accordingly.
+ *      This function handle both aviindex and tcdemux -W generated files.
+ *
+ * Parameters:
+ *                vob: Pointer to the global vob_t data structure.
+ *      nav_seek_file: Path of navigation file.
+ * Return Value:
+ *      None
+ */
 static void parse_navigation_file(vob_t *vob, const char *nav_seek_file)
 {
     if (nav_seek_file) {
