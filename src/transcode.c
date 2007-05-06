@@ -268,7 +268,7 @@ static void load_all_filters(char *filter_list)
  * transcoder:  Start or stop the transcoding engine.
  *
  * Parameters:
- *     mode: TC_ON to start the transcoding engine, TC_OFF to stop it.
+ *     mode: TC_TRUE to start the transcoding engine, TC_FALSE to stop it.
  *      vob: Pointer to the global vob_t data structure.
  * Return value:
  *     0 on success, -1 on error.
@@ -276,7 +276,7 @@ static void load_all_filters(char *filter_list)
 
 static int transcoder(int mode, vob_t *vob)
 {
-    if (mode == TC_ON) {
+    if (mode == TC_TRUE) {
         /* load import modules and check capabilities */
         if (import_init(vob, im_aud_mod, im_vid_mod) < 0) {
             tc_log_error(PACKAGE, "failed to init import modules");
@@ -302,7 +302,7 @@ static int transcoder(int mode, vob_t *vob)
             return -1;
         }
 
-    } else if (mode == TC_OFF) {
+    } else if (mode == TC_FALSE) {
         /* unload import modules */
         import_shutdown();
         /* unload filters */
@@ -2222,7 +2222,7 @@ int main(int argc, char *argv[])
 #endif
 
     // load import/export modules and filters plugins
-    if (transcoder(TC_ON, vob) < 0)
+    if (transcoder(TC_TRUE, vob) < 0)
         tc_error("plug-in initialization failed");
 
     // start frame processing threads
@@ -2805,7 +2805,7 @@ int main(int argc, char *argv[])
     }
 
     // unload all external modules
-    transcoder(TC_OFF, NULL);
+    transcoder(TC_FALSE, NULL);
     if (verbose & TC_DEBUG) {
         fprintf(stderr, " unload modules |");
         fflush(stderr);

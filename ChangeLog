@@ -1,3 +1,8 @@
+2007-05-06 Francesco Romani <fromani at gmail dot com>
+  * src/transcode.c src/cmdline_def.h src/tc_defaults.h
+  TC_ON -> TC_TRUE; TC_OFF -> TC_FALSE;
+  kill TC_ON, TC_OFF.
+
 2007-05-03 Andrew Church <achurch at achurch dot org>
   * import/import_mplayer.c
   Change mplayer command line to use a single -ao option rather than two

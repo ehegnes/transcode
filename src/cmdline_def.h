@@ -1428,7 +1428,7 @@ TC_OPTION(no_bitreservoir,    0,   0,
 )
 TC_OPTION(lame_flush,         'O', 0,
                 "(LAME) flush MP3 buffer on encoder stop [off]",
-                vob->lame_flush = TC_ON;
+                vob->lame_flush = TC_TRUE;
 )
 TC_OPTION(a52_demux,          0,   0,
                 "(liba52) demux AC3/A52 to separate channels [off]",
@@ -1459,7 +1459,7 @@ TC_OPTION(autosplit,          'W', "n,m[,file]",
                 }
                 if (*vob_logfile)
                     vob->vob_info_file = vob_logfile;
-                tc_cluster_mode = TC_ON;
+                tc_cluster_mode = TC_TRUE;
 )
 TC_OPTION(cluster_percentage, 0,   0,
                 "use percentage mode for cluster encoding [off]",
@@ -1481,7 +1481,7 @@ TC_OPTION(psu_mode,           0,   0,
                 "process VOB in PSU, -o is a filemask incl. %d [off]",
                 psu_mode = TC_TRUE;
                 core_mode = TC_MODE_PSU;
-                tc_cluster_mode = TC_ON;
+                tc_cluster_mode = TC_TRUE;
 )
 TC_OPTION(psu_chunks,         0,   "a-b",
                 "process only units a-b for PSU mode [all]",
