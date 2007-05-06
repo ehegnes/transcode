@@ -3,6 +3,10 @@
   TC_ON -> TC_TRUE; TC_OFF -> TC_FALSE;
   kill TC_ON, TC_OFF.
 
+  * src/transcode.c
+  separate initalization/finalization of transcode engine, by
+  splitting transcoder() into transcode_init() and transcode_fini().
+
 2007-05-03 Andrew Church <achurch at achurch dot org>
   * import/import_mplayer.c
   Change mplayer command line to use a single -ao option rather than two

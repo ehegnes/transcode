@@ -265,55 +265,60 @@ static void load_all_filters(char *filter_list)
 /*************************************************************************/
 
 /**
- * transcoder:  Start or stop the transcoding engine.
+ * transcode_init:  initialize the transcoding engine.
  *
  * Parameters:
- *     mode: TC_TRUE to start the transcoding engine, TC_FALSE to stop it.
  *      vob: Pointer to the global vob_t data structure.
  * Return value:
  *     0 on success, -1 on error.
  */
 
-static int transcoder(int mode, vob_t *vob)
+static int transcode_init(vob_t *vob)
 {
-    if (mode == TC_TRUE) {
-        /* load import modules and check capabilities */
-        if (import_init(vob, im_aud_mod, im_vid_mod) < 0) {
-            tc_log_error(PACKAGE, "failed to init import modules");
-            return -1;
-        }
-
-        /* load and initialize filters */
-        tc_filter_init();
-        load_all_filters(plugins_string);
-
-        /* load export modules and check capabilities
-         * (only create a TCModule factory if a multiplex module was given) */
-        if (export_init(tc_ringbuffer,
-                        ex_mplex_mod
-                            ? tc_new_module_factory(vob->mod_path,verbose)
-                            : NULL) != TC_OK
-        ) {
-            tc_log_error(PACKAGE, "failed to init export layer");
-            return -1;
-        }
-        if (export_setup(vob, ex_aud_mod, ex_vid_mod, ex_mplex_mod) != TC_OK) {
-            tc_log_error(PACKAGE, "failed to init export modules");
-            return -1;
-        }
-
-    } else if (mode == TC_FALSE) {
-        /* unload import modules */
-        import_shutdown();
-        /* unload filters */
-        tc_filter_fini();
-        /* unload export modules */
-        export_shutdown();
-
-    } else {  // unknown mode
-        tc_log_warn(PACKAGE, "transcoder() called with bad mode %d", mode);
+    /* load import modules and check capabilities */
+    if (import_init(vob, im_aud_mod, im_vid_mod) < 0) {
+        tc_log_error(PACKAGE, "failed to init import modules");
         return -1;
     }
+
+    /* load and initialize filters */
+    tc_filter_init();
+    load_all_filters(plugins_string);
+
+    /* load export modules and check capabilities
+     * (only create a TCModule factory if a multiplex module was given) */
+    if (export_init(tc_ringbuffer,
+                    ex_mplex_mod
+                      ? tc_new_module_factory(vob->mod_path,verbose)
+                      : NULL) != TC_OK
+    ) {
+        tc_log_error(PACKAGE, "failed to init export layer");
+        return -1;
+    }
+    if (export_setup(vob, ex_aud_mod, ex_vid_mod, ex_mplex_mod) != TC_OK) {
+        tc_log_error(PACKAGE, "failed to init export modules");
+        return -1;
+    }
+    return 0;
+}
+
+/**
+ * transcode_fini:  finalize (shutdown) the transcoding engine.
+ *
+ * Parameters:
+ *      vob: Pointer to the global vob_t data structure.
+ * Return value:
+ *     0 on success, -1 on error.
+ */
+
+static int transcode_fini(vob_t *vob)
+{
+    /* unload import modules */
+    import_shutdown();
+    /* unload filters */
+    tc_filter_fini();
+    /* unload export modules */
+    export_shutdown();
 
     return 0;
 }
@@ -2222,7 +2227,7 @@ int main(int argc, char *argv[])
 #endif
 
     // load import/export modules and filters plugins
-    if (transcoder(TC_TRUE, vob) < 0)
+    if (transcode_init(vob) < 0)
         tc_error("plug-in initialization failed");
 
     // start frame processing threads
@@ -2805,7 +2810,7 @@ int main(int argc, char *argv[])
     }
 
     // unload all external modules
-    transcoder(TC_FALSE, NULL);
+    transcode_fini(NULL);
     if (verbose & TC_DEBUG) {
         fprintf(stderr, " unload modules |");
         fflush(stderr);
