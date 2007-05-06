@@ -527,6 +527,116 @@ static vob_t *new_vob(void)
 
 /*************************************************************************/
 
+static void parse_navigation_file(vob_t *vob, const char *nav_seek_file)
+{
+    if (nav_seek_file) {
+        FILE *fp = NULL;
+        struct fc_time *tmptime = NULL;
+        char buf[TC_BUF_MIN];
+        int line_count = 0;
+        int flag = 0;
+        int is_aviindex = 0;
+
+        if (vob->vob_offset) {
+            tc_warn("-L and --nav_seek are incompatible.");
+        }
+
+        fp = fopen(nav_seek_file, "r");
+        if(NULL == fp) {
+            perror(nav_seek_file);
+            exit(EXIT_FAILURE);
+        }
+
+        tmptime = vob->ttime;
+        line_count = 0;
+
+        // check if this is an AVIIDX1 file
+        if (fgets(buf, sizeof(buf), fp)) {
+            if (strncasecmp(buf, "AVIIDX1", 7) == 0)
+                is_aviindex=1;
+            fseek(fp, 0, SEEK_SET);
+        } else {
+            tc_error("An error happend while reading the nav_seek file");
+        }
+
+        if (!is_aviindex) {
+            while (tmptime){
+                flag = 0;
+                for (; fgets(buf, sizeof(buf), fp); line_count++) {
+                    int L, new_frame_a;
+
+                    if (2 == sscanf(buf, "%*d %*d %*d %*d %d %d ", &L, &new_frame_a)) {
+                        if (line_count == tmptime->stf) {
+                            int len = tmptime->etf - tmptime->stf;
+                            tmptime->stf = frame_a = new_frame_a;
+                            tmptime->etf = frame_b = new_frame_a + len;
+                            tmptime->vob_offset = L;
+                            flag = 1;
+                            line_count++;
+                            break;
+                        }
+                    }
+                }
+                tmptime = tmptime->next;
+            }
+        } else { // is_aviindex==1
+            fgets(buf, sizeof(buf), fp); // magic
+            fgets(buf, sizeof(buf), fp); // comment
+
+            while (tmptime) {
+                int new_frame_a, type, key;
+                long chunk, chunkptype, last_keyframe = 0;
+                long long pos, len;
+                char tag[4];
+                double ms = 0.0;
+                flag = 0;
+
+                for (; fgets(buf, sizeof(buf), fp); line_count++) {
+                    // TAG TYPE CHUNK CHUNK/TYPE POS LEN KEY MS
+                    if (sscanf(buf, "%s %d %ld %ld %lld %lld %d %lf",
+                               tag, &type, &chunk, &chunkptype, &pos, &len, &key, &ms)) {
+                        if (type != 1)
+                            continue;
+                        if (key)
+                            last_keyframe = chunkptype;
+                        if (chunkptype == tmptime->stf) {
+                            int lenf = tmptime->etf - tmptime->stf;
+                            new_frame_a = chunkptype - last_keyframe;
+
+                            // If we are doing pass-through, we cannot skip frames, but only start
+                            // passthrough on a keyframe boundary. At least, we respect the
+                            // last frame the user whishes.
+                            if (vob->pass_flag & TC_VIDEO) {
+                                new_frame_a = 0;
+                                lenf += (chunkptype - last_keyframe);
+                            }
+
+                            tmptime->stf = frame_a = new_frame_a;
+                            tmptime->etf = frame_b = new_frame_a + lenf;
+                            tmptime->vob_offset = last_keyframe;
+                            flag = 1;
+                            line_count++;
+                            break;
+                        }
+                    }
+                }
+                tmptime = tmptime->next;
+            }
+        }
+        fclose(fp);
+
+        if (!flag) {
+            //frame not found
+            tc_warn("%s: frame %d out of range (%d frames found)",
+                    nav_seek_file, frame_a, line_count);
+            tc_error("invalid option parameter for -c / --nav_seek");
+        }
+    }
+}
+
+
+/*************************************************************************/
+
 /**
  * main:  transcode main routine.  Performs initialization, parses command
  * line options, and calls the transcoding routines.
@@ -724,109 +834,7 @@ int main(int argc, char *argv[])
     counter_on(); //activate
 
     // determine -S,-c,-L option parameter for distributed processing
-    if(nav_seek_file) {
-        FILE *fp = NULL;
-        struct fc_time *tmptime = NULL;
-        char buf[TC_BUF_MIN];
-        int line_count = 0;
-        int flag = 0;
-        int is_aviindex = 0;
-
-        if (vob->vob_offset) {
-            tc_warn("-L and --nav_seek are incompatible.");
-        }
-
-        fp = fopen(nav_seek_file, "r");
-        if(NULL == fp) {
-            perror(nav_seek_file);
-            exit(EXIT_FAILURE);
-        }
-
-        tmptime = vob->ttime;
-        line_count = 0;
-
-        // check if this is an AVIIDX1 file
-        if (fgets(buf, sizeof(buf), fp)) {
-            if (strncasecmp(buf, "AVIIDX1", 7) == 0)
-                is_aviindex=1;
-            fseek(fp, 0, SEEK_SET);
-        } else {
-            tc_error("An error happend while reading the nav_seek file");
-        }
-
-        if (!is_aviindex) {
-            while (tmptime){
-                flag = 0;
-                for (; fgets(buf, sizeof(buf), fp); line_count++) {
-                    int L, new_frame_a;
-
-                    if (2 == sscanf(buf, "%*d %*d %*d %*d %d %d ", &L, &new_frame_a)) {
-                        if (line_count == tmptime->stf) {
-                            int len = tmptime->etf - tmptime->stf;
-                            tmptime->stf = frame_a = new_frame_a;
-                            tmptime->etf = frame_b = new_frame_a + len;
-                            tmptime->vob_offset = L;
-                            flag = 1;
-                            line_count++;
-                            break;
-                        }
-                    }
-                }
-                tmptime = tmptime->next;
-            }
-        } else { // is_aviindex==1
-            fgets(buf, sizeof(buf), fp); // magic
-            fgets(buf, sizeof(buf), fp); // comment
-
-            while (tmptime) {
-                int new_frame_a, type, key;
-                long chunk, chunkptype, last_keyframe = 0;
-                long long pos, len;
-                char tag[4];
-                double ms = 0.0;
-                flag = 0;
-
-                for (; fgets(buf, sizeof(buf), fp); line_count++) {
-                    // TAG TYPE CHUNK CHUNK/TYPE POS LEN KEY MS
-                    if (sscanf(buf, "%s %d %ld %ld %lld %lld %d %lf",
-                               tag, &type, &chunk, &chunkptype, &pos, &len, &key, &ms)) {
-                        if (type != 1)
-                            continue;
-                        if (key)
-                            last_keyframe = chunkptype;
-                        if (chunkptype == tmptime->stf) {
-                            int lenf = tmptime->etf - tmptime->stf;
-                            new_frame_a = chunkptype - last_keyframe;
-
-                            // If we are doing pass-through, we cannot skip frames, but only start
-                            // passthrough on a keyframe boundary. At least, we respect the
-                            // last frame the user whishes.
-                            if (vob->pass_flag & TC_VIDEO) {
-                                new_frame_a = 0;
-                                lenf += (chunkptype - last_keyframe);
-                            }
-
-                            tmptime->stf = frame_a = new_frame_a;
-                            tmptime->etf = frame_b = new_frame_a + lenf;
-                            tmptime->vob_offset = last_keyframe;
-                            flag = 1;
-                            line_count++;
-                            break;
-                        }
-                    }
-                }
-                tmptime = tmptime->next;
-            }
-        }
-        fclose(fp);
-
-        if (!flag) {
-            //frame not found
-            tc_warn("%s: frame %d out of range (%d frames found)",
-                    nav_seek_file, frame_a, line_count);
-            tc_error("invalid option parameter for -c / --nav_seek");
-        }
-    }
+    parse_navigation_file(vob, nav_seek_file);
 
     if (vob->vob_chunk_max) {
         int this_unit = -1;

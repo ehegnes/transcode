@@ -6,6 +6,7 @@
   * src/transcode.c
   separate initalization/finalization of transcode engine, by
   splitting transcoder() into transcode_init() and transcode_fini().
+  move navigation file parsing code in a separate private function.
 
 2007-05-03 Andrew Church <achurch at achurch dot org>
   * import/import_mplayer.c
