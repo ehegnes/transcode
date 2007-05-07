@@ -214,18 +214,26 @@ int get_ac3_framesize(unsigned char *buf)
   return(frmsizecod_tbl[frmsizecod].frm_size[fscod]);
 }
 
-// tibit
+// We try to find the number of chans in the ac3 header (BSI)
 int get_ac3_nfchans(unsigned char *buf) 
 {
   int acmod = 0;
 
-  // skip syncinfo (size = 5bytes);
-  // skip to acmod
-  acmod = buf[6]>>5;
+  /* lfe is off */
+  int lfe = 0;
+
+  /* acmod is located on the 3 msb of the second char of the BSI */
+  acmod = buf[1]>>5;
+  
+  /* LFE is the 2nd msb bit (0x40) of the 3rd char of the BSI */
+  if ((buf[2] & 0x40) == 0x40) {
+  	  /* LFE flags is on, we have one more channel */
+	  lfe=1;
+  }
 
   if (acmod < 0 || acmod > 11) return -1;
 
-  return(nfchans[acmod]);
+  return(nfchans[acmod]+lfe);
 }
 
 
@@ -285,13 +293,15 @@ int tc_get_ac3_header(unsigned char *_buf, int len, int *chans, int *srate, int 
       sync_word = (sync_word << 8) + (uint8_t) buffer[i]; 
       if(sync_word == 0x0b77) break;
   }
-    
   if(sync_word != 0x0b77) return(-1);
 
   if (srate) *srate = get_ac3_samplerate(&buffer[i+1]);
   if (bitrate) *bitrate = get_ac3_bitrate(&buffer[i+1]);  
-  nfchans = get_ac3_nfchans(&buffer[i+1]);
+
+  /* We give the first byte of the BSI to get_ac3_nfchans*/
+  nfchans = get_ac3_nfchans(&buffer[i+4]);
   if (chans) *chans = nfchans;
+
   fsize = 2*get_ac3_framesize(&buffer[i+1]);
   
   if(j<0 || bitrate <0) return(-1);
