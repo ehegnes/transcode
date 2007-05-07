@@ -118,22 +118,6 @@ dv_display_show(dv_display_t *dv_dpy) {
   case e_dv_dpy_XShm:
     break;
   case e_dv_dpy_gtk:
-#if HAVE_GTK
-    if (dv_dpy->image->window){
-      gdk_draw_rgb_image(dv_dpy->image->window,
-		       dv_dpy->image->style->fg_gc[dv_dpy->image->state],
-		       0, 0, dv_dpy->width, dv_dpy->height,
-		       GDK_RGB_DITHER_MAX, dv_dpy->pixels[0], dv_dpy->pitches[0]);
-      gdk_flush();
-      while(gtk_events_pending()) {
-	gtk_main_iteration();
-      } /* while */
-      gdk_flush();
-    } else {
-      dv_dpy->dontdraw = 1;
-    }
-
-#endif /* HAVE_GTK */
     break;
   case e_dv_dpy_SDL:
 #if HAVE_SDL
@@ -191,15 +175,6 @@ dv_display_exit(dv_display_t *dv_dpy) {
 #endif /* HAVE_LIBXV */
     break;
   case e_dv_dpy_gtk:
-#if HAVE_GTK
-    /* segfaults
-    gtk_main_quit();
-    */
-    if(dv_dpy->pixels[0]) {
-      free(dv_dpy->pixels[0]);
-      dv_dpy->pixels[0] = NULL;
-    }
-#endif /* HAVE_GTK */
     break;
   case e_dv_dpy_XShm:
     break;
@@ -217,30 +192,7 @@ dv_display_exit(dv_display_t *dv_dpy) {
 static int
 dv_display_gdk_init(dv_display_t *dv_dpy, int *argc, char ***argv) {
 
-#if HAVE_GTK
-  dv_dpy->pixels[0] = (guchar *)calloc(1,dv_dpy->width * dv_dpy->height * 3);
-  if(!dv_dpy) goto no_mem;
-  gtk_init(argc, argv);
-  gdk_rgb_init();
-  gtk_widget_set_default_colormap(gdk_rgb_get_cmap());
-  gtk_widget_set_default_visual(gdk_rgb_get_visual());
-  dv_dpy->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-  dv_dpy->image = gtk_drawing_area_new();
-  gtk_container_add(GTK_CONTAINER(dv_dpy->window),dv_dpy->image);
-  gtk_drawing_area_size(GTK_DRAWING_AREA(dv_dpy->image),
-			dv_dpy->width, dv_dpy->height);
-  gtk_widget_set_usize(GTK_WIDGET(dv_dpy->image),
-			dv_dpy->width, dv_dpy->height);
-  gtk_widget_show(dv_dpy->image);
-  gtk_widget_show(dv_dpy->window);
-  gdk_flush();
-  while(gtk_events_pending())
-    gtk_main_iteration();
-  gdk_flush();
-
-  return TRUE;
  no_mem:
-#endif /* HAVE_GTK */
   return FALSE;
 } /* dv_display_gdk_init */
 

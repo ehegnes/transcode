@@ -1,3 +1,8 @@
+2007-05-07 Francesco Romani <fromani at gmail dot com>
+  * configure.in filter/preview/Makefile.am filter/preview/display.c
+    filter/preview/display.h
+  drop no longer used, obsolete gtk+ code.
+
 2007-05-06 Francesco Romani <fromani at gmail dot com>
   * src/transcode.c src/cmdline_def.h src/tc_defaults.h
   TC_ON -> TC_TRUE; TC_OFF -> TC_FALSE;

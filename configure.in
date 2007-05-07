@@ -1155,13 +1155,6 @@ fi
 TC_PKG_HAVE(sdl, SDL)
 
 dnl
-dnl GTK
-dnl
-TC_PKG_CHECK(gtk, no, GTK, gtk-config, [gtk/gtk.h], gtk, gtk_init,
- gtk+, [http://www.gtk.org/])
-TC_PKG_HAVE(gtk, GTK)
-
-dnl
 dnl ImageMagick
 dnl
 IMAGEMAGICK_EXTRA_LIBS="$IMAGEMAGICK_EXTRA_LIBS -lz -lm"

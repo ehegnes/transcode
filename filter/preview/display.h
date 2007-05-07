@@ -46,10 +46,6 @@
 #include <SDL_syswm.h>
 #endif // HAVE_SDL
 
-#if HAVE_GTK
-#include <gtk/gtk.h>
-#endif // HAVE_GTK
-
 #define DV_FOURCC_YV12  0x32315659	/* 4:2:0 Planar mode: Y + V + U  (3 planes) */
 #define DV_FOURCC_YUY2  0x32595559	/* 4:2:2 Packed mode: Y0+U0+Y1+V0 (1 plane) */
 
@@ -98,13 +94,6 @@ typedef struct {
   XShmSegmentInfo   shminfo;
   XvImage          *xv_image;
 #endif // HAVE_LIBXV
-
-#if HAVE_GTK
-  /* -----------------------------------------------------------
-   * GDK specific members
-   */
-  GtkWidget	   *window, *image;
-#endif
 
 #if HAVE_SDL
   SDL_Surface* sdl_screen;

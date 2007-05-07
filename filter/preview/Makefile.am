@@ -8,15 +8,10 @@ AM_CPPFLAGS = \
 	$(DLDARWIN_CFLAGS) \
 	$(LIBDV_CFLAGS) \
 	$(X_CFLAGS) \
-	$(GTK_CFLAGS) \
 	$(SDL_CFLAGS)
 
 if HAVE_LIBXV
 LIBS_XV = -lXv
-endif
-
-if HAVE_GTK
-LIBS_GTK = $(GTK_LIBS)
 endif
 
 if HAVE_SDL
@@ -25,7 +20,6 @@ endif
 
 LIBS = \
 	$(LIBS_XV) \
-	$(LIBS_GTK) \
 	$(LIBS_SDL)
 
 pkgdir = $(MOD_PATH)
