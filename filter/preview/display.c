@@ -192,7 +192,6 @@ dv_display_exit(dv_display_t *dv_dpy) {
 static int
 dv_display_gdk_init(dv_display_t *dv_dpy, int *argc, char ***argv) {
 
- no_mem:
   return FALSE;
 } /* dv_display_gdk_init */
 
