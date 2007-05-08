@@ -270,7 +270,7 @@ static TCConfigEntry conf[] ={
 
     /* Other parameters */
 
-    OPT_NONE (b_aud)
+    OPT_FLAG (b_aud,                      "aud")
     OPT_NONE (b_repeat_headers)
     OPT_NONE (i_sps_id)
 

@@ -1,4 +1,7 @@
 2007-05-08 Andrew Church <achurch at achurch dot org>
+  * encode/encode_x264.c
+  Add x264.cfg option "aud" to enable AUDs (Access Unit Delimiters).
+
   * filter/preview/display.c
   Fix a compilation warning.
 
