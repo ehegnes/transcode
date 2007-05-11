@@ -2,6 +2,10 @@
   * acinclude.m4 configure.in
   ALSA detection and support in build system.
 
+  * libtc/tcformats.h
+  ALSA specific format (this will be moved into something like
+  libtcsource, as well as X11 support, after 1.1.0 eventually out).
+
 2007-05-08 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c
   Add x264.cfg option "aud" to enable AUDs (Access Unit Delimiters).

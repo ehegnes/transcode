@@ -52,6 +52,7 @@ typedef enum {
 
     /* special */
     TC_FORMAT_RAW,      /* no container */
+    TC_FORMAT_ALSA,
     TC_FORMAT_X11,
     TC_FORMAT_XML,
     TC_FORMAT_MXF,
