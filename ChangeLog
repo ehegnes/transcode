@@ -1,3 +1,7 @@
+2007-05-10 Francesco Romani <fromani at gmail dot com>
+  * acinclude.m4 configure.in
+  ALSA detection and support in build system.
+
 2007-05-08 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c
   Add x264.cfg option "aud" to enable AUDs (Access Unit Delimiters).

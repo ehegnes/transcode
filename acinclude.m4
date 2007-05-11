@@ -312,6 +312,38 @@ fi
 
 dnl -----------------------------------------------------------------------
 
+dnl TC_CHECK_ALSA([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
+dnl Test for ALSA headers
+dnl
+AC_DEFUN([TC_CHECK_ALSA],
+[
+AC_MSG_CHECKING([whether ALSA support is requested])
+AC_ARG_ENABLE(alsa,
+  AC_HELP_STRING([--enable-alsa],
+    [enable ALSA audio support (no)]),
+  [case "${enableval}" in
+    yes) ;;
+    no)  ;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --enable-alsa) ;;
+  esac],
+  [enable_alsa=no])
+AC_MSG_RESULT($enable_alsa)
+
+have_alsa="no"
+if test x"$enable_alsa" = x"yes" ; then
+  AC_CHECK_HEADERS([alsa/asoundlib.h], [have_alsa="yes"])
+
+  if test x"$have_alsa" = x"yes" ; then
+    have_alsa="yes"
+    ifelse([$1], , :, [$1])
+  else
+    AC_MSG_ERROR([ALSA is requested, but cannot find headers])
+  fi
+fi
+])
+
+dnl -----------------------------------------------------------------------
+
 dnl TC_PATH_IBP([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 dnl Test for ibp libraries, and define IBP_LIBS
 dnl

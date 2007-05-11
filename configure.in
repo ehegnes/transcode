@@ -766,6 +766,11 @@ dnl
 TC_CHECK_OSS(AC_DEFINE([HAVE_OSS], 1, [Have OSS audio]))
 AM_CONDITIONAL(HAVE_OSS, test x"$have_oss" = x"yes")
 
+dnl
+dnl ALSA
+dnl
+TC_CHECK_ALSA(AC_DEFINE([HAVE_ALSA], 1, [Have ALSA audio]))
+AM_CONDITIONAL(HAVE_ALSA, test x"$have_alsa" = x"yes")
 
 dnl
 dnl optional 3rd party package support
@@ -1438,6 +1443,7 @@ statically linked              $enable_libavcodec_static
 hardware support
 ----------------------------------------
 v4l/v4l2                       $have_v4l
+ALSA                           $have_alsa
 OSS                            $have_oss
 bktr                           $have_bktr
 sunau                          $have_sunau
