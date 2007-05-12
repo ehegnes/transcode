@@ -9,10 +9,6 @@
   * src/framebuffer.c
   enforce cleanup on frame disposal.
 
-  * src/encoder.c src/encoder.h
-  add function to do only a single step of encoding.
-  (i.e.: encode just a pair of A/V frames, not a range).
-
   * src/transcode.c
   shutdown markers.
 

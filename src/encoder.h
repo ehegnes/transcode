@@ -260,28 +260,6 @@ int encoder_init(vob_t *vob);
 int encoder_open(vob_t *vob);
 
 /*
- * encoder_step:
- *      encode a single pair of A/V frames from stream(s) using given
- *      settings.
- *
- * Parameters:
- *         vob: pointer to a vob_t structure holding both informations about
- *              input streams and settings for output streams
- *              (i.e.: bitrate, GOP size...).
- * Return Value:
- *       0: succesfull.
- *      !0: encoding error (mostly in aacquiring frame(s)
- * Preconditions:
- *      encoder properly initialized. This means:
- *      export_init() called succesfully;
- *      export_setup() called succesfully;
- *      encoder_init() called succesfully;
- *      encoder_open() called succesfully;
-
- */
-int encoder_step(vob_t *vob);
-
-/*
  * encoder_loop:
  *      encodes a range of frames from stream(s) using given settings.
  *      This is the main and inner encoding loop.
@@ -304,7 +282,11 @@ int encoder_step(vob_t *vob);
  * Return Value:
  *      None.
  * Preconditions:
- *      like encoder_step above.
+ *      encoder properly initialized. This means:
+ *      export_init() called succesfully;
+ *      export_setup() called succesfully;
+ *      encoder_init() called succesfully;
+ *      encoder_open() called succesfully;
  */
 void encoder_loop(vob_t *vob, int frame_first, int frame_last);
 
