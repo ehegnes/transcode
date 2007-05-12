@@ -1,9 +1,10 @@
 2007-05-12 Francesco Romani <fromani at gmail dot com>
   * import/Makefile.am
 
-  * added file: import/import_alsa.c
+  * added file: import/import_alsa.c, docs/import_alsa.txt
   add experimental ALSA import module. Requires ALSA >= 1.0.x
   (standard on most linux distributions from ages).
+  Also add some basic user documentation.
 
 2007-05-11 Francesco Romani <fromani at gmail dot com>
   * acinclude.m4 configure.in
