@@ -438,12 +438,15 @@ static TCFramePtr tc_ring_framebuffer_register_frame(TCRingFrameBuffer *rfb,
 
         if (status == FRAME_EMPTY) {
             rfb->empty++;
+            /* blank common attributes */
+            memset(ptr.generic, 0, sizeof(frame_list_t));
             ptr.generic->id = id;
         } else if (status == FRAME_WAIT) {
             rfb->wait++;
         }
         ptr.generic->status = status;
 
+        /* enforce */
         ptr.generic->next = NULL;
         ptr.generic->prev = NULL;
 

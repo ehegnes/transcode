@@ -6,6 +6,9 @@
   (standard on most linux distributions from ages).
   Also add some basic user documentation.
 
+  * src/framebuffer.c
+  enforce cleanup on frame disposal.
+
 2007-05-11 Francesco Romani <fromani at gmail dot com>
   * acinclude.m4 configure.in
   ALSA detection and support in build system.
