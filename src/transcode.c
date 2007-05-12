@@ -650,6 +650,13 @@ static void parse_navigation_file(vob_t *vob, const char *nav_seek_file)
 
 /*************************************************************************/
 
+#define SHUTDOWN_MARK(STAGE) do { \
+    if (verbose & TC_DEBUG) { \
+        fprintf(stderr, " %s |", (TAG)); \
+        fflush(stderr); \
+    } \
+} while (0)
+
 /**
  * main:  transcode main routine.  Performs initialization, parses command
  * line options, and calls the transcoding routines.
@@ -2817,32 +2824,19 @@ int main(int argc, char *argv[])
     // turn counter off
     counter_off();
 
-    // shutdown
-    if (verbose & TC_DEBUG) {
-        fprintf(stderr, "clean up |");
-        fflush(stderr);
-    }
+    SHUTDOWN_MARK("clean up");
 
     // stop and cancel frame processing threads
     frame_threads_close();
-    if (verbose & TC_DEBUG) {
-        fprintf(stderr, " frame threads |");
-        fflush(stderr);
-    }
+    SHUTDOWN_MARK("frame threads");
 
     // unload all external modules
     transcode_fini(NULL);
-    if (verbose & TC_DEBUG) {
-        fprintf(stderr, " unload modules |");
-        fflush(stderr);
-    }
+    SHUTDOWN_MARK("unload modules");
 
     // cancel no longer used internal signal handler threads
     if (thread_signal) {
-        if (verbose & TC_DEBUG) {
-            fprintf(stderr, " cancel signal |");
-            fflush(stderr);
-        }
+        SHUTDOWN_MARK("cancel signal");
         if (thread_signal) {
             pthread_cancel(thread_signal);
             pthread_kill(thread_signal,SIGINT);
@@ -2853,17 +2847,11 @@ int main(int argc, char *argv[])
         thread_signal = (pthread_t)0;
     }
 
-    if(verbose & TC_DEBUG) {
-        fprintf(stderr, " internal threads |");
-        fflush(stderr);
-    }
+    SHUTDOWN_MARK("internal threads");
 
     // shut down control socket, if active
     tc_socket_fini();
-    if(verbose & TC_DEBUG) {
-        fprintf(stderr, " control socket |");
-        fflush(stderr);
-    }
+    SHUTDOWN_MARK("control socket");
 
     // all done
     if (verbose & TC_DEBUG)
