@@ -74,13 +74,13 @@ struct tcalsasource_ {
 
 #ifdef HAVE_GETTIMEOFDAY
 
-#define	TIMERSUB(a, b, result) do { \
-	(result)->tv_sec  = (a)->tv_sec  - (b)->tv_sec; \
-	(result)->tv_usec = (a)->tv_usec - (b)->tv_usec; \
-	if ((result)->tv_usec < 0) { \
-		--(result)->tv_sec; \
-		(result)->tv_usec += 1000000; \
-	} \
+#define TIMERSUB(a, b, result) do { \
+    (result)->tv_sec  = (a)->tv_sec  - (b)->tv_sec; \
+    (result)->tv_usec = (a)->tv_usec - (b)->tv_usec; \
+    if ((result)->tv_usec < 0) { \
+        --(result)->tv_sec; \
+        (result)->tv_usec += 1000000; \
+    } \
 } while (0)
 
 #endif
@@ -96,40 +96,40 @@ struct tcalsasource_ {
 /* I/O error handler */
 static int alsa_source_xrun(TCALSASource *handle)
 {
-	snd_pcm_status_t *status = NULL;
+    snd_pcm_status_t *status = NULL;
     snd_pcm_state_t state = 0;
-	int ret = 0;
+    int ret = 0;
 
     TC_MODULE_SELF_CHECK(handle, "alsa_source_xrun");
-	
-	snd_pcm_status_alloca(&status);
+    
+    snd_pcm_status_alloca(&status);
     ret = snd_pcm_status(handle->pcm, status);
-	if (ret < 0) {
+    if (ret < 0) {
         tc_log_error(__FILE__, "error while fetching status: %s",
                      snd_strerror(ret));
         return TC_ERROR;
-	}
+    }
 
     state = snd_pcm_status_get_state(status);
 
-	if (state == SND_PCM_STATE_XRUN) {
+    if (state == SND_PCM_STATE_XRUN) {
 #ifdef HAVE_GETTIMEOFDAY
-		struct timeval now, diff, tstamp;
+        struct timeval now, diff, tstamp;
 
         gettimeofday(&now, NULL);
-		snd_pcm_status_get_trigger_tstamp(status, &tstamp);
-		TIMERSUB(&now, &tstamp, &diff);
+        snd_pcm_status_get_trigger_tstamp(status, &tstamp);
+        TIMERSUB(&now, &tstamp, &diff);
 
         tc_log_warn(__FILE__, "overrun at least %.3f ms long",
-			        diff.tv_sec * 1000 + diff.tv_usec / 1000.0);
+                    diff.tv_sec * 1000 + diff.tv_usec / 1000.0);
 #else /* ! HAVE_GETTIMEOFDAY */
         tc_log_warn(__FILE__, "overrun");
 #endif /* HAVE_GETTIMEOFDAY */
         ALSA_PREPARE(handle);
-	} else if (state == SND_PCM_STATE_DRAINING) {
+    } else if (state == SND_PCM_STATE_DRAINING) {
         tc_log_warn(__FILE__, "capture stream format change? attempting recover...");
         ALSA_PREPARE(handle);
-	} else { /* catch all */
+    } else { /* catch all */
         tc_log_error(__FILE__, "read error, state = %s", snd_pcm_state_name(state));
         return TC_ERROR;
     }
@@ -238,9 +238,9 @@ static int tc_alsa_source_grab(TCALSASource *handle, uint8_t *buf,
     } else if (ret == -EPIPE) { /* xrun (overrun) */
         return alsa_source_xrun(handle);
     } else if (ret == -ESTRPIPE) { /* suspend */
-		tc_log_error(__FILE__, "stream suspended (unrecoverable, yet)");
+        tc_log_error(__FILE__, "stream suspended (unrecoverable, yet)");
         return TC_ERROR;
-	} else if (ret < 0) {
+    } else if (ret < 0) {
         tc_log_error(__FILE__, "ALSA read error: %s", snd_strerror(ret));
         return TC_ERROR;
     }
