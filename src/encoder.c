@@ -1317,6 +1317,48 @@ static void encoder_skip(TCEncoderData *data)
  *
  * ------------------------------------------------------------*/
 
+#define RETURN_IF_NO_FRAME(ERR, TAG) do { \
+    if ((ERR)) { \
+        if (verbose >= TC_DEBUG) { \
+            tc_log_warn(__FILE__, "failed to acquire next raw %s frame", (TAG)); \
+        } \
+        return encdata.error_flag; \
+    } \
+} while (0)
+
+
+int encoder_step(vob_t *vob)
+{
+    int err = 0;
+
+    err = encdata.buffer->acquire_video_frame(encdata.buffer, vob);
+    RETURN_IF_NO_FRAME(err, "video");
+
+    err = encdata.buffer->acquire_audio_frame(encdata.buffer, vob);
+    RETURN_IF_NO_FRAME(err, "audio");
+
+    if (is_last_frame(&encdata, tc_cluster_mode)) {
+        if (verbose >= TC_DEBUG) {
+            tc_log_info(__FILE__, "encoder last frame finished (%i/%i)",
+                        encdata.buffer->frame_id, encdata.frame_last);
+        }
+    } else {
+        /* check frame id */
+        if (frame_first <= encdata.buffer->frame_id
+          && encdata.buffer->frame_id < frame_last) {
+            encoder_export(&encdata, vob);
+        } else { /* frame not in range */
+            encoder_skip(&encdata);
+        } /* frame processing loop */
+
+        /* release frame buffer memory */
+        encdata.buffer->dispose_video_frame(encdata.buffer);
+        encdata.buffer->dispose_audio_frame(encdata.buffer);
+    }
+    return encdata.error_flag;
+}
+
+
 void encoder_loop(vob_t *vob, int frame_first, int frame_last)
 {
     int err = 0;
@@ -1345,41 +1387,7 @@ void encoder_loop(vob_t *vob, int frame_first, int frame_last)
         /* stop here if pause requested */
         tc_pause();
 
-        err = encdata.buffer->acquire_video_frame(encdata.buffer, vob);
-        if (err) {
-            if (verbose >= TC_DEBUG) {
-                tc_log_warn(__FILE__, "failed to acquire next raw video frame");
-            }
-            break; /* can't acquire video frame */
-        }
-
-        err = encdata.buffer->acquire_audio_frame(encdata.buffer, vob);
-        if (err) {
-            if (verbose >= TC_DEBUG) {
-                tc_log_warn(__FILE__, "failed to acquire next raw audio frame");
-            }
-            break;  /* can't acquire frame */
-        }
-
-        if (is_last_frame(&encdata, tc_cluster_mode)) {
-            if (verbose >= TC_DEBUG) {
-                tc_log_info(__FILE__, "encoder last frame finished (%i/%i)",
-                            encdata.buffer->frame_id, encdata.frame_last);
-            }
-            break;
-        }
-
-        /* check frame id */
-        if (frame_first <= encdata.buffer->frame_id
-          && encdata.buffer->frame_id < frame_last) {
-            encoder_export(&encdata, vob);
-        } else { /* frame not in range */
-            encoder_skip(&encdata);
-        } /* frame processing loop */
-
-        /* release frame buffer memory */
-        encdata.buffer->dispose_video_frame(encdata.buffer);
-        encdata.buffer->dispose_audio_frame(encdata.buffer);
+        encoder_step(vob);
 
     } while (encdata.buffer->have_data(encdata.buffer) && !encdata.error_flag);
     /* main frame decoding loop */

@@ -9,6 +9,10 @@
   * src/framebuffer.c
   enforce cleanup on frame disposal.
 
+  * src/encoder.c src/encoder.h
+  add function to do only a single step of encoding.
+  (i.e.: encode just a pair of A/V frames, not a range).
+
 2007-05-11 Francesco Romani <fromani at gmail dot com>
   * acinclude.m4 configure.in
   ALSA detection and support in build system.
