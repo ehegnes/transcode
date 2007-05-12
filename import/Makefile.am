@@ -16,6 +16,10 @@ if HAVE_A52
 IMPORT_A52 = a52_decore.la
 endif
 
+if HAVE_ALSA
+IMPORT_ALSA = import_alsa.la
+endif
+
 if HAVE_BKTR
 IMPORT_BKTR = import_bktr.la
 endif
@@ -75,6 +79,7 @@ pkg_LTLIBRARIES = \
 	$(IMPORT_A52) \
 	import_ac3.la \
 	import_avi.la \
+	$(IMPORT_ALSA) \
 	$(IMPORT_BKTR) \
 	$(IMPORT_BSDAV) \
 	import_dv.la \
@@ -109,6 +114,10 @@ a52_decore_la_LIBADD = $(A52_LIBS) $(XIO_LIBS)
 
 import_ac3_la_SOURCES = import_ac3.c
 import_ac3_la_LDFLAGS = -module -avoid-version
+
+import_alsa_la_SOURCES = import_alsa.c
+import_alsa_la_LDFLAGS = -module -avoid-version
+import_alsa_la_LIBADD = -lasound
 
 import_avi_la_SOURCES = import_avi.c
 import_avi_la_LDFLAGS = -module -avoid-version
