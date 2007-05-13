@@ -1,3 +1,10 @@
+2007-05-13 Francesco Romani <fromani at gmail dot com>
+  * import/Makefile.am
+
+  * removed file: import/frame_video.h
+  trusting grep and a quick build test, nobody longer needs
+  this file.
+
 2007-05-12 Francesco Romani <fromani at gmail dot com>
   * import/Makefile.am
 

@@ -231,7 +231,6 @@ EXTRA_DIST = \
 	demuxer.h \
 	dvd_reader.h \
 	frame_info.h \
-	frame_video.h \
 	import_def.h \
 	ioaux.h \
 	ioxml.h \
