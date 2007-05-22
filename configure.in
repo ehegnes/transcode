@@ -61,20 +61,24 @@ case "${target_os}" in
   freebsd*|openbsd*|netbsd*|bsdi*|darwin*|rhapsody*)
     is_bsd=yes
     AC_DEFINE([OS_BSD], 1, [Define if your system is modern BSD])
-    ;;
-  darwin*)
-    is_osx=yes
-    CFLAGS="${CFLAGS} -no-cpp-precomp -D_INTL_REDIRECT_MACROS"
-    #LDFLAGS="${LDFLAGS} -all_load"
+  
+  # darwin is a subcase of BSD
+  case "${target_os}" in
+    darwin*)
+      is_osx=yes
+      CFLAGS="${CFLAGS} -no-cpp-precomp -D_INTL_REDIRECT_MACROS"
+      #LDFLAGS="${LDFLAGS} -all_load"
 
-    AC_DEFINE([OS_DARWIN], 1, [Define if this is a Darwin / MacOS X system.])
-    AC_DEFINE([BROKEN_PTHREADS], 1, [Define if you have weird pthreads.])
+      AC_DEFINE([OS_DARWIN], 1, [Define if this is a Darwin / MacOS X system.])
+      AC_DEFINE([BROKEN_PTHREADS], 1, [Define if you have weird pthreads.])
 
-    # Include Fink in compile and link if present
-    if test -d /sw; then
-      CPPFLAGS="${CPPFLAGS} -I/sw/include"
-      LDFLAGS="${LDFLAGS} -L/sw/lib"
-    fi
+      # Include Fink in compile and link if present
+      if test -d /sw; then
+        CPPFLAGS="${CPPFLAGS} -I/sw/include"
+        LDFLAGS="${LDFLAGS} -L/sw/lib"
+      fi
+      ;;
+  esac
     ;;
 esac
 AM_CONDITIONAL([OS_LINUX], test x"$is_linux" = x"yes")

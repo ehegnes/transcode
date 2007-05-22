@@ -1,3 +1,7 @@
+2007-05-22 Francesco Romani <fromani at gmail dot com>
+  * configure.in
+  better OSX detection. Kindly provided by cremes.devlist at mac dot com
+
 2007-05-13 Francesco Romani <fromani at gmail dot com>
   * import/Makefile.am
 
