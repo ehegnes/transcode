@@ -10,6 +10,8 @@
 
 #include "transcode.h"
 #include "probe.h"
+#include "libtc/libtc.h"
+#include "libtc/tccodecs.h"
 #include "libtc/ratiocodes.h"
 #include "import/magic.h"
 
@@ -24,10 +26,8 @@
 /* Internal routine declarations: */
 
 static int do_probe(const char *file, const char *nav_seek_file, int title,
-		    int range, int mplayer_flag, int verbose_flag,
-		    ProbeInfo *info_ret);
-static void probe_to_vob(ProbeInfo *vinfo, ProbeInfo *ainfo, int flags,
-                         vob_t *vob);
+                    int range, int mplayer_flag, int verbose_flag,
+                    ProbeInfo *info_ret);
 static void select_modules(int flags, vob_t *vob);
 
 /*************************************************************************/
@@ -36,6 +36,44 @@ static void select_modules(int flags, vob_t *vob);
 /* External interfaces */
 
 /*************************************************************************/
+
+/**
+ * probe_stream_data:  Probe a single source file and store the stream
+ * informations in data structure.
+ *
+ * Parameters:
+ *       file: File name to probe.
+ *      range: Amount of input file to probe, in MB.
+ *       info: Structure to be filled in with probed data.
+ * Return value:
+ *     Nonzero on success, zero on error.
+ * Preconditions:
+ *     info != NULL, range > 0
+ */
+int probe_stream_data(const char *file, int range, ProbeInfo *info)
+{
+    if (!info || range <= 0) {
+        tc_log_error(PACKAGE, "wrong probing parameters");
+        return 0;
+    }
+
+    if (!file) {
+        tc_log_warn(PACKAGE, "missing source to probe");
+        memset(info, 0, sizeof(ProbeInfo));
+    } else {
+        if (!do_probe(file, NULL, 0, range, 0,
+                      (verbose >= TC_DEBUG) ? verbose : 0, info)
+        ) {
+            if (verbose & TC_DEBUG) {
+                tc_log_warn(PACKAGE, "(%s) failed to probe stream '%s'",
+                            __FILE__, file);
+            }
+            return 0;
+        }
+    }
+    return 1;
+}
+
 
 /**
  * probe_source:  Probe the given input file(s) and store the results in
@@ -104,9 +142,6 @@ int probe_source(const char *vid_file, const char *aud_file, int range,
                     codec2str(vob->v_codec_flag),
                     aformat2str(vob->a_codec_flag));
     }
-
-    /* Select appropriate import modules */
-    select_modules(flags, vob);
 
     /* All done, return success */
     return 1;
@@ -359,8 +394,8 @@ const char *asr2str(int flag)
  */
 
 static int do_probe(const char *file, const char *nav_seek_file, int title,
-		    int range, int mplayer_flag, int verbose_flag,
-		    ProbeInfo *info_ret)
+                    int range, int mplayer_flag, int verbose_flag,
+                    ProbeInfo *info_ret)
 {
     char cmdbuf[PATH_MAX+1000];
     FILE *pipe;
@@ -414,8 +449,7 @@ static int do_probe(const char *file, const char *nav_seek_file, int title,
  *     vob != NULL
  */
 
-static void probe_to_vob(ProbeInfo *vinfo, ProbeInfo *ainfo, int flags,
-                         vob_t *vob)
+void probe_to_vob(ProbeInfo *vinfo, ProbeInfo *ainfo, int flags, vob_t *vob)
 {
     int track;  // user-selected audio track, sanity-checked
 
@@ -567,6 +601,11 @@ static void probe_to_vob(ProbeInfo *vinfo, ProbeInfo *ainfo, int flags,
         vob->amod_probed_xml = "xml";
     else
         vob->amod_probed_xml = NULL;
+
+    if (MAY_SET(MODULES)) {
+        /* Select appropriate import modules */
+        select_modules(flags, vob);
+    }
 }
 
 /*************************************************************************/

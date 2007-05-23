@@ -1,3 +1,8 @@
+2007-05-23 Francesco Romani <fromani at gmail dot com>
+  * src/probe.c src/probe.h
+  export some low-level probing functions, needed by future input
+  rotation code (no, is not vaporware...).
+
 2007-05-22 Francesco Romani <fromani at gmail dot com>
   * configure.in
   better OSX detection. Kindly provided by cremes.devlist at mac dot com

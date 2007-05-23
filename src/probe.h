@@ -73,6 +73,9 @@ int probe_source(const char *vid_file, const char *aud_file, int range,
                  int flags, vob_t *vob);
 int probe_source_xml(vob_t *vob, int which);
 
+int probe_stream_data(const char *file, int range, ProbeInfo *info);
+void probe_to_vob(ProbeInfo *vinfo, ProbeInfo *ainfo, int flags, vob_t *vob);
+
 /* Flags for probe_source(), indicating which parameters were specified by
  * the user and shouldn't be overwritten */
 enum {
