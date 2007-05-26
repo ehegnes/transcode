@@ -18,6 +18,7 @@
 
   * src/transcode.c
   factorize in a single macro clipping checks.
+  make ratio data common and static (libtc hasn't some replacements?)
 
 2007-05-23 Francesco Romani <fromani at gmail dot com>
   * src/probe.c src/probe.h

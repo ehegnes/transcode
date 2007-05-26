@@ -694,6 +694,20 @@ static void parse_navigation_file(vob_t *vob, const char *nav_seek_file)
     } \
 } while (0)
 
+
+/*************************************************************************/
+
+/* common support data */
+
+typedef struct ratio_t { 
+    int t, b; 
+} ratio_t;
+
+static const ratio_t asrs[] = { 
+    {   1,   1 }, {   1,   1 }, {   4,   3 }, {  16,   9 },
+    { 221, 100 }, { 250, 100 }, { 125, 100 }
+};
+
 /**
  * main:  transcode main routine.  Performs initialization, parses command
  * line options, and calls the transcoding routines.
@@ -1018,8 +1032,6 @@ int main(int argc, char *argv[])
     // --export_prof {vcd,vcd-pal,vcd-ntsc,svcd,svcd-pal,svcd-ntsc,dvd,dvd-pal,dvd-ntsc}
 
     if (vob->mpeg_profile != PROF_NONE) {
-        typedef struct ratio_t { int t, b; } ratio_t;
-        const ratio_t asrs[] = { {1, 1}, {1, 1}, {4, 3}, {16, 9}, {221, 100}, {250, 100}, {125, 100}};
         ratio_t imasr = asrs[0];
         ratio_t exasr = asrs[0];
 
@@ -1308,9 +1320,7 @@ int main(int argc, char *argv[])
 
     // Calculate the missing w or h based on the ASR
     if (zoom && (vob->zoom_width == 0 || vob->zoom_height == 0)) {
-        typedef struct ratio_t { int t, b; } ratio_t;
         enum missing_t { NONE, CALC_W, CALC_H, ALL } missing = ALL;
-        const ratio_t asrs[] = { {1, 1}, {1, 1}, {4, 3}, {16, 9}, {221, 100} };
         ratio_t asr = asrs[0];
         float oldr;
 
