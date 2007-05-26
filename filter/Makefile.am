@@ -93,7 +93,8 @@ pkg_LTLIBRARIES = \
 	$(FILTER_TEXT) \
 	filter_unsharp.la \
 	filter_whitebalance.la \
-	filter_xsharpen.la
+	filter_xsharpen.la \
+	filter_yait.la
 
 filter_29to23_la_SOURCES = filter_29to23.c
 filter_29to23_la_LDFLAGS = -module -avoid-version
@@ -241,6 +242,10 @@ filter_whitebalance_la_LDFLAGS = -module -avoid-version
 
 filter_xsharpen_la_SOURCES = filter_xsharpen.c
 filter_xsharpen_la_LDFLAGS = -module -avoid-version
+
+filter_yait_la_SOURCES = filter_yait.c
+filter_yait_la_LDFLAGS = -module -avoid-version 
+filter_yait_la_LIBADD = -lm
 
 
 EXTRA_DIST =  \

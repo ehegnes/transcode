@@ -18,7 +18,8 @@ bin_PROGRAMS = \
 	tcexport \
 	tcmodinfo \
 	tcmodchain \
-	tcmp3cut
+	tcmp3cut \
+	tcyait
 
 avisync_SOURCES = \
 	avisync.c \
@@ -143,4 +144,9 @@ tcmp3cut_SOURCES = \
 	aud_scan.h
 tcmp3cut_LDADD = \
 	$(LIBTC_LIBS)
+
+tcyait_SOURCES = \
+	tcyait.c
+tcyait_LDADD = \
+	-lm
 

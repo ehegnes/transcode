@@ -20,6 +20,12 @@
   factorize in a single macro clipping checks.
   make ratio data common and static (libtc hasn't some replacements?)
 
+  * added files: filter/filter_yait.c tools/tcyait.c
+
+  * filter/Makefile.am tools/Makefile.am
+  merge yait filter patch, courtesy of Allan Snider. STYLE-fixation
+  still pending.
+
 2007-05-23 Francesco Romani <fromani at gmail dot com>
   * src/probe.c src/probe.h
   export some low-level probing functions, needed by future input
