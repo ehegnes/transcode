@@ -25,10 +25,14 @@ LIBS = \
 pkgdir = $(MOD_PATH)
 
 if HAVE_LIBDV
-MOD1 = filter_preview.la
+MOD_PREVIEW = filter_preview.la
 endif
 
-pkg_LTLIBRARIES = $(MOD1) filter_pv.la
+if HAVE_SDL
+MOD_SDLVIEW = filter_sdlview.la
+endif
+
+pkg_LTLIBRARIES = $(MOD_PREVIEW) $(MOD_SDLVIEW) filter_pv.la
 
 filter_preview_la_SOURCES = filter_preview.c display.c
 filter_preview_la_LDFLAGS = -module -avoid-version
@@ -50,9 +54,14 @@ filter_pv_la_LIBADD = \
 	$(LIBS_XV) \
 	$(DLDARWIN_LIBS)
 
+filter_sdlview_la_SOURCES = filter_sdlview.c
+filter_sdlview_la_LDFLAGS = -module -avoid-version
+filter_sdlview_la_LIBADD = $(SDL_LIBS)
+
 EXTRA_DIST = \
 	display.h \
 	dv_types.h \
 	filter_preview.h \
 	font_xpm.h \
 	pv.h
+

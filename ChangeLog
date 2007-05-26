@@ -4,6 +4,18 @@
   seen in 1.0.x branch recently. (FIXME: double-(re)check
   correctness of fix in there).
 
+  * added file: filter/preview/filter_sdlview.c
+
+  * filter/preview/Makefile.am
+
+  Add (intentionally) simple SDL only preview filter. The idea is
+  to phase out filter_preview enterely AFTER 1.1.0 released.
+  So we need:
+  1) drop unused GTK preview code in filter_preview
+  2) provide functionality replacements 
+     (Xv: done with filter_pv; SDL: done with this commit)
+  3) kick out filter_preview.
+
 2007-05-23 Francesco Romani <fromani at gmail dot com>
   * src/probe.c src/probe.h
   export some low-level probing functions, needed by future input
