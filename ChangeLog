@@ -1,3 +1,9 @@
+2007-05-26 Francesco Romani <fromani at gmail dot com>
+  * tools/aud_scan.c
+  refactor a bit, make more STYLEish and apply ac3 fix already
+  seen in 1.0.x branch recently. (FIXME: double-(re)check
+  correctness of fix in there).
+
 2007-05-23 Francesco Romani <fromani at gmail dot com>
   * src/probe.c src/probe.h
   export some low-level probing functions, needed by future input
