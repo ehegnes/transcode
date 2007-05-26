@@ -650,6 +650,43 @@ static void parse_navigation_file(vob_t *vob, const char *nav_seek_file)
 
 /*************************************************************************/
 
+/* support macros */
+
+#define CLIP_CHECK(MODE, NAME, OPTION) do { \
+    /* force to even for YUV mode */ \
+    if (vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) { \
+        if (vob->MODE ## _left % 2 != 0) { \
+            tc_warn("left/right %s must be even in YUV/YUV422 mode", NAME); \
+            vob->MODE ## _left--; \
+        } \
+        if (vob->MODE ## _right % 2 != 0) { \
+            tc_warn("left/right %s must be even in YUV/YUV422 mode", NAME); \
+            vob->MODE ## _right--; \
+        } \
+        if (vob->im_v_codec == CODEC_YUV && vob->MODE ## _top % 2 != 0) { \
+            tc_warn("top/bottom %s must be even in YUV mode", NAME); \
+            vob->MODE ## _top--; \
+        } \
+        if (vob->im_v_codec == CODEC_YUV && vob->MODE ## _bottom % 2 != 0) { \
+            tc_warn("top/bottom %s must be even in YUV mode", NAME); \
+            vob->MODE ## _bottom--; \
+        } \
+    } \
+    /* check against import parameter, this is pre processing! */ \
+    if (vob->ex_v_height - vob->MODE ## _top - vob->MODE ## _bottom <= 0 \
+     || vob->ex_v_height - vob->MODE ## _top - vob->MODE ## _bottom > TC_MAX_V_FRAME_HEIGHT) \
+        tc_error("invalid top/bottom clip parameter for option %s", OPTION); \
+    \
+    if (vob->ex_v_width - vob->MODE ## _left - vob->MODE ## _right <= 0 \
+     || vob->ex_v_width - vob->MODE ## _left - vob->MODE ## _right > TC_MAX_V_FRAME_WIDTH) \
+        tc_error("invalid left/right clip parameter for option %s", OPTION); \
+    \
+    vob->ex_v_height -= (vob->MODE ## _top + vob->MODE ## _bottom); \
+    vob->ex_v_width  -= (vob->MODE ## _left + vob->MODE ## _right); \
+} while (0)
+
+
+
 #define SHUTDOWN_MARK(STAGE) do { \
     if (verbose & TC_DEBUG) { \
         fprintf(stderr, " %s |", (STAGE)); \
@@ -835,7 +872,7 @@ int main(int argc, char *argv[])
 
     // set up ttime from -c or default
     if (fc_ttime_string) {
-      // FIXME: should be in -c handler, but we need to know vob->fps first
+        // FIXME: should be in -c handler, but we need to know vob->fps first
         free_fc_time(vob->ttime);
         if (parse_fc_time_string(fc_ttime_string, vob->fps, ",",
                                  (verbose>1 ? 1 : 0), &vob->ttime) == -1)
@@ -1207,39 +1244,10 @@ int main(int argc, char *argv[])
         }
     } // mpeg_profile != PROF_NONE
 
+
     // --PRE_CLIP
     if (pre_im_clip) {
-        // force to even for YUV mode
-        if (vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
-            if (vob->pre_im_clip_left % 2 != 0) {
-                tc_warn("left/right pre_clip must be even in YUV/YUV422 mode");
-                vob->pre_im_clip_left--;
-            }
-            if (vob->pre_im_clip_right % 2 != 0) {
-                tc_warn("left/right pre_clip must be even in YUV/YUV422 mode");
-                vob->pre_im_clip_right--;
-            }
-            if (vob->im_v_codec == CODEC_YUV && vob->pre_im_clip_top % 2 != 0) {
-                tc_warn("top/bottom pre_clip must be even in YUV mode");
-                vob->pre_im_clip_top--;
-            }
-            if (vob->im_v_codec == CODEC_YUV && vob->pre_im_clip_bottom % 2 != 0) {
-                tc_warn("top/bottom pre_clip must be even in YUV mode");
-                vob->pre_im_clip_bottom--;
-            }
-        }
-
-        //check against import parameter, this is pre processing!
-        if (vob->ex_v_height - vob->pre_im_clip_top - vob->pre_im_clip_bottom <= 0
-         || vob->ex_v_height - vob->pre_im_clip_top - vob->pre_im_clip_bottom > TC_MAX_V_FRAME_HEIGHT)
-            tc_error("invalid top/bottom clip parameter for option --pre_clip");
-
-        if (vob->ex_v_width - vob->pre_im_clip_left - vob->pre_im_clip_right <= 0
-         || vob->ex_v_width - vob->pre_im_clip_left - vob->pre_im_clip_right > TC_MAX_V_FRAME_WIDTH)
-            tc_error("invalid left/right clip parameter for option --pre_clip");
-
-        vob->ex_v_height -= (vob->pre_im_clip_top + vob->pre_im_clip_bottom);
-        vob->ex_v_width  -= (vob->pre_im_clip_left + vob->pre_im_clip_right);
+        CLIP_CHECK(pre_im_clip, "pre_clip", "--pre_clip");
 
         if (verbose & TC_INFO) {
             tc_log_info(PACKAGE, "V: %-16s | %03dx%03d (%d,%d,%d,%d)",
@@ -1251,36 +1259,7 @@ int main(int argc, char *argv[])
 
     // -j
     if (im_clip) {
-        // force to even for YUV mode
-        if (vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
-            if (vob->im_clip_left % 2 != 0) {
-                tc_warn("left/right clip must be even in YUV/YUV422 mode");
-                vob->im_clip_left--;
-            }
-            if (vob->im_clip_right % 2 != 0) {
-                tc_warn("left/right clip must be even in YUV/YUV422 mode");
-                vob->im_clip_right--;
-            }
-            if (vob->im_v_codec == CODEC_YUV && vob->im_clip_top % 2 != 0) {
-                tc_warn("top/bottom clip must be even in YUV mode");
-                vob->im_clip_top--;
-            }
-            if (vob->im_v_codec == CODEC_YUV && vob->im_clip_bottom % 2 != 0) {
-                tc_warn("top/bottom clip must be even in YUV mode");
-                vob->im_clip_bottom--;
-            }
-        }
-
-        if (vob->ex_v_height - vob->im_clip_top - vob->im_clip_bottom <= 0
-         || vob->ex_v_height - vob->im_clip_top - vob->im_clip_bottom > TC_MAX_V_FRAME_HEIGHT)
-            tc_error("invalid top/bottom clip parameter for option -j");
-
-        if (vob->ex_v_width - vob->im_clip_left - vob->im_clip_right <= 0
-         || vob->ex_v_width - vob->im_clip_left - vob->im_clip_right > TC_MAX_V_FRAME_WIDTH)
-            tc_error("invalid left/right clip parameter for option -j");
-
-        vob->ex_v_height -= (vob->im_clip_top + vob->im_clip_bottom);
-        vob->ex_v_width  -= (vob->im_clip_left + vob->im_clip_right);
+        CLIP_CHECK(im_clip, "clip", "-j");
 
         if (verbose & TC_INFO) {
             tc_log_info(PACKAGE, "V: %-16s | %03dx%03d", "clip frame (<-)",
@@ -1504,37 +1483,7 @@ int main(int argc, char *argv[])
 
     // -Y
     if (ex_clip) {
-        // force to even for YUV mode
-        if (vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
-            if (vob->ex_clip_left % 2 != 0) {
-                tc_warn("left/right clip must be even in YUV/YUV422 mode");
-                vob->ex_clip_left--;
-            }
-            if (vob->ex_clip_right % 2 != 0) {
-                tc_warn("left/right clip must be even in YUV/YUV422 mode");
-                vob->ex_clip_right--;
-            }
-            if (vob->im_v_codec == CODEC_YUV && vob->ex_clip_top % 2 != 0) {
-                tc_warn("top/bottom clip must be even in YUV mode");
-                vob->ex_clip_top--;
-            }
-            if (vob->im_v_codec == CODEC_YUV && vob->ex_clip_bottom % 2 != 0) {
-                tc_warn("top/bottom clip must be even in YUV mode");
-                vob->ex_clip_bottom--;
-            }
-        }
-
-        //check against export parameter, this is post processing!
-        if (vob->ex_v_height - vob->ex_clip_top - vob->ex_clip_bottom <= 0
-         || vob->ex_v_height - vob->ex_clip_top - vob->ex_clip_bottom > TC_MAX_V_FRAME_HEIGHT)
-            tc_error("invalid top/bottom clip parameter for option -Y");
-
-        if (vob->ex_v_width - vob->ex_clip_left - vob->ex_clip_right <= 0
-         || vob->ex_v_width - vob->ex_clip_left - vob->ex_clip_right > TC_MAX_V_FRAME_WIDTH)
-            tc_error("invalid left/right clip parameter for option -Y");
-
-        vob->ex_v_height -= (vob->ex_clip_top + vob->ex_clip_bottom);
-        vob->ex_v_width -= (vob->ex_clip_left + vob->ex_clip_right);
+        CLIP_CHECK(ex_clip, "clip", "-Y");
 
         if (verbose & TC_INFO)
             tc_log_info(PACKAGE,
@@ -1748,37 +1697,7 @@ int main(int argc, char *argv[])
     // --POST_CLIP
 
     if (post_ex_clip) {
-        // force to even for YUV mode
-        if (vob->im_v_codec == CODEC_YUV || vob->im_v_codec == CODEC_YUV422) {
-            if (vob->post_ex_clip_left % 2 != 0) {
-                tc_warn("left/right post_clip must be even in YUV/YUV422 mode");
-                vob->post_ex_clip_left--;
-            }
-            if (vob->post_ex_clip_right % 2 != 0) {
-                tc_warn("left/right post_clip must be even in YUV/YUV422 mode");
-                vob->post_ex_clip_right--;
-            }
-            if (vob->im_v_codec == CODEC_YUV && vob->post_ex_clip_top % 2 != 0) {
-                tc_warn("top/bottom post_clip must be even in YUV mode");
-                vob->post_ex_clip_top--;
-            }
-            if (vob->im_v_codec == CODEC_YUV && vob->post_ex_clip_bottom % 2 != 0) {
-                tc_warn("top/bottom post_clip must be even in YUV mode");
-                vob->post_ex_clip_bottom--;
-            }
-        }
-
-        // check against export parameter, this is post processing!
-        if (vob->ex_v_height - vob->post_ex_clip_top - vob->post_ex_clip_bottom <= 0
-         || vob->ex_v_height - vob->post_ex_clip_top - vob->post_ex_clip_bottom > TC_MAX_V_FRAME_HEIGHT)
-            tc_error("invalid top/bottom clip parameter for option --post_clip");
-
-        if (vob->ex_v_width - vob->post_ex_clip_left - vob->post_ex_clip_right <= 0
-         || vob->ex_v_width - vob->post_ex_clip_left - vob->post_ex_clip_right > TC_MAX_V_FRAME_WIDTH)
-            tc_error("invalid left/right clip parameter for option --post_clip");
-
-        vob->ex_v_height -= (vob->post_ex_clip_top + vob->post_ex_clip_bottom);
-        vob->ex_v_width -= (vob->post_ex_clip_left + vob->post_ex_clip_right);
+        CLIP_CHECK(post_ex_clip, "post_clip", "--post_clip");
 
         if (verbose & TC_INFO)
             tc_log_info(PACKAGE,

@@ -11,10 +11,13 @@
   Add (intentionally) simple SDL only preview filter. The idea is
   to phase out filter_preview enterely AFTER 1.1.0 released.
   So we need:
-  1) drop unused GTK preview code in filter_preview
+  1) drop unused GTK preview code in filter_preview (almost done)
   2) provide functionality replacements 
      (Xv: done with filter_pv; SDL: done with this commit)
   3) kick out filter_preview.
+
+  * src/transcode.c
+  factorize in a single macro clipping checks.
 
 2007-05-23 Francesco Romani <fromani at gmail dot com>
   * src/probe.c src/probe.h
