@@ -21,7 +21,7 @@
 */
 
 #define MOD_NAME    "filter_smartyuv.so"
-#define MOD_VERSION "0.1.4 (2003-10-13)"
+#define MOD_VERSION "0.1.5 (2007-05-30)"
 #define MOD_CAP     "Motion-adaptive deinterlacing"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
@@ -75,11 +75,14 @@ static vob_t *vob=NULL;
 // other cases as well.
 #define PAD 32
 
-static unsigned char clamp_Y(unsigned char x) {
-	return (x>MAX_Y?MAX_Y:(x<MIN_Y?MIN_Y:x));
+typedef uint8_t (*yuv_clamp_fn)(int x)
+
+static uint8_t clamp_Y(int x) {
+    return ((TC_CLAMP(x, MIN_Y, MAX_Y)) & 0xFF);
 }
-static unsigned char clamp_UV(unsigned char x) {
-	return (x);
+
+static uint8_t clamp_UV(int x) {
+	return (x & 0xFF);
 }
 
 
@@ -99,9 +102,9 @@ static unsigned int get_prefetch_const (int blocksize_in_vectors, int block_coun
 #endif
 
 static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int _height,
-		int _srcpitch, int _dstpitch,
-		unsigned char *_moving, unsigned char *_fmoving,
-		unsigned char(*clamp_f)(unsigned char x), int _threshold );
+                           int _srcpitch, int _dstpitch,
+                           unsigned char *_moving, unsigned char *_fmoving,
+                           yuv_clamp_fn clamp_f, int _threshold );
 
 typedef struct MyFilterData {
         char                    *buf;
@@ -330,9 +333,9 @@ static void inline Blendline_c (uint8_t *dst, uint8_t *src, uint8_t *srcminus, u
 #define ABS_u8(a) (((a)^((a)>>7))-((a)>>7))
 
 static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int _height,
-		int _srcpitch, int _dstpitch,
-		unsigned char *_moving, unsigned char *_fmoving,
-		unsigned char(*clamp_f)(unsigned char x), int _threshold )
+                           int _srcpitch, int _dstpitch,
+                           unsigned char *_moving, unsigned char *_fmoving,
+                           yuv_clamp_fn clamp_f, int _threshold )
 {
 	const int		srcpitch = _srcpitch;
 	const int		dstpitch = _dstpitch;
@@ -979,11 +982,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 				rn =  (srcplus[x]) & 0xff;
 				rnn = (srcplusplus[x]) & 0xff;
 				R = (5 * (rp + rn) - (rpp + rnn)) >> 3;
-				/*
-				   if (R>240) R = 240;
-				   else if (R<16) R=16;
-				   */
-				dst[x] = clamp_f(R & 0xff)&0xff;
+				dst[x] = clamp_f(R);
 			    }
 			    else
 			    {
@@ -1166,7 +1165,7 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 			{
 			    R = (5 * ((srcminus[x] & 0xff) + (srcplus[x] & 0xff))
 				    - ((srcminusminus[x] & 0xff) + (srcplusplus[x] & 0xff))) >> 3;
-			    dst[x] = clamp_f(R & 0xff)&0xff;
+			    dst[x] = clamp_f(R);
 			}
 			else
 			{
