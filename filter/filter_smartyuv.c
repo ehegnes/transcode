@@ -49,7 +49,7 @@
 #define rdtscll(val) __asm__ __volatile__("rdtsc" : "=A" (val))
 
 
-static vob_t *vob=NULL;
+static vob_t *vob  = NULL;
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -98,43 +98,34 @@ count: 1-256
 stride: -32000 - 320000
 */
 
-#if 0 // unused, EMS
-static unsigned int get_prefetch_const (int blocksize_in_vectors, int block_count, int block_stride)
-{
-    return ((blocksize_in_vectors<<24)&0x1F000000) |
-	   ((block_count<<16)&0x00FF0000)          |
-	    (block_stride&0xFFFF);
-}
-#endif
-
 static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int _height,
                            int _srcpitch, int _dstpitch,
                            unsigned char *_moving, unsigned char *_fmoving,
                            yuv_clamp_fn clamp_f, int _threshold );
 
 typedef struct MyFilterData {
-        char                    *buf;
-	char			*prevFrame;
-	unsigned char		*movingY;
-	unsigned char		*movingU;
-	unsigned char		*movingV;
-	unsigned char		*fmovingY;
-	unsigned char		*fmovingU;
-	unsigned char		*fmovingV;
-	int			motionOnly;
-	int 			threshold;
-	int 			chromathres;
-	int                     codec;
-	int                     diffmode;
-	int			scenethreshold;
-	int			cubic;
-	int			highq;
-	int 			Blend;
-	int 			doChroma;
-	int 			verbose;
+    char            *buf;
+    char            *prevFrame;
+    unsigned char   *movingY;
+    unsigned char   *movingU;
+    unsigned char   *movingV;
+    unsigned char   *fmovingY;
+    unsigned char   *fmovingU;
+    unsigned char   *fmovingV;
+    int             motionOnly;
+    int             threshold;
+    int             chromathres;
+    int             codec;
+    int             diffmode;
+    int             scenethreshold;
+    int             cubic;
+    int             highq;
+    int             Blend;
+    int             doChroma;
+    int             verbose;
 } MyFilterData;
 
-static MyFilterData *mfd;
+static MyFilterData *mfd = NULL;
 
 static void help_optstr(void)
 {
