@@ -311,18 +311,17 @@ static void Erode_Dilate (uint8_t *_moving, uint8_t *_fmoving, int width, int he
     }
 }
 static void inline Blendline_c (uint8_t *dst, uint8_t *src, uint8_t *srcminus, uint8_t *srcplus,
-	                 uint8_t *moving, uint8_t *movingminus, uint8_t *movingplus, const int w, const int scenechange)
+	                            uint8_t *moving, uint8_t *movingminus, uint8_t *movingplus,
+                                const int w, const int scenechange)
 {
-    int	x=0;
-
+    int x = 0;
     do {
-	if (movingminus[x] | moving[x] | movingplus[x] | scenechange)
-	    /* Blend fields. */
-	    dst[x] = ((src[x]>>1) + (srcminus[x]>>2) + (srcplus[x]>>2)) & 0xff;
-	else
-	{
-	    dst[x] = src[x];
-	}
+        if (movingminus[x] | moving[x] | movingplus[x] | scenechange) {
+            /* Blend fields. */
+            dst[x] = ((src[x]>>1) + (srcminus[x]>>2) + (srcplus[x]>>2)) & 0xff;
+        } else {
+            dst[x] = src[x];
+        }
     } while(++x < w);
 }
 
