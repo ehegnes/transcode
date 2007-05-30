@@ -1,3 +1,9 @@
+2007-05-30 Francesco Romani <fromani at gmail dot com>
+  * filter/filter_smartyuv.c
+  clamp pixel values in [0,255] interval. Bug pointed out and
+  preliminary fix kindly provided by
+  Ralf Hoffmann ralf at boomerandsowrd dot de.
+
 2007-05-07 Francesco Romani <fromani at gmail dot com>
   * tools/avimerge.c
   apply AC3 handling fix kindly provided by 

@@ -1040,6 +1040,12 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 				   if (R>240) R = 240;
 				   else if (R<16) R=16;
 				   */
+
+                                /* handle over- and underflow */
+                                if (R < 0)
+                                    R = 0;
+                                else if (R > 255)
+                                    R = 255;
 				dst[x] = clamp_f(R & 0xff)&0xff;
 			    }
 			    else
@@ -1223,6 +1229,11 @@ static void smartyuv_core (char *_src, char *_dst, char *_prev, int _width, int 
 			{
 			    R = (5 * ((srcminus[x] & 0xff) + (srcplus[x] & 0xff)) 
 				    - ((srcminusminus[x] & 0xff) + (srcplusplus[x] & 0xff))) >> 3;
+                            /* handle over- and underflow */
+                            if (R < 0)
+                                R = 0;
+                            else if (R > 255)
+                                R = 255;
 			    dst[x] = clamp_f(R & 0xff)&0xff;
 			}
 			else
