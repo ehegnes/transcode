@@ -54,26 +54,32 @@ static vob_t *vob=NULL;
 ///////////////////////////////////////////////////////////////////////////
 
 // this value is "hardcoded" in the optimized code for speed reasons
-#define DENOISE_DIAMETER 5
+enum {
+    FRAME_ONLY        = 0,
+    FIELD_ONLY        = 1,
+    FRAME_AND_FIELD   = 2,
 
-#define DENOISE_THRESH 7
-#define BLACK_BYTE_Y 16
-#define BLACK_BYTE_UV 128
-#define MIN_Y 16
-#define MAX_Y 240
-#define FRAME_ONLY 0
-#define FIELD_ONLY 1
-#define FRAME_AND_FIELD 2
+    DENOISE_DIAMETER  = 5,
+    DENOISE_THRESH    = 7,
 
-#define LUMA_THRESHOLD 14
-#define CHROMA_THRESHOLD 7
-#define SCENE_THRESHOLD 31
+    BLACK_BYTE_Y      = 16,
+    BLACK_BYTE_UV     = 128,
 
-// We pad the moving maps with 16 pixels left and right, to make sure
-// that we always can do aligned loads and stores at a multiple of 16.
-// this is especially important when doing altivec but might help in
-// other cases as well.
-#define PAD 32
+    MIN_Y             = 16,
+    MAX_Y             = 240,
+
+    LUMA_THRESHOLD    = 14,
+    CHROMA_THRESHOLD  = 7,
+    SCENE_THRESHOLD   = 31,
+
+    /*
+     * We pad the moving maps with 16 pixels left and right, to make sure
+     * that we always can do aligned loads and stores at a multiple of 16.
+     * this is especially important when doing altivec but might help in
+     * other cases as well.
+     */
+    PAD               = 32
+};
 
 typedef uint8_t (*yuv_clamp_fn)(int x)
 
