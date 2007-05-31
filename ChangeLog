@@ -2,7 +2,7 @@
   * filter/filter_smartyuv.c
   clamp pixel values in [0,255] interval. Bug pointed out and
   preliminary fix kindly provided by
-  Ralf Hoffmann ralf at boomerandsowrd dot de.
+  Ralf Hoffmann ralf at boomerangsworld dot de.
 
 2007-05-07 Francesco Romani <fromani at gmail dot com>
   * tools/avimerge.c
