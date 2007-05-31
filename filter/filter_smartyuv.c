@@ -21,7 +21,7 @@
 */
 
 #define MOD_NAME    "filter_smartyuv.so"
-#define MOD_VERSION "0.1.5 (2007-05-30)"
+#define MOD_VERSION "0.1.6 (2007-05-31)"
 #define MOD_CAP     "Motion-adaptive deinterlacing"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
@@ -81,7 +81,7 @@ enum {
     PAD               = 32
 };
 
-typedef uint8_t (*yuv_clamp_fn)(int x)
+typedef uint8_t (*yuv_clamp_fn)(int x);
 
 static uint8_t clamp_Y(int x) {
     return ((TC_CLAMP(x, MIN_Y, MAX_Y)) & 0xFF);
