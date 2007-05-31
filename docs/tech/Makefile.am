@@ -17,5 +17,6 @@ docs_DATA = \
 	filter-API.txt \
 	ibp_support.txt \
 	import-API.txt \
-	module-system-API.txt
+	module-system-API.txt \
+	filter_template.c
 

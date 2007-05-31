@@ -1,6 +1,8 @@
 2007-05-31 Francesco Romani <fromani at gmail dot com>
   * added file: docs/tech/filter_template.c
 
+  * docs/tech/Makefile.am
+
   add new, updated template module for NMS and back compatible
   filters. Based on filter_doublefps.c with minimal changes.
   It would be nice to be able to auto-generate this code.
