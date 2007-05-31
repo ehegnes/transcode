@@ -261,8 +261,9 @@ int tc_filter(frame_list_t *frame, char *options)
 {
     if (frame->tag & TC_FILTER_INIT) {
         /* XXX */
-        if (template_init(&mod, TC_MODULE_FEATURE_FILTER) < 0)
+        if (template_init(&mod, TC_MODULE_FEATURE_FILTER) < 0) {
             return TC_ERROR;
+        }
         return template_configure(&mod, options, tc_get_vob());
 
     } else if (frame->tag & TC_FILTER_GET_CONFIG) {
@@ -272,19 +273,22 @@ int tc_filter(frame_list_t *frame, char *options)
         return TC_OK;
 
     } else if (frame->tag & TC_PRE_M_PROCESS) {
-        if (frame->tag & TC_VIDEO)
+        if (frame->tag & TC_VIDEO) {
             return template_filter_video(&mod, (vframe_list_t *)frame);
-        else if (frame->tag & TC_AUDIO)
+        } else if (frame->tag & TC_AUDIO) {
             return template_filter_audio(&mod, (aframe_list_t *)frame);
-        else
-            return TC_OK;
+        }
+        return TC_OK;
 
     } else if (frame->tag & TC_FILTER_CLOSE) {
+        if (template_stop(&mod) < 0) {
+            return TC_ERROR;
+        }
         return template_fini(&mod);
 
     }
 
-    return TC_OK;
+    return TC_ERROR;
 }
 
 /*************************************************************************/
