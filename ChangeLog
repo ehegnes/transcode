@@ -1,3 +1,13 @@
+2007-05-31 Francesco Romani <fromani at gmail dot com>
+  * added file: docs/tech/filter_template.c
+
+  add new, updated template module for NMS and back compatible
+  filters. Based on filter_doublefps.c with minimal changes.
+  It would be nice to be able to auto-generate this code.
+  Isn't that hard except for the part that has to choose when
+  run the filter core. I don't see yet any straightforward way
+  to automatize or genericize it.
+
 2007-05-30 Francesco Romani <fromani at gmail dot com>
   * filter/filter_smartyuv.c
   clamp pixel values in [0,255] interval by using smarter clamp
