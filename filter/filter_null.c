@@ -81,13 +81,13 @@ static const char null_help[] = ""
  *********************************************************/
 static void help_optstr(void)
 {
-  tc_log_info(MOD_NAME, "help : * Overview");
-  tc_log_info(MOD_NAME,
-             "help :     This exists for demonstration purposes only. "
-             "It does NOTHING!");
-  tc_log_info(MOD_NAME, "help :");
-  tc_log_info(MOD_NAME, "help : * Options");
-  tc_log_info(MOD_NAME, "help :         'help' Prints out this help text");
+    tc_log_info(MOD_NAME, "help : * Overview");
+    tc_log_info(MOD_NAME,
+                "help :     This exists for demonstration purposes only. "
+                "It does NOTHING!");
+    tc_log_info(MOD_NAME, "help :");
+    tc_log_info(MOD_NAME, "help : * Options");
+    tc_log_info(MOD_NAME, "help :         'help' Prints out this help text");
 }
 
 static int null_init(TCModuleInstance *self, uint32_t features)
@@ -108,7 +108,7 @@ static int null_fini(TCModuleInstance *self)
 }
 
 static int null_configure(TCModuleInstance *self,
-			  const char *options, vob_t *vob)
+            			  const char *options, vob_t *vob)
 {
     return TC_OK;
 }
@@ -127,8 +127,7 @@ static int null_stop(TCModuleInstance *self)
     return TC_OK;
 }
 
-static int null_filter(TCModuleInstance *self,
-                       vframe_list_t *frame)
+static int null_filter(TCModuleInstance *self, vframe_list_t *frame)
 {
     int pre = TC_FALSE, vid = TC_FALSE;
 
@@ -169,119 +168,126 @@ static int null_filter(TCModuleInstance *self,
  *********************************************************/
 int tc_filter(frame_list_t *ptr_, char *options)
 {
-  vframe_list_t *ptr = (vframe_list_t *)ptr_;
-  int pre=0, vid=0;
-  vob_t *vob=NULL;
+    vframe_list_t *ptr = (vframe_list_t *)ptr_;
+    vob_t *vob = tc_get_vob();
+    int pre = 0, vid = 0;
 
-  // API explanation:
-  // ================
-  //
-  // (1) need more infos, than get pointer to transcode global
-  //     information structure vob_t as defined in transcode.h.
-  //
-  // (2) 'tc_get_vob' and 'verbose' are exported by transcode.
-  //
-  // (3) filter is called first time with TC_FILTER_INIT flag set.
-  //
-  // (4) make sure to exit immediately if context (video/audio) or
-  //     placement of call (pre/post) is not compatible with the filters
-  //     intended purpose, since the filter is called 4 times per frame.
-  //
-  // (5) see framebuffer.h for a complete list of frame_list_t variables.
-  //
-  // (6) filter is last time with TC_FILTER_CLOSE flag set
+    // API explanation:
+    // ================
+    //
+    // (1) need more infos, than get pointer to transcode global
+    //     information structure vob_t as defined in transcode.h.
+    //
+    // (2) 'tc_get_vob' and 'verbose' are exported by transcode.
+    //
+    // (3) filter is called first time with TC_FILTER_INIT flag set.
+    //
+    // (4) make sure to exit immediately if context (video/audio) or
+    //     placement of call (pre/post) is not compatible with the filters
+    //     intended purpose, since the filter is called 4 times per frame.
+    //
+    // (5) see framebuffer.h for a complete list of frame_list_t variables.
+    //
+    // (6) filter is last time with TC_FILTER_CLOSE flag set
 
-  //----------------------------------
-  //
-  // filter get config
-  //
-  //----------------------------------
-  if(ptr->tag & TC_FILTER_GET_CONFIG)
-{
-    // Valid flags for the string of filter capabilities:
-    //  "V" :  Can do Video
-    //  "A" :  Can do Audio
-    //  "R" :  Can do RGB
-    //  "Y" :  Can do YUV
-    //  "4" :  Can do YUV422
-    //  "M" :  Can do Multiple Instances
-    //  "E" :  Is a PRE filter
-    //  "O" :  Is a POST filter
-    optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VARY4EO", "1");
+    //----------------------------------
+    //
+    // filter get config
+    //
+    //----------------------------------
+    if (ptr->tag & TC_FILTER_GET_CONFIG) {
+        // Valid flags for the string of filter capabilities:
+        //  "V" :  Can do Video
+        //  "A" :  Can do Audio
+        //  "R" :  Can do RGB
+        //  "Y" :  Can do YUV
+        //  "4" :  Can do YUV422
+        //  "M" :  Can do Multiple Instances
+        //  "E" :  Is a PRE filter
+        //  "O" :  Is a POST filter
+        optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VARY4EO", "1");
 
-    optstr_param (options, "help", "Prints out a short help", "", "0");
-    return TC_OK;
-  }
-
-  //----------------------------------
-  //
-  // filter init
-  //
-  //----------------------------------
-  if(ptr->tag & TC_FILTER_INIT) {
-
-    if((vob = tc_get_vob())==NULL) return(-1);
-
-    // filter init ok.
-
-    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-    if(verbose & TC_DEBUG) tc_log_info(MOD_NAME, "options=%s", options);
-
-    // Parameter parsing
-    if (options)
-      if (optstr_lookup (options, "help")) {
-        help_optstr();
+        optstr_param (options, "help", "Prints out a short help", "", "0");
         return TC_OK;
-      }
+    }
 
-    return TC_OK;
-  }
+      //----------------------------------
+      //
+      // filter init
+      //
+      //----------------------------------
+    if (ptr->tag & TC_FILTER_INIT) {
+        // filter init ok.
 
-  //----------------------------------
-  //
-  // filter close
-  //
-  //----------------------------------
-  if(ptr->tag & TC_FILTER_CLOSE) {
-    return TC_OK;
-  }
+        if (verbose)
+            tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
+        if (verbose >= TC_DEBUG)
+            tc_log_info(MOD_NAME, "options=%s", options);
 
-  //----------------------------------
-  //
-  // filter frame routine
-  //
-  //----------------------------------
-  // tag variable indicates, if we are called before
-  // transcodes internal video/audio frame processing routines
-  // or after and determines video/audio context
-  if(verbose & TC_STATS) {
+        // Parameter parsing
+        if (options) {
+            if (optstr_lookup (options, "help")) {
+                help_optstr();
+                return TC_OK;
+            }
+        }
+        return TC_OK;
+    }
 
-    tc_log_info(MOD_NAME, "%s/%s %s %s", vob->mod_path, MOD_NAME, MOD_VERSION, MOD_CAP);
+    //----------------------------------
+    //
+    // filter close
+    //
+    //----------------------------------
+    if (ptr->tag & TC_FILTER_CLOSE) {
+        return TC_OK;
+    }
 
+    //----------------------------------
+    //
+    // filter frame routine
+    //
+    //----------------------------------
     // tag variable indicates, if we are called before
-    // transcodes internal video/audo frame processing routines
+    // transcodes internal video/audio frame processing routines
     // or after and determines video/audio context
+    if (verbose & TC_STATS) {
+        tc_log_info(MOD_NAME, "%s/%s %s %s", vob->mod_path, MOD_NAME, MOD_VERSION, MOD_CAP);
 
-    if(ptr->tag & TC_PRE_M_PROCESS) pre=1;
-    if(ptr->tag & TC_POST_M_PROCESS) pre=0;
+        // tag variable indicates, if we are called before
+        // transcodes internal video/audo frame processing routines
+        // or after and determines video/audio context
 
-    if(ptr->tag & TC_VIDEO) vid=1;
-    if(ptr->tag & TC_AUDIO) vid=0;
+        if (ptr->tag & TC_PRE_M_PROCESS)
+            pre = 1;
+        if (ptr->tag & TC_POST_M_PROCESS)
+            pre = 0;
 
-    tc_log_info(MOD_NAME, "frame [%06d] %s %16s call",
+        if (ptr->tag & TC_VIDEO)
+            vid = 1;
+        if (ptr->tag & TC_AUDIO)
+            vid = 0;
+
+        tc_log_info(MOD_NAME, "frame [%06d] %s %16s call",
                     ptr->id, (vid)?"(video)":"(audio)",
                     (pre)?"pre-process filter":"post-process filter");
+        return TC_OK;
+    }
 
-  }
-
-  return TC_OK;
+    return TC_ERROR;
 }
 
 /*************************************************************************/
 
-static const TCCodecID null_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
-static const TCCodecID null_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
-static const TCFormatID null_formats[] = { TC_FORMAT_ERROR };
+static const TCCodecID null_codecs_in[] = { 
+    TC_CODEC_ANY, TC_CODEC_ERROR
+};
+static const TCCodecID null_codecs_out[] = {
+    TC_CODEC_ANY, TC_CODEC_ERROR
+};
+static const TCFormatID null_formats[] = {
+    TC_FORMAT_ERROR
+};
 
 static const TCModuleInfo null_info = {
     .features    = MOD_FEATURES,
@@ -312,3 +318,14 @@ extern const TCModuleClass *tc_plugin_setup(void)
     return &null_class;
 }
 
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */

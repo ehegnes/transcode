@@ -10,6 +10,9 @@
   run the filter core. I don't see yet any straightforward way
   to automatize or genericize it.
 
+  * fiulter/filter_null.c
+  minor updates; make a bit more STYLEish.
+
 2007-05-30 Francesco Romani <fromani at gmail dot com>
   * filter/filter_smartyuv.c
   clamp pixel values in [0,255] interval by using smarter clamp
