@@ -10,6 +10,10 @@
   * filter/preview/filter_sdlview.c
   port to new macro.
 
+  * filter/filter_resample.c
+  minor updates.
+  port to new macro.
+
 2007-05-31 Francesco Romani <fromani at gmail dot com>
   * added file: docs/tech/filter_template.c
 
