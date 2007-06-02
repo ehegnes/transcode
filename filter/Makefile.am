@@ -136,6 +136,7 @@ filter_detectclipping_la_LDFLAGS = -module -avoid-version
 
 filter_detectsilence_la_SOURCES = filter_detectsilence.c
 filter_detectsilence_la_LDFLAGS = -module -avoid-version
+filter_detectsilence_la_LIBADD = -lm
 
 filter_dnr_la_SOURCES = filter_dnr.c
 filter_dnr_la_LDFLAGS = -module -avoid-version

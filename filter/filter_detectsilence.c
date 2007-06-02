@@ -38,6 +38,8 @@
 
 #include "libtc/tcmodule-plugin.h"
 
+#include <math.h>
+
 
 #define SILENCE_FRAMES  4
 #define MAX_SONGS      50
