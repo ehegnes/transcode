@@ -26,8 +26,8 @@
 #include "libtc/optstr.h"
 #include "libtc/tcmodule-plugin.h"
 
-#define HELP_STRING \
-    "WRITE LONG AND DETAILED DESCRIPTION OF THE MODULE HERE"
+static const char help_string[] = \
+    "WRITE LONG AND DETAILED DESCRIPTION OF THE MODULE HERE";
 
 /*************************************************************************/
 
@@ -156,7 +156,7 @@ static int template_inspect(TCModuleInstance *self,
     pd = self->userdata;
 
     if (optstr_lookup(param, "help")) {
-        *value = HELP_STRING; 
+        *value = help_string; 
     }
     /* put back configurable options */
 
@@ -166,7 +166,7 @@ static int template_inspect(TCModuleInstance *self,
 /*************************************************************************/
 
 /**
- * template_filter_video:  Perform the FPS-doubling operation on the video
+ * template_filter_video:  Perform the filter operation on the video
  * stream.  See tcmodule-data.h for function details.
  */
 
@@ -187,7 +187,7 @@ static int template_filter_video(TCModuleInstance *self, vframe_list_t *frame)
 /*************************************************************************/
 
 /**
- * template_filter_audio:  Perform the FPS-doubling operation on the audio
+ * template_filter_audio:  Perform the filter operation on the audio
  * stream.  See tcmodule-data.h for function details.
  */
 
@@ -249,47 +249,38 @@ extern const TCModuleClass *tc_plugin_setup(void)
 }
 
 /*************************************************************************/
+
+static int template_get_config(TCModuleInstance *self, char *options)
+{
+    PrivateData *pd = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "get_config");
+
+    pd = self->userdata;
+
+    optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION,
+                       MOD_AUTHOR, "VAMEO", "1");
+
+    /* use optstr_param to do introspection */
+
+    return TC_OK;
+}
+
+static int template_process(TCModuleInstance *self, 
+                            frame_list_t *frame)
+{
+    TC_MODULE_SELF_CHECK(self, "process");
+
+    /* choose what to do by frame->tag */
+
+    return TC_OK;
+}
+
 /*************************************************************************/
 
 /* Old-fashioned module interface. */
 
-static TCModuleInstance mod;
-
-/*************************************************************************/
-
-int tc_filter(frame_list_t *frame, char *options)
-{
-    if (frame->tag & TC_FILTER_INIT) {
-        /* XXX */
-        if (template_init(&mod, TC_MODULE_FEATURE_FILTER) < 0) {
-            return TC_ERROR;
-        }
-        return template_configure(&mod, options, tc_get_vob());
-
-    } else if (frame->tag & TC_FILTER_GET_CONFIG) {
-        const char *value = NULL;
-        template_inspect(&mod, "help", &value);
-        tc_snprintf(options, ARG_CONFIG_LEN, "%s", value);
-        return TC_OK;
-
-    } else if (frame->tag & TC_PRE_M_PROCESS) {
-        if (frame->tag & TC_VIDEO) {
-            return template_filter_video(&mod, (vframe_list_t *)frame);
-        } else if (frame->tag & TC_AUDIO) {
-            return template_filter_audio(&mod, (aframe_list_t *)frame);
-        }
-        return TC_OK;
-
-    } else if (frame->tag & TC_FILTER_CLOSE) {
-        if (template_stop(&mod) < 0) {
-            return TC_ERROR;
-        }
-        return template_fini(&mod);
-
-    }
-
-    return TC_ERROR;
-}
+TC_MODULE_OLDINTERFACE(template)
 
 /*************************************************************************/
 
