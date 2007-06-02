@@ -481,43 +481,46 @@ extern const TCModuleClass *tc_plugin_setup(void)
 }
 
 /*************************************************************************/
-/*************************************************************************/
 
-/* Old-fashioned module interface. */
-
-static TCModuleInstance mod;
-
-/*************************************************************************/
-
-int tc_filter(frame_list_t *frame, char *options)
+static int doublefps_get_config(TCModuleInstance *self, char *options)
 {
-    if (frame->tag & TC_FILTER_INIT) {
-        /* XXX */
-        if (doublefps_init(&mod, TC_MODULE_FEATURE_FILTER) < 0)
-            return TC_ERROR;
-        return doublefps_configure(&mod, options, tc_get_vob());
+    PrivateData *pd = NULL;
+    char buf[TC_BUF_MIN];
 
-    } else if (frame->tag & TC_FILTER_GET_CONFIG) {
-        const char *value = NULL;
-        doublefps_inspect(&mod, "help", &value);
-        tc_snprintf(options, ARG_CONFIG_LEN, "%s", value);
-        return TC_OK;
+    TC_MODULE_SELF_CHECK(self, "get_config");
 
-    } else if (frame->tag & TC_PRE_M_PROCESS) {
-        if (frame->tag & TC_VIDEO)
-            return doublefps_filter_video(&mod, (vframe_list_t *)frame);
-        else if (frame->tag & TC_AUDIO)
-            return doublefps_filter_audio(&mod, (aframe_list_t *)frame);
-        else
-            return TC_OK;
+    pd = self->userdata;
 
-    } else if (frame->tag & TC_FILTER_CLOSE) {
-        return doublefps_fini(&mod);
-
-    }
+    optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION,
+                       MOD_AUTHOR, "VAEY4", "1");
+    tc_snprintf(buf, sizeof(buf), "%i", pd->topfirst);
+    optstr_param(options, "topfirst",
+                 "select if top first is first displayed or not",
+                 "%d", buf, "0", "1");
+    tc_snprintf(buf, sizeof(buf), "%i", pd->fullheight);
+    optstr_param(options, "fullheight",
+                 "select if full height must be retained when doubling fps",
+                 "%d", buf, "0", "1");
 
     return TC_OK;
 }
+
+static int doublefps_process(TCModuleInstance *self, frame_list_t *frame)
+{
+    TC_MODULE_SELF_CHECK(self, "process");
+
+    if (frame->tag & TC_PRE_M_PROCESS && frame->tag & TC_VIDEO) {
+        return doublefps_filter_video(self, (vframe_list_t *)frame);
+    }
+    if (frame->tag & TC_PRE_M_PROCESS && frame->tag & TC_AUDIO) {
+        return doublefps_filter_audio(self, (aframe_list_t *)frame);
+    }
+    return TC_OK;
+}
+
+/*************************************************************************/
+
+TC_FILTER_OLDINTERFACE(doublefps)
 
 /*************************************************************************/
 

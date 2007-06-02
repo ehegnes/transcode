@@ -7,7 +7,7 @@
   * filter/filter_null.c
   refresh, update and port to new macro.
 
-  * filter/preview/filter_sdlview.c
+  * filter/preview/filter_sdlview.c, filter/filter_doublefps.c
   port to new macro.
 
   * filter/filter_resample.c
