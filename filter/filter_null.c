@@ -1,60 +1,50 @@
-/**
- *  @file filter_null.c Demo filter
- *
- *  Copyright (C) Thomas Oestreich - June 2001
- *
- *  This file is part of transcode, a video stream processing tool
- *
- *  transcode is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2, or (at your option)
- *  any later version.
- *
- *  transcode is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
-
 /*
- * ChangeLog:
- * v0.2 (2003-09-04)
+ * filter_null.c -- demo filter: does nothing, and it does that very well
+ * Written     by Thomas Oestreich - June 2001
+ * Updated by  by Francesco Romani <fromani at gmail dot com>
  *
- * v0.3 (2005-01-02) Thomas Wehrspann
- *    -Documentation added
- *    -New help function
- *    -optstr_filter_desc now returns
- *     the right capability flags
- * v0.4 (2005-11-25) Francesco Romani
- *    - port (as rolling demo :) ) to new module system
- * v0.4.1 (2005-12-09) Francesco Romani
- *    - configure shakeup
+ * This file is part of transcode, a video stream processing tool.
+ * transcode is free software, distributable under the terms of the GNU
+ * General Public License (version 2 or later).  See the file COPYING
+ * for details.
  */
 
-/// Name of the filter
+/* public (user-visible) Name of the filter */
 #define MOD_NAME    "filter_null.so"
-
-/// Version of the filter
-#define MOD_VERSION "v0.4.2 (2005-12-29)"
-
-/// A short description
+/* version of the filter */
+#define MOD_VERSION "v1.1.0 (2007-06-02)"
+/* A short description */
 #define MOD_CAP     "demo filter plugin; does nothing"
-
-/// Author of the filter plugin
+/* Author(s) of the filter */
 #define MOD_AUTHOR  "Thomas Oestreich, Thomas Wehrspann"
-
+/* What this plugin can do (see NMS documentation for details) */
 #define MOD_FEATURES \
     TC_MODULE_FEATURE_FILTER|TC_MODULE_FEATURE_VIDEO|TC_MODULE_FEATURE_AUDIO
-
+/* How this module can work (see NMS documentation for details) */
 #define MOD_FLAGS \
     TC_MODULE_FLAG_RECONFIGURABLE
 
 
+/* API reminder (mostly for OMS, but take in mind for NMS too):
+ * ========================================================================
+ *
+ * (1) need more infos, than get pointer to transcode global
+ *     information structure vob_t as defined in transcode.h.
+ *
+ * (2) 'tc_get_vob' and 'verbose' are exported by transcode.
+ *
+ * (3) filter is called first time with TC_FILTER_INIT flag set.
+ *
+ * (4) make sure to exit immediately if context (video/audio) or
+ *     placement of call (pre/post) is not compatible with the filters
+ *     intended purpose, since the filter is called 4 times per frame.
+ *
+ * (5) see framebuffer.h for a complete list of frame_list_t variables.
+ *
+ * (6) filter is last time with TC_FILTER_CLOSE flag set
+ */
+
+ 
 /* -------------------------------------------------
  *
  * mandatory include files
@@ -63,8 +53,8 @@
 
 #include "transcode.h"
 #include "filter.h"
+#include "libtc/libtc.h"
 #include "libtc/optstr.h"
-
 #include "libtc/tcmodule-plugin.h"
 
 
@@ -74,207 +64,227 @@ static const char null_help[] = ""
     "Options:\n"
     "    help    produce module overview and options explanations\n";
 
+
+/*************************************************************************/
+
+typedef struct {
+    uint32_t video_frames; /* dumb frame counter */
+    uint32_t audio_frames; /* dumb frame counter */
+} PrivateData;
+
+/*************************************************************************/
+
+/* Module interface routines and data. */
+
+/*************************************************************************/
+
 /**
- * Help text.
- * This function prints out a small description of this filter and
- * the command-line options when the "help" parameter is given
- *********************************************************/
-static void help_optstr(void)
-{
-    tc_log_info(MOD_NAME, "help : * Overview");
-    tc_log_info(MOD_NAME,
-                "help :     This exists for demonstration purposes only. "
-                "It does NOTHING!");
-    tc_log_info(MOD_NAME, "help :");
-    tc_log_info(MOD_NAME, "help : * Options");
-    tc_log_info(MOD_NAME, "help :         'help' Prints out this help text");
-}
+ * null_init:  Initialize this instance of the module.  See
+ * tcmodule-data.h for function details.
+ */
 
 static int null_init(TCModuleInstance *self, uint32_t features)
 {
+    PrivateData *pd = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "init");
     TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
-    /* following very close old module model... */
+    pd = tc_malloc(sizeof(PrivateData));
+    if (!pd) {
+        tc_log_error(MOD_NAME, "init: out of memory!");
+        return TC_ERROR;
+    }
+    self->userdata = pd;
+
+    /* initialize data */
+    pd->video_frames = 0;
+    pd->audio_frames = 0;
+
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     }
-
     return TC_OK;
 }
+
+/*************************************************************************/
+
+/**
+ * null_fini:  Clean up after this instance of the module.  See
+ * tcmodule-data.h for function details.
+ */
 
 static int null_fini(TCModuleInstance *self)
 {
+    PrivateData *pd = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "fini");
+
+    pd = self->userdata;
+
+    /* free data allocated in _init */
+
+    tc_free(self->userdata);
+    self->userdata = NULL;
     return TC_OK;
 }
+
+/*************************************************************************/
+
+/**
+ * null_configure:  Configure this instance of the module.  See
+ * tcmodule-data.h for function details.
+ */
 
 static int null_configure(TCModuleInstance *self,
-            			  const char *options, vob_t *vob)
+                          const char *options, vob_t *vob)
 {
+    PrivateData *pd = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "configure");
+
+    pd = self->userdata;
+
+    /* setup defaults */
+    pd->video_frames = 0;
+    pd->audio_frames = 0;
+
+    if (options) {
+        if (verbose >= TC_STATS) {
+            tc_log_info(MOD_NAME, "options=%s", options);
+        }
+        /* optstr_get() them */
+    }
+
+    /* handle other options */
+
     return TC_OK;
 }
 
-static int null_inspect(TCModuleInstance*self,
-                        const char *param, const char **value)
-{
-    if (optstr_lookup(param, "help")) {
-        *value = null_help;
-    }
-    return TC_OK;
-}
+/*************************************************************************/
+
+/**
+ * null_stop:  Reset this instance of the module.  See tcmodule-data.h
+ * for function details.
+ */
 
 static int null_stop(TCModuleInstance *self)
 {
+    PrivateData *pd = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "stop");
+
+    pd = self->userdata;
+
+    /* this is the right place for print out summary or collected stuff */
+    tc_log_info(MOD_NAME, "elapsed frames audio/video: %u/%u",
+                pd->audio_frames, pd->video_frames);
+
+    /* reverse all stuff done in _configure */
+
     return TC_OK;
 }
 
-static int null_filter(TCModuleInstance *self, vframe_list_t *frame)
-{
-    int pre = TC_FALSE, vid = TC_FALSE;
+/*************************************************************************/
 
-    if (!frame) {
-        return -1;
+/**
+ * null_inspect:  Return the value of an option in this instance of
+ * the module.  See tcmodule-data.h for function details.
+ */
+
+static int null_inspect(TCModuleInstance *self,
+                        const char *param, const char **value)
+{
+    PrivateData *pd = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "inspect");
+    TC_MODULE_SELF_CHECK(param, "inspect");
+    TC_MODULE_SELF_CHECK(value, "inspect");
+
+    pd = self->userdata;
+
+    if (optstr_lookup(param, "help")) {
+        *value = null_help; 
     }
+    /* put back configurable options */
+
+    return TC_OK;
+}
+
+/*************************************************************************/
+
+/**
+ * null_filter_video:  show something on given frame of the video
+ * stream.  See tcmodule-data.h for function details.
+ */
+
+static int null_filter_video(TCModuleInstance *self, vframe_list_t *frame)
+{
+    PrivateData *pd = NULL;
+    int pre = 0;
+
+    TC_MODULE_SELF_CHECK(self, "filer_video");
+    TC_MODULE_SELF_CHECK(frame, "filer_video");
+
+    pd = self->userdata;
+    pre = (frame->tag & TC_PRE_M_PROCESS);
 
     if (verbose & TC_STATS) {
+
         /*
          * tag variable indicates, if we are called before
          * transcodes internal video/audo frame processing routines
          * or after and determines video/audio context
          */
-
-        if (frame->tag & TC_PRE_M_PROCESS) {
-            pre = TC_TRUE;
-        }
-
-        if (frame->tag & TC_VIDEO) {
-            vid = TC_TRUE;
-        }
-
-        tc_log_info(MOD_NAME, "frame [%06d] %s %16s call",
-                    frame->id, (vid) ?"(video)" :"(audio)",
+        tc_log_info(MOD_NAME, "frame [%06d] video %16s call",
+                    frame->id, 
                     (pre) ?"pre-process filter" :"post-process filter");
+    }
+
+    if (!pre) {
+        /* do not count frames twice */
+        pd->video_frames++;
     }
 
     return TC_OK;
 }
 
+/*************************************************************************/
+
 /**
- * Main function of a filter.
- * This is the single function interface to transcode. This is the only function needed for a filter plugin.
- * @param ptr     frame accounting structure
- * @param options command-line options of the filter
- *
- * @return TC_OK, if everything went OK.
- *********************************************************/
-int tc_filter(frame_list_t *ptr_, char *options)
+ * null_filter_audio:  show something on given frame of the audio
+ * stream.  See tcmodule-data.h for function details.
+ */
+
+static int null_filter_audio(TCModuleInstance *self, aframe_list_t *frame)
 {
-    vframe_list_t *ptr = (vframe_list_t *)ptr_;
-    vob_t *vob = tc_get_vob();
-    int pre = 0, vid = 0;
+    PrivateData *pd = NULL;
+    int pre = 0;
 
-    // API explanation:
-    // ================
-    //
-    // (1) need more infos, than get pointer to transcode global
-    //     information structure vob_t as defined in transcode.h.
-    //
-    // (2) 'tc_get_vob' and 'verbose' are exported by transcode.
-    //
-    // (3) filter is called first time with TC_FILTER_INIT flag set.
-    //
-    // (4) make sure to exit immediately if context (video/audio) or
-    //     placement of call (pre/post) is not compatible with the filters
-    //     intended purpose, since the filter is called 4 times per frame.
-    //
-    // (5) see framebuffer.h for a complete list of frame_list_t variables.
-    //
-    // (6) filter is last time with TC_FILTER_CLOSE flag set
+    TC_MODULE_SELF_CHECK(self, "filer_audio");
+    TC_MODULE_SELF_CHECK(frame, "filer_audio");
 
-    //----------------------------------
-    //
-    // filter get config
-    //
-    //----------------------------------
-    if (ptr->tag & TC_FILTER_GET_CONFIG) {
-        // Valid flags for the string of filter capabilities:
-        //  "V" :  Can do Video
-        //  "A" :  Can do Audio
-        //  "R" :  Can do RGB
-        //  "Y" :  Can do YUV
-        //  "4" :  Can do YUV422
-        //  "M" :  Can do Multiple Instances
-        //  "E" :  Is a PRE filter
-        //  "O" :  Is a POST filter
-        optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VARY4EO", "1");
+    pd = self->userdata;
+    pre = (frame->tag & TC_PRE_M_PROCESS);
 
-        optstr_param (options, "help", "Prints out a short help", "", "0");
-        return TC_OK;
-    }
-
-      //----------------------------------
-      //
-      // filter init
-      //
-      //----------------------------------
-    if (ptr->tag & TC_FILTER_INIT) {
-        // filter init ok.
-
-        if (verbose)
-            tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-        if (verbose >= TC_DEBUG)
-            tc_log_info(MOD_NAME, "options=%s", options);
-
-        // Parameter parsing
-        if (options) {
-            if (optstr_lookup (options, "help")) {
-                help_optstr();
-                return TC_OK;
-            }
-        }
-        return TC_OK;
-    }
-
-    //----------------------------------
-    //
-    // filter close
-    //
-    //----------------------------------
-    if (ptr->tag & TC_FILTER_CLOSE) {
-        return TC_OK;
-    }
-
-    //----------------------------------
-    //
-    // filter frame routine
-    //
-    //----------------------------------
-    // tag variable indicates, if we are called before
-    // transcodes internal video/audio frame processing routines
-    // or after and determines video/audio context
     if (verbose & TC_STATS) {
-        tc_log_info(MOD_NAME, "%s/%s %s %s", vob->mod_path, MOD_NAME, MOD_VERSION, MOD_CAP);
 
-        // tag variable indicates, if we are called before
-        // transcodes internal video/audo frame processing routines
-        // or after and determines video/audio context
-
-        if (ptr->tag & TC_PRE_M_PROCESS)
-            pre = 1;
-        if (ptr->tag & TC_POST_M_PROCESS)
-            pre = 0;
-
-        if (ptr->tag & TC_VIDEO)
-            vid = 1;
-        if (ptr->tag & TC_AUDIO)
-            vid = 0;
-
-        tc_log_info(MOD_NAME, "frame [%06d] %s %16s call",
-                    ptr->id, (vid)?"(video)":"(audio)",
-                    (pre)?"pre-process filter":"post-process filter");
-        return TC_OK;
+        /*
+         * tag variable indicates, if we are called before
+         * transcodes internal video/audo frame processing routines
+         * or after and determines video/audio context
+         */
+        tc_log_info(MOD_NAME, "frame [%06d] audio %16s call",
+                    frame->id, 
+                    (pre) ?"pre-process filter" :"post-process filter");
     }
 
-    return TC_ERROR;
+    if (!pre) {
+        /* do not count frames twice */
+        pd->audio_frames++;
+    }
+
+    return TC_OK;
 }
 
 /*************************************************************************/
@@ -310,13 +320,67 @@ static const TCModuleClass null_class = {
     .stop         = null_stop,
     .inspect      = null_inspect,
 
-    .filter_video = null_filter,
+    .filter_video = null_filter_video,
+    .filter_audio = null_filter_audio,
 };
 
 extern const TCModuleClass *tc_plugin_setup(void)
 {
     return &null_class;
 }
+
+/*************************************************************************/
+
+static int null_get_config(TCModuleInstance *self, char *options)
+{
+    PrivateData *pd = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "get_config");
+
+    pd = self->userdata;
+
+    /*
+     * Valid flags for the string of filter capabilities:
+     *  "V" :  Can do Video
+     *  "A" :  Can do Audio
+     *  "R" :  Can do RGB
+     *  "Y" :  Can do YUV
+     *  "4" :  Can do YUV422
+     *  "M" :  Can do Multiple Instances
+     *  "E" :  Is a PRE filter
+     *  "O" :  Is a POST filter
+     */
+    optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION,
+                       MOD_AUTHOR, "VAMEO", "1");
+
+    /* can be omitted */
+    optstr_param (options, "help", "Prints out a short help", "", "0");
+ 
+    /* use optstr_param to do introspection */
+
+    return TC_OK;
+}
+
+static int null_process(TCModuleInstance *self, 
+                            frame_list_t *frame)
+{
+    TC_MODULE_SELF_CHECK(self, "process");
+
+    /* choose what to do by frame->tag */
+    if (frame->tag & TC_VIDEO) {
+        return null_filter_video(self, (vframe_list_t*)frame);
+    }
+    if (frame->tag & TC_AUDIO) {
+        return null_filter_audio(self, (aframe_list_t*)frame);
+    }
+    return TC_OK;
+}
+
+/*************************************************************************/
+
+/* Old-fashioned module interface. */
+
+TC_FILTER_OLDINTERFACE(null)
 
 /*************************************************************************/
 

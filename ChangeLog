@@ -1,3 +1,15 @@
+2007-06-02 Francesco Romani <fromani at gmail dot com>
+  * libtc/tcmodule-plugin.h
+  macro boilerplate code for back-compatible filters.
+  With this, we hoperfully care only of NMS code in filters,
+  and let this macro handle the boring backward-compatible details.
+
+  * filter/filter_null.c
+  refresh, update and port to new macro.
+
+  * filter/preview/filter_sdlview.c
+  port to new macro.
+
 2007-05-31 Francesco Romani <fromani at gmail dot com>
   * added file: docs/tech/filter_template.c
 

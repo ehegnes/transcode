@@ -65,15 +65,15 @@ static inline int tc_module_cap_check(uint32_t flags)
     if ((!((FEATURES) & TC_MODULE_FEATURE_MULTIPLEX) \
       && !((FEATURES) & TC_MODULE_FEATURE_DEMULTIPLEX)) \
      && (tc_module_av_check((feat)) > 1)) { \
-    	tc_log_error(MOD_NAME, "unsupported stream types for" \
-	                       " this module instance"); \
-	return TC_ERROR; \
+        tc_log_error(MOD_NAME, "unsupported stream types for" \
+                           " this module instance"); \
+    return TC_ERROR; \
     } \
     \
     if (j != 0 && j != 1) { \
-    	tc_log_error(MOD_NAME, "feature request mismatch for" \
-	                       " this module instance (req=%i)", j); \
-	return TC_ERROR; \
+        tc_log_error(MOD_NAME, "feature request mismatch for" \
+                           " this module instance (req=%i)", j); \
+    return TC_ERROR; \
     } \
     /* is perfectly fine to request to do nothing */ \
     if ((feat != 0) && ((FEATURES) & (feat))) { \
@@ -90,5 +90,69 @@ static inline int tc_module_cap_check(uint32_t flags)
  * plugin entry point prototype
  */
 const TCModuleClass *tc_plugin_setup(void);
+
+/* TODO: unify in a proper way OLDINTERFACE and OLDINTERFACE_M */
+
+#define TC_FILTER_OLDINTERFACE(name) \
+    /* Old-fashioned module interface. */ \
+    static TCModuleInstance mod; \
+    \
+    int tc_filter(frame_list_t *frame, char *options) \
+    { \
+        if (frame->tag & TC_FILTER_INIT) { \
+            if (name ## _init(&mod, TC_MODULE_FEATURE_FILTER) < 0) { \
+                return TC_ERROR; \
+            } \
+            return name ## _configure(&mod, options, tc_get_vob()); \
+        \
+        } else if (frame->tag & TC_FILTER_GET_CONFIG) { \
+            return name ## _get_config(&mod, options); \
+        \
+        } else if (frame->tag & TC_FILTER_CLOSE) { \
+            if (name ## _stop(&mod) < 0) { \
+                return TC_ERROR; \
+            } \
+            return name ## _fini(&mod); \
+        } \
+        \
+        return name ## _process(&mod, frame); \
+    } 
+
+
+
+#define TC_FILTER_OLDINTERFACE_INSTANCES	128
+
+/* FIXME:
+ * this uses the filter ID as an index--the ID can grow
+ * arbitrarily large, so this needs to be fixed
+ */
+#define TC_FILTER_OLDINTERFACE_M(name) \
+    /* Old-fashioned module interface. */ \
+    static TCModuleInstance mods[TC_FILTER_OLDINTERFACE_INSTANCES]; \
+    \
+    int tc_filter(frame_list_t *frame, char *options) \
+    { \
+	TCModuleInstance *mod = mods[frame->filter_id]; \
+	\
+        if (frame->tag & TC_FILTER_INIT) { \
+            if (name ## _init(mod, TC_MODULE_FEATURE_FILTER) < 0) { \
+                return TC_ERROR; \
+            } \
+            return name ## _configure(mod, options, tc_get_vob()); \
+        \
+        } else if (frame->tag & TC_FILTER_GET_CONFIG) { \
+            return name ## _get_config(mod, options); \
+        \
+        } else if (frame->tag & TC_FILTER_CLOSE) { \
+            if (name ## _stop(mod) < 0) { \
+                return TC_ERROR; \
+            } \
+            return name ## _fini(mod); \
+        } \
+        \
+        return name ## _process(mod, frame); \
+    } 
+
+
 
 #endif /* TCMODULE_PLUGIN_H */

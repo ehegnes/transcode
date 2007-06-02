@@ -240,7 +240,7 @@ static int sdlview_stop(TCModuleInstance *self)
  */
 
 static int sdlview_inspect(TCModuleInstance *self,
-                             const char *param, const char **value)
+                           const char *param, const char **value)
 {
     TC_MODULE_SELF_CHECK(self, "inspect");
     TC_MODULE_SELF_CHECK(param, "inspect");
@@ -255,8 +255,8 @@ static int sdlview_inspect(TCModuleInstance *self,
 /*************************************************************************/
 
 /**
- * sdlview_filter_video:  Perform the FPS-doubling operation on the video
- * stream.  See tcmodule-data.h for function details.
+ * sdlview_filter_video:  display the video frame on preview window.
+ * See tcmodule-data.h for function details.
  */
 
 static int sdlview_filter_video(TCModuleInstance *self, vframe_list_t *frame)
@@ -339,39 +339,30 @@ extern const TCModuleClass *tc_plugin_setup(void)
 }
 
 /*************************************************************************/
-/*************************************************************************/
 
-/* Old-fashioned module interface. */
-
-static TCModuleInstance mod;
-
-/*************************************************************************/
-
-int tc_filter(frame_list_t *frame, char *options)
+static int sdlview_get_config(TCModuleInstance *self, char *options)
 {
-    if (frame->tag & TC_FILTER_INIT) {
-        if (sdlview_init(&mod, TC_MODULE_FEATURE_FILTER) < 0)
-            return TC_ERROR;
-        return sdlview_configure(&mod, options, tc_get_vob());
+    TC_MODULE_SELF_CHECK(self, "get_config");
 
-    } else if (frame->tag & TC_FILTER_GET_CONFIG) {
-        const char *value = NULL;
-        sdlview_inspect(&mod, "help", &value);
-        tc_snprintf(options, ARG_CONFIG_LEN, "%s", value);
-        return TC_OK;
-
-    } else if (frame->tag & TC_PREVIEW && frame->tag & TC_VIDEO) {
-        return sdlview_filter_video(&mod, (vframe_list_t *)frame);
-
-    } else if (frame->tag & TC_FILTER_CLOSE) {
-        if (sdlview_stop(&mod) < 0) {
-            return TC_ERROR;
-        }
-        return sdlview_fini(&mod);
-    }
+    optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION,
+                       MOD_AUTHOR, "VRY4", "1");
 
     return TC_OK;
 }
+
+static int sdlview_process(TCModuleInstance *self, frame_list_t *frame)
+{
+    TC_MODULE_SELF_CHECK(self, "process");
+
+    if (frame->tag & TC_PREVIEW && frame->tag & TC_VIDEO) {
+        return sdlview_filter_video(self, (vframe_list_t *)frame);
+    }
+    return TC_OK;
+}
+
+/*************************************************************************/
+
+TC_FILTER_OLDINTERFACE(sdlview)
 
 /*************************************************************************/
 
