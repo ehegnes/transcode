@@ -285,7 +285,7 @@ static int detectsilence_filter_audio(TCModuleInstance *self,
      */
     if (pd->zeros >= pd->silence_frames && sum > 0) {
         /* somwhere in the middle of silence */
-        pd->songs[pd->next] = ((frame->id - zero) * frame->audio_size) / pd->aframe_size;
+        pd->songs[pd->next] = ((frame->id - pd->zeros) * frame->audio_size) / pd->aframe_size;
         pd->next++;
 
         if (pd->next > MAX_SONGS) {
