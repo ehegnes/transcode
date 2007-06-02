@@ -14,6 +14,9 @@
   minor updates.
   port to new macro.
 
+  * filter/Makefile.am filter/filter_detectsilence.c
+  detectsilence needs libm now.
+
 2007-05-31 Francesco Romani <fromani at gmail dot com>
   * added file: docs/tech/filter_template.c
 
