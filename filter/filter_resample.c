@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_resample.so"
-#define MOD_VERSION "v0.1.5 (2007-01-07)"
+#define MOD_VERSION "v0.1.6 (2007-06-02)"
 #define MOD_CAP     "audio resampling filter plugin using libavcodec"
 #define MOD_AUTHOR  "Thomas Oestreich, Stefan Scheffler"
 
@@ -197,7 +197,7 @@ static int resample_inspect(TCModuleInstance *self,
 }
 
 /* internal helper to avoid an useless double if() */
-static int resample_process(TCModuleInstance *self, aframe_list_t *frame)
+static int resample_filter_audio(TCModuleInstance *self, aframe_list_t *frame)
 {
     ResamplePrivateData *pd = self->userdata;
 
@@ -210,8 +210,8 @@ static int resample_process(TCModuleInstance *self, aframe_list_t *frame)
         tc_log_info(MOD_NAME, "inbuf: %i, bufsize: %lu",
                     frame->audio_size, (unsigned long)pd->resample_bufsize);
     frame->audio_size = audio_resample(pd->resample_ctx,
-                                       (short *)pd->resample_buf,
-                                       (short *)frame->audio_buf,
+                                       (uint16_t*)pd->resample_buf,
+                                       (uint16_t*)frame->audio_buf,
                                        frame->audio_size/pd->bytes_per_sample);
     frame->audio_size *= pd->bytes_per_sample;
     if (verbose >= TC_STATS)
@@ -225,69 +225,18 @@ static int resample_process(TCModuleInstance *self, aframe_list_t *frame)
     return TC_OK;
 }
 
-static int resample_filter(TCModuleInstance *self,
-                           aframe_list_t *frame)
-{
-    TC_MODULE_SELF_CHECK(self, "filter");
-    TC_MODULE_SELF_CHECK(frame, "filter");
 
-    if (frame->tag & TC_PRE_S_PROCESS && frame->tag & TC_AUDIO) {
-        return resample_process(self, frame);
-    }
-    return TC_OK;
-}
+/**************************************************************************/
 
-
-/*-------------------------------------------------*/
-
-static TCModuleInstance mod;
-
-int tc_filter(frame_list_t *ptr_, char *options)
-{
-    aframe_list_t *ptr = (aframe_list_t *)ptr_;
-
-    if (ptr->tag & TC_FILTER_GET_CONFIG) {
-        optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION,
-                           "Thomas Oestreich", "AE", "1");
-        return TC_OK;
-    }
-
-    if  (ptr->tag & TC_FILTER_INIT) {
-        /* XXX */
-        int ret = resample_init(&mod, TC_MODULE_FEATURE_FILTER);
-        if (ret != TC_OK) {
-            return ret;
-        }
-        return resample_configure(&mod, options, tc_get_vob());
-    }
-
-    if (ptr->tag & TC_FILTER_CLOSE) {
-        int ret = resample_stop(&mod);
-        if (ret != TC_OK) {
-            return ret;
-        }
-        return resample_fini(&mod);
-    }
-
-    /* filter frame routine */
-
-    /*
-     * tag variable indicates, if we are called before
-     * transcodes internal video/audo frame processing routines
-     * or after and determines video/audio context
-     */
-
-    if (ptr->tag & TC_PRE_S_PROCESS && ptr->tag & TC_AUDIO) {
-        return resample_process(&mod, ptr);
-    }
-    return TC_OK;
-}
-
-/***********yy**************************************************************/
-
-static const TCCodecID resample_codecs_in[] = { TC_CODEC_PCM, TC_CODEC_ERROR };
-static const TCCodecID resample_codecs_out[] = { TC_CODEC_PCM, TC_CODEC_ERROR };
-static const TCFormatID resample_formats[] = { TC_FORMAT_ERROR };
+static const TCCodecID resample_codecs_in[] = { 
+    TC_CODEC_PCM, TC_CODEC_ERROR
+};
+static const TCCodecID resample_codecs_out[] = { 
+    TC_CODEC_PCM, TC_CODEC_ERROR
+};
+static const TCFormatID resample_formats[] = { 
+    TC_FORMAT_ERROR
+};
 
 /* new module support */
 static const TCModuleInfo resample_info = {
@@ -311,13 +260,40 @@ static const TCModuleClass resample_class = {
     .stop         = resample_stop,
     .inspect      = resample_inspect,
 
-    .filter_audio = resample_filter,
+    .filter_audio = resample_filter_audio,
 };
 
 extern const TCModuleClass *tc_plugin_setup(void)
 {
     return &resample_class;
 }
+
+/*************************************************************************/
+
+static int resample_get_config(TCModuleInstance *self, char *options)
+{
+    TC_MODULE_SELF_CHECK(self, "get_config");
+
+    optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION,
+                       MOD_AUTHOR, "AE", "1");
+
+    return TC_OK;
+}
+
+
+static int resample_process(TCModuleInstance *self, frame_list_t *frame)
+{
+    TC_MODULE_SELF_CHECK(self, "process");
+
+    if (frame->tag & TC_PRE_S_PROCESS && frame->tag & TC_AUDIO) {
+        return resample_filter_audio(self, (aframe_list_t*)frame);
+    }
+    return TC_OK;
+}
+
+/*************************************************************************/
+
+TC_FILTER_OLDINTERFACE(resample)
 
 /*************************************************************************/
 

@@ -10,7 +10,7 @@
   * filter/preview/filter_sdlview.c, filter/filter_doublefps.c
   port to new macro.
 
-  * filter/filter_resample.c
+  * filter/filter_resample.c, filter/filter_detectsilence.c
   minor updates.
   port to new macro.
 

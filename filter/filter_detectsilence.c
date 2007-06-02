@@ -22,172 +22,366 @@
  */
 
 #define MOD_NAME    "filter_detectsilence.so"
-#define MOD_VERSION "v0.0.1 (2003-07-26)"
+#define MOD_VERSION "v0.1.1 (2007-06-02)"
 #define MOD_CAP     "audio silence detection with tcmp3cut commandline generation"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
+
+#define MOD_FEATURES \
+    TC_MODULE_FEATURE_FILTER|TC_MODULE_FEATURE_AUDIO
+#define MOD_FLAGS \
+    TC_MODULE_FLAG_RECONFIGURABLE
 
 #include "transcode.h"
 #include "filter.h"
 #include "libtc/libtc.h"
 #include "libtc/optstr.h"
 
-#include <stdint.h>
+#include "libtc/tcmodule-plugin.h"
 
-static int a_rate, a_bits, chan;
-
-
-/*-------------------------------------------------
- *
- * single function interface
- *
- *-------------------------------------------------*/
 
 #define SILENCE_FRAMES  4
 #define MAX_SONGS      50
 
-int tc_filter(frame_list_t *ptr_, char *options)
+typedef struct privatedata_ PrivateData;
+struct privatedata_ {
+    int aframe_size;
+
+    int zeros;
+    int next;
+    int songs[MAX_SONGS];
+
+    int silence_frames;
+};
+
+
+/*************************************************************************/
+
+static const char detectsilence_help[] = ""
+    "Overview:\n"
+    "    This filter exists for demonstration purposes only; it doesn nothing.\n"
+    "Options:\n"
+    "    help    produce module overview and options explanations\n";
+
+
+/*************************************************************************/
+
+/**
+ * detectsilence_init:  Initialize this instance of the module.  See
+ * tcmodule-data.h for function details.
+ */
+
+static int detectsilence_init(TCModuleInstance *self, uint32_t features)
 {
-  aframe_list_t *ptr = (aframe_list_t *)ptr_;
-  int n;
-  short *s;
-  int sum;
-  double p;
-  static int zero=0;
-  static int next=0;
-  static int songs[MAX_SONGS];
-  char cmd[1024];
+    PrivateData *pd;
 
-  vob_t *vob=NULL;
+    TC_MODULE_SELF_CHECK(self, "init");
+    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
-  if(ptr->tag & TC_FILTER_GET_CONFIG) {
-      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Tilmann Bitterberg", "AE", "1");
-  }
+    pd = tc_malloc(sizeof(PrivateData));
+    if (!pd) {
+        tc_log_error(MOD_NAME, "init: out of memory!");
+        return TC_ERROR;
+    }
+    self->userdata = pd;
 
-  //----------------------------------
-  //
-  // filter init
-  //
-  //----------------------------------
+    /* enforce defaults */
+    pd->silence_frames = SILENCE_FRAMES;
+    pd->aframe_size    = 0;
+    pd->zeros          = 0;
+    pd->next           = 0;
 
-  if(ptr->tag & TC_FILTER_INIT) {
+    if (verbose) {
+        tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
+    }
+    return TC_OK;
+}
+
+/*************************************************************************/
+
+/**
+ * detectsilence_fini:  Clean up after this instance of the module.  See
+ * tcmodule-data.h for function details.
+ */
+
+static int detectsilence_fini(TCModuleInstance *self)
+{
+    PrivateData *pd;
+
+    TC_MODULE_SELF_CHECK(self, "fini");
+
+    pd = self->userdata;
+
+    /* nothing to do in here... */
+
+    tc_free(self->userdata);
+    self->userdata = NULL;
+    return TC_OK;
+}
+
+/*************************************************************************/
+
+/**
+ * detectsilence_configure:  Configure this instance of the module.  See
+ * tcmodule-data.h for function details.
+ */
+
+static int detectsilence_configure(TCModuleInstance *self,
+                                   const char *options, vob_t *vob)
+{
+    PrivateData *pd = NULL;
     int i;
 
-    if((vob = tc_get_vob())==NULL) return(-1);
+    TC_MODULE_SELF_CHECK(self, "configure");
 
-    // filter init ok.
+    pd = self->userdata;
 
-    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-
-    a_bits=vob->a_bits;
-    a_rate=vob->a_rate;
-    chan = vob->a_chan;
-
-    for (i=0; i<MAX_SONGS; i++){
-      songs[i]=-1;
+    for (i = 0; i < MAX_SONGS; i++) {
+        pd->songs[i] = -1;
     }
-    return(0);
-  }
 
-  //----------------------------------
-  //
-  // filter close
-  //
-  //----------------------------------
+    pd->silence_frames = SILENCE_FRAMES;
+    pd->aframe_size    = (vob->a_rate * vob->a_chan * vob->a_bits / 8) / 1000;
+    pd->zeros          = 0;
+    pd->next           = 0;
+    
+    if (options != NULL) {
+        optstr_get(options, "silence_frames", "%d", &pd->silence_frames);
+    }
 
-  if(ptr->tag & TC_FILTER_CLOSE) {
+    if (verbose) {
+        tc_log_info(MOD_NAME, "frame size = %i bytes; "
+                              "silence interval = %i frames",
+                              pd->aframe_size, pd->silence_frames);
+    }
+
+    return TC_OK;
+}
+
+/*************************************************************************/
+
+/**
+ * detectsilence_stop:  Reset this instance of the module.  See tcmodule-data.h
+ * for function details.
+ */
+
+static int detectsilence_stop(TCModuleInstance *self)
+{
+    char cmd[TC_BUF_MAX];
     char songbuf[MAX_SONGS*12];  /* up to 11 chars and , per value */
-    int i, res, len=0, songlen=0;
-    if (next<1) return 0;
+    int i, res, len = 0, songlen = 0;
+    PrivateData *pd = NULL;
 
-    if((vob = tc_get_vob())==NULL) return(-1);
+    TC_MODULE_SELF_CHECK(self, "stop");
 
-    //len += tc_snprintf(cmd, sizeof(cmd), "tcmp3cut -i %s -o %s ", vob->audio_in_file, vob->audio_out_file?vob->audio_out_file:vob->audio_in_file);
+    pd = self->userdata;
+
+    /* 
+     * print out summary a stop time. There isn't any configure()d
+     * stuff torevert, anyway.
+     */
+
+    if (pd->next < 1) {
+        /* nothing to do in here */
+        return TC_OK;
+    }
+
     res = tc_snprintf(cmd, sizeof(cmd), "tcmp3cut -i in.mp3 -o base ");
     if (res < 0) {
-      tc_log_error(MOD_NAME, "cmd buffer overflow");
-      return(-1);
+        tc_log_error(MOD_NAME, "cmd buffer overflow");
+        return TC_ERROR;
     }
     len += res;
+    
+    for (i = 0; i < pd->next; i++) {
+        res = tc_snprintf(songbuf + songlen, sizeof(songbuf) - songlen,
+                          ",%d", pd->songs[i]);
+        if (res < 0) {
+            tc_log_error(MOD_NAME, "cmd buffer overflow");
+            return TC_ERROR;
+        }
+        songlen += res;
+    }
+
     tc_log_info(MOD_NAME, "********** Songs ***********");
-    if (next>0) {
-      res = tc_snprintf(songbuf+songlen, sizeof(songbuf)-songlen,
-			"%d", songs[0]);
-      if (res < 0) {
-        tc_log_error(MOD_NAME, "cmd buffer overflow");
-        return(-1);
-      }
-      songlen += res;
-    }
-    for (i=1; i<next; i++) {
-      res = tc_snprintf(songbuf+songlen, sizeof(songbuf)-songlen,
-			",%d", songs[i]);
-      if (res < 0) {
-        tc_log_error(MOD_NAME, "cmd buffer overflow");
-        return(-1);
-      }
-      songlen += res;
-    }
     tc_log_info(MOD_NAME, "%s", songbuf);
-    res = tc_snprintf(cmd+len, sizeof(cmd)-len, "-t %s", songbuf);
+
+    res = tc_snprintf(cmd + len, sizeof(cmd) - len, "-t %s", songbuf);
     if (res < 0) {
-      tc_log_error(MOD_NAME, "cmd buffer overflow");
-      return(-1);
+        tc_log_error(MOD_NAME, "cmd buffer overflow");
+        return TC_ERROR;
     }
     len += res;
     tc_log_info(MOD_NAME, "Execute: %s", cmd);
 
-    return(0);
-  }
-
-  //----------------------------------
-  //
-  // filter frame routine
-  //
-  //----------------------------------
-
-  // tag variable indicates, if we are called before
-  // transcodes internal video/audo frame processing routines
-  // or after and determines video/audio context
-
-  if(ptr->tag & TC_PRE_S_PROCESS && ptr->tag & TC_AUDIO) {
-
-    s=(short *) ptr->audio_buf;
-    p=0.0;
-
-    for(n=0; n<ptr->audio_size>>1; ++n) {
-      double d=(double)(*s++)/((double)SHRT_MAX*1.0);
-      p += (d>0.0?d:-d);
-    }
-
-   sum = (int)p;
-
-   // Is this frame silence?
-   if (sum == 0) zero++;
-
-   // if we have found SILENCE_FRAMES in a row, there must be a song change.
-
-   if (zero>=SILENCE_FRAMES && sum) {
-
-     // somwhere in the middle of silence, the +3 is just a number
-     int tot = (ptr->id - zero)*ptr->audio_size;
-     tot *= 8;
-     tot /= (a_rate*chan*a_bits/1000);
-
-     songs[next++] = tot;
-
-     if (next > MAX_SONGS) {
-       tc_log_error(MOD_NAME, "Cannot save more songs");
-       return (-1);
-     }
-
-     //tc_log_msg(MOD_NAME, "Cut at time %d frame %d", tot, ptr->id - (zero+2)/2);
-     zero=0;
-   }
-
-   //tc_log_msg(MOD_NAME, "%5d: sum (%07.3f)", ptr->id, p);
-  }
-
-  return(0);
+    return TC_OK;
 }
 
-// vim: sw=2
+/*************************************************************************/
+
+/**
+ * detectsilence_inspect:  Return the value of an option in this instance of
+ * the module.  See tcmodule-data.h for function details.
+ */
+
+static int detectsilence_inspect(TCModuleInstance *self,
+                                 const char *param, const char **value)
+{
+    static char buf[TC_BUF_MIN]; // XXX
+    PrivateData *pd = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "inspect");
+    TC_MODULE_SELF_CHECK(param, "inspect");
+    TC_MODULE_SELF_CHECK(value, "inspect");
+
+    pd = self->userdata;
+
+    if (optstr_lookup(param, "help")) {
+        *value = detectsilence_help; 
+    }
+
+    if (optstr_lookup(param, "silence_frames")) {
+        tc_snprintf(buf, sizeof(buf), "%d", pd->silence_frames);
+        *value = buf;
+    }
+
+    return TC_OK;
+}
+
+/*************************************************************************/
+
+/**
+ * detectsilence_filter_audio:  Perform the per-frame analysis on the audio
+ * stream.  See tcmodule-data.h for function details.
+ */
+
+static int detectsilence_filter_audio(TCModuleInstance *self,
+                                      aframe_list_t *frame)
+{
+    PrivateData *pd = NULL;
+    uint16_t *s = (uint16_t*)frame->audio_buf;
+    double p = 0.0;
+    int i, sum;
+
+    TC_MODULE_SELF_CHECK(self, "filter_audio");
+    TC_MODULE_SELF_CHECK(frame, "filter_audio");
+
+    pd = self->userdata;
+
+    for (i = 0; i < frame->audio_size / 2; i++) {
+        p += fabs((double)(*s++)/((double)(0xFFFF) * 1.0)); // XXX ??
+    }
+
+    sum = (int)p;
+
+    /* Is this frame silence? */
+    if (sum == 0)
+        pd->zeros++;
+
+    /*
+     * if we have found at least silence_frames in a row,
+     * there must be a song change.
+     */
+    if (pd->zeros >= pd->silence_frames && sum > 0) {
+        /* somwhere in the middle of silence */
+        pd->songs[pd->next] = ((frame->id - zero) * frame->audio_size) / pd->aframe_size;
+        pd->next++;
+
+        if (pd->next > MAX_SONGS) {
+            tc_log_error(MOD_NAME, "Cannot save more songs");
+            return TC_ERROR;
+        }
+        pd->zeros = 0;
+    }
+
+    return TC_OK;
+}
+
+/*************************************************************************/
+
+static const TCCodecID detectsilence_codecs_in[] = { 
+    TC_CODEC_PCM, TC_CODEC_ERROR
+};
+static const TCCodecID detectsilence_codecs_out[] = { 
+    TC_CODEC_PCM, TC_CODEC_ERROR 
+};
+static const TCFormatID detectsilence_formats[] = { TC_FORMAT_ERROR};
+
+static const TCModuleInfo detectsilence_info = {
+    .features    = MOD_FEATURES,
+    .flags       = MOD_FLAGS,
+    .name        = MOD_NAME,
+    .version     = MOD_VERSION,
+    .description = MOD_CAP,
+    .codecs_in   = detectsilence_codecs_in,
+    .codecs_out  = detectsilence_codecs_out,
+    .formats_in  = detectsilence_formats,
+    .formats_out = detectsilence_formats
+};
+
+static const TCModuleClass detectsilence_class = {
+    .info         = &detectsilence_info,
+
+    .init         = detectsilence_init,
+    .fini         = detectsilence_fini,
+    .configure    = detectsilence_configure,
+    .stop         = detectsilence_stop,
+    .inspect      = detectsilence_inspect,
+
+    .filter_audio = detectsilence_filter_audio,
+};
+
+extern const TCModuleClass *tc_plugin_setup(void)
+{
+    return &detectsilence_class;
+}
+
+
+/*************************************************************************/
+/* Old-style helpers */
+
+static int detectsilence_get_config(TCModuleInstance *self, char *options)
+{
+    PrivateData *pd = NULL;
+    char buf[TC_BUF_MIN];
+
+    TC_MODULE_SELF_CHECK(self, "get_config");
+
+    pd = self->userdata;
+
+    optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION,
+                       MOD_AUTHOR, "AE", "1");
+    tc_snprintf(buf, sizeof(buf), "%i", pd->silence_frames);
+    optstr_param(options, "silence_frames",
+                 "minimum number of silence frames to detect a song change",
+                 "%d", buf, "0", "1024"); /* max is arbitrary here */
+
+    return TC_OK;
+}
+
+static int detectsilence_process(TCModuleInstance *self, 
+                                 frame_list_t *frame)
+{
+    TC_MODULE_SELF_CHECK(self, "process");
+
+    if (frame->tag & TC_PRE_S_PROCESS && frame->tag & TC_AUDIO) {
+        return detectsilence_filter_audio(self, (aframe_list_t *)frame);
+    }
+    return TC_OK;
+}
+
+/*************************************************************************/
+
+TC_FILTER_OLDINTERFACE(detectsilence)
+
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * 
+ * vim: expandtab shiftwidth=4:
+ */
