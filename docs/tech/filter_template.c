@@ -280,7 +280,7 @@ static int template_process(TCModuleInstance *self,
 
 /* Old-fashioned module interface. */
 
-TC_MODULE_OLDINTERFACE(template)
+TC_FILTER_OLDINTERFACE(template)
 
 /*************************************************************************/
 
