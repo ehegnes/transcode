@@ -50,7 +50,6 @@ typedef struct {
 static int template_init(TCModuleInstance *self, uint32_t features)
 {
     PrivateData *pd;
-    vob_t *vob = tc_get_vob();
 
     TC_MODULE_SELF_CHECK(self, "init");
     TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
