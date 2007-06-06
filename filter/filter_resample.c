@@ -210,8 +210,8 @@ static int resample_filter_audio(TCModuleInstance *self, aframe_list_t *frame)
         tc_log_info(MOD_NAME, "inbuf: %i, bufsize: %lu",
                     frame->audio_size, (unsigned long)pd->resample_bufsize);
     frame->audio_size = audio_resample(pd->resample_ctx,
-                                       (uint16_t*)pd->resample_buf,
-                                       (uint16_t*)frame->audio_buf,
+                                       (int16_t*)pd->resample_buf,
+                                       (int16_t*)frame->audio_buf,
                                        frame->audio_size/pd->bytes_per_sample);
     frame->audio_size *= pd->bytes_per_sample;
     if (verbose >= TC_STATS)

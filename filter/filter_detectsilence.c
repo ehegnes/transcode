@@ -260,7 +260,7 @@ static int detectsilence_filter_audio(TCModuleInstance *self,
                                       aframe_list_t *frame)
 {
     PrivateData *pd = NULL;
-    uint16_t *s = (uint16_t*)frame->audio_buf;
+    int16_t *s = (int16_t*)frame->audio_buf;
     double p = 0.0;
     int i, sum;
 
@@ -270,7 +270,8 @@ static int detectsilence_filter_audio(TCModuleInstance *self,
     pd = self->userdata;
 
     for (i = 0; i < frame->audio_size / 2; i++) {
-        p += fabs((double)(*s++)/((double)(0xFFFF) * 1.0)); // XXX ??
+        p += fabs((double)(*s++)/((double)(0x7FFF) * 1.0)); 
+        /* FIXME: constantize in libtcaudio */
     }
 
     sum = (int)p;
