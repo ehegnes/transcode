@@ -5,6 +5,10 @@
   FIXME: constantize such value and put in a proper way into
   libtcaudio.
 
+  * filter/filter_astat.c
+  minor updates and port to NMS.
+  add very basic silence detection.
+
 2007-06-02 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule-plugin.h
   macro boilerplate code for back-compatible filters.
