@@ -22,8 +22,8 @@
  */
 
 #define MOD_NAME    "filter_detectsilence.so"
-#define MOD_VERSION "v0.1.1 (2007-06-02)"
-#define MOD_CAP     "audio silence detection with tcmp3cut commandline generation"
+#define MOD_VERSION "v0.1.3 (2007-06-09)"
+#define MOD_CAP     "audio silence detection with optional tcmp3cut commandline generation"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
 #define MOD_FEATURES \
@@ -50,6 +50,8 @@ typedef struct privatedata_ PrivateData;
 struct privatedata_ {
     int aframe_size;
 
+    int scan_only; /* flag */
+
     int zeros;
     int next;
     int songs[MAX_SONGS];
@@ -62,9 +64,65 @@ struct privatedata_ {
 
 static const char detectsilence_help[] = ""
     "Overview:\n"
-    "    This filter exists for demonstration purposes only; it doesn nothing.\n"
+    "    This filter detect silence intervals in audio track. It can just\n"
+    "    print out to screen the position and duration of audio silence\n"
+    "    intervals, or, assuming the audio track is a soundtrack or something\n"
+    "    like that, it can generate a tcmp3cut command line to cut the track\n"
+    "    in songs.\n"
     "Options:\n"
-    "    help    produce module overview and options explanations\n";
+    "    silence_frames  threshold used internally by filter to decide if\n"
+    "                    silence interval is a song transition or not.\n"
+    "                    The higher is this value, the longer should silence\n"
+    "                    interval be.\n"
+    "    scan_only       scan and print silence intervals, do not generate\n"
+    "                    the tcmp3cut commandline.\n"
+    "    help            produce module overview and options explanations.\n";
+
+
+/*************************************************************************/
+
+
+static int print_tcmp3cut_cmdline(PrivateData *pd)
+{
+    char cmd[TC_BUF_MAX];
+    char songbuf[MAX_SONGS * 12];  /* up to 11 chars and , per value */
+    int i, res, len = 0, songlen = 0;
+
+    if (pd->next < 1) {
+        /* nothing to do in here */
+        return TC_OK;
+    }
+
+    res = tc_snprintf(cmd, sizeof(cmd), "tcmp3cut -i in.mp3 -o base ");
+    if (res < 0) {
+        tc_log_error(MOD_NAME, "cmd buffer overflow");
+        return TC_ERROR;
+    }
+    len += res;
+    
+    for (i = 0; i < pd->next; i++) {
+        res = tc_snprintf(songbuf + songlen, sizeof(songbuf) - songlen,
+                          ",%d", pd->songs[i]);
+        if (res < 0) {
+            tc_log_error(MOD_NAME, "cmd buffer overflow");
+            return TC_ERROR;
+        }
+        songlen += res;
+    }
+
+    tc_log_info(MOD_NAME, "********** Songs ***********");
+    tc_log_info(MOD_NAME, "%s", songbuf);
+
+    res = tc_snprintf(cmd + len, sizeof(cmd) - len, "-t %s", songbuf);
+    if (res < 0) {
+        tc_log_error(MOD_NAME, "cmd buffer overflow");
+        return TC_ERROR;
+    }
+    len += res;
+    tc_log_info(MOD_NAME, "Execute: %s", cmd);
+
+    return TC_OK;
+}
 
 
 /*************************************************************************/
@@ -89,6 +147,7 @@ static int detectsilence_init(TCModuleInstance *self, uint32_t features)
     self->userdata = pd;
 
     /* enforce defaults */
+    pd->scan_only      = TC_FALSE;
     pd->silence_frames = SILENCE_FRAMES;
     pd->aframe_size    = 0;
     pd->zeros          = 0;
@@ -143,19 +202,26 @@ static int detectsilence_configure(TCModuleInstance *self,
         pd->songs[i] = -1;
     }
 
+    pd->scan_only      = TC_FALSE;
     pd->silence_frames = SILENCE_FRAMES;
     pd->aframe_size    = (vob->a_rate * vob->a_chan * vob->a_bits / 8) / 1000;
     pd->zeros          = 0;
     pd->next           = 0;
     
     if (options != NULL) {
+        optstr_get(options, "scan_only",      "%d", &pd->scan_only);
         optstr_get(options, "silence_frames", "%d", &pd->silence_frames);
     }
 
     if (verbose) {
-        tc_log_info(MOD_NAME, "frame size = %i bytes; "
-                              "silence interval = %i frames",
+        tc_log_info(MOD_NAME, "frame size = %i bytes;"
+                              " silence interval = %i frames",
                               pd->aframe_size, pd->silence_frames);
+        if (pd->scan_only) {
+            tc_log_info(MOD_NAME, "silence interval detection enabled");
+        } else {
+            tc_log_info(MOD_NAME, "tcmp3cut commandline creation enabled");
+        }
     }
 
     return TC_OK;
@@ -170,9 +236,6 @@ static int detectsilence_configure(TCModuleInstance *self,
 
 static int detectsilence_stop(TCModuleInstance *self)
 {
-    char cmd[TC_BUF_MAX];
-    char songbuf[MAX_SONGS*12];  /* up to 11 chars and , per value */
-    int i, res, len = 0, songlen = 0;
     PrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "stop");
@@ -181,42 +244,12 @@ static int detectsilence_stop(TCModuleInstance *self)
 
     /* 
      * print out summary a stop time. There isn't any configure()d
-     * stuff torevert, anyway.
+     * stuff to revert, anyway.
      */
 
-    if (pd->next < 1) {
-        /* nothing to do in here */
-        return TC_OK;
+    if (!pd->scan_only) {
+        print_tcmp3cut_cmdline(pd);
     }
-
-    res = tc_snprintf(cmd, sizeof(cmd), "tcmp3cut -i in.mp3 -o base ");
-    if (res < 0) {
-        tc_log_error(MOD_NAME, "cmd buffer overflow");
-        return TC_ERROR;
-    }
-    len += res;
-    
-    for (i = 0; i < pd->next; i++) {
-        res = tc_snprintf(songbuf + songlen, sizeof(songbuf) - songlen,
-                          ",%d", pd->songs[i]);
-        if (res < 0) {
-            tc_log_error(MOD_NAME, "cmd buffer overflow");
-            return TC_ERROR;
-        }
-        songlen += res;
-    }
-
-    tc_log_info(MOD_NAME, "********** Songs ***********");
-    tc_log_info(MOD_NAME, "%s", songbuf);
-
-    res = tc_snprintf(cmd + len, sizeof(cmd) - len, "-t %s", songbuf);
-    if (res < 0) {
-        tc_log_error(MOD_NAME, "cmd buffer overflow");
-        return TC_ERROR;
-    }
-    len += res;
-    tc_log_info(MOD_NAME, "Execute: %s", cmd);
-
     return TC_OK;
 }
 
@@ -243,6 +276,10 @@ static int detectsilence_inspect(TCModuleInstance *self,
         *value = detectsilence_help; 
     }
 
+    if (optstr_lookup(param, "scan_only")) {
+        tc_snprintf(buf, sizeof(buf), "%d", pd->scan_only);
+        *value = buf;
+    }
     if (optstr_lookup(param, "silence_frames")) {
         tc_snprintf(buf, sizeof(buf), "%d", pd->silence_frames);
         *value = buf;
@@ -283,17 +320,21 @@ static int detectsilence_filter_audio(TCModuleInstance *self,
         pd->zeros++;
 
     /*
-     * if we have found at least silence_frames in a row,
-     * there must be a song change.
+     * former silence, now no more silence
      */
     if (pd->zeros >= pd->silence_frames && sum > 0) {
-        /* somwhere in the middle of silence */
-        pd->songs[pd->next] = ((frame->id - pd->zeros) * frame->audio_size) / pd->aframe_size;
-        pd->next++;
+        if (pd->scan_only) {
+            tc_log_info(MOD_NAME, "silence interval in frames [%i-%i]",
+                                  frame->id - pd->zeros, frame->id - 1);
+        } else {
+            /* somwhere in the middle of silence */
+            pd->songs[pd->next] = ((frame->id - pd->zeros) * frame->audio_size) / pd->aframe_size;
+            pd->next++;
 
-        if (pd->next > MAX_SONGS) {
-            tc_log_error(MOD_NAME, "Cannot save more songs");
-            return TC_ERROR;
+            if (pd->next > MAX_SONGS) {
+                tc_log_error(MOD_NAME, "Cannot save more songs");
+                return TC_ERROR;
+            }
         }
         pd->zeros = 0;
     }
@@ -355,6 +396,12 @@ static int detectsilence_get_config(TCModuleInstance *self, char *options)
 
     optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION,
                        MOD_AUTHOR, "AE", "1");
+
+    tc_snprintf(buf, sizeof(buf), "%i", pd->scan_only);
+    optstr_param(options, "scan_only",
+                 "only print out silence interval boundaries",
+                 "%d", buf, "0", "1"); /* max is arbitrary here */
+
     tc_snprintf(buf, sizeof(buf), "%i", pd->silence_frames);
     optstr_param(options, "silence_frames",
                  "minimum number of silence frames to detect a song change",
