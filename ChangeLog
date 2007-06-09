@@ -13,6 +13,9 @@
   * libtc/tcmodule-plugin.h
   a tiny bit more debug-friendly.
 
+  * filter/filter_levels.c
+  minor updates, port to new macros.
+
 2007-06-06 Francesco Romani <fromani at gmail dot com>
   * filter/filter_detectsilence.c filter/filter_resample.c
   S16_?? are int16_t internally, not uint16_t.
