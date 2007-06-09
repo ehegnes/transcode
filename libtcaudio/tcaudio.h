@@ -32,6 +32,15 @@ typedef enum {
     TCA_U16LE,
 } AudioFormat;
 
+typedef enum {
+    TCA_S8_MAX    = 0x7F,
+    TCA_U8_MAX    = 0xFF,
+    TCA_S16BE_MAX = 0x7FFF,
+    TCA_S16LE_MAX = 0x7FFF,
+    TCA_U16BE_MAX = 0xFFFF,
+    TCA_U16LE_MAX = 0xFFFF,
+} AudioSampleMax;
+
 /*************************************************************************/
 
 TCAHandle tca_init(AudioFormat format);
