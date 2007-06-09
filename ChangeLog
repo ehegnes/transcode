@@ -3,6 +3,9 @@
   Add constants for maximum allow sample values for any
   recognized format.
 
+  * filter/filter_astat.c filter/filter_detectsilence.c
+  Use new tcaudio constants for max sample values.
+
 2007-06-06 Francesco Romani <fromani at gmail dot com>
   * filter/filter_detectsilence.c filter/filter_resample.c
   S16_?? are int16_t internally, not uint16_t.

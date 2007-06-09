@@ -36,7 +36,10 @@
 #include "filter.h"
 #include "libtc/libtc.h"
 #include "libtc/optstr.h"
+
 #include "libtc/tcmodule-plugin.h"
+
+#include "libtcaudio/tcaudio.h"
 
 // TODO: silence threshold(s)?
 
@@ -194,8 +197,8 @@ static int astat_stop(TCModuleInstance *self)
                               " unable to find scale value");
         ret = TC_ERROR;
     } else {
-        double fmin = -((double) pd->min)/0x7FFF;
-        double fmax =  ((double) pd->max)/0x7FFF;
+        double fmin = -((double) pd->min)/TCA_S16LE_MAX;
+        double fmax =  ((double) pd->max)/TCA_S16LE_MAX;
         /* FIXME: constantize in libtcaudio */
         double vol = (fmin < fmax) ? 1./fmax : 1./fmin;
 

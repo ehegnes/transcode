@@ -38,6 +38,8 @@
 
 #include "libtc/tcmodule-plugin.h"
 
+#include "libtcaudio/tcaudio.h"
+
 #include <math.h>
 
 
@@ -270,7 +272,7 @@ static int detectsilence_filter_audio(TCModuleInstance *self,
     pd = self->userdata;
 
     for (i = 0; i < frame->audio_size / 2; i++) {
-        p += fabs((double)(*s++)/((double)(0x7FFF) * 1.0)); 
+        p += fabs((double)(*s++)/((double)TCA_S16LE_MAX * 1.0)); 
         /* FIXME: constantize in libtcaudio */
     }
 
