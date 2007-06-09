@@ -132,7 +132,7 @@ const TCModuleClass *tc_plugin_setup(void);
     \
     int tc_filter(frame_list_t *frame, char *options) \
     { \
-	TCModuleInstance *mod = mods[frame->filter_id]; \
+	TCModuleInstance *mod = &mods[frame->filter_id]; \
 	\
         if (frame->tag & TC_FILTER_INIT) { \
             if (name ## _init(mod, TC_MODULE_FEATURE_FILTER) < 0) { \
