@@ -135,6 +135,7 @@ const TCModuleClass *tc_plugin_setup(void);
 	TCModuleInstance *mod = &mods[frame->filter_id]; \
 	\
         if (frame->tag & TC_FILTER_INIT) { \
+            tc_log_info(MOD_NAME, "instance #%i", frame->filter_id); \
             if (name ## _init(mod, TC_MODULE_FEATURE_FILTER) < 0) { \
                 return TC_ERROR; \
             } \

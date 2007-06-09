@@ -10,6 +10,9 @@
   minor cleanups; add an option to just detection silence intervals
   in audio track.
 
+  * libtc/tcmodule-plugin.h
+  a tiny bit more debug-friendly.
+
 2007-06-06 Francesco Romani <fromani at gmail dot com>
   * filter/filter_detectsilence.c filter/filter_resample.c
   S16_?? are int16_t internally, not uint16_t.
