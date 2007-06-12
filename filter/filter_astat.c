@@ -41,7 +41,7 @@
 
 #include "libtcaudio/tcaudio.h"
 
-// TODO: silence threshold(s)?
+#define SILENCE_MAX_VALUE   0
 
 /*************************************************************************/
 
@@ -50,13 +50,17 @@ static const char help_string[] = ""
     "    This filter scan audio track and compute optimal rescale value.\n"
     "    It can also detect if the audio track is silence only.\n"
     "Options:\n"
-    "    help    produce module overview and options explanations\n"
-    "    file    save audio track statistics to given file instead to print them\n";
+    "    help            produce module overview and options explanations\n"
+    "    silence_limit   maximum audio amplitude of silence values\n"
+    "    file            save audio track statistics to given file instead\n"
+    "                    to print them\n";
 
 
 typedef struct {
     int32_t min;
     int32_t max;
+
+    int silence_limit;
 
     char *filepath;
 
@@ -105,6 +109,7 @@ static int astat_init(TCModuleInstance *self, uint32_t features)
     pd->min           = 0;
     pd->max           = 0;
     pd->filepath      = NULL;
+    pd->silence_limit = SILENCE_MAX_VALUE;
 
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
@@ -154,6 +159,7 @@ static int astat_configure(TCModuleInstance *self,
     pd->min           = 0;
     pd->max           = 0;
     pd->filepath      = NULL;
+    pd->silence_limit = SILENCE_MAX_VALUE;
 
     if (options) {
         char buf[1024];
@@ -165,8 +171,14 @@ static int astat_configure(TCModuleInstance *self,
             }
 
             if (verbose) {
-                tc_log_info(MOD_NAME, "saving audio scale value to '%s'", pd->filepath);
+                tc_log_info(MOD_NAME, "saving audio scale value to '%s'",
+                            pd->filepath);
             }
+        }
+        optstr_get(options, "silence_limit", "%u", &pd->silence_limit);
+        if (verbose) {
+            tc_log_info(MOD_NAME, "silence threshold value: %i",
+                        pd->silence_limit);
         }
     }
 
@@ -190,7 +202,7 @@ static int astat_stop(TCModuleInstance *self)
     pd = self->userdata;
 
     /* stats summary */
-    if (pd->min == 0 && pd->max == 0) {
+    if (pd->min >= pd->silence_limit && pd->max <= pd->silence_limit) {
         tc_log_info(MOD_NAME, "audio track seems only silence");
     } else if (pd->min == 0 || pd->max == 0) {
         tc_log_warn(MOD_NAME, "bad minimum/maximum value,"
@@ -257,7 +269,11 @@ static int astat_inspect(TCModuleInstance *self,
             *value = pd->optstr_buf;
         }
     }
-    /* put back configurable options */
+    if (optstr_lookup(param, "silence_limit")) {
+        tc_snprintf(pd->optstr_buf, sizeof(pd->optstr_buf),
+                    "%i", pd->silence_limit);
+        *value = pd->optstr_buf;
+    }
 
     return TC_OK;
 }
@@ -335,6 +351,7 @@ extern const TCModuleClass *tc_plugin_setup(void)
 
 static int astat_get_config(TCModuleInstance *self, char *options)
 {
+    char buf[TC_BUF_MIN];
     PrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "get_config");
@@ -344,6 +361,10 @@ static int astat_get_config(TCModuleInstance *self, char *options)
     optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION,
                        MOD_AUTHOR, "AE", "1");
     optstr_param(options, "file", "save rescale value to file", "%s", "");
+
+    tc_snprintf(buf, sizeof(buf), "%i", pd->silence_limit);
+    optstr_param(options, "silence_limit", "maximum silence amplitude",
+                          "%i", buf, "0", "1024"); /* pretty arbitrary */
 
     return TC_OK;
 }
