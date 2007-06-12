@@ -2,6 +2,9 @@
   * filter/filter_astat.c
   tunable silence threshold.
 
+  * tools/tcmodinfo.c
+  dont double-print help message (due to old, now invalid, request).
+
 2007-06-09 Francesco Romani <fromani at gmail dot com>
   * libtcaudio/tcaudio.h
   Add constants for maximum allow sample values for any

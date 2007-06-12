@@ -286,10 +286,6 @@ int main(int argc, char *argv[])
                 puts(answer);
                 /* module capabilities */
                 tc_module_show_info(module, verbose);
-                /* current configuration */
-                puts("\ndefault module configuration:");
-                tc_module_inspect(module, "all", &answer);
-                puts(answer);
             }
             if (strlen(modarg) > 0) {
                 tc_log_info(EXE, "informations about '%s' for "
