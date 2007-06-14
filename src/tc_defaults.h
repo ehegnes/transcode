@@ -173,21 +173,22 @@
 #define CODEC_VAG     0xfeed //me pizza
 
 //import/export frame attributes
-#define TC_FRAME_IS_KEYFRAME         1
-#define TC_FRAME_IS_INTERLACED       2
-#define TC_FRAME_IS_BROKEN           4
-#define TC_FRAME_IS_SKIPPED          8
-#define TC_FRAME_IS_RGB             16 // XXX
-#define TC_FRAME_IS_YUV             32 // XXX
-#define TC_FRAME_IS_PCM             64 // XXX
-#define TC_FRAME_IS_AC3            128 // XXX
-#define TC_FRAME_IS_CLONED         256
-#define TC_FRAME_WAS_CLONED        512
-#define TC_FRAME_IS_OUT_OF_RANGE  1024
-#define TC_FRAME_IS_I_FRAME       2048
-#define TC_FRAME_IS_P_FRAME       4096
-#define TC_FRAME_IS_B_FRAME       8192
-#define TC_FRAME_IS_DELAYED      16384
+#define TC_FRAME_IS_KEYFRAME           1
+#define TC_FRAME_IS_INTERLACED         2
+#define TC_FRAME_IS_BROKEN             4
+#define TC_FRAME_IS_SKIPPED            8
+#define TC_FRAME_IS_RGB               16 // XXX
+#define TC_FRAME_IS_YUV               32 // XXX
+#define TC_FRAME_IS_PCM               64 // XXX
+#define TC_FRAME_IS_AC3              128 // XXX
+#define TC_FRAME_IS_CLONED           256
+#define TC_FRAME_WAS_CLONED          512
+#define TC_FRAME_IS_OUT_OF_RANGE    1024
+#define TC_FRAME_IS_I_FRAME         2048
+#define TC_FRAME_IS_P_FRAME         4096
+#define TC_FRAME_IS_B_FRAME         8192
+#define TC_FRAME_IS_DELAYED        16384
+#define TC_FRAME_IS_END_OF_STREAM  32768
 
 #define TC_INFO_NO_DEMUX        1
 #define TC_INFO_MPEG_PS         2

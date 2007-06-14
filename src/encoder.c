@@ -482,6 +482,11 @@ static int is_last_frame(TCEncoderData *encdata, int cluster_mode)
     if (cluster_mode) {
         fid -= tc_get_frames_dropped();
     }
+
+    if (encdata->buffer->vptr->attributes & TC_FRAME_IS_END_OF_STREAM
+     || encdata->buffer->aptr->attributes & TC_FRAME_IS_END_OF_STREAM) {
+        return 1;
+    }
     return (fid == encdata->frame_last);
 }
 
@@ -1247,48 +1252,48 @@ static char *base = NULL;
 
 void tc_outstream_rotate_request(void)
 {
-  //set flag
-  rotate_flag = 1;
+    //set flag
+    rotate_flag = 1;
 }
 
 void tc_outstream_rotate(void)
 {
+    char buf[TC_BUF_MAX];
+    vob_t *vob=tc_get_vob();
 
-  char buf[TC_BUF_MAX];
-  vob_t *vob=tc_get_vob();
+    if (!rotate_flag)
+        return;
 
-  if(!rotate_flag) return;
+    //reset flag to avoid re-entry
+    rotate_flag=0;
 
-  //reset flag to avoid re-entry
-  rotate_flag=0;
+    // do not try to rename /dev/null
+    if(strcmp(vob->video_out_file, "/dev/null") == 0)
+        return;
 
-  // do not try to rename /dev/null
-  if(strcmp(vob->video_out_file, "/dev/null") == 0) return;
+    // get current outfile basename
+    base = tc_strdup(vob->video_out_file);
 
-  // get current outfile basename
-  base=tc_strdup(vob->video_out_file);
+    //check
+    if (base == NULL)
+        return;
 
-  //check
-  if(base==NULL) return;
+    // close output
+    if (encoder_close()<0)
+        tc_error("failed to close output");
 
-  // close output
-  if(encoder_close()<0)
-    tc_error("failed to close output");
+    // create new filename
+    tc_snprintf(buf, sizeof(buf), "%s-%03d", base, rotate_ctr++);
+    //rename old outputfile
+    if (xio_rename(base, buf) < 0)
+        tc_error("failed to rename output file");
 
-  // create new filename
-  tc_snprintf(buf, sizeof(buf), "%s-%03d", base, rotate_ctr++);
+    // reopen output
+    if (encoder_open(vob) < 0)
+        tc_error("failed to open output");
 
-  //rename old outputfile
-  if(xio_rename(base, buf)<0) tc_error("failed to rename output file");
-
-  // reopen output
-  if(encoder_open(vob)<0)
-    tc_error("failed to open output");
-
-  tc_log_info(__FILE__, "outfile %s saved to %s", base, buf);
-
-  free(base);
-
+    tc_log_info(__FILE__, "outfile %s saved to %s", base, buf);
+    free(base);
 }
 
 /*************************************************************************/

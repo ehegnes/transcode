@@ -473,10 +473,7 @@ void vimport_thread(vob_t *vob)
     // bytes per video frame
     vbytes = vob->im_v_size;
 
-    for(;;) {
-//        // init structure
-//        memset(&import_para, 0, sizeof(transfer_t));
-
+    for (; TC_TRUE; i++) {
         if (verbose >= TC_STATS)
             tc_log_msg(__FILE__, "%10s [%ld] V=%d bytes", "requesting", i, vbytes);
 
@@ -538,14 +535,8 @@ void vimport_thread(vob_t *vob)
             if(verbose & TC_DEBUG)
                 tc_log_msg(__FILE__, "video data read failed - end of stream");
 
-            // stop decoder
-            vframe_remove(ptr);
-
-            // set flag
-            vimport_stop();
-
-            //exit
-            pthread_exit( (int *) 13);
+            ptr->video_size = 0;
+            ptr->attributes = TC_FRAME_IS_END_OF_STREAM;
         }
 
         // init frame buffer structure with import frame data
@@ -581,11 +572,14 @@ void vimport_thread(vob_t *vob)
         if (verbose & TC_STATS)
             tc_log_msg(__FILE__, "%10s [%ld] V=%d bytes", "received", i, ptr->video_size);
 
+        //exit
+        if (ret < 0) {
+            vimport_stop();
+            pthread_exit( (int *) 13);
+        }
         // check for pending shutdown via ^C
         if (vimport_test_shutdown())
             pthread_exit( (int *)14);
-
-        i++; // get next frame
     }
 }
 
@@ -654,10 +648,7 @@ void aimport_thread(vob_t *vob)
     // bytes per audio frame
     abytes = vob->im_a_size;
 
-    for(;;) {
-//        // init structure
-//        memset(&import_para, 0, sizeof(transfer_t));
-
+    for (; TC_TRUE; i++) {
         // audio adjustment for non PAL frame rates:
         if (i != 0 && i % TC_LEAP_FRAME == 0) {
             abytes = vob->im_a_size + vob->a_leap_bytes;
@@ -730,14 +721,8 @@ void aimport_thread(vob_t *vob)
             if (verbose & TC_DEBUG)
                 tc_log_msg(__FILE__, "audio data read failed - end of stream");
 
-            // stop decoder
-            aframe_remove(ptr);
-
-            // set flag
-            aimport_stop();
-
-            //exit
-            pthread_exit((int *) 13);
+            ptr->audio_size = 0;
+            ptr->attributes = TC_FRAME_IS_END_OF_STREAM;
         }
 
         // init frame buffer structure with import frame data
@@ -771,11 +756,15 @@ void aimport_thread(vob_t *vob)
         if (verbose & TC_STATS)
             tc_log_msg(__FILE__, "%10s [%ld] A=%d bytes", "received", i, ptr->audio_size);
 
+        //exit
+        if (ret < 0) {
+            // set flag
+            aimport_stop();
+            pthread_exit( (int *) 13);
+        }
         // check for pending shutdown via ^C
         if (aimport_test_shutdown())
             pthread_exit((int *)14);
-
-        i++; // get next frame
     }
 }
 

@@ -1,3 +1,22 @@
+2007-06-14 Francesco Romani <fromani at gmail dot com>
+  * src/decoder.c src/encoder-buffer.c src/encoder,c
+    src/tc_defaults.h
+  new thread code recently added has some design flaws that can
+  lead to race conditions, triggered by usage of import modules that
+  uses (some flavour of) popen(). This patchset improves
+  significantly this behaviour. I'm still not fully satisfied of how
+  things works, but this is much better than past. Anyway, further
+  testing is still needed, especially when using filters.
+  Moreover, I've not performed full-blown code analysis hunting for
+  race conditions. I'll follow up on this ASAP.
+  
+  The key idea is to explicitely notify EOS by let the decoder to
+  push into filters/encoder special tagged zero-sized frames,
+  instead to just exit as soon as is possible making some noise.
+  A couple of bugs on encoder side are been fixed as well (two
+  nested loops are dangerous, and fill_level conditions still needs
+  some sanitization).
+
 2007-06-12 Francesco Romani <fromani at gmail dot com>
   * filter/filter_astat.c
   tunable silence threshold.
