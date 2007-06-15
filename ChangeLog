@@ -1,3 +1,13 @@
+2007-06-15 Francesco Romani <fromani at gmail dot com>
+  * src/framebuffer.h src/encoder-buffer.c src/frame_threads.c
+  check if TC_FRAME_IS_END_OF_STREAM even at filter layer;
+  rename checking macro to use a sane name and export it to
+  framebuffer.h.
+
+  * src/framebuffer.h src/tc_defaults.h
+  enum-erize frame attributes constants and move them where they
+  belongs, into framebuffer.h.
+
 2007-06-14 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c src/encoder-buffer.c src/encoder,c
     src/tc_defaults.h

@@ -361,7 +361,7 @@ void process_vframe(vob_t *vob)
 
         DROP_vptr_if_skipped(ptr)
 
-        if (!(ptr->attributes & TC_FRAME_IS_OUT_OF_RANGE)) {
+        if (TC_FRAME_NEED_PROCESSING(ptr)) {
             // external plugin pre-processing
             ptr->tag = TC_VIDEO|TC_PRE_M_PROCESS;
             tc_filter_process((frame_list_t *)ptr);
@@ -446,7 +446,7 @@ void process_aframe(vob_t *vob)
 
         DROP_aptr_if_skipped(ptr)
 
-        if (!(ptr->attributes & TC_FRAME_IS_OUT_OF_RANGE)) {
+        if (TC_FRAME_NEED_PROCESSING(ptr)) {
 	        // external plugin pre-processing
         	ptr->tag = TC_AUDIO|TC_PRE_M_PROCESS;
         	tc_filter_process((frame_list_t *)ptr);

@@ -179,19 +179,13 @@ static void encoder_dispose_aframe(TCEncoderBuffer *buf);
 
 /*************************************************************************/
 
-#define FRAME_IS_IN_RANGE(PTR) \
-    (((PTR)->attributes & TC_FRAME_IS_OUT_OF_RANGE) \
-     || ((PTR)->attributes & TC_FRAME_IS_END_OF_STREAM))
-
-/*************************************************************************/
-
 static void apply_video_filters(vframe_list_t *vptr, vob_t *vob)
 {
     if (!have_vframe_threads) {
         DEC_VBUF_COUNTER(im);
         INC_VBUF_COUNTER(xx);
 
-        if (!FRAME_IS_IN_RANGE(vptr)) {
+        if (TC_FRAME_NEED_PROCESSING(vptr)) {
             /* external plugin pre-processing */
             vptr->tag = TC_VIDEO|TC_PRE_M_PROCESS;
             tc_filter_process((frame_list_t *)vptr);
@@ -209,7 +203,7 @@ static void apply_video_filters(vframe_list_t *vptr, vob_t *vob)
         INC_VBUF_COUNTER(ex);
     }
 
-    if (!FRAME_IS_IN_RANGE(vptr)) {
+    if (TC_FRAME_NEED_PROCESSING(vptr)) {
         /* second stage post-processing - (synchronous) */
         vptr->tag = TC_VIDEO|TC_POST_S_PROCESS;
         tc_filter_process((frame_list_t *)vptr);
@@ -227,7 +221,7 @@ static void apply_audio_filters(aframe_list_t *aptr, vob_t *vob)
         DEC_ABUF_COUNTER(im);
         INC_ABUF_COUNTER(xx);
 
-        if (!FRAME_IS_IN_RANGE(aptr)) {
+        if (TC_FRAME_NEED_PROCESSING(aptr)) {
             /* external plugin pre-processing */
             aptr->tag = TC_AUDIO|TC_PRE_M_PROCESS;
             tc_filter_process((frame_list_t *)aptr);
@@ -245,7 +239,7 @@ static void apply_audio_filters(aframe_list_t *aptr, vob_t *vob)
         INC_ABUF_COUNTER(ex);
     }
 
-    if (!FRAME_IS_IN_RANGE(aptr)) {
+    if (TC_FRAME_NEED_PROCESSING(aptr)) {
         /* second stage post-processing - (synchronous) */
         aptr->tag = TC_AUDIO|TC_POST_S_PROCESS;
         tc_filter_process((frame_list_t *)aptr);

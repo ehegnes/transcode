@@ -35,6 +35,24 @@
 
 #include "tc_defaults.h"
 
+/* frame attributes */
+typedef enum tcframeattributes_ TCFrameAttributes;
+enum tcframeattributes_ {
+    TC_FRAME_IS_KEYFRAME       =   1,
+    TC_FRAME_IS_INTERLACED     =   2,
+    TC_FRAME_IS_BROKEN         =   4,
+    TC_FRAME_IS_SKIPPED        =   8,
+    TC_FRAME_IS_CLONED         =  16,
+    TC_FRAME_WAS_CLONED        =  32,
+    TC_FRAME_IS_OUT_OF_RANGE   =  64,
+    TC_FRAME_IS_DELAYED        = 128,
+    TC_FRAME_IS_END_OF_STREAM  = 256,
+};
+
+#define TC_FRAME_NEED_PROCESSING(PTR) \
+    (!((PTR)->attributes & TC_FRAME_IS_OUT_OF_RANGE) \
+     && !((PTR)->attributes & TC_FRAME_IS_END_OF_STREAM))
+
 typedef enum tcframestatus_ TCFrameStatus;
 enum tcframestatus_ {
     FRAME_NULL = -1, /* not yet claimed */
