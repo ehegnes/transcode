@@ -8,6 +8,11 @@
   enum-erize frame attributes constants and move them where they
   belongs, into framebuffer.h.
 
+  * src/transcode.h
+  include framebuffer.h. Of course it would be better to #include
+  framebuffer.h directly in every place needed, but that is for
+  today.
+
 2007-06-14 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c src/encoder-buffer.c src/encoder,c
     src/tc_defaults.h

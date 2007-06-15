@@ -52,6 +52,7 @@ typedef unsigned int uint32_t;
 #endif
 
 #include "tc_defaults.h"
+#include "framebuffer.h"
 #include "libtc/libtc.h"
 
 /*************************************************************************/
