@@ -13,6 +13,10 @@
   framebuffer.h directly in every place needed, but that is for
   today.
 
+  * import/import_dvd.c import/import_mpeg2.c import/import_vob.c
+  kill TC_FRAME_IS_{I,B,P}_FRAME attributes: they was set on those
+  modules and never used again.
+
 2007-06-14 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c src/encoder-buffer.c src/encoder,c
     src/tc_defaults.h

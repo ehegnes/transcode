@@ -418,7 +418,7 @@ MOD_decode
 	        tc_log_info(MOD_NAME, "Completed a sequence + I frame from %d -> %d",
 				start_seq, tbuf.off);
 
-	      param->attributes |= ( TC_FRAME_IS_KEYFRAME | TC_FRAME_IS_I_FRAME);
+	      param->attributes |= TC_FRAME_IS_KEYFRAME;
 	      param->size = tbuf.off-start_seq;
 
 	      // spit frame out
@@ -469,8 +469,6 @@ MOD_decode
 			  start_pic, tbuf.off);
 
 	      param->size = tbuf.off - start_pic;
-	      if (pic_type == 2) param->attributes |= TC_FRAME_IS_P_FRAME;
-	      if (pic_type == 3) param->attributes |= TC_FRAME_IS_B_FRAME;
 
 	      ac_memcpy(param->buffer, tbuf.d+start_pic, param->size);
 	      memmove(tbuf.d, tbuf.d+param->size, tbuf.len-param->size);
@@ -489,8 +487,6 @@ MOD_decode
 			     start_pic, tbuf.off);
 
 		 param->size = tbuf.off - start_pic;
-		 if (pic_type == 2) param->attributes |= TC_FRAME_IS_P_FRAME;
-		 if (pic_type == 3) param->attributes |= TC_FRAME_IS_B_FRAME;
 
 		 ac_memcpy(param->buffer, tbuf.d+start_pic, param->size);
 		 memmove(tbuf.d, tbuf.d+param->size, tbuf.len-param->size);
