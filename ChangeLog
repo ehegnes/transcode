@@ -3,7 +3,9 @@
   decoder rewrite take 1: starting base clean up.
   decoder rewrite take 2: factorize internal data in a structure.
   decoder rewrite take 3: a little more STYLEish. Check module
-                          capabilities against tables, not using switch(es)
+                          capabilities against tables, not using
+			  switch(es).
+  decoder rewrite take 4: generic shutdown test code.
 
   * src/decoder.c src/transcode.c src/transcode.h
   tc_pthread_main is used only in decoder.c, so move it in here.

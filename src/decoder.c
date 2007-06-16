@@ -36,6 +36,8 @@
 
 typedef struct tcdecoderdata_ TCDecoderData;
 struct tcdecoderdata_ {
+    const char *tag;
+
     FILE *fd;
 
     void *im_handle;
@@ -53,6 +55,7 @@ static void video_import_thread(vob_t *vob);
 /*************************************************************************/
 
 static TCDecoderData vid_decdata = {
+    .tag          = "video",
     .fd           = NULL,
     .im_handle    = NULL,
     .active_flag  = 0,
@@ -62,6 +65,7 @@ static TCDecoderData vid_decdata = {
 };
 
 static TCDecoderData aud_decdata = {
+    .tag          = "audio",
     .fd           = NULL,
     .im_handle    = NULL,
     .active_flag  = 0,
@@ -123,6 +127,30 @@ static int check_module_caps(const transfer_t *param, int codec,
     }
     return caps;
 }
+
+/*************************************************************************/
+/*                           generics                                    */
+/*************************************************************************/
+
+static int import_test_shutdown(TCDecoderData *decdata)
+{
+    int flag;
+
+    pthread_mutex_lock(&decdata.lock);
+    flag = decdata.active_flag;
+    pthread_mutex_unlock(&decdata.lock);
+
+    if (!flag) {
+        if (verbose & TC_DEBUG) {
+            tc_log_msg(__FILE__, "%s import cancelation requested",
+                       decdata.tag);
+        }
+        return 1;  // notify thread to exit immediately
+    }
+
+    return 0;
+}
+
 
 /*************************************************************************/
 
@@ -418,33 +446,6 @@ int import_close(void)
 
 //-------------------------------------------------------------------------
 //
-// check for video import flag
-//
-// called by video import thread, returns 1 on exit request
-//
-//-------------------------------------------------------------------------
-
-
-static int vimport_test_shutdown(void)
-{
-    int flag;
-
-    pthread_mutex_lock(&vid_decdata.lock);
-    flag = vid_decdata.active_flag;
-    pthread_mutex_unlock(&vid_decdata.lock);
-
-    if (!flag) {
-        if (verbose & TC_DEBUG) {
-            tc_log_msg(__FILE__, "video import cancelation requested");
-        }
-        return 1;  // notify thread to exit immediately
-    }
-
-    return 0;
-}
-
-//-------------------------------------------------------------------------
-//
 // optimized fread, use with care
 //
 //-------------------------------------------------------------------------
@@ -526,7 +527,7 @@ void video_import_thread(vob_t *vob)
             pthread_testcancel();
 #endif
 
-            if (vimport_test_shutdown()) {
+            if (import_test_shutdown(&vid_decdata)) {
                 pthread_exit((int *)11);
             }
         }
@@ -605,35 +606,9 @@ void video_import_thread(vob_t *vob)
             vimport_stop();
             pthread_exit( (int *)13);
         }
-        if (vimport_test_shutdown())
+        if (import_test_shutdown(&vid_decdata))
             pthread_exit( (int *)14);
     }
-}
-
-//-------------------------------------------------------------------------
-//
-// check for audio import status flag
-//
-// called by audio import thread, returns 1 on exit request
-//
-//-------------------------------------------------------------------------
-
-static int aimport_test_shutdown(void)
-{
-    int flag;
-
-    pthread_mutex_lock(&aud_decdata.lock);
-    flag = aud_decdata.active_flag;
-    pthread_mutex_unlock(&aud_decdata.lock);
-
-    if (!flag) {
-        if (verbose & TC_DEBUG) {
-            tc_log_msg(__FILE__, "audio import cancelation requested");
-        }
-
-        return 1;  // notify thread to exit immediately
-    }
-    return 0;
 }
 
 //-------------------------------------------------------------------------
@@ -697,7 +672,7 @@ void audio_import_thread(vob_t *vob)
             pthread_testcancel();
 #endif
 
-            if (aimport_test_shutdown()) {
+            if (import_test_shutdown(&aud_decdata)) {
                 pthread_exit((int *)11);
             }
         }
@@ -781,9 +756,9 @@ void audio_import_thread(vob_t *vob)
 
         if (ret < 0) {
             aimport_stop();
-            pthread_exit( (int *) 13);
+            pthread_exit( (int *)13);
         }
-        if (aimport_test_shutdown())
+        if (import_test_shutdown(&aud_decdata))
             pthread_exit((int *)14);
     }
 }
