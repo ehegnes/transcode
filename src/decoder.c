@@ -136,14 +136,14 @@ static int import_test_shutdown(TCDecoderData *decdata)
 {
     int flag;
 
-    pthread_mutex_lock(&decdata.lock);
-    flag = decdata.active_flag;
-    pthread_mutex_unlock(&decdata.lock);
+    pthread_mutex_lock(&decdata->lock);
+    flag = decdata->active_flag;
+    pthread_mutex_unlock(&decdata->lock);
 
     if (!flag) {
         if (verbose & TC_DEBUG) {
             tc_log_msg(__FILE__, "%s import cancelation requested",
-                       decdata.tag);
+                       decdata->tag);
         }
         return 1;  // notify thread to exit immediately
     }
