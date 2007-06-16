@@ -52,22 +52,22 @@ static void video_import_thread(vob_t *vob);
 
 /*************************************************************************/
 
-static TCEncoderData vid_decdata = {
-    .fd           = NULL;
-    .im_handle    = NULL;
-    .active_flag  = 0;
-    .thread_id    = (pthread_t)0;
-    .list_full_cv = PTHREAD_COND_INITIALIZER;
-    .lock         = PTHREAD_MUTEX_INITIALIXER;
+static TCDecoderData vid_decdata = {
+    .fd           = NULL,
+    .im_handle    = NULL,
+    .active_flag  = 0,
+    .thread_id    = (pthread_t)0,
+    .list_full_cv = PTHREAD_COND_INITIALIZER,
+    .lock         = PTHREAD_MUTEX_INITIALIZER,
 };
 
-static TCEncoderData aud_decdata = {
-    .fd           = NULL;
-    .im_handle    = NULL;
-    .active_flag  = 0;
-    .thread_id    = (pthread_t)0;
-    .list_full_cv = PTHREAD_COND_INITIALIZER;
-    .lock         = PTHREAD_MUTEX_INITIALIXER;
+static TCDecoderData aud_decdata = {
+    .fd           = NULL,
+    .im_handle    = NULL,
+    .active_flag  = 0,
+    .thread_id    = (pthread_t)0,
+    .list_full_cv = PTHREAD_COND_INITIALIZER,
+    .lock         = PTHREAD_MUTEX_INITIALIZER,
 };
 
 /*************************************************************************/
@@ -246,8 +246,9 @@ int import_init(vob_t *vob, char *a_mod, char *v_mod)
 
     // load video import module
 
-    import_vhandle = load_module(((v_mod==NULL)? TC_DEFAULT_IMPORT_VIDEO: v_mod), TC_IMPORT+TC_VIDEO);
-    FAIL_IF_NULL(import_vhandle, "video");
+    v_mod = (v_mod == NULL) ?TC_DEFAULT_IMPORT_VIDEO :v_mod;
+    vid_decdata.im_handle = load_module(v_mod, TC_IMPORT+TC_VIDEO);
+    FAIL_IF_NULL(vid_decdata.im_handle, "video");
 
     vimport_start();
 
@@ -614,7 +615,7 @@ static int aimport_test_shutdown(void)
     int flag;
 
     pthread_mutex_lock(&aud_decdata.lock);
-    ret = aud_decdata.active_flag;
+    flag = aud_decdata.active_flag;
     pthread_mutex_unlock(&aud_decdata.lock);
 
     if(!flag) {
@@ -801,7 +802,7 @@ void import_shutdown()
     }
 
     unload_module(vid_decdata.im_handle);
-    vid_decdata.im_hanlde = NULL;
+    vid_decdata.im_handle = NULL;
 }
 
 //-------------------------------------------------------------------------
