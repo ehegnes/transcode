@@ -31,29 +31,46 @@
 #include "encoder.h"
 #include "frame_threads.h"
 
-// stream handle
-static FILE *fd_ppm = NULL;
-static FILE *fd_pcm = NULL;
 
-// import module handle
-static void *import_ahandle = NULL;
-static void *import_vhandle = NULL;
+/*************************************************************************/
 
-// import flags (1=import active | 0=import closed)
-static volatile int aimport = 0;
-static volatile int vimport = 0;
-static pthread_mutex_t import_v_lock = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t import_a_lock = PTHREAD_MUTEX_INITIALIZER;
+typedef struct tcdecoderdata_ TCDecoderData;
+struct tcdecoderdata_ {
+    FILE *fd;
 
-static pthread_t athread = 0;
-static pthread_t vthread = 0;
+    void *im_handle;
 
-static pthread_cond_t aframe_list_full_cv = PTHREAD_COND_INITIALIZER;
-static pthread_cond_t vframe_list_full_cv = PTHREAD_COND_INITIALIZER;
+    volatile int active_flag;
 
-// threads
-static void aimport_thread(vob_t *vob);
-static void vimport_thread(vob_t *vob);
+    pthread_t thread_id;
+    pthread_cond_t list_full_cv;
+    pthread_mutex_t lock;
+};
+
+static void audio_import_thread(vob_t *vob);
+static void video_import_thread(vob_t *vob);
+
+/*************************************************************************/
+
+static TCEncoderData vid_decdata = {
+    .fd           = NULL;
+    .im_handle    = NULL;
+    .active_flag  = 0;
+    .thread_id    = (pthread_t)0;
+    .list_full_cv = PTHREAD_COND_INITIALIZER;
+    .lock         = PTHREAD_MUTEX_INITIALIXER;
+};
+
+static TCEncoderData aud_decdata = {
+    .fd           = NULL;
+    .im_handle    = NULL;
+    .active_flag  = 0;
+    .thread_id    = (pthread_t)0;
+    .list_full_cv = PTHREAD_COND_INITIALIZER;
+    .lock         = PTHREAD_MUTEX_INITIALIXER;
+};
+
+/*************************************************************************/
 
 //-------------------------------------------------------------------------
 //
@@ -63,8 +80,8 @@ static void vimport_thread(vob_t *vob);
 
 void tc_import_stop_nolock()
 {
-    vimport = 0;
-    aimport = 0;
+    vid_decdata.active_flag = 0;
+    aud_decdata.active_flag = 0;
     return;
 }
 
@@ -117,8 +134,8 @@ void import_threads_cancel()
     // notify import threads, if not yet done, that task is done
     tc_import_stop();
 
-    vret = pthread_cancel(vthread);
-    aret = pthread_cancel(athread);
+    vret = pthread_cancel(vid_decdata.thread_id);
+    aret = pthread_cancel(aud_decdata.thread_id);
 
     if (verbose & TC_DEBUG) {
         if (vret == ESRCH)
@@ -135,24 +152,24 @@ void import_threads_cancel()
     //wait for threads to terminate
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
     /* in facts our threading code is broken in more than one sense... FR */
-    pthread_cond_signal(&vframe_list_full_cv);
+    pthread_cond_signal(&vid_decdata.list_full_cv);
 #endif
 #ifdef HAVE_IBP
     pthread_mutex_unlock(&xio_lock);
 #endif
-    vret = pthread_join(vthread, &status);
+    vret = pthread_join(vid_decdata.thread_id, &status);
 
     if (verbose & TC_DEBUG)
         tc_log_msg(__FILE__, "video thread exit (ret_code=%d) (status_code=%lu)",
                    vret, (unsigned long)status);
 
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
-    pthread_cond_signal(&aframe_list_full_cv);
+    pthread_cond_signal(&aud_decdata.list_full_cv);
 #endif
 #ifdef HAVE_IBP
     pthread_mutex_unlock(&xio_lock);
 #endif
-    aret = pthread_join(athread, &status);
+    aret = pthread_join(aud_decdata.thread_id, &status);
 
     if (verbose & TC_DEBUG)
         tc_log_msg(__FILE__, "audio thread exit (ret_code=%d) (status_code=%lu)",
@@ -181,12 +198,12 @@ void import_threads_create(vob_t *vob)
 
     aimport_start();
 
-    if (pthread_create(&athread, NULL, (void *)aimport_thread, vob) != 0)
+    if (pthread_create(&aud_decdata.thread_id, NULL, (void *)audio_import_thread, vob) != 0)
         tc_error("failed to start audio stream import thread");
 
     vimport_start();
 
-    if (pthread_create(&vthread, NULL, (void *)vimport_thread, vob) != 0)
+    if (pthread_create(&vid_decdata.thread_id, NULL, (void *)video_import_thread, vob) != 0)
         tc_error("failed to start video stream import thread");
 }
 
@@ -221,8 +238,9 @@ int import_init(vob_t *vob, char *a_mod, char *v_mod)
 
     // load audio import module
 
-    import_ahandle = load_module(((a_mod==NULL)? TC_DEFAULT_IMPORT_AUDIO: a_mod), TC_IMPORT+TC_AUDIO);
-    FAIL_IF_NULL(import_ahandle, "audio");
+    a_mod = (a_mod == NULL) ?TC_DEFAULT_IMPORT_AUDIO :a_mod;
+    aud_decdata.im_handle = load_module(a_mod, TC_IMPORT+TC_AUDIO);
+    FAIL_IF_NULL(aud_decdata.im_handle, "audio");
 
     aimport_start();
 
@@ -325,7 +343,7 @@ int import_open(vob_t *vob)
         return TC_ERROR;
     }
 
-    fd_pcm = import_para.fd;
+    aud_decdata.fd = import_para.fd;
 
     memset(&import_para, 0, sizeof(transfer_t));
 
@@ -337,7 +355,7 @@ int import_open(vob_t *vob)
         return TC_ERROR;
     }
 
-    fd_ppm = import_para.fd;
+    vid_decdata.fd = import_para.fd;
 
     // now we can start the import threads, the file handles are valid
     return TC_OK;
@@ -362,28 +380,28 @@ int import_close(void)
     memset(&import_para, 0, sizeof(transfer_t));
 
     import_para.flag = TC_VIDEO;
-    import_para.fd   = fd_ppm;
+    import_para.fd   = vid_decdata.fd;
 
     ret = tcv_import(TC_IMPORT_CLOSE, &import_para, NULL);
     if (ret == TC_IMPORT_ERROR) {
         tc_log_warn(PACKAGE, "video import module error: CLOSE failed");
         return TC_ERROR;
     }
-    fd_ppm = NULL;
+    vid_decdata.fd = NULL;
 
     //TC_AUDIO:
 
     memset(&import_para, 0, sizeof(transfer_t));
 
     import_para.flag = TC_AUDIO;
-    import_para.fd   = fd_pcm;
+    import_para.fd   = aud_decdata.fd;
 
     ret = tca_import(TC_IMPORT_CLOSE, &import_para, NULL);
     if (ret == TC_IMPORT_ERROR) {
         tc_log_warn(PACKAGE, "audio import module error: CLOSE failed");
         return TC_ERROR;
     }
-    fd_pcm = NULL;
+    aud_decdata.fd = NULL;
 
     return TC_OK;
 }
@@ -400,13 +418,13 @@ int import_close(void)
 
 static int vimport_test_shutdown(void)
 {
-    int ret;
+    int flag;
 
-    pthread_mutex_lock(&import_v_lock);
-    ret = vimport;
-    pthread_mutex_unlock(&import_v_lock);
+    pthread_mutex_lock(&vid_decdata.lock);
+    flag = vid_decdata.active_flag;
+    pthread_mutex_unlock(&vid_decdata.lock);
 
-    if (!vimport) {
+    if (!flag) {
         if(verbose & TC_DEBUG) {
             tc_log_msg(__FILE__, "video import cancelation requested");
         }
@@ -471,7 +489,7 @@ static void import_lock_cleanup (void *arg)
 } while (0)
 
 
-void vimport_thread(vob_t *vob)
+void video_import_thread(vob_t *vob)
 {
     long int i = 0;
     int ret = 0, vbytes = 0;
@@ -494,7 +512,7 @@ void vimport_thread(vob_t *vob)
         pthread_cleanup_push(import_lock_cleanup, &vframe_list_lock);
 
         while (!vframe_fill_level(TC_BUFFER_NULL)) {
-            pthread_cond_wait(&vframe_list_full_cv, &vframe_list_lock);
+            pthread_cond_wait(&vid_decdata.list_full_cv, &vframe_list_lock);
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
             pthread_testcancel();
 #endif
@@ -516,8 +534,8 @@ void vimport_thread(vob_t *vob)
         ptr->attributes = 0;
         MARK_TIME_RANGE(ptr, vob);
 
-        if (fd_ppm != NULL) {
-            if (vbytes && (ret = mfread(ptr->video_buf, vbytes, 1, fd_ppm)) != 1)
+        if (vid_decdata.fd != NULL) {
+            if (vbytes && (ret = mfread(ptr->video_buf, vbytes, 1, vid_decdata.fd)) != 1)
                 ret = -1;
             ptr->video_size = vbytes;
         } else {
@@ -593,13 +611,13 @@ void vimport_thread(vob_t *vob)
 
 static int aimport_test_shutdown(void)
 {
-    int ret;
+    int flag;
 
-    pthread_mutex_lock(&import_a_lock);
-    ret = aimport;
-    pthread_mutex_unlock(&import_a_lock);
+    pthread_mutex_lock(&aud_decdata.lock);
+    ret = aud_decdata.active_flag;
+    pthread_mutex_unlock(&aud_decdata.lock);
 
-    if(!aimport) {
+    if(!flag) {
         if(verbose & TC_DEBUG) {
             tc_log_msg(__FILE__, "audio import cancelation requested");
         }
@@ -616,8 +634,8 @@ static int aimport_test_shutdown(void)
 //-------------------------------------------------------------------------
 
 #define GET_AUDIO_FRAME do { \
-    if (fd_pcm != NULL) { \
-        if (abytes && (ret = mfread(ptr->audio_buf, abytes, 1, fd_pcm)) != 1) { \
+    if (aud_decdata.fd != NULL) { \
+        if (abytes && (ret = mfread(ptr->audio_buf, abytes, 1, aud_decdata.fd)) != 1) { \
             ret = -1; \
         } \
         ptr->audio_size = abytes; \
@@ -634,7 +652,7 @@ static int aimport_test_shutdown(void)
     } \
 } while (0)
 
-void aimport_thread(vob_t *vob)
+void audio_import_thread(vob_t *vob)
 {
     long int i = 0;
     int ret = 0, abytes;
@@ -665,7 +683,7 @@ void aimport_thread(vob_t *vob)
         pthread_cleanup_push(import_lock_cleanup, &aframe_list_lock);
 
         while (!aframe_fill_level(TC_BUFFER_NULL)) {
-            pthread_cond_wait(&aframe_list_full_cv, &aframe_list_lock);
+            pthread_cond_wait(&aud_decdata.list_full_cv, &aframe_list_lock);
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
             pthread_testcancel();
 #endif
@@ -775,15 +793,15 @@ void import_shutdown()
         tc_log_msg(__FILE__, "unloading audio import module");
     }
 
-    unload_module(import_ahandle);
-    import_ahandle = NULL;
+    unload_module(aud_decdata.im_handle);
+    aud_decdata.im_handle = NULL;
 
     if(verbose & TC_DEBUG) {
         tc_log_msg(__FILE__, "unloading video import module");
     }
 
-    unload_module(import_vhandle);
-    import_vhandle = NULL;
+    unload_module(vid_decdata.im_handle);
+    vid_decdata.im_hanlde = NULL;
 }
 
 //-------------------------------------------------------------------------
@@ -794,9 +812,9 @@ void import_shutdown()
 
 void vimport_stop()
 {
-    pthread_mutex_lock(&import_v_lock);
-    vimport = 0;
-    pthread_mutex_unlock(&import_v_lock);
+    pthread_mutex_lock(&vid_decdata.lock);
+    vid_decdata.active_flag = 0;
+    pthread_mutex_unlock(&vid_decdata.lock);
 
     sleep(tc_decoder_delay);
 }
@@ -809,9 +827,9 @@ void vimport_stop()
 
 void vimport_start()
 {
-    pthread_mutex_lock(&import_v_lock);
-    vimport = 1;
-    pthread_mutex_unlock(&import_v_lock);
+    pthread_mutex_lock(&vid_decdata.lock);
+    vid_decdata.active_flag = 1;
+    pthread_mutex_unlock(&vid_decdata.lock);
 }
 
 //-------------------------------------------------------------------------
@@ -822,9 +840,9 @@ void vimport_start()
 
 void aimport_stop()
 {
-    pthread_mutex_lock(&import_a_lock);
-    aimport = 0;
-    pthread_mutex_unlock(&import_a_lock);
+    pthread_mutex_lock(&aud_decdata.lock);
+    aud_decdata.active_flag = 0;
+    pthread_mutex_unlock(&aud_decdata.lock);
 
     sleep(tc_decoder_delay);
 }
@@ -838,9 +856,9 @@ void aimport_stop()
 
 void aimport_start()
 {
-    pthread_mutex_lock(&import_a_lock);
-    aimport = 1;
-    pthread_mutex_unlock(&import_a_lock);
+    pthread_mutex_lock(&aud_decdata.lock);
+    aud_decdata.active_flag = 1;
+    pthread_mutex_unlock(&aud_decdata.lock);
 }
 
 //-------------------------------------------------------------------------
@@ -851,13 +869,13 @@ void aimport_start()
 
 int aimport_status()
 {
-    int cc;
+    int flag;
 
-    pthread_mutex_lock(&import_a_lock);
-    cc = aimport;
-    pthread_mutex_unlock(&import_a_lock);
+    pthread_mutex_lock(&aud_decdata.lock);
+    flag = aud_decdata.active_flag;
+    pthread_mutex_unlock(&aud_decdata.lock);
 
-    return (cc || aframe_have_data());
+    return (flag || aframe_have_data());
 }
 
 //-------------------------------------------------------------------------
@@ -868,13 +886,13 @@ int aimport_status()
 
 int vimport_status()
 {
-    int cc;
+    int flag;
 
-    pthread_mutex_lock(&import_v_lock);
-    cc = vimport;
-    pthread_mutex_unlock(&import_v_lock);
+    pthread_mutex_lock(&vid_decdata.lock);
+    flag = vid_decdata.active_flag;
+    pthread_mutex_unlock(&vid_decdata.lock);
 
-    return (cc || vframe_have_data());
+    return (flag || vframe_have_data());
 }
 
 //-------------------------------------------------------------------------
@@ -907,7 +925,7 @@ void tc_import_audio_notify(void)
 {
     /* notify sleeping import thread */
     pthread_mutex_lock(&aframe_list_lock);
-    pthread_cond_signal(&aframe_list_full_cv);
+    pthread_cond_signal(&aud_decdata.list_full_cv);
     pthread_mutex_unlock(&aframe_list_lock);
 }
 
@@ -915,7 +933,7 @@ void tc_import_video_notify(void)
 {
     /* notify sleeping import thread */
     pthread_mutex_lock(&vframe_list_lock);
-    pthread_cond_signal(&vframe_list_full_cv);
+    pthread_cond_signal(&vid_decdata.list_full_cv);
     pthread_mutex_unlock(&vframe_list_lock);
 }
 
