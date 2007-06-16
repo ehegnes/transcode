@@ -71,6 +71,58 @@ static TCDecoderData aud_decdata = {
 };
 
 /*************************************************************************/
+/*************************************************************************/
+
+struct modpair {
+    int codec;
+    int caps;
+};
+
+static const struct modpair audpairs[] = {
+    { CODEC_PCM,     TC_CAP_PCM    },
+    { CODEC_AC3,     TC_CAP_AC3    },
+    { CODEC_RAW,     TC_CAP_AUD    },
+    { CODEC_NULL,    TC_CAP_NONE   }
+};
+
+static const struct modpair vidpairs[] = {
+    { CODEC_RGB,     TC_CAP_RGB    },
+    { CODEC_YUV,     TC_CAP_YUV    },
+    { CODEC_YUV422,  TC_CAP_YUV422 },
+    { CODEC_RAW_YUV, TC_CAP_VID    },
+    { CODEC_RAW,     TC_CAP_VID    },
+    { CODEC_NULL,    TC_CAP_NONE   }
+};
+
+
+static int check_module_caps(const transfer_t *param, int codec,
+                             const struct modpair *mpairs)
+{
+    int caps = 0;
+
+    if (param->flag == verbose) {
+        caps = (codec == mpairs[0].codec);
+        /* legacy: grab the first and stay */
+    } else {
+        int i = 0;
+
+        // module returned capability flag
+        if (verbose & TC_DEBUG) {
+            tc_log_msg(__FILE__, "Capability flag 0x%x | 0x%x",
+                       param->flag, codec);
+        }
+
+        for (i = 0; mpairs[i].codec != CODEC_NULL; i++) {
+            if (codec == mpairs[i].codec) {
+                caps = (param->flag & mpairs[i].caps);
+                break;
+            }
+        }
+    }
+    return caps;
+}
+
+/*************************************************************************/
 
 //-------------------------------------------------------------------------
 //
@@ -193,17 +245,18 @@ void import_threads_cancel()
 
 void import_threads_create(vob_t *vob)
 {
-    //start import threads
-    //flag on, in case we restart the decoder
+    int ret;
 
     aimport_start();
-
-    if (pthread_create(&aud_decdata.thread_id, NULL, (void *)audio_import_thread, vob) != 0)
+    ret = pthread_create(&aud_decdata.thread_id, NULL,
+                         (void *)audio_import_thread, vob);
+    if (ret != 0)
         tc_error("failed to start audio stream import thread");
 
     vimport_start();
-
-    if (pthread_create(&vid_decdata.thread_id, NULL, (void *)video_import_thread, vob) != 0)
+    ret = pthread_create(&vid_decdata.thread_id, NULL,
+                         (void *)video_import_thread, vob);
+    if (ret != 0)
         tc_error("failed to start video stream import thread");
 }
 
@@ -218,14 +271,16 @@ void import_threads_create(vob_t *vob)
 #define FAIL_IF_NULL(HANDLE, MEDIA) do { \
     if ((HANDLE) == NULL) { \
         tc_log_error(PACKAGE, "Loading %s import module failed", (MEDIA)); \
-        tc_log_error(PACKAGE, "Did you enable this module when you ran configure?"); \
+        tc_log_error(PACKAGE, \
+                     "Did you enable this module when you ran configure?"); \
         return TC_ERROR; \
     } \
 } while (0)
 
 #define FAIL_IF_NOT_SUPPORTED(CAPS, MEDIA) do { \
     if (!(CAPS)) { \
-        tc_log_error(PACKAGE, "%s format not supported by import module", (MEDIA)); \
+        tc_log_error(PACKAGE, "%s format not supported by import module", \
+                     (MEDIA)); \
         return TC_ERROR; \
     } \
 } while (0)
@@ -236,15 +291,11 @@ int import_init(vob_t *vob, char *a_mod, char *v_mod)
     transfer_t import_para;
     int caps;
 
-    // load audio import module
-
     a_mod = (a_mod == NULL) ?TC_DEFAULT_IMPORT_AUDIO :a_mod;
     aud_decdata.im_handle = load_module(a_mod, TC_IMPORT+TC_AUDIO);
     FAIL_IF_NULL(aud_decdata.im_handle, "audio");
 
     aimport_start();
-
-    // load video import module
 
     v_mod = (v_mod == NULL) ?TC_DEFAULT_IMPORT_VIDEO :v_mod;
     vid_decdata.im_handle = load_module(v_mod, TC_IMPORT+TC_VIDEO);
@@ -257,63 +308,22 @@ int import_init(vob_t *vob, char *a_mod, char *v_mod)
     import_para.flag = verbose;
     tca_import(TC_IMPORT_NAME, &import_para, NULL);
 
-    if (import_para.flag != verbose) {
-        // module returned capability flag
-        if(verbose & TC_DEBUG)
-            tc_log_msg(__FILE__, "Audio capability flag 0x%x | 0x%x",
-                       import_para.flag, vob->im_a_codec);
-
-        switch (vob->im_a_codec) {
-          case CODEC_PCM:
-            caps = (import_para.flag & TC_CAP_PCM);
-            break;
-          case CODEC_AC3:
-            caps = (import_para.flag & TC_CAP_AC3);
-            break;
-          case CODEC_RAW:
-            caps = (import_para.flag & TC_CAP_AUD);
-            break;
-          default:
-            caps = 0;
-        }
-    } else
-        caps = vob->im_a_codec == CODEC_PCM;
-
-    FAIL_IF_NOT_SUPPORTED(caps, "audio");
-
+    caps = check_module_caps(&import_para, vob->im_a_codec, audpairs);
+    if (!caps) {
+        tc_log_error(__FILE__, "audio format not supported by import module");
+        return TC_ERROR;
+    }
+    
     memset(&import_para, 0, sizeof(transfer_t));
 
     import_para.flag = verbose;
     tcv_import(TC_IMPORT_NAME, &import_para, NULL);
 
-    if (import_para.flag != verbose) {
-        // module returned capability flag
-
-        if(verbose & TC_DEBUG)
-            tc_log_msg(__FILE__, "Video capability flag 0x%x | 0x%x",
-                       import_para.flag, vob->im_v_codec);
-
-        switch (vob->im_v_codec) {
-          case CODEC_RGB:
-            caps = (import_para.flag & TC_CAP_RGB);
-            break;
-          case CODEC_YUV:
-            caps = (import_para.flag & TC_CAP_YUV);
-            break;
-          case CODEC_YUV422:
-            caps = (import_para.flag & TC_CAP_YUV422);
-            break;
-          case CODEC_RAW_YUV: /* fallthrough */
-          case CODEC_RAW:
-            caps = (import_para.flag & TC_CAP_VID);
-            break;
-          default:
-            caps = 0;
-        }
-    } else
-        caps = vob->im_v_codec == CODEC_RGB;
-
-    FAIL_IF_NOT_SUPPORTED(caps, "video");
+    caps = check_module_caps(&import_para, vob->im_v_codec, vidpairs);
+    if (!caps) {
+        tc_log_error(__FILE__, "video format not supported by import module");
+        return TC_ERROR;
+    }
 
     return TC_OK;
 }

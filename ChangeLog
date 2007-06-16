@@ -2,6 +2,8 @@
   * src/decoder.c
   decoder rewrite take 1: starting base clean up.
   decoder rewrite take 2: factorize internal data in a structure.
+  decoder rewrite take 3: a little more STYLEish. Check module
+                          capabilities against tables, not using switch(es)
 
 2007-06-15 Francesco Romani <fromani at gmail dot com>
   * src/framebuffer.h src/encoder-buffer.c src/frame_threads.c
