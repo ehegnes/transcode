@@ -113,7 +113,7 @@ void frame_threads_init(vob_t *vob, int vworkers, int aworkers)
         // start the thread pool
         for (n = 0; n < vworkers; n++) {
             if (pthread_create(&vfthread[n], NULL, (void*)process_vframe, vob) != 0)
-	            tc_error("failed to start video frame processing thread");
+                tc_error("failed to start video frame processing thread");
         }
     }
 
@@ -129,7 +129,7 @@ void frame_threads_init(vob_t *vob, int vworkers, int aworkers)
         // start the thread pool
         for (n = 0; n < aworkers; n++) {
             if (pthread_create(&afthread[n], NULL, (void*)process_aframe, vob) != 0)
-	            tc_error("failed to start audio frame processing thread");
+                tc_error("failed to start audio frame processing thread");
         }
     }
 }
@@ -210,39 +210,39 @@ void frame_threads_close()
 
 #define DUP_vptr_if_cloned(vptr) \
     if(vptr->attributes & TC_FRAME_IS_CLONED) { \
-    	vframe_list_t *tmptr = vframe_dup(vptr); \
+        vframe_list_t *tmptr = vframe_dup(vptr); \
         \
-    	if (!tmptr) {  \
-	        /* No free slot free to clone ptr */ \
-	        /* put ptr back into working cue */ \
-    	    vframe_set_status (vptr, FRAME_WAIT); \
-            \
-	        pthread_mutex_lock(&vbuffer_im_fill_lock); \
-	        vbuffer_im_fill_ctr++; \
-    	    pthread_mutex_unlock(&vbuffer_im_fill_lock); \
-            \
-	        pthread_mutex_lock(&vbuffer_xx_fill_lock); \
-    	    vbuffer_xx_fill_ctr--; \
-	        pthread_mutex_unlock(&vbuffer_xx_fill_lock); \
-            \
-	        continue; \
-    	} else {  \
-	        /* ptr was successfully cloned */ \
-	        /* delete clone flag */ \
-    	    tmptr->attributes &= ~TC_FRAME_IS_CLONED; \
-	        vptr->attributes  &= ~TC_FRAME_IS_CLONED; \
-            \
-    	    /* set info for filters */ \
-	        tmptr->attributes |= TC_FRAME_WAS_CLONED; \
-            \
-    	    /* this frame is to be processed _after_ the current one */ \
-	        /* so put it back into the queue */ \
-	        vframe_set_status (tmptr, FRAME_WAIT); \
+        if (!tmptr) {  \
+            /* No free slot free to clone ptr */ \
+            /* put ptr back into working cue */ \
+            vframe_set_status (vptr, FRAME_WAIT); \
             \
             pthread_mutex_lock(&vbuffer_im_fill_lock); \
-	        vbuffer_im_fill_ctr++; \
-    	    pthread_mutex_unlock(&vbuffer_im_fill_lock); \
-	    } \
+            vbuffer_im_fill_ctr++; \
+            pthread_mutex_unlock(&vbuffer_im_fill_lock); \
+            \
+            pthread_mutex_lock(&vbuffer_xx_fill_lock); \
+            vbuffer_xx_fill_ctr--; \
+            pthread_mutex_unlock(&vbuffer_xx_fill_lock); \
+            \
+            continue; \
+        } else {  \
+            /* ptr was successfully cloned */ \
+            /* delete clone flag */ \
+            tmptr->attributes &= ~TC_FRAME_IS_CLONED; \
+            vptr->attributes  &= ~TC_FRAME_IS_CLONED; \
+            \
+            /* set info for filters */ \
+            tmptr->attributes |= TC_FRAME_WAS_CLONED; \
+            \
+            /* this frame is to be processed _after_ the current one */ \
+            /* so put it back into the queue */ \
+            vframe_set_status (tmptr, FRAME_WAIT); \
+            \
+            pthread_mutex_lock(&vbuffer_im_fill_lock); \
+            vbuffer_im_fill_ctr++; \
+            pthread_mutex_unlock(&vbuffer_im_fill_lock); \
+        } \
     }
 
 #define DROP_vptr_if_skipped(ptr) \
@@ -260,44 +260,44 @@ void frame_threads_close()
 
 #define DUP_aptr_if_cloned(aptr) \
     if(aptr->attributes & TC_FRAME_IS_CLONED) {  \
-	aframe_list_t *tmptr = aframe_dup(aptr);  \
+    aframe_list_t *tmptr = aframe_dup(aptr);  \
   \
-	if (!tmptr) {  \
+    if (!tmptr) {  \
   \
-	    /* No free slot free to clone ptr */ \
+        /* No free slot free to clone ptr */ \
   \
-	    /* put ptr back into working cue */ \
-	    aframe_set_status (aptr, FRAME_WAIT);  \
+        /* put ptr back into working cue */ \
+        aframe_set_status (aptr, FRAME_WAIT);  \
   \
-	    pthread_mutex_lock(&abuffer_im_fill_lock);  \
-	    ++abuffer_im_fill_ctr;  \
-	    pthread_mutex_unlock(&abuffer_im_fill_lock);  \
+        pthread_mutex_lock(&abuffer_im_fill_lock);  \
+        ++abuffer_im_fill_ctr;  \
+        pthread_mutex_unlock(&abuffer_im_fill_lock);  \
   \
-	    pthread_mutex_lock(&abuffer_xx_fill_lock);  \
-	    --abuffer_xx_fill_ctr;  \
-	    pthread_mutex_unlock(&abuffer_xx_fill_lock);  \
+        pthread_mutex_lock(&abuffer_xx_fill_lock);  \
+        --abuffer_xx_fill_ctr;  \
+        pthread_mutex_unlock(&abuffer_xx_fill_lock);  \
   \
-	    continue;  \
+        continue;  \
   \
-	} else {  \
+    } else {  \
   \
-	    /* ptr was successfully cloned */ \
+        /* ptr was successfully cloned */ \
   \
-	    /* delete clone flag */ \
-	    tmptr->attributes &= ~TC_FRAME_IS_CLONED;  \
-	    aptr->attributes  &= ~TC_FRAME_IS_CLONED;  \
+        /* delete clone flag */ \
+        tmptr->attributes &= ~TC_FRAME_IS_CLONED;  \
+        aptr->attributes  &= ~TC_FRAME_IS_CLONED;  \
   \
-	    /* set info for filters */ \
-	    tmptr->attributes |= TC_FRAME_WAS_CLONED;  \
+        /* set info for filters */ \
+        tmptr->attributes |= TC_FRAME_WAS_CLONED;  \
   \
-	    /* this frame is to be processed _after_ the current one */ \
-	    /* so put it back into the queue */ \
-	    aframe_set_status (tmptr, FRAME_WAIT);  \
+        /* this frame is to be processed _after_ the current one */ \
+        /* so put it back into the queue */ \
+        aframe_set_status (tmptr, FRAME_WAIT);  \
   \
-	    pthread_mutex_lock(&abuffer_im_fill_lock);  \
-	    ++abuffer_im_fill_ctr;  \
-	    pthread_mutex_unlock(&abuffer_im_fill_lock);  \
-	}  \
+        pthread_mutex_lock(&abuffer_im_fill_lock);  \
+        ++abuffer_im_fill_ctr;  \
+        pthread_mutex_unlock(&abuffer_im_fill_lock);  \
+    }  \
     }
 
 #define DROP_aptr_if_skipped(ptr) \
@@ -447,23 +447,23 @@ void process_aframe(vob_t *vob)
         DROP_aptr_if_skipped(ptr)
 
         if (TC_FRAME_NEED_PROCESSING(ptr)) {
-	        // external plugin pre-processing
-        	ptr->tag = TC_AUDIO|TC_PRE_M_PROCESS;
-        	tc_filter_process((frame_list_t *)ptr);
+            // external plugin pre-processing
+            ptr->tag = TC_AUDIO|TC_PRE_M_PROCESS;
+            tc_filter_process((frame_list_t *)ptr);
 
-        	DUP_aptr_if_cloned(ptr)
+            DUP_aptr_if_cloned(ptr)
 
-        	DROP_aptr_if_skipped(ptr)
+            DROP_aptr_if_skipped(ptr)
 
-        	// internal processing of audio
-        	ptr->tag = TC_AUDIO;
-        	process_aud_frame(vob, ptr);
+            // internal processing of audio
+            ptr->tag = TC_AUDIO;
+            process_aud_frame(vob, ptr);
 
             // external plugin post-processing
-        	ptr->tag = TC_AUDIO|TC_POST_M_PROCESS;
-        	tc_filter_process((frame_list_t *)ptr);
+            ptr->tag = TC_AUDIO|TC_POST_M_PROCESS;
+            tc_filter_process((frame_list_t *)ptr);
 
-        	DROP_aptr_if_skipped(ptr)
+            DROP_aptr_if_skipped(ptr)
         }
 
         pthread_testcancel();
