@@ -77,7 +77,7 @@ struct tcencoderbuffer_ {
 };
 
 /* default main transcode buffer */
-extern TCEncoderBuffer *tc_ringbuffer;
+TCEncoderBuffer *tc_get_ringbuffer(int aworkers, int vworkers);
 
 
 /**

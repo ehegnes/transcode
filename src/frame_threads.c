@@ -51,15 +51,23 @@ uint32_t vbuffer_xx_fill_ctr = 0;
 pthread_mutex_t vbuffer_ex_fill_lock = PTHREAD_MUTEX_INITIALIZER;
 uint32_t vbuffer_ex_fill_ctr = 0;
 
-int have_aframe_threads = 0;
-int have_aframe_workers = 0;
+static int have_aframe_workers = 0;
 static int aframe_threads_shutdown = 0;
 
-int have_vframe_threads = 0;
-int have_vframe_workers = 0;
+static int have_vframe_workers = 0;
 static int vframe_threads_shutdown = 0;
 
 
+
+int frame_threads_have_video_workers(void)
+{
+    return (have_vframe_workers > 0);
+}
+
+int frame_threads_have_audio_workers(void)
+{
+    return (have_aframe_workers > 0);
+}
 
 void tc_flush_audio_counters(void)
 {
@@ -105,8 +113,6 @@ void frame_threads_init(vob_t *vob, int vworkers, int aworkers)
     have_vframe_workers = vworkers;
 
     if (vworkers > 0) {
-        have_vframe_threads = 1;
-
         if (verbose & TC_DEBUG)
             tc_log_msg(PACKAGE, "starting %d frame processing thread(s)", vworkers);
 
@@ -121,8 +127,6 @@ void frame_threads_init(vob_t *vob, int vworkers, int aworkers)
     have_aframe_workers = aworkers;
 
     if (aworkers > 0) {
-        have_aframe_threads = 1;
-
         if (verbose & TC_DEBUG)
             tc_log_msg(PACKAGE, "starting %d frame processing thread(s)", aworkers);
 
@@ -163,7 +167,7 @@ void frame_threads_close()
     void *status = NULL;
 
     // audio
-    if (have_aframe_threads > 0) {
+    if (have_aframe_workers > 0) {
         pthread_mutex_lock(&abuffer_im_fill_lock);
         aframe_threads_shutdown = 1;
         pthread_mutex_unlock(&abuffer_im_fill_lock);
@@ -186,7 +190,7 @@ void frame_threads_close()
     }
 
     //video
-    if (have_vframe_threads > 0) {
+    if (have_vframe_workers > 0) {
         pthread_mutex_lock(&vbuffer_im_fill_lock);
         vframe_threads_shutdown = 1;
         pthread_mutex_unlock(&vbuffer_im_fill_lock);

@@ -96,6 +96,13 @@
     pthread_mutex_unlock(&abuffer_ ## BUFID ## _fill_lock)
 
 /*************************************************************************/
+/*************************************************************************/
+
+/* yes, we still need some globals :( */
+static int have_aud_threads = 0;
+static int have_vid_threads = 0;
+
+/*************************************************************************/
 
 /*
  * apply_video_filters. appli_auido_filters:
@@ -181,7 +188,7 @@ static void encoder_dispose_aframe(TCEncoderBuffer *buf);
 
 static void apply_video_filters(vframe_list_t *vptr, vob_t *vob)
 {
-    if (!have_vframe_threads) {
+    if (!have_vid_threads) {
         DEC_VBUF_COUNTER(im);
         INC_VBUF_COUNTER(xx);
 
@@ -217,7 +224,7 @@ static void apply_video_filters(vframe_list_t *vptr, vob_t *vob)
 static void apply_audio_filters(aframe_list_t *aptr, vob_t *vob)
 {
     /* now we try to process the audio frame */
-    if (!have_aframe_threads) {
+    if (!have_aud_threads) {
         DEC_ABUF_COUNTER(im);
         INC_ABUF_COUNTER(xx);
 
@@ -348,7 +355,7 @@ static int encoder_acquire_vframe(TCEncoderBuffer *buf, vob_t *vob)
         apply_video_filters(buf->vptr, vob);
 
         if (buf->vptr->attributes & TC_FRAME_IS_SKIPPED) {
-            if (!have_vframe_threads) {
+            if (!have_vid_threads) {
                 DEC_VBUF_COUNTER(im);
             } else {
                 DEC_VBUF_COUNTER(ex);
@@ -423,7 +430,7 @@ static int encoder_acquire_aframe(TCEncoderBuffer *buf, vob_t *vob)
         apply_audio_filters(buf->aptr, vob);
 
         if (buf->aptr->attributes & TC_FRAME_IS_SKIPPED) {
-            if (!have_aframe_threads) {
+            if (!have_aud_threads) {
                 DEC_ABUF_COUNTER(im);
             } else {
                 DEC_ABUF_COUNTER(ex);
@@ -469,7 +476,7 @@ static int encoder_acquire_aframe(TCEncoderBuffer *buf, vob_t *vob)
 static void encoder_dispose_vframe(TCEncoderBuffer *buf)
 {
     if (buf->vptr->attributes & TC_FRAME_IS_OUT_OF_RANGE) {
-        if (!have_vframe_threads) {
+        if (!have_vid_threads) {
             DEC_VBUF_COUNTER(im);
         } else {
             DEC_VBUF_COUNTER(ex);
@@ -520,7 +527,7 @@ static void encoder_dispose_vframe(TCEncoderBuffer *buf)
 static void encoder_dispose_aframe(TCEncoderBuffer *buf)
 {
     if (buf->aptr->attributes & TC_FRAME_IS_OUT_OF_RANGE) {
-        if (!have_aframe_threads) {
+        if (!have_aud_threads) {
             DEC_ABUF_COUNTER(im);
         } else {
             DEC_ABUF_COUNTER(ex);
@@ -582,7 +589,15 @@ static TCEncoderBuffer tc_builtin_buffer = {
 
     .have_data = encoder_have_data,
 };
-TCEncoderBuffer *tc_ringbuffer = &tc_builtin_buffer;
+
+/* default main transcode buffer */
+TCEncoderBuffer *tc_get_ringbuffer(int aworkers, int vworkers)
+{
+    have_aud_threads = aworkers;
+    have_vid_threads = vworkers;
+
+    return &tc_builtin_buffer;
+}
 
 
 /*************************************************************************/

@@ -33,8 +33,8 @@ void frame_threads_close(void);
 void frame_threads_notify_audio(int broadcast);
 void frame_threads_notify_video(int broadcast);
 
-extern int have_aframe_threads;
-extern int have_vframe_threads;
+int frame_threads_have_video_workers(void);
+int frame_threads_have_audio_workers(void);
 
 extern pthread_mutex_t vbuffer_im_fill_lock;
 extern uint32_t vbuffer_im_fill_ctr;

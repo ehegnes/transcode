@@ -272,7 +272,7 @@ static void load_all_filters(char *filter_list)
  *     0 on success, -1 on error.
  */
 
-static int transcode_init(vob_t *vob)
+static int transcode_init(vob_t *vob, TCEncoderBuffer *tc_ringbuffer)
 {
     /* load import modules and check capabilities */
     if (import_init(vob, im_aud_mod, im_vid_mod) < 0) {
@@ -2182,7 +2182,7 @@ int main(int argc, char *argv[])
 #endif
 
     // load import/export modules and filters plugins
-    if (transcode_init(vob) < 0)
+    if (transcode_init(vob, tc_get_ringbuffer(max_frame_threads, max_frame_threads)) < 0)
         tc_error("plug-in initialization failed");
 
     // start frame processing threads

@@ -13,6 +13,11 @@
   * src/frame_threads.c
   kill some survivor tabs.
 
+  * src/decoder.c src/encoder-buffer.c src/encoder.h src/frame_threads.c
+    src/frame_threads.h src/transcode.c
+  kill have_{a,v}frame_threads globals and also sanitize a tiny bit the
+  encoder-buffer interface.
+
 2007-06-15 Francesco Romani <fromani at gmail dot com>
   * src/framebuffer.h src/encoder-buffer.c src/frame_threads.c
   check if TC_FRAME_IS_END_OF_STREAM even at filter layer;

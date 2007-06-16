@@ -506,6 +506,8 @@ void video_import_thread(vob_t *vob)
     vframe_list_t *ptr = NULL;
     transfer_t import_para;
 
+    int have_vframe_threads = frame_threads_have_video_workers();
+
     if (verbose & TC_DEBUG)
         tc_log_msg(__FILE__, "video thread id=%ld", (unsigned long)pthread_self());
 
@@ -591,7 +593,7 @@ void video_import_thread(vob_t *vob)
         }
 
         /* stage 5: push frame to next transcoding layer */
-        if (have_vframe_threads == 0) {
+        if (!have_vframe_threads) {
             vframe_set_status(ptr, FRAME_READY);
             tc_export_video_notify();
         } else {
@@ -642,6 +644,8 @@ void audio_import_thread(vob_t *vob)
     int ret = 0, abytes;
     aframe_list_t *ptr = NULL;
     transfer_t import_para;
+
+    int have_aframe_threads = frame_threads_have_audio_workers();
 
     if (verbose & TC_DEBUG)
         tc_log_msg(__FILE__, "audio thread id=%ld",
@@ -743,7 +747,7 @@ void audio_import_thread(vob_t *vob)
         }
 
         /* stage 5: push frame to next transcoding layer */
-        if (have_aframe_threads == 0) {
+        if (!have_aframe_threads) {
             aframe_set_status(ptr, FRAME_READY);
             tc_export_audio_notify();
         } else {
