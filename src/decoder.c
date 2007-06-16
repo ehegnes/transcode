@@ -32,10 +32,12 @@
 #include "frame_threads.h"
 
 // stream handle
-static FILE *fd_ppm = NULL, *fd_pcm = NULL;
+static FILE *fd_ppm = NULL;
+static FILE *fd_pcm = NULL;
 
 // import module handle
-static void *import_ahandle = NULL, *import_vhandle = NULL;
+static void *import_ahandle = NULL;
+static void *import_vhandle = NULL;
 
 // import flags (1=import active | 0=import closed)
 static volatile int aimport = 0;
@@ -43,14 +45,15 @@ static volatile int vimport = 0;
 static pthread_mutex_t import_v_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t import_a_lock = PTHREAD_MUTEX_INITIALIZER;
 
-static pthread_t athread = 0, vthread = 0;
+static pthread_t athread = 0;
+static pthread_t vthread = 0;
+
+static pthread_cond_t aframe_list_full_cv = PTHREAD_COND_INITIALIZER;
+static pthread_cond_t vframe_list_full_cv = PTHREAD_COND_INITIALIZER;
 
 // threads
 static void aimport_thread(vob_t *vob);
 static void vimport_thread(vob_t *vob);
-
-static pthread_cond_t aframe_list_full_cv = PTHREAD_COND_INITIALIZER;
-static pthread_cond_t vframe_list_full_cv = PTHREAD_COND_INITIALIZER;
 
 //-------------------------------------------------------------------------
 //
@@ -451,6 +454,14 @@ static void import_lock_cleanup (void *arg)
 //
 //-------------------------------------------------------------------------
 
+#define EXIT_IF_REGISTRATION_FAILED(PTR, TAG) do { \
+    /* ok, that's pure paranoia */ \
+    if ((PTR) == NULL) { \
+        tc_log_error(__FILE__, "frame registration failed (%s)", (TAG)); \
+        pthread_exit((int *)63); \
+    } \
+} while (0)
+
 #define MARK_TIME_RANGE(PTR, VOB) do { \
     /* Set skip attribute based on -c */ \
     if (fc_time_contains((VOB)->ttime, (PTR)->id)) \
@@ -464,13 +475,12 @@ void vimport_thread(vob_t *vob)
 {
     long int i = 0;
     int ret = 0, vbytes = 0;
-    vframe_list_t *ptr=NULL;
+    vframe_list_t *ptr = NULL;
     transfer_t import_para;
 
     if (verbose & TC_DEBUG)
         tc_log_msg(__FILE__, "video thread id=%ld", (unsigned long)pthread_self());
 
-    // bytes per video frame
     vbytes = vob->im_v_size;
 
     for (; TC_TRUE; i++) {
@@ -479,7 +489,7 @@ void vimport_thread(vob_t *vob)
 
         pthread_testcancel();
 
-        //check buffer fill level
+        /* stage 1: get new blank frame */
         pthread_mutex_lock(&vframe_list_lock);
         pthread_cleanup_push(import_lock_cleanup, &vframe_list_lock);
 
@@ -489,7 +499,6 @@ void vimport_thread(vob_t *vob)
             pthread_testcancel();
 #endif
 
-            // check for pending shutdown via ^C
             if (vimport_test_shutdown()) {
                 pthread_exit((int *)11);
             }
@@ -498,18 +507,14 @@ void vimport_thread(vob_t *vob)
         pthread_cleanup_pop(0);
         pthread_mutex_unlock(&vframe_list_lock);
 
+        /* stage 2: register acquired frame */
         ptr = vframe_register(i);
         /* ok, that's pure paranoia */
-        if (ptr == NULL) {
-            tc_log_error(__FILE__, "frame registration failed (V)");
-            pthread_exit((int *)63);
-        }
+        EXIT_IF_REGISTRATION_FAILED(ptr, "video");
 
+        /* stage 3: fill the frame with data */
         ptr->attributes = 0;
         MARK_TIME_RANGE(ptr, vob);
-
-        // read video frame
-        // check if import module reades data
 
         if (fd_ppm != NULL) {
             if (vbytes && (ret = mfread(ptr->video_buf, vbytes, 1, fd_ppm)) != 1)
@@ -525,8 +530,6 @@ void vimport_thread(vob_t *vob)
 
             ret = tcv_import(TC_IMPORT_DECODE, &import_para, vob);
 
-            // import module return information on true frame size
-            // in import_para.size
             ptr->video_size = import_para.size;
             ptr->attributes |= import_para.attributes;
         }
@@ -539,18 +542,18 @@ void vimport_thread(vob_t *vob)
             ptr->attributes = TC_FRAME_IS_END_OF_STREAM;
         }
 
-        // init frame buffer structure with import frame data
         ptr->v_height   = vob->im_v_height;
         ptr->v_width    = vob->im_v_width;
         ptr->v_bpp      = BPP;
 
         pthread_testcancel();
 
+        /* stage 4: account filled frame and process it if needed */
         pthread_mutex_lock(&vbuffer_im_fill_lock);
         vbuffer_im_fill_ctr++;
         pthread_mutex_unlock(&vbuffer_im_fill_lock);
 
-        if (!(ptr->attributes & TC_FRAME_IS_OUT_OF_RANGE)) {
+        if (TC_FRAME_NEED_PROCESSING(ptr)) {
             //first stage pre-processing - (synchronous)
             preprocess_vid_frame(vob, ptr);
 
@@ -559,25 +562,22 @@ void vimport_thread(vob_t *vob)
             tc_filter_process((frame_list_t *)ptr);
         }
 
+        /* stage 5: push frame to next transcoding layer */
         if (have_vframe_threads == 0) {
             vframe_set_status(ptr, FRAME_READY);
             tc_export_video_notify();
         } else {
-            // done and ready for encoder
             vframe_set_status(ptr, FRAME_WAIT);
-            //notify sleeping frame processing threads
             frame_threads_notify_video(TC_FALSE);
         }
 
         if (verbose & TC_STATS)
             tc_log_msg(__FILE__, "%10s [%ld] V=%d bytes", "received", i, ptr->video_size);
 
-        //exit
         if (ret < 0) {
             vimport_stop();
             pthread_exit( (int *) 13);
         }
-        // check for pending shutdown via ^C
         if (vimport_test_shutdown())
             pthread_exit( (int *)14);
     }
@@ -645,11 +645,10 @@ void aimport_thread(vob_t *vob)
         tc_log_msg(__FILE__, "audio thread id=%ld",
                    (unsigned long)pthread_self());
 
-    // bytes per audio frame
     abytes = vob->im_a_size;
 
     for (; TC_TRUE; i++) {
-        // audio adjustment for non PAL frame rates:
+        /* tage 0: udio adjustment for non PAL frame rates: */
         if (i != 0 && i % TC_LEAP_FRAME == 0) {
             abytes = vob->im_a_size + vob->a_leap_bytes;
         } else {
@@ -661,7 +660,7 @@ void aimport_thread(vob_t *vob)
 
         pthread_testcancel();
 
-        //check buffer fill level
+        /* stage 1: get new blank frame */
         pthread_mutex_lock(&aframe_list_lock);
         pthread_cleanup_push(import_lock_cleanup, &aframe_list_lock);
 
@@ -671,7 +670,6 @@ void aimport_thread(vob_t *vob)
             pthread_testcancel();
 #endif
 
-            // check for pending shutdown via ^C
             if (aimport_test_shutdown()) {
                 pthread_exit((int *)11);
             }
@@ -680,17 +678,16 @@ void aimport_thread(vob_t *vob)
         pthread_cleanup_pop(0);
         pthread_mutex_unlock(&aframe_list_lock);
 
+        /* stage 2: register acquired frame */
         ptr = aframe_register(i);
         /* ok, that's pure paranoia */
-        if (ptr == NULL) {
-            tc_log_error(__FILE__, "frame registration failed (A)");
-            pthread_exit((int *)63);
-        }
+        EXIT_IF_REGISTRATION_FAILED(ptr, "audio");
 
         ptr->attributes = 0;
         MARK_TIME_RANGE(ptr, vob);
 
-        // read audio frame
+        /* stage 3: fill the frame with data */
+        /* stage 3.1: resync audio by discarding frames, if needed */
         if(vob->sync > 0) {
             // discard vob->sync frames
             while (vob->sync--) {
@@ -702,12 +699,12 @@ void aimport_thread(vob_t *vob)
             vob->sync++;
         }
 
-        // default
+        /* stage 3.2: grab effective audio data */
         if (vob->sync == 0) {
             GET_AUDIO_FRAME;
         }
 
-        // silence
+        /* stage 3.3: silence at last */
         if (vob->sync < 0) {
             if (verbose & TC_DEBUG)
                 tc_log_msg(__FILE__, " zero padding %d", vob->sync);
@@ -715,6 +712,7 @@ void aimport_thread(vob_t *vob)
             ptr->audio_size = abytes;
             vob->sync++;
         }
+        /* stage 3.x: all this stuff can be done in a cleaner way... */
 
 
         if (ret < 0) {
@@ -732,37 +730,32 @@ void aimport_thread(vob_t *vob)
 
         pthread_testcancel();
 
+        /* stage 4: account filled frame and process it if needed */
         pthread_mutex_lock(&abuffer_im_fill_lock);
         abuffer_im_fill_ctr++;
         pthread_mutex_unlock(&abuffer_im_fill_lock);
 
-        if (!(ptr->attributes & TC_FRAME_IS_OUT_OF_RANGE)) {
-            //first stage pre-processing - (synchronous)
+        if (TC_FRAME_NEED_PROCESSING(ptr)) {
             ptr->tag = TC_AUDIO|TC_PRE_S_PROCESS;
             tc_filter_process((frame_list_t *)ptr);
         }
 
-        //no frame threads?
+        /* stage 5: push frame to next transcoding layer */
         if (have_aframe_threads == 0) {
             aframe_set_status(ptr, FRAME_READY);
             tc_export_audio_notify();
         } else {
-            // done and ready for encoder
             aframe_set_status(ptr, FRAME_WAIT);
-            //notify sleeping frame processing threads
             frame_threads_notify_audio(TC_FALSE);
         }
 
         if (verbose & TC_STATS)
             tc_log_msg(__FILE__, "%10s [%ld] A=%d bytes", "received", i, ptr->audio_size);
 
-        //exit
         if (ret < 0) {
-            // set flag
             aimport_stop();
             pthread_exit( (int *) 13);
         }
-        // check for pending shutdown via ^C
         if (aimport_test_shutdown())
             pthread_exit((int *)14);
     }

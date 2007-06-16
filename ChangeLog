@@ -1,3 +1,7 @@
+2007-06-16 Francesco Romani <fromani at gmail dot com>
+  * src/decoder.c
+  decoder rewrite take 1: starting base clean up.
+
 2007-06-15 Francesco Romani <fromani at gmail dot com>
   * src/framebuffer.h src/encoder-buffer.c src/frame_threads.c
   check if TC_FRAME_IS_END_OF_STREAM even at filter layer;
