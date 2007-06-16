@@ -70,6 +70,8 @@ static TCDecoderData aud_decdata = {
     .lock         = PTHREAD_MUTEX_INITIALIZER,
 };
 
+static pthread_t tc_pthread_main = (pthread_t)0;
+
 /*************************************************************************/
 /*************************************************************************/
 
@@ -324,6 +326,8 @@ int import_init(vob_t *vob, char *a_mod, char *v_mod)
         tc_log_error(__FILE__, "video format not supported by import module");
         return TC_ERROR;
     }
+
+    tc_pthread_main = pthread_self();
 
     return TC_OK;
 }

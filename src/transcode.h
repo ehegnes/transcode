@@ -413,7 +413,6 @@ extern int tc_cluster_mode;
 extern int tc_decoder_delay;
 extern int tc_progress_meter;
 extern int tc_progress_rate;
-extern pthread_t tc_pthread_main;
 extern int tc_accel;
 extern unsigned int tc_avi_limit;
 extern pid_t tc_probe_pid;

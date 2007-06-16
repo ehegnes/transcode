@@ -103,7 +103,6 @@ int max_frame_threads = TC_FRAME_THREADS;
 
 //-------------------------------------------------------------
 
-pthread_t tc_pthread_main = (pthread_t)0;
 
 /*************************************************************************/
 /*********************** Exported utility routines ***********************/
@@ -751,7 +750,6 @@ int main(int argc, char *argv[])
 #endif
 
     //main thread id
-    tc_pthread_main = pthread_self();
     writepid = getpid();
 
     /* ------------------------------------------------------------
