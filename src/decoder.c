@@ -153,7 +153,7 @@ static void tc_import_stop(void)
     frame_threads_notify_video(TC_TRUE);
     frame_threads_notify_audio(TC_TRUE);
 
-    if(verbose & TC_DEBUG)
+    if (verbose & TC_DEBUG)
         tc_log_msg(__FILE__, "import stop requested by client=%ld"
                              " (main=%ld) import status=%d",
                              (unsigned long)pthread_self(),
@@ -434,7 +434,7 @@ static int vimport_test_shutdown(void)
     pthread_mutex_unlock(&vid_decdata.lock);
 
     if (!flag) {
-        if(verbose & TC_DEBUG) {
+        if (verbose & TC_DEBUG) {
             tc_log_msg(__FILE__, "video import cancelation requested");
         }
         return 1;  // notify thread to exit immediately
@@ -562,7 +562,7 @@ void video_import_thread(vob_t *vob)
         }
 
         if (ret < 0) {
-            if(verbose & TC_DEBUG)
+            if (verbose & TC_DEBUG)
                 tc_log_msg(__FILE__, "video data read failed - end of stream");
 
             ptr->video_size = 0;
@@ -626,8 +626,8 @@ static int aimport_test_shutdown(void)
     flag = aud_decdata.active_flag;
     pthread_mutex_unlock(&aud_decdata.lock);
 
-    if(!flag) {
-        if(verbose & TC_DEBUG) {
+    if (!flag) {
+        if (verbose & TC_DEBUG) {
             tc_log_msg(__FILE__, "audio import cancelation requested");
         }
 
@@ -715,7 +715,7 @@ void audio_import_thread(vob_t *vob)
 
         /* stage 3: fill the frame with data */
         /* stage 3.1: resync audio by discarding frames, if needed */
-        if(vob->sync > 0) {
+        if (vob->sync > 0) {
             // discard vob->sync frames
             while (vob->sync--) {
                 GET_AUDIO_FRAME;
@@ -798,14 +798,14 @@ void audio_import_thread(vob_t *vob)
 
 void import_shutdown()
 {
-    if(verbose & TC_DEBUG) {
+    if (verbose & TC_DEBUG) {
         tc_log_msg(__FILE__, "unloading audio import module");
     }
 
     unload_module(aud_decdata.im_handle);
     aud_decdata.im_handle = NULL;
 
-    if(verbose & TC_DEBUG) {
+    if (verbose & TC_DEBUG) {
         tc_log_msg(__FILE__, "unloading video import module");
     }
 
