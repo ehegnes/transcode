@@ -311,10 +311,7 @@ int import_init(vob_t *vob, char *a_mod, char *v_mod)
     tca_import(TC_IMPORT_NAME, &import_para, NULL);
 
     caps = check_module_caps(&import_para, vob->im_a_codec, audpairs);
-    if (!caps) {
-        tc_log_error(__FILE__, "audio format not supported by import module");
-        return TC_ERROR;
-    }
+    FAIL_IF_NOT_SUPPORTED(caps, "audio");
     
     memset(&import_para, 0, sizeof(transfer_t));
 
@@ -322,10 +319,7 @@ int import_init(vob_t *vob, char *a_mod, char *v_mod)
     tcv_import(TC_IMPORT_NAME, &import_para, NULL);
 
     caps = check_module_caps(&import_para, vob->im_v_codec, vidpairs);
-    if (!caps) {
-        tc_log_error(__FILE__, "video format not supported by import module");
-        return TC_ERROR;
-    }
+    FAIL_IF_NOT_SUPPORTED(caps, "video");
 
     tc_pthread_main = pthread_self();
 
@@ -609,7 +603,7 @@ void video_import_thread(vob_t *vob)
 
         if (ret < 0) {
             vimport_stop();
-            pthread_exit( (int *) 13);
+            pthread_exit( (int *)13);
         }
         if (vimport_test_shutdown())
             pthread_exit( (int *)14);
