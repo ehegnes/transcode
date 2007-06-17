@@ -7,7 +7,7 @@
 
   * src/encoder.c src/encoder.h src/transcode.c tools/tcexport.c
   export*()  -> tc_export*()
-  encoder*() -> rc_encoder*()
+  encoder*() -> tc_encoder*()
   (just rename).
 
 2007-06-16 Francesco Romani <fromani at gmail dot com>
