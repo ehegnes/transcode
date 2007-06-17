@@ -316,7 +316,7 @@ void tc_import_threads_create(vob_t *vob)
 } while (0)
 
 
-int import_init(vob_t *vob, char *a_mod, char *v_mod)
+int tc_import_init(vob_t *vob, char *a_mod, char *v_mod)
 {
     transfer_t import_para;
     int caps;
@@ -366,7 +366,7 @@ int import_init(vob_t *vob, char *a_mod, char *v_mod)
 //
 //-------------------------------------------------------------------------
 
-int import_open(vob_t *vob)
+int tc_import_open(vob_t *vob)
 {
     transfer_t import_para;
 
@@ -407,7 +407,7 @@ int import_open(vob_t *vob)
 //
 //-------------------------------------------------------------------------
 
-int import_close(void)
+int tc_import_close(void)
 {
     int ret;
     transfer_t import_para;
@@ -775,7 +775,7 @@ void audio_import_thread(vob_t *vob)
 //
 //-------------------------------------------------------------------------
 
-void import_shutdown()
+void tc_import_shutdown()
 {
     if (verbose & TC_DEBUG) {
         tc_log_msg(__FILE__, "unloading audio import module");
