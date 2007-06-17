@@ -275,7 +275,7 @@ static int encoder_wait_vframe(TCEncoderBuffer *buf)
             if (verbose >= TC_FLIST)
                 tc_log_msg(__FILE__, "video wait just ended");
 
-            if (!vimport_status() || tc_export_stop_requested()) {
+            if (!tc_import_video_status() || tc_export_stop_requested()) {
                 if (verbose >= TC_DEBUG) {
                     tc_log_warn(__FILE__, "import closed - buffer empty (V)");
                 }
@@ -309,7 +309,7 @@ static int encoder_wait_aframe(TCEncoderBuffer *buf)
             if (verbose >= TC_FLIST)
                 tc_log_msg(__FILE__, "audio wait just ended");
 
-            if (!aimport_status() || tc_export_stop_requested()) {
+            if (!tc_import_audio_status() || tc_export_stop_requested()) {
                 if (verbose >= TC_DEBUG) {
                     tc_log_warn(__FILE__, "import closed - buffer empty (A)");
                 }

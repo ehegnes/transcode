@@ -28,11 +28,11 @@
 int import_init(vob_t *vob, char *a_mod, char *v_mod);
 void import_shutdown(void);
 
-void aimport_stop(void);
-void vimport_stop(void);
+void tc_import_audio_stop(void);
+void tc_import_video_stop(void);
 
-void aimport_start(void);
-void vimport_start(void);
+void tc_import_audio_start(void);
+void tc_import_video_start(void);
 
 int import_open(vob_t *vob);
 int import_close(void);
@@ -42,8 +42,8 @@ void import_threads_cancel(void);
 
 int import_status(void);
 
-int aimport_status(void);
-int vimport_status(void);
+int tc_import_audio_status(void);
+int tc_import_video_status(void);
 
 void tc_import_audio_notify(void);
 void tc_import_video_notify(void);

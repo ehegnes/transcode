@@ -1,3 +1,9 @@
+2007-06-17 Francesco Romani <fromani at gmail dot com>
+  * src/decoder.c src/decoder.h src/encoder-buffer.c
+  aimport -> tc_import_audio
+  vimport -> tc_import_video
+  (just rename).
+
 2007-06-16 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c
   decoder rewrite take 1: starting base clean up.

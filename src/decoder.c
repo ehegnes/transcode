@@ -175,8 +175,8 @@ void tc_import_stop_nolock()
 
 static void tc_import_stop(void)
 {
-    vimport_stop();
-    aimport_stop();
+    tc_import_video_stop();
+    tc_import_audio_stop();
 
     frame_threads_notify_video(TC_TRUE);
     frame_threads_notify_audio(TC_TRUE);
@@ -277,13 +277,13 @@ void import_threads_create(vob_t *vob)
 {
     int ret;
 
-    aimport_start();
+    tc_import_audio_start();
     ret = pthread_create(&aud_decdata.thread_id, NULL,
                          (void *)audio_import_thread, vob);
     if (ret != 0)
         tc_error("failed to start audio stream import thread");
 
-    vimport_start();
+    tc_import_video_start();
     ret = pthread_create(&vid_decdata.thread_id, NULL,
                          (void *)video_import_thread, vob);
     if (ret != 0)
@@ -325,13 +325,13 @@ int import_init(vob_t *vob, char *a_mod, char *v_mod)
     aud_decdata.im_handle = load_module(a_mod, TC_IMPORT+TC_AUDIO);
     FAIL_IF_NULL(aud_decdata.im_handle, "audio");
 
-    aimport_start();
+    tc_import_audio_start();
 
     v_mod = (v_mod == NULL) ?TC_DEFAULT_IMPORT_VIDEO :v_mod;
     vid_decdata.im_handle = load_module(v_mod, TC_IMPORT+TC_VIDEO);
     FAIL_IF_NULL(vid_decdata.im_handle, "video");
 
-    vimport_start();
+    tc_import_video_start();
 
     memset(&import_para, 0, sizeof(transfer_t));
 
@@ -605,7 +605,7 @@ void video_import_thread(vob_t *vob)
             tc_log_msg(__FILE__, "%10s [%ld] V=%d bytes", "received", i, ptr->video_size);
 
         if (ret < 0) {
-            vimport_stop();
+            tc_import_video_stop();
             pthread_exit( (int *)13);
         }
         if (import_test_shutdown(&vid_decdata))
@@ -759,7 +759,7 @@ void audio_import_thread(vob_t *vob)
             tc_log_msg(__FILE__, "%10s [%ld] A=%d bytes", "received", i, ptr->audio_size);
 
         if (ret < 0) {
-            aimport_stop();
+            tc_import_audio_stop();
             pthread_exit( (int *)13);
         }
         if (import_test_shutdown(&aud_decdata))
@@ -798,7 +798,7 @@ void import_shutdown()
 //
 //-------------------------------------------------------------------------
 
-void vimport_stop()
+void tc_import_video_stop()
 {
     pthread_mutex_lock(&vid_decdata.lock);
     vid_decdata.active_flag = 0;
@@ -813,7 +813,7 @@ void vimport_stop()
 //
 //-------------------------------------------------------------------------
 
-void vimport_start()
+void tc_import_video_start()
 {
     pthread_mutex_lock(&vid_decdata.lock);
     vid_decdata.active_flag = 1;
@@ -826,7 +826,7 @@ void vimport_start()
 //
 //-------------------------------------------------------------------------
 
-void aimport_stop()
+void tc_import_audio_stop()
 {
     pthread_mutex_lock(&aud_decdata.lock);
     aud_decdata.active_flag = 0;
@@ -842,7 +842,7 @@ void aimport_stop()
 //
 //-------------------------------------------------------------------------
 
-void aimport_start()
+void tc_import_audio_start()
 {
     pthread_mutex_lock(&aud_decdata.lock);
     aud_decdata.active_flag = 1;
@@ -855,7 +855,7 @@ void aimport_start()
 //
 //-------------------------------------------------------------------------
 
-int aimport_status()
+int tc_import_audio_status()
 {
     int flag;
 
@@ -872,7 +872,7 @@ int aimport_status()
 //
 //-------------------------------------------------------------------------
 
-int vimport_status()
+int tc_import_video_status()
 {
     int flag;
 
@@ -897,11 +897,11 @@ int import_status()
     int vstatus = 0, astatus = 0;
 
     pthread_mutex_lock(&vframe_list_lock);
-    vstatus = vimport_status();
+    vstatus = tc_import_video_status();
     pthread_mutex_unlock(&vframe_list_lock);
 
     pthread_mutex_lock(&aframe_list_lock);
-    astatus = aimport_status();
+    astatus = tc_import_audio_status();
     pthread_mutex_unlock(&aframe_list_lock);
 
     return vstatus && astatus;
