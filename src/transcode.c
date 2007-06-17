@@ -2328,13 +2328,13 @@ int main(int argc, char *argv[])
                 break;
 
             if(verbose & TC_DEBUG)
-                tc_log_msg(PACKAGE, "import status=%d", import_status());
+                tc_log_msg(PACKAGE, "import status=%d", tc_import_status());
 
             // check for user cancelation request
             if (interrupt_flag)
                 break;
 
-        } while (import_status());
+        } while (tc_import_status());
 
         encoder_stop();
 

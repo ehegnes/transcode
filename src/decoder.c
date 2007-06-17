@@ -186,7 +186,7 @@ static void tc_import_stop(void)
                              " (main=%ld) import status=%d",
                              (unsigned long)pthread_self(),
                              (unsigned long)tc_pthread_main,
-                             import_status());
+                             tc_import_status());
 }
 
 //-------------------------------------------------------------------------
@@ -892,7 +892,7 @@ int tc_import_video_status()
 //
 //--------------------------------------------------------------------------
 
-int import_status()
+int tc_import_status()
 {
     int vstatus = 0, astatus = 0;
 

@@ -569,7 +569,7 @@ static void encoder_dispose_aframe(TCEncoderBuffer *buf)
 
 static int encoder_have_data(TCEncoderBuffer *buf)
 {
-    return import_status();
+    return tc_import_status();
 }
 
 

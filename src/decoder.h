@@ -40,7 +40,7 @@ int import_close(void);
 void import_threads_create(vob_t *vob);
 void import_threads_cancel(void);
 
-int import_status(void);
+int tc_import_status(void);
 
 int tc_import_audio_status(void);
 int tc_import_video_status(void);
