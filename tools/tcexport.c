@@ -509,10 +509,10 @@ int main(int argc, char *argv[])
     if (!config.dry_run) {
         struct fc_time *tstart = NULL;
         int last_etf = 0;
-        ret = encoder_init(vob);
+        ret = tc_encoder_init(vob);
         EXIT_IF(ret != 0, "can't initialize encoder", STATUS_INTERNAL_ERROR);
 
-        ret = encoder_open(vob);
+        ret = tc_encoder_open(vob);
         EXIT_IF(ret != 0, "can't open encoder files", STATUS_IO_ERROR);
 
         /* first setup counter ranges */
@@ -532,12 +532,12 @@ int main(int argc, char *argv[])
 
         /* ok, now we can do the real (ranged) encoding */
         for (tstart = vob->ttime; tstart != NULL; tstart = tstart->next) {
-            encoder_loop(vob, tstart->stf, tstart->etf);
+            tc_encoder_loop(vob, tstart->stf, tstart->etf);
             printf("\n"); /* dont' mess (too much) counter output */
         }
 
-        ret = encoder_stop();
-        ret = encoder_close();
+        ret = tc_encoder_stop();
+        ret = tc_encoder_close();
     }
 
     tc_export_shutdown();

@@ -176,7 +176,7 @@ void tc_export_shutdown(void);
  * specifying a maxmimum size, resp. in frames OR in megabytes, for each
  * output chunk.
  *
- * Those functions MUST BE used BEFORE to call first encoder_open(),
+ * Those functions MUST BE used BEFORE to call first tc_encoder_open(),
  * otherwise will fall into unspecifed behaviour.
  * It's important to note that client code CAN call multiple times
  * (even if isn't usually useful to do so ;) ) tc_export_rotation_limit*,
@@ -230,37 +230,37 @@ void tc_export_rotation_limit_megabytes(vob_t *vob, uint32_t megabytes);
  */
 
 /*
- * encoder_init:
+ * tc_encoder_init:
  *     initialize the A/V encoders, by (re)configuring encoder modules.
  *
  * Parameters:
  *     vob: pointer to vob_t.
- *          encoder_init need to fetch from a vob structure some informations
+ *          tc_encoder_init need to fetch from a vob structure some informations
  *          needed by it's inizalitation.
  * Return Value:
  *     -1: error configuring modules. Reason of error will be notified
  *         via tc_log*().
  *      0: succesfull.
  */
-int encoder_init(vob_t *vob);
+int tc_encoder_init(vob_t *vob);
 
 /*
- * encoder_open:
+ * tc_encoder_open:
  *     open output file(s), by (re)configuring multiplexor module.
  *
  * Parameters:
  *     vob: pointer to vob_t.
- *          encoder_open need to fetch from a vob structure some informations
+ *          tc_encoder_open need to fetch from a vob structure some informations
  *          needed by it's inizalitation.
  * Return Value:
  *     -1: error configuring module(s) or opening file(s). Reason of error will be
  *         notified via tc_log*().
  *      0: succesfull.
  */
-int encoder_open(vob_t *vob);
+int tc_encoder_open(vob_t *vob);
 
 /*
- * encoder_loop:
+ * tc_encoder_loop:
  *      encodes a range of frames from stream(s) using given settings.
  *      This is the main and inner encoding loop.
  *      Encoding usually halts with last frame in range is encountered, but
@@ -285,13 +285,13 @@ int encoder_open(vob_t *vob);
  *      encoder properly initialized. This means:
  *      tc_export_init() called succesfully;
  *      tc_export_setup() called succesfully;
- *      encoder_init() called succesfully;
- *      encoder_open() called succesfully;
+ *      tc_encoder_init() called succesfully;
+ *      tc_encoder_open() called succesfully;
  */
-void encoder_loop(vob_t *vob, int frame_first, int frame_last);
+void tc_encoder_loop(vob_t *vob, int frame_first, int frame_last);
 
 /*
- * encoder_stop:
+ * tc_encoder_stop:
  *      stop both the audio and the video encoders.
  *
  * Parameters:
@@ -300,10 +300,10 @@ void encoder_loop(vob_t *vob, int frame_first, int frame_last);
  *      0: succesfull.
  *     <0: failure, reason will be notified via tc_log*().
  */
-int encoder_stop(void);
+int tc_encoder_stop(void);
 
 /*
- * encoder_close:
+ * tc_encoder_close:
  *      stop multiplexor and close output file.
  *
  * Parameters:
@@ -312,7 +312,7 @@ int encoder_stop(void);
  *      0: succesfull.
  *     <0: failure, reason will be notified via tc_log*().
  */
-int encoder_close(void);
+int tc_encoder_close(void);
 
 /*************************************************************************/
 

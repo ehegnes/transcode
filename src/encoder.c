@@ -90,10 +90,10 @@ static int encoder_flush(TCEncoderData *data);
 static int OLD_tc_export_setup(vob_t *vob,
                             const char *a_mod, const char *v_mod);
 static void OLD_tc_export_shutdown(void);
-static int OLD_encoder_init(vob_t *vob);
-static int OLD_encoder_open(vob_t *vob);
-static int OLD_encoder_close(void);
-static int OLD_encoder_stop(void);
+static int OLD_tc_encoder_init(vob_t *vob);
+static int OLD_tc_encoder_open(vob_t *vob);
+static int OLD_tc_encoder_close(void);
+static int OLD_tc_encoder_stop(void);
 static int OLD_encoder_export(TCEncoderData *data, vob_t *vob);
 
 #endif  // SUPPORT_OLD_ENCODER
@@ -247,7 +247,7 @@ static void tc_rotate_init(TCRotateContext *rotor,
  *    setup respecitvely frames and bytes limit for each output chunk.
  *    When calling this function user ask for rotation, so they also
  *    directly updates vob.{video,audio}_out_file so even first
- *    encoder_open() later call will uses names of the right format
+ *    tc_encoder_open() later call will uses names of the right format
  *    (i.e. with the same layout of second and further chunks).
  *    This is done in order to avoid any later rename() and disomogeneities
  *    in output file name as experienced in transcode 1.0.x and before.
@@ -350,7 +350,7 @@ static int tc_rotate_if_needed_null(TCRotateContext *rotor,
 }
 
 #define ROTATE_COMMON_CODE(rotor, vob) do { \
-    ret = encoder_close(); \
+    ret = tc_encoder_close(); \
     if (ret != TC_OK) { \
         tc_log_error(__FILE__, "unable to close output stream"); \
         ret = TC_ERROR; \
@@ -360,7 +360,7 @@ static int tc_rotate_if_needed_null(TCRotateContext *rotor,
                                (rotor)->video_path_buf); \
         tc_log_info(__FILE__, "rotating audio output stream to %s", \
                                (rotor)->audio_path_buf); \
-        ret = encoder_open((vob)); \
+        ret = tc_encoder_open((vob)); \
         if (ret != TC_OK) { \
             tc_log_error(__FILE__, "unable to reopen output stream"); \
             ret = TC_ERROR; \
@@ -640,14 +640,14 @@ void tc_export_shutdown(void)
  *
  * ------------------------------------------------------------*/
 
-int encoder_init(vob_t *vob)
+int tc_encoder_init(vob_t *vob)
 {
     int ret;
     const char *options = NULL;
 
 #ifdef SUPPORT_OLD_ENCODER
     if (!encdata.factory)
-        return OLD_encoder_init(vob);
+        return OLD_tc_encoder_init(vob);
 #endif
 
     ret = alloc_buffers(&encdata);
@@ -680,14 +680,14 @@ int encoder_init(vob_t *vob)
  *
  * ------------------------------------------------------------*/
 
-int encoder_open(vob_t *vob)
+int tc_encoder_open(vob_t *vob)
 {
     int ret;
     const char *options = NULL;
 
 #ifdef SUPPORT_OLD_ENCODER
     if (!encdata.factory)
-        return OLD_encoder_open(vob);
+        return OLD_tc_encoder_open(vob);
 #endif
 
     options = vob->ex_m_string ? vob->ex_m_string : "";
@@ -710,13 +710,13 @@ int encoder_open(vob_t *vob)
  *
  * ------------------------------------------------------------*/
 
-int encoder_close(void)
+int tc_encoder_close(void)
 {
     int ret;
 
 #ifdef SUPPORT_OLD_ENCODER
     if (!encdata.factory)
-        return OLD_encoder_close();
+        return OLD_tc_encoder_close();
 #endif
 
     /* old style code handle flushing in modules, not here */
@@ -745,13 +745,13 @@ int encoder_close(void)
  *
  * ------------------------------------------------------------*/
 
-int encoder_stop(void)
+int tc_encoder_stop(void)
 {
     int ret;
 
 #ifdef SUPPORT_OLD_ENCODER
     if (!encdata.factory)
-        return OLD_encoder_stop();
+        return OLD_tc_encoder_stop();
 #endif
 
     ret = tc_module_stop(encdata.vid_mod);
@@ -1068,7 +1068,7 @@ static void OLD_tc_export_shutdown(void)
  *
  * ------------------------------------------------------------*/
 
-static int OLD_encoder_init(vob_t *vob)
+static int OLD_tc_encoder_init(vob_t *vob)
 {
     int ret;
 
@@ -1096,7 +1096,7 @@ static int OLD_encoder_init(vob_t *vob)
  *
  * ------------------------------------------------------------*/
 
-static int OLD_encoder_open(vob_t *vob)
+static int OLD_tc_encoder_open(vob_t *vob)
 {
     int ret;
 
@@ -1124,7 +1124,7 @@ static int OLD_encoder_open(vob_t *vob)
  *
  * ------------------------------------------------------------*/
 
-static int OLD_encoder_close(void)
+static int OLD_tc_encoder_close(void)
 {
     /* 
      * close, errors not fatal.
@@ -1150,7 +1150,7 @@ static int OLD_encoder_close(void)
  *
  * ------------------------------------------------------------*/
 
-static int OLD_encoder_stop(void)
+static int OLD_tc_encoder_stop(void)
 {
     int ret;
 
@@ -1279,7 +1279,7 @@ void tc_outstream_rotate(void)
         return;
 
     // close output
-    if (encoder_close()<0)
+    if (tc_encoder_close()<0)
         tc_error("failed to close output");
 
     // create new filename
@@ -1289,7 +1289,7 @@ void tc_outstream_rotate(void)
         tc_error("failed to rename output file");
 
     // reopen output
-    if (encoder_open(vob) < 0)
+    if (tc_encoder_open(vob) < 0)
         tc_error("failed to open output");
 
     tc_log_info(__FILE__, "outfile %s saved to %s", base, buf);
@@ -1322,7 +1322,7 @@ static void encoder_skip(TCEncoderData *data)
  *
  * ------------------------------------------------------------*/
 
-void encoder_loop(vob_t *vob, int frame_first, int frame_last)
+void tc_encoder_loop(vob_t *vob, int frame_first, int frame_last)
 {
     int err = 0;
 
