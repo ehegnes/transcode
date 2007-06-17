@@ -1,8 +1,8 @@
 2007-06-17 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c src/decoder.h src/encoder-buffer.c src/transcode.c
-  aimport         -> tc_import_audio
-  vimport         -> tc_import_video
-  import_status() -> tc_import_status()
+  aimport    -> tc_import_audio
+  vimport    -> tc_import_video
+  import_*() -> tc_import_*()
   (just rename).
 
 2007-06-16 Francesco Romani <fromani at gmail dot com>

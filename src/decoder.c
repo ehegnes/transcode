@@ -201,7 +201,7 @@ static void tc_import_stop(void)
 extern pthread_mutex_t xio_lock;
 #endif
 
-void import_threads_cancel()
+void tc_import_threads_cancel()
 {
     void *status = NULL;
     int vret, aret;
@@ -273,7 +273,7 @@ void import_threads_cancel()
 
 //-------------------------------------------------------------------------
 
-void import_threads_create(vob_t *vob)
+void tc_import_threads_create(vob_t *vob)
 {
     int ret;
 

@@ -21,12 +21,11 @@
  *
  */
 
-#ifndef _DECODER_H
-#define _DECODER_H
+#ifndef DECODER_H
+#define DECODER_H
 
-// import API
-int import_init(vob_t *vob, char *a_mod, char *v_mod);
-void import_shutdown(void);
+int tc_import_init(vob_t *vob, char *a_mod, char *v_mod);
+void tc_import_shutdown(void);
 
 void tc_import_audio_stop(void);
 void tc_import_video_stop(void);
@@ -34,11 +33,11 @@ void tc_import_video_stop(void);
 void tc_import_audio_start(void);
 void tc_import_video_start(void);
 
-int import_open(vob_t *vob);
-int import_close(void);
+int tc_import_open(vob_t *vob);
+int tc_import_close(void);
 
-void import_threads_create(vob_t *vob);
-void import_threads_cancel(void);
+void tc_import_threads_create(vob_t *vob);
+void tc_import_threads_cancel(void);
 
 int tc_import_status(void);
 
@@ -48,4 +47,4 @@ int tc_import_video_status(void);
 void tc_import_audio_notify(void);
 void tc_import_video_notify(void);
 
-#endif
+#endif /* DECODER_H */

@@ -275,7 +275,7 @@ static void load_all_filters(char *filter_list)
 static int transcode_init(vob_t *vob, TCEncoderBuffer *tc_ringbuffer)
 {
     /* load import modules and check capabilities */
-    if (import_init(vob, im_aud_mod, im_vid_mod) < 0) {
+    if (tc_import_init(vob, im_aud_mod, im_vid_mod) < 0) {
         tc_log_error(PACKAGE, "failed to init import modules");
         return -1;
     }
@@ -313,7 +313,7 @@ static int transcode_init(vob_t *vob, TCEncoderBuffer *tc_ringbuffer)
 static int transcode_fini(vob_t *vob)
 {
     /* unload import modules */
-    import_shutdown();
+    tc_import_shutdown();
     /* unload filters */
     tc_filter_fini();
     /* unload export modules */
@@ -2204,12 +2204,12 @@ int main(int argc, char *argv[])
         if (0 != vob->ttime->vob_offset){
             vob->vob_offset = vob->ttime->vob_offset;
         }
-        if (import_open(vob) < 0)
+        if (tc_import_open(vob) < 0)
             tc_error("failed to open input source");
 
         // start the AV import threads that load the frames into transcode
-        // this must be called after import_open
-        import_threads_create(vob);
+        // this must be called after tc_import_open
+        tc_import_threads_create(vob);
 
         // init encoder
         if (encoder_init(vob) != TC_OK)
@@ -2257,17 +2257,17 @@ int main(int argc, char *argv[])
             // see if we're using vob_offset
             if ((tstart != NULL) && (tstart->vob_offset != 0)){
                 tc_decoder_delay = 3;
-                import_threads_cancel();
-                import_close();
+                tc_import_threads_cancel();
+                tc_import_close();
                 aframe_flush();
                 tc_flush_audio_counters();
                 vframe_flush();
                 tc_flush_video_counters();
                 vob->vob_offset = tstart->vob_offset;
                 vob->sync = sync_seconds;
-                if (import_open(vob) < 0)
+                if (tc_import_open(vob) < 0)
                     tc_error("failed to open input source");
-                import_threads_create(vob);
+                tc_import_threads_create(vob);
             }
         }
 
@@ -2276,9 +2276,9 @@ int main(int argc, char *argv[])
         // stop encoder
         encoder_stop();
         // cancel import threads
-        import_threads_cancel();
+        tc_import_threads_cancel();
         // stop decoder and close the source
-        import_close();
+        tc_import_close();
         break;
 
       case TC_MODE_AVI_SPLIT:
@@ -2287,11 +2287,11 @@ int main(int argc, char *argv[])
          * ------------------------------------------------------------*/
 
         // init decoder and open the source
-        if (import_open(vob) < 0)
+        if (tc_import_open(vob) < 0)
             tc_error("failed to open input source");
 
         // start the AV import threads that load the frames into transcode
-        import_threads_create(vob);
+        tc_import_threads_create(vob);
 
         // encoder init
         if (encoder_init(vob) != TC_OK)
@@ -2339,9 +2339,9 @@ int main(int argc, char *argv[])
         encoder_stop();
 
         // cancel import threads
-        import_threads_cancel();
+        tc_import_threads_cancel();
         // stop decoder and close the source
-        import_close();
+        tc_import_close();
 
         break;
 
@@ -2404,11 +2404,11 @@ int main(int argc, char *argv[])
             if ((fb-fa) > psu_frame_threshold) {
                 // start new decoding session with updated vob structure
                 // this starts the full decoder setup, including the threads
-                if (import_open(vob) < 0)
+                if (tc_import_open(vob) < 0)
                     tc_error("failed to open input source");
 
                 // start the AV import threads that load the frames into transcode
-                import_threads_create(vob);
+                tc_import_threads_create(vob);
 
                 // open new output file
                 if (!no_split) {
@@ -2433,9 +2433,9 @@ int main(int argc, char *argv[])
                 aframe_fill_print(0);
 
                 // cancel import threads
-                import_threads_cancel();
+                tc_import_threads_cancel();
                 // stop decoder and close the source
-                import_close();
+                tc_import_close();
 
                 // flush all buffers before we proceed to next PSU
                 aframe_flush();
@@ -2562,10 +2562,10 @@ int main(int argc, char *argv[])
     }
 
     // start new decoding session with updated vob structure
-    if(import_open(vob)<0) tc_error("failed to open input source");
+    if(tc_import_open(vob)<0) tc_error("failed to open input source");
 
     // start the AV import threads that load the frames into transcode
-    import_threads_create(vob);
+    tc_import_threads_create(vob);
 
     // open output
     if(!no_split) {
@@ -2595,10 +2595,10 @@ int main(int argc, char *argv[])
     }
 
     // cancel import threads
-    import_threads_cancel();
+    tc_import_threads_cancel();
 
     // stop decoder and close the source
-    import_close();
+    tc_import_close();
 
     // flush all buffers before we proceed to next file
     aframe_flush();
@@ -2674,11 +2674,11 @@ int main(int argc, char *argv[])
             }
 
             // start decoding with updated vob structure
-            if (import_open(vob) < 0)
+            if (tc_import_open(vob) < 0)
                 tc_error("failed to open input source");
 
             // start the AV import threads that load the frames into transcode
-            import_threads_create(vob);
+            tc_import_threads_create(vob);
 
             if (verbose & TC_DEBUG)
                 tc_log_msg(PACKAGE, "%d chapters for title %d detected",
@@ -2699,9 +2699,9 @@ int main(int argc, char *argv[])
             }
 
             // cancel import threads
-            import_threads_cancel();
+            tc_import_threads_cancel();
             // stop decoder and close the source
-            import_close();
+            tc_import_close();
 
             // flush all buffers before we proceed
             aframe_flush();
