@@ -911,7 +911,7 @@ static int encoder_flush(TCEncoderData *data)
 
 
 
-void export_rotation_limit_frames(vob_t *vob, uint32_t frames)
+void tc_export_rotation_limit_frames(vob_t *vob, uint32_t frames)
 {
 #ifdef SUPPORT_OLD_ENCODER
     if (!encdata.factory)
@@ -921,7 +921,7 @@ void export_rotation_limit_frames(vob_t *vob, uint32_t frames)
     tc_rotate_set_frames_limit(&encdata.rotor_data, vob, frames);
 }
 
-void export_rotation_limit_megabytes(vob_t *vob, uint32_t megabytes)
+void tc_export_rotation_limit_megabytes(vob_t *vob, uint32_t megabytes)
 {
 #ifdef SUPPORT_OLD_ENCODER
     if (!encdata.factory)

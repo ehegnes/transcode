@@ -169,8 +169,8 @@ void tc_export_shutdown(void);
 /*************************************************************************
  * new-style output rotation support.
  * This couple of functions
- *      export_rotation_limit_frames
- *      export_rotation_limit_megabytes
+ *      tc_export_rotation_limit_frames
+ *      tc_export_rotation_limit_megabytes
  *
  * Allow the client code to automatically split output into chunks by
  * specifying a maxmimum size, resp. in frames OR in megabytes, for each
@@ -179,14 +179,14 @@ void tc_export_shutdown(void);
  * Those functions MUST BE used BEFORE to call first encoder_open(),
  * otherwise will fall into unspecifed behaviour.
  * It's important to note that client code CAN call multiple times
- * (even if isn't usually useful to do so ;) ) export_rotation_limit*,
+ * (even if isn't usually useful to do so ;) ) tc_export_rotation_limit*,
  * but only one limit can be used, so the last limit set will be used.
  * In other words, is NOT (yet) possible to limit output chunk size
  * BOTH by frames and by size.
  */
 
 /*
- * export_rotation_limit_frames:
+ * tc_export_rotation_limit_frames:
  *     rotate output file(s) every given amount of encoded frames.
  *
  * Parameters:
@@ -195,10 +195,10 @@ void tc_export_shutdown(void);
  * Return value:
  *     None.
  */
-void export_rotation_limit_frames(vob_t *vob, uint32_t frames);
+void tc_export_rotation_limit_frames(vob_t *vob, uint32_t frames);
 
 /*
- * export_rotation_limit_megabytes:
+ * tc_export_rotation_limit_megabytes:
  *     rotate output file(s) after a given amount of data was encoded.
  *
  * Parameters:
@@ -207,7 +207,7 @@ void export_rotation_limit_frames(vob_t *vob, uint32_t frames);
  * Return value:
  *     None.
  */
-void export_rotation_limit_megabytes(vob_t *vob, uint32_t megabytes);
+void tc_export_rotation_limit_megabytes(vob_t *vob, uint32_t megabytes);
 
 
 /*************************************************************************/
