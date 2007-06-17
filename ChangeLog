@@ -4,6 +4,7 @@
   vimport    -> tc_import_video
   import_*() -> tc_import_*()
   (just rename).
+  Make import thread routines private.
 
   * src/encoder.c src/encoder.h src/transcode.c tools/tcexport.c
   export*()  -> tc_export*()

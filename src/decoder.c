@@ -499,7 +499,7 @@ static void import_lock_cleanup (void *arg)
 } while (0)
 
 
-void video_import_thread(vob_t *vob)
+static void video_import_thread(vob_t *vob)
 {
     long int i = 0;
     int ret = 0, vbytes = 0;
@@ -638,7 +638,7 @@ void video_import_thread(vob_t *vob)
     } \
 } while (0)
 
-void audio_import_thread(vob_t *vob)
+static void audio_import_thread(vob_t *vob)
 {
     long int i = 0;
     int ret = 0, abytes;
