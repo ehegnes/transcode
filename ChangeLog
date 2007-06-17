@@ -5,6 +5,10 @@
   import_*() -> tc_import_*()
   (just rename).
 
+  * src/encoder.c src/encoder.h src/transcode.c tools/tcexport.c
+  export*()  -> tc_export*()
+  (just rename).
+
 2007-06-16 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c
   decoder rewrite take 1: starting base clean up.

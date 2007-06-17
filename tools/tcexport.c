@@ -499,10 +499,10 @@ int main(int argc, char *argv[])
 
     EXIT_IF(tc_rawsource_buffer == NULL, "can't get rawsource handle",
             STATUS_IO_ERROR);
-    ret = export_init(tc_rawsource_buffer, factory);
+    ret = tc_export_init(tc_rawsource_buffer, factory);
     EXIT_IF(ret != 0, "can't setup export subsystem", STATUS_MODULE_ERROR);
 
-    ret = export_setup(vob,
+    ret = tc_export_setup(vob,
                        config.audio_mod, config.video_mod, config.mplex_mod);
     EXIT_IF(ret != 0, "can't setup export modules", STATUS_MODULE_ERROR);
 
@@ -540,7 +540,7 @@ int main(int argc, char *argv[])
         ret = encoder_close();
     }
 
-    export_shutdown();
+    tc_export_shutdown();
 
     ret = tc_rawsource_close();
     ret = tc_del_module_factory(factory);

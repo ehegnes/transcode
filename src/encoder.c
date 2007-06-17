@@ -87,9 +87,9 @@ static int encoder_flush(TCEncoderData *data);
 /* old-style encoder */
 #ifdef SUPPORT_OLD_ENCODER
 
-static int OLD_export_setup(vob_t *vob,
+static int OLD_tc_export_setup(vob_t *vob,
                             const char *a_mod, const char *v_mod);
-static void OLD_export_shutdown(void);
+static void OLD_tc_export_shutdown(void);
 static int OLD_encoder_init(vob_t *vob);
 static int OLD_encoder_open(vob_t *vob);
 static int OLD_encoder_close(void);
@@ -536,7 +536,7 @@ static void export_update_formats(vob_t *vob, const TCModuleInfo *vinfo,
  *
  * ------------------------------------------------------------*/
 
-int export_init(TCEncoderBuffer *buffer, TCFactory factory)
+int tc_export_init(TCEncoderBuffer *buffer, TCFactory factory)
 {
     if (buffer == NULL) {
         tc_log_error(__FILE__, "missing encoder buffer reference");
@@ -554,7 +554,7 @@ int export_init(TCEncoderBuffer *buffer, TCFactory factory)
     return TC_OK;
 }
 
-int export_setup(vob_t *vob,
+int tc_export_setup(vob_t *vob,
                  const char *a_mod, const char *v_mod, const char *m_mod)
 {
     int match = 0;
@@ -562,7 +562,7 @@ int export_setup(vob_t *vob,
 
 #ifdef SUPPORT_OLD_ENCODER
     if (!encdata.factory)
-        return OLD_export_setup(vob, a_mod, v_mod);
+        return OLD_tc_export_setup(vob, a_mod, v_mod);
 #endif
 
     if (verbose >= TC_DEBUG) {
@@ -617,11 +617,11 @@ int export_setup(vob_t *vob,
  *
  * ------------------------------------------------------------*/
 
-void export_shutdown(void)
+void tc_export_shutdown(void)
 {
 #ifdef SUPPORT_OLD_ENCODER
     if (!encdata.factory)
-        return OLD_export_shutdown();
+        return OLD_tc_export_shutdown();
 #endif
 
     if (verbose >= TC_DEBUG) {
@@ -944,7 +944,7 @@ void export_rotation_limit_megabytes(vob_t *vob, uint32_t megabytes)
  *
  * ------------------------------------------------------------*/
 
-static int OLD_export_setup(vob_t *vob,
+static int OLD_tc_export_setup(vob_t *vob,
                             const char *a_mod, const char *v_mod)
 {
     const char *mod_name = NULL;
@@ -1051,7 +1051,7 @@ static int OLD_export_setup(vob_t *vob,
  *
  * ------------------------------------------------------------*/
 
-static void OLD_export_shutdown(void)
+static void OLD_tc_export_shutdown(void)
 {
     if (verbose & TC_DEBUG) {
         tc_log_info(__FILE__, "unloading export modules");

@@ -286,7 +286,7 @@ static int transcode_init(vob_t *vob, TCEncoderBuffer *tc_ringbuffer)
 
     /* load export modules and check capabilities
      * (only create a TCModule factory if a multiplex module was given) */
-    if (export_init(tc_ringbuffer,
+    if (tc_export_init(tc_ringbuffer,
                     ex_mplex_mod
                       ? tc_new_module_factory(vob->mod_path,verbose)
                       : NULL) != TC_OK
@@ -294,7 +294,7 @@ static int transcode_init(vob_t *vob, TCEncoderBuffer *tc_ringbuffer)
         tc_log_error(PACKAGE, "failed to init export layer");
         return -1;
     }
-    if (export_setup(vob, ex_aud_mod, ex_vid_mod, ex_mplex_mod) != TC_OK) {
+    if (tc_export_setup(vob, ex_aud_mod, ex_vid_mod, ex_mplex_mod) != TC_OK) {
         tc_log_error(PACKAGE, "failed to init export modules");
         return -1;
     }
@@ -317,7 +317,7 @@ static int transcode_fini(vob_t *vob)
     /* unload filters */
     tc_filter_fini();
     /* unload export modules */
-    export_shutdown();
+    tc_export_shutdown();
 
     return 0;
 }

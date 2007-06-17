@@ -100,15 +100,15 @@ void tc_export_video_notify(void);
 
 /*************************************************************************
  * helper routines. Client code needs to call those routines before
- * (export_init/export_setup) or after (export_shutdown)
+ * (tc_export_init/tc_export_setup) or after (tc_export_shutdown)
  * all the others.
  */
 
 /*
- * export_init:
+ * tc_export_init:
  *      select a TCEncoderBuffer and a TCFactory to use for further
  *      operations. Both buffer and factory will be used until a new
- *      call to export_init occurs.
+ *      call to tc_export_init occurs.
  *      PLEASE NOTE: there NOT are sensible defaults, so client
  *      cose NEEDS to call this function as first one in code using
  *      encoder.
@@ -120,18 +120,18 @@ void tc_export_video_notify(void);
  *       0: succesfull
  *      !0: given one or more bad (NULL) value(s).
  */
-int export_init(TCEncoderBuffer *buffer, TCFactory factory);
+int tc_export_init(TCEncoderBuffer *buffer, TCFactory factory);
 
 /*
- * export_setup:
+ * tc_export_setup:
  *      load export modules (encoders and multiplexor) using Module Factory
- *      selected via export_init, checking if loaded modules are
+ *      selected via tc_export_init, checking if loaded modules are
  *      compatible with requested audio/video codec, and prepare for
  *      real encoding.
  *
  * Parameters:
  *     vob: pointer to vob_t.
- *          export_setup need to fetch from a vob structure some informations
+ *          tc_export_setup need to fetch from a vob structure some informations
  *          needed by proper loading (es: module path).
  *   a_mod: name of audio encoder module to load.
  *   v_mod: name of video encoder module to load.
@@ -144,15 +144,15 @@ int export_init(TCEncoderBuffer *buffer, TCFactory factory);
  *         (i.e. audio encoder module VS requested audio codec)
  *         (i.e. video encoder module VS multiplexor module)
  * Preconditions:
- *      Module Factory avalaible and selected using export_init.
+ *      Module Factory avalaible and selected using tc_export_init.
  */
-int export_setup(vob_t *vob,
+int tc_export_setup(vob_t *vob,
                  const char *a_mod, const char *v_mod, const char *m_mod);
 
 
 /*
- * export_shutdown:
- *      revert operations done by export_setup, unloading encoder and
+ * tc_export_shutdown:
+ *      revert operations done by tc_export_setup, unloading encoder and
  *      multiplexor modules.
  *
  * Parameters:
@@ -160,10 +160,10 @@ int export_setup(vob_t *vob,
  * Return Value:
  *      None.
  * Preconditions:
- *      export_setup() was previously called. To call this function if
- *      export_setup() wasn't called will cause undefined behaviour.
+ *      tc_export_setup() was previously called. To call this function if
+ *      tc_export_setup() wasn't called will cause undefined behaviour.
  */
-void export_shutdown(void);
+void tc_export_shutdown(void);
 
 
 /*************************************************************************
@@ -283,8 +283,8 @@ int encoder_open(vob_t *vob);
  *      None.
  * Preconditions:
  *      encoder properly initialized. This means:
- *      export_init() called succesfully;
- *      export_setup() called succesfully;
+ *      tc_export_init() called succesfully;
+ *      tc_export_setup() called succesfully;
  *      encoder_init() called succesfully;
  *      encoder_open() called succesfully;
  */
