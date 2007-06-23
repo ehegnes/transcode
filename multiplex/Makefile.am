@@ -13,11 +13,13 @@ MODS_MJPEGTOOLS = \
 	multiplex_y4m.la
 endif
 
+if ENABLE_EXPERIMENTAL
 pkg_LTLIBRARIES = \
 	multiplex_raw.la \
 	multiplex_avi.la \
 	$(MODS_MJPEGTOOLS) \
 	multiplex_null.la
+endif
 
 multiplex_avi_la_SOURCES = multiplex_avi.c
 multiplex_avi_la_LDFLAGS = -module -avoid-version
