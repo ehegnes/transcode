@@ -1,3 +1,11 @@
+2007-06-23 Francesco Romani <fromani at gmail dot com>
+  * configure.in tools.Makefile.am tools/tcmodinfo.c
+  another little step to 1.1.0 release: add configuration check
+  to enterely enable/disable experimental or incomplete code,
+  as NMS (unfortunately) still is. 1.1.0 will ship all existing NMS
+  code, but disabled by default.
+  Also update tcmodinfo to build with NMS code disabled.
+
 2007-06-17 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c src/decoder.h src/encoder-buffer.c src/transcode.c
   aimport    -> tc_import_audio

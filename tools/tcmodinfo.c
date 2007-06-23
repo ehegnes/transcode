@@ -23,6 +23,7 @@
  *
  */
 
+#include "config.h"
 #include "tcstub.h"
 
 #define EXE "tcmodinfo"
@@ -40,7 +41,7 @@ enum {
 
 void version(void)
 {
-    printf("%s (%s v%s) (C) 2001-2006 Tilmann Bitterberg, "
+    printf("%s (%s v%s) (C) 2001-2007 Tilmann Bitterberg, "
            "transcode team\n", EXE, PACKAGE, VERSION);
 }
 
@@ -51,11 +52,13 @@ static void usage(void)
     fprintf(stderr, "    -i name           Module name information (like \'smooth\')\n");
     fprintf(stderr, "    -p                Print the compiled-in module path\n");
     fprintf(stderr, "    -d verbosity      Verbosity mode [1 == TC_INFO]\n");
+#ifdef ENABLE_EXPERIMENTAL
     fprintf(stderr, "    -m path           Use PATH as module path\n");
     fprintf(stderr, "    -M element        Request to module informations about <element>\n");
     fprintf(stderr, "    -C string         Request to configure module using configuration <string>\n");
-    fprintf(stderr, "    -s socket         Connect to transcode socket\n");
     fprintf(stderr, "    -t type           Type of module (filter, encode, multiplex)\n");
+#endif
+    fprintf(stderr, "    -s socket         Connect to transcode socket\n");
     fprintf(stderr, "\n");
 }
 
@@ -137,9 +140,11 @@ int main(int argc, char *argv[])
     int ch;
     const char *filename = NULL;
     const char *modpath = MOD_PATH;
+#ifdef ENABLE_EXPERIMENTAL    
     const char *modtype = "filter";
     const char *modarg = ""; /* nothing */
     const char *modcfg = ""; /* nothing */
+#endif
     const char *socketfile = NULL;
     char options[OPTS_SIZE] = { '\0', };
     int print_mod = 0;
@@ -149,8 +154,10 @@ int main(int argc, char *argv[])
 
     /* needed by filter modules */
     TCVHandle tcv_handle = tcv_init();
+#ifdef ENABLE_EXPERIMENTAL
     TCFactory factory = NULL;
     TCModule module = NULL;
+#endif
 
     vframe_list_t ptr;
 
@@ -167,15 +174,16 @@ int main(int argc, char *argv[])
     libtc_init(&argc, &argv);
 
     while (1) {
+#ifdef ENABLE_EXPERIMENTAL
         ch = getopt(argc, argv, "C:d:i:?vhpm:M:s:t:");
+#else /* !ENABLE_EXPERIMENTAL */
+        ch = getopt(argc, argv, "d:i:?vhps:");
+#endif
         if (ch == -1) {
             break;
         }
 
         switch (ch) {
-          case 'C':
-            modcfg = optarg;
-            break;
           case 'd':
             if (optarg[0] == '-') {
                 usage();
@@ -190,6 +198,10 @@ int main(int argc, char *argv[])
             }
             filename = optarg;
             break;
+#ifdef ENABLE_EXPERIMENTAL
+          case 'C':
+            modcfg = optarg;
+            break;
           case 'm':
             modpath = optarg;
             break;
@@ -201,7 +213,6 @@ int main(int argc, char *argv[])
                 usage();
                 return STATUS_BAD_PARAM;
             }
-
             if (!strcmp(optarg, "filter")
              || !strcmp(optarg, "encode")
              || !strcmp(optarg, "multiplex")) {
@@ -210,6 +221,7 @@ int main(int argc, char *argv[])
                 modtype = NULL;
             }
             break;
+#endif
           case 's':
             if (optarg[0] == '-') {
                 usage();
@@ -242,6 +254,12 @@ int main(int argc, char *argv[])
         return STATUS_OK;
     }
 
+    if (!filename) {
+        usage();
+        return STATUS_BAD_PARAM;
+    }
+
+#ifdef ENABLE_EXPERIMENTAL
     if (!modtype || !strcmp(modtype, "import")) {
         tc_log_error(EXE, "Unknown module type (not in filter, encode, multiplex)");
         return STATUS_BAD_PARAM;
@@ -249,11 +267,6 @@ int main(int argc, char *argv[])
 
     if (strlen(modcfg) > 0 && strlen(modarg) > 0) {
         tc_log_error(EXE, "Cannot configure and inspect module on the same time");
-        return STATUS_BAD_PARAM;
-    }
-
-    if (!filename) {
-        usage();
         return STATUS_BAD_PARAM;
     }
 
@@ -296,12 +309,16 @@ int main(int argc, char *argv[])
             status = STATUS_OK;
         }
         tc_del_module(factory, module);
-    } else if (!strcmp(modtype, "filter")) {
+    } else if (!strcmp(modtype, "filter")) 
+#endif /* ENABLE_EXPERIMENTAL */
+    {
         char namebuf[NAME_LEN];
+#ifdef ENABLE_EXPERIMENTAL
         /* compatibility support only for filters */
         if (verbose >= TC_DEBUG) {
             tc_log_info(EXE, "using old module system");
         }
+#endif
         /* ok, fallback to old module system */
         strlcpy(namebuf, filename, NAME_LEN);
         filter[0].name = namebuf;
@@ -333,7 +350,9 @@ int main(int argc, char *argv[])
         }
    }
 
+#ifdef ENABLE_EXPERIMENTAL
    ret = tc_del_module_factory(factory);
+#endif
    tcv_free(tcv_handle);
    return status;
 }
