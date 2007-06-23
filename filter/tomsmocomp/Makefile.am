@@ -17,6 +17,14 @@ filter_tomsmocomp_la_SOURCES = \
 	tomsmocompfilter_3dnow.c \
 	tomsmocompfilter_sse.c
 
+#####################################################################
+# gcc-4.x only allows mmx inline assembly keywords when
+# -mmmx is specified.
+# (http://osdir.com/ml/video.transcode.devel/2005-07/msg00004.html)
+# it's okay to force -mmmx because the filter won't be built
+# without an MMX capable CPU anyway, as specified in ../Makefile.am.
+#####################################################################
+filter_tomsmocomp_la_CFLAGS = -mmmx
 filter_tomsmocomp_la_LDFLAGS = -module -avoid-version
 
 EXTRA_DIST = \

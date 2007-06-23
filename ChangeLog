@@ -10,6 +10,10 @@
   build NMS modules only if experimental code is enabled.
   (Is this the right thing to do so? There is any better?)
 
+  * filter/Makefile.am filter/tomsmocomp/Makefile.am
+  allow tomsmocomp filter to build with gcc 4.x.
+  Patch kindly provided by Wolfgang Frisch <xororand at unfoog.de>
+
 2007-06-17 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c src/decoder.h src/encoder-buffer.c src/transcode.c
   aimport    -> tc_import_audio
