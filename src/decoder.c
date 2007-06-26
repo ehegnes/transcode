@@ -368,6 +368,7 @@ int tc_import_init(vob_t *vob, char *a_mod, char *v_mod)
 
 int tc_import_open(vob_t *vob)
 {
+    int ret;
     transfer_t import_para;
 
     memset(&import_para, 0, sizeof(transfer_t));
@@ -375,7 +376,8 @@ int tc_import_open(vob_t *vob)
     // start audio stream
     import_para.flag = TC_AUDIO;
 
-    if (tca_import(TC_IMPORT_OPEN, &import_para, vob) < 0) {
+    ret = tca_import(TC_IMPORT_OPEN, &import_para, vob);
+    if (ret < 0) {
         tc_log_error(PACKAGE, "audio import module error: OPEN failed");
         return TC_ERROR;
     }
@@ -387,7 +389,8 @@ int tc_import_open(vob_t *vob)
     // start video stream
     import_para.flag = TC_VIDEO;
 
-    if (tcv_import(TC_IMPORT_OPEN, &import_para, vob) < 0) {
+    ret = tcv_import(TC_IMPORT_OPEN, &import_para, vob);
+    if (ret < 0) {
         tc_log_error(PACKAGE, "video import module error: OPEN failed");
         return TC_ERROR;
     }
