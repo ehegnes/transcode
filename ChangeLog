@@ -1,3 +1,8 @@
+2007-06-27 Francesco Romani <fromani at gmail dot com>
+  * src/decoder.c src/frame_threads.c src/frame_threads.h
+    src/transcode.c 
+  tc_ prefix for frame_threads functions.
+
 2007-06-23 Francesco Romani <fromani at gmail dot com>
   * configure.in tools.Makefile.am tools/tcmodinfo.c
   another little step to 1.1.0 release: add configuration check

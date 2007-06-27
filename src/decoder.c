@@ -178,8 +178,8 @@ static void tc_import_stop(void)
     tc_import_video_stop();
     tc_import_audio_stop();
 
-    frame_threads_notify_video(TC_TRUE);
-    frame_threads_notify_audio(TC_TRUE);
+    tc_frame_threads_notify_video(TC_TRUE);
+    tc_frame_threads_notify_audio(TC_TRUE);
 
     if (verbose & TC_DEBUG)
         tc_log_msg(__FILE__, "import stop requested by client=%ld"
@@ -509,7 +509,7 @@ static void video_import_thread(vob_t *vob)
     vframe_list_t *ptr = NULL;
     transfer_t import_para;
 
-    int have_vframe_threads = frame_threads_have_video_workers();
+    int have_vframe_threads = tc_frame_threads_have_video_workers();
 
     if (verbose & TC_DEBUG)
         tc_log_msg(__FILE__, "video thread id=%ld", (unsigned long)pthread_self());
@@ -601,7 +601,7 @@ static void video_import_thread(vob_t *vob)
             tc_export_video_notify();
         } else {
             vframe_set_status(ptr, FRAME_WAIT);
-            frame_threads_notify_video(TC_FALSE);
+            tc_frame_threads_notify_video(TC_FALSE);
         }
 
         if (verbose & TC_STATS)
@@ -648,7 +648,7 @@ static void audio_import_thread(vob_t *vob)
     aframe_list_t *ptr = NULL;
     transfer_t import_para;
 
-    int have_aframe_threads = frame_threads_have_audio_workers();
+    int have_aframe_threads = tc_frame_threads_have_audio_workers();
 
     if (verbose & TC_DEBUG)
         tc_log_msg(__FILE__, "audio thread id=%ld",
@@ -755,7 +755,7 @@ static void audio_import_thread(vob_t *vob)
             tc_export_audio_notify();
         } else {
             aframe_set_status(ptr, FRAME_WAIT);
-            frame_threads_notify_audio(TC_FALSE);
+            tc_frame_threads_notify_audio(TC_FALSE);
         }
 
         if (verbose & TC_STATS)

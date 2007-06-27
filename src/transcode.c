@@ -2186,7 +2186,7 @@ int main(int argc, char *argv[])
         tc_error("plug-in initialization failed");
 
     // start frame processing threads
-    frame_threads_init(vob, max_frame_threads, max_frame_threads);
+    tc_frame_threads_init(vob, max_frame_threads, max_frame_threads);
 
     /* ------------------------------------------------------------
      *
@@ -2754,7 +2754,7 @@ int main(int argc, char *argv[])
     SHUTDOWN_MARK("clean up");
 
     // stop and cancel frame processing threads
-    frame_threads_close();
+    tc_frame_threads_close();
     SHUTDOWN_MARK("frame threads");
 
     // unload all external modules

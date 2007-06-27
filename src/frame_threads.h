@@ -26,15 +26,15 @@
 #ifndef _FRAME_THREADS_H
 #define _FRAME_THREADS_H
 
-void frame_threads_init(vob_t *vob, int vworkers, int aworkers);
-void process_vframe(vob_t *vob);
-void process_aframe(vob_t *vob);
-void frame_threads_close(void);
-void frame_threads_notify_audio(int broadcast);
-void frame_threads_notify_video(int broadcast);
+void tc_frame_threads_init(vob_t *vob, int vworkers, int aworkers);
+void tc_frame_threads_close(void);
 
-int frame_threads_have_video_workers(void);
-int frame_threads_have_audio_workers(void);
+void tc_frame_threads_notify_audio(int broadcast);
+void tc_frame_threads_notify_video(int broadcast);
+
+int tc_frame_threads_have_video_workers(void);
+int tc_frame_threads_have_audio_workers(void);
+
 
 extern pthread_mutex_t vbuffer_im_fill_lock;
 extern uint32_t vbuffer_im_fill_ctr;

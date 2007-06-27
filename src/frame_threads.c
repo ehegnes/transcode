@@ -31,6 +31,14 @@
 #include "frame_threads.h"
 #include "encoder.h"
 
+/********* prototypes ****************************************************/
+
+static void process_vframe(vob_t *vob);
+static void process_aframe(vob_t *vob);
+
+/*************************************************************************/
+
+
 static pthread_t afthread[TC_FRAME_THREADS_MAX];
 static pthread_t vfthread[TC_FRAME_THREADS_MAX];
 
@@ -59,12 +67,12 @@ static int vframe_threads_shutdown = 0;
 
 
 
-int frame_threads_have_video_workers(void)
+int tc_frame_threads_have_video_workers(void)
 {
     return (have_vframe_workers > 0);
 }
 
-int frame_threads_have_audio_workers(void)
+int tc_frame_threads_have_audio_workers(void)
 {
     return (have_aframe_workers > 0);
 }
@@ -105,7 +113,7 @@ void tc_flush_video_counters(void)
  *
  * ------------------------------------------------------------*/
 
-void frame_threads_init(vob_t *vob, int vworkers, int aworkers)
+void tc_frame_threads_init(vob_t *vob, int vworkers, int aworkers)
 {
     int n = 0;
 
@@ -138,7 +146,7 @@ void frame_threads_init(vob_t *vob, int vworkers, int aworkers)
     }
 }
 
-void frame_threads_notify_audio(int broadcast)
+void tc_frame_threads_notify_audio(int broadcast)
 {
     pthread_mutex_lock(&abuffer_im_fill_lock);
     if (broadcast) {
@@ -149,7 +157,7 @@ void frame_threads_notify_audio(int broadcast)
     pthread_mutex_unlock(&abuffer_im_fill_lock);
 }
     
-void frame_threads_notify_video(int broadcast)
+void tc_frame_threads_notify_video(int broadcast)
 {
     pthread_mutex_lock(&vbuffer_im_fill_lock);
     if (broadcast) {
@@ -161,7 +169,7 @@ void frame_threads_notify_video(int broadcast)
 }
 
 
-void frame_threads_close()
+void tc_frame_threads_close()
 {
     int n = 0;
     void *status = NULL;
@@ -173,7 +181,7 @@ void frame_threads_close()
         pthread_mutex_unlock(&abuffer_im_fill_lock);
 
         //notify all threads of shutdown
-        frame_threads_notify_audio(TC_TRUE);
+        tc_frame_threads_notify_audio(TC_TRUE);
 
         for (n = 0; n < have_aframe_workers; n++)
             pthread_cancel(afthread[n]);
@@ -196,7 +204,7 @@ void frame_threads_close()
         pthread_mutex_unlock(&vbuffer_im_fill_lock);
 
         //notify all threads of shutdown
-        frame_threads_notify_video(TC_TRUE);
+        tc_frame_threads_notify_video(TC_TRUE);
         for (n = 0; n < have_vframe_workers; n++)
             pthread_cancel(vfthread[n]);
 
@@ -317,13 +325,12 @@ void frame_threads_close()
       continue; \
     }
 
-static void
-process_frame_lock_cleanup (void *arg)
+static void process_frame_lock_cleanup (void *arg)
 {
     pthread_mutex_unlock((pthread_mutex_t *)arg);
 }
 
-void process_vframe(vob_t *vob)
+static void process_vframe(vob_t *vob)
 {
     vframe_list_t *ptr = NULL;
 
@@ -406,7 +413,7 @@ void process_vframe(vob_t *vob)
 }
 
 
-void process_aframe(vob_t *vob)
+static void process_aframe(vob_t *vob)
 {
     aframe_list_t *ptr = NULL;
 
