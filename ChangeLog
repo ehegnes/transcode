@@ -4,6 +4,9 @@
   libavcodec direct access to individual encoders is now forbidden.
   Investigation still ongoing.
 
+  * configure.in
+  transcode-1.0.4rc0
+
 2007-06-23 Francesco Romani <fromani at gmail dot com>
   * filter/Makefile.am filter/tomsmocomp/Makefile.am
   allow tomsmocomp filter to build with gcc 4.x.
