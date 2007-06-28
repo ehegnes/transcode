@@ -4,6 +4,10 @@
   libavcodec direct access to individual encoders is now forbidden.
   Investigation still ongoing.
 
+  * configure.in filter/preview/Makefile.am filter/preview/display.h
+    filter/preview/display.c
+  drop gtk+ support from preview filter.
+
   * configure.in
   transcode-1.0.4rc0
 

@@ -1168,12 +1168,6 @@ int main (int argc, char *argv[])
 fi
 TC_PKG_HAVE(sdl, SDL)
 
-dnl GTK
-dnl
-TC_PKG_CHECK(gtk, no, GTK, gtk-config, [gtk/gtk.h], gtk, gtk_init,
-             gtk+, [http://www.gtk.org/])
-TC_PKG_HAVE(gtk, GTK)
- 
 dnl
 dnl libfame
 dnl
