@@ -77,7 +77,7 @@ int tc_filter(aframe_list_t *ptr, char *options)
   if(ptr->tag & TC_FILTER_GET_CONFIG) {
       optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Thomas Oestreich", "AE", "1");
       optstr_param (options, "file", "File to save the calculated volume rescale number to", "%s", ""); 
-      return 0;
+      return 3;
   }
 
   //----------------------------------

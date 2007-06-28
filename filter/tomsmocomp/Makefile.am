@@ -8,6 +8,20 @@ AM_CPPFLAGS = \
 
 AM_CFLAGS = -fno-omit-frame-pointer
 
+#####################################################################
+# gcc-4.x only allows mmx inline assembly keywords when
+# -mmmx is specified.
+# (http://osdir.com/ml/video.transcode.devel/2005-07/msg00004.html)
+#
+# A dirty workaround would be to compile the problematic file
+# (tomsmocompfilter_mmx.c) as a pseudo-library so that we're able to
+# specify CFLAGS for it although it's okay in this case to add
+# -mmmx to the CFLAGS for the whole library because it won't be built
+# without an MMX capable CPU anyway, as specified in ../Makefile.am.
+#
+filter_tomsmocomp_la_CFLAGS = -mmmx
+#####################################################################
+
 pkgdir = $(MOD_PATH)
 
 pkg_LTLIBRARIES = filter_tomsmocomp.la 
