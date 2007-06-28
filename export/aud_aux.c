@@ -361,8 +361,7 @@ static int audio_init_ffmpeg(vob_t *vob, int o_codec)
 
     pthread_mutex_lock(&init_avcodec_lock);
     avcodec_init();
-    register_avcodec(&ac3_encoder);
-    register_avcodec(&mp2_encoder);
+    avcodec_register_all();
     pthread_mutex_unlock(&init_avcodec_lock);
 
     switch (o_codec) {

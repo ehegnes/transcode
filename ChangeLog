@@ -1,3 +1,14 @@
+2007-06-28 Francesco Romani <fromani at gmail dot com>
+  * export/aud_aux.c
+  switch to avcodec_register_all() since looks like in newer
+  libavcodec direct access to individual encoders is now forbidden.
+  Investigation still ongoing.
+
+2007-06-23 Francesco Romani <fromani at gmail dot com>
+  * filter/Makefile.am filter/tomsmocomp/Makefile.am
+  allow tomsmocomp filter to build with gcc 4.x.
+  Patch kindly provided by Wolfgang Frisch <xororand at unfoog.de>
+
 2007-05-30 Francesco Romani <fromani at gmail dot com>
   * filter/filter_smartyuv.c
   clamp pixel values in [0,255] interval. Bug pointed out and
