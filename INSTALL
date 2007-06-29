@@ -401,18 +401,6 @@ Optional packages:
           directory where libxml2 libraries [libxml2.so] are installed
     affected modules: import_xml.so
 
-  gtk  http://www.gtk.org/
-    related options:
-      --enable-gtk (disabled)
-          build with gtk support for graphical display
-      --with-gtk-prefix=PFX (/usr)
-          directory where gtk is installed
-      --with-gtk-includes=DIR (/usr/include)
-          directory where gtk headers [gtk/gtk.h] are installed
-      --with-gtk-libs=DIR (/usr/lib)
-          directory where gtk libraries [libgtk.so] are installed
-    affected modules: filter_preview.so
-
   ImageMagick  http://www.imagemagick.com/
     related options:
       --enable-imagemagick (disabled)
