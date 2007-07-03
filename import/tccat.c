@@ -254,8 +254,8 @@ vob_skip:
 void version(void)
 {
     /* XXX why not plain old printf? */
-    tc_log_msg(EXE, "(%s v%s) (C) 2001-2003 Thomas Oestreich"
-                    "2003-2007 transcode team",
+    tc_log_msg(EXE, "(%s v%s) (C) 2001-2003 Thomas Oestreich,"
+                    " 2003-2007 transcode team",
                PACKAGE, VERSION);
 }
 

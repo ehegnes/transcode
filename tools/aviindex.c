@@ -44,7 +44,9 @@ void AVI_info(avi_t *avifile);
 
 void version(void)
 {
-  printf("%s (%s v%s) (C) 2003-2004 Tilmann Bitterberg\n", EXE, PACKAGE, VERSION);
+  printf("%s (%s v%s) (C) 2003-2004 Tilmann Bitterberg,"
+                        " 2004-2007 Transcode Team\n",
+                      EXE, PACKAGE, VERSION);
 }
 
 
