@@ -124,7 +124,8 @@ int file_check(char *file)
 void version(char *exe)
 {
     /* print id string to stderr */
-    fprintf(stderr, "%s (%s v%s) (C) 2001-2003 Thomas Oestreich\n",
+    fprintf(stderr, "%s (%s v%s) (C) 2001-2003 Thomas Oestreich,"
+                                   " 2003-2007 Transcode Team\n",
                     exe, PACKAGE, VERSION);
 }
 

@@ -223,7 +223,10 @@ void version()
 {
   /* id string */
   if(tcversion++) return;
-  fprintf(stderr, "%s v%s (C) 2001-2003 Thomas Oestreich, 2003-2004 T. Bitterberg\n", PACKAGE, VERSION);
+  fprintf(stderr, "%s v%s (C) 2001-2003 Thomas Oestreich,"
+                            " 2003-2004 T. Bitterberg,"
+                            " 2004-2007 Transcode Team\n",
+                  PACKAGE, VERSION);
 }
 
 

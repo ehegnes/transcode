@@ -38,7 +38,9 @@
 
 void version()
 {
-    printf("%s (%s v%s) (C) 2001-2003 Thomas Oestreich\n", EXE, PACKAGE, VERSION);
+    printf("%s (%s v%s) (C) 2001-2003 Thomas Oestreich,"
+                          " 2003-2007 Transcode Team\n",
+           EXE, PACKAGE, VERSION);
 }
 
 void usage(int status)
