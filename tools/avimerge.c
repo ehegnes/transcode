@@ -39,7 +39,7 @@ void AVI_info(avi_t *avifile);
 
 void version(void)
 {
-  printf("%s (%s v%s) (C) 2001-2004 Thomas Oestreich, T. Bitterberg",
+  printf("%s (%s v%s) (C) 2001-2004 Thomas Oestreich, T. Bitterberg"
                         " 2004-2007 Transcode Team\n",
                       EXE, PACKAGE, VERSION);
 }
