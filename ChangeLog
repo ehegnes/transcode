@@ -1,4 +1,4 @@
-2007-07-03 Francesco Romani <fromani at gmail dot com>
+2007-07-04 Francesco Romani <fromani at gmail dot com>
   * export/Makefile.am
   ship profiles data only if ENABLE_EXPERIMENTAL.
 
