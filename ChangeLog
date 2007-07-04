@@ -2,6 +2,10 @@
   * export/Makefile.am
   ship profiles data only if ENABLE_EXPERIMENTAL.
 
+  * export/aud_aux.c
+  register all encoders, since specific needed encoders
+  are no longer (easily) accessible with newer libavcodecs.
+
 2007-07-03 Francesco Romani <fromani at gmail dot com>
   * import/tccat.c import/tcdecode.c import/tcdemux.c
     import/tcextract.c import/tcprobe.c import/tcscan.c

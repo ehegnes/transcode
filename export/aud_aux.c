@@ -311,8 +311,7 @@ static int audio_init_ffmpeg(vob_t *vob, int o_codec)
 
     TC_LOCK_LIBAVCODEC;
     avcodec_init();
-    register_avcodec(&ac3_encoder);
-    register_avcodec(&mp2_encoder);
+    avcodec_register_all(); 
     TC_UNLOCK_LIBAVCODEC;
 
     switch (o_codec) {
