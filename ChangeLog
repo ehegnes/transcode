@@ -1,3 +1,11 @@
+2007-07-03 Francesco Romani <fromani at gmail dot com>
+  * import/tccat.c import/tcdecode.c import/tcdemux.c
+    import/tcextract.c import/tcprobe.c import/tcscan.c
+    import/tcxmlcheck.c tools/avifix.c tools/aviindex.c
+    tools/avimerge.c tools/avisplit.c tools/avisync.c
+    src/transcode.c
+  (finish to) bump copyright year.
+
 2007-06-27 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c src/frame_threads.c src/frame_threads.h
     src/transcode.c 
