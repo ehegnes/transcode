@@ -67,8 +67,7 @@ static unsigned char *y_output, *u_output, *v_output;
 
 MOD_open
 {
-
-  int i;
+  int retcode = 0, i = 0;
 
   param->fd = NULL;
 
@@ -79,15 +78,15 @@ MOD_open
   if (param->flag == TC_VIDEO) {
       if (!file) {
 	  if (!file_a) {
-	      if((file = mpeg3_open(vob->video_in_file))==NULL) {
-		  fprintf(stderr, "open file failed\n");
+	      if((file = mpeg3_open(vob->video_in_file, &retcode))==NULL) {
+		  fprintf(stderr, "open file failed with error %i\n", retcode);
 		  return(TC_IMPORT_ERROR);
 	      }
 	      if (verbose & TC_DEBUG)
                   printf("[%s] Opened video NO copy\n", MOD_NAME);
 	  } else if (file_a) {
-	      if((file = mpeg3_open_copy(vob->video_in_file, file_a))==NULL) {
-		  fprintf(stderr, "open file failed\n");
+	      if((file = mpeg3_open_copy(vob->video_in_file, file_a, &retcode))==NULL) {
+		  fprintf(stderr, "open file failed with error %i\n", retcode);
 		  return(TC_IMPORT_ERROR);
 	      }
 	      if (verbose & TC_DEBUG)
@@ -98,15 +97,15 @@ MOD_open
   if (param->flag == TC_AUDIO) {
       if (!file_a) {
 	  if (!file) {
-	      if((file_a = mpeg3_open(vob->audio_in_file))==NULL) {
-		  fprintf(stderr, "open audio file failed\n");
+	      if((file_a = mpeg3_open(vob->audio_in_file, &retcode))==NULL) {
+		  fprintf(stderr, "open file failed with error %i\n", retcode);
 		  return(TC_IMPORT_ERROR);
 	      }
 	      if (verbose & TC_DEBUG)
                   printf("[%s] Opened audio NO copy\n", MOD_NAME);
 	  } else if (file) {
-	      if((file_a = mpeg3_open_copy(vob->audio_in_file, file))==NULL) {
-		  fprintf(stderr, "open_copy audio file failed\n");
+	      if((file_a = mpeg3_open_copy(vob->audio_in_file, file, &retcode))==NULL) {
+		  fprintf(stderr, "open file failed\n");
 		  return(TC_IMPORT_ERROR);
 	      }
 	      if (verbose & TC_DEBUG)
@@ -121,11 +120,6 @@ MOD_open
       int a_rate, a_chan;
       long a_samp;
 
-#ifdef ARCH_X86  /* until otherwise confirmed to work elsewhere */
-#ifdef HAVE_MMX
-      mpeg3_set_mmx(file_a, 1);
-#endif
-#endif
       mpeg3_set_cpus(file_a,1);
 
   
@@ -184,11 +178,6 @@ MOD_open
 
     if(!mpeg3_check_sig(vob->video_in_file)) return(TC_IMPORT_ERROR);
 
-#ifdef ARCH_X86  /* until otherwise confirmed to work elsewhere */
-#ifdef HAVE_MMX
-    mpeg3_set_mmx(file, 1);
-#endif
-#endif
     mpeg3_set_cpus(file,1);
 
 
