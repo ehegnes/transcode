@@ -14,10 +14,8 @@
 #include "tc.h"
 #include "libtc/libtc.h"
 #include "libtc/ratiocodes.h"
+#include "libtc/tcavcodec.h"
 
-#include <ffmpeg/avformat.h>
-#include <ffmpeg/avcodec.h>
-#include <ffmpeg/avutil.h>
 
 static void translate_info(const AVFormatContext *ctx, ProbeInfo *info)
 {
@@ -82,9 +80,7 @@ void probe_ffmpeg(info_t *ipipe)
 
     close(ipipe->fd_in);
 
-    av_register_all();
-    avcodec_init();
-    avcodec_register_all();
+    TC_INIT_LIBAVCODEC;
 
     ret = av_open_input_file(&lavf_dmx_context, ipipe->name,
                              NULL, 0, NULL);

@@ -202,7 +202,7 @@ MOD_init
 
 	/* Audio init */
 	if(param->flag == TC_AUDIO)
-		return(audio_init(vob, verbose));
+		return(tc_audio_init(vob, verbose));
 
 	/* Video init */
 
@@ -313,8 +313,11 @@ MOD_open
 	}
 
 	/* Open audio file */
-	if(param->flag == TC_AUDIO)
-		return(audio_open(vob, vob->avifile_out));
+	if(param->flag == TC_AUDIO) {
+		tc_warn("Usage of this module for audio encoding is deprecated.");
+		tc_warn("Consider switch to export_tcaud module.");
+		return(tc_audio_open(vob, vob->avifile_out));
+	}
 
 	/* Open video file */
 	if(verbose_flag & TC_DEBUG)
@@ -362,7 +365,7 @@ MOD_encode
 
 	/* Audio encoding */
 	if(param->flag == TC_AUDIO)
-		return(audio_encode(param->buffer, param->size, vob->avifile_out));
+		return(tc_audio_encode(param->buffer, param->size, vob->avifile_out));
 
 	/* Video encoding */
 
@@ -455,7 +458,7 @@ MOD_close
 
 	/* Audio file closing */
 	if(param->flag == TC_AUDIO)
-		return(audio_close());
+		return(tc_audio_close());
 
 	/* Video file closing */
 	if(thismod.rawfd >= 0) {
@@ -489,7 +492,7 @@ MOD_stop
 
 	/* Audio codec stoping */
 	if(param->flag == TC_AUDIO)
-		return(audio_stop());
+		return(tc_audio_stop());
 
 	/* Video codec stoping */
 

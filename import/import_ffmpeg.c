@@ -35,10 +35,7 @@ static int capability_flag = TC_CAP_YUV | TC_CAP_RGB | TC_CAP_VID;
 #define MOD_PRE ffmpeg
 #include "import_def.h"
 
-// FIXME
-#undef EMULATE_FAST_INT
-#include <ffmpeg/avcodec.h>
-
+#include "libtc/tcavcodec.h"
 #include "aclib/imgconvert.h"
 #include "avilib/avilib.h"
 #include "magic.h"
@@ -281,12 +278,7 @@ do_avi:
       return TC_IMPORT_ERROR;
     }
 
-    //-- initialization of ffmpeg stuff:          --
-    //----------------------------------------------
-    TC_LOCK_LIBAVCODEC;
-    avcodec_init();
-    avcodec_register_all();
-    TC_UNLOCK_LIBAVCODEC;
+    TC_INIT_LIBAVCODEC;
 
     codec = find_ffmpeg_codec(fourCC);
     if (codec == NULL) {
@@ -991,6 +983,7 @@ MOD_open
     int ret, i = 0;
 
     if (param->flag == TC_VIDEO) {
+        /* special case in here, better to not use TC_INIT_LIBAVCODEC */
         TC_LOCK_LIBAVCODEC;
         av_register_all();
         avcodec_init();

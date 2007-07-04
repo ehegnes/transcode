@@ -24,18 +24,14 @@
  */
 
 #include "transcode.h"
-#include "libtc/libtc.h"
 #include "tcinfo.h"
 
 #include "aclib/imgconvert.h"
 #include "ioaux.h"
 #include "tc.h"
 
-// FIXME
-#ifdef EMULATE_FAST_INT
-#undef EMULATE_FAST_INT
-#endif
-#include <ffmpeg/avcodec.h>
+#include "libtc/libtc.h"
+#include "libtc/tcavcodec.h"
 
 #define READ_BUFFER_SIZE (10*1024*1024)
 #define MOD_NAME "decode_ffmpeg"
@@ -145,8 +141,7 @@ void decode_lavc(decode_t *decode)
   //
   //----------------------------------------
 
-  avcodec_init();
-  avcodec_register_all();
+  TC_INIT_LIBAVCODEC;
 
   codec = find_ffmpeg_codec_id(decode->codec);
   if (codec == NULL) {

@@ -21,8 +21,9 @@
 
 #include "libtc/tcmodule-plugin.h"
 
+#include "libtc/tcavcodec.h"
+
 #include <math.h>
-#include <ffmpeg/avcodec.h>
 
 #define MOD_NAME    "encode_lavc.so"
 #define MOD_VERSION "v0.0.6 (2007-01-27)"
@@ -1322,10 +1323,7 @@ static int tc_lavc_configure(TCModuleInstance *self,
     pd = self->userdata;
 
     /* FIXME: move into core? */
-    TC_LOCK_LIBAVCODEC;
-    avcodec_init();
-    avcodec_register_all();
-    TC_UNLOCK_LIBAVCODEC;
+    TC_INIT_LIBAVCODEC;
 
     avcodec_get_frame_defaults(&pd->ff_venc_frame);
     /*

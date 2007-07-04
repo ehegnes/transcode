@@ -18,6 +18,12 @@
   * export/aud_aux.c export/aud_aux.h
   tc_ prefix to all exported functions.
 
+  * encode/encode_lavc.c export/export_divx5.c export/export_dv.c
+    export/export_ffmpeg.c export/export_lzo.c export/export_ppm.c
+    export/export_raw.c export/export_xvid4.c export/export_yuv4mpeg.c
+    import/decode_lavc.c import/import_ffmpeg.c import/probe_ffmpeg.c
+  sync modules with new tcavcodec and aud_aux changes.
+
 2007-07-03 Francesco Romani <fromani at gmail dot com>
   * import/tccat.c import/tcdecode.c import/tcdemux.c
     import/tcextract.c import/tcprobe.c import/tcscan.c

@@ -73,10 +73,14 @@ MOD_init
 
       encoder = dv_encoder_new(FALSE, FALSE, FALSE);
 
-      return(0);
+      return(TC_EXPORT_OK);
     }
 
-    if(param->flag == TC_AUDIO) return(audio_init(vob, verbose_flag));
+    if(param->flag == TC_AUDIO) {
+	tc_warn("Usage of this module for audio encoding is deprecated.");
+	tc_warn("Consider switch to export_tcaud module.");
+	return(tc_audio_init(vob, verbose_flag));
+    }
 
     // invalid flag
     return(TC_EXPORT_ERROR);
@@ -139,7 +143,7 @@ MOD_open
   }
 
 
-  if(param->flag == TC_AUDIO)  return(audio_open(vob, vob->avifile_out));
+  if(param->flag == TC_AUDIO)  return(tc_audio_open(vob, vob->avifile_out));
 
   // invalid flag
   return(TC_EXPORT_ERROR);
@@ -200,7 +204,7 @@ MOD_encode
     return(0);
   }
 
-  if(param->flag == TC_AUDIO) return(audio_encode(param->buffer, param->size, avifile));
+  if(param->flag == TC_AUDIO) return(tc_audio_encode(param->buffer, param->size, avifile));
 
   // invalid flag
   return(TC_EXPORT_ERROR);
@@ -223,7 +227,7 @@ MOD_stop
     return(0);
   }
 
-  if(param->flag == TC_AUDIO) return(audio_stop());
+  if(param->flag == TC_AUDIO) return(tc_audio_stop());
 
   return(TC_EXPORT_ERROR);
 }
@@ -238,7 +242,7 @@ MOD_close
 {
 
   vob_t *vob = tc_get_vob();
-  if(param->flag == TC_AUDIO) return(audio_close());
+  if(param->flag == TC_AUDIO) return(tc_audio_close());
 
   //outputfile
   if(vob->avifile_out!=NULL) {

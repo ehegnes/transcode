@@ -25,13 +25,11 @@
 
 #include "transcode.h"
 #include "libtc/libtc.h"
+#include "libtc/tcavcodec.h"
 #include "filter.h"
 #include "avilib/avilib.h"
 #include "aud_aux.h"
 #include "aclib/imgconvert.h"
-// FIXME
-#undef EMULATE_FAST_INT
-#include <ffmpeg/avcodec.h>
 
 #include <ctype.h>
 #include <stdio.h>
@@ -1232,6 +1230,9 @@ MOD_init {
         pseudo_codec_t target;
         char * user_codec_string;
 
+	tc_warn("Usage of this module for audio encoding is deprecated.");
+	tc_warn("Consider switch to export_tcaud module.");
+
         if(vob->ex_v_fcc)
         {
             user_codec_string = tc_strdup(vob->ex_v_fcc);
@@ -1416,7 +1417,7 @@ MOD_init {
             }
         }
 
-        return audio_init(vob, verbose_flag);
+        return tc_audio_init(vob, verbose_flag);
     }
 
   // invalid flag
@@ -1489,7 +1490,7 @@ MOD_open
 
 
   if (param->flag == TC_AUDIO)
-    return audio_open(vob, vob->avifile_out);
+    return tc_audio_open(vob, vob->avifile_out);
 
   // invalid flag
   return TC_EXPORT_ERROR;
@@ -1661,7 +1662,7 @@ MOD_encode
   }
 
   if (param->flag == TC_AUDIO)
-    return audio_encode(param->buffer, param->size, avifile);
+    return tc_audio_encode(param->buffer, param->size, avifile);
 
   // invalid flag
   return TC_EXPORT_ERROR;
@@ -1720,7 +1721,7 @@ MOD_stop
   }
 
   if (param->flag == TC_AUDIO)
-    return audio_stop();
+    return tc_audio_stop();
 
   return TC_EXPORT_ERROR;
 }
@@ -1737,7 +1738,7 @@ MOD_close
   vob_t *vob = tc_get_vob();
 
   if (param->flag == TC_AUDIO)
-    return audio_close();
+    return tc_audio_close();
 
   if (vob->avifile_out!=NULL) {
     AVI_close(vob->avifile_out);

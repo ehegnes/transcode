@@ -118,7 +118,7 @@ MOD_init
     }
 
     /* audio is not supported in PPM image format... */
-    if(param->flag == TC_AUDIO) return(audio_init(vob, verbose_flag));
+    if(param->flag == TC_AUDIO) return(tc_audio_init(vob, verbose_flag));
 
     // invalid flag
     return(TC_EXPORT_ERROR);
@@ -159,11 +159,15 @@ MOD_open
 	  break;
 	}
 
-	return(0);
+	return(TC_EXPORT_OK);
     }
 
 
-    if(param->flag == TC_AUDIO) return(audio_open(vob, NULL));
+    if(param->flag == TC_AUDIO) {
+	tc_warn("Usage of this module for audio encoding is deprecated.");
+	tc_warn("Consider switch to export_tcaud module.");
+	return(tc_audio_open(vob, NULL));
+    }
 
     // invalid flag
     return(TC_EXPORT_ERROR);
@@ -230,7 +234,7 @@ MOD_encode
     return(0);
   }
 
-  if(param->flag == TC_AUDIO) return(audio_encode(param->buffer, param->size, NULL));
+  if(param->flag == TC_AUDIO) return(tc_audio_encode(param->buffer, param->size, NULL));
 
   // invalid flag
   return(TC_EXPORT_ERROR);
@@ -246,7 +250,7 @@ MOD_stop
 {
 
   if(param->flag == TC_VIDEO) return(0);
-  if(param->flag == TC_AUDIO) return(audio_stop());
+  if(param->flag == TC_AUDIO) return(tc_audio_stop());
 
   free(tmp_buffer);
   tmp_buffer = NULL;
@@ -265,7 +269,7 @@ MOD_stop
 MOD_close
 {
 
-    if(param->flag == TC_AUDIO) return(audio_close());
+    if(param->flag == TC_AUDIO) return(tc_audio_close());
     if(param->flag == TC_VIDEO) return(0);
 
     return(TC_EXPORT_ERROR);

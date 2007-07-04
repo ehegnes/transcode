@@ -91,7 +91,9 @@ MOD_init
     }
 
     if (param->flag == TC_AUDIO) {
-        return audio_init(vob, verbose_flag);
+	tc_warn("Usage of this module for audio encoding is deprecated.");
+	tc_warn("Consider switch to export_tcaud module.");
+       return tc_audio_init(vob, verbose_flag);
     }
 
     return TC_EXPORT_ERROR;
@@ -167,7 +169,7 @@ MOD_open
     }
 
     if (param->flag == TC_AUDIO) {
-        return audio_open(vob, NULL);
+        return tc_audio_open(vob, NULL);
     }
 
     return TC_EXPORT_ERROR;
@@ -217,7 +219,7 @@ MOD_encode
     }
 
     if (param->flag == TC_AUDIO) {
-        return audio_encode(param->buffer, param->size, NULL);
+        return tc_audio_encode(param->buffer, param->size, NULL);
     }
 
     return TC_EXPORT_ERROR;
@@ -230,7 +232,7 @@ MOD_stop
         return TC_EXPORT_OK;
     }
     if (param->flag == TC_AUDIO) {
-        return audio_stop();
+        return tc_audio_stop();
     }
     return TC_EXPORT_ERROR;
 }
@@ -245,7 +247,7 @@ MOD_close
     }
 
     if (param->flag == TC_AUDIO) {
-        return audio_close();
+        return tc_audio_close();
     }
 
     return TC_EXPORT_ERROR;
