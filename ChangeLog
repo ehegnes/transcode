@@ -6,6 +6,9 @@
   register all encoders, since specific needed encoders
   are no longer (easily) accessible with newer libavcodecs.
 
+  * filter/preview/filter_sdlview.c
+  add preview window title.
+
 2007-07-03 Francesco Romani <fromani at gmail dot com>
   * import/tccat.c import/tcdecode.c import/tcdemux.c
     import/tcextract.c import/tcprobe.c import/tcscan.c

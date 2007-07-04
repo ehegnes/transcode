@@ -9,7 +9,7 @@
  */
 
 #define MOD_NAME        "filter_sdlview.so"
-#define MOD_VERSION     "v1.0.0 (2007-05-26)"
+#define MOD_VERSION     "v1.0.1 (2007-07-04)"
 #define MOD_CAP         "preview video frames using SDL"
 #define MOD_AUTHOR      "Francesco Romani"
 
@@ -82,7 +82,7 @@ static int sdlview_init(TCModuleInstance *self, uint32_t features)
         return TC_ERROR;
     }
 
-    self->userdata = pd = tc_malloc(sizeof(SDLPrivateData));
+    pd = tc_malloc(sizeof(SDLPrivateData));
     if (pd == NULL) {
         tc_log_error(MOD_NAME, "init: out of memory!");
         return TC_ERROR;
@@ -93,6 +93,8 @@ static int sdlview_init(TCModuleInstance *self, uint32_t features)
 
     pd->w = 0;
     pd->h = 0;
+
+    self->userdata = pd;
 
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
@@ -186,6 +188,7 @@ static int sdlview_configure(TCModuleInstance *self,
     pd->w = vob->ex_v_width;
     pd->h = vob->ex_v_height;
 
+    SDL_WM_SetCaption("transcode SDL preview", NULL);
     pd->surface = SDL_SetVideoMode(pd->w, pd->h, 0, SDL_HWSURFACE);
     if (!pd->surface) {
         tc_log_error(MOD_NAME, "cannot setup SDL Video Mode: %s",
