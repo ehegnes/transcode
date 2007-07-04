@@ -42,7 +42,7 @@ enum {
 void version(void)
 {
     printf("%s (%s v%s) (C) 2001-2007 Tilmann Bitterberg, "
-           "transcode team\n", EXE, PACKAGE, VERSION);
+           "Transcode Team\n", EXE, PACKAGE, VERSION);
 }
 
 static void usage(void)
