@@ -437,7 +437,7 @@ yait_read_log( void )
 static double
 yait_calc_ratio( int ed, int od )
 	{
-	double r;
+	double r = 0.0;
 
 	/* compute ratio, >1 odd, <-1 even */
 	if( !ed && !od )
