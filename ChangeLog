@@ -24,6 +24,18 @@
     import/decode_lavc.c import/import_ffmpeg.c import/probe_ffmpeg.c
   sync modules with new tcavcodec and aud_aux changes.
 
+  * added file: export/export_tcaud.c
+
+  * export/Maefile.am
+
+  add lightweight aud_aux separate frontend module. The whole plan:
+  1) avoid to duplicate aud_aux.c code in a bunch of shared objects
+  2) start to suggest users that use a single module for export is
+     no longer the Right Thing To Do (NMS, when in place, will make
+     this almost always unconvenient or just unfeasible)
+  Also add a warning message with (approx.) this content at init
+  of every aud_aux-enabled export. module.
+
 2007-07-03 Francesco Romani <fromani at gmail dot com>
   * import/tccat.c import/tcdecode.c import/tcdemux.c
     import/tcextract.c import/tcprobe.c import/tcscan.c

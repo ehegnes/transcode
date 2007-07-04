@@ -59,6 +59,7 @@ pkg_LTLIBRARIES = \
 	$(EXPORT_PVM) \
 	export_pvn.la \
 	export_raw.la \
+	export_tcaud.la \
 	export_toolame.la \
 	export_wav.la \
 	export_xvid4.la \
@@ -145,6 +146,11 @@ export_raw_la_SOURCES = export_raw.c aud_aux.c
 export_raw_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBAVCODEC_CFLAGS) $(LAME_CFLAGS)
 export_raw_la_LDFLAGS = -module -avoid-version
 export_raw_la_LIBADD = $(LIBAVCODEC_LIBS) $(LAME_LIBS)
+
+export_tcaud_la_SOURCES = export_tcaud.c aud_aux.c
+export_tcaud_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBAVCODEC_CFLAGS) $(LAME_CFLAGS)
+export_tcaud_la_LDFLAGS = -module -avoid-version
+export_tcaud_la_LIBADD = $(LIBAVCODEC_LIBS) $(LAME_LIBS)
 
 export_toolame_la_SOURCES = export_toolame.c
 export_toolame_la_LDFLAGS = -module -avoid-version
