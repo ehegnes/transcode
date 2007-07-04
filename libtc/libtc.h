@@ -853,24 +853,6 @@ int tc_read_matrix(const char *filename, uint8_t *m8, uint16_t *m16);
  */
 void tc_print_matrix(uint8_t *m8, uint16_t *m16);
 
-/*************************************************************************/
-
-/*
- * libavcodec lock. Used for serializing initialization/open of library.
- * Other libavcodec routines (avcodec_{encode,decode}_* should be thread
- * safe (as ffmpeg crew said) if each thread uses it;s own AVCodecContext,
- * as we do.
- */
-extern pthread_mutex_t tc_libavcodec_mutex;
-
-/*
- * libavcodec locking goodies. It's preferred and encouraged  to use
- *  macros below, but accessing libavcodec mutex will work too.
- */
-#define TC_LOCK_LIBAVCODEC	(pthread_mutex_lock(&tc_libavcodec_mutex))
-#define TC_UNLOCK_LIBAVCODEC	(pthread_mutex_unlock(&tc_libavcodec_mutex))
-
-
 #ifdef __cplusplus
 }
 #endif
