@@ -172,6 +172,7 @@ EXTRA_DIST = \
 	xvid4.h \
 	xvid4.cfg
 
+if ENABLE_EXPERIMENTAL
 PROFILES = \
 	dvd-pal.cfg \
 	dvd-ntsc.cfg \
@@ -181,6 +182,7 @@ PROFILES = \
 	svcd-ntsc.cfg \
 	xvcd-pal.cfg \
 	xvcd-ntsc.cfg
+endif
 
 pkg_DATA = xvid4.cfg $(PROFILES)
 
@@ -190,3 +192,4 @@ install-exec-hook:
 	@$(LN_S) export_xvid4.so $(DESTDIR)$(MOD_PATH)/export_xvid.so
 	@mkdir -p $(DESTDIR)$(PROF_PATH)
 	@cp $(PROFILES) $(DESTDIR)$(PROF_PATH)
+

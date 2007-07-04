@@ -1,4 +1,8 @@
 2007-07-03 Francesco Romani <fromani at gmail dot com>
+  * export/Makefile.am
+  ship profiles data only if ENABLE_EXPERIMENTAL.
+
+2007-07-03 Francesco Romani <fromani at gmail dot com>
   * import/tccat.c import/tcdecode.c import/tcdemux.c
     import/tcextract.c import/tcprobe.c import/tcscan.c
     import/tcxmlcheck.c tools/avifix.c tools/aviindex.c
