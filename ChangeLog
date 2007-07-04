@@ -15,6 +15,9 @@
 
   factorize most of ours libavcodec utilities in a common header.
 
+  * export/aud_aux.c export/aud_aux.h
+  tc_ prefix to all exported functions.
+
 2007-07-03 Francesco Romani <fromani at gmail dot com>
   * import/tccat.c import/tcdecode.c import/tcdemux.c
     import/tcextract.c import/tcprobe.c import/tcscan.c

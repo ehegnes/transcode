@@ -23,8 +23,10 @@
  */
 
 #include "transcode.h"
-#include "libtc/libtc.h"
 #include "aud_aux.h"
+
+#include "libtc/libtc.h"
+#include "libtc/tcavcodec.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -35,7 +37,6 @@
 #include <stdint.h>
 #include <assert.h>
 
-#include <ffmpeg/avcodec.h>
 
 static AVCodec        *mpa_codec = NULL;
 static AVCodecContext mpa_ctx;
@@ -90,7 +91,7 @@ static int input_len = 0;
 #endif
 
 /* encoder */
-static int (*audio_encode_function)(char *, int, avi_t *)=NULL;
+static int (*tc_audio_encode_function)(char *, int, avi_t *)=NULL;
 #ifdef HAVE_LAME
 static lame_global_flags *lgf;
 #endif
@@ -111,16 +112,16 @@ static int avi_aud_chan, avi_aud_bits;
                              P R O T O T Y P E S
 -----------------------------------------------------------------------------*/
 
-static int audio_init_ffmpeg(vob_t *vob, int o_codec);
-static int audio_init_lame(vob_t *vob, int o_codec);
-static int audio_init_raw(vob_t *vob);
-static int audio_write(char *buffer, size_t size, avi_t *avifile);
-static int audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile);
-static int audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile);
-static int audio_pass_through(char *aud_buffer, int aud_size, avi_t *avifile);
-static int audio_pass_through_ac3(char *aud_buffer, int aud_size, avi_t *avifile);
-static int audio_pass_through_pcm(char *aud_buffer, int aud_size, avi_t *avifile);
-static int audio_mute(char *aud_buffer, int aud_size, avi_t *avifile);
+static int tc_audio_init_ffmpeg(vob_t *vob, int o_codec);
+static int tc_audio_init_lame(vob_t *vob, int o_codec);
+static int tc_audio_init_raw(vob_t *vob);
+static int tc_audio_write(char *buffer, size_t size, avi_t *avifile);
+static int tc_audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile);
+static int tc_audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile);
+static int tc_audio_pass_through(char *aud_buffer, int aud_size, avi_t *avifile);
+static int tc_audio_pass_through_ac3(char *aud_buffer, int aud_size, avi_t *avifile);
+static int tc_audio_pass_through_pcm(char *aud_buffer, int aud_size, avi_t *avifile);
+static int tc_audio_mute(char *aud_buffer, int aud_size, avi_t *avifile);
 static char * lame_error2str(int error);
 #ifdef HAVE_LAME
 static void no_debug(const char *format, va_list ap) {return;}
@@ -134,7 +135,7 @@ static int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate);
  *
  * @return TC_EXPORT_OK or TC_EXPORT_ERROR
  */
-static int audio_init_lame(vob_t *vob, int o_codec)
+static int tc_audio_init_lame(vob_t *vob, int o_codec)
 {
 	static int initialized=0;
 
@@ -302,17 +303,12 @@ static int audio_init_lame(vob_t *vob, int o_codec)
  *
  * @return TC_EXPORT_OK or TC_EXPORT_ERROR
  */
-static int audio_init_ffmpeg(vob_t *vob, int o_codec)
+static int tc_audio_init_ffmpeg(vob_t *vob, int o_codec)
 {
     unsigned long codeid = 0;
     int ret = 0;
 
-    // INIT
-
-    TC_LOCK_LIBAVCODEC;
-    avcodec_init();
-    avcodec_register_all(); 
-    TC_UNLOCK_LIBAVCODEC;
+    TC_INIT_LIBAVCODEC;
 
     switch (o_codec) {
 	case   0x50: codeid = CODEC_ID_MP2; break;
@@ -380,7 +376,7 @@ static int audio_init_ffmpeg(vob_t *vob, int o_codec)
  *
  * @return TC_EXPORT_OK or TC_EXPORT_ERROR
  */
-static int audio_init_raw(vob_t *vob)
+static int tc_audio_init_raw(vob_t *vob)
 {
 	if(vob->pass_flag & TC_AUDIO)
 	{
@@ -411,7 +407,7 @@ static int audio_init_raw(vob_t *vob)
 			return(TC_EXPORT_ERROR);
 		}
 	} else
-		audio_encode_function=audio_mute;
+		tc_audio_encode_function=tc_audio_mute;
 
 	return(TC_EXPORT_OK);
 }
@@ -426,7 +422,7 @@ static int audio_init_raw(vob_t *vob)
  * @return  TC_EXPORT_OK or TC_EXPORT_ERROR
  */
 
-int audio_init(vob_t *vob, int v)
+int tc_audio_init(vob_t *vob, int v)
 {
 	int ret=TC_EXPORT_OK;
 	int sample_size;
@@ -453,7 +449,7 @@ int audio_init(vob_t *vob, int v)
 	{
 		tc_warn("Zero sample size detected for audio format `0x%x'. "
 		      "Muting.", vob->im_a_codec);
-		audio_encode_function=audio_mute;
+		tc_audio_encode_function=tc_audio_mute;
 		return(TC_EXPORT_OK);
 	}
 
@@ -479,31 +475,31 @@ int audio_init(vob_t *vob, int v)
 		switch(vob->ex_a_codec)
 		{
 		case CODEC_NULL:
-			audio_encode_function = audio_mute;
+			tc_audio_encode_function = tc_audio_mute;
 			break;
 
 		case CODEC_MP3:
-			ret=audio_init_lame(vob, vob->ex_a_codec);
-			audio_encode_function = audio_encode_mp3;
+			ret=tc_audio_init_lame(vob, vob->ex_a_codec);
+			tc_audio_encode_function = tc_audio_encode_mp3;
 			break;
 
 		case CODEC_PCM:
 			tc_info("PCM -> PCM");
 			/* adjust bitrate with magic ! */
 			avi_aud_bitrate=(vob->a_rate*4)/1000*8;
-			audio_encode_function = audio_pass_through_pcm;
+			tc_audio_encode_function = tc_audio_pass_through_pcm;
 			break;
 
 		case CODEC_MP2:
 			tc_info("PCM -> MP2");
-			ret=audio_init_ffmpeg(vob, vob->ex_a_codec);
-			audio_encode_function = audio_encode_ffmpeg;
+			ret=tc_audio_init_ffmpeg(vob, vob->ex_a_codec);
+			tc_audio_encode_function = tc_audio_encode_ffmpeg;
 			break;
 
 		case CODEC_AC3:
 			tc_info("PCM -> AC3");
-			ret=audio_init_ffmpeg(vob, vob->ex_a_codec);
-			audio_encode_function = audio_encode_ffmpeg;
+			ret=tc_audio_init_ffmpeg(vob, vob->ex_a_codec);
+			tc_audio_encode_function = tc_audio_encode_ffmpeg;
 			break;
 
 		default:
@@ -519,12 +515,12 @@ int audio_init(vob_t *vob, int v)
 		switch(vob->ex_a_codec)
 		{
 		case CODEC_NULL:
-			audio_encode_function = audio_mute;
+			tc_audio_encode_function = tc_audio_mute;
 			break;
 
 		case CODEC_MP2:
 		case CODEC_MP3:
-			audio_encode_function = audio_pass_through;
+			tc_audio_encode_function = tc_audio_pass_through;
 			break;
 
 		default:
@@ -539,15 +535,15 @@ int audio_init(vob_t *vob, int v)
 		switch(vob->ex_a_codec)
 		{
 		case CODEC_NULL:
-			audio_encode_function = audio_mute;
+			tc_audio_encode_function = tc_audio_mute;
 			break;
 
 		case CODEC_AC3:
 			tc_info("AC3->AC3");
 			if (vob->audio_file_flag) {
-				audio_encode_function = audio_pass_through;
+				tc_audio_encode_function = tc_audio_pass_through;
 			} else {
-				audio_encode_function = audio_pass_through_ac3;
+				tc_audio_encode_function = tc_audio_pass_through_ac3;
 			}
 			/*
 			 *the bitrate can only be determined in the encoder
@@ -564,12 +560,12 @@ int audio_init(vob_t *vob, int v)
 		break;
 
 	case CODEC_NULL: /* no audio requested */
-		audio_encode_function = audio_mute;
+		tc_audio_encode_function = tc_audio_mute;
 		break;
 
 	case CODEC_RAW: /* pass-through mode */
-		audio_encode_function = audio_pass_through;
-		ret=audio_init_raw(vob);
+		tc_audio_encode_function = tc_audio_pass_through;
+		ret=tc_audio_init_raw(vob);
 		break;
 
 	default:
@@ -591,9 +587,9 @@ int audio_init(vob_t *vob, int v)
  *
  * @return TC_EXPORT_OK or TC_EXPORT_ERROR
  */
-int audio_open(vob_t *vob, avi_t *avifile)
+int tc_audio_open(vob_t *vob, avi_t *avifile)
 {
-	if (audio_encode_function != audio_mute)
+	if (tc_audio_encode_function != tc_audio_mute)
 	{
 		if(vob->audio_file_flag)
 		{
@@ -629,7 +625,7 @@ int audio_open(vob_t *vob, avi_t *avifile)
 
 			if(avifile==NULL)
 			{
-				audio_encode_function = audio_mute;
+				tc_audio_encode_function = tc_audio_mute;
 				tc_info("No option `-m' found. Muting sound.");
 				return(TC_EXPORT_OK);
 			}
@@ -667,7 +663,7 @@ int audio_open(vob_t *vob, avi_t *avifile)
 /**
  * Write audio data to output stream
  */
-static int audio_write(char *buffer, size_t size, avi_t *avifile)
+static int tc_audio_write(char *buffer, size_t size, avi_t *avifile)
 {
 	if (fd != NULL)
 	{
@@ -718,7 +714,7 @@ static int audio_write(char *buffer, size_t size, avi_t *avifile)
  *
  * Easy, eh? -- tibit.
  */
-static int audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile)
+static int tc_audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile)
 {
 #ifdef HAVE_LAME
 	int outsize=0;
@@ -805,7 +801,7 @@ static int audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile)
 
 			if (verbose_flag & TC_DEBUG)
 				tc_info("Writing chunk of size=%d", size);
-			audio_write(output+offset, size, avifile);
+			tc_audio_write(output+offset, size, avifile);
 			offset += size;
 			output_len -= size;
 		}
@@ -818,7 +814,7 @@ static int audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile)
 		 * Thinking too much about chunk will break audio playback
 		 * on archos Jukebox Multimedia...
 		 */
-		audio_write(output, output_len, avifile);
+		tc_audio_write(output, output_len, avifile);
 		output_len=0;
 	}
 	return(TC_EXPORT_OK);
@@ -829,7 +825,7 @@ static int audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile)
 }
 #endif
 
-static int audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile)
+static int tc_audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile)
 {
     int  in_size, out_size;
     char *in_buf;
@@ -857,7 +853,7 @@ static int audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile)
 	out_size = avcodec_encode_audio(&mpa_ctx, (unsigned char *)output,
 					OUTPUT_SIZE, (short *)mpa_buf);
 	TC_UNLOCK_LIBAVCODEC;
-	audio_write(output, out_size, avifile);
+	tc_audio_write(output, out_size, avifile);
 
         in_size -= bytes_needed;
         in_buf  += bytes_needed;
@@ -885,7 +881,7 @@ static int audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile)
 				      OUTPUT_SIZE, (short *)in_buf);
       TC_UNLOCK_LIBAVCODEC;
 
-      audio_write(output, out_size, avifile);
+      tc_audio_write(output, out_size, avifile);
 
       in_size -= mpa_bytes_pf;
       in_buf  += mpa_bytes_pf;
@@ -901,7 +897,7 @@ static int audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile)
     return (TC_EXPORT_OK);
 }
 
-static int audio_pass_through_ac3(char *aud_buffer, int aud_size, avi_t *avifile)
+static int tc_audio_pass_through_ac3(char *aud_buffer, int aud_size, avi_t *avifile)
 {
 	if(bitrate == 0)
 	{
@@ -938,14 +934,14 @@ static int audio_pass_through_ac3(char *aud_buffer, int aud_size, avi_t *avifile
 		}
 	}
 
-	return(audio_write(aud_buffer, aud_size, avifile));
+	return(tc_audio_write(aud_buffer, aud_size, avifile));
 }
 
 
 /**
  *
  */
-static int audio_pass_through_pcm(char *aud_buffer, int aud_size, avi_t *avifile)
+static int tc_audio_pass_through_pcm(char *aud_buffer, int aud_size, avi_t *avifile)
 {
 #ifdef WORDS_BIGENDIAN
 	int i;
@@ -958,23 +954,23 @@ static int audio_pass_through_pcm(char *aud_buffer, int aud_size, avi_t *avifile
 		aud_buffer[i] = tmp;
 	}
 #endif
-	return(audio_write(aud_buffer, aud_size, avifile));
+	return(tc_audio_write(aud_buffer, aud_size, avifile));
 
 }
 
 /**
  *
  */
-static int audio_pass_through(char *aud_buffer, int aud_size, avi_t *avifile)
+static int tc_audio_pass_through(char *aud_buffer, int aud_size, avi_t *avifile)
 {
-	return(audio_write(aud_buffer, aud_size, avifile));
+	return(tc_audio_write(aud_buffer, aud_size, avifile));
 
 }
 
 /**
  *
  */
-static int audio_mute(char *aud_buffer, int aud_size, avi_t *avifile)
+static int tc_audio_mute(char *aud_buffer, int aud_size, avi_t *avifile)
 {
 	/*
 	 * Avoid Gcc to complain
@@ -996,22 +992,22 @@ static int audio_mute(char *aud_buffer, int aud_size, avi_t *avifile)
  *
  * @return
  */
-int audio_encode(char *aud_buffer, int aud_size, avi_t *avifile)
+int tc_audio_encode(char *aud_buffer, int aud_size, avi_t *avifile)
 {
-    assert(audio_encode_function != NULL);
-    return((*audio_encode_function)(aud_buffer, aud_size, avifile));
+    assert(tc_audio_encode_function != NULL);
+    return(tc_audio_encode_function(aud_buffer, aud_size, avifile));
  }
 
 
 /**
  * Close audio stream
  */
-int audio_close()
+int tc_audio_close()
 {
 	/* reset bitrate flag for AC3 pass-through */
 	bitrate = 0;
 
-	if (audio_encode_function == audio_encode_mp3)
+	if (tc_audio_encode_function == tc_audio_encode_mp3)
 	{
 #ifdef HAVE_LAME
 		if(lame_flush) {
@@ -1024,7 +1020,7 @@ int audio_close()
 				tc_info("flushing %d audio bytes", outsize);
 
 			if (outsize>0)
-				audio_write(output, outsize, avifile2);
+				tc_audio_write(output, outsize, avifile2);
 		}
 #endif
 	}
@@ -1043,16 +1039,16 @@ int audio_close()
 
 
 
-int audio_stop()
+int tc_audio_stop()
 {
         if (input) free(input); input = NULL;
         if (output) free(output); output = NULL;
 #ifdef HAVE_LAME
-	if (audio_encode_function == audio_encode_mp3)
+	if (tc_audio_encode_function == tc_audio_encode_mp3)
 		lame_close(lgf);
 #endif
 
-	if (audio_encode_function == audio_encode_ffmpeg)
+	if (tc_audio_encode_function == tc_audio_encode_ffmpeg)
 	{
 	    //-- release encoder --
 	    if (mpa_codec) avcodec_close(&mpa_ctx);
