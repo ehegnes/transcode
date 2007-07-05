@@ -26,7 +26,7 @@
 
   * added file: export/export_tcaud.c
 
-  * export/Maefile.am
+  * export/Makefile.am
 
   add lightweight aud_aux separate frontend module. The whole plan:
   1) avoid to duplicate aud_aux.c code in a bunch of shared objects

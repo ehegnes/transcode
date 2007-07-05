@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
 
   if(1) {
 
-      char header[4];
+      uint8_t header[4];
       int framesize = 0;
       int chunks = 0;
       int srate=0 , chans=0, bitrate=0;
