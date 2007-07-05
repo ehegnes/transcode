@@ -49,6 +49,7 @@ EXTRA_DIST = \
 	static_tctimer.h \
 	tc_lzo.h \
 	tccodecs.h \
+	tcformats.h \
 	tcframes.h \
 	tcmodule-core.h \
 	tcmodule-data.h \
