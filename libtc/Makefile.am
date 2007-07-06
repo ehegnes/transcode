@@ -30,6 +30,7 @@ libtc_la_SOURCES = \
 	tc_functions.c \
 	tccodecs.c \
 	tcframes.c \
+	tcglob.c \
 	tcmodule.c \
 	tcmoduleinfo.c \
 	$(GETOPT_FILES) \
@@ -51,6 +52,7 @@ EXTRA_DIST = \
 	tccodecs.h \
 	tcformats.h \
 	tcframes.h \
+	tcglob.h \
 	tcmodule-core.h \
 	tcmodule-data.h \
 	tcmodule-info.h \
