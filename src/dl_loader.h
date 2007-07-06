@@ -24,7 +24,7 @@
 #ifndef _DL_LOADER_H
 #define _DL_LOADER_H
 
-void *load_module(char *mod, int mode);
+void *load_module(const char *mod, int mode);
 void unload_module(void *handle);
 
 // extern int (*TCV_export)(int opt, void *para1, void *para2);

@@ -35,7 +35,7 @@
 #include "transcode.h"
 #include "dl_loader.h"
 
-char *mod_path=MOD_PATH;
+const char *mod_path = MOD_PATH;
 
 char module[TC_BUF_MAX];
 
@@ -44,12 +44,12 @@ int (*TCA_export)(int opt, void *para1, void *para2);
 int (*TCV_import)(int opt, void *para1, void *para2);
 int (*TCA_import)(int opt, void *para1, void *para2);
 
-static void watch_export_module(char *s, int opt, transfer_t *para)
+static void watch_export_module(const char *s, int opt, transfer_t *para)
 {
     tc_log_msg(__FILE__, "module=%s [option=%02d, flag=%d]", s, opt, ((para==NULL)? -1:para->flag));
 }
 
-static void watch_import_module(char *s, int opt, transfer_t *para)
+static void watch_import_module(const char *s, int opt, transfer_t *para)
 {
     tc_log_msg(__FILE__, "module=%s [option=%02d, flag=%d]", s, opt, ((para==NULL)? -1:para->flag));
     fflush(stdout);
@@ -131,7 +131,7 @@ int tca_import(int opt, void *para1, void *para2)
 }
 
 
-void *load_module(char *mod_name, int mode)
+void *load_module(const char *mod_name, int mode)
 {
   const char *error;
   void *handle;
@@ -220,3 +220,4 @@ void unload_module(void *handle)
   }
   handle=NULL;
 }
+
