@@ -1,0 +1,96 @@
+/*
+ * tcglob.c - simple iterator over a path collection expressed through
+ *            glob (7) semantic (implementation).
+ * (C) 2007 - Francesco Romani <fromani -at- gmail -dot- com>
+ *
+ * This file is part of transcode, a video stream processing tool.
+ * transcode is free software, distributable under the terms of the GNU
+ * General Public License (version 2 or later).  See the file COPYING
+ * for details.
+ */
+
+#include <string.h>
+#include <glob.h>
+
+#include "libtc.h"
+#include "tcglob.h"
+
+
+struct tcglob_ {
+    glob_t glob;
+    int current;
+};
+
+#define GLOB_NOERROR 0
+
+
+TCGlob *tc_glob_open(const char *pattern, uint32_t flags)
+{
+    TCGlob *tcg = NULL;
+    flags = GLOB_ERR; /* flags intentionally overridden */
+
+    if (pattern != NULL && strlen(pattern) > 0) {
+        tcg = tc_malloc(sizeof(TCGlob));
+
+        if (tcg != NULL) {
+            int err = glob(pattern, flags, NULL, &(tcg->glob));
+
+            switch (err) {
+              case GLOB_NOMATCH:
+                /* fallthrough, since this is an "expected" error */
+              case GLOB_NOERROR:
+                tcg->current = 0;
+                break;
+              default: /* any other error: clean it up */
+                tc_log_error(__FILE__, "internal glob failed (code=%i)",
+                             err);
+                tc_free(tcg);
+                tcg = NULL;
+            }
+        }
+    }
+    return tcg;
+}
+
+
+const char *tc_glob_next(TCGlob *tcg)
+{
+    const char *ret = NULL;
+    if (tcg != NULL) {
+        if (tcg->current < tcg->glob.gl_pathc) {
+            ret = tcg->glob.gl_pathv[tcg->current];
+            tcg->current++;
+        }
+    }
+    return ret;
+}
+
+int tc_glob_has_more(TCGlob *tcg)
+{
+    if (tcg == NULL) {
+        return 0;
+    }
+    return (tcg->current < tcg->glob.gl_pathc);
+}
+
+
+int tc_glob_close(TCGlob *tcg)
+{
+    if (tcg != NULL) {
+        globfree(&(tcg->glob));
+        tc_free(tcg);
+    }
+    return TC_OK;
+}
+
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */

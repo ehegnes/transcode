@@ -2,6 +2,10 @@
   * src/dl_loader.c src/dl_loader.h
   constantize module name param.
 
+  * added files: libtc/tcglob.c libtc/tcglob.h
+
+  add basic globbing facilities.
+
 2007-07-04 Francesco Romani <fromani at gmail dot com>
   * export/Makefile.am
   ship profiles data only if ENABLE_EXPERIMENTAL.
