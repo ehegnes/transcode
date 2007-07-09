@@ -1,8 +1,14 @@
+2007-07-09 Francesco Romani <fromani at gmail dot com>
+  * libtc/tcglob.h
+  basic inline documentation.
+
 2007-07-06 Francesco Romani <fromani at gmail dot com>
   * src/dl_loader.c src/dl_loader.h
   constantize module name param.
 
   * added files: libtc/tcglob.c libtc/tcglob.h
+
+  * libtc/Makefile.am
 
   add basic globbing facilities.
 
