@@ -202,7 +202,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    optstr_get (options, "cpuflags",  "%x",
 			&tmc->cpuflags);
 
-	    if (optstr_get (options, "help", "") >= 0) {
+	    if (optstr_lookup(options, "help")) {
 		help_optstr ();
 	    }
 	}
