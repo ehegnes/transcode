@@ -27,6 +27,7 @@ noinst_PROGRAMS = \
 	test-ratiocodes \
 	test-resize-values \
 	test-tclog \
+	test-tcglob \
 	test-tcmodule \
 	test-tcmoduleinfo \
 	test-tcstrdup
@@ -57,6 +58,9 @@ test_ratiocodes_LDADD = $(LIBTC_LIBS)
 
 test_tclog_SOURCES = test-tclog.c
 test_tclog_LDADD = $(LIBTC_LIBS)
+
+test_tcglob_SOURCES = test-tcglob.c
+test_tcglob_LDADD = $(LIBTC_LIBS)
 
 test_tcmodule_LDADD = $(LIBTC_LIBS)
 test_tcmodule_LDFLAGS = -export-dynamic

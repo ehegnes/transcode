@@ -5,6 +5,12 @@
   * configure.in
   warn if PVM3 support is enabled.
 
+  * added file: testsuite/test-tcglob.c
+
+  * testsuite/Makefile.am
+
+  add very-very-basic testsuite for new globbing facilities.
+
 2007-07-09 Francesco Romani <fromani at gmail dot com>
   * libtc/tcglob.h
   basic inline documentation.
