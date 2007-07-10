@@ -2,6 +2,9 @@
   * filter/tomsmocomp/filter_tomsmocomp.c
   optstr_get() -> optstr_lookup() fix.
 
+  * configure.in
+  warn if PVM3 support is enabled.
+
 2007-07-09 Francesco Romani <fromani at gmail dot com>
   * libtc/tcglob.h
   basic inline documentation.

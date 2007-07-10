@@ -1490,3 +1490,13 @@ X11                            $USE_X11
 ])
 
 TC_PKG_REPORT
+
+if test z"yes" = z"$have_pvm3"; then
+    AC_MSG_WARN([PVM3 support is yet untested, unsupported and may be BROKEN!.])
+    AC_MSG_WARN([Please be careful and be prepared for bugs or nasty behaviours.])
+    AC_MSG_WARN([Report problems on transcode-devel mailing list.])
+    # ugly -- has anyone a better idea?
+    echo
+    echo
+fi
+
