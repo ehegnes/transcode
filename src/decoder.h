@@ -24,17 +24,17 @@
 #ifndef DECODER_H
 #define DECODER_H
 
-int tc_import_init(vob_t *vob, char *a_mod, char *v_mod);
+int tc_import_init(vob_t *vob, const char *a_mod, const char *v_mod);
 void tc_import_shutdown(void);
 
 void tc_import_audio_stop(void);
 void tc_import_video_stop(void);
 
-void tc_import_audio_start(void);
-void tc_import_video_start(void);
-
 int tc_import_open(vob_t *vob);
 int tc_import_close(void);
+
+void tc_seq_import_threads_create(vob_t *vob);
+void tc_seq_import_threads_cancel(void);
 
 void tc_import_threads_create(vob_t *vob);
 void tc_import_threads_cancel(void);

@@ -34,7 +34,6 @@
 #include "split.h"
 #include "libtc/cfgfile.h"
 #include "libtc/ratiocodes.h"
-#include "libtc/iodir.h"
 #include "libtc/xio.h"
 #include "libtc/tccodecs.h"
 
@@ -2244,7 +2243,7 @@ int main(int argc, char *argv[])
             // set frame range (in cluster mode these will already be set)
             if (!tc_cluster_mode) {
                 frame_a = tstart->stf;
-                  frame_b = tstart->etf;
+                frame_b = tstart->etf;
             }
             // main encoding loop, returns when done with all frames
             tc_encoder_loop(vob, frame_a, frame_b);
@@ -2468,164 +2467,53 @@ int main(int argc, char *argv[])
 
         break;
 
-
       case TC_MODE_DIRECTORY:
-#if 0
-      /* ---------------------------------------------------------------
-       *
-       * internal directory mode (needs single import directory)
-       *
-       * --------------------------------------------------------------*/
-
-      // 1 sec delay after decoder closing
-      tc_decoder_delay=1;
-
-      if(strncmp(vob->video_in_file, "/dev/zero", 9)==0) dir_audio=1;
-
-      dir_name = (dir_audio) ? vob->audio_in_file : vob->video_in_file;
-      dir_fcnt = 0;
-
-      if(tc_dirlist_open(&tcdir, dir_name, 1)<0) {
-    tc_error("unable to open directory \"%s\"", dir_name);
-    exit(1);
-      }
-
-      dir_fcnt = tc_dirlist_file_count(&tcdir);
-
-      if (verbose & TC_INFO)
-        tc_log_info(PACKAGE, "processing %d file(s) in directory %s",
-                    dir_fcnt, dir_name);
-
-      if(dir_fcnt==0) tc_error("no valid input files found");
-      dir_fcnt=0;
-
-      // encoder init
-      if(tc_encoder_init(vob) != TC_OK)
-    tc_error("failed to init encoder");
-
-      // open output
-      if(no_split) {
-
-    // create single output filename
-    tc_snprintf(buf, sizeof(buf), "%s.avi", dirbase);
-
-    // update vob structure
-    if(dir_audio) {
-
-      switch(vob->ex_a_codec) {
-
-      case CODEC_MP3:
-        tc_snprintf(buf, sizeof(buf), "%s-%03d.mp3", dirbase, dir_fcnt);
-        break;
-      }
-
-      vob->audio_out_file = buf;
-
-    } else {
-      vob->video_out_file = buf;
-    }
-
-    if(tc_encoder_open(vob) != TC_OK)
-      tc_error("failed to open output");
-      }
-
-      // need to loop with directory content for this option
-
-      while((dir_fname=tc_dirlist_scan(&tcdir))!=NULL) {
-
-    // update vob structure
-    if(dir_audio) {
-      vob->audio_in_file = (char *)dir_fname;
-    } else {
-      vob->video_in_file = (char *)dir_fname;
-      vob->audio_in_file = (char *)dir_fname;
-    }
-
-    if(!no_split) {
-      // create new filename
-      tc_snprintf(buf, sizeof(buf), "%s-%03d.avi", dirbase, dir_fcnt);
-
-      // update vob structure
-      if(dir_audio) {
-
-        switch(vob->ex_a_codec) {
-
-        case CODEC_MP3:
-          tc_snprintf(buf, sizeof(buf), "%s-%03d.mp3", dirbase, dir_fcnt);
-          break;
+        if (vob->audio_in_file != vob->video_in_file) {
+            tc_error("directory mode DOES NOT support separate audio files");
         }
 
-        vob->audio_out_file = buf;
-        vob->audio_file_flag = 1;
-      } else {
-        vob->video_out_file = buf;
-      }
-    }
+        tc_seq_import_threads_create(vob);
 
-    // start new decoding session with updated vob structure
-    if(tc_import_open(vob)<0) tc_error("failed to open input source");
+        if (tc_encoder_init(vob) != TC_OK)
+            tc_error("failed to init encoder");
+        if (tc_encoder_open(vob) != TC_OK)
+            tc_error("failed to open output");
 
-    // start the AV import threads that load the frames into transcode
-    tc_import_threads_create(vob);
+        // tell counter about all encoding ranges
+        counter_reset_ranges();
+        if (!tc_cluster_mode) {
+            int last_etf = 0;
+            for (tstart = vob->ttime; tstart; tstart = tstart->next) {
+                if (tstart->etf == TC_FRAME_LAST) {
+                    // variable length range, oh well
+                    counter_reset_ranges();
+                    break;
+                }
+                if (tstart->stf > last_etf)
+                    counter_add_range(last_etf, tstart->stf-1, 0);
+                counter_add_range(tstart->stf, tstart->etf-1, 1);
+                last_etf = tstart->etf;
+            }
+        }
 
-    // open output
-    if(!no_split) {
-      if(tc_encoder_open(vob) != TC_OK)
-        tc_error("failed to open output");
-    }
+        // get start interval
+        for (tstart = vob->ttime;
+             tstart != NULL && !interrupt_flag;
+             tstart = tstart->next) {
+            // set frame range (in cluster mode these will already be set)
+            if (!tc_cluster_mode) {
+                frame_a = tstart->stf;
+                frame_b = tstart->etf;
+            }
+            // main encoding loop, returns when done with all frames
+            tc_encoder_loop(vob, frame_a, frame_b);
+        }
 
-    // get start interval
-    tstart = vob->ttime;
+        tc_encoder_close();
+        tc_encoder_stop();
+        tc_seq_import_threads_cancel();
+        break;
 
-    while (tstart) {
-
-      // main encoding loop, return when done with all frames
-      tc_encoder_loop(vob, tstart->stf, tstart->etf);
-
-      // check for user cancelation request
-      if (interrupt_flag) break;
-
-      // next range
-      tstart = tstart->next;
-    }
-
-    // close output
-    if(!no_split) {
-      if(tc_encoder_close() != TC_OK)
-        tc_warn("failed to close encoder - non fatal");
-    }
-
-    // cancel import threads
-    tc_import_threads_cancel();
-
-    // stop decoder and close the source
-    tc_import_close();
-
-    // flush all buffers before we proceed to next file
-    aframe_flush();
-        tc_flush_audio_counters();
-        vframe_flush();
-        tc_flush_video_counters();
-
-    ++dir_fcnt;
-
-    if (interrupt_flag) break;
-
-      }//next directory entry
-
-      tc_dirlist_close(&tcdir);
-
-      // close output
-      if(no_split) {
-    if(tc_encoder_close() != TC_OK)
-      tc_warn("failed to close encoder - non fatal");
-      }
-
-      tc_encoder_stop();
-
-      break;
-
-#endif
       case TC_MODE_DVD_CHAPTER:
 #ifdef HAVE_LIBDVDREAD
         /* ------------------------------------------------------------

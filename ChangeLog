@@ -15,6 +15,12 @@
   reenable --dir_mode options, that will trigger usage of new
   sequential import decoder. Yet useless.
 
+  * src/decoder.c src/decoder.h src/transcode.c
+  ok ladies and gentlemen, let's bite the bullet: here it is
+  the new sequential decoder code. Compiles, but is still
+  COMPLETELY untested and can be BADLY BROKEN. Just wait a little
+  bit more.
+
 2007-07-09 Francesco Romani <fromani at gmail dot com>
   * libtc/tcglob.h
   basic inline documentation.
