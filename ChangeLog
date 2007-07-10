@@ -11,6 +11,10 @@
 
   add very-very-basic testsuite for new globbing facilities.
 
+  * src/cmdline_def.h
+  reenable --dir_mode options, that will trigger usage of new
+  sequential import decoder. Yet useless.
+
 2007-07-09 Francesco Romani <fromani at gmail dot com>
   * libtc/tcglob.h
   basic inline documentation.

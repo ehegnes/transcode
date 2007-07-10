@@ -224,13 +224,11 @@ TC_OPTION(input,              'i', "file",
                 vob->video_in_file = optarg;
                 video_in_file = optarg;
 )
-#if 0
-TC_OPTION(dir_mode,           0,   "base",
-                "process directory contents to base%03d.avi [off]",
-                dirbase = optarg;
+
+TC_OPTION(dir_mode,           0,   0,
+                "enable EXPERIMENTAL directory mode (see manpage)",
                 core_mode = TC_MODE_DIRECTORY;
 )
-#endif
 TC_OPTION(output,             'o', "file",
                 "output file name",
                 vob->video_out_file = optarg;
