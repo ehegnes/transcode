@@ -1068,7 +1068,7 @@ static ProbeInfo aux_vid_info;
 static void seq_import_thread(TCSeqImportData *sid)
 {
     int status = TC_IM_THREAD_DONE, ret = TC_OK;
-    int i, track_id = vob->a_track;
+    int i, track_id = sid->vob->a_track;
     ProbeInfo infos;
     ProbeInfo *old = sid->infos, *new = &infos;
 
@@ -1117,7 +1117,7 @@ static void seq_import_thread(TCSeqImportData *sid)
         /* now prepare for next probing round by swapping pointers */
         SWAP(ProbeInfo*, old, new);
     }
-    pthread_exit((int*)status);
+    pthread_exit(&status);
 }
 
 /*************************************************************************/
