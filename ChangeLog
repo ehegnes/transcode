@@ -8,6 +8,9 @@
   * src /transcode.c
   tc_error()ize abort conditions.
 
+  * src/decoder.c
+  round 1 fixes. It's still a long road.
+
 2007-07-10 Francesco Romani <fromani at gmail dot com>
   * filter/tomsmocomp/filter_tomsmocomp.c
   optstr_get() -> optstr_lookup() fix.

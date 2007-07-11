@@ -68,9 +68,11 @@ struct tcdecoderdata_ {
 static int audio_decode_loop(vob_t *vob);
 static int video_decode_loop(vob_t *vob);
 
-static void audio_import_thread(vob_t *vob);
-static void video_import_thread(vob_t *vob);
+/* thread core */
+static void *audio_import_thread(void *_vob);
+static void *video_import_thread(void *_vob);
 
+static void *seq_import_thread(void *_sid);
 
 static void tc_import_video_start(void);
 static void tc_import_audio_start(void);
@@ -151,7 +153,7 @@ static int check_module_caps(const transfer_t *param, int codec,
     return caps;
 }
 
-static void import_lock_cleanup (void *arg)
+static void import_lock_cleanup(void *arg)
 {
     pthread_mutex_unlock((pthread_mutex_t *)arg);
 }
@@ -697,16 +699,18 @@ void tc_import_video_notify(void)
 /*************************************************************************/
 
 /* audio decode thread wrapper */
-static void audio_import_thread(vob_t *vob)
+static void *audio_import_thread(void *_vob)
 {
-    int ret = audio_decode_loop(vob);
+    static int ret = 0;
+    ret = audio_decode_loop(_vob);
     pthread_exit(&ret);
 }
 
 /* video decode thread wrapper */
-static void video_import_thread(vob_t *vob)
+static void *video_import_thread(void *_vob)
 {
-    int ret = video_decode_loop(vob);
+    static int ret = 0;
+    ret = video_decode_loop(_vob);
     pthread_exit(&ret);
 }
 
@@ -818,13 +822,13 @@ void tc_import_threads_create(vob_t *vob)
 
     tc_import_audio_start();
     ret = pthread_create(&audio_decdata.thread_id, NULL,
-                         (void *)audio_import_thread, vob);
+                         audio_import_thread, vob);
     if (ret != 0)
         tc_error("failed to start audio stream import thread");
 
     tc_import_video_start();
     ret = pthread_create(&video_decdata.thread_id, NULL,
-                         (void *)video_import_thread, vob);
+                         video_import_thread, vob);
     if (ret != 0)
         tc_error("failed to start video stream import thread");
 }
@@ -987,7 +991,8 @@ static void probe_from_vob(ProbeInfo *info, const vob_t *vob)
 #define RETURN_IF_PROBE_FAILED(ret, src) do {                        \
     if (ret == 0) {                                                  \
         tc_log_error(PACKAGE, "probing of source '%s' failed", src); \
-        pthread_exit((int*)TC_IM_THREAD_PROBE_ERROR);                \
+        status = TC_IM_THREAD_PROBE_ERROR;                           \
+        pthread_exit(&status);                                       \
     }                                                                \
 } while (0)
 
@@ -1008,6 +1013,8 @@ struct tcseqimportdata_ {
 
     ProbeInfo *infos; /* ok, that's pretty ugly */
     TCGlob *files;
+
+    const char *tag;
 
     const char **src_pathname;
 
@@ -1040,6 +1047,8 @@ static int next_file(TCSeqImportData *sid)
     } \
     MEDIA ## _seqdata.files        = files;                         \
     \
+    MEDIA ## _seqdata.tag          = # MEDIA;                       \
+    \
     MEDIA ## _seqdata.infos        = INFOS;                         \
     MEDIA ## _seqdata.vob          = VOB;                           \
     MEDIA ## _seqdata.decdata      = &(MEDIA ## _decdata);          \
@@ -1065,10 +1074,11 @@ static ProbeInfo aux_vid_info;
 
 /*************************************************************************/
 
-static void seq_import_thread(TCSeqImportData *sid)
+static void *seq_import_thread(void *_sid)
 {
-    int status = TC_IM_THREAD_DONE, ret = TC_OK;
-    int i, track_id = sid->vob->a_track;
+    static int status = TC_IM_THREAD_DONE;
+    TCSeqImportData *sid = _sid;
+    int i, ret = TC_OK, track_id = sid->vob->a_track;
     ProbeInfo infos;
     ProbeInfo *old = sid->infos, *new = &infos;
 
@@ -1107,7 +1117,12 @@ static void seq_import_thread(TCSeqImportData *sid)
         ret = probe_im_stream(CURRENT_FILE(sid), new);
         RETURN_IF_PROBE_FAILED(ret, CURRENT_FILE(sid));
 
-        if (!probe_matches(old, new, track_id)) {
+        if (probe_matches(old, new, track_id)) {
+            if (verbose) {
+                tc_log_info(__FILE__, "switching to %s source #%i: %s",
+                            sid->tag, i, CURRENT_FILE(sid));
+            }
+        } else {
             tc_log_error(PACKAGE, "source '%s' in directory"
                                   " not compatible with former",
                                   CURRENT_FILE(sid));
@@ -1130,7 +1145,7 @@ void tc_seq_import_threads_create(vob_t *vob)
     SEQDATA_INIT(audio, vob, &aux_aud_info);
     tc_import_audio_start();
     ret = pthread_create(&audio_decdata.thread_id, NULL,
-                         (void *)seq_import_thread, &audio_seqdata);
+                         seq_import_thread, &audio_seqdata);
     if (ret != 0) {
         tc_error("failed to start sequential audio stream import thread");
     }
@@ -1139,7 +1154,7 @@ void tc_seq_import_threads_create(vob_t *vob)
     SEQDATA_INIT(video, vob, &aux_vid_info);
     tc_import_video_start();
     ret = pthread_create(&video_decdata.thread_id, NULL,
-                         (void *)seq_import_thread, &video_seqdata);
+                         seq_import_thread, &video_seqdata);
     if (ret != 0) {
         tc_error("failed to start sequential video stream import thread");
     }
