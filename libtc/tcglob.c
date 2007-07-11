@@ -17,6 +17,7 @@
 
 
 struct tcglob_ {
+    const char *pattern;
     glob_t glob;
     int current;
 };
@@ -33,11 +34,17 @@ TCGlob *tc_glob_open(const char *pattern, uint32_t flags)
         tcg = tc_malloc(sizeof(TCGlob));
 
         if (tcg != NULL) {
-            int err = glob(pattern, flags, NULL, &(tcg->glob));
+            int err = 0;
+
+            tcg->pattern = NULL;
+
+            err = glob(pattern, flags, NULL, &(tcg->glob));
 
             switch (err) {
               case GLOB_NOMATCH:
-                /* fallthrough, since this is an "expected" error */
+                tcg->pattern = tc_strdup(pattern); // XXX
+                tcg->current = -1;
+                break;
               case GLOB_NOERROR:
                 tcg->current = 0;
                 break;
@@ -57,10 +64,13 @@ const char *tc_glob_next(TCGlob *tcg)
 {
     const char *ret = NULL;
     if (tcg != NULL) {
+        if (tcg->current == -1) {
+            ret = tcg->pattern;
+        }
         if (tcg->current < tcg->glob.gl_pathc) {
             ret = tcg->glob.gl_pathv[tcg->current];
-            tcg->current++;
         }
+        tcg->current++;
     }
     return ret;
 }
@@ -70,13 +80,17 @@ int tc_glob_has_more(TCGlob *tcg)
     if (tcg == NULL) {
         return 0;
     }
-    return (tcg->current < tcg->glob.gl_pathc);
+    return (tcg->current < tcg->glob.gl_pathc) + (tcg->pattern != NULL);
 }
 
 
 int tc_glob_close(TCGlob *tcg)
 {
     if (tcg != NULL) {
+        if (tcg->pattern != NULL) {
+           tc_free((void*)tcg->pattern);
+           tcg->pattern = NULL;
+        }
         globfree(&(tcg->glob));
         tc_free(tcg);
     }
