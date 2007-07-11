@@ -555,8 +555,7 @@ static void parse_navigation_file(vob_t *vob, const char *nav_seek_file)
 
         fp = fopen(nav_seek_file, "r");
         if(NULL == fp) {
-            perror(nav_seek_file);
-            exit(EXIT_FAILURE);
+            tc_error("unable to open: %s", nav_seek_file);
         }
 
         tmptime = vob->ttime;
@@ -740,8 +739,6 @@ int main(int argc, char *argv[])
 
     TCFrameSpecs specs;
 
-//    TCDirList tcdir;
-
 
 #ifdef HAVE_X11
     if (XInitThreads() == 0) {
@@ -761,8 +758,7 @@ int main(int argc, char *argv[])
     // create global vob structure
     vob = new_vob();
     if (!vob) {
-        perror(PACKAGE ": initialization failed");
-        exit(EXIT_FAILURE);
+        tc_error("data initialization failed");
     }
 
     // prepare for signal catching
@@ -793,7 +789,7 @@ int main(int argc, char *argv[])
     libtc_init(&argc, &argv);
 
     if (!parse_cmdline(argc, argv, vob))
-        exit(EXIT_FAILURE);
+        tc_error("error parsing command line");
 
     if (tc_progress_meter < 0) {
         // if we have verbosity disabled, default to no progress meter.
@@ -865,13 +861,13 @@ int main(int argc, char *argv[])
      && vob->video_in_file   && strstr(vob->video_in_file,"/dev/zero") == NULL
     ) {
     if (!probe_source_xml(vob, PROBE_XML_VIDEO))
-        exit(EXIT_FAILURE);
+        tc_error("failed to probe XML source");
     }
     if (vob->amod_probed_xml && strstr(vob->amod_probed_xml,"xml") != NULL
      && vob->audio_in_file   && strstr(vob->audio_in_file,"/dev/zero") == NULL
     ) {
     if (!probe_source_xml(vob, PROBE_XML_AUDIO))
-        exit(EXIT_FAILURE);
+        tc_error("failed to probe XML source");
     }
 
     /* ------------------------------------------------------------
@@ -888,7 +884,7 @@ int main(int argc, char *argv[])
         free_fc_time(vob->ttime);
         if (parse_fc_time_string(fc_ttime_string, vob->fps, ",",
                                  (verbose>1 ? 1 : 0), &vob->ttime) == -1)
-            exit(EXIT_FAILURE);
+            tc_error("error parsing time specifications");
     } else {
         vob->ttime = new_fc_time();
         vob->ttime->fps = vob->fps;
