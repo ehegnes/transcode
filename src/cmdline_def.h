@@ -225,7 +225,7 @@ TC_OPTION(input,              'i', "file",
                 video_in_file = optarg;
 )
 
-TC_OPTION(dir_mode,           0,   0,
+TC_OPTION(directory_mode,     0,   0,
                 "enable EXPERIMENTAL directory mode (see manpage)",
                 core_mode = TC_MODE_DIRECTORY;
 )
