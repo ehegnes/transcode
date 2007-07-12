@@ -7,6 +7,9 @@
     export/export_xvid4.c export/export_yuv4mpeg.c
   tc_warn(...) -> tc_log_warn(MOD_NAME, ...).
 
+  * src/transcode.c
+  revert some uncareful tc_error() switches.
+
 2007-07-11 Francesco Romani <fromani at gmail dot com>
   * src/cmdline_def.h
   --dir_mode -> --directory_mode.

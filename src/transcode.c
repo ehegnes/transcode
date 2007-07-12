@@ -789,7 +789,7 @@ int main(int argc, char *argv[])
     libtc_init(&argc, &argv);
 
     if (!parse_cmdline(argc, argv, vob))
-        tc_error("error parsing command line");
+        exit(EXIT_FAILURE);
 
     if (tc_progress_meter < 0) {
         // if we have verbosity disabled, default to no progress meter.
@@ -857,17 +857,17 @@ int main(int argc, char *argv[])
         }
     }
 
-    if (vob->vmod_probed_xml && strstr(vob->vmod_probed_xml,"xml") != NULL
-     && vob->video_in_file   && strstr(vob->video_in_file,"/dev/zero") == NULL
+    if (vob->vmod_probed_xml && strstr(vob->vmod_probed_xml, "xml") != NULL
+     && vob->video_in_file   && strstr(vob->video_in_file, "/dev/zero") == NULL
     ) {
-    if (!probe_source_xml(vob, PROBE_XML_VIDEO))
-        tc_error("failed to probe XML source");
+        if (!probe_source_xml(vob, PROBE_XML_VIDEO))
+            tc_error("failed to probe video XML source");
     }
-    if (vob->amod_probed_xml && strstr(vob->amod_probed_xml,"xml") != NULL
-     && vob->audio_in_file   && strstr(vob->audio_in_file,"/dev/zero") == NULL
+    if (vob->amod_probed_xml && strstr(vob->amod_probed_xml, "xml") != NULL
+     && vob->audio_in_file   && strstr(vob->audio_in_file, "/dev/zero") == NULL
     ) {
-    if (!probe_source_xml(vob, PROBE_XML_AUDIO))
-        tc_error("failed to probe XML source");
+        if (!probe_source_xml(vob, PROBE_XML_AUDIO))
+            tc_error("failed to probe audio XML source");
     }
 
     /* ------------------------------------------------------------
