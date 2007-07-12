@@ -41,6 +41,7 @@
 #define PVM_DL_FUNC 1
 #include <pvm_functions.h>
 
+/* WHY we need to dlopen() this?! Why standard linkage isn't enough? -- FR */
 void *f_init_pvm_func(char *p_option,void *p_ret_handle);
 
 #endif

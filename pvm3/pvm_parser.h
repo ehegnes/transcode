@@ -24,53 +24,52 @@
 #ifndef _PVM_PARSER_H
 #define _PVM_PARSER_H
 
-#include "tc_defaults.h"	/*TC_xxxx variables*/
+#include "tc_defaults.h"    /*TC_xxxx variables*/
 
-typedef struct _pvm_config_filelist{
-				char 				*p_codec;
-				char 				*p_filename;
-				char 				*p_destination;
-				int 				s_type;
-				struct _pvm_config_filelist	*p_next;
+typedef struct _pvm_config_filelist {
+    char *p_codec;
+    char *p_filename;
+    char *p_destination;
+    int s_type;
+    struct _pvm_config_filelist *p_next;
+} pvm_config_filelist;
 
-				} pvm_config_filelist;
+typedef struct _pvm_config_merger {
+    char *p_hostname;
+    int s_build_only_list;
+} pvm_config_merger;
 
-typedef struct _pvm_config_merger{
-				char 				*p_hostname;
-				int 				s_build_only_list;
-				} pvm_config_merger;
+typedef struct _pvm_config_hosts {
+    char *p_hostname;
+    int s_nproc;
+    struct _pvm_config_hosts *p_next;
+} pvm_config_hosts;
 
-typedef struct _pvm_config_hosts{
-				char 				*p_hostname;
-				int 				s_nproc;
-				struct _pvm_config_hosts	*p_next;
-				} pvm_config_hosts;
+typedef struct _pvm_config_codec {
+    char *p_codec;
+    char *p_par1;
+    char *p_par2;
+    char *p_par3;
+} pvm_config_codec;
 
-typedef struct _pvm_config_codec{
-				char 			*p_codec;
-				char			*p_par1;
-				char			*p_par2;
-				char			*p_par3;
-				} pvm_config_codec;
-
-typedef struct _pvm_config_env{
-				int 			s_nproc;
-				int 			s_max_proc;
-				int 			s_num_frame_task;
-				int			s_build_intermed_file;
-				int			s_internal_multipass;
-				char			*p_multiplex_cmd;
-				pvm_config_codec	s_audio_codec;
-				pvm_config_codec	s_video_codec;
-				pvm_config_merger	s_system_merger;
-				pvm_config_merger	s_video_merger;
-				pvm_config_merger	s_audio_merger;
-				pvm_config_hosts	*p_pvm_hosts;
-				pvm_config_filelist	*p_add_list;
-				pvm_config_filelist	*p_add_loglist;
-				pvm_config_filelist	*p_rem_list;
-				pvm_config_filelist	s_sys_list;
-		} pvm_config_env;
+typedef struct _pvm_config_env {
+    int s_nproc;
+    int s_max_proc;
+    int s_num_frame_task;
+    int s_build_intermed_file;
+    int s_internal_multipass;
+    char *p_multiplex_cmd;
+    pvm_config_codec s_audio_codec;
+    pvm_config_codec s_video_codec;
+    pvm_config_merger s_system_merger;
+    pvm_config_merger s_video_merger;
+    pvm_config_merger s_audio_merger;
+    pvm_config_hosts *p_pvm_hosts;
+    pvm_config_filelist *p_add_list;
+    pvm_config_filelist *p_add_loglist;
+    pvm_config_filelist *p_rem_list;
+    pvm_config_filelist s_sys_list;
+} pvm_config_env;
 
 
 pvm_config_env *f_pvm_parser(char *p_hostfile,char *p_option);

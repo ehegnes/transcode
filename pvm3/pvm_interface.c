@@ -42,6 +42,14 @@
 # endif
 #endif
 
+/* 
+ * WHY we need to dlopen() this?! Why standard linkage isn't enough? 
+ * Moreover: this shared module is used in just _one_ plaece (tcpvmexportd)
+ * and it is _always_ used, so I don't really see the point to make it
+ * a shared object. What am I missing? -- FR
+ */
+
+
 #include <pvm_interface.h>
 
 #define MAX_BUF 	1024

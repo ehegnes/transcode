@@ -1,3 +1,7 @@
+2007-07-12 Francesco Romani <fromani at gmail dot com>
+  * pvm3/pvm_parser.h
+  start to address pvm3 issues: make this header more STYLEish.
+
 2007-07-11 Francesco Romani <fromani at gmail dot com>
   * src/cmdline_def.h
   --dir_mode -> --directory_mode.
