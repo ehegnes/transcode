@@ -706,6 +706,32 @@ static const ratio_t asrs[] = {
     { 221, 100 }, { 250, 100 }, { 125, 100 }
 };
 
+static const char *demuxer_desc[] = {
+    "sync AV at PTS start - demuxer disabled",
+    "sync AV at initial MPEG sequence",
+    "initial MPEG sequence / enforce frame rate",
+    "sync AV at initial PTS",
+    "initial PTS / enforce frame rate",
+};
+
+static const char *deinterlace_desc[] = {
+    "disabled", /* never used */
+    "interpolate scanlines (fast)",
+    "handled by encoder (if available)",
+    "zoom to full frame (slow)",
+    "drop field / half height (fast)",
+    "interpolate scanlines / blend frames",
+
+};
+
+ static const char *antialias_desc[] = {
+    "disabled", /* never used */
+    "de-interlace effects only",
+    "resize effects only",
+    "process full frame (slow)"
+};
+
+
 /**
  * main:  transcode main routine.  Performs initialization, parses command
  * line options, and calls the transcoding routines.
@@ -919,32 +945,13 @@ int main(int argc, char *argv[])
      * ------------------------------------------------------------*/
 
     // -M
-    if (vob->demuxer != -1 && (verbose & TC_INFO)) {
-        switch(vob->demuxer) {
-          case 0:
-            tc_log_info(PACKAGE, "V: %-16s | %s", "AV demux/sync",
-                        "(0) sync AV at PTS start - demuxer disabled");
-            break;
-          case 1:
-            tc_log_info(PACKAGE, "V: %-16s | %s", "AV demux/sync",
-                        "(1) sync AV at initial MPEG sequence");
-            break;
-          case 2:
-            tc_log_info(PACKAGE, "V: %-16s | %s", "AV demux/sync",
-                        "(2) initial MPEG sequence / enforce frame rate");
-            break;
-          case 3:
-            tc_log_info(PACKAGE, "V: %-16s | %s", "AV demux/sync",
-                        "(3) sync AV at initial PTS");
-            break;
-          case 4:
-            tc_log_info(PACKAGE, "V: %-16s | %s", "AV demux/sync",
-                        "(4) initial PTS / enforce frame rate");
-            break;
-        }
-    } else
+    if (vob->demuxer == -1) {
         vob->demuxer = 1;
-
+    }
+    if (verbose & TC_INFO) {
+        tc_log_info(PACKAGE, "V: %-16s | (%i) %s", "AV demux/sync",
+                    vob->demuxer, demuxer_desc[vob->demuxer]);
+    }
 
     // -P
     if (vob->pass_flag & TC_VIDEO) {
@@ -1274,39 +1281,16 @@ int main(int argc, char *argv[])
     }
 
     // -I
-    if (verbose & TC_INFO) {
-        switch(vob->deinterlace) {
-          case 0:
-            break;
-          case 1:
-            tc_log_info(PACKAGE,
-                        "V: %-16s | (mode=1) interpolate scanlines (fast)",
-                        "de-interlace");
-            break;
-          case 2:
-            tc_log_info(PACKAGE,
-                        "V: %-16s | (mode=2) handled by encoder (if available)",
-                        "de-interlace");
-            break;
-          case 3:
-            tc_log_info(PACKAGE,
-                        "V: %-16s | (mode=3) zoom to full frame (slow)",
-                        "de-interlace");
-            break;
-          case 4:
-            tc_log_info(PACKAGE,
-                        "V: %-16s | (mode=4) drop field / half height (fast)",
-                        "de-interlace");
-            break;
-          case 5:
-            tc_log_info(PACKAGE,
-                        "V: %-16s | (mode=5) interpolate scanlines / blend frames",
-                        "de-interlace");
-            break;
-          default:
-            tc_error("invalid parameter for option -I");
-            break;
-        }
+    /* can this really happen? */
+    if (vob->deinterlace < 0 || vob->deinterlace > 5) {
+        tc_error("invalid parameter for option -I");
+    }
+
+    if ((verbose & TC_INFO) && vob->deinterlace) {
+        tc_log_info(PACKAGE,
+                    "V: %-16s | (mode=%i) %s",
+                    "de-interlace", vob->deinterlace,
+                    deinterlace_desc[vob->deinterlace]);
     }
 
     if (vob->deinterlace == 4)
@@ -1668,35 +1652,18 @@ int main(int argc, char *argv[])
         tc_log_info(PACKAGE, "V: %-16s | %.3f%s", "bits/pixel", bpp, judge);
     }
 
-
     // -C
-    if (vob->antialias<0)
+    if (vob->antialias < 0 || vob->antialias > 3) {
         tc_error("invalid parameter for option -C");
-    else
+    } else {
         if ((verbose & TC_INFO) && vob->antialias) {
-            switch (vob->antialias) {
-              case 1:
-                tc_log_info(PACKAGE,
-                            "V: %-16s | (mode=%d|%.2f|%.2f) de-interlace effects only",
-                            "anti-alias",
-                            vob->antialias, vob->aa_weight, vob->aa_bias);
-                break;
-              case 2:
-                tc_log_info(PACKAGE,
-                            "V: %-16s | (mode=%d|%.2f|%.2f) resize effects only",
-                            "anti-alias",
-                            vob->antialias, vob->aa_weight, vob->aa_bias);
-                break;
-              case 3:
-                tc_log_info(PACKAGE,
-                            "V: %-16s | (mode=%d|%.2f|%.2f) process full frame (slow)",
-                            "anti-alias",
-                            vob->antialias, vob->aa_weight, vob->aa_bias);
-                break;
-              default:
-                break;
-            }
+            tc_log_info(PACKAGE,
+                        "V: %-16s | (mode=%d|%.2f|%.2f) %s",
+                        "anti-alias",
+                        vob->antialias, vob->aa_weight, vob->aa_bias,
+                        antialias_desc[vob->antialias]);
         }
+    }
 
     // --POST_CLIP
 

@@ -9,6 +9,7 @@
 
   * src/transcode.c
   revert some uncareful tc_error() switches.
+  switch -> tables in informative messages
 
 2007-07-11 Francesco Romani <fromani at gmail dot com>
   * src/cmdline_def.h
