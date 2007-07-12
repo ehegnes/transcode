@@ -2,6 +2,11 @@
   * pvm3/pvm_parser.h
   start to address pvm3 issues: make this header more STYLEish.
 
+  * export/export_divx5.c export/export_dv.c export/export_ffmpeg.c
+    export/export_lzo.c export/export_ppm.c export/export_raw.c
+    export/export_xvid4.c export/export_yuv4mpeg.c
+  tc_warn(...) -> tc_log_warn(MOD_NAME, ...).
+
 2007-07-11 Francesco Romani <fromani at gmail dot com>
   * src/cmdline_def.h
   --dir_mode -> --directory_mode.

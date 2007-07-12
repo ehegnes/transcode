@@ -164,9 +164,9 @@ MOD_open
 
 
     if(param->flag == TC_AUDIO) {
-	tc_warn("Usage of this module for audio encoding is deprecated.");
-	tc_warn("Consider switch to export_tcaud module.");
-	return(tc_audio_open(vob, NULL));
+	  tc_log_warn(MOD_NAME, "Usage of this module for audio encoding is deprecated.");
+      tc_log_warn(MOD_NAME, "Consider switch to export_tcaud module.");
+	  return(tc_audio_open(vob, NULL));
     }
 
     // invalid flag

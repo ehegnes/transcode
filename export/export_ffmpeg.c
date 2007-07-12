@@ -1230,8 +1230,8 @@ MOD_init {
         pseudo_codec_t target;
         char * user_codec_string;
 
-	tc_warn("Usage of this module for audio encoding is deprecated.");
-	tc_warn("Consider switch to export_tcaud module.");
+        tc_log_warn(MOD_NAME, "Usage of this module for audio encoding is deprecated.");
+        tc_log_warn(MOD_NAME, "Consider switch to export_tcaud module.");
 
         if(vob->ex_v_fcc)
         {
