@@ -568,7 +568,7 @@ static void parse_navigation_file(vob_t *vob, const char *nav_seek_file)
         }
 
         fp = fopen(nav_seek_file, "r");
-        if(NULL == fp) {
+        if (NULL == fp) {
             tc_error("unable to open: %s", nav_seek_file);
         }
 
@@ -831,8 +831,8 @@ int main(int argc, char *argv[])
     if (!parse_cmdline(argc, argv, vob))
         exit(EXIT_FAILURE);
 
-    if (vob->video_in_file == NULL)
-        tc_error("no option -i found");
+    if (vob->video_in_file == NULL && vob->audio_in_file == NULL)
+        tc_error("no input sources avalaible");
     if (vob->audio_in_file == NULL)
         vob->audio_in_file = vob->video_in_file;
 
