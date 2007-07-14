@@ -47,4 +47,6 @@ int tc_import_video_status(void);
 void tc_import_audio_notify(void);
 void tc_import_video_notify(void);
 
+void tc_import_stop_nolock(void);
+
 #endif /* DECODER_H */

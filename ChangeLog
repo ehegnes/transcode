@@ -1,3 +1,8 @@
+2007-07-14 Francesco Romani <fromani at gmail dot com>
+  * src/decoder.h src/encoder-common.h src/encoder.h src/transcode.h
+  de-genericixe prototypes moving them from transcode.h to specific
+  headers.
+
 2007-07-12 Francesco Romani <fromani at gmail dot com>
   * pvm3/pvm_parser.h
   start to address pvm3 issues: make this header more STYLEish.

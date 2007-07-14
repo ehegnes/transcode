@@ -376,14 +376,7 @@ int tc_export(int opt, void *para1, void *para2);
 
 // Some functions exported by transcode
 
-void tc_import_stop_nolock(void);
 vob_t *tc_get_vob(void);
-
-void tc_outstream_rotate(void);
-void tc_outstream_rotate_request(void);
-
-void tc_pause(void);
-void tc_pause_request(void);
 
 void version(void);
 

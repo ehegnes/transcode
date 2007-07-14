@@ -129,4 +129,9 @@ void tc_export_stop_nolock(void);
  */
 int tc_export_stop_requested(void);
 
+
+
+void tc_pause(void);
+void tc_pause_request(void);
+
 #endif /* ENCODER_COMMON_H */
