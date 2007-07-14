@@ -3,6 +3,11 @@
   de-genericixe prototypes moving them from transcode.h to specific
   headers.
 
+  * docs/man/transcode.1
+  rewrite the beginning of manpage, aiming to make it a little less scary.
+  Enforce that -i is (99% cases) needed for a transcode session doing
+  something useful.
+
 2007-07-12 Francesco Romani <fromani at gmail dot com>
   * pvm3/pvm_parser.h
   start to address pvm3 issues: make this header more STYLEish.

@@ -1,145 +1,21 @@
-.TH transcode 1 "6th January 2004" "transcode(1)"
+.TH transcode 1 "14th July 2007" "transcode(1)"
 .SH NAME
 transcode \- LINUX video stream processing tool
 .SH SYNOPSIS
 .B transcode
-[ -i name ]
-[ -H n ]
-[ -p file ]
-.br
-[ -x vmod[,amod] ]
-[ -a a[,v] ]
-[ --dvd_access_delay N ]
-.br
-[ -e r[,b[,c]] ]
-[ -E r[,b[,c]] ]
-[ -n 0xnn ]
-[ -N format ]
-.br
-[ -b b[,v[,q[,m]]] ]
-[ --no_audio_adjust ]
-.br
-[ --no_bitreservoir ]
-[ --lame_preset name[,fast] ]
-.br
-[ -g wxh ]
-[ --import_asr C ]
-[ --export_asr C ]
-.br
-[ --export_par N,D ]
-[ --keep_asr ]
-[ -f rate[,frc] ]
-.br
-[ --export_fps f[,c] ]
-[ --export_frc F ]
-[ --hard_fps  ]
-.br
-[ -o file ]
-[ -m file ]
-[ -y vmod[,amod[,mmod]] ]
-[ -F codec ]
-.br
-[ --avi_limit N ]
-[ --avi_comments F ]
-[ -d ]
-.br
-[ -s g[,c[,f[,r]]] ]
-[ -u m[,n] ]
-[ -A ]
-[ -V format ]
-.br
-[ -J f1[,f2[,...]] ]
-[ -P flag ]
-[ -D num ]
-.br
-[ --av_fine_ms t ]
-[ -M mode ]
-[ -O ]
-[ -r n[,m] ]
-.br
-[ -B n[,m[,M]] ]
-[ -X n[,m[,M]] ]
-[ -Z wxh[,fast|interlaced] ]
-.br
-[ --zoom_filter str ]
-[ -C mode ]
-[ --antialias_para w,b ]
-.br
-[ -I mode ]
-[ -K ]
-[ -G val ]
-[ -z ]
-[ -l ]
-[ -k ]
-.br
-[ -j t[,l[,b[,r]]] ]
-[ -Y t[,l[,b[,r]]] ]
-.br
-[ --pre_clip t[,l[,b[,r]]] ]
-[ --post_clip t[,l[,b[,r]]] ]
-.br
-[ -w b[,k[,c]] ]
-[ --video_max_bitrate ]
-.br
-[ -R n[,f1[,f2]] ]
-[ -Q n[,m] ]
-[ --quantizers min,max ]
-.br
-[ --divx_rc p,rp,rr ]
-[ --divx_vbv_prof N ]
-.br
-[ --divx_vbv br,sz,oc ]
-[ -c f1-f2[,f3-f4] ]
-[ -t n,base ]
-.br
-[ --dir_mode base ]
-[ --frame_interval N ]
-[ -U base ]
-.br
-[ -T t[,c[-d][,a]] ]
-[ -W n,m[,file] ]
-.br
-[ --cluster_percentage use ]
-[ --cluster_chunks a-b ]
-.br
-[ -S unit[,s1-s2] ]
-[ -L n ]
-.br
-[ --pulldown ]
-[ --encode_fields ]
-[ --nav_seek file ]
-.br
-[ --psu_mode ]
-[ --psu_chunks a-b ]
-[ --no_split ]
-.br
-[ --ts_pid 0xnn ]
-[ --a52_drc_off ]
-[ --a52_demux ]
-.br
-[ --a52_dolby_off ]
-[ --progress_meter N ]
-.br
-[ --progress_rate N ]
-[ --write_pid file ]
-.br
-[ --nice N ]
-[ --accel type ]
-[ --socket file ]
-.br
-[ --dv_yuy2_mode ]
-[ --dv_yv12_mode ]
-[ --config_dir dir ]
-.br
-[ --export_prof S ]
-[ --mplayer_probe ]
-.br
-[ -q level ]
-[ -h ]
-[ -v ]
+-i name [-o name] [-y vmod,amod] [-w vbitrate[,vkeyframes[,vcrispness]]]
+[-a atrack[,vtrack]] [-b abitrate[,is_vbr[,quality[,mode]]]] [-M demuxer_mode]
+[-F codec_string] [ other options ]
 .SH COPYRIGHT
 \fBtranscode\fP is Copyright (C) 2001-2003 by Thomas Oestreich, 2003-2004 Tilmann
 Bitterberg, 2004-2007 Transcode Team
+.SH QUICK SUMMARY
+\fItranscode\fP supports a huge range of options, as described in detail in further
+section. Only one option is mandatory \fI-i name\fP for supplying the input main
+(video) source. All other options are discretionary and they can be skipped.
+Most commonly needed options are \fI-o\fP, \fI-y\fP, \fI-w\fP, \fI-a\fP, \fI-b\fP,
+\fI-M\fP, \fI-F\fP and a fair number of transcode session needs a little more than
+those. See section below for full description of all transcode options.
 .SH DESCRIPTION
 .LP
 \fItranscode\fP is a linux text-console utility for video stream
