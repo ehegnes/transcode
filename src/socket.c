@@ -8,6 +8,7 @@
  */
 
 #include "transcode.h"
+#include "encoder.h"
 #include "filter.h"
 #include "socket.h"
 #include "libtc/libtc.h"
