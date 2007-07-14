@@ -33,8 +33,6 @@ char *im_aud_mod = NULL, *im_vid_mod = NULL;
 char *ex_aud_mod = NULL, *ex_vid_mod = NULL, *ex_mplex_mod = NULL;
 char *plugins_string = NULL;
 char
-    *audio_in_file=NULL, *audio_out_file=NULL,
-    *video_in_file=NULL, *video_out_file=NULL,
     *nav_seek_file=NULL, *socket_file=NULL,
     *chbase=NULL, //*dirbase=NULL,
     base[TC_BUF_MIN];

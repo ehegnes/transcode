@@ -8,6 +8,14 @@
   Enforce that -i is (99% cases) needed for a transcode session doing
   something useful.
 
+  * src/cmdline.c src/cmdline.h src/cmdline_def.h src/tc_defaults.h
+    src/transcode.c src/transcode.h
+  simplfy input/output file handling and introduce TCGlob objects to properly
+  handle input stream sequence. Now at least -i is mandatory (it has ever had
+  any sense to run transcode without at least -i or -p?). New code should
+  be fully backward-compatible (otherwise we have [at least one] a bug,
+  folks! :) ) and allow a better integration with new sequential decoder.
+
 2007-07-12 Francesco Romani <fromani at gmail dot com>
   * pvm3/pvm_parser.h
   start to address pvm3 issues: make this header more STYLEish.

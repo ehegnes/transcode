@@ -43,6 +43,7 @@
 
 #include "avilib/avilib.h"
 #include "aclib/ac.h"
+#include "libtc/tcglob.h"
 #include "libtc/framecode.h"
 #include "libtcvideo/tcvideo.h"
 
@@ -107,6 +108,8 @@ typedef struct _vob_t {
 
     int verbose;
 
+    TCGlob *video_in_files;
+    TCGlob *audio_in_files;
     const char *video_in_file;  // Video source file
     const char *audio_in_file;  // Audio source file
 
@@ -377,6 +380,9 @@ int tc_export(int opt, void *para1, void *para2);
 // Some functions exported by transcode
 
 vob_t *tc_get_vob(void);
+
+int tc_next_video_in_file(vob_t *vob);
+int tc_next_audio_in_file(vob_t *vob);
 
 void tc_outstream_rotate(void);
 void tc_outstream_rotate_request(void);

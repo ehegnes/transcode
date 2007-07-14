@@ -222,7 +222,6 @@ TC_OPTION(input,              'i', "file",
                 if (!validate_source_path(optarg))
                     return 0;
                 vob->video_in_file = optarg;
-                video_in_file = optarg;
 )
 
 TC_OPTION(directory_mode,     0,   0,
@@ -232,7 +231,6 @@ TC_OPTION(directory_mode,     0,   0,
 TC_OPTION(output,             'o', "file",
                 "output file name",
                 vob->video_out_file = optarg;
-                video_out_file = optarg;
 )
 TC_OPTION(avi_limit,          0,   "size",
                 "split output AVI file after \"size\" MB [2048]",
@@ -276,14 +274,12 @@ TC_OPTION(audio_input,        'p', "file",
                 if (!validate_source_path(optarg))
                     return 0;
                 vob->audio_in_file = optarg;
-                audio_in_file = optarg;
 )
 TC_OPTION(audio_output,       'm', "file",
                 "write audio stream to separate file [off]",
                 if (*optarg == '-')
                     goto short_usage;
                 vob->audio_out_file = optarg;
-                audio_out_file = optarg;
                 vob->audio_file_flag = 1;
 )
 TC_OPTION(nav_seek,           0,   "file",

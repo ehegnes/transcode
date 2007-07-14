@@ -144,6 +144,20 @@ vob_t *tc_get_vob()
 }
 
 /*************************************************************************/
+
+int tc_next_video_in_file(vob_t *vob)
+{
+    vob->video_in_file = tc_glob_next(vob->video_in_files);
+    return (vob->video_in_file != NULL);
+}
+
+int tc_next_audio_in_file(vob_t *vob)
+{
+    vob->audio_in_file = tc_glob_next(vob->audio_in_files);
+    return (vob->audio_in_file != NULL);
+}
+
+/*************************************************************************/
 /*********************** Internal utility routines ***********************/
 /*************************************************************************/
 
@@ -391,15 +405,15 @@ static vob_t *new_vob(void)
     vob->ac3_gain[0]         = 1.0;
     vob->ac3_gain[1]         = 1.0;
     vob->ac3_gain[2]         = 1.0;
-    vob->audio_out_file      = "/dev/null";
-    vob->video_out_file      = "/dev/null";
+    vob->audio_out_file      = NULL;
+    vob->video_out_file      = NULL;
     vob->avifile_in          = NULL;
     vob->avifile_out         = NULL;
     vob->avi_comment_fd      = -1;
     vob->nav_seek_file       = NULL;
     vob->audio_file_flag     = 0;
-    vob->audio_in_file       = "/dev/zero";
-    vob->video_in_file       = "/dev/zero";
+    vob->audio_in_file       = NULL;
+    vob->video_in_file       = NULL;
     vob->clip_count          = 0;
     vob->ex_a_codec          = CODEC_MP3;  //or fall back to module default
     vob->ex_v_codec          = CODEC_NULL; //determined by export module type
@@ -409,7 +423,7 @@ static vob_t *new_vob(void)
     vob->fps                 = PAL_FPS;
     vob->ex_fps              = 0;
     vob->im_frc              = 0;
-    vob->ex_frc              = 0;
+    vob->ex_frc              = 4;
     vob->pulldown            = 0;
     vob->im_clip_top         = 0;
     vob->im_clip_bottom      = 0;
@@ -817,6 +831,20 @@ int main(int argc, char *argv[])
     if (!parse_cmdline(argc, argv, vob))
         exit(EXIT_FAILURE);
 
+    if (vob->video_in_file == NULL)
+        tc_error("no option -i found");
+    if (vob->audio_in_file == NULL)
+        vob->audio_in_file = vob->video_in_file;
+
+    vob->video_in_files = tc_glob_open(vob->video_in_file, 0);
+    vob->audio_in_files = tc_glob_open(vob->audio_in_file, 0);
+    if (!vob->video_in_files || !vob->audio_in_files)
+        tc_error("unable to open input source enumerators");
+    /* we always have at least one source */
+    tc_next_video_in_file(vob);
+    tc_next_audio_in_file(vob);
+
+
     if (tc_progress_meter < 0) {
         // if we have verbosity disabled, default to no progress meter.
         if (verbose) {
@@ -827,20 +855,20 @@ int main(int argc, char *argv[])
     }
 
     if (psu_mode) {
-        if (video_out_file == NULL)
+        if (vob->video_out_file == NULL)
             tc_error("please specify output file name for psu mode");
-        if (!strchr(video_out_file, '%') && !no_split) {
-            char *suffix = strrchr(video_out_file, '.');
+        if (!strchr(vob->video_out_file, '%') && !no_split) {
+            char *suffix = strrchr(vob->video_out_file, '.');
             if (suffix) {
                 *suffix = '\0';
             } else {
                 suffix = "";
             }
-            psubase = malloc(PATH_MAX);
+            psubase = tc_malloc(PATH_MAX);
             tc_snprintf(psubase, PATH_MAX, "%s-psu%%02d%s",
-                        video_out_file, suffix);
+                        vob->video_out_file, suffix);
         } else {
-            psubase = video_out_file;
+            psubase = vob->video_out_file;
         }
     }
 
@@ -866,11 +894,11 @@ int main(int argc, char *argv[])
 
     if (auto_probe) {
         // interface to "tcprobe"
-        int result = probe_source(video_in_file, audio_in_file, seek_range,
+        int result = probe_source(vob->video_in_file, vob->audio_in_file, seek_range,
                                   preset_flag, vob);
         if (verbose) {
             tc_log_info(PACKAGE, "%s %s (%s)", "auto-probing source",
-                        (video_in_file==NULL) ? audio_in_file : video_in_file,
+                        (vob->video_in_file == NULL) ?vob->audio_in_file :vob->video_in_file,
                         result ? "ok" : "FAILED");
             tc_log_info(PACKAGE, "V: %-16s | %s %s (module=%s)",
                         "import format", codec2str(vob->v_codec_flag),
@@ -884,14 +912,12 @@ int main(int argc, char *argv[])
     }
 
     if (vob->vmod_probed_xml && strstr(vob->vmod_probed_xml, "xml") != NULL
-     && vob->video_in_file   && strstr(vob->video_in_file, "/dev/zero") == NULL
-    ) {
+     && vob->video_in_file) {
         if (!probe_source_xml(vob, PROBE_XML_VIDEO))
             tc_error("failed to probe video XML source");
     }
     if (vob->amod_probed_xml && strstr(vob->amod_probed_xml, "xml") != NULL
-     && vob->audio_in_file   && strstr(vob->audio_in_file, "/dev/zero") == NULL
-    ) {
+     && vob->audio_in_file) {
         if (!probe_source_xml(vob, PROBE_XML_AUDIO))
             tc_error("failed to probe audio XML source");
     }
@@ -972,8 +998,8 @@ int main(int argc, char *argv[])
     }
 
     // -x
-    if (no_vin_codec && video_in_file != NULL && vob->vmod_probed == NULL)
-        tc_warn("no option -x found, option -i ignored, reading from \"/dev/zero\"");
+    if (no_vin_codec && vob->video_in_file != NULL && vob->vmod_probed == NULL)
+        tc_error("module autoprobe failed, no option -x found");
 
 
     //overwrite results of autoprobing if modules are provided
@@ -1755,14 +1781,9 @@ int main(int argc, char *argv[])
                         "video format");
     }
 
-    // -p
-    // video/audio from same source?
-    if (audio_in_file == NULL)
-        vob->audio_in_file = vob->video_in_file;
-
     // -m
     // different audio/video output files not yet supported
-    if (audio_out_file == NULL)
+    if (vob->audio_out_file == NULL)
         vob->audio_out_file = vob->video_out_file;
 
     // -n
@@ -2027,7 +2048,7 @@ int main(int argc, char *argv[])
     // -m
     // different audio/video output files need two export modules
     if (no_a_out_codec == 0 && vob->audio_out_file == NULL
-     && strcmp(ex_vid_mod, ex_aud_mod) !=0)
+     && strcmp(ex_vid_mod, ex_aud_mod) != 0)
         tc_error("different audio/export modules require use of option -m");
 
 
@@ -2043,20 +2064,18 @@ int main(int argc, char *argv[])
     // more checks with warnings
 
     if (verbose & TC_INFO) {
-        // -i
-        if (video_in_file == NULL)
-            tc_warn("no option -i found, reading from \"%s\"",
-                    vob->video_in_file);
-
         // -o
-        if (video_out_file == NULL && audio_out_file == NULL
-         && core_mode == TC_MODE_DEFAULT)
+        if (vob->video_out_file == NULL && vob->audio_out_file == NULL
+         && core_mode == TC_MODE_DEFAULT) {
+            vob->video_out_file = TC_DEFAULT_OUT_FILE;
+            vob->audio_out_file = TC_DEFAULT_OUT_FILE;
             tc_warn("no option -o found, encoded frames send to \"%s\"",
                     vob->video_out_file);
+        }
 
         // -y
         if (core_mode == TC_MODE_DEFAULT
-         && video_out_file != NULL && no_v_out_codec)
+         && vob->video_out_file != NULL && no_v_out_codec)
             tc_warn("no option -y found, option -o ignored, writing to \"/dev/null\"");
 
         if (core_mode == TC_MODE_AVI_SPLIT && no_v_out_codec)
@@ -2090,7 +2109,7 @@ int main(int argc, char *argv[])
         if (!tc_socket_init(socket_file))
             tc_error("failed to initialize socket handler");
 
-    if (core_mode == TC_MODE_AVI_SPLIT && !strlen(base) && !video_out_file)
+    if (core_mode == TC_MODE_AVI_SPLIT && !strlen(base) && !vob->video_out_file)
         tc_error("no option -o found, no base for -t given, so what?");
 
     /* -------------------------------------------------------------

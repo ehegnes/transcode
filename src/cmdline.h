@@ -21,8 +21,7 @@ extern int core_mode;
 extern char *im_aud_mod, *im_vid_mod;
 extern char *ex_aud_mod, *ex_vid_mod, *ex_mplex_mod;
 extern char *plugins_string;
-extern char *audio_in_file, *audio_out_file, *video_in_file, *video_out_file,
-            *nav_seek_file, *socket_file, *chbase, //*dirbase,
+extern char *nav_seek_file, *socket_file, *chbase, //*dirbase,
             base[TC_BUF_MIN];
 extern int psu_frame_threshold;
 extern int no_vin_codec, no_ain_codec, no_v_out_codec, no_a_out_codec;

@@ -32,6 +32,8 @@
 
 #define TC_DEFAULT_MOD_PATH "/usr/local/lib/transcode"
 
+#define TC_DEFAULT_OUT_FILE "/dev/null"
+
 // default PAL video size
 #define PAL_W                  720
 #define PAL_H                  576
