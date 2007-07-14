@@ -378,6 +378,9 @@ int tc_export(int opt, void *para1, void *para2);
 
 vob_t *tc_get_vob(void);
 
+void tc_outstream_rotate(void);
+void tc_outstream_rotate_request(void);
+
 void version(void);
 
 extern int verbose;

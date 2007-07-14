@@ -315,10 +315,6 @@ int tc_encoder_stop(void);
 int tc_encoder_close(void);
 
 
-
-void tc_outstream_rotate(void);
-void tc_outstream_rotate_request(void);
-
 /*************************************************************************/
 
 #endif /* ENCODER_H */
