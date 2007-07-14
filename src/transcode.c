@@ -762,12 +762,7 @@ int main(int argc, char *argv[])
     int ch1, ch2, fa, fb;
 
     char buf[TC_BUF_MAX];
-    char *psubase=NULL;
-
-#if 0
-    const char *dir_name, *dir_fname;
-    int dir_fcnt=0, dir_audio=0;
-#endif
+    const char *psubase = NULL;
 
     double fch, asr;
     int leap_bytes1, leap_bytes2;
@@ -858,15 +853,16 @@ int main(int argc, char *argv[])
         if (vob->video_out_file == NULL)
             tc_error("please specify output file name for psu mode");
         if (!strchr(vob->video_out_file, '%') && !no_split) {
+            char *pc = tc_malloc(PATH_MAX);
             char *suffix = strrchr(vob->video_out_file, '.');
             if (suffix) {
                 *suffix = '\0';
             } else {
                 suffix = "";
             }
-            psubase = tc_malloc(PATH_MAX);
-            tc_snprintf(psubase, PATH_MAX, "%s-psu%%02d%s",
+            tc_snprintf(pc, PATH_MAX, "%s-psu%%02d%s",
                         vob->video_out_file, suffix);
+            psubase = pc;
         } else {
             psubase = vob->video_out_file;
         }
