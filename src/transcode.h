@@ -134,7 +134,6 @@ typedef struct _vob_t {
     int dvd_chapter2;
     int dvd_max_chapters;
     int dvd_angle;
-    int dvd_access_delay;
 
     int ps_unit;
     int ps_seq1;

@@ -1543,14 +1543,6 @@ TC_OPTION(threads,            0,   "N",
                     goto short_usage;
                 }
 )
-TC_OPTION(dvd_access_delay,   0,   "N",
-                "delay DVD access by N seconds [3]",
-                vob->dvd_access_delay = strtol(optarg, &optarg, 0);
-                if (*optarg || vob->dvd_access_delay < 0) {
-                    tc_error("Invalid argument for --dvd_access_delay");
-                    goto short_usage;
-                }
-)
 TC_OPTION(progress_meter,     0,   "N",
                 "select type of progress meter [1]",
                 tc_progress_meter = strtol(optarg, &optarg, 0);

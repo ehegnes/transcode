@@ -17,6 +17,9 @@
   * import/import_dvd.c
   access delay as per-module option.
 
+  * src/cmdline_def.h src/transcode.c src/transcode.h
+  kill --dvd_access_delay option.
+
 2007-07-14 Francesco Romani <fromani at gmail dot com>
   * src/decoder.h src/encoder-common.h src/transcode.h src/socket.c
   de-genericixe prototypes moving them from transcode.h to specific

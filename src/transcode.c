@@ -446,7 +446,6 @@ static vob_t *new_vob(void)
     vob->dvd_chapter2        = -1;
     vob->dvd_max_chapters    = -1;
     vob->dvd_angle           = 1;
-    vob->dvd_access_delay    = 3;
     vob->pass_flag           = 0;
     vob->verbose             = TC_QUIET;
     vob->antialias           = 0;
