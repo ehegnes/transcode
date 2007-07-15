@@ -659,6 +659,42 @@ static void parse_navigation_file(vob_t *vob, const char *nav_seek_file)
     }
 }
 
+/*************************************************************************/
+
+static void setup_input_sources(vob_t *vob)
+{
+    if (vob->video_in_file == NULL && vob->audio_in_file == NULL)
+        tc_error("no input sources avalaible");
+    if (vob->audio_in_file == NULL)
+        vob->audio_in_file = vob->video_in_file;
+
+    /* 
+     * let's try happily both sources independently.
+     * At least one will succeed, if we're here.
+     */
+    vob->video_in_files = tc_glob_open(vob->video_in_file, 0);
+    if (vob->video_in_files) {
+        /* we always have at least one source */
+        tc_next_video_in_file(vob);
+    }
+    vob->audio_in_files = tc_glob_open(vob->audio_in_file, 0);
+    if (vob->audio_in_files) {
+        /* we always have at least one source */
+        tc_next_audio_in_file(vob);
+    }
+}
+
+static void teardown_input_sources(vob_t *vob)
+{
+    if (vob->video_in_files) {
+        tc_glob_close(vob->video_in_files);
+        vob->video_in_files = NULL;
+    }
+    if (vob->audio_in_files) {
+        tc_glob_close(vob->audio_in_files);
+        vob->audio_in_files = NULL;
+    }
+}
 
 /*************************************************************************/
 
@@ -826,19 +862,7 @@ int main(int argc, char *argv[])
     if (!parse_cmdline(argc, argv, vob))
         exit(EXIT_FAILURE);
 
-    if (vob->video_in_file == NULL && vob->audio_in_file == NULL)
-        tc_error("no input sources avalaible");
-    if (vob->audio_in_file == NULL)
-        vob->audio_in_file = vob->video_in_file;
-
-    vob->video_in_files = tc_glob_open(vob->video_in_file, 0);
-    vob->audio_in_files = tc_glob_open(vob->audio_in_file, 0);
-    if (!vob->video_in_files || !vob->audio_in_files)
-        tc_error("unable to open input source enumerators");
-    /* we always have at least one source */
-    tc_next_video_in_file(vob);
-    tc_next_audio_in_file(vob);
-
+    setup_input_sources(vob);
 
     if (tc_progress_meter < 0) {
         // if we have verbosity disabled, default to no progress meter.
@@ -893,13 +917,16 @@ int main(int argc, char *argv[])
         int result = probe_source(vob->video_in_file, vob->audio_in_file, seek_range,
                                   preset_flag, vob);
         if (verbose) {
-            tc_log_info(PACKAGE, "%s %s (%s)", "auto-probing source",
-                        (vob->video_in_file == NULL) ?vob->audio_in_file :vob->video_in_file,
-                        result ? "ok" : "FAILED");
+            tc_log_info(PACKAGE, "V: %-16s | %s (%s)", "auto-probing",
+                        (vob->video_in_file != NULL) ?vob->video_in_file :"N/A",
+                        result ? "OK" : "FAILED");
             tc_log_info(PACKAGE, "V: %-16s | %s %s (module=%s)",
                         "import format", codec2str(vob->v_codec_flag),
                         mformat2str(vob->v_format_flag),
                         no_vin_codec==0 ? im_vid_mod : vob->vmod_probed);
+            tc_log_info(PACKAGE, "A: %-16s | %s (%s)", "auto-probing",
+                        (vob->audio_in_file != NULL) ?vob->audio_in_file :"N/A",
+                        result ? "OK" : "FAILED");
             tc_log_info(PACKAGE, "A: %-16s | %s %s (module=%s)",
                         "import format", codec2str(vob->a_codec_flag),
                         mformat2str(vob->a_format_flag),
@@ -2675,8 +2702,9 @@ int main(int argc, char *argv[])
         tc_log_msg(PACKAGE, "buffer released");
 #endif
 
+    teardown_input_sources(vob);
     if (vob)
-        free(vob);
+        tc_free(vob);
 
     //exit at last
     if (interrupt_flag)

@@ -1,3 +1,8 @@
+2007-07-15 Francesco Romani <fromani at gmail dot com>
+  * src/transcode.c src/tc_defaults.h
+  another try to improve input source handling.
+  Looks like the situation is slowly improving.
+
 2007-07-14 Francesco Romani <fromani at gmail dot com>
   * src/decoder.h src/encoder-common.h src/transcode.h src/socket.c
   de-genericixe prototypes moving them from transcode.h to specific
@@ -11,7 +16,7 @@
   * src/cmdline.c src/cmdline.h src/cmdline_def.h src/tc_defaults.h
     src/transcode.c src/transcode.h
   simplfy input/output file handling and introduce TCGlob objects to properly
-  handle input stream sequence. Now at least -i is mandatory (it has ever had
+  handle input stream sequences. Now at least -i is mandatory (it has ever had
   any sense to run transcode without at least -i or -p?). New code should
   be fully backward-compatible (otherwise we have [at least one] a bug,
   folks! :) ) and allow a better integration with new sequential decoder.
