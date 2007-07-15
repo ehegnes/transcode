@@ -423,7 +423,7 @@ static vob_t *new_vob(void)
     vob->fps                 = PAL_FPS;
     vob->ex_fps              = 0;
     vob->im_frc              = 0;
-    vob->ex_frc              = 4;
+    vob->ex_frc              = 3;
     vob->pulldown            = 0;
     vob->im_clip_top         = 0;
     vob->im_clip_bottom      = 0;
