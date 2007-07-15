@@ -13,6 +13,8 @@ static int capability_flag = TC_CAP_VID | TC_CAP_RGB | TC_CAP_YUV;
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#define TIMEOUT 5
+/* seconds */
 
 #define PROGTOCALL "tcxpm2rgb"
 
@@ -117,7 +119,7 @@ MOD_decode
 	while (1) {
 
 	    // timeout to catch when vncrec died
-	    tv.tv_sec = vob->dvd_access_delay;
+	    tv.tv_sec = TIMEOUT;
 	    tv.tv_usec = 0;
 
 	    fd = open(fifo, O_RDONLY | O_NONBLOCK);
