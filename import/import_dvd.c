@@ -38,8 +38,13 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_AC3 | TC_CAP_PCM;
 #include "demuxer.h"
 #include "clone.h"
 
+#include "libtc/optstr.h"
 
-char import_cmd_buf[TC_BUF_MAX];
+
+#define DVD_ACCESS_DELAY    3
+/* seconds */
+
+static char import_cmd_buf[TC_BUF_MAX];
 
 //#define ACCESS_DELAY 3
 
@@ -62,6 +67,8 @@ static int pseudo_frame_size=0, real_frame_size=0, effective_frame_size=0;
 static int ac3_bytes_to_go=0;
 static FILE *fd=NULL;
 
+static int dvd_access_delay = DVD_ACCESS_DELAY;
+
 // avoid to much messages for DVD chapter mode
 int a_re_entry=0, v_re_entry=0;
 
@@ -77,11 +84,10 @@ static char seq_buf[TMP_BUF_SIZE], dem_buf[TMP_BUF_SIZE],
 
 MOD_open
 {
-  char *logfile="sync.log";
-  int n;
+  char *logfile = "sync.log";
   long sret;
 
-  int off=0;
+  int off = 0;
 
   (vob->ps_seq1 != 0 || vob->ps_seq2 != INT_MAX) ?
       tc_snprintf(seq_buf, TMP_BUF_SIZE, "-S %d,%d-%d", vob->ps_unit,
@@ -391,16 +397,25 @@ MOD_open
 
     param->fd = NULL;
 
-    if (vob->dvd_access_delay > 0) {
+    if (vob->im_v_string != NULL) {
+        optstr_get(vob->im_v_string, "delay", "%i", &dvd_access_delay);
+        if (dvd_access_delay < 0) {
+            tc_log_error(MOD_NAME, "invalid value for DVD access delay,"
+                                   "reset to defaults");
+            dvd_access_delay = DVD_ACCESS_DELAY;
+        }
+    }
+ 
+    if (dvd_access_delay > 0) {
       if(verbose_flag && !v_re_entry)
-        tc_log_info(MOD_NAME, "delaying DVD access by %d second(s)",
-		    vob->dvd_access_delay);
+        tc_log_info(MOD_NAME, "delaying DVD access by %d second%s",
+		            dvd_access_delay, (dvd_access_delay > 1) ?"s" :"");
 
-      n=vob->dvd_access_delay;
-      while(n--) {
-	if(verbose_flag) tc_log_info(MOD_NAME, "waiting...");
-	fflush(stdout);
-	sleep(1);
+      while (dvd_access_delay--) {
+    	if (verbose_flag)
+            tc_log_info(MOD_NAME, "waiting...");
+	    fflush(stdout);
+    	sleep(1);
       }
     }
 
