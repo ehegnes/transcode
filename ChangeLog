@@ -6,6 +6,11 @@
   * src/decoder.c
   minor updates and sync with new input file handling.
 
+  * import/dvd_reader.c
+  minor fixes; make code less verbose *BY DEFAULT*. User can still
+  access all messages by increasing the verbosiness level in
+  tcprobe/transcode.
+
 2007-07-14 Francesco Romani <fromani at gmail dot com>
   * src/decoder.h src/encoder-common.h src/transcode.h src/socket.c
   de-genericixe prototypes moving them from transcode.h to specific
