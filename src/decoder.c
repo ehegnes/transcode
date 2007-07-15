@@ -35,8 +35,6 @@
 #include "cmdline.h"
 #include "probe.h"
 
-#include "libtc/tcglob.h"
-
 
 /*************************************************************************/
 
@@ -942,11 +940,9 @@ static int probe_im_stream(const char *src, ProbeInfo *info)
 
 static int probe_matches(const ProbeInfo *ref, const ProbeInfo *cand, int i)
 {
-    if (ref->width  != cand->width
-     || ref->height != cand->height
-     || ref->codec  != cand->codec
-     || ref->asr    != cand->asr
-     || ref->frc    != cand->frc   ) {
+    if (ref->width  != cand->width || ref->height != cand->height
+     || ref->frc    != cand->frc   || ref->asr    != cand->asr
+     || ref->codec  != cand->codec) {
         return 0;
     }
 
@@ -987,6 +983,15 @@ static void probe_from_vob(ProbeInfo *info, const vob_t *vob)
     }
 }
 
+/* ok, that sucks. I know. I can't do any better now. */
+static const char *current_in_file(vob_t *vob, int kind)
+{
+    if (kind == TC_VIDEO)
+    	return vob->video_in_file;
+    if (kind == TC_AUDIO)
+    	return vob->video_in_file;
+    return NULL; /* cannot happen */
+}
 
 #define RETURN_IF_PROBE_FAILED(ret, src) do {                        \
     if (ret == 0) {                                                  \
@@ -1008,69 +1013,44 @@ static void probe_from_vob(ProbeInfo *info, const vob_t *vob)
 
 typedef struct tcseqimportdata_ TCSeqImportData;
 struct tcseqimportdata_ {
+    int kind;
+
     TCDecoderData *decdata;
     vob_t *vob;
 
-    ProbeInfo *infos; /* ok, that's pretty ugly */
-    TCGlob *files;
-
-    const char *tag;
-
-    const char **src_pathname;
+    ProbeInfo infos;
 
     int (*open)(vob_t *vob);
     int (*decode_loop)(vob_t *vob);
     int (*close)(void);
 
-    int (*next)(TCSeqImportData *sid);
+    int (*next)(vob_t *vob);
 };
 /* FIXME: explain a such horrible thing */
 
 
-static int next_file(TCSeqImportData *sid)
-{
-    if (sid != NULL && tc_glob_has_more(sid->files)) {
-        *(sid->src_pathname) = tc_glob_next(sid->files);
-        return TC_OK;
-    }
-    return TC_ERROR;
-}
-
-
-#define CURRENT_FILE(sid) (*(sid->src_pathname))
-
-
-#define SEQDATA_INIT(MEDIA, VOB, INFOS) do { \
-    TCGlob *files = tc_glob_open(VOB->MEDIA ## _in_file, 0); \
-    if (!files) { \
-        tc_error("failed to initialize %s files list", # MEDIA); \
-    } \
-    MEDIA ## _seqdata.files        = files;                         \
-    \
-    MEDIA ## _seqdata.tag          = # MEDIA;                       \
-    \
-    MEDIA ## _seqdata.infos        = INFOS;                         \
+#define SEQDATA_INIT(MEDIA, VOB, KIND) do {                         \
+    memset(&(MEDIA ## _seqdata.infos), 0, sizeof(ProbeInfo));       \
+                                                                    \
+    MEDIA ## _seqdata.kind         = KIND;                          \
+                                                                    \
     MEDIA ## _seqdata.vob          = VOB;                           \
     MEDIA ## _seqdata.decdata      = &(MEDIA ## _decdata);          \
-    \
-    MEDIA ## _seqdata.src_pathname = &(VOB->MEDIA ## _in_file);     \
-    \
+                                                                    \
     MEDIA ## _seqdata.open         = tc_import_ ## MEDIA ## _open;  \
     MEDIA ## _seqdata.decode_loop  = MEDIA ## _decode_loop;         \
     MEDIA ## _seqdata.close        = tc_import_ ## MEDIA ## _close; \
-    MEDIA ## _seqdata.next         = next_file;                     \
+    MEDIA ## _seqdata.next         = tc_next_ ## MEDIA ## _in_file; \
 } while (0)
 
 #define SEQDATA_FINI(MEDIA) do { \
-    tc_glob_close(MEDIA ## _seqdata.files); \
+    ; /* nothing */ \
 } while (0)
+
 
 
 static TCSeqImportData audio_seqdata;
 static TCSeqImportData video_seqdata;
-
-static ProbeInfo aux_aud_info;
-static ProbeInfo aux_vid_info;
 
 /*************************************************************************/
 
@@ -1080,7 +1060,8 @@ static void *seq_import_thread(void *_sid)
     TCSeqImportData *sid = _sid;
     int i, ret = TC_OK, track_id = sid->vob->a_track;
     ProbeInfo infos;
-    ProbeInfo *old = sid->infos, *new = &infos;
+    ProbeInfo *old = &(sid->infos), *new = &infos;
+    const char *fname = NULL;
 
     for (i = 0; TC_TRUE; i++) {
         /* shutdown test */
@@ -1107,25 +1088,25 @@ static void *seq_import_thread(void *_sid)
             break;
         }
 
-        ret = sid->next(sid);
+        ret = sid->next(sid->vob);
         if (ret == TC_ERROR) {
             status = TC_IM_THREAD_DONE;
             break;
         }
 
+	fname = current_in_file(sid->vob, sid->kind);
         /* probing coherency check */
-        ret = probe_im_stream(CURRENT_FILE(sid), new);
-        RETURN_IF_PROBE_FAILED(ret, CURRENT_FILE(sid));
+        ret = probe_im_stream(fname, new);
+        RETURN_IF_PROBE_FAILED(ret, fname);
 
         if (probe_matches(old, new, track_id)) {
             if (verbose) {
                 tc_log_info(__FILE__, "switching to %s source #%i: %s",
-                            sid->tag, i, CURRENT_FILE(sid));
+                            sid->decdata->tag, i, fname);
             }
         } else {
             tc_log_error(PACKAGE, "source '%s' in directory"
-                                  " not compatible with former",
-                                  CURRENT_FILE(sid));
+                                  " not compatible with former", fname);
             status = TC_IM_THREAD_PROBE_ERROR;
             break;
         }
@@ -1141,8 +1122,8 @@ void tc_seq_import_threads_create(vob_t *vob)
 {
     int ret;
 
-    probe_from_vob(&aux_aud_info, vob);
-    SEQDATA_INIT(audio, vob, &aux_aud_info);
+    probe_from_vob(&(audio_seqdata.infos), vob);
+    SEQDATA_INIT(audio, vob, TC_AUDIO);
     tc_import_audio_start();
     ret = pthread_create(&audio_decdata.thread_id, NULL,
                          seq_import_thread, &audio_seqdata);
@@ -1150,8 +1131,8 @@ void tc_seq_import_threads_create(vob_t *vob)
         tc_error("failed to start sequential audio stream import thread");
     }
 
-    probe_from_vob(&aux_vid_info, vob);
-    SEQDATA_INIT(video, vob, &aux_vid_info);
+    probe_from_vob(&(video_seqdata.infos), vob);
+    SEQDATA_INIT(video, vob, TC_VIDEO);
     tc_import_video_start();
     ret = pthread_create(&video_decdata.thread_id, NULL,
                          seq_import_thread, &video_seqdata);
