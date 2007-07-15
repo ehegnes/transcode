@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "import_dvd.so"
-#define MOD_VERSION "v0.4.0 (2003-10-02)"
+#define MOD_VERSION "v0.4.1 (2007-07-15)"
 #define MOD_CODEC   "(video) DVD | (audio) MPEG/AC3/PCM"
 
 #include "transcode.h"
