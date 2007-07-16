@@ -6,6 +6,15 @@
   * src/cmdline_def.h
   Increase module option string size limits to 1000 bytes per module.
 
+  * export/export_im.c filter/filter_compare.c filter/filter_logo.c
+    filter/filter_logoaway.c import/import_im.c import/import_imlist.c
+    import/probe_im.c
+  Add a new workaround for ImageMagick's careless namespace pollution,
+  since the old one doesn't work with newer versions of the library.
+
+  * export/export_mov.c filter/tomsmocomp/filter_tomsmocomp.c
+  Fix various compiler warnings and typos.
+
 2007-07-15 Francesco Romani <fromani at gmail dot com>
   * src/transcode.c src/tc_defaults.h
   another try to improve input source handling.

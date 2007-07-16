@@ -501,10 +501,10 @@ MOD_init
                 break;
             }
             if (vob->ex_profile_name[i] == '=') {
-                param[j] = (char)NULL;
+                param[j] = 0;
                 j=-1; /* set to 0 by for loop above */
 
-                for(i++,k=0;i<=strlen(vob->ex_profile_name) && vob->ex_profile_name[i] != (char)NULL;i++,k++) {
+                for(i++,k=0;i<=strlen(vob->ex_profile_name) && vob->ex_profile_name[i] != 0;i++,k++) {
                     /* try to catch bad input */
                     if (vob->ex_profile_name[i] == '=') {
                         tc_log_warn(MOD_NAME, "bad -F option found, aborting ...");
@@ -516,7 +516,7 @@ MOD_init
                     else break;
                 }
 
-                qtvalue[k] = (char)NULL;
+                qtvalue[k] = 0;
                 /* exception for copyright, name, info */
                 /* everything else is assumed to be of type int */
                 if (strcmp(param, "copyright") == 0||

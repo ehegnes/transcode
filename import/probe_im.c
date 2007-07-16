@@ -29,18 +29,21 @@
 #include <stdio.h>
 
 #ifdef HAVE_IMAGEMAGICK
-/* ImageMagick leaves these defined, grr */
+/* Note: because of ImageMagick bogosity, this must be included first, so
+ * we can undefine the PACKAGE_* symbols it splats into our namespace.
+ * However, since we need config.h to find out whether we can include it
+ * in the first place, we also have to undefine the symbols beforehand. */
 # undef PACKAGE_BUGREPORT
 # undef PACKAGE_NAME
+# undef PACKAGE_STRING
 # undef PACKAGE_TARNAME
 # undef PACKAGE_VERSION
-# undef PACKAGE_STRING
 # include <magick/api.h>
 # undef PACKAGE_BUGREPORT
 # undef PACKAGE_NAME
+# undef PACKAGE_STRING
 # undef PACKAGE_TARNAME
 # undef PACKAGE_VERSION
-# undef PACKAGE_STRING
 #endif
 
 #include "transcode.h"

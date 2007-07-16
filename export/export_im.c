@@ -21,14 +21,20 @@
  *
  */
 
+/* Note: because of ImageMagick bogosity, this must be included first, so
+ * we can undefine the PACKAGE_* symbols it splats into our namespace */
+#include <magick/api.h>
+#undef PACKAGE_BUGREPORT
+#undef PACKAGE_NAME
+#undef PACKAGE_STRING
+#undef PACKAGE_TARNAME
+#undef PACKAGE_VERSION
+
 #include "transcode.h"
 #include "libtcvideo/tcvideo.h"
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#define _MAGICKCORE_CONFIG_H  // to avoid conflicts with our config.h
-#include <magick/api.h>
 
 #define MOD_NAME    "export_im.so"
 #define MOD_VERSION "v0.0.4 (2003-11-13)"

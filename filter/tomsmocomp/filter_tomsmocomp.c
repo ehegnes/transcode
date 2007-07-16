@@ -262,7 +262,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 			    MOD_AUTHOR, "VY4E", "1");
 	tc_snprintf (buf, sizeof(buf), "%d", tmc->TopFirst);
 	optstr_param (options, "topfirst", "Assume the top field should be displayed first" ,"%d", buf, "0", "1");
-	tc_snprintf (buf, "sizeof(buf), %d", tmc->SearchEffort);
+	tc_snprintf (buf, sizeof(buf), "%d", tmc->SearchEffort);
 	optstr_param (options, "searcheffort", "CPU time used to find moved pixels" ,"%d", buf, "0", "30");
 	tc_snprintf (buf, sizeof(buf), "%d", tmc->UseStrangeBob);
 	optstr_param (options, "usestrangebob", "?Unknown?" ,"%d", buf, "0", "1");

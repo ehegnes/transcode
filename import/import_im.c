@@ -25,13 +25,19 @@
 #define MOD_VERSION "v0.0.4 (2003-09-15)"
 #define MOD_CODEC   "(video) RGB"
 
+/* Note: because of ImageMagick bogosity, this must be included first, so
+ * we can undefine the PACKAGE_* symbols it splats into our namespace */
+#include <magick/api.h>
+#undef PACKAGE_BUGREPORT
+#undef PACKAGE_NAME
+#undef PACKAGE_STRING
+#undef PACKAGE_TARNAME
+#undef PACKAGE_VERSION
+
 #include "transcode.h"
 
 #include <stdlib.h>
 #include <stdio.h>
-
-#define _MAGICKCORE_CONFIG_H  // to avoid conflicts with our config.h
-#include <magick/api.h>
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_RGB | TC_CAP_VID;
