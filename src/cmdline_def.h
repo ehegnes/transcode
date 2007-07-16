@@ -425,12 +425,12 @@ TC_OPTION(mplayer_probe,      0,   0,
 )
 TC_OPTION(import_with,        'x', "vmod[,amod]",
                 "video[,audio] import modules [null]",
-                /* Careful here!  "static char vbuf[65], abuf[65]" will be
-                 * treated as two separate macro arguments by the
+                /* Careful here!  "static char vbuf[1001], abuf[1001]" will
+                 * be treated as two separate macro arguments by the
                  * preprocessor, so we have to declare each variable in a
                  * separate statement. */
-                static char vbuf[65];
-                static char abuf[65];
+                static char vbuf[1001];
+                static char abuf[1001];
                 char quote;
                 char *s;
                 int n;
@@ -656,13 +656,13 @@ TC_OPTION(export_prof,        0,   "profile",
 )
 TC_OPTION(export_with,        'y', "vm[,am[,mm]]",
                 "video[,audio[,mplex]] export modules [null]",
-                static char vbuf[65];
-                static char abuf[65];
-                static char mbuf[65];
+                static char vbuf[1001];
+                static char abuf[1001];
+                static char mbuf[1001];
                 char *s;
                 int n;
                 /* FIXME: handle embedded quotes like -x? */
-                if ((n = sscanf(optarg, "%64[^,],%64[^,],%64[^,]",
+                if ((n = sscanf(optarg, "%1000[^,],%1000[^,],%1000[^,]",
                                 vbuf, abuf, mbuf)) < 1
                 ) {
                     tc_error("Invalid argument for -y/--export_with");

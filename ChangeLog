@@ -1,3 +1,11 @@
+2007-07-16 Andrew Church <achurch at achurch dot org>
+  * configure.in
+  Disable -Werror when compiling with GCC 4.2.0, as it produces spurious
+  warnings that would break compilation.
+
+  * src/cmdline_def.h
+  Increase module option string size limits to 1000 bytes per module.
+
 2007-07-15 Francesco Romani <fromani at gmail dot com>
   * src/transcode.c src/tc_defaults.h
   another try to improve input source handling.
