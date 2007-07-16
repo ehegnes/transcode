@@ -1613,10 +1613,12 @@ TC_OPTION(accel,              0,   "type[,type...]",
                 break;
 #endif
 )
+#if 0
 TC_OPTION(debug,              0,   0,
                 "enable debugging mode [disabled]",
                 core_mode = TC_MODE_DEBUG;
 )
+#endif
 
 /*************************************************************************/
 

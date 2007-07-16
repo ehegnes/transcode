@@ -1,3 +1,7 @@
+2007-07-16 Francesco Romani <fromani at gmail dot com>
+  * src/cmdline_def.h
+  --debug option is bogus, so comment it temporary.
+
 2007-07-16 Andrew Church <achurch at achurch dot org>
   * configure.in
   Disable -Werror when compiling with GCC 4.2.0, as it produces spurious
@@ -39,7 +43,7 @@
 
 2007-07-14 Francesco Romani <fromani at gmail dot com>
   * src/decoder.h src/encoder-common.h src/transcode.h src/socket.c
-  de-genericixe prototypes moving them from transcode.h to specific
+  de-genericize prototypes moving them from transcode.h to specific
   headers.
 
   * docs/man/transcode.1
