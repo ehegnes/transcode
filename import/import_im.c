@@ -27,6 +27,10 @@
 #define MOD_VERSION "v0.1.0 (2007-07-17)"
 #define MOD_CODEC   "(video) RGB"
 
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
+
 /* Note: because of ImageMagick bogosity, this must be included first, so
  * we can undefine the PACKAGE_* symbols it splats into our namespace */
 #ifdef HAVE_BROKEN_WAND
@@ -227,7 +231,7 @@ MOD_decode
             return TC_IMPORT_ERROR;
 
         if (!auto_seq_read) {
-            strlcat(filename, vob->video_in_file, string_length);
+            filename = tc_strdup(vob->video_in_file);
         } else {
             // build the filename for the current frame
             string_length = strlen(head) + pad + strlen(tail) + 1;
