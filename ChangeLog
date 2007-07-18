@@ -1,3 +1,7 @@
+2007-07-18 Andrew Church <achurch at achurch dot org>
+  * encode/encode_faac.c
+  Remove bogus indentation that mysteriously appeared.
+
 2007-07-16 Francesco Romani <fromani at gmail dot com>
   * src/cmdline_def.h
   --debug option is bogus, so comment it temporary.

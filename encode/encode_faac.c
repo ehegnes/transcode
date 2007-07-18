@@ -1,126 +1,126 @@
-    /*
-     * encode_faac.c - encode audio frames using FAAC
-     * Written by Andrew Church <achurch@achurch.org>
-     *
-     * This file is part of transcode, a video stream processing tool.
-     * transcode is free software, distributable under the terms of the GNU
-     * General Public License (version 2 or later).  See the file COPYING
-     * for details.
-     */
+/*
+ * encode_faac.c - encode audio frames using FAAC
+ * Written by Andrew Church <achurch@achurch.org>
+ *
+ * This file is part of transcode, a video stream processing tool.
+ * transcode is free software, distributable under the terms of the GNU
+ * General Public License (version 2 or later).  See the file COPYING
+ * for details.
+ */
 
-    #include "transcode.h"
-    #include "libtc/libtc.h"
-    #include "libtc/optstr.h"
-    #include "libtc/tcmodule-plugin.h"
+#include "transcode.h"
+#include "libtc/libtc.h"
+#include "libtc/optstr.h"
+#include "libtc/tcmodule-plugin.h"
 
-    #include <faac.h>
+#include <faac.h>
 
-    #define MOD_NAME    	"encode_faac.so"
-    #define MOD_VERSION 	"v0.1 (2006-10-11)"
-    #define MOD_CAP         "Encodes audio to AAC using FAAC (currently BROKEN)"
-    #define MOD_AUTHOR      "Andrew Church"
+#define MOD_NAME    	"encode_faac.so"
+#define MOD_VERSION 	"v0.1 (2006-10-11)"
+#define MOD_CAP         "Encodes audio to AAC using FAAC (currently BROKEN)"
+#define MOD_AUTHOR      "Andrew Church"
 
-    #define MOD_FEATURES \
-        TC_MODULE_FEATURE_ENCODE|TC_MODULE_FEATURE_AUDIO
+#define MOD_FEATURES \
+    TC_MODULE_FEATURE_ENCODE|TC_MODULE_FEATURE_AUDIO
 
-    #define MOD_FLAGS \
-        TC_MODULE_FLAG_RECONFIGURABLE
+#define MOD_FLAGS \
+    TC_MODULE_FLAG_RECONFIGURABLE
 
-    /*************************************************************************/
+/*************************************************************************/
 
-    /* Local data structure: */
+/* Local data structure: */
 
-    typedef struct {
-        faacEncHandle handle;
-        unsigned long framesize;  // samples per AAC frame
-        int bps;  // bytes per sample
-        /* FAAC only takes complete frames as input, so we buffer as needed. */
-        uint8_t *audiobuf;
-        int audiobuf_len;  // in samples
-    } PrivateData;
+typedef struct {
+    faacEncHandle handle;
+    unsigned long framesize;  // samples per AAC frame
+    int bps;  // bytes per sample
+    /* FAAC only takes complete frames as input, so we buffer as needed. */
+    uint8_t *audiobuf;
+    int audiobuf_len;  // in samples
+} PrivateData;
 
-    /*************************************************************************/
-    /*************************************************************************/
+/*************************************************************************/
+/*************************************************************************/
 
-    /* Module interface routines and data. */
+/* Module interface routines and data. */
 
-    /*************************************************************************/
+/*************************************************************************/
 
-    /**
-     * faacmod_init:  Initialize this instance of the module.  See
-     * tcmodule-data.h for function details.
-     */
+/**
+ * faacmod_init:  Initialize this instance of the module.  See
+ * tcmodule-data.h for function details.
+ */
 
-    static int faac_init(TCModuleInstance *self, uint32_t features)
-    {
-        PrivateData *pd;
+static int faac_init(TCModuleInstance *self, uint32_t features)
+{
+    PrivateData *pd;
 
-        TC_MODULE_SELF_CHECK(self, "init");
-        TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
+    TC_MODULE_SELF_CHECK(self, "init");
+    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
-        self->userdata = pd = tc_malloc(sizeof(PrivateData));
-        if (!pd) {
-            tc_log_error(MOD_NAME, "init: out of memory!");
-            return TC_ERROR;
+    self->userdata = pd = tc_malloc(sizeof(PrivateData));
+    if (!pd) {
+        tc_log_error(MOD_NAME, "init: out of memory!");
+        return TC_ERROR;
+    }
+    pd->handle = 0;
+    pd->audiobuf = NULL;
+
+    /* FIXME: shouldn't this test a specific flag? */
+    if (verbose) {
+        tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
+        if (verbose & TC_INFO) {
+            char *id, *copyright;
+            faacEncGetVersion(&id, &copyright);
+            tc_log_info(MOD_NAME, "Using FAAC %s", id);
         }
-        pd->handle = 0;
-        pd->audiobuf = NULL;
+    }
+    return TC_OK;
+}
 
-        /* FIXME: shouldn't this test a specific flag? */
-        if (verbose) {
-            tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-            if (verbose & TC_INFO) {
-                char *id, *copyright;
-                faacEncGetVersion(&id, &copyright);
-                tc_log_info(MOD_NAME, "Using FAAC %s", id);
-            }
-        }
-        return TC_OK;
+/*************************************************************************/
+
+/**
+ * faac_configure:  Configure this instance of the module.  See
+ * tcmodule-data.h for function details.
+ */
+
+static int faac_configure(TCModuleInstance *self,
+                          const char *options, vob_t *vob)
+{
+    PrivateData *pd;
+    int samplerate = vob->mp3frequency ? vob->mp3frequency : vob->a_rate;
+    int ret;
+    unsigned long dummy;
+    faacEncConfiguration conf;
+
+    TC_MODULE_SELF_CHECK(self, "configure");
+
+    pd = self->userdata;
+
+    /* Save bytes per sample */
+    pd->bps = (vob->dm_chan * vob->dm_bits) / 8;
+
+    /* Create FAAC handle (freeing any old one that might be left over) */
+    if (pd->handle)
+        faacEncClose(pd->handle);
+    pd->handle = faacEncOpen(samplerate, vob->dm_chan, &pd->framesize, &dummy);
+    if (!pd->handle) {
+        tc_log_error(MOD_NAME, "FAAC initialization failed");
+        return TC_ERROR;
     }
 
-    /*************************************************************************/
-
-    /**
-     * faac_configure:  Configure this instance of the module.  See
-     * tcmodule-data.h for function details.
-     */
-
-    static int faac_configure(TCModuleInstance *self,
-                              const char *options, vob_t *vob)
-    {
-        PrivateData *pd;
-        int samplerate = vob->mp3frequency ? vob->mp3frequency : vob->a_rate;
-        int ret;
-        unsigned long dummy;
-        faacEncConfiguration conf;
-
-        TC_MODULE_SELF_CHECK(self, "configure");
-
-        pd = self->userdata;
-
-        /* Save bytes per sample */
-        pd->bps = (vob->dm_chan * vob->dm_bits) / 8;
-
-        /* Create FAAC handle (freeing any old one that might be left over) */
-        if (pd->handle)
-            faacEncClose(pd->handle);
-        pd->handle = faacEncOpen(samplerate, vob->dm_chan, &pd->framesize, &dummy);
-        if (!pd->handle) {
-            tc_log_error(MOD_NAME, "FAAC initialization failed");
-            return TC_ERROR;
-        }
-
-        /* Set up our default audio parameters */
-        /* why can't just use a pointer here? -- FR */
-        conf = *faacEncGetCurrentConfiguration(pd->handle);
-        conf.mpegVersion = MPEG4;
-        conf.aacObjectType = MAIN;
-        conf.allowMidside = 1;
-        conf.useLfe = 0;
-        conf.useTns = 1;
-        conf.bitRate = vob->mp3bitrate / vob->dm_chan;
-        conf.bandWidth = 0;  // automatic configuration
-        conf.quantqual = 100;  // FIXME: quality should be a per-module setting
+    /* Set up our default audio parameters */
+    /* why can't just use a pointer here? -- FR */
+    conf = *faacEncGetCurrentConfiguration(pd->handle);
+    conf.mpegVersion = MPEG4;
+    conf.aacObjectType = MAIN;
+    conf.allowMidside = 1;
+    conf.useLfe = 0;
+    conf.useTns = 1;
+    conf.bitRate = vob->mp3bitrate / vob->dm_chan;
+    conf.bandWidth = 0;  // automatic configuration
+    conf.quantqual = 100;  // FIXME: quality should be a per-module setting
     conf.outputFormat = 1;
     if (vob->dm_bits != 16) {
         tc_log_error(MOD_NAME, "Only 16-bit samples supported");
