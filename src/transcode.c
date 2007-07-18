@@ -36,15 +36,12 @@
 #include "libtc/ratiocodes.h"
 #include "libtc/xio.h"
 #include "libtc/tccodecs.h"
+#include "libtc/tcpackages.h"
 
 #include <ctype.h>
 #include <math.h>
 
 #include "cmdline.h"
-
-#ifdef HAVE_X11
-# include <X11/Xlib.h>
-#endif
 
 
 /* ------------------------------------------------------------
@@ -809,12 +806,7 @@ int main(int argc, char *argv[])
 
     TCFrameSpecs specs;
 
-
-#ifdef HAVE_X11
-    if (XInitThreads() == 0) {
-        tc_error("can't initialize X11 threading support");
-    }
-#endif
+    tc_init_package(TC_PACKAGE_X11);
 
     //main thread id
     writepid = getpid();
@@ -2198,7 +2190,7 @@ int main(int argc, char *argv[])
      *
      * ------------------------------------------------------------*/
 
-    switch(core_mode) {
+    switch (core_mode) {
       case TC_MODE_DEFAULT:
         /* -------------------------------------------------------------
          * single file continuous or interval mode
@@ -2702,8 +2694,12 @@ int main(int argc, char *argv[])
 #endif
 
     teardown_input_sources(vob);
+
     if (vob)
         tc_free(vob);
+
+    tc_fini_package(TC_PACKAGE_X11);
+    tc_check_package(TC_PACKAGE_ALL, 0);
 
     //exit at last
     if (interrupt_flag)
