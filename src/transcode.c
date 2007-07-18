@@ -36,7 +36,6 @@
 #include "libtc/ratiocodes.h"
 #include "libtc/xio.h"
 #include "libtc/tccodecs.h"
-#include "libtc/tcpackages.h"
 
 #include <ctype.h>
 #include <math.h>
@@ -805,8 +804,6 @@ int main(int argc, char *argv[])
     struct fc_time *tstart = NULL;
 
     TCFrameSpecs specs;
-
-    tc_init_package(TC_PACKAGE_X11);
 
     //main thread id
     writepid = getpid();
@@ -2697,9 +2694,6 @@ int main(int argc, char *argv[])
 
     if (vob)
         tc_free(vob);
-
-    tc_fini_package(TC_PACKAGE_X11);
-    tc_check_package(TC_PACKAGE_ALL, 0);
 
     //exit at last
     if (interrupt_flag)
