@@ -57,7 +57,7 @@
 
 void probe_im(info_t *ipipe)
 {
-    MagicWand *wand = NULL;
+    MagickWand *wand = NULL;
     MagickBooleanType status;
 
     MagickWandGenesis();
@@ -93,7 +93,7 @@ void probe_im(info_t *ipipe)
 	ipipe->probe_info->magic = ipipe->magic;
 	ipipe->probe_info->codec = TC_CODEC_RGB;
 
-    DestroyMagicWand(wand);
+    DestroyMagickWand(wand);
     MagickWandTerminus();
 
 	return;
