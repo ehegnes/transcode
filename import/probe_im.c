@@ -38,7 +38,7 @@
 # undef PACKAGE_STRING
 # undef PACKAGE_TARNAME
 # undef PACKAGE_VERSION
-# include <magick/api.h>
+# include <wand/MagicWand.h>
 # undef PACKAGE_BUGREPORT
 # undef PACKAGE_NAME
 # undef PACKAGE_STRING
@@ -54,29 +54,38 @@
 
 #ifdef HAVE_IMAGEMAGICK
 
+
 void probe_im(info_t *ipipe)
 {
-	ExceptionInfo exception_info;
-	Image* image;
-	ImageInfo* image_info;
+    MagicWand *wand = NULL;
+    MagickBooleanType status;
 
-	InitializeMagick("");
+    MagickWandGenesis();
+    wand = NewMagickWand();
 
-	GetExceptionInfo(&exception_info);
-	image_info = CloneImageInfo((ImageInfo*)NULL);
-	strlcpy(image_info->filename, ipipe->name, MaxTextExtent);
-	image = ReadImage(image_info, &exception_info);
-	if (image == NULL)
-	{
-		MagickError(exception_info.severity, exception_info.reason, exception_info.description);
-		DestroyImageInfo(image_info);
-		ipipe->error=1;
-		return;
-	}
+    if (wand == NULL) {
+        tc_log_error(__FILE__, "cannot create magick wand");
+        ipipe->error = 1;
+        return;
+    }
+
+    status = MagickReadImage(wand, ipipe->name);
+    if (status == MagickFalse) {
+        ExceptionType severity;
+        const char *description = MagickGetException(wand, &severity);
+
+        tc_log_error(__FILE__, "%s", description);
+
+        MagickRelinquishMemory((void*)description);
+        ipipe->error = 1;
+        return;
+    }
+    MagickSetLastIterator(wand);
+
 
 	/* read all video parameter from input file */
-	ipipe->probe_info->width = image->columns;
-	ipipe->probe_info->height = image->rows;
+	ipipe->probe_info->width = MagickGetImageWidth(wand);
+	ipipe->probe_info->height = MagickGetImageHeight(wand);
 
 	/* slide show? */
 	ipipe->probe_info->fps = 1;
@@ -84,8 +93,8 @@ void probe_im(info_t *ipipe)
 	ipipe->probe_info->magic = ipipe->magic;
 	ipipe->probe_info->codec = TC_CODEC_RGB;
 
-	DestroyImage(image);
-	DestroyImageInfo(image_info);
+    DestroyMagicWand(wand);
+    MagickWandTerminus();
 
 	return;
 }
@@ -95,9 +104,20 @@ void probe_im(info_t *ipipe)
 void probe_im(info_t *ipipe)
 {
 	tc_log_error(__FILE__, "no support for ImageMagick compiled - exit.");
-	ipipe->error=1;
+	ipipe->error = 1;
 	return;
 }
 
 #endif
 
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */

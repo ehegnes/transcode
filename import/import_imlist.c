@@ -2,6 +2,8 @@
  *  import_imlist.c
  *
  *  Copyright (C) Thomas Oestreich - February 2002
+ *  port to MagickWand API:
+ *  Copyright (C) Francesco Romani - July 2007
  *
  *  This file is part of transcode, a video stream processing tool
  *
@@ -22,12 +24,12 @@
  */
 
 #define MOD_NAME    "import_imlist.so"
-#define MOD_VERSION "v0.0.2 (2003-11-13)"
+#define MOD_VERSION "v0.1.0 (2007-07-17)"
 #define MOD_CODEC   "(video) RGB"
 
 /* Note: because of ImageMagick bogosity, this must be included first, so
  * we can undefine the PACKAGE_* symbols it splats into our namespace */
-#include <magick/api.h>
+#include <wand/MagickWand.h>
 #undef PACKAGE_BUGREPORT
 #undef PACKAGE_NAME
 #undef PACKAGE_STRING
@@ -40,21 +42,26 @@
 #include <stdio.h>
 
 static int verbose_flag = TC_QUIET;
-static int capability_flag = TC_CAP_RGB | TC_CAP_VID | TC_CAP_AUD;
+static int capability_flag = TC_CAP_RGB|TC_CAP_VID;
 
 #define MOD_PRE imlist
 #include "import_def.h"
 
 
-int
-    first_frame = 0,
-    last_frame = 0,
-    current_frame = 0,
-    pad = 0;
+static int TCHandleMagickError(MagickWand *wand)
+{
+    ExceptionType severity;
+    const char *description = MagickGetException(wand, &severity);
 
-static FILE *fd;
-static char buffer[PATH_MAX+2];
+    tc_log_error(MOD_NAME, "%s", description);
 
+    MagickRelinquishMemory((void*)description);
+    return TC_IMPORT_ERROR;
+}
+
+static int width = 0, height = 0;
+static FILE *fd = NULL;
+static MagickWand *wand = NULL;
 
 /* ------------------------------------------------------------
  *
@@ -64,23 +71,33 @@ static char buffer[PATH_MAX+2];
 
 MOD_open
 {
-  if(param->flag == TC_AUDIO) {
-      return(TC_IMPORT_OK);
-  }
+    if (param->flag == TC_AUDIO) {
+        return(TC_IMPORT_OK);
+    }
 
-  if(param->flag == TC_VIDEO) {
+    if (param->flag == TC_VIDEO) {
+        param->fd = NULL;
 
-    param->fd = NULL;
+        width  = vob->im_v_width;
+        height = vob->im_v_height;
 
-    if((fd = fopen(vob->video_in_file, "r"))==NULL) return(TC_IMPORT_ERROR);
+        fd = fopen(vob->video_in_file, "r");
+        if (fd == NULL) {
+            return TC_IMPORT_ERROR;
+        }
 
-    // initialize ImageMagick
-    InitializeMagick("");
+        MagickWandGenesis();
+        wand = NewMagickWand();
 
-    return(TC_IMPORT_OK);
-  }
+        if (wand == NULL) {
+            tc_log_error(MOD_NAME, "cannot create magick wand");
+            return TC_IMPORT_ERROR;
+        }
 
-  return(TC_IMPORT_ERROR);
+        return TC_IMPORT_OK;
+    }
+
+    return TC_IMPORT_ERROR;
 }
 
 
@@ -90,80 +107,49 @@ MOD_open
  *
  * ------------------------------------------------------------*/
 
-MOD_decode {
+MOD_decode
+{
+    char filename[PATH_MAX+1];
+    MagickBooleanType status;
 
-    ExceptionInfo
-        exception_info;
-
-    ImageInfo
-        *image_info;
-
-    Image
-        *image;
-
-    PixelPacket
-        *pixel_packet;
-
-    char
-        *filename = NULL;
-
-    int
-        column,
-        row, n;
-
-    if(param->flag == TC_AUDIO) return(TC_IMPORT_OK);
-
-    // read a filename from the list
-    if(fgets (buffer, PATH_MAX, fd)==NULL) return(TC_IMPORT_ERROR);
-
-    filename = buffer;
-
-    n=strlen(filename);
-    if(n<2) return(TC_IMPORT_ERROR);
-    filename[n-1]='\0';
-
-    // Have ImageMagick open the file and read in the image data.
-    GetExceptionInfo(&exception_info);
-    image_info=CloneImageInfo((ImageInfo *) NULL);
-    (void) strlcpy(image_info->filename, filename, MaxTextExtent);
-
-    image=ReadImage(image_info, &exception_info);
-    if (image == (Image *) NULL) {
-        MagickError(exception_info.severity, exception_info.reason,
-                    exception_info.description);
-	// skipping
-	return TC_IMPORT_OK;
+    if (param->flag == TC_AUDIO) {
+        return TC_IMPORT_OK;
     }
 
-    /*
-     * Copy the pixels into a buffer in RGB order
-     */
-    pixel_packet = GetImagePixels(image, 0, 0, image->columns, image->rows);
-    for (row = 0; row < image->rows; row++) {
-        for (column = 0; column < image->columns; column++) {
-          /* FIXME: should these use >>8? (see import_im.c) */
-          param->buffer[(row * image->columns + column) * 3 + 0] =
-               pixel_packet[(image->rows - row - 1) * image->columns +
-                                                                 column].red;
-          param->buffer[(row * image->columns + column) * 3 + 1] =
-               pixel_packet[(image->rows - row - 1) * image->columns +
-                                                                 column].green;
-          param->buffer[(row * image->columns + column) * 3 + 2] =
-               pixel_packet[(image->rows - row - 1) * image->columns +
-                                                                 column].blue;
+    if (param->flag == TC_VIDEO) {
+        // read a filename from the list
+        if (fgets(filename, PATH_MAX, fd) == NULL) {
+            return TC_IMPORT_ERROR;
         }
+        filename[PATH_MAX] = '\0'; /* enforce */
+
+        ClearMagickWand(wand);
+        /* 
+         * This avoids IM to buffer all read images.
+         * I'm quite sure that this can be done in a smarter way,
+         * but I haven't yet figured out how. -- FRomani
+         */
+
+        status = MagickReadImage(wand, filename);
+        if (status == MagickFalse) {
+            return TCHandleMagickError(wand);
+        }
+
+        MagickSetLastIterator(wand);
+
+        status = MagickGetImagePixels(wand,
+                                      0, 0, width, height,
+                                      "RGB", CharPixel,
+                                      param->buffer);
+        if (status == MagickFalse) {
+            return TCHandleMagickError(wand);
+        }
+
+        param->attributes |= TC_FRAME_IS_KEYFRAME;
+
+        return TC_IMPORT_OK;
     }
-
-    param->attributes |= TC_FRAME_IS_KEYFRAME;
-
-    // How do we do this?  The next line is not right (segfaults)
-    // I can't find a DestroyPixelPacket() method.
-    //free(pixel_packet);
-    DestroyImage(image);
-    DestroyImageInfo(image_info);
-    DestroyExceptionInfo(&exception_info);
-
-    return(TC_IMPORT_OK);
+    return TC_IMPORT_ERROR;
 }
 
 /* ------------------------------------------------------------
@@ -174,18 +160,36 @@ MOD_decode {
 
 MOD_close
 {
+    if (param->flag == TC_AUDIO) {
+        return TC_IMPORT_OK;
+    }
 
-  if(param->flag == TC_VIDEO) {
+    if (param->flag == TC_VIDEO) {
+        if (fd != NULL) {
+            fclose(fd);
+            fd = NULL;
+        }
 
-    if(fd != NULL) fclose(fd); fd = NULL;
+        if (wand != NULL) {
+            DestroyMagickWand(wand);
+            MagickWandTerminus();
+            wand = NULL;
+        }
 
-    // This is very necessary
-    DestroyMagick();
+        return TC_IMPORT_OK;
+    }
 
-    return(TC_IMPORT_OK);
-  }
-
-  if(param->flag == TC_AUDIO) return(TC_IMPORT_OK);
-
-  return(TC_IMPORT_ERROR);
+    return TC_IMPORT_ERROR;
 }
+
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */

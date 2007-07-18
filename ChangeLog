@@ -1,3 +1,7 @@
+2007-07-18 Francesco Romani <fromani at gmail dot com>
+  * import/import_im.c import/import_imlist.c import/probe_im.c
+  port import layer to MagickWand interface.
+
 2007-07-18 Andrew Church <achurch at achurch dot org>
   * encode/encode_faac.c
   Remove bogus indentation that mysteriously appeared.
