@@ -29,7 +29,12 @@
 
 /* Note: because of ImageMagick bogosity, this must be included first, so
  * we can undefine the PACKAGE_* symbols it splats into our namespace */
+#ifdef HAVE_BROKEN_WAND
+#include <wand/magick-wand.h>
+#else /* we have a SANE wand header */
 #include <wand/MagickWand.h>
+#endif /* HAVE_BROKEN_WAND */
+
 #undef PACKAGE_BUGREPORT
 #undef PACKAGE_NAME
 #undef PACKAGE_STRING

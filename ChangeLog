@@ -2,6 +2,18 @@
   * import/import_im.c import/import_imlist.c import/probe_im.c
   port import layer to MagickWand interface.
 
+  * configure.in import/import_im.c import/import_imlist.c import/probe_im.c
+  OK, my bad: the Wand-config/Magick-config interchangeability was too
+  optimistic. Second try: MagickWand requirements should be always a superset
+  of MagickCore ones, so let's use Wand-config alone.
+
+  On the other hand, looks like the MagickWand main header was _renamed_
+  in a minor ImageMagick release, and this, if confirmed, really start to make
+  me wonder about IM sanity.
+
+  This changeset allow to detect and handle this issue, and fixes some
+  other typos as well.
+
 2007-07-18 Andrew Church <achurch at achurch dot org>
   * encode/encode_faac.c
   Remove bogus indentation that mysteriously appeared.

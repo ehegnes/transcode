@@ -38,7 +38,13 @@
 # undef PACKAGE_STRING
 # undef PACKAGE_TARNAME
 # undef PACKAGE_VERSION
-# include <wand/MagicWand.h>
+
+# ifdef HAVE_BROKEN_WAND
+# include <wand/magick-wand.h>
+# else /* we have a SANE wand header */
+# include <wand/MagickWand.h>
+# endif /* HAVE_BROKEN_WAND */
+
 # undef PACKAGE_BUGREPORT
 # undef PACKAGE_NAME
 # undef PACKAGE_STRING
