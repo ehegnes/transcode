@@ -111,6 +111,8 @@ static const TCCodecInfo tc_codecs_info[] = {
                            "MPEG ES Layer 3",        0, TC_AUDIO },
     { TC_CODEC_MP2,        "mp2",         NULL,
                            "MPEG ES Layer 2",        0, TC_AUDIO },
+    { TC_CODEC_AAC,        "aac",         NULL,
+                           "AAC",                    0, TC_AUDIO },
     { TC_CODEC_VORBIS,     "vorbis",      NULL,
                            "ogg/vorbis",             0, TC_AUDIO },
     { TC_CODEC_VAG,        "vag",         NULL,
