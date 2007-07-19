@@ -53,8 +53,8 @@ extern void * (*tc_memcpy)(void *, const void *, size_t);
 extern void tc_memcpy_init(int verbose, int mmflags);
 
 extern int mm_flags;
-int ac_mmflag();
-void ac_mmtest();
+int ac_mmflag(void);
+void ac_mmtest(void);
 char *ac_mmstr(int flag, int mode);
 
 //ac_memcpy
