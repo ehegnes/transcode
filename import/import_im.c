@@ -27,9 +27,18 @@
 #define MOD_VERSION "v0.1.0 (2007-07-17)"
 #define MOD_CODEC   "(video) RGB"
 
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
+
 /* Note: because of ImageMagick bogosity, this must be included first, so
  * we can undefine the PACKAGE_* symbols it splats into our namespace */
+#ifdef HAVE_BROKEN_WAND
+#include <wand/magick-wand.h>
+#else /* we have a SANE wand header */
 #include <wand/MagickWand.h>
+#endif /* HAVE_BROKEN_WAND */
+
 #undef PACKAGE_BUGREPORT
 #undef PACKAGE_NAME
 #undef PACKAGE_STRING
@@ -37,6 +46,7 @@
 #undef PACKAGE_VERSION
 
 #include "transcode.h"
+#include "libtc/optstr.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -56,7 +66,12 @@ static char *head = NULL, *tail = NULL;
 static int first_frame = 0, last_frame = 0, current_frame = 0, pad = 0;
 static int width = 0, height = 0;
 static MagickWand *wand = NULL;
-
+static int auto_seq_read = TC_TRUE; 
+/* 
+ * automagically read further images with filename like the first one 
+ * enabled by default for backward compatibility, but obsoleted
+ * by core option --directory_mode
+ */
 
 static int TCHandleMagickError(MagickWand *wand)
 {
@@ -170,6 +185,13 @@ MOD_open
 
         current_frame = first_frame;
 
+        if (vob->im_v_string != NULL) {
+            if (optstr_lookup(vob->im_v_string, "noseq")) {
+                auto_seq_read = TC_FALSE;
+                tc_log_info(MOD_NAME, "automagic image sequential read disabled");
+            }
+        }
+ 
         width = vob->im_v_width;
         height = vob->im_v_height;
 
@@ -208,26 +230,30 @@ MOD_decode
         if (current_frame > last_frame)
             return TC_IMPORT_ERROR;
 
-        // build the filename for the current frame
-        string_length = strlen(head) + pad + strlen(tail) + 1;
-        filename = tc_malloc(string_length);
-        if (pad) {
-            char framespec[10];
-            frame = tc_malloc(pad+1);
-            tc_snprintf(framespec, 10, "%%0%dd", pad);
-            tc_snprintf(frame, pad+1, framespec, current_frame);
-            frame[pad] = '\0';
-        } else if (first_frame >= 0) {
-            frame = tc_malloc(10);
-            tc_snprintf(frame, 10, "%d", current_frame);
+        if (!auto_seq_read) {
+            filename = tc_strdup(vob->video_in_file);
+        } else {
+            // build the filename for the current frame
+            string_length = strlen(head) + pad + strlen(tail) + 1;
+            filename = tc_malloc(string_length);
+            if (pad) {
+                char framespec[10];
+                frame = tc_malloc(pad+1);
+                tc_snprintf(framespec, 10, "%%0%dd", pad);
+                tc_snprintf(frame, pad+1, framespec, current_frame);
+                frame[pad] = '\0';
+            } else if (first_frame >= 0) {
+                frame = tc_malloc(10);
+                tc_snprintf(frame, 10, "%d", current_frame);
+            }
+            strlcpy(filename, head, string_length);
+            if (frame != NULL) {
+                strlcat(filename, frame, string_length);
+                tc_free(frame);
+                frame = NULL;
+            }
+            strlcat(filename, tail, string_length);
         }
-        strlcpy(filename, head, string_length);
-        if (frame != NULL) {
-            strlcat(filename, frame, string_length);
-            tc_free(frame);
-            frame = NULL;
-        }
-        strlcat(filename, tail, string_length);
 
         ClearMagickWand(wand);
         /* 

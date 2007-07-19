@@ -38,7 +38,13 @@
 # undef PACKAGE_STRING
 # undef PACKAGE_TARNAME
 # undef PACKAGE_VERSION
-# include <wand/MagicWand.h>
+
+# ifdef HAVE_BROKEN_WAND
+# include <wand/magick-wand.h>
+# else /* we have a SANE wand header */
+# include <wand/MagickWand.h>
+# endif /* HAVE_BROKEN_WAND */
+
 # undef PACKAGE_BUGREPORT
 # undef PACKAGE_NAME
 # undef PACKAGE_STRING
@@ -57,7 +63,7 @@
 
 void probe_im(info_t *ipipe)
 {
-    MagicWand *wand = NULL;
+    MagickWand *wand = NULL;
     MagickBooleanType status;
 
     MagickWandGenesis();
@@ -93,7 +99,7 @@ void probe_im(info_t *ipipe)
 	ipipe->probe_info->magic = ipipe->magic;
 	ipipe->probe_info->codec = TC_CODEC_RGB;
 
-    DestroyMagicWand(wand);
+    DestroyMagickWand(wand);
     MagickWandTerminus();
 
 	return;

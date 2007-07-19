@@ -1179,9 +1179,14 @@ dnl
 dnl ImageMagick
 dnl
 IMAGEMAGICK_EXTRA_LIBS="$IMAGEMAGICK_EXTRA_LIBS -lz -lm"
-TC_PKG_CHECK(imagemagick, no, IMAGEMAGICK, Magick-config, [magick/api.h],
- Magick, InitializeMagick, ImageMagick, [http://www.imagemagick.org/])
+dnl MagickWand libraries/headers always (?) are a superset of MagickCore ones.
+TC_PKG_CHECK(imagemagick, no, IMAGEMAGICK, Wand-config, [magick/api.h],
+ Magick, InitializeMagick, Wand, [http://www.imagemagick.org/])
 TC_PKG_HAVE(imagemagick, IMAGEMAGICK)
+if test x"$have_imagemagick" = x"yes" ; then
+  AC_CHECK_HEADER([wand/magick-wand.h],
+    [AC_DEFINE([HAVE_BROKEN_WAND], [1], ["have old wand header"])])
+fi
 
 dnl
 dnl libjpegmmx or libjpeg

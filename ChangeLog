@@ -1,3 +1,7 @@
+2007-07-19 Francesco Romani <fromani at gmail dot com>
+  * import/import_im.c import/import_imlist.c import/probe_im.c configure.in
+  backport IM fixes from HEAD (typos and wand header mess sanitization).
+
 2007-07-18 Francesco Romani <fromani at gmail dot com>
   * import/import_im.c import/import_imlist.c import/probe_im.c
   backport new IM modules from CVS HEAD.
