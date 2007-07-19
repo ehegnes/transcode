@@ -56,21 +56,20 @@ static int capability_flag = TC_CAP_RGB|TC_CAP_VID;
 #define MOD_PRE imlist
 #include "import_def.h"
 
+static int width = 0, height = 0;
+static FILE *fd = NULL;
+static MagickWand *wand = NULL;
 
 static int TCHandleMagickError(MagickWand *wand)
 {
     ExceptionType severity;
     const char *description = MagickGetException(wand, &severity);
 
-    tc_log_error(MOD_NAME, "%s", description);
+    fprintf(stderr, "[%s] %s\n", MOD_NAME, description);
 
     MagickRelinquishMemory((void*)description);
     return TC_IMPORT_ERROR;
 }
-
-static int width = 0, height = 0;
-static FILE *fd = NULL;
-static MagickWand *wand = NULL;
 
 /* ------------------------------------------------------------
  *
@@ -99,7 +98,7 @@ MOD_open
         wand = NewMagickWand();
 
         if (wand == NULL) {
-            tc_log_error(MOD_NAME, "cannot create magick wand");
+            fprintf(stderr, "[%s] cannot create magick wand\n", MOD_NAME);
             return TC_IMPORT_ERROR;
         }
 

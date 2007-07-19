@@ -53,10 +53,8 @@
 #endif
 
 #include "transcode.h"
-#include "tcinfo.h"
 #include "ioaux.h"
 #include "tc.h"
-#include "libtc/libtc.h"
 
 #ifdef HAVE_IMAGEMAGICK
 
@@ -70,7 +68,7 @@ void probe_im(info_t *ipipe)
     wand = NewMagickWand();
 
     if (wand == NULL) {
-        tc_log_error(__FILE__, "cannot create magick wand");
+        fprintf(stderr, "[%s] cannot create magick wand\n", __FILE__);
         ipipe->error = 1;
         return;
     }
@@ -80,7 +78,7 @@ void probe_im(info_t *ipipe)
         ExceptionType severity;
         const char *description = MagickGetException(wand, &severity);
 
-        tc_log_error(__FILE__, "%s", description);
+        fprintf(stderr, "[%s] %s\n", __FILE__, description);
 
         MagickRelinquishMemory((void*)description);
         ipipe->error = 1;
@@ -109,7 +107,7 @@ void probe_im(info_t *ipipe)
 
 void probe_im(info_t *ipipe)
 {
-	tc_log_error(__FILE__, "no support for ImageMagick compiled - exit.");
+    fprintf(stderr, "No support for ImageMagick compiled in\n");
 	ipipe->error = 1;
 	return;
 }

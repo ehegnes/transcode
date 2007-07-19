@@ -46,7 +46,6 @@
 #undef PACKAGE_VERSION
 
 #include "transcode.h"
-#include "libtc/optstr.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -66,19 +65,13 @@ static char *head = NULL, *tail = NULL;
 static int first_frame = 0, last_frame = 0, current_frame = 0, pad = 0;
 static int width = 0, height = 0;
 static MagickWand *wand = NULL;
-static int auto_seq_read = TC_TRUE; 
-/* 
- * automagically read further images with filename like the first one 
- * enabled by default for backward compatibility, but obsoleted
- * by core option --directory_mode
- */
 
 static int TCHandleMagickError(MagickWand *wand)
 {
     ExceptionType severity;
     const char *description = MagickGetException(wand, &severity);
 
-    tc_log_error(MOD_NAME, "%s", description);
+    fprintf(stderr, "[%s] %s\n", MOD_NAME, description);
 
     MagickRelinquishMemory((void*)description);
     return TC_IMPORT_ERROR;
@@ -113,38 +106,38 @@ MOD_open
         regex = "\\(.\\+[-._]\\)\\?\\([0-9]\\+\\)\\([-._].\\+\\)\\?";
         result = regcomp(&preg, regex, 0);
         if (result) {
-            tc_log_perror(MOD_NAME, "ERROR:  Regex compile failed.\n");
+            perror("regex compile");
             return TC_IMPORT_ERROR;
         }
 
         result = regexec(&preg, vob->video_in_file, 4, pmatch, 0);
         if (result) {
-            tc_log_warn(MOD_NAME, "Regex match failed: no image sequence");
+            fprintf(stderr, "[%s] regex match failed: no image sequence\n", MOD_NAME);
             string_length = strlen(vob->video_in_file) + 1;
-            head = tc_malloc(string_length);
+            head = malloc(string_length);
             if (head == NULL) {
-                tc_log_perror(MOD_NAME, "filename head");
+                perror("filename head");
                 return TC_IMPORT_ERROR;
             }
             strlcpy(head, vob->video_in_file, string_length);
-            tail = tc_malloc(1); /* URGH -- FRomani */
+            tail = malloc(1); /* URGH -- FRomani */
             tail[0] = 0;
             first_frame = -1;
             last_frame = 0x7fffffff;
         } else {
             // split the name into head, frame number, and tail
             string_length = pmatch[1].rm_eo - pmatch[1].rm_so + 1;
-            head = tc_malloc(string_length);
+            head = malloc(string_length);
             if (head == NULL) {
-                tc_log_perror(MOD_NAME, "filename head");
+                perror("filename head");
                 return TC_IMPORT_ERROR;
             }
             strlcpy(head, vob->video_in_file, string_length);
 
             string_length = pmatch[2].rm_eo - pmatch[2].rm_so + 1;
-            frame = tc_malloc(string_length);
+            frame = malloc(string_length);
             if (frame == NULL) {
-                tc_log_perror(MOD_NAME, "filename frame");
+                perror("filename frame");
                 return TC_IMPORT_ERROR;
             }
             strlcpy(frame, vob->video_in_file + pmatch[2].rm_so, string_length);
@@ -157,41 +150,34 @@ MOD_open
             first_frame = atoi(frame);
 
             string_length = pmatch[3].rm_eo - pmatch[3].rm_so + 1;
-            tail = tc_malloc(string_length);
+            tail = malloc(string_length);
             if (tail == NULL) {
-                tc_log_perror(MOD_NAME, "filename tail");
+                perror("filename tail");
                 return TC_IMPORT_ERROR;
             }
             strlcpy(tail, vob->video_in_file + pmatch[3].rm_so, string_length);
 
             // find the last frame by trying to open files
             last_frame = first_frame;
-            filename = tc_malloc(strlen(head) + pad + strlen(tail) + 1);
+            filename = malloc(strlen(head) + pad + strlen(tail) + 1);
             /* why remalloc frame? */
             /* frame = malloc(pad + 1); */
             do {
                 last_frame++;
-                tc_snprintf(printfspec, sizeof(printfspec), "%%s%%0%dd%%s", pad);
+                snprintf(printfspec, sizeof(printfspec), "%%s%%0%dd%%s", pad);
                 string_length = strlen(head) + pad + strlen(tail) + 1;
-                sret = tc_snprintf(filename, string_length, printfspec, head,
-                                   last_frame, tail);
+                sret = snprintf(filename, string_length, printfspec, head,
+                                last_frame, tail);
                 if (sret < 0)
                   return TC_IMPORT_ERROR;
             } while (close(open(filename, O_RDONLY)) != -1); /* URGH -- Fromani */
             last_frame--;
-            tc_free(filename);
-            tc_free(frame);
+            free(filename);
+            free(frame);
         }
 
         current_frame = first_frame;
 
-        if (vob->im_v_string != NULL) {
-            if (optstr_lookup(vob->im_v_string, "noseq")) {
-                auto_seq_read = TC_FALSE;
-                tc_log_info(MOD_NAME, "automagic image sequential read disabled");
-            }
-        }
- 
         width = vob->im_v_width;
         height = vob->im_v_height;
 
@@ -199,7 +185,7 @@ MOD_open
         wand = NewMagickWand();
 
         if (wand == NULL) {
-            tc_log_error(MOD_NAME, "cannot create magick wand");
+            fprintf(stderr, "[%s] cannot create magick wand\n", MOD_NAME);
             return TC_IMPORT_ERROR;
         }
 
@@ -230,30 +216,26 @@ MOD_decode
         if (current_frame > last_frame)
             return TC_IMPORT_ERROR;
 
-        if (!auto_seq_read) {
-            filename = tc_strdup(vob->video_in_file);
-        } else {
-            // build the filename for the current frame
-            string_length = strlen(head) + pad + strlen(tail) + 1;
-            filename = tc_malloc(string_length);
-            if (pad) {
-                char framespec[10];
-                frame = tc_malloc(pad+1);
-                tc_snprintf(framespec, 10, "%%0%dd", pad);
-                tc_snprintf(frame, pad+1, framespec, current_frame);
-                frame[pad] = '\0';
-            } else if (first_frame >= 0) {
-                frame = tc_malloc(10);
-                tc_snprintf(frame, 10, "%d", current_frame);
-            }
-            strlcpy(filename, head, string_length);
-            if (frame != NULL) {
-                strlcat(filename, frame, string_length);
-                tc_free(frame);
-                frame = NULL;
-            }
-            strlcat(filename, tail, string_length);
+        // build the filename for the current frame
+        string_length = strlen(head) + pad + strlen(tail) + 1;
+        filename = malloc(string_length);
+        if (pad) {
+            char framespec[10];
+            frame = malloc(pad+1);
+            snprintf(framespec, 10, "%%0%dd", pad);
+            snprintf(frame, pad+1, framespec, current_frame);
+            frame[pad] = '\0';
+        } else if (first_frame >= 0) {
+            frame = malloc(10);
+            snprintf(frame, 10, "%d", current_frame);
         }
+        strlcpy(filename, head, string_length);
+        if (frame != NULL) {
+            strlcat(filename, frame, string_length);
+            free(frame);
+            frame = NULL;
+        }
+        strlcat(filename, tail, string_length);
 
         ClearMagickWand(wand);
         /* 
@@ -283,7 +265,7 @@ MOD_decode
 
         current_frame++;
     
-        tc_free(filename);
+        free(filename);
 
         return TC_IMPORT_OK;
     }
@@ -306,9 +288,9 @@ MOD_close
         if (param->fd != NULL)
             pclose(param->fd);
         if (head != NULL)
-            tc_free(head);
+            free(head);
         if (tail != NULL)
-            tc_free(tail);
+            free(tail);
 
         if (wand != NULL) {
             DestroyMagickWand(wand);
