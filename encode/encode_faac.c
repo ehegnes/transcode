@@ -112,6 +112,7 @@ static int faac_configure(TCModuleInstance *self,
 
     /* Set up our default audio parameters */
     /* why can't just use a pointer here? -- FR */
+    /* Because the function returns a pointer to an internal buffer  --AC */
     conf = *faacEncGetCurrentConfiguration(pd->handle);
     conf.mpegVersion = MPEG4;
     conf.aacObjectType = MAIN;
