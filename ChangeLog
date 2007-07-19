@@ -7,6 +7,9 @@
   * aclib/ac.h
   trivial warning reduction fix.
 
+  * configure.in
+  transcode 1.0.4rc1
+
 2007-07-18 Francesco Romani <fromani at gmail dot com>
   * import/import_im.c import/import_imlist.c import/probe_im.c
   backport new IM modules from CVS HEAD.
