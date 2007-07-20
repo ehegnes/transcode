@@ -1,4 +1,8 @@
-2007-07-18 Andrew Church <achurch at achurch dot org>
+2007-07-20 Andrew Church <achurch at achurch dot org>
+  * src/transcode.c
+  Fix bug that forced export frame rate to 25fps regardless of input rate.
+
+2007-07-19 Andrew Church <achurch at achurch dot org>
   * encode/encode_faac.c
   Add a tiny comment.
 
