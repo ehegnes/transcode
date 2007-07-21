@@ -54,7 +54,7 @@ struct tcx11privatedata_ {
     TCX11Source src;
     TCTimer timer;
 
-    uint32_t frame_delay;
+    uint64_t frame_delay;
 
     uint32_t expired;
 };
@@ -99,7 +99,7 @@ static int tc_x11_configure(TCModuleInstance *self,
     priv = self->userdata;
 
     priv->expired = 0;
-    priv->frame_delay = (uint32_t)(1000000.0 / vob->fps); /* microsecs */
+    priv->frame_delay = (uint64_t)(1000000.0 / vob->fps); /* microsecs */
     if (verbose >= TC_DEBUG) {
         tc_log_info(MOD_NAME, "frame delay will be %lu microseconds",
                               (unsigned long)priv->frame_delay);
@@ -184,7 +184,7 @@ static int tc_x11_demultiplex(TCModuleInstance *self,
     }
 
     if (vframe != NULL) {
-        uint32_t elapsed = 0;
+        uint64_t elapsed = 0;
 
         ret = tc_x11source_acquire(&priv->src, vframe->video_buf,
                                    vframe->video_size);

@@ -31,20 +31,35 @@
  */
 
 /*
- * Time unit used in timers: microseconds (1e-6)
+ * Time unit used: microseconds (1e-6)
  * It's EXPECTED that client code requires a timing resolution at least
  * one order of magnitude LESS precise than internal resolution, I.e.
  * milliseconds.
  */
 
+
+/*
+ * tc_gettime:
+ *     return the current time using the best avalaible time source.
+ *
+ * Parameters:
+ *     None.
+ * Return Value:
+ *     time units elapsed since EPOCH.
+ */
+uint64_t tc_gettime(void);
+
+/*************************************************************************/
+
+
 typedef struct tctimer_ TCTimer;
 struct tctimer_ {
-    uint32_t last_time;
+    uint64_t last_time;
     /* timestamp of last timer reading */
 
     int (*fini)(TCTimer *timer);
-    uint32_t (*elapsed)(TCTimer *timer);
-    int (*sleep)(TCTimer *timer, uint32_t amount);
+    uint64_t (*elapsed)(TCTimer *timer);
+    int (*sleep)(TCTimer *timer, uint64_t amount);
 };
 
 int tc_timer_init_soft(TCTimer *timer, uint16_t frequency);
@@ -84,7 +99,7 @@ static int tc_timer_fini(TCTimer *timer)
 #ifdef HAVE_GCC_ATTRIBUTES
 __attribute__((unused))
 #endif
-static uint32_t tc_timer_elapsed(TCTimer *timer)
+static uint64_t tc_timer_elapsed(TCTimer *timer)
 {
     return timer->elapsed(timer);
 }
@@ -111,7 +126,7 @@ static uint32_t tc_timer_elapsed(TCTimer *timer)
 #ifdef HAVE_GCC_ATTRIBUTES
 __attribute__((unused))
 #endif
-static int tc_timer_sleep(TCTimer *timer, uint32_t amount)
+static int tc_timer_sleep(TCTimer *timer, uint64_t amount)
 {
     return timer->sleep(timer, amount);
 }

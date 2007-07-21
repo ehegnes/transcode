@@ -29,18 +29,18 @@
 /*************************************************************************/
 /* utilities */
 
-static inline uint32_t tc_timer_timeval_to_microsecs(struct timeval *tv)
+static inline uint64_t tc_timeval_to_microsecs(const struct timeval *tv)
 {
     return (tv->tv_sec * 1000000 + tv->tv_usec);
 }
 
-static uint32_t tc_timer_current(void)
+uint64_t tc_gettime(void)
 {
     struct timeval tv;
 
     gettimeofday(&tv, NULL);
 
-    return tc_timer_timeval_to_microsecs(&tv);
+    return tc_timeval_to_microsecs(&tv);
 }  
 
 /*************************************************************************/
@@ -48,9 +48,9 @@ static uint32_t tc_timer_current(void)
 
 /*************************************************************************/
 
-static uint32_t tc_timer_generic_elapsed(TCTimer *timer)
+static uint64_t tc_timer_generic_elapsed(TCTimer *timer)
 {
-    uint32_t r = 0, t = tc_timer_current();
+    uint64_t r = 0, t = tc_gettime();
     r = t - timer->last_time;
     timer->last_time = t;
     return r;
@@ -66,7 +66,7 @@ static int tc_timer_soft_fini(TCTimer *timer)
     return 0; /* no internal state -> nothing to finalize */
 }
 
-static int tc_timer_soft_sleep(TCTimer *timer, uint32_t amount)
+static int tc_timer_soft_sleep(TCTimer *timer, uint64_t amount)
 {
     struct timespec ts, tr;
     int ret;
@@ -101,7 +101,7 @@ int tc_timer_init_soft(TCTimer *timer, uint16_t frequency)
 
     if (timer != NULL) {
         /* frequency: ignored, we relies on nanosleep() */
-        timer->last_time = tc_timer_current();
+        timer->last_time = tc_gettime();
 
         timer->elapsed = tc_timer_generic_elapsed;
         timer->sleep = tc_timer_soft_sleep;
