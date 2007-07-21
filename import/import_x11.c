@@ -16,6 +16,15 @@
 
 #include "x11source.h"
 
+/*
+ * TODO before 1.1.0 (approx. priority order)
+ * - Improve framerate emulation.
+ *   It isn't easy without encoder support, and we will not have
+ *   any smarter encoder at least until 1.2.0.
+ * - Grab cursor.
+ * - Make faster where feasible.
+ */
+
 #define LEGACY 1
 
 #ifdef LEGACY
