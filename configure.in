@@ -534,6 +534,16 @@ if test x"${USE_X11}" = x"yes" ; then
     [have_xshm=no],
     [$X_LIBS $X_PRE_LIBS -lXext -lX11 $X_EXTRA_LIBS])
 
+  AC_CHECK_LIB(Xfixes, XFixesQueryExtension,
+    [have_xfixes=yes
+      AC_DEFINE([HAVE_X11_FIXES], 1,
+        [Have XFixes support])],
+    [have_xfixes=no],
+    [$X_LIBS $X_PRE_LIBS -lXext -lX11 -lXfixes $X_EXTRA_LIBS])
+  if test x"$have_xfixes" = x"yes" ; then
+    X_EXTRA_LIBS="$X_EXTRA_LIBS -lXfixes"
+  fi
+
   AC_CHECK_HEADERS([X11/Xaw/Simple.h],
     [have_xaw_simple=yes
       AC_DEFINE([HAVE_XAW_SIMPLE], 1,
@@ -549,12 +559,14 @@ if test x"${USE_X11}" = x"yes" ; then
 else
   have_xv="no"
   have_xshm="no"
+  have_xfixes="no"
   have_xaw_simple="no"
   have_xpm="no"
 fi
 
 AM_CONDITIONAL(HAVE_LIBXV, test x"$have_xv" = x"yes")
 AM_CONDITIONAL(HAVE_X11_SHM, test x"$have_xshm" = x"yes")
+AM_CONDITIONAL(HAVE_X11_FIXES, test x"$have_xfixes" = x"yes")
 AM_CONDITIONAL(HAVE_XAW_SIMPLE, test x"$have_xaw_simple" = x"yes" )
 AM_CONDITIONAL(HAVE_LIBXPM, test x"$have_xpm" = x"yes")
 
@@ -1492,10 +1504,11 @@ optional package support
 ----------------------------------------
 IBP (libxio)                   $have_ibp
 X11                            $USE_X11
-    Xv extension               $have_xv
-    Xshm extension             $have_xshm
-    Xaw library                $have_xaw_simple
-    Xpm library                $have_xpm
+    Xv      extension          $have_xv
+    Xshm    extension          $have_xshm
+    Xfixes  extension          $have_xfixes
+    Xaw     library            $have_xaw_simple
+    Xpm     library            $have_xpm
 ])
 
 TC_PKG_REPORT

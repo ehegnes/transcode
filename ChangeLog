@@ -2,6 +2,15 @@
   * (everything)
   created transcode 1.1.x branch (-r transcode_1_1)
 
+  * configure.in 
+  detect XFixes avalability, needed by cursor grabbing facilties.
+
+  * import/import_x11.c
+  better timing handling (still needs some work)
+
+  * import/x11source.c
+  cursor grabbing foundations.
+
 2007-07-21 Francesco Romani <fromani at gmail dot com>
   * libtc/tctimer.c libtc/tctimer.h
   increase resolution in timer.
