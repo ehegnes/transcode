@@ -1,6 +1,6 @@
 /*
  * framebuffer.c - audio/video frame ringbuffers, reloaded.
- * (C) 2005-2006 - Francesco Romani <fromani -at- gmail -dot- com>
+ * (C) 2005-2007 - Francesco Romani <fromani -at- gmail -dot- com>
  * Based on code written by Thomas Oestreich.
  *
  * This file is part of transcode, a video stream processing tool.

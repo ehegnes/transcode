@@ -12,6 +12,36 @@
   * import/x11source.c import/x11source.h
   cursor grabbing foundations.
 
+  * avilib/wavlib.c avilib/wavlib.h encode/encode_copy.c encode/encode_lzo.c
+    encode/encode_lavc.c encode/encode_null.c encode/encode_xvid.c
+    filter/preview/filter_sdlview.c import/import_alsa.c import/import_x11.c
+    import/probe_ffmpeg.c import/probe_mplayer.c import/probe_wav.c
+    import/probe_x11.c import/x11source.c import/x11source.h
+    libtc/ratiocodes.c libtc/ratiocodes.h libtc/tcavcodec.h libtc/tccodecs.c
+    libtc/tcframes.c libtc/tcframes.h libtc/tcglob.c libtc/tcglob.h
+    libtc/tcmodule-core.h libtc/tcmodule-data.h libtc/tcmodule-info.h
+    libtc/tcmodule-plugin.h libtc/tcmodule.c libtc/tcmoduleinfo.c
+    libtc/tctimer.c libtc/tctimer.h multiplex/multiplex_avi.c
+    multiplex/multiplex_null.c multiplex/multiplex_raw.c
+    multiplex/multiplex_y4m.c src/export_profile.c
+    src/export_profile.h src/framebuffer.c src/framebuffer.h
+    testsuite/test-bufalloc.c testsuite/test-export-profile.c
+    testsuite/test-framealloc.c testsuite/test-iodir.c
+    testsuite/test-mangle-cmdline.c testsuite/test-ratiocodes.c
+    testsuite/test-resize-values.c testsuite/test-tcglob.c
+    testsuite/test-tclog.c testsuite/test-tcmodule.c
+    testsuite/test-tcmoduleinfo.c testsuite/test-tcstrdup.c tools/rawsource.c
+    tools/rawsource.h tools/tcexport.c tools/tcmodchain.c
+  OK, that's (*really*) boring but needed. Bump copyright year for every (?)
+  file written by me, AND put every file on which I have full copyright
+  (I.e. every piece of transcode written by myself at least at 99%) under
+  GPL strict v2 license. In short: drop the 'or later' in GPL statement.
+  Rationale for that: I have'nt fully read, studied and understood GPL v3
+  at this moment, and I don't blindly trust anybody, included FSF (even
+  I frankly think that I'll end agree and adopt GPL v3 for future code).
+  PLEASE let me know if I've wrongly modified files which aren't copyrighted
+  by myself.
+
 2007-07-21 Francesco Romani <fromani at gmail dot com>
   * libtc/tctimer.c libtc/tctimer.h
   increase resolution in timer.

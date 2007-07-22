@@ -1,11 +1,10 @@
 /*
  * import_alsa.c -- module for importing audio through ALSA
- * Written by Francesco Romani <fromani@gmail.com>
+ * (C) 2007 - Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
  * transcode is free software, distributable under the terms of the GNU
- * General Public License (version 2 or later).  See the file COPYING
- * for details.
+ * General Public License version 2.  See the file COPYING for details.
  */
 
 

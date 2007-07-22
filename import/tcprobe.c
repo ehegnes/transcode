@@ -3,7 +3,7 @@
  *
  *  Copyright (C) Thomas Oestreich - June 2001
  *  updated by
- *  Francesco Romani - >pril 206
+ *  Francesco Romani - April 206
  *
  *  This file is part of transcode, a video stream processing tool
  *
