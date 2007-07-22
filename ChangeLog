@@ -9,7 +9,7 @@
   * import/import_x11.c
   better timing handling (still needs some work)
 
-  * import/x11source.c
+  * import/x11source.c import/x11source.h
   cursor grabbing foundations.
 
 2007-07-21 Francesco Romani <fromani at gmail dot com>
