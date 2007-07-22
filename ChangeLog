@@ -1,6 +1,7 @@
 2007-07-22 Francesco Romani <fromani at gmail dot com>
   * (everything)
-  created transcode 1.1.x branch (-r transcode_1_1)
+  created transcode 1.1.x branch (-r transcode_1_1).
+  transcode 1.1.0alpha0.
 
   * configure.in 
   detect XFixes avalability, needed by cursor grabbing facilties.
