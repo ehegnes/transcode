@@ -1,3 +1,7 @@
+2007-07-22 Francesco Romani <fromani at gmail dot com>
+  * (everything)
+  created transcode 1.1.x branch (-r transcode_1_1)
+
 2007-07-21 Francesco Romani <fromani at gmail dot com>
   * libtc/tctimer.c libtc/tctimer.h
   increase resolution in timer.
