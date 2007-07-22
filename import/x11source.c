@@ -47,7 +47,6 @@ static void tc_x11source_acquire_cursor_fixes(TCX11Source *handle,
 
 #endif /* HAVE_X11_FIXES */
 
-
 /* FIXME: explain why don't use funcpointers in here */
 static void tc_x11source_acquire_cursor_plain(TCX11Source *handle,
                                               uint8_t *data, int maxdata)

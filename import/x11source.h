@@ -76,7 +76,8 @@ struct tcX11source_ {
     int conv_fmt; /* precomputed tcv_convert identifier */
     TCVHandle tcvhandle;
 
-    int (*acquire_data)(TCX11Source *handle, uint8_t *data, int maxdata);
+    int (*acquire_image)(TCX11Source *handle, uint8_t *data, int maxdata);
+    void (*acquire_cursor)(TCX11Source *handle, uint8_t *data, int maxdata);
     int (*fini)(TCX11Source *handle);
 };
 
