@@ -1,3 +1,11 @@
+2007-07-28 Francesco Romani <fromani at gmail dot com>
+  * import/import_x11.c import/x11source.c import/x11source.h
+  X11 overhaul part 1: improve internal frame rate emulation (still pretty
+  inaccurate :( ), first bits of cursor grabbing.
+  Better GPL preamble, this should be FSF-compliant.
+  Back again to GPL v2 or later, since strict GPL v2 is not compatible with
+  v3 (and that makes me bad).
+
 2007-07-22 Francesco Romani <fromani at gmail dot com>
   * (everything)
   created transcode 1.1.x branch (-r transcode_1_1).
