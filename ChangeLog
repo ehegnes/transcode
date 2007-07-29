@@ -1,3 +1,11 @@
+2007-07-29 Francesco Romani <fromani at gmail dot com>
+  * libtc/tcmodule-plugin.h
+  more macro helpers.
+
+  * filter/filter_invert.c
+  port to NMS. Courtesy of
+  Branko Kokanovic <branko dot kokanovic at gmail dot com>
+
 2007-07-21 Francesco Romani <fromani at gmail dot com>
   * libtc/tctimer.c libtc/tctimer.h
   increase resolution in timer.
