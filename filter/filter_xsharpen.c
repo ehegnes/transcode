@@ -676,7 +676,7 @@ static int xsharpen_process(TCModuleInstance *self,
 {
     TC_MODULE_SELF_CHECK(self, "process");
 
-    if (frame->tag & TC_VIDEO && frame->tag & TC_POST_M_PROCESS) {
+    if ((frame->tag & TC_VIDEO) && (frame->tag & TC_POST_M_PROCESS)) {
         return xsharpen_filter_video(self, (vframe_list_t*)frame);
     }
     return TC_OK;
