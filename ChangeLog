@@ -6,6 +6,9 @@
   scale pixel packet before accessing it.
   This is supposed to 1) be safer 2) solve the ImageMagick 6.3.x HDR issues.
 
+  * configure.in
+  transcode 1.0.4rc2
+
 2007-07-19 Francesco Romani <fromani at gmail dot com>
   * import/import_im.c import/import_imlist.c import/probe_im.c configure.in
   backport IM fixes from HEAD (typos and wand header mess sanitization).
