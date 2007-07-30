@@ -2,6 +2,7 @@
   * filter/filter_facemask.c filter/filter_xsharpen.c
   port to NMS. Courtesy of
   Branko Kokanovic <branko dot kokanovic at gmail dot com>
+  Minor fixes and cleanups by me.
 
 2007-07-29 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule-plugin.h

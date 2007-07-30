@@ -26,6 +26,7 @@
 #define MOD_VERSION "v0.2.1 (2007-07-29)"
 #define MOD_CAP     "Mask people faces in video interviews."
 #define MOD_AUTHOR  "Julien Tierny"
+
 #define MOD_FEATURES \
     TC_MODULE_FEATURE_FILTER|TC_MODULE_FEATURE_VIDEO
 #define MOD_FLAGS \
@@ -64,73 +65,77 @@ static const char facemask_help[]=""
 
 /*************************************************************************/
 typedef struct {
-	int 	xpos;
-	int	ypos;
-	int	xresolution;
-	int	yresolution;
-	int	xdim;
-	int	ydim;
-	TCVHandle tcvhandle;
-    int codec;
-    char conf_str[TC_BUF_MIN];
+    int       xpos;
+    int       ypos;
+    int       xresolution;
+    int       yresolution;
+    int       xdim;
+    int       ydim;
+    TCVHandle tcvhandle;
+    int       codec;
+    char      conf_str[TC_BUF_MIN];
 } FacemaskPrivateData;
 
-static int check_parameters(int x, int y, int w, int h, int W, int H, vob_t *vob){
 
-	/* First, we check if the face-zone is contained in the picture */
-	if ((x+W) > vob->im_v_width){
-		tc_log_error(MOD_NAME, "Face zone is larger than the picture !");
-		return -1;
-	}
-	if ((y+H) > vob->im_v_height){
-		tc_log_error(MOD_NAME, "Face zone is taller than the picture !");
-		return -1;
-	}
+static int check_parameters(int x, int y, int w, int h,
+                            int W, int H, vob_t *vob){
 
-	/* Then, we check the resolution */
-	if ((H%h) != 0) {
-		tc_log_error(MOD_NAME, "Uncorrect Y resolution !");
-		return -1;
-	}
-	if ((W%w) != 0) {
-		tc_log_error(MOD_NAME, "Uncorrect X resolution !");
-		return -1;
-	}
-	return 0;
+    /* First, we check if the face-zone is contained in the picture */
+    if ((x+W) > vob->im_v_width){
+        tc_log_error(MOD_NAME, "Face zone is larger than the picture !");
+        return TC_ERROR;
+    }
+    if ((y+H) > vob->im_v_height){
+        tc_log_error(MOD_NAME, "Face zone is taller than the picture !");
+        return TC_ERROR;
+    }
+
+    /* Then, we check the resolution */
+    if ((H%h) != 0) {
+        tc_log_error(MOD_NAME, "Uncorrect Y resolution !");
+        return TC_ERROR;
+    }
+    if ((W%w) != 0) {
+        tc_log_error(MOD_NAME, "Uncorrect X resolution !");
+        return TC_ERROR;
+    }
+    return TC_OK;
 }
 
-static int average_neighbourhood(int x, int y, int w, int h, unsigned char *buffer, int width){
-	unsigned int 	red=0, green=0, blue=0;
-	int 			i=0,j=0;
+static int average_neighbourhood(int x, int y, int w, int h,
+                                 uint8_t *buffer, int width){
+    uint32_t red=0, green=0, blue=0;
+    int      i=0,j=0;
 
-	for (j=y; j<=y+h; j++){
-		for (i=3*(x + width*(j-1)); i<3*(x + w + (j-1)*width); i+=3){
-			red 	+= (int) buffer[i];
-			green 	+= (int) buffer[i+1];
-			blue 	+= (int) buffer[i+2];
-		}
-	}
+    for (j=y; j<=y+h; j++){
+        for (i=3*(x + width*(j-1)); i<3*(x + w + (j-1)*width); i+=3){
+            red     += (int) buffer[i];
+            green   += (int) buffer[i+1];
+            blue    += (int) buffer[i+2];
+        }
+    }
 
-	red 	/= ((w+1)*h);
-	green 	/= ((w+1)*h);
-	blue 	/= ((w+1)*h);
+    red     /= ((w+1)*h);
+    green   /= ((w+1)*h);
+    blue    /= ((w+1)*h);
 
-	/* Now let's print values in buffer */
-	for (j=y; j<y+h; j++)
-		for (i=3*(x + width*(j-1)); i<3*(x + w + (j-1)*width); i+=3){
-			buffer[i] 		= (char)red;
-			buffer[i+1] 	= (char)green;
- 			buffer[i+2]		= (char)blue;
-		}
-	return 0;
+    /* Now let's print values in buffer */
+    for (j=y; j<y+h; j++) {
+        for (i=3*(x + width*(j-1)); i<3*(x + w + (j-1)*width); i+=3) 
+            buffer[i]       = (char)red;
+            buffer[i+1]     = (char)green;
+            buffer[i+2]     = (char)blue;
+        }
+    }
+    return 0;
 }
 
 static int print_mask(int x, int y, int w, int h, int W, int H, vframe_list_t *ptr){
-	int				i=0,j=0;
-	for (j=y; j<=y+H; j+=h)
-		for (i=x; i<=x+W; i+=w)
-			average_neighbourhood(i, j, w, h, ptr->video_buf, ptr->v_width);
-	return 0;
+    int             i=0,j=0;
+    for (j=y; j<=y+H; j+=h)
+        for (i=x; i<=x+W; i+=w)
+            average_neighbourhood(i, j, w, h, ptr->video_buf, ptr->v_width);
+    return 0;
 }
 
 /*************************************************************************/
@@ -182,15 +187,7 @@ static int facemask_init(TCModuleInstance *self, uint32_t features)
 
 static int facemask_fini(TCModuleInstance *self)
 {
-    FacemaskPrivateData *fpd = NULL;
-
     TC_MODULE_SELF_CHECK(self, "fini");
-
-    fpd = self->userdata;
-
-    if (fpd->tcvhandle){
-        tcv_free(fpd->tcvhandle);
-    }
 
     tc_free(self->userdata);
     self->userdata = NULL;
@@ -211,14 +208,11 @@ static int facemask_configure(TCModuleInstance *self,
     FacemaskPrivateData *fpd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "configure");
+    TC_MODULE_SELF_CHECK(vob, "configure");
 
     fpd = self->userdata;
 
-    if(vob == NULL){
-        return TC_ERROR;
-    }
-
-	/* Filter default options */
+    /* Filter default options */
     if (verbose & TC_DEBUG)
         tc_log_info(MOD_NAME, "Preparing default options.");
     fpd->codec          = vob->im_v_codec;
@@ -230,17 +224,17 @@ static int facemask_configure(TCModuleInstance *self,
     fpd->ydim           = 1;
     fpd->tcvhandle      = 0;
 
-	if (options) {
+    if (options) {
         if (verbose >= TC_STATS) {
             tc_log_info(MOD_NAME, "options=%s", options);
         }
-        optstr_get(options, "xpos",  		 	"%d",		&fpd->xpos);
-        optstr_get(options, "ypos",   			"%d",		&fpd->ypos);
-        optstr_get(options, "xresolution",   	"%d",		&fpd->xresolution);
-        optstr_get(options, "yresolution",   	"%d",		&fpd->yresolution);
-        optstr_get(options, "xdim",			   	"%d",		&fpd->xdim);
-        optstr_get(options, "ydim",			   	"%d",		&fpd->ydim);
-	}
+        optstr_get(options, "xpos",             "%d",       &fpd->xpos);
+        optstr_get(options, "ypos",             "%d",       &fpd->ypos);
+        optstr_get(options, "xresolution",      "%d",       &fpd->xresolution);
+        optstr_get(options, "yresolution",      "%d",       &fpd->yresolution);
+        optstr_get(options, "xdim",             "%d",       &fpd->xdim);
+        optstr_get(options, "ydim",             "%d",       &fpd->ydim);
+    }
 
     if (vob->im_v_codec == CODEC_YUV){
         fpd->tcvhandle = tcv_init();
@@ -250,11 +244,9 @@ static int facemask_configure(TCModuleInstance *self,
         }
     }
 
-    if (check_parameters(fpd->xpos, fpd->ypos, fpd->xresolution, fpd->yresolution, fpd->xdim, fpd->ydim, vob) < 0){
-        return TC_ERROR;
-    }
-
-    return TC_OK;
+    return check_parameters(fpd->xpos, fpd->ypos,
+                            fpd->xresolution, fpd->yresolution,
+                            fpd->xdim, fpd->ydim, vob);
 }
 
 /*************************************************************************/
@@ -266,7 +258,17 @@ static int facemask_configure(TCModuleInstance *self,
 
 static int facemask_stop(TCModuleInstance *self)
 {
+    FacemaskPrivateData *fpd = NULL;
+
     TC_MODULE_SELF_CHECK(self, "stop");
+
+    fpd = self->userdata;
+
+    if (fpd->tcvhandle){
+        tcv_free(fpd->tcvhandle);
+    }
+
+
     return TC_OK;
 }
 
@@ -278,7 +280,7 @@ static int facemask_stop(TCModuleInstance *self)
  */
 
 static int facemask_inspect(TCModuleInstance *self,
-                        const char *param, const char **value)
+                            const char *param, const char **value)
 {
     FacemaskPrivateData *fpd = NULL;
 
@@ -292,27 +294,33 @@ static int facemask_inspect(TCModuleInstance *self,
         *value = facemask_help; 
     }
     if (optstr_lookup(param, "xpos")) {
-        tc_snprintf(fpd->conf_str, sizeof(fpd->conf_str),"xpos=%d",fpd->xpos);
+        tc_snprintf(fpd->conf_str, sizeof(fpd->conf_str),
+                    "xpos=%d", fpd->xpos);
         *value = fpd->conf_str;
     }
     if (optstr_lookup(param, "ypos")) {
-        tc_snprintf(fpd->conf_str, sizeof(fpd->conf_str),"ypos=%d",fpd->xpos);
+        tc_snprintf(fpd->conf_str, sizeof(fpd->conf_str),
+                    "ypos=%d", fpd->xpos);
         *value = fpd->conf_str;
     }
     if (optstr_lookup(param, "xresolution")) {
-        tc_snprintf(fpd->conf_str, sizeof(fpd->conf_str),"xresolution=%d",fpd->xpos);
+        tc_snprintf(fpd->conf_str, sizeof(fpd->conf_str),
+                    "xresolution=%d", fpd->xpos);
         *value = fpd->conf_str;
     }
     if (optstr_lookup(param, "yresolution")) {
-        tc_snprintf(fpd->conf_str, sizeof(fpd->conf_str),"yresolution=%d",fpd->xpos);
+        tc_snprintf(fpd->conf_str, sizeof(fpd->conf_str),
+                    "yresolution=%d", fpd->xpos);
         *value = fpd->conf_str;
     }
     if (optstr_lookup(param, "xdim")) {
-        tc_snprintf(fpd->conf_str, sizeof(fpd->conf_str),"xdim=%d",fpd->xpos);
+        tc_snprintf(fpd->conf_str, sizeof(fpd->conf_str),
+                    "xdim=%d", fpd->xpos);
         *value = fpd->conf_str;
     }
     if (optstr_lookup(param, "ydim")) {
-        tc_snprintf(fpd->conf_str, sizeof(fpd->conf_str),"ydim=%d",fpd->xpos);
+        tc_snprintf(fpd->conf_str, sizeof(fpd->conf_str),
+                    "ydim=%d", fpd->xpos);
         *value = fpd->conf_str;
     }
 
@@ -335,27 +343,34 @@ static int facemask_filter_video(TCModuleInstance *self, vframe_list_t *frame)
     TC_MODULE_SELF_CHECK(frame, "filer_video");
 
     fpd = self->userdata;
-    post = (frame->tag & TC_POST_M_PROCESS);
 
-    if(post && !(frame->attributes & TC_FRAME_IS_SKIPPED)) {
+    if (!(frame->attributes & TC_FRAME_IS_SKIPPED)) {
         switch(fpd->codec){
             case CODEC_RGB:
-                return print_mask(fpd->xpos, fpd->ypos, fpd->xresolution, fpd->yresolution, fpd->xdim, fpd->ydim, frame);
+                return print_mask(fpd->xpos, fpd->ypos,
+                                  fpd->xresolution, fpd->yresolution,
+                                  fpd->xdim, fpd->ydim, frame);
                 break;
             case CODEC_YUV:
-                if (!tcv_convert(fpd->tcvhandle, frame->video_buf, frame->video_buf, frame->v_width, frame->v_height,
-                        IMG_YUV_DEFAULT, IMG_RGB24)){
-                    tc_log_error(MOD_NAME, "cannot convert YUV stream to RGB format !");
-                    return TC_ERROR;
-				}
-
-                if ((print_mask(fpd->xpos, fpd->ypos, fpd->xresolution, fpd->yresolution, fpd->xdim, fpd->ydim, frame))<0) {
+                if (!tcv_convert(fpd->tcvhandle, frame->video_buf, frame->video_buf,
+                                 frame->v_width, frame->v_height,
+                                 IMG_YUV_DEFAULT, IMG_RGB24)){
+                    tc_log_error(MOD_NAME,
+                                 "cannot convert YUV stream to RGB format !");
                     return TC_ERROR;
                 }
 
-                if (!tcv_convert(fpd->tcvhandle, frame->video_buf, frame->video_buf, frame->v_width, frame->v_height,
-                        IMG_RGB24, IMG_YUV_DEFAULT)){
-                    tc_log_error(MOD_NAME, "cannot convert RGB stream to YUV format !");
+                if ((print_mask(fpd->xpos, fpd->ypos,
+                                fpd->xresolution, fpd->yresolution,
+                                fpd->xdim, fpd->ydim, frame)) < 0) {
+                    return TC_ERROR;
+                }
+
+                if (!tcv_convert(fpd->tcvhandle, frame->video_buf, frame->video_buf,
+                                 frame->v_width, frame->v_height,
+                                 IMG_RGB24, IMG_YUV_DEFAULT)){
+                    tc_log_error(MOD_NAME,
+                                 "cannot convert RGB stream to YUV format !");
                     return TC_ERROR;
                 }
                 break;
@@ -422,13 +437,26 @@ static int facemask_get_config(TCModuleInstance *self, char *options)
     optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION,
                        MOD_AUTHOR, "VRYMEO", "1");
 
-    optstr_param (options, "help", "Mask people faces in video interviews", "", "0");
-    optstr_param(options, "xpos", "Position of the upper left corner of the mask (x)", "%d", "0", "0", "oo");
-    optstr_param(options, "ypos", "Position of the upper left corner of the mask (y)", "%d", "0", "0", "oo");
-    optstr_param(options, "xresolution", "Resolution of the mask (width)", "%d", "0", "1", "oo");
-    optstr_param(options, "yresolution", "Resolution of the mask (height)", "%d", "0", "1", "oo");
-    optstr_param(options, "xdim", "Width of the mask (= n*xresolution)", "%d", "0", "1", "oo");
-    optstr_param(options, "ydim", "Height of the mask (= m*yresolution)", "%d", "0", "1", "oo");
+    optstr_param(options, "help", "Mask people faces in video interviews",
+                 "", "0");
+    optstr_param(options, "xpos",
+                 "Position of the upper left corner of the mask (x)",
+                 "%d", "0", "0", "oo");
+    optstr_param(options, "ypos",
+                 "Position of the upper left corner of the mask (y)",
+                 "%d", "0", "0", "oo");
+    optstr_param(options, "xresolution",
+                 "Resolution of the mask (width)",
+                 "%d", "0", "1", "oo");
+    optstr_param(options, "yresolution",
+                 "Resolution of the mask (height)",
+                 "%d", "0", "1", "oo");
+    optstr_param(options, "xdim",
+                 "Width of the mask (= n*xresolution)",
+                 "%d", "0", "1", "oo");
+    optstr_param(options, "ydim",
+                 "Height of the mask (= m*yresolution)",
+                 "%d", "0", "1", "oo");
 
     return TC_OK;
 }
@@ -438,7 +466,7 @@ static int facemask_process(TCModuleInstance *self,
 {
     TC_MODULE_SELF_CHECK(self, "process");
 
-    if (frame->tag & TC_VIDEO) {
+    if (frame->tag & TC_VIDEO && frame->tag & TC_POST_M_PROCESS)) {
         return facemask_filter_video(self, (vframe_list_t*)frame);
     }
     return TC_OK;
