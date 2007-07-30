@@ -8,6 +8,10 @@ AM_CPPFLAGS = \
 
 pkgdir = $(MOD_PATH)
 
+if HAVE_LIBDV
+ENCODE_DV = encode_dv.la
+endif
+
 if HAVE_FAAC
 ENCODE_FAAC = encode_faac.la
 endif
@@ -31,6 +35,7 @@ endif
 if ENABLE_EXPERIMENTAL
 pkg_LTLIBRARIES = \
 	encode_copy.la \
+	$(ENCODE_DV) \
 	$(ENCODE_FAAC) \
 	encode_lavc.la \
 	$(ENCODE_LAME) \
@@ -42,6 +47,11 @@ endif
 
 encode_copy_la_SOURCES = encode_copy.c
 encode_copy_la_LDFLAGS = -module -avoid-version
+
+encode_dv_la_SOURCES = encode_dv.c
+encode_dv_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBDV_CFLAGS)
+encode_dv_la_LDFLAGS = -module -avoid-version
+encode_dv_la_LIBADD = $(LIBDV_LIBS)
 
 encode_faac_la_SOURCES = encode_faac.c
 encode_faac_la_CPPFLAGS = $(AM_CPPFLAGS) $(FAAC_CFLAGS)

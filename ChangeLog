@@ -4,6 +4,11 @@
   Branko Kokanovic <branko dot kokanovic at gmail dot com>
   Minor fixes and cleanups by me.
 
+  * added file: encode/encode_dv.c
+
+  * encode/Makefile.am
+  add experimental DV encoder, since is here from weeks or months.
+
 2007-07-29 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule-plugin.h
   more macro helpers.
