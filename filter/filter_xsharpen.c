@@ -205,7 +205,7 @@ static int xsharpen_configure(TCModuleInstance *self,
         break;
       default:
         tc_log_error(MOD_NAME, "unsupported colorspace");
-        return TC_ERROR:
+        return TC_ERROR;
     }
 
     if (options) {
@@ -482,7 +482,7 @@ static int xsharpen_rgb_frame(MyFilterData *mfd, vframe_list_t *frame)
 } while (0)
 
 
-#define SEARCH_YUV_LUMA(PTR, X) do {
+#define SEARCH_YUV_LUMA(PTR, X) do { \
     luma = (PTR)[(X)-1] & 0xff; \
     UPDATE_YUV_RANGE(luma); \
     luma = (PTR)[(X)]   & 0xff; \
@@ -498,7 +498,7 @@ static int xsharpen_yuv_frame(MyFilterData *mfd, vframe_list_t *frame)
     const PixDim       height = frame->v_height;
     char              *src, *dst;
     int                x, y;
-    int                luma, lumac, lumamax, lumamin;
+    int                luma = 0, lumac = 0, lumamax, lumamin;
     int                p, mindiff, maxdiff;
     const int          srcpitch = frame->v_width;
     const int          dstpitch = frame->v_width;
@@ -513,7 +513,7 @@ static int xsharpen_yuv_frame(MyFilterData *mfd, vframe_list_t *frame)
 
     /* last */
     src = src_buf+srcpitch*(height-1);
-    dst = mfd->st_buf+dstpitch*(height-1);
+    dst = mfd->dst_buf+dstpitch*(height-1);
     ac_memcpy(dst, src, width);
 
     /* copy Cb and Cr */

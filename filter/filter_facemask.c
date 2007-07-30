@@ -121,7 +121,7 @@ static int average_neighbourhood(int x, int y, int w, int h,
 
     /* Now let's print values in buffer */
     for (j=y; j<y+h; j++) {
-        for (i=3*(x + width*(j-1)); i<3*(x + w + (j-1)*width); i+=3) 
+        for (i=3*(x + width*(j-1)); i<3*(x + w + (j-1)*width); i+=3) { 
             buffer[i]       = (char)red;
             buffer[i+1]     = (char)green;
             buffer[i+2]     = (char)blue;
@@ -337,7 +337,6 @@ static int facemask_inspect(TCModuleInstance *self,
 static int facemask_filter_video(TCModuleInstance *self, vframe_list_t *frame)
 {
     FacemaskPrivateData *fpd = NULL;
-    int post = 0;
 
     TC_MODULE_SELF_CHECK(self, "filer_video");
     TC_MODULE_SELF_CHECK(frame, "filer_video");
@@ -466,7 +465,7 @@ static int facemask_process(TCModuleInstance *self,
 {
     TC_MODULE_SELF_CHECK(self, "process");
 
-    if (frame->tag & TC_VIDEO && frame->tag & TC_POST_M_PROCESS)) {
+    if ((frame->tag & TC_VIDEO) && (frame->tag & TC_POST_M_PROCESS)) {
         return facemask_filter_video(self, (vframe_list_t*)frame);
     }
     return TC_OK;
