@@ -137,15 +137,14 @@ typedef struct vframe_list {
 
 vframe_list_t *vframe_register(int id);
 void vframe_remove(vframe_list_t *ptr);
-vframe_list_t *vframe_retrieve();
+vframe_list_t *vframe_retrieve(void);
 vframe_list_t *vframe_dup(vframe_list_t *f);
 vframe_list_t *vframe_retrieve_status(int old_status, int new_status);
 void vframe_set_status(vframe_list_t *ptr, int status);
 int vframe_alloc(int num);
-void vframe_free();
-void vframe_flush();
+void vframe_free(void);
+void vframe_flush(void);
 int vframe_fill_level(int status);
-void vframe_fill_print();
 void vframe_fill_print(int r);
 
 extern pthread_mutex_t vframe_list_lock;
@@ -192,13 +191,13 @@ typedef struct aframe_list {
 
 aframe_list_t *aframe_register(int id);
 void aframe_remove(aframe_list_t *ptr);
-aframe_list_t *aframe_retrieve();
+aframe_list_t *aframe_retrieve(void);
 aframe_list_t *aframe_dup(aframe_list_t *f);
 aframe_list_t *aframe_retrieve_status(int old_status, int new_status);
 void aframe_set_status(aframe_list_t *ptr, int status);
 int aframe_alloc(int num);
-void aframe_free();
-void aframe_flush();
+void aframe_free(void);
+void aframe_flush(void);
 int aframe_fill_level(int status);
 void aframe_fill_print(int r);
 

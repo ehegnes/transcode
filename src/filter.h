@@ -55,11 +55,11 @@ extern char *plugins_string;
 int process_vid_plugins(vframe_list_t *ptr);
 int process_aud_plugins(aframe_list_t *ptr);
 
-int plugin_close();
-int filter_close();
+int plugin_close(void);
+int filter_close(void);
 
 int plugin_init(vob_t *vob);
-int filter_init();
+int filter_init(void);
 
 // instance maybe -1 to pick the first match
 filter_t * plugin_by_name (char *name, int instance);

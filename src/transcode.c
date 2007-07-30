@@ -574,7 +574,7 @@ int transcoder(int mode, vob_t *vob)
       filter_close();
       
       // and unload plugin
-      plugin_close(vob);
+      plugin_close();
       
       // unload export modules
       export_shutdown();
