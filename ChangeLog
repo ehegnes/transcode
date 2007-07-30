@@ -2,6 +2,10 @@
   * src/filter.h src/framebuffer.h src/transcode.c
   trivial warning reduction fix.
 
+  * filter/filter_compare.c filter/filter_logo.c filter/filter_logoaway.c
+  scale pixel packet before accessing it.
+  This is supposed to 1) be safer 2) solve the ImageMagick 6.3.x HDR issues.
+
 2007-07-19 Francesco Romani <fromani at gmail dot com>
   * import/import_im.c import/import_imlist.c import/probe_im.c configure.in
   backport IM fixes from HEAD (typos and wand header mess sanitization).

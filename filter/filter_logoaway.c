@@ -176,6 +176,7 @@ void work_with_rgb_frame(char *buffer, int width, int height, int instance)
   unsigned char hcalc, vcalc;
   int buf_off, packet_off, buf_off_xpos, buf_off_width, buf_off_ypos, buf_off_height;
   int alpha_hori, alpha_vert;
+  uint8_t px;
 
   if(data[instance]->dump) { // DUMP
     for(row=data[instance]->ypos; row<data[instance]->height; ++row) {
@@ -216,13 +217,16 @@ void work_with_rgb_frame(char *buffer, int width, int height, int instance)
           packet_off = (row-data[instance]->ypos) * (data[instance]->width-data[instance]->xpos) + (col-data[instance]->xpos);
 
           /* R */
-          buffer[buf_off +0] = data[instance]->alpha?(alpha_blending( buffer[buf_off +0],  data[instance]->rcolor,  data[instance]->pixel_packet[packet_off].red >> 8 )):data[instance]->rcolor;
+          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off].red);
+          buffer[buf_off +0] = data[instance]->alpha?(alpha_blending( buffer[buf_off +0],  data[instance]->rcolor,  px )):data[instance]->rcolor;
 
           /* G */
-          buffer[buf_off +1] = data[instance]->alpha?(alpha_blending( buffer[buf_off +1],  data[instance]->gcolor,  data[instance]->pixel_packet[packet_off].green >> 8 )):data[instance]->gcolor;
+          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off].green);
+          buffer[buf_off +1] = data[instance]->alpha?(alpha_blending( buffer[buf_off +1],  data[instance]->gcolor,  px )):data[instance]->gcolor;
 
           /* B */
-          buffer[buf_off +2] = data[instance]->alpha?(alpha_blending( buffer[buf_off +2],  data[instance]->bcolor,  data[instance]->pixel_packet[packet_off].blue >> 8 )):data[instance]->bcolor;
+          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off].blue);
+          buffer[buf_off +2] = data[instance]->alpha?(alpha_blending( buffer[buf_off +2],  data[instance]->bcolor,  px )):data[instance]->bcolor;
         }
       }
 
@@ -254,17 +258,20 @@ void work_with_rgb_frame(char *buffer, int width, int height, int instance)
           /* R */
           hcalc = alpha_blending( buffer[buf_off_xpos +0], buffer[buf_off_width  +0], alpha_hori );
           vcalc = alpha_blending( buffer[buf_off_ypos +0], buffer[buf_off_height +0], alpha_vert );
-          buffer[buf_off +0] = data[instance]->alpha?alpha_blending( buffer[buf_off +0], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, data[instance]->pixel_packet[packet_off].red >> 8):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+          px    = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off].red);
+          buffer[buf_off +0] = data[instance]->alpha?alpha_blending( buffer[buf_off +0], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, px):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
 
           /* G */
           hcalc = alpha_blending( buffer[buf_off_xpos +1], buffer[buf_off_width  +1], alpha_hori );
           vcalc = alpha_blending( buffer[buf_off_ypos +1], buffer[buf_off_height +1], alpha_vert );
-          buffer[buf_off +1] = data[instance]->alpha?alpha_blending( buffer[buf_off +1], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, data[instance]->pixel_packet[packet_off].red >> 8):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+          /* sic */
+          buffer[buf_off +1] = data[instance]->alpha?alpha_blending( buffer[buf_off +1], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, px):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
 
           /* B */
           hcalc = alpha_blending( buffer[buf_off_xpos +2], buffer[buf_off_width  +2], alpha_hori );
           vcalc = alpha_blending( buffer[buf_off_ypos +2], buffer[buf_off_height +2], alpha_vert );
-          buffer[buf_off +2] = data[instance]->alpha?alpha_blending( buffer[buf_off +2], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, data[instance]->pixel_packet[packet_off].red >> 8):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+          /* sic */
+          buffer[buf_off +2] = data[instance]->alpha?alpha_blending( buffer[buf_off +2], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, px):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
         }
       }
 
@@ -293,33 +300,40 @@ void work_with_rgb_frame(char *buffer, int width, int height, int instance)
           buf_off_height = ((height-data[instance]->height)*width+col) * 3;
 
           i=0;
-          while( (data[instance]->pixel_packet[packet_off-i].red != 65535) && (col-i>data[instance]->xpos) ) i++;   // FIXME : ImageMagick MaxRGB=256 oder 65536
+          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off-i].red);
+          while( (px != 255) && (col-i>data[instance]->xpos) ) i++;
           buf_off_xpos   = ((height-row)*width + col-i) * 3;
           i=0;
-          while( (data[instance]->pixel_packet[packet_off+i].red != 65535) && (col+i<data[instance]->width) ) i++;
+          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off+i].red);
+          while( (px != 255) && (col+i<data[instance]->width) ) i++;
           buf_off_width  = ((height-row)*width + col+i) * 3;
 
           i=0;
-          while( (data[instance]->pixel_packet[packet_off-i*(data[instance]->width-data[instance]->xpos)].red != 65535) && (row-i>data[instance]->ypos) ) i++;
+          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off-i*(data[instance]->width-data[instance]->xpos)].red);
+          while( (px != 255) && (row-i>data[instance]->ypos) ) i++;
           buf_off_ypos   = (height*width*3)-((row-i)*width - col) * 3;
           i=0;
-          while( (data[instance]->pixel_packet[packet_off+i*(data[instance]->width-data[instance]->xpos)].red != 65535) && (row+i<data[instance]->height) ) i++;
+          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off+i*(data[instance]->width-data[instance]->xpos)].red);
+          while( (px != 255) && (row+i<data[instance]->height) ) i++;
           buf_off_height = (height*width*3)-((row+i)*width - col) * 3;
 
           /* R */
           hcalc = alpha_blending( buffer[buf_off_xpos +0], buffer[buf_off_width  +0], alpha_hori );
           vcalc = alpha_blending( buffer[buf_off_ypos +0], buffer[buf_off_height +0], alpha_vert );
-          buffer[buf_off +0] = data[instance]->alpha?alpha_blending( buffer[buf_off +0], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, data[instance]->pixel_packet[packet_off].red >> 8):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+          px    = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off].red);
+          buffer[buf_off +0] = data[instance]->alpha?alpha_blending( buffer[buf_off +0], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, px):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
 
           /* G */
           hcalc = alpha_blending( buffer[buf_off_xpos +1], buffer[buf_off_width  +1], alpha_hori );
           vcalc = alpha_blending( buffer[buf_off_ypos +1], buffer[buf_off_height +1], alpha_vert );
-          buffer[buf_off +1] = data[instance]->alpha?alpha_blending( buffer[buf_off +1], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, data[instance]->pixel_packet[packet_off].red >> 8):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+          /* sic */
+          buffer[buf_off +1] = data[instance]->alpha?alpha_blending( buffer[buf_off +1], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, px):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
 
           /* B */
           hcalc = alpha_blending( buffer[buf_off_xpos +2], buffer[buf_off_width  +2], alpha_hori );
           vcalc = alpha_blending( buffer[buf_off_ypos +2], buffer[buf_off_height +2], alpha_vert );
-          buffer[buf_off +2] = data[instance]->alpha?alpha_blending( buffer[buf_off +2], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, data[instance]->pixel_packet[packet_off].red >> 8):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+          /* sic */
+          buffer[buf_off +2] = data[instance]->alpha?alpha_blending( buffer[buf_off +2], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, px):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
         }
       }
 
@@ -367,6 +381,7 @@ void work_with_yuv_frame(char *buffer, int width, int height, int instance)
   unsigned char hcalc, vcalc;
   int buf_off, packet_off=0, buf_off_xpos, buf_off_width, buf_off_ypos, buf_off_height;
   int alpha_hori, alpha_vert;
+  uint8_t px;
 
   craddr = (width * height);
   cbaddr = (width * height) * 5 / 4;
@@ -385,8 +400,9 @@ void work_with_yuv_frame(char *buffer, int width, int height, int instance)
 
           buf_off = row*width+col;
           packet_off = (row-data[instance]->ypos) * (data[instance]->width-data[instance]->xpos) + (col-data[instance]->xpos);
+          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off].red);
 
-          buffer[buf_off] = data[instance]->alpha?alpha_blending( buffer[buf_off], data[instance]->ycolor, data[instance]->pixel_packet[packet_off].red >> 8):data[instance]->ycolor;
+          buffer[buf_off] = data[instance]->alpha?alpha_blending( buffer[buf_off], data[instance]->ycolor, px):data[instance]->ycolor;
         }
       }
 
@@ -397,8 +413,10 @@ void work_with_yuv_frame(char *buffer, int width, int height, int instance)
           buf_off = row*width/2+col;
           packet_off = (row*2-data[instance]->ypos) * (data[instance]->width-data[instance]->xpos) + (col*2-data[instance]->xpos);
 
-          buffer[craddr + buf_off] = data[instance]->alpha?alpha_blending( buffer[craddr + buf_off], data[instance]->ucolor, data[instance]->pixel_packet[packet_off].red >> 8):data[instance]->ucolor;
-          buffer[cbaddr + buf_off] = data[instance]->alpha?alpha_blending( buffer[cbaddr + buf_off], data[instance]->vcolor, data[instance]->pixel_packet[packet_off].red >> 8):data[instance]->vcolor;
+          /* sic */
+          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off].red);
+          buffer[craddr + buf_off] = data[instance]->alpha?alpha_blending( buffer[craddr + buf_off], data[instance]->ucolor, px):data[instance]->ucolor;
+          buffer[cbaddr + buf_off] = data[instance]->alpha?alpha_blending( buffer[cbaddr + buf_off], data[instance]->vcolor, px):data[instance]->vcolor;
         }
       }
 
@@ -430,7 +448,8 @@ void work_with_yuv_frame(char *buffer, int width, int height, int instance)
 
           hcalc = alpha_blending( buffer[buf_off_xpos], buffer[buf_off_width],  alpha_hori );
           vcalc = alpha_blending( buffer[buf_off_ypos], buffer[buf_off_height], alpha_vert );
-          buffer[buf_off] = data[instance]->alpha?alpha_blending( buffer[buf_off], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, data[instance]->pixel_packet[packet_off].red >> 8):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off].red);
+          buffer[buf_off] = data[instance]->alpha?alpha_blending( buffer[buf_off], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, px):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
         }
       }
 
@@ -458,11 +477,12 @@ void work_with_yuv_frame(char *buffer, int width, int height, int instance)
 
           hcalc = alpha_blending( buffer[craddr + buf_off_xpos], buffer[craddr + buf_off_width],  alpha_hori );
           vcalc = alpha_blending( buffer[craddr + buf_off_ypos], buffer[craddr + buf_off_height], alpha_vert );
-          buffer[craddr + buf_off] = data[instance]->alpha?alpha_blending( buffer[craddr + buf_off], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, data[instance]->pixel_packet[packet_off].red >> 8):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off].red); /* sic */
+          buffer[craddr + buf_off] = data[instance]->alpha?alpha_blending( buffer[craddr + buf_off], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, px):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
 
           hcalc = alpha_blending( buffer[cbaddr + buf_off_xpos], buffer[cbaddr + buf_off_width],  alpha_hori );
           vcalc = alpha_blending( buffer[cbaddr + buf_off_ypos], buffer[cbaddr + buf_off_height], alpha_vert );
-          buffer[cbaddr + buf_off] = data[instance]->alpha?alpha_blending( buffer[cbaddr + buf_off], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, data[instance]->pixel_packet[packet_off].red >> 8):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+          buffer[cbaddr + buf_off] = data[instance]->alpha?alpha_blending( buffer[cbaddr + buf_off], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, px):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
         }
       }
 
@@ -486,22 +506,27 @@ void work_with_yuv_frame(char *buffer, int width, int height, int instance)
           packet_off = (row-data[instance]->ypos) * (data[instance]->width-data[instance]->xpos) + (col-data[instance]->xpos);
 
           i=0;
-          while( (data[instance]->pixel_packet[packet_off-i].red != 65535) && (col-i>data[instance]->xpos) ) i++;   // FIXME : ImageMagick MaxRGB=256 oder 65536
+          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off-i].red);
+          while( (px != 255) && (col-i>data[instance]->xpos) ) i++;
           buf_off_xpos   = (row*width + col-i);
           i=0;
-          while( (data[instance]->pixel_packet[packet_off+i].red != 65535) && (col+i<data[instance]->width) ) i++;
+          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off+i].red);
+          while( (px != 255) && (col+i<data[instance]->width) ) i++;
           buf_off_width  = (row*width + col+i);
 
           i=0;
-          while( (data[instance]->pixel_packet[packet_off-i*(data[instance]->width-data[instance]->xpos)].red != 65535) && (row-i>data[instance]->ypos) ) i++;
+          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off-i*(data[instance]->width-data[instance]->xpos)].red);
+          while( (px != 255) && (row-i>data[instance]->ypos) ) i++;
           buf_off_ypos   = ((row-i)*width + col);
           i=0;
-          while( (data[instance]->pixel_packet[packet_off+i*(data[instance]->width-data[instance]->xpos)].red != 65535) && (row+i<data[instance]->height) ) i++;
+          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off+i*(data[instance]->width-data[instance]->xpos)].red);
+          while( (px != 255) && (row+i<data[instance]->height) ) i++;
           buf_off_height = ((row+i)*width + col);
 
           hcalc = alpha_blending( buffer[buf_off_xpos], buffer[buf_off_width],  alpha_hori );
           vcalc = alpha_blending( buffer[buf_off_ypos], buffer[buf_off_height], alpha_vert );
-          buffer[buf_off] = data[instance]->alpha?alpha_blending( buffer[buf_off], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, data[instance]->pixel_packet[packet_off].red >> 8):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+          px    = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off].red);
+          buffer[buf_off] = data[instance]->alpha?alpha_blending( buffer[buf_off], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, px):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
         }
       }
 
@@ -519,17 +544,21 @@ void work_with_yuv_frame(char *buffer, int width, int height, int instance)
           alpha_hori = xdistance * distance_west;
 
           i=0;
-          while( (data[instance]->pixel_packet[packet_off-i].red != 65535) && (col-i>data[instance]->xpos) ) i++;   // FIXME : ImageMagick MaxRGB=256 oder 65536
+          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off-i].red);
+          while( (px != 255) && (col-i>data[instance]->xpos) ) i++;
           buf_off_xpos   = (row*width/2 + col-i);
           i=0;
-          while( (data[instance]->pixel_packet[packet_off+i].red != 65535) && (col+i<data[instance]->width) ) i++;
+          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off+i].red);
+          while( (px != 255) && (col+i<data[instance]->width) ) i++;
           buf_off_width  = (row*width/2 + col+i);
 
           i=0;
-          while( (data[instance]->pixel_packet[packet_off-i*(data[instance]->width-data[instance]->xpos)].red != 65535) && (row-i>data[instance]->ypos) ) i++;
+          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off-i*(data[instance]->width-data[instance]->xpos)].red);
+          while( (px != 255) && (row-i>data[instance]->ypos) ) i++;
           buf_off_ypos   = ((row-i)*width/2 + col);
           i=0;
-          while( (data[instance]->pixel_packet[packet_off+i*(data[instance]->width-data[instance]->xpos)].red != 65535) && (row+i<data[instance]->height) ) i++;
+          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off+i*(data[instance]->width-data[instance]->xpos)].red);
+          while( (px != 255) && (row+i<data[instance]->height) ) i++;
           buf_off_height = ((row+i)*width/2 + col);
 
           buf_off = row*width/2+col;
@@ -540,11 +569,13 @@ void work_with_yuv_frame(char *buffer, int width, int height, int instance)
 
           hcalc = alpha_blending( buffer[craddr + buf_off_xpos], buffer[craddr + buf_off_width],  alpha_hori );
           vcalc = alpha_blending( buffer[craddr + buf_off_ypos], buffer[craddr + buf_off_height], alpha_vert );
-          buffer[craddr + buf_off] = data[instance]->alpha?alpha_blending( buffer[craddr + buf_off], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, data[instance]->pixel_packet[packet_off].red >> 8):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+          px    = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off].red);
+          buffer[craddr + buf_off] = data[instance]->alpha?alpha_blending( buffer[craddr + buf_off], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, px):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
 
           hcalc = alpha_blending( buffer[cbaddr + buf_off_xpos], buffer[cbaddr + buf_off_width],  alpha_hori );
           vcalc = alpha_blending( buffer[cbaddr + buf_off_ypos], buffer[cbaddr + buf_off_height], alpha_vert );
-          buffer[cbaddr + buf_off] = data[instance]->alpha?alpha_blending( buffer[cbaddr + buf_off], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, data[instance]->pixel_packet[packet_off].red >> 8):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+          /* sic */
+          buffer[cbaddr + buf_off] = data[instance]->alpha?alpha_blending( buffer[cbaddr + buf_off], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, px):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
         }
       }
 

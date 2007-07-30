@@ -295,13 +295,13 @@ int tc_filter(vframe_list_t *ptr, char *options)
 		    for (column = 0; column < image->columns; column++) {
 
 			mfd->yuv[i][(row * image->columns + column) * 3 + 0] =
-			    pixel_packet[image->columns*row + column].blue;
+                (uint8_t)ScaleQuantumToChar(pixel_packet[image->columns*row + column].blue);
 
 			mfd->yuv[i][(row * image->columns + column) * 3 + 1] =
-			    pixel_packet[image->columns*row + column].green;
+                (uint8_t)ScaleQuantumToChar(pixel_packet[image->columns*row + column].green);
 
 			mfd->yuv[i][(row * image->columns + column) * 3 + 2] =
-			    pixel_packet[image->columns*row + column].red;
+                (uint8_t)ScaleQuantumToChar(pixel_packet[image->columns*row + column].red);
 		    }
 		}
 		images=images->next;
@@ -317,13 +317,13 @@ int tc_filter(vframe_list_t *ptr, char *options)
 		    for (column = 0; column < image->columns; column++) {
 
 			mfd->yuv[i][(row * image->columns + column) * 3 + 0] =
-			    pixel_packet[image->columns*row + column].red;
+                (uint8_t)ScaleQuantumToChar(pixel_packet[image->columns*row + column].red);
 
 			mfd->yuv[i][(row * image->columns + column) * 3 + 1] =
-			    pixel_packet[image->columns*row + column].green;
+                (uint8_t)ScaleQuantumToChar(pixel_packet[image->columns*row + column].green);
 
 			mfd->yuv[i][(row * image->columns + column) * 3 + 2] =
-			    pixel_packet[image->columns*row + column].blue;
+                (uint8_t)ScaleQuantumToChar(pixel_packet[image->columns*row + column].blue);
 		    }
 		}
 		images=images->next;
@@ -468,9 +468,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
 			  int packet_off = (images->rows - row - 1) * images->columns + column;
 			  int ptr_off    = ((row+mfd->posy)* vob->ex_v_width + column+mfd->posx) * 3;
 
-			  ptr->video_buf[ptr_off + 0] = pixel_packet[packet_off].red;
-			  ptr->video_buf[ptr_off + 1] = pixel_packet[packet_off].green;
-			  ptr->video_buf[ptr_off + 2] = pixel_packet[packet_off].blue;
+			  ptr->video_buf[ptr_off + 0] = (uint8_t)ScaleQuantumToChar(pixel_packet[packet_off].red);
+			  ptr->video_buf[ptr_off + 1] = (uint8_t)ScaleQuantumToChar(pixel_packet[packet_off].green);
+			  ptr->video_buf[ptr_off + 2] = (uint8_t)ScaleQuantumToChar(pixel_packet[packet_off].blue);
 		      } /* !opaque */
 		  }
 	      }
@@ -482,9 +482,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
 			  int packet_off = (images->rows - row - 1) * images->columns + column;
 			  int ptr_off    = ((row+mfd->posy)* vob->ex_v_width + column+mfd->posx) * 3;
 
-			  ptr->video_buf[ptr_off + 0] = pixel_packet[packet_off].blue;
-			  ptr->video_buf[ptr_off + 1] = pixel_packet[packet_off].green;
-			  ptr->video_buf[ptr_off + 2] = pixel_packet[packet_off].red;
+			  ptr->video_buf[ptr_off + 0] = (uint8_t)ScaleQuantumToChar(pixel_packet[packet_off].blue);
+			  ptr->video_buf[ptr_off + 1] = (uint8_t)ScaleQuantumToChar(pixel_packet[packet_off].green);
+			  ptr->video_buf[ptr_off + 2] = (uint8_t)ScaleQuantumToChar(pixel_packet[packet_off].red);
 		      } /* !opaque */
 		  }
 	      }

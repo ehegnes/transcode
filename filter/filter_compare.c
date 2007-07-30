@@ -116,7 +116,7 @@ int tc_filter(vframe_list_t *ptr, char *options)
 		optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION,
 				   MOD_AUTHOR, "VRYMO", "1");
 		
--		snprintf(buf, 128, PATTERN_FILE);
+		snprintf(buf, 128, PATTERN_FILE);
 		optstr_param(options, "pattern", "Pattern image file path", "%s", buf);
 		snprintf(buf, 128, RESULTS_FILE);
 		optstr_param(options, "results", "Results file path" , "%s", buf);
@@ -256,9 +256,9 @@ int tc_filter(vframe_list_t *ptr, char *options)
 						temp=(pixelsMask *)malloc(sizeof(struct pixelsMask));
 						temp->row=t;
 						temp->col=r;
-						temp->r = (unsigned char)pixel_packet[index].red;
-						temp->g = (unsigned char)pixel_packet[index].green;
-						temp->b = (unsigned char)pixel_packet[index].blue;
+						temp->r = (uint8_t)ScaleQuantumToChar(pixel_packet[index].red);
+						temp->g = (uint8_t)ScaleQuantumToChar(pixel_packet[index].green);
+						temp->b = (uint8_t)ScaleQuantumToChar(pixel_packet[index].blue);
 						temp->next=NULL;
 						
 						if (pixel_last == NULL){
