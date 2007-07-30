@@ -1,3 +1,7 @@
+2007-07-30 Francesco Romani <fromani at gmail dot com>
+  * filter/filter_compare.c
+  temporary (hopefully) backport the 1.0.x fixes.
+
 2007-07-28 Francesco Romani <fromani at gmail dot com>
   * import/import_x11.c import/x11source.c import/x11source.h
   X11 overhaul part 1: improve internal frame rate emulation (still pretty
