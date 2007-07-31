@@ -38,6 +38,19 @@ static const double frc_table[16] = {
     0
 };
 
+/* WARNING: this table MUST BE in asr order */
+static const double asr_table[8] = {
+    0.0,
+    1.0,
+    (4.0/3.0),
+    (16.0/9.0),
+    (221.0/100.0),
+    0.0,
+    0.0,
+    0.0,
+};
+
+
 /* WARNING: this table MUST BE in frc order */
 static const TCPair frc_ratios[16] = {
     {     0,    0 },
@@ -90,24 +103,40 @@ static const TCPair par_ratios[8] = {
 
 
 #define DELTA 0.0005
-int tc_frc_code_from_value(int *frc_code, double fps)
+static int tc_guess_code_from_value(const double *pairs, size_t len,
+                                    int *code, double val)
 {
-    int frc = TC_NULL_MATCH, i = 0;
+    int idx = TC_NULL_MATCH, i = 0;
     double mindiff = DELTA;
 
-    for (i = 0; i < TABLE_LEN(frc_table); i++) {
-        double diff = fabs(frc_table[i] - fps);
+    for (i = 0; i < len; i++) {
+        double diff = fabs(pairs[i] - val);
         if (diff < mindiff) {
             mindiff = diff;
-            frc = i;
+            idx = i;
         }
     }
-    if (frc_code != NULL && frc != TC_NULL_MATCH) {
-        *frc_code = frc;
+    if (code != NULL && idx != TC_NULL_MATCH) {
+        *code = idx;
     }
-    return frc;
+    return idx;
 }
 #undef DELTA
+
+
+int tc_asr_code_from_value(int *asr_code, double ratio)
+{
+    return tc_guess_code_from_value(asr_table, TABLE_LEN(frc_table),
+                                    asr_code, ratio);
+}
+
+
+int tc_frc_code_from_value(int *frc_code, double fps)
+{
+    return tc_guess_code_from_value(frc_table, TABLE_LEN(frc_table),
+                                    frc_code, fps);
+}
+
 
 int tc_frc_code_to_value(int frc_code, double *fps)
 {

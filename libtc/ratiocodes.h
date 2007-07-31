@@ -59,6 +59,21 @@ do { \
  */
 
 /*
+ * tc_asr_code_from_value:
+ *    detect the right aspect ratio code (asr) given an aspect ratio value as
+ *    real number.
+ *
+ * Parameters:
+ *    asr_code: pointer to integer where detected asr code will be stored.
+ *              Can be NULL: if so, asr code will be detected but not stored.
+ *       ratio: value of frame rate, as real number.
+ * Return Value:
+ *    TC_NULL_MATCH if input value isn't known
+ *    >= 0 otherwise
+ */
+int tc_asr_code_from_value(int *asr_code, double ratio);
+
+/*
  * tc_frc_code_from_value:
  *    detect the right frame ratio code (frc) given a frame rate value as
  *    real number.

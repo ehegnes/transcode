@@ -27,10 +27,18 @@
 #include "probe_stream.h"
 
 #include "libtc/libtc.h"
+#include "libtc/ratiocodes.h"
 
 
 static ProbeInfo probe_info;
 
+static void guess_asr(ProbeInfo *info)
+{
+    if (info != NULL && info->width != 0 && info->height != 0) {
+        double r = (double)info->width/(double)info->height;
+        tc_asr_code_from_value(&(info->asr), r);
+    }
+}
 
 void probe_file(info_t *ipipe)
 {
@@ -204,7 +212,9 @@ void probe_stream(info_t *ipipe)
     } else {
         ipipe->probe_info->magic_xml = ipipe->probe_info->magic;
     }
-
+    if (!ipipe->probe_info->asr) {
+        guess_asr(ipipe->probe_info);
+    }
     return;
 }
 
