@@ -1,3 +1,7 @@
+2007-07-31 Francesco Romani <fromani at gmail dot com>
+  * import/aux_pes.c
+  do not assert random defaults if MPEG sequence has incoorect data.
+
 2007-07-30 Francesco Romani <fromani at gmail dot com>
   * src/filter.h src/framebuffer.h src/transcode.c
   trivial warning reduction fix.
