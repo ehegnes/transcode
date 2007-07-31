@@ -1,5 +1,9 @@
+2007-07-31 Francesco Romani <fromani at gmail dot com>
+  * import/scan_pes.c
+  do not assert random defaults if MPEG sequence has incorrect data.
+
 2007-07-30 Francesco Romani <fromani at gmail dot com>
-  * filter/filter_compare.c filter_logoaway.c
+  * filter/filter_compare.c filter/filter_logoaway.c
   temporary (hopefully) backport the 1.0.x fixes.
 
 2007-07-28 Francesco Romani <fromani at gmail dot com>
