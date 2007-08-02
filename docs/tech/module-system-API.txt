@@ -31,6 +31,8 @@
      6.5. init VS configure, fini VS stop
      6.6. A bit more about multiplexors and demultiplexors
  7. Final notes
+ 8. Appendix A: planned improvements in 1.2.0 and beyond
+
 
                                      ***
 
@@ -626,3 +628,32 @@ stop: ALWAYS executed BEFORE 'fini'.
 
 send any comment to <fromani@gmail.com>. Thanks for reading this.
 Corrections about english are welcome.
+
+
+8. Appendix A: planned improvements in 1.2.0 and beyond
+---------------------------------------------------------------------------
+(without a particular order)
+
+1. Generic init/fini functions. Most of them are boilerplate code and
+   there is no need to replicate them every time.
+2. New filter operations with explicit destination argument:
+
+   int (*process_video)(TCModuleInstance self, vframe_list_t *src, vframe_list_t *dst);
+   int (*process_audio)(TCModuleInstance self, aframe_list_t *src, aframe_list_t *dst);
+
+3. Add open/close functions to improve (de)multiplexors:
+
+   int (*open)(TCModuleInstance self, const char *name, uint32_t flags);
+   int (*close)(TCModuleInstance self);
+
+4. Needs careful planning: subdivide modules in separate classes to
+   reduce function bloat.
+5. Make modules arguments explicit and handled by core: that semplifies
+   modules, reduce duplication, adds sanity checks for free.
+6. Related to above: overhaul or get rid of optstr* stuff.
+7. More docs, more sample code.
+8. Make explicit preferred (native?) colorspace for modules (the one for which
+   the module is designed about, so it provide bests results).
+
+
+# EOF
