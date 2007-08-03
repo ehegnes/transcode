@@ -58,8 +58,7 @@ void tc_pause_request(void)
 void tc_pause(void)
 {
     while (pause_flag) {
-        usleep(TC_DELAY_MIN);
-        tc_socket_poll();
+    	usleep(TC_DELAY_MIN);
     }
 }
 

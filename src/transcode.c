@@ -71,13 +71,8 @@ int fast_resize = TC_FALSE;
 static vob_t *vob = NULL;
 int verbose = TC_INFO;
 
-static int interrupt_flag   = 0;
-
-static pthread_t thread_signal = (pthread_t)0;
-sigset_t sigs_to_block;
-
 // for initializing export_pvm
-pthread_mutex_t s_channel_lock=PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t s_channel_lock = PTHREAD_MUTEX_INITIALIZER;
 
 //-------------------------------------------------------------
 // core parameter
@@ -157,8 +152,39 @@ int tc_next_audio_in_file(vob_t *vob)
 /*********************** Internal utility routines ***********************/
 /*************************************************************************/
 
+/*************************************************************************/
+/*********************** Event thread support ****************************/
+/*************************************************************************/
+
+static pthread_t event_thread_id = (pthread_t)0;
+
+static const char *signame = "unknown signal";
+
+static int interrupt_flag = 0;
+
+static void event_handler(int sig)
+{
+    if (!interrupt_flag) {
+        interrupt_flag = 1;
+
+        /* the first one always wins */
+        switch (sig) {
+          case SIGINT:
+            signame = "SIGINT";
+            break;
+          case SIGTERM:
+            signame = "SIGTERM";
+            break;
+          case SIGPIPE:
+            signame = "SIGPIPE";
+            break;
+        }
+    }
+    return;
+}
+
 /**
- * signal_thread:  Thread that watches for certain termination signals,
+ * event_thread:  Thread that watches for certain termination signals,
  * terminating the transcode process cleanly.
  *
  * Parameters:
@@ -167,56 +193,65 @@ int tc_next_audio_in_file(vob_t *vob)
  *     None.
  */
 
-static void signal_thread(void)
+static void *event_thread(void* blocked_)
 {
-    /* Loop waiting for signals */
-    for (;;) {
-        int caught;
-        const char *signame = "unknown signal";
+    struct sigaction handler;
+    sigset_t *blocked = blocked_;
 
-        /* sigs_to_block were blocked in main() */
-        sigwait(&sigs_to_block, &caught);
+    /* catch everything */
+    pthread_sigmask(SIG_UNBLOCK, blocked, NULL); /* XXX */
+
+    /* install handlers, mutually exclusive */
+    memset(&handler, 0, sizeof(struct sigaction));
+    handler.sa_flags   = 0;
+    handler.sa_mask    = *blocked;
+    handler.sa_handler = event_handler;
+
+    sigaction(SIGINT,  &handler, NULL); // XXX
+    sigaction(SIGTERM, &handler, NULL); // XXX
+/*  sigaction(SIGPIPE, &handler, NULL); */// XXX
+
+    /* Loop waiting for external events */
+    for (;;) {
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
         pthread_testcancel();
 #endif
-        switch (caught) {
-          case SIGINT:  signame = "SIGINT"; break;
-          case SIGTERM: signame = "SIGTERM"; break;
-          case SIGPIPE: signame = "SIGPIPE"; break;
-        }
-        if (verbose & TC_INFO)
-            tc_log_info(PACKAGE, "(sighandler) %s received", signame);
-
-        /* Indicate that transcoding should stop */
-        interrupt_flag = 1;
-
-        /* Kill the tcprobe process if it's running */
-        if (tc_probe_pid > 0)
-            kill(tc_probe_pid, SIGTERM);
-
-        /* Stop import processing */
-        tc_import_stop_nolock();
-        if (verbose & TC_DEBUG)
-            tc_log_info(PACKAGE, "(sighandler) import cancellation submitted");
-
-        /* Stop export processing */
-        tc_export_stop_nolock();
-
-        tc_export_audio_notify();
-        tc_export_video_notify();
-
-        if (verbose & TC_DEBUG)
-            tc_log_info(PACKAGE, "(sighandler) export cancellation submitted");
+        tc_socket_wait();
 
         pthread_testcancel();
+        if (interrupt_flag) {
+            if (verbose & TC_INFO)
+                tc_log_info(PACKAGE, "(sighandler) %s received", signame);
+
+            /* Kill the tcprobe process if it's running */
+            if (tc_probe_pid > 0)
+                kill(tc_probe_pid, SIGTERM);
+
+            /* Stop import processing */
+            tc_import_stop_nolock();
+            if (verbose & TC_DEBUG)
+                tc_log_info(PACKAGE, "(sighandler) import cancellation submitted");
+
+            /* Stop export processing */
+            tc_export_stop_nolock();
+
+            tc_export_audio_notify();
+            tc_export_video_notify();
+
+            if (verbose & TC_DEBUG)
+                tc_log_info(PACKAGE, "(sighandler) export cancellation submitted");
+
+            interrupt_flag = 0; // XXX
+        }
+        pthread_testcancel();
     }
+    return NULL;
 }
 
 /*************************************************************************/
 
 /**
- * safe_exit:  Called at exit (via atexit()) to ensure that the
- * signal-catching thread is destroyed.
+ * stop_event_thread:  Ensure that the event handling thread is destroyed.
  *
  * Parameters:
  *     None.
@@ -224,16 +259,14 @@ static void signal_thread(void)
  *     None.
  */
 
-static void safe_exit(void)
+static void stop_event_thread(void)
 {
-    if (thread_signal) {
+    if (event_thread_id) {
         void *thread_status = NULL;
 
-        pthread_cancel(thread_signal);
-#ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
-        pthread_kill(thread_signal, SIGINT);
-#endif
-        pthread_join(thread_signal, &thread_status);
+//        pthread_kill(event_thread_id, SIGINT);
+        pthread_cancel(event_thread_id);
+        pthread_join(event_thread_id, &thread_status);
     }
 }
 
@@ -297,9 +330,9 @@ static int transcode_init(vob_t *vob, TCEncoderBuffer *tc_ringbuffer)
     /* load export modules and check capabilities
      * (only create a TCModule factory if a multiplex module was given) */
     if (tc_export_init(tc_ringbuffer,
-                    ex_mplex_mod
-                      ? tc_new_module_factory(vob->mod_path,verbose)
-                      : NULL) != TC_OK
+                       ex_mplex_mod
+                          ? tc_new_module_factory(vob->mod_path,verbose)
+                          : NULL) != TC_OK
     ) {
         tc_log_error(PACKAGE, "failed to init export layer");
         return -1;
@@ -790,6 +823,7 @@ static const char *deinterlace_desc[] = {
 
 int main(int argc, char *argv[])
 {
+    sigset_t sigs_to_block;
     int ch1, ch2, fa, fb;
 
     char buf[TC_BUF_MAX];
@@ -798,8 +832,6 @@ int main(int argc, char *argv[])
     double fch, asr;
     int leap_bytes1, leap_bytes2;
     int max_frame_buffer = TC_FRAME_BUFFER; 
-
-    void *thread_status = NULL;
 
     struct fc_time *tstart = NULL;
 
@@ -828,12 +860,10 @@ int main(int argc, char *argv[])
     //sigaddset(&sigs_to_block, SIGPIPE);
     pthread_sigmask(SIG_BLOCK, &sigs_to_block, NULL);
 
-    // start the signal handler thread
-    if (pthread_create(&thread_signal, NULL, (void *)signal_thread, NULL) != 0)
-        tc_error("failed to start signal handler thread");
-
+    // start of the signal handler thread is delayed later
+    
     // close all threads at exit
-    atexit(safe_exit);
+    atexit(stop_event_thread);
 
     /* ------------------------------------------------------------
      *
@@ -2116,10 +2146,6 @@ int main(int argc, char *argv[])
         tc_log_msg(PACKAGE, "encoder delay = decode=%d encode=%d usec",
                    tc_buffer_delay_dec, tc_buffer_delay_enc);
 
-    if (socket_file)
-        if (!tc_socket_init(socket_file))
-            tc_error("failed to initialize socket handler");
-
     if (core_mode == TC_MODE_AVI_SPLIT && !strlen(base) && !vob->video_out_file)
         tc_error("no option -o found, no base for -t given, so what?");
 
@@ -2178,8 +2204,19 @@ int main(int argc, char *argv[])
     if (transcode_init(vob, tc_get_ringbuffer(max_frame_threads, max_frame_threads)) < 0)
         tc_error("plug-in initialization failed");
 
+    // start socket stuff
+    if (socket_file)
+        if (!tc_socket_init(socket_file))
+            tc_error("failed to initialize socket handler");
+    
+    // now we start the signal handler thread
+    if (pthread_create(&event_thread_id, NULL, event_thread, &sigs_to_block) != 0)
+        tc_error("failed to start signal handler thread");
+
+
     // start frame processing threads
     tc_frame_threads_init(vob, max_frame_threads, max_frame_threads);
+
 
     /* ------------------------------------------------------------
      *
@@ -2644,16 +2681,10 @@ int main(int argc, char *argv[])
     SHUTDOWN_MARK("unload modules");
 
     // cancel no longer used internal signal handler threads
-    if (thread_signal) {
+    if (event_thread_id) {
         SHUTDOWN_MARK("cancel signal");
-        if (thread_signal) {
-            pthread_cancel(thread_signal);
-            pthread_kill(thread_signal,SIGINT);
-#ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
-#endif
-            pthread_join(thread_signal, &thread_status);
-        }
-        thread_signal = (pthread_t)0;
+        stop_event_thread();
+        event_thread_id = (pthread_t)0;
     }
 
     SHUTDOWN_MARK("internal threads");

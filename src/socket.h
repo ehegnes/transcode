@@ -18,6 +18,7 @@
 int tc_socket_init(const char *socket_path);
 void tc_socket_fini(void);
 void tc_socket_poll(void);
+void tc_socket_wait(void);
 void tc_socket_submit(const char *str);
 
 /* Variables and constants for communicating with the "pv" module

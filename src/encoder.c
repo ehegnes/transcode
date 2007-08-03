@@ -40,7 +40,6 @@
 #include "decoder.h"
 #include "encoder.h"
 #include "frame_threads.h"
-#include "socket.h"
 
 #include "libtc/tcframes.h"
 
@@ -1343,9 +1342,6 @@ void tc_encoder_loop(vob_t *vob, int frame_first, int frame_last)
             }
             break;
         }
-
-        /* check for control socket activity */
-        tc_socket_poll();
 
         /* stop here if pause requested */
         tc_pause();

@@ -183,6 +183,7 @@ void tc_socket_load(void) {}
 void tc_socket_parameter(void) {}
 void tc_socket_preview(void) {}
 void tc_socket_poll(void) {}
+void tc_socket_wait(void) {}
 
 int load_plugin(const char *path, int id, int verbose)
 {

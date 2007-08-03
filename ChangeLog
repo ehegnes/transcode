@@ -1,3 +1,25 @@
+2007-08-02 Francesco Romani <fromani at gmail dot com>
+  * src/encoder-common.c src/encoder.c src/transcode.c
+  significant internal socket handling overhaul to start to address
+  and improve socket handling misbehaviour (but I'm afraid this
+  still not solves issue): http://tcfoundry.hostme.it/mantis/view.php?id=11
+
+  Notable changes:
+  - move socket control code in a separate thread, no longer make
+    calls synchronous on main encoder thread. I'm not particulary
+    proud of this solution nor I'm convinced this is the only one
+    but I think this helps in clean up things and simplifies the pause
+    (also considere the preview pause) code path.
+  - merge signal thread and socket thread in an one event thread.
+    Some corner cases still uncovered, need further investigation.
+
+  * src/socket.c src/socket.h tools/tcstub.c
+  add a new tc_socket_wait() call that sits and waits forever a new
+  socket command.
+
+  * configure.in
+  transcode 1.1.0 alpha 2.
+
 2007-07-31 Francesco Romani <fromani at gmail dot com>
   * import/scan_pes.c
   do not assert random defaults if MPEG sequence has incorrect data.
@@ -7,6 +29,9 @@
 
   * import/probe_stream.c
   try to guess ASR value from width and height if probing fails.
+
+  * configure.in
+  transcode 1.1.0 alpha 1
 
 2007-07-30 Francesco Romani <fromani at gmail dot com>
   * filter/filter_compare.c filter/filter_logoaway.c
