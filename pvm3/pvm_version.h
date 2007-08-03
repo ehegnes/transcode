@@ -25,7 +25,7 @@
 #define _PVM_VERSION_H
 
 
-#define EXPORT_PVM_VERSION   "v0.0.4 (2003-09-10)\0"
+#define EXPORT_PVM_VERSION   "v0.0.5 (2007-08-03)"
 #define M_LOAD_LIB           "pvm_functions.so"
 
 #endif

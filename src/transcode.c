@@ -71,9 +71,6 @@ int fast_resize = TC_FALSE;
 static vob_t *vob = NULL;
 int verbose = TC_INFO;
 
-// for initializing export_pvm
-pthread_mutex_t s_channel_lock = PTHREAD_MUTEX_INITIALIZER;
-
 //-------------------------------------------------------------
 // core parameter
 
