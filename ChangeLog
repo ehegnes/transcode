@@ -3,6 +3,13 @@
   chop trailing '\n' in filenames read from image list.
   (pointed out by Martin Guy < martinwguy at yahoo dot it>)
 
+  * src/socket.c
+  clarify a bit internals, improve documentation, and finally
+  make tc_socket_wait() blocking even if there isn't any event
+  (i.e.: no --socket specified). This avoids a nasty busy wait
+  loop on event thread recently introduced. Does pause() call
+  fit our needs or there is something better out there?
+
   * export/export_pvm.c src/transcode.c pvm3/pvm_version.h
   PVM support: kill warnings and sanitize code a tiny bit.
 

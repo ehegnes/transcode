@@ -674,7 +674,7 @@ int tc_socket_init(const char *socket_path_)
         tc_log_error(__FILE__, "Socket pathname too long");
         return 0;
     }
-    server_sock = socket (AF_UNIX, SOCK_STREAM, 0);
+    server_sock = socket(AF_UNIX, SOCK_STREAM, 0);
     if (server_sock < 0) {
         tc_log_perror(__FILE__, "Unable to create server socket");
         return 0;
@@ -735,6 +735,8 @@ void tc_socket_fini(void)
  *               and execute (or just return) immediately.
  * Return value:
  *     None.
+ * Preconditions:
+ *     valid (!= -1) server socket avalaible.
  */
 
 static void tc_socket_poll_internal(int blocking)
@@ -744,18 +746,12 @@ static void tc_socket_poll_internal(int blocking)
     int maxfd = -1, retval = -1;
     struct timeval tv = {0, 0}, *ptv = (blocking) ?NULL :&tv;
 
-    if (server_sock < 0 && client_sock < 0) {
-        /* Nothing to poll! */
-        return;
-    }
-
     FD_ZERO(&rfds);
     FD_ZERO(&wfds);
     
-    if (server_sock >= 0) {
-        FD_SET(server_sock, &rfds);
-        maxfd = server_sock;
-    }
+    FD_SET(server_sock, &rfds);
+    maxfd = server_sock;
+
     if (client_sock >= 0) {
         FD_SET(client_sock, &rfds);
         //FD_SET(client_sock, &wfds);
@@ -774,7 +770,7 @@ static void tc_socket_poll_internal(int blocking)
         return;
     }
 
-    if (server_sock >= 0 && FD_ISSET(server_sock, &rfds)) {
+    if (FD_ISSET(server_sock, &rfds)) {
         int newsock = accept(server_sock, NULL, 0);
         if (newsock < 0) {
             tc_log_warn(__FILE__, "Unable to accept new connection: %s",
@@ -811,6 +807,8 @@ static void tc_socket_poll_internal(int blocking)
 /**
  * tc_socket_poll:  Check server and (if connected) client sockets for
  * pending events, and process them.
+ * This call should never block caller, returnin immediately if there
+ * isn't any event pending.
  *
  * Parameters:
  *     None.
@@ -820,12 +818,17 @@ static void tc_socket_poll_internal(int blocking)
 
 void tc_socket_poll(void)
 {
+    if (server_sock < 0 && client_sock < 0) {
+        /* Nothing to poll! */
+        return;
+    }
     tc_socket_poll_internal(0);
 }
 
 /**
- * tc_socket_poll:  Wait forever server and (if connected) client sockets
+ * tc_socket_wait:  Wait forever server and (if connected) client sockets
  * for next event, and process the next first one and exit.
+ * This call will always block until next event happens.
  *
  * Parameters:
  *     None.
@@ -835,6 +838,13 @@ void tc_socket_poll(void)
 
 void tc_socket_wait(void)
 {
+    if (server_sock < 0 && client_sock < 0) {
+        pause();
+        /* if no server socket is avalaible (= no tc_socket_init
+         * called before), nothing will ever happen, so
+         * we must block forever to satisfy function requirements.
+         */
+    }
     tc_socket_poll_internal(1);
 }
 
