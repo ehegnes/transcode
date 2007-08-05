@@ -24,7 +24,7 @@
  */
 
 #define MOD_NAME    "import_imlist.so"
-#define MOD_VERSION "v0.1.0 (2007-07-17)"
+#define MOD_VERSION "v0.1.1 (2007-08-04)"
 #define MOD_CODEC   "(video) RGB"
 
 #ifdef HAVE_CONFIG_H
@@ -131,6 +131,7 @@ MOD_decode
             return TC_IMPORT_ERROR;
         }
         filename[PATH_MAX] = '\0'; /* enforce */
+        tc_strstrip(filename);
 
         ClearMagickWand(wand);
         /* 

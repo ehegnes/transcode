@@ -1,3 +1,11 @@
+2007-08-05 Francesco Romani <fromani at gmail dot com>
+  * import/import_imlist.c
+  chop trailing '\n' in filenames read from image list.
+  (pointed out by Martin Guy < martinwguy at yahoo dot it>)
+
+  * export/export_pvm.c src/transcode.c pvm3/pvm_version.h
+  PVM support: kill warnings and sanitize code a tiny bit.
+
 2007-08-03 Francesco Romani <fromani at gmail dot com>
   * export/export_pvm.c src/transcode.c pvm3/pvm_version.h
   PVM support: kill warnings and sanitize code a tiny bit.
