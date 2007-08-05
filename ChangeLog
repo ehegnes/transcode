@@ -1,3 +1,8 @@
+2007-08-05 Francesco Romani <fromani at gmail dot com>
+  * import/import_imlist.c
+  chop trailing '\n' in filenames read from image list.
+  (pointed out by Martin Guy < martinwguy at yahoo dot it>)
+
 2007-07-31 Francesco Romani <fromani at gmail dot com>
   * import/aux_pes.c
   do not assert random defaults if MPEG sequence has incorrect data.
