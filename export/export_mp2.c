@@ -48,6 +48,7 @@
 */
 
 #include <stdio.h>
+#include <errno.h>
 #include <unistd.h>
 
 #include "transcode.h"
@@ -63,7 +64,6 @@ static int   capability_flag=TC_CAP_PCM;
 #define MOD_PRE mp2
 #include "export_def.h"
 
-extern int errno;
 
 static FILE *pFile = NULL;
 static double speed = 0.0;

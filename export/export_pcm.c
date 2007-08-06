@@ -34,7 +34,6 @@
 #define MOD_VERSION "v0.0.5 (2006-01-30)"
 #define MOD_CODEC   "(audio) PCM (non-interleaved)"
 
-extern int errno;
 
 static int verbose_flag=TC_QUIET;
 static int capability_flag=TC_CAP_PCM|TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;

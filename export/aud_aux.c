@@ -131,8 +131,8 @@ static int audio_pass_through_ac3(char *aud_buffer, int aud_size, avi_t *avifile
 static int audio_pass_through_pcm(char *aud_buffer, int aud_size, avi_t *avifile);
 static int audio_mute(char *aud_buffer, int aud_size, avi_t *avifile);
 int audio_encode(char *aud_buffer, int aud_size, avi_t *avifile);
-int audio_close();
-int audio_stop();
+int audio_close(void);
+int audio_stop(void);
 static char * lame_error2str(int error);
 #ifdef HAVE_LAME
 static void no_debug(const char *format, va_list ap) {return;}
@@ -1047,7 +1047,7 @@ int audio_encode(char *aud_buffer, int aud_size, avi_t *avifile)
 /**
  * Close audio stream
  */
-int audio_close()
+int audio_close(void)
 {    
 	/* reset bitrate flag for AC3 pass-through */
 	bitrate = 0;
@@ -1083,7 +1083,7 @@ int audio_close()
 
 
 
-int audio_stop()
+int audio_stop(void)
 {    
         if (input) free(input); input = NULL;
         if (output) free(output); output = NULL;

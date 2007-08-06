@@ -40,6 +40,7 @@
 #define MOD_stop   static int RENAME(MOD_PRE, _stop) (transfer_t *param)
 #define MOD_close  static int RENAME(MOD_PRE, _close) (transfer_t *param)
 
+int tc_export(int opt, void *para1, void *para2);
 
 //extern int verbose_flag;
 //extern int capability_flag;

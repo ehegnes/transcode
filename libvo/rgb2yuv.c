@@ -323,7 +323,7 @@ int YUV2YUV(int x_dim, int y_dim, uint8_t *bmp, uint8_t *y_out,
 }
 
 
-void init_rgb2yuv() 
+void init_rgb2yuv(void) 
 {
     
 int i;
