@@ -1,9 +1,8 @@
 # # Process this file with automake to produce Makefile.in.
 
 EXTRA_DIST = \
-	newtest.pl \
-	test.pl \
-	test-tcmodchain.sh
+	newtest.pl test.pl \
+	test-tcmodchain.sh test-cfg-filelist.sh
 
 AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
@@ -18,6 +17,7 @@ noinst_PROGRAMS = \
 	test-acmemcpy \
 	test-acmemcpy-speed \
 	test-bufalloc \
+	test-cfg-filelist \
 	test-export-profile \
 	test-framecode \
 	test-framealloc \
@@ -49,6 +49,9 @@ test_framecode_LDADD = $(LIBTC_LIBS)
 
 test_imgconvert_SOURCES = test-imgconvert.c
 test_imgconvert_LDADD = $(ACLIB_LIBS)
+
+test_cfg_filelist_SOURCES = test-cfg-filelist.c
+test_cfg_filelist_LDADD = $(LIBTC_LIBS)
 
 test_iodir_SOURCES = test-iodir.c
 test_iodir_LDADD = $(LIBTC_LIBS)

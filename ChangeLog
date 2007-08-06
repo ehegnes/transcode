@@ -6,6 +6,13 @@
   encoder/export modules, so looks like some changes in
   configuration file support are unavodable.
 
+  * added files: testsuite/test-cfg-filelist.c
+                 testsuite/test-cfg-filelist.sh
+
+  * testsuite/Makefile.am testsuite/.cvsignore
+  basic testcases for configuration list support.
+  valgrind says code looks ok at first glance.
+
 2007-08-05 Francesco Romani <fromani at gmail dot com>
   * import/import_imlist.c
   chop trailing '\n' in filenames read from image list.
