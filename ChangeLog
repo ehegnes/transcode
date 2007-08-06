@@ -1,4 +1,12 @@
 2007-08-05 Francesco Romani <fromani at gmail dot com>
+  * libtc/cfgfile.c libtc/cfgfile.h
+  new configuration file list section parsing, pulled from
+  ongoing PVM3 fixes. PVM3 configuration file (pvm.cfg)
+  has some sections significantly different from other
+  encoder/export modules, so looks like some changes in
+  configuration file support are unavodable.
+
+2007-08-05 Francesco Romani <fromani at gmail dot com>
   * import/import_imlist.c
   chop trailing '\n' in filenames read from image list.
   (pointed out by Martin Guy < martinwguy at yahoo dot it>)
