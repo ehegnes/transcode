@@ -20,6 +20,9 @@
   Also, use a new option to give an hint about the expected number
   of node sections.
 
+  * export/export_pvm.c pvm3/export_pvm_slave.c pvm3/tcpvmexportd.c
+  port to last PVM parser API.
+
 2007-08-05 Francesco Romani <fromani at gmail dot com>
   * libtc/cfgfile.c libtc/cfgfile.h
   new configuration file list section parsing, pulled from

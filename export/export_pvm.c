@@ -253,7 +253,8 @@ MOD_init
                 pthread_mutex_unlock(&s_channel_lock);  /*this is the only way to make my module work with nultithreads: need to change all the code*/
                 return TC_ERROR;
             }
-            if ((p_pvm_conf=f_pvm_parser_open(p_par1, verbose))==NULL)
+            p_pvm_conf = pvm_parser_open(p_par1, verbose, 0);
+            if (p_pvm_conf == NULL)
             {
                 tc_log_warn(MOD_NAME, "error checking %s",p_par1);
                 f_help();
