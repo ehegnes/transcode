@@ -303,8 +303,8 @@ const char *mformat2str(int flag)
         case TC_MAGIC_MP2:       return "MP2";
         case TC_MAGIC_OGG:       return "OGG stream";
         case TC_MAGIC_WAV:       return "RIFF data, WAVE";
-        case TC_MAGIC_V4L_VIDEO: return "V4L";
-        case TC_MAGIC_V4L_AUDIO: return "V4L";
+        case TC_MAGIC_V4L_VIDEO: return "V4L,video";
+        case TC_MAGIC_V4L_AUDIO: return "V4L,audio";
         case TC_MAGIC_PVN:       return "PVN video";
     }
     return "";
