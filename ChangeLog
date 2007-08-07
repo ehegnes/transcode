@@ -7,7 +7,7 @@
   codecs/ratios/formats and eventually switch to libtc ones.
 
   * pvm3/pvm_version.h pvm3/pvm_parser.h pvm3/export_pvm_slave.c
-    pvm3/tcpvmexportd.c
+    pvm3/tcpvmexportd.c export/export_pvm.c
   parser API fixes (prepare for the big leap).
 
 2007-08-05 Francesco Romani <fromani at gmail dot com>
