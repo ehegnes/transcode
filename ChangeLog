@@ -6,6 +6,10 @@
   kill almost completely private stringifier functions for
   codecs/ratios/formats and eventually switch to libtc ones.
 
+  * pvm3/pvm_version.h pvm3/pvm_parser.h pvm3/export_pvm_slave.c
+    pvm3/tcpvmexportd.c
+  parser API fixes (prepare for the big leap).
+
 2007-08-05 Francesco Romani <fromani at gmail dot com>
   * libtc/cfgfile.c libtc/cfgfile.h
   new configuration file list section parsing, pulled from
