@@ -23,6 +23,12 @@
   * export/export_pvm.c pvm3/export_pvm_slave.c pvm3/tcpvmexportd.c
   port to last PVM parser API.
 
+  * added file: testsuite/test-pvmparser.c
+
+  * testsuite/.cvsignore testsuite/Makefile.am
+
+  add very basic testcase specific for PVM parser.
+
 2007-08-05 Francesco Romani <fromani at gmail dot com>
   * libtc/cfgfile.c libtc/cfgfile.h
   new configuration file list section parsing, pulled from

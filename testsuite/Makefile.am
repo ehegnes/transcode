@@ -13,6 +13,10 @@ AM_CPPFLAGS = \
 	$(DLDARWIN_CFLAGS) \
 	$(XIO_CFLAGS)
 
+if HAVE_PVM3
+PVM3_TEST = test-pvmparser
+endif
+
 noinst_PROGRAMS = \
 	test-acmemcpy \
 	test-acmemcpy-speed \
@@ -30,7 +34,8 @@ noinst_PROGRAMS = \
 	test-tcglob \
 	test-tcmodule \
 	test-tcmoduleinfo \
-	test-tcstrdup
+	test-tcstrdup \
+	$(PVM3_TEST)
 
 test_acmemcpy_SOURCES = test-acmemcpy.c
 test_acmemcpy_LDADD = $(ACLIB_LIBS)
@@ -79,6 +84,10 @@ test_mangle_cmdline_LDADD = $(LIBTC_LIBS)
 
 test_export_profile_SOURCES = test-export-profile.c ../src/export_profile.c
 test_export_profile_LDADD = $(LIBTC_LIBS)
+
+test_pvmparser_SOURCES = test-pvmparser.c ../pvm3/pvm_parser.c
+test_pvmparser_CFLAGS = $(PVM3_CFLAGS) -I../pvm3/
+test_pvmparser_LDADD = $(LIBTC_LIBS) $(PVM3_LIBS)
 
 test_resize_values_SOURCES = test-resize-values.c
 test_resize_values_LDADD = $(LIBTC_LIBS)
