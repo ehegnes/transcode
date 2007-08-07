@@ -29,6 +29,20 @@
 
   add very basic testcase specific for PVM parser.
 
+  * encode/encode_copy.c encode/encode_lavc.c encode/encode_lzo.c
+    encode/encode_null.c filter/preview/filter_sdlview.c 
+    import/import_alsa.c import/probe_ffmpeg.c import/probe_mplayer.c
+    import/probe_wav.c import/probe_x11.c multiplex/multiplex_avi.c
+    multiplex/multiplex_null.c multiplex/multiplex_raw.c
+    multiplex/multiplex_y4m.c src/export_profile.c src/export_profile.h
+    src/framebuffer.c src/framebuffer.h tools/rawsource.c tools/rawsource.h
+    tools/tcexport.c tools/tcmodchain.c
+  Switch to GPL header as suggested on: http://www.gnu.org/licenses/gpl-howto.html
+  Re-release my code under GPL v2 or later (round 1) since this is the most
+  compatible option
+  (see http://www.gnu.org/licenses/gpl-faq.html#TOCAllCompatibility)
+  Anyway, I still have some concerns regard GPL V3 vs V2.
+
 2007-08-05 Francesco Romani <fromani at gmail dot com>
   * libtc/cfgfile.c libtc/cfgfile.h
   new configuration file list section parsing, pulled from
