@@ -2,6 +2,10 @@
   * libtc/ratiocodes.c libtc/ratiocodes.h
   add another helper function (to replace src/probe/asr2str).
 
+  * src/probe.c src/probe.h src/transcode.c
+  kill almost completely private stringifier functions for
+  codecs/ratios/formats and eventually switch to libtc ones.
+
 2007-08-05 Francesco Romani <fromani at gmail dot com>
   * libtc/cfgfile.c libtc/cfgfile.h
   new configuration file list section parsing, pulled from

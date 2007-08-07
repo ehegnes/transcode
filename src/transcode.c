@@ -32,10 +32,12 @@
 #include "probe.h"
 #include "socket.h"
 #include "split.h"
-#include "libtc/cfgfile.h"
-#include "libtc/ratiocodes.h"
+
 #include "libtc/xio.h"
+#include "libtc/libtc.h"
+#include "libtc/cfgfile.h"
 #include "libtc/tccodecs.h"
+#include "libtc/ratiocodes.h"
 
 #include <ctype.h>
 #include <math.h>
@@ -936,14 +938,16 @@ int main(int argc, char *argv[])
                         (vob->video_in_file != NULL) ?vob->video_in_file :"N/A",
                         result ? "OK" : "FAILED");
             tc_log_info(PACKAGE, "V: %-16s | %s %s (module=%s)",
-                        "import format", codec2str(vob->v_codec_flag),
+                        "import format",
+                        tc_codec_to_comment(vob->v_codec_flag),
                         mformat2str(vob->v_format_flag),
-                        no_vin_codec==0 ? im_vid_mod : vob->vmod_probed);
+                        no_vin_codec == 0 ? im_vid_mod : vob->vmod_probed);
             tc_log_info(PACKAGE, "A: %-16s | %s (%s)", "auto-probing",
                         (vob->audio_in_file != NULL) ?vob->audio_in_file :"N/A",
                         result ? "OK" : "FAILED");
             tc_log_info(PACKAGE, "A: %-16s | %s %s (module=%s)",
-                        "import format", codec2str(vob->a_codec_flag),
+                        "import format",
+                        tc_codec_to_comment(vob->a_codec_flag),
                         mformat2str(vob->a_format_flag),
                         no_ain_codec==0 ? im_aud_mod : vob->amod_probed);
         }
@@ -1078,7 +1082,7 @@ int main(int argc, char *argv[])
         if (vob->im_v_width && vob->im_v_height) {
             tc_log_info(PACKAGE, "V: %-16s | %03dx%03d  %4.2f:1  %s",
                         "import frame", vob->im_v_width, vob->im_v_height,
-                        asr, asr2str(vob->im_asr));
+                        asr, tc_asr_code_describe(vob->im_asr));
         } else {
             tc_log_info(PACKAGE, "V: %-16s | disabled", "import frame");
         }
@@ -1856,14 +1860,16 @@ int main(int argc, char *argv[])
                 tc_log_info(PACKAGE,
                             "A: %-16s | 0x%-5lx %-12s [%4d,%2d,%1d] %4d kbps",
                             "import format",
-                            vob->a_codec_flag, aformat2str(vob->a_codec_flag),
+                            vob->a_codec_flag,
+                            tc_codec_to_comment(vob->a_codec_flag),
                             vob->a_rate, vob->a_bits, vob->a_chan,
                             vob->a_stream_bitrate);
             else
                 tc_log_info(PACKAGE,
                             "A: %-16s | 0x%-5lx %-12s [%4d,%2d,%1d]",
                             "import format",
-                            vob->a_codec_flag, aformat2str(vob->a_codec_flag),
+                            vob->a_codec_flag,
+                            tc_codec_to_comment(vob->a_codec_flag),
                             vob->a_rate, vob->a_bits, vob->a_chan);
         }
     }
@@ -1914,14 +1920,16 @@ int main(int argc, char *argv[])
                 tc_log_info(PACKAGE,
                             "A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps",
                             "export format",
-                            vob->im_a_codec, aformat2str(vob->im_a_codec),
+                            vob->im_a_codec,
+                            tc_codec_to_comment(vob->im_a_codec),
                             vob->a_rate, vob->a_bits, vob->a_chan,
                             vob->a_stream_bitrate);
             else
                 tc_log_info(PACKAGE,
                             "A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps",
                             "export format",
-                            vob->ex_a_codec, aformat2str(vob->ex_a_codec),
+                            vob->ex_a_codec,
+                            tc_codec_to_comment(vob->ex_a_codec),
                              ((vob->mp3frequency > 0) ?vob->mp3frequency :vob->a_rate),
                              ((vob->dm_bits > 0) ?vob->dm_bits :vob->a_bits),
                              ((vob->dm_chan > 0) ?vob->dm_chan :vob->a_chan),

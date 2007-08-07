@@ -139,8 +139,8 @@ int probe_source(const char *vid_file, const char *aud_file, int range,
                     " A codec=%s", __FILE__,
                     mformat2str(vob->v_format_flag),
                     mformat2str(vob->a_format_flag),
-                    codec2str(vob->v_codec_flag),
-                    aformat2str(vob->a_codec_flag));
+                    tc_codec_to_comment(vob->v_codec_flag),
+                    tc_codec_to_comment(vob->a_codec_flag));
     }
 
     /* All done, return success */
@@ -266,59 +266,14 @@ int probe_source_xml(vob_t *vob, int which)
 /*************************************************************************/
 
 /**
- * codec2str, aformat2str, mformat2str, asr2str:  Return a descriptive
- * string for the given codec, audio format, video format, or aspect ratio
- * flag, respectively.
+ * mformat2str:  Return a descriptive
+ * string for the given video format flag.
  *
  * Parameters:
  *     flag: Flag to return string for.
  * Return value:
  *     String describing `flag'.
  */
-
-const char *codec2str(int flag)
-{
-    switch (flag) {
-      case TC_CODEC_MPEG2:      return "MPEG-2";
-      case TC_CODEC_MJPEG:      return "MJPEG";
-      case TC_CODEC_MPG1: /* fallthrough, must die soon */
-      case TC_CODEC_MPEG1VIDEO: return "mpg1";
-      case TC_CODEC_LZO1:       return "LZO1";
-      case TC_CODEC_RV10:       return "RV10 Real Video";
-      case TC_CODEC_DIVX3:      return "DivX;-)";
-      case TC_CODEC_MP42:       return "MSMPEG4v2";
-      case TC_CODEC_MP43:       return "MSMPEG4v3";
-      case TC_CODEC_DIVX4:      return "DivX4";
-      case TC_CODEC_DIVX5:      return "DivX5";
-      case TC_CODEC_XVID:       return "XviD";
-      case TC_CODEC_H264:       return "h.264";
-      case TC_CODEC_MPEG1:      return "MPEG-1";
-      case TC_CODEC_MPEG:       return "MPEG";
-      case TC_CODEC_DV:         return "DV Digital Video";
-      case TC_CODEC_YUV420P:    return "YUV420P/YV12";
-      case TC_CODEC_YUV2:       return "YUV2";
-      case TC_CODEC_NUV:        return "RTjpeg";
-      case TC_CODEC_PV3:        return "PV3";
-      case TC_CODEC_RGB:        return "RGB/BGR";
-      case TC_CODEC_PCM:        return "PCM";
-    }
-    return "unknown";
-}
-
-
-const char *aformat2str(int flag)
-{
-    switch (flag) {
-        case CODEC_AC3:    return "AC3";
-        case CODEC_MP3:    return "MPEG layer-3";
-        case CODEC_MP2:    return "MPEG layer-2";
-        case CODEC_PCM:    return "PCM";
-        case CODEC_LPCM:   return "LPCM";
-        case CODEC_VORBIS: return "Ogg Vorbis";
-        case CODEC_VAG:    return "PS-VAG";
-    }
-    return "unknown";
-}
 
 
 const char *mformat2str(int flag)
@@ -351,20 +306,6 @@ const char *mformat2str(int flag)
         case TC_MAGIC_V4L_VIDEO: return "V4L";
         case TC_MAGIC_V4L_AUDIO: return "V4L";
         case TC_MAGIC_PVN:       return "PVN video";
-    }
-    return "";
-}
-
-
-const char *asr2str(int flag)
-{
-    switch (flag) {
-        case  1: return "encoded @ 1:1";
-        case  2: return "encoded @ 4:3";
-        case  3: return "encoded @ 16:9";
-        case  4: return "encoded @ 2.21:1";
-        case  8: return "encoded @ 4:3";
-        case 12: return "encoded @ 4:3";
     }
     return "";
 }
