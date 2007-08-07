@@ -74,7 +74,7 @@ typedef struct _pvm_config_env {
 } pvm_config_env;
 
 
-pvm_config_env *f_pvm_parser_open(char *p_hostfile, int verbose);
-void f_pvm_parser_close(void);
+pvm_config_env *pvm_parser_open(char *p_hostfile, int verbose, int full);
+void pvm_parser_close(void);
 
 #endif

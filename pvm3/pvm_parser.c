@@ -97,6 +97,7 @@ static int dispatch_syslist(int id, pvm_config_env *env);
  * buffers to store them
  */
 /* Nodes */
+static int nodes_num = 1; /* this is pretty ugly, isn't it? */
 static PVMNodeData nodes_data[PVM_MAX_NODES];
 /* SystemMerger */
 static PVMString systemmerger_hostname;
@@ -151,6 +152,7 @@ static TCConfigEntry pvmhostcaps_conf[] = {
         TCCONF_TYPE_INT, 0, 1, PVM_NUM_TASK_FRAMES },
     { "InternalMultipass", &(s_pvm_conf.s_internal_multipass),
         TCCONF_TYPE_FLAG, 0, 0, 1 },
+    { "Nodes", &nodes_num, TCCONF_TYPE_INT, 0, 1, PVM_MAX_NODES },
     { NULL, NULL, 0, 0, 0, 0, },
 };
 static TCConfigEntry videomerger_conf[] = {
@@ -218,6 +220,7 @@ struct pvm_conf_item_ {
     const char *name;
     TCConfigEntry *conf;
     int (*dispatch)(int id, pvm_config_env *env);
+    int serverside; /* flag */
     int parsed;
 };
 
@@ -234,16 +237,16 @@ enum config_idx {
     CONF_ADD_VIDEO_IDX,
 };
 static PVMConfItem pvm_config[] = {
-    { "PvmHostCapability",  pvmhostcaps_conf,      dispatch_null,     0, },
-    { "AudioMerger",        audiomerger_conf,      dispatch_merger,   0, },
-    { "VideoMerger",        videomerger_conf,      dispatch_merger,   0, },
-    { "SystemMerger",       systemmerger_conf,     dispatch_merger,   0, },
-    { "ExportAudioModule",  exportaudiomod_conf,   dispatch_modules,  0, },
-    { "ExportVideoModule",  exportvideomod_conf,   dispatch_modules,  0, },
-    { "SystemList",         systemlist_conf,       dispatch_syslist,  0, },
-    { "AddAudio",           addaudio_conf,         dispatch_null,     0, },
-    { "AddVideo",           addvideo_conf,         dispatch_null,     0, },
-    { NULL,                 NULL,                  NULL,              0, },
+    { "PvmHostCapability",  pvmhostcaps_conf,      dispatch_null,     0, 0, },
+    { "AudioMerger",        audiomerger_conf,      dispatch_merger,   0, 0, },
+    { "VideoMerger",        videomerger_conf,      dispatch_merger,   0, 0, },
+    { "SystemMerger",       systemmerger_conf,     dispatch_merger,   0, 0, },
+    { "ExportAudioModule",  exportaudiomod_conf,   dispatch_modules,  0, 0, },
+    { "ExportVideoModule",  exportvideomod_conf,   dispatch_modules,  0, 0, },
+    { "SystemList",         systemlist_conf,       dispatch_syslist,  1, 0, },
+    { "AddAudio",           addaudio_conf,         dispatch_null,     1, 0, },
+    { "AddVideo",           addvideo_conf,         dispatch_null,     1, 0, },
+    { NULL,                 NULL,                  NULL,              0, 0, },
 };
 
 typedef struct pvm_list_item_ PVMListItem;
@@ -395,12 +398,18 @@ static int dispatch_syslist(int id, pvm_config_env *env)
 /*************************************************************************/
 
 
-static int parse_nodes(char *p_hostfile)
+static int parse_nodes(char *p_hostfile, int nodes)
 {
     int i = 0, ret = 0, parsed = 0;
     char buf[TC_BUF_LINE];
 
-    for (i = 0; i < PVM_MAX_NODES; i++) {
+    if (nodes > PVM_MAX_NODES) {
+        tc_log_warn(__FILE__, "excessive nodes requested, autolimit to %i",
+                    PVM_MAX_NODES);
+        nodes = PVM_MAX_NODES;
+    }
+
+    for (i = 0; i < nodes; i++) {
         tc_snprintf(buf, sizeof(buf), "Node%i", i+1);
 
         ret = module_read_config(p_hostfile, buf, node_conf[i], __FILE__);
@@ -415,12 +424,16 @@ static int parse_nodes(char *p_hostfile)
 }
 
 
-static void parse_config(char *p_hostfile)
+static void parse_config(char *p_hostfile, int full)
 {
     int i = 0;
     for (i = 0; pvm_config[i].name != NULL; i++) {
-        int ret = module_read_config(p_hostfile, pvm_config[i].name,
-                                     pvm_config[i].conf, __FILE__);
+        int ret = 0;
+
+        if (!full && pvm_config[i].serverside)
+            continue;
+        ret = module_read_config(p_hostfile, pvm_config[i].name,
+                                 pvm_config[i].conf, __FILE__);
         if (ret) {
             int done = pvm_config[i].dispatch(i, &s_pvm_conf);
             pvm_config[i].parsed = done;
@@ -467,8 +480,8 @@ static pvm_config_env *validate(int nodes, int verbose)
         errmsg = "Need one PVM node configured";
         goto failed;
     }
-    if (((!s_pvm_conf.s_audio_codec.p_codec) || WAS_PARSED(CONF_EXPORT_AUDIO_MOD_IDX))
-     && ((!s_pvm_conf.s_video_codec.p_codec) || WAS_PARSED(CONF_EXPORT_VIDEO_MOD_IDX))) {
+    if (((!s_pvm_conf.s_audio_codec.p_codec) && WAS_PARSED(CONF_EXPORT_AUDIO_MOD_IDX))
+     || ((!s_pvm_conf.s_video_codec.p_codec) && WAS_PARSED(CONF_EXPORT_VIDEO_MOD_IDX))) {
         errmsg = "Need at least Codec parameter in the"
                  " [ExportVideoModule] or [ExportAudioModule] section";
         goto failed;
@@ -496,50 +509,33 @@ failed:
     if (verbose) {
         tc_log_error(__FILE__, "%s", errmsg);
     }
-    f_pvm_parser_close();
+    pvm_parser_close();
     return NULL;
 }
 
 #undef WAS_PARSED
 
 
-pvm_config_env *f_pvm_parser_open(char *p_hostfile, int verbose)
+pvm_config_env *pvm_parser_open(char *p_hostfile, int verbose, int full)
 {
     int i = 0;
     /* setup defaults */
     s_pvm_conf.p_pvm_hosts = NULL;
     /* XXX: add more defaults? */
     /* get user data */
-    parse_config(p_hostfile);
+    parse_config(p_hostfile, full);
     /* get node data */
-    i = parse_nodes(p_hostfile);
+    i = parse_nodes(p_hostfile, nodes_num);
     /* get lists */
-    parse_filelist(p_hostfile);
+    if (full) {
+        parse_filelist(p_hostfile);
+    }
     /* then validate it */
     return validate(i, verbose);
 }
 
-#if 0
-pvm_config_env *f_pvm_parser_open(char *p_hostfile, int verbose)
-{
-    if((p_section=cf_get_section(p_root))!=NULL)
-    {
-        do
-        {
-            if(!strcasecmp(p_section->name,"PvmHostCapability"))
-            {
-                for (p_subsection=p_section->subsection;p_subsection!=NULL;p_subsection=p_subsection->next)
-                {
-                    p_pvm_conf_host->p_hostname=p_localhost;    /*this is the default*/
-                    p_pvm_conf_host->s_nproc=1; /*this is the default*/
-                }
-            }
-        } while((p_section=cf_get_next_section(p_root,p_section)) != NULL);
-    return(&s_pvm_conf);
-}
-#endif
 
-void f_pvm_parser_close(void)
+void pvm_parser_close(void)
 {
     pvm_config_hosts *p_pvm_conf_host = NULL, *p_tmp = NULL;
     pvm_config_filelist *p_pvm_conf_fileadd = NULL;
