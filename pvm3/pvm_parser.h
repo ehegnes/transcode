@@ -26,7 +26,6 @@
 
 #include "tc_defaults.h"    /*TC_xxxx variables*/
 
-#define PVM_MAX_NODES           8
 #define PVM_MAX_CODEC_PARAMS    3
 
 typedef struct _pvm_config_filelist {

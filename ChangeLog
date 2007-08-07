@@ -10,6 +10,10 @@
     pvm3/tcpvmexportd.c export/export_pvm.c
   parser API fixes (prepare for the big leap).
 
+  * libtc/cfgfile.h pvm3/pvm_parser.c pvm3/pvm_parser.h pvm3/pvm_version.h
+  finish to port PVM configuration parser to new libtc code.
+  Of course new code is NOT tested enough yet. Work in progress.
+
 2007-08-05 Francesco Romani <fromani at gmail dot com>
   * libtc/cfgfile.c libtc/cfgfile.h
   new configuration file list section parsing, pulled from

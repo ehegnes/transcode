@@ -56,7 +56,7 @@ void module_print_config(const TCConfigEntry *conf, const char *tag);
 
 typedef struct tcconfiglist_ TCConfigList;
 struct tcconfiglist_ {
-    const char *value;
+    char *value;
     TCConfigList *next;
     TCConfigList *last;
 };
