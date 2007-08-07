@@ -58,14 +58,31 @@ do { \
  * in private code.
  */
 
+/*************************************************************************/
+
+/*
+ * tc_asr_code_describe:
+ *    provides a descriptive, human readable string of given ASR code.
+ *
+ * Parameters:
+ *    asr_code: the ASR code.
+ * Return Value:
+ *    A constant string describing the given ASR code.
+ *    There is NO NEED (and it is WRONG to do so) to free() it.
+ *    Returned string is guaranteed to be valid at least until
+ *    the next call to this function.
+ */
+const char *tc_asr_code_describe(int asr_code);
+
 /*
  * tc_asr_code_from_value:
- *    detect the right aspect ratio code (asr) given an aspect ratio value as
- *    real number.
+ *    detect the right aspect ratio code (asr) given an aspect ratio value
+ *    as real number.
  *
  * Parameters:
  *    asr_code: pointer to integer where detected asr code will be stored.
- *              Can be NULL: if so, asr code will be detected but not stored.
+ *              Can be NULL: if so, asr code will be detected but not
+ *              stored.
  *       ratio: value of frame rate, as real number.
  * Return Value:
  *    TC_NULL_MATCH if input value isn't known
@@ -80,7 +97,8 @@ int tc_asr_code_from_value(int *asr_code, double ratio);
  *
  * Parameters:
  *    frc_code: pointer to integer where detected frc code will be stored.
- *              Can be NULL: if so, frc code will be detected but not stored.
+ *              Can be NULL: if so, frc code will be detected but not
+ *              stored.
  *         fps: value of frame rate, as real number.
  * Return Value:
  *    TC_NULL_MATCH if input value isn't known
@@ -96,7 +114,8 @@ int tc_frc_code_from_value(int *frc_code, double fps);
  * Parameters:
  *    frc_code: frame rate code.
  *         fps: pointer to double where detected frc value will be stored.
- *              Can be NULL: if so, frc value will be detected but not stored.
+ *              Can be NULL: if so, frc value will be detected but not
+ *              stored.
  * Return Value:
  *    TC_NULL_MATCH if input value isn't known
  *    >= 0 otherwise

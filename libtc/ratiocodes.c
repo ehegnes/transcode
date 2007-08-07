@@ -101,6 +101,28 @@ static const TCPair par_ratios[8] = {
     {    1,    1 }
 };
 
+/*************************************************************************/
+
+
+const char *tc_asr_code_describe(int asr_code)
+{
+    switch (asr_code) {
+      case  1:
+        return "encoded @ 1:1";
+      case  2:
+        return "encoded @ 4:3";
+      case  3:
+        return "encoded @ 16:9";
+      case  4:
+        return "encoded @ 2.21:1";
+      case  8:
+        return "encoded @ 4:3";
+      case 12:
+        return "encoded @ 4:3";
+    }
+    return "encoded @ UNKNOWN";
+}
+
 
 #define DELTA 0.0005
 static int tc_guess_code_from_value(const double *pairs, size_t len,
