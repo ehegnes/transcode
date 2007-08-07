@@ -25,6 +25,8 @@
 #define MOD_VERSION "v0.4.2 (2002-05-24)"
 #define MOD_CODEC   "(video) * | (audio) *"
 
+#include <errno.h>
+
 #include "transcode.h"
 
 static int verbose_flag = TC_QUIET;
@@ -60,7 +62,6 @@ MOD_open
   struct stat fbuf;
   char import_cmd_buf[TC_BUF_MAX];
   long sret;
-  extern int errno;
 
   param->fd = NULL;
 

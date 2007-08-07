@@ -25,6 +25,8 @@
 #define MOD_VERSION "v0.3.1 (2003-10-14)"
 #define MOD_CODEC   "(video) DV | (audio) PCM"
 
+#include <errno.h>
+
 #include "transcode.h"
 #include "xio.h"
 
@@ -36,13 +38,12 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_DV |
 #include "import_def.h"
 
 
-extern int errno;
 char import_cmd_buf[TC_BUF_MAX];
 
 static int frame_size=0;
 static FILE *fd=NULL;
 
-int scan(char *name)
+static int scan(char *name)
 {
   struct stat fbuf;
 

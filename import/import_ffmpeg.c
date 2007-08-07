@@ -25,6 +25,8 @@
 #define MOD_VERSION "v0.1.12 (2004-05-07)"
 #define MOD_CODEC   "(video) ffmpeg: MS MPEG4v1-3/MPEG4/MJPEG"
 
+#include <errno.h>
+
 #include "transcode.h"
 #include "filter.h"
 
@@ -43,8 +45,7 @@ static int capability_flag = TC_CAP_YUV | TC_CAP_RGB | TC_CAP_VID;
 #include "magic.h"
 
 
-extern int errno;
-char import_cmd_buf[TC_BUF_MAX];
+static char import_cmd_buf[TC_BUF_MAX];
 
 // libavcodec is not thread-safe. We must protect concurrent access to it.
 // this is visible (without the mutex of course) with 
@@ -151,7 +152,7 @@ static struct ffmpeg_codec *find_ffmpeg_codec_id(unsigned int transcode_id) {
   return NULL;
 }
 
-int scan(char *name) 
+static int scan(char *name) 
 {
   struct stat fbuf;
   
@@ -183,7 +184,7 @@ inline static unsigned int stream_read_dword(char *s)
 }
 
 // Determine of the compressed frame is a keyframe for direct copy
-int mpeg4_is_key(unsigned char *data, long size)
+static int mpeg4_is_key(unsigned char *data, long size)
 {
         int result = 0;
         int i;
@@ -205,7 +206,7 @@ int mpeg4_is_key(unsigned char *data, long size)
         return result;
 }
 
-int divx3_is_key(char *d)
+static int divx3_is_key(char *d)
 {
     int32_t c=0;
     
@@ -236,7 +237,7 @@ static unsigned char *bufalloc(size_t size) {
   return (unsigned char *) (buf + adjust);
 }
 
-static void enable_levels_filter() 
+static void enable_levels_filter(void) 
 {
   tc_info("input is mjpeg, reducing range from YUVJ420P to YUV420P");
   if((levels_handle = plugin_get_handle("levels=output=16-240:pre=1") == -1))

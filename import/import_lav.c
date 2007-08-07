@@ -25,6 +25,8 @@
 #define MOD_VERSION "v0.0.2 (2002-01-18)"
 #define MOD_CODEC   "(video) LAV | (audio) WAVE"
 
+#include <errno.h>
+
 #include "transcode.h"
 
 static int verbose_flag = TC_QUIET;
@@ -34,8 +36,7 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_PCM;
 #include "import_def.h"
 
 
-extern int errno;
-char import_cmd_buf[TC_BUF_MAX];
+static char import_cmd_buf[TC_BUF_MAX];
 
 
 /* ------------------------------------------------------------ 

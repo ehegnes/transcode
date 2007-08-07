@@ -268,7 +268,7 @@ int clone_frame(char *buffer, int size)
   return(0);
 }
 
-void clone_close() 
+void clone_close(void) 
 {
     void *status;
 
@@ -303,7 +303,7 @@ void clone_close()
     pfd = NULL;
 }
 
-char *clone_fifo() 
+char *clone_fifo(void) 
 {
 
   char *name, *a, b[PATH_MAX];
@@ -328,7 +328,7 @@ char *clone_fifo()
   return(logfile);
 }
 
-void clone_read_thread()
+void clone_read_thread(void)
 {
     frame_info_list_t *ptr = NULL;
     

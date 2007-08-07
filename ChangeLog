@@ -1,9 +1,17 @@
+2007-08-07 Francesco Romani <fromani at gmail dot com>
+  * import/clone.c import/clone.h import/import_avi.c
+    import/import_def.h import/import_dv.c import/import_ffbin.c
+    import/import_ffmpeg.c import/import_lav.c import/import_mplayer.c
+    import/import_raw.c import/ioaux.c libtc/tc_functions.c
+    libxio/static_xio.h
+  trivial warning reduction (and C89 compliancy) fixes.
+
 2007-08-06 Francesco Romani <fromani at gmail dot com>
   * export/aud_aux.c export/aud_aux.h export/divx4_vbr.c
     export/export_ac3.c export/export_def.h export/export_mp2.c
     export/export_pcm.c export/vbr.h export/vid_aux.h
     libvo/rgb2yuv.c libvo/rgb2yuv.h
-  trivial warning reduction (and C8x compliancy) fixes.
+  trivial warning reduction (and C89 compliancy) fixes.
 
 2007-08-05 Francesco Romani <fromani at gmail dot com>
   * import/import_imlist.c

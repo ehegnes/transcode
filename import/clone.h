@@ -28,9 +28,9 @@
 
 int clone_init(FILE *fd);
 int clone_frame(char *buffer, int size);
-void clone_close();
-char *clone_fifo();
+void clone_close(void);
+char *clone_fifo(void);
 
-void clone_read_thread();
+void clone_read_thread(void);
 
 #endif

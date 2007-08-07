@@ -39,6 +39,7 @@
 #define MOD_decode static int RENAME(MOD_PRE, _decode) (transfer_t *param, vob_t *vob)
 #define MOD_close  static int RENAME(MOD_PRE, _close) (transfer_t *param)
 
+int tc_import(int opt, void *para1, void *para2);
 
 //extern int verbose_flag;
 //extern int capability_flag;

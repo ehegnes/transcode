@@ -22,13 +22,13 @@
  */
 
 
+#include <errno.h>
+
 #include "ioaux.h"
 #include <xio.h>
 
 #define MAX_BUF 4096
 static uint8_t buffer[MAX_BUF];  /* only used in p_readwrite() */
-
-extern int errno;
 
 
 ssize_t p_read(int fd, uint8_t *buf, size_t len)

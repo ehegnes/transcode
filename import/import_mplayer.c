@@ -25,6 +25,8 @@
 #define MOD_VERSION "v0.0.5 (2003-03-10)"
 #define MOD_CODEC   "(video) rendered by mplayer | (audio) rendered by mplayer"
 
+#include <errno.h>
+
 #include "transcode.h"
 
 static int verbose_flag = TC_QUIET;
@@ -36,7 +38,6 @@ static int capability_flag = TC_CAP_YUV | TC_CAP_RGB | TC_CAP_VID | TC_CAP_PCM;
 #include <sys/types.h>
 
 
-extern int errno;
 char import_cmd_buf[TC_BUF_MAX];
 
 static const char * videopipe = "./stream.yuv";
