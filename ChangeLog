@@ -9,6 +9,20 @@
   export last valid frame too.
   (this addresses, but not yet resolves, issue #000017).
 
+  * encode/encode_copy.c encode/encode_lavc.c encode/encode_lzo.c
+  header compliancy fixes (cosmetics).
+
+  * libtc/ratiocodes.c libtc/ratiocodes.h libtc/tcavcodec.h libtc/tccodecs.c
+    libtc/tcframes.c libtc/tcframes.h libtc/tcglob.c libtc/tcglob.h
+    libtc/tctimer.c libtc/tctimer.h libtc/tcmodule-core.h
+    libtc/tcmodule-data.h libtc/tcmodule-info.h libtc/tcmodule-plugin.h
+    libtc/tcmodule.c libtc/tcmoduleinfo.c
+  Switch to GPL header as suggested on: http://www.gnu.org/licenses/gpl-howto.html
+  Re-release my code under GPL v2 or later (round 2) since this is the most
+  compatible option
+  (see http://www.gnu.org/licenses/gpl-faq.html#TOCAllCompatibility)
+  Anyway, I still have some concerns regard GPL V3 vs V2.
+
 2007-08-08 Francesco Romani <fromani at gmail dot com>
   * added files: docs/pvm3/export_pvm.txt
   docs/pvm3/pvm_10x.cfg docs/pvm3/pvm_11x.cfg docs/pvm3/pvm_config.txt

@@ -1,6 +1,6 @@
 /*
- *  encode_lzo.c -- encode video frames individually using LZO.
- *  (C) 2005-2007 Francesco Romani <fromani at gmail dot com>
+ * encode_lzo.c -- encode video frames individually using LZO.
+ * (C) 2005-2007 Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
  *
