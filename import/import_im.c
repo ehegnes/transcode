@@ -89,9 +89,7 @@ static int TCHandleMagickError(MagickWand *wand)
 MOD_open
 {
     int result, slen = 0;
-    long sret;
     char *regex = NULL, *frame = NULL;
-    char printfspec[20];
     regex_t preg;
     regmatch_t pmatch[4];
 
@@ -123,7 +121,6 @@ MOD_open
             tail = malloc(1); /* URGH -- FRomani */
             tail[0] = 0;
             first_frame = -1;
-            last_frame = 0x7fffffff;
         } else {
             // split the name into head, frame number, and tail
             slen = pmatch[1].rm_eo - pmatch[1].rm_so + 1;
