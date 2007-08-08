@@ -1431,8 +1431,8 @@ AC_CONFIG_FILES([
 	aclib/Makefile
 	avilib/Makefile
 	docs/Makefile
-	docs/man/Makefile
 	docs/html/Makefile
+	docs/man/Makefile
 	docs/pvm3/Makefile
 	docs/tech/Makefile
 	docs/tech/html/Makefile
