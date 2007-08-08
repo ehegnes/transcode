@@ -1,3 +1,7 @@
+2007-08-08 Francesco Romani <fromani at gmail dot com>
+  * import/import_im.c
+  backport new module version from 1.1.0alpha3.
+
 2007-08-07 Francesco Romani <fromani at gmail dot com>
   * import/clone.c import/clone.h import/import_avi.c
     import/import_def.h import/import_dv.c import/import_ffbin.c
