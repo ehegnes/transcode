@@ -11,6 +11,9 @@
   provide template for new configuration syntax introduced in 1.1.0,
   and put placeholder for a document listing the changes.
 
+  * docs/pvm3/pvm_config.txt
+  document changes in configuration file between 1.0.x and 1.1.x.
+
 2007-08-07 Francesco Romani <fromani at gmail dot com>
   * libtc/ratiocodes.c libtc/ratiocodes.h
   add another helper function (to replace src/probe/asr2str).
