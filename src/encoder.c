@@ -482,8 +482,9 @@ static int is_last_frame(TCEncoderData *encdata, int cluster_mode)
         fid -= tc_get_frames_dropped();
     }
 
-    if (encdata->buffer->vptr->attributes & TC_FRAME_IS_END_OF_STREAM
-     || encdata->buffer->aptr->attributes & TC_FRAME_IS_END_OF_STREAM) {
+    if ((encdata->buffer->vptr->attributes & TC_FRAME_IS_END_OF_STREAM
+      || encdata->buffer->aptr->attributes & TC_FRAME_IS_END_OF_STREAM)
+      || !(encdata->buffer->have_data(encdata->buffer))) {
         return 1;
     }
     return (fid == encdata->frame_last);
@@ -1323,7 +1324,7 @@ static void encoder_skip(TCEncoderData *data)
 
 void tc_encoder_loop(vob_t *vob, int frame_first, int frame_last)
 {
-    int err = 0;
+    int err = 0, eos = 0; /* End Of Stream flag */
 
     if (encdata.this_frame_last != frame_last) {
         encdata.old_frame_last = encdata.this_frame_last;
@@ -1362,13 +1363,7 @@ void tc_encoder_loop(vob_t *vob, int frame_first, int frame_last)
             break;  /* can't acquire frame */
         }
 
-        if (is_last_frame(&encdata, tc_cluster_mode)) {
-            if (verbose >= TC_DEBUG) {
-                tc_log_info(__FILE__, "encoder last frame finished (%i/%i)",
-                            encdata.buffer->frame_id, encdata.frame_last);
-            }
-            break;
-        }
+        eos = is_last_frame(&encdata, tc_cluster_mode);
 
         /* check frame id */
         if (frame_first <= encdata.buffer->frame_id
@@ -1381,13 +1376,17 @@ void tc_encoder_loop(vob_t *vob, int frame_first, int frame_last)
         /* release frame buffer memory */
         encdata.buffer->dispose_video_frame(encdata.buffer);
         encdata.buffer->dispose_audio_frame(encdata.buffer);
-
-    } while (encdata.buffer->have_data(encdata.buffer) && !encdata.error_flag);
+    } while (!eos && !encdata.error_flag);
     /* main frame decoding loop */
 
     if (verbose >= TC_DEBUG) {
+        if (eos) {
+            tc_log_info(__FILE__, "encoder last frame finished (%i/%i)",
+                        encdata.buffer->frame_id, encdata.frame_last);
+        }
         tc_log_info(__FILE__, "export terminated - buffer(s) empty");
     }
+    return;
 }
 
 

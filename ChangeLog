@@ -5,6 +5,10 @@
   * src/decoder.c src/encoder-buffer.c
   make messages more debug friendly.
 
+  * src/encoder.c
+  export last valid frame too.
+  (this addresses, but not yet resolves, issue #000017).
+
 2007-08-08 Francesco Romani <fromani at gmail dot com>
   * added files: docs/pvm3/export_pvm.txt
   docs/pvm3/pvm_10x.cfg docs/pvm3/pvm_11x.cfg docs/pvm3/pvm_config.txt
