@@ -28,7 +28,6 @@ docs_DATA = \
 	RELNOTES-0.6.13 \
 	export_ffmpeg.txt \
 	export_mp2.txt \
-	export_pvm.txt \
 	filter-socket.txt \
 	filter_dnr.txt \
 	filter_logo.txt \
@@ -41,6 +40,5 @@ docs_DATA = \
 	import_v4l2.txt \
 	import_yuv.txt \
 	import_x11.txt \
-	pvm.cfg \
 	faq \
 	template.cfg.txt
