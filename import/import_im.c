@@ -24,7 +24,7 @@
  */
 
 #define MOD_NAME    "import_im.so"
-#define MOD_VERSION "v0.1.0 (2007-07-17)"
+#define MOD_VERSION "v0.1.1 (2007-08-08)"
 #define MOD_CODEC   "(video) RGB"
 
 #ifdef HAVE_CONFIG_H
@@ -52,7 +52,7 @@
 #include <stdio.h>
 
 static int verbose_flag = TC_QUIET;
-static int capability_flag = TC_CAP_RGB | TC_CAP_VID;
+static int capability_flag = TC_CAP_RGB|TC_CAP_VID;
 
 #define MOD_PRE im
 #include "import_def.h"
@@ -63,7 +63,7 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_VID;
 
 
 static char *head = NULL, *tail = NULL;
-static int first_frame = 0, last_frame = 0, current_frame = 0, pad = 0;
+static int first_frame = 0, current_frame = 0, pad = 0;
 static int width = 0, height = 0;
 static MagickWand *wand = NULL;
 static int auto_seq_read = TC_TRUE; 
@@ -95,10 +95,8 @@ static int TCHandleMagickError(MagickWand *wand)
 /* I suspect we have a lot of potential memleaks in here -- FRomani */
 MOD_open
 {
-    int result, string_length;
-    long sret;
-    char *regex, *frame, *filename;
-    char printfspec[20];
+    int result, slen = 0;
+    char *regex = NULL, *frame = NULL;
     regex_t preg;
     regmatch_t pmatch[4];
 
@@ -110,7 +108,7 @@ MOD_open
         param->fd = NULL;
 
         // get the frame name and range
-        regex = "\\(.\\+[-._]\\)\\?\\([0-9]\\+\\)\\([-._].\\+\\)\\?";
+        regex = "\\([^0-9]\\+[-._]\\?\\)\\?\\([0-9]\\+\\)\\([-._].\\+\\)\\?";
         result = regcomp(&preg, regex, 0);
         if (result) {
             tc_log_perror(MOD_NAME, "ERROR:  Regex compile failed.\n");
@@ -120,34 +118,33 @@ MOD_open
         result = regexec(&preg, vob->video_in_file, 4, pmatch, 0);
         if (result) {
             tc_log_warn(MOD_NAME, "Regex match failed: no image sequence");
-            string_length = strlen(vob->video_in_file) + 1;
-            head = tc_malloc(string_length);
+            slen = strlen(vob->video_in_file) + 1;
+            head = tc_malloc(slen);
             if (head == NULL) {
                 tc_log_perror(MOD_NAME, "filename head");
                 return TC_IMPORT_ERROR;
             }
-            strlcpy(head, vob->video_in_file, string_length);
+            strlcpy(head, vob->video_in_file, slen);
             tail = tc_malloc(1); /* URGH -- FRomani */
             tail[0] = 0;
             first_frame = -1;
-            last_frame = 0x7fffffff;
         } else {
             // split the name into head, frame number, and tail
-            string_length = pmatch[1].rm_eo - pmatch[1].rm_so + 1;
-            head = tc_malloc(string_length);
+            slen = pmatch[1].rm_eo - pmatch[1].rm_so + 1;
+            head = tc_malloc(slen);
             if (head == NULL) {
                 tc_log_perror(MOD_NAME, "filename head");
                 return TC_IMPORT_ERROR;
             }
-            strlcpy(head, vob->video_in_file, string_length);
+            strlcpy(head, vob->video_in_file, slen);
 
-            string_length = pmatch[2].rm_eo - pmatch[2].rm_so + 1;
-            frame = tc_malloc(string_length);
+            slen = pmatch[2].rm_eo - pmatch[2].rm_so + 1;
+            frame = tc_malloc(slen);
             if (frame == NULL) {
                 tc_log_perror(MOD_NAME, "filename frame");
                 return TC_IMPORT_ERROR;
             }
-            strlcpy(frame, vob->video_in_file + pmatch[2].rm_so, string_length);
+            strlcpy(frame, vob->video_in_file + pmatch[2].rm_so, slen);
 
             // If the frame number is padded with zeros, record how many digits
             // are actually being used.
@@ -156,30 +153,14 @@ MOD_open
             }
             first_frame = atoi(frame);
 
-            string_length = pmatch[3].rm_eo - pmatch[3].rm_so + 1;
-            tail = tc_malloc(string_length);
+            slen = pmatch[3].rm_eo - pmatch[3].rm_so + 1;
+            tail = tc_malloc(slen);
             if (tail == NULL) {
                 tc_log_perror(MOD_NAME, "filename tail");
                 return TC_IMPORT_ERROR;
             }
-            strlcpy(tail, vob->video_in_file + pmatch[3].rm_so, string_length);
+            strlcpy(tail, vob->video_in_file + pmatch[3].rm_so, slen);
 
-            // find the last frame by trying to open files
-            last_frame = first_frame;
-            filename = tc_malloc(strlen(head) + pad + strlen(tail) + 1);
-            /* why remalloc frame? */
-            /* frame = malloc(pad + 1); */
-            do {
-                last_frame++;
-                tc_snprintf(printfspec, sizeof(printfspec), "%%s%%0%dd%%s", pad);
-                string_length = strlen(head) + pad + strlen(tail) + 1;
-                sret = tc_snprintf(filename, string_length, printfspec, head,
-                                   last_frame, tail);
-                if (sret < 0)
-                  return TC_IMPORT_ERROR;
-            } while (close(open(filename, O_RDONLY)) != -1); /* URGH -- Fromani */
-            last_frame--;
-            tc_free(filename);
             tc_free(frame);
         }
 
@@ -219,7 +200,7 @@ MOD_open
 MOD_decode
 {
     char *filename = NULL, *frame = NULL;
-    int string_length;
+    int slen;
     MagickBooleanType status;
 
     if (param->flag == TC_AUDIO) {
@@ -227,15 +208,12 @@ MOD_decode
     }
 
     if (param->flag == TC_VIDEO) {
-        if (current_frame > last_frame)
-            return TC_IMPORT_ERROR;
-
         if (!auto_seq_read) {
             filename = tc_strdup(vob->video_in_file);
         } else {
             // build the filename for the current frame
-            string_length = strlen(head) + pad + strlen(tail) + 1;
-            filename = tc_malloc(string_length);
+            slen = strlen(head) + pad + strlen(tail) + 1;
+            filename = tc_malloc(slen);
             if (pad) {
                 char framespec[10];
                 frame = tc_malloc(pad+1);
@@ -246,13 +224,13 @@ MOD_decode
                 frame = tc_malloc(10);
                 tc_snprintf(frame, 10, "%d", current_frame);
             }
-            strlcpy(filename, head, string_length);
+            strlcpy(filename, head, slen);
             if (frame != NULL) {
-                strlcat(filename, frame, string_length);
+                strlcat(filename, frame, slen);
                 tc_free(frame);
                 frame = NULL;
             }
-            strlcat(filename, tail, string_length);
+            strlcat(filename, tail, slen);
         }
 
         ClearMagickWand(wand);
@@ -264,6 +242,10 @@ MOD_decode
 
         status = MagickReadImage(wand, filename);
         if (status == MagickFalse) {
+            if (auto_seq_read) {
+                /* let's assume that image sequence ends here */
+                return TC_IMPORT_ERROR;
+            }
             return TCHandleMagickError(wand);
         }
 
@@ -278,8 +260,7 @@ MOD_decode
             return TCHandleMagickError(wand);
         }
 
-        if (current_frame == first_frame)
-            param->attributes |= TC_FRAME_IS_KEYFRAME;
+        param->attributes |= TC_FRAME_IS_KEYFRAME;
 
         current_frame++;
     
