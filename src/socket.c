@@ -844,6 +844,7 @@ void tc_socket_wait(void)
          * called before), nothing will ever happen, so
          * we must block forever to satisfy function requirements.
          */
+        return;
     }
     tc_socket_poll_internal(1);
 }
