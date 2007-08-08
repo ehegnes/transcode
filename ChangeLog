@@ -1,3 +1,16 @@
+2007-08-08 Francesco Romani <fromani at gmail dot com>
+  * added files: docs/pvm3/export_pvm.txt
+  docs/pvm3/pvm_10x.cfg docs/pvm3/pvm_11x.cfg docs/pvm3/pvm_config.txt
+  docs/pvm3/Makefile.am
+
+  * removed files:
+  docs/pvm.cfg docs/export_pvm.txt
+
+  * configure.in
+  move pvm3 documentation in a separate subdirectory.
+  provide template for new configuration syntax introduced in 1.1.0,
+  and put placeholder for a document listing the changes.
+
 2007-08-07 Francesco Romani <fromani at gmail dot com>
   * libtc/ratiocodes.c libtc/ratiocodes.h
   add another helper function (to replace src/probe/asr2str).
