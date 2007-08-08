@@ -136,7 +136,7 @@ static int check_module_caps(const transfer_t *param, int codec,
         int i = 0;
 
         // module returned capability flag
-        if (verbose & TC_DEBUG) {
+        if (verbose >= TC_DEBUG) {
             tc_log_msg(__FILE__, "Capability flag 0x%x | 0x%x",
                        param->flag, codec);
         }
@@ -192,7 +192,7 @@ static int import_test_shutdown(TCDecoderData *decdata)
     pthread_mutex_unlock(&decdata->lock);
 
     if (!flag) {
-        if (verbose & TC_DEBUG) {
+        if (verbose >= TC_DEBUG) {
             tc_log_msg(__FILE__, "%s import cancelation requested",
                        decdata->tag);
         }
@@ -358,7 +358,7 @@ static int video_decode_loop(vob_t *vob)
 
     int have_vframe_threads = tc_frame_threads_have_video_workers();
 
-    if (verbose & TC_DEBUG)
+    if (verbose >= TC_DEBUG)
         tc_log_msg(__FILE__, "video thread id=%ld", (unsigned long)pthread_self());
 
     vbytes = vob->im_v_size;
@@ -415,7 +415,7 @@ static int video_decode_loop(vob_t *vob)
         }
 
         if (ret < 0) {
-            if (verbose & TC_DEBUG)
+            if (verbose >= TC_DEBUG)
                 tc_log_msg(__FILE__, "video data read failed - end of stream");
 
             ptr->video_size = 0;
@@ -451,7 +451,7 @@ static int video_decode_loop(vob_t *vob)
             tc_frame_threads_notify_video(TC_FALSE);
         }
 
-        if (verbose & TC_STATS)
+        if (verbose >= TC_STATS)
             tc_log_msg(__FILE__, "%10s [%ld] V=%d bytes", "received", i, ptr->video_size);
 
         if (ret < 0) {
@@ -494,7 +494,7 @@ static int audio_decode_loop(vob_t *vob)
 
     int have_aframe_threads = tc_frame_threads_have_audio_workers();
 
-    if (verbose & TC_DEBUG)
+    if (verbose >= TC_DEBUG)
         tc_log_msg(__FILE__, "audio thread id=%ld",
                    (unsigned long)pthread_self());
 
@@ -559,7 +559,7 @@ static int audio_decode_loop(vob_t *vob)
 
         /* stage 3.3: silence at last */
         if (vob->sync < 0) {
-            if (verbose & TC_DEBUG)
+            if (verbose >= TC_DEBUG)
                 tc_log_msg(__FILE__, " zero padding %d", vob->sync);
             memset(ptr->audio_buf, 0, abytes);
             ptr->audio_size = abytes;
@@ -569,7 +569,7 @@ static int audio_decode_loop(vob_t *vob)
 
 
         if (ret < 0) {
-            if (verbose & TC_DEBUG)
+            if (verbose >= TC_DEBUG)
                 tc_log_msg(__FILE__, "audio data read failed - end of stream");
 
             ptr->audio_size = 0;
@@ -602,7 +602,7 @@ static int audio_decode_loop(vob_t *vob)
             tc_frame_threads_notify_audio(TC_FALSE);
         }
 
-        if (verbose & TC_STATS)
+        if (verbose >= TC_STATS)
             tc_log_msg(__FILE__, "%10s [%ld] A=%d bytes", "received",
                                  i, ptr->audio_size);
 
@@ -725,7 +725,7 @@ static void tc_import_stop(void)
     tc_frame_threads_notify_video(TC_TRUE);
     tc_frame_threads_notify_audio(TC_TRUE);
 
-    if (verbose & TC_DEBUG)
+    if (verbose >= TC_DEBUG)
         tc_log_msg(__FILE__, "import stop requested by client=%ld"
                              " (main=%ld) import status=%d",
                              (unsigned long)pthread_self(),
@@ -760,7 +760,7 @@ void tc_import_threads_cancel(void)
     vret = pthread_cancel(video_decdata.thread_id);
     aret = pthread_cancel(audio_decdata.thread_id);
 
-    if (verbose & TC_DEBUG) {
+    if (verbose >= TC_DEBUG) {
         if (vret == ESRCH)
             tc_log_msg(__FILE__, "video thread already terminated");
         if (aret == ESRCH)
@@ -782,7 +782,7 @@ void tc_import_threads_cancel(void)
 #endif
     vret = pthread_join(video_decdata.thread_id, &status);
 
-    if (verbose & TC_DEBUG)
+    if (verbose >= TC_DEBUG)
         tc_log_msg(__FILE__, "video thread exit (ret_code=%d) (status_code=%lu)",
                    vret, (unsigned long)status);
 
@@ -794,19 +794,19 @@ void tc_import_threads_cancel(void)
 #endif
     aret = pthread_join(audio_decdata.thread_id, &status);
 
-    if (verbose & TC_DEBUG)
+    if (verbose >= TC_DEBUG)
         tc_log_msg(__FILE__, "audio thread exit (ret_code=%d) (status_code=%lu)",
                     aret, (unsigned long) status);
 
     vret = pthread_mutex_trylock(&vframe_list_lock);
 
-    if (verbose & TC_DEBUG)
+    if (verbose >= TC_DEBUG)
         tc_log_msg(__FILE__, "vframe_list_lock=%s", (vret==EBUSY)? "BUSY":"0");
     if (vret == 0)
         pthread_mutex_unlock(&vframe_list_lock);
 
     aret = pthread_mutex_trylock(&aframe_list_lock);
-    if (verbose & TC_DEBUG)
+    if (verbose >= TC_DEBUG)
         tc_log_msg(__FILE__, "aframe_list_lock=%s", (aret==EBUSY)? "BUSY":"0");
     if (aret == 0)
         pthread_mutex_unlock(&aframe_list_lock);
@@ -884,14 +884,14 @@ int tc_import_close(void)
 
 void tc_import_shutdown(void)
 {
-    if (verbose & TC_DEBUG) {
+    if (verbose >= TC_DEBUG) {
         tc_log_msg(__FILE__, "unloading audio import module");
     }
 
     unload_module(audio_decdata.im_handle);
     audio_decdata.im_handle = NULL;
 
-    if (verbose & TC_DEBUG) {
+    if (verbose >= TC_DEBUG) {
         tc_log_msg(__FILE__, "unloading video import module");
     }
 

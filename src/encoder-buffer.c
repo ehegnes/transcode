@@ -340,8 +340,8 @@ static int encoder_acquire_vframe(TCEncoderBuffer *buf, vob_t *vob)
         buf->frame_id = buf->vptr->id + tc_get_frames_skipped_cloned();
 
         if (verbose & TC_STATS) {
-            tc_log_info(__FILE__, "got frame 0x%lux (%i)",
-                                  (unsigned long) buf->vptr, buf->frame_id);
+            tc_log_info(__FILE__, "got frame %p (id=%i)",
+                                  buf->vptr, buf->frame_id);
         }
 
         /*
@@ -424,7 +424,7 @@ static int encoder_acquire_aframe(TCEncoderBuffer *buf, vob_t *vob)
         got_frame = TC_TRUE;
 
         if (verbose & TC_STATS) {
-            tc_log_info(__FILE__, "got audio frame (%i)", buf->aptr->id);
+            tc_log_info(__FILE__, "got audio frame (id=%i)", buf->aptr->id);
         }
 
         apply_audio_filters(buf->aptr, vob);
