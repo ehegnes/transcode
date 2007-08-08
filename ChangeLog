@@ -17,6 +17,9 @@
   * import/import_im.c
   module updates. Closes bug #000020 (hopefully).
 
+  * configure.in
+  transcode 1.1.0 alpha 3.
+
 2007-08-07 Francesco Romani <fromani at gmail dot com>
   * libtc/ratiocodes.c libtc/ratiocodes.h
   add another helper function (to replace src/probe/asr2str).
