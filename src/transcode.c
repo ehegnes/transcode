@@ -934,7 +934,7 @@ int main(int argc, char *argv[])
         int result = probe_source(vob->video_in_file, vob->audio_in_file, seek_range,
                                   preset_flag, vob);
         if (verbose) {
-            tc_log_info(PACKAGE, "V: %-16s | %s (%s)", "auto-probing",
+            tc_log_info(PACKAGE, "V: %-16s | %s in (%s)", "auto-probing",
                         (vob->video_in_file != NULL) ?vob->video_in_file :"N/A",
                         result ? "OK" : "FAILED");
             tc_log_info(PACKAGE, "V: %-16s | %s %s (module=%s)",
@@ -942,7 +942,7 @@ int main(int argc, char *argv[])
                         tc_codec_to_comment(vob->v_codec_flag),
                         mformat2str(vob->v_format_flag),
                         no_vin_codec == 0 ? im_vid_mod : vob->vmod_probed);
-            tc_log_info(PACKAGE, "A: %-16s | %s (%s)", "auto-probing",
+            tc_log_info(PACKAGE, "A: %-16s | %s in (%s)", "auto-probing",
                         (vob->audio_in_file != NULL) ?vob->audio_in_file :"N/A",
                         result ? "OK" : "FAILED");
             tc_log_info(PACKAGE, "A: %-16s | %s %s (module=%s)",
