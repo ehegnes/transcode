@@ -878,37 +878,50 @@ static int encoder_export(TCEncoderData *data, vob_t *vob)
     }
 
     tc_update_frames_encoded(1);
-    return data->error_flag ? TC_ERROR : TC_OK;
+    return (data->error_flag) ?TC_ERROR :TC_OK;
 }
 
+
+#define RETURN_IF_NOT_OK(RET, KIND) do { \
+    if ((RET) != TC_OK) { \
+        tc_log_error(__FILE__, "error encoding final %s frame", (KIND)); \
+        return TC_ERROR; \
+    } \
+} while (0)
+
+#define RETURN_IF_MUX_ERROR(BYTES) do { \
+    if ((BYTES) < 0) { \
+        tc_log_error(__FILE__, "error multiplexing final audio frame"); \
+        return TC_ERROR; \
+    } \
+} while (0)
+        
+
+/* DO NOT rotate here, this data belongs to current chunk */
 static int encoder_flush(TCEncoderData *data)
 {
-    int ret;
+    int ret = TC_ERROR, bytes = 0;
 
-    /* only audio needs flushing right now */
-    RESET_ATTRIBUTES(data->aenc_ptr);
+    do {
+        RESET_ATTRIBUTES(data->aenc_ptr);
+        ret = tc_module_encode_audio(data->aud_mod, NULL, data->aenc_ptr);
+        RETURN_IF_NOT_OK(ret, "audio");
 
-    ret = tc_module_encode_audio(data->aud_mod, NULL, data->aenc_ptr);
-    if (ret != TC_OK) {
-        tc_log_error(__FILE__, "error encoding final audio frame");
-        ret = TC_ERROR;
-    } else if (data->aenc_ptr->audio_len > 0) {
-        /* 
-         * paranoia check, every multiplexor is supposed to handle
-         * safely zero-length encoded frames.
-         */
-        ret = tc_module_multiplex(data->mplex_mod, NULL, data->aenc_ptr);
-        if (ret >= 0) {
-            ret = TC_OK;
-        } else {
-            tc_log_error(__FILE__, "error multiplexing final audio frame");
-            ret = TC_ERROR;
-        }
-        /* DO NOT rotate here, this data belongs to current chunk */
-    }
-    return ret;
+        bytes = tc_module_multiplex(data->mplex_mod, NULL, data->aenc_ptr);
+    } while (bytes != 0);
+    RETURN_IF_MUX_ERROR(bytes);
+
+    do {
+        RESET_ATTRIBUTES(data->venc_ptr);
+        ret = tc_module_encode_video(data->vid_mod, NULL, data->venc_ptr);
+        RETURN_IF_NOT_OK(ret, "video");
+
+        bytes = tc_module_multiplex(data->mplex_mod, data->venc_ptr, NULL);
+    } while (bytes != 0);
+    RETURN_IF_MUX_ERROR(bytes);
+
+    return TC_OK;
 }
-
 
 
 void tc_export_rotation_limit_frames(vob_t *vob, uint32_t frames)
@@ -1331,11 +1344,12 @@ void tc_encoder_loop(vob_t *vob, int frame_first, int frame_last)
         encdata.this_frame_last = frame_last;
     }
 
+    encdata.error_flag = 0; /* reset */
     encdata.frame_first = frame_first;
     encdata.frame_last = frame_last;
     encdata.saved_frame_last = encdata.old_frame_last;
 
-    do {
+    while (!encdata.error_flag) {
         /* check for ^C signal */
         if (tc_export_stop_requested()) {
             if (verbose >= TC_DEBUG) {
@@ -1364,6 +1378,9 @@ void tc_encoder_loop(vob_t *vob, int frame_first, int frame_last)
         }
 
         eos = is_last_frame(&encdata, tc_cluster_mode);
+        if (eos) {
+            break;
+        }
 
         /* check frame id */
         if (frame_first <= encdata.buffer->frame_id
@@ -1376,7 +1393,7 @@ void tc_encoder_loop(vob_t *vob, int frame_first, int frame_last)
         /* release frame buffer memory */
         encdata.buffer->dispose_video_frame(encdata.buffer);
         encdata.buffer->dispose_audio_frame(encdata.buffer);
-    } while (!eos && !encdata.error_flag);
+    }
     /* main frame decoding loop */
 
     if (verbose >= TC_DEBUG) {

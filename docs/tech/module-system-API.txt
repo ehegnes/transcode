@@ -654,6 +654,7 @@ Corrections about english are welcome.
 7. More docs, more sample code.
 8. Make explicit preferred (native?) colorspace for modules (the one for which
    the module is designed about, so it provide bests results).
-
+9. Improve (make explicit?) flush API in muxers.
+10. better muxing API (using chunks?).
 
 # EOF

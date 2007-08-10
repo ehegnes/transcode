@@ -3,6 +3,14 @@
     multiplex/multiplex_y4m.c
   do not multiplex zero-sized frames.
 
+  * src/encoder.c
+  internal rearrangements: END_OF_STREAM frames should NOT be muxed.
+  smarter flush handling, but this needs serious improvements in
+  1.2.0 cycle.
+
+  * docs/tech/module-system-API.txt
+  note that we must improve encoder flush and maybe muxer API.
+
 2007-08-08 Francesco Romani <fromani at gmail dot com>
   * src/socket.c
   avoid accidental polling.
