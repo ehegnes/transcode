@@ -143,7 +143,7 @@ static int avi_multiplex(TCModuleInstance *self,
     pd = self->userdata;
     size_before = AVI_bytes_written(pd->avifile);
 
-    if (vframe != NULL) {
+    if (vframe != NULL && vframe->video_len > 0) {
         int key = ((vframe->attributes & TC_FRAME_IS_KEYFRAME)
                         || pd->force_kf) ?1 :0;
 
@@ -157,7 +157,7 @@ static int avi_multiplex(TCModuleInstance *self,
         }
     }
 
-    if (aframe != NULL) {
+    if (aframe != NULL && aframe->audio_len > 0) {
  		ret = AVI_write_audio(pd->avifile, (const char*)aframe->audio_buf,
                               aframe->audio_len);
  		if (ret < 0) {

@@ -1,3 +1,8 @@
+2007-08-10 Francesco Romani <fromani at gmail dot com>
+  * multiplex/multiplex_avi.c multiplex/multiplex_raw.c
+    multiplex/multiplex_y4m.c
+  do not multiplex zero-sized frames.
+
 2007-08-08 Francesco Romani <fromani at gmail dot com>
   * src/socket.c
   avoid accidental polling.

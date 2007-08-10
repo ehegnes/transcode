@@ -276,7 +276,7 @@ static int yw_multiplex(TCModuleInstance *self,
 
     pd = self->userdata;
 
-    if (vframe != NULL) {
+    if (vframe != NULL && vframe->video_len > 0) {
         uint8_t *planes[3];
         int ret = 0;
         y4m_init_frame_info(&pd->frameinfo);
@@ -293,7 +293,7 @@ static int yw_multiplex(TCModuleInstance *self,
         w_vid = vframe->video_len;
     }
 
-    if (aframe != NULL) {
+    if (aframe != NULL && aframe->audio_len > 0) {
         w_aud = wav_write_data(pd->wav, aframe->audio_buf, aframe->audio_len);
         if (w_aud != aframe->audio_len) {
             tc_log_warn(MOD_NAME, "error while writing audio frame: %s",
