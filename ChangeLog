@@ -11,6 +11,11 @@
   * docs/tech/module-system-API.txt
   note that we must improve encoder flush and maybe muxer API.
 
+  * encode/encode_xvid.c
+  handle flush requests. This fixes 33% of issue #000017
+  (http://tcfoundry.hostme.it/mantis/view.php?id=17)
+  still pending: OMS flush code, 1.0.x backport (straightforward from OMS).
+
 2007-08-08 Francesco Romani <fromani at gmail dot com>
   * src/socket.c
   avoid accidental polling.

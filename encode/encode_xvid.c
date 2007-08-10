@@ -50,19 +50,19 @@
  * notes:
  * - tc_xvid_ prefix is used to avoid any possible name clash with XviD code
  * - export_xvid4.c was a really nice and well-written module, this module
- *   is laregely based on such module and share a large portion of code with
+ *   is largely based on such module and share a large portion of code with
  *   it. So hopefully it should work nicely :)
- * - handling of dynamic loading od further shared objects (XviD codec, here)
+ * - handling of dynamic loading of further shared objects (XviD codec, here)
  *   isn't optimal, such details should be handled by libtc.
  *   libdldarwin too should be merged with libtc, or maybe we should switch
- *   to libtool wozardry.
+ *   to libtool wizardry.
  */
 /*****************************************************************************
  * Transcode module binding functions and strings
  ****************************************************************************/
 
 #define MOD_NAME    "encode_xvid.so"
-#define MOD_VERSION "v0.0.4 (2006-05-05)"
+#define MOD_VERSION "v0.0.5 (2007-08-10)"
 #define MOD_CAP     "XviD 1.x encoder"
 
 #define MOD_FEATURES \
@@ -85,7 +85,8 @@ static const char xvid_help[] = ""
  * XviD symbols grouped in a nice struct.
  ****************************************************************************/
 
-typedef int (*xvid_function_t)(void *handle, int opt, void *param1, void *param2);
+typedef int (*xvid_function_t)(void *handle, int opt,
+                               void *param1, void *param2);
 
 /*****************************************************************************
  * Transcode module private data
@@ -262,6 +263,46 @@ static int tc_xvid_inspect(TCModuleInstance *self,
     return TC_OK;
 }
 
+static int tc_xvid_flush(TCModuleInstance *self, vframe_list_t *outframe)
+{
+    int bytes;
+    xvid_enc_stats_t xvid_enc_stats;
+    vob_t *vob = tc_get_vob();
+    XviDPrivateData *pd = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "encode_video");
+
+    pd = self->userdata;
+
+    /* Init the stat structure */
+    memset(&xvid_enc_stats, 0, sizeof(xvid_enc_stats_t));
+    xvid_enc_stats.version = XVID_VERSION;
+
+    /* Combine both the config settings with the transcode direct options
+     * into the final xvid_enc_frame_t struct */
+    set_frame_struct(pd, vob, NULL, outframe);
+
+    bytes = xvid_encore(pd->instance, XVID_ENC_ENCODE,
+                        &pd->xvid_enc_frame, &xvid_enc_stats);
+
+    outframe->video_len = bytes;
+    if (bytes > 0) {
+        /* Extract stats info */
+        if (xvid_enc_stats.type > 0 && pd->cfg_stats) {
+            pd->frames++;
+            pd->sse_y += xvid_enc_stats.sse_y;
+            pd->sse_u += xvid_enc_stats.sse_u;
+            pd->sse_v += xvid_enc_stats.sse_v;
+        }
+
+        if (pd->xvid_enc_frame.out_flags & XVID_KEYFRAME) {
+            outframe->attributes |= TC_FRAME_IS_KEYFRAME;
+       }
+    }
+    return TC_OK;
+}
+
+
 static int tc_xvid_encode_video(TCModuleInstance *self,
                                 vframe_list_t *inframe, vframe_list_t *outframe)
 {
@@ -274,20 +315,23 @@ static int tc_xvid_encode_video(TCModuleInstance *self,
 
     pd = self->userdata;
 
-    if(vob->im_v_codec == CODEC_YUV422) {
-        /* Convert to UYVY */
-        tcv_convert(pd->tcvhandle, inframe->video_buf, inframe->video_buf,
-		    vob->ex_v_width, vob->ex_v_height, IMG_YUV422P, IMG_UYVY);
-    } else if (vob->im_v_codec == CODEC_RGB) {
-        /* Convert to BGR (why isn't RGB supported??) */
-        tcv_convert(pd->tcvhandle, inframe->video_buf, inframe->video_buf,
-		    vob->ex_v_width, vob->ex_v_height, IMG_RGB24, IMG_BGR24);
+    if (inframe == NULL) {
+        return tc_xvid_flush(self, outframe); // FIXME
     }
 
     /* Init the stat structure */
     memset(&xvid_enc_stats, 0, sizeof(xvid_enc_stats_t));
     xvid_enc_stats.version = XVID_VERSION;
 
+    if(vob->im_v_codec == CODEC_YUV422) {
+        /* Convert to UYVY */
+        tcv_convert(pd->tcvhandle, inframe->video_buf, inframe->video_buf,
+                    vob->ex_v_width, vob->ex_v_height, IMG_YUV422P, IMG_UYVY);
+    } else if (vob->im_v_codec == CODEC_RGB) {
+        /* Convert to BGR (why isn't RGB supported??) */
+        tcv_convert(pd->tcvhandle, inframe->video_buf, inframe->video_buf,
+                    vob->ex_v_width, vob->ex_v_height, IMG_RGB24, IMG_BGR24);
+    }
     /* Combine both the config settings with the transcode direct options
      * into the final xvid_enc_frame_t struct */
     set_frame_struct(pd, vob, inframe, outframe);
@@ -305,7 +349,7 @@ static int tc_xvid_encode_video(TCModuleInstance *self,
     outframe->video_len = bytes;
 
     /* Extract stats info */
-    if (xvid_enc_stats.type>0 && pd->cfg_stats) {
+    if (xvid_enc_stats.type > 0 && pd->cfg_stats) {
         pd->frames++;
         pd->sse_y += xvid_enc_stats.sse_y;
         pd->sse_u += xvid_enc_stats.sse_u;
@@ -316,7 +360,6 @@ static int tc_xvid_encode_video(TCModuleInstance *self,
     * We must make sure audio A/V is still good and does not run away */
     if (bytes == 0) {
         outframe->attributes |= TC_FRAME_IS_DELAYED;
-        outframe->video_len = 0; /* paranoia */
         return TC_OK;
     }
 
@@ -918,21 +961,32 @@ static void set_frame_struct(XviDPrivateData *mod, vob_t *vob,
 
     /* Bind output buffer */
     x->bitstream = outframe->video_buf;
-    x->length    = outframe->video_size;
 
-    /* Bind source frame */
-    x->input.plane[0] = inframe->video_buf;
-    if (vob->im_v_codec == CODEC_RGB) {
-        x->input.csp       = XVID_CSP_BGR;
-        x->input.stride[0] = vob->ex_v_width*3;
-    } else if (vob->im_v_codec == CODEC_YUV422) {
-        x->input.csp       = XVID_CSP_UYVY;
-        x->input.stride[0] = vob->ex_v_width*2;
+    if (!inframe) { /* flush request */
+        x->length          = -1;
+        x->input.csp       = XVID_CSP_NULL;
+        x->input.plane[0]  = NULL;
+//        x->input.plane[1]  = NULL;
+//        x->input.plane[2]  = NULL;
+        x->input.stride[0] = 0;
+//        x->input.stride[1] = 0;
+//        x->input.stride[2] = 0;
     } else {
-        x->input.csp       = XVID_CSP_I420;
-        x->input.stride[0] = vob->ex_v_width;
-    }
+        x->length    = outframe->video_size;
 
+        /* Bind source frame */
+        x->input.plane[0] = inframe->video_buf;
+        if (vob->im_v_codec == CODEC_RGB) {
+            x->input.csp       = XVID_CSP_BGR;
+            x->input.stride[0] = vob->ex_v_width*3;
+        } else if (vob->im_v_codec == CODEC_YUV422) {
+            x->input.csp       = XVID_CSP_UYVY;
+            x->input.stride[0] = vob->ex_v_width*2;
+        } else {
+            x->input.csp       = XVID_CSP_I420;
+            x->input.stride[0] = vob->ex_v_width;
+        }
+    }
     /* Set up core's VOL level features */
     x->vol_flags = xcfg->vol_flags;
 
@@ -972,28 +1026,29 @@ static void set_frame_struct(XviDPrivateData *mod, vob_t *vob,
 
 static const char *errorstring(int err)
 {
-    char *error;
+    const char *error;
+
     switch(err) {
-    case XVID_ERR_FAIL:
+      case XVID_ERR_FAIL:
         error = "General fault";
         break;
-    case XVID_ERR_MEMORY:
+      case XVID_ERR_MEMORY:
         error =  "Memory allocation error";
         break;
-    case XVID_ERR_FORMAT:
+      case XVID_ERR_FORMAT:
         error =  "File format error";
         break;
-    case XVID_ERR_VERSION:
+      case XVID_ERR_VERSION:
         error =  "Structure version not supported";
         break;
-    case XVID_ERR_END:
+      case XVID_ERR_END:
         error =  "End of stream reached";
         break;
-    default:
+      default:
         error = "Unknown";
     }
 
-    return (const char *)error;
+    return error;
 }
 
 /*************************************************************************/
