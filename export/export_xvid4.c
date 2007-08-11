@@ -68,7 +68,7 @@
  ****************************************************************************/
 
 #define MOD_NAME    "export_xvid4.so"
-#define MOD_VERSION "v0.0.5 (2003-12-05)"
+#define MOD_VERSION "v0.0.6 (2007-08-11)"
 #define MOD_CODEC  \
 "(video) XviD 1.0.x series (aka API 4.0) | (audio) MPEG/AC3/PCM"
 static int verbose_flag = TC_QUIET;
@@ -345,6 +345,36 @@ MOD_open
  * Encode and export a frame
  ****************************************************************************/
 
+static int tc_xvid_write(int bytes, vob_t *vob)
+{
+    /* Make sure we take care of AVI splitting */
+    if(thismod.rawfd < 0) {
+        if((uint32_t)(AVI_bytes_written(vob->avifile_out)+bytes+16+8)>>20 >= tc_avi_limit)
+            tc_outstream_rotate_request();
+        if(thismod.xvid_enc_frame.out_flags & XVID_KEYFRAME)
+            tc_outstream_rotate();
+    }
+
+    /* Write bitstream */
+    if(thismod.rawfd < 0) {
+        int ret = AVI_write_frame(vob->avifile_out, thismod.stream, bytes,
+                                  thismod.xvid_enc_frame.out_flags & XVID_KEYFRAME);
+        if(ret < 0) {
+            fprintf(stderr, "[%s] AVI video write error", MOD_NAME);
+            return(TC_EXPORT_ERROR);
+        }
+    } else {
+        int ret = p_write(thismod.rawfd, thismod.stream, bytes);
+        if(ret != bytes) {
+            fprintf(stderr, "[%s] RAW video write error", MOD_NAME);
+            return(TC_EXPORT_ERROR);
+        }
+    }
+
+    return(TC_EXPORT_OK);
+}
+
+
 MOD_encode
 {
 	int bytes;
@@ -400,64 +430,72 @@ MOD_encode
 		return(TC_EXPORT_OK);
 	}
 
-	/* Make sure we take care of AVI splitting */
-	if(thismod.rawfd < 0) {
-		if((uint32_t)(AVI_bytes_written(vob->avifile_out)+bytes+16+8)>>20 >= tc_avi_limit) 
-			tc_outstream_rotate_request();
-		if(thismod.xvid_enc_frame.out_flags & XVID_KEYFRAME)
-			tc_outstream_rotate();
-	}
-
-	/* Write bitstream */
-	if(thismod.rawfd < 0) {
-		int ret;
-		ret = AVI_write_frame(vob->avifile_out, thismod.stream, bytes,
-				      thismod.xvid_enc_frame.out_flags & XVID_KEYFRAME);
-		if(ret < 0) {
-			fprintf(stderr, "[%s] AVI video write error\n", MOD_NAME);
-			return(TC_EXPORT_ERROR); 
-		}
-	} else {
-		int ret;
-		ret = p_write(thismod.rawfd, thismod.stream, bytes);
-		if(ret != bytes) {    
-			fprintf(stderr, "[%s] RAW video write error\n", MOD_NAME);
-			return(TC_EXPORT_ERROR);
-		}
-	}
-
-	return(TC_EXPORT_OK);
+    return tc_xvid_write(bytes, vob);
 }
 
 /*****************************************************************************
  * Close codec
  ****************************************************************************/
 
-MOD_close
-{  
-	vob_t *vob = tc_get_vob();
+static int tc_xvid_flush(vob_t *vob)
+{
+    int bytes = 0, ret = TC_EXPORT_OK;
+    xvid_enc_stats_t xvid_enc_stats;
+    xvid_module_t *xvid = &thismod.xvid;
 
-	/* Invalid flag */
-	if(param->flag != TC_AUDIO && param->flag != TC_VIDEO)
-		return(TC_EXPORT_ERROR);
+    do {
+        ret = TC_EXPORT_OK;
+        
+        /* Init the stat structure */
+        memset(&xvid_enc_stats,0, sizeof(xvid_enc_stats_t));
+        xvid_enc_stats.version = XVID_VERSION;
 
-	/* Audio file closing */
-	if(param->flag == TC_AUDIO)
-		return(audio_close()); 
+        set_frame_struct(&thismod, vob, NULL);
 
-	/* Video file closing */
-	if(thismod.rawfd >= 0) {
-		close(thismod.rawfd);
-		thismod.rawfd = -1;
-	}
-	if(vob->avifile_out != NULL) {
-		AVI_close(vob->avifile_out);
-		vob->avifile_out = NULL;
-	}
+        bytes = xvid->encore(thismod.instance, XVID_ENC_ENCODE,
+                             &thismod.xvid_enc_frame, &xvid_enc_stats);
 
-	return(TC_EXPORT_OK);
+        /* Extract stats info */
+        if(xvid_enc_stats.type>0 && thismod.cfg_stats) {
+            thismod.frames++;
+            thismod.sse_y += xvid_enc_stats.sse_y;
+            thismod.sse_u += xvid_enc_stats.sse_u;
+            thismod.sse_v += xvid_enc_stats.sse_v;
+        }
+
+        if (bytes > 0) {
+            ret = tc_xvid_write(bytes, vob);
+        }
+    } while (bytes > 0 && ret == TC_EXPORT_OK);
+    return ret;
 }
 
+MOD_close
+{
+    vob_t *vob = tc_get_vob();
+
+    /* Audio file closing */
+    if(param->flag == TC_AUDIO)
+        return(audio_close());
+
+    if(param->flag == TC_VIDEO) {
+        int ret = tc_xvid_flush(vob);
+        if (ret == TC_EXPORT_OK) {
+            /* Video file closing */
+            if(thismod.rawfd >= 0) {
+                close(thismod.rawfd);
+                thismod.rawfd = -1;
+            }
+            if(vob->avifile_out != NULL) {
+                AVI_close(vob->avifile_out);
+                vob->avifile_out = NULL;
+            }
+            return(TC_EXPORT_OK);
+        }
+        /* fallback to EXPORT_ERROR */
+    }
+    return(TC_EXPORT_ERROR);
+}
 
 /*****************************************************************************
  * Stop encoder
@@ -996,20 +1034,32 @@ static void set_frame_struct(xvid_transcode_module_t *mod, vob_t *vob, transfer_
 
 	/* Bind output buffer */
 	x->bitstream = mod->stream;
-	x->length    = mod->stream_size;
 
-	/* Bind source frame */
-	x->input.plane[0] = t->buffer;
-	if(vob->im_v_codec == CODEC_RGB) {
-		x->input.csp       = XVID_CSP_BGR;
-		x->input.stride[0] = vob->ex_v_width*3;
-	} else if (vob->im_v_codec == CODEC_YUV422) {
-		x->input.csp       = XVID_CSP_UYVY;
-		x->input.stride[0] = vob->ex_v_width*2;
-	} else {
-		x->input.csp       = XVID_CSP_YV12;
-		x->input.stride[0] = vob->ex_v_width;
-	}
+    if (t == NULL) {
+        x->length          = -1;
+        x->input.csp       = XVID_CSP_NULL;
+        x->input.plane[0]  = NULL;
+//        x->input.plane[1]  = NULL;
+//        x->input.plane[2]  = NULL;
+        x->input.stride[0] = 0;
+//        x->input.stride[1] = 0;
+//        x->input.stride[2] = 0;
+    } else {
+    	x->length    = mod->stream_size;
+
+	    /* Bind source frame */
+    	x->input.plane[0] = t->buffer;
+	    if(vob->im_v_codec == CODEC_RGB) {
+    		x->input.csp       = XVID_CSP_BGR;
+		    x->input.stride[0] = vob->ex_v_width*3;
+	    } else if (vob->im_v_codec == CODEC_YUV422) {
+    		x->input.csp       = XVID_CSP_UYVY;
+		    x->input.stride[0] = vob->ex_v_width*2;
+	    } else {
+    		x->input.csp       = XVID_CSP_YV12;
+		    x->input.stride[0] = vob->ex_v_width;
+	    }
+    }
 
 	/* Set up core's VOL level features */
 	x->vol_flags = xcfg->vol_flags;
