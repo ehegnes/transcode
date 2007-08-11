@@ -3,6 +3,9 @@
   backport new module version from 1.1.0alpha4.
   (implement flushing on close; fixes bug #000017).
 
+  * configure.in
+  transcode 1.0.4rc5.
+
 2007-08-08 Francesco Romani <fromani at gmail dot com>
   * import/import_im.c
   backport new module version from 1.1.0alpha3.
