@@ -1067,7 +1067,7 @@ static void set_frame_struct(xvid_transcode_module_t *mod, vob_t *vob, transfer_
     /* Bind output buffer */
     x->bitstream = mod->stream;
 
-    if (!t) {
+    if (t == NULL) {
         x->length          = -1;
         x->input.csp       = XVID_CSP_NULL;
         x->input.plane[0]  = NULL;
