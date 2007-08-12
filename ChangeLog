@@ -3,6 +3,21 @@
   do not free internal tree if it was not created.
   (fixes issue #0000025).
 
+  * libtc/ratiocodes.c testsuite/test-bufalloc.c
+    testsuite/test-cfg-filelist.c testsuite/test-cfg-filelist.sh
+    testsuite/test-export-profile.c testsuite/test-framealloc.c
+    testsuite/test-iodir.c testsuite/test-mangle-cmdline.c
+    testsuite/test-pvmparser.c testsuite/test-ratiocodes.c
+    testsuite/test-resize-values.c testsuite/test-tcglob.c
+    testsuite/test-tclog.c testsuite/test-tcmodchain.sh
+    testsuite/test-tcmodule.c testsuite/test-tcmoduleinfo.c
+    testsuite/test-tcstrdup.c
+  Switch to GPL header as suggested on: http://www.gnu.org/licenses/gpl-howto.html
+  Re-release my code under GPL v2 or later (round 3) since this is the most
+  compatible option
+  (see http://www.gnu.org/licenses/gpl-faq.html#TOCAllCompatibility)
+  Anyway, I still have some concerns regard GPL V3 vs V2.
+
 2007-08-11 Francesco Romani <fromani at gmail dot com>
   * export/export_xvid4.c
   handle flush requests (fix issue #000017).
