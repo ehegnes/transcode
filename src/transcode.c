@@ -2290,7 +2290,7 @@ int main(int argc, char *argv[])
             // next range
             tstart = tstart->next;
             // see if we're using vob_offset
-            if ((tstart != NULL) && (tstart->vob_offset != 0)){
+            if ((tstart != NULL) && (tstart->vob_offset != 0)) {
                 tc_decoder_delay = 3;
                 tc_import_threads_cancel();
                 tc_import_close();

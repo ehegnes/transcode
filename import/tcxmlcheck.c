@@ -83,10 +83,14 @@ static int f_complete_vob_info(vob_t *p_vob,int s_type_check)
 	{
 		if( p_vob->video_in_file != NULL)
 		{
-			if( f_manage_input_xml(p_vob->video_in_file,1,&s_audiovideo))
+			int err = f_manage_input_xml(p_vob->video_in_file,1,&s_audiovideo);
+			if(err)
 			{
 				tc_log_error(EXE,"Error parsing XML %s file",p_vob->video_in_file);
-				(void) f_manage_input_xml(NULL,0,&s_audiovideo);
+                if (err == 1) {
+                    /* free tree */
+    				f_manage_input_xml(NULL,0,&s_audiovideo);
+                }
 				return(1);
 			}
 			if (s_audiovideo.p_next->s_v_codec != TC_CODEC_UNKNOWN)

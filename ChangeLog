@@ -1,4 +1,9 @@
 2007-08-11 Francesco Romani <fromani at gmail dot com>
+  * import/ioxml.c import/tcxmlcheck.c
+  do not free internal tree if it was not created.
+  (fixes issue #0000025).
+
+2007-08-11 Francesco Romani <fromani at gmail dot com>
   * export/export_xvid4.c
   handle flush requests (fix issue #000017).
 
