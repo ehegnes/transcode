@@ -1,3 +1,7 @@
+2007-08-13 Francesco Romani <fromani at gmail dot com>
+  * docs/tech/module-system-API.txt
+  add notes with planned future enhancements.
+
 2007-07-30 Francesco Romani <fromani at gmail dot com>
   * filter/filter_facemask.c filter/filter_xsharpen.c
   port to NMS. Courtesy of
