@@ -8,6 +8,9 @@
   * added file: docs/tech/html/tc_extending_import.html
   add template page about extending import layer documentation.
 
+  * rename: docs/tech/html/tc_internals.html -> index.html
+  README was now useless, so it was killed as well.
+
 2007-07-30 Francesco Romani <fromani at gmail dot com>
   * filter/filter_facemask.c filter/filter_xsharpen.c
   port to NMS. Courtesy of
