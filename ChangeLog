@@ -2,6 +2,12 @@
   * docs/tech/module-system-API.txt
   add notes with planned future enhancements.
 
+  * docs/tech/html/tc_internals.html docs/tech/html/tc_libraries.html
+  cosmetic fixes.
+
+  * added file: docs/tech/html/tc_extending_import.html
+  add template page about extending import layer documentation.
+
 2007-07-30 Francesco Romani <fromani at gmail dot com>
   * filter/filter_facemask.c filter/filter_xsharpen.c
   port to NMS. Courtesy of
