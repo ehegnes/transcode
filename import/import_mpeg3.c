@@ -67,7 +67,10 @@ static unsigned char *y_output, *u_output, *v_output;
 
 MOD_open
 {
-  int retcode = 0, i = 0;
+  int i = 0;
+#if TC_LIBMPEG3_VERSION >= 170
+  int retcode = 0;
+#endif
 
   param->fd = NULL;
 
@@ -78,15 +81,25 @@ MOD_open
   if (param->flag == TC_VIDEO) {
       if (!file) {
 	  if (!file_a) {
+#if TC_LIBMPEG3_VERSION >= 170
 	      if((file = mpeg3_open(vob->video_in_file, &retcode))==NULL) {
 		  fprintf(stderr, "open file failed with error %i\n", retcode);
+#else
+	      if((file = mpeg3_open(vob->video_in_file))==NULL) {
+		  fprintf(stderr, "open file failed with error\n");
+#endif
 		  return(TC_IMPORT_ERROR);
 	      }
 	      if (verbose & TC_DEBUG)
                   printf("[%s] Opened video NO copy\n", MOD_NAME);
 	  } else if (file_a) {
+#if TC_LIBMPEG3_VERSION >= 170
 	      if((file = mpeg3_open_copy(vob->video_in_file, file_a, &retcode))==NULL) {
 		  fprintf(stderr, "open file failed with error %i\n", retcode);
+#else
+	      if((file = mpeg3_open_copy(vob->video_in_file, file_a))==NULL) {
+		  fprintf(stderr, "open file failed with error\n");
+#endif
 		  return(TC_IMPORT_ERROR);
 	      }
 	      if (verbose & TC_DEBUG)
@@ -97,15 +110,25 @@ MOD_open
   if (param->flag == TC_AUDIO) {
       if (!file_a) {
 	  if (!file) {
+#if TC_LIBMPEG3_VERSION >= 170
 	      if((file_a = mpeg3_open(vob->audio_in_file, &retcode))==NULL) {
 		  fprintf(stderr, "open file failed with error %i\n", retcode);
+#else
+	      if((file_a = mpeg3_open(vob->audio_in_file))==NULL) {
+		  fprintf(stderr, "open file failed with error\n");
+#endif
 		  return(TC_IMPORT_ERROR);
 	      }
 	      if (verbose & TC_DEBUG)
                   printf("[%s] Opened audio NO copy\n", MOD_NAME);
 	  } else if (file) {
+#if TC_LIBMPEG3_VERSION >= 170
 	      if((file_a = mpeg3_open_copy(vob->audio_in_file, file, &retcode))==NULL) {
 		  fprintf(stderr, "open file failed\n");
+#else
+	      if((file_a = mpeg3_open_copy(vob->audio_in_file, file))==NULL) {
+		  fprintf(stderr, "open file failed\n");
+#endif
 		  return(TC_IMPORT_ERROR);
 	      }
 	      if (verbose & TC_DEBUG)

@@ -1,13 +1,13 @@
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT(transcode,1.0.4rc5)
+AC_INIT(transcode,1.0.4rc6)
 AC_CONFIG_AUX_DIR(autotools)
 AC_CONFIG_SRCDIR(src/transcode.c)
 
 dnl Detect the canonical host and target build environment
 AC_CANONICAL_SYSTEM
 
-AM_INIT_AUTOMAKE(transcode,1.0.4rc5)
+AM_INIT_AUTOMAKE(transcode,1.0.4rc6)
 AM_CONFIG_HEADER(config.h)
   
 AM_MAINTAINER_MODE
@@ -636,7 +636,6 @@ main()
 #endif /* LIBAVCODEC_BUILD >= 51.9.0 check */
   printf("BUILD=%d\n", LIBAVCODEC_BUILD);
   return(0);
-  return(0);
 }
 ],
     [LIBAVCODEC_VERSION="`./conftest$ac_exeext | sed -ne 's,VER=\(.*\),\1,p'`"
@@ -1083,7 +1082,34 @@ if test x"$have_libmpeg3" = x"yes" ; then
   if test x"$libmpeg3_inc" = x"no" ; then
     have_libmpeg3="no"
     TC_PKG_ERROR(libmpeg3, libmpeg3.h, no, libmpeg3, [http://heroinewarrior.com/libmpeg3/],
-      [cannot compile libmpeg3.h])
+      [cannot compile libmpeg3 program])
+  fi
+
+  save_CPPFLAGS="$CPPFLAGS"
+  save_LIBS="$LIBS"
+  CPPFLAGS="$CPPFLAGS $LIBMPEG3_CFLAGS"
+  LIBS="$LIBS $LIBMPEG3_LIBS"
+
+  AC_TRY_RUN([
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "libmpeg3.h"
+int main (int argc, char *argv[])
+{
+    printf("%i%i%i\n", mpeg3_major(), mpeg3_minor(), mpeg3_release());
+    return 0;
+}],
+  [libmpeg3_version="`./conftest$ac_exeext`"],
+  [TC_PKG_ERROR(libmpeg3, libmpeg3.h, no, libmpeg3, [http://heroinewarrior.com/libmpeg3/],
+      [cannot compile libmpeg3 test program])],,
+  [echo $ac_n "cross compiling; assumed OK... $ac_c"])
+
+  CPPFLAGS="$save_CPPFLAGS"
+  LIBS="$save_LIBS"
+
+  if test x"$have_libmpeg3" = x"yes" ; then
+    AC_DEFINE_UNQUOTED([TC_LIBMPEG3_VERSION], $libmpeg3_version, [libmpeg3 version])
   fi
 fi
 TC_PKG_HAVE(libmpeg3, LIBMPEG3)
