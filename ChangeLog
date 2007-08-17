@@ -1,3 +1,8 @@
+2007-08-17 Francesco Romani <fromani at gmail dot com>
+  * export/export_dvraw.c
+  avoid memory corruption with mono audio. This addresses
+  reproduceable part of issue #0000026 (which will be closed).
+
 2007-08-11 Francesco Romani <fromani at gmail dot com>
   * import/ioxml.c import/tcxmlcheck.c
   do not free internal tree if it was not created.
