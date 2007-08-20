@@ -183,31 +183,6 @@ static int mfread(uint8_t *buf, int size, int nelem, FILE *f)
 /*                           generics                                    */
 /*************************************************************************/
 
-static int import_test_shutdown(TCDecoderData *decdata)
-{
-    int flag;
-
-    pthread_mutex_lock(&decdata->lock);
-    flag = decdata->active_flag;
-    pthread_mutex_unlock(&decdata->lock);
-
-    if (!flag) {
-        if (verbose >= TC_DEBUG) {
-            tc_log_msg(__FILE__, "%s import cancelation requested",
-                       decdata->tag);
-        }
-        return 1;  // notify thread to exit immediately
-    }
-
-    return 0;
-}
-
-void tc_import_stop_nolock(void)
-{
-    video_decdata.active_flag = 0;
-    audio_decdata.active_flag = 0;
-    return;
-}
 
 /*************************************************************************/
 /*               some macro goodies                                      */
@@ -248,6 +223,24 @@ void tc_import_stop_nolock(void)
 /*************************************************************************/
 /*               stream-specific functions                               */
 /*************************************************************************/
+
+static void tc_import_video_stop(void)
+{
+    pthread_mutex_lock(&video_decdata.lock);
+    video_decdata.active_flag = 0;
+    pthread_mutex_unlock(&video_decdata.lock);
+
+    sleep(tc_decoder_delay);
+}
+
+static void tc_import_audio_stop(void)
+{
+    pthread_mutex_lock(&audio_decdata.lock);
+    audio_decdata.active_flag = 0;
+    pthread_mutex_unlock(&audio_decdata.lock);
+
+    sleep(tc_decoder_delay);
+}
 
 static int tc_import_audio_open(vob_t *vob)
 {
@@ -378,10 +371,6 @@ static int video_decode_loop(vob_t *vob)
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
             pthread_testcancel();
 #endif
-
-            if (import_test_shutdown(&video_decdata)) {
-                return TC_IM_THREAD_INTERRUPT;
-            }
         }
 
         pthread_cleanup_pop(0);
@@ -458,7 +447,7 @@ static int video_decode_loop(vob_t *vob)
             tc_import_video_stop();
             return TC_IM_THREAD_DONE;
         }
-        if (import_test_shutdown(&video_decdata)) {
+        if (tc_interrupted()) {
             return TC_IM_THREAD_INTERRUPT;
         }
     }
@@ -522,10 +511,6 @@ static int audio_decode_loop(vob_t *vob)
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
             pthread_testcancel();
 #endif
-
-            if (import_test_shutdown(&audio_decdata)) {
-                return TC_IM_THREAD_INTERRUPT;
-            }
         }
 
         pthread_cleanup_pop(0);
@@ -610,7 +595,7 @@ static int audio_decode_loop(vob_t *vob)
             tc_import_audio_stop();
             return TC_IM_THREAD_DONE;
         }
-        if (import_test_shutdown(&audio_decdata)) {
+        if (tc_interrupted()) {
             return TC_IM_THREAD_INTERRUPT;
         }
     }
@@ -618,24 +603,6 @@ static int audio_decode_loop(vob_t *vob)
 
 #undef GET_AUDIO_FRAME
 #undef MARK_TIME_RANGE
-
-void tc_import_video_stop(void)
-{
-    pthread_mutex_lock(&video_decdata.lock);
-    video_decdata.active_flag = 0;
-    pthread_mutex_unlock(&video_decdata.lock);
-
-    sleep(tc_decoder_delay);
-}
-
-void tc_import_audio_stop(void)
-{
-    pthread_mutex_lock(&audio_decdata.lock);
-    audio_decdata.active_flag = 0;
-    pthread_mutex_unlock(&audio_decdata.lock);
-
-    sleep(tc_decoder_delay);
-}
 
 static void tc_import_video_start(void)
 {
@@ -714,27 +681,6 @@ static void *video_import_thread(void *_vob)
 
 
 /*************************************************************************/
-/*               main API helper functions                               */
-/*************************************************************************/
-
-static void tc_import_stop(void)
-{
-    tc_import_video_stop();
-    tc_import_audio_stop();
-
-    tc_frame_threads_notify_video(TC_TRUE);
-    tc_frame_threads_notify_audio(TC_TRUE);
-
-    if (verbose >= TC_DEBUG)
-        tc_log_msg(__FILE__, "import stop requested by client=%ld"
-                             " (main=%ld) import status=%d",
-                             (unsigned long)pthread_self(),
-                             (unsigned long)tc_pthread_main,
-                             tc_import_status());
-}
-
-
-/*************************************************************************/
 /*               main API functions                                      */
 /*************************************************************************/
 
@@ -755,7 +701,18 @@ void tc_import_threads_cancel(void)
         tc_log_info(__FILE__, "sleeping for %d seconds to cool down", tc_decoder_delay);
 
     // notify import threads, if not yet done, that task is done
-    tc_import_stop();
+    tc_import_video_stop();
+    tc_import_audio_stop();
+
+    tc_frame_threads_notify_video(TC_TRUE);
+    tc_frame_threads_notify_audio(TC_TRUE);
+
+    if (verbose >= TC_DEBUG)
+        tc_log_msg(__FILE__, "import stop requested by client=%ld"
+                             " (main=%ld) import status=%d",
+                             (unsigned long)pthread_self(),
+                             (unsigned long)tc_pthread_main,
+                             tc_import_status());
 
     vret = pthread_cancel(video_decdata.thread_id);
     aret = pthread_cancel(audio_decdata.thread_id);
@@ -1065,7 +1022,7 @@ static void *seq_import_thread(void *_sid)
 
     for (i = 0; TC_TRUE; i++) {
         /* shutdown test */
-        if (import_test_shutdown(sid->decdata)) {
+        if (tc_interrupted()) {
             status = TC_IM_THREAD_INTERRUPT;
             break;
         }

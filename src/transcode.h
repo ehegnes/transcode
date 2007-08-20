@@ -379,6 +379,7 @@ int tc_export(int opt, void *para1, void *para2);
 // Some functions exported by transcode
 
 vob_t *tc_get_vob(void);
+int tc_interrupted(void);
 
 int tc_next_video_in_file(vob_t *vob);
 int tc_next_audio_in_file(vob_t *vob);

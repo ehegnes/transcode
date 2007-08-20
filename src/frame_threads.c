@@ -408,6 +408,10 @@ static void process_vframe(vob_t *vob)
 
         vframe_set_status(ptr, FRAME_READY);
         tc_export_video_notify();
+            
+        if (tc_interrupted()) {
+            pthread_exit(0);
+        }
     }
     return;
 }
@@ -422,7 +426,6 @@ static void process_aframe(vob_t *vob)
 
         pthread_mutex_lock(&abuffer_im_fill_lock);
         pthread_cleanup_push(process_frame_lock_cleanup, &abuffer_im_fill_lock);
-
         while (abuffer_im_fill_ctr == 0) {
             pthread_cond_wait(&abuffer_fill_cv, &abuffer_im_fill_lock);
 #ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
@@ -432,7 +435,6 @@ static void process_aframe(vob_t *vob)
                 pthread_exit(0);
             }
         }
-
         pthread_cleanup_pop(0);
         pthread_mutex_unlock(&abuffer_im_fill_lock);
 
@@ -489,6 +491,10 @@ static void process_aframe(vob_t *vob)
 
         aframe_set_status(ptr, FRAME_READY);
         tc_export_audio_notify();
+        
+        if (tc_interrupted()) {
+            pthread_exit(0);
+        }
     }
     return;
 }

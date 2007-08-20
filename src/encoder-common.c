@@ -36,19 +36,8 @@
 #include "socket.h"
 
 /* volatile: for threadness paranoia */
-static volatile int exit_flag = TC_FALSE;
 static int pause_flag = 0;
 
-
-void tc_export_stop_nolock(void)
-{
-    exit_flag = TC_TRUE;
-}
-
-int tc_export_stop_requested(void)
-{
-    return exit_flag;
-}
 
 void tc_pause_request(void)
 {

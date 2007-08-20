@@ -159,10 +159,22 @@ static pthread_t event_thread_id = (pthread_t)0;
 
 static const char *signame = "unknown signal";
 
-static int interrupt_flag = 0;
+pthread_mutex_t interrupt_lock = PTHREAD_MUTEX_INITIALIZER;
+static volatile int interrupt_flag = 0; /* threading paranoia */
+
+int tc_interrupted(void)
+{
+    int ret;
+    pthread_mutex_lock(&interrupt_lock);
+    ret = interrupt_flag;
+    pthread_mutex_unlock(&interrupt_lock);
+    return ret;
+}
+
 
 static void event_handler(int sig)
 {
+    pthread_mutex_lock(&interrupt_lock);
     if (!interrupt_flag) {
         interrupt_flag = 1;
 
@@ -179,6 +191,7 @@ static void event_handler(int sig)
             break;
         }
     }
+    pthread_mutex_unlock(&interrupt_lock);
     return;
 }
 
@@ -218,29 +231,13 @@ static void *event_thread(void* blocked_)
         tc_socket_wait();
 
         pthread_testcancel();
-        if (interrupt_flag) {
+        if (tc_interrupted()) {
             if (verbose & TC_INFO)
                 tc_log_info(PACKAGE, "(sighandler) %s received", signame);
 
             /* Kill the tcprobe process if it's running */
             if (tc_probe_pid > 0)
                 kill(tc_probe_pid, SIGTERM);
-
-            /* Stop import processing */
-            tc_import_stop_nolock();
-            if (verbose & TC_DEBUG)
-                tc_log_info(PACKAGE, "(sighandler) import cancellation submitted");
-
-            /* Stop export processing */
-            tc_export_stop_nolock();
-
-            tc_export_audio_notify();
-            tc_export_video_notify();
-
-            if (verbose & TC_DEBUG)
-                tc_log_info(PACKAGE, "(sighandler) export cancellation submitted");
-
-            interrupt_flag = 0; // XXX
         }
         pthread_testcancel();
     }
@@ -269,6 +266,7 @@ static void stop_event_thread(void)
     }
 }
 
+/*************************************************************************/
 /*************************************************************************/
 
 /**
@@ -910,7 +908,7 @@ int main(int argc, char *argv[])
     }
 
     // user doesn't want to start at all;-(
-    if (interrupt_flag)
+    if (tc_interrupted())
         goto summary;
 
     // display program version
@@ -2284,7 +2282,7 @@ int main(int argc, char *argv[])
             tc_encoder_loop(vob, frame_a, frame_b);
 
             // check for user cancelation request
-            if (interrupt_flag)
+            if (tc_interrupted())
                 break;
 
             // next range
@@ -2366,7 +2364,7 @@ int main(int argc, char *argv[])
                 tc_log_msg(PACKAGE, "import status=%d", tc_import_status());
 
             // check for user cancelation request
-            if (interrupt_flag)
+            if (tc_interrupted())
                 break;
 
         } while (tc_import_status());
@@ -2487,7 +2485,7 @@ int main(int argc, char *argv[])
             }
 
             ch1++;
-            if (interrupt_flag)
+            if (tc_interrupted())
                 break;
 
         }//next PSU
@@ -2533,7 +2531,7 @@ int main(int argc, char *argv[])
 
         // get start interval
         for (tstart = vob->ttime;
-             tstart != NULL && !interrupt_flag;
+             tstart != NULL && !tc_interrupted();
              tstart = tstart->next) {
             // set frame range (in cluster mode these will already be set)
             if (!tc_cluster_mode) {
@@ -2639,7 +2637,7 @@ int main(int argc, char *argv[])
 
             if (vob->dvd_max_chapters ==- 1
              || ch1 == vob->dvd_max_chapters || ch1 == ch2
-             || interrupt_flag)
+             || tc_interrupted())
                 break;
             ch1++;
         }
@@ -2732,7 +2730,7 @@ int main(int argc, char *argv[])
         tc_free(vob);
 
     //exit at last
-    if (interrupt_flag)
+    if (tc_interrupted())
         return 127;
     return 0;
 }

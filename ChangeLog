@@ -1,3 +1,13 @@
+2007-08-20 Francesco Romani <fromani at gmail dot com>
+  * src/decoder.c src/decoder.h src/encoder-buffer.c src/encoder-common.c
+    src/encoder-common.h src/encoder.c src/frame_threads.c src/transcode.c
+    src/transcode.h tools/tcstub.c
+  simplify interruption (^C) handling code by using a common, single
+  interruption check. This also significantly simplifies the frame
+  acquisition code in encoder, leading to (slightly) better code.
+  Documentation is coming. This should fix issue #0000021 and partially
+  issue #0000028.
+
 2007-08-17 Francesco Romani <fromani at gmail dot com>
   * export/export_dvraw.c
   avoid memory corruption with mono audio. This addresses

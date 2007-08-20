@@ -106,7 +106,7 @@ void tc_pause(void);
  *     Calling this function _outside_ of an encoding loop
  *     make very little (or no) sense, but it will not harm anything.
  */
-void tc_export_stop_nolock(void);
+//void tc_export_stop_nolock(void);
 
 /*
  * tc_export_stop_requested():
@@ -127,7 +127,7 @@ void tc_export_stop_nolock(void);
  *     Calling this function _outside_ of an encoding loop
  *     make very little (or no) sense, but it will not harm anything.
  */
-int tc_export_stop_requested(void);
+//int tc_export_stop_requested(void);
 
 
 

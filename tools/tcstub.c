@@ -88,6 +88,11 @@ vob_t *tc_get_vob()
     return &vob;
 }
 
+int tc_interrupted()
+{
+    return 0;
+}
+
 int tc_filter_add(const char *name, const char *options)
 {
     return 0;

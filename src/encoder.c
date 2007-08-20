@@ -1351,7 +1351,7 @@ void tc_encoder_loop(vob_t *vob, int frame_first, int frame_last)
 
     while (!encdata.error_flag) {
         /* check for ^C signal */
-        if (tc_export_stop_requested()) {
+        if (tc_interrupted()) {
             if (verbose >= TC_DEBUG) {
                 tc_log_warn(__FILE__, "export canceled on user request");
             }
