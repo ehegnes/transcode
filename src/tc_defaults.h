@@ -97,18 +97,20 @@
 #define AVBR             0
 #define AMODE            0
 
-//debug modes
-#define TC_QUIET         0
-#define TC_INFO          1
-#define TC_DEBUG         2
-#define TC_STATS         4
-#define TC_WATCH         8
-#define TC_FLIST        16
-#define TC_VIDCORE      32
-#define TC_SYNC         64
-#define TC_COUNTER     128
-#define TC_PRIVATE     256
-#define TC_THREADS     512
+// debug modes
+typedef enum tcdebugmode_ TCDebugMode;
+enum tcdebugmode_ {
+    TC_QUIET   = 0,
+    TC_INFO    = 1,
+    TC_DEBUG   = 2,
+    TC_STATS   = 4,
+    TC_WATCH   = 8,
+    TC_THREADS = 16,
+    TC_FLIST   = 32,
+    TC_SYNC    = 64,
+    TC_COUNTER = 128,
+    TC_PRIVATE = 256,
+};
 
 //import/export/filter frame buffer status flag
 #define TC_NONE                  0

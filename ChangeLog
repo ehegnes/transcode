@@ -2,6 +2,9 @@
   * src/encoder-buffer.c src/encoder.c src/encoder.h
   have_data() buffer method is now obsolete.
 
+  * src/tc_defaults.h
+  reorganize log modes.
+
 2007-08-20 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c src/decoder.h src/encoder-buffer.c src/encoder-common.c
     src/encoder-common.h src/encoder.c src/frame_threads.c src/transcode.c
