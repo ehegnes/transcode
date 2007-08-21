@@ -42,7 +42,6 @@
 
 static int rawsource_read_video(TCEncoderBuffer *buf, vob_t *vob);
 static int rawsource_read_audio(TCEncoderBuffer *buf, vob_t *vob);
-static int rawsource_have_data(TCEncoderBuffer *buf);
 static void rawsource_dummy(TCEncoderBuffer *buf);
 
 
@@ -79,8 +78,6 @@ static TCEncoderBuffer raw_buffer = {
     .acquire_audio_frame = rawsource_read_audio,
     .dispose_video_frame = rawsource_dummy,
     .dispose_audio_frame = rawsource_dummy,
-
-    .have_data = rawsource_have_data,
 };
 TCEncoderBuffer *tc_rawsource_buffer = NULL;
 
@@ -157,17 +154,6 @@ static int rawsource_read_audio(TCEncoderBuffer *buf, vob_t *vob)
 
     raw_buffer.aptr = rawsource.aframe;
     return 0;
-}
-
-static int rawsource_have_data(TCEncoderBuffer *buf)
-{
-    if (!buf) {
-        return -1;
-    }
-    if (rawsource.eof_flag == TC_TRUE) {
-        return 0;
-    }
-    return 1;
 }
 
 static void rawsource_dummy(TCEncoderBuffer *buf)

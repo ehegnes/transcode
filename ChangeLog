@@ -1,5 +1,5 @@
 2007-08-21 Francesco Romani <fromani at gmail dot com>
-  * src/encoder-buffer.c src/encoder.c src/encoder.h
+  * src/encoder-buffer.c src/encoder.c src/encoder.h tools/rawsource.c
   have_data() buffer method is now obsolete.
 
   * src/tc_defaults.h
