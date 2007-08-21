@@ -71,9 +71,6 @@ struct tcencoderbuffer_ {
     int (*acquire_audio_frame)(TCEncoderBuffer *buf, vob_t *vob);
     void (*dispose_video_frame)(TCEncoderBuffer *buf);
     void (*dispose_audio_frame)(TCEncoderBuffer *buf);
-
-    /* !0 if there is more frames avalaible, 0 otherwise */
-    int (*have_data)(TCEncoderBuffer *buf);
 };
 
 /* default main transcode buffer */

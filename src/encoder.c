@@ -483,8 +483,7 @@ static int is_last_frame(TCEncoderData *encdata, int cluster_mode)
     }
 
     if ((encdata->buffer->vptr->attributes & TC_FRAME_IS_END_OF_STREAM
-      || encdata->buffer->aptr->attributes & TC_FRAME_IS_END_OF_STREAM)
-      || !(encdata->buffer->have_data(encdata->buffer))) {
+      || encdata->buffer->aptr->attributes & TC_FRAME_IS_END_OF_STREAM)) {
         return 1;
     }
     return (fid == encdata->frame_last);

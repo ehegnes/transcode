@@ -28,7 +28,6 @@
 #endif
 
 #include "transcode.h"
-#include "decoder.h"
 #include "encoder.h"
 #include "filter.h"
 #include "framebuffer.h"
@@ -547,12 +546,6 @@ static void encoder_dispose_aframe(TCEncoderBuffer *buf)
 }
 
 
-static int encoder_have_data(TCEncoderBuffer *buf)
-{
-    return tc_import_status();
-}
-
-
 static TCEncoderBuffer tc_builtin_buffer = {
     .frame_id = 0,
 
@@ -566,8 +559,6 @@ static TCEncoderBuffer tc_builtin_buffer = {
     .acquire_audio_frame = encoder_acquire_aframe,
     .dispose_video_frame = encoder_dispose_vframe,
     .dispose_audio_frame = encoder_dispose_aframe,
-
-    .have_data = encoder_have_data,
 };
 
 /* default main transcode buffer */
