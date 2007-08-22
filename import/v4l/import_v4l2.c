@@ -420,7 +420,7 @@ static void v4l2_parse_options(const char * options_in)
 static int v4l2_video_init(int layout, const char * device, int width,
 			   int height, int fps, const char * options)
 {
-	int ix, found;
+	int ix, found, arg;
 	v4l2_format_convert_table_t * fcp;
 
 	struct v4l2_cropcap cropcap;
@@ -521,8 +521,11 @@ static int v4l2_video_init(int layout, const char * device, int width,
 		format.fmt.pix.pixelformat	= fcp[ix].v4l_format;
 
 		if(ioctl(v4l2_video_fd, VIDIOC_S_FMT, &format) < 0)
+        {
 			tc_log_perror(MOD_NAME, "VIDIOC_S_FMT: ");
-		else
+            tc_log_error(MOD_NAME, "Pixel format conversion: %s", fcp[ix].description);
+		}
+        else
 		{
 			tc_log_info(MOD_NAME, "Pixel format conversion: %s", fcp[ix].description);
 			v4l2_convert_index = ix;
@@ -607,8 +610,9 @@ static int v4l2_video_init(int layout, const char * device, int width,
 
 	if(ioctl(v4l2_video_fd, VIDIOC_G_STD, &stdid) < 0)
 	{
-		tc_log_perror(MOD_NAME, "VIDIOC_QUERYSTD: ");
-		return(1);
+        tc_log_warn(MOD_NAME, "driver does not support get std (ioctl(VIDIOC_G_STD) returns \"%s\")",
+                    errno <= sys_nerr ? sys_errlist[errno] : "unknown");
+        memset(&stdid, 0, sizeof(v4l2_std_id));
 	}
 
 	if(stdid & V4L2_STD_525_60)
@@ -819,8 +823,9 @@ static int v4l2_video_init(int layout, const char * device, int width,
 		return(1);
 
 	// start capture
+    arg = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-	if(ioctl(v4l2_video_fd, VIDIOC_STREAMON, &v4l2_video_fd /* ugh, needs valid memory location */) < 0)
+    if(ioctl(v4l2_video_fd, VIDIOC_STREAMON, &arg) < 0) /* ugh, needs VIDEO_CAPTURE */
 	{
 		tc_log_perror(MOD_NAME, "VIDIOC_STREAMON");
 		return(1);
@@ -831,8 +836,7 @@ static int v4l2_video_init(int layout, const char * device, int width,
 
 static int v4l2_video_get_frame(size_t size, char * data)
 {
-	int buffers_filled = 0;
-	int dummy;
+	int buffers_filled = 0, arg = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
 	if(v4l2_overrun_guard)
 	{
@@ -845,7 +849,7 @@ static int v4l2_video_get_frame(size_t size, char * data)
                                    v4l2_buffers_count - buffers_filled,
                                    v4l2_buffers_count);
 
-			if(ioctl(v4l2_video_fd, VIDIOC_STREAMOFF, &dummy) < 0)
+			if(ioctl(v4l2_video_fd, VIDIOC_STREAMOFF, &arg) < 0)
 				tc_log_perror(MOD_NAME, "VIDIOC_STREAMOFF");
 
 			return(1);
@@ -924,14 +928,14 @@ static int v4l2_video_get_frame(size_t size, char * data)
 
 static int v4l2_video_grab_stop(void)
 {
-	int dummy, ix;
+	int ix, arg = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
 	// mute
 
 	if(!v4l2_mute(1))
 		return(1);
 
-	if(ioctl(v4l2_video_fd, VIDIOC_STREAMOFF, &dummy /* ugh */) < 0)
+	if(ioctl(v4l2_video_fd, VIDIOC_STREAMOFF, &arg) < 0) /* ugh */
 	{
 		tc_log_perror(MOD_NAME, "VIDIOC_STREAMOFF");
 		return(1);

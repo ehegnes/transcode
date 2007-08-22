@@ -1,3 +1,7 @@
+2007-08-22 Francesco Romani <fromani at gmail dot com>
+  * import/v4l/import_v4l2.c
+  allow VIDIOC_G_STD ioctl to fail, and fix STREAMON/STREAMOFF ioctl calls.
+
 2007-08-21 Francesco Romani <fromani at gmail dot com>
   * src/encoder-buffer.c src/encoder.c src/encoder.h tools/rawsource.c
   have_data() buffer method is now obsolete.
