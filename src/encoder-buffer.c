@@ -261,22 +261,22 @@ static int encoder_wait_vframe(TCEncoderBuffer *buf)
 {
     buf->vptr = NULL;
         
-    pthread_mutex_lock(&vframe_list_lock);
 
-    if (verbose >= TC_FLIST)
+    if (verbose >= TC_THREADS)
         tc_log_msg(__FILE__, "requesting a new video frame");
 
+    pthread_mutex_lock(&vframe_list_lock);
     while (!vframe_fill_level(TC_BUFFER_READY)) {
-        if (verbose >= TC_FLIST)
+        if (verbose >= TC_THREADS)
             tc_log_msg(__FILE__, "video frame not ready, waiting");
         pthread_cond_wait(&(buf->vframe_ready_cv), &vframe_list_lock);
-        if (verbose >= TC_FLIST)
+        if (verbose >= TC_THREADS)
             tc_log_msg(__FILE__, "video wait just ended");
     }
     pthread_mutex_unlock(&vframe_list_lock);
 
     buf->vptr = vframe_retrieve();
-    if (verbose >= TC_FLIST)
+    if (verbose >= TC_THREADS)
         tc_log_msg(__FILE__, "got a new video frame reference: %p", buf->vptr);
     return (buf->vptr != NULL) ?TC_OK :TC_ERROR;
 }
@@ -285,22 +285,22 @@ static int encoder_wait_aframe(TCEncoderBuffer *buf)
 {
     buf->aptr = NULL;
 
-    pthread_mutex_lock(&aframe_list_lock);
 
-    if (verbose >= TC_FLIST)
+    if (verbose >= TC_THREADS)
         tc_log_msg(__FILE__, "requesting a new audio frame");
 
+    pthread_mutex_lock(&aframe_list_lock);
     while (!aframe_fill_level(TC_BUFFER_READY)) {
-        if (verbose >= TC_FLIST)
+        if (verbose >= TC_THREADS)
             tc_log_msg(__FILE__, "audio frame not ready, waiting");
         pthread_cond_wait(&(buf->aframe_ready_cv), &aframe_list_lock);
-        if (verbose >= TC_FLIST)
+        if (verbose >= TC_THREADS)
            tc_log_msg(__FILE__, "audio wait just ended");
     }
     pthread_mutex_unlock(&aframe_list_lock);
 
     buf->aptr = aframe_retrieve();
-    if (verbose >= TC_FLIST)
+    if (verbose >= TC_THREADS)
         tc_log_msg(__FILE__, "got a new audio frame reference: %p", buf->aptr);
     return (buf->aptr != NULL) ?TC_OK :TC_ERROR;
 }
