@@ -22,13 +22,13 @@
  */
 
 #define MOD_NAME    "import_mplayer.so"
-#define MOD_VERSION "v0.0.5 (2003-03-10)"
+#define MOD_VERSION "v0.1.0 (2007-08-22)"
 #define MOD_CODEC   "(video) rendered by mplayer | (audio) rendered by mplayer"
 
 #include "transcode.h"
 
 static int verbose_flag = TC_QUIET;
-static int capability_flag = TC_CAP_YUV | TC_CAP_RGB | TC_CAP_VID | TC_CAP_PCM;
+static int capability_flag = TC_CAP_YUV|TC_CAP_RGB|TC_CAP_VID|TC_CAP_PCM;
 
 #define MOD_PRE mplayer
 #include "import_def.h"
@@ -36,7 +36,6 @@ static int capability_flag = TC_CAP_YUV | TC_CAP_RGB | TC_CAP_VID | TC_CAP_PCM;
 #include <sys/types.h>
 
 
-char import_cmd_buf[TC_BUF_MAX];
 
 #define VIDEOPIPE_TEMPLATE "/tmp/mplayer2transcode-video.XXXXXX"
 #define AUDIOPIPE_TEMPLATE "/tmp/mplayer2transcode-audio.XXXXXX"
@@ -46,152 +45,201 @@ static FILE *videopipefd = NULL;
 static FILE *audiopipefd = NULL;
 
 /* ------------------------------------------------------------
- *
- * open stream
- *
+ * private helper macros/functions.
+ * ------------------------------------------------------------*/
+
+#define RETURN_IF_BAD_SRET(SRET, FIFO) do { \
+    if ((SRET) < 0) { \
+        unlink((FIFO)); \
+        return TC_IMPORT_ERROR; \
+    } \
+} while (0)
+
+#define RETURN_IF_OPEN_FAILED(FP, MSG) do { \
+    if ((FP) == NULL) { \
+        tc_log_perror(MOD_NAME, (MSG)); \
+        unlink(videopipe); \
+        return TC_IMPORT_ERROR; \
+    } \
+} while (0)
+
+
+static int tc_mplayer_open_video(vob_t *vob, transfer_t *param)
+{
+    char import_cmd_buf[TC_BUF_MAX];
+    long sret = 0;
+
+    tc_snprintf(videopipe, sizeof(videopipe), VIDEOPIPE_TEMPLATE);
+    if (!mktemp(videopipe)) {
+        tc_log_perror(MOD_NAME, "mktemp videopipe failed");
+        return(TC_IMPORT_ERROR);
+    }
+    if (mkfifo(videopipe, 00660) == -1) {
+        tc_log_perror(MOD_NAME, "mkfifo video failed");
+        return(TC_IMPORT_ERROR);
+    }
+
+    sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+                       "mplayer -slave -benchmark -noframedrop -nosound"
+                       " -vo yuv4mpeg:file=%s %s \"%s\" -osdlevel 0"
+                       " > /dev/null 2>&1",
+                       videopipe,
+                       ((vob->im_v_string) ? vob->im_v_string : ""),
+                       vob->video_in_file);
+    RETURN_IF_BAD_SRET(sret, videopipe);
+
+    if (verbose_flag)
+        tc_log_info(MOD_NAME, "%s", import_cmd_buf);
+
+    videopipefd = popen(import_cmd_buf, "w");
+    RETURN_IF_OPEN_FAILED(videopipefd, "popen videopipe failed");
+
+    if (vob->im_v_codec == CODEC_YUV) {
+        sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+                           "tcextract -i %s -x yuv420p -t yuv4mpeg", videopipe);
+        RETURN_IF_BAD_SRET(sret, videopipe);
+    } else {
+        sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+                           "tcextract -i %s -x yuv420p -t yuv4mpeg |"
+                           " tcdecode -x yuv420p -g %dx%d",
+                           videopipe, vob->im_v_width, vob->im_v_height);
+        RETURN_IF_BAD_SRET(sret, videopipe);
+    }
+
+    // print out
+    if (verbose_flag)
+        tc_log_info(MOD_NAME, "%s", import_cmd_buf);
+
+    param->fd = popen(import_cmd_buf, "r");
+    RETURN_IF_OPEN_FAILED(videopipefd, "popen YUV stream");
+
+    return TC_IMPORT_OK;
+}
+
+static int tc_mplayer_open_audio(vob_t *vob, transfer_t *param)
+{
+    char import_cmd_buf[TC_BUF_MAX];
+    long sret = 0;
+
+    tc_snprintf(audiopipe, sizeof(audiopipe), AUDIOPIPE_TEMPLATE);
+    if (!mktemp(audiopipe)) {
+        tc_log_perror(MOD_NAME, "mktemp audiopipe failed");
+        return(TC_IMPORT_ERROR);
+    }
+    if (mkfifo(audiopipe, 00660) == -1) {
+        tc_log_perror(MOD_NAME, "mkfifo audio failed");
+        unlink(audiopipe);
+        return(TC_IMPORT_ERROR);
+    }
+
+    sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+                       "mplayer -slave -hardframedrop -vo null -ao pcm:nowaveheader"
+                       ":file=\"%s\" %s \"%s\" > /dev/null 2>&1",
+                       audiopipe, (vob->im_a_string ? vob->im_a_string : ""),
+                       vob->audio_in_file);
+    RETURN_IF_BAD_SRET(sret, audiopipe);
+
+    if (verbose_flag)
+        tc_log_info(MOD_NAME, "%s", import_cmd_buf);
+
+    audiopipefd = popen(import_cmd_buf, "w");
+    RETURN_IF_OPEN_FAILED(audiopipefd, "popen audiopipe failed");
+
+    param->fd = fopen(audiopipe, "r");
+    RETURN_IF_OPEN_FAILED(audiopipefd, "popen audiopipe failed");
+
+    return TC_IMPORT_OK;
+}
+
+/*
+ * This avoids nasty deadlocks when dealing with (audio) pipe.
+ * short history:
+ * - mplayer keeps writing data on the FIFO but
+ * - transcode stops reading from FIFO, so
+ * - FIFO buffer eventually become full and
+ * - mplayer blocks, so cannot terminate, but
+ * - transcode waits for mplayer termination:
+ * - DEADLOCK!
+ */
+static void tc_mplayer_send_quit(FILE *fd)
+{
+    fprintf(fd, "quit\n");
+    fflush(fd);
+}
+
+static int tc_mplayer_close_video(transfer_t *param)
+{
+    if (param->fd != NULL) {
+        pclose(param->fd);
+    }
+    if (videopipefd != NULL) {
+        tc_mplayer_send_quit(videopipefd);
+
+        pclose(videopipefd);
+        videopipefd = NULL;
+    }
+    unlink(videopipe);
+    return TC_IMPORT_OK; 
+}
+
+static int tc_mplayer_close_audio(transfer_t *param)
+{
+    if (param->fd != NULL)
+        fclose(param->fd);
+    if (audiopipefd != NULL) {
+        tc_mplayer_send_quit(audiopipefd);
+
+        pclose(audiopipefd);
+        audiopipefd = NULL;
+    }
+    unlink(audiopipe);
+    return TC_IMPORT_OK;
+}
+
+/* ------------------------------------------------------------
+ * main external API.
  * ------------------------------------------------------------*/
 
 MOD_open
 {
-  long sret;
-
-  /* check for mplayer */
-  if (tc_test_program("mplayer") != 0) return (TC_EXPORT_ERROR);
-
-  switch (param->flag) {
-    case TC_VIDEO:
-      tc_snprintf(videopipe, sizeof(videopipe), VIDEOPIPE_TEMPLATE);
-      if (!mktemp(videopipe)) {
-        tc_log_perror(MOD_NAME, "mktemp videopipe failed");
-        return(TC_IMPORT_ERROR);
-      }
-      if (mkfifo(videopipe, 00660) == -1) {
-        tc_log_perror(MOD_NAME, "mkfifo video failed");
-        return(TC_IMPORT_ERROR);
-      }
-
-      sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-			 "mplayer -benchmark -noframedrop -nosound -vo"
-			 " yuv4mpeg:file=%s %s \"%s\" -osdlevel 0"
-			 " > /dev/null 2>&1",
-			 videopipe,
-			 ((vob->im_v_string) ? vob->im_v_string : ""),
-			 vob->video_in_file);
-      if (sret < 0) {
-	unlink(videopipe);
-        return(TC_IMPORT_ERROR);
-      }
-
-      if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
-
-      if ((videopipefd = popen(import_cmd_buf, "w")) == NULL) {
-        tc_log_perror(MOD_NAME, "popen videopipe failed");
-	unlink(videopipe);
-        return(TC_IMPORT_ERROR);
-      }
-
-      if (vob->im_v_codec == CODEC_YUV) {
-        sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-			"tcextract -i %s -x yuv420p -t yuv4mpeg", videopipe);
-	if (sret < 0) {
-	  unlink(videopipe);
-          return(TC_IMPORT_ERROR);
-        }
-      } else {
-        sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-			   "tcextract -i %s -x yuv420p -t yuv4mpeg |"
-			   " tcdecode -x yuv420p -g %dx%d",
-			   videopipe, vob->im_v_width, vob->im_v_height);
-	if (sret < 0) {
-	  unlink(videopipe);
-          return(TC_IMPORT_ERROR);
-        }
-      }
-
-      // print out
-      if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
-
-      param->fd = NULL;
-
-      // popen
-      if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
-        tc_log_perror(MOD_NAME, "popen YUV stream");
-	unlink(videopipe);
-        return(TC_IMPORT_ERROR);
-      }
-
-      return TC_IMPORT_OK;
-
-    case TC_AUDIO:
-      tc_snprintf(audiopipe, sizeof(audiopipe), AUDIOPIPE_TEMPLATE);
-      if (!mktemp(audiopipe)) {
-        tc_log_perror(MOD_NAME, "mktemp audiopipe failed");
-        return(TC_IMPORT_ERROR);
-      }
-      if (mkfifo(audiopipe, 00660) == -1) {
-        tc_log_perror(MOD_NAME, "mkfifo audio failed");
-	unlink(audiopipe);
-        return(TC_IMPORT_ERROR);
-      }
-
-      sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-			 "mplayer -hardframedrop -vo null -ao pcm:nowaveheader"
-			 ":file=\"%s\" %s \"%s\" > /dev/null 2>&1",
-			 audiopipe, (vob->im_a_string ? vob->im_a_string : ""),
-			 vob->audio_in_file);
-      if (sret < 0) {
-	unlink(audiopipe);
-        return(TC_IMPORT_ERROR);
-      }
-
-      if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
-
-      if ((audiopipefd = popen(import_cmd_buf, "w")) == NULL) {
-        tc_log_perror(MOD_NAME, "popen audiopipe failed");
-	unlink(audiopipe);
-        return(TC_IMPORT_ERROR);
-      }
-
-      if ((param->fd = fopen(audiopipe, "r")) == NULL) {
-        tc_log_perror(MOD_NAME, "fopen audio stream");
-	unlink(audiopipe);
-        return(TC_IMPORT_ERROR);
-      }
-
-      return TC_IMPORT_OK;
-  }
-
-  return(TC_IMPORT_ERROR);
+    /* check for mplayer */
+    if (tc_test_program("mplayer") != 0) {
+        return TC_IMPORT_ERROR;
+    }
+    if (param->flag == TC_VIDEO) {
+        return tc_mplayer_open_video(vob, param);
+    }
+    if (param->flag == TC_AUDIO) {
+        return tc_mplayer_open_audio(vob, param);
+    }
+    return TC_IMPORT_ERROR;
 }
 
-/* ------------------------------------------------------------
- *
- * decode  stream
- *
- * ------------------------------------------------------------*/
 
-MOD_decode { return(TC_IMPORT_OK); }
-
-/* ------------------------------------------------------------
- *
- * close stream
- *
- * ------------------------------------------------------------*/
+MOD_decode
+{
+    return TC_IMPORT_OK;
+}
 
 MOD_close
 {
-  if (param->flag == TC_VIDEO) {
-    if (param->fd != NULL)
-      pclose(param->fd);
-    if (videopipefd != NULL)
-      pclose(videopipefd);
-    unlink(videopipe);
-  } else {
-    if (param->fd != NULL)
-      fclose(param->fd);
-    if (audiopipefd != NULL)
-      pclose(audiopipefd);
-    unlink(audiopipe);
-  }
-  return(TC_IMPORT_OK);
+    if (param->flag == TC_VIDEO) {
+        return tc_mplayer_close_video(param);
+    }
+    if (param->flag == TC_AUDIO) {
+        return tc_mplayer_close_audio(param);
+    }
+    return TC_IMPORT_ERROR;
 }
+
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */
