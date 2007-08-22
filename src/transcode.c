@@ -225,12 +225,10 @@ static void *event_thread(void* blocked_)
 
     /* Loop waiting for external events */
     for (;;) {
-#ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
         pthread_testcancel();
-#endif
+
         tc_socket_wait();
 
-        pthread_testcancel();
         if (tc_interrupted()) {
             if (verbose & TC_INFO)
                 tc_log_info(PACKAGE, "(sighandler) %s received", signame);
@@ -2282,8 +2280,9 @@ int main(int argc, char *argv[])
             tc_encoder_loop(vob, frame_a, frame_b);
 
             // check for user cancelation request
-            if (tc_interrupted())
+            if (tc_interrupted()) {
                 break;
+            }
 
             // next range
             tstart = tstart->next;
