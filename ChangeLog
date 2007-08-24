@@ -1,3 +1,8 @@
+2007-08-24 Francesco Romani <fromani at gmail dot com>
+  * import/import_mplayer.c
+  new minor version of module. More improvements on #0000028 camp.
+  Extensive testing still needed, and decoder still needs some cleanups.
+
 2007-08-22 Francesco Romani <fromani at gmail dot com>
   * import/v4l/import_v4l2.c
   allow VIDIOC_G_STD ioctl to fail, and fix STREAMON/STREAMOFF ioctl calls.

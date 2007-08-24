@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "import_mplayer.so"
-#define MOD_VERSION "v0.1.0 (2007-08-22)"
+#define MOD_VERSION "v0.1.1 (2007-08-24)"
 #define MOD_CODEC   "(video) rendered by mplayer | (audio) rendered by mplayer"
 
 #include "transcode.h"
@@ -145,8 +145,22 @@ static int tc_mplayer_open_audio(vob_t *vob, transfer_t *param)
     audiopipefd = popen(import_cmd_buf, "w");
     RETURN_IF_OPEN_FAILED(audiopipefd, "popen audiopipe failed");
 
-    param->fd = fopen(audiopipe, "r");
-    RETURN_IF_OPEN_FAILED(audiopipefd, "popen audiopipe failed");
+    /* 
+     * XXX
+     * ok, this is really an ugly *temporary* hack that make things work.
+     * I'm not proud nor satisfied of this, but there isn't much that
+     * better this moment.
+     */
+    sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+                       "tcextract -i %s -x pcm -t raw", audiopipe);
+    RETURN_IF_BAD_SRET(sret, audiopipe);
+
+    // print out
+    if (verbose_flag)
+        tc_log_info(MOD_NAME, "%s", import_cmd_buf);
+
+    param->fd = popen(import_cmd_buf, "r");
+    RETURN_IF_OPEN_FAILED(audiopipefd, "popen PCM stream");
 
     return TC_IMPORT_OK;
 }
@@ -185,7 +199,7 @@ static int tc_mplayer_close_video(transfer_t *param)
 static int tc_mplayer_close_audio(transfer_t *param)
 {
     if (param->fd != NULL)
-        fclose(param->fd);
+        pclose(param->fd);
     if (audiopipefd != NULL) {
         tc_mplayer_send_quit(audiopipefd);
 
