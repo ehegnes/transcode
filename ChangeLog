@@ -7,6 +7,9 @@
   * src/decoder.c
   more serious internal cleanup and refactoring. Testing still ongoing.
 
+  * configure.in
+  transcode 1.1.0 alpha 4.
+
 2007-08-24 Francesco Romani <fromani at gmail dot com>
   * import/import_mplayer.c
   new minor version of module. More improvements on #0000028 camp.
