@@ -2,6 +2,9 @@
   * configure.in import/import_mpeg3.c
   detect libmpeg3 version and adopt proper code accordingly.
 
+  * configure.in
+  transcode 1.0.4rc6.
+
 2007-08-10 Francesco Romani <fromani at gmail dot com>
   * export/export_xvid4.c
   backport new module version from 1.1.0alpha4.
