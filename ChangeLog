@@ -1,3 +1,9 @@
+2007-08-25 Francesco Romani <fromani at gmail dot com>
+  * export/Makefile.am
+
+  * added file: export/export_pcm.c
+  export_pcm is back.
+
 2007-08-24 Francesco Romani <fromani at gmail dot com>
   * import/import_mplayer.c
   new minor version of module. More improvements on #0000028 camp.

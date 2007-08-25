@@ -55,6 +55,7 @@ pkg_LTLIBRARIES = \
 	$(EXPORT_MPEG2ENC) \
 	export_null.la \
 	export_ogg.la \
+	export_pcm.la \
 	export_ppm.la \
 	$(EXPORT_PVM) \
 	export_pvn.la \
@@ -129,6 +130,9 @@ export_null_la_LDFLAGS = -module -avoid-version
 
 export_ogg_la_SOURCES = export_ogg.c
 export_ogg_la_LDFLAGS = -module -avoid-version
+
+export_pcm_la_SOURCES = export_pcm.c
+export_pcm_la_LDFLAGS = -module -avoid-version
 
 export_ppm_la_SOURCES = export_ppm.c aud_aux.c
 export_ppm_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBAVCODEC_CFLAGS) $(LAME_CFLAGS)
