@@ -151,11 +151,6 @@ static int check_module_caps(const transfer_t *param, int codec,
     return caps;
 }
 
-static void import_lock_cleanup(void *arg)
-{
-    pthread_mutex_unlock((pthread_mutex_t *)arg);
-}
-
 /* optimized fread, use with care */
 #ifdef PIPE_BUF
 #define BLOCKSIZE PIPE_BUF /* 4096 on linux-x86 */
@@ -241,6 +236,54 @@ static void tc_import_audio_stop(void)
 
     sleep(tc_decoder_delay);
 }
+
+static void tc_import_video_start(void)
+{
+    pthread_mutex_lock(&video_decdata.lock);
+    video_decdata.active_flag = 1;
+    pthread_mutex_unlock(&video_decdata.lock);
+}
+
+static void tc_import_audio_start(void)
+{
+    pthread_mutex_lock(&audio_decdata.lock);
+    audio_decdata.active_flag = 1;
+    pthread_mutex_unlock(&audio_decdata.lock);
+}
+
+static int tc_import_audio_is_active(void)
+{
+    int flag;
+    pthread_mutex_lock(&audio_decdata.lock);
+    flag = audio_decdata.active_flag;
+    pthread_mutex_unlock(&audio_decdata.lock);
+    return flag;
+}
+
+static int tc_import_video_is_active(void)
+{
+    int flag;
+    pthread_mutex_lock(&video_decdata.lock);
+    flag = video_decdata.active_flag;
+    pthread_mutex_unlock(&video_decdata.lock);
+    return flag;;
+}
+
+#define tc_import_interrupted(STREAM) \
+    (tc_interrupted() || !tc_import_ ## STREAM ## _is_active())
+
+
+
+int tc_import_audio_status(void)
+{
+    return (tc_import_audio_is_active() || aframe_have_data());
+}
+
+int tc_import_video_status(void)
+{
+    return (tc_import_video_is_active() || vframe_have_data());
+}
+
 
 static int tc_import_audio_open(vob_t *vob)
 {
@@ -357,24 +400,28 @@ static int video_decode_loop(vob_t *vob)
     vbytes = vob->im_v_size;
 
     for (; TC_TRUE; i++) {
+        if (tc_import_interrupted(video)) {
+            return TC_IM_THREAD_INTERRUPT;
+        }
         if (verbose >= TC_STATS)
             tc_log_msg(__FILE__, "%10s [%ld] V=%d bytes", "requesting", i, vbytes);
 
-        pthread_testcancel();
-
         /* stage 1: get new blank frame */
+        if (verbose >= TC_THREADS)
+            tc_log_msg(__FILE__, "requesting a new video frame");
+
         pthread_mutex_lock(&vframe_list_lock);
-        pthread_cleanup_push(import_lock_cleanup, &vframe_list_lock);
-
         while (!vframe_fill_level(TC_BUFFER_NULL)) {
+            if (verbose >= TC_THREADS)
+                tc_log_msg(__FILE__, "video frame not ready, waiting");
             pthread_cond_wait(&video_decdata.list_full_cv, &vframe_list_lock);
-#ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
-            pthread_testcancel();
-#endif
+            if (verbose >= TC_THREADS)
+                tc_log_msg(__FILE__, "video frame wait ended");
         }
-
-        pthread_cleanup_pop(0);
         pthread_mutex_unlock(&vframe_list_lock);
+
+        if (verbose >= TC_THREADS)
+            tc_log_msg(__FILE__, "new video frame ready");
 
         /* stage 2: register acquired frame */
         ptr = vframe_register(i);
@@ -384,6 +431,9 @@ static int video_decode_loop(vob_t *vob)
         /* stage 3: fill the frame with data */
         ptr->attributes = 0;
         MARK_TIME_RANGE(ptr, vob);
+
+        if (verbose >= TC_THREADS)
+            tc_log_msg(__FILE__, "new video frame registered and marked, now filling...");
 
         if (video_decdata.fd != NULL) {
             if (vbytes && (ret = mfread(ptr->video_buf, vbytes, 1, video_decdata.fd)) != 1)
@@ -403,6 +453,9 @@ static int video_decode_loop(vob_t *vob)
             ptr->attributes |= import_para.attributes;
         }
 
+        if (verbose >= TC_THREADS)
+            tc_log_msg(__FILE__, "new video frame filled (%s)", (ret == -1) ?"FAILED" :"OK");
+
         if (ret < 0) {
             if (verbose >= TC_DEBUG)
                 tc_log_msg(__FILE__, "video data read failed - end of stream");
@@ -415,7 +468,8 @@ static int video_decode_loop(vob_t *vob)
         ptr->v_width    = vob->im_v_width;
         ptr->v_bpp      = BPP;
 
-        pthread_testcancel();
+        if (verbose >= TC_THREADS)
+            tc_log_msg(__FILE__, "new video frame is being processed");
 
         /* stage 4: account filled frame and process it if needed */
         pthread_mutex_lock(&vbuffer_im_fill_lock);
@@ -431,6 +485,9 @@ static int video_decode_loop(vob_t *vob)
             tc_filter_process((frame_list_t *)ptr);
         }
 
+        if (verbose >= TC_THREADS)
+            tc_log_msg(__FILE__, "new video frame ready to be pushed");
+
         /* stage 5: push frame to next transcoding layer */
         if (!have_vframe_threads) {
             vframe_set_status(ptr, FRAME_READY);
@@ -443,12 +500,12 @@ static int video_decode_loop(vob_t *vob)
         if (verbose >= TC_STATS)
             tc_log_msg(__FILE__, "%10s [%ld] V=%d bytes", "received", i, ptr->video_size);
 
+        if (verbose >= TC_THREADS)
+            tc_log_msg(__FILE__, "new video frame pushed");
+
         if (ret < 0) {
             tc_import_video_stop();
             return TC_IM_THREAD_DONE;
-        }
-        if (tc_interrupted()) {
-            return TC_IM_THREAD_INTERRUPT;
         }
     }
 }
@@ -490,7 +547,10 @@ static int audio_decode_loop(vob_t *vob)
     abytes = vob->im_a_size;
 
     for (; TC_TRUE; i++) {
-        /* tage 0: udio adjustment for non PAL frame rates: */
+        if (tc_import_interrupted(audio)) {
+            return TC_IM_THREAD_INTERRUPT;
+        }
+        /* stage 0: audio adjustment for non PAL frame rates: */
         if (i != 0 && i % TC_LEAP_FRAME == 0) {
             abytes = vob->im_a_size + vob->a_leap_bytes;
         } else {
@@ -500,21 +560,22 @@ static int audio_decode_loop(vob_t *vob)
         if (verbose >= TC_STATS)
             tc_log_msg(__FILE__, "%10s [%ld] A=%d bytes", "requesting", i, abytes);
 
-        pthread_testcancel();
-
         /* stage 1: get new blank frame */
+        if (verbose >= TC_THREADS)
+            tc_log_msg(__FILE__, "requesting a new audio frame");
+
         pthread_mutex_lock(&aframe_list_lock);
-        pthread_cleanup_push(import_lock_cleanup, &aframe_list_lock);
-
         while (!aframe_fill_level(TC_BUFFER_NULL)) {
+            if (verbose >= TC_THREADS)
+                tc_log_msg(__FILE__, "audio frame not ready, waiting");
             pthread_cond_wait(&audio_decdata.list_full_cv, &aframe_list_lock);
-#ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
-            pthread_testcancel();
-#endif
+            if (verbose >= TC_THREADS)
+                tc_log_msg(__FILE__, "audio frame wait ended");
         }
-
-        pthread_cleanup_pop(0);
         pthread_mutex_unlock(&aframe_list_lock);
+
+        if (verbose >= TC_THREADS)
+            tc_log_msg(__FILE__, "new audio frame ready");
 
         /* stage 2: register acquired frame */
         ptr = aframe_register(i);
@@ -523,6 +584,9 @@ static int audio_decode_loop(vob_t *vob)
 
         ptr->attributes = 0;
         MARK_TIME_RANGE(ptr, vob);
+
+        if (verbose >= TC_THREADS)
+            tc_log_msg(__FILE__, "new video frame registered and marked, now syncing...");
 
         /* stage 3: fill the frame with data */
         /* stage 3.1: resync audio by discarding frames, if needed */
@@ -551,7 +615,8 @@ static int audio_decode_loop(vob_t *vob)
             vob->sync++;
         }
         /* stage 3.x: all this stuff can be done in a cleaner way... */
-
+        if (verbose >= TC_THREADS)
+            tc_log_msg(__FILE__, "syncing done, new audio frame ready to be filled...");
 
         if (ret < 0) {
             if (verbose >= TC_DEBUG)
@@ -565,8 +630,6 @@ static int audio_decode_loop(vob_t *vob)
         ptr->a_rate = vob->a_rate;
         ptr->a_bits = vob->a_bits;
         ptr->a_chan = vob->a_chan;
-
-        pthread_testcancel();
 
         /* stage 4: account filled frame and process it if needed */
         pthread_mutex_lock(&abuffer_im_fill_lock);
@@ -595,50 +658,11 @@ static int audio_decode_loop(vob_t *vob)
             tc_import_audio_stop();
             return TC_IM_THREAD_DONE;
         }
-        if (tc_interrupted()) {
-            return TC_IM_THREAD_INTERRUPT;
-        }
     }
 }
 
 #undef GET_AUDIO_FRAME
 #undef MARK_TIME_RANGE
-
-static void tc_import_video_start(void)
-{
-    pthread_mutex_lock(&video_decdata.lock);
-    video_decdata.active_flag = 1;
-    pthread_mutex_unlock(&video_decdata.lock);
-}
-
-static void tc_import_audio_start(void)
-{
-    pthread_mutex_lock(&audio_decdata.lock);
-    audio_decdata.active_flag = 1;
-    pthread_mutex_unlock(&audio_decdata.lock);
-}
-
-int tc_import_audio_status(void)
-{
-    int flag;
-
-    pthread_mutex_lock(&audio_decdata.lock);
-    flag = audio_decdata.active_flag;
-    pthread_mutex_unlock(&audio_decdata.lock);
-
-    return (flag || aframe_have_data());
-}
-
-int tc_import_video_status(void)
-{
-    int flag;
-
-    pthread_mutex_lock(&video_decdata.lock);
-    flag = video_decdata.active_flag;
-    pthread_mutex_unlock(&video_decdata.lock);
-
-    return (flag || vframe_have_data());
-}
 
 /*************************************************************************/
 
@@ -684,18 +708,10 @@ static void *video_import_thread(void *_vob)
 /*               main API functions                                      */
 /*************************************************************************/
 
-#ifdef HAVE_IBP
-extern pthread_mutex_t xio_lock;
-#endif
-
 void tc_import_threads_cancel(void)
 {
     void *status = NULL;
     int vret, aret;
-
-#ifdef HAVE_IBP
-    pthread_mutex_lock(&xio_lock);
-#endif
 
     if (tc_decoder_delay)
         tc_log_info(__FILE__, "sleeping for %d seconds to cool down", tc_decoder_delay);
@@ -714,59 +730,19 @@ void tc_import_threads_cancel(void)
                              (unsigned long)tc_pthread_main,
                              tc_import_status());
 
-    vret = pthread_cancel(video_decdata.thread_id);
-    aret = pthread_cancel(audio_decdata.thread_id);
-
-    if (verbose >= TC_DEBUG) {
-        if (vret == ESRCH)
-            tc_log_msg(__FILE__, "video thread already terminated");
-        if (aret == ESRCH)
-            tc_log_msg(__FILE__, "audio thread already terminated");
-
-        tc_log_msg(__FILE__, "A/V import canceled (%ld) (%ld)",
-                   (unsigned long)pthread_self(),
-                   (unsigned long)tc_pthread_main);
-
-    }
-
     //wait for threads to terminate
-#ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
-    /* in facts our threading code is broken in more than one sense... FR */
-    pthread_cond_signal(&video_decdata.list_full_cv);
-#endif
-#ifdef HAVE_IBP
-    pthread_mutex_unlock(&xio_lock);
-#endif
     vret = pthread_join(video_decdata.thread_id, &status);
 
     if (verbose >= TC_DEBUG)
         tc_log_msg(__FILE__, "video thread exit (ret_code=%d) (status_code=%lu)",
                    vret, (unsigned long)status);
 
-#ifdef BROKEN_PTHREADS // Used to be MacOSX specific; kernel 2.6 as well?
-    pthread_cond_signal(&audio_decdata.list_full_cv);
-#endif
-#ifdef HAVE_IBP
-    pthread_mutex_unlock(&xio_lock);
-#endif
     aret = pthread_join(audio_decdata.thread_id, &status);
 
     if (verbose >= TC_DEBUG)
         tc_log_msg(__FILE__, "audio thread exit (ret_code=%d) (status_code=%lu)",
                     aret, (unsigned long) status);
-
-    vret = pthread_mutex_trylock(&vframe_list_lock);
-
-    if (verbose >= TC_DEBUG)
-        tc_log_msg(__FILE__, "vframe_list_lock=%s", (vret==EBUSY)? "BUSY":"0");
-    if (vret == 0)
-        pthread_mutex_unlock(&vframe_list_lock);
-
-    aret = pthread_mutex_trylock(&aframe_list_lock);
-    if (verbose >= TC_DEBUG)
-        tc_log_msg(__FILE__, "aframe_list_lock=%s", (aret==EBUSY)? "BUSY":"0");
-    if (aret == 0)
-        pthread_mutex_unlock(&aframe_list_lock);
+    return;
 }
 
 /*************************************************************************/
@@ -1022,7 +998,7 @@ static void *seq_import_thread(void *_sid)
 
     for (i = 0; TC_TRUE; i++) {
         /* shutdown test */
-        if (tc_interrupted()) {
+        if (tc_interrupted()) { /* XXX */
             status = TC_IM_THREAD_INTERRUPT;
             break;
         }
@@ -1051,7 +1027,7 @@ static void *seq_import_thread(void *_sid)
             break;
         }
 
-	fname = current_in_file(sid->vob, sid->kind);
+        fname = current_in_file(sid->vob, sid->kind);
         /* probing coherency check */
         ret = probe_im_stream(fname, new);
         RETURN_IF_PROBE_FAILED(ret, fname);
