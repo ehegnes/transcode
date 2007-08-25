@@ -3,6 +3,7 @@
 
   * added file: export/export_pcm.c
   export_pcm is back.
+  Requested by "Jason P. Stanford <jps3 at Lehigh dot EDU>" .
 
   * src/decoder.c
   more serious internal cleanup and refactoring. Testing still ongoing.
@@ -267,7 +268,7 @@
 2007-07-22 Francesco Romani <fromani at gmail dot com>
   * (everything)
   created transcode 1.1.x branch (-r transcode_1_1).
-  transcode 1.1.0alpha0.
+  transcode 1.1.0 alpha 0.
 
   * configure.in 
   detect XFixes avalability, needed by cursor grabbing facilties.

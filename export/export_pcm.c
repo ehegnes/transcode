@@ -27,7 +27,7 @@
 #include <errno.h>
 
 #include "transcode.h"
-#include "avilib.h"
+#include "avilib/avilib.h"
 #include "libtc/libtc.h"
 
 #define MOD_NAME    "export_pcm.so"
@@ -48,8 +48,8 @@ static int fd_ls = -1, fd_rs = -1, fd_lfe = -1;
 typedef enum {
     CHANNEL_CENTER = 1,
     CHANNEL_STEREO = 2,
-    CHANNEL_FRONT = 4,
-    CHANNEL_LFE = 8
+    CHANNEL_FRONT  = 4,
+    CHANNEL_LFE    = 8
 } PCMChannels;
 
 static PCMChannels chan_settings[8] = {
@@ -100,7 +100,7 @@ MOD_init
                                    vob->dm_chan);
             return TC_EXPORT_ERROR;
         }
-        if (!vob->fixme_a_codec
+        if (!vob->a_codec_flag
           || !rtf.common.dwSamplesPerSec
           || !rtf.common.wBitsPerSample
           || !rtf.common.wBlockAlign) {
@@ -192,7 +192,7 @@ MOD_open
  * ------------------------------------------------------------*/
 
 #define FD_WRITE(fd, buf, size) do { \
-      if(fd != -1 && p_write(fd, buf, size) != size) { \
+      if(fd != -1 && tc_pwrite(fd, buf, size) != size) { \
           tc_log_error(MOD_NAME,  "writing audio frame: %s", \
                        strerror(errno)); \
           return TC_EXPORT_ERROR; \
