@@ -165,6 +165,7 @@
 #define CODEC_YUV422     256
 
 #define CODEC_PCM     0x1
+#define CODEC_ULAW    0x7     // incidental
 #define CODEC_AC3     0x2000
 #define CODEC_MP2     0x50
 #define CODEC_MP3     0x55
