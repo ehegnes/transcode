@@ -42,6 +42,8 @@ void extract_avi(info_t *ipipe)
   AVI_dump(ipipe->name, ipipe->select);
 }
 
+#define FORMAT_ULAW 0x07
+
 void probe_avi(info_t *ipipe)
 {
     avi_t *avifile=NULL;
@@ -83,6 +85,14 @@ void probe_avi(info_t *ipipe)
       ipipe->probe_info->track[j].padrate = AVI_audio_padrate(avifile);
 
       ipipe->probe_info->track[j].tid=j;
+      
+      /*
+       * this should probably go somewhere else
+       * uLaw in avi seems to store the samplesize of the compressed data instead of the
+       * that of the uncompressed data; uLaw is always 16 bit
+       */
+      if(ipipe->probe_info->track[j].format == FORMAT_ULAW)
+        ipipe->probe_info->track[j].bits = 16;
 
       if(ipipe->probe_info->track[j].chan>0) ++ipipe->probe_info->num_tracks;
     }
@@ -97,6 +107,7 @@ void probe_avi(info_t *ipipe)
 	ipipe->probe_info->codec=TC_CODEC_RGB;
       } else {
 
+    /* FIXME: switch to a table or, better, use tccodecs.c facilities */
 	if(strcasecmp(codec,"dvsd")==0)
 	  ipipe->probe_info->codec=TC_CODEC_DV;
 
