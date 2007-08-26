@@ -4,6 +4,14 @@
   Stefan Scheffler <stefanscheffler at gmx dot net>.
   patch 1/N: add u-Law identifiers.
 
+  * libtc/tccodecs.c libtc/tccodecs.h src/tc_defaults.h
+  u-Law support (based on implementation proposed by 
+  Stefan Scheffler <stefanscheffler at gmx dot net>.
+  patch 2/N: support autoprobing. `raw' module will be
+  suggested instead `avi' one (as originally implemented
+  by Stefan, since I'd like to handle uLaw has a specialized
+  case of PCM, and I don't want to bind it to AVI).
+
 2007-08-22 Francesco Romani <fromani at gmail dot com>
   * import/v4l/import_v4l2.c
   allow VIDIOC_G_STD ioctl to fail, and fix STREAMON/STREAMOFF ioctl calls.

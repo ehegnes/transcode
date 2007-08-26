@@ -314,6 +314,7 @@ const char *aformat2str(int flag)
         case CODEC_MP2:    return "MPEG layer-2";
         case CODEC_PCM:    return "PCM";
         case CODEC_LPCM:   return "LPCM";
+        case CODEC_ULAW:   return "uLaw";
         case CODEC_VORBIS: return "Ogg Vorbis";
         case CODEC_VAG:    return "PS-VAG";
     }
@@ -649,6 +650,7 @@ static void select_modules(int flags, vob_t *vob)
         case CODEC_MP3:    default_amod = "mp3";  break;
         case CODEC_AC3:    default_amod = "ac3";  break;
         case CODEC_PCM:    default_amod = "raw";  break;
+        case CODEC_ULAW:   default_amod = "raw";  break;
         case CODEC_VORBIS: default_amod = "ogg";  break;
         case CODEC_VAG:    default_amod = "vag";  break;
         default:           default_amod = "null"; break;
@@ -728,6 +730,8 @@ static void select_modules(int flags, vob_t *vob)
       case TC_MAGIC_AVI:
         if (vob->pass_flag & TC_VIDEO)
             vob->vmod_probed = "avi";
+        if (vob->a_codec_flag == CODEC_ULAW)
+            vob->amod_probed = "raw";
         break;
 
       case TC_MAGIC_MOV:
