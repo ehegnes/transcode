@@ -34,6 +34,7 @@ typedef enum {
     /* ok, now the real codecs */
     TC_CODEC_PCM        = 0x00000001,
     TC_CODEC_LPCM       = 0x00010001,
+    TC_CODEC_ULAW       = 0x00000007, /* incidental */
 
     TC_CODEC_AC3        = 0x00002000,
     TC_CODEC_DTS        = 0x0001000f,

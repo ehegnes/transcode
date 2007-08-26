@@ -105,6 +105,8 @@ static const TCCodecInfo tc_codecs_info[] = {
                            "PCM",                    0, TC_AUDIO },
     { TC_CODEC_LPCM,       "lpcm",        NULL,
                            "LPCM",                   0, TC_AUDIO },
+    { TC_CODEC_ULAW,       "u-Law",       NULL,
+                           "ULAW",                   0, TC_AUDIO },
     { TC_CODEC_AC3,        "ac3",         NULL,
                            "AC3",                    0, TC_AUDIO },
     { TC_CODEC_MP3,        "mp3",         NULL,
@@ -146,6 +148,7 @@ int tc_translate_codec_id(TCCodecID codec)
       case CODEC_MP2:    return TC_CODEC_MP2;
       case CODEC_PCM:    return TC_CODEC_PCM;
       case CODEC_LPCM:   return TC_CODEC_LPCM;
+      case CODEC_ULAW:   return TC_CODEC_ULAW;
       case CODEC_VORBIS: return TC_CODEC_VORBIS;
       case CODEC_VAG:    return TC_CODEC_VAG;
       default:           return TC_CODEC_ERROR; /* can't happen */
