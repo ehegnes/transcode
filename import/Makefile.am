@@ -309,6 +309,7 @@ tcdecode_SOURCES = \
 	decode_mp3.c \
 	decode_mpeg2.c \
 	decode_ogg.c \
+	decode_ulaw.c \
 	decode_yuv.c
 
 tcdecode_LDADD = \

@@ -1,4 +1,12 @@
 2007-08-26 Francesco Romani <fromani at gmail dot com>
+  added file: import/decode_ulaw.c
+
+  * import/Makefile.am import/tc.h import/tcdecode.c
+  u-Law support (based on implementation proposed by 
+  Stefan Scheffler <stefanscheffler at gmx dot net>.
+  patch 4/N: add uLaw support to tcdecode.
+
+2007-08-26 Francesco Romani <fromani at gmail dot com>
   * libtc/tccodecs.c libtc/tccodecs.h src/tc_defaults.h
   u-Law support (based on implementation proposed by 
   Stefan Scheffler <stefanscheffler at gmx dot net>.

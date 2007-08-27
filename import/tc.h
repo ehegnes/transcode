@@ -48,6 +48,7 @@ void decode_lavc(decode_t *decode);
 void decode_mov(decode_t *decode);
 void decode_lzo(decode_t *decode);
 void decode_ogg(decode_t *decode);
+void decode_ulaw(decode_t *decode);
 
 
 void extract_mp3(info_t *ipipe);
