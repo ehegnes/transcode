@@ -11,6 +11,11 @@
   Stefan Scheffler <stefanscheffler at gmx dot net>).
   patch 5/5: integrate uLaw support into import_raw.
 
+
+  * docs/tech/Makefile.am docs/tech/html/tc_basic.css
+    docs/tech/html/tc_extending_import.html
+  Documentation update.
+
 2007-08-26 Francesco Romani <fromani at gmail dot com>
   * libtc/tccodecs.c libtc/tccodecs.h src/tc_defaults.h
   u-Law support (based on implementation proposed by 
