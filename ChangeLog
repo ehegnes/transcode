@@ -3,27 +3,32 @@
 
   * import/Makefile.am import/tc.h import/tcdecode.c
   u-Law support (based on implementation proposed by 
-  Stefan Scheffler <stefanscheffler at gmx dot net>.
-  patch 4/N: add uLaw support to tcdecode.
+  Stefan Scheffler <stefanscheffler at gmx dot net>).
+  patch 4/5: add uLaw support to tcdecode.
+
+  * import/import_raw.c
+  u-Law support (based on implementation proposed by 
+  Stefan Scheffler <stefanscheffler at gmx dot net>).
+  patch 5/5: integrate uLaw support into import_raw.
 
 2007-08-26 Francesco Romani <fromani at gmail dot com>
   * libtc/tccodecs.c libtc/tccodecs.h src/tc_defaults.h
   u-Law support (based on implementation proposed by 
-  Stefan Scheffler <stefanscheffler at gmx dot net>.
-  patch 1/N: add u-Law identifiers.
+  Stefan Scheffler <stefanscheffler at gmx dot net>).
+  patch 1/5: add u-Law identifiers.
 
   * src/probe.c
   u-Law support (based on implementation proposed by 
-  Stefan Scheffler <stefanscheffler at gmx dot net>.
-  patch 2/N: support module autoselection. `raw' module will be
+  Stefan Scheffler <stefanscheffler at gmx dot net>).
+  patch 2/5: support module autoselection. `raw' module will be
   suggested instead `avi' one (as originally implemented
   by Stefan, since I'd like to handle uLaw has a specialized
   case of PCM, and I don't want to bind it to AVI).
   
   * import/extract_avi.c
   u-Law support (based on implementation proposed by 
-  Stefan Scheffler <stefanscheffler at gmx dot net>.
-  patch 3/N: support probing, and add necessary adjustements.
+  Stefan Scheffler <stefanscheffler at gmx dot net>).
+  patch 3/5: support probing, and add necessary adjustements.
 
 2007-08-22 Francesco Romani <fromani at gmail dot com>
   * import/v4l/import_v4l2.c
