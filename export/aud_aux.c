@@ -436,7 +436,7 @@ int tc_audio_init(vob_t *vob, int v)
 	avi_aud_chan=vob->dm_chan;
 	avi_aud_rate=(vob->mp3frequency != 0)?vob->mp3frequency:vob->a_rate;
 
-	lame_flush=vob->lame_flush;
+	lame_flush=vob->encoder_flush;
 
 	/* For encoding */
 	sample_size = avi_aud_bits * 8 * avi_aud_chan;

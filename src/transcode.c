@@ -488,7 +488,7 @@ static vob_t *new_vob(void)
     vob->demuxer             = -1;
     vob->a_codec_flag        = CODEC_AC3;
     vob->gamma               = 0.0;
-    vob->lame_flush          = 0;
+    vob->encoder_flush       = TC_TRUE;
     vob->has_video           = 1;
     vob->has_audio           = 1;
     vob->has_audio_track     = 1;

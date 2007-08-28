@@ -142,6 +142,8 @@ typedef struct {
 
     /* Image format conversion handle */
     TCVHandle tcvhandle;
+
+    int flush_flag;
 } XviDPrivateData;
 
 static const char *errorstring(int err);
@@ -166,6 +168,8 @@ static int tc_xvid_configure(TCModuleInstance *self,
     TC_MODULE_SELF_CHECK(vob, "configure"); /* uhu, hackish? */
 
     pd = self->userdata;
+
+    pd->flush_flag = vob->encoder_flush;
 
     /* Load the config file settings */
     read_config_file(pd);
@@ -315,7 +319,7 @@ static int tc_xvid_encode_video(TCModuleInstance *self,
 
     pd = self->userdata;
 
-    if (inframe == NULL) {
+    if (inframe == NULL && pd->flush_flag) {
         return tc_xvid_flush(self, outframe); // FIXME
     }
 

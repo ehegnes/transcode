@@ -173,6 +173,10 @@ static int mfread(uint8_t *buf, int size, int nelem, FILE *f)
     return nelem;
 }
 
+static void import_lock_cleanup (void *arg)
+{
+    pthread_mutex_unlock((pthread_mutex_t *)arg);
+}
 
 /*************************************************************************/
 /*                           generics                                    */
@@ -400,6 +404,8 @@ static int video_decode_loop(vob_t *vob)
     vbytes = vob->im_v_size;
 
     for (; TC_TRUE; i++) {
+        pthread_testcancel();
+
         if (tc_import_interrupted(video)) {
             return TC_IM_THREAD_INTERRUPT;
         }
@@ -411,6 +417,7 @@ static int video_decode_loop(vob_t *vob)
             tc_log_msg(__FILE__, "requesting a new video frame");
 
         pthread_mutex_lock(&vframe_list_lock);
+        pthread_cleanup_push(import_lock_cleanup, &vframe_list_lock);
         while (!vframe_fill_level(TC_BUFFER_NULL)) {
             if (verbose >= TC_THREADS)
                 tc_log_msg(__FILE__, "video frame not ready, waiting");
@@ -418,6 +425,7 @@ static int video_decode_loop(vob_t *vob)
             if (verbose >= TC_THREADS)
                 tc_log_msg(__FILE__, "video frame wait ended");
         }
+        pthread_cleanup_pop(0);
         pthread_mutex_unlock(&vframe_list_lock);
 
         if (verbose >= TC_THREADS)
@@ -565,6 +573,7 @@ static int audio_decode_loop(vob_t *vob)
             tc_log_msg(__FILE__, "requesting a new audio frame");
 
         pthread_mutex_lock(&aframe_list_lock);
+        pthread_cleanup_push(import_lock_cleanup, &aframe_list_lock);
         while (!aframe_fill_level(TC_BUFFER_NULL)) {
             if (verbose >= TC_THREADS)
                 tc_log_msg(__FILE__, "audio frame not ready, waiting");
@@ -572,6 +581,7 @@ static int audio_decode_loop(vob_t *vob)
             if (verbose >= TC_THREADS)
                 tc_log_msg(__FILE__, "audio frame wait ended");
         }
+        pthread_cleanup_pop(0);
         pthread_mutex_unlock(&aframe_list_lock);
 
         if (verbose >= TC_THREADS)
@@ -723,22 +733,17 @@ void tc_import_threads_cancel(void)
     tc_frame_threads_notify_video(TC_TRUE);
     tc_frame_threads_notify_audio(TC_TRUE);
 
-    if (verbose >= TC_DEBUG)
-        tc_log_msg(__FILE__, "import stop requested by client=%ld"
-                             " (main=%ld) import status=%d",
-                             (unsigned long)pthread_self(),
-                             (unsigned long)tc_pthread_main,
-                             tc_import_status());
+    pthread_cancel(video_decdata.thread_id);
+    pthread_cancel(audio_decdata.thread_id);
+    /* pthread_cancel failure is not critical */
 
     //wait for threads to terminate
     vret = pthread_join(video_decdata.thread_id, &status);
-
     if (verbose >= TC_DEBUG)
         tc_log_msg(__FILE__, "video thread exit (ret_code=%d) (status_code=%lu)",
                    vret, (unsigned long)status);
 
     aret = pthread_join(audio_decdata.thread_id, &status);
-
     if (verbose >= TC_DEBUG)
         tc_log_msg(__FILE__, "audio thread exit (ret_code=%d) (status_code=%lu)",
                     aret, (unsigned long) status);

@@ -272,7 +272,7 @@ static void dump_vob(int sock)
     SEND(ex_a_fcc, "%s");
     SEND(ex_profile_name, "%s");
     SEND(pass_flag, "%d");
-    SEND(lame_flush, "%d");
+    SEND(encoder_flush, "%d");
     SEND(mod_path, "%s");
     SEND(ttime, "%p");  // format this as a -c style string?
     SEND(frame_interval, "%u");
