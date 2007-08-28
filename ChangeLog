@@ -1,3 +1,7 @@
+2007-08-28 Francesco Romani <fromani at gmail dot com>
+  * docs/man/tcdecode.1
+  update tcdecode manpage.
+
 2007-08-28 Andrew Church <achurch at achurch dot org>
   * configure.in
   Expand -Werror disabling to GCC 4.2.1 as well.
