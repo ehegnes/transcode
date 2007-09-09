@@ -78,10 +78,14 @@ int f_complete_vob_info(vob_t *p_vob,int s_type_check)
 	{
 		if( p_vob->video_in_file != NULL)
 		{
-			if( f_manage_input_xml(p_vob->video_in_file,1,&s_audiovideo))
+			int err = f_manage_input_xml(p_vob->video_in_file,1,&s_audiovideo);
+			if(err)
 			{
-				fprintf(stderr,"(%s) Error parsing XML %s file\n",EXE,p_vob->video_in_file);
-				(void) f_manage_input_xml(NULL,0,&s_audiovideo);
+                fprintf(stderr,"[%s] Error parsing XML %s file",EXE,p_vob->video_in_file);
+                if(err == 1) {
+                    /* free tree */
+    				f_manage_input_xml(NULL,0,&s_audiovideo);
+                }
 				return(1);
 			}
 			if (s_audiovideo.p_next->s_v_codec != TC_CODEC_UNKNOWN)
@@ -90,7 +94,7 @@ int f_complete_vob_info(vob_t *p_vob,int s_type_check)
 				p_vob->im_a_codec=s_audiovideo.p_next->s_a_codec;	
 			if ((s_audiovideo.p_next->s_v_tg_height !=0) || (s_audiovideo.p_next->s_v_tg_width !=0))
 				s_rc=2;
-			(void) f_manage_input_xml(NULL,0,&s_audiovideo);
+			f_manage_input_xml(NULL,0,&s_audiovideo);
 		}
 	}
 	if ((s_type_check & AUDIO_MODE) !=0)
