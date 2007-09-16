@@ -36,7 +36,6 @@ static int capability_flag = TC_CAP_PCM | TC_CAP_AC3;
 #include "ac3scan.h"
 
 
-extern int errno;
 char import_cmd_buf[TC_BUF_MAX];
 
 static FILE *fd;
