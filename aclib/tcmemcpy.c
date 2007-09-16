@@ -449,9 +449,9 @@ amd64.memcpy_last:							\n\
 
 void * (*tc_memcpy)(void *, const void *, size_t) = memcpy;
 
-void tc_memcpy_init(int verbose, int mmflags)
+int tc_memcpy_init(int verbose, int mmflags)
 {
-	const char * method = "libc";
+	int method = MM_C;
 	
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
 	int accel = mmflags == -1 ? ac_mmflag() : mmflags;
@@ -460,12 +460,12 @@ void tc_memcpy_init(int verbose, int mmflags)
 #if defined(ARCH_X86)
 	if((accel & MM_CMOVE) && (accel & MM_SSE))
 	{
-		method = "sse";
+		method = MM_SSE;
 		tc_memcpy = ac_memcpy_sse;
 	}
 	else if(accel & MM_MMX)
 	{
-		method = "mmx";
+		method = MM_MMX;
 		tc_memcpy = ac_memcpy_mmx;
 	}
 #endif
@@ -473,11 +473,10 @@ void tc_memcpy_init(int verbose, int mmflags)
 #if defined(ARCH_X86_64)
 	if((accel & MM_CMOVE) && (accel & MM_SSE2))
 	{
-		method = "amd64";
+		method = MM_SSE2;
 		tc_memcpy = ac_memcpy_amd64;
 	}
 #endif
 
-	if(verbose)
-		fprintf(stderr, "tc_memcpy: using %s for memcpy\n", method);
+    return method;
 }

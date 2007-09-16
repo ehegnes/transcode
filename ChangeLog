@@ -2,6 +2,10 @@
   * libxio/libxio.c
   warning reduction fixes.
 
+  * aclib/ac.h aclib/cputest.c aclib/tcmemcpy.c
+  minor warning reduction fixes.
+  make tc_memcpy_init report the method used instead to print it directly.
+
 2007-09-09 Francesco Romani <fromani at gmail dot com>
   * import/ioxml.c import/tcxmlcheck.c
   do not free internal tree if it was not created.

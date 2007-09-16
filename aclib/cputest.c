@@ -188,7 +188,7 @@ void ac_mmtest()
   } else printf(" C\n");
 }
 
-char *ac_mmstr(int flag, int mode) 
+const char *ac_mmstr(int flag, int mode) 
 {
   static char mmstr[64]="";
   int cc;

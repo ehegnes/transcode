@@ -50,12 +50,11 @@ typedef unsigned int uint32_t;
 #define MM_SSE3     0x0200 //Prescott SSE3
 
 extern void * (*tc_memcpy)(void *, const void *, size_t);
-extern void tc_memcpy_init(int verbose, int mmflags);
+int tc_memcpy_init(int verbose, int mmflags);
 
-extern int mm_flags;
 int ac_mmflag(void);
 void ac_mmtest(void);
-char *ac_mmstr(int flag, int mode);
+const char *ac_mmstr(int flag, int mode);
 
 //ac_memcpy
 void * ac_memcpy_mmx(void *dest, const void *src, size_t bytes);
