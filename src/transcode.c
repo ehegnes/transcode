@@ -49,16 +49,6 @@ extern int errno;
 
 extern int errno;
 
-/* imported from libtc
-#define COL(x)  "\033[" #x ";1m"
-char *RED    = COL(31);
-char *GREEN  = COL(32);
-char *YELLOW = COL(33);
-char *BLUE   = COL(34);
-char *WHITE  = COL(37);
-char *GRAY   =  "\033[0m";
-*/
-
 // communicating with export modules to allow to set them defaults.
 #include "probe_export.h"
 unsigned int probe_export_attributes = 0;
@@ -623,6 +613,7 @@ int main(int argc, char *argv[]) {
       *video_in_file=NULL, *video_out_file=NULL,
       *nav_seek_file=NULL;
 
+    int method=MM_C;
     int n=0, ch1, ch2, fa, fb, hh, mm, ss;
     
     int psu_frame_threshold=12; //psu with less/equal frames are skipped.
@@ -3880,7 +3871,8 @@ int main(int argc, char *argv[]) {
     if(verbose & TC_INFO) printf("[%s] V: IA32/AMD64 accel | %s (%s)\n", PACKAGE, ac_mmstr(tc_accel, 0), ac_mmstr(-1, 1));
 #endif
 
-    tc_memcpy_init(verbose & TC_INFO, tc_accel);
+    method = tc_memcpy_init(verbose & TC_INFO, tc_accel);
+    if(verbose & TC_INFO) printf("[%s] V: IA32/AMD64 accel | using %s memcpy\n", PACKAGE, ac_mmstr(method, 0));
 
     // more checks with warnings
     
