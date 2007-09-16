@@ -1,3 +1,7 @@
+2007-09-16 Francesco Romani <fromani at gmail dot com>
+  * libxio/libxio.c
+  warning reduction fixes.
+
 2007-09-09 Francesco Romani <fromani at gmail dot com>
   * import/ioxml.c import/tcxmlcheck.c
   do not free internal tree if it was not created.

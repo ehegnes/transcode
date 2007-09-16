@@ -27,6 +27,9 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+
+#include "xio.h"
+
 #ifdef HAVE_IBP
 #include <lors.h>
 #endif
@@ -41,6 +44,7 @@ char *strndup(const char *s, size_t n);
 #include <sys/stat.h>
 #include <sys/errno.h>
 #include <stdarg.h>
+
 
 struct xio_handle_t {
 
@@ -621,7 +625,7 @@ ibp_fstat(void *stream, struct stat *buf)
 #endif
 
 static int
-io_init()
+io_init(void)
 {
         int i;
 
@@ -629,7 +633,7 @@ io_init()
                 _handles[i] = NULL;
 	
         xio_initialized = 1;
-	pthread_mutex_init(&xio_lock, NULL);
+        pthread_mutex_init(&xio_lock, NULL);
         return 0;
 }
 
@@ -657,8 +661,7 @@ xio_open(const char *pathname, int flags, ...)
 		return -1;
 	}
 	
-        _handles[ret_fd] = (struct xio_handle_t*)calloc(1,
-                                    sizeof(struct xio_handle_t));
+        _handles[ret_fd] = calloc(1, sizeof(struct xio_handle_t));
 	pthread_mutex_unlock(&xio_lock);
 	if(!_handles[ret_fd]) {
 		// not enough free memory
