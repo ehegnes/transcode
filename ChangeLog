@@ -1,3 +1,7 @@
+2007-09-18 Francesco Romani <fromani at gmail dot com>
+  * import/tcxmlcheck.c
+  minor fixes and STYLE updates.
+
 2007-08-31 Francesco Romani <fromani at gmail dot com>
   * import/import_ffmpeg.c
   allow brave people to easily experiment with new (buggy?) libavformat
