@@ -1,3 +1,10 @@
+2007-10-09 Francesco Romani <fromani at gmail dot com>
+  * import/import_ffmpeg.c
+  add nopad option as preliminary workaround for `slice not end' issue.
+
+  * configure.in
+  transcode 1.0.5rc1.
+
 2007-09-16 Francesco Romani <fromani at gmail dot com>
   * libxio/libxio.c
   warning reduction fixes.

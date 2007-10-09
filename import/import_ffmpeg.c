@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "import_ffmpeg.so"
-#define MOD_VERSION "v0.1.12 (2004-05-07)"
+#define MOD_VERSION "v0.1.13 (2007-10-09)"
 #define MOD_CODEC   "(video) ffmpeg: MS MPEG4v1-3/MPEG4/MJPEG"
 
 #include <errno.h>
@@ -42,8 +42,8 @@ static int capability_flag = TC_CAP_YUV | TC_CAP_RGB | TC_CAP_VID;
 
 #include "libvo/yuv2rgb.h"
 #include "avilib/avilib.h"
+#include "src/optstr.h"
 #include "magic.h"
-
 
 static char import_cmd_buf[TC_BUF_MAX];
 
@@ -121,7 +121,8 @@ static char                *frame = NULL;
 static unsigned long       format_flag;
 static struct ffmpeg_codec *codec;
 
-static struct ffmpeg_codec *find_ffmpeg_codec(char *fourCC) {
+static struct ffmpeg_codec *find_ffmpeg_codec(char *fourCC)
+{
   int i;
   struct ffmpeg_codec *cdc;
   
@@ -139,7 +140,8 @@ static struct ffmpeg_codec *find_ffmpeg_codec(char *fourCC) {
   return NULL;
 }
 
-static struct ffmpeg_codec *find_ffmpeg_codec_id(unsigned int transcode_id) {
+static struct ffmpeg_codec *find_ffmpeg_codec_id(unsigned int transcode_id)
+{
   struct ffmpeg_codec *cdc;
   
   cdc = &ffmpeg_codecs[0];
@@ -217,7 +219,8 @@ static int divx3_is_key(char *d)
 }
 
 
-static unsigned char *bufalloc(size_t size) {
+static unsigned char *bufalloc(size_t size)
+{
 #ifdef HAVE_GETPAGESIZE
   long buffer_align = getpagesize();
 #else
@@ -250,15 +253,22 @@ static void enable_levels_filter(void)
  *
  * ------------------------------------------------------------*/
 
-MOD_open {
+MOD_open
+{
   char   *fourCC = NULL;
   double  fps = 0;
   int extra_data_size = 0;
   long sret;
+  int workarounds = FF_BUG_AUTODETECT;
 
   if (param->flag == TC_VIDEO) {
 
     format_flag = vob->format_flag;
+    if (vob->im_v_string && optstr_lookup(vob->im_v_string, "nopad")) {
+        if (verbose & TC_INFO) 
+            fprintf(stderr, "[%s] forcing no-pad mode\n", MOD_NAME);
+        workarounds = FF_BUG_NO_PADDING;
+    }
 
     sret = scan(vob->video_in_file);
     if (sret == 1)
@@ -347,11 +357,11 @@ do_avi:
     lavc_dec_context->height = y_dim;
 
     if (vob->decolor) lavc_dec_context->flags |= CODEC_FLAG_GRAY;
-    lavc_dec_context->error_resilience = 2;
-    lavc_dec_context->error_concealment = 3;
-    lavc_dec_context->workaround_bugs = FF_BUG_AUTODETECT;
+    lavc_dec_context->error_resilience = FF_ER_COMPLIANT;
+    lavc_dec_context->error_concealment = FF_EC_GUESS_MVS|FF_EC_DEBLOCK;
+    lavc_dec_context->workaround_bugs = workarounds;
     lavc_dec_context->codec_tag= (fourCC[0]<<24) | (fourCC[1]<<16) |
-                                 (fourCC[2]<<8) | (fourCC[3]);
+                                 (fourCC[2]<< 8) | (fourCC[3]);
 
     // XXX: some codecs need extra data
     switch (codec->id)
@@ -505,8 +515,8 @@ do_dv:
  *
  * ------------------------------------------------------------*/
 
-MOD_decode {
-
+MOD_decode
+{
   /*
    * When using directory mode or dvraw etc, we don't enter here 
    * (transcode-core does the reading) so there is no need to protect this
@@ -764,8 +774,8 @@ retry:
  *
  * ------------------------------------------------------------*/
 
-MOD_close {
-
+MOD_close
+{
   if (param->flag == TC_VIDEO) {
 
     if(lavc_dec_context) {
