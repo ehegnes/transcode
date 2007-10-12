@@ -1,3 +1,10 @@
+2007-10-12 Francesco Romani <fromani at gmail dot com>
+  * import/tcxpm2rgb.c
+  speedup patch, a variation of
+  http://people.debian.org/~enrico/store/frank-gevaerts-transcode.patch
+  courtesy of Alex Krasnov - akrasnov at eecs dot berkeley dot edu
+  (closes bug #0000034)
+
 2007-10-09 Francesco Romani <fromani at gmail dot com>
   * import/import_ffmpeg.c
   add nopad option as preliminary workaround for `slice not end' issue.

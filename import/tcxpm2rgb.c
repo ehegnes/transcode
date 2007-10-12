@@ -207,6 +207,16 @@ void usage(int status)
   
 }
 
+typedef struct colorindex
+{
+   char key[16];
+   int  index;
+} colorindex;
+
+int colorcompar(const void *a, const void *b)
+{
+   return strcmp(((colorindex *)a)->key,((colorindex *)b)->key);
+}
 
 int main (int argc, char *argv[])
 { 
@@ -219,6 +229,7 @@ int main (int argc, char *argv[])
     char *outfile = NULL, *infile=NULL;
     color_t *colormap;
     long sret;
+    colorindex *cindex;
 
     while ((ch = getopt(argc, argv, "i:o:vh?")) != -1) {
 	
@@ -291,8 +302,8 @@ int main (int argc, char *argv[])
 
     fgets(linebuf, MAX_BUF, f);
     n = sscanf(linebuf+1, "%d %d %d %d", &width, &height, &colors, &bwidth);
-    if (n != 4 || (bwidth > 2) || (width == 0) || (height == 0) || (colors == 0)) {
-	fprintf(stderr, "Error reading header\n");
+    if (n != 4 || (bwidth > 4) || (width == 0) || (height == 0) || (colors == 0)) {
+	fprintf(stderr, "Error reading header : %s\n",linebuf);
 	return 1;
     }
     //fprintf(stderr, "XPM Image: %dx%d; %d colors, %d byte wide\n", width, height, colors, bwidth);
@@ -323,6 +334,7 @@ int main (int argc, char *argv[])
     }
 
     keys = (char **)malloc(colors*sizeof(char *));
+    cindex = (colorindex *)malloc(colors*sizeof(colorindex));
 
     for (j=0; j<colors; j++) {
 	p = clist[j];
@@ -331,7 +343,6 @@ int main (int argc, char *argv[])
 	keys[j][bwidth]='\0';
 
 	sret = strlcpy(keys[j], p, bwidth+1);
-	tc_test_string(__FILE__, __LINE__, bwidth+1, sret, errno);
 
 	sret = strlcpy(target, "gray", sizeof(target));
 	tc_test_string(__FILE__, __LINE__, sizeof(target), sret, errno);
@@ -347,6 +358,8 @@ int main (int argc, char *argv[])
 		*q='\0';
 	}
 	QueryColorDatabase(target, &colormap[j]);
+        strlcpy(cindex[j].key,keys[j],15);
+        cindex[j].index=j;
     }
 
     if (j < colors) {
@@ -354,6 +367,8 @@ int main (int argc, char *argv[])
 	return 1;
     }
     memset (key, '\0', 16);
+
+    qsort(cindex,colors,sizeof(colorindex),colorcompar);
 
     linelen = width * bwidth + 16;
     line = malloc(linelen);
@@ -378,14 +393,14 @@ int main (int argc, char *argv[])
 	p[len-4]='\0';
 
 	for (x = 0; x<width; x++) {
+            colorindex *answer;
 
 	    strncpy(key,p,bwidth);
 
-	    // can anything be slower?
-	    if (strcmp(key,keys[j]) != 0)
-		for (j=0; j < colors; j++)
-		    if (strcmp(key,keys[j]) == 0)
-			break;
+            answer=(colorindex *)bsearch(key,cindex,colors,sizeof(colorindex),colorcompar);
+            if(answer!=0) {
+               j=answer->index;
+            }
 
 	    *d++ = colormap[j].red&0xff;
 	    *d++ = colormap[j].green&0xff;
