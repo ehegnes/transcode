@@ -1,3 +1,10 @@
+2007-10-14 Francesco Romani <fromani at gmail dot com>
+  * export/export_ffmpeg.c
+  module update:
+  - minor fixes (mostyl stilysh)
+  - drop already deprecated img_convert, switch to libvo's rgb2yuv
+  - improve internal buffering (closes bug #0000035)
+
 2007-10-12 Francesco Romani <fromani at gmail dot com>
   * import/tcxpm2rgb.c
   speedup patch, a variation of
