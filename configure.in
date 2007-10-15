@@ -725,6 +725,32 @@ dnl hardware/OS dependent modules
 dnl
 
 dnl
+dnl NUV
+dnl
+force_nuv_off="no"
+AC_MSG_CHECKING([for internal NUV support])
+AC_ARG_ENABLE(nuv,
+  AC_HELP_STRING([--enable-nuv],
+    [enable internal NUV format support (yes)]), 
+  [case "${enableval}" in
+    yes)
+         if test x"$have_x86cpu" = x"false" ; then
+             force_nuv_off=yes
+             enable_nuv=no
+         fi
+         ;;
+    no)  ;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --enable-nuv)
+         ;;
+  esac],
+  [enable_nuv=yes])
+AC_MSG_RESULT($enable_nuv)
+if test x"$force_nuv_off" = x"yes" ; then
+    AC_MSG_WARN(*** NUV format is supported only on x86 ***)
+fi
+AM_CONDITIONAL(HAVE_NUV, test x"$enable_nuv" = x"yes")
+
+dnl
 dnl v4l
 dnl
 TC_CHECK_V4L(AC_DEFINE([HAVE_V4L], 1, [Have video4linux(2)]))
@@ -1455,6 +1481,7 @@ core options
 ----------------------------------------
 static AV-frame buffering      $enable_statbuffer
 network (sockets) streams      $enable_netstream
+NUV format support             $enable_nuv
 experimental xio               $libxio
 Default xvid export            $XVID_DEFAULT
 A52 default decoder            $enable_a52_default_decoder

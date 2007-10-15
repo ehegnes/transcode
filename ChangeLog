@@ -3,6 +3,11 @@
  improve libmpeg3 pkgconfig detection
  (patch courtesy of `Nicolas (kwizart)' kwizart at gmail dot com)
 
+  * configure.in import/nuv/Makefile.am
+  NUV is supposed to work only on x86 platform (on x86_64, ppc et al
+  it basically worked thanks to a significant amount of luck),
+  so enforce this contraint at configure level.
+
 2007-10-14 Francesco Romani <fromani at gmail dot com>
   * export/export_ffmpeg.c
   module update:
