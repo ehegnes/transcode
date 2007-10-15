@@ -1,4 +1,9 @@
 2007-10-15 Francesco Romani <fromani at gmail dot com>
+  * configure.in import/nuv/Makefile.am
+  NUV is supposed to work only on x86 platform
+  (try2: check also if --enable-nuv [or equivalent] was not given).
+
+2007-10-15 Francesco Romani <fromani at gmail dot com>
   * configure.in
  improve libmpeg3 pkgconfig detection
  (patch courtesy of `Nicolas (kwizart)' kwizart at gmail dot com)
