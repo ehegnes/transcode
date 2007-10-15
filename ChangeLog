@@ -8,6 +8,9 @@
   it basically worked thanks to a significant amount of luck),
   so enforce this contraint at configure level.
 
+  * configure.in
+  transcode 1.0.5rc2.
+
 2007-10-14 Francesco Romani <fromani at gmail dot com>
   * export/export_ffmpeg.c
   module update:
