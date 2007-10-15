@@ -1065,17 +1065,17 @@ if test x"$have_libmpeg3" = x"yes" ; then
   libmpeg3_inc="no"
   save_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$CPPFLAGS $libmpeg3_ii"
+  AC_CHECK_HEADER([libmpeg3.h],
+      [LIBMPEG3_CFLAGS="$libmpeg3_ii"
+        libmpeg3_inc="yes"])
+  if test x"$libmpeg3_inc" = x"no" ; then
   AC_CHECK_HEADER([libmpeg3/libmpeg3.h],
     [LIBMPEG3_CFLAGS="$libmpeg3_ii/libmpeg3"
       libmpeg3_inc="yes"])
+  fi
   if test x"$libmpeg3_inc" = x"no" ; then
     AC_CHECK_HEADER([mpeg3/libmpeg3.h],
       [LIBMPEG3_CFLAGS="$libmpeg3_ii/mpeg3"
-        libmpeg3_inc="yes"])
-  fi
-  if test x"$libmpeg3_inc" = x"no" ; then
-    AC_CHECK_HEADER([libmpeg3.h],
-      [LIBMPEG3_CFLAGS="$libmpeg3_ii"
         libmpeg3_inc="yes"])
   fi
   CPPFLAGS="$save_CPPFLAGS"

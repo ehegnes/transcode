@@ -1,3 +1,8 @@
+2007-10-15 Francesco Romani <fromani at gmail dot com>
+  * configure.in
+ improve libmpeg3 pkgconfig detection
+ (patch courtesy of `Nicolas (kwizart)' kwizart at gmail dot com)
+
 2007-10-14 Francesco Romani <fromani at gmail dot com>
   * export/export_ffmpeg.c
   module update:
