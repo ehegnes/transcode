@@ -610,7 +610,7 @@ AC_ARG_ENABLE(libavcodec-static,
     *) AC_MSG_ERROR(bad value ${enableval} for --enable-libavcodec-static) ;;
   esac],
   [enable_libavcodec_static=no])
-LIBAVCODEC_EXTRA_LIBS="$LIBAVCODEC_EXTRA_LIBS -lm -lz $PTHREAD_LIBS"
+LIBAVCODEC_EXTRA_LIBS="$LIBAVCODEC_EXTRA_LIBS $($PKG_CONFIG --libs libavcodec)"
 TC_PKG_CHECK(libavcodec, required, LIBAVCODEC, no, [ffmpeg/avcodec.h],
  avcodec, avcodec_thread_init, FFMpeg, [http://www.ffmpeg.org/])
 if test x"$have_libavcodec" = x"yes" ; then
@@ -672,7 +672,7 @@ AC_SUBST(LIBAVCODEC_LIBS)
 dnl
 dnl libmpeg2
 dnl
-LIBMPEG2_EXTRA_LIBS="$LIBMPEG2_EXTRA_LIBS -lmpeg2convert"
+LIBMPEG2_EXTRA_LIBS="$LIBMPEG2_EXTRA_LIBS $($PKG_CONFIG --libs libmpeg2convert)"
 TC_PKG_CHECK(libmpeg2, required, LIBMPEG2, no, mpeg2dec/mpeg2.h,
   mpeg2, mpeg2_init, mpeg2dec, [http://libmpeg2.sourceforge.net/])
 TC_PKG_HAVE(libmpeg2, LIBMPEG2)
@@ -924,7 +924,7 @@ TC_PKG_HAVE(ogg, OGG)
 dnl
 dnl vorbis
 dnl
-VORBIS_EXTRA_LIBS="$VORBIS_EXTRA_LIBS $OGG_LIBS -lm"
+VORBIS_EXTRA_LIBS="$VORBIS_EXTRA_LIBS $($PKG_CONFIG --libs vorbis)"
 TC_PKG_CHECK(vorbis, no, VORBIS, no, [vorbis/codec.h], vorbis,
  vorbis_info_init, vorbis, [http://www.xiph.org/ogg/vorbis/])
 TC_PKG_HAVE(vorbis, VORBIS)
@@ -932,7 +932,7 @@ TC_PKG_HAVE(vorbis, VORBIS)
 dnl
 dnl theora
 dnl
-THEORA_EXTRA_LIBS="$THEORA_EXTRA_LIBS $OGG_LIBS -lm"
+THEORA_EXTRA_LIBS="$THEORA_EXTRA_LIBS $(PKG_CONFIG --libs theora)"
 TC_PKG_CHECK(theora, no, THEORA, theora-config, [theora/theora.h], theora,
  theora_info_init, theora, [http://www.theora.org/])
 TC_PKG_HAVE(theora, THEORA)
@@ -1009,7 +1009,7 @@ TC_PKG_HAVE(pvm3, PVM3)
 dnl
 dnl libdv
 dnl
-LIBDV_EXTRA_LIBS="$LIBDV_EXTRA_LIBS $PTHREAD_LIBS -lm"
+LIBDV_EXTRA_LIBS="$LIBDV_EXTRA_LIBS $($PKG_CONFIG --libs libdv)"
 TC_PKG_CHECK(libdv, no, LIBDV, no, [libdv/dv.h], dv, dv_encoder_new,
  libdv, [http://libdv.sourceforge.net/])
 if test x"$have_libdv" = x"yes" ; then
@@ -1036,7 +1036,7 @@ TC_PKG_HAVE(libdv, LIBDV)
 dnl
 dnl libquicktime
 dnl
-LIBQUICKTIME_EXTRA_LIBS="$LIBQUICKTIME_EXTRA_LIBS -lpng -lz $PTHREAD_LIBS -lm $LIBDV_LIBS"
+LIBQUICKTIME_EXTRA_LIBS="$LIBQUICKTIME_EXTRA_LIBS $($PKG_CONFIG --libs libquicktime)"
 TC_PKG_CHECK(libquicktime, no, LIBQUICKTIME, lqt-config, [quicktime.h],
  quicktime, lqt_rows_alloc, libquicktime,
  [http://libquicktime.sourceforge.net/])
@@ -1086,7 +1086,7 @@ TC_PKG_HAVE(a52, A52)
 dnl
 dnl libmpeg3
 dnl
-LIBMPEG3_EXTRA_LIBS="$LIBMPEG3_EXTRA_LIBS $A52_LIBS -lm $PTHREAD_LIBS"
+LIBMPEG3_EXTRA_LIBS="$LIBMPEG3_EXTRA_LIBS $($PKG_CONFIG --libs libmpeg3)"
 TC_PKG_CHECK(libmpeg3, no, LIBMPEG3, no, none, mpeg3, mpeg3_open,
  libmpeg3, [http://heroinewarrior.com/libmpeg3/])
 if test x"$have_libmpeg3" = x"yes" ; then
@@ -1145,7 +1145,7 @@ TC_PKG_HAVE(libmpeg3, LIBMPEG3)
 dnl
 dnl libxml2
 dnl
-LIBXML2_EXTRA_LIBS="$LIBXML2_EXTRA_LIBS -lz -lm"
+LIBXML2_EXTRA_LIBS="$LIBXML2_EXTRA_LIBS $($PKG_CONFIG --libs libxml-2.0)"
 TC_PKG_CHECK(libxml2, no, LIBXML2, xml2-config, [libxml/parser.h],
  xml2, xmlStrcmp, libxml-2.0, [http://xmlsoft.org])
 TC_PKG_HAVE(libxml2, LIBXML2)

@@ -1,3 +1,8 @@
+2007-10-20 Francesco Romani <fromani at gmail dot com>
+  * configure.in
+  do not hardcode library dependencies, use pkg-config instead.
+  (patch courtesy of `David Juran' djuran at redhat dot com).
+
 2007-10-15 Francesco Romani <fromani at gmail dot com>
   * configure.in import/nuv/Makefile.am
   NUV is supposed to work only on x86 platform
