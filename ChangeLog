@@ -1,3 +1,8 @@
+2007-10-20 Francesco Romani <fromani at gmail dot com>
+  * configure.in import/nuv/Makefile.am
+  NUV module in 1.1.0 still isn't supported outside pure x86 (IA32)
+  due to RTJpegN dependency. Enforce this contraint at configure level.
+
 2007-09-18 Francesco Romani <fromani at gmail dot com>
   * import/tcxmlcheck.c
   minor fixes and STYLE updates.

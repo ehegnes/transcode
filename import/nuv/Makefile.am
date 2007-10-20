@@ -8,7 +8,12 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/src
 
 pkgdir = $(MOD_PATH)
-pkg_LTLIBRARIES = import_nuv.la
+
+if ENABLE_NUV
+MOD = import_nuv.la
+endif
+
+pkg_LTLIBRARIES = $(MOD)
 
 import_nuv_la_SOURCES = import_nuv.c RTjpegN.c
 import_nuv_la_CPPFLAGS = $(AM_CPPFLAGS) $(LZO_CFLAGS)

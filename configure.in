@@ -1313,6 +1313,9 @@ AC_ARG_ENABLE(nuv,
     yes) if test yes != "$have_lzo"; then
            AC_MSG_ERROR([liblzo2 is required for NuppelVideo support, try --enable-lzo])
          fi
+    	 if test true != "$have_x86cpu"; then
+           AC_MSG_ERROR([NuppelVideo is supported only on x86 platform yet])
+         fi
          ;;
     no)  ;;
     *) AC_MSG_ERROR(bad value ${enableval} for --enable-nuv) ;;
