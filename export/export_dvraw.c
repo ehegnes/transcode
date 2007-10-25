@@ -55,71 +55,6 @@ static int chans, rate;
 static int dv_yuy2_mode=0;
 static int dv_uyvy_mode=0;
 
-static unsigned char *bufalloc(size_t size)
-{
-
-#ifdef HAVE_GETPAGESIZE
-   long buffer_align=getpagesize();
-#else
-   long buffer_align=0;
-#endif
-
-   char *buf = malloc(size + buffer_align);
-
-   long adjust;
-
-   if (buf == NULL) {
-       fprintf(stderr, "(%s) out of memory", __FILE__);
-   }
-   
-   adjust = buffer_align - ((long) buf) % buffer_align;
-
-   if (adjust == buffer_align)
-      adjust = 0;
-
-   return (unsigned char *) (buf + adjust);
-}
-
-#if 0  /* get this from ioaux.c */
-static int p_write (int fd, char *buf, size_t len)
-{
-   size_t n = 0;
-   size_t r = 0;
-
-   while (r < len) {
-      n = write (fd, buf + r, len - r);
-      if (n < 0)
-         return n;
-      
-      r += n;
-   }
-   return r;
-}
-#endif
-
-#if 0
-static void pcm_swap(char *buffer, int len)
-{
-  char *in, *out;
-
-  int n;
-
-  char tt;
-
-  in  = buffer;
-  out = buffer;
-
-  for(n=0; n<len; n=n+2) {
-
-    tt = *(in+1);
-    *(out+1) = *in;
-    *out = tt;
-    
-    in = in+2;
-    out = out+2;
-  }
-}
-#endif
 
 /* ------------------------------------------------------------ 
  *
@@ -134,16 +69,16 @@ MOD_init
   
   if(param->flag == TC_VIDEO) {
     
-    target = bufalloc(TC_FRAME_DV_PAL);
-    vbuf = bufalloc(PAL_W*PAL_H*3);
+    target = tc_bufalloc(TC_FRAME_DV_PAL);
+    vbuf = tc_bufalloc(PAL_W*PAL_H*3);
 
     if(vob->dv_yuy2_mode) {
-      tmp_buf = bufalloc(PAL_W*PAL_H*2); //max frame
+      tmp_buf = tc_bufalloc(PAL_W*PAL_H*2); //max frame
       dv_yuy2_mode=1;
     }
 
     if (vob->im_v_codec == CODEC_YUV422) {
-      tmp_buf = bufalloc(PAL_W*PAL_H*2); //max frame
+      tmp_buf = tc_bufalloc(PAL_W*PAL_H*2); //max frame
       dv_uyvy_mode=1;
     }
     

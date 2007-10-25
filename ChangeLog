@@ -1,3 +1,10 @@
+2007-10-25 Francesco Romani <fromani at gmail dot com>
+  * libtc/libtc.h libtc/tc_functions.c
+  backport tc_bufalloc/tc_buffree from 1.1.0/HEAD
+
+  * export/export_dv.c export/export_dvraw.c
+  switch to tc_buf{alloc,free}
+
 2007-10-20 Francesco Romani <fromani at gmail dot com>
   * configure.in
   do not hardcode library dependencies, use pkg-config instead.

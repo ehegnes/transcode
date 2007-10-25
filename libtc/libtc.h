@@ -85,6 +85,49 @@ size_t strlcat(char *dst, const char *src, size_t size);
 
 int tc_test_string(char *file, int line, int limit, long ret, int errnum);
 
+/*
+ * Allocate a buffer aligned to the machine's page size, if known.  The
+ * buffer must be freed with buffree() (not free()).
+ */
+
+#define tc_bufalloc(size) \
+            _tc_bufalloc(__FILE__, __LINE__, size)
+
+/*
+ * _tc_bufalloc:
+ *     do the real work behind _tc_bufalloc macro
+ *
+ * Parameters:
+ *     file: name of the file on which call occurs
+ *     line: line of above file on which call occurs
+ *           (above two parameters are intended to be, and usually
+ *           are, filled by tc_malloc macro)
+ *     size: size of desired chunk of memory
+ * Return Value:
+ *     a pointer of acquired, aligned, memory, or NULL if acquisition fails
+ * Side effects:
+ *     a message is printed on stderr (20051017)
+ * Preconditions:
+ *     file param not null
+ */
+void *_tc_bufalloc(const char *file, int line, size_t size);
+
+/*
+ * tc_buffree:
+ *     release a memory buffer acquired using tc_bufalloc
+ *
+ * Parameters:
+ *     ptr: pointer obtained as return value of a succesfull
+ *          tc_bufalloc() call
+ * Return Value:
+ *     none
+ * Preconditions:
+ *     ptr is acquired via tc_bufalloc(). Really BAD things will happen
+ *     if a buffer acquired via tc_bufalloc() is released using anything
+ *     but tc_buffree(), or vice versa.
+ */
+void tc_buffree(void *ptr);
+
 #ifdef __cplusplus
 }
 #endif

@@ -245,3 +245,45 @@ int tc_test_string(char *file, int line, int limit, long ret, int errnum)
     }
     return(0);
 }
+
+/*************************************************************************/
+/* Allocate a buffer aligned to the machine's page size, if known.  The
+ * buffer must be freed with buffree() (not free()). */
+
+void *_tc_bufalloc(const char *file, int line, size_t size)
+{
+#ifdef HAVE_GETPAGESIZE
+    unsigned long pagesize = getpagesize();
+    int8_t *base = malloc(size + sizeof(void *) + pagesize);
+    int8_t *ptr = NULL;
+    unsigned long offset = 0;
+
+    if (base == NULL) {
+        fprintf(stderr, "[%s:%d] tc_bufalloc(): can't allocate %lu bytes\n",
+                        file, line, (unsigned long)size);
+    } else {
+        ptr = base + sizeof(void *);
+        offset = (unsigned long)ptr % pagesize;
+
+        if (offset)
+            ptr += (pagesize - offset);
+        ((void **)ptr)[-1] = base;  /* save the base pointer for freeing */
+    }
+    return ptr;
+#else  /* !HAVE_GETPAGESIZE */
+    return malloc(size);
+#endif
+}
+
+/* Free a buffer allocated with tc_bufalloc(). */
+void tc_buffree(void *ptr)
+{
+#ifdef HAVE_GETPAGESIZE
+    if (ptr)
+	free(((void **)ptr)[-1]);
+#else
+    free(ptr);
+#endif
+}
+
+/*************************************************************************/

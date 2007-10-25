@@ -50,31 +50,6 @@ static int dv_yuy2_mode=0;
 static dv_encoder_t *encoder = NULL;
 static unsigned char *pixels[3], *tmp_buf;
 
-static unsigned char *bufalloc(size_t size)
-{
-
-#ifdef HAVE_GETPAGESIZE
-   long buffer_align=getpagesize();
-#else
-   long buffer_align=0;
-#endif
-
-   char *buf = malloc(size + buffer_align);
-
-   long adjust;
-
-   if (buf == NULL) {
-       fprintf(stderr, "(%s) out of memory", __FILE__);
-   }
-   
-   adjust = buffer_align - ((long) buf) % buffer_align;
-
-   if (adjust == buffer_align)
-      adjust = 0;
-
-   return (unsigned char *) (buf + adjust);
-}
-
 
 /* ------------------------------------------------------------ 
  *
@@ -87,11 +62,11 @@ MOD_init
     
     if(param->flag == TC_VIDEO) {
 
-      target = bufalloc(TC_FRAME_DV_PAL);
+      target = tc_bufalloc(TC_FRAME_DV_PAL);
 
       if(vob->dv_yuy2_mode) {
-	tmp_buf = bufalloc(PAL_W*PAL_H*2); //max frame
-	dv_yuy2_mode=1;
+    	tmp_buf = tc_bufalloc(PAL_W*PAL_H*2); //max frame
+	    dv_yuy2_mode=1;
       }
 
       encoder = dv_encoder_new(FALSE, FALSE, FALSE);
