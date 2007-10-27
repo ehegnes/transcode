@@ -35,7 +35,7 @@
 
 
 #define MOD_NAME    "encode_x264.so"
-#define MOD_VERSION "v0.2.1 (2006-01-27)"
+#define MOD_VERSION "v0.2.2 (2007-10-27)"
 #define MOD_CAP     "x264 encoder"
 
 #define MOD_FEATURES \
@@ -54,6 +54,7 @@ typedef struct {
     int interval;
     int width;
     int height;
+    int flush_flag;
     x264_param_t x264params;
     x264_t *enc;
 } X264PrivateData;
@@ -559,6 +560,8 @@ static int x264_configure(TCModuleInstance *self,
 
     pd = self->userdata;
 
+    pd->flush_flag = vob->encoder_flush;
+
     /* Initialize parameter block */
     memset(&confdata, 0, sizeof(confdata));
     x264_param_default(&confdata.x264params);
@@ -680,6 +683,12 @@ static int x264_inspect(TCModuleInstance *self,
 
 /*************************************************************************/
 
+static int x264_flush(TCModuleInstance *self, vframe_list_t *outframe)
+{
+    outframe->video_len = 0;
+    return TC_OK;
+}
+
 /**
  * x264_encode_video:  Decode a frame of data.  See tcmodule-data.h for
  * function details.
@@ -698,6 +707,10 @@ static int x264_encode_video(TCModuleInstance *self,
     pd = self->userdata;
 
     pd->framenum++;
+
+    if (inframe == NULL && pd->flush_flag) {
+        return x264_flush(self, outframe); // FIXME
+    }
 
     pic.img.i_csp = X264_CSP_I420;
     pic.img.i_plane = 3;

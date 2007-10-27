@@ -29,7 +29,7 @@
 #include <stdlib.h>
 
 #define MOD_NAME    "encode_lzo.so"
-#define MOD_VERSION "v0.0.1 (2006-03-24)"
+#define MOD_VERSION "v0.0.2 (2007-10-27)"
 #define MOD_CAP     "LZO lossless video encoder"
 
 #define MOD_FEATURES \
@@ -52,6 +52,7 @@ typedef struct {
     /* needed by encoder to work properly */
 
     int codec;
+    int flush_flag;
 } LZOPrivateData;
 
 static int tc_lzo_configure(TCModuleInstance *self,
@@ -64,6 +65,7 @@ static int tc_lzo_configure(TCModuleInstance *self,
 
     pd = self->userdata;
     pd->codec = vob->im_v_codec;
+    pd->flush_flag = vob->encoder_flush;
 
     ret = lzo_init();
     if (ret != LZO_E_OK) {
@@ -179,6 +181,14 @@ static int tc_lzo_format_translate(int tc_codec)
     return ret;
 }
 
+static int tc_lzo_flush(TCModuleInstance *self,
+                        vframe_list_t *outframe)
+{
+    outframe->video_len = 0;
+    return TC_OK;
+}
+
+
 static int tc_lzo_encode_video(TCModuleInstance *self,
                                vframe_list_t *inframe, vframe_list_t *outframe)
 {
@@ -191,12 +201,16 @@ static int tc_lzo_encode_video(TCModuleInstance *self,
 
     pd = self->userdata;
 
+    if (inframe == NULL && pd->flush_flag) {
+        return tc_lzo_flush(self, outframe); // FIXME
+    }
+
     /* invariants */
-    hdr.magic = TC_CODEC_LZO2;
+    hdr.magic  = TC_CODEC_LZO2;
     hdr.method = 1;
-    hdr.level = 1;
-    hdr.pad = 0;
-    hdr.flags = 0; /* sane default */
+    hdr.level  = 1;
+    hdr.pad    = 0;
+    hdr.flags  = 0; /* sane default */
 
     ret = lzo1x_1_compress(inframe->video_buf, inframe->video_size,
                            outframe->video_buf + TC_LZO_HDR_SIZE,

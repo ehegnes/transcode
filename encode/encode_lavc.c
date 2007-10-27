@@ -37,7 +37,7 @@
 #include <math.h>
 
 #define MOD_NAME    "encode_lavc.so"
-#define MOD_VERSION "v0.0.6 (2007-01-27)"
+#define MOD_VERSION "v0.0.7 (2007-10-27)"
 #define MOD_CAP     "libavcodec based encoder (" LIBAVCODEC_IDENT ")"
 
 #define MOD_FEATURES \
@@ -133,6 +133,8 @@ struct tclavcprivatedata_ {
     vframe_list_t *vframe_buf;
     /* for colorspace conversions in prepare functions */
     PreEncodeVideoFn pre_encode_video;
+
+    int flush_flag;
 };
 
 /*************************************************************************/
@@ -1333,6 +1335,8 @@ static int tc_lavc_configure(TCModuleInstance *self,
 
     pd = self->userdata;
 
+    pd->flush_flag = vob->encoder_flush;
+    
     /* FIXME: move into core? */
     TC_INIT_LIBAVCODEC;
 
@@ -1456,6 +1460,13 @@ static int tc_lavc_stop(TCModuleInstance *self)
     return TC_OK;
 }
 
+static int tc_lavc_flush_video(TCModuleInstance *self,
+                               vframe_list_t *outframe)
+{
+    outframe->video_len = 0;
+    return TC_OK;
+}
+
 
 static int tc_lavc_encode_video(TCModuleInstance *self,
                                 vframe_list_t *inframe,
@@ -1466,6 +1477,10 @@ static int tc_lavc_encode_video(TCModuleInstance *self,
     TC_MODULE_SELF_CHECK(self, "encode_video");
 
     pd = self->userdata;
+
+    if (inframe == NULL && pd->flush_flag) {
+        return tc_lavc_flush_video(self, outframe); // FIXME
+    }
 
     pd->ff_venc_frame.interlaced_frame = pd->interlacing.active;
     pd->ff_venc_frame.top_field_first  = pd->interlacing.top_first;
