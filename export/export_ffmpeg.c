@@ -44,7 +44,7 @@
 
 
 #define MOD_NAME    "export_ffmpeg.so"
-#define MOD_VERSION "v0.3.15 (2007-10-14)"
+#define MOD_VERSION "v0.3.16 (2007-10-27)"
 #define MOD_CODEC   "(video) " LIBAVCODEC_IDENT \
                     " | (audio) MPEG/AC3/PCM"
 
@@ -88,7 +88,6 @@ static struct ffmpeg_codec ffmpeg_codecs[] = {
     {"h263",       "h263", "H263", 0},
     {"h263p",      "h263", "H263 plus", 1},
     {"h264",       "h264", "H264 (avc)", 1},
-    {"avc",        "h264", "H264 (avc)", 1},
     {"wmv1",       "WMV1", "Windows Media Video v1", 1},
     {"wmv2",       "WMV2", "Windows Media Video v2", 1},
     {"rv10",       "RV10", "old RealVideo codec", 1},
@@ -141,7 +140,7 @@ static struct ffmpeg_codec *codec;
 static int                  is_mpegvideo = 0;
 static int                  is_huffyuv = 0;
 static int					is_mjpeg = 0;
-static int					is_ffv1 = 0;
+//static int					is_ffv1 = 0;
 static FILE                *mpeg1fd = NULL;
 static int                  interlacing_active = 0;
 static int                  interlacing_top_first = 0;
@@ -277,6 +276,17 @@ static struct ffmpeg_codec *find_ffmpeg_codec(char *name)
     return NULL;
 }
 
+/* second step name mangling */
+static const char *ffmpeg_codec_name(const char *tc_name)
+{
+#if LIBAVCODEC_VERSION_INT  >= ((51<<16)+(44<<8)+0)
+    if (!strcmp(tc_name, "h264")) {
+        return "libx264";
+    }
+#endif
+    return tc_name;
+}
+
 static void strip(char *s) {
     char *start;
 
@@ -353,14 +363,13 @@ MOD_init
 
     if (!strcmp(user_codec_string, "mpeg1"))
         real_codec = strdup("mpeg1video");
+    else if (!strcmp(user_codec_string, "mpeg2"))
+        real_codec = strdup("mpeg2video");
+    else if (!strcmp(user_codec_string, "dv"))
+        real_codec = strdup("dvvideo");
     else
-        if (!strcmp(user_codec_string, "mpeg2"))
-            real_codec = strdup("mpeg2video");
-        else
-            if (!strcmp(user_codec_string, "dv"))
-                real_codec = strdup("dvvideo");
-            else
-                real_codec = strdup(user_codec_string);
+        real_codec = strdup(user_codec_string);
+
 
     if (!strcmp(user_codec_string, "huffyuv"))
         is_huffyuv = 1;
@@ -433,7 +442,7 @@ MOD_init
     pthread_mutex_unlock(&init_avcodec_lock);
     
     /* -- get it -- */
-    lavc_venc_codec = avcodec_find_encoder_by_name(codec->name);
+    lavc_venc_codec = avcodec_find_encoder_by_name(ffmpeg_codec_name(codec->name));
     if (!lavc_venc_codec) {
         fprintf(stderr, "[%s] Could not find a FFMPEG codec for '%s'.\n",
                 MOD_NAME, codec->name);
@@ -674,7 +683,6 @@ MOD_init
     }
 
     switch (vob->ex_frc) {
-#if LIBAVCODEC_BUILD >= 4754
     case 1: /* 23.976 */
         lavc_venc_context->time_base.den = 24000;
         lavc_venc_context->time_base.num = 1001;
@@ -718,51 +726,6 @@ MOD_init
         }
         break;
     }
-#else
-    case 1: /* 23.976 */
-        lavc_venc_context->frame_rate      = 24000;
-        lavc_venc_context->frame_rate_base = 1001;
-        break;
-    case 2: /* 24.000 */
-        lavc_venc_context->frame_rate      = 24000;
-        lavc_venc_context->frame_rate_base = 1000;
-        break;
-    case 3: /* 25.000 */
-        lavc_venc_context->frame_rate      = 25000;
-        lavc_venc_context->frame_rate_base = 1000;
-        break;
-    case 4: /* 29.970 */
-        lavc_venc_context->frame_rate      = 30000;
-        lavc_venc_context->frame_rate_base = 1001;
-        break;
-    case 5: /* 30.000 */
-        lavc_venc_context->frame_rate      = 30000;
-        lavc_venc_context->frame_rate_base = 1000;
-        break;
-    case 6: /* 50.000 */
-        lavc_venc_context->frame_rate      = 50000;
-        lavc_venc_context->frame_rate_base = 1000;
-        break;
-    case 7: /* 59.940 */
-        lavc_venc_context->frame_rate      = 60000;
-        lavc_venc_context->frame_rate_base = 1001;
-        break;
-    case 8: /* 60.000 */
-        lavc_venc_context->frame_rate      = 60000;
-        lavc_venc_context->frame_rate_base = 1000;
-        break;
-    case 0: /* not set */
-    default:
-        if ((vob->ex_fps > 29) && (vob->ex_fps < 30)) {
-            lavc_venc_context->frame_rate      = 30000;
-            lavc_venc_context->frame_rate_base = 1001;
-        } else {
-            lavc_venc_context->frame_rate      = (int)(vob->ex_fps * 1000.0);
-            lavc_venc_context->frame_rate_base = 1000;
-        }
-        break;
-    }
-#endif
 
     module_read_config(codec->name, MOD_NAME, "ffmpeg", lavcopts_conf, tc_config_dir);
     if (verbose_flag & TC_DEBUG) {
@@ -774,7 +737,6 @@ MOD_init
     /* this overrides transcode settings */
     if (lavc_param_fps_code > 0) {
         switch (lavc_param_fps_code) {
-#if LIBAVCODEC_BUILD >= 4754
         case 1: /* 23.976 */
             lavc_venc_context->time_base.den = 24000;
             lavc_venc_context->time_base.num = 1001;
@@ -814,47 +776,6 @@ MOD_init
              *  lavc_venc_context->time_base.num = 1000;
              */
             break;
-#else
-        case 1: /* 23.976 */
-            lavc_venc_context->frame_rate      = 24000;
-            lavc_venc_context->frame_rate_base = 1001;
-            break;
-        case 2: /* 24.000 */
-            lavc_venc_context->frame_rate      = 24000;
-            lavc_venc_context->frame_rate_base = 1000;
-            break;
-        case 3: /* 25.000 */
-            lavc_venc_context->frame_rate      = 25000;
-            lavc_venc_context->frame_rate_base = 1000;
-            break;
-        case 4: /* 29.970 */
-            lavc_venc_context->frame_rate      = 30000;
-            lavc_venc_context->frame_rate_base = 1001;
-            break;
-        case 5: /* 30.000 */
-            lavc_venc_context->frame_rate      = 30000;
-            lavc_venc_context->frame_rate_base = 1000;
-            break;
-        case 6: /* 50.000 */
-            lavc_venc_context->frame_rate      = 50000;
-            lavc_venc_context->frame_rate_base = 1000;
-            break;
-        case 7: /* 59.940 */
-            lavc_venc_context->frame_rate      = 60000;
-            lavc_venc_context->frame_rate_base = 1001;
-            break;
-        case 8: /* 60.000 */
-            lavc_venc_context->frame_rate      = 60000;
-            lavc_venc_context->frame_rate_base = 1000;
-            break;
-        case 0: /* not set */
-        default:
-            /*
-             *  lavc_venc_context->frame_rate      = (int)(vob->ex_fps * 1000.0);
-             *  lavc_venc_context->frame_rate_base = 1000;
-             */
-            break;
-#endif
         }
     }
 

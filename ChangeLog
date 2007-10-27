@@ -1,3 +1,8 @@
+2007-10-27 Francesco Romani <fromani at gmail dot com>
+  * export/export_ffmpeg.c
+  fix h264 misdetection with recent libavcodecs.
+  Minor internal fixes.
+
 2007-10-25 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h libtc/tc_functions.c
   backport tc_bufalloc/tc_buffree from 1.1.0/HEAD
