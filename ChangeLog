@@ -3,6 +3,9 @@
   fix h264 misdetection with recent libavcodecs.
   Minor internal fixes.
 
+  * configure.in
+  transcode 1.0.5rc3.
+
 2007-10-25 Francesco Romani <fromani at gmail dot com>
   * libtc/libtc.h libtc/tc_functions.c
   backport tc_bufalloc/tc_buffree from 1.1.0/HEAD
@@ -36,7 +39,7 @@
 2007-10-14 Francesco Romani <fromani at gmail dot com>
   * export/export_ffmpeg.c
   module update:
-  - minor fixes (mostyl stilysh)
+  - minor fixes (mostly stilysh)
   - drop already deprecated img_convert, switch to libvo's rgb2yuv
   - improve internal buffering (closes bug #0000035)
 
