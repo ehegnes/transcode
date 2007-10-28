@@ -21,10 +21,10 @@
  *
  */
 
-#include <pthread.h>
+#ifndef FRAME_THREADS_H
+#define FRAME_THREADS_H
 
-#ifndef _FRAME_THREADS_H
-#define _FRAME_THREADS_H
+#include "transcode.h"
 
 void tc_frame_threads_init(vob_t *vob, int vworkers, int aworkers);
 void tc_frame_threads_close(void);
@@ -35,39 +35,4 @@ void tc_frame_threads_notify_video(int broadcast);
 int tc_frame_threads_have_video_workers(void);
 int tc_frame_threads_have_audio_workers(void);
 
-
-extern pthread_mutex_t vbuffer_im_fill_lock;
-extern uint32_t vbuffer_im_fill_ctr;
-
-extern pthread_mutex_t vbuffer_xx_fill_lock;
-extern uint32_t vbuffer_xx_fill_ctr;
-
-extern pthread_mutex_t vbuffer_ex_fill_lock;
-extern uint32_t vbuffer_ex_fill_ctr;
-
-extern pthread_mutex_t abuffer_im_fill_lock;
-extern uint32_t abuffer_im_fill_ctr;
-
-extern pthread_mutex_t abuffer_xx_fill_lock;
-extern uint32_t abuffer_xx_fill_ctr;
-
-extern pthread_mutex_t abuffer_ex_fill_lock;
-extern uint32_t abuffer_ex_fill_ctr;
-
-/*
- * tc_flush_{audio,video}_counters:
- *      reset to zero frame counters that accounts
- *      amount of frames in various stage of processing.
- *      Threas safe
- *
- * Parameters:
- *      None
- * Return Value:
- *      None
- * Side effects:
- *      Use internal locking, so it's thread safe/
- */
-void tc_flush_audio_counters(void);
-void tc_flush_video_counters(void);
-
-#endif
+#endif /* FRAME_THREADS_H */
