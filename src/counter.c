@@ -142,7 +142,7 @@ void counter_print(int encoding, int frame, int first, int last)
     struct timeval tv;
     struct timezone dummy_tz = {0,0};
     double now, timediff, fps, time;
-    uint32_t buf1, buf2, buf3;
+    int buf_im, buf_fl, buf_ex;
     /* Values of 'first' and `last' during last call (-1 = not called yet) */
     static int old_first = -1, old_last = -1;
     /* Time of first call for this range */
@@ -210,31 +210,21 @@ void counter_print(int encoding, int frame, int first, int last)
         fps = 0;
     }
 
-    pthread_mutex_lock(&vbuffer_im_fill_lock);
-    buf1 = vbuffer_im_fill_ctr;
-    pthread_mutex_unlock(&vbuffer_im_fill_lock);
-
-    pthread_mutex_lock(&vbuffer_xx_fill_lock);
-    buf2 = vbuffer_xx_fill_ctr;
-    pthread_mutex_unlock(&vbuffer_xx_fill_lock);
-
-    pthread_mutex_lock(&vbuffer_ex_fill_lock);
-    buf3 = vbuffer_ex_fill_ctr;
-    pthread_mutex_unlock(&vbuffer_ex_fill_lock);
+    tc_framebuffer_get_counters(&buf_im, &buf_fl, &buf_ex);
 
     time = (double)frame / ((vob->ex_fps<1.0) ? 1.0 : vob->ex_fps);
 
     if (last == -1) {
         /* Can't calculate ETA, just display current timestamp */
         print_counter_line(encoding, frame, first, -1, fps, -1, time, -1,
-                           buf1, buf2, buf3);
+                           buf_im, buf_fl, buf_ex);
 
     } else if (frames_to_encode == 0) {
         /* Total number of frames unknown, just display for current range */
         double done = (double)(frame - first + 1) / (double)(last+1 - first);
         int secleft = fps>0 ? ((last+1)-frame) / fps : -1;
         print_counter_line(encoding, frame, first, last, fps, done, time,
-                           secleft, buf1, buf2, buf3);
+                           secleft, buf_im, buf_fl, buf_ex);
 
     } else {
         /* Estimate time remaining for entire run */
@@ -285,7 +275,7 @@ void counter_print(int encoding, int frame, int first, int last)
         done = (double)(encoded_frames + skipped_frames)
              / (double)(frames_to_encode + frames_to_skip);
         print_counter_line(encoding, frame, 0, highest_frame, fps, done,
-                           time, secleft, buf1, buf2, buf3);
+                           time, secleft, buf_im, buf_fl, buf_ex);
     }
 
     fflush(stdout);

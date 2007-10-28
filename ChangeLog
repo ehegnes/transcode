@@ -15,6 +15,9 @@
   * src/frame_threads.c src/frame_threads.h
   port frame_threads to new framebuffer interface.
 
+  * src/counter.c
+  port counter to new framebuffer interface.
+
 2007-10-27 Francesco Romani <fromani at gmail dot com>
   * encode/encode_lavc.c encode/encode_lzo.c encode/encode_x264.c
   add basic flush operation support.
