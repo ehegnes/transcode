@@ -21,6 +21,9 @@
   * src/transcode.c src/transcode.h
   port transcode core to new framebuffer interface.
 
+  * testsuite/test-tcmodule.c tools/tcstub.c
+  port auxiliary code to new framebuffer interface.
+
 2007-10-27 Francesco Romani <fromani at gmail dot com>
   * encode/encode_lavc.c encode/encode_lzo.c encode/encode_x264.c
   add basic flush operation support.

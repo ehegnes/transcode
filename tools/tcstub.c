@@ -118,12 +118,12 @@ uint32_t vbuffer_xx_fill_ctr = 0;
 
 
 #ifdef TC_FRAMEBUFFER_STUBS
-void vframe_copy(vframe_list_t *dst, vframe_list_t *src, int copy_data)
+void vframe_copy(vframe_list_t *dst, const vframe_list_t *src, int copy_data)
 {
     return;
 }
 
-void aframe_copy(aframe_list_t *dst, aframe_list_t *src, int copy_data)
+void aframe_copy(aframe_list_t *dst, const aframe_list_t *src, int copy_data)
 {
     return;
 }
