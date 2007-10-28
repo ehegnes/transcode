@@ -9,6 +9,9 @@
   * src/encoder.c src/encoder.h src/encoder-buffer.c
   port encoder to new framebuffer interface.
 
+  * src/decoder.c src/decoder.h
+  port decoder to new framebuffer interface.
+
 2007-10-27 Francesco Romani <fromani at gmail dot com>
   * encode/encode_lavc.c encode/encode_lzo.c encode/encode_x264.c
   add basic flush operation support.
