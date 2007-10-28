@@ -97,7 +97,7 @@ static int yw_inspect(TCModuleInstance *self,
         *value = yw_help;
     }
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int yw_open_video(YWPrivateData *pd, const char *filename,
@@ -116,7 +116,7 @@ static int yw_open_video(YWPrivateData *pd, const char *filename,
             tc_log_error(MOD_NAME, "failed to open video stream file '%s'"
                                    " (reason: %s)", filename,
                                    strerror(errno));
-            return TC_EXPORT_ERROR;
+            return TC_ERROR;
         }
     }
     y4m_init_stream_info(&(pd->streaminfo));
@@ -157,9 +157,9 @@ static int yw_open_video(YWPrivateData *pd, const char *filename,
     if (ret != Y4M_OK) {
         tc_log_warn(MOD_NAME, "failed to write video YUV4MPEG2 header: %s",
                               y4m_strerr(ret));
-        return TC_EXPORT_ERROR;
+        return TC_ERROR;
     }
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int yw_open_audio(YWPrivateData *pd, const char *filename,
@@ -173,7 +173,7 @@ static int yw_open_audio(YWPrivateData *pd, const char *filename,
         tc_log_error(MOD_NAME, "failed to open audio stream file '%s'"
                                " (reason: %s)", filename,
                                wav_strerror(err));
-        return TC_EXPORT_ERROR;
+        return TC_ERROR;
     }
 
     rate = (vob->mp3frequency != 0) ?vob->mp3frequency :vob->a_rate;
@@ -182,7 +182,7 @@ static int yw_open_audio(YWPrivateData *pd, const char *filename,
     wav_set_bitrate(pd->wav, vob->dm_chan * rate * vob->dm_bits/8);
     wav_set_channels(pd->wav, vob->dm_chan);
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int yw_configure(TCModuleInstance *self,
@@ -214,11 +214,11 @@ static int yw_configure(TCModuleInstance *self,
     pd->height = vob->ex_v_height;
     
     ret = yw_open_video(pd, vid_name, vob);
-    if (ret != TC_EXPORT_OK) {
+    if (ret != TC_OK) {
         return ret;
     }
     ret = yw_open_audio(pd, aud_name, vob);
-    if (ret != TC_EXPORT_OK) {
+    if (ret != TC_OK) {
         return ret;
     }
     if (vob->verbose >= TC_DEBUG) {
@@ -227,7 +227,7 @@ static int yw_configure(TCModuleInstance *self,
         tc_log_info(MOD_NAME, "audio output: %s (%s)",
                     aud_name, (pd->wav == NULL) ?"FAILED" :"OK");
     }
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int yw_stop(TCModuleInstance *self)
@@ -244,7 +244,7 @@ static int yw_stop(TCModuleInstance *self)
         if (verr) {
             tc_log_error(MOD_NAME, "closing video file: %s",
                                    strerror(errno));
-            return TC_EXPORT_ERROR;
+            return TC_ERROR;
         }
         y4m_fini_frame_info(&pd->frameinfo);
         y4m_fini_stream_info(&(pd->streaminfo));
@@ -257,12 +257,12 @@ static int yw_stop(TCModuleInstance *self)
         if (aerr != 0) {
             tc_log_error(MOD_NAME, "closing audio file: %s",
                                    wav_strerror(wav_last_error(pd->wav)));
-            return TC_EXPORT_ERROR;
+            return TC_ERROR;
         }
         pd->wav = NULL;
     }
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int yw_multiplex(TCModuleInstance *self,
@@ -288,7 +288,7 @@ static int yw_multiplex(TCModuleInstance *self,
         if (ret != Y4M_OK) {
             tc_log_warn(MOD_NAME, "error while writing video frame: %s",
                                   y4m_strerr(ret));
-            return TC_EXPORT_ERROR;
+            return TC_ERROR;
         }
         w_vid = vframe->video_len;
     }
@@ -298,7 +298,7 @@ static int yw_multiplex(TCModuleInstance *self,
         if (w_aud != aframe->audio_len) {
             tc_log_warn(MOD_NAME, "error while writing audio frame: %s",
                                   wav_strerror(wav_last_error(pd->wav)));
-            return TC_EXPORT_ERROR;
+            return TC_ERROR;
         }
     }
 
@@ -314,7 +314,7 @@ static int yw_init(TCModuleInstance *self, uint32_t features)
 
     pd = tc_malloc(sizeof(YWPrivateData));
     if (pd == NULL) {
-        return TC_EXPORT_ERROR;
+        return TC_ERROR;
     }
 
     pd->width = 0;
@@ -329,7 +329,7 @@ static int yw_init(TCModuleInstance *self, uint32_t features)
     }
 
     self->userdata = pd;
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int yw_fini(TCModuleInstance *self)
@@ -341,7 +341,7 @@ static int yw_fini(TCModuleInstance *self)
     tc_free(self->userdata);
     self->userdata = NULL;
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 

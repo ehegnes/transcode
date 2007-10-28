@@ -66,7 +66,7 @@ static int raw_inspect(TCModuleInstance *self,
         *value = raw_help;
     }
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int raw_configure(TCModuleInstance *self,
@@ -101,7 +101,7 @@ static int raw_configure(TCModuleInstance *self,
                           S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
         if (pd->fd_vid == -1) {
             tc_log_error(MOD_NAME, "failed to open video stream file");
-            return TC_EXPORT_ERROR;
+            return TC_ERROR;
         }
     }
 
@@ -112,7 +112,7 @@ static int raw_configure(TCModuleInstance *self,
                           S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
         if (pd->fd_aud == -1) {
             tc_log_error(MOD_NAME, "failed to open audio stream file");
-            return TC_EXPORT_ERROR;
+            return TC_ERROR;
         }
     }
     if (vob->verbose >= TC_DEBUG) {
@@ -121,7 +121,7 @@ static int raw_configure(TCModuleInstance *self,
         tc_log_info(MOD_NAME, "audio output: %s (%s)",
                     aud_name, (pd->fd_aud == -1) ?"FAILED" :"OK");
     }
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int raw_stop(TCModuleInstance *self)
@@ -138,7 +138,7 @@ static int raw_stop(TCModuleInstance *self)
         if (verr) {
             tc_log_error(MOD_NAME, "closing video file: %s",
                                    strerror(errno));
-            return TC_EXPORT_ERROR;
+            return TC_ERROR;
         }
         pd->fd_vid = -1;
     }
@@ -148,12 +148,12 @@ static int raw_stop(TCModuleInstance *self)
         if (aerr) {
             tc_log_error(MOD_NAME, "closing audio file: %s",
                                    strerror(errno));
-            return TC_EXPORT_ERROR;
+            return TC_ERROR;
         }
         pd->fd_aud = -1;
     }
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int raw_multiplex(TCModuleInstance *self,
@@ -170,14 +170,14 @@ static int raw_multiplex(TCModuleInstance *self,
     if (vframe != NULL && vframe->video_len > 0) {
         w_vid = tc_pwrite(pd->fd_vid, vframe->video_buf, vframe->video_len);
         if(w_vid < 0) {
-            return TC_EXPORT_ERROR;
+            return TC_ERROR;
         }
     }
 
     if (aframe != NULL && aframe->audio_len > 0) {
         w_aud = tc_pwrite(pd->fd_aud, aframe->audio_buf, aframe->audio_len);
  		if (w_aud < 0) {
-			return TC_EXPORT_ERROR;
+			return TC_ERROR;
 		}
     }
 
@@ -193,7 +193,7 @@ static int raw_init(TCModuleInstance *self, uint32_t features)
 
     pd = tc_malloc(sizeof(RawPrivateData));
     if (pd == NULL) {
-        return TC_EXPORT_ERROR;
+        return TC_ERROR;
     }
 
     pd->fd_aud = -1;
@@ -204,7 +204,7 @@ static int raw_init(TCModuleInstance *self, uint32_t features)
     }
 
     self->userdata = pd;
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int raw_fini(TCModuleInstance *self)
@@ -216,7 +216,7 @@ static int raw_fini(TCModuleInstance *self)
     tc_free(self->userdata);
     self->userdata = NULL;
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 

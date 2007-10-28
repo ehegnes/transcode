@@ -63,7 +63,7 @@ static int avi_inspect(TCModuleInstance *self,
         *value = avi_help;
     }
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int avi_configure(TCModuleInstance *self,
@@ -100,7 +100,7 @@ static int avi_configure(TCModuleInstance *self,
     pd->avifile = AVI_open_output_file(vob->video_out_file);
     if(!pd->avifile) {
         tc_log_error(MOD_NAME, "avilib error: %s", AVI_strerror());
-        return TC_EXPORT_ERROR;
+        return TC_ERROR;
     }
 
 	AVI_set_video(pd->avifile, vob->ex_v_width, vob->ex_v_height,
@@ -111,7 +111,7 @@ static int avi_configure(TCModuleInstance *self,
                   vob->ex_a_codec, abitrate);
     AVI_set_audio_vbr(pd->avifile, vob->a_vbr);
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int avi_stop(TCModuleInstance *self)
@@ -127,7 +127,7 @@ static int avi_stop(TCModuleInstance *self)
         pd->avifile = NULL;
     }
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int avi_multiplex(TCModuleInstance *self,
@@ -153,7 +153,7 @@ static int avi_multiplex(TCModuleInstance *self,
         if(ret < 0) {
             tc_log_error(MOD_NAME, "avilib error writing video: %s",
                          AVI_strerror());
-            return TC_EXPORT_ERROR;
+            return TC_ERROR;
         }
     }
 
@@ -163,7 +163,7 @@ static int avi_multiplex(TCModuleInstance *self,
  		if (ret < 0) {
             tc_log_error(MOD_NAME, "avilib error writing audio: %s",
                          AVI_strerror());
-			return TC_EXPORT_ERROR;
+			return TC_ERROR;
 		}
     }
 
@@ -181,7 +181,7 @@ static int avi_init(TCModuleInstance *self, uint32_t features)
 
     pd = tc_malloc(sizeof(AVIPrivateData));
     if (!pd) {
-        return TC_EXPORT_ERROR;
+        return TC_ERROR;
     }
 
     pd->avifile = NULL;
@@ -196,7 +196,7 @@ static int avi_init(TCModuleInstance *self, uint32_t features)
     }
 
     self->userdata = pd;
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int avi_fini(TCModuleInstance *self)
@@ -208,7 +208,7 @@ static int avi_fini(TCModuleInstance *self)
     tc_free(self->userdata);
     self->userdata = NULL;
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 /*************************************************************************/
