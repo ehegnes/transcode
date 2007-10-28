@@ -159,24 +159,55 @@ static pthread_t event_thread_id = (pthread_t)0;
 
 static const char *signame = "unknown signal";
 
-pthread_mutex_t interrupt_lock = PTHREAD_MUTEX_INITIALIZER;
-static volatile int interrupt_flag = 0; /* threading paranoia */
+typedef enum tcrunstatus_ TCRunStatus;
+enum tcrunstatus_  {
+    TC_STATUS_RUNNING = 0,
+    TC_STATUS_STOPPED = 1,
+    TC_STATUS_INTERRUPTED = -1,
+};
+
+pthread_mutex_t run_status_lock = PTHREAD_MUTEX_INITIALIZER;
+static volatile int tc_run_status = TC_STATUS_RUNNING; /* threading paranoia */
+
+static TCRunStatus tc_get_run_status(void)
+{
+    TCRunStatus rs;
+    pthread_mutex_lock(&run_status_lock);
+    rs = tc_run_status;
+    pthread_mutex_unlock(&run_status_lock);
+    return rs;
+}
 
 int tc_interrupted(void)
 {
-    int ret;
-    pthread_mutex_lock(&interrupt_lock);
-    ret = interrupt_flag;
-    pthread_mutex_unlock(&interrupt_lock);
-    return ret;
+    return (TC_STATUS_INTERRUPTED == tc_get_run_status());
 }
 
+int tc_stopped(void)
+{
+    return (TC_STATUS_STOPPED == tc_get_run_status());
+}
+
+int tc_running(void)
+{
+    return (TC_STATUS_RUNNING == tc_get_run_status());
+}
+
+static void tc_stop(void)
+{
+    pthread_mutex_lock(&run_status_lock);
+    if (tc_run_status != TC_STATUS_STOPPED) {
+        tc_run_status = TC_STATUS_STOPPED;
+    }
+    pthread_mutex_unlock(&run_status_lock);
+    tc_framebuffer_interrupt();
+}
 
 static void event_handler(int sig)
 {
-    pthread_mutex_lock(&interrupt_lock);
-    if (!interrupt_flag) {
-        interrupt_flag = 1;
+    pthread_mutex_lock(&run_status_lock);
+    if (tc_run_status != TC_STATUS_INTERRUPTED) {
+        tc_run_status = TC_STATUS_INTERRUPTED;
 
         /* the first one always wins */
         switch (sig) {
@@ -191,8 +222,9 @@ static void event_handler(int sig)
             break;
         }
     }
-    pthread_mutex_unlock(&interrupt_lock);
-    return;
+    pthread_mutex_unlock(&run_status_lock);
+
+    tc_framebuffer_interrupt();
 }
 
 /**
@@ -2175,7 +2207,7 @@ int main(int argc, char *argv[])
     specs.channels = TC_MAX(vob->a_chan, vob->dm_chan);
     specs.bits = TC_MAX(vob->a_bits, vob->dm_bits);
 
-    tc_ring_framebuffer_set_specs(&specs);
+    tc_framebuffer_set_specs(&specs);
 
     if (verbose & TC_INFO) {
         tc_log_info(PACKAGE, "V: video buffer     | %i @ %ix%i [0x%x]",
@@ -2291,10 +2323,7 @@ int main(int argc, char *argv[])
                 tc_decoder_delay = 3;
                 tc_import_threads_cancel();
                 tc_import_close();
-                aframe_flush();
-                tc_flush_audio_counters();
-                vframe_flush();
-                tc_flush_video_counters();
+                tc_framebuffer_flush();
                 vob->vob_offset = tstart->vob_offset;
                 vob->sync = sync_seconds;
                 if (tc_import_open(vob) < 0)
@@ -2302,6 +2331,7 @@ int main(int argc, char *argv[])
                 tc_import_threads_create(vob);
             }
         }
+        tc_stop();
 
         // close output files
         tc_encoder_close();
@@ -2461,8 +2491,8 @@ int main(int argc, char *argv[])
                 }
 
                 //debugging code since PSU mode still alpha code
-                vframe_fill_print(0);
-                aframe_fill_print(0);
+                vframe_dump_status();
+                aframe_dump_status();
 
                 // cancel import threads
                 tc_import_threads_cancel();
@@ -2470,10 +2500,7 @@ int main(int argc, char *argv[])
                 tc_import_close();
 
                 // flush all buffers before we proceed to next PSU
-                aframe_flush();
-                tc_flush_audio_counters();
-                vframe_flush();
-                tc_flush_video_counters();
+                tc_framebuffer_flush();
 
                 vob->psu_offset += (double) (fb-fa);
             } else {
@@ -2625,10 +2652,7 @@ int main(int argc, char *argv[])
             tc_import_close();
 
             // flush all buffers before we proceed
-            aframe_flush();
-            tc_flush_audio_counters();
-            vframe_flush();
-            tc_flush_video_counters();
+            tc_framebuffer_flush();
 
             //exit, i) if import module could not determine max_chapters
             //      ii) all chapters are done
