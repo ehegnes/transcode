@@ -932,7 +932,7 @@ TC_PKG_HAVE(vorbis, VORBIS)
 dnl
 dnl theora
 dnl
-THEORA_EXTRA_LIBS="$THEORA_EXTRA_LIBS $(PKG_CONFIG --libs theora)"
+THEORA_EXTRA_LIBS="$THEORA_EXTRA_LIBS $($PKG_CONFIG --libs theora)"
 TC_PKG_CHECK(theora, no, THEORA, theora-config, [theora/theora.h], theora,
  theora_info_init, theora, [http://www.theora.org/])
 TC_PKG_HAVE(theora, THEORA)

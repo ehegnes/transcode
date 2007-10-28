@@ -256,8 +256,8 @@ MOD_encode
   if(param->flag == TC_VIDEO) { 
     
     if (!current_stats)
-      current_stats = malloc (sizeof (current_stats));
-    memset (current_stats, 0, sizeof (current_stats));
+      current_stats = malloc (sizeof (*current_stats));
+    memset (current_stats, 0, sizeof (*current_stats));
 
     // encode video
     yuv.w = fame_params.width;
