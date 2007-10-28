@@ -2,6 +2,10 @@
   * src/tc_defaults.h
   reorganize constants and enumerize them.
 
+  * src/framebuffer.c src/framebuffer.h
+  massive update to framebuffer. Reorganize code, improve isolation, squash
+  some bugs, introduce new ones, extend documentation.
+
 2007-10-27 Francesco Romani <fromani at gmail dot com>
   * encode/encode_lavc.c encode/encode_lzo.c encode/encode_x264.c
   add basic flush operation support.

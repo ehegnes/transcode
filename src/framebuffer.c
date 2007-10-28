@@ -19,6 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <pthread.h>
 
 #include "transcode.h"
 #include "tc_defaults.h"
@@ -45,19 +46,45 @@
  * piece of code most urgent todos for 1.1.0.      -- FR
  */
 
-pthread_mutex_t aframe_list_lock = PTHREAD_MUTEX_INITIALIZER;
-aframe_list_t *aframe_list_head = NULL;
-aframe_list_t *aframe_list_tail = NULL;
+static pthread_mutex_t aframe_list_lock = PTHREAD_MUTEX_INITIALIZER;
+static aframe_list_t *aframe_list_head = NULL;
+static aframe_list_t *aframe_list_tail = NULL;
+static pthread_cond_t audio_import_cond = PTHREAD_COND_INITIALIZER;
+static pthread_cond_t audio_filter_cond = PTHREAD_COND_INITIALIZER;
+static pthread_cond_t audio_export_cond = PTHREAD_COND_INITIALIZER;
 
-pthread_mutex_t vframe_list_lock = PTHREAD_MUTEX_INITIALIZER;
-vframe_list_t *vframe_list_head = NULL;
-vframe_list_t *vframe_list_tail = NULL;
+static pthread_mutex_t vframe_list_lock = PTHREAD_MUTEX_INITIALIZER;
+static vframe_list_t *vframe_list_head = NULL;
+static vframe_list_t *vframe_list_tail = NULL;
+static pthread_cond_t video_import_cond = PTHREAD_COND_INITIALIZER;
+static pthread_cond_t video_filter_cond = PTHREAD_COND_INITIALIZER;
+static pthread_cond_t video_export_cond = PTHREAD_COND_INITIALIZER;
+
+/*
+ * XXX
+ */
+void tc_framebuffer_interrupt(void)
+{
+    pthread_mutex_lock(&aframe_list_lock);
+    pthread_cond_signal(&audio_import_cond);
+    pthread_cond_broadcast(&audio_filter_cond);
+    /* filter layer deserves special care */
+    pthread_cond_signal(&audio_export_cond);
+    pthread_mutex_unlock(&aframe_list_lock);
+
+    pthread_mutex_lock(&vframe_list_lock);
+    pthread_cond_signal(&video_import_cond);
+    pthread_cond_broadcast(&video_filter_cond);
+    /* filter layer deserves special care */
+    pthread_cond_signal(&video_export_cond);
+    pthread_mutex_unlock(&vframe_list_lock);
+}
 
 /* ------------------------------------------------------------------ */
 
 /*
  * Layered, custom allocator/disposer for ringbuffer structures.
- * The idea is to simplify (from ringbufdfer viewpoint!) frame
+ * The idea is to simplify (from ringbuffer viewpoint!) frame
  * allocation/disposal and to make it as much generic as is possible
  * (avoif if()s and so on).
  */
@@ -67,7 +94,6 @@ typedef TCFramePtr (*TCFrameAllocFn)(const TCFrameSpecs *);
 typedef void (*TCFrameFreeFn)(TCFramePtr);
 
 /* ------------------------------------------------------------------ */
-
 
 typedef struct tcringframebuffer_ TCRingFrameBuffer;
 struct tcringframebuffer_ {
@@ -79,12 +105,11 @@ struct tcringframebuffer_ {
     int last;
 
     /* counters */
-    int fill;
-    int ready;
-    int locked;
+    int null;
     int empty;
     int wait;
-    int null;
+    int locked;
+    int ready;
 
     /* (de)allocation helpers */
     const TCFrameSpecs *specs;
@@ -101,15 +126,15 @@ static TCRingFrameBuffer tc_video_ringbuffer;
  */
 static TCFrameSpecs tc_specs = {
     /* Largest supported values, to ensure the buffer is always big enough
-     * (see FIXME in tc_ring_framebuffer_set_specs()) */
-    .frc = 3,  // PAL, why not
-    .width = TC_MAX_V_FRAME_WIDTH,
-    .height = TC_MAX_V_FRAME_HEIGHT,
-    .format = TC_CODEC_RGB,
-    .rate = RATE,
+     * (see FIXME in tc_framebuffer_set_specs()) */
+    .frc      = 3,  // PAL, why not
+    .width    = TC_MAX_V_FRAME_WIDTH,
+    .height   = TC_MAX_V_FRAME_HEIGHT,
+    .format   = TC_CODEC_RGB,
+    .rate     = RATE,
     .channels = CHANNELS,
-    .bits = BITS,
-    .samples = 48000.0,
+    .bits     = BITS,
+    .samples  = 48000.0,
 };
 
 /*
@@ -136,7 +161,7 @@ static TCFramePtr tc_audio_alloc(const TCFrameSpecs *specs)
 {
     TCFramePtr frame;
     frame.audio = tc_new_audio_frame(specs->samples, specs->channels,
-                                      specs->bits);
+                                     specs->bits);
     return frame;
 }
 
@@ -169,7 +194,17 @@ aframe_list_t *aframe_alloc_single(void)
 
 /* ------------------------------------------------------------------ */
 
-const TCFrameSpecs *tc_ring_framebuffer_get_specs(void)
+static void tc_ring_framebuffer_dump_status(const TCRingFrameBuffer *rfb,
+                                            const char *id)
+{
+    tc_log_msg(__FILE__, "%s: null=%i empty=%i wait=%i"
+                         " locked=%i ready=%i",
+                         id, rfb->null, rfb->empty, rfb->wait,
+                         rfb->locked, rfb->ready);
+}
+
+
+const TCFrameSpecs *tc_framebuffer_get_specs(void)
 {
     return &tc_specs;
 }
@@ -179,7 +214,7 @@ const TCFrameSpecs *tc_ring_framebuffer_get_specs(void)
  * by the fact that we compute (ahead of time) samples value for
  * later usage.
  */
-void tc_ring_framebuffer_set_specs(const TCFrameSpecs *specs)
+void tc_framebuffer_set_specs(const TCFrameSpecs *specs)
 {
     /* silently ignore NULL specs */
     if (specs != NULL) {
@@ -263,7 +298,7 @@ static int tc_init_ring_framebuffer(TCRingFrameBuffer *rfb,
 
     rfb->specs = specs;
     rfb->alloc = alloc;
-    rfb->free = free;
+    rfb->free  = free;
 
     for (rfb->last = 0; rfb->last < size; rfb->last++) {
         rfb->frames[rfb->last] = rfb->alloc(rfb->specs);
@@ -274,18 +309,17 @@ static int tc_init_ring_framebuffer(TCRingFrameBuffer *rfb,
             return -1;
         }
 
-        rfb->frames[rfb->last].generic->status = FRAME_NULL;
+        rfb->frames[rfb->last].generic->status = TC_FRAME_NULL;
         rfb->frames[rfb->last].generic->bufid = rfb->last;
     }
 
-    rfb->next = 0;
+    rfb->next   = 0;
 
-    rfb->fill = 0;
-    rfb->ready = 0;
+    rfb->null   = size;
+    rfb->empty  = 0;
+    rfb->wait   = 0;
     rfb->locked = 0;
-    rfb->empty = 0;
-    rfb->wait = 0;
-    rfb->null = size;
+    rfb->ready  = 0;
 
     if (verbose >= TC_STATS) {
         tc_log_info(__FILE__, "allocated %i frames in ringbuffer", size);
@@ -322,7 +356,7 @@ static void tc_fini_ring_framebuffer(TCRingFrameBuffer *rfb)
 
 /*
  * tc_ring_framebuffer_retrieve_frame: (NOT thread safe)
- *      retrieve next unclaimed (FRAME_NULL) framebuffer from
+ *      retrieve next unclaimed (TC_FRAME_NULL) framebuffer from
  *      ringbuffer and return a pointer to it for later usage
  *      by client code.
  *
@@ -330,7 +364,7 @@ static void tc_fini_ring_framebuffer(TCRingFrameBuffer *rfb)
  *      rfb: ring framebuffer to use
  * Return Value:
  *      Always a framebuffer generic pointer. That can be pointing to
- *      NULL if there aren't no more unclaimed (FRAME_NULL) framebuffer
+ *      NULL if there aren't no more unclaimed (TC_FRAME_NULL) framebuffer
  *      avalaible; otherwise it contains
  *      a pointer to retrieved framebuffer.
  *      DO NOT *free() such pointer directly! use
@@ -346,7 +380,7 @@ static TCFramePtr tc_ring_framebuffer_retrieve_frame(TCRingFrameBuffer *rfb)
 
         ptr = rfb->frames[rfb->next];
         for (i = 0; i < rfb->last; i++) {
-            if (ptr.generic->status == FRAME_NULL) {
+            if (ptr.generic->status == TC_FRAME_NULL) {
                 break;
             }
             rfb->next++;
@@ -354,7 +388,7 @@ static TCFramePtr tc_ring_framebuffer_retrieve_frame(TCRingFrameBuffer *rfb)
             ptr = rfb->frames[rfb->next];
         }
 
-        if (ptr.generic->status != FRAME_NULL) {
+        if (ptr.generic->status != TC_FRAME_NULL) {
             if (verbose >= TC_FLIST) {
                 tc_log_warn(__FILE__, "retrieved buffer=%i, but not empty",
                                       ptr.generic->status);
@@ -377,7 +411,7 @@ static TCFramePtr tc_ring_framebuffer_retrieve_frame(TCRingFrameBuffer *rfb)
 /*
  * tc_ring_framebuffer_release_frame: (NOT thread safe)
  *      release a previously retrieved frame back to ringbuffer,
- *      removing claim from it and making again avalaible (FRAME_NULL).
+ *      removing claim from it and making again avalaible (TC_FRAME_NULL).
  *
  * Parameters:
  *         rfb: ring framebuffer to use.
@@ -393,18 +427,12 @@ static int tc_ring_framebuffer_release_frame(TCRingFrameBuffer *rfb,
     if (rfb == NULL || TCFRAMEPTR_IS_NULL(frame)) {
         return 1;
     }
-    if (frame.generic->status != FRAME_EMPTY) {
-        tc_log_warn(__FILE__, "trying to release non empty frame #%i (%i)",
-                    frame.generic->bufid, frame.generic->status);
-        return -1;
-    } else {
-        if (verbose >= TC_FLIST) {
-            tc_log_info(__FILE__, "releasing frame #%i [%i]",
-                        frame.generic->bufid, rfb->next);
-        }
-        frame.generic->status = FRAME_NULL;
-        rfb->null++;
+    if (verbose >= TC_FLIST) {
+        tc_log_info(__FILE__, "releasing frame #%i [%i]",
+                    frame.generic->bufid, rfb->next);
     }
+    frame.generic->status = TC_FRAME_NULL;
+    rfb->null++;
     return 0;
 }
 
@@ -435,24 +463,22 @@ static TCFramePtr tc_ring_framebuffer_register_frame(TCRingFrameBuffer *rfb,
     TCFramePtr ptr;
 
     /* retrive a valid pointer from the pool */
-#ifdef STATBUFFER
     if (verbose >= TC_FLIST) {
         tc_log_info(__FILE__, "register frame id = %i", id);
     }
+#ifdef STATBUFFER
     ptr = tc_ring_framebuffer_retrieve_frame(rfb);
 #else
     ptr = rfb->alloc(rfb->specs);
 #endif
 
     if (!TCFRAMEPTR_IS_NULL(ptr)) {
-        rfb->fill++;
-
-        if (status == FRAME_EMPTY) {
+        if (status == TC_FRAME_EMPTY) {
             rfb->empty++;
             /* blank common attributes */
             memset(ptr.generic, 0, sizeof(frame_list_t));
             ptr.generic->id = id;
-        } else if (status == FRAME_WAIT) {
+        } else if (status == TC_FRAME_WAIT) {
             rfb->wait++;
         }
         ptr.generic->status = status;
@@ -462,10 +488,7 @@ static TCFramePtr tc_ring_framebuffer_register_frame(TCRingFrameBuffer *rfb,
         ptr.generic->prev = NULL;
 
         if (verbose >= TC_FLIST) {
-            tc_log_msg(__FILE__, "registering frame:"
-                                 " f=%i e=%i w=%i l=%i r=%i",
-                                 rfb->fill, rfb->empty, rfb->wait,
-                                 rfb->locked, rfb->ready);
+            tc_ring_framebuffer_dump_status(rfb, "register_frame");
         }
     }
     return ptr; 
@@ -490,30 +513,21 @@ static void tc_ring_framebuffer_remove_frame(TCRingFrameBuffer *rfb,
                                              TCFramePtr frame)
 {
     if (rfb != NULL || !TCFRAMEPTR_IS_NULL(frame)) {
-        if (frame.generic->status == FRAME_READY) {
+        if (frame.generic->status == TC_FRAME_READY) {
             rfb->ready--;
         }
-        if (frame.generic->status == FRAME_LOCKED) {
+        if (frame.generic->status == TC_FRAME_LOCKED) {
             rfb->locked--;
         }
         /* release valid pointer to pool */
-        rfb->empty++;
-        frame.generic->status = FRAME_EMPTY;
-
 #ifdef STATBUFFER
         tc_ring_framebuffer_release_frame(rfb, frame);
 #else
         rfb->free(frame);
 #endif
-        /* adjust fill level */
-        rfb->empty--;
-        rfb->fill--;
 
         if (verbose >= TC_FLIST) {
-            tc_log_msg(__FILE__, "removing frame:"
-                                 " f=%i e=%i w=%i l=%i r=%i",
-                                 rfb->fill, rfb->empty, rfb->wait,
-                                 rfb->locked, rfb->ready);
+            tc_ring_framebuffer_dump_status(rfb, "remove_frame");
         }
     }
 }
@@ -548,57 +562,6 @@ static int tc_ring_framebuffer_flush(TCRingFrameBuffer *rfb)
     return i;
 }
 
-/*
- * tc_ring_framebuffer_check_status:
- *      checks if there is at least one frame in a given state
- *      in given ring framebuffer.
- *
- * Parameters:
- *         rfb: ring framebuffer to use.
- *      status: framebuffer status to check on.
- * Return Value
- *      0: there aren't framebuffer of given status on given ringbuffer
- *     !0: there is at least one framebuffer of given status on given
- *         ringbuffer.
- */
-static int tc_ring_framebuffer_check_status(const TCRingFrameBuffer *rfb,
-                                            int status)
-{
-    int ret = 0;
-
-    switch (status) {
-      case TC_BUFFER_FULL:
-        ret = (rfb->fill >= rfb->last - 1);
-        break;
-      case TC_BUFFER_NULL:
-        ret = (rfb->null > 0);
-        break;
-      case TC_BUFFER_READY:
-        ret = (rfb->ready > 0);
-        break;
-      case TC_BUFFER_EMPTY:
-        ret = (rfb->fill == 0);
-        break;
-      case TC_BUFFER_LOCKED:
-        ret = (rfb->locked > 0);
-        break;
-      default:
-        ret = 0; /* yes, that's called paranoia */
-        break;
-    }
-    return ret;
-}
-
-
-static void tc_ring_framebuffer_log_fill_level(const TCRingFrameBuffer *rfb,
-                             const char *id, int tag)
-{
-    tc_log_msg(__FILE__, "%s: fill=%i/%i, null=%i empty=%i"
-                         " wait=%i locked=%i, ready=%i tag=%i",
-                         id, rfb->fill, rfb->last, rfb->null, rfb->empty,
-                         rfb->wait, rfb->locked, rfb->ready, tag);
-}
-
 
 
 /* ------------------------------------------------------------------ */
@@ -607,20 +570,14 @@ static void tc_ring_framebuffer_log_fill_level(const TCRingFrameBuffer *rfb,
 
 int aframe_alloc(int num)
 {
-    return tc_init_ring_framebuffer(&tc_audio_ringbuffer,
-                                    &tc_specs,
-                                    tc_audio_alloc,
-                                    tc_audio_free,
-                                    num);
+    return tc_init_ring_framebuffer(&tc_audio_ringbuffer, &tc_specs,
+                                    tc_audio_alloc, tc_audio_free, num);
 }
 
 int vframe_alloc(int num)
 {
-    return tc_init_ring_framebuffer(&tc_video_ringbuffer,
-                                    &tc_specs,
-                                    tc_video_alloc,
-                                    tc_video_free,
-                                    num);
+    return tc_init_ring_framebuffer(&tc_video_ringbuffer, &tc_specs,
+                                    tc_video_alloc, tc_video_free, num);
 }
 
 
@@ -663,22 +620,43 @@ void vframe_free(void)
     } \
 } while (0)
 
+
 aframe_list_t *aframe_register(int id)
 {
+    int interrupted = TC_FALSE;
     TCFramePtr frame;
 
     pthread_mutex_lock(&aframe_list_lock);
 
-    frame = tc_ring_framebuffer_register_frame(&tc_audio_ringbuffer,
-                                               id, FRAME_EMPTY);
-    if (!TCFRAMEPTR_IS_NULL(frame)) {
-        /* 
-         * complete initialization:
-         * backward-compatible stuff
-         */
-        LIST_FRAME_APPEND(frame.audio, aframe_list_tail);
-        /* first frame registered must set aframe_list_head */
-        LIST_FRAME_INSERT(frame.audio, aframe_list_head);
+    if (verbose >= TC_FLIST)
+        tc_log_msg(__FILE__, "(A|register) requesting a new audio frame");
+
+    while (!interrupted && tc_audio_ringbuffer.null == 0) {
+        if (verbose >= TC_FLIST)
+            tc_log_msg(__FILE__, "(A|register) audio frame not ready, waiting");
+        pthread_cond_wait(&audio_import_cond, &aframe_list_lock);
+        if (verbose >= TC_FLIST)
+            tc_log_msg(__FILE__, "(A|register) audio frame wait ended");
+        interrupted = !tc_running();
+    }
+
+    if (interrupted) {
+        frame.audio = NULL;
+    } else {
+        if (verbose >= TC_FLIST)
+            tc_log_msg(__FILE__, "new audio frame ready");
+
+        frame = tc_ring_framebuffer_register_frame(&tc_audio_ringbuffer,
+                                                   id, TC_FRAME_EMPTY);
+        if (!TCFRAMEPTR_IS_NULL(frame)) {
+            /* 
+             * complete initialization:
+             * backward-compatible stuff
+             */
+            LIST_FRAME_APPEND(frame.audio, aframe_list_tail);
+            /* first frame registered must set aframe_list_head */
+            LIST_FRAME_INSERT(frame.audio, aframe_list_head);
+        }
     }
     pthread_mutex_unlock(&aframe_list_lock);
     return frame.audio;
@@ -686,21 +664,40 @@ aframe_list_t *aframe_register(int id)
 
 vframe_list_t *vframe_register(int id)
 {
+    int interrupted = TC_FALSE;
     TCFramePtr frame;
     
     pthread_mutex_lock(&vframe_list_lock);
 
-    frame = tc_ring_framebuffer_register_frame(&tc_video_ringbuffer,
-                                               id, FRAME_EMPTY); 
-    if (!TCFRAMEPTR_IS_NULL(frame)) {
-        /* 
-         * complete initialization:
-         * backward-compatible stuff
-         */
-        LIST_FRAME_APPEND(frame.video, vframe_list_tail);
-        /* first frame registered must set vframe_list_head */
-        LIST_FRAME_INSERT(frame.video, vframe_list_head);
- 
+    if (verbose >= TC_FLIST)
+        tc_log_msg(__FILE__, "(V|register) requesting a new video frame");
+
+    while (!interrupted && tc_video_ringbuffer.null == 0) {
+        if (verbose >= TC_FLIST)
+            tc_log_msg(__FILE__, "(V|register) video frame not ready, waiting");
+        pthread_cond_wait(&video_import_cond, &vframe_list_lock);
+        if (verbose >= TC_FLIST)
+            tc_log_msg(__FILE__, "(V|register) video frame wait ended");
+        interrupted = !tc_running();
+    }
+
+    if (interrupted) {
+        frame.video = NULL;
+    } else {
+        if (verbose >= TC_FLIST)
+            tc_log_msg(__FILE__, "new video frame ready");
+
+        frame = tc_ring_framebuffer_register_frame(&tc_video_ringbuffer,
+                                                   id, TC_FRAME_EMPTY); 
+        if (!TCFRAMEPTR_IS_NULL(frame)) {
+            /* 
+             * complete initialization:
+             * backward-compatible stuff
+             */
+            LIST_FRAME_APPEND(frame.video, vframe_list_tail);
+            /* first frame registered must set vframe_list_head */
+            LIST_FRAME_INSERT(frame.video, vframe_list_head);
+        }
     }
     pthread_mutex_unlock(&vframe_list_lock);
     return frame.video;
@@ -722,8 +719,10 @@ vframe_list_t *vframe_register(int id)
     } \
 } while (0)
 
+
 aframe_list_t *aframe_dup(aframe_list_t *f)
 {
+    int interrupted = TC_FALSE;
     TCFramePtr frame;
 
     if (f == NULL) {
@@ -732,18 +731,22 @@ aframe_list_t *aframe_dup(aframe_list_t *f)
     }
 
     pthread_mutex_lock(&aframe_list_lock);
-    /* retrieve a valid pointer from the pool */
+
+    while (!interrupted && tc_audio_ringbuffer.null == 0) {
+        if (verbose >= TC_FLIST)
+            tc_log_msg(__FILE__, "(A|dup) audio frame not ready, waiting");
+        pthread_cond_wait(&audio_import_cond, &aframe_list_lock);
+        if (verbose >= TC_FLIST)
+            tc_log_msg(__FILE__, "(A|dup) audio frame wait ended");
+        interrupted = !tc_running();
+    }
+
     frame = tc_ring_framebuffer_register_frame(&tc_audio_ringbuffer,
-                                               0, FRAME_WAIT);
+                                               0, TC_FRAME_WAIT);
     if (!TCFRAMEPTR_IS_NULL(frame)) {
         aframe_copy(frame.audio, f, 1);
 
         LIST_FRAME_LINK(frame.audio, f, aframe_list_tail);
-#ifdef STATBUFFER
-    } else { /* ptr == NULL */
-        tc_log_warn(__FILE__, "aframe_dup: cannot find a free slot"
-                              " (%i)", f->id);
-#endif
     }
     pthread_mutex_unlock(&aframe_list_lock);
     return frame.audio;
@@ -751,6 +754,7 @@ aframe_list_t *aframe_dup(aframe_list_t *f)
 
 vframe_list_t *vframe_dup(vframe_list_t *f)
 {
+    int interrupted = TC_FALSE;
     TCFramePtr frame;
 
     if (f == NULL) {
@@ -759,9 +763,18 @@ vframe_list_t *vframe_dup(vframe_list_t *f)
     }
 
     pthread_mutex_lock(&vframe_list_lock);
-    /* retrieve a valid pointer from the pool */
+
+    while (!interrupted && tc_video_ringbuffer.null == 0) {
+        if (verbose >= TC_FLIST)
+            tc_log_msg(__FILE__, "(V|dup) video frame not ready, waiting");
+        pthread_cond_wait(&video_import_cond, &vframe_list_lock);
+        if (verbose >= TC_FLIST)
+            tc_log_msg(__FILE__, "(V|dup) video frame wait ended");
+        interrupted = !tc_running();
+    }
+
     frame = tc_ring_framebuffer_register_frame(&tc_video_ringbuffer,
-                                               0, FRAME_WAIT);
+                                               0, TC_FRAME_WAIT);
     if (!TCFRAMEPTR_IS_NULL(frame)) {
         vframe_copy(frame.video, f, 1);
 
@@ -769,11 +782,6 @@ vframe_list_t *vframe_dup(vframe_list_t *f)
         frame.video->clone_flag = f->clone_flag + 1;
 
         LIST_FRAME_LINK(frame.video, f, vframe_list_tail);
-#ifdef STATBUFFER
-    } else { /* ptr == NULL */
-        tc_log_warn(__FILE__, "vframe_dup: cannot find a free slot"
-                              " (%i)", f->id);
-#endif
     }
     pthread_mutex_unlock(&vframe_list_lock);
     return frame.video;
@@ -810,8 +818,8 @@ void aframe_remove(aframe_list_t *ptr)
 
         LIST_FRAME_REMOVE(ptr, aframe_list_head, aframe_list_tail);
 
-        tc_ring_framebuffer_remove_frame(&tc_audio_ringbuffer,
-                                         frame);
+        tc_ring_framebuffer_remove_frame(&tc_audio_ringbuffer, frame);
+        pthread_cond_signal(&audio_import_cond);
 
         pthread_mutex_unlock(&aframe_list_lock);
     }
@@ -829,8 +837,8 @@ void vframe_remove(vframe_list_t *ptr)
         
         LIST_FRAME_REMOVE(ptr, vframe_list_head, vframe_list_tail);
         
-        tc_ring_framebuffer_remove_frame(&tc_video_ringbuffer,
-                                         frame);
+        tc_ring_framebuffer_remove_frame(&tc_video_ringbuffer, frame);
+        pthread_cond_signal(&video_import_cond);
 
         pthread_mutex_unlock(&vframe_list_lock);
     }
@@ -848,37 +856,42 @@ void vframe_flush(void)
     tc_ring_framebuffer_flush(&tc_video_ringbuffer);
 }
 
+void tc_framebuffer_flush(void)
+{
+    tc_ring_framebuffer_flush(&tc_audio_ringbuffer);
+    tc_ring_framebuffer_flush(&tc_video_ringbuffer);
+}
+
 /* ------------------------------------------------------------------ */
 /* Macro galore section ;)                                            */
 /* ------------------------------------------------------------------ */
 
-#define LIST_FRAME_RETRIEVE(ptr) do { \
-    /* move along the chain and check for status */ \
-    for (; (ptr) != NULL; (ptr) = (ptr)->next) { \
-        /* \
-         * we cannot skip a locked frame, since \
-         * we have to preserve order in which frames are encoded \
-         */ \
-        if ((ptr)->status == FRAME_LOCKED) { \
-            (ptr) = NULL; \
-            break; \
-        } \
-        /* this frame is ready to go */ \
-        if ((ptr)->status == FRAME_READY) { \
-            break; \
-        } \
-    } \
-} while (0)
-
 aframe_list_t *aframe_retrieve(void)
 {
+    int interrupted = TC_FALSE;
     aframe_list_t *ptr = NULL;
-
     pthread_mutex_lock(&aframe_list_lock);
-    ptr = aframe_list_head;
 
-    LIST_FRAME_RETRIEVE(ptr);
+    if (verbose >= TC_FLIST)
+        tc_log_msg(__FILE__, "(A|retrieve) requesting a new audio frame");
+    while (!interrupted
+      && (aframe_list_head == NULL
+        || aframe_list_head->status != TC_FRAME_READY)) {
+        if (verbose >= TC_FLIST) {
+            tc_log_msg(__FILE__, "(A|retrieve) audio frame not ready, waiting");
+            tc_ring_framebuffer_dump_status(&tc_audio_ringbuffer, "retrieve");
+        }
+        pthread_cond_wait(&audio_export_cond, &aframe_list_lock);
+        if (verbose >= TC_FLIST)
+           tc_log_msg(__FILE__, "(A|retrieve) audio wait just ended");
+        interrupted = !tc_running();
+    }
 
+    if (!interrupted) {
+        if (verbose >= TC_FLIST)
+            tc_log_msg(__FILE__, "got a new audio frame reference: %p", ptr);
+        ptr = aframe_list_head;
+    }
     pthread_mutex_unlock(&aframe_list_lock);
     return ptr;
 }
@@ -886,13 +899,30 @@ aframe_list_t *aframe_retrieve(void)
 
 vframe_list_t *vframe_retrieve(void)
 {
+    int interrupted = TC_FALSE;
     vframe_list_t *ptr = NULL;
-
     pthread_mutex_lock(&vframe_list_lock);
-    ptr = vframe_list_head;
 
-    LIST_FRAME_RETRIEVE(ptr);
+    if (verbose >= TC_FLIST)
+        tc_log_msg(__FILE__, "(V|retrieve) requesting a new video frame");
+    while (!interrupted
+      && (vframe_list_head == NULL
+        || vframe_list_head->status != TC_FRAME_READY)) {
+        if (verbose >= TC_FLIST) {
+            tc_log_msg(__FILE__, "(V|retrieve) video frame not ready, waiting");
+            tc_ring_framebuffer_dump_status(&tc_video_ringbuffer, "retrieve");
+        }
+        pthread_cond_wait(&video_export_cond, &vframe_list_lock);
+        if (verbose >= TC_FLIST)
+            tc_log_msg(__FILE__, "(V|retrieve) video wait just ended");
+        interrupted = !tc_running();
+    }
 
+    if (!interrupted) {
+        if (verbose >= TC_FLIST)
+            tc_log_msg(__FILE__, "got a new video frame reference: %p", ptr);
+        ptr = vframe_list_head;
+    }
     pthread_mutex_unlock(&vframe_list_lock);
     return ptr;
 }
@@ -902,25 +932,25 @@ vframe_list_t *vframe_retrieve(void)
 /* ------------------------------------------------------------------ */
 
 #define DEC_COUNTERS(RFB, STATUS) do { \
-    if ((STATUS) == FRAME_READY) { \
+    if ((STATUS) == TC_FRAME_READY) { \
         (RFB)->ready--; \
     } \
-    if ((STATUS) == FRAME_LOCKED) { \
+    if ((STATUS) == TC_FRAME_LOCKED) { \
         (RFB)->locked--; \
     } \
-    if ((STATUS) == FRAME_WAIT) { \
+    if ((STATUS) == TC_FRAME_WAIT) { \
        (RFB)->wait--; \
     } \
 } while(0)
 
 #define INC_COUNTERS(RFB, STATUS) do { \
-    if ((STATUS) == FRAME_READY) { \
+    if ((STATUS) == TC_FRAME_READY) { \
         (RFB)->ready++; \
     } \
-    if ((STATUS) == FRAME_LOCKED) { \
+    if ((STATUS) == TC_FRAME_LOCKED) { \
         (RFB)->locked++; \
     } \
-    if ((STATUS) == FRAME_WAIT) { \
+    if ((STATUS) == TC_FRAME_WAIT) { \
        (RFB)->wait++; \
     } \
 } while(0)
@@ -942,29 +972,52 @@ vframe_list_t *vframe_retrieve(void)
     } \
 } while (0)
 
-aframe_list_t *aframe_retrieve_status(int old_status, int new_status)
+
+aframe_list_t *aframe_reserve(void)
 {
+    int interrupted = TC_FALSE;
     aframe_list_t *ptr = NULL;
 
     pthread_mutex_lock(&aframe_list_lock);
-    ptr = aframe_list_head;
 
-    FRAME_LOOKUP(&tc_audio_ringbuffer, ptr,
-                 old_status, new_status);
+    while (!interrupted && tc_audio_ringbuffer.wait == 0) {
+        if (verbose >= TC_FLIST)
+            tc_log_msg(__FILE__, "(A|reserve) audio frame not ready, waiting");
+        pthread_cond_wait(&audio_filter_cond, &aframe_list_lock);
+        if (verbose >= TC_FLIST)
+            tc_log_msg(__FILE__, "(A|reserve) audio wait just ended");
+        interrupted = !tc_running();
+    }
+
+    if (!interrupted) {
+        ptr = aframe_list_head;
+        FRAME_LOOKUP(&tc_audio_ringbuffer, ptr, TC_FRAME_WAIT, TC_FRAME_LOCKED);
+    }
 
     pthread_mutex_unlock(&aframe_list_lock);
     return ptr;
 }
 
-vframe_list_t *vframe_retrieve_status(int old_status, int new_status)
+vframe_list_t *vframe_reserve(void)
 {
+    int interrupted = TC_FALSE;
     vframe_list_t *ptr = NULL;
 
     pthread_mutex_lock(&vframe_list_lock);
-    ptr = vframe_list_head;
 
-    FRAME_LOOKUP(&tc_video_ringbuffer, ptr,
-                 old_status, new_status);
+    while (!interrupted && tc_video_ringbuffer.wait == 0) {
+        if (verbose >= TC_FLIST)
+            tc_log_msg(__FILE__, "(V|reserve) video frame not ready, waiting");
+        pthread_cond_wait(&video_filter_cond, &vframe_list_lock);
+        if (verbose >= TC_FLIST)
+            tc_log_msg(__FILE__, "(V|reserve) video wait just ended");
+        interrupted = !tc_running();
+    }
+
+    if (!interrupted) {
+        ptr = vframe_list_head;
+        FRAME_LOOKUP(&tc_video_ringbuffer, ptr, TC_FRAME_WAIT, TC_FRAME_LOCKED);
+    }
 
     pthread_mutex_unlock(&vframe_list_lock);
     return ptr;
@@ -976,36 +1029,55 @@ vframe_list_t *vframe_retrieve_status(int old_status, int new_status)
 
 
 #define FRAME_SET_EXT_STATUS(RFB, PTR, NEW_STATUS) do { \
-    if ((PTR)->status == FRAME_EMPTY) { \
+    if ((PTR)->status == TC_FRAME_EMPTY) { \
         (RFB)->empty--; \
     } \
     FRAME_SET_STATUS((RFB), (PTR), (NEW_STATUS)); \
-    if ((PTR)->status == FRAME_EMPTY) { \
+    if ((PTR)->status == TC_FRAME_EMPTY) { \
         (RFB)->empty++; \
     } \
 } while (0)
 
-void aframe_set_status(aframe_list_t *ptr, int status)
+
+void aframe_push_next(aframe_list_t *ptr, int status)
 {
     if (ptr == NULL) {
         /* a bit more of paranoia */
-        tc_log_warn(__FILE__, "aframe_set_status: given NULL frame pointer");
+        tc_log_warn(__FILE__, "aframe_push_next: given NULL frame pointer");
     } else {
         pthread_mutex_lock(&aframe_list_lock);
         FRAME_SET_EXT_STATUS(&tc_audio_ringbuffer, ptr, status);
+
+        if (status == TC_FRAME_WAIT) {
+            pthread_cond_signal(&audio_filter_cond);
+        } else if (status == TC_FRAME_READY && ptr == aframe_list_head) { // XXX
+            pthread_cond_signal(&audio_export_cond);
+        }
+        if (verbose >= TC_FLIST) {
+            tc_ring_framebuffer_dump_status(&tc_audio_ringbuffer, "push_next");
+        }
         pthread_mutex_unlock(&aframe_list_lock);
     }
 }
 
 
-void vframe_set_status(vframe_list_t *ptr, int status)
+void vframe_push_next(vframe_list_t *ptr, int status)
 {
     if (ptr == NULL) {
         /* a bit more of paranoia */
-        tc_log_warn(__FILE__, "vframe_set_status: given NULL frame pointer");
+        tc_log_warn(__FILE__, "vframe_push_next: given NULL frame pointer");
     } else {
         pthread_mutex_lock(&vframe_list_lock);
         FRAME_SET_EXT_STATUS(&tc_video_ringbuffer, ptr, status);
+
+        if (status == TC_FRAME_WAIT) {
+            pthread_cond_signal(&video_filter_cond);
+        } else if (status == TC_FRAME_READY && ptr == vframe_list_head) { // XXX
+            pthread_cond_signal(&video_export_cond);
+        }
+        if (verbose >= TC_FLIST) {
+            tc_ring_framebuffer_dump_status(&tc_video_ringbuffer, "push_next");
+        }
         pthread_mutex_unlock(&vframe_list_lock);
     }
 }
@@ -1016,53 +1088,42 @@ void vframe_set_status(vframe_list_t *ptr, int status)
 /* ------------------------------------------------------------------ */
 
 
-int aframe_fill_level(int status)
+void aframe_dump_status(void)
 {
-    if (verbose >= TC_STATS) {
-        tc_ring_framebuffer_log_fill_level(&tc_audio_ringbuffer,
-                                           "audio fill level", status);
-    }
-    /* user has to lock aframe_list_lock to get proper results */
-    return tc_ring_framebuffer_check_status(&tc_audio_ringbuffer, status);
+    tc_ring_framebuffer_dump_status(&tc_audio_ringbuffer,
+                                    "audio buffer status");
 }
 
-int vframe_fill_level(int status)
+void vframe_dump_status(void)
 {
-    if (verbose >= TC_STATS) {
-        tc_ring_framebuffer_log_fill_level(&tc_video_ringbuffer,
-                                           "video fill level", status);
-    }
-    /* user has to lock vframe_list_lock to get proper results */
-    return tc_ring_framebuffer_check_status(&tc_video_ringbuffer, status);
+    tc_ring_framebuffer_dump_status(&tc_video_ringbuffer,
+                                    "video buffer status");
 }
 
-void aframe_fill_print(int r)
+int vframe_have_more(void)
 {
-    tc_ring_framebuffer_log_fill_level(&tc_audio_ringbuffer,
-                                       "audio fill level", r);
+    int ret;
+    pthread_mutex_lock(&vframe_list_lock);
+    ret = (vframe_list_tail == NULL) ?0 :1;
+    pthread_mutex_unlock(&vframe_list_lock);
+    return ret;
 }
 
-void vframe_fill_print(int r)
+int aframe_have_more(void)
 {
-    tc_ring_framebuffer_log_fill_level(&tc_video_ringbuffer,
-                                       "video fill level", r);
-}
-
-int vframe_have_data(void)
-{
-    return (vframe_list_tail == NULL) ?0 :1;
-}
-
-int aframe_have_data(void)
-{
-    return (aframe_list_tail == NULL) ?0 :1;
+    int ret;
+    pthread_mutex_lock(&aframe_list_lock);
+    ret = (aframe_list_tail == NULL) ?0 :1;
+    pthread_mutex_unlock(&aframe_list_lock);
+    return ret;
 }
 
 /* ------------------------------------------------------------------ */
 /* Frame copying routines                                             */
 /* ------------------------------------------------------------------ */
 
-void aframe_copy(aframe_list_t *dst, aframe_list_t *src, int copy_data)
+void aframe_copy(aframe_list_t *dst, const aframe_list_t *src,
+                 int copy_data)
 {
     if (!dst || !src) {
         tc_log_warn(__FILE__, "aframe_copy: given NULL frame pointer");
@@ -1081,7 +1142,8 @@ void aframe_copy(aframe_list_t *dst, aframe_list_t *src, int copy_data)
     }
 }
 
-void vframe_copy(vframe_list_t *dst, vframe_list_t *src, int copy_data)
+void vframe_copy(vframe_list_t *dst, const vframe_list_t *src,
+                 int copy_data)
 {
     if (!dst || !src) {
         tc_log_warn(__FILE__, "vframe_copy: given NULL frame pointer");
@@ -1091,9 +1153,9 @@ void vframe_copy(vframe_list_t *dst, vframe_list_t *src, int copy_data)
     /* copy all common fields with just one move */
     ac_memcpy(dst, src, sizeof(frame_list_t));
     
-    dst->clone_flag = src->clone_flag;
+    dst->clone_flag   = src->clone_flag;
     dst->deinter_flag = src->deinter_flag;
-    dst->free = src->free;
+    dst->free         = src->free;
     /* 
      * we assert that plane pointers *are already properly set*
      * we're focused on copy _content_ here.
@@ -1112,6 +1174,37 @@ void vframe_copy(vframe_list_t *dst, vframe_list_t *src, int copy_data)
 
 /*************************************************************************/
 
+void vframe_get_counters(int *im, int *fl, int *ex)
+{
+    pthread_mutex_lock(&vframe_list_lock);
+    *im = tc_video_ringbuffer.null + tc_video_ringbuffer.empty;
+    *fl = tc_video_ringbuffer.wait + tc_video_ringbuffer.locked;
+    *ex = tc_video_ringbuffer.ready;
+    pthread_mutex_unlock(&vframe_list_lock);
+}
+
+void aframe_get_counters(int *im, int *fl, int *ex)
+{
+    pthread_mutex_lock(&aframe_list_lock);
+    *im = tc_audio_ringbuffer.null + tc_audio_ringbuffer.empty;
+    *fl = tc_audio_ringbuffer.wait + tc_audio_ringbuffer.locked;
+    *ex = tc_audio_ringbuffer.ready;
+    pthread_mutex_unlock(&aframe_list_lock);
+}
+
+void tc_framebuffer_get_counters(int *im, int *fl, int *ex)
+{
+    int v_im, v_fl, v_ex, a_im, a_fl, a_ex;
+
+    vframe_get_counters(&v_im, &v_fl, &v_ex);
+    aframe_get_counters(&a_im, &a_fl, &a_ex);
+
+    *im = v_im + a_im;
+    *fl = v_fl + a_fl;
+    *ex = v_ex + a_ex;
+}
+
+/*************************************************************************/
 /*
  * Local variables:
  *   c-file-style: "stroustrup"
