@@ -21,7 +21,7 @@
   * src/transcode.c src/transcode.h
   port transcode core to new framebuffer interface.
 
-  * testsuite/test-tcmodule.c tools/tcstub.c
+  * testsuite/test-tcmodule.c tools/tcstub.c tools/tcexport.c
   port auxiliary code to new framebuffer interface.
 
   * configure.in
