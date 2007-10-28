@@ -1349,14 +1349,6 @@ void tc_encoder_loop(vob_t *vob, int frame_first, int frame_last)
     encdata.saved_frame_last = encdata.old_frame_last;
 
     while (!encdata.error_flag) {
-        /* check for ^C signal */
-        if (tc_interrupted()) {
-            if (verbose >= TC_DEBUG) {
-                tc_log_warn(__FILE__, "export canceled on user request");
-            }
-            break;
-        }
-
         /* stop here if pause requested */
         tc_pause();
 
@@ -1395,7 +1387,7 @@ void tc_encoder_loop(vob_t *vob, int frame_first, int frame_last)
     }
     /* main frame decoding loop */
 
-    if (verbose >= TC_DEBUG) {
+    if (verbose >= TC_CLEANUP) {
         if (eos) {
             tc_log_info(__FILE__, "encoder last frame finished (%i/%i)",
                         encdata.buffer->frame_id, encdata.frame_last);

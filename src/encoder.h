@@ -61,9 +61,6 @@ typedef struct tcencoderbuffer_ TCEncoderBuffer;
 struct tcencoderbuffer_ {
     int frame_id; /* current frame identifier (both for A and V, yet) */
 
-    pthread_cond_t vframe_ready_cv; 
-    pthread_cond_t aframe_ready_cv; 
-
     vframe_list_t *vptr; /* current video frame */
     aframe_list_t *aptr; /* current audio frame */
 
