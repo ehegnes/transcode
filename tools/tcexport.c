@@ -534,7 +534,7 @@ int main(int argc, char *argv[])
         ret = tc_encoder_open(vob);
         EXIT_IF(ret != 0, "can't open encoder files", STATUS_IO_ERROR);
 
-	running = 1;
+    	running = 1;
 
         /* first setup counter ranges */
         counter_reset_ranges();
@@ -560,7 +560,7 @@ int main(int argc, char *argv[])
         ret = tc_encoder_stop();
         ret = tc_encoder_close();
 
-	running = 0;
+    	running = 0;
     }
 
     tc_export_shutdown();
