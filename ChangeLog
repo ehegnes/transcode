@@ -1,4 +1,7 @@
 2007-11-01 Francesco Romani <fromani at gmail dot com>
+  * import/import_mplayer.c
+  avoid SIGPIPE. But I'm still not fully satisfied.
+
   * import/decode_mpeg2.c import/scan_pack.c
   make more silent.
 

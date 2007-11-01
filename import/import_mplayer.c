@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "import_mplayer.so"
-#define MOD_VERSION "v0.1.1 (2007-08-24)"
+#define MOD_VERSION "v0.1.2 (2007-11-01)"
 #define MOD_CODEC   "(video) rendered by mplayer | (audio) rendered by mplayer"
 
 #include "transcode.h"
@@ -166,7 +166,8 @@ static int tc_mplayer_open_audio(vob_t *vob, transfer_t *param)
 }
 
 /*
- * This avoids nasty deadlocks when dealing with (audio) pipe.
+ * OK, there is a nasty deadlocks when dealing with (audio) pipe
+ * hidden and buried in this module internals.
  * short history:
  * - mplayer keeps writing data on the FIFO but
  * - transcode stops reading from FIFO, so
@@ -174,12 +175,16 @@ static int tc_mplayer_open_audio(vob_t *vob, transfer_t *param)
  * - mplayer blocks, so cannot terminate, but
  * - transcode waits for mplayer termination:
  * - DEADLOCK!
+ *
+ * possible workaround:
+ * static void tc_mplayer_send_quit(FILE *fd)
+ * {
+ *     fprintf(fd, "quit\n");
+ *     fflush(fd);
+ * }
+ *
+ * and invoke it in close* functions
  */
-static void tc_mplayer_send_quit(FILE *fd)
-{
-    fprintf(fd, "quit\n");
-    fflush(fd);
-}
 
 static int tc_mplayer_close_video(transfer_t *param)
 {
@@ -187,8 +192,6 @@ static int tc_mplayer_close_video(transfer_t *param)
         pclose(param->fd);
     }
     if (videopipefd != NULL) {
-        tc_mplayer_send_quit(videopipefd);
-
         pclose(videopipefd);
         videopipefd = NULL;
     }
@@ -201,8 +204,6 @@ static int tc_mplayer_close_audio(transfer_t *param)
     if (param->fd != NULL)
         pclose(param->fd);
     if (audiopipefd != NULL) {
-        tc_mplayer_send_quit(audiopipefd);
-
         pclose(audiopipefd);
         audiopipefd = NULL;
     }
