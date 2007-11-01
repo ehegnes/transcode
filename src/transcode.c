@@ -196,7 +196,7 @@ int tc_running(void)
 static void tc_stop(void)
 {
     pthread_mutex_lock(&run_status_lock);
-    if (tc_run_status != TC_STATUS_STOPPED) {
+    if (tc_run_status == TC_STATUS_RUNNING) {
         tc_run_status = TC_STATUS_STOPPED;
     }
     pthread_mutex_unlock(&run_status_lock);
@@ -392,7 +392,449 @@ static int transcode_fini(vob_t *vob)
     return 0;
 }
 
+/* -------------------------------------------------------------
+ * single file continuous or interval mode
+ * ------------------------------------------------------------*/
 
+/* globals: frame_a, frame_b */
+static int transcode_mode_default(vob_t *vob)
+{
+    struct fc_time *tstart = NULL;
+
+    // init decoder and open the source
+    if (0 != vob->ttime->vob_offset) {
+        vob->vob_offset = vob->ttime->vob_offset;
+    }
+    if (tc_import_open(vob) < 0)
+        tc_error("failed to open input source");
+
+    // start the AV import threads that load the frames into transcode
+    // this must be called after tc_import_open
+    tc_import_threads_create(vob);
+
+    // init encoder
+    if (tc_encoder_init(vob) != TC_OK)
+        tc_error("failed to init encoder");
+
+    // open output files
+    if (tc_encoder_open(vob) != TC_OK)
+        tc_error("failed to open output");
+
+    // tell counter about all encoding ranges
+    counter_reset_ranges();
+    if (!tc_cluster_mode) {
+        int last_etf = 0;
+        for (tstart = vob->ttime; tstart; tstart = tstart->next) {
+            if (tstart->etf == TC_FRAME_LAST) {
+                // variable length range, oh well
+                counter_reset_ranges();
+                break;
+            }
+            if (tstart->stf > last_etf)
+                counter_add_range(last_etf, tstart->stf-1, 0);
+            counter_add_range(tstart->stf, tstart->etf-1, 1);
+            last_etf = tstart->etf;
+        }
+    }
+
+    // get start interval
+    tstart = vob->ttime;
+
+    while (tstart) {
+        // set frame range (in cluster mode these will already be set)
+        if (!tc_cluster_mode) {
+            frame_a = tstart->stf;
+            frame_b = tstart->etf;
+        }
+        // main encoding loop, returns when done with all frames
+        tc_encoder_loop(vob, frame_a, frame_b);
+
+        // check for user cancelation request
+        if (tc_interrupted()) {
+            break;
+        }
+
+        // next range
+        tstart = tstart->next;
+        // see if we're using vob_offset
+        if ((tstart != NULL) && (tstart->vob_offset != 0)) {
+            tc_decoder_delay = 3;
+            tc_import_threads_cancel();
+            tc_import_close();
+            tc_framebuffer_flush();
+            vob->vob_offset = tstart->vob_offset;
+            vob->sync = sync_seconds;
+            if (tc_import_open(vob) < 0)
+                tc_error("failed to open input source");
+            tc_import_threads_create(vob);
+        }
+    }
+    tc_stop();
+
+    // close output files
+    tc_encoder_close();
+    // stop encoder
+    tc_encoder_stop();
+    // cancel import threads
+    tc_import_threads_cancel();
+    // stop decoder and close the source
+    tc_import_close();
+
+    return TC_OK;
+}
+
+
+/* ------------------------------------------------------------
+ * split output AVI file
+ * ------------------------------------------------------------*/
+
+/* globals: frame_a, frame_b, splitavi_frames, base */
+static int transcode_mode_avi_split(vob_t *vob)
+{
+    char buf[TC_BUF_MAX];
+    int fa, fb, ch1 = 0;
+
+    // init decoder and open the source
+    if (tc_import_open(vob) < 0)
+        tc_error("failed to open input source");
+
+    // start the AV import threads that load the frames into transcode
+    tc_import_threads_create(vob);
+
+    // encoder init
+    if (tc_encoder_init(vob) != TC_OK)
+        tc_error("failed to init encoder");
+
+    // need to loop for ch1
+    ch1 = 0;
+
+    do {
+        if (!strlen(base))
+            strlcpy(base, vob->video_out_file, TC_BUF_MIN);
+
+        // create new filename
+        tc_snprintf(buf, sizeof(buf), "%s%03d.avi", base, ch1++);
+        vob->video_out_file = buf;
+        vob->audio_out_file = buf;
+
+        // open output
+        if (tc_encoder_open(vob) != TC_OK)
+            tc_error("failed to open output");
+
+        fa = frame_a;
+        fb = frame_a + splitavi_frames;
+
+        tc_encoder_loop(vob, fa, ((fb > frame_b) ? frame_b : fb));
+
+        // close output
+        tc_encoder_close();
+
+        // restart
+        frame_a += splitavi_frames;
+        if (frame_a >= frame_b)
+            break;
+
+        if (verbose & TC_DEBUG)
+            tc_log_msg(PACKAGE, "import status=%d", tc_import_status());
+
+        // check for user cancelation request
+        if (tc_interrupted())
+            break;
+
+    } while (tc_import_status());
+
+    tc_stop();
+
+    tc_encoder_stop();
+
+    // cancel import threads
+    tc_import_threads_cancel();
+    // stop decoder and close the source
+    tc_import_close();
+
+    return TC_OK;
+}
+
+
+/* globals: frame_a, frame_b */
+static int transcode_mode_directory(vob_t *vob)
+{
+    struct fc_time *tstart = NULL;
+    
+    if (vob->audio_in_file != vob->video_in_file)
+        tc_error("directory mode DOES NOT support separate audio files");
+
+    tc_seq_import_threads_create(vob);
+
+    if (tc_encoder_init(vob) != TC_OK)
+        tc_error("failed to init encoder");
+    if (tc_encoder_open(vob) != TC_OK)
+        tc_error("failed to open output");
+
+    // tell counter about all encoding ranges
+    counter_reset_ranges();
+    if (!tc_cluster_mode) {
+        int last_etf = 0;
+        for (tstart = vob->ttime; tstart; tstart = tstart->next) {
+            if (tstart->etf == TC_FRAME_LAST) {
+                // variable length range, oh well
+                counter_reset_ranges();
+                break;
+            }
+            if (tstart->stf > last_etf)
+                counter_add_range(last_etf, tstart->stf-1, 0);
+            counter_add_range(tstart->stf, tstart->etf-1, 1);
+            last_etf = tstart->etf;
+        }
+    }
+
+    // get start interval
+    for (tstart = vob->ttime;
+         tstart != NULL && !tc_interrupted();
+         tstart = tstart->next) {
+        // set frame range (in cluster mode these will already be set)
+        if (!tc_cluster_mode) {
+            frame_a = tstart->stf;
+            frame_b = tstart->etf;
+        }
+        // main encoding loop, returns when done with all frames
+        tc_encoder_loop(vob, frame_a, frame_b);
+    }
+
+    tc_stop();
+
+    tc_encoder_close();
+    tc_encoder_stop();
+    tc_seq_import_threads_cancel();
+
+    return TC_OK;
+}
+
+/* ---------------------------------------------------------------
+ * VOB PSU mode: transcode and split based on program stream units
+ * --------------------------------------------------------------*/
+
+/* globals: frame_a, frame_b */
+static int transcode_mode_psu(vob_t *vob, const char *psubase)
+{
+    char buf[TC_BUF_MAX];
+    int fa, fb, ch1 = vob->vob_psu_num1;
+
+    if (tc_encoder_init(vob) != TC_OK)
+        tc_error("failed to init encoder");
+
+    // open output
+    if (no_split) {
+        vob->video_out_file = psubase;
+        if (tc_encoder_open(vob) != TC_OK)
+            tc_error("failed to open output");
+    }
+
+    tc_decoder_delay = 3;
+
+    counter_on();
+
+    for (;;) {
+        int ret;
+
+        memset(buf, 0, sizeof buf);
+        if (!no_split) {
+            // create new filename
+            tc_snprintf(buf, sizeof(buf), psubase, ch1);
+            // update vob structure
+            vob->video_out_file = buf;
+
+            if (verbose & TC_INFO)
+                tc_log_info(PACKAGE, "using output filename %s",
+                            vob->video_out_file);
+        }
+
+        // get seek/frame information for next PSU
+        // need to process whole PSU
+        vob->vob_chunk = 0;
+        vob->vob_chunk_max = 1;
+
+        ret = split_stream(vob, nav_seek_file, ch1, &fa, &fb, 0);
+
+        if (verbose & TC_DEBUG)
+            tc_log_msg(PACKAGE,"processing PSU %d, -L %d -c %d-%d %s (ret=%d)",
+                       ch1, vob->vob_offset, fa, fb, buf, ret);
+
+        // exit condition
+        if (ret < 0 || ch1 == vob->vob_psu_num2)
+            break;
+    
+        // do not process units with a small frame number, assume it is junk
+        if ((fb-fa) > psu_frame_threshold) {
+            // start new decoding session with updated vob structure
+            // this starts the full decoder setup, including the threads
+            if (tc_import_open(vob) < 0)
+                tc_error("failed to open input source");
+
+            // start the AV import threads that load the frames into transcode
+            tc_import_threads_create(vob);
+
+            // open new output file
+            if (!no_split) {
+                if (tc_encoder_open(vob) != TC_OK)
+                    tc_error("failed to open output");
+            }
+
+            // core
+            // we try to encode more frames and let the decoder safely
+           // drain the queue to avoid threads not stopping
+
+            tc_encoder_loop(vob, fa, TC_FRAME_LAST);
+
+            // close output file
+            if (!no_split) {
+                if (tc_encoder_close() != TC_OK)
+                    tc_warn("failed to close encoder - non fatal");
+            }
+
+            // for debug
+            vframe_dump_status();
+            aframe_dump_status();
+
+            // cancel import threads
+            tc_import_threads_cancel();
+            // stop decoder and close the source
+            tc_import_close();
+
+            // flush all buffers before we proceed to next PSU
+            tc_framebuffer_flush();
+
+            vob->psu_offset += (double) (fb-fa);
+        } else {
+            if (verbose & TC_INFO)
+                tc_log_info(PACKAGE, "skipping PSU %d with %d frame(s)",
+                            ch1, fb-fa);
+
+        }
+
+        ch1++;
+        if (tc_interrupted())
+            break;
+
+    } //next PSU
+
+    // close output
+    if (no_split) {
+        if (tc_encoder_close() != TC_OK)
+            tc_warn("failed to close encoder - non fatal");
+    }
+
+    tc_stop();
+    
+    tc_encoder_stop();
+
+    return TC_OK;
+}
+
+/* ------------------------------------------------------------
+ * DVD chapter mode
+ * ------------------------------------------------------------*/
+
+/* globals: frame_a, frame_b, chbase */
+static int transcode_mode_dvd(vob_t *vob)
+{
+#ifdef HAVE_LIBDVDREAD
+    char buf[TC_BUF_MAX];
+    int ch1, ch2;
+
+    if (tc_encoder_init(vob) != TC_OK)
+        tc_error("failed to init encoder");
+
+    // open output
+    if (no_split) {
+        // create new filename
+        tc_snprintf(buf, sizeof(buf), "%s.avi", chbase);
+        // update vob structure
+        vob->video_out_file = buf;
+        vob->audio_out_file = buf;
+
+        if (tc_encoder_open(vob) != TC_OK)
+            tc_error("failed to open output");
+    }
+
+    // 1 sec delay after decoder closing
+    tc_decoder_delay = 1;
+
+    // loop each chapter
+    ch1 = vob->dvd_chapter1;
+    ch2 = vob->dvd_chapter2;
+
+    //ch = -1 is allowed but makes no sense
+    if (ch1 < 0)
+        ch1 = 1;
+
+    for (;;) {
+        vob->dvd_chapter1 = ch1;
+        vob->dvd_chapter2 =  -1;
+
+        if (!no_split) {
+            // create new filename
+            tc_snprintf(buf, sizeof(buf), "%s-ch%02d.avi", chbase, ch1);
+            // update vob structure
+            vob->video_out_file = buf;
+            vob->audio_out_file = buf;
+        }
+
+        // start decoding with updated vob structure
+        if (tc_import_open(vob) < 0)
+            tc_error("failed to open input source");
+
+        // start the AV import threads that load the frames into transcode
+        tc_import_threads_create(vob);
+
+        if (verbose & TC_DEBUG)
+            tc_log_msg(PACKAGE, "%d chapters for title %d detected",
+                       vob->dvd_max_chapters, vob->dvd_title);
+
+        // encode
+        if (!no_split) {
+            if (tc_encoder_open(vob) != TC_OK)
+                tc_error("failed to init encoder");
+        }
+
+        // main encoding loop, selecting an interval won't work
+        tc_encoder_loop(vob, frame_a, frame_b);
+
+        if (!no_split) {
+            if (tc_encoder_close() != TC_OK)
+                tc_warn("failed to close encoder - non fatal");
+        }
+
+        // cancel import threads
+        tc_import_threads_cancel();
+        // stop decoder and close the source
+        tc_import_close();
+
+        // flush all buffers before we proceed
+        tc_framebuffer_flush();
+
+        // exit,  i) if import module could not determine max_chapters
+        //       ii) all chapters are done
+        //      iii) someone hit ^C
+
+        if (vob->dvd_max_chapters ==- 1
+         || ch1 == vob->dvd_max_chapters || ch1 == ch2
+         || tc_interrupted())
+            break;
+        ch1++;
+    }
+
+    if (no_split) {
+        if (tc_encoder_close() != TC_OK)
+            tc_warn("failed to close encoder - non fatal");
+    }
+
+    tc_stop();
+    tc_encoder_stop();
+#endif
+
+    return TC_OK;
+}
 
 /*************************************************************************/
 
@@ -851,9 +1293,7 @@ static const char *deinterlace_desc[] = {
 int main(int argc, char *argv[])
 {
     sigset_t sigs_to_block;
-    int ch1, ch2, fa, fb;
 
-    char buf[TC_BUF_MAX];
     const char *psubase = NULL;
 
     double fch, asr;
@@ -2259,419 +2699,23 @@ int main(int argc, char *argv[])
 
     switch (core_mode) {
       case TC_MODE_DEFAULT:
-        /* -------------------------------------------------------------
-         * single file continuous or interval mode
-         * ------------------------------------------------------------*/
-
-        // init decoder and open the source
-        if (0 != vob->ttime->vob_offset){
-            vob->vob_offset = vob->ttime->vob_offset;
-        }
-        if (tc_import_open(vob) < 0)
-            tc_error("failed to open input source");
-
-        // start the AV import threads that load the frames into transcode
-        // this must be called after tc_import_open
-        tc_import_threads_create(vob);
-
-        // init encoder
-        if (tc_encoder_init(vob) != TC_OK)
-            tc_error("failed to init encoder");
-
-        // open output files
-        if (tc_encoder_open(vob) != TC_OK)
-            tc_error("failed to open output");
-
-        // tell counter about all encoding ranges
-        counter_reset_ranges();
-        if (!tc_cluster_mode) {
-            int last_etf = 0;
-            for (tstart = vob->ttime; tstart; tstart = tstart->next) {
-                if (tstart->etf == TC_FRAME_LAST) {
-                    // variable length range, oh well
-                    counter_reset_ranges();
-                    break;
-                }
-                if (tstart->stf > last_etf)
-                    counter_add_range(last_etf, tstart->stf-1, 0);
-                counter_add_range(tstart->stf, tstart->etf-1, 1);
-                last_etf = tstart->etf;
-            }
-        }
-
-        // get start interval
-        tstart = vob->ttime;
-
-        while (tstart) {
-            // set frame range (in cluster mode these will already be set)
-            if (!tc_cluster_mode) {
-                frame_a = tstart->stf;
-                frame_b = tstart->etf;
-            }
-            // main encoding loop, returns when done with all frames
-            tc_encoder_loop(vob, frame_a, frame_b);
-
-            // check for user cancelation request
-            if (tc_interrupted()) {
-                break;
-            }
-
-            // next range
-            tstart = tstart->next;
-            // see if we're using vob_offset
-            if ((tstart != NULL) && (tstart->vob_offset != 0)) {
-                tc_decoder_delay = 3;
-                tc_import_threads_cancel();
-                tc_import_close();
-                tc_framebuffer_flush();
-                vob->vob_offset = tstart->vob_offset;
-                vob->sync = sync_seconds;
-                if (tc_import_open(vob) < 0)
-                    tc_error("failed to open input source");
-                tc_import_threads_create(vob);
-            }
-        }
-        tc_stop();
-
-        // close output files
-        tc_encoder_close();
-        // stop encoder
-        tc_encoder_stop();
-        // cancel import threads
-        tc_import_threads_cancel();
-        // stop decoder and close the source
-        tc_import_close();
+        transcode_mode_default(vob);
         break;
 
       case TC_MODE_AVI_SPLIT:
-        /* ------------------------------------------------------------
-         * split output AVI file
-         * ------------------------------------------------------------*/
-
-        // init decoder and open the source
-        if (tc_import_open(vob) < 0)
-            tc_error("failed to open input source");
-
-        // start the AV import threads that load the frames into transcode
-        tc_import_threads_create(vob);
-
-        // encoder init
-        if (tc_encoder_init(vob) != TC_OK)
-            tc_error("failed to init encoder");
-
-        // need to loop for this option
-        ch1 = 0;
-
-        do {
-            if (!base || !strlen(base))
-                strlcpy(base, vob->video_out_file, TC_BUF_MIN);
-
-            // create new filename
-            tc_snprintf(buf, sizeof(buf), "%s%03d.avi", base, ch1++);
-            // update vob structure
-            vob->video_out_file = buf;
-            vob->audio_out_file = buf;
-
-            // open output
-            if (tc_encoder_open(vob) != TC_OK)
-                tc_error("failed to open output");
-
-            fa = frame_a;
-            fb = frame_a + splitavi_frames;
-
-            tc_encoder_loop(vob, fa, ((fb > frame_b) ? frame_b : fb));
-
-            // close output
-            tc_encoder_close();
-
-            // restart
-            frame_a += splitavi_frames;
-            if (frame_a >= frame_b)
-                break;
-
-            if(verbose & TC_DEBUG)
-                tc_log_msg(PACKAGE, "import status=%d", tc_import_status());
-
-            // check for user cancelation request
-            if (tc_interrupted())
-                break;
-
-        } while (tc_import_status());
-
-        tc_encoder_stop();
-
-        // cancel import threads
-        tc_import_threads_cancel();
-        // stop decoder and close the source
-        tc_import_close();
-
+        transcode_mode_avi_split(vob);
         break;
 
       case TC_MODE_PSU:
-        /* ---------------------------------------------------------------
-         * VOB PSU mode: transcode and split based on program stream units
-         * --------------------------------------------------------------*/
-
-        // encoder init
-        if (tc_encoder_init(vob) != TC_OK)
-            tc_error("failed to init encoder");
-
-        // open output
-        if (no_split) {
-            vob->video_out_file = psubase;
-            if (tc_encoder_open(vob) != TC_OK)
-                tc_error("failed to open output");
-        }
-
-        // 1 sec delay after decoder closing
-        tc_decoder_delay = 3;
-
-        // need to loop for this option
-        ch1 = vob->vob_psu_num1;
-
-        // enable counter
-        counter_on();
-
-        for (;;) {
-            int ret;
-
-            memset(buf, 0, sizeof buf);
-            if (!no_split) {
-                // create new filename
-                tc_snprintf(buf, sizeof(buf), psubase, ch1);
-                // update vob structure
-                vob->video_out_file = buf;
-
-                if (verbose & TC_INFO)
-                    tc_log_info(PACKAGE, "using output filename %s",
-                                vob->video_out_file);
-            }
-
-            // get seek/frame information for next PSU
-            // need to process whole PSU
-            vob->vob_chunk=0;
-            vob->vob_chunk_max=1;
-
-            ret = split_stream(vob, nav_seek_file, ch1, &fa, &fb, 0);
-
-            if (verbose & TC_DEBUG)
-                tc_log_msg(PACKAGE,"processing PSU %d, -L %d -c %d-%d %s (ret=%d)",
-                           ch1, vob->vob_offset, fa, fb, buf, ret);
-
-            // exit condition
-            if (ret < 0 || ch1 == vob->vob_psu_num2)
-                break;
-    
-            //do not process units with a small frame number, assume it is junk
-            if ((fb-fa) > psu_frame_threshold) {
-                // start new decoding session with updated vob structure
-                // this starts the full decoder setup, including the threads
-                if (tc_import_open(vob) < 0)
-                    tc_error("failed to open input source");
-
-                // start the AV import threads that load the frames into transcode
-                tc_import_threads_create(vob);
-
-                // open new output file
-                if (!no_split) {
-                    if (tc_encoder_open(vob) != TC_OK)
-                        tc_error("failed to open output");
-                }
-
-                // core
-                // we try to encode more frames and let the decoder safely
-                // drain the queue to avoid threads not stopping
-
-                tc_encoder_loop(vob, fa, TC_FRAME_LAST);
-
-                // close output file
-                if (!no_split) {
-                    if (tc_encoder_close() != TC_OK)
-                        tc_warn("failed to close encoder - non fatal");
-                }
-
-                //debugging code since PSU mode still alpha code
-                vframe_dump_status();
-                aframe_dump_status();
-
-                // cancel import threads
-                tc_import_threads_cancel();
-                // stop decoder and close the source
-                tc_import_close();
-
-                // flush all buffers before we proceed to next PSU
-                tc_framebuffer_flush();
-
-                vob->psu_offset += (double) (fb-fa);
-            } else {
-                if (verbose & TC_INFO)
-                    tc_log_info(PACKAGE, "skipping PSU %d with %d frame(s)",
-                                ch1, fb-fa);
-
-            }
-
-            ch1++;
-            if (tc_interrupted())
-                break;
-
-        }//next PSU
-
-        // close output
-        if (no_split) {
-            if (tc_encoder_close() != TC_OK)
-                tc_warn("failed to close encoder - non fatal");
-        }
-
-        tc_encoder_stop();
-
+        transcode_mode_psu(vob, psubase);
         break;
 
       case TC_MODE_DIRECTORY:
-        if (vob->audio_in_file != vob->video_in_file) {
-            tc_error("directory mode DOES NOT support separate audio files");
-        }
-
-        tc_seq_import_threads_create(vob);
-
-        if (tc_encoder_init(vob) != TC_OK)
-            tc_error("failed to init encoder");
-        if (tc_encoder_open(vob) != TC_OK)
-            tc_error("failed to open output");
-
-        // tell counter about all encoding ranges
-        counter_reset_ranges();
-        if (!tc_cluster_mode) {
-            int last_etf = 0;
-            for (tstart = vob->ttime; tstart; tstart = tstart->next) {
-                if (tstart->etf == TC_FRAME_LAST) {
-                    // variable length range, oh well
-                    counter_reset_ranges();
-                    break;
-                }
-                if (tstart->stf > last_etf)
-                    counter_add_range(last_etf, tstart->stf-1, 0);
-                counter_add_range(tstart->stf, tstart->etf-1, 1);
-                last_etf = tstart->etf;
-            }
-        }
-
-        // get start interval
-        for (tstart = vob->ttime;
-             tstart != NULL && !tc_interrupted();
-             tstart = tstart->next) {
-            // set frame range (in cluster mode these will already be set)
-            if (!tc_cluster_mode) {
-                frame_a = tstart->stf;
-                frame_b = tstart->etf;
-            }
-            // main encoding loop, returns when done with all frames
-            tc_encoder_loop(vob, frame_a, frame_b);
-        }
-
-        tc_encoder_close();
-        tc_encoder_stop();
-        tc_seq_import_threads_cancel();
+        transcode_mode_directory(vob);
         break;
 
       case TC_MODE_DVD_CHAPTER:
-#ifdef HAVE_LIBDVDREAD
-        /* ------------------------------------------------------------
-         * DVD chapter mode
-         * ------------------------------------------------------------*/
-
-        // the import module probes for the number of chapter of
-        // given DVD title
-
-        // encoder init
-        if (tc_encoder_init(vob) != TC_OK)
-            tc_error("failed to init encoder");
-
-        // open output
-        if (no_split) {
-            // create new filename
-            tc_snprintf(buf, sizeof(buf), "%s.avi", chbase);
-            // update vob structure
-            vob->video_out_file = buf;
-            vob->audio_out_file = buf;
-
-            if (tc_encoder_open(vob) != TC_OK)
-                tc_error("failed to open output");
-        }
-
-        // 1 sec delay after decoder closing
-        tc_decoder_delay=1;
-
-        // loop each chapter
-        ch1 = vob->dvd_chapter1;
-        ch2 = vob->dvd_chapter2;
-
-        //ch=-1 is allowed but makes no sense
-        if (ch1 < 0)
-            ch1 = 1;
-
-        for (;;) {
-            vob->dvd_chapter1 = ch1;
-            vob->dvd_chapter2 =  -1;
-
-            if (!no_split) {
-                // create new filename
-                tc_snprintf(buf, sizeof(buf), "%s-ch%02d.avi", chbase, ch1);
-                // update vob structure
-                vob->video_out_file = buf;
-                vob->audio_out_file = buf;
-            }
-
-            // start decoding with updated vob structure
-            if (tc_import_open(vob) < 0)
-                tc_error("failed to open input source");
-
-            // start the AV import threads that load the frames into transcode
-            tc_import_threads_create(vob);
-
-            if (verbose & TC_DEBUG)
-                tc_log_msg(PACKAGE, "%d chapters for title %d detected",
-                           vob->dvd_max_chapters, vob->dvd_title);
-
-            // encode
-            if (!no_split) {
-                if (tc_encoder_open(vob) != TC_OK)
-                    tc_error("failed to init encoder");
-            }
-
-            // main encoding loop, selecting an interval won't work
-            tc_encoder_loop(vob, frame_a, frame_b);
-
-            if (!no_split) {
-                if (tc_encoder_close() != TC_OK)
-                    tc_warn("failed to close encoder - non fatal");
-            }
-
-            // cancel import threads
-            tc_import_threads_cancel();
-            // stop decoder and close the source
-            tc_import_close();
-
-            // flush all buffers before we proceed
-            tc_framebuffer_flush();
-
-            //exit, i) if import module could not determine max_chapters
-            //      ii) all chapters are done
-            //      iii) someone hit ^C
-
-            if (vob->dvd_max_chapters ==- 1
-             || ch1 == vob->dvd_max_chapters || ch1 == ch2
-             || tc_interrupted())
-                break;
-            ch1++;
-        }
-
-        if (no_split) {
-            if (tc_encoder_close() != TC_OK)
-                tc_warn("failed to close encoder - non fatal");
-        }
-
-        tc_encoder_stop();
-#endif
+        transcode_mode_dvd(vob);
         break;
 
       case TC_MODE_DEBUG:

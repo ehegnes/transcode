@@ -1,4 +1,8 @@
 2007-11-01 Francesco Romani <fromani at gmail dot com>
+  * src/transcode.c
+  modularize codebase (core mode selection switch).
+  add proper tc_stop() calls where needed.
+
   * import/import_mplayer.c
   avoid SIGPIPE. But I'm still not fully satisfied.
 
