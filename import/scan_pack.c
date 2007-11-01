@@ -132,8 +132,9 @@ static int probe_picext(uint8_t *buffer, size_t buflen)
   //  "Bottom field",
   //  "Frame Picture"
   //};
-  static int buf_small_count = 0;
   if(buflen < 3) {
+#ifdef PROBE_DEBUG  
+    static int buf_small_count = 0;
     if(buf_small_count == 0
       || (buf_small_count % BUF_WARN_COUNT) == 0) {
         tc_log_warn(__FILE__, "not enough buffer to probe picture extension "
@@ -141,6 +142,7 @@ static int probe_picext(uint8_t *buffer, size_t buflen)
                           (unsigned long)buflen, buf_small_count);
     }
     buf_small_count++;
+#endif
     return(-1); /* failed probe */
   }
   return(buffer[2] & 3);
@@ -149,8 +151,9 @@ static int probe_picext(uint8_t *buffer, size_t buflen)
 static const char *probe_group(uint8_t *buffer, size_t buflen)
 {
     static char retbuf[32];
-    static int buf_small_count = 0;
     if(buflen < 5) {
+#ifdef PROBE_DEBUG  
+        static int buf_small_count = 0;
         if(buf_small_count == 0
           || (buf_small_count % BUF_WARN_COUNT) == 0) {
             tc_log_warn(__FILE__, "not enough buffer to probe picture group "
@@ -158,6 +161,7 @@ static const char *probe_group(uint8_t *buffer, size_t buflen)
                              (unsigned long)buflen, buf_small_count);
         }
         buf_small_count++;
+#endif
 	*retbuf = 0;
     } else {
 	tc_snprintf(retbuf, sizeof(retbuf), "%s%s",

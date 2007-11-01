@@ -138,11 +138,6 @@ void decode_mpeg2(decode_t *decode)
           case STATE_END:
           case STATE_INVALID_END:
             if (info->display_fbuf) {
-                if (decode->verbose >= 4) {
-                    tc_log_info(__FILE__, "decoded frame #%09i\r",
-                                framenum);
-                    framenum++;
-                }
                 writer(decode, info, sequence);
             }
             break;

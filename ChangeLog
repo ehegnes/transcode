@@ -1,4 +1,7 @@
 2007-11-01 Francesco Romani <fromani at gmail dot com>
+  * import/decode_mpeg2.c import/scan_pack.c
+  make more silent.
+
   * src/decoder.c src/decoder.h
   internal cleanup and tweaking. No regression expected after quick tests.
 
