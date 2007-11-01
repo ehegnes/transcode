@@ -1,3 +1,7 @@
+2007-11-01 Francesco Romani <fromani at gmail dot com>
+  * src/decoder.c src/decoder.h
+  internal cleanup and tweaking. No regression expected after quick tests.
+
 2007-10-28 Francesco Romani <fromani at gmail dot com>
   * multiplex/multiplex_avi.c multiplex/multiplex_null.c
     multiplex/multiplex_raw.c multiplex/multiplex_y4m.c

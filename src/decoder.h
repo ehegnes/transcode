@@ -27,8 +27,6 @@
 int tc_import_init(vob_t *vob, const char *a_mod, const char *v_mod);
 void tc_import_shutdown(void);
 
-//void tc_import_audio_stop(void);
-//void tc_import_video_stop(void);
 
 int tc_import_open(vob_t *vob);
 int tc_import_close(void);
@@ -44,9 +42,5 @@ int tc_import_status(void);
 int tc_import_audio_status(void);
 int tc_import_video_status(void);
 
-void tc_import_audio_notify(void);
-void tc_import_video_notify(void);
-
-//void tc_import_stop_nolock(void);
 
 #endif /* DECODER_H */
