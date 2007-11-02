@@ -51,14 +51,10 @@ enum {
 
 typedef struct tcdecoderdata_ TCDecoderData;
 struct tcdecoderdata_ {
-    const char *tag;
-
-    FILE *fd;
-
-    void *im_handle;
-
-    volatile int active_flag;
-
+    const char *tag;            /* audio or video? used for logging */
+    FILE *fd;                   /* for stream import                */
+    void *im_handle;            /* import module handle             */
+    volatile int active_flag;   /* active or not?                   */
     pthread_t thread_id;
     pthread_mutex_t lock;
 };
@@ -221,7 +217,7 @@ static int mfread(uint8_t *buf, int size, int nelem, FILE *f)
 /*
  * Notes about import thread status (stop) flag:
  *
- * XXX: Writeme.
+ * XXX: WRITEME.
  *
  */
 
@@ -304,6 +300,36 @@ static int tc_import_audio_is_active(void)
 /*               stream open/close functions                             */
 /*************************************************************************/
 
+/*
+ * tc_import_{video,audio}_open: open audio stream for importing.
+ * 
+ * Parameters:
+ *      vob: vob structure
+ * Return Value:
+ *         TC_OK: succesfull.
+ *      TC_ERROR: failure; reason was tc_log*()ged out.
+ */
+static int tc_import_video_open(vob_t *vob)
+{
+    int ret;
+    transfer_t import_para;
+
+    memset(&import_para, 0, sizeof(transfer_t));
+
+    import_para.flag = TC_VIDEO;
+
+    ret = tcv_import(TC_IMPORT_OPEN, &import_para, vob);
+    if (ret < 0) {
+        tc_log_error(PACKAGE, "video import module error: OPEN failed");
+        return TC_ERROR;
+    }
+
+    video_decdata.fd = import_para.fd;
+
+    return TC_OK;
+}
+
+
 static int tc_import_audio_open(vob_t *vob)
 {
     int ret;
@@ -311,7 +337,6 @@ static int tc_import_audio_open(vob_t *vob)
 
     memset(&import_para, 0, sizeof(transfer_t));
 
-    // start audio stream
     import_para.flag = TC_AUDIO;
 
     ret = tca_import(TC_IMPORT_OPEN, &import_para, vob);
@@ -325,29 +350,15 @@ static int tc_import_audio_open(vob_t *vob)
     return TC_OK;
 }
 
-
-static int tc_import_video_open(vob_t *vob)
-{
-    int ret;
-    transfer_t import_para;
-
-    memset(&import_para, 0, sizeof(transfer_t));
-
-    // start video stream
-    import_para.flag = TC_VIDEO;
-
-    ret = tcv_import(TC_IMPORT_OPEN, &import_para, vob);
-    if (ret < 0) {
-        tc_log_error(PACKAGE, "video import module error: OPEN failed");
-        return TC_ERROR;
-    }
-
-    video_decdata.fd = import_para.fd;
-
-    return TC_OK;
-
-}
-
+/*
+ * tc_import_{video,audio}_close: close audio stream used for importing.
+ * 
+ * Parameters:
+ *      None.
+ * Return Value:
+ *         TC_OK: succesfull.
+ *      TC_ERROR: failure; reason was tc_log*()ged out.
+ */
 
 static int tc_import_audio_close(void)
 {
@@ -404,8 +415,14 @@ static int tc_import_video_close(void)
 } while (0)
 
 
-
-
+/*
+ * stop_cause: specify the cause of an import loop termination.
+ *
+ * Parameters:
+ *      ret: termination cause identifier to be specified
+ * Return Value:
+ *      the most specific recognizable termination cause.
+ */
 static int stop_cause(int ret)
 {
     if (ret == TC_IM_THREAD_UNKNOWN) {
@@ -418,7 +435,15 @@ static int stop_cause(int ret)
     return ret;
 }
 
-
+/*
+ * {video,audio}_import_loop: data import loops. Feed frame FIFOs with
+ * new data forever until are interrupted or stopped.
+ *
+ * Parameters:
+ *      vob: vob structure
+ * Return Value:
+ *      TC_IM_THREAD_* value reporting operation status.
+ */
 static int video_import_loop(vob_t *vob)
 {
     long int i = 0;
@@ -687,6 +712,10 @@ static void *video_import_thread(void *_vob)
 /*               main API functions                                      */
 /*************************************************************************/
 
+int tc_import_status()
+{
+    return tc_import_video_status() && tc_import_audio_status();
+}
 
 int tc_import_video_status(void)
 {
@@ -776,9 +805,6 @@ int tc_import_init(vob_t *vob, const char *a_mod, const char *v_mod)
     return TC_OK;
 }
 
-/*************************************************************************/
-/*                            frontends                                  */
-/*************************************************************************/
 
 int tc_import_open(vob_t *vob)
 {
@@ -814,19 +840,8 @@ void tc_import_shutdown(void)
     video_decdata.im_handle = NULL;
 }
 
-/**************************************************************************/
-/* major import status query:                                             */
-/* 1 = import still active OR some frames still buffered/processed        */
-/* 0 = shutdown as soon as possible                                       */
-/**************************************************************************/
-
-int tc_import_status()
-{
-    return tc_import_video_status() && tc_import_audio_status();
-}
-
 /*************************************************************************/
-/*        the new API                                                    */
+/*             the new sequential API                                    */
 /*************************************************************************/
 
 
