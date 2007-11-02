@@ -31,16 +31,32 @@ void tc_import_shutdown(void);
 int tc_import_open(vob_t *vob);
 int tc_import_close(void);
 
-void tc_seq_import_threads_create(vob_t *vob);
-void tc_seq_import_threads_cancel(void);
-
 void tc_import_threads_create(vob_t *vob);
 void tc_import_threads_cancel(void);
 
 int tc_import_status(void);
 
+/*
+ * tc_import_{video,audio}_status (Thread safe): query the status
+ * of import layer.
+ * 
+ * Import layer has the responsability to provide raw data for further
+ * layers. Since there always is some buffering, isn't sufficient to
+ * check if import threads are running or not, we also need to see if 
+ * there is some buffered data in the frame FIFOs.
+ *
+ * Parameters:
+ *      None.
+ * Return Value:
+ *      !0: there is some futher data to process.
+ *       0: no more data avalaible.
+ */
 int tc_import_audio_status(void);
 int tc_import_video_status(void);
 
+/*************************************************************************/
+
+void tc_seq_import_threads_create(vob_t *vob);
+void tc_seq_import_threads_cancel(void);
 
 #endif /* DECODER_H */

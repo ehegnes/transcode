@@ -87,18 +87,19 @@ static TCDecoderData audio_decdata = {
 static pthread_t tc_pthread_main = (pthread_t)0;
 
 /*************************************************************************/
+/*  Old-style compatibility support functions                            */
 /*************************************************************************/
 
 struct modpair {
-    int codec;
-    int caps;
+    int codec; /* internal codec/colorspace/format */
+    int caps;  /* module capabilities              */
 };
 
 static const struct modpair audpairs[] = {
     { CODEC_PCM,     TC_CAP_PCM    },
     { CODEC_AC3,     TC_CAP_AC3    },
     { CODEC_RAW,     TC_CAP_AUD    },
-    { CODEC_NULL,    TC_CAP_NONE   }
+    { CODEC_NULL,    TC_CAP_NONE   } /* end marker, must be the last */
 };
 
 static const struct modpair vidpairs[] = {
@@ -107,10 +108,22 @@ static const struct modpair vidpairs[] = {
     { CODEC_YUV422,  TC_CAP_YUV422 },
     { CODEC_RAW_YUV, TC_CAP_VID    },
     { CODEC_RAW,     TC_CAP_VID    },
-    { CODEC_NULL,    TC_CAP_NONE   }
+    { CODEC_NULL,    TC_CAP_NONE   } /* end marker, must be the last */
 };
 
 
+/*
+ * check_module_caps: verifies if a module is compatible with transcode
+ * core colorspace/format settings.
+ *
+ * Parameters:
+ *       param: data describing (old-style) module capabilities.
+ *       codec: codec/format/colorspace requested by core.
+ *      mpairs: table of formats/capabilities to be used for check.
+ * Return Value:
+ *       0: module INcompatible with core format request.
+ *      !0: module can accomplish to the core format request.
+ */
 static int check_module_caps(const transfer_t *param, int codec,
                              const struct modpair *mpairs)
 {
@@ -122,7 +135,7 @@ static int check_module_caps(const transfer_t *param, int codec,
     } else {
         int i = 0;
 
-        // module returned capability flag
+        /* module returned capability flag */
         if (verbose >= TC_DEBUG) {
             tc_log_msg(__FILE__, "Capability flag 0x%x | 0x%x",
                        param->flag, codec);
@@ -205,6 +218,23 @@ static int mfread(uint8_t *buf, int size, int nelem, FILE *f)
 /*               status handling functions                               */
 /*************************************************************************/
 
+/*
+ * Notes about import thread status (stop) flag:
+ *
+ * XXX: Writeme.
+ *
+ */
+
+/*
+ * tc_import_{video,audio}_stop (Thread safe): mark the import status flag
+ * as `stopped'; import thread are stopped, or are going to stop as soon
+ * as is possible.
+ *
+ * Parameters:
+ *      None.
+ * Return Value:
+ *      None
+ */
 static void tc_import_video_stop(void)
 {
     pthread_mutex_lock(&video_decdata.lock);
@@ -219,6 +249,15 @@ static void tc_import_audio_stop(void)
     pthread_mutex_unlock(&audio_decdata.lock);
 }
 
+/*
+ * tc_import_{video,audio}_start (Thread safe): mark the import status flag
+ * as `started'; import thread are running and they are producing data.
+ *
+ * Parameters:
+ *      None.
+ * Return Value:
+ *      None
+ */
 static void tc_import_video_start(void)
 {
     pthread_mutex_lock(&video_decdata.lock);
@@ -233,15 +272,16 @@ static void tc_import_audio_start(void)
     pthread_mutex_unlock(&audio_decdata.lock);
 }
 
-static int tc_import_audio_is_active(void)
-{
-    int flag;
-    pthread_mutex_lock(&audio_decdata.lock);
-    flag = audio_decdata.active_flag;
-    pthread_mutex_unlock(&audio_decdata.lock);
-    return flag;
-}
-
+/*
+ * tc_import_{video,audio}_is_active (Thread safe): poll for the current
+ * status flag of import threads.
+ *
+ * Parameters:
+ *      None.
+ * Return Value:
+ *      0: import threads are stopped or stopping.
+ *      1: import threads are running.
+ */
 static int tc_import_video_is_active(void)
 {
     int flag;
@@ -251,15 +291,13 @@ static int tc_import_video_is_active(void)
     return flag;;
 }
 
-
-int tc_import_audio_status(void)
+static int tc_import_audio_is_active(void)
 {
-    return (tc_import_audio_is_active() || aframe_have_more());
-}
-
-int tc_import_video_status(void)
-{
-    return (tc_import_video_is_active() || vframe_have_more());
+    int flag;
+    pthread_mutex_lock(&audio_decdata.lock);
+    flag = audio_decdata.active_flag;
+    pthread_mutex_unlock(&audio_decdata.lock);
+    return flag;
 }
 
 /*************************************************************************/
@@ -353,10 +391,9 @@ static int tc_import_video_close(void)
 
 
 /*************************************************************************/
-/*               the decode (really: import) loops                       */
+/*                       the import loops                                */
 /*************************************************************************/
 
-/* video chunk decode loop */
 
 #define MARK_TIME_RANGE(PTR, VOB) do { \
     /* Set skip attribute based on -c */ \
@@ -365,6 +402,9 @@ static int tc_import_video_close(void)
     else \
         (PTR)->attributes |= TC_FRAME_IS_OUT_OF_RANGE; \
 } while (0)
+
+
+
 
 static int stop_cause(int ret)
 {
@@ -379,7 +419,7 @@ static int stop_cause(int ret)
 }
 
 
-static int video_decode_loop(vob_t *vob)
+static int video_import_loop(vob_t *vob)
 {
     long int i = 0;
     int ret = 0, vbytes = 0;
@@ -486,7 +526,6 @@ static int video_decode_loop(vob_t *vob)
     return stop_cause(im_ret);
 }
 
-/* audio chunk decode loop */
 
 #define GET_AUDIO_FRAME do { \
     if (audio_decdata.fd != NULL) { \
@@ -507,7 +546,7 @@ static int video_decode_loop(vob_t *vob)
     } \
 } while (0)
 
-static int audio_decode_loop(vob_t *vob)
+static int audio_import_loop(vob_t *vob)
 {
     long int i = 0;
     int ret = 0, abytes;
@@ -627,7 +666,7 @@ static int audio_decode_loop(vob_t *vob)
 static void *audio_import_thread(void *_vob)
 {
     static int ret = 0;
-    ret = audio_decode_loop(_vob);
+    ret = audio_import_loop(_vob);
     if (verbose >= TC_CLEANUP)
         tc_log_msg(__FILE__, "audio decode loop ends with code 0x%i", ret);
     pthread_exit(&ret);
@@ -637,7 +676,7 @@ static void *audio_import_thread(void *_vob)
 static void *video_import_thread(void *_vob)
 {
     static int ret = 0;
-    ret = video_decode_loop(_vob);
+    ret = video_import_loop(_vob);
     if (verbose >= TC_CLEANUP)
         tc_log_msg(__FILE__, "video decode loop ends with code 0x%i", ret);
     pthread_exit(&ret);
@@ -647,6 +686,18 @@ static void *video_import_thread(void *_vob)
 /*************************************************************************/
 /*               main API functions                                      */
 /*************************************************************************/
+
+
+int tc_import_video_status(void)
+{
+    return (tc_import_video_is_active() || vframe_have_more());
+}
+
+int tc_import_audio_status(void)
+{
+    return (tc_import_audio_is_active() || aframe_have_more());
+}
+
 
 void tc_import_threads_cancel(void)
 {
@@ -875,7 +926,7 @@ struct tcseqimportdata_ {
     ProbeInfo infos;
 
     int (*open)(vob_t *vob);
-    int (*decode_loop)(vob_t *vob);
+    int (*import_loop)(vob_t *vob);
     int (*close)(void);
 
     int (*next)(vob_t *vob);
@@ -892,7 +943,7 @@ struct tcseqimportdata_ {
     MEDIA ## _seqdata.decdata      = &(MEDIA ## _decdata);          \
                                                                     \
     MEDIA ## _seqdata.open         = tc_import_ ## MEDIA ## _open;  \
-    MEDIA ## _seqdata.decode_loop  = MEDIA ## _decode_loop;         \
+    MEDIA ## _seqdata.import_loop  = MEDIA ## _import_loop;         \
     MEDIA ## _seqdata.close        = tc_import_ ## MEDIA ## _close; \
     MEDIA ## _seqdata.next         = tc_next_ ## MEDIA ## _in_file; \
 } while (0)
@@ -930,7 +981,7 @@ static void *seq_import_thread(void *_sid)
             break;
         }
 
-        status = sid->decode_loop(sid->vob);
+        status = sid->import_loop(sid->vob);
         /* source should always be closed */
 
         ret = sid->close();
