@@ -42,48 +42,9 @@
 #define INFINITY HUGE_VAL
 #endif
 
-/*
-   Changelog
-
-0.3.13    EMS   removed more unused code
-                added option for global motion compensation "gmc" (may
-                    not be working in ffmpeg yet) (default off)
-                added option for truncated file support "trunc" (default off)
-                added option for generating closed gop streams
-                    "closedgop" (disable scene detection) (default off)
-                added option for selecting intra_dc_precision
-                    ("intra_dc_precision") (default lowest)
-0.3.12    EMS   removed unused huffyuv code
-                removed unnecessary compares on "mpeg1" and "mpeg2" when
-                    checking for "mpeg1video" and "mpeg2video"
-                cleaned up little 4mv mess
-                removed most lmin, lmax #ifdefs again, they are only
-                    necessary at 1 point actually
-                add svcd scan offset option for libavodec
-                added pseudo codecs: vcd, svcd and dvd with proper
-                    defaults (video and audio) and "pal"/"secam"/"ntsc"
-                    settings
-                        these now set:
-                            - bitrate
-                            - interlacing
-                            - minrate, maxrate
-                            - buffer_size, buffer_aggressivity
-                            - gop size
-                            - svcd scan offset
-                            - audio bitrate, channels, sample rate, codec
-                        when they're not explicitely set by the user.
-                "fixed" default extensions for video
-                cleaned up aspect ratio code to be more intuitive
-                streamlined logging
-
-0.3.13    EMS   add threading support
-0.3.14    EMS   fixed threading support ;-)
-
-my tab settings: se ts=4, sw=4
-*/
 
 #define MOD_NAME    "export_ffmpeg.so"
-#define MOD_VERSION "v0.3.13 (2004-08-03)"
+#define MOD_VERSION "v0.3.17 (2007-11-02)"
 #define MOD_CODEC   "(video) " LIBAVCODEC_IDENT \
                     " | (audio) MPEG/AC3/PCM"
 
@@ -96,11 +57,13 @@ static int capability_flag = TC_CAP_YUV|TC_CAP_RGB|TC_CAP_PCM|TC_CAP_AC3|
 #include "ffmpeg_cfg.h"
 
 
-/*
+/*************************************************************************
  * libavcodec is not thread-safe. We must protect concurrent access to it.
  * this is visible (without the mutex of course) with
  * transcode .. -x ffmpeg -y ffmpeg -F mpeg4
  */
+
+
 struct ffmpeg_codec {
     char *name;
     char *fourCC;
@@ -108,7 +71,7 @@ struct ffmpeg_codec {
     int   multipass;
 };
 
-struct ffmpeg_codec ffmpeg_codecs[] = {
+static struct ffmpeg_codec ffmpeg_codecs[] = {
     {"mpeg4",      "DIVX", "MPEG4 compliant video", 1},
     {"msmpeg4",    "div3", "old DivX3 compatible (aka MSMPEG4v3)", 1},
     {"msmpeg4v2",  "MP42", "old DivX3 compatible (older version)", 1},
@@ -119,7 +82,6 @@ struct ffmpeg_codec ffmpeg_codecs[] = {
     {"h263",       "h263", "H263", 0},
     {"h263p",      "h263", "H263 plus", 1},
     {"h264",       "h264", "H264 (avc)", 1},
-    {"avc",        "h264", "H264 (avc)", 1},
     {"wmv1",       "WMV1", "Windows Media Video v1", 1},
     {"wmv2",       "WMV2", "Windows Media Video v2", 1},
     {"rv10",       "RV10", "old RealVideo codec", 1},
@@ -128,7 +90,7 @@ struct ffmpeg_codec ffmpeg_codecs[] = {
     {"ffv1",       "FFV1", "FF Video Codec 1 (an experimental lossless codec)", 0},
     {"asv1",       "ASV1", "ASUS V1 codec", 0},
     {"asv2",       "ASV2", "ASUS V2 codec", 0},
-    {NULL, NULL, NULL, 0}
+    {NULL,         NULL,   NULL, 0}
 };
 
 typedef enum /* do not edit without changing *_name and *_rate */
@@ -147,16 +109,16 @@ typedef enum /* do not edit without changing *_name and *_rate */
     vt_ntsc
 } video_template_t;
 
-static pseudo_codec_t       pseudo_codec;
-static video_template_t     video_template;
+static pseudo_codec_t       pseudo_codec = pc_none;
+static video_template_t     video_template = vt_none;
 static char                *real_codec = 0;
 static const char          *pseudo_codec_name[] = { "none", "vcd", "svcd", "xvcd", "dvd" };
 static const int            pseudo_codec_rate[] = { 0, 44100, 44100, -1, 48000 };
 static const char          *vt_name[] = { "general", "pal/secam", "ntsc" };
 static const char          *il_name[] = { "off", "top-first", "bottom-first", "unknown" };
 
-static uint8_t             *tmp_buffer = NULL;
-static uint8_t             *yuv42xP_buffer = NULL;
+static uint8_t             *enc_buffer = NULL;
+static uint8_t             *img_buffer = NULL;
 static AVFrame             *lavc_convert_frame = NULL;
 
 static AVCodec             *lavc_venc_codec = NULL;
@@ -175,22 +137,29 @@ static int                  is_mjpeg = 0;
 static FILE                *mpeg1fd = NULL;
 static int                  interlacing_active = 0;
 static int                  interlacing_top_first = 0;
-
 /* We can't declare lavc_param_psnr static so save it to this variable */
 static int                  do_psnr = 0;
 
 
 static struct ffmpeg_codec *find_ffmpeg_codec(char *name)
 {
-    int i;
-
-    i = 0;
-    while (ffmpeg_codecs[i].name != NULL) {
+    int i = 0;
+    for (i = 0; ffmpeg_codecs[i].name != NULL; i++) {
         if (!strcasecmp(name, ffmpeg_codecs[i].name))
             return &ffmpeg_codecs[i];
-        i++;
     }
     return NULL;
+}
+
+/* second step name mangling */
+static const char *ffmpeg_codec_name(const char *tc_name)
+{
+#if LIBAVCODEC_VERSION_INT  >= ((51<<16)+(44<<8)+0)
+    if (!strcmp(tc_name, "h264")) {
+        return "libx264";
+    }
+#endif
+    return tc_name;
 }
 
 static double psnr(double d) {
@@ -205,113 +174,103 @@ static double psnr(double d) {
  *
  * ------------------------------------------------------------*/
 
-MOD_init {
-    char * user_codec_string;
-    char *p;
-    int   i;
-    size_t fsize;
-    int ret = 0;
+MOD_init
+{
+    char *user_codec_string = NULL;
 
     if (param->flag == TC_VIDEO) {
-
+        size_t fsize = 0;
+        char *p = NULL;
+        int i = 0, ret = 0;
         /* Check if the user used '-F codecname' and abort if not. */
 
         if (vob->ex_v_fcc) {
             user_codec_string = tc_strdup(vob->ex_v_fcc);
             tc_strstrip(user_codec_string);
-        } else
-            user_codec_string = 0;
-
-    if ((!user_codec_string || !strlen(user_codec_string))) {
-        tc_log_info(MOD_NAME, "You must chose a codec by supplying '-F "
-                "<codecname>'. A list of supported codecs can be obtained with "
-                "'transcode -y ffmpeg -F list'.");
-
-        return TC_EXPORT_ERROR;
-    }
-
-    if (!strcasecmp(user_codec_string, "list")) {
-        i = 0;
-	tc_log_info(MOD_NAME, "List of known and supported codecs:");
-	tc_log_info(MOD_NAME, " Name       fourCC multipass comments");
-	tc_log_info(MOD_NAME, " ---------- ------ --------- "
-			      "-----------------------------------");
-        while (ffmpeg_codecs[i].name != NULL) {
-            tc_log_info(MOD_NAME, " %-10s  %s     %3s    %s",
-                    ffmpeg_codecs[i].name, ffmpeg_codecs[i].fourCC,
-                    ffmpeg_codecs[i].multipass ? "yes" : "no",
-                    ffmpeg_codecs[i].comments);
-            i++;
         }
-        return TC_EXPORT_ERROR;
-    }
 
-    if (!strcmp(user_codec_string, "mpeg1"))
-        real_codec = tc_strdup("mpeg1video");
-    else
-        if (!strcmp(user_codec_string, "mpeg2"))
+        if (!user_codec_string || !strlen(user_codec_string)) {
+            tc_log_info(MOD_NAME, "You must chose a codec by supplying '-F "
+                        "<codecname>'. A list of supported codecs can be obtained with "
+                        "'transcode -y ffmpeg -F list'.");
+
+            return TC_EXPORT_ERROR;
+        }
+
+        if (!strcasecmp(user_codec_string, "list")) {
+        	tc_log_info(MOD_NAME, "List of known and supported codecs:");
+	        tc_log_info(MOD_NAME, " Name       fourCC multipass comments");
+        	tc_log_info(MOD_NAME, " ---------- ------ --------- "
+	                		      "-----------------------------------");
+            for (i = 0; ffmpeg_codecs[i].name != NULL; i++) {
+                tc_log_info(MOD_NAME, " %-10s  %s     %3s    %s",
+                            ffmpeg_codecs[i].name, ffmpeg_codecs[i].fourCC,
+                            ffmpeg_codecs[i].multipass ? "yes" : "no",
+                            ffmpeg_codecs[i].comments);
+            }
+            return TC_EXPORT_ERROR;
+        }
+
+        if (!strcmp(user_codec_string, "mpeg1"))
+            real_codec = tc_strdup("mpeg1video");
+        else if (!strcmp(user_codec_string, "mpeg2"))
             real_codec = tc_strdup("mpeg2video");
+        else if (!strcmp(user_codec_string, "dv"))
+            real_codec = tc_strdup("dvvideo");
         else
-            if (!strcmp(user_codec_string, "dv"))
-                real_codec = tc_strdup("dvvideo");
-            else
-                real_codec = tc_strdup(user_codec_string);
+            real_codec = tc_strdup(user_codec_string);
 
-    if (!strcmp(user_codec_string, "huffyuv"))
-        is_huffyuv = 1;
+        if (!strcmp(user_codec_string, "huffyuv"))
+            is_huffyuv = 1;
 
-    if(!strcmp(user_codec_string, "mjpeg") || !strcmp(user_codec_string, "ljpeg"))
-    {
-        int handle;
+        if (!strcmp(user_codec_string, "mjpeg")
+         || !strcmp(user_codec_string, "ljpeg")) {
+            int handle;
 
-        tc_log_info(MOD_NAME, "output is mjpeg or ljpeg, extending range from "
-			      "YUV420P to YUVJ420P (full range)");
+            is_mjpeg = 1;
 
-        is_mjpeg = 1;
+            tc_log_info(MOD_NAME, "output is mjpeg or ljpeg, extending range from "
+		                "YUV420P to YUVJ420P (full range)");
 
-        if(!(handle = tc_filter_add("levels", "input=16-240")))
-            tc_log_warn(MOD_NAME, "cannot load levels filter");
-    }
+            handle = tc_filter_add("levels", "input=16-240");
+            if (!handle)
+                tc_log_warn(MOD_NAME, "cannot load levels filter");
+        }
 
-    free(user_codec_string);
-    user_codec_string = 0;
+        tc_free(user_codec_string);
+        user_codec_string = NULL;
 
-    if ((p = strrchr(real_codec, '-'))) { /* chop off -ntsc/-pal and set type */
-        *p++ = 0;
+        p = strrchr(real_codec, '-');
+        if (p) { /* chop off -ntsc/-pal and set type */
+            *p++ = 0;
 
-        if (!strcmp(p, "ntsc"))
-            video_template = vt_ntsc;
-        else
-            if (!strcmp(p, "pal"))
+            if (!strcmp(p, "ntsc")) {
+                video_template = vt_ntsc;
+            } else if (!strcmp(p, "pal")) {
                 video_template = vt_pal;
-            else {
-		tc_log_warn(MOD_NAME, "Video template standard must be one of pal/ntsc");
-		return(TC_EXPORT_ERROR);
-	    }
-    } else
-        video_template = vt_none;
+            } else {
+	    	    tc_log_warn(MOD_NAME, "Video template standard must be one of pal/ntsc");
+    	    	return(TC_EXPORT_ERROR);
+	        }
+        }
 
     if (!strcmp(real_codec, "vcd")) {
-        free(real_codec);
+        tc_free(real_codec);
         real_codec = tc_strdup("mpeg1video");
         pseudo_codec = pc_vcd;
-    } else
-        if (!strcmp(real_codec, "svcd")) {
-            free(real_codec);
-            real_codec = tc_strdup("mpeg2video");
-            pseudo_codec = pc_svcd;
-        } else
-            if(!strcmp(real_codec, "xvcd")) {
-                free(real_codec);
-                real_codec = tc_strdup("mpeg2video");
-                pseudo_codec = pc_xvcd;
-            } else
-                if(!strcmp(real_codec, "dvd")) {
-                    free(real_codec);
-                    real_codec = tc_strdup("mpeg2video");
-                    pseudo_codec = pc_dvd;
-                } else
-                    pseudo_codec = pc_none;
+    } else if (!strcmp(real_codec, "svcd")) {
+        tc_free(real_codec);
+        real_codec = tc_strdup("mpeg2video");
+        pseudo_codec = pc_svcd;
+    } else if(!strcmp(real_codec, "xvcd")) {
+        tc_free(real_codec);
+        real_codec = tc_strdup("mpeg2video");
+        pseudo_codec = pc_xvcd;
+    } else if(!strcmp(real_codec, "dvd")) {
+        tc_free(real_codec);
+        real_codec = tc_strdup("mpeg2video");
+        pseudo_codec = pc_dvd;
+    }
 
     if (!strcmp(real_codec, "mpeg1video"))
         is_mpegvideo = 1;
@@ -320,7 +279,6 @@ MOD_init {
         is_mpegvideo = 2;
 
     codec = find_ffmpeg_codec(real_codec);
-
     if (codec == NULL) {
         tc_log_warn(MOD_NAME, "Unknown codec '%s'.", real_codec);
         return TC_EXPORT_ERROR;
@@ -332,15 +290,15 @@ MOD_init {
     TC_UNLOCK_LIBAVCODEC;
 
     /* -- get it -- */
-    lavc_venc_codec = avcodec_find_encoder_by_name(codec->name);
+    lavc_venc_codec = avcodec_find_encoder_by_name(ffmpeg_codec_name(codec->name));
     if (!lavc_venc_codec) {
         tc_log_warn(MOD_NAME, "Could not find a FFMPEG codec for '%s'.",
                 codec->name);
         return TC_EXPORT_ERROR;
     }
     if (verbose) {
-	tc_log_info(MOD_NAME, "Using FFMPEG codec '%s' (FourCC '%s', %s).",
-		    codec->name, codec->fourCC, codec->comments);
+	    tc_log_info(MOD_NAME, "Using FFMPEG codec '%s' (FourCC '%s', %s).",
+		            codec->name, codec->fourCC, codec->comments);
     }
 
     lavc_venc_context = avcodec_alloc_context();
@@ -348,9 +306,9 @@ MOD_init {
 
     lavc_convert_frame= avcodec_alloc_frame();
     size = avpicture_get_size(PIX_FMT_RGB24, vob->ex_v_width, vob->ex_v_height);
-    tmp_buffer = malloc(size);
+    enc_buffer = tc_malloc(size);
 
-    if (lavc_venc_context == NULL || !tmp_buffer || !lavc_convert_frame) {
+    if (lavc_venc_context == NULL || !enc_buffer || !lavc_convert_frame) {
         tc_log_error(MOD_NAME, "Could not allocate enough memory.");
         return TC_EXPORT_ERROR;
     }
@@ -358,14 +316,13 @@ MOD_init {
     pix_fmt = vob->im_v_codec;
 
     if (! (pix_fmt == CODEC_RGB || pix_fmt == CODEC_YUV || pix_fmt == CODEC_YUV422)) {
-        tc_log_warn(MOD_NAME, "Unknown color space %d.",
-                pix_fmt);
+        tc_log_warn(MOD_NAME, "Unknown color space %d.", pix_fmt);
         return TC_EXPORT_ERROR;
     }
-    if (pix_fmt == CODEC_YUV422 || is_huffyuv) {
-        yuv42xP_buffer = malloc(size);
-        if (!yuv42xP_buffer) {
-            tc_log_error(MOD_NAME, "yuv42xP_buffer allocation failed.");
+    if (pix_fmt == CODEC_RGB || pix_fmt == CODEC_YUV422 || is_huffyuv) {
+        img_buffer = tc_malloc(size);
+        if (!img_buffer) {
+            tc_log_error(MOD_NAME, "conversion buffer allocation failed.");
             return TC_EXPORT_ERROR;
         }
     }
@@ -377,19 +334,18 @@ MOD_init {
 
     if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_GOP)
         lavc_venc_context->gop_size = vob->divxkeyframes;
+    else if (is_mpegvideo)
+        lavc_venc_context->gop_size = 15; /* conservative default for mpeg1/2 svcd/dvd */
     else
-        if (is_mpegvideo)
-            lavc_venc_context->gop_size = 15; /* conservative default for mpeg1/2 svcd/dvd */
-        else
-            lavc_venc_context->gop_size = 250; /* reasonable default for mpeg4 (and others) */
+        lavc_venc_context->gop_size = 250; /* reasonable default for mpeg4 (and others) */
 
     if (pseudo_codec != pc_none) { /* using profiles */
-	if (verbose) {
-	    tc_log_info(MOD_NAME,
-			"Selected %s profile, %s video type for video",
-			pseudo_codec_name[pseudo_codec],
-			vt_name[video_template]);
-	}
+    	if (verbose) {
+	        tc_log_info(MOD_NAME,
+		            	"Selected %s profile, %s video type for video",
+            			pseudo_codec_name[pseudo_codec],
+			            vt_name[video_template]);
+        }
 
         if(!(vob->export_attributes & TC_EXPORT_ATTRIBUTE_FIELDS)) {
             if(video_template == vt_pal) {
@@ -402,30 +358,28 @@ MOD_init {
                                "select video type with profile");
                     vob->encode_fields = TC_ENCODE_FIELDS_UNKNOWN;
                 }
-	    }
+	        }
 
-	    if (verbose) {
-		tc_log_info(MOD_NAME, "Set interlacing to %s",
-			    il_name[vob->encode_fields]);
-	    }
+    	    if (verbose) {
+	        	tc_log_info(MOD_NAME, "Set interlacing to %s",
+			                il_name[vob->encode_fields]);
+    	    }
         }
 
         if (!(vob->export_attributes & TC_EXPORT_ATTRIBUTE_FRC)) {
-            if(video_template == vt_pal) {
+            if (video_template == vt_pal)
                 vob->ex_frc = 3;
-            } else {
-                if(video_template == vt_ntsc)
-                    vob->ex_frc = 4;
-                else
-                    vob->ex_frc = 0; /* unknown */
+            else if (video_template == vt_ntsc)
+                vob->ex_frc = 4;
+            else
+                vob->ex_frc = 0; /* unknown */
 	    }
 
 	    if (verbose) {
-		tc_log_info(MOD_NAME, "Set frame rate to %s",
-			    vob->ex_frc == 3 ? "25" :
-			    vob->ex_frc == 4 ? "29.97" : "unknown");
+    		tc_log_info(MOD_NAME, "Set frame rate to %s",
+	    	    	    vob->ex_frc == 3 ? "25" :
+		    	        vob->ex_frc == 4 ? "29.97" : "unknown");
 	    }
-        }
     } else { /* no profile active */
         if (!(vob->export_attributes & TC_EXPORT_ATTRIBUTE_FIELDS)) {
             tc_log_warn(MOD_NAME, "Interlacing parameters unknown, use --encode_fields");
@@ -595,7 +549,6 @@ MOD_init {
     }
 
     switch (vob->ex_frc) {
-#if LIBAVCODEC_BUILD >= 4754
     case 1: /* 23.976 */
         lavc_venc_context->time_base.den = 24000;
         lavc_venc_context->time_base.num = 1001;
@@ -639,51 +592,6 @@ MOD_init {
         }
         break;
     }
-#else
-    case 1: /* 23.976 */
-        lavc_venc_context->frame_rate      = 24000;
-        lavc_venc_context->frame_rate_base = 1001;
-        break;
-    case 2: /* 24.000 */
-        lavc_venc_context->frame_rate      = 24000;
-        lavc_venc_context->frame_rate_base = 1000;
-        break;
-    case 3: /* 25.000 */
-        lavc_venc_context->frame_rate      = 25000;
-        lavc_venc_context->frame_rate_base = 1000;
-        break;
-    case 4: /* 29.970 */
-        lavc_venc_context->frame_rate      = 30000;
-        lavc_venc_context->frame_rate_base = 1001;
-        break;
-    case 5: /* 30.000 */
-        lavc_venc_context->frame_rate      = 30000;
-        lavc_venc_context->frame_rate_base = 1000;
-        break;
-    case 6: /* 50.000 */
-        lavc_venc_context->frame_rate      = 50000;
-        lavc_venc_context->frame_rate_base = 1000;
-        break;
-    case 7: /* 59.940 */
-        lavc_venc_context->frame_rate      = 60000;
-        lavc_venc_context->frame_rate_base = 1001;
-        break;
-    case 8: /* 60.000 */
-        lavc_venc_context->frame_rate      = 60000;
-        lavc_venc_context->frame_rate_base = 1000;
-        break;
-    case 0: /* not set */
-    default:
-        if ((vob->ex_fps > 29) && (vob->ex_fps < 30)) {
-            lavc_venc_context->frame_rate      = 30000;
-            lavc_venc_context->frame_rate_base = 1001;
-        } else {
-            lavc_venc_context->frame_rate      = (int)(vob->ex_fps * 1000.0);
-            lavc_venc_context->frame_rate_base = 1000;
-        }
-        break;
-    }
-#endif
 
     module_read_config("ffmpeg.cfg", codec->name, lavcopts_conf, MOD_NAME);
     if (verbose_flag & TC_DEBUG) {
@@ -694,7 +602,6 @@ MOD_init {
     /* this overrides transcode settings */
     if (lavc_param_fps_code > 0) {
         switch (lavc_param_fps_code) {
-#if LIBAVCODEC_BUILD >= 4754
         case 1: /* 23.976 */
             lavc_venc_context->time_base.den = 24000;
             lavc_venc_context->time_base.num = 1001;
@@ -734,47 +641,6 @@ MOD_init {
              *  lavc_venc_context->time_base.num = 1000;
              */
             break;
-#else
-        case 1: /* 23.976 */
-            lavc_venc_context->frame_rate      = 24000;
-            lavc_venc_context->frame_rate_base = 1001;
-            break;
-        case 2: /* 24.000 */
-            lavc_venc_context->frame_rate      = 24000;
-            lavc_venc_context->frame_rate_base = 1000;
-            break;
-        case 3: /* 25.000 */
-            lavc_venc_context->frame_rate      = 25000;
-            lavc_venc_context->frame_rate_base = 1000;
-            break;
-        case 4: /* 29.970 */
-            lavc_venc_context->frame_rate      = 30000;
-            lavc_venc_context->frame_rate_base = 1001;
-            break;
-        case 5: /* 30.000 */
-            lavc_venc_context->frame_rate      = 30000;
-            lavc_venc_context->frame_rate_base = 1000;
-            break;
-        case 6: /* 50.000 */
-            lavc_venc_context->frame_rate      = 50000;
-            lavc_venc_context->frame_rate_base = 1000;
-            break;
-        case 7: /* 59.940 */
-            lavc_venc_context->frame_rate      = 60000;
-            lavc_venc_context->frame_rate_base = 1001;
-            break;
-        case 8: /* 60.000 */
-            lavc_venc_context->frame_rate      = 60000;
-            lavc_venc_context->frame_rate_base = 1000;
-            break;
-        case 0: /* not set */
-        default:
-            /*
-             *  lavc_venc_context->frame_rate      = (int)(vob->ex_fps * 1000.0);
-             *  lavc_venc_context->frame_rate_base = 1000;
-             */
-            break;
-#endif
         }
     }
 
@@ -851,11 +717,12 @@ MOD_init {
         lavc_venc_context->intra_matrix =
             malloc(sizeof(*lavc_venc_context->intra_matrix) * 64);
 
-        i = 0;
-        while ((tmp = strsep(&lavc_param_intra_matrix, ",")) && (i < 64)) {
+        for (i = 0;
+            (tmp = strsep(&lavc_param_intra_matrix, ",")) && (i < 64);
+            i++) {
             if (!tmp || (tmp && !strlen(tmp)))
                 break;
-            lavc_venc_context->intra_matrix[i++] = atoi(tmp);
+            lavc_venc_context->intra_matrix[i] = atoi(tmp);
         }
 
         if (i != 64) {
@@ -874,11 +741,12 @@ MOD_init {
         lavc_venc_context->inter_matrix =
             malloc(sizeof(*lavc_venc_context->inter_matrix) * 64);
 
-        i = 0;
-        while ((tmp = strsep(&lavc_param_inter_matrix, ",")) && (i < 64)) {
+        for (i = 0;
+            (tmp = strsep(&lavc_param_intra_matrix, ",")) && (i < 64);
+            i++) {
             if (!tmp || (tmp && !strlen(tmp)))
                 break;
-            lavc_venc_context->inter_matrix[i++] = atoi(tmp);
+            lavc_venc_context->inter_matrix[i] = atoi(tmp);
         }
 
         if (i != 64) {
@@ -1061,28 +929,6 @@ MOD_init {
 
     lavc_venc_context->prediction_method = lavc_param_prediction_method;
 
-#if 0 // obsolete this
-    /* this changed to an int */
-    if (!strcasecmp(lavc_param_format, "YV12"))
-        lavc_venc_context->pix_fmt = PIX_FMT_YUV420P;
-    else if (!strcasecmp(lavc_param_format, "422P"))
-        lavc_venc_context->pix_fmt = PIX_FMT_YUV422P;
-    else if (!strcasecmp(lavc_param_format, "444P"))
-        lavc_venc_context->pix_fmt = PIX_FMT_YUV444P;
-    else if (!strcasecmp(lavc_param_format, "411P"))
-        lavc_venc_context->pix_fmt = PIX_FMT_YUV411P;
-    else if (!strcasecmp(lavc_param_format, "YVU9"))
-        lavc_venc_context->pix_fmt = PIX_FMT_YUV410P;
-    else if (!strcasecmp(lavc_param_format, "UYVY"))
-        lavc_venc_context->pix_fmt = PIX_FMT_YUV422;
-    else if (!strcasecmp(lavc_param_format, "BGR32"))
-        lavc_venc_context->pix_fmt = PIX_FMT_RGBA32;
-    else {
-        tc_log_error(MOD_NAME, "%s is not a supported format", lavc_param_format);
-        return TC_IMPORT_ERROR;
-    }
-#endif
-
     if(is_huffyuv)
         lavc_venc_context->pix_fmt = PIX_FMT_YUV422P;
     else
@@ -1222,7 +1068,7 @@ MOD_init {
               lavc_venc_context->qmin, lavc_venc_context->qmax);
     }
 
-    return 0;
+    return TC_EXPORT_OK;
   }
 
     if (param->flag == TC_AUDIO)
@@ -1485,7 +1331,7 @@ MOD_open
       AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);
     }
 
-    return 0;
+    return TC_EXPORT_OK;
   }
 
 
@@ -1528,12 +1374,12 @@ MOD_encode
             if(is_huffyuv)
             {
                 uint8_t *src[3];
-		YUV_INIT_PLANES(src, param->buffer, IMG_YUV_DEFAULT,
-				lavc_venc_context->width, lavc_venc_context->height);
-                avpicture_fill((AVPicture *)lavc_venc_frame, yuv42xP_buffer,
+	        	YUV_INIT_PLANES(src, param->buffer, IMG_YUV_DEFAULT,
+			                	lavc_venc_context->width, lavc_venc_context->height);
+                avpicture_fill((AVPicture *)lavc_venc_frame, img_buffer,
                                PIX_FMT_YUV422P, lavc_venc_context->width,
                                lavc_venc_context->height);
-		/* FIXME: can't use tcv_convert (see decode_lavc.c) */
+        		/* FIXME: can't use tcv_convert (see decode_lavc.c) */
                 ac_imgconvert(src, IMG_YUV_DEFAULT,
                               lavc_venc_frame->data, IMG_YUV422P,
                               lavc_venc_context->width,
@@ -1557,10 +1403,10 @@ MOD_encode
             else
             {
                 uint8_t *src[3];
-		YUV_INIT_PLANES(src, param->buffer, IMG_YUV422P,
-				lavc_venc_context->width,
+        		YUV_INIT_PLANES(src, param->buffer, IMG_YUV422P,
+		                		lavc_venc_context->width,
                                 lavc_venc_context->height);
-                avpicture_fill((AVPicture *)lavc_venc_frame, yuv42xP_buffer,
+                avpicture_fill((AVPicture *)lavc_venc_frame, img_buffer,
                                PIX_FMT_YUV420P, lavc_venc_context->width,
                                lavc_venc_context->height);
                 ac_imgconvert(src, IMG_YUV422P,
@@ -1571,10 +1417,10 @@ MOD_encode
             break;
 
         case CODEC_RGB:
-            avpicture_fill((AVPicture *)lavc_venc_frame, tmp_buffer,
+            avpicture_fill((AVPicture *)lavc_venc_frame, img_buffer,
                            PIX_FMT_YUV420P, lavc_venc_context->width,
                            lavc_venc_context->height);
-	    ac_imgconvert(&param->buffer, IMG_RGB_DEFAULT,
+    	    ac_imgconvert(&param->buffer, IMG_RGB_DEFAULT,
                               lavc_venc_frame->data, IMG_YUV420P,
                               lavc_venc_context->width,
                               lavc_venc_context->height);
@@ -1588,7 +1434,7 @@ MOD_encode
 
     TC_LOCK_LIBAVCODEC;
     out_size = avcodec_encode_video(lavc_venc_context,
-                                    (unsigned char *) tmp_buffer, size,
+                                    enc_buffer, size,
                                     lavc_venc_frame);
     TC_UNLOCK_LIBAVCODEC;
 
@@ -1607,14 +1453,14 @@ MOD_encode
 
       if (lavc_venc_context->coded_frame->key_frame) tc_outstream_rotate();
 
-      if (AVI_write_frame(avifile, tmp_buffer, out_size,
+      if (AVI_write_frame(avifile, enc_buffer, out_size,
                        lavc_venc_context->coded_frame->key_frame? 1 : 0) < 0) {
     AVI_print_error("avi video write error");
 
     return TC_EXPORT_ERROR;
       }
     } else { // mpegvideo
-      if ( (out_size >0) && (fwrite (tmp_buffer, out_size, 1, mpeg1fd) <= 0) ) {
+      if ( (out_size >0) && (fwrite (enc_buffer, out_size, 1, mpeg1fd) <= 0) ) {
     tc_log_warn(MOD_NAME, "encoder error write failed size (%d)", out_size);
     //return TC_EXPORT_ERROR;
       }
@@ -1658,7 +1504,7 @@ MOD_encode
     if (lavc_venc_context->stats_out && stats_file)
       fprintf(stats_file, "%s", lavc_venc_context->stats_out);
 
-    return 0;
+    return TC_EXPORT_OK;
   }
 
   if (param->flag == TC_AUDIO)
@@ -1673,6 +1519,14 @@ MOD_encode
  * stop encoder
  *
  * ------------------------------------------------------------*/
+
+#define FREEPTR(PTR) do { \
+    if ((PTR)) {          \
+        free((PTR));      \
+        (PTR) = NULL;     \
+    }                     \
+} while (0)
+
 
 MOD_stop
 {
@@ -1692,10 +1546,9 @@ MOD_stop
             );
     }
 
-    if (lavc_venc_frame) {
-      free(lavc_venc_frame);
-      lavc_venc_frame = NULL;
-    }
+    FREEPTR(enc_buffer);
+    FREEPTR(img_buffer);
+    FREEPTR(lavc_venc_frame);
 
     //-- release encoder --
     if (lavc_venc_codec) {
@@ -1710,14 +1563,12 @@ MOD_stop
 
     if (lavc_venc_context != NULL) {
       if (lavc_venc_context->rc_override) {
-        free(lavc_venc_context->rc_override);
-        lavc_venc_context->rc_override = NULL;
+        FREEPTR(lavc_venc_context->rc_override);
       }
-      free(lavc_venc_context);
-      lavc_venc_context = NULL;
+      FREEPTR(lavc_venc_context);
     }
-    free(real_codec); // prevent little memory leak
-    return 0;
+    free(real_codec);
+    return TC_EXPORT_OK;
   }
 
   if (param->flag == TC_AUDIO)
@@ -1743,14 +1594,14 @@ MOD_close
   if (vob->avifile_out!=NULL) {
     AVI_close(vob->avifile_out);
     vob->avifile_out=NULL;
-    return 0;
+    return TC_EXPORT_OK;
   }
 
   if (is_mpegvideo) {
     if (mpeg1fd) {
       fclose (mpeg1fd);
       mpeg1fd = NULL;
-      return 0;
+      return TC_EXPORT_OK;
     }
   }
 
