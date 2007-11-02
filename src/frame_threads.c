@@ -2,6 +2,8 @@
  *  frame_threads.c
  *
  *  Copyright (C) Thomas Oestreich - June 2001
+ *  updates and partial rewrite:
+ *  Copyright (C) Francesco Romani - October 2007
  *
  *  This file is part of transcode, a video stream processing tool
  *
@@ -31,146 +33,55 @@
 #include "filter.h"
 
 #include "frame_threads.h"
-#include "encoder.h"
-
-/********* prototypes ****************************************************/
-
-static void *process_video_frame(void *_vob);
-static void *process_audio_frame(void *_vob);
 
 /*************************************************************************/
 
-static pthread_t afthread[TC_FRAME_THREADS_MAX];
-static pthread_t vfthread[TC_FRAME_THREADS_MAX];
+typedef struct tcframethreaddata_ TCFrameThreadData;
+struct tcframethreaddata_ {
+    pthread_t threads[TC_FRAME_THREADS_MAX];
+    int count;
 
-static int aframe_workers_count = 0;
-static int vframe_workers_count = 0;
-
-
-/*************************************************************************/
-
-typedef struct tcstopmarker_ TCStopMarker;
-struct tcstopmarker_ {
     pthread_mutex_t lock;
-    volatile int flag;
+    volatile int running;
 };
 
-TCStopMarker audio_stop = {
-    .lock = PTHREAD_MUTEX_INITIALIZER,
-    .flag = TC_FALSE,
-};
-TCStopMarker video_stop = {
-    .lock = PTHREAD_MUTEX_INITIALIZER,
-    .flag = TC_FALSE,
+TCFrameThreadData audio_threads = {
+    .count   = 0,
+    .lock    = PTHREAD_MUTEX_INITIALIZER,
+    .running = TC_FALSE,
 };
 
-static void set_stop_flag(TCStopMarker *mark)
+TCFrameThreadData video_threads = {
+    .count   = 0,
+    .lock    = PTHREAD_MUTEX_INITIALIZER,
+    .running = TC_FALSE,
+};
+
+/*************************************************************************/
+
+static void tc_frame_threads_stop(TCFrameThreadData *data)
 {
-    pthread_mutex_lock(&mark->lock);
-    mark->flag = TC_TRUE;
-    pthread_mutex_unlock(&mark->lock);
+    pthread_mutex_lock(&data->lock);
+    data->running = TC_TRUE;
+    pthread_mutex_unlock(&data->lock);
 }
 
-static int get_stop_flag(TCStopMarker *mark)
+static int tc_frame_threads_are_active(TCFrameThreadData *data)
 {
     int ret;
-    pthread_mutex_lock(&mark->lock);
-    ret = mark->flag;
-    pthread_mutex_unlock(&mark->lock);
+    pthread_mutex_lock(&data->lock);
+    ret = data->running;
+    pthread_mutex_unlock(&data->lock);
     return ret;
 }
 
-static int stop_requested(TCStopMarker *mark)
+static int stop_requested(TCFrameThreadData *data)
 {
-    return (!tc_running() || get_stop_flag(mark));
+    return (!tc_running() || tc_frame_threads_are_active(data));
 }
 
 /*************************************************************************/
 
-
-/*************************************************************************/
-
-
-int tc_frame_threads_have_video_workers(void)
-{
-    return (vframe_workers_count > 0);
-}
-
-int tc_frame_threads_have_audio_workers(void)
-{
-    return (aframe_workers_count > 0);
-}
-
-/* ------------------------------------------------------------
- *
- * frame processing threads
- *
- * ------------------------------------------------------------*/
-
-void tc_frame_threads_init(vob_t *vob, int vworkers, int aworkers)
-{
-    int n = 0;
-
-    //video
-    vframe_workers_count = vworkers;
-
-    if (vworkers > 0) {
-        if (verbose >= TC_DEBUG)
-            tc_log_info(__FILE__, "starting %i video frame"
-                                 " processing thread(s)", vworkers);
-
-        // start the thread pool
-        for (n = 0; n < vworkers; n++) {
-            if (pthread_create(&vfthread[n], NULL, process_video_frame, vob) != 0)
-                tc_error("failed to start video frame processing thread");
-        }
-    }
-
-    //audio
-    aframe_workers_count = aworkers;
-
-    if (aworkers > 0) {
-        if (verbose >= TC_DEBUG)
-            tc_log_info(__FILE__, "starting %i audio frame"
-                                 " processing thread(s)", aworkers);
-
-        // start the thread pool
-        for (n = 0; n < aworkers; n++) {
-            if (pthread_create(&afthread[n], NULL, process_audio_frame, vob) != 0)
-                tc_error("failed to start audio frame processing thread");
-        }
-    }
-}
-
-void tc_frame_threads_close(void)
-{
-    int n = 0;
-    void *status = NULL;
-
-    // audio
-    if (aframe_workers_count > 0) {
-        set_stop_flag(&audio_stop);
-        if (verbose >= TC_CLEANUP)
-            tc_log_msg(__FILE__, "wait for %i audio frame processing threads",
-                       aframe_workers_count);
-        for (n = 0; n < aframe_workers_count; n++)
-            pthread_join(afthread[n], &status);
-        if (verbose >= TC_CLEANUP)
-            tc_log_msg(__FILE__, "audio frame processing threads canceled");
-    }
-
-    //video
-    if (vframe_workers_count > 0) {
-        set_stop_flag(&video_stop);
-        if (verbose >= TC_CLEANUP)
-            tc_log_msg(__FILE__, "wait for %i video frame processing threads",
-                       vframe_workers_count);
-        for (n = 0; n < vframe_workers_count; n++)
-            pthread_join(vfthread[n], &status);
-        if (verbose >= TC_CLEANUP)
-            tc_log_msg(__FILE__, "video frame processing threads canceled");
-    }
-}
 
 #define DUP_vptr_if_cloned(vptr) do { \
     if(vptr->attributes & TC_FRAME_IS_CLONED) { \
@@ -214,10 +125,10 @@ void tc_frame_threads_close(void)
 } while (0)
 
 
-#define SET_STOP_FLAG(MARKP, MSG) do { \
+#define SET_STOP_FLAG(DATAP, MSG) do { \
     if (verbose >= TC_CLEANUP) \
         tc_log_msg(__FILE__, "%s", (MSG)); \
-    set_stop_flag((MARKP)); \
+    tc_frame_threads_stop((DATAP)); \
 } while (0)
 
 static void *process_video_frame(void *_vob)
@@ -226,15 +137,15 @@ static void *process_video_frame(void *_vob)
     vframe_list_t *ptr = NULL;
     vob_t *vob = _vob;
 
-    while (!stop_requested(&video_stop)) {
+    while (!stop_requested(&video_threads)) {
         ptr = vframe_reserve();
         if (ptr == NULL) {
-            SET_STOP_FLAG(&video_stop, "video interrupted: exiting!");
+            SET_STOP_FLAG(&video_threads, "video interrupted: exiting!");
             res = 1;
             break;
         }
         if (ptr->attributes & TC_FRAME_IS_END_OF_STREAM) {
-            SET_STOP_FLAG(&video_stop, "video stream end: marking!");
+            SET_STOP_FLAG(&video_threads, "video stream end: marking!");
         }
  
         if (ptr->attributes & TC_FRAME_IS_SKIPPED) {
@@ -285,15 +196,15 @@ static void *process_audio_frame(void *_vob)
     aframe_list_t *ptr = NULL;
     vob_t *vob = _vob;
 
-    while (!stop_requested(&audio_stop)) {
+    while (!stop_requested(&audio_threads)) {
         ptr = aframe_reserve();
         if (ptr == NULL) {
-            SET_STOP_FLAG(&audio_stop, "audio interrupted: exiting!");
+            SET_STOP_FLAG(&audio_threads, "audio interrupted: exiting!");
             break;
             res = 1;
         }
         if (ptr->attributes & TC_FRAME_IS_END_OF_STREAM) {
-            SET_STOP_FLAG(&audio_stop, "audio stream end: marking!");
+            SET_STOP_FLAG(&audio_threads, "audio stream end: marking!");
         }
  
         if (ptr->attributes & TC_FRAME_IS_SKIPPED) {
@@ -335,6 +246,87 @@ static void *process_audio_frame(void *_vob)
     pthread_exit(&res);
     return NULL;
 }
+
+/*************************************************************************/
+
+
+int tc_frame_threads_have_video_workers(void)
+{
+    return (video_threads.count > 0);
+}
+
+int tc_frame_threads_have_audio_workers(void)
+{
+    return (audio_threads.count > 0);
+}
+
+/* ------------------------------------------------------------
+ *
+ * frame processing threads
+ *
+ * ------------------------------------------------------------*/
+
+void tc_frame_threads_init(vob_t *vob, int vworkers, int aworkers)
+{
+    int n = 0;
+
+    if (vworkers > 0) {
+        if (verbose >= TC_DEBUG)
+            tc_log_info(__FILE__, "starting %i video frame"
+                                 " processing thread(s)", vworkers);
+
+        // start the thread pool
+        for (n = 0; n < vworkers; n++) {
+            if (pthread_create(&video_threads.threads[n], NULL,
+                               process_video_frame, vob) != 0)
+                tc_error("failed to start video frame processing thread");
+        }
+    }
+    video_threads.count = vworkers;
+
+    if (aworkers > 0) {
+        if (verbose >= TC_DEBUG)
+            tc_log_info(__FILE__, "starting %i audio frame"
+                                 " processing thread(s)", aworkers);
+
+        // start the thread pool
+        for (n = 0; n < aworkers; n++) {
+            if (pthread_create(&audio_threads.threads[n], NULL,
+                               process_audio_frame, vob) != 0)
+                tc_error("failed to start audio frame processing thread");
+        }
+    }
+    audio_threads.count = aworkers;
+}
+
+void tc_frame_threads_close(void)
+{
+    void *status = NULL;
+    int n = 0;
+
+    if (audio_threads.count > 0) {
+        tc_frame_threads_stop(&audio_threads);
+        if (verbose >= TC_CLEANUP)
+            tc_log_msg(__FILE__, "wait for %i audio frame processing threads",
+                       audio_threads.count);
+        for (n = 0; n < audio_threads.count; n++)
+            pthread_join(audio_threads.threads[n], &status);
+        if (verbose >= TC_CLEANUP)
+            tc_log_msg(__FILE__, "audio frame processing threads canceled");
+    }
+
+    if (video_threads.count > 0) {
+        tc_frame_threads_stop(&video_threads);
+        if (verbose >= TC_CLEANUP)
+            tc_log_msg(__FILE__, "wait for %i video frame processing threads",
+                       video_threads.count);
+        for (n = 0; n < video_threads.count; n++)
+            pthread_join(video_threads.threads[n], &status);
+        if (verbose >= TC_CLEANUP)
+            tc_log_msg(__FILE__, "video frame processing threads canceled");
+    }
+}
+
 
 /*************************************************************************/
 

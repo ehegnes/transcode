@@ -29,9 +29,6 @@
 void tc_frame_threads_init(vob_t *vob, int vworkers, int aworkers);
 void tc_frame_threads_close(void);
 
-void tc_frame_threads_notify_audio(int broadcast);
-void tc_frame_threads_notify_video(int broadcast);
-
 int tc_frame_threads_have_video_workers(void);
 int tc_frame_threads_have_audio_workers(void);
 
