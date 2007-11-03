@@ -26,9 +26,46 @@
 
 #include "transcode.h"
 
+/*
+ * tc_frame_threads_init: start the frame threads pool and implicitely
+ * and automatically starts the frame filter layer.
+ *
+ * Parameters:
+ *           vob: vob structure.
+ *      vworkers: number of threads in the video filter pool.
+ *      aworkers: number of threads in the audio filter pool.
+ * Return Value:
+ *      None.
+ */
 void tc_frame_threads_init(vob_t *vob, int vworkers, int aworkers);
+
+/*
+ * tc_frame_threads_close: destroy both audio and video filter pool threads,
+ * and automatically and implicitely stop the whole filter layer.
+ * It's important to note that this function assume that all processing loops
+ * are already been terminated.
+ * This is a blocking function.
+ * 
+ * Parameters:
+ *      None.
+ * Return Value:
+ *      None.
+ * Preconditions:
+ *      processing threads are terminated for any reason
+ *      (regular stop, end of stream reached, forced interruption).
+ */
 void tc_frame_threads_close(void);
 
+/*
+ * tc_frame_threads_audio_{video,audio}_workers:
+ *    query the number of avalaible (not active) audio,video frame
+ *    worker threads.
+ *
+ * Parameters:
+ *      None.
+ * Return Value:
+ *      The number of avalaible audio,video frame worker threads.
+ */
 int tc_frame_threads_have_video_workers(void);
 int tc_frame_threads_have_audio_workers(void);
 
