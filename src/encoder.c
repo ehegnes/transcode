@@ -31,7 +31,7 @@
 #include "config.h"
 #endif
 
-#include "transcode.h"  // needed for vob_t, at least
+#include "transcode.h"
 #include "framebuffer.h"
 #include "filter.h"
 #include "counter.h"
@@ -117,7 +117,8 @@ static void free_buffers(TCEncoderData *data);
 /*************************************************************************/
 /*************************************************************************/
 
-/* new-style output rotation support. Always avalaible, but
+/*
+ * new-style output rotation support. Always avalaible, but
  * only new code is supposed to use it.
  * This code is private since only encoder code it's supposed
  * to use it. If this change, this code will be put in a
@@ -132,7 +133,8 @@ static void free_buffers(TCEncoderData *data);
  * should be changed/improved in future releases.
  * Anyway, original values of mentioned field isn't lost since it
  * will be stored in TCRotateContext.{video,audio}_base_name.
- * ------------------------------------------------------------*/
+ * ------------------------------------------------------------
+ */
 
 /*
  * TCExportRotate:

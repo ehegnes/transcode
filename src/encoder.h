@@ -141,7 +141,7 @@ int tc_export_init(TCEncoderBuffer *buffer, TCFactory factory);
  *      Module Factory avalaible and selected using tc_export_init.
  */
 int tc_export_setup(vob_t *vob,
-                 const char *a_mod, const char *v_mod, const char *m_mod);
+ 	            const char *a_mod, const char *v_mod, const char *m_mod);
 
 
 /*
