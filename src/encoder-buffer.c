@@ -54,16 +54,7 @@
  * stuff. Of course situation will be improved in future releases
  * when we keep going away from legacy oddities and continue
  * sanitize/modernize the codebase.
- */
-
-/*
- * XXX: critical changes:
- * - lost inlining for acquire/dispose -> speed loss (unavoidable?)
- * - moved counters update into dispose -> SHOULD be harmless
- * - wrapper on exit_flag check -> harmless?
- */
-
-/*
+ *
  * NOTE about counter/condition/mutex handling inside various
  * encoder helpers.
  *
@@ -77,14 +68,13 @@
 /*************************************************************************/
 /*************************************************************************/
 
-/* yes, we still need some globals :( */
 static int have_aud_threads = 0;
 static int have_vid_threads = 0;
 
 /*************************************************************************/
 
 /*
- * apply_video_filters. appli_auido_filters:
+ * apply_{video,audio}_filters:
  *       Apply the filter chain to current respectively video
  *       or audio frame.
  *       This function is used if no frame threads are avalaible,
@@ -101,7 +91,7 @@ static void apply_video_filters(vframe_list_t *vptr, vob_t *vob);
 static void apply_audio_filters(aframe_list_t *aptr, vob_t *vob);
 
 /*
- * encoder_acquire_vframe, encoder_acquire_aframe:
+ * encoder_acquire_{v,a}frame:
  *      Get respectively a new video or audio framebuffer for encoding.
  *      This roughly means:
  *      1. to wait for a new frame avalaible for encoder
@@ -125,7 +115,7 @@ static int encoder_acquire_vframe(TCEncoderBuffer *buf, vob_t *vob);
 static int encoder_acquire_aframe(TCEncoderBuffer *buf, vob_t *vob);
 
 /*
- * encoder_dispose_vframe, encoder_dispose_aframe:
+ * encoder_dispose_{v,a}frame:
  *       Mark a framebuffer (respectively video or audio) as completed
  *       from encoder viewpoint, so release it to source ringbuffer,
  *       update counters and do all cleanup actions needed internally.
@@ -354,7 +344,6 @@ static void encoder_dispose_vframe(TCEncoderBuffer *buf)
         }
         buf->vptr->attributes &= ~TC_FRAME_IS_CLONED;
         buf->vptr->attributes |= TC_FRAME_WAS_CLONED;
-
         // update counter
         //tc_update_frames_cloned(1);
     }
