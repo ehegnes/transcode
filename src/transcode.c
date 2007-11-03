@@ -156,74 +156,29 @@ int tc_next_audio_in_file(vob_t *vob)
 /*************************************************************************/
 
 static pthread_t event_thread_id = (pthread_t)0;
-
 static const char *signame = "unknown signal";
 
-typedef enum tcrunstatus_ TCRunStatus;
-enum tcrunstatus_  {
-    TC_STATUS_RUNNING = 0,
-    TC_STATUS_STOPPED = 1,
-    TC_STATUS_INTERRUPTED = -1,
-};
-
-pthread_mutex_t run_status_lock = PTHREAD_MUTEX_INITIALIZER;
-static volatile int tc_run_status = TC_STATUS_RUNNING; /* threading paranoia */
-
-static TCRunStatus tc_get_run_status(void)
+static void tc_stop_all(void)
 {
-    TCRunStatus rs;
-    pthread_mutex_lock(&run_status_lock);
-    rs = tc_run_status;
-    pthread_mutex_unlock(&run_status_lock);
-    return rs;
-}
-
-int tc_interrupted(void)
-{
-    return (TC_STATUS_INTERRUPTED == tc_get_run_status());
-}
-
-int tc_stopped(void)
-{
-    return (TC_STATUS_STOPPED == tc_get_run_status());
-}
-
-int tc_running(void)
-{
-    return (TC_STATUS_RUNNING == tc_get_run_status());
-}
-
-static void tc_stop(void)
-{
-    pthread_mutex_lock(&run_status_lock);
-    if (tc_run_status == TC_STATUS_RUNNING) {
-        tc_run_status = TC_STATUS_STOPPED;
-    }
-    pthread_mutex_unlock(&run_status_lock);
+    tc_stop();
     tc_framebuffer_interrupt();
-}
+} 
 
 static void event_handler(int sig)
 {
-    pthread_mutex_lock(&run_status_lock);
-    if (tc_run_status != TC_STATUS_INTERRUPTED) {
-        tc_run_status = TC_STATUS_INTERRUPTED;
-
-        /* the first one always wins */
-        switch (sig) {
-          case SIGINT:
-            signame = "SIGINT";
-            break;
-          case SIGTERM:
-            signame = "SIGTERM";
-            break;
-          case SIGPIPE:
-            signame = "SIGPIPE";
-            break;
-        }
+    switch (sig) {
+      case SIGINT:
+        signame = "SIGINT";
+        break;
+      case SIGTERM:
+        signame = "SIGTERM";
+        break;
+      case SIGPIPE:
+        signame = "SIGPIPE";
+        break;
     }
-    pthread_mutex_unlock(&run_status_lock);
 
+    tc_interrupt();
     tc_framebuffer_interrupt();
 }
 
@@ -469,7 +424,7 @@ static int transcode_mode_default(vob_t *vob)
             tc_import_threads_create(vob);
         }
     }
-    tc_stop();
+    tc_stop_all();
 
     // close output files
     tc_encoder_close();
@@ -543,7 +498,7 @@ static int transcode_mode_avi_split(vob_t *vob)
 
     } while (tc_import_status());
 
-    tc_stop();
+    tc_stop_all();
 
     tc_encoder_stop();
 
@@ -601,7 +556,7 @@ static int transcode_mode_directory(vob_t *vob)
         tc_encoder_loop(vob, frame_a, frame_b);
     }
 
-    tc_stop();
+    tc_stop_all();
 
     tc_encoder_close();
     tc_encoder_stop();
@@ -724,7 +679,7 @@ static int transcode_mode_psu(vob_t *vob, const char *psubase)
             tc_warn("failed to close encoder - non fatal");
     }
 
-    tc_stop();
+    tc_stop_all();
     
     tc_encoder_stop();
 
@@ -829,7 +784,7 @@ static int transcode_mode_dvd(vob_t *vob)
             tc_warn("failed to close encoder - non fatal");
     }
 
-    tc_stop();
+    tc_stop_all();
     tc_encoder_stop();
 #endif
 

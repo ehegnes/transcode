@@ -30,6 +30,7 @@
  * MULTITHREADING NOTE:
  * It is *GUARANTEED SAFE* to call those functions from different threads.
  */
+/*************************************************************************/
 
 /*
  * tc_get_frames_{dropped,skipped,encoded,cloned,skipped_cloned}:
@@ -61,6 +62,8 @@ void tc_update_frames_skipped(uint32_t val);
 void tc_update_frames_encoded(uint32_t val);
 void tc_update_frames_cloned(uint32_t val);
 
+/*************************************************************************/
+
 /*
  * tc_pause_request:
  *     toggle pausing; if pausing is enabled, further calls to tc_pause()
@@ -90,48 +93,24 @@ void tc_pause_request(void);
  */
 void tc_pause(void);
 
-/*
- * tc_export_stop_nolock():
- *     (asynchronously) request to encoder to exit from an encoding loop
- *     as soon as is possible.
- *
- *     multithread safe: a thread different from encoder thread can
- *                       safely use this function to stop the encoder.
- *
- * Parameters:
- *     None
- * Return Value:
- *     None
- * Preconditions:
- *     Calling this function _outside_ of an encoding loop
- *     make very little (or no) sense, but it will not harm anything.
- */
-//void tc_export_stop_nolock(void);
+/*************************************************************************/
+/* FIXME: docs */
 
-/*
- * tc_export_stop_requested():
- *     check if encoder has received a stop request
- *     (via tc_export_stop_nolock)
- *
- *     multithread safe: a thread different from encoder thread can
- *                       safely use this function to stop the encoder.
- *
- *     this function is mainly used by the incoder itself into an
- *     encoding loop.
- * Parameters:
- *     None
- * Return Value:
- *     1 if encoder stop was requested
- *     0 otherwise
- * Preconditions:
- *     Calling this function _outside_ of an encoding loop
- *     make very little (or no) sense, but it will not harm anything.
- */
-//int tc_export_stop_requested(void);
+typedef enum tcrunstatus_ TCRunStatus;
+enum tcrunstatus_  {
+    TC_STATUS_RUNNING = 0,
+    TC_STATUS_STOPPED = 1,
+    TC_STATUS_INTERRUPTED = -1,
+};
 
 
+void tc_interrupt(void);
+void tc_stop(void);
 
-void tc_pause(void);
-void tc_pause_request(void);
+int tc_interrupted(void);
+int tc_stopped(void);
+
+int tc_running(void);
+
 
 #endif /* ENCODER_COMMON_H */
