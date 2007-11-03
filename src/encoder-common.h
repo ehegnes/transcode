@@ -94,22 +94,80 @@ void tc_pause_request(void);
 void tc_pause(void);
 
 /*************************************************************************/
-/* FIXME: docs */
+/*                   encoder (core) run control                          */
+/*************************************************************************/
 
 typedef enum tcrunstatus_ TCRunStatus;
 enum tcrunstatus_  {
-    TC_STATUS_RUNNING = 0,
-    TC_STATUS_STOPPED = 1,
-    TC_STATUS_INTERRUPTED = -1,
+    TC_STATUS_RUNNING = 0,       /* default condition                    */
+    TC_STATUS_STOPPED = 1,       /* regular stop or end of stream reched */
+    TC_STATUS_INTERRUPTED = -1,  /* forced interruption (^C)             */
 };
 
-
+/*
+ * tc_interrupt: perform an hard stop of encoder core. 
+ * This means that all transcode parts has to stop as soon and as quickly
+ * as is possible.
+ *
+ * Parameters:
+ *      None.
+ * Return Value:
+ *      None.
+ */
 void tc_interrupt(void);
+
+/*
+ * tc_stop: perform a soft stop of encoder core. Tipically, this function
+ * is invoked after end of stream was reached, or after all requested
+ * stream ranges were encoded succesfully, to notify all the transcode
+ * parts to shutdown properly.
+ *
+ * Parameters:
+ *      None.
+ * Return Value:
+ *      None.
+ */
 void tc_stop(void);
 
+/*
+ * tc_interrupted (Thread safe): verify if the encoder (core) was halted
+ * in response of an interruption.
+ *
+ * Parameters:
+ *      None.
+ * Return Value:
+ *      1: halting cause of encoder (core) was (user) interruption (^C).
+ *      0: otherwise.
+ *
+ * PLEASE NOTE that if this function will return 0 even if encoder (core)
+ * IS STILL RUNNING!
+ */
 int tc_interrupted(void);
+
+/*
+ * tc_stopped (Thread safe): verify if the encoder (core) was halted
+ * regulary, most likely because end of stream was reached.
+ *
+ * Parameters:
+ *      None.
+ * Return Value:
+ *      1: halting cause of encoder (core) was regular (EOS).
+ *      0: otherwise.
+ *
+ * PLEASE NOTE that if this function will return 0 even if encoder (core)
+ * IS STILL RUNNING!
+ */
 int tc_stopped(void);
 
+/*
+ * tc_running (Thread safe): checks if encoder (core) is still running.
+ *
+ * Parameters:
+ *      None.
+ * Return Value:
+ *      1: encoder (core) is still running.
+ *      0: encoder (core) not running.
+ */
 int tc_running(void);
 
 

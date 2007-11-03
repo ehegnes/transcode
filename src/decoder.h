@@ -2,6 +2,8 @@
  *  decoder.h
  *
  *  Copyright (C) Thomas Oestreich - June 2001
+ *  Enhancements and partial rewrite:
+ *  (C) Francesco Romani - November 2007.
  *
  *  This file is part of transcode, a video stream processing tool
  *
@@ -24,7 +26,7 @@
 #ifndef DECODER_H
 #define DECODER_H
 
-/* 
+/*
  * tc_import_init (NOT thread safe):
  * prepare import layer for execution, by loading import modules,
  * checking their capabilities against those requested by core,
@@ -41,7 +43,7 @@
  *         TC_OK: succesfull.
  *      TC_ERROR: failure. Reason was already tc_log*()ged out.
  * Postconditions:
- *      Import threads can now be created. 
+ *      Import threads can now be created.
  */
 int tc_import_init(vob_t *vob, const char *a_mod, const char *v_mod);
 
@@ -75,7 +77,7 @@ void tc_import_shutdown(void);
  */
 int tc_import_open(vob_t *vob);
 
-/* 
+/*
  * tc_import_close (Thread safe):
  * close both the audio and video streams.
  *
@@ -90,18 +92,50 @@ int tc_import_open(vob_t *vob);
  */
 int tc_import_close(void);
 
-
+/*
+ * tc_import_threads_create (Thread safe):
+ * create both audio and video import threads, and automatically,
+ * implicitely and immediately starts importing loops and the import
+ * layer itself.
+ *
+ * Parameters:
+ *      vob: vob structure.
+ * Return Value:
+ *      None.
+ * Preconditions:
+ *      import modules are loaded and initialized correctly;
+ *      tc_import_init was executed succesfully.
+ *      import streams are been opened correctly;
+ *      tc_import_open was executed succesfully.
+ */
 void tc_import_threads_create(vob_t *vob);
+
+/*
+ * tc_import_threads_cancel (Thread safe):
+ * destroy both audio and video import threads, and automatically and
+ * implicitely stop the whole import layer.
+ * It's important to note that this function assume that import loops
+ * are already been terminated.
+ * This is a blocking function.
+ *
+ * Parameters:
+ *      None.
+ * Return Value:
+ *      None.
+ * Preconditions:
+ *      import threads are terminated for any reason
+ *      (regular stop, end of stream reached, forced interruption).
+ */
 void tc_import_threads_cancel(void);
 
 
 /*
  * tc_import_{,video_,audio_}status (Thread safe):
  * query the status of import layer.
- * 
+ *
  * Import layer has the responsability to provide raw data for further
  * layers. Since there always is some buffering, isn't sufficient to
- * check if import threads are running or not, we also need to see if 
+ * check if import threads are running or not, we also need to see if
  * there is some buffered data in the frame FIFOs.
  *
  * Parameters:

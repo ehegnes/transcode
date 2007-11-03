@@ -9,6 +9,9 @@
     tools/tcexport.c tools/tcstub.c
   move (encoder) run control to encoder-common.
 
+  * src/decoder.h src/encoder-common.c src/encoder-common.h
+  documentation round 3.
+
 2007-11-02 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c src/decoder.h src/frame_threads.c src/frame_threads.h
   documentation rounds 1 and 2.

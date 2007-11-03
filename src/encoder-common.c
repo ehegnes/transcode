@@ -149,7 +149,7 @@ uint32_t tc_get_frames_skipped_cloned(void)
 
 pthread_mutex_t run_status_lock = PTHREAD_MUTEX_INITIALIZER;
 static volatile int tc_run_status = TC_STATUS_RUNNING;
-/* threading paranoia */
+/* `volatile' is for threading paranoia */
 
 static TCRunStatus tc_get_run_status(void)
 {
