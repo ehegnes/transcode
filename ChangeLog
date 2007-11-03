@@ -13,6 +13,9 @@
     src/frame_threads.c src/frame_threads.h
   documentation round 3.
 
+  * configure.in
+  transcode 1.1.0 alpha 6.
+
 2007-11-02 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c src/decoder.h src/frame_threads.c src/frame_threads.h
   documentation rounds 1 and 2.
