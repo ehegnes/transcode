@@ -39,34 +39,53 @@
 
 typedef struct tcframethreaddata_ TCFrameThreadData;
 struct tcframethreaddata_ {
-    pthread_t threads[TC_FRAME_THREADS_MAX];
-    int count;
+    pthread_t threads[TC_FRAME_THREADS_MAX];    /* thread pool           */
+    int count;                                  /* how many workers?     */
 
     pthread_mutex_t lock;
-    volatile int running;
+    volatile int running;                       /* _pool_ running flag   */
 };
 
 TCFrameThreadData audio_threads = {
     .count   = 0,
     .lock    = PTHREAD_MUTEX_INITIALIZER,
-    .running = TC_FALSE,
+    .running = TC_TRUE,
 };
 
 TCFrameThreadData video_threads = {
     .count   = 0,
     .lock    = PTHREAD_MUTEX_INITIALIZER,
-    .running = TC_FALSE,
+    .running = TC_TRUE,
 };
 
 /*************************************************************************/
 
+/*
+ * tc_frame_threads_stop (Thread safe):
+ * set the stop flag for a thread pool.
+ *
+ * Parameters:
+ *      data: thread pool descriptor.
+ * Return Value:
+ *      None.
+ */
 static void tc_frame_threads_stop(TCFrameThreadData *data)
 {
     pthread_mutex_lock(&data->lock);
-    data->running = TC_TRUE;
+    data->running = TC_FALSE;
     pthread_mutex_unlock(&data->lock);
 }
 
+/*
+ * tc_frame_threads_are_active (Thread safe):
+ * verify if there is a pending stop request for given thread pool.
+ *
+ * Parameters:
+ *      data: thread pool descriptor.
+ * Return Value:
+ *      !0: there is pending pool stop request.
+ *       0: otherwise.
+ */
 static int tc_frame_threads_are_active(TCFrameThreadData *data)
 {
     int ret;
@@ -76,11 +95,25 @@ static int tc_frame_threads_are_active(TCFrameThreadData *data)
     return ret;
 }
 
+/*
+ * stop_requested: verify if the pool thread has to stop.
+ * First thread in the pool notifying the core has to stop must
+ * set the flag to notify the others.
+ *
+ * Parameters:
+ *      data: thread pool descriptor.
+ * Return Value:
+ *      !0: thread pool has to halt as soon as is possible.
+ *       0: thread pool can continue to run.
+ */
 static int stop_requested(TCFrameThreadData *data)
 {
-    return (!tc_running() || tc_frame_threads_are_active(data));
+    return (!tc_running() || !tc_frame_threads_are_active(data));
 }
 
+
+/*************************************************************************/
+/*         frame processing core threads                                 */
 /*************************************************************************/
 
 
@@ -148,7 +181,7 @@ static void *process_video_frame(void *_vob)
         if (ptr->attributes & TC_FRAME_IS_END_OF_STREAM) {
             SET_STOP_FLAG(&video_threads, "video stream end: marking!");
         }
- 
+
         if (ptr->attributes & TC_FRAME_IS_SKIPPED) {
             vframe_remove(ptr);  /* release frame buffer memory */
             continue;
@@ -185,7 +218,7 @@ static void *process_video_frame(void *_vob)
     }
     if (verbose >= TC_CLEANUP)
         tc_log_msg(__FILE__, "video stream end: got, so exiting!");
-           
+
     pthread_exit(&res);
     return NULL;
 }
@@ -207,7 +240,7 @@ static void *process_audio_frame(void *_vob)
         if (ptr->attributes & TC_FRAME_IS_END_OF_STREAM) {
             SET_STOP_FLAG(&audio_threads, "audio stream end: marking!");
         }
- 
+
         if (ptr->attributes & TC_FRAME_IS_SKIPPED) {
             aframe_remove(ptr);  /* release frame buffer memory */
             continue;
@@ -261,11 +294,6 @@ int tc_frame_threads_have_audio_workers(void)
     return (audio_threads.count > 0);
 }
 
-/* ------------------------------------------------------------
- *
- * frame processing threads
- *
- * ------------------------------------------------------------*/
 
 void tc_frame_threads_init(vob_t *vob, int vworkers, int aworkers)
 {
