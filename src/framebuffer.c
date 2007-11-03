@@ -24,6 +24,7 @@
 #include "transcode.h"
 #include "tc_defaults.h"
 #include "framebuffer.h"
+#include "encoder-common.h"
 
 #include "libtc/tcframes.h"
 #include "libtc/ratiocodes.h"

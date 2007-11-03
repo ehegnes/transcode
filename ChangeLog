@@ -2,6 +2,9 @@
   * src/encoder-buffer.c
   typos and doc enhancements.
 
+  * src/framebuffer.c src/frame_threads.c
+  include now-needed header.
+
 2007-11-02 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c src/decoder.h src/frame_threads.c src/frame_threads.h
   documentation rounds 1 and 2.
