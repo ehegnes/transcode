@@ -106,7 +106,7 @@ typedef enum {
 
 
 /*
- * libtc_setup:
+ * libtc_init:
  *     tune up some libtc settings.
  *     You DO NOT always NEED to use this function since libtc has it
  *     (most of time) sane defaults; just use this function to adapt

@@ -1,13 +1,24 @@
 /*
- * ratiocodes.h - database for all ratio/codes (asr, sar, dar, frc...)
- *                used in transcode
- * (C) 2005-2006 - Francesco Romani <fromani -at- gmail -dot- com>
+ * ratiocodes.h -- database for all ratio/codes (asr, sar, dar, frc...)
+ *                 used in transcode
+ * (C) 2005-2007 - Francesco Romani <fromani -at- gmail -dot- com>
  *
  * This file is part of transcode, a video stream processing tool.
- * transcode is free software, distributable under the terms of the GNU
- * General Public License (version 2 or later).  See the file COPYING
- * for details.
+ *
+ * transcode is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * transcode is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 
 #ifndef RATIOCODES_H
 #define RATIOCODES_H
@@ -58,6 +69,38 @@ do { \
  * in private code.
  */
 
+/*************************************************************************/
+
+/*
+ * tc_asr_code_describe:
+ *    provides a descriptive, human readable string of given ASR code.
+ *
+ * Parameters:
+ *    asr_code: the ASR code.
+ * Return Value:
+ *    A constant string describing the given ASR code.
+ *    There is NO NEED (and it is WRONG to do so) to free() it.
+ *    Returned string is guaranteed to be valid at least until
+ *    the next call to this function.
+ */
+const char *tc_asr_code_describe(int asr_code);
+
+/*
+ * tc_asr_code_from_value:
+ *    detect the right aspect ratio code (asr) given an aspect ratio value
+ *    as real number.
+ *
+ * Parameters:
+ *    asr_code: pointer to integer where detected asr code will be stored.
+ *              Can be NULL: if so, asr code will be detected but not
+ *              stored.
+ *       ratio: value of frame rate, as real number.
+ * Return Value:
+ *    TC_NULL_MATCH if input value isn't known
+ *    >= 0 otherwise
+ */
+int tc_asr_code_from_value(int *asr_code, double ratio);
+
 /*
  * tc_frc_code_from_value:
  *    detect the right frame ratio code (frc) given a frame rate value as
@@ -65,7 +108,8 @@ do { \
  *
  * Parameters:
  *    frc_code: pointer to integer where detected frc code will be stored.
- *              Can be NULL: if so, frc code will be detected but not stored.
+ *              Can be NULL: if so, frc code will be detected but not
+ *              stored.
  *         fps: value of frame rate, as real number.
  * Return Value:
  *    TC_NULL_MATCH if input value isn't known
@@ -81,7 +125,8 @@ int tc_frc_code_from_value(int *frc_code, double fps);
  * Parameters:
  *    frc_code: frame rate code.
  *         fps: pointer to double where detected frc value will be stored.
- *              Can be NULL: if so, frc value will be detected but not stored.
+ *              Can be NULL: if so, frc value will be detected but not
+ *              stored.
  * Return Value:
  *    TC_NULL_MATCH if input value isn't known
  *    >= 0 otherwise

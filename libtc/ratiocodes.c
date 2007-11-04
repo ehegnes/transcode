@@ -1,12 +1,25 @@
 /*
- * ratiocodes.c - database for all ratio/codes (asr, sar, dar, frc...)
- *                used in transcode
+ * ratiocodes.c -- database for all ratio/codes (asr, sar, dar, frc...)
+ *                 used in transcode
+ * (C) 2005-2007 - Francesco Romani <fromani -at- gmail -dot- com>
  *
  * This file is part of transcode, a video stream processing tool.
- * transcode is free software, distributable under the terms of the GNU
- * General Public License (version 2 or later).  See the file COPYING
- * for details.
+ *
+ * transcode is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * transcode is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+
 
 #include "libtc.h"
 #include "ratiocodes.h"
@@ -36,6 +49,19 @@ static const double frc_table[16] = {
     0,
     0
 };
+
+/* WARNING: this table MUST BE in asr order */
+static const double asr_table[8] = {
+    0.0,
+    1.0,
+    (4.0/3.0),
+    (16.0/9.0),
+    (221.0/100.0),
+    0.0,
+    0.0,
+    0.0,
+};
+
 
 /* WARNING: this table MUST BE in frc order */
 static const TCPair frc_ratios[16] = {
@@ -87,26 +113,64 @@ static const TCPair par_ratios[8] = {
     {    1,    1 }
 };
 
+/*************************************************************************/
+
+
+const char *tc_asr_code_describe(int asr_code)
+{
+    switch (asr_code) {
+      case  1:
+        return "encoded @ 1:1";
+      case  2:
+        return "encoded @ 4:3";
+      case  3:
+        return "encoded @ 16:9";
+      case  4:
+        return "encoded @ 2.21:1";
+      case  8:
+        return "encoded @ 4:3";
+      case 12:
+        return "encoded @ 4:3";
+    }
+    return "encoded @ UNKNOWN";
+}
+
 
 #define DELTA 0.0005
-int tc_frc_code_from_value(int *frc_code, double fps)
+static int tc_guess_code_from_value(const double *pairs, size_t len,
+                                    int *code, double val)
 {
-    int frc = TC_NULL_MATCH, i = 0;
+    int idx = TC_NULL_MATCH, i = 0;
     double mindiff = DELTA;
 
-    for (i = 0; i < TABLE_LEN(frc_table); i++) {
-        double diff = fabs(frc_table[i] - fps);
+    for (i = 0; i < len; i++) {
+        double diff = fabs(pairs[i] - val);
         if (diff < mindiff) {
             mindiff = diff;
-            frc = i;
+            idx = i;
         }
     }
-    if (frc_code != NULL && frc != TC_NULL_MATCH) {
-        *frc_code = frc;
+    if (code != NULL && idx != TC_NULL_MATCH) {
+        *code = idx;
     }
-    return frc;
+    return idx;
 }
 #undef DELTA
+
+
+int tc_asr_code_from_value(int *asr_code, double ratio)
+{
+    return tc_guess_code_from_value(asr_table, TABLE_LEN(frc_table),
+                                    asr_code, ratio);
+}
+
+
+int tc_frc_code_from_value(int *frc_code, double fps)
+{
+    return tc_guess_code_from_value(frc_table, TABLE_LEN(frc_table),
+                                    frc_code, fps);
+}
+
 
 int tc_frc_code_to_value(int frc_code, double *fps)
 {

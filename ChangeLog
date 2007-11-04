@@ -12,6 +12,15 @@
   retry adding libavformat support. Performed some tests on some
   sample AVIs and MPEGs (PS), no regressions so far.
 
+  * libtc/ratiocodes.c libtc/ratiocodes.h
+  add asr support functions (and tables, internally).
+
+  * libtc/libtc.h libtc/tcavcodec.h libtc/tccodecs.c libtc/tcframes.c
+    libtc/tcframes.h libtc/tcglob.c libtc/tcglob.h libtc/tcmodule-core.h
+    libtc/tcmodule-data.h libtc/tcmodule-info.h libtc/tcmodule-plugin.h
+    libtc/tcmodule.c libtc/tcmoduleinfo.c libtc/tctimer.c libtc/tctimer.h
+  reformat/update license header.
+
 2007-08-28 Francesco Romani <fromani at gmail dot com>
   * docs/man/tcdecode.1
   update tcdecode manpage.
