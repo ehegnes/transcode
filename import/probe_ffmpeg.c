@@ -80,7 +80,11 @@ void probe_ffmpeg(info_t *ipipe)
 
     close(ipipe->fd_in);
 
-    TC_INIT_LIBAVCODEC;
+    TC_LOCK_LIBAVCODEC;
+    av_register_all();
+    avcodec_init();
+    avcodec_register_all();
+    TC_UNLOCK_LIBAVCODEC;
 
     ret = av_open_input_file(&lavf_dmx_context, ipipe->name,
                              NULL, 0, NULL);

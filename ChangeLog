@@ -2,6 +2,12 @@
   * docs/tech/Makefile.am docs/tech/html/Makefile.am
   makefile fixes.
 
+  * import/probe_ffmpeg.c
+  register avformats too.
+
+  * import/probe_stream.c
+  smarter fallbacks if some features aren't enabled.
+
 2007-08-28 Francesco Romani <fromani at gmail dot com>
   * docs/man/tcdecode.1
   update tcdecode manpage.

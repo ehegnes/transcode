@@ -28,8 +28,7 @@
 
 #include "libtc/libtc.h"
 
-
-static ProbeInfo probe_info;
+/*************************************************************************/
 
 
 void probe_file(info_t *ipipe)
@@ -38,7 +37,7 @@ void probe_file(info_t *ipipe)
       case TC_MAGIC_AVI:
         probe_avi(ipipe);
         break;
-
+#ifdef HAVE_IMAGEMAGICK
       case TC_MAGIC_TIFF1:   /* image formats (multiple fallbacks) */
       case TC_MAGIC_TIFF2:
       case TC_MAGIC_JPEG:
@@ -50,46 +49,37 @@ void probe_file(info_t *ipipe)
       case TC_MAGIC_SGI:
         probe_im(ipipe); /* ImageMagick serve all */
         break;
-
+#endif
       case TC_MAGIC_MXF:
         probe_mxf(ipipe);
         break;
-
+#if HAVE_OGG
       case TC_MAGIC_OGG:
         probe_ogg(ipipe);
         break;
-
+#endif
       case TC_MAGIC_CDXA:
-        probe_pes(ipipe);
-        break;
-
       case TC_MAGIC_MPEG_PS: /* MPEG Program Stream */
       case TC_MAGIC_VOB:     /* backward compatibility fallback */
-        probe_pes(ipipe);
-        break;
-
       case TC_MAGIC_MPEG_ES: /* MPEG Elementary Stream */
       case TC_MAGIC_M2V:     /* backward compatibility fallback */
-        probe_pes(ipipe);
-        break;
-
       case TC_MAGIC_MPEG_PES:/* MPEG Packetized Elementary Stream */
       case TC_MAGIC_MPEG:    /* backward compatibility fallback */
         probe_pes(ipipe);
         break;
-
+#if defined HAVE_MJPEGTOOLS
       case TC_MAGIC_YUV4MPEG:
         probe_yuv(ipipe);
         break;
-
+#endif
       case TC_MAGIC_NUV:
         probe_nuv(ipipe);
         break;
-
+#ifdef HAVE_LIBQUICKTIME
       case TC_MAGIC_MOV:
         probe_mov(ipipe);
         break;
-
+#endif
       case TC_MAGIC_WAV:
         probe_wav(ipipe);
         break;
@@ -108,12 +98,12 @@ void probe_file(info_t *ipipe)
       case TC_MAGIC_MP2:
         probe_mp3(ipipe);
         break;
-
+#ifdef HAVE_LIBDV
       case TC_MAGIC_DV_PAL:
       case TC_MAGIC_DV_NTSC:
         probe_dv(ipipe);
         break;
-
+#endif
       case TC_MAGIC_PV3:
         probe_pv3(ipipe);
         break;
@@ -132,6 +122,8 @@ void probe_file(info_t *ipipe)
 
 void probe_stream(info_t *ipipe)
 {
+    static ProbeInfo probe_info;
+
     verbose = ipipe->verbose;
 
     ipipe->probe_info = &probe_info;
