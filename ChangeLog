@@ -8,6 +8,10 @@
   * import/probe_stream.c
   smarter fallbacks if some features aren't enabled.
 
+  * import/import_ffmpeg.c
+  retry adding libavformat support. Performed some tests on some
+  sample AVIs and MPEGs (PS), no regressions so far.
+
 2007-08-28 Francesco Romani <fromani at gmail dot com>
   * docs/man/tcdecode.1
   update tcdecode manpage.
