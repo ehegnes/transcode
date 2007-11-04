@@ -1,15 +1,25 @@
+# # Process this file with automake to produce Makefile.in.
+
 EXTRA_DIST = \
 	$(docs_DATA)
 
+SUBDIRS = \
+	html
+
 docsdir = \
-	$(datadir)/doc/transcode/tech/html
+	$(datadir)/doc/transcode/tech
 
-docs_DATA =  \
-	tc_basic.css \
-	index.html \
-	tc_frame_buffer.html \
-	tc_input_rotation.html \
-	tc_libraries.html \
-	tc_logo.png
 
+docs_DATA = \
+	LIBRARIES \
+	OPTIMIZERS \
+	architecture.txt \
+	avi_comments.txt \
+	clone.txt \
+	export-API.txt \
+	filter-API.txt \
+	filter_template.c \
+	ibp_support.txt \
+	import-API.txt \
+	module-system-API.txt
 
