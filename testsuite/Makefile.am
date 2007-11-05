@@ -28,14 +28,14 @@ noinst_PROGRAMS = \
 	test-imgconvert \
 	test-iodir \
 	test-mangle-cmdline \
+	$(PVM3_TEST) \
 	test-ratiocodes \
 	test-resize-values \
 	test-tclog \
 	test-tcglob \
 	test-tcmodule \
 	test-tcmoduleinfo \
-	test-tcstrdup \
-	$(PVM3_TEST)
+	test-tcstrdup
 
 test_acmemcpy_SOURCES = test-acmemcpy.c
 test_acmemcpy_LDADD = $(ACLIB_LIBS)
@@ -70,6 +70,7 @@ test_tclog_LDADD = $(LIBTC_LIBS)
 test_tcglob_SOURCES = test-tcglob.c
 test_tcglob_LDADD = $(LIBTC_LIBS)
 
+test_tcmodule_SOURCES = test-tcmodule.c
 test_tcmodule_LDADD = $(LIBTC_LIBS)
 test_tcmodule_LDFLAGS = -export-dynamic
 
