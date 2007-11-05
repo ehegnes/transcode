@@ -26,6 +26,8 @@
 
 #include "tc_defaults.h"    /*TC_xxxx variables*/
 
+#define PVM_MAX_CODEC_PARAMS    3
+
 typedef struct _pvm_config_filelist {
     char *p_codec;
     char *p_filename;
@@ -72,6 +74,7 @@ typedef struct _pvm_config_env {
 } pvm_config_env;
 
 
-pvm_config_env *f_pvm_parser(char *p_hostfile,char *p_option);
+pvm_config_env *pvm_parser_open(char *p_hostfile, int verbose, int full);
+void pvm_parser_close(void);
 
 #endif

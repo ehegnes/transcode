@@ -25,7 +25,13 @@
 #define _PVM_VERSION_H
 
 
-#define EXPORT_PVM_VERSION   "v0.0.4 (2003-09-10)\0"
+#define EXPORT_PVM_VERSION   "v0.0.5 (2007-08-03)"
 #define M_LOAD_LIB           "pvm_functions.so"
+
+#define PVM_MAX_NODES             8
+#define PVM_NUM_NODE_PROCS        255
+#define PVM_MAX_NODE_PROCS        4095
+#define PVM_MAX_CLUSTER_PROCS     4095
+#define PVM_NUM_TASK_FRAMES       65535
 
 #endif

@@ -2,6 +2,8 @@
  *  pvm_parser.c
  *
  *  Copyright (C) Malanchini Marzio - August 2003
+ *  Updates and port to new libtc configuration file parser:
+ *  (C) 2007 Francesco Romani <fromani at gmail dot com>
  *
  *  This file is part of transcode, a video stream processing tool
  *
@@ -21,390 +23,550 @@
  *
  */
 
+/*
+ * OK, I must say that I'm not very proud of my work done here.
+ * I think I'll must improve it soon.
+ */
+
 #ifdef HAVE_CONFIG_H
 # include "config.h"
 #endif
+
+#include "libtc/libtc.h"
+#include "libtc/cfgfile.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <pvm_parser.h>
+#include <pvm_version.h>
 
 
-extern int verbose;
+/*************************************************************************/
+/* helpers */
 
-#define PVMHOSTCAPABILITY_MASK	0x00000001
-#define MERGER_MASK		0x00000010
-#define EXPORTMODULE_MASK	0x00000100
-#define ADDLIST_MASK		0x00001000
-#define REMOVELIST_MASK		0x00010000
-#define SYSTEMLIST_MASK		0x00100000
+#define LOCALHOST   "."
+/* XXX ?! sic -- Fromani */
 
-
-static char *f_skip_space(char *p_value,char *p_default)
+static char *pvm_hostname(char *candidate)
 {
-	char *p_tmp;
+    if (candidate) {
+        tc_strstrip(candidate);
+ 
+        if (strlen(candidate) > 0) { // XXX enlarge check value
+            return candidate;
+        }
+    }
+    return LOCALHOST;
+}
 
-	p_tmp=cf_skip_frontwhite(p_value);
-	if (strlen(p_tmp) == 0)
-		return(p_default);
-	return(p_tmp);
+/* commodity */
+typedef char PVMString[TC_BUF_MIN];
+
+typedef struct pvmnodedata_ PVMNodeData;
+struct pvmnodedata_ {
+    PVMString hostname;
+    int enabled; /* flag */
+    int maxprocs;
+};
+
+/*************************************************************************/
+/* main data structure */
+
+static pvm_config_env s_pvm_conf;
+
+/*************************************************************************/
+/* forward declarations of dispatchers */
+
+static pvm_config_filelist *dispatch_list(TCConfigList *src, int type,
+                                          char *codec, char *destination,
+                                          pvm_config_filelist **ret);
+
+static int dispatch_node(int id, PVMNodeData *data,
+                         pvm_config_env *env);
+
+static int dispatch_null(int id, pvm_config_env *env);
+static int dispatch_merger(int id, pvm_config_env *env);
+static int dispatch_modules(int id, pvm_config_env *env);
+static int dispatch_syslist(int id, pvm_config_env *env);
+
+
+/*************************************************************************/
+/* 
+ * since configuration uses a lot of strings, we need a lot of temporary
+ * buffers to store them
+ */
+/* Nodes */
+static int nodes_num = 1; /* this is pretty ugly, isn't it? */
+static PVMNodeData nodes_data[PVM_MAX_NODES];
+/* SystemMerger */
+static PVMString systemmerger_hostname;
+static PVMString systemmerger_mplexparams;
+/* AudioMerger */
+static PVMString audiomerger_hostname;
+/* VideoMerger */
+static PVMString videomerger_hostname;
+/* ExportAudioModule */
+static PVMString exportaudiomod_codec;
+static PVMString exportaudiomod_params[PVM_MAX_CODEC_PARAMS];
+/* ExportVideoModule */
+static PVMString exportvideomod_codec;
+static PVMString exportvideomod_params[PVM_MAX_CODEC_PARAMS];
+/* SystemList */
+static PVMString systemlist_codec;
+static PVMString systemlist_destination;
+static PVMString systemlist_mplexparams;
+/* AddAudio */
+static PVMString addaudio_codec;
+static PVMString addaudio_destination;
+/* AddVideo */
+static PVMString addvideo_codec;
+static PVMString addvideo_destination;
+
+/*************************************************************************/
+
+#define NODEINIT(ID) \
+    { { "Hostname", (nodes_data[ID].hostname), TCCONF_TYPE_STRING, 0, 0, 0 }, \
+      { "NumProcMax", &(nodes_data[ID].maxprocs), TCCONF_TYPE_INT, \
+                      0, 1, PVM_MAX_NODE_PROCS }, \
+      { "Enabled", &(nodes_data[ID].enabled), TCCONF_TYPE_FLAG, 0, 0, 1 }, \
+      { NULL, NULL, 0, 0, 0, 0, } }
+
+static TCConfigEntry node_conf[PVM_MAX_NODES][4] = {
+    NODEINIT(0),
+    NODEINIT(1),
+    NODEINIT(2),
+    NODEINIT(3),
+    NODEINIT(4),
+    NODEINIT(5),
+    NODEINIT(6),
+    NODEINIT(7),
+};
+#undef NODEINIT
+static TCConfigEntry pvmhostcaps_conf[] = {
+    { "NumProcMaxForHost", &(s_pvm_conf.s_nproc),
+        TCCONF_TYPE_INT, 0, 1, PVM_NUM_NODE_PROCS },
+    { "MaxProcForCluster", &(s_pvm_conf.s_max_proc),
+        TCCONF_TYPE_INT, 0, 1, PVM_MAX_CLUSTER_PROCS },
+    { "NumElabFrameForTask", &(s_pvm_conf.s_num_frame_task),
+        TCCONF_TYPE_INT, 0, 1, PVM_NUM_TASK_FRAMES },
+    { "InternalMultipass", &(s_pvm_conf.s_internal_multipass),
+        TCCONF_TYPE_FLAG, 0, 0, 1 },
+    { "Nodes", &nodes_num, TCCONF_TYPE_INT, 0, 1, PVM_MAX_NODES },
+    { NULL, NULL, 0, 0, 0, 0, },
+};
+static TCConfigEntry videomerger_conf[] = {
+    { "Hostname", videomerger_hostname, TCCONF_TYPE_STRING, 0, 0, 0 },
+    { "BuildOnlyBatchMergeList",
+      &(s_pvm_conf.s_video_merger.s_build_only_list),
+      TCCONF_TYPE_FLAG, 0, 0, 1 },
+    { NULL, NULL, 0, 0, 0, 0, },
+};
+static TCConfigEntry audiomerger_conf[] = {
+    { "Hostname", audiomerger_hostname, TCCONF_TYPE_STRING, 0, 0, 0 },
+    { "BuildOnlyBatchMergeList",
+      &(s_pvm_conf.s_audio_merger.s_build_only_list),
+      TCCONF_TYPE_FLAG, 0, 0, 1 },
+    { NULL, NULL, 0, 0, 0, 0, },
+};
+static TCConfigEntry systemmerger_conf[] = {
+    { "Hostname", systemmerger_hostname, TCCONF_TYPE_STRING, 0, 0, 0 },
+    { "BuildOnlyBatchMergeList",
+      &(s_pvm_conf.s_system_merger.s_build_only_list),
+      TCCONF_TYPE_FLAG, 0, 0, 1 },
+    { "MultiplexParams", systemmerger_mplexparams,
+      TCCONF_TYPE_STRING, 0, 0, },
+    { NULL, NULL, 0, 0, 0, 0, },
+};
+static TCConfigEntry exportaudiomod_conf[] = {
+    { "Codec", exportaudiomod_codec, TCCONF_TYPE_STRING, 0, 0, 0 },
+    { "Param1", exportaudiomod_params[0], TCCONF_TYPE_STRING, 0, 0, 0 },
+    { "Param2", exportaudiomod_params[1], TCCONF_TYPE_STRING, 0, 0, 0 },
+    { "Param3", exportaudiomod_params[2], TCCONF_TYPE_STRING, 0, 0, 0 },
+    { NULL, NULL, 0, 0, 0, 0, },
+};
+static TCConfigEntry exportvideomod_conf[] = {
+    { "Codec", exportvideomod_codec, TCCONF_TYPE_STRING, 0, 0, 0 },
+    { "Param1", exportvideomod_params[0], TCCONF_TYPE_STRING, 0, 0, 0 },
+    { "Param2", exportvideomod_params[1], TCCONF_TYPE_STRING, 0, 0, 0 },
+    { "Param3", exportvideomod_params[2], TCCONF_TYPE_STRING, 0, 0, 0 },
+    { NULL, NULL, 0, 0, 0, 0, },
+};
+static TCConfigEntry systemlist_conf[] = {
+    { "Destination", systemlist_destination, TCCONF_TYPE_STRING, 0, 0, 0 },
+    { "Codec", systemlist_codec, TCCONF_TYPE_STRING, 0, 0, 0 },
+    { "BuildOnlyBatchMergeList",
+      &(s_pvm_conf.s_build_intermed_file),
+      TCCONF_TYPE_FLAG, 0, 0, 1 },
+    { "MultiplexParams", systemlist_mplexparams,
+      TCCONF_TYPE_STRING, 0, 0, },
+    { NULL, NULL, 0, 0, 0, 0, },
+};
+static TCConfigEntry addaudio_conf[] = {
+    { "Destination", addaudio_destination, TCCONF_TYPE_STRING, 0, 0, 0 },
+    { "Codec", addaudio_codec, TCCONF_TYPE_STRING, 0, 0, 0 },
+    { NULL, NULL, 0, 0, 0, 0, },
+};
+static TCConfigEntry addvideo_conf[] = {
+    { "Destination", addvideo_destination, TCCONF_TYPE_STRING, 0, 0, 0 },
+    { "Codec", addvideo_codec, TCCONF_TYPE_STRING, 0, 0, 0 },
+    { NULL, NULL, 0, 0, 0, 0, },
+};
+
+/*************************************************************************/
+
+typedef struct pvm_conf_item_ PVMConfItem;
+struct pvm_conf_item_ {
+    const char *name;
+    TCConfigEntry *conf;
+    int (*dispatch)(int id, pvm_config_env *env);
+    int serverside; /* flag */
+    int parsed;
+};
+
+/* BIGFAT WARNING: please take a great care to keep in sync */
+enum config_idx {
+    CONF_PVM_HOST_CAPS_IDX = 0,
+    CONF_AUDIO_MERGER_IDX,
+    CONF_VIDEO_MERGER_IDX,
+    CONF_SYSTEM_MERGER_IDX,
+    CONF_EXPORT_AUDIO_MOD_IDX,
+    CONF_EXPORT_VIDEO_MOD_IDX,
+    CONF_SYSTEM_LIST_IDX,
+    CONF_ADD_AUDIO_IDX,
+    CONF_ADD_VIDEO_IDX,
+};
+static PVMConfItem pvm_config[] = {
+    { "PvmHostCapability",  pvmhostcaps_conf,      dispatch_null,     0, 0, },
+    { "AudioMerger",        audiomerger_conf,      dispatch_merger,   0, 0, },
+    { "VideoMerger",        videomerger_conf,      dispatch_merger,   0, 0, },
+    { "SystemMerger",       systemmerger_conf,     dispatch_merger,   0, 0, },
+    { "ExportAudioModule",  exportaudiomod_conf,   dispatch_modules,  0, 0, },
+    { "ExportVideoModule",  exportvideomod_conf,   dispatch_modules,  0, 0, },
+    { "SystemList",         systemlist_conf,       dispatch_syslist,  1, 0, },
+    { "AddAudio",           addaudio_conf,         dispatch_null,     1, 0, },
+    { "AddVideo",           addvideo_conf,         dispatch_null,     1, 0, },
+    { NULL,                 NULL,                  NULL,              0, 0, },
+};
+
+typedef struct pvm_list_item_ PVMListItem;
+struct pvm_list_item_ {
+    const char *name;
+    pvm_config_filelist **list;
+    int type;
+    int parsed;
+    /* dispatcher can be generic, so no need for specific one */
+};
+static PVMListItem pvm_filelist[] = {
+    { "AddAudioList",       &s_pvm_conf.p_add_list,     TC_AUDIO, 0, },
+    { "AddVideoList",       &s_pvm_conf.p_add_list,     TC_VIDEO, 0, },
+    { "LogAudioList",       &s_pvm_conf.p_add_loglist,  TC_AUDIO, 0, },
+    { "LogVideoList",       &s_pvm_conf.p_add_loglist,  TC_VIDEO, 0, },
+    { "RemoveAudioList",    &s_pvm_conf.p_rem_list,     TC_AUDIO, 0, },
+    { "RemoveVideoList",    &s_pvm_conf.p_rem_list,     TC_VIDEO, 0, },
+    { NULL,                 NULL,                       0,        0, },
+};
+
+/*************************************************************************/
+/* dispatcher functions */
+
+static pvm_config_filelist *dispatch_list(TCConfigList *src, int type,
+                                          char *codec, char *destination,
+                                          pvm_config_filelist **ret)
+{
+    pvm_config_filelist *head = NULL, *tail = NULL, *item = NULL;
+    for (; src != NULL; src = src->next) {
+        item = tc_zalloc(sizeof(pvm_config_filelist)); // XXX
+
+        item->s_type = type;
+        item->p_codec = codec; // softref
+        item->p_destination = destination; // softref
+        item->p_filename = src->value; // hardref
+
+        if (!head) {
+            head = item;
+            tail = item;
+        } else {
+            tail->p_next = item;
+            tail = tail->p_next;
+        }
+    }
+    if (ret) {
+        *ret = tail;
+    }
+    return head;
 }
 
 
-pvm_config_env *f_pvm_parser(char *p_hostfile,char *p_option)
+static int dispatch_node(int id, PVMNodeData *data,
+                         pvm_config_env *env)
 {
-	CF_ROOT_TYPE *p_root;
-	CF_SECTION_TYPE *p_section;
-	CF_SUBSECTION_TYPE	*p_subsection;
-	CF_KEYVALUE_TYPE	*p_key_value;
-	int s_tmp;
-	static pvm_config_env s_pvm_conf;
-	pvm_config_hosts	*p_pvm_conf_host=NULL,*p_tmp;
-	pvm_config_filelist	*p_pvm_conf_fileadd=NULL,*p_pvm_conf_filerem=NULL,*p_pvm_conf_file_loglist=NULL;
-	static char *p_localhost=".";	/*localhost*/
-	int s_check_func=0;
-	int s_list_type=0;
+    /* 
+     * this insert nodes in reverse orders, so node defined last
+     * in configuration file is first on list, but nobody really
+     * cares about that.
+     */
+    if (env && data && data->enabled) {
+        pvm_config_hosts *host = tc_zalloc(sizeof(pvm_config_hosts));
+        if (host) {
+            /* fill */
+            host->p_hostname = data->hostname;
+            host->s_nproc    = data->maxprocs;
+            /* link */
+            host->p_next     = env->p_pvm_hosts;
+            env->p_pvm_hosts = host;
 
-
-	if(!strcasecmp(p_option,"open"))
-	{
-		if((p_root=cf_read(p_hostfile))==NULL)
-		{
-			fprintf(stderr, "(%s) error reading configuration file\n",__FILE__);
-			return(NULL);
-		}
-		memset(&s_pvm_conf,'\0',sizeof(s_pvm_conf));
-		if((p_section=cf_get_section(p_root))!=NULL)
-		{
-			do
-			{
-				if(!strcasecmp(p_section->name,"PvmHostCapability"))
-				{
-					s_check_func|=PVMHOSTCAPABILITY_MASK;
-					for (p_key_value=p_section->keyvalue;p_key_value!=NULL;p_key_value=p_key_value->next)
-					{
-						if (verbose & TC_DEBUG)	//debug
-							fprintf(stderr,"(%s) Section %s key %s value %s\n",__FILE__,p_section->name,p_key_value->key,p_key_value->value);
-						if(!strcasecmp(p_key_value->key,"NumProcMaxForHost"))
-							s_pvm_conf.s_nproc=atoi(p_key_value->value);
-						else if(!strcasecmp(p_key_value->key,"MaxProcForCluster"))
-							s_pvm_conf.s_max_proc=atoi(p_key_value->value);
-						else if(!strcasecmp(p_key_value->key,"NumElabFrameForTask"))
-							s_pvm_conf.s_num_frame_task=atoi(p_key_value->value);
-						else if(!strcasecmp(p_key_value->key,"InternalMultipass"))
-							s_pvm_conf.s_internal_multipass=(atoi(p_key_value->value)==1)?1:0;
-						else
-						{
-							fprintf(stderr,"(%s) invalid section %s parameter %s value %s\n",__FILE__,p_section->name,p_key_value->key,p_key_value->value);
-							return(f_pvm_parser(NULL,"close"));
-						}
-					}
-					for (p_subsection=p_section->subsection;p_subsection!=NULL;p_subsection=p_subsection->next)
-					{
-						if (p_pvm_conf_host==NULL)
-						{
-							p_pvm_conf_host=(pvm_config_hosts *)calloc(sizeof(pvm_config_hosts),1);
-							s_pvm_conf.p_pvm_hosts=p_pvm_conf_host;
-						}
-						else
-						{
-							p_pvm_conf_host->p_next=(pvm_config_hosts *)calloc(sizeof(pvm_config_hosts),1);
-							p_pvm_conf_host=p_pvm_conf_host->p_next;
-						}
-						p_pvm_conf_host->p_hostname=p_localhost;	/*this is the default*/
-						p_pvm_conf_host->s_nproc=1;	/*this is the default*/
-						for (p_key_value=p_subsection->keyvalue;p_key_value!=NULL;p_key_value=p_key_value->next)
-						{
-							if (verbose & TC_DEBUG)	//debug
-								fprintf(stderr,"(%s) Subsection %s key %s value %s\n",__FILE__,p_subsection->name,p_key_value->key,p_key_value->value);
-							if(!strcasecmp(p_subsection->name,"Host"))
-							{
-								if(!strcasecmp(p_key_value->key,"Hostname"))
-									p_pvm_conf_host->p_hostname=f_skip_space(p_key_value->value,p_localhost);
-								else if(!strcasecmp(p_key_value->key,"NumProcMax"))
-									p_pvm_conf_host->s_nproc=atoi(p_key_value->value);
-								else
-								{
-									fprintf(stderr,"(%s) invalid subsection %s parameter %s value %s\n",__FILE__,p_subsection->name,p_key_value->key,p_key_value->value);
-									return(f_pvm_parser(NULL,"close"));
-								}
-							}
-							else
-							{
-								fprintf(stderr,"(%s) invalid subsection %s in sectio %s\n",__FILE__,p_subsection->name,p_section->name);
-								return(f_pvm_parser(NULL,"close"));
-							}
-						}
-					}
-				}
-				else if(!strcasecmp(p_section->name,"SystemMerger"))
-				{
-					s_check_func|=MERGER_MASK;
-					s_pvm_conf.s_system_merger.p_hostname=p_localhost;	/*this is the default*/
-					for (p_key_value=p_section->keyvalue;p_key_value!=NULL;p_key_value=p_key_value->next)
-					{
-						if (verbose & TC_DEBUG)	//debug
-							fprintf(stderr,"(%s) Section %s key %s value %s\n",__FILE__,p_section->name,p_key_value->key,p_key_value->value);
-						if(!strcasecmp(p_key_value->key,"Hostname"))
-							s_pvm_conf.s_system_merger.p_hostname=f_skip_space(p_key_value->value,p_localhost);
-						else if(!strcasecmp(p_key_value->key,"BuildOnlyBatchMergeList"))
-							s_pvm_conf.s_system_merger.s_build_only_list=(atoi(p_key_value->value)>2||atoi(p_key_value->value)<0)?1:atoi(p_key_value->value);
-						else if(!strcasecmp(p_key_value->key,"MultiplexParams"))
-							s_pvm_conf.p_multiplex_cmd=f_skip_space(p_key_value->value,NULL);
-						else
-						{
-							fprintf(stderr,"(%s) invalid section %s parameter %s value %s\n",__FILE__,p_section->name,p_key_value->key,p_key_value->value);
-							return(f_pvm_parser(NULL,"close"));
-						}
-					}
-				}
-				else if(!strcasecmp(p_section->name,"AudioMerger"))
-				{
-					s_check_func|=MERGER_MASK;
-					s_pvm_conf.s_audio_merger.p_hostname=p_localhost;	/*this is the default*/
-					for (p_key_value=p_section->keyvalue;p_key_value!=NULL;p_key_value=p_key_value->next)
-					{
-						if (verbose & TC_DEBUG)	//debug
-							fprintf(stderr,"(%s) Section %s key %s value %s\n",__FILE__,p_section->name,p_key_value->key,p_key_value->value);
-						if(!strcasecmp(p_key_value->key,"Hostname"))
-							s_pvm_conf.s_audio_merger.p_hostname=f_skip_space(p_key_value->value,p_localhost);
-						else if(!strcasecmp(p_key_value->key,"BuildOnlyBatchMergeList"))
-							s_pvm_conf.s_audio_merger.s_build_only_list=(atoi(p_key_value->value)>1||atoi(p_key_value->value)<0)?1:atoi(p_key_value->value);
-						else
-						{
-							fprintf(stderr,"(%s) invalid section %s parameter %s value %s\n",__FILE__,p_section->name,p_key_value->key,p_key_value->value);
-							return(f_pvm_parser(NULL,"close"));
-						}
-					}
-				}
-				else if(!strcasecmp(p_section->name,"VideoMerger"))
-				{
-					s_check_func|=MERGER_MASK;
-					s_pvm_conf.s_video_merger.p_hostname=p_localhost;	/*this is the default*/
-					for (p_key_value=p_section->keyvalue;p_key_value!=NULL;p_key_value=p_key_value->next)
-					{
-						if (verbose & TC_DEBUG)	//debug
-							fprintf(stderr,"(%s) Section %s key %s value %s\n",__FILE__,p_section->name,p_key_value->key,p_key_value->value);
-						if(!strcasecmp(p_key_value->key,"Hostname"))
-							s_pvm_conf.s_video_merger.p_hostname=f_skip_space(p_key_value->value,NULL);
-						else if(!strcasecmp(p_key_value->key,"BuildOnlyBatchMergeList"))
-							s_pvm_conf.s_video_merger.s_build_only_list=(atoi(p_key_value->value)>1||atoi(p_key_value->value)<0)?1:atoi(p_key_value->value);
-						else
-						{
-							fprintf(stderr,"(%s) invalid section %s parameter %s value %s\n",__FILE__,p_section->name,p_key_value->key,p_key_value->value);
-							return(f_pvm_parser(NULL,"close"));
-						}
-					}
-				}
-				else if(!strcasecmp(p_section->name,"ExportAudioModule"))
-				{
-					s_check_func|=EXPORTMODULE_MASK;
-					for (p_key_value=p_section->keyvalue;p_key_value!=NULL;p_key_value=p_key_value->next)
-					{
-						if (verbose & TC_DEBUG)	//debug
-							fprintf(stderr,"(%s) Section %s key %s value %s\n",__FILE__,p_section->name,p_key_value->key,p_key_value->value);
-						if(!strcasecmp(p_key_value->key,"Codec"))
-							s_pvm_conf.s_audio_codec.p_codec=f_skip_space(p_key_value->value,NULL);
-						else if(!strcasecmp(p_key_value->key,"Param1"))
-							s_pvm_conf.s_audio_codec.p_par1=f_skip_space(p_key_value->value,NULL);
-						else if(!strcasecmp(p_key_value->key,"Param2"))
-							s_pvm_conf.s_audio_codec.p_par2=f_skip_space(p_key_value->value,NULL);
-						else if(!strcasecmp(p_key_value->key,"Param3"))
-							s_pvm_conf.s_audio_codec.p_par3=f_skip_space(p_key_value->value,NULL);
-						else
-						{
-							fprintf(stderr,"(%s) invalid section %s parameter %s value %s\n",__FILE__,p_section->name,p_key_value->key,p_key_value->value);
-							return(f_pvm_parser(NULL,"close"));
-						}
-					}
-				}
-				else if(!strcasecmp(p_section->name,"ExportVideoModule"))
-				{
-					s_check_func|=EXPORTMODULE_MASK;
-					for (p_key_value=p_section->keyvalue;p_key_value!=NULL;p_key_value=p_key_value->next)
-					{
-						if (verbose & TC_DEBUG)	//debug
-							fprintf(stderr,"(%s) Section %s key %s value %s\n",__FILE__,p_section->name,p_key_value->key,p_key_value->value);
-						if(!strcasecmp(p_key_value->key,"Codec"))
-							s_pvm_conf.s_video_codec.p_codec=f_skip_space(p_key_value->value,NULL);
-						else if(!strcasecmp(p_key_value->key,"Param1"))
-							s_pvm_conf.s_video_codec.p_par1=f_skip_space(p_key_value->value,NULL);
-						else if(!strcasecmp(p_key_value->key,"Param2"))
-							s_pvm_conf.s_video_codec.p_par2=f_skip_space(p_key_value->value,NULL);
-						else if(!strcasecmp(p_key_value->key,"Param3"))
-							s_pvm_conf.s_video_codec.p_par3=f_skip_space(p_key_value->value,NULL);
-						else
-						{
-							fprintf(stderr,"(%s) invalid section %s parameter %s value %s\n",__FILE__,p_section->name,p_key_value->key,p_key_value->value);
-							return(f_pvm_parser(NULL,"close"));
-						}
-					}
-				}
-				else if ((!strcasecmp(p_section->name,"LogAudioList"))||(!strcasecmp(p_section->name,"LogVideoList")))
-				{
-					if (!strcasecmp(p_section->name,"LogVideoList"))
-						s_list_type=TC_VIDEO;
-					else
-						s_list_type=TC_AUDIO;
-					for (p_key_value=p_section->keyvalue;p_key_value!=NULL;p_key_value=p_key_value->next)
-					{
-						if (verbose & TC_DEBUG)	//debug
-							fprintf(stderr,"(%s) Section %s key %s value %s\n",__FILE__,p_section->name,p_key_value->key,p_key_value->value);
-						if (p_pvm_conf_file_loglist==NULL)
-						{
-							p_pvm_conf_file_loglist=(pvm_config_filelist *)calloc(sizeof(pvm_config_filelist),1);
-							s_pvm_conf.p_add_loglist=p_pvm_conf_file_loglist;
-						}
-						else
-						{
-							p_pvm_conf_file_loglist->p_next=(pvm_config_filelist *)calloc(sizeof(pvm_config_filelist),1);
-							p_pvm_conf_file_loglist=p_pvm_conf_file_loglist->p_next;
-						}
-						p_pvm_conf_file_loglist->p_filename=f_skip_space(p_key_value->value,NULL);
-						p_pvm_conf_file_loglist->s_type=s_list_type;
-					}
-				}
-				else if ((!strcasecmp(p_section->name,"AddVideoList"))||(!strcasecmp(p_section->name,"AddAudioList")))
-				{
-					s_check_func|=ADDLIST_MASK;
-					s_tmp=1;
-					if (!strcasecmp(p_section->name,"AddVideoList"))
-						s_list_type=TC_VIDEO;
-					else
-						s_list_type=TC_AUDIO;
-					for (p_key_value=p_section->keyvalue;p_key_value!=NULL;p_key_value=p_key_value->next)
-					{
-						if (verbose & TC_DEBUG)	//debug
-							fprintf(stderr,"(%s) Section %s key %s value %s\n",__FILE__,p_section->name,p_key_value->key,p_key_value->value);
-						if (s_tmp)
-						{
-							s_tmp=0;
-							if (p_pvm_conf_fileadd==NULL)
-							{
-								p_pvm_conf_fileadd=(pvm_config_filelist *)calloc(sizeof(pvm_config_filelist),1);
-								s_pvm_conf.p_add_list=p_pvm_conf_fileadd;
-							}
-							else
-							{
-								p_pvm_conf_fileadd->p_next=(pvm_config_filelist *)calloc(sizeof(pvm_config_filelist),1);
-								p_pvm_conf_fileadd=p_pvm_conf_fileadd->p_next;
-							}
-						}
-						if(!strcasecmp(p_key_value->key,"Destination"))
-							s_pvm_conf.p_add_list->p_destination=f_skip_space(p_key_value->value,NULL);
-						else if(!strcasecmp(p_key_value->key,"Codec"))
-							s_pvm_conf.p_add_list->p_codec=f_skip_space(p_key_value->value,NULL);
-						else /*no name*/
-						{
-							s_tmp=1;	/*need to create a new node*/
-							p_pvm_conf_fileadd->p_filename=f_skip_space(p_key_value->value,NULL);
-							p_pvm_conf_fileadd->s_type=s_list_type;
-						}
-					}
-				}
-				else if ((!strcasecmp(p_section->name,"RemoveVideoList"))||(!strcasecmp(p_section->name,"RemoveAudioList")))
-				{
-					s_check_func|=REMOVELIST_MASK;
-					if (!strcasecmp(p_section->name,"RemoveVideoList"))
-						s_list_type=TC_VIDEO;
-					else
-						s_list_type=TC_AUDIO;
-					for (p_key_value=p_section->keyvalue;p_key_value!=NULL;p_key_value=p_key_value->next)
-					{
-						if (verbose & TC_DEBUG)	//debug
-							fprintf(stderr,"(%s) Section %s key %s value %s\n",__FILE__,p_section->name,p_key_value->key,p_key_value->value);
-						if (p_pvm_conf_filerem==NULL)
-						{
-							p_pvm_conf_filerem=(pvm_config_filelist *)calloc(sizeof(pvm_config_filelist),1);
-							s_pvm_conf.p_rem_list=p_pvm_conf_filerem;
-						}
-						else
-						{
-							p_pvm_conf_filerem->p_next=(pvm_config_filelist *)calloc(sizeof(pvm_config_filelist),1);
-							p_pvm_conf_filerem=p_pvm_conf_filerem->p_next;
-						}
-						p_pvm_conf_filerem->p_filename=f_skip_space(p_key_value->value,NULL);
-						p_pvm_conf_filerem->s_type=s_list_type;
-					}
-				}
-				else if (!strcasecmp(p_section->name,"SystemList"))
-				{
-					s_check_func|=SYSTEMLIST_MASK;
-					for (p_key_value=p_section->keyvalue;p_key_value!=NULL;p_key_value=p_key_value->next)
-					{
-						if (verbose & TC_DEBUG)	//debug
-							fprintf(stderr,"(%s) Section %s key %s value %s\n",__FILE__,p_section->name,p_key_value->key,p_key_value->value);
-						if(!strcasecmp(p_key_value->key,"Codec"))
-							s_pvm_conf.s_sys_list.p_codec=f_skip_space(p_key_value->value,NULL);
-						else if(!strcasecmp(p_key_value->key,"Destination"))
-							s_pvm_conf.s_sys_list.p_destination=f_skip_space(p_key_value->value,NULL);
-						else if(!strcasecmp(p_key_value->key,"MultiplexParams"))
-							s_pvm_conf.p_multiplex_cmd=f_skip_space(p_key_value->value,NULL);
-						else if(!strcasecmp(p_key_value->key,"BuildOnlyIntermediateFile"))
-							s_pvm_conf.s_build_intermed_file=(atoi(p_key_value->value)<0||atoi(p_key_value->value)>1)?0:atoi(p_key_value->value);
-						else
-						{
-							fprintf(stderr,"(%s) invalid section %s parameter %s value %s\n",__FILE__,p_section->name,p_key_value->key,p_key_value->value);
-							return(f_pvm_parser(NULL,"close"));
-						}
-					}
-				}
-				else
-				{
-					fprintf(stderr,"(%s) Invalid [%s] section \n",__FILE__,p_section->name);
-					return(f_pvm_parser(NULL,"close"));
-				}
-
-			} while((p_section=cf_get_next_section(p_root,p_section)) != NULL);
-			if (((s_pvm_conf.s_audio_codec.p_codec ==NULL)&&(s_pvm_conf.s_video_codec.p_codec ==NULL))&&(s_check_func&EXPORTMODULE_MASK))
-			{
-				fprintf(stderr,"(%s) Need at least Codec parameter in the [ExportVideoModule] or [ExportAudioModule] section \n",__FILE__);
-				return(f_pvm_parser(NULL,"close"));
-			}
-			if ((s_pvm_conf.s_system_merger.p_hostname!=NULL)&&(s_pvm_conf.p_multiplex_cmd==NULL))
-			{
-				fprintf(stderr,"(%s) MultiplexParams parameter required in the [SystemMerger] section \n",__FILE__);
-				return(f_pvm_parser(NULL,"close"));
-			}
-			else if (s_pvm_conf.s_system_merger.p_hostname!=NULL)
-			{
-				s_pvm_conf.s_video_merger.s_build_only_list=1;
-				s_pvm_conf.s_audio_merger.s_build_only_list=1;
-			}
-			if (s_pvm_conf.p_add_list!=NULL)
-			{
-				if ((s_pvm_conf.p_add_list->p_codec==NULL)&&(s_check_func&ADDLIST_MASK))
-				{
-					fprintf(stderr,"(%s) Need at least Codec parameter in the [AddList] section \n",__FILE__);
-					return(f_pvm_parser(NULL,"close"));
-				}
-			}
-		}
-		return(&s_pvm_conf);
-	}
-	else if(!strcasecmp(p_option,"close"))
-	{
-		for(p_pvm_conf_host=s_pvm_conf.p_pvm_hosts;p_pvm_conf_host!=NULL;)
-		{
-			p_tmp=p_pvm_conf_host->p_next;
-			free(p_pvm_conf_host);
-			p_pvm_conf_host=p_tmp;
-		}
-		for(p_pvm_conf_fileadd=s_pvm_conf.p_add_list;p_pvm_conf_fileadd!=NULL;)
-		{
-			p_pvm_conf_filerem=p_pvm_conf_fileadd->p_next;
-			free(p_pvm_conf_fileadd);
-			p_pvm_conf_fileadd=p_pvm_conf_filerem;
-		}
-		for(p_pvm_conf_fileadd=s_pvm_conf.p_rem_list;p_pvm_conf_fileadd!=NULL;)
-		{
-			p_pvm_conf_filerem=p_pvm_conf_fileadd->p_next;
-			free(p_pvm_conf_fileadd);
-			p_pvm_conf_fileadd=p_pvm_conf_filerem;
-		}
-		memset(&s_pvm_conf,'\0',sizeof(s_pvm_conf));
-		return(NULL);
-	}
-	return(NULL);
+            return 1;
+        }
+    }
+    return 0;
 }
+
+
+static int dispatch_merger(int id, pvm_config_env *env)
+{
+    switch (id) {
+      case CONF_AUDIO_MERGER_IDX:
+        env->s_audio_merger.p_hostname = pvm_hostname(audiomerger_hostname);
+        return 1;
+      case CONF_VIDEO_MERGER_IDX:
+        env->s_video_merger.p_hostname = pvm_hostname(videomerger_hostname);
+        return 1;
+      case CONF_SYSTEM_MERGER_IDX:
+        env->s_system_merger.p_hostname = pvm_hostname(systemmerger_hostname);
+        tc_strstrip(systemmerger_mplexparams);
+        env->p_multiplex_cmd = systemmerger_mplexparams;
+        return 1;
+      default: /* cannot happen */
+        return 0;
+    }
+    return 0; /* paranoia */
+}
+
+static int dispatch_null(int id, pvm_config_env *env)
+{
+    return (env != NULL) ?1 :0;
+}
+
+
+static int dispatch_modules(int id, pvm_config_env *env)
+{
+    pvm_config_codec *cfg = NULL;
+    char *codec = NULL;
+    PVMString *params = NULL;
+
+    switch (id) {
+      case CONF_EXPORT_AUDIO_MOD_IDX:
+        cfg = &(env->s_audio_codec);
+        codec = exportaudiomod_codec;
+        params = exportaudiomod_params;
+        break;
+      case CONF_EXPORT_VIDEO_MOD_IDX:
+        cfg = &(env->s_video_codec);
+        codec = exportvideomod_codec;
+        params = exportvideomod_params;
+        break;
+      default: /* cannot happen */
+        return 0;
+    }
+
+    tc_strstrip(codec);
+    tc_strstrip(params[0]);
+    tc_strstrip(params[1]);
+    tc_strstrip(params[2]);
+    cfg->p_codec = codec;
+    cfg->p_par1  = params[0];
+    cfg->p_par2  = params[1];
+    cfg->p_par3  = params[2];
+    return 1;
+}
+
+static int dispatch_syslist(int id, pvm_config_env *env)
+{
+    if (env != NULL) {
+        tc_strstrip(systemlist_codec);
+        tc_strstrip(systemlist_destination);
+        tc_strstrip(systemlist_mplexparams);
+        env->s_sys_list.p_codec         = systemlist_codec;
+        env->s_sys_list.p_destination   = systemlist_destination;
+        env->p_multiplex_cmd            = systemlist_mplexparams;
+        return 1;
+    }
+    return 0;
+}
+
+/*************************************************************************/
+
+
+static int parse_nodes(char *p_hostfile, int nodes)
+{
+    int i = 0, ret = 0, parsed = 0;
+    char buf[TC_BUF_LINE];
+
+    if (nodes > PVM_MAX_NODES) {
+        tc_log_warn(__FILE__, "excessive nodes requested, autolimit to %i",
+                    PVM_MAX_NODES);
+        nodes = PVM_MAX_NODES;
+    }
+
+    for (i = 0; i < nodes; i++) {
+        tc_snprintf(buf, sizeof(buf), "Node%i", i+1);
+
+        ret = module_read_config(p_hostfile, buf, node_conf[i], __FILE__);
+        if (ret) {
+            int done = dispatch_node(i, &nodes_data[i], &s_pvm_conf);
+            if (done) {
+                parsed++;
+            }
+        }
+    }
+    return parsed;
+}
+
+
+static void parse_config(char *p_hostfile, int full)
+{
+    int i = 0;
+    for (i = 0; pvm_config[i].name != NULL; i++) {
+        int ret = 0;
+
+        if (!full && pvm_config[i].serverside)
+            continue;
+        ret = module_read_config(p_hostfile, pvm_config[i].name,
+                                 pvm_config[i].conf, __FILE__);
+        if (ret) {
+            int done = pvm_config[i].dispatch(i, &s_pvm_conf);
+            pvm_config[i].parsed = done;
+        }
+    }
+}
+
+static void parse_filelist(char *p_hostfile)
+{
+    int i = 0;
+    for (i = 0; pvm_filelist[i].name != NULL; i++) {
+        TCConfigList *list = module_read_config_list(p_hostfile,
+                                                     pvm_filelist[i].name, 
+                                                     __FILE__);
+        if (list) {
+            int type = pvm_filelist[i].type;
+            char *codec = (type == TC_VIDEO) 
+                                ?addvideo_codec :addaudio_codec;
+            char *dest = (type == TC_VIDEO) 
+                                ?addvideo_destination :addaudio_destination;
+            pvm_config_filelist *tail = NULL;
+            pvm_config_filelist *head = dispatch_list(list, type,
+                                                      codec, dest, &tail);
+            if (head) { /* then tail is valid too */
+                pvm_filelist[i].parsed = 1;
+                if (*(pvm_filelist[i].list) != NULL) {
+                    tail->p_next = *(pvm_filelist[i].list);
+                }
+                *(pvm_filelist[i].list) = head;
+            }
+            /* always */
+            module_free_config_list(list, (head != NULL) ?1 :0);
+        }
+    }
+}
+
+#define WAS_PARSED(IDX) pvm_config[(IDX)].parsed
+
+static pvm_config_env *validate(int nodes, int verbose)
+{
+    const char *errmsg = "???";
+
+    if (nodes < 0) {
+        errmsg = "Need one PVM node configured";
+        goto failed;
+    }
+    if (((!s_pvm_conf.s_audio_codec.p_codec) && WAS_PARSED(CONF_EXPORT_AUDIO_MOD_IDX))
+     || ((!s_pvm_conf.s_video_codec.p_codec) && WAS_PARSED(CONF_EXPORT_VIDEO_MOD_IDX))) {
+        errmsg = "Need at least Codec parameter in the"
+                 " [ExportVideoModule] or [ExportAudioModule] section";
+        goto failed;
+    }
+    if ((s_pvm_conf.s_system_merger.p_hostname != NULL)
+     && (s_pvm_conf.p_multiplex_cmd == NULL)) {
+        errmsg = "MultiplexParams parameter required in the"
+                 " [SystemMerger] section";
+        goto failed;
+    } else if (s_pvm_conf.s_system_merger.p_hostname != NULL) {
+        s_pvm_conf.s_video_merger.s_build_only_list = 1;
+        s_pvm_conf.s_audio_merger.s_build_only_list = 1;
+    }
+    if ((s_pvm_conf.p_add_list != NULL) 
+     && (s_pvm_conf.p_add_list->p_codec == NULL)
+     && (WAS_PARSED(CONF_ADD_AUDIO_IDX) || WAS_PARSED(CONF_ADD_VIDEO_IDX))) {
+        errmsg = "Need at least Codec parameter in the [AddList] section";
+        goto failed;
+    }
+
+    /* done */
+    return &s_pvm_conf;
+
+failed:
+    if (verbose) {
+        tc_log_error(__FILE__, "%s", errmsg);
+    }
+    pvm_parser_close();
+    return NULL;
+}
+
+#undef WAS_PARSED
+
+
+pvm_config_env *pvm_parser_open(char *p_hostfile, int verbose, int full)
+{
+    int i = 0;
+    /* setup defaults */
+    s_pvm_conf.p_pvm_hosts = NULL;
+    /* XXX: add more defaults? */
+    /* get user data */
+    parse_config(p_hostfile, full);
+    /* get node data */
+    i = parse_nodes(p_hostfile, nodes_num);
+    /* get lists */
+    if (full) {
+        parse_filelist(p_hostfile);
+    }
+    /* then validate it */
+    return validate(i, verbose);
+}
+
+
+void pvm_parser_close(void)
+{
+    pvm_config_hosts *p_pvm_conf_host = NULL, *p_tmp = NULL;
+    pvm_config_filelist *p_pvm_conf_fileadd = NULL;
+    pvm_config_filelist *p_pvm_conf_filerem = NULL;
+
+    for (p_pvm_conf_host = s_pvm_conf.p_pvm_hosts; p_pvm_conf_host != NULL; ) {
+        p_tmp = p_pvm_conf_host->p_next;
+        free(p_pvm_conf_host);
+        p_pvm_conf_host = p_tmp;
+    }
+    for (p_pvm_conf_fileadd = s_pvm_conf.p_add_list; p_pvm_conf_fileadd != NULL; ) {
+        p_pvm_conf_filerem = p_pvm_conf_fileadd->p_next;
+        free(p_pvm_conf_fileadd);
+        p_pvm_conf_fileadd = p_pvm_conf_filerem;
+    }
+    for (p_pvm_conf_fileadd = s_pvm_conf.p_rem_list; p_pvm_conf_fileadd != NULL; ) {
+        p_pvm_conf_filerem = p_pvm_conf_fileadd->p_next;
+        free(p_pvm_conf_fileadd);
+        p_pvm_conf_fileadd = p_pvm_conf_filerem;
+    }
+    memset(&s_pvm_conf, 0, sizeof(s_pvm_conf));
+}
+
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */

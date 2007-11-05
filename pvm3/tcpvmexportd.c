@@ -292,7 +292,8 @@ int main(int argc,char **argv)
 	{
 		case MAST_CHECK_MODE:
 		case MAST_MERGE_MODE:
-			if ((p_pvm_conf=f_pvm_parser(p_out_file_name,"open"))==NULL)
+			p_pvm_conf = pvm_parser_open(p_out_file_name,verbose, 1);
+			if (p_pvm_conf == NULL)
 			{
 				fprintf(stderr,"[%s] error checking %s\n",EXE,p_out_file_name);
 				exit(1);
@@ -309,7 +310,8 @@ int main(int argc,char **argv)
 					if ((s_file_dest=creat(p_pvm_conf->p_add_list->p_destination,S_IWUSR|S_IRUSR|S_IRGRP|S_IROTH))==-1)
 					{
 						fprintf(stderr,"[%s] can't create %s output file.\n",EXE,p_pvm_conf->p_add_list->p_destination);
-						p_pvm_conf=f_pvm_parser(p_out_file_name,"close");
+						pvm_parser_close();
+                        p_pvm_conf=NULL;
 						exit(1);
 					}
 					for (p_my_filelist=p_pvm_conf->p_add_list;p_my_filelist!=NULL;p_my_filelist=p_my_filelist->p_next)
@@ -332,7 +334,8 @@ int main(int argc,char **argv)
 					remove(p_my_filelist->p_filename);
 				}
 			}
-			p_pvm_conf=f_pvm_parser(p_out_file_name,"close");
+			pvm_parser_close();
+			p_pvm_conf=NULL;
 		break;
 		case SLAVE_MODE:
 		case SLAVE_MERGE_MODE:

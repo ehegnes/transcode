@@ -21,6 +21,18 @@
   * testsuite/*
   refresh some license headers.
 
+  * pvm3/pvm_parser.c pvm3/pvm_parser.h pvm3/pvm_version.h
+  finish to port PVM configuration parser to new libtc code.
+  Of course new code is NOT tested enough yet. Work in progress.
+  further fixes and enhancements on parser interface: parse server section
+  of configuration file only if requested by client, not always.
+  Also, use a new option to give an hint about the expected number
+  of node sections.
+
+  * pvm3/export_pvm_slave.c pvm3/tcpvmexportd.c export/export_pvm.c
+  port to last PVM parser API.
+  parser API fixes (prepare for the big leap).
+
 2007-11-04 Francesco Romani <fromani at gmail dot com>
   * docs/tech/Makefile.am docs/tech/html/Makefile.am
   makefile fixes.

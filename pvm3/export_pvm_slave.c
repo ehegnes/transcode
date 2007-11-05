@@ -123,7 +123,8 @@ int f_system_merge(pvm_config_env *p_pvm_conf)
 		if ((s_file_dest=creat(p_pvm_conf->s_sys_list.p_destination,S_IWUSR|S_IRUSR|S_IRGRP|S_IROTH))==-1)
 		{
 			fprintf(stderr,"(%s) can't create %s output file.\n",__FILE__,p_pvm_conf->s_sys_list.p_destination);
-			p_pvm_conf=f_pvm_parser(p_out_file_name,"close");
+			pvm_parser_close();
+			p_pvm_conf=NULL;
 			return(1);
 		}
 	}
@@ -474,7 +475,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 			{
 				memset(s_filename,'\0',sizeof(s_filename));
 				tc_snprintf(s_filename,sizeof(s_filename),"%s-system.lst",p_out_file_name);
-				if ((p_pvm_conf=f_pvm_parser(s_filename,"open"))==NULL)
+				if ((p_pvm_conf=pvm_parser_open(s_filename,verbose,1))==NULL)
 				{
 					fprintf(stderr,"(%s) error checking %s\n",__FILE__,s_filename);
 					s_result.s_rc=1;
@@ -488,7 +489,8 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 							fprintf(stderr,"(%s) remove file %s\n",__FILE__,p_my_filelist->p_filename);
 						remove(p_my_filelist->p_filename);
 					}
-					p_pvm_conf=f_pvm_parser(s_filename,"close");
+					pvm_parser_close();
+					p_pvm_conf=NULL;
 				}
 			}
 			s_result.s_msg_type=PVM_MSG_WORK;	/*need a receive*/
@@ -650,7 +652,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 							tc_snprintf(s_filename,sizeof(s_filename),"%s-video.lst",p_out_file_name);
 						else
 							tc_snprintf(s_filename,sizeof(s_filename),"%s-audio.lst",p_out_file_name);
-						if ((p_pvm_conf=f_pvm_parser(s_filename,"open"))==NULL)	/*retreive the right config file*/
+						if ((p_pvm_conf=pvm_parser_open(s_filename,verbose,1))==NULL)	/*retreive the right config file*/
 						{
 							fprintf(stderr,"(%s) error checking %s\n",__FILE__,s_filename);
 							s_result.s_rc=1;
@@ -756,7 +758,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 						tc_snprintf(s_filename,sizeof(s_filename),"%s-video.lst",p_out_file_name);
 					else
 						tc_snprintf(s_filename,sizeof(s_filename),"%s-audio.lst",p_out_file_name);
-					if ((p_pvm_conf=f_pvm_parser(s_filename,"open"))==NULL)	/*retreive the right config file*/
+					if ((p_pvm_conf=pvm_parser_open(s_filename,verbose,1))==NULL)	/*retreive the right config file*/
 					{
 						fprintf(stderr,"(%s) error checking %s\n",__FILE__,s_filename);
 						s_result.s_rc=1;
@@ -1020,7 +1022,7 @@ pvm_res_func_t *f_export_func(int s_option,char *p_buffer,int s_size,int s_seq)
 						tc_snprintf(s_filename,sizeof(s_filename),"%s-video.lst",p_out_file_name);
 					else
 					tc_snprintf(s_filename,sizeof(s_filename),"%s-audio.lst",p_out_file_name);
-					if ((p_pvm_conf=f_pvm_parser(s_filename,"open"))==NULL)	/*retreive the right config file*/
+					if ((p_pvm_conf=pvm_parser_open(s_filename,verbose,1))==NULL)	/*retreive the right config file*/
 					{
 						fprintf(stderr,"(%s) error checking %s\n",__FILE__,s_filename);
 						s_result.s_rc=-1;
