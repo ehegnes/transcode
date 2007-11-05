@@ -49,6 +49,8 @@ typedef enum {
     TC_FORMAT_MPEG_PES,
     TC_FORMAT_MPEG_VOB,
     TC_FORMAT_MPEG_VDR,
+    /* *** */
+    TC_FORMAT_FLV,
 
     /* special */
     TC_FORMAT_RAW,      /* no container */
