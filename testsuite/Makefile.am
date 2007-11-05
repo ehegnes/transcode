@@ -1,9 +1,8 @@
 # # Process this file with automake to produce Makefile.in.
 
 EXTRA_DIST = \
-	newtest.pl \
-	test.pl \
-	test-tcmodchain.sh
+	newtest.pl test.pl \
+	test-tcmodchain.sh test-cfg-filelist.sh
 
 AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
@@ -14,10 +13,15 @@ AM_CPPFLAGS = \
 	$(DLDARWIN_CFLAGS) \
 	$(XIO_CFLAGS)
 
+if HAVE_PVM3
+PVM3_TEST = test-pvmparser
+endif
+
 noinst_PROGRAMS = \
 	test-acmemcpy \
 	test-acmemcpy-speed \
 	test-bufalloc \
+	test-cfg-filelist \
 	test-export-profile \
 	test-framecode \
 	test-framealloc \
@@ -30,7 +34,8 @@ noinst_PROGRAMS = \
 	test-tcglob \
 	test-tcmodule \
 	test-tcmoduleinfo \
-	test-tcstrdup
+	test-tcstrdup \
+	$(PVM3_TEST)
 
 test_acmemcpy_SOURCES = test-acmemcpy.c
 test_acmemcpy_LDADD = $(ACLIB_LIBS)
@@ -49,6 +54,9 @@ test_framecode_LDADD = $(LIBTC_LIBS)
 
 test_imgconvert_SOURCES = test-imgconvert.c
 test_imgconvert_LDADD = $(ACLIB_LIBS)
+
+test_cfg_filelist_SOURCES = test-cfg-filelist.c
+test_cfg_filelist_LDADD = $(LIBTC_LIBS)
 
 test_iodir_SOURCES = test-iodir.c
 test_iodir_LDADD = $(LIBTC_LIBS)
@@ -76,6 +84,10 @@ test_mangle_cmdline_LDADD = $(LIBTC_LIBS)
 
 test_export_profile_SOURCES = test-export-profile.c ../src/export_profile.c
 test_export_profile_LDADD = $(LIBTC_LIBS)
+
+test_pvmparser_SOURCES = test-pvmparser.c ../pvm3/pvm_parser.c
+test_pvmparser_CFLAGS = $(PVM3_CFLAGS) -I../pvm3/
+test_pvmparser_LDADD = $(LIBTC_LIBS) $(PVM3_LIBS)
 
 test_resize_values_SOURCES = test-resize-values.c
 test_resize_values_LDADD = $(LIBTC_LIBS)

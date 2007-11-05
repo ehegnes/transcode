@@ -9,6 +9,18 @@
   * libtc/tcformats.h
   TC_FORMAT_FLV identifier.
 
+  * added files: testsuite/test-cfg-filelist.c
+                 testsuite/test-cfg-filelist.sh
+                 testsuite/test-pvmparser.c
+
+  * testsuite/Makefile.am testsuite/.cvsignore
+  basic testcases for configuration list support.
+  valgrind says code looks ok at first glance.
+  also add very basic testcase specific for PVM parser.
+
+  * testsuite/*
+  refresh some license headers.
+
 2007-11-04 Francesco Romani <fromani at gmail dot com>
   * docs/tech/Makefile.am docs/tech/html/Makefile.am
   makefile fixes.

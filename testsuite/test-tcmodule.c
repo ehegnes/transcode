@@ -1,14 +1,25 @@
 /*
- * test-tcmodule.c - testsuite for tcmodule functions; 
- *                   everyone feel free to add more tests and improve
- *                   existing ones.
- * (C) 2006 - Francesco Romani <fromani -at- gmail -dot- com>
+ * test-tcmodule.c -- testsuite for tcmodule functions; 
+ *                    everyone feel free to add more tests and improve
+ *                    existing ones.
+ * (C) 2006-2007 - Francesco Romani <fromani -at- gmail -dot- com>
  *
  * This file is part of transcode, a video stream processing tool.
- * transcode is free software, distributable under the terms of the GNU
- * General Public License (version 2 or later).  See the file COPYING
- * for details.
+ *
+ * transcode is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * transcode is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,8 +40,8 @@ static TCFactory factory;
 vob_t *tc_get_vob(void) { return vob; }
 
 
-void aframe_copy(aframe_list_t *dst, aframe_list_t *src, int copy_data) { ; }
-void vframe_copy(vframe_list_t *dst, vframe_list_t *src, int copy_data) { ; }
+void aframe_copy(aframe_list_t *dst, const aframe_list_t *src, int copy_data) { ; }
+void vframe_copy(vframe_list_t *dst, const vframe_list_t *src, int copy_data) { ; }
 
 // partial line length: I don't bother with full line length,
 // it's just a naif padding
