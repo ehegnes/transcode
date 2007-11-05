@@ -40,8 +40,10 @@ static TCFactory factory;
 vob_t *tc_get_vob(void) { return vob; }
 
 
-void aframe_copy(aframe_list_t *dst, const aframe_list_t *src, int copy_data) { ; }
-void vframe_copy(vframe_list_t *dst, const vframe_list_t *src, int copy_data) { ; }
+//void aframe_copy(aframe_list_t *dst, const aframe_list_t *src, int copy_data) { ; }
+//void vframe_copy(vframe_list_t *dst, const vframe_list_t *src, int copy_data) { ; }
+void aframe_copy(aframe_list_t *dst, aframe_list_t *src, int copy_data) { ; }
+void vframe_copy(vframe_list_t *dst, vframe_list_t *src, int copy_data) { ; }
 
 // partial line length: I don't bother with full line length,
 // it's just a naif padding
