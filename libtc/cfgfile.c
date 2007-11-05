@@ -30,6 +30,79 @@ __attribute__((format(printf,5,6)))
 ;
 
 /*************************************************************************/
+/* helpers macros and functions */
+
+#define CLEANUP_LINE(line) do { \
+    /* skip comments, if any */ \
+    char *s = strchr((line), '#'); \
+    if (s) { \
+        *s = 0; \
+    } \
+    /* Remove leading and trailing spaces, if any */ \
+    tc_strstrip((line)); \
+} while (0)
+
+/**
+ * fopen_verbose:  Opens a configuration file in read only mode, printing
+ * meaningful error messages in case of failure.
+ *
+ * Parameters:
+ *    name: Name of configuration file to open.
+ *     tag: Tag to use in log messages.
+ * Return value:
+ *     Read-only FILE pointer to configuration file, NULL if failed.
+ */
+
+
+static FILE *fopen_verbose(const char *name, const char *tag)
+{
+    FILE *f = fopen(name, "r");
+    if (!f) {
+        if (errno == EEXIST) {
+            tc_log_warn(tag, "Configuration file %s does not exist!",
+                        name);
+        } else if (errno == EACCES) {
+            tc_log_warn(tag, "Configuration file %s cannot be read!",
+                        name);
+        } else {
+            tc_log_warn(tag, "Error opening configuration file %s: %s",
+                        name, strerror(errno));
+        }
+    }
+    return f;
+}
+
+/**
+ * lookup_section:  Move FILE pointer to begining of data belonging to
+ * given section.
+ *
+ * Parameters:
+ *         f: Already open FILE pointer to configuration file.
+ *   section: Name of section to lookup.
+ *     tag: Tag to use in log messages.
+ * Return value:
+ *      number of lines skipped (>= 0) if succesfull.
+ *      < 0 if error occurs.
+ */
+static int lookup_section(FILE *f, const char *section, const char *tag)
+{
+    char expect[TC_BUF_MAX], buf[TC_BUF_MAX];
+    int line = 0;
+
+    tc_snprintf(expect, sizeof(expect), "[%s]", section);
+    do {
+        if (!fgets(buf, sizeof(buf), f)) {
+            tc_log_warn(tag, "Section [%s] not found in configuration"
+                             " file!", section);
+            return -1;
+        }
+        line++;
+        CLEANUP_LINE(buf);
+    } while (strcmp(buf, expect) != 0);
+    return line;
+}
+
+/*************************************************************************/
 
 /**
  * tc_set_config_dir:  Sets the directory in which configuration files are
@@ -44,22 +117,12 @@ __attribute__((format(printf,5,6)))
 
 void tc_set_config_dir(const char *dir)
 {
-    free(config_dir);
+    tc_free(config_dir);
     config_dir = dir ? tc_strdup(dir) : NULL;
 }
 
+
 /*************************************************************************/
-
-#define CLEANUP_LINE(line) do { \
-    /* skip comments, if any */ \
-    char *s = strchr((line), '#'); \
-    if (s) { \
-        *s = 0; \
-    } \
-    /* Remove leading and trailing spaces, if any */ \
-    tc_strstrip((line)); \
-} while (0)
-
 
 /**
  * module_read_config:  Reads in configuration information from an external
@@ -79,8 +142,8 @@ int module_read_config(const char *filename, const char *section,
                        TCConfigEntry *conf, const char *tag)
 {
     char buf[TC_BUF_MAX], path_buf[PATH_MAX+1];
-    FILE *f;
-    int line;
+    FILE *f = NULL;
+    int line = 0;
 
     /* Sanity checks */
     if (!tag)
@@ -94,36 +157,18 @@ int module_read_config(const char *filename, const char *section,
     /* Open the file */
     tc_snprintf(path_buf, sizeof(path_buf), "%s/%s",
                 config_dir ? config_dir : ".", filename);
-    f = fopen(path_buf, "r");
+    f = fopen_verbose(path_buf, tag);
     if (!f) {
-        if (errno == EEXIST) {
-            tc_log_warn(tag, "Configuration file %s does not exist!",
-                        path_buf);
-        } else if (errno == EACCES) {
-            tc_log_warn(tag, "Configuration file %s cannot be read!",
-                        path_buf);
-        } else {
-            tc_log_warn(tag, "Error opening configuration file %s: %s",
-                        path_buf, strerror(errno));
-        }
         return 0;
     }
-    line = 0;
 
     if (section) {
-        /* Look for the requested section */
-        char expect[TC_BUF_MAX];
-        tc_snprintf(expect, sizeof(expect), "[%s]", section);
-        do {
-            if (!fgets(buf, sizeof(buf), f)) {
-                tc_log_warn(tag, "Section [%s] not found in configuration"
-                            " file %s!", section, path_buf);
-                fclose(f);
-                return 0;
-            }
-            line++;
-            CLEANUP_LINE(buf);
-        } while (strcmp(buf, expect) != 0);
+        line = lookup_section(f, section, tag);
+        if (line == -1) {
+            /* error */
+            fclose(f);
+            return 0;
+        }
     }
 
     /* Read in the configuration values (up to the end of the section, if
@@ -198,7 +243,7 @@ void module_print_config(const TCConfigEntry *conf, const char *tag)
     if (!tag)
         tag = __FILE__;
     if (!conf) {
-        tc_log_error(tag, "module_read_config(): conf == NULL!");
+        tc_log_error(tag, "module_print_config(): conf == NULL!");
         return;
     }
 
@@ -424,7 +469,7 @@ static int parse_line(const char *buf, TCConfigEntry *conf, const char *tag,
 static void parse_line_error(const char *buf, const char *filename, int line,
                              const char *tag, const char *format, ...)
 {
-    char msgbuf[1000];
+    char msgbuf[TC_BUF_MAX];
     va_list args;
 
     va_start(args, format);
@@ -434,6 +479,208 @@ static void parse_line_error(const char *buf, const char *filename, int line,
         tc_log_warn(tag, "%s:%d: %s", filename, line, msgbuf);
     } else {
         tc_log_warn(tag, "\"%s\": %s", buf, msgbuf);
+    }
+}
+
+/*************************************************************************/
+
+/**
+ * list_new: create a new list item storing a copy of given data string.
+ *
+ * Parameters:
+ *      value: string to copy into new list item.
+ * Return value:
+ *      pointer to new list item if succesfull.
+ *      NULL otherwise.
+ */
+
+static TCConfigList *list_new(const char *value)
+{
+    TCConfigList *list = tc_malloc(sizeof(TCConfigList));
+    if (list) {
+        list->next = NULL;
+        list->last = NULL;
+        list->value = NULL;
+
+        if (value) {
+            list->value = tc_strdup(value);
+            if (!list->value) {
+                tc_free(list);
+                list = NULL;
+            }
+        }
+    }
+    return list;
+}
+
+/**
+ * list_append: append a new item storing given data on a given list.
+ *
+ * Parameters:
+ *      list: list to append new item
+ *     value: value to be copied into new item
+ * Return value:
+ *     0 succesfull
+ *     !0 error
+ */
+
+static int list_append(TCConfigList *list, const char *value)
+{
+    int ret = 1;
+    TCConfigList *item = list_new(value);
+    if (item) {
+        if (list->last != NULL) {
+            /* typical case */
+            list->last->next = item;
+        } else {
+            /* second item, special case */
+            list->next = item;
+        }
+        list->last = item;
+
+        ret = 0;
+    }
+    return ret;
+}
+
+/**
+ * module_read_config_list:  Read a list section from given configuration
+ * file and return the corresponding data list.
+ *
+ * Parameters:
+ *     filename: Name of file being processed.
+ *      section: Name of the section to be read.
+ *          tag: Tag to use in log message.
+ * Return value:
+ *     A pointer to a valid configuration list structure if succesfull,
+ *     NULL otherwise.
+ */
+
+TCConfigList *module_read_config_list(const char *filename,
+                                      const char *section, const char *tag)
+{
+    char buf[TC_BUF_MAX], path_buf[PATH_MAX+1];
+    TCConfigList *list = NULL;
+    FILE *f = NULL;
+    int line = 0;
+
+    /* Sanity checks */
+    if (!tag)
+        tag = __FILE__;
+    if (!filename) {
+        tc_log_error(tag, "module_read_config(): missing filename");
+        return 0;
+    }
+    if (!section) {
+        tc_log_error(tag, "module_read_config(): missing section");
+        return 0;
+    }
+
+    /* Open the file */
+    tc_snprintf(path_buf, sizeof(path_buf), "%s/%s",
+                config_dir ? config_dir : ".", filename);
+    f = fopen_verbose(path_buf, tag);
+    if (!f) {
+        return NULL;
+    }
+    line = lookup_section(f, section, tag);
+    if (line == -1) {
+        /* error */
+        fclose(f);
+        return NULL;
+    }
+
+    /* Read in the configuration values (up to the end of the section, if
+     * a section name was given) */
+    while (fgets(buf, sizeof(buf), f)) {
+        line++;
+        CLEANUP_LINE(buf);
+
+        /* Ignore empty lines and comment lines */
+        if (!*buf || *buf == '#')
+            continue;
+
+        /* If it's a section name, this is the end of the current section */
+        if (*buf == '[') {
+            break;
+        } else {
+            int err = 1;
+
+            if (list) {
+                err = list_append(list, buf);
+            } else {
+                list = list_new(buf);
+                err = (list == NULL) ?1 :0;
+            }
+
+            if (err) {
+                tc_log_error(tag, "out of memory at line %i", line);
+                module_free_config_list(list, 0);
+                list = NULL;
+            }
+        }
+    }
+
+    fclose(f);
+    return list;
+}
+
+/**
+ * module_free_config_list:  Dispose a configuration list created by
+ * module_read_config_list.
+ *
+ * Parameters:
+ *     list: Head of configuration list to free.
+ *  refonly: If !0, DO NOT free data pointed to list;
+ *           If 0, free list itslef AND data as well.
+ *           Recap: use 0 to free everything, use !0 if you
+ *           do want to preserve data for some reasons.
+ * Return value:
+ *     None.
+ */
+
+void module_free_config_list(TCConfigList *list, int refonly)
+{
+    TCConfigList *item = NULL;
+    while (list) {
+        item = list->next;
+        if (!refonly) {
+            tc_free((void*)list->value);
+        }
+        tc_free(list);
+        list = item;
+    }
+}
+
+/**
+ * module_print_config_list:  Prints the given configuration list.
+ *
+ * Parameters:
+ *     list: Head of configuration list.
+ *  section: Name of section on which configuration list belongs.
+ *      tag: Tag to use in log messages.
+ * Return value:
+ *     None.
+ */
+
+void module_print_config_list(const TCConfigList *list,
+                              const char *section, const char *tag)
+{
+    /* Sanity checks */
+    if (!tag)
+        tag = __FILE__;
+    if (!section) {
+        tc_log_error(tag, "module_print_config_list(): section == NULL!");
+        return;
+    }
+    if (!list) {
+        tc_log_error(tag, "module_print_config_list(): list == NULL!");
+        return;
+    }
+
+    tc_log_info(tag, "[%s]", section);
+    for (; list != NULL; list = list->next) {
+        tc_log_info(tag, "%s", list->value);
     }
 }
 
