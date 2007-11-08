@@ -2483,6 +2483,7 @@ int avi_parse_input_file(avi_t *AVI, int getIndex)
 	    a = hdrl_data+i;
 
 	    AVI->video_superindex = (avisuperindex_chunk *) malloc (sizeof (avisuperindex_chunk));
+            memset(AVI->video_superindex, 0, sizeof (avisuperindex_chunk));
 	    memcpy (AVI->video_superindex->fcc, a, 4);             a += 4;
 	    AVI->video_superindex->dwSize = str2ulong(a);          a += 4;
 	    AVI->video_superindex->wLongsPerEntry = str2ushort(a); a += 2;

@@ -1,3 +1,10 @@
+2007-11-08 Francesco Romani <fromani at gmail dot com>
+  * avilib/avilib.c
+  properly initialize superindex chunk. This avoid segfault
+  in AVI_close when dealing with large OpenDML files.
+  patch courtesy of
+  Vadim Druzhin <vadim at bochvar dot ru>
+
 2007-10-27 Francesco Romani <fromani at gmail dot com>
   * configure.in
   typo in theora detection.
