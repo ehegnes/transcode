@@ -39,22 +39,24 @@
 
 #define INFO_LIST
 
-// add a new riff chunk after XX MB
-#define NEW_RIFF_THRES (1900*1024*1024)
-//#define NEW_RIFF_THRES (10*1024*1024)
+enum {
+    NEW_RIFF_THRES   = (1900*1024*1024), /* new riff chunk after XX MB */
+    NR_IXNN_CHUNKS   = 32,               /* Maximum indices per stream */
+    MAX_INFO_STRLEN  = 64,               /* XXX: ???                   */
+    FRAME_RATE_SCALE = 1000000,          /* XXX: ???                   */
+    HEADERBYTES      = 2048,             /* bytes for the header       */
+};
 
-// Maximum number of indices per stream
-#define NR_IXNN_CHUNKS 32
+/* AVI_MAX_LEN: The maximum length of an AVI file, we stay a bit below
+    the 2GB limit (Remember: 2*10^9 is smaller than 2 GB) */
+#define AVI_MAX_LEN (UINT_MAX-(1<<20)*16-HEADERBYTES)
+#define PAD_EVEN(x) ( ((x)+1) & ~1 )
+
 
 
 /* The following variable indicates the kind of error */
+static long AVI_errno = 0;
 
-long AVI_errno = 0;
-
-#define MAX_INFO_STRLEN 64
-static char id_str[MAX_INFO_STRLEN];
-
-#define FRAME_RATE_SCALE 1000000
 
 /*******************************************************************
  *                                                                 *
@@ -99,16 +101,6 @@ static ssize_t avi_write (int fd, const char *buf, size_t len)
    return r;
 }
 
-/* HEADERBYTES: The number of bytes to reserve for the header */
-
-#define HEADERBYTES 2048
-
-/* AVI_MAX_LEN: The maximum length of an AVI file, we stay a bit below
-    the 2GB limit (Remember: 2*10^9 is smaller than 2 GB) */
-
-#define AVI_MAX_LEN (UINT_MAX-(1<<20)*16-HEADERBYTES)
-
-#define PAD_EVEN(x) ( ((x)+1) & ~1 )
 
 
 /* Copy n into dst as a 4 or 2 byte, little endian number.
@@ -1142,7 +1134,7 @@ static int avi_parse_comments (int fd, char *buf, int space_left)
 
 static int avi_close_output_file(avi_t *AVI)
 {
-
+   char id_str[MAX_INFO_STRLEN];
    int ret, njunk, sampsize, hasIndex, ms_per_frame, frate, idxerror, flag;
    unsigned long movi_len;
    int hdrl_start, strl_start, j;
@@ -3424,3 +3416,4 @@ uint64_t AVI_max_size(void)
   return((uint64_t) AVI_MAX_LEN);
 }
 
+// EOF
