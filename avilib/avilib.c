@@ -3086,7 +3086,7 @@ int AVI_set_audio_bitrate(avi_t *AVI, long bitrate)
 }
 
 
-long AVI_read_frame(avi_t *AVI, char *vidbuf, int *keyframe)
+long AVI_read_video(avi_t *AVI, char *audbuf, long bytes, int *keyframe);
 {
    long n;
 
@@ -3095,6 +3095,11 @@ long AVI_read_frame(avi_t *AVI, char *vidbuf, int *keyframe)
 
    if(AVI->video_pos < 0 || AVI->video_pos >= AVI->video_frames) return -1;
    n = AVI->video_index[AVI->video_pos].len;
+
+   if (bytes != -1 && bytes < n) {
+     AVI_errno = AVI_ERR_NO_BUFSIZE;
+     return -1;
+   }
 
    *keyframe = (AVI->video_index[AVI->video_pos].key==0x10) ? 1:0;
 
@@ -3115,6 +3120,12 @@ long AVI_read_frame(avi_t *AVI, char *vidbuf, int *keyframe)
 
    return n;
 }
+
+long AVI_read_frame(avi_t *AVI, char *vidbuf, int *keyframe)
+{
+   return AVI_read_video(AVI, vidbuf, -1, keyframe);
+}
+
 
 long AVI_get_audio_position_index(avi_t *AVI)
 {
@@ -3264,7 +3275,8 @@ static char *(avi_errors[]) =
   /* 11 */ "avilib - AVI file has no MOVI list (corrupted?)",
   /* 12 */ "avilib - AVI file has no video data",
   /* 13 */ "avilib - operation needs an index",
-  /* 14 */ "avilib - Unkown Error"
+  /* 14 */ "avilib - destination buffer is too small",
+  /* 15 */ "avilib - Unkown Error"
 };
 static int num_avi_errors = sizeof(avi_errors)/sizeof(char*);
 
