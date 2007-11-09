@@ -1,3 +1,7 @@
+2007-11-09 Francesco Romani <fromani at gmail dot com>
+  * avilib/avilib.c avilib/avilib.h
+  cleanup round 1: drop unused AVI_read_data, make private errors.
+
 2007-11-05 Francesco Romani <fromani at gmail dot com>
   * libtc/cfgfile.c libtc/cfgfile.h
   new configuration file list section parsing, pulled from

@@ -373,10 +373,6 @@ long AVI_audio_codecf_offset(avi_t *AVI);
 long AVI_video_codech_offset(avi_t *AVI);
 long AVI_video_codecf_offset(avi_t *AVI);
 
-int  AVI_read_data(avi_t *AVI, char *vidbuf, long max_vidbuf,
-                               char *audbuf, long max_audbuf,
-                               long *len);
-
 void AVI_print_error(const char *str);
 char *AVI_strerror(void);
 char *AVI_syserror(void);

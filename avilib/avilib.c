@@ -47,9 +47,6 @@
 #define NR_IXNN_CHUNKS 32
 
 
-#define DEBUG_ODML
-#undef DEBUG_ODML
-
 /* The following variable indicates the kind of error */
 
 long AVI_errno = 0;
@@ -3356,77 +3353,9 @@ long AVI_read_audio_chunk(avi_t *AVI, char *audbuf)
    return left;
 }
 
-/* AVI_read_data: Special routine for reading the next audio or video chunk
-                  without having an index of the file. */
-
-int AVI_read_data(avi_t *AVI, char *vidbuf, long max_vidbuf,
-                              char *audbuf, long max_audbuf,
-                              long *len)
-{
-
-/*
- * Return codes:
- *
- *    1 = video data read
- *    2 = audio data read
- *    0 = reached EOF
- *   -1 = video buffer too small
- *   -2 = audio buffer too small
- */
-
-   off_t n;
-   char data[8];
-
-   if(AVI->mode==AVI_MODE_WRITE) return 0;
-
-   while(1)
-   {
-      /* Read tag and length */
-
-      if( avi_read(AVI->fdes,data,8) != 8 ) return 0;
-
-      /* if we got a list tag, ignore it */
-
-      if(strncasecmp(data,"LIST",4) == 0)
-      {
-         xio_lseek(AVI->fdes,4,SEEK_CUR);
-         continue;
-      }
-
-      n = PAD_EVEN(str2ulong((unsigned char *)data+4));
-
-      if(strncasecmp(data,AVI->video_tag,3) == 0)
-      {
-         *len = n;
-         AVI->video_pos++;
-         if(n>max_vidbuf)
-         {
-            xio_lseek(AVI->fdes,n,SEEK_CUR);
-            return -1;
-         }
-         if(avi_read(AVI->fdes,vidbuf,n) != n ) return 0;
-         return 1;
-      }
-      else if(strncasecmp(data,AVI->track[AVI->aptr].audio_tag,4) == 0)
-      {
-         *len = n;
-         if(n>max_audbuf)
-         {
-            xio_lseek(AVI->fdes,n,SEEK_CUR);
-            return -2;
-         }
-         if(avi_read(AVI->fdes,audbuf,n) != n ) return 0;
-         return 2;
-         break;
-      }
-      else
-         if(xio_lseek(AVI->fdes,n,SEEK_CUR)<0)  return 0;
-   }
-}
-
 /* AVI_print_error: Print most recent error (similar to perror) */
 
-char *(avi_errors[]) =
+static char *(avi_errors[]) =
 {
   /*  0 */ "avilib - No Error",
   /*  1 */ "avilib - AVI file size limit reached",
@@ -3445,8 +3374,6 @@ char *(avi_errors[]) =
   /* 14 */ "avilib - Unkown Error"
 };
 static int num_avi_errors = sizeof(avi_errors)/sizeof(char*);
-
-static char error_string[4096];
 
 void AVI_print_error(const char *str)
 {
@@ -3471,6 +3398,8 @@ void AVI_print_error(const char *str)
 
 char *AVI_strerror(void)
 {
+   static char error_string[4096];
+
    int aerrno;
 
    aerrno = (AVI_errno>=0 && AVI_errno<num_avi_errors) ? AVI_errno : num_avi_errors-1;
