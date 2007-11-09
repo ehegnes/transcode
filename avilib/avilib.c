@@ -72,12 +72,12 @@ static ssize_t avi_read(int fd, char *buf, size_t len)
    while (r < len) {
       n = xio_read (fd, buf + r, len - r);
       if (n == 0)
-	  break;
+          break;
       if (n < 0) {
-	  if (errno == EINTR)
-	      continue;
-	  else
-	      break;
+	      if (errno == EINTR)
+	          continue;
+	      else
+	          break;
       }
 
       r += n;
@@ -1936,157 +1936,58 @@ int AVI_close(avi_t *AVI)
 }
 
 
-#define ERR_EXIT(x) \
-{ \
+#define ERR_EXIT(x) do { \
    AVI_close(AVI); \
    AVI_errno = x; \
    return 0; \
+} while (0)
+
+avi_t *AVI_open_indexfd(int fd, int getIndex, const char *indexfile)
+{
+   avi_t *AVI = malloc(sizeof(avi_t));
+   if (AVI == NULL) {
+      AVI_errno = AVI_ERR_NO_MEM;
+      return NULL;
+   }
+   memset(AVI, 0, sizeof(avi_t));
+
+   AVI->mode = AVI_MODE_READ; /* open for reading */
+
+   // file alread open
+   AVI->fdes = fd;
+
+   if (indexfile) {
+       AVI->index_file = strdup(indexfile);
+   }
+   AVI_errno = 0;
+   avi_parse_input_file(AVI, getIndex);
+
+   if (AVI != NULL && !AVI_errno) {
+       AVI->aptr = 0; //reset
+   }
+
+   return (AVI_errno) ?NULL :AVI;
 }
 
 avi_t *AVI_open_input_indexfile(const char *filename, int getIndex,
 				const char *indexfile)
 {
-  avi_t *AVI=NULL;
-
-  /* Create avi_t structure */
-
-  AVI = (avi_t *) malloc(sizeof(avi_t));
-  if(AVI==NULL)
-    {
-      AVI_errno = AVI_ERR_NO_MEM;
-      return 0;
-    }
-  memset((void *)AVI,0,sizeof(avi_t));
-
-  AVI->mode = AVI_MODE_READ; /* open for reading */
-
-  /* Open the file */
-
-  AVI->fdes = xio_open(filename,O_RDONLY);
-  if(AVI->fdes < 0)
-    {
+   int fd = xio_open(filename, O_RDONLY);
+   if (AVI->fdes < 0) {
       AVI_errno = AVI_ERR_OPEN;
-      free(AVI);
-      return 0;
-    }
-
-  AVI->index_file=strdup(indexfile);
-  AVI_errno = 0;
-  avi_parse_input_file(AVI, getIndex);
-
-  if (AVI != NULL && !AVI_errno) {
-      AVI->aptr=0; //reset
-  }
-
-  if (AVI_errno)
-      return AVI=NULL;
-  else
-      return AVI;
+      return NULL;
+   }
+   return AVI_open_indexfd(fd, getIndex, indexfile);
 }
-
-avi_t *AVI_open_indexfd(int fd, int getIndex, const char *indexfile)
-{
-  avi_t *AVI=NULL;
-
-  /* Create avi_t structure */
-
-  AVI = (avi_t *) malloc(sizeof(avi_t));
-  if(AVI==NULL)
-    {
-      AVI_errno = AVI_ERR_NO_MEM;
-      return 0;
-    }
-  memset((void *)AVI,0,sizeof(avi_t));
-
-  AVI->mode = AVI_MODE_READ; /* open for reading */
-
-  // file alread open
-  AVI->fdes = fd;
-
-  AVI->index_file=strdup(indexfile);
-  AVI_errno = 0;
-  avi_parse_input_file(AVI, getIndex);
-
-  if (AVI != NULL && !AVI_errno) {
-      AVI->aptr=0; //reset
-  }
-
-  if (AVI_errno)
-      return AVI=NULL;
-  else
-      return AVI;
-}
-
 
 avi_t *AVI_open_input_file(const char *filename, int getIndex)
 {
-  avi_t *AVI=NULL;
-
-  /* Create avi_t structure */
-
-  AVI = (avi_t *) malloc(sizeof(avi_t));
-  if(AVI==NULL)
-    {
-      AVI_errno = AVI_ERR_NO_MEM;
-      return 0;
-    }
-  memset((void *)AVI,0,sizeof(avi_t));
-
-  AVI->mode = AVI_MODE_READ; /* open for reading */
-
-  /* Open the file */
-
-  AVI->fdes = xio_open(filename,O_RDONLY);
-  if(AVI->fdes < 0)
-    {
-      AVI_errno = AVI_ERR_OPEN;
-      free(AVI);
-      return 0;
-    }
-
-  AVI_errno = 0;
-  avi_parse_input_file(AVI, getIndex);
-
-  if (AVI != NULL && !AVI_errno) {
-      AVI->aptr=0; //reset
-  }
-
-  if (AVI_errno)
-      return AVI=NULL;
-  else
-      return AVI;
+    return AVI_open_input_indexfile(filename, getIndex, NULL);
 }
 
 avi_t *AVI_open_fd(int fd, int getIndex)
 {
-  avi_t *AVI=NULL;
-
-  /* Create avi_t structure */
-
-  AVI = (avi_t *) malloc(sizeof(avi_t));
-  if(AVI==NULL)
-    {
-      AVI_errno = AVI_ERR_NO_MEM;
-      return 0;
-    }
-  memset((void *)AVI,0,sizeof(avi_t));
-
-  AVI->mode = AVI_MODE_READ; /* open for reading */
-
-  // file alread open
-  AVI->fdes = fd;
-
-  AVI_errno = 0;
-  avi_parse_input_file(AVI, getIndex);
-
-  if (AVI != NULL && !AVI_errno) {
-      AVI->aptr=0; //reset
-  }
-
-  if (AVI_errno)
-      return AVI=NULL;
-  else
-      return AVI;
+   return AVI_open_indexfd(fd, getIndex, NULL);
 }
 
 // transcode-0.6.8

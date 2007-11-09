@@ -3,6 +3,7 @@
   drop unused AVI_read_data.
   make private the error string and string buffers.
   #define -> enum.
+  refactor various AVI_open_input* functions.
 
 2007-11-05 Francesco Romani <fromani at gmail dot com>
   * libtc/cfgfile.c libtc/cfgfile.h
