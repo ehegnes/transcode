@@ -1,3 +1,20 @@
+2007-11-10 Francesco Romani <fromani at gmail dot com>
+  * added files: avilib/platform.h avilib/platform_posix.c
+                 avilib/platform_tc.c
+  added thin platform layer to ease and improve integration
+  in transcode without hurting independance of avilib/wavlib.
+
+  * avilib/wavlib.c avilib/wavlib.h
+  port to new platform abstraction.
+
+  * avilib/avilib.c avilib/avilib.h
+  port to new platform abstraction.
+  make more functions private.
+  minor internal readjustements.
+  init to zero new allocated superindex_chunk to avoid segfault at AVI_close
+  when dealing with OpenDML files.
+  (pointed out by Vadim Druzhin <vadim at bochvar dot ru>
+
 2007-11-09 Francesco Romani <fromani at gmail dot com>
   * avilib/avilib.c avilib/avilib.h
   drop unused AVI_read_data.

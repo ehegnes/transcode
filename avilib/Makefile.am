@@ -6,12 +6,22 @@ AM_CPPFLAGS = \
 
 noinst_LTLIBRARIES = libavi.la libwav.la
 
+# this can be improved
+
+if ENABLE_EXPERIMENTAL
+PLATFORM = platform_tc.c
+else
+PLATFORM = platform_posix.c
+endif
+
 libavi_la_SOURCES = \
+	$(PLATFORM) \
 	avidump.c \
 	avilib.c \
 	avilib.h
 
 libwav_la_SOURCES = \
+	$(PLATFORM) \
 	wavlib.c \
 	wavlib.h
 

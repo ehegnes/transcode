@@ -322,9 +322,9 @@ void AVI_set_video(avi_t *AVI, int width, int height, double fps,
 void AVI_set_audio(avi_t *AVI, int channels, long rate, int bits, int format,
 		   long mp3rate);
 int  AVI_write_frame(avi_t *AVI, const char *data, long bytes, int keyframe);
-int  AVI_dup_frame(avi_t *AVI);
 int  AVI_write_audio(avi_t *AVI, const char *data, long bytes);
-int  AVI_append_audio(avi_t *AVI, const char *data, long bytes);
+//int  AVI_dup_frame(avi_t *AVI);
+//int  AVI_append_audio(avi_t *AVI, const char *data, long bytes);
 long AVI_bytes_remain(avi_t *AVI);
 int  AVI_close(avi_t *AVI);
 long AVI_bytes_written(avi_t *AVI);
@@ -334,8 +334,7 @@ avi_t *AVI_open_input_indexfile(const char *filename, int getIndex,
 				const char *indexfile);
 avi_t *AVI_open_fd(int fd, int getIndex);
 avi_t *AVI_open_indexfd(int fd, int getIndex, const char *indexfile);
-int avi_parse_input_file(avi_t *AVI, int getIndex);
-int avi_parse_index_from_file(avi_t *AVI, const char *filename);
+
 long AVI_audio_mp3rate(avi_t *AVI);
 long AVI_audio_padrate(avi_t *AVI);
 long AVI_video_frames(avi_t *AVI);
@@ -378,15 +377,11 @@ long AVI_video_codecf_offset(avi_t *AVI);
 
 void AVI_print_error(const char *str);
 char *AVI_strerror(void);
-char *AVI_syserror(void);
 
 int AVI_scan(const char *name);
 int AVI_dump(const char *name, int mode);
 
-int AVI_file_check(const char *import_file);
-
 uint64_t AVI_max_size(void);
-int avi_update_header(avi_t *AVI);
 
 int AVI_set_audio_track(avi_t *AVI, int track);
 int AVI_get_audio_track(avi_t *AVI);
@@ -445,4 +440,4 @@ struct AVIStreamHeader {
   long  dwSampleSize;
 };
 
-#endif
+#endif /* AVILIB_H */

@@ -36,9 +36,9 @@
 #define WAV_LITTLE_ENDIAN 1
 #endif
 
-#define WAVLIB_VERSION      "0.1.0"
+#define WAVLIB_VERSION      "0.2.0"
 #define WAVLIB_MAJOR        0
-#define WAVLIB_MINOR        1
+#define WAVLIB_MINOR        2
 #define WAVLIB_PATCH        0
 
 typedef enum {
