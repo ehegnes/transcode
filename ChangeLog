@@ -92,6 +92,10 @@
   * import/import_mplayer.c
   internal updates, code refactoring,  minor core API resync.
 
+  * import/ioxml.c import/tcxmlcheck.c
+  do not free internal tree if it was not created.
+  (fixes issue #0000025).
+
 2007-11-10 Francesco Romani <fromani at gmail dot com>
   * added files: avilib/platform.h avilib/platform_posix.c
                  avilib/platform_tc.c
