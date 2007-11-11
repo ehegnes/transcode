@@ -99,9 +99,9 @@ static int probe_sequence(uint8_t *buffer, ProbeInfo *probe_info)
   load_non_intra_quantizer_matrix = buffer[7] & 1;
 
   //set some defaults, if invalid:
-  if(aspect_ratio_information < 0 || aspect_ratio_information>15) aspect_ratio_information=1;
+  if(aspect_ratio_information < 0 || aspect_ratio_information>15) aspect_ratio_information=0;
 
-  if(frame_rate_code < 0 || frame_rate_code>15) frame_rate_code=3;
+  if(frame_rate_code < 0 || frame_rate_code>15) frame_rate_code=0;
 
   //fill out user structure
 
