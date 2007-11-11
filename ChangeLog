@@ -63,6 +63,9 @@
   * export/export_xvid4.c
   proper flushing support.
 
+  * import/x11source.c import/x11source.h
+  add first bits of cursor grabbing infrastructure.
+
 2007-11-10 Francesco Romani <fromani at gmail dot com>
   * added files: avilib/platform.h avilib/platform_posix.c
                  avilib/platform_tc.c

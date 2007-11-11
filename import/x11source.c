@@ -1,11 +1,21 @@
 /*
  * x11source.c - X11/transcode bridge code, allowing screen capture.
- * (C) 2006 - Francesco Romani <fromani -at- gmail -dot- com>
+ * (C) 2006-2007 - Francesco Romani <fromani -at- gmail -dot- com>
  *
  * This file is part of transcode, a video stream processing tool.
- * transcode is free software, distributable under the terms of the GNU
- * General Public License (version 2 or later).  See the file COPYING
- * for details.
+ *
+ * transcode is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * transcode is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "config.h"
@@ -22,8 +32,60 @@
 #include "libtc/tcframes.h"
 #include "libtcvideo/tcvideo.h"
 
+/*
+ * TODO:
+ * - internal docs
+ * - internla refactoring to properly grab cursor
+ */
+
 #ifdef HAVE_X11
 
+/*************************************************************************/
+/* cursor grabbing support. */
+
+#ifdef HAVE_X11_FIXES
+
+#include <X11/extensions/Xfixes.h>
+
+
+static void tc_x11source_acquire_cursor_fixes(TCX11Source *handle,
+                                              uint8_t *data, int maxdata)
+{
+    XFixesCursorImage *cursor = XFixesGetCursorImage(handle->dpy);
+
+    if (cursor == NULL) {
+        /* this MUST be noisy! */
+        tc_log_warn(__FILE__, "failed to get cursor image");
+    } else {
+        /* FIXME: this has to be rewritten and need significant
+         * internal refactoring :( */
+    }
+}
+
+#endif /* HAVE_X11_FIXES */
+
+/* FIXME: explain why don't use funcpointers in here */
+static void tc_x11source_acquire_cursor_plain(TCX11Source *handle,
+                                              uint8_t *data, int maxdata)
+{
+    static int warn = 0;
+
+    if (!warn) {
+        tc_log_warn(__FILE__, "cursor grabbing not supported!");
+        warn = 1;
+    }
+}
+
+static void tc_x11source_init_cursor(TCX11Source *handle)
+{
+    /* sane default if we don't have any better */
+    handle->acquire_cursor = tc_x11source_acquire_cursor_plain;
+#ifdef HAVE_X11_FIXES
+    handle->acquire_cursor = tc_x11source_acquire_cursor_fixes;
+#endif
+}
+
+/*************************************************************************/
 
 int tc_x11source_is_display_name(const char *name)
 {
@@ -59,7 +121,7 @@ int tc_x11source_probe(TCX11Source *handle, ProbeInfo *info)
 
 /*************************************************************************/
 
-static int tc_x11source_acquire_data_plain(TCX11Source *handle,
+static int tc_x11source_acquire_image_plain(TCX11Source *handle,
                                            uint8_t *data, int maxdata)
 {
     int size = -1;
@@ -95,7 +157,7 @@ static int tc_x11source_fini_plain(TCX11Source *handle)
 
 static int tc_x11source_init_plain(TCX11Source *handle)
 {
-    handle->acquire_data = tc_x11source_acquire_data_plain;
+    handle->acquire_image = tc_x11source_acquire_image_plain;
     handle->fini = tc_x11source_fini_plain;
     return 0;
 }
@@ -105,7 +167,7 @@ static int tc_x11source_init_plain(TCX11Source *handle)
 
 #ifdef HAVE_X11_SHM
 
-static int tc_x11source_acquire_data_shm(TCX11Source *handle,
+static int tc_x11source_acquire_image_shm(TCX11Source *handle,
                                           uint8_t *data, int maxdata)
 {
     int size = -1;
@@ -194,7 +256,7 @@ static int tc_x11source_init_shm(TCX11Source *handle)
 
     XSync(handle->dpy, False);
     handle->mode = TC_X11_MODE_SHM;
-    handle->acquire_data = tc_x11source_acquire_data_shm;
+    handle->acquire_image = tc_x11source_acquire_image_shm;
     handle->fini = tc_x11source_fini_shm;
 
     return 0;
@@ -269,8 +331,10 @@ int tc_x11source_acquire(TCX11Source *handle, uint8_t *data, int maxdata)
     XSetSubwindowMode(handle->dpy, handle->gc, ClipByChildren);
     /* but draw such areas if windows are opaque */
     
-    size = handle->acquire_data(handle, data, maxdata);
-    
+    size = handle->acquire_image(handle, data, maxdata);
+    if (size > 0) {
+        handle->acquire_cursor(handle, data, maxdata); /* cannot fail */
+    }
     XUnlockDisplay(handle->dpy);
     return size;
 }
@@ -363,10 +427,11 @@ int tc_x11source_open(TCX11Source *handle, const char *display,
     if (!handle->tcvhandle)
         goto tcv_failed;
 
+    tc_x11source_init_cursor(handle); /* cannot fail */
+
 #ifdef HAVE_X11_SHM
     if (XShmQueryExtension(handle->dpy) != 0
       && (mode & TC_X11_MODE_SHM)) {
-        tc_log_info(__FILE__, "using XShm extension");
         if (tc_x11source_init_shm(handle) < 0)
             goto init_failed;
     } else
