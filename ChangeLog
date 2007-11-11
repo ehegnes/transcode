@@ -42,6 +42,10 @@
   * src/tc_defaults.h
   #define -> enum.
 
+  * tools/rawsource.c tools/rawsource.h tools/tcexport.c
+    tools/tcmodchain.c tools/tcstub.c
+ license header update and resync with core changes.
+
 2007-11-10 Francesco Romani <fromani at gmail dot com>
   * added files: avilib/platform.h avilib/platform_posix.c
                  avilib/platform_tc.c
