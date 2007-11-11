@@ -10,6 +10,11 @@
   * docs/man/transcode.1
   update manpage.
 
+  * added file: export/export_pcm.txt
+
+  * export/Makefile.am
+  export_pcm is back after an user requested it.
+
 2007-11-10 Francesco Romani <fromani at gmail dot com>
   * added files: avilib/platform.h avilib/platform_posix.c
                  avilib/platform_tc.c
