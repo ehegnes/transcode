@@ -49,9 +49,19 @@
   * import/fileinfo.c import/magic.h import/probe_stream.c
   identifier, detection and probing hook for FLV files.
 
-  * filter/filter_logoaway.c
+  * filter/filter_logoaway.c filter/filter_compare.c
   let ImageMagick to handle rescaling, so HDR images are (hopefully)
   transparently supported.
+
+  * export/export_dvraw.c
+  internal refactoring.
+
+  * export/export_ffmpeg.c
+  minor updates; translate names to properly work with newer libavcodecs
+  when x264 is selected.
+
+  * export/export_xvid4.c
+  proper flushing support.
 
 2007-11-10 Francesco Romani <fromani at gmail dot com>
   * added files: avilib/platform.h avilib/platform_posix.c
