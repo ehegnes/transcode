@@ -66,6 +66,9 @@
   * import/x11source.c import/x11source.h
   add first bits of cursor grabbing infrastructure.
 
+  * import/nuv/Makefile.am
+  NUV is supposed to run only on x86. Enforce this constraint.
+
 2007-11-10 Francesco Romani <fromani at gmail dot com>
   * added files: avilib/platform.h avilib/platform_posix.c
                  avilib/platform_tc.c
