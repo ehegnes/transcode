@@ -1,13 +1,24 @@
 /*
- *  multiplex_y4m.c - pack a yuv420p stream in YUV4MPEG2 format
- *                    and/or a pcm stream in WAVE format
- *  (C) 2005/2006 Francesco Romani <fromani at gmail dot com>
+ *  multiplex_y4m.c -- pack a yuv420p stream in YUV4MPEG2 format
+ *                     and/or a pcm stream in WAVE format
+ *  (C) 2005-2007 Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
- * transcode is free software, distributable under the terms of the GNU
- * General Public License (version 2 or later).  See the file COPYING
- * for details.
+ *
+ * transcode is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * transcode is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 
 #include "config.h"
 
@@ -86,7 +97,7 @@ static int yw_inspect(TCModuleInstance *self,
         *value = yw_help;
     }
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int yw_open_video(YWPrivateData *pd, const char *filename,
@@ -105,7 +116,7 @@ static int yw_open_video(YWPrivateData *pd, const char *filename,
             tc_log_error(MOD_NAME, "failed to open video stream file '%s'"
                                    " (reason: %s)", filename,
                                    strerror(errno));
-            return TC_EXPORT_ERROR;
+            return TC_ERROR;
         }
     }
     y4m_init_stream_info(&(pd->streaminfo));
@@ -146,9 +157,9 @@ static int yw_open_video(YWPrivateData *pd, const char *filename,
     if (ret != Y4M_OK) {
         tc_log_warn(MOD_NAME, "failed to write video YUV4MPEG2 header: %s",
                               y4m_strerr(ret));
-        return TC_EXPORT_ERROR;
+        return TC_ERROR;
     }
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int yw_open_audio(YWPrivateData *pd, const char *filename,
@@ -162,7 +173,7 @@ static int yw_open_audio(YWPrivateData *pd, const char *filename,
         tc_log_error(MOD_NAME, "failed to open audio stream file '%s'"
                                " (reason: %s)", filename,
                                wav_strerror(err));
-        return TC_EXPORT_ERROR;
+        return TC_ERROR;
     }
 
     rate = (vob->mp3frequency != 0) ?vob->mp3frequency :vob->a_rate;
@@ -171,7 +182,7 @@ static int yw_open_audio(YWPrivateData *pd, const char *filename,
     wav_set_bitrate(pd->wav, vob->dm_chan * rate * vob->dm_bits/8);
     wav_set_channels(pd->wav, vob->dm_chan);
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int yw_configure(TCModuleInstance *self,
@@ -203,11 +214,11 @@ static int yw_configure(TCModuleInstance *self,
     pd->height = vob->ex_v_height;
     
     ret = yw_open_video(pd, vid_name, vob);
-    if (ret != TC_EXPORT_OK) {
+    if (ret != TC_OK) {
         return ret;
     }
     ret = yw_open_audio(pd, aud_name, vob);
-    if (ret != TC_EXPORT_OK) {
+    if (ret != TC_OK) {
         return ret;
     }
     if (vob->verbose >= TC_DEBUG) {
@@ -216,7 +227,7 @@ static int yw_configure(TCModuleInstance *self,
         tc_log_info(MOD_NAME, "audio output: %s (%s)",
                     aud_name, (pd->wav == NULL) ?"FAILED" :"OK");
     }
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int yw_stop(TCModuleInstance *self)
@@ -233,7 +244,7 @@ static int yw_stop(TCModuleInstance *self)
         if (verr) {
             tc_log_error(MOD_NAME, "closing video file: %s",
                                    strerror(errno));
-            return TC_EXPORT_ERROR;
+            return TC_ERROR;
         }
         y4m_fini_frame_info(&pd->frameinfo);
         y4m_fini_stream_info(&(pd->streaminfo));
@@ -246,12 +257,12 @@ static int yw_stop(TCModuleInstance *self)
         if (aerr != 0) {
             tc_log_error(MOD_NAME, "closing audio file: %s",
                                    wav_strerror(wav_last_error(pd->wav)));
-            return TC_EXPORT_ERROR;
+            return TC_ERROR;
         }
         pd->wav = NULL;
     }
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int yw_multiplex(TCModuleInstance *self,
@@ -265,7 +276,7 @@ static int yw_multiplex(TCModuleInstance *self,
 
     pd = self->userdata;
 
-    if (vframe != NULL) {
+    if (vframe != NULL && vframe->video_len > 0) {
         uint8_t *planes[3];
         int ret = 0;
         y4m_init_frame_info(&pd->frameinfo);
@@ -277,17 +288,17 @@ static int yw_multiplex(TCModuleInstance *self,
         if (ret != Y4M_OK) {
             tc_log_warn(MOD_NAME, "error while writing video frame: %s",
                                   y4m_strerr(ret));
-            return TC_EXPORT_ERROR;
+            return TC_ERROR;
         }
         w_vid = vframe->video_len;
     }
 
-    if (aframe != NULL) {
+    if (aframe != NULL && aframe->audio_len > 0) {
         w_aud = wav_write_data(pd->wav, aframe->audio_buf, aframe->audio_len);
         if (w_aud != aframe->audio_len) {
             tc_log_warn(MOD_NAME, "error while writing audio frame: %s",
                                   wav_strerror(wav_last_error(pd->wav)));
-            return TC_EXPORT_ERROR;
+            return TC_ERROR;
         }
     }
 
@@ -303,7 +314,7 @@ static int yw_init(TCModuleInstance *self, uint32_t features)
 
     pd = tc_malloc(sizeof(YWPrivateData));
     if (pd == NULL) {
-        return TC_EXPORT_ERROR;
+        return TC_ERROR;
     }
 
     pd->width = 0;
@@ -318,7 +329,7 @@ static int yw_init(TCModuleInstance *self, uint32_t features)
     }
 
     self->userdata = pd;
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int yw_fini(TCModuleInstance *self)
@@ -330,7 +341,7 @@ static int yw_fini(TCModuleInstance *self)
     tc_free(self->userdata);
     self->userdata = NULL;
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 

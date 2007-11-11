@@ -1,12 +1,23 @@
 /*
- *  multiplex_raw.c - write a separate plain file for each stream
- *  (C) 2005/2006 Francesco Romani <fromani at gmail dot com>
+ *  multiplex_raw.c -- write a separate plain file for each stream.
+ *  (C) 2005-2007 Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
- * transcode is free software, distributable under the terms of the GNU
- * General Public License (version 2 or later).  See the file COPYING
- * for details.
+ *
+ * transcode is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * transcode is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 
 #include "transcode.h"
 #include "libtc/optstr.h"
@@ -55,7 +66,7 @@ static int raw_inspect(TCModuleInstance *self,
         *value = raw_help;
     }
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int raw_configure(TCModuleInstance *self,
@@ -90,7 +101,7 @@ static int raw_configure(TCModuleInstance *self,
                           S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
         if (pd->fd_vid == -1) {
             tc_log_error(MOD_NAME, "failed to open video stream file");
-            return TC_EXPORT_ERROR;
+            return TC_ERROR;
         }
     }
 
@@ -101,7 +112,7 @@ static int raw_configure(TCModuleInstance *self,
                           S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
         if (pd->fd_aud == -1) {
             tc_log_error(MOD_NAME, "failed to open audio stream file");
-            return TC_EXPORT_ERROR;
+            return TC_ERROR;
         }
     }
     if (vob->verbose >= TC_DEBUG) {
@@ -110,7 +121,7 @@ static int raw_configure(TCModuleInstance *self,
         tc_log_info(MOD_NAME, "audio output: %s (%s)",
                     aud_name, (pd->fd_aud == -1) ?"FAILED" :"OK");
     }
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int raw_stop(TCModuleInstance *self)
@@ -127,7 +138,7 @@ static int raw_stop(TCModuleInstance *self)
         if (verr) {
             tc_log_error(MOD_NAME, "closing video file: %s",
                                    strerror(errno));
-            return TC_EXPORT_ERROR;
+            return TC_ERROR;
         }
         pd->fd_vid = -1;
     }
@@ -137,12 +148,12 @@ static int raw_stop(TCModuleInstance *self)
         if (aerr) {
             tc_log_error(MOD_NAME, "closing audio file: %s",
                                    strerror(errno));
-            return TC_EXPORT_ERROR;
+            return TC_ERROR;
         }
         pd->fd_aud = -1;
     }
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int raw_multiplex(TCModuleInstance *self,
@@ -156,17 +167,17 @@ static int raw_multiplex(TCModuleInstance *self,
 
     pd = self->userdata;
 
-    if (vframe != NULL) {
+    if (vframe != NULL && vframe->video_len > 0) {
         w_vid = tc_pwrite(pd->fd_vid, vframe->video_buf, vframe->video_len);
         if(w_vid < 0) {
-            return TC_EXPORT_ERROR;
+            return TC_ERROR;
         }
     }
 
-    if (aframe != NULL) {
+    if (aframe != NULL && aframe->audio_len > 0) {
         w_aud = tc_pwrite(pd->fd_aud, aframe->audio_buf, aframe->audio_len);
  		if (w_aud < 0) {
-			return TC_EXPORT_ERROR;
+			return TC_ERROR;
 		}
     }
 
@@ -182,7 +193,7 @@ static int raw_init(TCModuleInstance *self, uint32_t features)
 
     pd = tc_malloc(sizeof(RawPrivateData));
     if (pd == NULL) {
-        return TC_EXPORT_ERROR;
+        return TC_ERROR;
     }
 
     pd->fd_aud = -1;
@@ -193,7 +204,7 @@ static int raw_init(TCModuleInstance *self, uint32_t features)
     }
 
     self->userdata = pd;
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int raw_fini(TCModuleInstance *self)
@@ -205,7 +216,7 @@ static int raw_fini(TCModuleInstance *self)
     tc_free(self->userdata);
     self->userdata = NULL;
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 

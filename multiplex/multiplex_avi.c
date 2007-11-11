@@ -1,12 +1,23 @@
 /*
- *  multiplex_avi.c - multiplex frames in an AVI file using avilib
- *  (C) 2005/2006 Francesco Romani <fromani at gmail dot com>
+ *  multiplex_avi.c -- multiplex frames in an AVI file using avilib.
+ *  (C) 2005-2007 Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
- * transcode is free software, distributable under the terms of the GNU
- * General Public License (version 2 or later).  See the file COPYING
- * for details.
+ *
+ * transcode is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * transcode is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 
 #include "transcode.h"
 #include "libtc/optstr.h"
@@ -52,7 +63,7 @@ static int avi_inspect(TCModuleInstance *self,
         *value = avi_help;
     }
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int avi_configure(TCModuleInstance *self,
@@ -89,7 +100,7 @@ static int avi_configure(TCModuleInstance *self,
     pd->avifile = AVI_open_output_file(vob->video_out_file);
     if(!pd->avifile) {
         tc_log_error(MOD_NAME, "avilib error: %s", AVI_strerror());
-        return TC_EXPORT_ERROR;
+        return TC_ERROR;
     }
 
 	AVI_set_video(pd->avifile, vob->ex_v_width, vob->ex_v_height,
@@ -100,7 +111,7 @@ static int avi_configure(TCModuleInstance *self,
                   vob->ex_a_codec, abitrate);
     AVI_set_audio_vbr(pd->avifile, vob->a_vbr);
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int avi_stop(TCModuleInstance *self)
@@ -116,7 +127,7 @@ static int avi_stop(TCModuleInstance *self)
         pd->avifile = NULL;
     }
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int avi_multiplex(TCModuleInstance *self,
@@ -132,7 +143,7 @@ static int avi_multiplex(TCModuleInstance *self,
     pd = self->userdata;
     size_before = AVI_bytes_written(pd->avifile);
 
-    if (vframe != NULL) {
+    if (vframe != NULL && vframe->video_len > 0) {
         int key = ((vframe->attributes & TC_FRAME_IS_KEYFRAME)
                         || pd->force_kf) ?1 :0;
 
@@ -142,17 +153,17 @@ static int avi_multiplex(TCModuleInstance *self,
         if(ret < 0) {
             tc_log_error(MOD_NAME, "avilib error writing video: %s",
                          AVI_strerror());
-            return TC_EXPORT_ERROR;
+            return TC_ERROR;
         }
     }
 
-    if (aframe != NULL) {
+    if (aframe != NULL && aframe->audio_len > 0) {
  		ret = AVI_write_audio(pd->avifile, (const char*)aframe->audio_buf,
                               aframe->audio_len);
  		if (ret < 0) {
             tc_log_error(MOD_NAME, "avilib error writing audio: %s",
                          AVI_strerror());
-			return TC_EXPORT_ERROR;
+			return TC_ERROR;
 		}
     }
 
@@ -170,7 +181,7 @@ static int avi_init(TCModuleInstance *self, uint32_t features)
 
     pd = tc_malloc(sizeof(AVIPrivateData));
     if (!pd) {
-        return TC_EXPORT_ERROR;
+        return TC_ERROR;
     }
 
     pd->avifile = NULL;
@@ -185,7 +196,7 @@ static int avi_init(TCModuleInstance *self, uint32_t features)
     }
 
     self->userdata = pd;
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 static int avi_fini(TCModuleInstance *self)
@@ -197,7 +208,7 @@ static int avi_fini(TCModuleInstance *self)
     tc_free(self->userdata);
     self->userdata = NULL;
 
-    return TC_EXPORT_OK;
+    return TC_OK;
 }
 
 /*************************************************************************/
