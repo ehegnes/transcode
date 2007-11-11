@@ -27,6 +27,10 @@
 
 #include "transcode.h"
 
+#include "libtc/libtc.h"
+#include "libtc/optstr.h"
+
+
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_VID | TC_CAP_RGB | TC_CAP_YUV | TC_CAP_PCM | TC_CAP_AC3;
 
@@ -92,7 +96,7 @@ MOD_open
     }
 
     if(vob->demuxer == TC_DEMUX_OFF
-     && (vob->im_a_string && !strcmp("nodemux", vob->im_a_string))) {
+     || (vob->im_a_string && optstr_lookup(vob->im_a_string, "nodemux"))) {
       demux_buf[0] = '\0';
     } else { /* build tcdemux part of pipeline */
       const char *codec = "raw";
