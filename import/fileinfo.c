@@ -483,6 +483,10 @@ long fileinfo(int fdes, int skip)
     goto exit;
   }
 
+  if (buf[0] == 'F' && buf[1] == 'L' && buf[2] == 'V' && buf[5]==0) {
+    id = TC_MAGIC_FLV;
+    goto exit;
+  }
 
   /* -------------------------------------------------------------------
    *
@@ -770,6 +774,10 @@ long streaminfo(int fdes)
     goto exit;
   }
 
+  if (buf[0] == 'F' && buf[1] == 'L' && buf[2] == 'V' && buf[5]==0) {
+    id = TC_MAGIC_FLV;
+    goto exit;
+  }
 
   /* -------------------------------------------------------------------
    *
@@ -868,6 +876,7 @@ const char *filetype(uint32_t magic)
   case TC_MAGIC_NUV:          return("NuppelVideo stream");
   case TC_MAGIC_VNC:          return("VNCrec logfile");
   case TC_MAGIC_PV3:          return("PV3 video");
+  case TC_MAGIC_FLV:          return("FLV stream");
 
   case TC_MAGIC_V4L_AUDIO:    return("V4L audio device");
   case TC_MAGIC_V4L_VIDEO:    return("V4L video device");

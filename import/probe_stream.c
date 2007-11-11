@@ -112,6 +112,10 @@ void probe_file(info_t *ipipe)
         probe_pvn(ipipe);
         break;
 
+      case TC_MAGIC_FLV:
+        probe_ffmpeg(ipipe); /* explicit call */
+        break;
+
       default:
         /* libavcodec/libavformat it's a catchall too */
         probe_ffmpeg(ipipe);
