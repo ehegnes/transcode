@@ -1421,6 +1421,7 @@ AC_CONFIG_FILES([
 	docs/Makefile
 	docs/html/Makefile
 	docs/man/Makefile
+	docs/pvm3/Makefile
 	docs/tech/Makefile
 	docs/tech/html/Makefile
 	encode/Makefile
