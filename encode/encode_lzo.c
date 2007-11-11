@@ -1,12 +1,23 @@
 /*
- *  encode_lzo.c - encode video frames individually using LZO
- *  (C) 2005/2006 Francesco Romani <fromani at gmail dot com>
+ * encode_lzo.c -- encode video frames individually using LZO.
+ * (C) 2005-2007 Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
- * transcode is free software, distributable under the terms of the GNU
- * General Public License (version 2 or later).  See the file COPYING
- * for details.
+ *
+ * transcode is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * transcode is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 
 #include "transcode.h"
 #include "aclib/imgconvert.h"
@@ -18,7 +29,7 @@
 #include <stdlib.h>
 
 #define MOD_NAME    "encode_lzo.so"
-#define MOD_VERSION "v0.0.1 (2006-03-24)"
+#define MOD_VERSION "v0.0.2 (2007-10-27)"
 #define MOD_CAP     "LZO lossless video encoder"
 
 #define MOD_FEATURES \
@@ -41,6 +52,7 @@ typedef struct {
     /* needed by encoder to work properly */
 
     int codec;
+    int flush_flag;
 } LZOPrivateData;
 
 static int tc_lzo_configure(TCModuleInstance *self,
@@ -53,6 +65,7 @@ static int tc_lzo_configure(TCModuleInstance *self,
 
     pd = self->userdata;
     pd->codec = vob->im_v_codec;
+    pd->flush_flag = vob->encoder_flush;
 
     ret = lzo_init();
     if (ret != LZO_E_OK) {
@@ -168,6 +181,14 @@ static int tc_lzo_format_translate(int tc_codec)
     return ret;
 }
 
+static int tc_lzo_flush(TCModuleInstance *self,
+                        vframe_list_t *outframe)
+{
+    outframe->video_len = 0;
+    return TC_OK;
+}
+
+
 static int tc_lzo_encode_video(TCModuleInstance *self,
                                vframe_list_t *inframe, vframe_list_t *outframe)
 {
@@ -180,12 +201,16 @@ static int tc_lzo_encode_video(TCModuleInstance *self,
 
     pd = self->userdata;
 
+    if (inframe == NULL && pd->flush_flag) {
+        return tc_lzo_flush(self, outframe); // FIXME
+    }
+
     /* invariants */
-    hdr.magic = TC_CODEC_LZO2;
+    hdr.magic  = TC_CODEC_LZO2;
     hdr.method = 1;
-    hdr.level = 1;
-    hdr.pad = 0;
-    hdr.flags = 0; /* sane default */
+    hdr.level  = 1;
+    hdr.pad    = 0;
+    hdr.flags  = 0; /* sane default */
 
     ret = lzo1x_1_compress(inframe->video_buf, inframe->video_size,
                            outframe->video_buf + TC_LZO_HDR_SIZE,

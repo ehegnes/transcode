@@ -73,6 +73,13 @@
   avoid casual guessing with unrecognized MPEG streams.
   make more silent by default.
 
+  * encode/encode_copy.c encode/encode_lame.c encode/encode_lavc.c
+    encode/encode_lzo.c encode/encode_null.c encode/encode_x264.c
+    encode/encode_xvid.c
+  resync with core API (encoder flush).
+  license header update.
+  encoder flush implementation (xvid, lzo).
+
 2007-11-10 Francesco Romani <fromani at gmail dot com>
   * added files: avilib/platform.h avilib/platform_posix.c
                  avilib/platform_tc.c

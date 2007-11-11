@@ -35,6 +35,7 @@ typedef struct {
     lame_global_flags *lgf;
     int bps;  /* bytes per sample */
     int channels;
+    int flush_flag;
 } PrivateData;
 
 /*************************************************************************/
@@ -129,6 +130,7 @@ static int lame_configure(TCModuleInstance *self,
     TC_MODULE_SELF_CHECK(self, "configure");
     pd = self->userdata;
 
+    pd->flush_flag = vob->encoder_flush;
     /* Save bytes per sample */
     pd->bps = (vob->dm_chan * vob->dm_bits) / 8;
     /* And audio channels */
@@ -359,7 +361,7 @@ static int lame_encode(TCModuleInstance *self,
 
     pd = self->userdata;
 
-    if (in == NULL) {
+    if (in == NULL && pd->flush_flag) {
         /* flush request */
         if (out->audio_size < LAME_FLUSH_BUFFER_SIZE) {
             /* paranoia is a virtue */
