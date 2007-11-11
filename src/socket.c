@@ -272,7 +272,7 @@ static void dump_vob(int sock)
     SEND(ex_a_fcc, "%s");
     SEND(ex_profile_name, "%s");
     SEND(pass_flag, "%d");
-    SEND(lame_flush, "%d");
+    SEND(encoder_flush, "%d");
     SEND(mod_path, "%s");
     SEND(ttime, "%p");  // format this as a -c style string?
     SEND(frame_interval, "%u");
@@ -674,7 +674,7 @@ int tc_socket_init(const char *socket_path_)
         tc_log_error(__FILE__, "Socket pathname too long");
         return 0;
     }
-    server_sock = socket (AF_UNIX, SOCK_STREAM, 0);
+    server_sock = socket(AF_UNIX, SOCK_STREAM, 0);
     if (server_sock < 0) {
         tc_log_perror(__FILE__, "Unable to create server socket");
         return 0;
@@ -726,51 +726,51 @@ void tc_socket_fini(void)
 /*************************************************************************/
 
 /**
- * tc_socket_poll:  Check server and (if connected) client sockets for
- * pending events, and process them.
+ * tc_socket_poll_internal:  Check server and (if connected) client sockets for
+ * pending events, and process them, with tunable timeout.
  *
  * Parameters:
- *     None.
+ *     blocking: if !0, blocks forever caller until next event.
+ *               if 0, just check once if there is an event to process
+ *               and execute (or just return) immediately.
  * Return value:
  *     None.
+ * Preconditions:
+ *     valid (!= -1) server socket avalaible.
  */
 
-void tc_socket_poll(void)
+static void tc_socket_poll_internal(int blocking)
 {
     fd_set rfds, wfds;
-    struct timeval tv = {0,0};
     char msgbuf[TC_BUF_MAX];
-    int maxfd, retval;
-
-    if (server_sock < 0 && client_sock < 0) {
-        /* Nothing to poll! */
-        return;
-    }
+    int maxfd = -1, retval = -1;
+    struct timeval tv = {0, 0}, *ptv = (blocking) ?NULL :&tv;
 
     FD_ZERO(&rfds);
     FD_ZERO(&wfds);
-    maxfd = -1;
-    if (server_sock >= 0) {
-        FD_SET(server_sock, &rfds);
-        maxfd = server_sock;
-    }
+    
+    FD_SET(server_sock, &rfds);
+    maxfd = server_sock;
+
     if (client_sock >= 0) {
         FD_SET(client_sock, &rfds);
         //FD_SET(client_sock, &wfds);
         if (client_sock > maxfd)
             maxfd = client_sock;
     }
-    retval = select(maxfd+1, &rfds, &wfds, NULL, &tv);
-    if (retval <= 0) {
-        static int warned = 0;
-        if (retval < 0 && !warned) {
-            tc_log_warn(__FILE__, "select(): %s", strerror(errno));
-            warned = 1;
-        }
+    retval = select(maxfd+1, &rfds, &wfds, NULL, ptv);
+
+    if (retval == 0) {
+        /* nothing interesting happened. It happens :) */
+        return;
+    }
+    if (retval < 0 && errno != EINTR) {
+        /* EINTR is an expected "exceptional" condition */
+        tc_log_warn(__FILE__, "select(): %s", strerror(errno));
         return;
     }
 
-    if (server_sock >= 0 && FD_ISSET(server_sock, &rfds)) {
+    if (FD_ISSET(server_sock, &rfds)) {
         int newsock = accept(server_sock, NULL, 0);
         if (newsock < 0) {
             tc_log_warn(__FILE__, "Unable to accept new connection: %s",
@@ -803,6 +803,52 @@ void tc_socket_poll(void)
         }
     }
 }
+
+/**
+ * tc_socket_poll:  Check server and (if connected) client sockets for
+ * pending events, and process them.
+ * This call should never block caller, returnin immediately if there
+ * isn't any event pending.
+ *
+ * Parameters:
+ *     None.
+ * Return value:
+ *     None.
+ */
+
+void tc_socket_poll(void)
+{
+    if (server_sock < 0 && client_sock < 0) {
+        /* Nothing to poll! */
+        return;
+    }
+    tc_socket_poll_internal(0);
+}
+
+/**
+ * tc_socket_wait:  Wait forever server and (if connected) client sockets
+ * for next event, and process the next first one and exit.
+ * This call will always block until next event happens.
+ *
+ * Parameters:
+ *     None.
+ * Return value:
+ *     None.
+ */
+
+void tc_socket_wait(void)
+{
+    if (server_sock < 0 && client_sock < 0) {
+        pause();
+        /* if no server socket is avalaible (= no tc_socket_init
+         * called before), nothing will ever happen, so
+         * we must block forever to satisfy function requirements.
+         */
+        return;
+    }
+    tc_socket_poll_internal(1);
+}
+
 
 /*************************************************************************/
 

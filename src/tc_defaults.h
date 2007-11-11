@@ -27,8 +27,8 @@
 
 #include <limits.h>
 
-#ifndef _TC_DEFAULTS_H
-#define _TC_DEFAULTS_H
+#ifndef TC_DEFAULTS_H
+#define TC_DEFAULTS_H
 
 #define TC_DEFAULT_MOD_PATH "/usr/local/lib/transcode"
 
@@ -97,18 +97,20 @@
 #define AVBR             0
 #define AMODE            0
 
-//debug modes
-#define TC_QUIET         0
-#define TC_INFO          1
-#define TC_DEBUG         2
-#define TC_STATS         4
-#define TC_WATCH         8
-#define TC_FLIST        16
-#define TC_VIDCORE      32
-#define TC_SYNC         64
-#define TC_COUNTER     128
-#define TC_PRIVATE     256
-#define TC_THREADS     512
+typedef enum tcdebugmode_ TCDebugMode;
+enum tcdebugmode_ {
+    TC_QUIET   = 0,
+    TC_INFO    = 1,
+    TC_DEBUG   = 2,
+    TC_STATS   = 4,
+    TC_WATCH   = 8,
+    TC_CLEANUP = 16,
+    TC_FLIST   = 32,
+    TC_SYNC    = 64,
+    TC_COUNTER = 128,
+    TC_PRIVATE = 256,
+    TC_THREADS = 512
+};
 
 //import/export/filter frame buffer status flag
 #define TC_NONE                  0
@@ -202,21 +204,24 @@
  * if one of those flag is set, then use the value provided by the user.
  * otherwise use the ones the export modules suggests.
  */
-#define TC_EXPORT_ATTRIBUTE_NONE      (    0)
-#define TC_EXPORT_ATTRIBUTE_VBITRATE  (1<< 1) /* -w */
-#define TC_EXPORT_ATTRIBUTE_ABITRATE  (1<< 2) /* -b */
-#define TC_EXPORT_ATTRIBUTE_FIELDS    (1<< 3) /* --encode_fields */
-#define TC_EXPORT_ATTRIBUTE_VMODULE   (1<< 4) /* -y X,* */
-#define TC_EXPORT_ATTRIBUTE_AMODULE   (1<< 5) /* -y *,X */
-#define TC_EXPORT_ATTRIBUTE_FRC       (1<< 6) /* --export_fps *,X */
-#define TC_EXPORT_ATTRIBUTE_FPS       (1<< 7) /* --export_fps X,* */
-#define TC_EXPORT_ATTRIBUTE_VCODEC    (1<< 8) /* -F */
-#define TC_EXPORT_ATTRIBUTE_ACODEC    (1<< 9) /* -N */
-#define TC_EXPORT_ATTRIBUTE_ARATE     (1<<10) /* -E X,*,* */
-#define TC_EXPORT_ATTRIBUTE_ABITS     (1<<11) /* -E *,X,* */
-#define TC_EXPORT_ATTRIBUTE_ACHANS    (1<<12) /* -E *,*,X */
-#define TC_EXPORT_ATTRIBUTE_ASR       (1<<13) /* --export_asr */
-#define TC_EXPORT_ATTRIBUTE_PAR       (1<<14) /* --export_par */
-#define TC_EXPORT_ATTRIBUTE_GOP       (1<<15) /* key frames */
+typedef enum tcexportattribute_ TCExportAttribute;
+enum tcexportattribute_ {
+    TC_EXPORT_ATTRIBUTE_NONE     = (    0),
+    TC_EXPORT_ATTRIBUTE_VBITRATE = (1<< 1), /* -w */
+    TC_EXPORT_ATTRIBUTE_ABITRATE = (1<< 2), /* -b */
+    TC_EXPORT_ATTRIBUTE_FIELDS   = (1<< 3), /* --encode_fields */
+    TC_EXPORT_ATTRIBUTE_VMODULE  = (1<< 4), /* -y X,* */
+    TC_EXPORT_ATTRIBUTE_AMODULE  = (1<< 5), /* -y *,X */
+    TC_EXPORT_ATTRIBUTE_FRC      = (1<< 6), /* --export_fps *,X */
+    TC_EXPORT_ATTRIBUTE_FPS      = (1<< 7), /* --export_fps X,* */
+    TC_EXPORT_ATTRIBUTE_VCODEC   = (1<< 8), /* -F */
+    TC_EXPORT_ATTRIBUTE_ACODEC   = (1<< 9), /* -N */
+    TC_EXPORT_ATTRIBUTE_ARATE    = (1<<10), /* -E X,*,* */
+    TC_EXPORT_ATTRIBUTE_ABITS    = (1<<11), /* -E *,X,* */
+    TC_EXPORT_ATTRIBUTE_ACHANS   = (1<<12), /* -E *,*,X */
+    TC_EXPORT_ATTRIBUTE_ASR      = (1<<13), /* --export_asr */
+    TC_EXPORT_ATTRIBUTE_PAR      = (1<<14), /* --export_par */
+    TC_EXPORT_ATTRIBUTE_GOP      = (1<<15), /* key frames */
+};
 
-#endif
+#endif /* TC_DEFAULTS_H */

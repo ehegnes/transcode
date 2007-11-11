@@ -15,6 +15,33 @@
   * export/Makefile.am
   export_pcm is back after an user requested it.
 
+  * src/cmdline_def.h
+  --lame_flush --> --encoder_flush (and flip the default)
+
+  * src/framebuffer.c src/framebuffer.h
+  new framebuffer code and documentation. Now it is much simpler,
+  clean and it has better documentation.
+
+  * src/counter.c src/decoder.c src/decoder.h src/encoder-buffer.c
+    src/frame_threads.c src/frame_threads.h src/encoder.c src/encoder.h
+  port to new framebuffer code.
+
+  * src/encoder-common.c src/encoder-common.h
+  better run control.
+
+  * src/probe.c src/probe.h
+  use libtc facilities where feasible
+
+  * src/socket.c src/socket.h
+  support for blocking request.
+
+  * src/transcode.c src/transcode.h
+  simplify and modularize internal core modes;
+  run event handling in a separate thread.
+
+  * src/tc_defaults.h
+  #define -> enum.
+
 2007-11-10 Francesco Romani <fromani at gmail dot com>
   * added files: avilib/platform.h avilib/platform_posix.c
                  avilib/platform_tc.c

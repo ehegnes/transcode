@@ -104,10 +104,7 @@ enum {
 };
 
 /* Auxiliary info routines */
-const char *codec2str(int flag);
-const char *aformat2str(int flag);
 const char *mformat2str(int flag);
-const char *asr2str(int flag);
 
 /* info_server.c */
 void server_thread(vob_t *vob);

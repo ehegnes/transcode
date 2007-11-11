@@ -1420,9 +1420,9 @@ TC_OPTION(no_bitreservoir,    0,   0,
                 "(LAME) disable bitreservoir [off]",
                 vob->bitreservoir = TC_FALSE;
 )
-TC_OPTION(lame_flush,         'O', 0,
-                "(LAME) flush MP3 buffer on encoder stop [off]",
-                vob->lame_flush = TC_TRUE;
+TC_OPTION(encoder_noflush,           'O', 0,
+                "avoid to flush buffer(s) on encoder stop [enabled]",
+                vob->encoder_flush = TC_FALSE;
 )
 TC_OPTION(a52_demux,          0,   0,
                 "(liba52) demux AC3/A52 to separate channels [off]",

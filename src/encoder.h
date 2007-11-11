@@ -61,9 +61,6 @@ typedef struct tcencoderbuffer_ TCEncoderBuffer;
 struct tcencoderbuffer_ {
     int frame_id; /* current frame identifier (both for A and V, yet) */
 
-    pthread_cond_t vframe_ready_cv; 
-    pthread_cond_t aframe_ready_cv; 
-
     vframe_list_t *vptr; /* current video frame */
     aframe_list_t *aptr; /* current audio frame */
 
@@ -71,9 +68,6 @@ struct tcencoderbuffer_ {
     int (*acquire_audio_frame)(TCEncoderBuffer *buf, vob_t *vob);
     void (*dispose_video_frame)(TCEncoderBuffer *buf);
     void (*dispose_audio_frame)(TCEncoderBuffer *buf);
-
-    /* !0 if there is more frames avalaible, 0 otherwise */
-    int (*have_data)(TCEncoderBuffer *buf);
 };
 
 /* default main transcode buffer */
@@ -147,7 +141,7 @@ int tc_export_init(TCEncoderBuffer *buffer, TCFactory factory);
  *      Module Factory avalaible and selected using tc_export_init.
  */
 int tc_export_setup(vob_t *vob,
-                 const char *a_mod, const char *v_mod, const char *m_mod);
+ 	            const char *a_mod, const char *v_mod, const char *m_mod);
 
 
 /*

@@ -31,7 +31,7 @@
 #include "config.h"
 #endif
 
-#include "transcode.h"  // needed for vob_t, at least
+#include "transcode.h"
 #include "framebuffer.h"
 #include "filter.h"
 #include "counter.h"
@@ -40,7 +40,6 @@
 #include "decoder.h"
 #include "encoder.h"
 #include "frame_threads.h"
-#include "socket.h"
 
 #include "libtc/tcframes.h"
 
@@ -118,7 +117,8 @@ static void free_buffers(TCEncoderData *data);
 /*************************************************************************/
 /*************************************************************************/
 
-/* new-style output rotation support. Always avalaible, but
+/*
+ * new-style output rotation support. Always avalaible, but
  * only new code is supposed to use it.
  * This code is private since only encoder code it's supposed
  * to use it. If this change, this code will be put in a
@@ -133,7 +133,8 @@ static void free_buffers(TCEncoderData *data);
  * should be changed/improved in future releases.
  * Anyway, original values of mentioned field isn't lost since it
  * will be stored in TCRotateContext.{video,audio}_base_name.
- * ------------------------------------------------------------*/
+ * ------------------------------------------------------------
+ */
 
 /*
  * TCExportRotate:
@@ -483,8 +484,8 @@ static int is_last_frame(TCEncoderData *encdata, int cluster_mode)
         fid -= tc_get_frames_dropped();
     }
 
-    if (encdata->buffer->vptr->attributes & TC_FRAME_IS_END_OF_STREAM
-     || encdata->buffer->aptr->attributes & TC_FRAME_IS_END_OF_STREAM) {
+    if ((encdata->buffer->vptr->attributes & TC_FRAME_IS_END_OF_STREAM
+      || encdata->buffer->aptr->attributes & TC_FRAME_IS_END_OF_STREAM)) {
         return 1;
     }
     return (fid == encdata->frame_last);
@@ -878,37 +879,50 @@ static int encoder_export(TCEncoderData *data, vob_t *vob)
     }
 
     tc_update_frames_encoded(1);
-    return data->error_flag ? TC_ERROR : TC_OK;
+    return (data->error_flag) ?TC_ERROR :TC_OK;
 }
 
+
+#define RETURN_IF_NOT_OK(RET, KIND) do { \
+    if ((RET) != TC_OK) { \
+        tc_log_error(__FILE__, "error encoding final %s frame", (KIND)); \
+        return TC_ERROR; \
+    } \
+} while (0)
+
+#define RETURN_IF_MUX_ERROR(BYTES) do { \
+    if ((BYTES) < 0) { \
+        tc_log_error(__FILE__, "error multiplexing final audio frame"); \
+        return TC_ERROR; \
+    } \
+} while (0)
+        
+
+/* DO NOT rotate here, this data belongs to current chunk */
 static int encoder_flush(TCEncoderData *data)
 {
-    int ret;
+    int ret = TC_ERROR, bytes = 0;
 
-    /* only audio needs flushing right now */
-    RESET_ATTRIBUTES(data->aenc_ptr);
+    do {
+        RESET_ATTRIBUTES(data->aenc_ptr);
+        ret = tc_module_encode_audio(data->aud_mod, NULL, data->aenc_ptr);
+        RETURN_IF_NOT_OK(ret, "audio");
 
-    ret = tc_module_encode_audio(data->aud_mod, NULL, data->aenc_ptr);
-    if (ret != TC_OK) {
-        tc_log_error(__FILE__, "error encoding final audio frame");
-        ret = TC_ERROR;
-    } else if (data->aenc_ptr->audio_len > 0) {
-        /* 
-         * paranoia check, every multiplexor is supposed to handle
-         * safely zero-length encoded frames.
-         */
-        ret = tc_module_multiplex(data->mplex_mod, NULL, data->aenc_ptr);
-        if (ret >= 0) {
-            ret = TC_OK;
-        } else {
-            tc_log_error(__FILE__, "error multiplexing final audio frame");
-            ret = TC_ERROR;
-        }
-        /* DO NOT rotate here, this data belongs to current chunk */
-    }
-    return ret;
+        bytes = tc_module_multiplex(data->mplex_mod, NULL, data->aenc_ptr);
+    } while (bytes != 0);
+    RETURN_IF_MUX_ERROR(bytes);
+
+    do {
+        RESET_ATTRIBUTES(data->venc_ptr);
+        ret = tc_module_encode_video(data->vid_mod, NULL, data->venc_ptr);
+        RETURN_IF_NOT_OK(ret, "video");
+
+        bytes = tc_module_multiplex(data->mplex_mod, data->venc_ptr, NULL);
+    } while (bytes != 0);
+    RETURN_IF_MUX_ERROR(bytes);
+
+    return TC_OK;
 }
-
 
 
 void tc_export_rotation_limit_frames(vob_t *vob, uint32_t frames)
@@ -1324,29 +1338,19 @@ static void encoder_skip(TCEncoderData *data)
 
 void tc_encoder_loop(vob_t *vob, int frame_first, int frame_last)
 {
-    int err = 0;
+    int err = 0, eos = 0; /* End Of Stream flag */
 
     if (encdata.this_frame_last != frame_last) {
         encdata.old_frame_last = encdata.this_frame_last;
         encdata.this_frame_last = frame_last;
     }
 
+    encdata.error_flag = 0; /* reset */
     encdata.frame_first = frame_first;
     encdata.frame_last = frame_last;
     encdata.saved_frame_last = encdata.old_frame_last;
 
-    do {
-        /* check for ^C signal */
-        if (tc_export_stop_requested()) {
-            if (verbose >= TC_DEBUG) {
-                tc_log_warn(__FILE__, "export canceled on user request");
-            }
-            break;
-        }
-
-        /* check for control socket activity */
-        tc_socket_poll();
-
+    while (!encdata.error_flag) {
         /* stop here if pause requested */
         tc_pause();
 
@@ -1366,11 +1370,8 @@ void tc_encoder_loop(vob_t *vob, int frame_first, int frame_last)
             break;  /* can't acquire frame */
         }
 
-        if (is_last_frame(&encdata, tc_cluster_mode)) {
-            if (verbose >= TC_DEBUG) {
-                tc_log_info(__FILE__, "encoder last frame finished (%i/%i)",
-                            encdata.buffer->frame_id, encdata.frame_last);
-            }
+        eos = is_last_frame(&encdata, tc_cluster_mode);
+        if (eos) {
             break;
         }
 
@@ -1385,13 +1386,17 @@ void tc_encoder_loop(vob_t *vob, int frame_first, int frame_last)
         /* release frame buffer memory */
         encdata.buffer->dispose_video_frame(encdata.buffer);
         encdata.buffer->dispose_audio_frame(encdata.buffer);
-
-    } while (encdata.buffer->have_data(encdata.buffer) && !encdata.error_flag);
+    }
     /* main frame decoding loop */
 
-    if (verbose >= TC_DEBUG) {
+    if (verbose >= TC_CLEANUP) {
+        if (eos) {
+            tc_log_info(__FILE__, "encoder last frame finished (%i/%i)",
+                        encdata.buffer->frame_id, encdata.frame_last);
+        }
         tc_log_info(__FILE__, "export terminated - buffer(s) empty");
     }
+    return;
 }
 
 

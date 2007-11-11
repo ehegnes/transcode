@@ -33,22 +33,11 @@
 #include "libtc/libtc.h"
 #include "encoder-common.h"
 #include "tc_defaults.h" /* TC_DELAY_MIN */
-#include "socket.h"
+
 
 /* volatile: for threadness paranoia */
-static volatile int exit_flag = TC_FALSE;
 static int pause_flag = 0;
 
-
-void tc_export_stop_nolock(void)
-{
-    exit_flag = TC_TRUE;
-}
-
-int tc_export_stop_requested(void)
-{
-    return exit_flag;
-}
 
 void tc_pause_request(void)
 {
@@ -58,8 +47,7 @@ void tc_pause_request(void)
 void tc_pause(void)
 {
     while (pause_flag) {
-        usleep(TC_DELAY_MIN);
-        tc_socket_poll();
+    	usleep(TC_DELAY_MIN);
     }
 }
 
@@ -71,6 +59,7 @@ static uint32_t frames_skipped = 0;
 static uint32_t frames_cloned = 0;
 /* counters can be accessed by other (ex: import) threads */
 static pthread_mutex_t frame_counter_lock = PTHREAD_MUTEX_INITIALIZER;
+
 
 uint32_t tc_get_frames_encoded(void)
 {
@@ -153,7 +142,57 @@ uint32_t tc_get_frames_skipped_cloned(void)
     c = frames_cloned;
     pthread_mutex_unlock(&frame_counter_lock);
 
-    return(c - s);
+    return (c - s);
+}
+
+/*************************************************************************/
+
+pthread_mutex_t run_status_lock = PTHREAD_MUTEX_INITIALIZER;
+static volatile int tc_run_status = TC_STATUS_RUNNING;
+/* `volatile' is for threading paranoia */
+
+static TCRunStatus tc_get_run_status(void)
+{
+    TCRunStatus rs;
+    pthread_mutex_lock(&run_status_lock);
+    rs = tc_run_status;
+    pthread_mutex_unlock(&run_status_lock);
+    return rs;
+}
+
+int tc_interrupted(void)
+{
+    return (TC_STATUS_INTERRUPTED == tc_get_run_status());
+}
+
+int tc_stopped(void)
+{
+    return (TC_STATUS_STOPPED == tc_get_run_status());
+}
+
+int tc_running(void)
+{
+    return (TC_STATUS_RUNNING == tc_get_run_status());
+}
+
+void tc_stop(void)
+{
+    pthread_mutex_lock(&run_status_lock);
+    /* no preemption, be polite */
+    if (tc_run_status == TC_STATUS_RUNNING) {
+        tc_run_status = TC_STATUS_STOPPED;
+    }
+    pthread_mutex_unlock(&run_status_lock);
+}
+
+void tc_interrupt(void)
+{
+    pthread_mutex_lock(&run_status_lock);
+    /* preempt and don't care of politeness. */
+    if (tc_run_status != TC_STATUS_INTERRUPTED) {
+        tc_run_status = TC_STATUS_INTERRUPTED;
+    }
+    pthread_mutex_unlock(&run_status_lock);
 }
 
 /*************************************************************************/

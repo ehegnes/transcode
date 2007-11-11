@@ -334,7 +334,7 @@ typedef struct _vob_t {
     const char *ex_profile_name; // User profile name
 
     int pass_flag;
-    int lame_flush;
+    int encoder_flush;          // flush encoders on close (yes)
 
     const char *mod_path;
 
