@@ -314,11 +314,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 
     if (options != NULL) {
-	char font[PATH_MAX];
-	char string[PATH_MAX];
-
-	memset (font, 0, PATH_MAX);
-	memset (string, 0, PATH_MAX);
+	char string[PATH_MAX] = { '\0', };
+	char font[PATH_MAX] = { '\0', };
 
 	if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
 
@@ -340,21 +337,18 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    mfd->transparent = !mfd->transparent;
         }
 
-	if (font && strlen(font)>0) {
+	if (strlen(font)>0) {
 	    free (mfd->font);
 	    mfd->font=tc_strdup(font);
 	}
 
-	if (string && strlen(string)>0) {
+	if (strlen(string)>0) {
 	    mfd->string=tc_strdup(string);
 	    mfd->do_time=0;
-        }
-        else if (optstr_lookup (options, "tstamp") ) {
-	    // mytime = time(NULL);
+        } else if (optstr_lookup (options, "tstamp") ) {
             mfd->string = "[ timestamp ]";
 	    mfd->do_time = 0;
 	    mfd->tstamp = 1;
-
 	} else {
 	    // do `date` as default
 	    mytime = time(NULL);
