@@ -10,6 +10,7 @@ EXTRA_DIST = \
 
 SUBDIRS = \
 	man \
+        pvm3 \
 	html \
 	tech
 
