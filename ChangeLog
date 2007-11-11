@@ -1,3 +1,15 @@
+2007-11-11 Francesco Romani <fromani at gmail dot com>
+  * added files: docs/pvm3/Makefile.am docs/pvm3/export_pvm.txt
+    docs/pvm3/pvm_10x.cfg docs/pvm3/pvm_11x.cfg docs/pvm3/pvm_config.txt
+
+  * removed files: docs/export_pvm.txt docs/pvm.cfg
+
+  * docs/Makefile.am
+  reorganize pvm3 documentation.
+
+  * docs/man/transcode.1
+  update manpage.
+
 2007-11-10 Francesco Romani <fromani at gmail dot com>
   * added files: avilib/platform.h avilib/platform_posix.c
                  avilib/platform_tc.c
