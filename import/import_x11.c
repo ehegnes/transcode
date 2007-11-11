@@ -1,11 +1,21 @@
 /*
- *  demultiplex_x11.c - extract full-screen images from an X11 connection.
- *  (C) 2006 Francesco Romani <fromani at gmail dot com>
+ * demultiplex_x11.c -- extract full-screen images from an X11 connection.
+ * (C) 2006-2007 Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
- * transcode is free software, distributable under the terms of the GNU
- * General Public License (version 2 or later).  See the file COPYING
- * for details.
+ *
+ * transcode is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * transcode is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include "transcode.h"
@@ -13,6 +23,7 @@
 
 #include "libtc/tcmodule-plugin.h"
 #include "libtc/tctimer.h"
+#include "libtc/optstr.h"
 
 #include "x11source.h"
 
@@ -25,6 +36,8 @@
  * - Make faster where feasible.
  */
 
+#define DEBUG 1
+
 #define LEGACY 1
 
 #ifdef LEGACY
@@ -33,7 +46,7 @@
 # define MOD_NAME    "demultiplex_x11.so"
 #endif
 
-#define MOD_VERSION "v0.0.2 (2006-08-03)"
+#define MOD_VERSION "v0.1.0 (2007-07-21)"
 #define MOD_CAP     "fetch full-screen frames from an X11 connection"
 
 #define MOD_FEATURES \
@@ -41,23 +54,62 @@
 #define MOD_FLAGS \
     TC_MODULE_FLAG_RECONFIGURABLE
 
+/*************************************************************************/
+
 static const char tc_x11_help[] = ""
     "Overview:\n"
     "    This module acts as a bridge from transcode an a X11 server.\n"
     "    It grabs screenshots at fixed rate from X11 connection, allowing\n"
     "    to record screencast and so on.\n"
     "Options:\n"
-    "    help    produce module overview and options explanations\n";
+    "    skew_limit  tune maximum frame skew (ms) before correction\n"
+    "    help        produce module overview and options explanations\n";
+
+#define SKEW_LIM_DEFAULT    0
+#define SKEW_LIM_MIN        0
+#define SKEW_LIM_MAX        5
+
+static const int frame_delay_divs[] = {
+/*  div     skew_lim         */
+    1,      /* 0 (disabled)  */ 
+    2,      /* 1 (weakest)   */
+    3,
+    5,
+    10,
+    20      /* 5 (strongest) */
+};
+
 
 typedef struct tcx11privatedata_ TCX11PrivateData;
 struct tcx11privatedata_ {
     TCX11Source src;
     TCTimer timer;
 
-    uint64_t frame_delay;
+    uint64_t frame_delay; 
+    /* how much (ms) we must sleep to properly emulate frame rate? */
 
-    uint32_t expired;
+    uint32_t expired;   /* counter for execessively delayed frames */
+
+    uint64_t reftime;  /* reference time (ms) for skew computation */
+
+    int64_t skew;       /* take in account excess of retard (ms)   */
+    int64_t skew_limit; /* how much (ms) skew we can tolerate?     */
 };
+
+
+/*************************************************************************/
+/* helpers */
+
+static void tdebug(const TCX11PrivateData *priv, const char *str)
+{
+#ifdef DEBUG
+    uint64_t now = tc_gettime();
+    tc_log_info(MOD_NAME, "%-18s %lu", str, (unsigned long)(now - priv->reftime));
+#endif
+    return;
+}
+
+/*************************************************************************/
 
 static int tc_x11_init(TCModuleInstance *self, uint32_t features)
 {
@@ -92,20 +144,36 @@ static int tc_x11_configure(TCModuleInstance *self,
                             const char *options, vob_t *vob)
 {
     TCX11PrivateData *priv = NULL;
-    int ret = 0;
+    int ret = 0, skew_lim = SKEW_LIM_DEFAULT;
 
     TC_MODULE_SELF_CHECK(self, "configure");
 
     priv = self->userdata;
 
-    priv->expired = 0;
-    priv->frame_delay = (uint64_t)(1000000.0 / vob->fps); /* microsecs */
-    if (verbose >= TC_DEBUG) {
-        tc_log_info(MOD_NAME, "frame delay will be %lu microseconds",
-                              (unsigned long)priv->frame_delay);
+    if (options != NULL) {
+        optstr_get(options, "skew_limit", "%i", &skew_lim);
+        if (skew_lim < SKEW_LIM_MIN || skew_lim > SKEW_LIM_MAX) {
+            tc_log_warn(MOD_NAME, "skew limit value out of range,"
+                                  " reset to defaults [%i]",
+                        SKEW_LIM_DEFAULT);
+        }
     }
 
-    ret = tc_timer_init_soft(&priv->timer, 0); /* XXX */
+    priv->skew = 0;
+    priv->reftime = 0;
+    priv->expired = 0;
+    priv->frame_delay = (uint64_t)(1000000.0 / vob->fps); /* microseconds */
+    priv->skew_limit = priv->frame_delay / frame_delay_divs[skew_lim];
+
+    if (verbose >= TC_DEBUG) {
+        tc_log_info(MOD_NAME, "frame delay: %lu ms",
+                              (unsigned long)priv->frame_delay);
+        tc_log_info(MOD_NAME, "skew limit:  %li ms",
+                              (long)priv->skew_limit);
+    }
+
+
+    ret = tc_timer_init_soft(&priv->timer, 0);
     if (ret != 0) {
         tc_log_error(MOD_NAME, "configure: can't initialize timer");
         return TC_ERROR;
@@ -174,37 +242,68 @@ static int tc_x11_demultiplex(TCModuleInstance *self,
                               vframe_list_t *vframe, aframe_list_t *aframe)
 {
     TCX11PrivateData *priv = NULL;
+    uint64_t now = 0;
     int ret = 0;
 
     TC_MODULE_SELF_CHECK(self, "demultiplex");
     priv = self->userdata;
+
+    priv->reftime = tc_gettime();
+
+    tdebug(priv, "begin demultiplex");
 
     if (aframe != NULL) {
         aframe->audio_len = 0; /* no audio from here */
     }
 
     if (vframe != NULL) {
-        uint64_t elapsed = 0;
+        tdebug(priv, "  begin acquire");
 
         ret = tc_x11source_acquire(&priv->src, vframe->video_buf,
                                    vframe->video_size);
+
+        tdebug(priv, "  end acquire");
+
         if (ret > 0) {
+            int64_t naptime = 0;
+            uint64_t now = 0;
+            
             vframe->attributes |= TC_FRAME_IS_KEYFRAME;
             vframe->video_len = ret;
        
-            /* see (upcoming) figure above */
-            elapsed = tc_timer_elapsed(&priv->timer);
-            if (elapsed >= priv->frame_delay) {
+            now = tc_gettime();
+            naptime = (priv->frame_delay - (now - priv->reftime));
+
+            if (priv->skew >= priv->skew_limit) {
+                tc_log_info(MOD_NAME, "  skew correction (naptime was %lu)", 
+                                      (unsigned long)naptime);
+                int64_t t = naptime;
+                naptime -= priv->skew;
+                priv->skew = TC_MAX(0, priv->skew - t);
+            }
+
+            if (naptime <= 0) {
                 /* don't sleep at all if delay is already excessive */
+                tc_log_info(MOD_NAME, "%-18s", "  NO SLEEP!");
                 priv->expired++;
             } else {
-                tc_timer_sleep(&priv->timer, priv->frame_delay - elapsed);
+                tc_log_info(MOD_NAME, "%-18s %lu", "  sleep time",
+                                      (unsigned long)(naptime));
+                tc_timer_sleep(&priv->timer, (uint64_t)naptime);
             }
         }
     }
 
+    now = tc_gettime();
+    now -= priv->reftime;
+    priv->skew += now - priv->frame_delay;
+
+    tdebug(priv, "end multiplex");
+
+    tc_log_info(MOD_NAME, "%-18s %li", "detected skew", (long)(priv->skew));
     return (ret > 0) ?ret :-1;
 }
+
 
 /*************************************************************************/
 
@@ -283,7 +382,6 @@ MOD_open
 
     COMMON_CHECK(param);
 
-    /* XXX */
     ret = tc_x11_init(&mod_video, TC_MODULE_FEATURE_DEMULTIPLEX);
     RETURN_IF_FAILED(ret);
 
@@ -341,4 +439,3 @@ MOD_close
  *
  * vim: expandtab shiftwidth=4:
  */
-

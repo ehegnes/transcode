@@ -80,6 +80,9 @@
   license header update.
   encoder flush implementation (xvid, lzo).
 
+  * import/import_x11.c
+  first bits of cursor grabbing. Also, some minor fixes.
+
 2007-11-10 Francesco Romani <fromani at gmail dot com>
   * added files: avilib/platform.h avilib/platform_posix.c
                  avilib/platform_tc.c
