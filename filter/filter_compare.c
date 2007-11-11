@@ -261,9 +261,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
 						temp=tc_malloc(sizeof(struct pixelsMask));
 						temp->row=t;
 						temp->col=r;
-						temp->r = (unsigned char)pixel_packet[index].red;
-						temp->g = (unsigned char)pixel_packet[index].green;
-						temp->b = (unsigned char)pixel_packet[index].blue;
+						temp->r = (uint8_t)ScaleQuantumToChar(pixel_packet[index].red);
+						temp->g = (uint8_t)ScaleQuantumToChar(pixel_packet[index].green);
+						temp->b = (uint8_t)ScaleQuantumToChar(pixel_packet[index].blue);
 						temp->next=NULL;
 
 						if (pixel_last == NULL){
