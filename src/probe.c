@@ -678,7 +678,9 @@ static void select_modules(int flags, vob_t *vob)
         break;
 
       case TC_MAGIC_TS:
-        vob->vmod_probed = "ts";
+        vob->vmod_probed = "ffmpeg";
+        vob->amod_probed = "ffmpeg";
+        break;
 
       case TC_MAGIC_TIFF1:
       case TC_MAGIC_TIFF2:
@@ -724,6 +726,11 @@ static void select_modules(int flags, vob_t *vob)
         vob->vmod_probed = "x11";
         break;
 
+      case TC_MAGIC_FLV:
+        vob->vmod_probed = "ffmpeg";
+        vob->amod_probed = "null";
+        // FIXME: as soon as import ffmpeg gains audio support
+        break;
     }  // switch (vob->v_format_flag)
 
     switch (vob->a_format_flag) {
