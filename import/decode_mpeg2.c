@@ -95,7 +95,6 @@ static void write_yuv420p(decode_t *decode, const mpeg2_info_t *info,
 
 void decode_mpeg2(decode_t *decode)
 {
-    int framenum = 0;
     mpeg2dec_t *decoder = NULL;
     const mpeg2_info_t *info = NULL;
     const mpeg2_sequence_t *sequence = NULL;
@@ -138,11 +137,6 @@ void decode_mpeg2(decode_t *decode)
           case STATE_END:
           case STATE_INVALID_END:
             if (info->display_fbuf) {
-                if (decode->verbose >= 4) {
-                    tc_log_info(__FILE__, "decoded frame #%09i\r",
-                                framenum);
-                    framenum++;
-                }
                 writer(decode, info, sequence);
             }
             break;
