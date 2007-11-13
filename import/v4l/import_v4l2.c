@@ -1135,7 +1135,7 @@ int v4l2_video_grab_stop(void)
 
 int v4l2_audio_init(const char * device, int rate, int bits, int channels)
 {
-	int tmp;
+	int version, tmp;
 
 	if((v4l2_audio_fd = open(device, O_RDONLY, 0)) < 0)
 	{
@@ -1152,6 +1152,12 @@ int v4l2_audio_init(const char * device, int rate, int bits, int channels)
 		return(1);
 	}
 
+	if(ioctl(v4l2_audio_fd, OSS_GETVERSION, &version) < 0)
+	{
+		perror(module "OSS_GETVERSION");
+		return(1);
+	}
+	
 	tmp = bits == 8 ? AFMT_U8 : AFMT_S16_LE;
 
 	if(ioctl(v4l2_audio_fd, SNDCTL_DSP_SETFMT, &tmp) < 0)
@@ -1171,18 +1177,21 @@ int v4l2_audio_init(const char * device, int rate, int bits, int channels)
 
 	tmp = 0;
 
-	if(ioctl(v4l2_audio_fd, SOUND_PCM_WRITE_RATE, &tmp) < 0)
-		(void)0;
-	else
+	if (version < 0x040000)
 	{
-		if(ioctl(v4l2_audio_fd, SOUND_PCM_READ_RATE, &tmp) < 0)
+		if(ioctl(v4l2_audio_fd, SNDCTL_DSP_SPEED, &tmp) < 0)
+			(void)0;
+		else
 		{
-			perror(module "SOUND_PCM_READ_RATE");
-			return(1);
-		}
+			if(ioctl(v4l2_audio_fd, SOUND_PCM_READ_RATE, &tmp) < 0)
+			{
+				perror(module "SOUND_PCM_READ_RATE");
+				return(1);
+			}
 
-		if(tmp == 32000)
-			v4l2_saa7134_audio = 1;
+			if(tmp == 32000)
+				v4l2_saa7134_audio = 1;
+		}
 	}
 
 	if(v4l2_saa7134_audio)
@@ -1192,9 +1201,9 @@ int v4l2_audio_init(const char * device, int rate, int bits, int channels)
 	}
 	else
 	{
-		if(ioctl(v4l2_audio_fd, SOUND_PCM_WRITE_RATE, &rate) < 0)
+		if(ioctl(v4l2_audio_fd, SNDCTL_DSP_SPEED, &rate) < 0)
 		{
-			perror(module "SOUND_PCM_WRITE_RATE");
+			perror(module "SNDCTL_DSP_SPEED");
 			return(1);
 		}
 	}

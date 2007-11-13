@@ -1,3 +1,8 @@
+2007-11-13 Francesco Romani <fromani at gmail dot com>
+  * import/import_oss.c import/v4l/import_v4l2.c
+  use API-recommended ioctl, and improve compatibility with OSS v4 API.
+  Patch courtesy of Y. K. <cesium2 at gmail dot com>.
+
 2007-11-08 Francesco Romani <fromani at gmail dot com>
   * avilib/avilib.c
   properly initialize superindex chunk. This avoid segfault

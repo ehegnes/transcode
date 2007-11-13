@@ -86,8 +86,8 @@ int oss_init(const char *audio_device,
         return(1);
     }
 
-    if (ioctl(oss_fd, SOUND_PCM_READ_RATE, &sample_rate) < 0) {
-        perror("SOUND_PCM_READ_RATE");
+    if (ioctl(oss_fd, SNDCTL_DSP_SPEED, &sample_rate) < 0) {
+        perror("SNDCTL_DSP_SPEED");
         return(1);
     }
 
