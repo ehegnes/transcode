@@ -108,7 +108,7 @@ enum tcdebugmode_ {
     TC_SYNC    = 32,
     TC_COUNTER = 64,
     TC_PRIVATE = 128,
-    TC_THREADS = 256
+    TC_THREADS = 256,
     TC_WATCH   = 512,
 };
 
