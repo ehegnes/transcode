@@ -1,3 +1,8 @@
+2007-11-17 Francesco Romani <fromani at gmail dot com>
+  * export/export_ffmpeg.c
+  do not mangle output file name if it is "/dev/null".
+  (closes issue #0000040)
+
 2007-11-13 Francesco Romani <fromani at gmail dot com>
   * import/import_oss.c import/v4l/import_v4l2.c
   use API-recommended ioctl, and improve compatibility with OSS v4 API.

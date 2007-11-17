@@ -1370,38 +1370,41 @@ MOD_open
   avifile = vob->avifile_out;
   
   if (param->flag == TC_VIDEO) {
+    const char *ext = (is_mpegvideo == 2) ?".m2v" :".m1v";
     char *buf = NULL;
-    const char *ext = NULL;
-    // video
+    
+    mpeg1fd = NULL;
+
     if (is_mpegvideo) {
+        if (strcmp(vob->video_out_file, "/dev/null") != 0) {
+            size_t len = 0;
 
-        if(probe_export_attributes & TC_PROBE_NO_EXPORT_VEXT)
-            ext = video_ext;
-        else
-            ext = is_mpegvideo == 1 ? ".m1v" : ".m2v";
-        
-        if ((buf = malloc(strlen (vob->video_out_file) + 1 + strlen(ext))) == NULL) {
-            fprintf(stderr, "Could not allocate memory for buf\n");
-            return(TC_EXPORT_ERROR);
+            if(probe_export_attributes & TC_PROBE_NO_EXPORT_VEXT)
+                ext = video_ext; /* force reset to default */
+
+            len = strlen(vob->video_out_file) + 1 + strlen(ext);
+            buf = malloc(len);
+            if (!buf) {
+                fprintf(stderr, "Could not allocate memory for filename buffer\n");
+                return(TC_EXPORT_ERROR);
+            }
+            snprintf(buf, len, "%s%s", vob->video_out_file, ext);
+            mpeg1fd = fopen(buf, "wb");
+
+            if (!mpeg1fd) {
+                ff_warning("Can not open file \"%s\" using /dev/null\n", buf); 
+            }
+            free(buf);
         }
-        snprintf(buf, strlen(vob->video_out_file) + 1 + strlen(ext), "%s%s", vob->video_out_file, ext);
-        mpeg1fd = fopen(buf, "wb");
-
-        if (!mpeg1fd)
-        {
-            ff_warning("Can not open file \"%s\" using /dev/null\n", buf); 
+        if (!mpeg1fd) {
+            /* fallback to safe null-ness. */
             mpeg1fd = fopen("/dev/null", "wb");
         }
-
-        free (buf);
-
     } else {
-      // pass extradata to AVI writer
       if (lavc_venc_context->extradata > 0) {
           avifile->extradata      = lavc_venc_context->extradata;
           avifile->extradata_size = lavc_venc_context->extradata_size;
-      }
-      else {
+      } else {
           avifile->extradata      = NULL;
           avifile->extradata_size = 0;
       }
