@@ -1,3 +1,8 @@
+2007-11-17 Francesco Romani <fromani at gmail dot com>
+  * import/import_im.c
+  improve sequential reading and interaction with (forthcoming, testing)
+  sequential decoder.
+
 2007-11-11 Francesco Romani <fromani at gmail dot com>
   * added files: docs/pvm3/Makefile.am docs/pvm3/export_pvm.txt
     docs/pvm3/pvm_10x.cfg docs/pvm3/pvm_11x.cfg docs/pvm3/pvm_config.txt
