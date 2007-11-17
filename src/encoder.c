@@ -98,6 +98,7 @@ static int OLD_encoder_export(TCEncoderData *data, vob_t *vob);
 #endif  // SUPPORT_OLD_ENCODER
 
 /* misc helpers */
+static int need_stop(TCEncoderData *encdata);
 static int is_last_frame(TCEncoderData *encdata, int cluster_mode);
 static void export_update_formats(vob_t *vob, const TCModuleInfo *vinfo,
                                   const TCModuleInfo *ainfo);
@@ -1330,6 +1331,11 @@ static void encoder_skip(TCEncoderData *data)
     data->buffer->aptr->attributes |= TC_FRAME_IS_OUT_OF_RANGE;
 }
 
+static int need_stop(TCEncoderData *encdata)
+{
+    return (!tc_running() || encdata->error_flag);
+}
+
 /* ------------------------------------------------------------
  *
  * encoder main loop
@@ -1341,16 +1347,16 @@ void tc_encoder_loop(vob_t *vob, int frame_first, int frame_last)
     int err = 0, eos = 0; /* End Of Stream flag */
 
     if (encdata.this_frame_last != frame_last) {
-        encdata.old_frame_last = encdata.this_frame_last;
+        encdata.old_frame_last  = encdata.this_frame_last;
         encdata.this_frame_last = frame_last;
     }
 
-    encdata.error_flag = 0; /* reset */
+    encdata.error_flag  = 0; /* reset */
     encdata.frame_first = frame_first;
-    encdata.frame_last = frame_last;
+    encdata.frame_last  = frame_last;
     encdata.saved_frame_last = encdata.old_frame_last;
 
-    while (!encdata.error_flag) {
+    while (!need_stop(&encdata)) {
         /* stop here if pause requested */
         tc_pause();
 
