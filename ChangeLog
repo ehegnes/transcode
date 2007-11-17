@@ -6,6 +6,10 @@
   * src/tc_defaults.h
   reordering log levels again, looking for sanity.
 
+  * src/encoder.c
+  proper stopping condition, as done in other worker threads
+  (improve correctness and as practical effect solves some hangups).
+
 2007-11-11 Francesco Romani <fromani at gmail dot com>
   * added files: docs/pvm3/Makefile.am docs/pvm3/export_pvm.txt
     docs/pvm3/pvm_10x.cfg docs/pvm3/pvm_11x.cfg docs/pvm3/pvm_config.txt
