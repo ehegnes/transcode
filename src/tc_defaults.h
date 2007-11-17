@@ -103,13 +103,13 @@ enum tcdebugmode_ {
     TC_INFO    = 1,
     TC_DEBUG   = 2,
     TC_STATS   = 4,
-    TC_WATCH   = 8,
-    TC_CLEANUP = 16,
-    TC_FLIST   = 32,
-    TC_SYNC    = 64,
-    TC_COUNTER = 128,
-    TC_PRIVATE = 256,
-    TC_THREADS = 512
+    TC_CLEANUP = 8,
+    TC_FLIST   = 16,
+    TC_SYNC    = 32,
+    TC_COUNTER = 64,
+    TC_PRIVATE = 128,
+    TC_THREADS = 256,
+    TC_WATCH   = 512,
 };
 
 //import/export/filter frame buffer status flag
