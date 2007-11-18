@@ -164,7 +164,7 @@ aframe_list_t *tc_new_audio_frame(double samples, int channels, int bits)
  * About TC_FRAME_EXTRA_SIZE:
  *
  * This is an emergency parachute for codecs that delivers
- * encoded frames *larger* than raw ones. Such beasts exists,
+ * encoded frames *larger* than raw ones. Such beasts exist,
  * even LZO does it in some (AFAIK uncommon) circumstances.
  *
  * On those cases, the Sane Thing To Do from the encoder

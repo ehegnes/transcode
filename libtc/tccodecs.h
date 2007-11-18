@@ -102,7 +102,7 @@ typedef enum {
     /* special (pseudo)codecs */
     TC_CODEC_UNKNOWN    = 0x00000000,
     TC_CODEC_RAW        = 0xFEFEFEFE,
-    TC_CODEC_ANY        = 0xFFFFFFFE,
+    TC_CODEC_ANY        = 0x7FFFFFFE,
     /* this one MUST be the last */
     TC_CODEC_ERROR      = 0xFFFFFFFF
 } TCCodecID;
