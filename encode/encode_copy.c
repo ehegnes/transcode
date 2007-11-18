@@ -26,7 +26,7 @@
 #include "libtc/tcmodule-plugin.h"
 
 #define MOD_NAME    "encode_copy.so"
-#define MOD_VERSION "v0.0.3 (2007-01-27)"
+#define MOD_VERSION "v0.0.4 (2007-11-18)"
 #define MOD_CAP     "copy (passthrough) A/V frames"
 
 #define MOD_FEATURES \
@@ -96,21 +96,21 @@ static int copy_stop(TCModuleInstance *self)
 }
 
 static int copy_encode_video(TCModuleInstance *self,
-                              vframe_list_t *inframe, vframe_list_t *outframe)
+                             vframe_list_t *inframe, vframe_list_t *outframe)
 {
     TC_MODULE_SELF_CHECK(self, "encode_video");
 
-    vframe_copy(outframe, inframe, 1);
-    /* vframe_copy will not do this, so we copy attributes explicitely */
-    outframe->attributes = inframe->attributes;
-    /* enforce full length (we can deal with uncompressed frames) */
-    outframe->video_len = outframe->video_size;
-
+    if (inframe == NULL) {
+        outframe->video_len = 0;
+    } else {
+        vframe_copy(outframe, inframe, 1);
+        outframe->video_len = outframe->video_size;
+    }
     return TC_OK;
 }
 
 static int copy_encode_audio(TCModuleInstance *self,
-                              aframe_list_t *inframe, aframe_list_t *outframe)
+                             aframe_list_t *inframe, aframe_list_t *outframe)
 {
     TC_MODULE_SELF_CHECK(self, "encode_audio");
 
@@ -118,12 +118,8 @@ static int copy_encode_audio(TCModuleInstance *self,
         outframe->audio_len = 0;
     } else {
         aframe_copy(outframe, inframe, 1);
-        /* aframe_copy will not do this, so we copy attributes explicitely */
-        outframe->attributes = inframe->attributes;
-        /* enforce full length (we deal with uncompressed frames */
         outframe->audio_len = outframe->audio_size;
     }
-
     return TC_OK;
 }
 
