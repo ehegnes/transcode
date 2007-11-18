@@ -18,7 +18,8 @@ pkg_LTLIBRARIES = \
 	multiplex_raw.la \
 	multiplex_avi.la \
 	$(MODS_MJPEGTOOLS) \
-	multiplex_null.la
+	multiplex_null.la \
+	multiplex_wav.la
 endif
 
 multiplex_avi_la_SOURCES = multiplex_avi.c
@@ -34,4 +35,7 @@ multiplex_y4m_la_SOURCES = multiplex_y4m.c
 multiplex_y4m_la_CPPFLAGS = $(AM_CPPFLAGS) $(MJPEGTOOLS_CFLAGS)
 multiplex_y4m_la_LDFLAGS = -module -avoid-version
 multiplex_y4m_la_LIBADD = $(MJPEGTOOLS_LIBS)
+
+multiplex_wav_la_SOURCES = multiplex_wav.c
+multiplex_wav_la_LDFLAGS = -module -avoid-version
 

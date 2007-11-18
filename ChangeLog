@@ -2,6 +2,13 @@
   * encode/encode_copy.c
   minor updates and API resync.
 
+  * added file: multiplex/multiplex_wav.c
+
+  * multiplex/Makefile.am multiplex/multiplex_y4m.c
+  split old multiplex_y4m in true multiplex_y4m and separate multiplex_wav.c
+  each of those mplexors can really produce a single stream (only video
+  or only audio respectively).
+
 2007-11-17 Francesco Romani <fromani at gmail dot com>
   * import/import_im.c
   improve sequential reading and interaction with (forthcoming, testing)
