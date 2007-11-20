@@ -112,11 +112,7 @@ static int tc_lzo_init(TCModuleInstance *self, uint32_t features)
 
 static int tc_lzo_fini(TCModuleInstance *self)
 {
-    LZOPrivateData *pd = NULL;
-
     TC_MODULE_SELF_CHECK(self, "fini");
-
-    pd = self->userdata;
 
     tc_lzo_stop(self);
 
