@@ -98,6 +98,13 @@ typedef enum {
     TC_CODEC_MPEG2VIDEO,
     TC_CODEC_MPEG4VIDEO,
     TC_CODEC_LJPEG,	/* lossless (motion) JPEG */
+    /* image formats (IM modules) */
+    TC_CODEC_JPEG,
+    TC_CODEC_TIFF,
+    TC_CODEC_PNG,
+    TC_CODEC_PPM,
+    TC_CODEC_PGM,
+    TC_CODEC_GIF,
 
     /* special (pseudo)codecs */
     TC_CODEC_UNKNOWN    = 0x00000000,

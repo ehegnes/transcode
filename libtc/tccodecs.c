@@ -108,6 +108,19 @@ static const TCCodecInfo tc_codecs_info[] = {
                            "PV3",                    0, TC_VIDEO }, /* XXX */
     { TC_CODEC_NUV,        "nuv",         "NUV",
                            "RTjpeg",                 0, TC_VIDEO }, /* XXX */
+    /* image formats (for ImageMagick) */
+    { TC_CODEC_JPEG,       "jpeg",        NULL,
+                           "JPEG image",             0, TC_VIDEO },
+    { TC_CODEC_TIFF,       "tiff",        NULL,
+                           "TIFF image",             0, TC_VIDEO },
+    { TC_CODEC_PNG,        "png",         NULL,
+                           "PNG image",              0, TC_VIDEO },
+    { TC_CODEC_PPM,        "ppm",         NULL,
+                           "PPM image",              0, TC_VIDEO },
+    { TC_CODEC_PGM,        "pgm",         NULL,
+                           "PGM image",              0, TC_VIDEO },
+    { TC_CODEC_GIF,        "gif",         NULL,
+                           "GIF89 image",            0, TC_VIDEO },
 
     /* FIXME: add more codec informations, on demand */
 

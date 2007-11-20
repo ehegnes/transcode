@@ -1,3 +1,7 @@
+2007-11-20 Francesco Romani <fromani at gmail dot com>
+  * libtc/tccodecs.c libtc/tccodecs.h
+  add codec IDs and description for (initial) supported image formats.
+
 2007-11-18 Francesco Romani <fromani at gmail dot com>
   * encode/encode_copy.c
   minor updates and API resync.
