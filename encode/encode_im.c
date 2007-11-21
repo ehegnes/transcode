@@ -191,10 +191,10 @@ static int tc_im_fini(TCModuleInstance *self)
 {
     TC_MODULE_SELF_CHECK(self, "fini");
 
+    tc_im_stop(self);
+
     tc_free(self->userdata);
     self->userdata = NULL;
-
-    tc_im_stop(self);
 
     MagickWandTerminus();
 
