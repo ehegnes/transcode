@@ -281,19 +281,9 @@ static int faac_encode(TCModuleInstance *self,
 
 static const TCCodecID faac_codecs_in[] = { TC_CODEC_PCM, TC_CODEC_ERROR };
 static const TCCodecID faac_codecs_out[] = { TC_CODEC_AAC, TC_CODEC_ERROR };
-static const TCFormatID faac_formats[] = { TC_FORMAT_ERROR };
+TC_MODULE_CODEC_FORMATS(faac);
 
-static const TCModuleInfo faac_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = faac_codecs_in,
-    .codecs_out  = faac_codecs_out,
-    .formats_in  = faac_formats,
-    .formats_out = faac_formats
-};
+TC_MODULE_INFO(faac);
 
 static const TCModuleClass faac_class = {
     .info         = &faac_info,

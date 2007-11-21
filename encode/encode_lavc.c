@@ -177,7 +177,7 @@ static const enum CodecID tc_lavc_internal_codecs[] = {
     CODEC_ID_NONE
 };
 
-static const TCFormatID tc_lavc_formats[] = { TC_FORMAT_ERROR };
+TC_MODULE_CODEC_FORMATS(tc_lavc);
 
 
 /*************************************************************************/
@@ -1510,17 +1510,7 @@ static int tc_lavc_encode_video(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const TCModuleInfo tc_lavc_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = tc_lavc_codecs_in,
-    .codecs_out  = tc_lavc_codecs_out,
-    .formats_in  = tc_lavc_formats,
-    .formats_out = tc_lavc_formats
-};
+TC_MODULE_INFO(tc_lavc);
 
 static const TCModuleClass tc_lavc_class = {
     .info         = &tc_lavc_info,

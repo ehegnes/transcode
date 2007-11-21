@@ -260,19 +260,9 @@ static const TCCodecID tc_lzo_codecs_in[] = {
     TC_CODEC_YUY2, TC_CODEC_RGB, TC_CODEC_YUV420P, TC_CODEC_ERROR
 };
 static const TCCodecID tc_lzo_codecs_out[] = { TC_CODEC_LZO2, TC_CODEC_ERROR };
-static const TCFormatID tc_lzo_formats[] = { TC_FORMAT_ERROR };
+TC_MODULE_CODEC_FORMATS(tc_lzo);
 
-static const TCModuleInfo tc_lzo_info = {
-    .features    = TC_MODULE_FEATURE_ENCODE|TC_MODULE_FEATURE_VIDEO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = tc_lzo_codecs_in,
-    .codecs_out  = tc_lzo_codecs_out,
-    .formats_in  = tc_lzo_formats,
-    .formats_out = tc_lzo_formats
-};
+TC_MODULE_INFO(tc_lzo);
 
 static const TCModuleClass tc_lzo_class = {
     .info         = &tc_lzo_info,

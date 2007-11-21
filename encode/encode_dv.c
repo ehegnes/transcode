@@ -271,19 +271,9 @@ static const TCCodecID tc_dv_codecs_out[] = {
     TC_CODEC_ERROR
 };
 
-static const TCFormatID tc_dv_formats[] = { TC_FORMAT_ERROR };
+TC_MODULE_CODEC_FORMATS(tc_dv);
 
-static const TCModuleInfo tc_dv_info = {
-    .features    = TC_MODULE_FEATURE_ENCODE|TC_MODULE_FEATURE_VIDEO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = tc_dv_codecs_in,
-    .codecs_out  = tc_dv_codecs_out,
-    .formats_in  = tc_dv_formats,
-    .formats_out = tc_dv_formats,
-};
+TC_MODULE_INFO(tc_dv);
 
 static const TCModuleClass tc_dv_class = {
     .info         = &tc_dv_info,

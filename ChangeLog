@@ -11,6 +11,12 @@
   add new macro to autogenerate TCModuleInfo boilerplate,
   and format lists for codecs (multiplexor are coming as well).
 
+  * encode/encode_copy.c encode/encode_dv.c encode/encode_faac.c
+    encode/encode_im.c encode/encode_lame.c encode/encode_lavc.c
+    encode/encode_lzo.c encode/encode_null.c encode/encode_x264.c
+    encode/encode_xvid.c
+  port to new automagic macros.
+
 2007-11-20 Francesco Romani <fromani at gmail dot com>
   * libtc/tccodecs.c libtc/tccodecs.h
   add codec IDs and description for (initial) supported image formats.

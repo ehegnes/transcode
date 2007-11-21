@@ -462,19 +462,10 @@ static const TCCodecID tc_xvid_codecs_out[] = {
     TC_CODEC_XVID,
     TC_CODEC_ERROR
 };
-static const TCFormatID tc_xvid_formats[] = { TC_FORMAT_ERROR };
 
-static const TCModuleInfo tc_xvid_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = tc_xvid_codecs_in,
-    .codecs_out  = tc_xvid_codecs_out,
-    .formats_in  = tc_xvid_formats,
-    .formats_out = tc_xvid_formats
-};
+TC_MODULE_CODEC_FORMATS(tc_xvid);
+
+TC_MODULE_INFO(tc_xvid);
 
 static const TCModuleClass xvid_class = {
     .info         = &tc_xvid_info,

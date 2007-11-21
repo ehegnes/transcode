@@ -262,20 +262,9 @@ static const TCCodecID tc_im_codecs_out[] = {
     TC_CODEC_PPM,  TC_CODEC_PGM,  TC_CODEC_GIF,
     TC_CODEC_ERROR
 };
-static const TCFormatID tc_im_formats[] = { TC_FORMAT_ERROR };
+TC_MODULE_CODEC_FORMATS(tc_im);
 
-
-static const TCModuleInfo tc_im_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = tc_im_codecs_in,
-    .codecs_out  = tc_im_codecs_out,
-    .formats_in  = tc_im_formats,
-    .formats_out = tc_im_formats
-};
+TC_MODULE_INFO(tc_im);
 
 static const TCModuleClass tc_im_class = {
     .info         = &tc_im_info,

@@ -128,19 +128,9 @@ static int copy_encode_audio(TCModuleInstance *self,
 
 static const uint32_t copy_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
 static const uint32_t copy_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
-static const TCFormatID copy_formats[] = { TC_FORMAT_ERROR };
+TC_MODULE_CODEC_FORMATS(copy);
 
-static const TCModuleInfo copy_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = copy_codecs_in,
-    .codecs_out  = copy_codecs_out,
-    .formats_in  = copy_formats,
-    .formats_out = copy_formats
-};
+TC_MODULE_INFO(copy);
 
 static const TCModuleClass copy_class = {
     .info         = &copy_info,
