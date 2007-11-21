@@ -137,6 +137,31 @@ static int MODNAME ## _fini(TCModuleInstance *self) \
 }
 
 /*
+ * autogeneration macro for TCModuleInfo descriptor
+ */
+#define TC_MODULE_INFO(PREFIX) \
+static const TCModuleInfo PREFIX ## _info = { \
+    .features    = MOD_FEATURES,          \
+    .flags       = MOD_FLAGS,             \
+    .name        = MOD_NAME,              \
+    .version     = MOD_VERSION,           \
+    .description = MOD_CAP,               \
+    .codecs_in   = PREFIX ## _codecs_in,  \
+    .codecs_out  = PREFIX ## _codecs_out, \
+    .formats_in  = PREFIX ## _formats_in, \
+    .formats_out = PREFIX ## _formats_out \
+}
+
+/*
+ * autogeneration for supported codecs/multiplexors
+ */
+#define TC_MODULE_CODEC_FORMATS(PREFIX) \
+static const TCFormatID PREFIX ## _formats_in[]  = { TC_FORMAT_ERROR }; \
+static const TCFormatID PREFIX ## _formats_out[] = { TC_FORMAT_ERROR }
+
+
+
+/*
  * plugin entry point prototype
  */
 const TCModuleClass *tc_plugin_setup(void);
