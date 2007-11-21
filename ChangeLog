@@ -4,6 +4,9 @@
   * encode/Makefile.am
   add *EXPERIMENTAL* ImageMagick image encoder.
 
+  * libtc/tcframes.h libtc/tcmodule-plugin.h libtc/tctimer.c
+  drop inline keyword.
+
 2007-11-20 Francesco Romani <fromani at gmail dot com>
   * libtc/tccodecs.c libtc/tccodecs.h
   add codec IDs and description for (initial) supported image formats.

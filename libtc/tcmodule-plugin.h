@@ -43,7 +43,7 @@
 #define TC_HAS_FEATURE(flags, feat) \
     ((flags & (TC_MODULE_FEATURE_ ## feat)) ?1 :0)
 
-static inline int tc_module_av_check(uint32_t flags)
+static int tc_module_av_check(uint32_t flags)
 {
     int i = 0;
 
@@ -54,7 +54,7 @@ static inline int tc_module_av_check(uint32_t flags)
     return i;
 }
 
-static inline int tc_module_cap_check(uint32_t flags)
+static int tc_module_cap_check(uint32_t flags)
 {
     int i = 0;
 
