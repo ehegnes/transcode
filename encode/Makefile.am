@@ -16,6 +16,10 @@ if HAVE_FAAC
 ENCODE_FAAC = encode_faac.la
 endif
 
+if HAVE_IMAGEMAGICK
+ENCODE_IM = encode_im.la
+endif
+
 if HAVE_LAME
 ENCODE_LAME = encode_lame.la
 endif
@@ -37,6 +41,7 @@ pkg_LTLIBRARIES = \
 	encode_copy.la \
 	$(ENCODE_DV) \
 	$(ENCODE_FAAC) \
+	$(ENCODE_IM) \
 	encode_lavc.la \
 	$(ENCODE_LAME) \
 	$(ENCODE_LZO) \
@@ -57,6 +62,11 @@ encode_faac_la_SOURCES = encode_faac.c
 encode_faac_la_CPPFLAGS = $(AM_CPPFLAGS) $(FAAC_CFLAGS)
 encode_faac_la_LDFLAGS = -module -avoid-version
 encode_faac_la_LIBADD = $(FAAC_LIBS)
+
+encode_im_la_SOURCES = encode_im.c
+encode_im_la_CPPFLAGS = $(AM_CPPFLAGS) $(IMAGEMAGICK_CFLAGS)
+encode_im_la_LDFLAGS = -module -avoid-version
+encode_im_la_LIBADD = $(IMAGEMAGICK_LIBS) -lm
 
 encode_lavc_la_SOURCES = encode_lavc.c
 encode_lavc_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBAVCODEC_CFLAGS)

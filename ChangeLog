@@ -1,3 +1,9 @@
+2007-11-21 Francesco Romani <fromani at gmail dot com>
+  * added file: encode/encode_im.c
+
+  * encode/Makefile.am
+  add *EXPERIMENTAL* ImageMagick image encoder.
+
 2007-11-20 Francesco Romani <fromani at gmail dot com>
   * libtc/tccodecs.c libtc/tccodecs.h
   add codec IDs and description for (initial) supported image formats.
