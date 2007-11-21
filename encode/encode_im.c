@@ -61,8 +61,11 @@
 
 static const char tc_im_help[] = ""
     "Overview:\n"
-    "    FIXME: WRITEME\n"
+    "    This module encodes video frames independently in various\n"
+    "    image formats using ImageMagick libraries.\n"
     "Options:\n"
+    "    format  name of the format to use for encoding images\n"
+    "    quality select output quality (higher is better)\n"
     "    help    produce module overview and options explanations\n";
 
 typedef struct tcimprivatedata_ TCIMPrivateData;
