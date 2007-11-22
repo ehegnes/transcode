@@ -1,3 +1,7 @@
+2007-11-22 Francesco Romani <fromani at gmail dot com>
+  * import/import_ffmpeg.c
+  drop experimental code since 1) it is broken 2) HEAD has a working version.
+
 2007-11-17 Francesco Romani <fromani at gmail dot com>
   * src/encoder.c
   interruption check in encoder loop, resync with proper framebuffer protcol
