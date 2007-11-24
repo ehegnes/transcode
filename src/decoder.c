@@ -1,5 +1,5 @@
 /*
- *  decoder.c
+ *  decoder.c -- transcode import layer module, implementation.
  *
  *  Copyright (C) Thomas Oestreich - June 2001
  *  Updated and partially rewritten by
@@ -737,7 +737,6 @@ void tc_import_threads_cancel(void)
         tc_log_info(__FILE__, "sleeping for %i seconds to cool down", tc_decoder_delay);
     sleep(tc_decoder_delay);
 
-    //wait for threads to terminate
     vret = pthread_join(video_decdata.thread_id, &status);
     if (verbose >= TC_DEBUG) {
         int *pst = status; /* avoid explicit cast in log below */
@@ -822,7 +821,6 @@ int tc_import_close(void)
     return TC_OK;
 }
 
-
 void tc_import_shutdown(void)
 {
     if (verbose >= TC_DEBUG) {
@@ -839,6 +837,7 @@ void tc_import_shutdown(void)
     unload_module(video_decdata.im_handle);
     video_decdata.im_handle = NULL;
 }
+
 
 /*************************************************************************/
 /*             the new sequential API                                    */
@@ -909,7 +908,7 @@ static const char *current_in_file(vob_t *vob, int kind)
     if (kind == TC_VIDEO)
     	return vob->video_in_file;
     if (kind == TC_AUDIO)
-    	return vob->video_in_file;
+    	return vob->audio_in_file;
     return NULL; /* cannot happen */
 }
 

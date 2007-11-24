@@ -1,5 +1,6 @@
 /*
- *  frame_threads.c
+ *  frame_threads.c -- implementation of transcode multithreaded filter
+ *                     processing code.
  *
  *  Copyright (C) Thomas Oestreich - June 2001
  *  updates and partial rewrite:

@@ -1,5 +1,5 @@
 /*
- *  decoder.h
+ *  decoder.h -- transcode import layer module, declarations.
  *
  *  Copyright (C) Thomas Oestreich - June 2001
  *  Enhancements and partial rewrite:

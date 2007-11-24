@@ -1,5 +1,5 @@
 /*
- *  encoder-buffer.c - encoder interface to transcode ring frame buffer
+ *  encoder-buffer.c -- encoder interface to transcode frame ringbuffers.
  *
  *  Copyright (C) Thomas Oestreich - June 2001
  *  Updated and partially rewritten by
