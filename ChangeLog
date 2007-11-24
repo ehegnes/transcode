@@ -4,6 +4,10 @@
     src/frame_threads.h src/framebuffer.c src/framebuffer.h
   minor documentation updates.
 
+  * libtc/tcmodule-plugin.h
+  more macro magic to autogenerate multiplexor supported codec_in and
+  formats_out.
+
 2007-11-21 Francesco Romani <fromani at gmail dot com>
   * added file: encode/encode_im.c
 
