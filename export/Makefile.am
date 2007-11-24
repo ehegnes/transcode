@@ -143,7 +143,8 @@ export_pvm_la_SOURCES = export_pvm.c ../pvm3/pvm_interface.c ../pvm3/pvm_parser.
 export_pvm_la_CPPFLAGS = $(AM_CPPFLAGS) $(PVM3_CFLAGS)
 export_pvm_la_LDFLAGS = -module -avoid-version
 
-export_pvn_la_SOURCES = export_pvn.c
+export_pvn_la_SOURCES = export_pvn.c ../multiplex/multiplex_pvn.c
+export_pvn_la_CPPFLAGS = $(AM_CPPFLAGS) -DOMS_COMPATIBLE=1
 export_pvn_la_LDFLAGS = -module -avoid-version
 
 export_raw_la_SOURCES = export_raw.c aud_aux.c

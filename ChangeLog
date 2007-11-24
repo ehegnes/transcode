@@ -13,6 +13,11 @@
     multiplex/multiplex_y4m.c
   port to new macro magic.
 
+  * added file: multiplex_pvn.c
+
+  * export/Makefile.am export/export_pvn.c multiplex/Makefile.am
+  new-style PVN multiplex module.
+
 2007-11-21 Francesco Romani <fromani at gmail dot com>
   * added file: encode/encode_im.c
 
