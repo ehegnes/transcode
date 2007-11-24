@@ -1,5 +1,5 @@
 /*
- *  encoder-common.c
+ *  encoder-common.c -- asynchronous encoder runtime control and statistics.
  *
  *  Copyright (C) Thomas Oestreich - June 2001
  *  Updated and partially rewritten by

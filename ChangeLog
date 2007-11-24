@@ -1,3 +1,9 @@
+2007-11-24 Francesco Romani <fromani at gmail dot com>
+  * src/decoder.c src/decoder.h src/encoder-buffer.c src/encoder-common.c
+    src/encoder-common.h src/encoder.c src/frame_threads.c
+    src/frame_threads.h src/framebuffer.c src/framebuffer.h
+  minor documentation updates.
+
 2007-11-22 Francesco Romani <fromani at gmail dot com>
   * import/import_ffmpeg.c
   drop experimental code since 1) it is broken 2) HEAD has a working version.

@@ -1,5 +1,5 @@
 /*
- *  encoder-common.h - miscelanous asynchronous encoder functions.
+ *  encoder-common.h -- asynchronous encoder runtime control and statistics.
  *
  *  Copyright (C) Thomas Oestreich - June 2001
  *  Updated and partially rewritten by

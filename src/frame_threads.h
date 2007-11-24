@@ -1,5 +1,6 @@
 /*
- *  frame_threads.h
+ *  frame_threads.h -- declaration of transcode multithreaded filter
+ *                     processing code.
  *
  *  Copyright (C) Thomas Oestreich - June 2001
  *
@@ -25,6 +26,12 @@
 #define FRAME_THREADS_H
 
 #include "transcode.h"
+
+/*
+ * SUMMARY:
+ *
+ * FIXME: WRITEME
+ */
 
 /*
  * tc_frame_threads_init: start the frame threads pool and implicitely

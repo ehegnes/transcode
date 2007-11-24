@@ -1,5 +1,5 @@
 /*
- *  encoder.c
+ *  encoder.c -- transcode export layer module, implementation.
  *
  *  Copyright (C) Thomas Oestreich - June 2001
  *  Updated and partially rewritten by

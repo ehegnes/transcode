@@ -1,5 +1,5 @@
 /*
- *  framebuffer.h
+ *  framebuffer.h -- declarations of audio/video frame ringbuffers.
  *
  *  Copyright (C) Thomas Oestreich - June 2001
  *  Updates and Enhancements
@@ -80,64 +80,6 @@ enum tcframestatus_ {
  * Notes:
  *  % - regular case, frame (processing) threads avalaibles
  *  $ - practical (default) case, filtering is carried by encoder thread.
- */
-
-/*
- * Transcode Framebuffer in a Nutshell (aka: how this code works)
- * --------------------------------------------------------------
- *
- * Introduction:
- * -------------
- * This is a quick, terse overview of design principles beyond the
- * framebuffer and about the design of this code. Full-blown
- * documentation is avalaible under doc/.
- *
- * When reading framebuffer documentation/code, always take in mind
- * the thread layout of transcode:
- *
- * - import layer is supposed to run 2 threads concurrently
- * - filter layer is supposed to run 0..N threads concurrently
- * - export layer is supposed to run 1 thread
- *
- * So, in any transcode execution, framebuffer code is supposed to
- * serve from 3 to N+3 concurrent threads.
- *
- * Framebuffer entities:
- * ---------------------
- * XXX
- *
- * frame status transitions scheme (API reminder):
- * -----------------------------------------------
- *
- *       .---------<---------------<------+-------<------.
- *       V                                | 7            | 6
- * .------------.     .--------.     .--------.     .--------.
- * | frame pool | --> | import |     | filter |     | export |
- * `------------'  1  `--------'     `--------'     `--------'
- *                           |         A    |         A
- *                           |       3 |    | 4       |
- *                         2 |         |    V       5 |
- *                           V     .-------------.    |
- *                           `---->| frame chain |--->'
- *                                 `-------------'
- *
- *  In frame lifetime order:
- *   1. {a,v}frame_register   (import)
- *   2. {a,v}frame_push_next  (import)
- *   3. {a,v}frame_reserve    (filter)
- *   4. {a,v}frame_push_next  (filter)
- *   5. {a,v}frame_retrieve   (export)
- *   6. {a,v}frame_remove     (export)
- * [ 7. {a,v}frame_remove     (filter) ]
- *
- * Operating conditions:
- *
- * 1. single source, full range, no interruptions
- * 2. single source, full range, interruption
- * 3. single source, sub range, no interruptions
- * 4. single source, sub range, interruption
- * 5. single source, multi sub ranges, no interruptions
- * 5. single source, multi sub ranges, interruption
  */
 
 /*************************************************************************/
@@ -316,6 +258,67 @@ union tcframeptr_ {
     aframe_list_t *audio;
 };
 
+/*************************************************************************/
+
+/*
+ * Transcode Framebuffer in a Nutshell (aka: how this code works)
+ * --------------------------------------------------------------
+ *
+ * Introduction:
+ * -------------
+ * This is a quick, terse overview of design principles beyond the
+ * framebuffer and about the design of this code. Full-blown
+ * documentation is avalaible under doc/.
+ *
+ * When reading framebuffer documentation/code, always take in mind
+ * the thread layout of transcode:
+ *
+ * - import layer is supposed to run 2 threads concurrently
+ * - filter layer is supposed to run 0..N threads concurrently
+ * - export layer is supposed to run 1 thread
+ *
+ * So, in any transcode execution, framebuffer code is supposed to
+ * serve from 3 to N+3 concurrent threads.
+ *
+ * Framebuffer entities:
+ * ---------------------
+ * XXX
+ *
+ * frame status transitions scheme (API reminder):
+ * -----------------------------------------------
+ *
+ *       .---------<---------------<------+-------<------.
+ *       V                                | 7            | 6
+ * .------------.     .--------.     .--------.     .--------.
+ * | frame pool | --> | import |     | filter |     | export |
+ * `------------'  1  `--------'     `--------'     `--------'
+ *                           |         A    |         A
+ *                           |       3 |    | 4       |
+ *                         2 |         |    V       5 |
+ *                           V     .-------------.    |
+ *                           `---->| frame chain |--->'
+ *                                 `-------------'
+ *
+ *  In frame lifetime order:
+ *   1. {a,v}frame_register   (import)
+ *   2. {a,v}frame_push_next  (import)
+ *   3. {a,v}frame_reserve    (filter)
+ *   4. {a,v}frame_push_next  (filter)
+ *   5. {a,v}frame_retrieve   (export)
+ *   6. {a,v}frame_remove     (export)
+ * [ 7. {a,v}frame_remove     (filter) ]
+ *
+ * Operating conditions:
+ *
+ * 1. single source, full range, no interruptions
+ * 2. single source, full range, interruption
+ * 3. single source, sub range, no interruptions
+ * 4. single source, sub range, interruption
+ * 5. single source, multi sub ranges, no interruptions
+ * 5. single source, multi sub ranges, interruption
+ */
+
+
 /* 
  * frame*buffer* specifications, needed to properly allocate
  * and initialize single frame buffers
@@ -346,7 +349,7 @@ struct tcframespecs_ {
  *     to allocate framebuffers.
  *
  * Parameters:
- *     None
+ *     None.
  * Return Value:
  *     Constant pointer to a TCFrameSpecs structure. There is no need
  *     to *free() this structure.
@@ -365,7 +368,7 @@ const TCFrameSpecs *tc_framebuffer_get_specs(void);
  * Parameters:
  *     Constant pointer to a TCFrameSpecs holding new framebuffer parameters.
  * Return Value:
- *     None
+ *     None.
  */
 void tc_framebuffer_set_specs(const TCFrameSpecs *specs);
 
@@ -382,9 +385,9 @@ void tc_framebuffer_set_specs(const TCFrameSpecs *specs);
  *     From statements above easily descend that interruption is irreversible.
  *
  * Parameters:
- *     None
+ *     None.
  * Return Value:
- *     None
+ *     None.
  * Side effects:
  *     Any frame-claiming function will fail after the invocation of this
  *     function (see description above).
@@ -420,7 +423,7 @@ int aframe_alloc(int num);
  *     tc_del_video_frame or tc_del_audio_frame.
  *
  * Parameters:
- *      None
+ *      None.
  * Return Value:
  *      respectively a pointer to a vframe_list_t or aframe_list_t,
  *      like, tc_new_video_frame() or tc_new_audio_frame() called
@@ -438,9 +441,9 @@ aframe_list_t *aframe_alloc_single(void);
  *     all other ringbuffer functions will fail.
  *
  * Parameters:
- *     None
+ *     None.
  * Return Value:
- *     None
+ *     None.
  */
 void vframe_free(void);
 void aframe_free(void);
@@ -451,9 +454,9 @@ void aframe_free(void);
  *     This will reset ringbuffer to an empty state, ready to be (re)used again.
  *
  * Parameters:
- *     None
+ *     None.
  * Return Value:
- *     None
+ *     None.
  */
 void vframe_flush(void);
 void aframe_flush(void);
@@ -464,9 +467,9 @@ void aframe_flush(void);
  *     This will reset ringbuffers to an empty state, ready to be (re)used again.
  *
  * Parameters:
- *     None
+ *     None.
  * Return Value:
- *     None
+ *     None.
  */
 void tc_framebuffer_flush(void);
 
@@ -521,7 +524,7 @@ aframe_list_t *aframe_register(int id);
  *     handled by transcode internally.
  *
  * Parameters:
- *     None
+ *     None.
  * Return Value:
  *     A valid pointer to respectively an empty video or audio frame.
  *     If framebuffer is interrupted, both returns NULL.
@@ -552,7 +555,7 @@ aframe_list_t *aframe_reserve(void);
  *     handled by transcode internally.
  *
  * Parameters:
- *     None
+ *     None.
  * Return Value:
  *     A valid pointer to respectively an empty video or audio frame.
  *     If framebuffer is interrupted, both returns NULL.
@@ -579,7 +582,7 @@ aframe_list_t *aframe_retrieve(void);
  * Parameters:
  *     ptr: framebuffer to release.
  * Return Value:
- *     None
+ *     None.
  */
 void vframe_remove(vframe_list_t *ptr);
 void aframe_remove(aframe_list_t *ptr);
@@ -599,7 +602,7 @@ void aframe_remove(aframe_list_t *ptr);
  *        ptr: framebuffer pointer to be updated.
  *     status: new framebuffer status (= stage).
  * Return Value:
- *     None
+ *     None.
  * Side effects:
  *     A blocked thread can (and it will likely) be awaken
  *     by this operation.
@@ -648,7 +651,7 @@ aframe_list_t *aframe_dup(aframe_list_t *f);
  *     copy_data: boolean flag. If 0, do softcopy; do deepcopy otherwise.
  *         
  * Return Value:
- *     None
+ *     None.
  */
 void vframe_copy(vframe_list_t *dst, const vframe_list_t *src, int copy_data);
 void aframe_copy(aframe_list_t *dst, const aframe_list_t *src, int copy_data);
@@ -663,9 +666,9 @@ void aframe_copy(aframe_list_t *dst, const aframe_list_t *src, int copy_data);
  *      WRITEME
  *
  * Parameters:
- * 	None
+ * 	None.
  * Return Value:
- *      None
+ *      None.
  * Side effects:
  *      See THREAD SAFENESS WARNING above.
  */
@@ -677,7 +680,7 @@ void aframe_dump_status(void);
  *      check if video/audio frame list is empty or not.
  *
  * Parameters:
- *      None
+ *      None.
  * Return Value:
  *      !0 if frame list has at least one frame
  *       0 otherwise
@@ -685,11 +688,39 @@ void aframe_dump_status(void);
 int vframe_have_more(void);
 int aframe_have_more(void);
 
-
-
+/*
+ * {v,a}frame_get_counters (thead safe):
+ *     get the number of frames currently hold in the processing layers,
+ *     respectively for video and audio pipelines.
+ *
+ * Parameters:
+ *      im: if not NULL, store here the number of frames
+ *          hold by import layer.
+ *      fl: if not NULL, store here the number of frames
+ *          hold by filter layer.
+ *      ex: if not NULL, store here the number of frames
+ *          hold by export layer.
+ * Return Value:
+ *      None.
+ */
 void vframe_get_counters(int *im, int *fl, int *ex);
 void aframe_get_counters(int *im, int *fl, int *ex);
 
+/*
+ * tc_framebuffer_get_counters (thread safe):
+ *     get the total number of frames currently hold in the processing
+ *     layers, by considering both video and audio pipelines.
+ *
+ * Parameters:
+ *      im: if not NULL, store here the number of frames
+ *          hold by import layer.
+ *      fl: if not NULL, store here the number of frames
+ *          hold by filter layer.
+ *      ex: if not NULL, store here the number of frames
+ *          hold by export layer.
+ * Return Value:
+ *      None.
+ */
 void tc_framebuffer_get_counters(int *im, int *fl, int *ex);
 
 #endif /* FRAMEBUFFER_H */

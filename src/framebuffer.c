@@ -1,7 +1,8 @@
 /*
  * framebuffer.c -- audio/video frame ringbuffers, reloaded.
  * (C) 2005-2007 - Francesco Romani <fromani -at- gmail -dot- com>
- * Based on code written by Thomas Oestreich.
+ * Based on code
+ * (C) 2001-2006 - Thomas Oestreich.
  *
  * This file is part of transcode, a video stream processing tool.
  *
@@ -29,7 +30,8 @@
 #include "libtc/tcframes.h"
 #include "libtc/ratiocodes.h"
 
-/* Quick summary:
+/*
+ * Summary:
  * This code acts as generic ringbuffer implementation, with
  * specializations for main (audio and video) ringbufffers
  * in order to cope legacy constraints from 1.0.x series.
@@ -62,7 +64,7 @@ static pthread_cond_t video_filter_cond = PTHREAD_COND_INITIALIZER;
 static pthread_cond_t video_export_cond = PTHREAD_COND_INITIALIZER;
 
 /*
- * XXX
+ * XXX: add docs
  */
 void tc_framebuffer_interrupt(void)
 {
@@ -101,19 +103,20 @@ struct tcringframebuffer_ {
     /* real ringbuffer */
     TCFramePtr *frames;
 
-    /* frame indexes */
+    /* indexes of ringbuffer */
     int next;
     int last;
 
-    /* counters */
+    /* counters. How many frames in various TCFrameStatus-es? */
     int null;
     int empty;
     int wait;
     int locked;
     int ready;
 
-    /* (de)allocation helpers */
+    /* what we need here? */
     const TCFrameSpecs *specs;
+    /* (de)allocation helpers */
     TCFrameAllocFn alloc;
     TCFrameFreeFn free;
 };
@@ -260,7 +263,11 @@ void tc_framebuffer_set_specs(const TCFrameSpecs *specs)
  *
  * Generic code doesn't use any locking at all (yet).
  * That's was a design choice. For clarity, locking is
- * provided by back-compatibility wrapper functions.
+ * provided by back-compatibility wrapper functions,
+ * or by any other higher-lever caller.
+ *
+ * Client code (= outside this code) MUST NEVER used not-thread
+ * safe code.
  */
 
 
