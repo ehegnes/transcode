@@ -176,25 +176,13 @@ static int tc_wav_fini(TCModuleInstance *self)
 static const TCCodecID tc_wav_codecs_in[] = { 
     TC_CODEC_PCM, TC_CODEC_ERROR
 };
-
-/* a multiplexor is at the end of pipeline */
-static const TCCodecID tc_wav_codecs_out[] = { TC_CODEC_ERROR };
-static const TCFormatID tc_wav_formats_in[] = { TC_FORMAT_ERROR };
 static const TCFormatID tc_wav_formats_out[] = { 
     TC_FORMAT_WAV, TC_FORMAT_ERROR
 };
+/* a multiplexor is at the end of pipeline */
+TC_MODULE_MPLEX_FORMATS_CODECS(tc_wav);
 
-static const TCModuleInfo tc_wav_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = tc_wav_codecs_in,
-    .codecs_out  = tc_wav_codecs_out,
-    .formats_in  = tc_wav_formats_in,
-    .formats_out = tc_wav_formats_out
-};
+TC_MODULE_INFO(tc_wav);
 
 static const TCModuleClass tc_wav_class = {
     .info         = &tc_wav_info,

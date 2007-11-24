@@ -41,6 +41,9 @@
 #define MOD_FLAGS \
     TC_MODULE_FLAG_RECONFIGURABLE
 
+/*
+ * FIXME: add PCM channel split as seen in export_pcm.c
+ */
 
 #define RAW_VID_EXT "vid"
 #define RAW_AUD_EXT "aud"
@@ -223,23 +226,11 @@ static int raw_fini(TCModuleInstance *self)
 /*************************************************************************/
 
 static const TCCodecID raw_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
-
-/* a multiplexor is at the end of pipeline */
-static const TCCodecID raw_codecs_out[] = { TC_CODEC_ERROR };
-static const TCFormatID raw_formats_in[] = { TC_FORMAT_ERROR };
 static const TCFormatID raw_formats_out[] = { TC_FORMAT_RAW, TC_FORMAT_ERROR };
+/* a multiplexor is at the end of pipeline */
+TC_MODULE_MPLEX_FORMATS_CODECS(raw);
 
-static const TCModuleInfo raw_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = raw_codecs_in,
-    .codecs_out  = raw_codecs_out,
-    .formats_in  = raw_formats_in,
-    .formats_out = raw_formats_out
-};
+TC_MODULE_INFO(raw);
 
 static const TCModuleClass raw_class = {
     .info         = &raw_info,

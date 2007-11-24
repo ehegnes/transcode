@@ -8,6 +8,11 @@
   more macro magic to autogenerate multiplexor supported codec_in and
   formats_out.
 
+  * multiplex/multiplex_avi.c multiplex/multiplex_null.c
+    multiplex/multiplex_raw.c multiplex/multiplex_wav.c
+    multiplex/multiplex_y4m.c
+  port to new macro magic.
+
 2007-11-21 Francesco Romani <fromani at gmail dot com>
   * added file: encode/encode_im.c
 

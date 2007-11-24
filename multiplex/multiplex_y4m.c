@@ -264,25 +264,13 @@ static int tc_y4m_fini(TCModuleInstance *self)
 static const TCCodecID tc_y4m_codecs_in[] = { 
     TC_CODEC_YUV420P, TC_CODEC_ERROR
 };
-
-/* a multiplexor is at the end of pipeline */
-static const TCCodecID tc_y4m_codecs_out[] = { TC_CODEC_ERROR };
-static const TCFormatID tc_y4m_formats_in[] = { TC_FORMAT_ERROR };
 static const TCFormatID tc_y4m_formats_out[] = { 
     TC_FORMAT_YUV4MPEG, TC_FORMAT_ERROR
 };
+/* a multiplexor is at the end of pipeline */
+TC_MODULE_MPLEX_FORMATS_CODECS(tc_y4m);
 
-static const TCModuleInfo tc_y4m_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = tc_y4m_codecs_in,
-    .codecs_out  = tc_y4m_codecs_out,
-    .formats_in  = tc_y4m_formats_in,
-    .formats_out = tc_y4m_formats_out
-};
+TC_MODULE_INFO(tc_y4m);
 
 static const TCModuleClass tc_y4m_class = {
     .info         = &tc_y4m_info,

@@ -224,22 +224,10 @@ static const TCCodecID avi_codecs_in[] = {
     TC_CODEC_ERROR
 };
 static const TCFormatID avi_formats_out[] = { TC_FORMAT_AVI, TC_FORMAT_ERROR };
-
 /* a multiplexor is at the end of pipeline */
-static const TCCodecID avi_codecs_out[] = { TC_CODEC_ERROR };
-static const TCFormatID avi_formats_in[] = { TC_FORMAT_ERROR };
+TC_MODULE_MPLEX_FORMATS_CODECS(avi);
 
-static const TCModuleInfo avi_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = avi_codecs_in,
-    .codecs_out  = avi_codecs_out,
-    .formats_in  = avi_formats_in,
-    .formats_out = avi_formats_out
-};
+TC_MODULE_INFO(avi);
 
 static const TCModuleClass avi_class = {
     .info         = &avi_info,
