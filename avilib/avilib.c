@@ -2083,20 +2083,18 @@ int avi_parse_index_from_file(avi_t *AVI, const char *filename)
 static int avi_parse_input_file(avi_t *AVI, int getIndex)
 {
   long i, rate, scale, idx_type;
-  off_t n;
-  unsigned char *hdrl_data;
-  long header_offset=0, hdrl_len=0;
+  uint8_t *hdrl_data = NULL;
+  long header_offset = 0, hdrl_len = 0;
   long nvi, nai[AVI_MAX_TRACKS], ioff;
   long tot[AVI_MAX_TRACKS];
-  int j;
+  int j, num_stream = 0;
   int lasttag = 0;
   int vids_strh_seen = 0;
   int vids_strf_seen = 0;
   int auds_strh_seen = 0;
   //  int auds_strf_seen = 0;
-  int num_stream = 0;
   char data[256];
-  off_t oldpos=-1, newpos=-1;
+  off_t oldpos=-1, newpos=-1, n;
 
   /* Read first 12 bytes and check that this is an AVI file */
 
@@ -2108,9 +2106,6 @@ static int avi_parse_input_file(avi_t *AVI, int getIndex)
    /* Go through the AVI file and extract the header list,
       the start position of the 'movi' list and an optionally
       present idx1 tag */
-
-   hdrl_data = 0;
-
 
    while(1)
    {
@@ -2911,7 +2906,7 @@ multiple_riff:
    plat_seek(AVI->fdes,AVI->movi_start,SEEK_SET);
    AVI->video_pos = 0;
 
-   return(0);
+   return 0;
 }
 
 long AVI_video_frames(avi_t *AVI)
@@ -3234,7 +3229,7 @@ long AVI_read_audio_chunk(avi_t *AVI, char *audbuf)
 
 /* AVI_print_error: Print most recent error (similar to perror) */
 
-static char *(avi_errors[]) =
+static const char *avi_errors[] =
 {
   /*  0 */ "avilib - No Error",
   /*  1 */ "avilib - AVI file size limit reached",
@@ -3257,45 +3252,40 @@ static int num_avi_errors = sizeof(avi_errors)/sizeof(char*);
 
 void AVI_print_error(const char *str)
 {
-   int aerrno;
+    int aerrno = (AVI_errno>=0 && AVI_errno<num_avi_errors) ?AVI_errno :num_avi_errors-1;
 
-   aerrno = (AVI_errno>=0 && AVI_errno<num_avi_errors) ? AVI_errno : num_avi_errors-1;
+    if (aerrno != 0)
+        plat_log_send(PLAT_LOG_ERROR, __FILE__, "%s: %s", str, avi_errors[aerrno]);
 
-   if (aerrno != 0)
-       plat_log_send(PLAT_LOG_ERROR, __FILE__, "%s: %s", str, avi_errors[aerrno]);
-
-   /* for the following errors, perror should report a more detailed reason: */
-
-   if(AVI_errno == AVI_ERR_OPEN ||
-      AVI_errno == AVI_ERR_READ ||
-      AVI_errno == AVI_ERR_WRITE ||
-      AVI_errno == AVI_ERR_WRITE_INDEX ||
-      AVI_errno == AVI_ERR_CLOSE )
-   {
-      perror("REASON");
-   }
+    /* for the following errors, perror should report a more detailed reason: */
+    if (AVI_errno == AVI_ERR_OPEN
+     || AVI_errno == AVI_ERR_READ
+     || AVI_errno == AVI_ERR_WRITE
+     || AVI_errno == AVI_ERR_WRITE_INDEX
+     || AVI_errno == AVI_ERR_CLOSE) {
+        perror("REASON");
+    }
 }
 
-char *AVI_strerror(void)
+const char *AVI_strerror(void)
 {
-   static char error_string[4096];
-   int aerrno = (AVI_errno>=0 && AVI_errno<num_avi_errors) ? AVI_errno : num_avi_errors-1;
+    static char error_string[4096];
+    int aerrno = (AVI_errno>=0 && AVI_errno<num_avi_errors) ?AVI_errno :num_avi_errors-1;
 
-   if(AVI_errno == AVI_ERR_OPEN ||
-      AVI_errno == AVI_ERR_READ ||
-      AVI_errno == AVI_ERR_WRITE ||
-      AVI_errno == AVI_ERR_WRITE_INDEX ||
-      AVI_errno == AVI_ERR_CLOSE )
-   {
-      snprintf(error_string, sizeof(error_string), "%s - %s",avi_errors[aerrno],strerror(errno));
-      return error_string;
-   }
-   return avi_errors[aerrno];
+    if (AVI_errno == AVI_ERR_OPEN
+     || AVI_errno == AVI_ERR_READ
+     || AVI_errno == AVI_ERR_WRITE
+     || AVI_errno == AVI_ERR_WRITE_INDEX
+     || AVI_errno == AVI_ERR_CLOSE ) {
+        snprintf(error_string, sizeof(error_string), "%s - %s",avi_errors[aerrno],strerror(errno));
+        return error_string;
+    }
+    return avi_errors[aerrno];
 }
 
 uint64_t AVI_max_size(void)
 {
-  return((uint64_t) AVI_MAX_LEN);
+    return((uint64_t)AVI_MAX_LEN);
 }
 
 // EOF

@@ -1,3 +1,8 @@
+2007-11-25 Francesco Romani <fromani at gmail dot com>
+  * avilib/avilib.c avilib/avilib.h
+  minor internal cleanups.
+  AVI_strerror returns const char *.
+
 2007-11-24 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c src/decoder.h src/encoder-buffer.c src/encoder-common.c
     src/encoder-common.h src/encoder.c src/frame_threads.c

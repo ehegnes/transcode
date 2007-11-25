@@ -43,6 +43,11 @@
 
 #define AVI_MAX_TRACKS 8
 
+enum {
+  AVI_ERROR = -1,
+  AVI_OK = 0,
+};
+
 typedef struct
 {
   off_t key;
@@ -376,7 +381,7 @@ long AVI_video_codech_offset(avi_t *AVI);
 long AVI_video_codecf_offset(avi_t *AVI);
 
 void AVI_print_error(const char *str);
-char *AVI_strerror(void);
+const char *AVI_strerror(void);
 
 int AVI_scan(const char *name);
 int AVI_dump(const char *name, int mode);
