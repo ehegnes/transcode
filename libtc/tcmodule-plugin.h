@@ -43,6 +43,9 @@
 #define TC_HAS_FEATURE(flags, feat) \
     ((flags & (TC_MODULE_FEATURE_ ## feat)) ?1 :0)
 
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
 static int tc_module_av_check(uint32_t flags)
 {
     int i = 0;
@@ -54,6 +57,9 @@ static int tc_module_av_check(uint32_t flags)
     return i;
 }
 
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
 static int tc_module_cap_check(uint32_t flags)
 {
     int i = 0;
