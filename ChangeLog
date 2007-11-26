@@ -7,6 +7,9 @@
   vframe_list_t -> TCFrameVideo;
   aframe_list_t -> TCFrameAudio;
 
+  * libtc/tcframes.h src/framebuffer.c src/framebuffer.h
+  nobody seems to use TCFrameVideo.clone_flag, so let's bury it. RIP.
+
 2007-11-25 Francesco Romani <fromani at gmail dot com>
   * avilib/avilib.c avilib/avilib.h
   minor internal cleanups.

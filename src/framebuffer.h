@@ -400,7 +400,6 @@ void aframe_push_next(aframe_list_t *ptr, TCFrameStatus status);
  *     Being frame claiming functions, those functions will block
  *     calling thread until a new frame will be avalaible, OR
  *     until an interruption happens.
- *     clone_flag for copied video framebuffer is handled intelligently.
  */
 vframe_list_t *vframe_dup(vframe_list_t *f);
 aframe_list_t *aframe_dup(aframe_list_t *f);

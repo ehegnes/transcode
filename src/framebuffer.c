@@ -786,9 +786,6 @@ vframe_list_t *vframe_dup(vframe_list_t *f)
     if (!TCFRAMEPTR_IS_NULL(frame)) {
         vframe_copy(frame.video, f, 1);
 
-        /* currently noone seems to care about this */
-        frame.video->clone_flag = f->clone_flag + 1;
-
         LIST_FRAME_LINK(frame.video, f, vframe_list_tail);
     }
     pthread_mutex_unlock(&vframe_list_lock);
@@ -1161,7 +1158,6 @@ void vframe_copy(vframe_list_t *dst, const vframe_list_t *src,
     /* copy all common fields with just one move */
     ac_memcpy(dst, src, sizeof(frame_list_t));
     
-    dst->clone_flag   = src->clone_flag;
     dst->deinter_flag = src->deinter_flag;
     dst->free         = src->free;
     /* 

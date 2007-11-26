@@ -214,8 +214,6 @@ struct tcframevideo_ {
     uint8_t internal_video_buf_1[SIZE_RGB_FRAME];
 #endif
 
-    int clone_flag;     
-    /* set to N if frame needs to be processed (encoded) N+1 times. */
     int deinter_flag;
     /* set to N for internal de-interlacing with "-I N" */
 
