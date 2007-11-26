@@ -1,3 +1,12 @@
+2007-11-26 Francesco Romani <fromani at gmail dot com>
+  * libtc/tcframes.h
+  reorder fields in order to make basic frame_list more overlappable
+  with vframe_list and aframe_list.
+  Add new STYLE-compliant typedefs:
+  frame_list_t  -> TCFrame;
+  vframe_list_t -> TCFrameVideo;
+  aframe_list_t -> TCFrameAudio;
+
 2007-11-25 Francesco Romani <fromani at gmail dot com>
   * avilib/avilib.c avilib/avilib.h
   minor internal cleanups.

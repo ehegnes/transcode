@@ -160,8 +160,8 @@ enum tcframestatus_ {
  * since we're still bound to Old Module System.
  */
 
-typedef struct frame_list frame_list_t;
-struct frame_list {
+typedef struct tcframe_ TCFrame;
+struct tcframe_ {
     TC_FRAME_COMMON
 
     int codec;   /* codec identifier */
@@ -173,13 +173,19 @@ struct frame_list {
     int param2;  /* v_height or a_bits */
     int param3;  /* v_bpp    or a_chan */
 
-    struct frame_list *next;
-    struct frame_list *prev;
+    struct tcframe_ *next;
+    struct tcframe_ *prev;
+
+    uint8_t *buffer_cur; /* pointer to current buffer */
+    uint8_t *buffer_bkp; /* pointer to backup buffer */
+
+    int free; /* flag */
 };
+typedef struct tcframe_ frame_list_t;
 
 
-typedef struct vframe_list vframe_list_t;
-struct vframe_list {
+typedef struct tcframevideo_ TCFrameVideo;
+struct tcframevideo_ {
     TC_FRAME_COMMON
     /* frame physical parameter */
     
@@ -192,24 +198,13 @@ struct vframe_list {
     int v_height;
     int v_bpp;
 
-    struct vframe_list *next;
-    struct vframe_list *prev;
-
-    int clone_flag;     
-    /* set to N if frame needs to be processed (encoded) N+1 times. */
-    int deinter_flag;
-    /* set to N for internal de-interlacing with "-I N" */
+    struct tcframevideo_ *next;
+    struct tcframevideo_ *prev;
 
     uint8_t *video_buf;  /* pointer to current buffer */
     uint8_t *video_buf2; /* pointer to backup buffer */
 
     int free; /* flag */
-
-    uint8_t *video_buf_RGB[2];
-
-    uint8_t *video_buf_Y[2];
-    uint8_t *video_buf_U[2];
-    uint8_t *video_buf_V[2];
 
 #ifdef STATBUFFER
     uint8_t *internal_video_buf_0;
@@ -218,11 +213,23 @@ struct vframe_list {
     uint8_t internal_video_buf_0[SIZE_RGB_FRAME];
     uint8_t internal_video_buf_1[SIZE_RGB_FRAME];
 #endif
+
+    int clone_flag;     
+    /* set to N if frame needs to be processed (encoded) N+1 times. */
+    int deinter_flag;
+    /* set to N for internal de-interlacing with "-I N" */
+
+    uint8_t *video_buf_RGB[2];
+
+    uint8_t *video_buf_Y[2];
+    uint8_t *video_buf_U[2];
+    uint8_t *video_buf_V[2];
 };
+typedef struct tcframevideo_ vframe_list_t;
 
 
-typedef struct aframe_list aframe_list_t;
-struct aframe_list {
+typedef struct tcframeaudio_ TCFrameAudio;
+struct tcframeaudio_ {
     TC_FRAME_COMMON
 
     int a_codec;       /* codec identifier */
@@ -234,17 +241,23 @@ struct aframe_list {
     int a_bits;
     int a_chan;
 
-    struct aframe_list *next;
-    struct aframe_list *prev;
+    struct tcframeaudio_ *next;
+    struct tcframeaudio_ *prev;
 
     uint8_t *audio_buf;
+    uint8_t *audio_buf2;
+
+    int free; /* flag */
 
 #ifdef STATBUFFER
     uint8_t *internal_audio_buf;
+    uint8_t *internal_audio_buf_1;
 #else
     uint8_t internal_audio_buf[SIZE_PCM_FRAME * 2];
+    uint8_t internal_audio_buf_1[SIZE_PCM_FRAME * 2];
 #endif
 };
+typedef struct tcframeaudio_ aframe_list_t;
 
 /* 
  * generic pointer type, needed at least by internal code.
@@ -254,9 +267,9 @@ struct aframe_list {
  */
 typedef union tcframeptr_ TCFramePtr;
 union tcframeptr_ {
-    frame_list_t *generic;
-    vframe_list_t *video;
-    aframe_list_t *audio;
+    TCFrame *generic;
+    TCFrameVideo *video;
+    TCFrameAudio *audio;
 };
 
 /*************************************************************************/
