@@ -2,6 +2,10 @@
   * filter/filter_msharpen.c
   port to NMS.
 
+  * libtc/tcframes.h
+  field reordering caused a nasty segfault. Revert offending change
+  unless the whole TCFrame issue will be addressed seriously.
+
 2007-11-26 Francesco Romani <fromani at gmail dot com>
   * libtc/tcframes.h
   reorder fields in order to make basic frame_list more overlappable

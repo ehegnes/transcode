@@ -175,11 +175,6 @@ struct tcframe_ {
 
     struct tcframe_ *next;
     struct tcframe_ *prev;
-
-    uint8_t *buffer_cur; /* pointer to current buffer */
-    uint8_t *buffer_bkp; /* pointer to backup buffer */
-
-    int free; /* flag */
 };
 typedef struct tcframe_ frame_list_t;
 
