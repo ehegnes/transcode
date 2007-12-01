@@ -1,21 +1,21 @@
 /*
-    Copyright (C) 2004 Bryan Mayland <bmayland@leoninedev.com>
-    For use in transcode by Tilmann Bitterberg <transcode@tibit.org>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+ *  Copyright (C) 2004 Bryan Mayland <bmayland@leoninedev.com>
+ *  For use in transcode by Tilmann Bitterberg <transcode@tibit.org>
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
 #define MOD_NAME    "filter_levels.so"
 #define MOD_VERSION "v1.2.0 (2007-06-07)"
@@ -78,7 +78,6 @@ typedef struct {
 static void build_map(uint8_t *map, int inlow, int inhigh,
                       float ingamma, int outlow, int outhigh)
 {
-    float f;
     int i;
 
     for (i = 0; i < MAP_SIZE; i++) {
@@ -87,7 +86,7 @@ static void build_map(uint8_t *map, int inlow, int inhigh,
         } else if (i >= inhigh) {
             map[i] = outhigh;
         } else {
-            f = (float)(i - inlow) / (inhigh - inlow);
+            float f = (float)(i - inlow) / (inhigh - inlow);
             map[i] = pow(f, 1/ingamma) * (outhigh - outlow) + outlow; // XXX
         }
     }
@@ -171,7 +170,7 @@ static int levels_configure(TCModuleInstance *self,
 
     pd = self->userdata;
 
-    if(vob->im_v_codec != CODEC_YUV) {
+    if (vob->im_v_codec != CODEC_YUV) {
         tc_log_error(MOD_NAME, "This filter is only capable of YUV mode");
         return TC_ERROR;
     }
