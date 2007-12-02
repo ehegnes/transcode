@@ -261,7 +261,7 @@ static int msharpen_stop(TCModuleInstance *self)
 #define INSPECT_PARAM(PARM, TYPE) do { \
     if (optstr_lookup(param, # PARM)) { \
         tc_snprintf(pd->conf_str, sizeof(pd->conf_str), \
-                    "%s=" TYPE, # PARM, pd-> ## PARM); \
+                    "%s=" TYPE, # PARM, pd->PARM); \
         *value = pd->conf_str; \
     } \
 } while (0)
@@ -280,29 +280,10 @@ static int msharpen_inspect(TCModuleInstance *self,
         *value = msharpen_help;
     }
 
-    if (optstr_lookup(param, "strength")) {
-        tc_snprintf(pd->conf_str, sizeof(pd->conf_str),
-                    "strength=%i", pd->strength);
-        *value = pd->conf_str;
-    }
-
-    if (optstr_lookup(param, "threshold")) {
-        tc_snprintf(pd->conf_str, sizeof(pd->conf_str),
-                    "threshold=%i", pd->threshold);
-        *value = pd->conf_str;
-    }
-
-    if (optstr_lookup(param, "highq")) {
-        tc_snprintf(pd->conf_str, sizeof(pd->conf_str),
-                    "highq=%i", pd->highq);
-        *value = pd->conf_str;
-    }
-
-    if (optstr_lookup(param, "mask")) {
-        tc_snprintf(pd->conf_str, sizeof(pd->conf_str),
-                    "mask=%i", pd->mask);
-        *value = pd->conf_str;
-    }
+    INSPECT_PARAM(strength,  "%i");
+    INSPECT_PARAM(threshold, "%i");
+    INSPECT_PARAM(highq,     "%i");
+    INSPECT_PARAM(mask,      "%i");
 
     return TC_OK;
 }
