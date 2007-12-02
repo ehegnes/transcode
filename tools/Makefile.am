@@ -148,6 +148,7 @@ tcmp3cut_SOURCES = \
 tcmp3cut_LDADD = \
 	$(LIBTC_LIBS)
 
+tcyait_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/filter
 tcyait_SOURCES = \
 	tcyait.c
 tcyait_LDADD = \

@@ -10,8 +10,10 @@
 
   * added file: filter/yait.h
 
-  * filter/Makefile.am filter/filter_yait.h
-  move common yait defines into a separate header.
+  * filter/Makefile.am filter/filter_yait.h tools/Makefile.am
+    tools/tcyait.c
+  move common yait defines into a separate header, and use it in all
+  yait-related code. Also make this code more STYLEish.
 
 2007-12-01 Francesco Romani <fromani at gmail dot com>
   * filter/filter_msharpen.c
