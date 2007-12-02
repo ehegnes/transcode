@@ -176,9 +176,7 @@ static int msharpen_configure(TCModuleInstance *self,
     }
 
     if (verbose) {
-        tc_log_info(MOD_NAME, "image=%ix%i"
-                              " strength=%i threshold=%i (masking %s|highq %s)",
-                              width, height,
+        tc_log_info(MOD_NAME, "strength=%i threshold=%i (masking %s|highq %s)",
                               pd->strength, pd->threshold,
                               (pd->mask)  ?"yes"     :"no",
                               (pd->highq) ?"enabled" :"disabled");

@@ -2,6 +2,9 @@
   * filter/filter_msharpen.c
   bugfixes.
 
+  * filter/filter_lowpass.c
+  port to NMS.
+
 2007-12-01 Francesco Romani <fromani at gmail dot com>
   * filter/filter_msharpen.c
   port to NMS.
