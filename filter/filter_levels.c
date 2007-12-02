@@ -193,13 +193,11 @@ static int levels_configure(TCModuleInstance *self,
     build_map(pd->lumamap, pd->in_black, pd->in_white,
               pd->in_gamma, pd->out_black, pd->out_white);
 
-    if (verbose >= TC_DEBUG) {
-        /* legacy. To be removed? */
-        tc_log_info(MOD_NAME, "scaling %d-%d gamma %f to %d-%d",
+    if (verbose) {
+        tc_log_info(MOD_NAME, "scaling %d-%d gamma %f to %d-%d (%s-process)",
                     pd->in_black, pd->in_white,
                     pd->in_gamma,
-                    pd->out_black, pd->out_white);
-        tc_log_info(MOD_NAME, "%s-processing filter",
+                    pd->out_black, pd->out_white,
                     (pd->is_prefilter) ?"pre" :"post");
     }
     return TC_OK;
