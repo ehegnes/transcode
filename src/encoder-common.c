@@ -32,7 +32,7 @@
 #include <pthread.h>
 #include "libtc/libtc.h"
 #include "encoder-common.h"
-#include "tc_defaults.h" /* TC_DELAY_MIN */
+#include "tc_defaults.h"
 
 
 /* volatile: for threadness paranoia */

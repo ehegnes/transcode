@@ -30,7 +30,12 @@
 /*
  * SUMMARY:
  *
- * FIXME: WRITEME
+ * Those are the frame processing threads, implementing the threaded
+ * filter layer. There isn't direct control to those threads. They
+ * start to run after init(), and they are stopped by fini().
+ * It is important to note that each thread is equivalent to each
+ * other, and each one will take care of one frame and applies to
+ * it the whole filter chain.
  */
 
 /*

@@ -63,9 +63,7 @@ static pthread_cond_t video_import_cond = PTHREAD_COND_INITIALIZER;
 static pthread_cond_t video_filter_cond = PTHREAD_COND_INITIALIZER;
 static pthread_cond_t video_export_cond = PTHREAD_COND_INITIALIZER;
 
-/*
- * XXX: add docs
- */
+
 void tc_framebuffer_interrupt(void)
 {
     pthread_mutex_lock(&aframe_list_lock);
