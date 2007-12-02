@@ -56,7 +56,7 @@ typedef struct MsharpenPrivateData {
     int            mask;
     int            highq;
     TCVHandle      tcvhandle;
-    vob_t         *vob;
+    ImageFormat    out_fmt;
     char           conf_str[TC_BUF_MIN]; 
 } MsharpenPrivateData;
 
@@ -163,6 +163,8 @@ static int msharpen_configure(TCModuleInstance *self,
     pd->threshold = 10;
     pd->mask      = TC_FALSE; /* not sure what this does at the moment */
     pd->highq     = TC_TRUE; /* high Q or not? */
+    pd->out_fmt   = (vob->im_v_codec == CODEC_YUV)
+                        ?IMG_YUV_DEFAULT :IMG_RGB24;
 
     if (options) {
         if (verbose)
@@ -203,9 +205,6 @@ static int msharpen_configure(TCModuleInstance *self,
     if (!pd->tcvhandle) {
         goto no_tcvhandle;
     }
-
-    if (verbose)
-        tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
 
     return TC_OK;
 
@@ -328,7 +327,6 @@ static int msharpen_filter_video(TCModuleInstance *self,
     int r1, r2, r3, r4, g1, g2, g3, g4, b1, b2, b3, b4;
     int x, y, max, strength, invstrength, threshold;
     const int dstpitch = frame->v_width * 4;
-    ImageFormat outfmt;
 
     // MsharpenPrivateData *pd = NULL; /* yes, I'm (too) lazy */
     MsharpenPrivateData *mfd = NULL;
@@ -341,10 +339,9 @@ static int msharpen_filter_video(TCModuleInstance *self,
     threshold   = mfd->threshold;
     strength    = mfd->strength;
     invstrength = 255 - strength;
-    outfmt = (mfd->vob->im_v_codec == CODEC_YUV) ?IMG_YUV_DEFAULT :IMG_RGB24;
 
     tcv_convert(mfd->tcvhandle, frame->video_buf, mfd->convertFrameIn,
-                frame->v_width, frame->v_height, outfmt, IMG_BGRA32);
+                frame->v_width, frame->v_height, mfd->out_fmt, IMG_BGRA32);
 
     src = mfd->convertFrameIn;
     dst = mfd->convertFrameOut;
@@ -547,7 +544,7 @@ static int msharpen_filter_video(TCModuleInstance *self,
     }
 
     tcv_convert(mfd->tcvhandle, mfd->convertFrameOut, frame->video_buf,
-                frame->v_width, frame->v_height, IMG_BGRA32, outfmt);
+                frame->v_width, frame->v_height, IMG_BGRA32, mfd->out_fmt);
 
     return TC_OK;
 }
