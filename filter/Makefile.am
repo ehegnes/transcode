@@ -246,7 +246,8 @@ filter_yait_la_LIBADD = -lm
 EXTRA_DIST =  \
 	parse_csv.awk.in \
 	filter_list.awk.in \
-	mmx.h
+	mmx.h \
+	yait.h
 
 if HAVE_X11
 PREVIEW = preview

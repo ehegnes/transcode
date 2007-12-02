@@ -8,6 +8,11 @@
   * added file: docs/tech/tcindent.sh
   add indent (1) script to help to get STYLEish.
 
+  * added file: filter/yait.h
+
+  * filter/Makefile.am filter/filter_yait.h
+  move common yait defines into a separate header.
+
 2007-12-01 Francesco Romani <fromani at gmail dot com>
   * filter/filter_msharpen.c
   port to NMS.
