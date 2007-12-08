@@ -109,7 +109,7 @@ static int tc_module_cap_check(uint32_t flags)
  * moved into core.
  */
 
-#define GENERIC_INIT(MODNAME, MODDATA) \
+#define TC_MODULE_GENERIC_INIT(MODNAME, MODDATA) \
 static int MODNAME ## _init(TCModuleInstance *self, uint32_t features) \
 { \
     MODDATA *pd = NULL; \
@@ -132,7 +132,7 @@ static int MODNAME ## _init(TCModuleInstance *self, uint32_t features) \
     return TC_OK; \
 }
 
-#define GENERIC_FINI(MODNAME) \
+#define TC_MODULE_GENERIC_FINI(MODNAME) \
 static int MODNAME ## _fini(TCModuleInstance *self) \
 { \
     TC_MODULE_SELF_CHECK(self, "fini"); \
@@ -161,6 +161,10 @@ static const TCModuleInfo PREFIX ## _info = { \
 /*
  * autogeneration for supported codecs/multiplexors
  */
+#define TC_MODULE_FILTER_FORMATS(PREFIX) \
+static const TCFormatID PREFIX ## _formats_in[]  = { TC_FORMAT_ERROR }; \
+static const TCFormatID PREFIX ## _formats_out[] = { TC_FORMAT_ERROR }
+
 #define TC_MODULE_CODEC_FORMATS(PREFIX) \
 static const TCFormatID PREFIX ## _formats_in[]  = { TC_FORMAT_ERROR }; \
 static const TCFormatID PREFIX ## _formats_out[] = { TC_FORMAT_ERROR }

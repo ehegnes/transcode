@@ -47,7 +47,8 @@ static const char levels_help[] = ""
     "    input   luma range of input (0-255)\n"
     "    gamma   gamma ramp to apply to input luma (F)\n"
     "    output  luma range of output (0-255)\n"
-    "    pre     act as pre processing filter (I)\n";
+    "    pre     act as pre processing filter (I)\n"
+    "    help    print this help message\n";
 
 
 #define DEFAULT_IN_GAMMA   1.0
@@ -405,4 +406,3 @@ TC_FILTER_OLDINTERFACE_M(levels)
  *
  * vim: expandtab shiftwidth=4:
  */
-

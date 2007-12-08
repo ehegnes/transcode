@@ -125,13 +125,10 @@ static int invert_configure(TCModuleInstance *self,
 {
     MyFilterData *mfd = NULL;
 
+    TC_MODULE_SELF_CHECK(vob, "configure");
     TC_MODULE_SELF_CHECK(self, "configure");
 
     mfd = self->userdata;
-
-    if (vob == NULL) {
-        return TC_ERROR;
-    }
 
     /* setup defaults */
     mfd->start = 0;
