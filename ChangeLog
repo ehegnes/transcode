@@ -8,6 +8,9 @@
     filter/filter_null.c filter/filter_resample.c filter/filter_xsharpen.c
  port to new tcmodule helper macros.
 
+ * filter/filter_dnr.c
+ port to NMS.
+
 2007-12-02 Francesco Romani <fromani at gmail dot com>
   * filter/filter_msharpen.c
   bugfixes.
