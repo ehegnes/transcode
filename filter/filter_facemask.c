@@ -64,6 +64,7 @@ static const char facemask_help[]=""
     "   'ydim':        Height of the mask (= m*yresolution)\n";
 
 /*************************************************************************/
+
 typedef struct {
     int       xpos;
     int       ypos;
@@ -78,7 +79,8 @@ typedef struct {
 
 
 static int check_parameters(int x, int y, int w, int h,
-                            int W, int H, vob_t *vob){
+                            int W, int H, vob_t *vob)
+{
 
     /* First, we check if the face-zone is contained in the picture */
     if ((x+W) > vob->im_v_width){
@@ -103,7 +105,8 @@ static int check_parameters(int x, int y, int w, int h,
 }
 
 static int average_neighbourhood(int x, int y, int w, int h,
-                                 uint8_t *buffer, int width){
+                                 uint8_t *buffer, int width)
+{
     uint32_t red=0, green=0, blue=0;
     int      i=0,j=0;
 
@@ -130,8 +133,9 @@ static int average_neighbourhood(int x, int y, int w, int h,
     return 0;
 }
 
-static int print_mask(int x, int y, int w, int h, int W, int H, vframe_list_t *ptr){
-    int             i=0,j=0;
+static int print_mask(int x, int y, int w, int h, int W, int H, vframe_list_t *ptr)
+{
+    int i = 0,j = 0;
     for (j=y; j<=y+H; j+=h)
         for (i=x; i<=x+W; i+=w)
             average_neighbourhood(i, j, w, h, ptr->video_buf, ptr->v_width);
@@ -149,34 +153,7 @@ static int print_mask(int x, int y, int w, int h, int W, int H, vframe_list_t *p
  * tcmodule-data.h for function details.
  */
 
-static int facemask_init(TCModuleInstance *self, uint32_t features)
-{
-    FacemaskPrivateData *fpd = NULL;
-
-    TC_MODULE_SELF_CHECK(self, "init");
-    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
-
-    fpd = tc_malloc(sizeof(FacemaskPrivateData));
-    if (!fpd) {
-        tc_log_error(MOD_NAME, "init: out of memory!");
-        return TC_ERROR;
-    }
-    self->userdata = fpd;
-
-    /* initialize data */
-    fpd->xpos           = 0;
-    fpd->ypos           = 0;
-    fpd->xresolution    = 1;
-    fpd->yresolution    = 1;
-    fpd->xdim           = 1;
-    fpd->ydim           = 1;
-    fpd->tcvhandle      = 0;
-
-    if(verbose) {
-        tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-    }
-    return TC_OK;
-}
+TC_MODULE_GENERIC_INIT(facemask, FacemaskPrivateData)
 
 /*************************************************************************/
 
@@ -185,15 +162,7 @@ static int facemask_init(TCModuleInstance *self, uint32_t features)
  * tcmodule-data.h for function details.
  */
 
-static int facemask_fini(TCModuleInstance *self)
-{
-    TC_MODULE_SELF_CHECK(self, "fini");
-
-    tc_free(self->userdata);
-    self->userdata = NULL;
-
-    return TC_OK;
-}
+TC_MODULE_GENERIC_FINI(facemask)
 
 /*************************************************************************/
 
@@ -225,15 +194,12 @@ static int facemask_configure(TCModuleInstance *self,
     fpd->tcvhandle      = 0;
 
     if (options) {
-        if (verbose >= TC_STATS) {
-            tc_log_info(MOD_NAME, "options=%s", options);
-        }
-        optstr_get(options, "xpos",             "%d",       &fpd->xpos);
-        optstr_get(options, "ypos",             "%d",       &fpd->ypos);
-        optstr_get(options, "xresolution",      "%d",       &fpd->xresolution);
-        optstr_get(options, "yresolution",      "%d",       &fpd->yresolution);
-        optstr_get(options, "xdim",             "%d",       &fpd->xdim);
-        optstr_get(options, "ydim",             "%d",       &fpd->ydim);
+        optstr_get(options, "xpos",        "%d", &fpd->xpos);
+        optstr_get(options, "ypos",        "%d", &fpd->ypos);
+        optstr_get(options, "xresolution", "%d", &fpd->xresolution);
+        optstr_get(options, "yresolution", "%d", &fpd->yresolution);
+        optstr_get(options, "xdim",        "%d", &fpd->xdim);
+        optstr_get(options, "ydim",        "%d", &fpd->ydim);
     }
 
     if (vob->im_v_codec == CODEC_YUV){
@@ -390,21 +356,9 @@ static const TCCodecID facemask_codecs_in[] = {
 static const TCCodecID facemask_codecs_out[] = {
     TC_CODEC_RGB, TC_CODEC_YUV420P, TC_CODEC_ERROR
 };
-static const TCFormatID facemask_formats[] = {
-    TC_FORMAT_ERROR
-};
+TC_MODULE_FILTER_FORMATS(facemask);
 
-static const TCModuleInfo facemask_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = facemask_codecs_in,
-    .codecs_out  = facemask_codecs_out,
-    .formats_in  = facemask_formats,
-    .formats_out = facemask_formats
-};
+TC_MODULE_INFO(facemask);
 
 static const TCModuleClass facemask_class = {
     .info         = &facemask_info,
@@ -418,10 +372,7 @@ static const TCModuleClass facemask_class = {
     .filter_video = facemask_filter_video
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &facemask_class;
-}
+TC_MODULE_ENTRY_POINT(facemask)
 
 /*************************************************************************/
 

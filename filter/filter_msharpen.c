@@ -97,33 +97,7 @@ static const char msharpen_help[] = ""
  * tcmodule-data.h for function details.
  */
 
-static int msharpen_init(TCModuleInstance *self, uint32_t features)
-{
-    MsharpenPrivateData *pd = NULL;
-
-    TC_MODULE_SELF_CHECK(self, "init");
-    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
-
-    pd = tc_malloc(sizeof(MsharpenPrivateData));
-    if (pd == NULL) {
-        tc_log_error(MOD_NAME, "init: out of memory!");
-        return TC_ERROR;
-    }
-
-    /* default configuration! */
-    pd->strength  = 100; /* A little bird told me this was a good value */
-    pd->threshold = 10;
-    pd->mask      = TC_FALSE; /* not sure what this does at the moment */
-    pd->highq     = TC_TRUE; /* high Q or not? */
-
-    self->userdata = pd;
-
-    if (verbose) {
-        tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-    }
-
-    return TC_OK;
-}
+TC_MODULE_GENERIC_INIT(msharpen, MsharpenPrivateData)
 
 /*************************************************************************/
 
@@ -132,14 +106,7 @@ static int msharpen_init(TCModuleInstance *self, uint32_t features)
  * tcmodule-data.h for function details.
  */
 
-static int msharpen_fini(TCModuleInstance *self)
-{
-    TC_MODULE_SELF_CHECK(self, "fini");
-
-    tc_free(self->userdata);
-    self->userdata = NULL;
-    return TC_OK;
-}
+TC_MODULE_GENERIC_FINI(msharpen)
 
 /*************************************************************************/
 
@@ -536,22 +503,9 @@ static const TCCodecID msharpen_codecs_in[] = {
 static const TCCodecID msharpen_codecs_out[] = { 
     TC_CODEC_YUV420P, TC_CODEC_RGB, TC_CODEC_ERROR
 };
-static const TCFormatID msharpen_formats[] = { 
-    TC_FORMAT_ERROR
-};
+TC_MODULE_FILTER_FORMATS(msharpen);
 
-/* new module support */
-static const TCModuleInfo msharpen_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = msharpen_codecs_in,
-    .codecs_out  = msharpen_codecs_out,
-    .formats_in  = msharpen_formats,
-    .formats_out = msharpen_formats
-};
+TC_MODULE_INFO(msharpen);
 
 static const TCModuleClass msharpen_class = {
     .info         = &msharpen_info,
@@ -565,10 +519,7 @@ static const TCModuleClass msharpen_class = {
     .filter_video = msharpen_filter_video,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &msharpen_class;
-}
+TC_MODULE_ENTRY_POINT(msharpen)
 
 /*************************************************************************/
 

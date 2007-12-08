@@ -106,38 +106,7 @@ static void build_map(uint8_t *map, int inlow, int inhigh,
  * tcmodule-data.h for function details.
  */
 
-static int levels_init(TCModuleInstance *self, uint32_t features)
-{
-    LevelsPrivateData *pd = NULL;
-
-    TC_MODULE_SELF_CHECK(self, "init");
-    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
-
-    pd = tc_malloc(sizeof(LevelsPrivateData));
-    if (pd == NULL) {
-        tc_log_error(MOD_NAME, "init: out of memory!");
-        return TC_ERROR;
-    }
-
-    /* default configuration! */
-    pd->in_black     = DEFAULT_IN_BLACK;
-    pd->in_white     = DEFAULT_IN_WHITE;
-    pd->in_gamma     = DEFAULT_IN_GAMMA;
-    pd->out_black    = DEFAULT_OUT_BLACK;
-    pd->out_white    = DEFAULT_OUT_WHITE;
-    pd->is_prefilter = TC_FALSE;
-
-    build_map(pd->lumamap, pd->in_black, pd->in_white,
-              pd->in_gamma, pd->out_black, pd->out_white);
-
-    self->userdata = pd;
-
-    if (verbose) {
-        tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-    }
-
-    return TC_OK;
-}
+TC_MODULE_GENERIC_INIT(levels, LevelsPrivateData)
 
 /*************************************************************************/
 
@@ -146,14 +115,7 @@ static int levels_init(TCModuleInstance *self, uint32_t features)
  * tcmodule-data.h for function details.
  */
 
-static int levels_fini(TCModuleInstance *self)
-{
-    TC_MODULE_SELF_CHECK(self, "fini");
-
-    tc_free(self->userdata);
-    self->userdata = NULL;
-    return TC_OK;
-}
+TC_MODULE_GENERIC_FINI(levels)
 
 /*************************************************************************/
 
@@ -303,22 +265,9 @@ static const TCCodecID levels_codecs_in[] = {
 static const TCCodecID levels_codecs_out[] = { 
     TC_CODEC_YUV420P, TC_CODEC_ERROR
 };
-static const TCFormatID levels_formats[] = { 
-    TC_FORMAT_ERROR
-};
+TC_MODULE_FILTER_FORMATS(levels);
 
-/* new module support */
-static const TCModuleInfo levels_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = levels_codecs_in,
-    .codecs_out  = levels_codecs_out,
-    .formats_in  = levels_formats,
-    .formats_out = levels_formats
-};
+TC_MODULE_INFO(levels);
 
 static const TCModuleClass levels_class = {
     .info         = &levels_info,
@@ -332,10 +281,7 @@ static const TCModuleClass levels_class = {
     .filter_video = levels_filter_video,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &levels_class;
-}
+TC_MODULE_ENTRY_POINT(levels)
 
 /*************************************************************************/
 

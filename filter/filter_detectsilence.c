@@ -46,7 +46,7 @@
 #define SILENCE_FRAMES  4
 #define MAX_SONGS      50
 
-typedef struct privatedata_ PrivateData;
+typedef struct privatedata_ DSPrivateData;
 struct privatedata_ {
     int aframe_size;
 
@@ -82,7 +82,7 @@ static const char detectsilence_help[] = ""
 /*************************************************************************/
 
 
-static int print_tcmp3cut_cmdline(PrivateData *pd)
+static int print_tcmp3cut_cmdline(DSPrivateData *pd)
 {
     char cmd[TC_BUF_MAX];
     char songbuf[MAX_SONGS * 12];  /* up to 11 chars and , per value */
@@ -132,32 +132,7 @@ static int print_tcmp3cut_cmdline(PrivateData *pd)
  * tcmodule-data.h for function details.
  */
 
-static int detectsilence_init(TCModuleInstance *self, uint32_t features)
-{
-    PrivateData *pd;
-
-    TC_MODULE_SELF_CHECK(self, "init");
-    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
-
-    pd = tc_malloc(sizeof(PrivateData));
-    if (!pd) {
-        tc_log_error(MOD_NAME, "init: out of memory!");
-        return TC_ERROR;
-    }
-    self->userdata = pd;
-
-    /* enforce defaults */
-    pd->scan_only      = TC_FALSE;
-    pd->silence_frames = SILENCE_FRAMES;
-    pd->aframe_size    = 0;
-    pd->zeros          = 0;
-    pd->next           = 0;
-
-    if (verbose) {
-        tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-    }
-    return TC_OK;
-}
+TC_MODULE_GENERIC_INIT(detectsilence, DSPrivateData)
 
 /*************************************************************************/
 
@@ -166,20 +141,7 @@ static int detectsilence_init(TCModuleInstance *self, uint32_t features)
  * tcmodule-data.h for function details.
  */
 
-static int detectsilence_fini(TCModuleInstance *self)
-{
-    PrivateData *pd;
-
-    TC_MODULE_SELF_CHECK(self, "fini");
-
-    pd = self->userdata;
-
-    /* nothing to do in here... */
-
-    tc_free(self->userdata);
-    self->userdata = NULL;
-    return TC_OK;
-}
+TC_MODULE_GENERIC_FINI(detectsilence)
 
 /*************************************************************************/
 
@@ -191,7 +153,7 @@ static int detectsilence_fini(TCModuleInstance *self)
 static int detectsilence_configure(TCModuleInstance *self,
                                    const char *options, vob_t *vob)
 {
-    PrivateData *pd = NULL;
+    DSPrivateData *pd = NULL;
     int i;
 
     TC_MODULE_SELF_CHECK(self, "configure");
@@ -236,7 +198,7 @@ static int detectsilence_configure(TCModuleInstance *self,
 
 static int detectsilence_stop(TCModuleInstance *self)
 {
-    PrivateData *pd = NULL;
+    DSPrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "stop");
 
@@ -264,7 +226,7 @@ static int detectsilence_inspect(TCModuleInstance *self,
                                  const char *param, const char **value)
 {
     static char buf[TC_BUF_MIN]; // XXX
-    PrivateData *pd = NULL;
+    DSPrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "inspect");
     TC_MODULE_SELF_CHECK(param, "inspect");
@@ -298,7 +260,7 @@ static int detectsilence_inspect(TCModuleInstance *self,
 static int detectsilence_filter_audio(TCModuleInstance *self,
                                       aframe_list_t *frame)
 {
-    PrivateData *pd = NULL;
+    DSPrivateData *pd = NULL;
     int16_t *s = (int16_t*)frame->audio_buf;
     double p = 0.0;
     int i, sum;
@@ -350,19 +312,9 @@ static const TCCodecID detectsilence_codecs_in[] = {
 static const TCCodecID detectsilence_codecs_out[] = { 
     TC_CODEC_PCM, TC_CODEC_ERROR 
 };
-static const TCFormatID detectsilence_formats[] = { TC_FORMAT_ERROR};
+TC_MODULE_FILTER_FORMATS(detectsilence);
 
-static const TCModuleInfo detectsilence_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = detectsilence_codecs_in,
-    .codecs_out  = detectsilence_codecs_out,
-    .formats_in  = detectsilence_formats,
-    .formats_out = detectsilence_formats
-};
+TC_MODULE_INFO(detectsilence);
 
 static const TCModuleClass detectsilence_class = {
     .info         = &detectsilence_info,
@@ -376,10 +328,7 @@ static const TCModuleClass detectsilence_class = {
     .filter_audio = detectsilence_filter_audio,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &detectsilence_class;
-}
+TC_MODULE_ENTRY_POINT(detectsilence)
 
 
 /*************************************************************************/
@@ -387,7 +336,7 @@ extern const TCModuleClass *tc_plugin_setup(void)
 
 static int detectsilence_get_config(TCModuleInstance *self, char *options)
 {
-    PrivateData *pd = NULL;
+    DSPrivateData *pd = NULL;
     char buf[TC_BUF_MIN];
 
     TC_MODULE_SELF_CHECK(self, "get_config");

@@ -38,7 +38,7 @@ typedef struct {
     uint8_t saved_audio[SIZE_PCM_FRAME];
     uint8_t saved_frame[TC_MAX_V_FRAME_WIDTH*TC_MAX_V_FRAME_HEIGHT*3];
     int saved_width, saved_height;  // For full-height operation
-} PrivateData;
+} DfpsPrivateData;
 
 /*************************************************************************/
 /*************************************************************************/
@@ -54,13 +54,13 @@ typedef struct {
 
 static int doublefps_init(TCModuleInstance *self, uint32_t features)
 {
-    PrivateData *pd;
+    DfpsPrivateData *pd;
     vob_t *vob = tc_get_vob();
 
     TC_MODULE_SELF_CHECK(self, "init");
     TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
-    self->userdata = pd = tc_malloc(sizeof(PrivateData));
+    self->userdata = pd = tc_malloc(sizeof(DfpsPrivateData));
     if (!pd) {
         tc_log_error(MOD_NAME, "init: out of memory!");
         return TC_ERROR;
@@ -100,7 +100,7 @@ static int doublefps_init(TCModuleInstance *self, uint32_t features)
 
 static int doublefps_fini(TCModuleInstance *self)
 {
-    PrivateData *pd;
+    DfpsPrivateData *pd;
 
     TC_MODULE_SELF_CHECK(self, "fini");
 
@@ -126,7 +126,7 @@ static int doublefps_fini(TCModuleInstance *self)
 static int doublefps_configure(TCModuleInstance *self,
                                const char *options, vob_t *vob)
 {
-    PrivateData *pd;
+    DfpsPrivateData *pd;
     int new_topfirst = -1;
 
     TC_MODULE_SELF_CHECK(self, "configure");
@@ -175,7 +175,7 @@ static int doublefps_configure(TCModuleInstance *self,
 
 static int doublefps_stop(TCModuleInstance *self)
 {
-    PrivateData *pd = NULL;
+    DfpsPrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "stop");
 
@@ -194,7 +194,7 @@ static int doublefps_stop(TCModuleInstance *self)
 static int doublefps_inspect(TCModuleInstance *self,
                              const char *param, const char **value)
 {
-    PrivateData *pd = NULL;
+    DfpsPrivateData *pd = NULL;
     static char buf[TC_BUF_MAX];
 
     TC_MODULE_SELF_CHECK(self, "inspect");
@@ -260,7 +260,7 @@ static int doublefps_inspect(TCModuleInstance *self,
 
 static int doublefps_filter_video(TCModuleInstance *self, vframe_list_t *frame)
 {
-    PrivateData *pd;
+    DfpsPrivateData *pd;
     int w, h, hUV;
 
     TC_MODULE_SELF_CHECK(self, "filter_video");
@@ -410,7 +410,7 @@ static int doublefps_filter_video(TCModuleInstance *self, vframe_list_t *frame)
 
 static int doublefps_filter_audio(TCModuleInstance *self, aframe_list_t *frame)
 {
-    PrivateData *pd = NULL;
+    DfpsPrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "filter_audio");
     TC_MODULE_SELF_CHECK(frame, "filter_audio");
@@ -447,19 +447,9 @@ static const TCCodecID doublefps_codecs_in[] =
     { TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_PCM, TC_CODEC_ERROR };
 static const TCCodecID doublefps_codecs_out[] =
     { TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_PCM, TC_CODEC_ERROR };
-static const TCFormatID doublefps_formats[] = { TC_FORMAT_ERROR};
+TC_MODULE_FILTER_FORMATS(doublefps);
 
-static const TCModuleInfo doublefps_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = doublefps_codecs_in,
-    .codecs_out  = doublefps_codecs_out,
-    .formats_in  = doublefps_formats,
-    .formats_out = doublefps_formats
-};
+TC_MODULE_INFO(doublefps);
 
 static const TCModuleClass doublefps_class = {
     .info         = &doublefps_info,
@@ -475,16 +465,13 @@ static const TCModuleClass doublefps_class = {
     .filter_audio = doublefps_filter_audio,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &doublefps_class;
-}
+TC_MODULE_ENTRY_POINT(doublefps)
 
 /*************************************************************************/
 
 static int doublefps_get_config(TCModuleInstance *self, char *options)
 {
-    PrivateData *pd = NULL;
+    DfpsPrivateData *pd = NULL;
     char buf[TC_BUF_MIN];
 
     TC_MODULE_SELF_CHECK(self, "get_config");

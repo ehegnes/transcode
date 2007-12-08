@@ -25,6 +25,7 @@
 #define MOD_VERSION "v0.1.5 (2007-07-29)"
 #define MOD_CAP     "invert the image"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
+
 #define MOD_FEATURES \
     TC_MODULE_FEATURE_FILTER|TC_MODULE_FEATURE_VIDEO
 #define MOD_FLAGS \
@@ -51,14 +52,14 @@ static const char invert_help[]=""
 
 /*************************************************************************/
 
-typedef struct MyFilterData {
+typedef struct InvertPrivateData {
 	unsigned int start;
 	unsigned int end;
 	unsigned int step;
 	int boolstep;
 
     char opt_buf[TC_BUF_MIN];
-} MyFilterData;
+} InvertPrivateData;
 
 /*************************************************************************/
 
@@ -71,30 +72,7 @@ typedef struct MyFilterData {
  * tcmodule-data.h for function details.
  */
 
-static int invert_init(TCModuleInstance *self, uint32_t features)
-{
-    MyFilterData *mfd = NULL;
-
-    TC_MODULE_SELF_CHECK(self, "init");
-    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
-
-    mfd = tc_malloc(sizeof(MyFilterData));
-    if (!mfd) {
-        tc_log_error(MOD_NAME, "init: out of memory!");
-        return TC_ERROR;
-    }
-    self->userdata = mfd;
-
-    /* initialize data */
-    mfd->start = 0;
-    mfd->end = (unsigned int)-1;
-    mfd->step = 1;
-
-    if (verbose) {
-        tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-    }
-    return TC_OK;
-}
+TC_MODULE_GENERIC_INIT(invert, InvertPrivateData)
 
 /*************************************************************************/
 
@@ -103,15 +81,7 @@ static int invert_init(TCModuleInstance *self, uint32_t features)
  * tcmodule-data.h for function details.
  */
 
-static int invert_fini(TCModuleInstance *self)
-{
-    TC_MODULE_SELF_CHECK(self, "fini");
-
-    /* free data allocated in _init */
-    tc_free(self->userdata);
-    self->userdata = NULL;
-    return TC_OK;
-}
+TC_MODULE_GENERIC_FINI(invert)
 
 /*************************************************************************/
 
@@ -123,7 +93,7 @@ static int invert_fini(TCModuleInstance *self)
 static int invert_configure(TCModuleInstance *self,
                             const char *options, vob_t *vob)
 {
-    MyFilterData *mfd = NULL;
+    InvertPrivateData *mfd = NULL;
 
     TC_MODULE_SELF_CHECK(vob, "configure");
     TC_MODULE_SELF_CHECK(self, "configure");
@@ -180,7 +150,7 @@ static int invert_stop(TCModuleInstance *self)
 static int invert_inspect(TCModuleInstance *self,
                         const char *param, const char **value)
 {
-    MyFilterData *mfd = NULL;
+    InvertPrivateData *mfd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "inspect");
     TC_MODULE_SELF_CHECK(param, "inspect");
@@ -209,7 +179,7 @@ static int invert_inspect(TCModuleInstance *self,
 
 static int invert_filter_video(TCModuleInstance *self, vframe_list_t *frame)
 {
-    MyFilterData *mfd = NULL;
+    InvertPrivateData *mfd = NULL;
     int w;
 
     TC_MODULE_SELF_CHECK(self, "filer_video");
@@ -238,21 +208,9 @@ static const TCCodecID invert_codecs_in[] = {
 static const TCCodecID invert_codecs_out[] = {
     TC_CODEC_RGB, TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_ERROR
 };
-static const TCFormatID invert_formats[] = {
-    TC_FORMAT_ERROR
-};
+TC_MODULE_FILTER_FORMATS(invert);
 
-static const TCModuleInfo invert_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = invert_codecs_in,
-    .codecs_out  = invert_codecs_out,
-    .formats_in  = invert_formats,
-    .formats_out = invert_formats
-};
+TC_MODULE_INFO(invert);
 
 static const TCModuleClass invert_class = {
     .info         = &invert_info,
@@ -266,16 +224,13 @@ static const TCModuleClass invert_class = {
     .filter_video = invert_filter_video
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &invert_class;
-}
+TC_MODULE_ENTRY_POINT(invert)
 
 /*************************************************************************/
 
 static int invert_get_config(TCModuleInstance *self, char *options)
 {
-    MyFilterData *mfd = NULL;
+    InvertPrivateData *mfd = NULL;
     char buf[TC_BUF_MIN];
 
     TC_MODULE_SELF_CHECK(self, "get_config");

@@ -70,7 +70,7 @@ static const char null_help[] = ""
 typedef struct {
     uint32_t video_frames; /* dumb frame counter */
     uint32_t audio_frames; /* dumb frame counter */
-} PrivateData;
+} NullPrivateData;
 
 /*************************************************************************/
 
@@ -83,29 +83,7 @@ typedef struct {
  * tcmodule-data.h for function details.
  */
 
-static int null_init(TCModuleInstance *self, uint32_t features)
-{
-    PrivateData *pd = NULL;
-
-    TC_MODULE_SELF_CHECK(self, "init");
-    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
-
-    pd = tc_malloc(sizeof(PrivateData));
-    if (!pd) {
-        tc_log_error(MOD_NAME, "init: out of memory!");
-        return TC_ERROR;
-    }
-    self->userdata = pd;
-
-    /* initialize data */
-    pd->video_frames = 0;
-    pd->audio_frames = 0;
-
-    if (verbose) {
-        tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-    }
-    return TC_OK;
-}
+TC_MODULE_GENERIC_INIT(null, NullPrivateData)
 
 /*************************************************************************/
 
@@ -114,20 +92,7 @@ static int null_init(TCModuleInstance *self, uint32_t features)
  * tcmodule-data.h for function details.
  */
 
-static int null_fini(TCModuleInstance *self)
-{
-    PrivateData *pd = NULL;
-
-    TC_MODULE_SELF_CHECK(self, "fini");
-
-    pd = self->userdata;
-
-    /* free data allocated in _init */
-
-    tc_free(self->userdata);
-    self->userdata = NULL;
-    return TC_OK;
-}
+TC_MODULE_GENERIC_FINI(null)
 
 /*************************************************************************/
 
@@ -139,7 +104,7 @@ static int null_fini(TCModuleInstance *self)
 static int null_configure(TCModuleInstance *self,
                           const char *options, vob_t *vob)
 {
-    PrivateData *pd = NULL;
+    NullPrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "configure");
 
@@ -170,7 +135,7 @@ static int null_configure(TCModuleInstance *self,
 
 static int null_stop(TCModuleInstance *self)
 {
-    PrivateData *pd = NULL;
+    NullPrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "stop");
 
@@ -195,7 +160,7 @@ static int null_stop(TCModuleInstance *self)
 static int null_inspect(TCModuleInstance *self,
                         const char *param, const char **value)
 {
-    PrivateData *pd = NULL;
+    NullPrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "inspect");
     TC_MODULE_SELF_CHECK(param, "inspect");
@@ -220,7 +185,7 @@ static int null_inspect(TCModuleInstance *self,
 
 static int null_filter_video(TCModuleInstance *self, vframe_list_t *frame)
 {
-    PrivateData *pd = NULL;
+    NullPrivateData *pd = NULL;
     int pre = 0;
 
     TC_MODULE_SELF_CHECK(self, "filer_video");
@@ -258,7 +223,7 @@ static int null_filter_video(TCModuleInstance *self, vframe_list_t *frame)
 
 static int null_filter_audio(TCModuleInstance *self, aframe_list_t *frame)
 {
-    PrivateData *pd = NULL;
+    NullPrivateData *pd = NULL;
     int pre = 0;
 
     TC_MODULE_SELF_CHECK(self, "filer_audio");
@@ -295,21 +260,9 @@ static const TCCodecID null_codecs_in[] = {
 static const TCCodecID null_codecs_out[] = {
     TC_CODEC_ANY, TC_CODEC_ERROR
 };
-static const TCFormatID null_formats[] = {
-    TC_FORMAT_ERROR
-};
+TC_MODULE_FILTER_FORMATS(null);
 
-static const TCModuleInfo null_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = null_codecs_in,
-    .codecs_out  = null_codecs_out,
-    .formats_in  = null_formats,
-    .formats_out = null_formats
-};
+TC_MODULE_INFO(null);
 
 static const TCModuleClass null_class = {
     .info         = &null_info,
@@ -324,16 +277,13 @@ static const TCModuleClass null_class = {
     .filter_audio = null_filter_audio,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &null_class;
-}
+TC_MODULE_ENTRY_POINT(null)
 
 /*************************************************************************/
 
 static int null_get_config(TCModuleInstance *self, char *options)
 {
-    PrivateData *pd = NULL;
+    NullPrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "get_config");
 

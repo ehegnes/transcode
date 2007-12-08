@@ -75,29 +75,7 @@ struct lowpassprivatedata_ {
  * tcmodule-data.h for function details.
  */
 
-static int lowpass_init(TCModuleInstance *self, uint32_t features)
-{
-    LowPassPrivateData *pd = NULL;
-
-    TC_MODULE_SELF_CHECK(self, "init");
-    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
-
-    pd = tc_zalloc(sizeof(LowPassPrivateData));
-    if (pd == NULL) {
-        tc_log_error(MOD_NAME, "init: out of memory!");
-        return TC_ERROR;
-    }
-
-    /* default configuration! */
-    pd->taps = 30;
-
-    self->userdata = pd;
-
-    if (verbose) {
-        tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-    }
-    return TC_OK;
-}
+TC_MODULE_GENERIC_INIT(lowpass, LowPassPrivateData)
 
 /*************************************************************************/
 
@@ -106,14 +84,7 @@ static int lowpass_init(TCModuleInstance *self, uint32_t features)
  * tcmodule-data.h for function details.
  */
 
-static int lowpass_fini(TCModuleInstance *self)
-{
-    TC_MODULE_SELF_CHECK(self, "fini");
-
-    tc_free(self->userdata);
-    self->userdata = NULL;
-    return TC_OK;
-}
+TC_MODULE_GENERIC_FINI(lowpass)
 
 
 /*************************************************************************/
@@ -295,22 +266,9 @@ static const TCCodecID lowpass_codecs_in[] = {
 static const TCCodecID lowpass_codecs_out[] = { 
     TC_CODEC_PCM, TC_CODEC_ERROR
 };
-static const TCFormatID lowpass_formats[] = { 
-    TC_FORMAT_ERROR
-};
+TC_MODULE_FILTER_FORMATS(lowpass);
 
-/* new module support */
-static const TCModuleInfo lowpass_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = lowpass_codecs_in,
-    .codecs_out  = lowpass_codecs_out,
-    .formats_in  = lowpass_formats,
-    .formats_out = lowpass_formats
-};
+TC_MODULE_INFO(lowpass);
 
 static const TCModuleClass lowpass_class = {
     .info         = &lowpass_info,
@@ -324,10 +282,7 @@ static const TCModuleClass lowpass_class = {
     .filter_audio = lowpass_filter_audio,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &lowpass_class;
-}
+TC_MODULE_ENTRY_POINT(lowpass)
 
 /*************************************************************************/
 

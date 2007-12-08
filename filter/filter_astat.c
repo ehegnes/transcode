@@ -65,11 +65,11 @@ typedef struct {
     char *filepath;
 
     char optstr_buf[PATH_MAX+1];
-} PrivateData;
+} AStatPrivateData;
 
 /*************************************************************************/
 
-static void set_range(PrivateData *pd, int v)
+static void set_range(AStatPrivateData *pd, int v)
 {
     if (v > pd->max) {
         pd->max = v;
@@ -91,31 +91,7 @@ static void set_range(PrivateData *pd, int v)
  * tcmodule-data.h for function details.
  */
 
-static int astat_init(TCModuleInstance *self, uint32_t features)
-{
-    PrivateData *pd = NULL;
-
-    TC_MODULE_SELF_CHECK(self, "init");
-    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
-
-    pd = tc_malloc(sizeof(PrivateData));
-    if (!pd) {
-        tc_log_error(MOD_NAME, "init: out of memory!");
-        return TC_ERROR;
-    }
-    self->userdata = pd;
-
-    /* enforce defaults */
-    pd->min           = 0;
-    pd->max           = 0;
-    pd->filepath      = NULL;
-    pd->silence_limit = SILENCE_MAX_VALUE;
-
-    if (verbose) {
-        tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-    }
-    return TC_OK;
-}
+TC_MODULE_GENERIC_INIT(astat, AStatPrivateData)
 
 /*************************************************************************/
 
@@ -124,20 +100,7 @@ static int astat_init(TCModuleInstance *self, uint32_t features)
  * tcmodule-data.h for function details.
  */
 
-static int astat_fini(TCModuleInstance *self)
-{
-    PrivateData *pd;
-
-    TC_MODULE_SELF_CHECK(self, "fini");
-
-    pd = self->userdata;
-
-    /* nothing to do in here */
-
-    tc_free(self->userdata);
-    self->userdata = NULL;
-    return TC_OK;
-}
+TC_MODULE_GENERIC_FINI(astat)
 
 /*************************************************************************/
 
@@ -149,7 +112,7 @@ static int astat_fini(TCModuleInstance *self)
 static int astat_configure(TCModuleInstance *self,
                            const char *options, vob_t *vob)
 {
-    PrivateData *pd = NULL;
+    AStatPrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "configure");
 
@@ -195,7 +158,7 @@ static int astat_configure(TCModuleInstance *self,
 static int astat_stop(TCModuleInstance *self)
 {
     int ret = TC_OK; /* let's be optimistic... */
-    PrivateData *pd = NULL;
+    AStatPrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "stop");
 
@@ -249,7 +212,7 @@ static int astat_stop(TCModuleInstance *self)
 static int astat_inspect(TCModuleInstance *self,
                              const char *param, const char **value)
 {
-    PrivateData *pd = NULL;
+    AStatPrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "inspect");
     TC_MODULE_SELF_CHECK(param, "inspect");
@@ -287,7 +250,7 @@ static int astat_inspect(TCModuleInstance *self,
 
 static int astat_filter_audio(TCModuleInstance *self, aframe_list_t *frame)
 {
-    PrivateData *pd = NULL;
+    AStatPrivateData *pd = NULL;
     int16_t *s = NULL;
     int n;
 
@@ -314,21 +277,9 @@ static const TCCodecID astat_codecs_in[] = {
 static const TCCodecID astat_codecs_out[] = { 
     TC_CODEC_PCM, TC_CODEC_ERROR 
 };
-static const TCFormatID astat_formats[] = { 
-    TC_FORMAT_ERROR
-};
+TC_MODULE_FILTER_FORMATS(astat);
 
-static const TCModuleInfo astat_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = astat_codecs_in,
-    .codecs_out  = astat_codecs_out,
-    .formats_in  = astat_formats,
-    .formats_out = astat_formats
-};
+TC_MODULE_INFO(astat);
 
 static const TCModuleClass astat_class = {
     .info         = &astat_info,
@@ -342,17 +293,14 @@ static const TCModuleClass astat_class = {
     .filter_audio = astat_filter_audio,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &astat_class;
-}
+TC_MODULE_ENTRY_POINT(astat)
 
 /*************************************************************************/
 
 static int astat_get_config(TCModuleInstance *self, char *options)
 {
     char buf[TC_BUF_MIN];
-    PrivateData *pd = NULL;
+    AStatPrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "get_config");
 

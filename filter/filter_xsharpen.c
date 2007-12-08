@@ -84,7 +84,7 @@ static const char xsharpen_help[] = ""
 
 /*************************************************************************/
 
-typedef struct myfilterdata_ MyFilterData;
+typedef struct myfilterdata_ XsharpenPrivateData;
 struct myfilterdata_ {
     Pixel32     *convertFrameIn;
     Pixel32     *convertFrameOut;
@@ -97,13 +97,15 @@ struct myfilterdata_ {
     TCVHandle   tcvhandle;
     char        conf_str[TC_BUF_MIN];
 
-    int (*filter_frame)(MyFilterData *mfd, vframe_list_t *frame);
+    int (*filter_frame)(XsharpenPrivateData *mfd, vframe_list_t *frame);
     uint8_t *dst_buf;
 };
 
 /* forward declarations */
-static int xsharpen_rgb_frame(MyFilterData *mfd, vframe_list_t *frame);
-static int xsharpen_yuv_frame(MyFilterData *mfd, vframe_list_t *frame);
+static int xsharpen_rgb_frame(XsharpenPrivateData *mfd,
+                              vframe_list_t *frame);
+static int xsharpen_yuv_frame(XsharpenPrivateData *mfd,
+                              vframe_list_t *frame);
 
 /*************************************************************************/
 
@@ -116,31 +118,7 @@ static int xsharpen_yuv_frame(MyFilterData *mfd, vframe_list_t *frame);
  * tcmodule-data.h for function details.
  */
 
-static int xsharpen_init(TCModuleInstance *self, uint32_t features)
-{
-    MyFilterData *mfd = NULL;
-
-    TC_MODULE_SELF_CHECK(self, "init");
-    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
-
-    mfd = tc_malloc(sizeof(MyFilterData));
-    if (!mfd) {
-        tc_log_error(MOD_NAME, "init: out of memory!");
-        return TC_ERROR;
-    }
-    self->userdata = mfd;
-
-    /* initialize data */
-    mfd->strength       = 200; /* 255 is too much */
-    mfd->strengthInv    = 255 - mfd->strength;
-    mfd->threshold      = 255;
-    mfd->srcPitch       = 0;
-    mfd->dstPitch       = 0;
-    mfd->convertFrameIn = NULL;
-    mfd->convertFrameOut= NULL;
-
-    return TC_OK;
-}
+TC_MODULE_GENERIC_INIT(xsharpen, XsharpenPrivateData)
 
 /*************************************************************************/
 
@@ -149,15 +127,7 @@ static int xsharpen_init(TCModuleInstance *self, uint32_t features)
  * tcmodule-data.h for function details.
  */
 
-static int xsharpen_fini(TCModuleInstance *self)
-{
-    TC_MODULE_SELF_CHECK(self, "fini");
-
-    tc_free(self->userdata);
-    self->userdata = NULL;
-
-    return TC_OK;
-}
+TC_MODULE_GENERIC_FINI(xsharpen)
 
 /*************************************************************************/
 
@@ -169,7 +139,7 @@ static int xsharpen_fini(TCModuleInstance *self)
 static int xsharpen_configure(TCModuleInstance *self,
                               const char *options, vob_t *vob)
 {
-    MyFilterData *mfd = NULL;
+    XsharpenPrivateData *mfd = NULL;
     int width, height;
 
     TC_MODULE_SELF_CHECK(self, "configure");
@@ -255,7 +225,7 @@ static int xsharpen_configure(TCModuleInstance *self,
 
 static int xsharpen_stop(TCModuleInstance *self)
 {
-    MyFilterData *mfd = NULL;
+    XsharpenPrivateData *mfd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "stop");
 
@@ -290,7 +260,7 @@ static int xsharpen_stop(TCModuleInstance *self)
 static int xsharpen_inspect(TCModuleInstance *self,
                             const char *param, const char **value)
 {
-    MyFilterData *mfd = NULL;
+    XsharpenPrivateData *mfd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "inspect");
     TC_MODULE_SELF_CHECK(param, "inspect");
@@ -343,7 +313,7 @@ static int xsharpen_inspect(TCModuleInstance *self,
 } while (0)
 
 
-static int xsharpen_rgb_frame(MyFilterData *mfd, vframe_list_t *frame)
+static int xsharpen_rgb_frame(XsharpenPrivateData *mfd, vframe_list_t *frame)
 {
     const PixDim    width  = frame->v_width;
     const PixDim    height = frame->v_height;
@@ -492,7 +462,7 @@ static int xsharpen_rgb_frame(MyFilterData *mfd, vframe_list_t *frame)
 } while (0)
 
 
-static int xsharpen_yuv_frame(MyFilterData *mfd, vframe_list_t *frame)
+static int xsharpen_yuv_frame(XsharpenPrivateData *mfd, vframe_list_t *frame)
 {
     const PixDim       width = frame->v_width;
     const PixDim       height = frame->v_height;
@@ -588,7 +558,7 @@ static int xsharpen_yuv_frame(MyFilterData *mfd, vframe_list_t *frame)
 
 static int xsharpen_filter_video(TCModuleInstance *self, vframe_list_t *frame)
 {
-    MyFilterData *mfd = NULL;
+    XsharpenPrivateData *mfd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "filer_video");
     TC_MODULE_SELF_CHECK(frame, "filer_video");
@@ -609,21 +579,9 @@ static const TCCodecID xsharpen_codecs_in[] = {
 static const TCCodecID xsharpen_codecs_out[] = {
     TC_CODEC_RGB, TC_CODEC_YUV420P, TC_CODEC_ERROR
 };
-static const TCFormatID xsharpen_formats[] = {
-    TC_FORMAT_ERROR
-};
+TC_MODULE_FILTER_FORMATS(xsharpen);
 
-static const TCModuleInfo xsharpen_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = xsharpen_codecs_in,
-    .codecs_out  = xsharpen_codecs_out,
-    .formats_in  = xsharpen_formats,
-    .formats_out = xsharpen_formats
-};
+TC_MODULE_INFO(xsharpen);
 
 static const TCModuleClass xsharpen_class = {
     .info         = &xsharpen_info,
@@ -637,16 +595,13 @@ static const TCModuleClass xsharpen_class = {
     .filter_video = xsharpen_filter_video
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &xsharpen_class;
-}
+TC_MODULE_ENTRY_POINT(xsharpen)
 
 /*************************************************************************/
 
 static int xsharpen_get_config(TCModuleInstance *self, char *options)
 {
-    MyFilterData *mfd = NULL;
+    XsharpenPrivateData *mfd = NULL;
     char buf[TC_BUF_MIN];
 
     TC_MODULE_SELF_CHECK(self, "get_config");
