@@ -92,7 +92,7 @@ static void codecs_to_string(const TCCodecID *codecs, char *buffer,
     int found = 0;
     int i = 0;
 
-    if (buffer == NULL || bufsize < DATA_BUF_SIZE) {
+    if (buffer == NULL || bufsize < TC_BUF_LINE) {
         return;
     }
 
@@ -131,9 +131,9 @@ void tc_module_info_log(const TCModuleInfo *info, int verbose)
 
     if (verbose >= TC_DEBUG) {
         if (info->features == TC_MODULE_FEATURE_NONE) {
-            strlcpy(buffer, "none (this shouldn't happen!", DATA_BUF_SIZE);
+            strlcpy(buffer, "none (this shouldn't happen!", sizeof(buffer));
         } else {
-            tc_snprintf(buffer, DATA_BUF_SIZE, "%s%s%s",
+            tc_snprintf(buffer, sizeof(buffer), "%s%s%s",
                   (info->features & TC_MODULE_FEATURE_VIDEO) ?"video " :"",
                   (info->features & TC_MODULE_FEATURE_AUDIO) ?"audio " :"",
                   (info->features & TC_MODULE_FEATURE_EXTRA) ?"extra" :"");
@@ -141,9 +141,9 @@ void tc_module_info_log(const TCModuleInfo *info, int verbose)
         tc_log_info(info->name, "can handle : %s", buffer);
 
         if (info->features == TC_MODULE_FEATURE_NONE) {
-            strlcpy(buffer, "nothing (this shouldn't happen!", DATA_BUF_SIZE);
+            strlcpy(buffer, "nothing (this shouldn't happen!", sizeof(buffer));
         } else {
-            tc_snprintf(buffer, DATA_BUF_SIZE, "%s%s%s",
+            tc_snprintf(buffer, sizeof(buffer), "%s%s%s",
                         (info->features & TC_MODULE_FEATURE_FILTER)
                             ?"filtering " :"",
                         (info->features & TC_MODULE_FEATURE_ENCODE)
@@ -154,15 +154,15 @@ void tc_module_info_log(const TCModuleInfo *info, int verbose)
         tc_log_info(info->name, "can do     : %s", buffer);
 
         if (info->flags == TC_MODULE_FLAG_NONE) {
-            strlcpy(buffer, "none", DATA_BUF_SIZE);
+            strlcpy(buffer, "none", sizeof(buffer));
         } else {
-            tc_snprintf(buffer, DATA_BUF_SIZE, "%s%s%s%s",
+            tc_snprintf(buffer, sizeof(buffer), "%s%s%s%s",
                         (info->flags & TC_MODULE_FLAG_RECONFIGURABLE)
                             ?"reconfigurable " :"",
                         (info->flags & TC_MODULE_FLAG_DELAY)
                             ?"delay " :"",
                         (info->flags & TC_MODULE_FLAG_BUFFERING)
-                            ?"buffering " :""
+                            ?"buffering " :"",
                         (info->flags & TC_MODULE_FLAG_CONVERSION)
                             ?"conversion " :"");
         }
@@ -172,10 +172,10 @@ void tc_module_info_log(const TCModuleInfo *info, int verbose)
     if (verbose >= TC_INFO) {
         const char *str = (info->features & TC_MODULE_FEATURE_MULTIPLEX)
                                     ?"a media stream" :"nothing";
-        codecs_to_string(info->codecs_in, buffer, DATA_BUF_SIZE, str);
+        codecs_to_string(info->codecs_in, buffer, sizeof(buffer), str);
         tc_log_info(info->name, "accepts    : %s", buffer);
 
-        codecs_to_string(info->codecs_out, buffer, DATA_BUF_SIZE, str);
+        codecs_to_string(info->codecs_out, buffer, sizeof(buffer), str);
         tc_log_info(info->name, "produces   : %s", buffer);
     }
 }
