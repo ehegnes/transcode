@@ -10,6 +10,9 @@
   * filter/filter_fields.c
   port to NMS. Further testing needed.
 
+  * filter/preview/filter_sdlview.c
+  port to new tcmodule macros.
+
 2007-12-08 Francesco Romani <fromani at gmail dot com>
    * libtc/tcmodule-plugin.h
    new module entry point macro.
