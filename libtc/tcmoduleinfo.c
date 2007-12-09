@@ -86,8 +86,6 @@ int tc_module_info_match(int tc_codec,
 #undef HAVE_FEATURE
 
 
-#define DATA_BUF_SIZE   256
-
 static void codecs_to_string(const TCCodecID *codecs, char *buffer,
                              size_t bufsize, const char *fallback_string)
 {
@@ -116,7 +114,7 @@ static void codecs_to_string(const TCCodecID *codecs, char *buffer,
 
 void tc_module_info_log(const TCModuleInfo *info, int verbose)
 {
-    char buffer[DATA_BUF_SIZE];
+    char buffer[TC_BUF_LINE];
 
     if (info == NULL) {
         return;
@@ -158,12 +156,17 @@ void tc_module_info_log(const TCModuleInfo *info, int verbose)
         if (info->flags == TC_MODULE_FLAG_NONE) {
             strlcpy(buffer, "none", DATA_BUF_SIZE);
         } else {
-            tc_snprintf(buffer, DATA_BUF_SIZE, "%s",
+            tc_snprintf(buffer, DATA_BUF_SIZE, "%s%s%s%s",
                         (info->flags & TC_MODULE_FLAG_RECONFIGURABLE)
-                            ?"reconfigurable " :"");
+                            ?"reconfigurable " :"",
+                        (info->flags & TC_MODULE_FLAG_DELAY)
+                            ?"delay " :"",
+                        (info->flags & TC_MODULE_FLAG_BUFFERING)
+                            ?"buffering " :""
+                        (info->flags & TC_MODULE_FLAG_CONVERSION)
+                            ?"conversion " :"");
         }
         tc_log_info(info->name, "flags      : %s", buffer);
-
     }
 
     if (verbose >= TC_INFO) {
