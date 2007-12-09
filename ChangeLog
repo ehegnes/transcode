@@ -7,6 +7,9 @@
     filter/filter_resample.c filter/filter_xsharpen.c
   update module description using new flags.
 
+  * filter/filter_fields.c
+  port to NMS. Further testing needed.
+
 2007-12-08 Francesco Romani <fromani at gmail dot com>
    * libtc/tcmodule-plugin.h
    new module entry point macro.

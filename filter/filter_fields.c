@@ -46,7 +46,7 @@
  *                    Global Filter Variables and Defines                    *
  *****************************************************************************/
 
-static const char help_text[] = ""
+static const char fields_help[] = ""
     "Transcode field-adjustment filter (filter_fields) help\n"
     "------------------------------------------------------\n"
     "\n"
@@ -142,7 +142,7 @@ static void copy_field(char *to, char *from, int width, int height)
  * swap_fields - Exchange one field of a frame (every other line) with another
  *               NOTE:  This function uses 'buffer' as a temporary space.
  */
-static void swap_fields(char *f1, char *f2, int width, int height)
+static void swap_fields(char *buffer, char *f1, char *f2, int width, int height)
 {
     int increment = width * 2;
 
@@ -154,15 +154,6 @@ static void swap_fields(char *f1, char *f2, int width, int height)
         f1 += increment;
         f2 += increment;
     }
-}
-
-/*****************************************************************************
- *                           Main Filter Functions                           *
- *****************************************************************************/
-
-static int filter_fields_close(void)
-{
-    return TC_OK;
 }
 
 /*************************************************************************/
@@ -200,7 +191,6 @@ static int fields_configure(TCModuleInstance *self,
             			    const char *options, vob_t *vob)
 {
     FieldsPrivateData *pd = NULL;
-    int help_shown = 0;
 
     TC_MODULE_SELF_CHECK(self, "configure");
 
@@ -243,7 +233,7 @@ static int fields_configure(TCModuleInstance *self,
     }
 
     if (vob->im_v_codec == CODEC_RGB);
-        rgb_mode = TC_TRUE;
+        pd->rgb_mode = TC_TRUE;
 
     if (verbose)
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
@@ -294,17 +284,17 @@ static int fields_inspect(TCModuleInstance *self,
         *value = fields_help;
     }
 
-    if (optstr_lookup(options, "flip")) {
+    if (optstr_lookup(param, "flip")) {
         tc_snprintf(pd->conf_str, sizeof(pd->conf_str),
                     "%s", (pd->field_ops & FIELD_OP_FLIP) ?"yes" :"no");
         *value = pd->conf_str;
     }
-    if (optstr_lookup(options, "shift")) {
+    if (optstr_lookup(param, "shift")) {
         tc_snprintf(pd->conf_str, sizeof(pd->conf_str),
                     "%s", (pd->field_ops & FIELD_OP_SHIFT) ?"yes" :"no");
         *value = pd->conf_str;
     }
-    if (optstr_lookup(options, "flip_first")) {
+    if (optstr_lookup(param, "flip_first")) {
         tc_snprintf(pd->conf_str, sizeof(pd->conf_str),
                     "%s", (pd->field_ops & FIELD_OP_REVERSE) ?"yes" :"no");
         *value = pd->conf_str;
@@ -339,26 +329,26 @@ static int fields_filter_video(TCModuleInstance *self,
     b1 = pd->buffer;
     b2 = pd->buffer + width;
 
-    switch (field_ops) {
+    switch (pd->field_ops) {
       case FIELD_OP_FLIP:
-        swap_fields(f1, f2, width, height);
+        swap_fields(pd->buffer, f1, f2, width, height);
         break;
       case FIELD_OP_SHIFT:
-        copy_field(buf_field ? b2 : b1, f2, width, height);
+        copy_field(pd->buf_field ? b2 : b1, f2, width, height);
         copy_field(f2, f1, width, height);
-        copy_field(f1, buf_field ? b1 : b2, width, height);
+        copy_field(f1, pd->buf_field ? b1 : b2, width, height);
         break;
       case FIELD_OP_SHIFTFLIP:
         // Shift + Flip is the same result as just delaying the second field by
         // one frame, so do that because it's faster.
-        copy_field(buf_field ? b1 : b2, f2, width, height);
-        copy_field(f2, buf_field ? b2 : b1, width, height);
+        copy_field(pd->buf_field ? b1 : b2, f2, width, height);
+        copy_field(f2, pd->buf_field ? b2 : b1, width, height);
         break;
       case FIELD_OP_FLIPSHIFT:
         // Flip + Shift is the same result as just delaying the first field by
         // one frame, so do that because it's faster.
-        copy_field(buf_field ? b1 : b2, f1, width, height);
-        copy_field(f1, buf_field ? b2 : b1, width, height);
+        copy_field(pd->buf_field ? b1 : b2, f1, width, height);
+        copy_field(f1, pd->buf_field ? b2 : b1, width, height);
 
         // Chroma information is usually taken from the top field, which we're
         // shifting here.  We probably should move the chroma info with it, but
@@ -367,7 +357,7 @@ static int fields_filter_video(TCModuleInstance *self,
         // worth bothering.
         break;
     }
-    buf_field ^= 1;
+    pd->buf_field ^= 1;
 
     return TC_OK;
 }
@@ -404,7 +394,6 @@ TC_MODULE_ENTRY_POINT(fields)
 static int fields_get_config(TCModuleInstance *self, char *options)
 {
     FieldsPrivateData *pd = NULL;
-    char buf[TC_BUF_MIN];
 
     TC_MODULE_SELF_CHECK(self, "get_config");
 
