@@ -2,6 +2,11 @@
   * libtc/tcmodule-info.h libtc/tcmoduleinfo.c
   add a few more (useful) module flags.
 
+  * filter/filter_dnr.c filter/filter_doublefps.c
+    filter/filter_lowpass.c filter/filter_msharpen.c
+    filter/filter_resample.c filter/filter_xsharpen.c
+  update module description using new flags.
+
 2007-12-08 Francesco Romani <fromani at gmail dot com>
    * libtc/tcmodule-plugin.h
    new module entry point macro.
