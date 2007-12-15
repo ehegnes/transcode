@@ -180,9 +180,6 @@ static int xsharpen_configure(TCModuleInstance *self,
     }
 
     if (options) {
-        if (verbose >= TC_STATS) {
-            tc_log_info(MOD_NAME, "options=%s", options);
-        }
         optstr_get(options, "strength",  "%d", &mfd->strength);
         optstr_get(options, "threshold", "%d", &mfd->threshold);
     }
@@ -208,11 +205,6 @@ static int xsharpen_configure(TCModuleInstance *self,
     }
 
     mfd->tcvhandle = tcv_init();
-
-    /* filter init ok */
-    if (verbose) {
-        tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-    }
 
     return TC_OK;
 }
