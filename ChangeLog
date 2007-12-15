@@ -2,6 +2,9 @@
   * filter/filter_pp.c
   port to NMS. Further testing needed.
 
+  * import/Makefile.am, import/import_alsa.c import/import_x11.c
+  simplify a bit OMS compatibility handling.
+
 2007-12-09 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule-info.h libtc/tcmoduleinfo.c
   add a few more (useful) module flags.

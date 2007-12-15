@@ -116,6 +116,7 @@ import_ac3_la_SOURCES = import_ac3.c
 import_ac3_la_LDFLAGS = -module -avoid-version
 
 import_alsa_la_SOURCES = import_alsa.c
+import_alsa_la_CPPFLAGS = $(AM_CPPFLAGS) -DOMS_COMPATIBLE=1
 import_alsa_la_LDFLAGS = -module -avoid-version
 import_alsa_la_LIBADD = -lasound
 
@@ -214,7 +215,7 @@ import_xvid_la_SOURCES = import_xvid.c
 import_xvid_la_LDFLAGS = -module -avoid-version
 
 import_x11_la_SOURCES = import_x11.c x11source.c
-import_x11_la_CPPFLAGS = $(AM_CPPFLAGS) $(X_CFLAGS)
+import_x11_la_CPPFLAGS = $(AM_CPPFLAGS) $(X_CFLAGS) -DOMS_COMPATIBLE=1
 import_x11_la_LDFLAGS = -module -avoid-version
 import_x11_la_LIBADD = $(X11SOURCE_LIBS)
 

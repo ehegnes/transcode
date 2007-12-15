@@ -38,9 +38,8 @@
 
 #define DEBUG 1
 
-#define LEGACY 1
 
-#ifdef LEGACY
+#ifdef OMS_COMPATIBLE
 # define MOD_NAME    "import_x11.so"
 #else
 # define MOD_NAME    "demultiplex_x11.so"

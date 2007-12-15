@@ -34,9 +34,8 @@
 #endif
 #include <string.h>
 
-#define LEGACY 1
 
-#ifdef LEGACY
+#ifdef OMS_COMPATIBLE
 # define MOD_NAME    "import_alsa.so"
 #else
 # define MOD_NAME    "demultiplex_alsa.so"
