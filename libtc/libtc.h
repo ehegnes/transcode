@@ -568,7 +568,7 @@ ssize_t tc_pread(int fd, uint8_t *buf, size_t len);
  *     write exactly the requested bytes, if no *critical* (tipically I/O
  *     related) error occurs.
  */
-ssize_t tc_pwrite(int fd, uint8_t *buf, size_t len);
+ssize_t tc_pwrite(int fd, const uint8_t *buf, size_t len);
 
 /*
  * tc_preadwrite:

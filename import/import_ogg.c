@@ -43,8 +43,6 @@ static int capability_flag = TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AUD|TC_CAP_PCM|TC_CAP_
  *
  * ------------------------------------------------------------*/
 
-static void MOD_open_audio(vob_t *vob)
-
 MOD_open
 {
     char import_cmd_buf[TC_BUF_MAX];

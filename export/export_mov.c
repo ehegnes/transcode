@@ -132,9 +132,11 @@ static int list(char *list_type)
     lqt_codec_info_t ** qi = NULL;
 
 
-    if (list_type == QT_LIST_VIDEO) qi = lqt_query_registry(0, 1, 1, 0);
-    else if (list_type == QT_LIST_AUDIO) qi = lqt_query_registry(1, 0, 1, 0);
-    else {
+    if (strcmp(list_type, QT_LIST_VIDEO) == 0) {
+        qi = lqt_query_registry(0, 1, 1, 0);
+    } else if (strcmp(list_type, QT_LIST_AUDIO) == 0) {
+        qi = lqt_query_registry(1, 0, 1, 0);
+    } else {
         qi = lqt_query_registry(1, 1, 1, 0);
     }
 
@@ -144,7 +146,7 @@ static int list(char *list_type)
 		          "-----------------------------------");
     while(qi[cod] != NULL)
         {
-        if (list_type == QT_LIST_PARM) {
+        if (strcmp(list_type, QT_LIST_PARM) == 0) {
             tc_log_info(MOD_NAME, "%s:", qi[cod]->name);
             for(i = 0; i < qi[cod]->num_encoding_parameters; i++) {
                 if (qi[cod]->encoding_parameters[i].type != LQT_PARAMETER_SECTION) {

@@ -1,3 +1,13 @@
+2007-12-15 Andrew Church <achurch at achurch dot org>
+  * configure.in
+  Expand -Werror disabling to GCC 4.2.2 as well.
+
+  * import/import_ogg.c
+  Fix a stray function declaration causing a compilation error.
+
+  * export/export_mov.c libtc/libtc.h libtc/tc_functions.c
+  Fix compilation warnings.
+
 2007-12-15 Francesco Romani <fromani at gmail dot com>
   * filter/filter_pp.c
   port to NMS. Further testing needed.
