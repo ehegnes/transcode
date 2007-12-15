@@ -364,7 +364,7 @@ int  AVI_seek_start(avi_t *AVI);
 int  AVI_set_video_position(avi_t *AVI, long frame);
 long AVI_get_video_position(avi_t *AVI, long frame);
 long AVI_read_frame(avi_t *AVI, char *vidbuf, int *keyframe);
-long AVI_read_video(avi_t *AVI, char *audbuf, long bytes, int *keyframe);
+long AVI_read_video(avi_t *AVI, char *vidbuf, long bytes, int *keyframe);
 
 int  AVI_set_audio_position(avi_t *AVI, long byte);
 int  AVI_set_audio_bitrate(avi_t *AVI, long bitrate);
