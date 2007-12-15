@@ -160,7 +160,7 @@ static int resample_stop(TCModuleInstance *self)
 }
 
 static int resample_inspect(TCModuleInstance *self,
-                          const char *param, const char **value)
+                            const char *param, const char **value)
 {
     TC_MODULE_SELF_CHECK(self, "inspect");
     TC_MODULE_SELF_CHECK(param, "inspect");
@@ -172,7 +172,6 @@ static int resample_inspect(TCModuleInstance *self,
     return TC_OK;
 }
 
-/* internal helper to avoid an useless double if() */
 static int resample_filter_audio(TCModuleInstance *self, aframe_list_t *frame)
 {
     ResamplePrivateData *pd = self->userdata;

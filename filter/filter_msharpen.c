@@ -135,12 +135,10 @@ static int msharpen_configure(TCModuleInstance *self,
                         ?IMG_YUV_DEFAULT :IMG_RGB24;
 
     if (options) {
-        if (verbose)
-            tc_log_info(MOD_NAME, "options=%s", options);
         optstr_get(options, "strength",  "%d", &pd->strength);
         optstr_get(options, "threshold", "%d", &pd->threshold);
-        optstr_get(options, "highq", "%d", &pd->highq);
-        optstr_get(options, "mask", "%d", &pd->mask);
+        optstr_get(options, "highq",     "%d", &pd->highq);
+        optstr_get(options, "mask",      "%d", &pd->mask);
     }
 
     if (verbose) {
