@@ -22,14 +22,14 @@
  */
 
 #define MOD_NAME    "import_ogg.so"
-#define MOD_VERSION "v0.0.2 (2003-08-21)"
-#define MOD_CODEC   "(video) all | (audio) Ogg Vorbis"
+#define MOD_VERSION "v0.1.0 (2007-12-15)"
+#define MOD_CODEC   "(video) * | (audio) *"
 
 #include "transcode.h"
 #include "libtc/libtc.h"
 
 static int verbose_flag = TC_QUIET;
-static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_AUD | TC_CAP_PCM | TC_CAP_VID;
+static int capability_flag = TC_CAP_RGB|TC_CAP_YUV|TC_CAP_AUD|TC_CAP_PCM|TC_CAP_VID;
 
 #define MOD_PRE ogg
 #include "import_def.h"
@@ -37,171 +37,151 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_AUD | TC_CAP_PCM |
 #include "magic.h"
 
 
-#define MAX_BUF 1024
-char import_cmd_buf[MAX_BUF];
-
-static FILE *fd;
-
 /* ------------------------------------------------------------
  *
  * open stream
  *
  * ------------------------------------------------------------*/
 
+static void MOD_open_audio(vob_t *vob)
+
 MOD_open
 {
+    char import_cmd_buf[TC_BUF_MAX];
 
+    char *codec = "";
     param->fd = NULL;
 
-    if(param->flag == TC_VIDEO) {
-
-	char *codec;
-	char *color;
-	char *magic;
-
-	switch (vob->im_v_codec) {
-
-	    case CODEC_RGB:
-		color = "rgb";
-		break;
-
-	    case CODEC_YUV:
-		color = "yuv420p";
-		break;
-
-	    default:
-		color = "";
-		break;
-
-	}
-
-	// add more codecs: dv, mjpeg, ..
-	//tc_log_msg(MOD_NAME, "CODEC_FLAG = |%lx|", vob->v_codec_flag);
-	switch (vob->v_codec_flag) {
-
-	    case TC_CODEC_DIVX5:
-	    case TC_CODEC_DIVX4:
-	    case TC_CODEC_DIVX3:
-	    case TC_CODEC_XVID:
-		codec = "divx4";
-		magic = "-t lavc";
-		break;
-
-	    case TC_CODEC_DV:
-		codec = "dv";
-		magic = "";
-		break;
-
-	    case TC_CODEC_RGB:
-	    case TC_CODEC_YUV420P:
-	    default:
-		codec = "raw";
-		magic = "";
-		break;
-
-	}
-
-	if(tc_snprintf(import_cmd_buf, MAX_BUF,
-			"tcextract -i \"%s\" -x raw -d %d | "
-			"tcdecode %s -g %dx%d -x %s -y %s -d %d",
-			vob->video_in_file, vob->verbose,
-			magic, vob->im_v_width, vob->im_v_height, codec, color, vob->verbose) < 0) {
-	    tc_log_perror(MOD_NAME, "command buffer overflow");
-	    return(TC_IMPORT_ERROR);
-	}
-	// print out
-	if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
-
-	if((param->fd = popen(import_cmd_buf, "r"))== NULL) {
-	    tc_log_perror(MOD_NAME, "popen video stream");
-	    return(TC_IMPORT_ERROR);
-	}
-
-
-	return(0);
+    if (param->flag != TC_VIDEO || param->flag != TC_AUDIO) {
+        return TC_ERROR;
     }
-    if(param->flag == TC_AUDIO) {
+    
+    if (param->flag == TC_VIDEO) {
+        char *color = NULL;
+        char *magic = NULL;
 
-	char *codec="";
+        switch (vob->im_v_codec) {
+          case CODEC_RGB:
+            color = "rgb";
+            break;
+          
+          case CODEC_YUV:
+            color = "yuv420p";
+            break;
+          
+          default:
+            color = "";
+            break;
+        }
 
-	switch (vob->a_codec_flag) {
+        switch (vob->v_codec_flag) {
+          case TC_CODEC_DIVX5:
+          case TC_CODEC_DIVX4:
+          case TC_CODEC_DIVX3:
+          case TC_CODEC_XVID:
+            codec = "divx4";
+            magic = "-t lavc";
+            break;
 
-	    case CODEC_MP3:
-	    case CODEC_MP2:
-		codec = "mp3";
-		break;
+          case TC_CODEC_DV:
+            codec = "dv";
+            magic = "";
+            break;
 
-	    case CODEC_VORBIS:
-		codec = "ogg";
-		break;
+          case TC_CODEC_RGB:
+          case TC_CODEC_YUV420P:
+          default:
+            codec = "raw";
+            magic = "";
+            break;
+        }
 
-	    case CODEC_PCM:
-		codec = "pcm";
-		break;
-
-	    default:
-		tc_log_warn(MOD_NAME, "Unkown codec");
-		break;
-	}
-
-	if(tc_snprintf(import_cmd_buf, MAX_BUF,
-			"tcextract -i \"%s\" -x %s -a %d -d %d | tcdecode -x %s -d %d",
-			vob->audio_in_file, codec, vob->a_track, vob->verbose,
-			codec, vob->verbose) < 0) {
-	    tc_log_perror(MOD_NAME, "command buffer overflow");
-	    return(TC_IMPORT_ERROR);
-	}
-
-	if (vob->a_codec_flag == CODEC_PCM) {
-	    if(tc_snprintf(import_cmd_buf, MAX_BUF,
-			"tcextract -i \"%s\" -x %s -a %d -d %d",
-			vob->audio_in_file, codec, vob->a_track,
-			vob->verbose) < 0) {
-		tc_log_perror(MOD_NAME, "command buffer overflow");
-		return(TC_IMPORT_ERROR);
-	    }
-	}
-
-	// print out
-	if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
-
-	// popen
-	if((fd = popen(import_cmd_buf, "r"))== NULL) {
-	    tc_log_perror(MOD_NAME, "popen pcm stream");
-	    return(TC_IMPORT_ERROR);
-	}
-
-	//caller handles read
-	param->fd = fd;
-
-	return(0);
+        if (tc_snprintf(import_cmd_buf, sizeof(import_cmd_buf),
+                        "tcextract -i \"%s\" -x raw -d %d | "
+                        "tcdecode %s -g %dx%d -x %s -y %s -d %d",
+                        vob->video_in_file, vob->verbose,
+                        magic, vob->im_v_width, vob->im_v_height,
+                        codec, color, vob->verbose) < 0
+           ) {
+            tc_log_perror(MOD_NAME, "command buffer overflow");
+            return TC_ERROR;
+        }
     }
-    return(TC_IMPORT_ERROR);
+
+    if (param->flag == TC_AUDIO) {
+        switch (vob->a_codec_flag) {
+          case CODEC_MP3:
+          case CODEC_MP2:
+            codec = "mp3";
+            break;
+
+          case CODEC_VORBIS:
+            codec = "ogg";
+            break;
+
+          case CODEC_PCM:
+            codec = "pcm";
+            break;
+
+          default:
+            tc_log_warn(MOD_NAME, "Unkown codec");
+            break;
+        }
+
+        if (tc_snprintf(import_cmd_buf, sizeof(import_cmd_buf),
+                        "tcextract -i \"%s\" -x %s -a %d -d %d",
+                        vob->audio_in_file, codec,
+                        vob->a_track, vob->verbose) < 0) {
+            tc_log_perror(MOD_NAME, "command buffer overflow");
+            return TC_ERROR;
+
+            if (vob->a_codec_flag != CODEC_PCM) {
+                char buf[TC_BUF_MAX];
+                if (tc_snprintf(buf, sizeof(buf), " | tcdecode -x %s -d %i",
+                                codec, vob->verbose) < 0) {
+                    tc_log_perror(MOD_NAME, "command buffer overflow");
+                    return TC_ERROR;
+                }
+                strlcpy(import_cmd_buf, buf, sizeof(import_cmd_buf)); // XXX
+            }
+        }
+    }
+
+    if (verbose_flag)
+        tc_log_info(MOD_NAME, "%s", import_cmd_buf);
+
+    param->fd = popen(import_cmd_buf, "r");
+    if (param->fd == NULL) {
+        tc_log_perror(MOD_NAME, "popen video stream");
+        return TC_ERROR;
+    }
+    return TC_OK;
 }
 
-/* ------------------------------------------------------------
- *
- * decode stream
- *
- * ------------------------------------------------------------*/
 
 MOD_decode
 {
-  //nothing to do
-  return(0);
+    /* nothing to do */
+    return TC_OK;
 }
 
-/* ------------------------------------------------------------
- *
- * close stream
- *
- * ------------------------------------------------------------*/
 
 MOD_close
 {
-
-  if(param->fd != NULL) pclose(param->fd);
-
-  return(0);
+    if (param->fd != NULL) {
+        pclose(param->fd);
+    }
+    return TC_OK;
 }
 
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */

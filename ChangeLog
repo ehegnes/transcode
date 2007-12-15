@@ -5,6 +5,9 @@
   * import/Makefile.am, import/import_alsa.c import/import_x11.c
   simplify a bit OMS compatibility handling.
 
+  * import/import_ogg.c
+  make more STYLEish, and minor updates.
+
 2007-12-09 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule-info.h libtc/tcmoduleinfo.c
   add a few more (useful) module flags.
