@@ -22,97 +22,89 @@
  */
 
 #define MOD_NAME    "filter_pp.so"
-#define MOD_VERSION "v1.2.4 (2003-01-24)"
+#define MOD_VERSION "v1.2.5 (2007-12-09)"
 #define MOD_CAP     "Mplayers postprocess filters"
 #define MOD_AUTHOR  "Michael Niedermayer et al, Gerhard Monzel"
+
+#define MOD_FEATURES \
+    TC_MODULE_FEATURE_FILTER|TC_MODULE_FEATURE_VIDEO
+#define MOD_FLAGS \
+    TC_MODULE_FLAG_RECONFIGURABLE
 
 #include "transcode.h"
 #include "filter.h"
 #include "libtc/libtc.h"
 #include "libtc/optstr.h"
+#include "libtc/tcmodule-plugin.h"
 
 #include <ctype.h>
-#include <stdint.h>
 
 #include "postprocess.h"
 
-/* FIXME: these use the filter ID as an index--the ID can grow
- * arbitrarily large, so this needs to be fixed */
-static pp_mode_t *mode[100];
-static pp_context_t *context[100];
-static int width[100], height[100];
-static int pre[100];
 
-/*-------------------------------------------------
- *
- * single function interface
- *
- *-------------------------------------------------*/
+/*************************************************************************/
 
-static void optstr_help (void)
+typedef struct {
+    pp_mode_t *mode;
+    pp_context_t *context;
+
+    int width, height;
+
+    int pre_flag;
+} PPPrivateData;
+
+
+static const char tc_pp_help[] = ""
+    "FIXME: WRITEME\n"
+    "<filterName>[:<option>[:<option>...]][[|/][-]<filterName>[:<option>...]]...\n"
+    "long form example:\n"
+    "vdeblock:autoq/hdeblock:autoq/linblenddeint    default,-vdeblock\n"
+    "short form example:\n"
+    "vb:a/hb:a/lb                                   de,-vb\n"
+    "more examples:\n"
+    "tn:64:128:256\n"
+    "Filters                        Options\n"
+    "short  long name       short   long option     Description\n"
+    "*      *               a       autoq           cpu power dependant enabler\n"
+    "                       c       chrom           chrominance filtring enabled\n"
+    "                       y       nochrom         chrominance filtring disabled\n"
+    "hb     hdeblock        (2 Threshold)           horizontal deblocking filter\n"
+    "       1. difference factor: default=64, higher -> more deblocking\n"
+    "       2. flatness threshold: default=40, lower -> more deblocking\n"
+    "                       the h & v deblocking filters share these\n"
+    "                       so u cant set different thresholds for h / v\n"
+    "vb     vdeblock        (2 Threshold)           vertical deblocking filter\n"
+    "h1     x1hdeblock                              Experimental h deblock filter 1\n"
+    "v1     x1vdeblock                              Experimental v deblock filter 1\n"
+    "dr     dering                                  Deringing filter\n"
+    "al     autopp                              automatic brightness / contrast\n"
+    "                       f       fullyrange      stretch luminance to (0..255)\n"
+    "lb     linblenddeint                           linear blend deinterlacer\n"
+    "li     linipoldeint                            linear interpolating deinterlace\n"
+    "ci     cubicipoldeint                          cubic interpolating deinterlacer\n"
+    "md     mediandeint                             median deinterlacer\n"
+    "fd     ffmpegdeint                             ffmpeg deinterlacer\n"
+    "de     default                                 hb:a,vb:a,dr:a,al\n"
+    "fa     fast                                    h1:a,v1:a,dr:a,al\n"
+    "tn     tmpnoise        (3 Thresholds)          Temporal Noise Reducer\n"
+    "                       1. <= 2. <= 3.          larger -> stronger filtering\n"
+    "fq     forceQuant      <quantizer>             Force quantizer\n"
+    "pre    pre                                     run as a pre filter\n";
+
+/*************************************************************************/
+
+static uint32_t translate_accel(int tc_accel)
 {
-  tc_log_info(MOD_NAME, "(%s) help\n"
-"<filterName>[:<option>[:<option>...]][[|/][-]<filterName>[:<option>...]]...\n"
-"long form example:\n"
-"vdeblock:autoq/hdeblock:autoq/linblenddeint    default,-vdeblock\n"
-"short form example:\n"
-"vb:a/hb:a/lb                                   de,-vb\n"
-"more examples:\n"
-"tn:64:128:256\n"
-"Filters                        Options\n"
-"short  long name       short   long option     Description\n"
-"*      *               a       autoq           cpu power dependant enabler\n"
-"                       c       chrom           chrominance filtring enabled\n"
-"                       y       nochrom         chrominance filtring disabled\n"
-"hb     hdeblock        (2 Threshold)           horizontal deblocking filter\n"
-"       1. difference factor: default=64, higher -> more deblocking\n"
-"       2. flatness threshold: default=40, lower -> more deblocking\n"
-"                       the h & v deblocking filters share these\n"
-"                       so u cant set different thresholds for h / v\n"
-"vb     vdeblock        (2 Threshold)           vertical deblocking filter\n"
-"h1     x1hdeblock                              Experimental h deblock filter 1\n"
-"v1     x1vdeblock                              Experimental v deblock filter 1\n"
-"dr     dering                                  Deringing filter\n"
-"al     autolevels                              automatic brightness / contrast\n"
-"                       f       fullyrange      stretch luminance to (0..255)\n"
-"lb     linblenddeint                           linear blend deinterlacer\n"
-"li     linipoldeint                            linear interpolating deinterlace\n"
-"ci     cubicipoldeint                          cubic interpolating deinterlacer\n"
-"md     mediandeint                             median deinterlacer\n"
-"fd     ffmpegdeint                             ffmpeg deinterlacer\n"
-"de     default                                 hb:a,vb:a,dr:a,al\n"
-"fa     fast                                    h1:a,v1:a,dr:a,al\n"
-"tn     tmpnoise        (3 Thresholds)          Temporal Noise Reducer\n"
-"                       1. <= 2. <= 3.          larger -> stronger filtering\n"
-"fq     forceQuant      <quantizer>             Force quantizer\n"
-"pre    pre                                     run as a pre filter\n"
-	      , MOD_CAP);
+    if (tc_accel & AC_MMXEXT)
+        return PP_CPU_CAPS_MMX2;
+    if(tc_accel & AC_3DNOW)
+        return PP_CPU_CAPS_3DNOW;
+    if(tc_accel & AC_MMX)
+        return PP_CPU_CAPS_MMX;
+    return 0;
 }
 
-
-static void do_getconfig(char *opts)
-{
-
-    optstr_filter_desc (opts, MOD_NAME, MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYMOE", "1");
-
-    optstr_param (opts, "hb", "Horizontal deblocking filter", "%d:%d", "64:40", "0", "255", "0", "255");
-    optstr_param (opts, "vb", "Vertical deblocking filter", "%d:%d", "64:40", "0", "255", "0", "255");
-    optstr_param (opts, "h1", "Experimental h deblock filter 1", "", "0");
-    optstr_param (opts, "v1", "Experimental v deblock filter 1", "", "0");
-    optstr_param (opts, "dr", "Deringing filter", "", "0");
-    optstr_param (opts, "al", "Automatic brightness / contrast", "", "0");
-    optstr_param (opts, "f", "Stretch luminance to (0..255)", "", "0");
-    optstr_param (opts, "lb", "Linear blend deinterlacer", "", "0");
-    optstr_param (opts, "li", "Linear interpolating deinterlace", "", "0");
-    optstr_param (opts, "ci", "Cubic interpolating deinterlacer", "", "0");
-    optstr_param (opts, "md", "Median deinterlacer", "", "0");
-    optstr_param (opts, "de", "Default preset (hb:a/vb:a/dr:a/al)", "", "0");
-    optstr_param (opts, "fa", "Fast preset (h1:a/v1:a/dr:a/al)", "", "0");
-    optstr_param (opts, "tn", "Temporal Noise Reducer (1<=2<=3)",
-	    "%d:%d:%d", "64:128:256", "0", "700", "0", "1500", "0", "3000");
-    optstr_param (opts, "fq", "Force quantizer", "%d", "15", "0", "255");
-    optstr_param (opts, "pre", "Run as a PRE filter", "", "0");
-}
+// FIXME: legacy
 
 static int no_optstr (char *s)
 {
@@ -136,46 +128,32 @@ static void do_optstr(char *opts)
     opts++;
 
     while (*opts) {
-
-	if (*(opts-1) == ':') {
-	    if (isalpha(*opts)) {
-		if (
-			(
-			    strncmp(opts, "autoq", 5)   == 0
-		        ) || (
-			    strncmp(opts, "chrom", 5)   == 0
-		        ) || (
-			    strncmp(opts, "nochrom", 7) == 0
-			) || (
-			   (strncmp(opts, "a", 1)==0) && (strncmp(opts,"al",2)!=0)
-			) || (
-			   (strncmp(opts, "c", 1)==0) && (strncmp(opts,"ci",2)!=0)
-			) || (
-			    strncmp(opts, "y", 1)==0
-			)
-		   ) {
-		    opts++;
-		    continue;
-		} else {
-		    *(opts-1) = '/';
-		}
-	    }
-
-
-	}
-
-	if (*opts == '=')
-	    *opts = ':';
-
-	opts++;
+        if (*(opts-1) == ':') {
+	        if (isalpha(*opts)) {
+                if ((strncmp(opts, "autoq", 5)   == 0)
+                 || (strncmp(opts, "chrom", 5)   == 0)
+                 || (strncmp(opts, "nochrom", 7) == 0)
+                 || ((strncmp(opts, "a", 1)==0) && (strncmp(opts,"al",2)!=0))
+                 || ((strncmp(opts, "c", 1)==0) && (strncmp(opts,"ci",2)!=0))
+                 || (strncmp(opts, "y", 1)==0)) {
+                    opts++;
+                    continue;
+                } else {
+                    *(opts-1) = '/';
+		        }
+            }
+        }
+        if (*opts == '=')
+	        *opts = ':';
+        opts++;
     }
 }
 
-static char * pp_lookup(char *haystack, char *needle)
+static char *pp_lookup(char *haystack, char *needle)
 {
 	char *ch = haystack;
+	int len = strlen(needle);
 	int found = 0;
-	int len = strlen (needle);
 
 	while (!found) {
 		ch = strstr(ch, needle);
@@ -190,163 +168,268 @@ static char * pp_lookup(char *haystack, char *needle)
 	}
 
 	return (ch);
-
-
 }
 
-int tc_filter(frame_list_t *ptr_, char *options)
+/*************************************************************************/
+
+/*************************************************************************/
+
+/* Module interface routines and data. */
+
+/*************************************************************************/
+
+/**
+ * pp_init:  Initialize this instance of the module.  See
+ * tcmodule-data.h for function details.
+ */
+
+TC_MODULE_GENERIC_INIT(pp, PPPrivateData)
+
+/*************************************************************************/
+
+/**
+ * pp_fini:  Clean up after this instance of the module.  See
+ * tcmodule-data.h for function details.
+ */
+
+TC_MODULE_GENERIC_FINI(pp)
+
+/*************************************************************************/
+
+/**
+ * pp_configure:  Configure this instance of the module.  See
+ * tcmodule-data.h for function details.
+ */
+
+static int pp_configure(TCModuleInstance *self,
+            			    const char *options, vob_t *vob)
 {
-  vframe_list_t *ptr = (vframe_list_t *)ptr_;
-  static vob_t *vob=NULL;
-  int instance = ptr->filter_id;
+    PPPrivateData *pd = NULL;
+    int len = strlen(options); // XXX
+    char *c = NULL, opts[TC_BUF_LINE];
 
+    TC_MODULE_SELF_CHECK(self, "configure");
 
-  //----------------------------------
-  //
-  // filter init
-  //
-  //----------------------------------
+    pd = self->userdata;
 
-
-  if( (ptr->tag & TC_AUDIO))
-	  return 0;
-
-  if(ptr->tag & TC_FRAME_IS_SKIPPED)
-	  return 0;
-
-  if(ptr->tag & TC_FILTER_INIT)
-  {
-    char *c;
-    int len=0;
-
-    if((vob = tc_get_vob())==NULL) return(-1);
-
-    if (vob->im_v_codec == CODEC_RGB)
-    {
-      tc_log_error(MOD_NAME, "filter is not capable for RGB-Mode !");
-      return(-1);
+    strlcpy(opts, options, sizeof(opts));
+    if (vob->im_v_codec != CODEC_YUV) {
+        tc_log_error(MOD_NAME, "This filter is only capable of YUV mode");
+        return TC_ERROR;
+    }
+    if (!options || !len)  {
+        tc_log_error(MOD_NAME, "this filter needs options !");
+        return TC_ERROR;
     }
 
-    if (!options || !(len=strlen(options)))
-    {
-      tc_log_error(MOD_NAME, "this filter needs options !");
-      return(-1);
+    if (!no_optstr(opts)) {
+	    do_optstr(opts);
     }
 
-
-    if (!no_optstr(options)) {
-	do_optstr(options);
+    /* delete module options, so they can passed to libpostproc */
+    c = pp_lookup(opts, "pre");
+    if (c) {
+    	memmove(c, c+3, &opts[len]-c);
+        pd->pre_flag = 1;
     }
 
-    // if "pre" is found, delete it
-    if ( (c=pp_lookup(options, "pre")) ) {
-	memmove (c, c+3, &options[len]-c);
-	pre[instance] = 1;
-    }
-
-    if ( (c=pp_lookup(options, "help")) ) {
-	memmove (c, c+4, &options[len]-c);
-	optstr_help();
-    }
-
-    if (pre[instance]) {
-      width[instance] = vob->im_v_width;
-      height[instance]= vob->im_v_height;
+    if (pd->pre_flag) {
+        pd->width  = vob->im_v_width;
+        pd->height = vob->im_v_height;
     } else {
-      width[instance] = vob->ex_v_width;
-      height[instance]= vob->ex_v_height;
+        pd->width  = vob->ex_v_width;
+        pd->height = vob->ex_v_height;
     }
 
-    //tc_log_msg(MOD_NAME, "after pre (%s)", options);
-
-    mode[instance] = pp_get_mode_by_name_and_quality(options, PP_QUALITY_MAX);
-
-    if(mode[instance]==NULL) {
-      tc_log_error(MOD_NAME, "internal error (pp_get_mode_by_name_and_quality)");
-      return(-1);
+    pd->mode = pp_get_mode_by_name_and_quality(opts, PP_QUALITY_MAX);
+    if (!pd->mode) {
+        tc_log_error(MOD_NAME, "internal error (pp_get_mode_by_name_and_quality)");
+        return TC_ERROR;
     }
 
-    if(tc_accel & AC_MMXEXT)
-      context[instance] = pp_get_context(width[instance], height[instance], PP_CPU_CAPS_MMX2);
-    else if(tc_accel & AC_3DNOW)
-      context[instance] = pp_get_context(width[instance], height[instance], PP_CPU_CAPS_3DNOW);
-    else if(tc_accel & AC_MMX)
-      context[instance] = pp_get_context(width[instance], height[instance], PP_CPU_CAPS_MMX);
-    else
-      context[instance] = pp_get_context(width[instance], height[instance], 0);
-
-    if(context[instance]==NULL) {
-      tc_log_error(MOD_NAME, "internal error (pp_get_context) (instance=%d)", instance);
-      return(-1);
+    pd->context = pp_get_context(pd->width, pd->height, 
+                                 translate_accel(tc_accel));
+    if (!pd->context) {
+        tc_log_error(MOD_NAME, "internal error (pp_get_context)");
+        return TC_ERROR;
     }
 
-    // filter init ok.
-    if(verbose) tc_log_info(MOD_NAME, "%s %s #%d", MOD_VERSION, MOD_CAP, ptr->filter_id);
-    return(0);
-  }
-
-  //----------------------------------
-  //
-  // filter configure
-  //
-  //----------------------------------
-
-  if(ptr->tag & TC_FILTER_GET_CONFIG)
-  {
-      do_getconfig (options);
-      return 0;
-  }
-
-  //----------------------------------
-  //
-  // filter close
-  //
-  //----------------------------------
-
-
-  if(ptr->tag & TC_FILTER_CLOSE)
-  {
-    if (mode[instance])
-      pp_free_mode(mode[instance]);
-    mode[instance] = NULL;
-    if (context[instance])
-      pp_free_context(context[instance]);
-    context[instance] = NULL;
-
-    return(0);
-  }
-
-  //----------------------------------
-  //
-  // filter frame routine
-  //
-  //----------------------------------
-
-
-  // tag variable indicates, if we are called before
-  // transcodes internal video/audo frame processing routines
-  // or after and determines video/audio context
-
-  if(((ptr->tag & TC_PRE_M_PROCESS  && pre[instance]) ||
-	  (ptr->tag & TC_POST_M_PROCESS && !pre[instance])) &&
-	  !(ptr->attributes & TC_FRAME_IS_SKIPPED))
-  {
-    unsigned char *pp_page[3];
-    int ppStride[3];
-
-      pp_page[0] = ptr->video_buf;
-      pp_page[1] = pp_page[0] + (width[instance] * height[instance]);
-      pp_page[2] = pp_page[1] + (width[instance] * height[instance])/4;
-
-      ppStride[0] = width[instance];
-      ppStride[1] = ppStride[2] = width[instance]>>1;
-
-      pp_postprocess(pp_page, ppStride,
-		     pp_page, ppStride,
-		     width[instance], height[instance],
-		     NULL, 0, mode[instance], context[instance], 0);
-  }
-
-  return(0);
+    return TC_OK;
 }
 
+/*************************************************************************/
+
+/**
+ * pp_stop:  Reset this instance of the module.  See tcmodule-data.h
+ * for function details.
+ */
+
+static int pp_stop(TCModuleInstance *self)
+{
+    PPPrivateData *pd = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "stop");
+
+    pd = self->userdata;
+
+    if (pd->mode) {
+        pp_free_mode(pd->mode);
+        pd->mode = NULL;
+    }
+    if (pd->context) {
+        pp_free_context(pd->context);
+        pd->context = NULL;
+    }
+
+    return TC_OK;
+}
+
+/*************************************************************************/
+
+/**
+ * pp_inspect:  Return the value of an option in this instance of
+ * the module.  See tcmodule-data.h for function details.
+ */
+
+static int pp_inspect(TCModuleInstance *self,
+                      const char *param, const char **value)
+{
+    PPPrivateData *pd = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "inspect");
+    TC_MODULE_SELF_CHECK(param, "inspect");
+    
+    pd = self->userdata;
+
+    if (optstr_lookup(param, "help")) {
+        *value = tc_pp_help;
+    }
+    // FIXME
+
+    return TC_OK;
+}
+
+/*************************************************************************/
+
+/**
+ * pp_filter_video:  perform the postprocessing for each frame of
+ * this video stream. See tcmodule-data.h for function details.
+ */
+
+static int pp_filter_video(TCModuleInstance *self,
+                               vframe_list_t *frame)
+{
+    PPPrivateData *pd = NULL;
+    uint8_t *pp_page[3] = { NULL, NULL, NULL }; // XXX: redundant?
+    int ppStride[3] = { 0, 0, 0 };
+
+    TC_MODULE_SELF_CHECK(self, "filter");
+    TC_MODULE_SELF_CHECK(frame, "filter");
+
+    pd = self->userdata;
+
+    YUV_INIT_PLANES(pp_page, frame->video_buf,
+                    IMG_YUV420P, pd->width, pd->height);
+
+    ppStride[0] = pd->width;
+    ppStride[1] = pd->width/2;
+    ppStride[2] = pd->width/2;
+
+    pp_postprocess(pp_page, ppStride,  pp_page, ppStride,
+                   pd->width, pd->height, NULL, 0, 
+                   pd->mode, pd->context, 0);
+
+    return TC_OK;
+}
+
+/**************************************************************************/
+
+static const TCCodecID pp_codecs_in[] = { 
+    TC_CODEC_YUV420P, TC_CODEC_ERROR
+};
+static const TCCodecID pp_codecs_out[] = { 
+    TC_CODEC_YUV420P, TC_CODEC_ERROR
+};
+TC_MODULE_FILTER_FORMATS(pp);
+
+TC_MODULE_INFO(pp);
+
+static const TCModuleClass pp_class = {
+    .info         = &pp_info,
+
+    .init         = pp_init,
+    .fini         = pp_fini,
+    .configure    = pp_configure,
+    .stop         = pp_stop,
+    .inspect      = pp_inspect,
+
+    .filter_video = pp_filter_video,
+};
+
+TC_MODULE_ENTRY_POINT(pp);
+
+/*************************************************************************/
+
+static int pp_get_config(TCModuleInstance *self, char *options)
+{
+    TC_MODULE_SELF_CHECK(self, "get_config");
+
+    optstr_filter_desc(options, MOD_NAME,
+                       MOD_CAP, MOD_VERSION, MOD_AUTHOR, "VYMOE", "1");
+
+    optstr_param(options, "hb", "Horizontal deblocking filter",
+                 "%d:%d", "64:40", "0", "255", "0", "255");
+    optstr_param(options, "vb", "Vertical deblocking filter",
+                 "%d:%d", "64:40", "0", "255", "0", "255");
+    optstr_param(options, "h1", "Experimental h deblock filter 1", "", "0");
+    optstr_param(options, "v1", "Experimental v deblock filter 1", "", "0");
+    optstr_param(options, "dr", "Deringing filter", "", "0");
+    optstr_param(options, "al", "Automatic brightness / contrast", "", "0");
+    optstr_param(options, "f", "Stretch luminance to (0..255)", "", "0");
+    optstr_param(options, "lb", "Linear blend deinterlacer", "", "0");
+    optstr_param(options, "li", "Linear interpolating deinterlace", "", "0");
+    optstr_param(options, "ci", "Cubic interpolating deinterlacer", "", "0");
+    optstr_param(options, "md", "Median deinterlacer", "", "0");
+    optstr_param(options, "de", "Default preset (hb:a/vb:a/dr:a/al)", "", "0");
+    optstr_param(options, "fa", "Fast preset (h1:a/v1:a/dr:a/al)", "", "0");
+    optstr_param(options, "tn", "Temporal Noise Reducer (1<=2<=3)",
+                 "%d:%d:%d", "64:128:256",
+                 "0", "700", "0", "1500", "0", "3000");
+    optstr_param(options, "fq", "Force quantizer", "%d", "15", "0", "255");
+    optstr_param(options, "pre", "Run as a PRE filter", "", "0");
+
+    return TC_OK;
+}
+
+
+static int pp_process(TCModuleInstance *self, frame_list_t *frame)
+{
+    PPPrivateData *pd = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "process");
+
+    pd = self->userdata;
+
+    if (((frame->tag & TC_PRE_M_PROCESS  &&  pd->pre_flag)
+     ||  (frame->tag & TC_POST_M_PROCESS && !pd->pre_flag))
+     && !(frame->attributes & TC_FRAME_IS_SKIPPED)) {
+        return pp_filter_video(self, (vframe_list_t*)frame);
+    }
+    return TC_OK;
+}
+
+/*************************************************************************/
+
+TC_FILTER_OLDINTERFACE_M(pp)
+
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */

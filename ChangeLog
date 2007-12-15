@@ -1,3 +1,7 @@
+2007-12-15 Francesco Romani <fromani at gmail dot com>
+  * filter/filter_pp.c
+  port to NMS. Further testing needed.
+
 2007-12-09 Francesco Romani <fromani at gmail dot com>
   * libtc/tcmodule-info.h libtc/tcmoduleinfo.c
   add a few more (useful) module flags.
