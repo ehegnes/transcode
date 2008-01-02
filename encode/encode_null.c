@@ -1,5 +1,5 @@
 /*
- *  encode_null.c -- produce empty (as in zero-sized) A/V frames.
+ *  encode_null.c -- produces empty (as in zero-sized) A/V frames.
  *  (C) 2005-2007 Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
@@ -38,7 +38,7 @@
 
 static const char null_help[] = ""
     "Overview:\n"
-    "    this module absorb provided A/V frames and produces fake,"
+    "    this module absorbs provided A/V frames and produces fake,"
     "    empty \"encoded\" frames.\n"
     "Options:\n"
     "    help    produce module overview and options explanations\n";

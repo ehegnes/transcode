@@ -259,7 +259,9 @@ static int tc_lzo_encode_video(TCModuleInstance *self,
 static const TCCodecID tc_lzo_codecs_in[] = {
     TC_CODEC_YUY2, TC_CODEC_RGB, TC_CODEC_YUV420P, TC_CODEC_ERROR
 };
-static const TCCodecID tc_lzo_codecs_out[] = { TC_CODEC_LZO2, TC_CODEC_ERROR };
+static const TCCodecID tc_lzo_codecs_out[] = { 
+    TC_CODEC_LZO2, TC_CODEC_ERROR 
+};
 TC_MODULE_CODEC_FORMATS(tc_lzo);
 
 TC_MODULE_INFO(tc_lzo);
@@ -276,6 +278,7 @@ static const TCModuleClass tc_lzo_class = {
     .encode_video = tc_lzo_encode_video,
 };
 
+TC_MODULE_ENTRY_POINT(tc_lzo);
 extern const TCModuleClass *tc_plugin_setup(void)
 {
     return &tc_lzo_class;
