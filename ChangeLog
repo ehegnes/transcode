@@ -1,3 +1,7 @@
+2008-01-02 Francesco Romani <fromani at gmail dot com>
+  * libtc/tcmodule-plugin.h
+  Yet more support macros. It is turning somewhat funny.
+
 2008-01-02 Andrew Church <achurch at achurch dot org>
   * import/nuv/README.rtjpeg import/nuv/RTjpegN.c import/nuv/RTjpegN.h
     import/nuv/import_nuv.c

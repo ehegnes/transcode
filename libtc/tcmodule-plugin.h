@@ -173,6 +173,10 @@ static const TCFormatID PREFIX ## _formats_out[] = { TC_FORMAT_ERROR }
 static const TCCodecID  PREFIX ## _codecs_out[] = { TC_CODEC_ERROR }; \
 static const TCFormatID PREFIX ## _formats_in[] = { TC_FORMAT_ERROR }
 
+#define TC_MODULE_DEMUX_FORMATS_CODECS(PREFIX) \
+static const TCCodecID  PREFIX ## _codecs_in = { TC_CODEC_ERROR }; \
+static const TCFormatID PREFIX ## _formats_out[] = { TC_FORMAT_ERROR }
+
 /*
  * plugin entry point prototype
  */
