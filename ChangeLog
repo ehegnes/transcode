@@ -1,3 +1,8 @@
+2008-01-02 Andrew Church <achurch at achurch dot org>
+  * import/nuv/README.rtjpeg import/nuv/RTjpegN.c import/nuv/RTjpegN.h
+    import/nuv/import_nuv.c
+  Fix type-related compilation problems on 64-bit systems.
+
 2007-12-15 Andrew Church <achurch at achurch dot org>
   * configure.in
   Expand -Werror disabling to GCC 4.2.2 as well.
