@@ -279,10 +279,6 @@ static const TCModuleClass tc_lzo_class = {
 };
 
 TC_MODULE_ENTRY_POINT(tc_lzo);
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &tc_lzo_class;
-}
 
 /*************************************************************************/
 
