@@ -43,7 +43,7 @@
 void version()
 {
   printf("%s (%s v%s) (C) 2003-2004 Tilmann Bitterberg,"
-                        " 2004-2007 Transcode Team\n",
+                        " 2004-2008 Transcode Team\n",
                       EXE, PACKAGE, VERSION);
 }
 
