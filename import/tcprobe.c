@@ -260,21 +260,30 @@ static int tc_scan_directory_info(const char *dname,
         tc_snprintf(path_buf, sizeof(path_buf), "%s/%s",
                     dname, entry->d_name);
         err = stat(path_buf, &stat_buf);
-        if (err || !S_ISREG(stat_buf.st_mode)) {
+        if (err || (!S_ISREG(stat_buf.st_mode) && !S_ISDIR(stat_buf.st_mode))) {
             if (verbose >= TC_DEBUG) { /* uhm */
                 tc_log_warn(EXE, "opening '%s': is not a file",
                             path_buf);
             }
             continue;
         }
-        fd = xio_open(path_buf, O_RDONLY);
-        if (fd == -1) {
-            /* switch to tc_log_perror? */
-            tc_log_error(EXE, "opening '%s': %s",
-                         path_buf, strerror(errno));
-            continue; /* assume non-fatal error */
+        if (S_ISDIR(stat_buf.st_mode)) {
+            if (strcmp(entry->d_name, "VIDEO_TS") == 0) {
+                /* dname is a DVD image directory */
+                magic = TC_MAGIC_DVD;
+            } else {
+                continue;
+            }
+        } else {  // S_ISREG(stat_buf.st_mode)
+            fd = xio_open(path_buf, O_RDONLY);
+            if (fd == -1) {
+                /* switch to tc_log_perror? */
+                tc_log_error(EXE, "opening '%s': %s",
+                             path_buf, strerror(errno));
+                continue; /* assume non-fatal error */
+            }
+            magic = fileinfo(fd, 0);
         }
-        magic = fileinfo(fd, 0);
         j = tc_entry_info_find_magic(dinfo, last, magic);
         if (j != -1) { /* entry already encountered */
             dinfo[j].count++;

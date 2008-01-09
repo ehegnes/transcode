@@ -1,4 +1,8 @@
 2008-01-09 Andrew Church <achurch at achurch dot org>
+  * import/tcprobe.c
+  Probe DVD image directories (containing VIDEO_TS) correctly.
+
+2008-01-09 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c
   Fix segmentation fault when encoding completes.
 
