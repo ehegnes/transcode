@@ -683,12 +683,6 @@ static int x264_inspect(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static int x264_flush(TCModuleInstance *self, vframe_list_t *outframe)
-{
-    outframe->video_len = 0;
-    return TC_OK;
-}
-
 /**
  * x264_encode_video:  Decode a frame of data.  See tcmodule-data.h for
  * function details.
@@ -708,8 +702,9 @@ static int x264_encode_video(TCModuleInstance *self,
 
     pd->framenum++;
 
-    if (inframe == NULL && pd->flush_flag) {
-        return x264_flush(self, outframe); // FIXME
+    if (inframe == NULL) {
+        outframe->video_len = 0;
+        return TC_OK;
     }
 
     pic.img.i_csp = X264_CSP_I420;
