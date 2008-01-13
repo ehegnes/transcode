@@ -1,4 +1,14 @@
-2008-01-09 Andrew Church <achurch at achurch dot org>
+2008-01-13 Andrew Church <achurch at achurch dot org>
+  * src/decoder.c
+  set {audio,video}_len to sane values
+
+  * src/transcode.c src/transcode.h
+  add extradata field (needed by ogg/vorbis/theora modules) in vob_t.
+
+  * src/framebuffer.c
+  there is no need to copy backup buffers.
+
+2008-01-02 Francesco Romani <fromani at gmail dot com>
   * import/tcprobe.c
   Probe DVD image directories (containing VIDEO_TS) correctly.
 

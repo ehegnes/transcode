@@ -1138,7 +1138,7 @@ void aframe_copy(aframe_list_t *dst, const aframe_list_t *src,
     /* copy all common fields with just one move */
     ac_memcpy(dst, src, sizeof(frame_list_t));
     
-    if (copy_data == 1) {
+    if (copy_data) {
         /* really copy video data */
         ac_memcpy(dst->audio_buf, src->audio_buf, dst->audio_size);
     } else {
@@ -1165,14 +1165,12 @@ void vframe_copy(vframe_list_t *dst, const vframe_list_t *src,
      * we're focused on copy _content_ here.
      */
 
-    if (copy_data == 1) {
+    if (copy_data) {
         /* really copy video data */
-        ac_memcpy(dst->video_buf, src->video_buf, dst->video_size);
-        ac_memcpy(dst->video_buf2, src->video_buf2, dst->video_size);
+        ac_memcpy(dst->video_buf, src->video_buf, src->video_size);
     } else {
         /* soft copy, new frame points to old video data */
         dst->video_buf = src->video_buf;
-        dst->video_buf2 = src->video_buf2;
     }
 }
 

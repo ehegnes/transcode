@@ -232,6 +232,8 @@ typedef struct _vob_t {
     int clip_count;             // # of bytes clipped after volume adjustment
 
     // Video frame manipulation info
+    void *ex_v_xdata;
+    void *ex_a_xdata;
 
     int ex_v_width;             // Export picture width
     int ex_v_height;            // Export picture height

@@ -954,6 +954,8 @@ static vob_t *new_vob(void)
     vob->ex_a_string         = NULL;
     vob->ex_v_string         = NULL;
     vob->ex_m_string         = NULL;
+    vob->ex_a_xdata          = NULL;
+    vob->ex_v_xdata          = NULL;
 
     vob->reduce_h            = 1;
     vob->reduce_w            = 1;
