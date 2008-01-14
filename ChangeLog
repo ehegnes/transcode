@@ -1,3 +1,7 @@
+2008-01-14 Francesco Romani <fromani at gmail dot com>
+  * import/import_avi.c
+  add automatic colorspace conversion for raw streams and some minor updates.
+
 2007-11-24 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c src/decoder.h src/encoder-buffer.c src/encoder-common.c
     src/encoder-common.h src/encoder.c src/frame_threads.c

@@ -22,28 +22,81 @@
  */
 
 #define MOD_NAME    "import_avi.so"
-#define MOD_VERSION "v0.4.2 (2002-05-24)"
+#define MOD_VERSION "v0.5.0 (2008-01-15)"
 #define MOD_CODEC   "(video) * | (audio) *"
 
 #include "transcode.h"
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_PCM | TC_CAP_RGB | TC_CAP_AUD |
-                             TC_CAP_VID | TC_CAP_YUV422;
+                             TC_CAP_VID | TC_CAP_YUV | TC_CAP_YUV422;
 
 #define MOD_PRE avi
 #include "import_def.h"
 
 #include "libtc/xio.h"
+#include "libtc/tccodecs.h"
+#include "libtcvideo/tcvideo.h"
 
 
-static avi_t *avifile1=NULL;
-static avi_t *avifile2=NULL;
+static avi_t *avifile_aud = NULL;
+static avi_t *avifile_vid = NULL;
 
 static int audio_codec;
-static int aframe_count=0, vframe_count=0;
-static int width=0, height=0;
+static int aframe_count = 0, vframe_count = 0;
+static int width = 0, height = 0;
 
+static TCVHandle tcvhandle = NULL;
+static ImageFormat srcfmt = IMG_NONE, dstfmt = IMG_NONE;
+static int destsize = 0;
+
+static const struct {
+    const char *name;  // fourcc
+    ImageFormat format;
+    int bpp;
+} formats[] = {
+    { "I420", IMG_YUV420P, 12 },
+    { "YV12", IMG_YV12,    12 },
+    { "YUY2", IMG_YUY2,    16 },
+    { "UYVY", IMG_UYVY,    16 },
+    { "YVYU", IMG_YVYU,    16 },
+    { "Y800", IMG_Y8,       8 },
+    { "RGB",  IMG_RGB24,   24 },
+    { NULL,   IMG_NONE,     0 }
+};
+
+static ImageFormat tc_csp_translate(TCCodecID id)
+{
+    switch (id) {
+      case CODEC_RGB:        /* fallthrough */
+      case TC_CODEC_RGB:
+        return IMG_RGB24;
+      case CODEC_YUV:        /* fallthrough */
+      case TC_CODEC_YUV420P:
+        return IMG_YUV420P;
+      case CODEC_YUV422:     /* fallthrough */
+      case TC_CODEC_YUV422P:
+        return IMG_YUV422P;
+      default: /* cannot happen */
+        return IMG_NONE;
+    }
+    return IMG_NONE; /*cannot happen */
+}
+
+static TCCodecID tc_cdc_translate(int id)
+{
+    switch(id) {
+      case CODEC_YUV:
+        return TC_CODEC_YUV420P;
+      case CODEC_YUV422:
+        return TC_CODEC_YUV422P;
+      case CODEC_RGB:
+        return TC_CODEC_RGB;
+      default: /*cannot happen */
+        return TC_CODEC_UNKNOWN;
+    }
+    return TC_CODEC_ERROR; /* cannot happen */
+}
 
 /* ------------------------------------------------------------
  *
@@ -53,139 +106,141 @@ static int width=0, height=0;
 
 MOD_open
 {
-  double fps=0;
-  char *codec=NULL;
-  long rate=0, bitrate=0;
-  int format=0, chan=0, bits=0;
-  struct stat fbuf;
-  char import_cmd_buf[TC_BUF_MAX];
-  long sret;
-
-  param->fd = NULL;
-
-  if(param->flag == TC_AUDIO) {
+    double fps=0;
+    char *codec=NULL;
+    long rate=0, bitrate=0;
+    int format=0, chan=0, bits=0;
+    struct stat fbuf;
+    char import_cmd_buf[TC_BUF_MAX];
+    long sret;
 
     param->fd = NULL;
 
-    // Is the input file actually a directory - if so use
-    // tccat to dump out the audio. N.B. This isn't going
-    // to work if a particular track is needed
-    if((xio_stat(vob->audio_in_file, &fbuf))==0 && S_ISDIR(fbuf.st_mode)) {
-      sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-			 "tccat -a -i \"%s\" -d %d",
-			 vob->video_in_file, vob->verbose);
-      if (sret < 0)
-          return(TC_IMPORT_ERROR);
-      if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
-      if ((param->fd = popen(import_cmd_buf, "r"))== NULL) {
-        return(TC_IMPORT_ERROR);
-      }
-      return(TC_IMPORT_OK);
-    }
+    if (param->flag == TC_AUDIO) {
+        // Is the input file actually a directory - if so use
+        // tccat to dump out the audio. N.B. This isn't going
+        // to work if a particular track is needed
+        /* directory content should really be handled by upper levels... -- FR */
+        if ((xio_stat(vob->audio_in_file, &fbuf)) == 0 && S_ISDIR(fbuf.st_mode)) {
+            sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+                                "tccat -a -i \"%s\" -d %d",
+                                vob->video_in_file, vob->verbose);
+            if (sret < 0)
+                return TC_ERROR;
+            if (verbose_flag)
+                tc_log_info(MOD_NAME, "%s", import_cmd_buf);
+            param->fd = popen(import_cmd_buf, "r");
+            if (param->fd == NULL) {
+                return TC_ERROR;
+            }
+            return TC_OK;
+        }
 
-    // Otherwise proceed to open the file directly and decode here
-    if(avifile1==NULL) {
-      if(vob->nav_seek_file) {
-	if(NULL == (avifile1 = AVI_open_input_indexfile(vob->audio_in_file,
-                                                    0, vob->nav_seek_file))){
-	  AVI_print_error("avi open error");
-	  return(TC_IMPORT_ERROR);
-	}
-      } else {
-	if(NULL == (avifile1 = AVI_open_input_file(vob->audio_in_file,1))){
-	  AVI_print_error("avi open error");
-	  return(TC_IMPORT_ERROR);
-	}
-      }
-    }
+        // Otherwise proceed to open the file directly and decode here
+        if (avifile_aud == NULL) {
+            if (vob->nav_seek_file) {
+                avifile_aud = AVI_open_input_indexfile(vob->audio_in_file,
+                                                       0, vob->nav_seek_file);
+            } else {
+                avifile_aud = AVI_open_input_file(vob->audio_in_file, 1);
+            }
+            if (avifile_aud == NULL) {
+                AVI_print_error("avi open error");
+                return TC_ERROR;
+            }
+        }
 
-    //set selected for multi-audio AVI-files
-    AVI_set_audio_track(avifile1, vob->a_track);
+        // set selected for multi-audio AVI-files
+        AVI_set_audio_track(avifile_aud, vob->a_track);
 
-    rate   =  AVI_audio_rate(avifile1);
-    chan   =  AVI_audio_channels(avifile1);
+        rate   =  AVI_audio_rate(avifile_aud);
+        chan   =  AVI_audio_channels(avifile_aud);
 
-    if(!chan) {
-      tc_log_warn(MOD_NAME, "error: no audio track found");
-      return(TC_IMPORT_ERROR);
-    }
+        if (!chan) {
+            tc_log_warn(MOD_NAME, "error: no audio track found");
+            return TC_ERROR;
+        }
 
-    bits   =  AVI_audio_bits(avifile1);
-    bits   =  (!bits)?16:bits;
+        bits   =  AVI_audio_bits(avifile_aud);
+        bits   =  (!bits) ?16 :bits;
 
-    format =  AVI_audio_format(avifile1);
-    bitrate=  AVI_audio_mp3rate(avifile1);
+        format =  AVI_audio_format(avifile_aud);
+        bitrate=  AVI_audio_mp3rate(avifile_aud);
 
-    if (verbose_flag)
-        tc_log_info(MOD_NAME, "format=0x%x, rate=%ld Hz, bits=%d, "
+        if (verbose_flag)
+            tc_log_info(MOD_NAME, "format=0x%x, rate=%ld Hz, bits=%d, "
                         "channels=%d, bitrate=%ld",
-                         format, rate, bits, chan, bitrate);
+                        format, rate, bits, chan, bitrate);
 
-    if(vob->im_a_codec == CODEC_PCM && format != CODEC_PCM) {
-      tc_log_info(MOD_NAME, "error: invalid AVI audio format '0x%x'"
-                      " for PCM processing", format);
-      return(TC_IMPORT_ERROR);
-    }
-    // go to a specific byte for seeking
-    AVI_set_audio_position(avifile1, vob->vob_offset*vob->im_a_size);
+        if (vob->im_a_codec == CODEC_PCM && format != CODEC_PCM) {
+            tc_log_info(MOD_NAME, "error: invalid AVI audio format '0x%x'"
+                        " for PCM processing", format);
+            return TC_ERROR;
+        }
+        // go to a specific byte for seeking
+        AVI_set_audio_position(avifile_aud,
+                               vob->vob_offset * vob->im_a_size);
 
-    audio_codec=vob->im_a_codec;
-    return(TC_IMPORT_OK);
-  }
-
-  if(param->flag == TC_VIDEO) {
-
-    param->fd = NULL;
-
-    if(avifile2==NULL) {
-      if(vob->nav_seek_file) {
-	if(NULL == (avifile2 = AVI_open_input_indexfile(vob->video_in_file,
-                                                   0,vob->nav_seek_file))){
-	  AVI_print_error("avi open error");
-	  return(TC_IMPORT_ERROR);
-	}
-      } else {
-	if(NULL == (avifile2 = AVI_open_input_file(vob->video_in_file,1))){
-	  AVI_print_error("avi open error");
-	  return(TC_IMPORT_ERROR);
-	}
-      }
+        audio_codec = vob->im_a_codec;
+        return TC_OK;
     }
 
-    if (vob->vob_offset>0)
-	AVI_set_video_position(avifile2, vob->vob_offset);
+    if (param->flag == TC_VIDEO) {
+    	int i = 0;
 
-    //read all video parameter from input file
-    width  =  AVI_video_width(avifile2);
-    height =  AVI_video_height(avifile2);
+        if(avifile_vid==NULL) {
+            if (vob->nav_seek_file) {
+                avifile_vid = AVI_open_input_indexfile(vob->video_in_file,
+                                                       0, vob->nav_seek_file);
+            } else {
+                avifile_vid = AVI_open_input_file(vob->video_in_file, 1);
+            }
+            if (avifile_vid == NULL) {
+                AVI_print_error("avi open error");
+                return TC_ERROR;
+            }
+        }
 
-    fps    =  AVI_frame_rate(avifile2);
-    codec  =  AVI_video_compressor(avifile2);
+        if (vob->vob_offset > 0)
+            AVI_set_video_position(avifile_vid, vob->vob_offset);
 
-    tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d",
-	    codec, fps, width, height);
+        // read all video parameter from input file
+        width  =  AVI_video_width(avifile_vid);
+        height =  AVI_video_height(avifile_vid);
+        fps    =  AVI_frame_rate(avifile_vid);
+        codec  =  AVI_video_compressor(avifile_vid);
 
-    if(strlen(codec)!=0 && vob->im_v_codec == CODEC_RGB) {
-      tc_log_warn(MOD_NAME, "error: invalid AVI file codec '%s'"
-                      " for RGB processing", codec);
-      return(TC_IMPORT_ERROR);
+        tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d",
+                    codec, fps, width, height);
+
+        if (AVI_max_video_chunk(avifile_vid) > SIZE_RGB_FRAME) {
+            tc_log_error(MOD_NAME, "invalid AVI video frame chunk size detected");
+            return TC_ERROR;
+        }
+
+	    for (i = 0; formats[i].name != NULL; i++) {
+	        if (strcasecmp(formats[i].name, codec) == 0) {
+    	        srcfmt = formats[i].format;
+    	        dstfmt = tc_csp_translate(vob->im_v_codec);
+        	    destsize = vob->im_v_width * vob->im_v_height * formats[i].bpp / 8;
+    		    break;
+            }
+	    }
+    	if ((srcfmt && dstfmt) && (srcfmt != dstfmt)) {
+            TCCodecID tc_id = tc_cdc_translate(vob->im_v_codec);
+            tcvhandle = tcv_init();
+            if (!tcvhandle) {
+	            tc_log_error(MOD_NAME, "tcv_convert_init failed");
+                return TC_ERROR;
+            }
+            tc_log_info(MOD_NAME, "raw source, "
+                                  "converting colorspace: %s -> %s",
+                        formats[i].name,
+                        tc_codec_to_string(tc_id));
+        }
+        return TC_OK;
     }
-
-    if(AVI_max_video_chunk(avifile2) > SIZE_RGB_FRAME){
-      tc_log_warn(MOD_NAME, "error: invalid AVI video frame chunk size detected");
-      return(TC_IMPORT_ERROR);
-    }
-
-    if(strlen(codec)!=0 && vob->im_v_codec == CODEC_YUV &&
-                                               strcmp(codec, "YV12") != 0) {
-      tc_log_warn(MOD_NAME, "error: invalid AVI file codec '%s'"
-                      " for YV12 processing", codec);
-      return(TC_IMPORT_ERROR);
-    }
-    return(TC_IMPORT_OK);
-  }
-
-  return(TC_IMPORT_ERROR);
+    return TC_ERROR;
 }
 
 
@@ -195,88 +250,88 @@ MOD_open
  *
  * ------------------------------------------------------------*/
 
+#define RETURN_IF_READ_ERROR(RET, MSG) do { \
+    if ((RET) < 0) {                        \
+        if (verbose & TC_DEBUG)             \
+            AVI_print_error((MSG));         \
+        return TC_ERROR;                    \
+    }                                       \
+} while (0)
+
 MOD_decode
 {
+    int key;
+    long bytes_read = 0;
 
-  int key;
+    if (param->flag == TC_VIDEO) {
+        int i, mod = width % 4;
+        
+        // If we are using tccat, then do nothing here
+        if (param->fd != NULL) {
+            return TC_OK;
+        }
 
-  long bytes_read=0;
+        param->size = AVI_read_frame(avifile_vid, param->buffer, &key);
 
-  if(param->flag == TC_VIDEO) {
-    int i, mod=width%4;
+        // Fixup: For uncompressed AVIs, it must be aligned at
+        // a 4-byte boundary
+        if (mod && vob->im_v_codec == CODEC_RGB) {
+            for (i = 0; i < height; i++) {
+                memmove(param->buffer+(i*width*3),
+                        param->buffer+(i*width*3) + (mod)*i,
+                        width*3);
+            }   
+        }
 
-    // If we are using tccat, then do nothing here
-    if (param->fd != NULL) {
-      return(TC_IMPORT_OK);
+        if (verbose & TC_STATS && key)
+            tc_log_info(MOD_NAME, "keyframe %d", vframe_count);
+
+        if (param->size < 0) {
+            if (verbose & TC_DEBUG)
+                AVI_print_error("AVI read video frame");
+            return TC_ERROR;
+        }
+
+    	if ((srcfmt && dstfmt) && (srcfmt != dstfmt)) {
+            int ret = tcv_convert(tcvhandle,
+                                  param->buffer, param->buffer,
+		                          width, height,
+                                  srcfmt, dstfmt);
+            if (!ret) {
+                tc_log_error(MOD_NAME, "image conversion failed");
+                return TC_ERROR;
+            }
+            if (destsize)
+                param->size = destsize;
+        }
+
+        if (key)
+            param->attributes |= TC_FRAME_IS_KEYFRAME;
+
+        vframe_count++;
+
+        return TC_IMPORT_OK;
     }
 
-    param->size = AVI_read_frame(avifile2, param->buffer, &key);
+    if (param->flag == TC_AUDIO) {
+        if (audio_codec == CODEC_RAW) {
+            int r = 0;
 
-    // Fixup: For uncompressed AVIs, it must be aligned at
-    // a 4-byte boundary
-    if (mod && vob->im_v_codec == CODEC_RGB) {
-	for (i = 0; i<height; i++) {
-	    memmove (param->buffer+(i*width*3),
-		     param->buffer+(i*width*3) + (mod)*i,
-		     width*3);
-	}
+            bytes_read = AVI_audio_size(avifile_aud, aframe_count);
+            RETURN_IF_READ_ERROR(bytes_read, "AVI audio size frame");
+
+            r = AVI_read_audio(avifile_aud, param->buffer, bytes_read);
+            RETURN_IF_READ_ERROR(bytes_read, "AVI audio read frame");
+
+            aframe_count++; // XXX ?? -- FR
+        } else {
+            bytes_read = AVI_read_audio(avifile_aud, param->buffer, param->size);
+            RETURN_IF_READ_ERROR(bytes_read, "AVI audio read frame");
+        }
+        param->size = bytes_read;
+        return TC_OK;
     }
-
-    if(verbose & TC_STATS && key)
-      tc_log_info(MOD_NAME, "keyframe %d", vframe_count);
-
-    if(param->size<0) {
-      if(verbose & TC_DEBUG) AVI_print_error("AVI read video frame");
-      return(TC_IMPORT_ERROR);
-    }
-
-    //transcode v.0.5.0-pre8 addition
-    if(key) param->attributes |= TC_FRAME_IS_KEYFRAME;
-
-    ++vframe_count;
-
-    return(TC_IMPORT_OK);
-  }
-
-  if(param->flag == TC_AUDIO) {
-
-    switch(audio_codec) {
-
-    case CODEC_RAW:
-
-      bytes_read = AVI_audio_size(avifile1, aframe_count);
-
-      if(bytes_read<0) {
-	if(verbose & TC_DEBUG) AVI_print_error("AVI audio size frame");
-	return(TC_IMPORT_ERROR);
-      }
-
-      if(AVI_read_audio(avifile1, param->buffer, bytes_read) < 0) {
-	AVI_print_error("[import_avi] AVI audio read frame");
-	return(TC_IMPORT_ERROR);
-      }
-
-      param->size = bytes_read;
-      ++aframe_count;
-
-      break;
-
-    default:
-
-      bytes_read = AVI_read_audio(avifile1, param->buffer, param->size);
-
-      if(bytes_read<0) {
-	if(verbose & TC_DEBUG) AVI_print_error("AVI audio read frame");
-	return(TC_IMPORT_ERROR);
-      }
-
-      if(bytes_read < param->size) param->size=bytes_read;
-    }
-
-    return(TC_IMPORT_OK);
-  }
-
-  return(TC_IMPORT_ERROR);
+    return TC_ERROR;
 }
 
 /* ------------------------------------------------------------
@@ -285,28 +340,32 @@ MOD_decode
  *
  * ------------------------------------------------------------*/
 
+#define CLOSE_AVIFILE(AF) do { \
+   if ((AF) != NULL) {         \
+        AVI_close((AF));       \
+        (AF) = NULL;           \
+   }                           \
+} while (0)
+
 MOD_close
 {
+    if (param->fd != NULL)
+        pclose(param->fd);
 
-    if(param->fd != NULL) pclose(param->fd);
-
-    if(param->flag == TC_AUDIO) {
-
-	if(avifile1!=NULL) {
-	    AVI_close(avifile1);
-	    avifile1=NULL;
-	}
-	return(TC_IMPORT_OK);
+    if (param->flag == TC_AUDIO) {
+        CLOSE_AVIFILE(avifile_aud);
+        return TC_OK;
     }
 
-    if(param->flag == TC_VIDEO) {
-
-	if(avifile2!=NULL) {
-	    AVI_close(avifile2);
-	    avifile2=NULL;
-	}
-	return(TC_IMPORT_OK);
+    if (param->flag == TC_VIDEO) {
+        CLOSE_AVIFILE(avifile_vid);
+        return TC_OK;
     }
 
-    return(TC_IMPORT_ERROR);
+    if (tcvhandle) {
+        tcv_free(tcvhandle);
+        tcvhandle = NULL;
+    }
+    return TC_ERROR;
 }
+
