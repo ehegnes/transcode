@@ -4,6 +4,9 @@
 
   * import/probe_im.c
   set frc in probing.
+  
+  * import/import_im.c
+  minor updates and multiple decoding guard (useful in noseq mode).
 
 2007-11-24 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c src/decoder.h src/encoder-buffer.c src/encoder-common.c

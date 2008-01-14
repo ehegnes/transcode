@@ -24,7 +24,7 @@
  */
 
 #define MOD_NAME    "import_im.so"
-#define MOD_VERSION "v0.1.1 (2007-08-08)"
+#define MOD_VERSION "v0.1.2 (2008-01-14)"
 #define MOD_CODEC   "(video) RGB"
 
 #ifdef HAVE_CONFIG_H
@@ -61,9 +61,8 @@ static int capability_flag = TC_CAP_RGB|TC_CAP_VID;
 #include <sys/types.h>
 #include <regex.h>
 
-
 static char *head = NULL, *tail = NULL;
-static int first_frame = 0, current_frame = 0, pad = 0;
+static int first_frame = 0, current_frame = 0, decoded_frame = 0, pad = 0;
 static int width = 0, height = 0;
 static MagickWand *wand = NULL;
 static int auto_seq_read = TC_TRUE; 
@@ -164,17 +163,19 @@ MOD_open
             tc_free(frame);
         }
 
-        current_frame = first_frame;
-
         if (vob->im_v_string != NULL) {
             if (optstr_lookup(vob->im_v_string, "noseq")) {
                 auto_seq_read = TC_FALSE;
-                tc_log_info(MOD_NAME, "automagic image sequential read disabled");
+                if (verbose > TC_INFO) {
+                    tc_log_info(MOD_NAME, "automagic image sequential read disabled");
+                }
             }
         }
  
-        width = vob->im_v_width;
-        height = vob->im_v_height;
+        current_frame = first_frame;
+        decoded_frame = 0;
+        width         = vob->im_v_width;
+        height        = vob->im_v_height;
 
         MagickWandGenesis();
         wand = NewMagickWand();
@@ -199,7 +200,7 @@ MOD_open
 
 MOD_decode
 {
-    char *filename = NULL, *frame = NULL;
+    char *frame = NULL, *filename = NULL;
     int slen;
     MagickBooleanType status;
 
@@ -209,6 +210,9 @@ MOD_decode
 
     if (param->flag == TC_VIDEO) {
         if (!auto_seq_read) {
+            if (decoded_frame > 0) {
+                return TC_IMPORT_ERROR;
+            }
             filename = tc_strdup(vob->video_in_file);
         } else {
             // build the filename for the current frame
@@ -251,10 +255,10 @@ MOD_decode
 
         MagickSetLastIterator(wand);
 
-        status =  MagickGetImagePixels(wand,
-                                       0, 0, width, height,
-                                       "RGB", CharPixel,
-                                       param->buffer);
+        status = MagickGetImagePixels(wand,
+                                      0, 0, width, height,
+                                      "RGB", CharPixel,
+                                      param->buffer);
         /* param->size already set correctly by caller */
         if (status == MagickFalse) {
             return TCHandleMagickError(wand);
@@ -263,6 +267,7 @@ MOD_decode
         param->attributes |= TC_FRAME_IS_KEYFRAME;
 
         current_frame++;
+        decoded_frame++;
     
         tc_free(filename);
 
@@ -312,3 +317,4 @@ MOD_close
  *
  * vim: expandtab shiftwidth=4:
  */
+
