@@ -44,10 +44,10 @@ typedef struct rtframeheader
                                         //    A .. Audio Sync Information
 					//         timecode == effective dsp-frequency*100
 					//         when reaching this audio sync point
-					//         because many cheap soundcards are unexact 
+					//         because many cheap soundcards are unexact
 					//         and have a range from 44000 to 44250
 					//         instead of the expected exact 44100 S./sec
-					//    V .. Next Video Sync 
+					//    V .. Next Video Sync
 					//         timecode == next video framenumber
 					//    S .. Audio,Video,Text Correlation [NI]
    char keyframe;			//    0 .. keyframe
@@ -64,7 +64,7 @@ typedef struct rtframeheader
 					//  128 .. Reserverd Filter [NI]
 
    int  timecode;			// Timecodeinformation sec*1000 + msecs
- 
+
    int  packetlength;                   // V,A,T: length of following data in stream
    					// S:     length of packet correl. information [NI]
    					// R:     do not use here! (fixed 'RTjjjjjjjjjjjjjj')

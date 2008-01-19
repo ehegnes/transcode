@@ -5,6 +5,10 @@
   * docs/man/transcode.1 filter/filter_yuy2toyv12.c
   typo in filter name.
 
+  * import/nuv/Makefile.am import/nuv/README.rtjpeg import/nuv/RTjpegN.c
+    import/nuv/RTjpegN.h import/nuv/import_nuv.c import/nuv/nuppelvideo.h
+  NUV revamp (1/N): backport code from HEAD/1.1.x and make it compile.
+
 2008-01-05 Francesco Romani <fromani at gmail dot com>
   * import/ioaux.c src/transcode.c tools/avifix.c tools/aviindex.c
     tools/avimerge.c tools/avisplit.c tools/avisync.c
