@@ -9,12 +9,27 @@
  */
 
 #include "transcode.h"
-#include "libtc/libtc.h"
-#include "libtc/optstr.h"
-#include "aclib/ac.h"
+#include "framebuffer.h"
+#include "optstr.h"
 #include "nuppelvideo.h"
 #include "RTjpegN.h"
-#include "libtc/tc_lzo.h"
+#include "libtc/libtc.h"
+#include "aclib/ac.h"
+#include "import/magic.h"
+
+#include <lzo1x.h>
+#if (LZO_VERSION > 0x1070)
+#  include <lzoutil.h>
+#endif
+
+#define LZO2 1
+#undef LZO2
+
+#ifdef LZO2
+#include "tc_lzo.h"
+#endif
+
+
 
 #define MOD_NAME        "import_nuv.so"
 #define MOD_VERSION     "v0.9 (2006-06-03)"
@@ -62,6 +77,7 @@ typedef struct {
 #define TC_ERROR TC_IMPORT_ERROR
 
 #define tc_malloc   malloc
+#define tc_realloc  realloc
 #define tc_free     free
 #define tc_snprintf snprintf
 
@@ -81,7 +97,7 @@ static int tc_log(const char *pre, const char *tag, const char *fmt, ...)
 
     fprintf(stderr, "[%s] %s", tag, pre);
     va_start(ap, fmt);
-    vfprintf(stderr, msg, ap);
+    vfprintf(stderr, fmt, ap);
     va_end(ap);
     fputs("\n", stderr);
 
@@ -127,8 +143,7 @@ static int nuv_init(TCModuleInstance *self, uint32_t features)
 /*************************************************************************/
 
 /**
- * nuv_fini:  Clean up after this instance of the module.  See
- * tcmodule-data.h for function details.
+ * nuv_fini:  Clean up after this instance of the module.  
  */
 
 static int nuv_fini(TCModuleInstance *self)
@@ -152,8 +167,7 @@ static int nuv_fini(TCModuleInstance *self)
 /*************************************************************************/
 
 /**
- * nuv_configure:  Configure this instance of the module.  See
- * tcmodule-data.h for function details.
+ * nuv_configure:  Configure this instance of the module.  
  */
 
 static int nuv_configure(TCModuleInstance *self,
@@ -211,8 +225,7 @@ static int nuv_configure(TCModuleInstance *self,
 /*************************************************************************/
 
 /**
- * nuv_stop:  Reset this instance of the module.  See tcmodule-data.h for
- * function details.
+ * nuv_stop:  Reset this instance of the module.  
  */
 
 static int nuv_stop(TCModuleInstance *self)
@@ -235,37 +248,7 @@ static int nuv_stop(TCModuleInstance *self)
 /*************************************************************************/
 
 /**
- * nuv_inspect:  Return the value of an option in this instance of the
- * module.  See tcmodule-data.h for function details.
- */
-
-static int nuv_inspect(TCModuleInstance *self,
-                       const char *param, const char **value)
-{
-    PrivateData *pd;
-    static char buf[TC_BUF_MAX];
-
-    TC_MODULE_SELF_CHECK(self, "inspect");
-    TC_MODULE_SELF_CHECK(param, "inspect");
-    TC_MODULE_SELF_CHECK(value, "inspect");
-
-    pd = self->userdata;
-
-    if (optstr_lookup(param, "help")) {
-        tc_snprintf(buf, sizeof(buf),
-                    "Overview:\n"
-                    "    Decodes NuppelVideo streams.\n"
-                    "Options available: None.\n");
-       *value = buf;
-    }
-    return TC_IMPORT_OK;
-}
-
-/*************************************************************************/
-
-/**
- * nuv_demultiplex:  Demultiplex a frame of data.  See tcmodule-data.h for
- * function details.
+ * nuv_demultiplex:  Demultiplex a frame of data.
  */
 
 static int nuv_demultiplex(TCModuleInstance *self,
@@ -384,7 +367,7 @@ static int nuv_demultiplex(TCModuleInstance *self,
     if (aframe) {
         if (pd->audiorate == NUV_ARATE) {
             /* No resampling needed, just copy */
-            ac_memcpy(aframe->audio_buf, audiobuf, audiolen);
+            tc_memcpy(aframe->audio_buf, audiobuf, audiolen);
             aframe->audio_size = audiolen;
         } else {
             /* Resample data to NUV_ARATE samples per second */
@@ -459,8 +442,8 @@ static int nuv_demultiplex(TCModuleInstance *self,
         vframe->video_buf[2] = pd->height>>8;
         vframe->video_buf[3] = pd->height;
         vframe->video_buf[4] = pd->saved_vcomptype;
-        ac_memcpy(vframe->video_buf+5, pd->cdata, sizeof(pd->cdata));
-        ac_memcpy(vframe->video_buf+5+sizeof(pd->cdata), pd->saved_vframe,
+        tc_memcpy(vframe->video_buf+5, pd->cdata, sizeof(pd->cdata));
+        tc_memcpy(vframe->video_buf+5+sizeof(pd->cdata), pd->saved_vframe,
                   pd->saved_vframelen);
         vframe->video_size = pd->saved_vframelen+5+sizeof(pd->cdata);
         vframe->v_codec = TC_CODEC_NUV;
@@ -472,8 +455,7 @@ static int nuv_demultiplex(TCModuleInstance *self,
 /*************************************************************************/
 
 /**
- * nuv_decode_video:  Decode a frame of data.  See tcmodule-data.h for
- * function details.
+ * nuv_decode_video:  Decode a frame of data. 
  */
 
 static int nuv_decode_video(TCModuleInstance *self,
@@ -531,7 +513,7 @@ static int nuv_decode_video(TCModuleInstance *self,
       case '0':  // Uncompressed YUV
         if (in_framesize > out_framesize)
             in_framesize = out_framesize;
-        ac_memcpy(outframe->video_buf, encoded_frame, in_framesize);
+        tc_memcpy(outframe->video_buf, encoded_frame, in_framesize);
         break;
 
       case '1':  // RTjpeg-compressed data
