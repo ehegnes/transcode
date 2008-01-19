@@ -9,6 +9,14 @@
     import/nuv/RTjpegN.h import/nuv/import_nuv.c import/nuv/nuppelvideo.h
   NUV revamp (1/N): backport code from HEAD/1.1.x and make it compile.
 
+  removed files:
+    import/nuv/LICENSE.Nuppelvideo import/nuv/lzoconf.h import/nuv/minilzo.c
+    import/nuv/minilzo.h import/nuv/resampl.h import/nuv/resample.c
+    import/nuv/resample.h import/nuv/rtjpeg_aud_plugin.c
+    import/nuv/rtjpeg_aud_plugin.h import/nuv/rtjpeg_vid_plugin.c
+    import/nuv/rtjpeg_vid_plugin.h import/nuv/soxfuncs.c import/nuv/st.h
+  NUV revamp (2/N): purge no longer needed files.
+
 2008-01-05 Francesco Romani <fromani at gmail dot com>
   * import/ioaux.c src/transcode.c tools/avifix.c tools/aviindex.c
     tools/avimerge.c tools/avisplit.c tools/avisync.c
