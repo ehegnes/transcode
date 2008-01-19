@@ -35,6 +35,7 @@
 
 #if HAVE_AVIFILE_INCLUDES == 7
 #include <avifile-0.7/avm_fourcc.h>
+#include <avifile-0.7/videodecoder.h>
 #include <avifile-0.7/avifile.h>
 #include <avifile-0.7/image.h>
 #include <avifile-0.7/aviplay.h>
@@ -45,6 +46,7 @@
 #include <avifile-0.7/avm_creators.h>
 #elif HAVE_AVIFILE_INCLUDES == 0
 #include <avifile/avm_fourcc.h>
+#include <avifile/videodecoder.h>
 #include <avifile/avifile.h>
 #include <avifile/image.h>
 #include <avifile/aviplay.h>

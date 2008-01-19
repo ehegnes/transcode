@@ -1,3 +1,7 @@
+2008-01-19 Francesco Romani <fromani at gmail dot com>
+  * import/af6_decore.cpp
+  allow compilation with newer avifile (as in ubuntu gutsy).
+
 2008-01-05 Francesco Romani <fromani at gmail dot com>
   * import/ioaux.c src/transcode.c tools/avifix.c tools/aviindex.c
     tools/avimerge.c tools/avisplit.c tools/avisync.c
