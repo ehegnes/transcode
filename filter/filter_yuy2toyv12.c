@@ -21,7 +21,7 @@
  *
  */
 
-#define MOD_NAME    "filter_yuy2tov12.so"
+#define MOD_NAME    "filter_yuy2toyv12.so"
 #define MOD_VERSION "v0.0.2 (2003-09-04)"
 #define MOD_CAP     "YUY2 to YV12 converter plugin"
 #define MOD_AUTHOR  "Thomas Oestreich"
