@@ -17,6 +17,9 @@
     import/nuv/rtjpeg_vid_plugin.h import/nuv/soxfuncs.c import/nuv/st.h
   NUV revamp (2/N): purge no longer needed files.
 
+  * configure.in
+  transcode 1.0.6rc1.
+
 2008-01-05 Francesco Romani <fromani at gmail dot com>
   * import/ioaux.c src/transcode.c tools/avifix.c tools/aviindex.c
     tools/avimerge.c tools/avisplit.c tools/avisync.c
