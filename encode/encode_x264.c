@@ -1,6 +1,7 @@
 /*
  * encode_x264.c - encodes video using the x264 library
- * Written by Christian Bodenstedt, with changes for NMS by Andrew Church
+ * Written by Christian Bodenstedt, with NMS adaptation and other changes
+ * by Andrew Church
  * 
  * This file is part of transcode, a video stream processing tool.
  * transcode is free software, distributable under the terms of the GNU
@@ -35,7 +36,7 @@
 
 
 #define MOD_NAME    "encode_x264.so"
-#define MOD_VERSION "v0.2.2 (2007-10-27)"
+#define MOD_VERSION "v0.2.3 (2008-01-23)"
 #define MOD_CAP     "x264 encoder"
 
 #define MOD_FEATURES \
@@ -437,8 +438,11 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
     params->b_interlaced = (vob->encode_fields==TC_ENCODE_FIELDS_TOP_FIRST
                          || vob->encode_fields==TC_ENCODE_FIELDS_BOTTOM_FIRST);
 
-    /* TODO: allow other modes than cbr */
-    params->rc.i_rc_method = X264_RC_ABR; /* use bitrate instead of CQP */
+    if (params->rc.f_rf_constant != 0) {
+        params->rc.i_rc_method = X264_RC_CRF;
+    } else {
+        params->rc.i_rc_method = X264_RC_ABR;
+    }
     params->rc.i_bitrate = vob->divxbitrate; /* what a name */
 
     if (TC_NULL_MATCH == tc_frc_code_to_ratio(vob->ex_frc,
