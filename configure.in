@@ -1440,6 +1440,7 @@ AC_CONFIG_FILES([
 	libdldarwin/Makefile
 	libtc/Makefile
 	libtcaudio/Makefile
+	libtcext/Makefile
 	libtcvideo/Makefile
 	pvm3/Makefile
 	src/Makefile

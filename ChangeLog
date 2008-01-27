@@ -1,3 +1,10 @@
+2008-01-27 Francesco Romani <fromani at gmail dot com>
+  * added files: libtcext/Makefile.am libtcext/tc_avcodec.h libtcext/tc_lzo.h
+
+  * configure.in
+  libtcext integration, round 1/N: add new directory with copy of existing
+  involved files.
+
 2008-01-23 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c
   Activate x264's constant-quality mode if the crf parameter is specified
