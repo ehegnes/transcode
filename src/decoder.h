@@ -150,7 +150,7 @@ int tc_import_video_status(void);
 
 /*************************************************************************/
 
-void tc_seq_import_threads_create(vob_t *vob);
-void tc_seq_import_threads_cancel(void);
+void tc_multi_import_threads_create(vob_t *vob);
+void tc_multi_import_threads_cancel(void);
 
 #endif /* DECODER_H */

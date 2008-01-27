@@ -5,6 +5,9 @@
   add an helper to let the rest of the world know if there is another
   input file avalaible or not.
 
+  * src/decoder.c src/decoder.h
+  multi-input mode fixes.
+
 2008-01-23 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c
   Activate x264's constant-quality mode if the crf parameter is specified

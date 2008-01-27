@@ -81,6 +81,9 @@ static TCDecoderData audio_decdata = {
 };
 
 static pthread_t tc_pthread_main = (pthread_t)0;
+static long int vframecount = 0;
+static long int aframecount = 0;
+
 
 /*************************************************************************/
 /*  Old-style compatibility support functions                            */
@@ -446,7 +449,6 @@ static int stop_cause(int ret)
  */
 static int video_import_loop(vob_t *vob)
 {
-    long int i = 0;
     int ret = 0, vbytes = 0;
     vframe_list_t *ptr = NULL;
     transfer_t import_para;
@@ -462,10 +464,11 @@ static int video_import_loop(vob_t *vob)
     while (tc_running()) {
 
         if (verbose >= TC_THREADS)
-            tc_log_msg(__FILE__, "%10s [%ld] V=%d bytes", "requesting", i, vbytes);
+            tc_log_msg(__FILE__, "%10s [%ld] V=%d bytes", "requesting",
+                       vframecount, vbytes);
 
         /* stage 1: register new blank frame */
-        ptr = vframe_register(i);
+        ptr = vframe_register(vframecount);
         if (ptr == NULL) {
             if (verbose >= TC_THREADS)
                 tc_log_msg(__FILE__, "frame registration interrupted!");
@@ -505,7 +508,11 @@ static int video_import_loop(vob_t *vob)
                 tc_log_msg(__FILE__, "video data read failed - end of stream");
 
             ptr->video_size = 0;
-            ptr->attributes = TC_FRAME_IS_END_OF_STREAM;
+            if (!tc_has_more_video_in_file(vob)) {
+                ptr->attributes = TC_FRAME_IS_END_OF_STREAM;
+            } else {
+                ptr->attributes = TC_FRAME_IS_SKIPPED;
+            }
         }
 
         ptr->v_height   = vob->im_v_height;
@@ -532,7 +539,8 @@ static int video_import_loop(vob_t *vob)
         vframe_push_next(ptr, next);
 
         if (verbose >= TC_THREADS)
-            tc_log_msg(__FILE__, "%10s [%ld] V=%d bytes", "received", i, ptr->video_size);
+            tc_log_msg(__FILE__, "%10s [%ld] V=%d bytes", "received",
+                       vframecount, ptr->video_size);
 
         if (verbose >= TC_THREADS)
             tc_log_msg(__FILE__, "new video frame pushed");
@@ -546,7 +554,7 @@ static int video_import_loop(vob_t *vob)
             im_ret = TC_IM_THREAD_DONE;
             break;
         }
-        i++;
+        vframecount++;
     }
     return stop_cause(im_ret);
 }
@@ -573,7 +581,6 @@ static int video_import_loop(vob_t *vob)
 
 static int audio_import_loop(vob_t *vob)
 {
-    long int i = 0;
     int ret = 0, abytes;
     aframe_list_t *ptr = NULL;
     transfer_t import_para;
@@ -588,19 +595,19 @@ static int audio_import_loop(vob_t *vob)
     abytes = vob->im_a_size;
 
     while (tc_running()) {
-
         /* stage 1: audio adjustment for non-PAL frame rates */
-        if (i != 0 && i % TC_LEAP_FRAME == 0) {
+        if (aframecount != 0 && aframecount % TC_LEAP_FRAME == 0) {
             abytes = vob->im_a_size + vob->a_leap_bytes;
         } else {
             abytes = vob->im_a_size;
         }
 
         if (verbose >= TC_THREADS)
-            tc_log_msg(__FILE__, "%10s [%ld] A=%d bytes", "requesting", i, abytes);
+            tc_log_msg(__FILE__, "%10s [%ld] A=%d bytes",
+                       "requesting", aframecount, abytes);
 
         /* stage 2: register new blank frame */
-        ptr = aframe_register(i);
+        ptr = aframe_register(aframecount);
         if (ptr == NULL) {
             if (verbose >= TC_THREADS)
                 tc_log_msg(__FILE__, "frame registration interrupted!");
@@ -649,7 +656,11 @@ static int audio_import_loop(vob_t *vob)
                 tc_log_msg(__FILE__, "audio data read failed - end of stream");
 
             ptr->audio_size = 0;
-            ptr->attributes = TC_FRAME_IS_END_OF_STREAM;
+            if (!tc_has_more_audio_in_file(vob)) {
+                ptr->attributes = TC_FRAME_IS_END_OF_STREAM;
+            } else {
+                ptr->attributes = TC_FRAME_IS_SKIPPED;
+            }
         }
 
         // init frame buffer structure with import frame data
@@ -668,14 +679,14 @@ static int audio_import_loop(vob_t *vob)
 
         if (verbose >= TC_THREADS)
             tc_log_msg(__FILE__, "%10s [%ld] A=%d bytes", "received",
-                                 i, ptr->audio_size);
+                                 aframecount, ptr->audio_size);
 
         if (ret < 0) {
             tc_import_audio_stop();
             im_ret = TC_IM_THREAD_DONE;
             break;
         }
-        i++;
+        aframecount++;
     }
     return stop_cause(im_ret);
 }
@@ -840,9 +851,23 @@ void tc_import_shutdown(void)
 
 
 /*************************************************************************/
-/*             the new sequential API                                    */
+/*             the new multi-input sequential API                        */
 /*************************************************************************/
 
+static void dump_probeinfo(const ProbeInfo *pi, int i, const char *tag)
+{
+#ifdef DEBUG
+    tc_log_warn(__FILE__, "(%s): %ix%i asr=%i frc=%i codec=0x%lX",
+                tag, pi->width, pi->height, pi->asr, pi->frc, pi->codec);
+
+    if (i >= 0) {
+        tc_log_warn(__FILE__, "(%s): #%i %iHz %ich %ibits format=0x%X",
+                    tag, i,
+                    pi->track[i].samplerate, pi->track[i].chan,
+                    pi->track[i].bits, pi->track[i].format);
+    }
+#endif
+}
 
 static int probe_im_stream(const char *src, ProbeInfo *info)
 {
@@ -854,6 +879,8 @@ static int probe_im_stream(const char *src, ProbeInfo *info)
     ret = probe_stream_data(src, seek_range, info);
     pthread_mutex_unlock(&probe_mutex);
 
+    dump_probeinfo(info, 0, "probed");
+
     return ret;
 }
 
@@ -862,16 +889,24 @@ static int probe_matches(const ProbeInfo *ref, const ProbeInfo *cand, int i)
     if (ref->width  != cand->width || ref->height != cand->height
      || ref->frc    != cand->frc   || ref->asr    != cand->asr
      || ref->codec  != cand->codec) {
+        tc_log_error(__FILE__, "video parameters mismatch");
+        dump_probeinfo(ref,  -1, "old");
+        dump_probeinfo(cand, -1, "new");
         return 0;
     }
 
-    if (i >= ref->num_tracks || i >= cand->num_tracks) {
+    if (i > ref->num_tracks || i > cand->num_tracks) {
+        tc_log_error(__FILE__, "track parameters mismatch (i=%i|ref=%i|cand=%i)",
+                     i, ref->num_tracks, cand->num_tracks);
         return 0;
     }
     if (ref->track[i].samplerate != cand->track[i].samplerate
-     || ref->track[i].chan       != cand->track[i].chan    
-     || ref->track[i].bits       != cand->track[i].bits    
-     || ref->track[i].format     != cand->track[i].format    ) {
+     || ref->track[i].chan       != cand->track[i].chan      ) {
+//     || ref->track[i].bits       != cand->track[i].bits      ) { 
+//     || ref->track[i].format     != cand->track[i].format    ) { XXX XXX XXX
+        tc_log_error(__FILE__, "audio parameters mismatch");
+        dump_probeinfo(ref,  i, "old");
+        dump_probeinfo(cand, i, "new");
         return 0;
     }       
 
@@ -916,7 +951,6 @@ static const char *current_in_file(vob_t *vob, int kind)
     if (ret == 0) {                                                  \
         tc_log_error(PACKAGE, "probing of source '%s' failed", src); \
         status = TC_IM_THREAD_PROBE_ERROR;                           \
-        pthread_exit(&status);                                       \
     }                                                                \
 } while (0)
 
@@ -930,8 +964,8 @@ static const char *current_in_file(vob_t *vob, int kind)
 
 /*************************************************************************/
 
-typedef struct tcseqimportdata_ TCSeqImportData;
-struct tcseqimportdata_ {
+typedef struct tcmultiimportdata_ TCMultiImportData;
+struct tcmultiimportdata_ {
     int kind;
 
     TCDecoderData *decdata;
@@ -948,18 +982,16 @@ struct tcseqimportdata_ {
 /* FIXME: explain a such horrible thing */
 
 
-#define SEQDATA_INIT(MEDIA, VOB, KIND) do {                         \
-    memset(&(MEDIA ## _seqdata.infos), 0, sizeof(ProbeInfo));       \
-                                                                    \
-    MEDIA ## _seqdata.kind         = KIND;                          \
-                                                                    \
-    MEDIA ## _seqdata.vob          = VOB;                           \
-    MEDIA ## _seqdata.decdata      = &(MEDIA ## _decdata);          \
-                                                                    \
-    MEDIA ## _seqdata.open         = tc_import_ ## MEDIA ## _open;  \
-    MEDIA ## _seqdata.import_loop  = MEDIA ## _import_loop;         \
-    MEDIA ## _seqdata.close        = tc_import_ ## MEDIA ## _close; \
-    MEDIA ## _seqdata.next         = tc_next_ ## MEDIA ## _in_file; \
+#define SEQDATA_INIT(MEDIA, VOB, KIND) do {                           \
+    MEDIA ## _multidata.kind         = KIND;                          \
+                                                                      \
+    MEDIA ## _multidata.vob          = VOB;                           \
+    MEDIA ## _multidata.decdata      = &(MEDIA ## _decdata);          \
+                                                                      \
+    MEDIA ## _multidata.open         = tc_import_ ## MEDIA ## _open;  \
+    MEDIA ## _multidata.import_loop  = MEDIA ## _import_loop;         \
+    MEDIA ## _multidata.close        = tc_import_ ## MEDIA ## _close; \
+    MEDIA ## _multidata.next         = tc_next_ ## MEDIA ## _in_file; \
 } while (0)
 
 #define SEQDATA_FINI(MEDIA) do { \
@@ -968,27 +1000,23 @@ struct tcseqimportdata_ {
 
 
 
-static TCSeqImportData audio_seqdata;
-static TCSeqImportData video_seqdata;
+static TCMultiImportData audio_multidata;
+static TCMultiImportData video_multidata;
 
 /*************************************************************************/
 
-static void *seq_import_thread(void *_sid)
+static void *multi_import_thread(void *_sid)
 {
-    static int status = TC_IM_THREAD_DONE;
-    TCSeqImportData *sid = _sid;
-    int i, ret = TC_OK, track_id = sid->vob->a_track;
+    static int status = TC_IM_THREAD_UNKNOWN; // XXX
+
+    TCMultiImportData *sid = _sid;
+    int ret = TC_OK, track_id = sid->vob->a_track;
     ProbeInfo infos;
     ProbeInfo *old = &(sid->infos), *new = &infos;
     const char *fname = NULL;
+    long int i = 1;
 
-    for (i = 0; TC_TRUE; i++) {
-        /* shutdown test */
-        if (tc_interrupted()) { /* XXX */
-            status = TC_IM_THREAD_INTERRUPT;
-            break;
-        }
-
+    while (tc_running()) {
         ret = sid->open(sid->vob);
         if (ret == TC_ERROR) {
             status = TC_IM_THREAD_EXT_ERROR;
@@ -1001,9 +1029,6 @@ static void *seq_import_thread(void *_sid)
         ret = sid->close();
         if (ret == TC_ERROR) {
             status = TC_IM_THREAD_EXT_ERROR;
-        }
-
-        if (status != TC_IM_THREAD_DONE) {
             break;
         }
 
@@ -1020,7 +1045,7 @@ static void *seq_import_thread(void *_sid)
 
         if (probe_matches(old, new, track_id)) {
             if (verbose) {
-                tc_log_info(__FILE__, "switching to %s source #%i: %s",
+                tc_log_info(__FILE__, "switching to %s source #%li: %s",
                             sid->decdata->tag, i, fname);
             }
         } else {
@@ -1031,30 +1056,36 @@ static void *seq_import_thread(void *_sid)
         }
         /* now prepare for next probing round by swapping pointers */
         SWAP(ProbeInfo*, old, new);
+
+        i++;
     }
+    status = stop_cause(status);
+
+    tc_framebuffer_interrupt();
+
     pthread_exit(&status);
 }
 
 /*************************************************************************/
 
-void tc_seq_import_threads_create(vob_t *vob)
+void tc_multi_import_threads_create(vob_t *vob)
 {
     int ret;
 
-    probe_from_vob(&(audio_seqdata.infos), vob);
+    probe_from_vob(&(audio_multidata.infos), vob);
     SEQDATA_INIT(audio, vob, TC_AUDIO);
     tc_import_audio_start();
     ret = pthread_create(&audio_decdata.thread_id, NULL,
-                         seq_import_thread, &audio_seqdata);
+                         multi_import_thread, &audio_multidata);
     if (ret != 0) {
         tc_error("failed to start sequential audio stream import thread");
     }
 
-    probe_from_vob(&(video_seqdata.infos), vob);
+    probe_from_vob(&(video_multidata.infos), vob);
     SEQDATA_INIT(video, vob, TC_VIDEO);
     tc_import_video_start();
     ret = pthread_create(&video_decdata.thread_id, NULL,
-                         seq_import_thread, &video_seqdata);
+                         multi_import_thread, &video_multidata);
     if (ret != 0) {
         tc_error("failed to start sequential video stream import thread");
     }
@@ -1063,7 +1094,7 @@ void tc_seq_import_threads_create(vob_t *vob)
 }
 
 
-void tc_seq_import_threads_cancel(void)
+void tc_multi_import_threads_cancel(void)
 {
     SEQDATA_FINI(audio);
     SEQDATA_FINI(video);
