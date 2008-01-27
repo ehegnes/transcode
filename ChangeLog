@@ -30,6 +30,9 @@
   * libtcext/Makefile.am
   minor fixes
 
+  * configure.in
+  look for libshout and libvorbisenc.
+
 2008-01-23 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c
   Activate x264's constant-quality mode if the crf parameter is specified

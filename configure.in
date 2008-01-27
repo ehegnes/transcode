@@ -963,12 +963,28 @@ TC_PKG_CHECK(vorbis, no, VORBIS, no, [vorbis/codec.h], vorbis,
 TC_PKG_HAVE(vorbis, VORBIS)
 
 dnl
+dnl vorbisenc
+dnl
+VORBISENC_EXTRA_LIBS="$VORBISENC_EXTRA_LIBS $VORBIS_LIBS"
+TC_PKG_CHECK(vorbisenc, no, VORBISENC, no, [vorbis/vorbisenc.h], vorbisenc,
+ vorbis_encode_setup_init, vorbisenc, [http://www.xiph.org/ogg/vorbis/])
+TC_PKG_HAVE(vorbisenc, VORBISENC)
+
+dnl
 dnl theora
 dnl
 THEORA_EXTRA_LIBS="$THEORA_EXTRA_LIBS $OGG_LIBS -lm"
 TC_PKG_CHECK(theora, no, THEORA, theora-config, [theora/theora.h], theora,
  theora_info_init, theora, [http://www.theora.org/])
 TC_PKG_HAVE(theora, THEORA)
+
+dnl
+dnl shout
+dnl
+SHOUT_EXTRA_LIBS="$SHOUT_EXTRA_LIBS -lm"
+TC_PKG_CHECK(shout, no, SHOUT, shout, [shout/shout.h], shout,
+ shout_new, shout, [http://www.icecast.org/])
+TC_PKG_HAVE(shout, SHOUT)
 
 dnl
 dnl libdvdread
