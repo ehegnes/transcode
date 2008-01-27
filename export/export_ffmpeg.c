@@ -25,7 +25,7 @@
 
 #include "transcode.h"
 #include "libtc/libtc.h"
-#include "libtc/tcavcodec.h"
+#include "libtcext/tc_avcodec.h"
 #include "filter.h"
 #include "avilib/avilib.h"
 #include "aud_aux.h"

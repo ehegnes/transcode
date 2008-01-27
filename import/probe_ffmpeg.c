@@ -25,7 +25,7 @@
 #include "tc.h"
 #include "libtc/libtc.h"
 #include "libtc/ratiocodes.h"
-#include "libtc/tcavcodec.h"
+#include "libtcext/tc_avcodec.h"
 
 
 static void translate_info(const AVFormatContext *ctx, ProbeInfo *info)

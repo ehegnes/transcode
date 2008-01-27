@@ -32,7 +32,7 @@
 
 #include "libtc/tcmodule-plugin.h"
 
-#include "libtc/tcavcodec.h"
+#include "libtcext/tc_avcodec.h"
 
 #include <math.h>
 

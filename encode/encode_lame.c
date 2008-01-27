@@ -173,8 +173,7 @@ static int lame_configure(TCModuleInstance *self,
                      (vob->a_vbr!=0));
         return TC_ERROR;
     }
-    quality = vob->mp3quality<0.0 ? 0 : vob->mp3quality>9.0 ? 9 :
-        (int)vob->mp3quality;
+    quality = (int)TC_CLAMP(vob->mp3quality, 0.0, 9.0);
     if (lame_set_quality(pd->lgf, quality) < 0) {
         tc_log_error(MOD_NAME, "lame_set_quality(%d) failed", quality);
         return TC_ERROR;

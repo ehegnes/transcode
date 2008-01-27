@@ -31,7 +31,7 @@
 #include "tc.h"
 
 #include "libtc/libtc.h"
-#include "libtc/tcavcodec.h"
+#include "libtcext/tc_avcodec.h"
 
 #define READ_BUFFER_SIZE (10*1024*1024)
 #define MOD_NAME "decode_ffmpeg"

@@ -26,7 +26,7 @@
 #include "aud_aux.h"
 
 #include "libtc/libtc.h"
-#include "libtc/tcavcodec.h"
+#include "libtcext/tc_avcodec.h"
 
 #include <stdarg.h>
 #include <stdio.h>

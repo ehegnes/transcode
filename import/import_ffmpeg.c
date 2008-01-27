@@ -33,7 +33,7 @@
 #include "libtc/libtc.h"
 #include "libtc/optstr.h"
 #include "libtc/tcframes.h"
-#include "libtc/tcavcodec.h"
+#include "libtcext/tc_avcodec.h"
 #include "libtcvideo/tcvideo.h"
 
 static int verbose_flag = TC_QUIET;

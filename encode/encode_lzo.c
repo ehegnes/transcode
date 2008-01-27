@@ -22,8 +22,9 @@
 #include "transcode.h"
 #include "aclib/imgconvert.h"
 #include "libtc/optstr.h"
-#include "libtc/tc_lzo.h"
 #include "libtc/tcmodule-plugin.h"
+
+#include "libtcext/tc_lzo.h"
 
 #include <stdio.h>
 #include <stdlib.h>

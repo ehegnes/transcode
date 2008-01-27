@@ -15,7 +15,7 @@
 #include "aclib/ac.h"
 #include "nuppelvideo.h"
 #include "RTjpegN.h"
-#include "libtc/tc_lzo.h"
+#include "libtcext/tc_lzo.h"
 
 #define MOD_NAME        "import_nuv.so"
 #define MOD_VERSION     "v0.9 (2006-06-03)"

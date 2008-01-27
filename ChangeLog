@@ -5,6 +5,12 @@
   libtcext integration, round 1/N: add new directory with copy of existing
   involved files.
 
+  * encode/encode_lame.c encode/encode_lavc.c encode/encode_lzo.c
+    export/aud_aux.c export/export_ffmpeg.c export/export_lzo.c
+    import/decode_lavc.c import/decode_lzo.c import/import_ffmpeg.c
+    import/import_lzo.c import/nuv/import_nuv.c import/probe_ffmpeg.c
+  libtcext integration, round 2/N: use libtcext header instead libtc ones.
+
 2008-01-23 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c
   Activate x264's constant-quality mode if the crf parameter is specified

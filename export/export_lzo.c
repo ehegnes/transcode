@@ -30,7 +30,8 @@
 #include "avilib/avilib.h"
 #include "aud_aux.h"
 #include "import/magic.h"
-#include "libtc/tc_lzo.h"
+
+#include "libtcext/tc_lzo.h"
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -31,7 +31,7 @@
 
 #ifdef HAVE_LZO
 
-#include "libtc/tc_lzo.h"
+#include "libtcext/tc_lzo.h"
 
 #define MOD_NAME    "decode_lzo"
 
