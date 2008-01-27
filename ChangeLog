@@ -1,3 +1,8 @@
+2008-01-23 Andrew Church <achurch at achurch dot org>
+  * encode/encode_x264.c
+  Activate x264's constant-quality mode if the crf parameter is specified
+  (and nonzero).  Reported by Erik Jensen.
+
 2008-01-14 Francesco Romani <fromani at gmail dot com>
   * import/import_avi.c
   add automatic colorspace conversion for raw streams and some minor updates.

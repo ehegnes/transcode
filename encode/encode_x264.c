@@ -1,6 +1,7 @@
 /*
  * encode_x264.c - encodes video using the x264 library
- * Written by Christian Bodenstedt, with changes for NMS by Andrew Church
+ * Written by Christian Bodenstedt, with NMS adaptation and other changes
+ * by Andrew Church
  * 
  * This file is part of transcode, a video stream processing tool.
  * transcode is free software, distributable under the terms of the GNU
@@ -35,7 +36,7 @@
 
 
 #define MOD_NAME    "encode_x264.so"
-#define MOD_VERSION "v0.2.2 (2007-10-27)"
+#define MOD_VERSION "v0.2.3 (2008-01-23)"
 #define MOD_CAP     "x264 encoder"
 
 #define MOD_FEATURES \
@@ -437,8 +438,11 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
     params->b_interlaced = (vob->encode_fields==TC_ENCODE_FIELDS_TOP_FIRST
                          || vob->encode_fields==TC_ENCODE_FIELDS_BOTTOM_FIRST);
 
-    /* TODO: allow other modes than cbr */
-    params->rc.i_rc_method = X264_RC_ABR; /* use bitrate instead of CQP */
+    if (params->rc.f_rf_constant != 0) {
+        params->rc.i_rc_method = X264_RC_CRF;
+    } else {
+        params->rc.i_rc_method = X264_RC_ABR;
+    }
     params->rc.i_bitrate = vob->divxbitrate; /* what a name */
 
     if (TC_NULL_MATCH == tc_frc_code_to_ratio(vob->ex_frc,
@@ -683,12 +687,6 @@ static int x264_inspect(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static int x264_flush(TCModuleInstance *self, vframe_list_t *outframe)
-{
-    outframe->video_len = 0;
-    return TC_OK;
-}
-
 /**
  * x264_encode_video:  Decode a frame of data.  See tcmodule-data.h for
  * function details.
@@ -708,8 +706,9 @@ static int x264_encode_video(TCModuleInstance *self,
 
     pd->framenum++;
 
-    if (inframe == NULL && pd->flush_flag) {
-        return x264_flush(self, outframe); // FIXME
+    if (inframe == NULL) {
+        outframe->video_len = 0;
+        return TC_OK;
     }
 
     pic.img.i_csp = X264_CSP_I420;
@@ -770,20 +769,9 @@ static int x264_encode_video(TCModuleInstance *self,
 
 static const TCCodecID x264_codecs_in[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
 static const TCCodecID x264_codecs_out[] = { TC_CODEC_H264, TC_CODEC_ERROR };
-static const TCFormatID x264_formats[] = { TC_FORMAT_ERROR };
+TC_MODULE_CODEC_FORMATS(x264);
 
-
-static const TCModuleInfo x264_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = x264_codecs_in,
-    .codecs_out  = x264_codecs_out,
-    .formats_in  = x264_formats,
-    .formats_out = x264_formats
-};
+TC_MODULE_INFO(x264);
 
 static const TCModuleClass x264_class = {
     .info         = &x264_info,
