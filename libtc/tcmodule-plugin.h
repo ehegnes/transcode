@@ -43,7 +43,10 @@
 #define TC_HAS_FEATURE(flags, feat) \
     ((flags & (TC_MODULE_FEATURE_ ## feat)) ?1 :0)
 
-static inline int tc_module_av_check(uint32_t flags)
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
+static int tc_module_av_check(uint32_t flags)
 {
     int i = 0;
 
@@ -54,7 +57,10 @@ static inline int tc_module_av_check(uint32_t flags)
     return i;
 }
 
-static inline int tc_module_cap_check(uint32_t flags)
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
+static int tc_module_cap_check(uint32_t flags)
 {
     int i = 0;
 
@@ -96,14 +102,94 @@ static inline int tc_module_cap_check(uint32_t flags)
     } \
 } while (0)
 
+/*
+ * autogeneration macros for generic init/fini pair
+ * looks like generic pair is needed often that expected;
+ * In future module system revision, maybe they will be
+ * moved into core.
+ */
+
+#define TC_MODULE_GENERIC_INIT(MODNAME, MODDATA) \
+static int MODNAME ## _init(TCModuleInstance *self, uint32_t features) \
+{ \
+    MODDATA *pd = NULL; \
+    \
+    TC_MODULE_SELF_CHECK(self, "init"); \
+    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features); \
+    \
+    pd = tc_malloc(sizeof(MODDATA)); \
+    if (pd == NULL) { \
+        tc_log_error(MOD_NAME, "init: out of memory!"); \
+        return TC_ERROR; \
+    } \
+    \
+    self->userdata = pd; \
+    \
+    if (verbose) { \
+        tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP); \
+    } \
+    \
+    return TC_OK; \
+}
+
+#define TC_MODULE_GENERIC_FINI(MODNAME) \
+static int MODNAME ## _fini(TCModuleInstance *self) \
+{ \
+    TC_MODULE_SELF_CHECK(self, "fini"); \
+    \
+    tc_free(self->userdata); \
+    self->userdata = NULL; \
+    return TC_OK; \
+}
+
+/*
+ * autogeneration macro for TCModuleInfo descriptor
+ */
+#define TC_MODULE_INFO(PREFIX) \
+static const TCModuleInfo PREFIX ## _info = { \
+    .features    = MOD_FEATURES,          \
+    .flags       = MOD_FLAGS,             \
+    .name        = MOD_NAME,              \
+    .version     = MOD_VERSION,           \
+    .description = MOD_CAP,               \
+    .codecs_in   = PREFIX ## _codecs_in,  \
+    .codecs_out  = PREFIX ## _codecs_out, \
+    .formats_in  = PREFIX ## _formats_in, \
+    .formats_out = PREFIX ## _formats_out \
+}
+
+/*
+ * autogeneration for supported codecs/multiplexors
+ */
+#define TC_MODULE_FILTER_FORMATS(PREFIX) \
+static const TCFormatID PREFIX ## _formats_in[]  = { TC_FORMAT_ERROR }; \
+static const TCFormatID PREFIX ## _formats_out[] = { TC_FORMAT_ERROR }
+
+#define TC_MODULE_CODEC_FORMATS(PREFIX) \
+static const TCFormatID PREFIX ## _formats_in[]  = { TC_FORMAT_ERROR }; \
+static const TCFormatID PREFIX ## _formats_out[] = { TC_FORMAT_ERROR }
+
+#define TC_MODULE_MPLEX_FORMATS_CODECS(PREFIX) \
+static const TCCodecID  PREFIX ## _codecs_out[] = { TC_CODEC_ERROR }; \
+static const TCFormatID PREFIX ## _formats_in[] = { TC_FORMAT_ERROR }
+
+#define TC_MODULE_DEMUX_FORMATS_CODECS(PREFIX) \
+static const TCCodecID  PREFIX ## _codecs_in = { TC_CODEC_ERROR }; \
+static const TCFormatID PREFIX ## _formats_out[] = { TC_FORMAT_ERROR }
 
 /*
  * plugin entry point prototype
  */
 const TCModuleClass *tc_plugin_setup(void);
 
-/* TODO: unify in a proper way OLDINTERFACE and OLDINTERFACE_M */
+#define TC_MODULE_ENTRY_POINT(MODNAME) \
+extern const TCModuleClass *tc_plugin_setup(void) \
+{ \
+    return &( MODNAME ## _class); \
+} \
 
+
+/* TODO: unify in a proper way OLDINTERFACE and OLDINTERFACE_M */
 #define TC_FILTER_OLDINTERFACE(name) \
     /* Old-fashioned module interface. */ \
     static TCModuleInstance mod; \

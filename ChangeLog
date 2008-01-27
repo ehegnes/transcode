@@ -8,10 +8,14 @@
   * src/decoder.c src/decoder.h
   multi-input mode fixes.
 
+  * libtc/tcmodule-plugin.h
+  backport commodity macros from HEAD.
+
 2008-01-23 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c
   Activate x264's constant-quality mode if the crf parameter is specified
   (and nonzero).  Reported by Erik Jensen.
+  Applied to this branch by Francesco Romani
 
 2008-01-14 Francesco Romani <fromani at gmail dot com>
   * import/import_avi.c
