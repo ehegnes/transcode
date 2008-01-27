@@ -24,7 +24,7 @@
  */
 
 #define MOD_NAME    "import_ffmpeg.so"
-#define MOD_VERSION "v0.1.13 (2005-11-26)"
+#define MOD_VERSION "v0.1.14 (2008-01-27)"
 #define MOD_CODEC   "(video) ffmpeg: MS MPEG4v1-3/MPEG4/MJPEG"
 
 #include "transcode.h"
@@ -207,6 +207,13 @@ static void enable_levels_filter(void)
   tc_log_info(MOD_NAME, "input is mjpeg, reducing range from YUVJ420P to YUV420P");
   if(!(levels_handle = tc_filter_add("levels", "output=16-240:pre=1")))
     tc_log_warn(MOD_NAME, "cannot load levels filter");
+}
+
+static void disable_levels_filter(void)
+{
+    if (levels_handle != -1) {
+        tc_filter_remove(levels_handle);
+    }
 }
 
 /* ------------------------------------------------------------
@@ -735,6 +742,7 @@ MOD_close {
       avifile=NULL;
     }
 
+    disable_levels_filter();
     // do not free buffer and yuv2rgb_buffer!!
     /* 
      * because they are static variables and are conditionally allocated
