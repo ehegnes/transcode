@@ -33,8 +33,12 @@
   * configure.in
   look for libshout and libvorbisenc.
 
-  * added file: encode/encode_theora.c encode/encode_vorbis.c
+  * added files: encode/encode_theora.c encode/encode_vorbis.c
   add encoder modules for theora and vorbis.
+
+  * added files: multiplex/multiplex_ogg.c multiplex/shout.cfg
+  add ogg muxer, with native libshout support.
+  Important GOTCHA: see comments in the code.
 
 2008-01-23 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c
