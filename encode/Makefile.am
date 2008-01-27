@@ -28,6 +28,18 @@ if HAVE_LZO
 ENCODE_LZO = encode_lzo.la
 endif
 
+if HAVE_OGG
+if HAVE_THEORA
+ENCODE_THEORA = encode_theora.la
+endif
+endif
+
+if HAVE_OGG
+if HAVE_VORBISENC
+ENCODE_VORBIS = encode_vorbis.la
+endif
+endif
+
 if HAVE_X264
 ENCODE_X264 = encode_x264.la
 endif
@@ -46,6 +58,8 @@ pkg_LTLIBRARIES = \
 	$(ENCODE_LAME) \
 	$(ENCODE_LZO) \
 	encode_null.la \
+	$(ENCODE_THEORA) \
+	$(ENCODE_VORBIS) \
 	$(ENCODE_X264) \
 	$(ENCODE_XVID)
 endif
@@ -86,6 +100,16 @@ encode_lzo_la_LIBADD = $(LZO_LIBS)
 encode_null_la_SOURCES = encode_null.c
 encode_null_la_LDFLAGS = -module -avoid-version
 
+encode_theora_la_SOURCES = encode_theora.c
+encode_theora_la_CPPFLAGS = $(AM_CPPFLAGS) $(THEORA_CFLAGS) $(OGG_CFLAGS)
+encode_theora_la_LDFLAGS = -module -avoid-version
+encode_theora_la_LIBADD = $(THEORA_LIBS)
+
+encode_vorbis_la_SOURCES = encode_vorbis.c
+encode_vorbis_la_CPPFLAGS = $(AM_CPPFLAGS) $(VORBIS_CFLAGS) $(OGG_CFLAGS)
+encode_vorbis_la_LDFLAGS = -module -avoid-version
+encode_vorbis_la_LIBADD = $(VORBISENC_LIBS)
+
 encode_x264_la_SOURCES = encode_x264.c
 encode_x264_la_CPPFLAGS = $(AM_CPPFLAGS) $(X264_CFLAGS)
 encode_x264_la_LDFLAGS = -module -avoid-version
@@ -99,3 +123,4 @@ EXTRA_DIST = \
 	lavc.cfg \
 	x264.cfg \
 	xvid.cfg
+

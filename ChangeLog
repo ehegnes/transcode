@@ -33,6 +33,9 @@
   * configure.in
   look for libshout and libvorbisenc.
 
+  * added file: encode/encode_theora.c encode/encode_vorbis.c
+  add encoder modules for theora and vorbis.
+
 2008-01-23 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c
   Activate x264's constant-quality mode if the crf parameter is specified
