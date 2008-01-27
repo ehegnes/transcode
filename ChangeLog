@@ -11,6 +11,11 @@
     import/import_lzo.c import/nuv/import_nuv.c import/probe_ffmpeg.c
   libtcext integration, round 2/N: use libtcext header instead libtc ones.
 
+  * removed files: libtc/tc_lzo.h libtc/tcavcodec.h
+
+  * libtc/Makefile.am:
+  libtcext integration, round 3/N: remove now-duplicate headers from libtc.
+
 2008-01-23 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c
   Activate x264's constant-quality mode if the crf parameter is specified

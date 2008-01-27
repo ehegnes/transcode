@@ -48,7 +48,6 @@ EXTRA_DIST = \
 	static_xio.h \
 	static_optstr.h \
 	static_tctimer.h \
-	tc_lzo.h \
 	tccodecs.h \
 	tcformats.h \
 	tcframes.h \
