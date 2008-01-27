@@ -5,9 +5,10 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src
 
-#noinst_LTLIBRARIES = libtc.la
+#noinst_LTLIBRARIES = libtcext.la
 
 EXTRA_DIST = \
+	tc_avcodec.h \
 	tc_lzo.h \
 	tc_ogg.h
 
