@@ -2,19 +2,22 @@
   * added files: libtcext/Makefile.am libtcext/tc_avcodec.h libtcext/tc_lzo.h
 
   * configure.in
-  libtcext integration, round 1/N: add new directory with copy of existing
+  libtcext integration, round 1/3: add new directory with copy of existing
   involved files.
 
   * encode/encode_lame.c encode/encode_lavc.c encode/encode_lzo.c
     export/aud_aux.c export/export_ffmpeg.c export/export_lzo.c
     import/decode_lavc.c import/decode_lzo.c import/import_ffmpeg.c
     import/import_lzo.c import/nuv/import_nuv.c import/probe_ffmpeg.c
-  libtcext integration, round 2/N: use libtcext header instead libtc ones.
+  libtcext integration, round 2/3: use libtcext header instead libtc ones.
 
   * removed files: libtc/tc_lzo.h libtc/tcavcodec.h
 
   * libtc/Makefile.am:
-  libtcext integration, round 3/N: remove now-duplicate headers from libtc.
+  libtcext integration, round 3/3: remove now-duplicate headers from libtc.
+
+  * libtc/tccodecs.c libtc/tccodecs.h:
+  let transcode know about (basic) xiph formats.
 
 2008-01-23 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c

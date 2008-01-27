@@ -42,6 +42,8 @@ typedef enum {
     TC_CODEC_MP2        = 0x00000050,
     TC_CODEC_AAC        = 0x000000FF,
     TC_CODEC_VORBIS     = 0x0000FFFE,
+    TC_CODEC_FLAC,
+    TC_CODEC_SPEEX,
 
     /* we need special values here? */
     TC_CODEC_RGB        = 0x00000024,

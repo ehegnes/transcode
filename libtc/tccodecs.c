@@ -97,6 +97,8 @@ static const TCCodecInfo tc_codecs_info[] = {
 
     { TC_CODEC_HUFFYUV,    "huffyuv",     "HFYU",
                            "HuffYUV",                1, TC_VIDEO },
+    { TC_CODEC_THEORA,     "theora",      "THER",
+                           "xiph theora (VP3)",      1, TC_VIDEO },
     // XXX: right fcc?
     { TC_CODEC_FFV1,       "ffv1",        "FFV1",
                            "FFV1 (experimental)",    1, TC_VIDEO },
@@ -139,8 +141,12 @@ static const TCCodecInfo tc_codecs_info[] = {
                            "MPEG ES Layer 2",        0, TC_AUDIO },
     { TC_CODEC_AAC,        "aac",         NULL,
                            "AAC",                    0, TC_AUDIO },
-    { TC_CODEC_VORBIS,     "vorbis",      NULL,
-                           "ogg/vorbis",             0, TC_AUDIO },
+    { TC_CODEC_VORBIS,     "vorbis",      "VRBS",
+                           "xiph vorbis",             0, TC_AUDIO },
+    { TC_CODEC_FLAC,       "flac",        "FLAC",
+                           "xiph flac",              0, TC_AUDIO },
+    { TC_CODEC_SPEEX,      "sppex",       "SPEX",
+                           "xiph sppex",             0, TC_AUDIO },
     { TC_CODEC_VAG,        "vag",         NULL,
                            "PS-VAG",                 0, TC_AUDIO },
     /* FIXME: add more codec informations, on demand */
