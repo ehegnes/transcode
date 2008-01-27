@@ -13,11 +13,17 @@
 
   * removed files: libtc/tc_lzo.h libtc/tcavcodec.h
 
-  * libtc/Makefile.am:
+  * libtc/Makefile.am
   libtcext integration, round 3/3: remove now-duplicate headers from libtc.
 
-  * libtc/tccodecs.c libtc/tccodecs.h:
+  * libtc/tccodecs.c libtc/tccodecs.h
   let transcode know about (basic) xiph formats.
+
+  * libtc/tctimer.h
+  add timestamp declaration (better to move it into tcframes.h?)
+
+  * libtc/tcframes.h
+  add timestamp field.
 
 2008-01-23 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c

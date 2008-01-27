@@ -32,6 +32,7 @@
 #include <sys/types.h>
 
 #include "libtc/libtc.h"
+#include "libtc/tctimer.h"
 #include "libtc/tccodecs.h"
 
 
@@ -117,7 +118,8 @@ enum tcframestatus_ {
     int tag;                      /* init, open, close, ...     */ \
     int filter_id;                /* filter instance to run     */ \
     TCFrameStatus status;         /* see enumeration above      */ \
-    TCFrameAttributes attributes; /* see enumeration above      */
+    TCFrameAttributes attributes; /* see enumeration above      */ \
+    TCTimestamp timestamp;                                         \
 /* BEWARE: semicolon NOT NEEDED */
 
 /* 
@@ -159,6 +161,11 @@ enum tcframestatus_ {
  * [1] in 1.1.0 that not happens due to module interface constraints
  * since we're still bound to Old Module System.
  */
+
+#define TC_FRAME_GET_TIMESTAMP_UINT(FP)       ((FP)->timestamp.u)
+#define TC_FRAME_GET_TIMESTAMP_DOUBLE(FP)     ((FP)->timestamp.d)
+#define TC_FRAME_SET_TIMESTAMP_UINT(FP, TS)   ((FP)->timestamp.u = (uint64_t)(TS))
+#define TC_FRAME_SET_TIMESTAMP_DOUBLE(FP, TS) ((FP)->timestamp.d = (double)(TS))
 
 typedef struct tcframe_ TCFrame;
 struct tcframe_ {
