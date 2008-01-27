@@ -888,7 +888,7 @@ static void dump_info_new(info_t *ipipe)
 void version(void)
 {
     /* print id string to stderr */
-    printf("%s (%s v%s) (C) 2001-2007 Thomas Oestreich, Transcode team\n",
+    printf("%s (%s v%s) (C) 2001-2008 Thomas Oestreich, Transcode team\n",
            EXE, PACKAGE, VERSION);
 }
 

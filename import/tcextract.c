@@ -53,7 +53,7 @@ void version(void)
 {
     /* print id string to stderr */
     fprintf(stderr, "%s (%s v%s) (C) 2001-2003 Thomas Oestreich"
-                                   " 2003-2007 Transcode Team\n",
+                                   " 2003-2008 Transcode Team\n",
                     EXE, PACKAGE, VERSION);
 }
 

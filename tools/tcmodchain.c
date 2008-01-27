@@ -29,7 +29,7 @@
 
 void version(void)
 {
-    printf("%s v%s (C) 2006-2007 Transcode Team\n", EXE, VERSION);
+    printf("%s v%s (C) 2006-2008 Transcode Team\n", EXE, VERSION);
 }
 
 enum {

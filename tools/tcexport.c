@@ -95,7 +95,7 @@ struct tcencconf_ {
 
 void version(void)
 {
-    printf("%s v%s (C) 2006-2007 Transcode Team\n",
+    printf("%s v%s (C) 2006-2008 Transcode Team\n",
            EXE, VERSION);
 }
 
