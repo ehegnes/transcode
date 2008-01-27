@@ -69,7 +69,7 @@ static int auto_seq_read = TC_TRUE;
 /* 
  * automagically read further images with filename like the first one 
  * enabled by default for backward compatibility, but obsoleted
- * by core option --directory_mode
+ * by core option --multi_input
  */
 
 static int TCHandleMagickError(MagickWand *wand)

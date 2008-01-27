@@ -222,8 +222,8 @@ TC_OPTION(input,              'i', "file",
                 vob->video_in_file = optarg;
 )
 
-TC_OPTION(directory_mode,     0,   0,
-                "enable EXPERIMENTAL directory mode (see manpage)",
+TC_OPTION(multi_input,     0,   0,
+                "enable EXPERIMENTAL multiple input mode (see manpage)",
                 core_mode = TC_MODE_DIRECTORY;
 )
 TC_OPTION(output,             'o', "file",

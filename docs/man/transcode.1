@@ -1730,6 +1730,15 @@ If you don't give this option, you'll end up with several files in one of the
 above mentioned modes. It is still possible to merge them with avimerge(1).
 
 .TP
+.B \-\-multi_input
+.B (EXPERIMENTAL)
+.br
+intelligently join input file (standard POSIX globbing supported).
+While theorically all input modules are supported, it is safe to use this
+only when dealing with constant-sized audio (PCM) and intra-frame only 
+video codecs (es: MJPEG)
+
+.TP
 .B \-\-pre_clip t[,l[,b[,r]]]
 select initial frame region by clipping border [off]
 

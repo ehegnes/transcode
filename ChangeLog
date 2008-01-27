@@ -17,6 +17,9 @@
     import/tcdemux.c import/tcxmlcheck.c import/tcextract.c import/tcdecode.c
   copyright year bumped to 2008.
 
+  * src/cmdline_def.h docs/man/transcode.1
+  --directory_mode -> --multi_input
+
 2008-01-23 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c
   Activate x264's constant-quality mode if the crf parameter is specified
