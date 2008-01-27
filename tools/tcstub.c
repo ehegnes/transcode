@@ -145,6 +145,15 @@ void tc_del_audio_frame(aframe_list_t *aptr)
     return;
 }
 
+vframe_list_t *vframe_alloc_single(void)
+{
+    return NULL;
+}
+
+aframe_list_t *aframe_alloc_single(void)
+{
+    return NULL;
+}
 
 #endif /* TC_FRAMEBUFFER_STUBS */
 

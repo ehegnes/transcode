@@ -40,6 +40,9 @@
   add ogg muxer, with native libshout support.
   Important GOTCHA: see comments in the code.
 
+  * tools/tcstub.c
+  add stubs needed by encode_theora.
+
 2008-01-23 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c
   Activate x264's constant-quality mode if the crf parameter is specified
