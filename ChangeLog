@@ -1,3 +1,10 @@
+2008-01-27 Francesco Romani <fromani at gmail dot com>
+  * src/cmdline_def.h src/cmdline.c src/transcode.c src/transcode.h
+  move source path validation after the option parsing loop, in order
+  to let the multi-input code work;
+  add an helper to let the rest of the world know if there is another
+  input file avalaible or not.
+
 2008-01-23 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c
   Activate x264's constant-quality mode if the crf parameter is specified

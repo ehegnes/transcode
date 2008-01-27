@@ -129,37 +129,6 @@ static void print_option_help(const char *name, char shortopt,
     } while (*s);
 }
 
-/**
- * validate_source_path:  Check whether the given string represents a valid
- * source pathname.
- *
- * Parameters:
- *     path: String to check.
- * Return value:
- *     Nonzero if the string is a valid source pathname, else zero.
- * Side effects:
- *     Prints an error message using tc_error() if the string is not a
- *     valid pathname.
- */
-
-static int validate_source_path(const char *path)
-{
-    struct stat st;
-
-    if (!path || !*path) {
-        tc_error("No filename given");
-        return 0;
-    }
-    if (strcmp(path, "-") == 0)  // allow stdin (maybe also /dev/stdin? FIXME)
-        return 1;
-    if (*path == '!' || *path == ':')  /* from transcode.c -- why? */
-        return 1;
-    if (xio_stat(path, &st) == 0)
-        return 1;
-    tc_error("Invalid filename \"%s\": %s", path, strerror(errno));
-    return 0;
-}
-
 /*************************************************************************/
 
 /* The actual option definitions are located in cmdline_def.h using macros;

@@ -135,16 +135,55 @@ vob_t *tc_get_vob()
 
 /*************************************************************************/
 
+/**
+ * validate_source_path:  Check whether the given string represents a valid
+ * source pathname.
+ *
+ * Parameters:
+ *     path: String to check.
+ * Return value:
+ *     Nonzero if the string is a valid source pathname, else zero.
+ * Side effects:
+ *     Prints an error message using tc_error() if the string is not a
+ *     valid pathname.
+ */
+
+static int validate_source_path(const char *path)
+{
+    struct stat st;
+
+    if (!path || !*path) {
+        tc_error("No filename given");
+        return 0;
+    }
+    if (strcmp(path, "-") == 0)  // allow stdin (maybe also /dev/stdin? FIXME)
+        return 1;
+    if (*path == '!' || *path == ':')  /* from transcode.c -- why? */
+        return 1;
+    if (xio_stat(path, &st) == 0)
+        return 1;
+    tc_error("Invalid filename \"%s\": %s", path, strerror(errno));
+    return 0;
+}
+
+/*************************************************************************/
+
 int tc_next_video_in_file(vob_t *vob)
 {
     vob->video_in_file = tc_glob_next(vob->video_in_files);
-    return (vob->video_in_file != NULL);
+    if (vob->video_in_file != NULL) {
+        return TC_OK;
+    }
+    return TC_ERROR;
 }
 
 int tc_next_audio_in_file(vob_t *vob)
 {
     vob->audio_in_file = tc_glob_next(vob->audio_in_files);
-    return (vob->audio_in_file != NULL);
+    if (vob->audio_in_file != NULL) {
+        return TC_OK;
+    }
+    return TC_ERROR;
 }
 
 /*************************************************************************/
@@ -516,10 +555,11 @@ static int transcode_mode_directory(vob_t *vob)
 {
     struct fc_time *tstart = NULL;
     
-    if (vob->audio_in_file != vob->video_in_file)
-        tc_error("directory mode DOES NOT support separate audio files");
+    if (strcmp(vob->audio_in_file, vob->video_in_file) != 0)
+        tc_error("directory mode DOES NOT support separate audio files (A=%s|V=%s)",
+                 vob->audio_in_file, vob->video_in_file);
 
-    tc_seq_import_threads_create(vob);
+    tc_multi_import_threads_create(vob);
 
     if (tc_encoder_init(vob) != TC_OK)
         tc_error("failed to init encoder");
@@ -560,7 +600,7 @@ static int transcode_mode_directory(vob_t *vob)
 
     tc_encoder_close();
     tc_encoder_stop();
-    tc_seq_import_threads_cancel();
+    tc_multi_import_threads_cancel();
 
     return TC_OK;
 }
@@ -1129,10 +1169,17 @@ static void setup_input_sources(vob_t *vob)
         /* we always have at least one source */
         tc_next_video_in_file(vob);
     }
+    if (!validate_source_path(vob->video_in_file)) {
+        tc_error("invalid input video file: %s", vob->video_in_file);
+    }
+
     vob->audio_in_files = tc_glob_open(vob->audio_in_file, 0);
     if (vob->audio_in_files) {
         /* we always have at least one source */
         tc_next_audio_in_file(vob);
+    }
+    if (!validate_source_path(vob->audio_in_file)) {
+        tc_error("invalid input audio file: %s", vob->audio_in_file);
     }
 }
 

@@ -219,8 +219,6 @@ TC_OPTION(input,              'i', "file",
 #else
                 "input file/directory name",
 #endif
-                if (!validate_source_path(optarg))
-                    return 0;
                 vob->video_in_file = optarg;
 )
 
@@ -271,8 +269,6 @@ TC_OPTION(split,              't', "n,base",
 )
 TC_OPTION(audio_input,        'p', "file",
                 "read audio stream from separate file [off]",
-                if (!validate_source_path(optarg))
-                    return 0;
                 vob->audio_in_file = optarg;
 )
 TC_OPTION(audio_output,       'm', "file",
