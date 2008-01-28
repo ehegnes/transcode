@@ -24,7 +24,7 @@
  */
 
 #define MOD_NAME    "import_ffmpeg.so"
-#define MOD_VERSION "v0.1.14 (2008-01-27)"
+#define MOD_VERSION "v0.1.15 (2008-01-28)"
 #define MOD_CODEC   "(video) ffmpeg: MS MPEG4v1-3/MPEG4/MJPEG"
 
 #include "transcode.h"
@@ -49,7 +49,6 @@ char import_cmd_buf[TC_BUF_MAX];
 // transcode .. -x ffmpeg -y ffmpeg -F mpeg4
 
 static int done_seek=0;
-static int levels_handle=-1;
 
 struct ffmpeg_codec {
   int   id;
@@ -204,15 +203,13 @@ static int divx3_is_key(const uint8_t *d)
 
 static void enable_levels_filter(void)
 {
-  tc_log_info(MOD_NAME, "input is mjpeg, reducing range from YUVJ420P to YUV420P");
-  if(!(levels_handle = tc_filter_add("levels", "output=16-240:pre=1")))
-    tc_log_warn(MOD_NAME, "cannot load levels filter");
-}
-
-static void disable_levels_filter(void)
-{
-    if (levels_handle != -1) {
-        tc_filter_remove(levels_handle);
+    int handle = 0, id = tc_filter_find("levels");
+    if (id == 0) {
+        tc_log_info(MOD_NAME, "input is mjpeg, reducing range from YUVJ420P to YUV420P");
+        handle = tc_filter_add("levels", "output=16-240:pre=1");
+        if (!handle) {
+            tc_log_warn(MOD_NAME, "cannot load levels filter");
+        }
     }
 }
 
@@ -742,7 +739,6 @@ MOD_close {
       avifile=NULL;
     }
 
-    disable_levels_filter();
     // do not free buffer and yuv2rgb_buffer!!
     /* 
      * because they are static variables and are conditionally allocated
