@@ -4,6 +4,9 @@
   of cheating here since we do not check the configuration of filter, yet).
   Now import_ffmpeg can work in --multi_input mode, and I like that.
 
+  * configure.in
+  transcode 1.1.0 alpha 7.
+
 2008-01-27 Francesco Romani <fromani at gmail dot com>
   * src/cmdline_def.h src/cmdline.c src/transcode.c src/transcode.h
   move source path validation after the option parsing loop, in order
