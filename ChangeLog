@@ -2,6 +2,9 @@
   * import/nuv/RTjpegN.c import/nuv/RTjpegN.h import/nuv/import_nuv.c
   more NUV backport fixes from HEAD.
 
+  * configure.in
+  transcode 1.1.0 alpha 7 (really!).
+
 2008-01-28 Francesco Romani <fromani at gmail dot com>
   * import/import_ffmpeg.c
   load filter_levels only if isn't already avalaible (OK, there is a bit
