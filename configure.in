@@ -741,15 +741,20 @@ AC_ARG_ENABLE(nuv,
 force_nuv_off=no
 if test x"$enable_nuv" = x"yes" ; then
     if test x"$have_x86cpu" = x"false" ; then
-        force_nuv_off=yes
-        enable_nuv=no
+    	if test x"$have_x86_64cpu" = x"true" ; then
+    		AC_MSG_WARN(*** NUV format support on x86_64 is EXPERIMENTAL ***)
+                AC_MSG_WARN(*** Be prepared for glitches and even crashes    ***)
+	else
+        	force_nuv_off=yes
+	        enable_nuv=no
+	fi
     fi
 fi
 AC_MSG_RESULT($enable_nuv)
 AM_CONDITIONAL(HAVE_NUV, test x"$enable_nuv" = x"yes")
 if test x"$force_nuv_off" = x"yes" ; then
-    AC_MSG_WARN(*** NUV format is supported only on x86 ***)
-    AC_MSG_WARN(*** NUV support was forced to off       ***)
+    AC_MSG_WARN(*** NUV format is supported only on x86/x86_64 ***)
+    AC_MSG_WARN(*** NUV support was forced to off              ***)
 fi
 
 dnl
