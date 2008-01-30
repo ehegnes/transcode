@@ -457,7 +457,7 @@ static int nuv_decode_video(TCModuleInstance *self,
     if (!pd->dec_initted) {
         pd->width  = inframe->video_buf[0]<<8 | inframe->video_buf[1];
         pd->height = inframe->video_buf[2]<<8 | inframe->video_buf[3];
-        RTjpeg_init_decompress((unsigned long *)(inframe->video_buf+5),
+        RTjpeg_init_decompress((uint32_t *)(inframe->video_buf+5),
                                pd->width, pd->height);
         pd->dec_initted = 1;
     }
@@ -499,7 +499,7 @@ static int nuv_decode_video(TCModuleInstance *self,
         break;
 
       case '1':  // RTjpeg-compressed data
-        RTjpeg_decompressYUV420((__s8 *)encoded_frame, outframe->video_buf);
+        RTjpeg_decompressYUV420((int8_t *)encoded_frame, outframe->video_buf);
         break;
 
       case 'N':  // Black frame

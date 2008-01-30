@@ -1,3 +1,7 @@
+2008-01-30 Francesco Romani <fromani at gmail dot com>
+  * import/nuv/RTjpegN.c import/nuv/RTjpegN.h import/nuv/import_nuv.c
+  more NUV backport fixes from HEAD.
+
 2008-01-28 Francesco Romani <fromani at gmail dot com>
   * import/import_ffmpeg.c
   load filter_levels only if isn't already avalaible (OK, there is a bit
