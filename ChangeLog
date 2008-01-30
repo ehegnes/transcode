@@ -6,6 +6,9 @@
   * import/nuv/import_nuv.c
   typos.
 
+  * configure.in
+  transcode 1.0.6rc1 (really!).
+
 2008-01-19 Francesco Romani <fromani at gmail dot com>
   * import/af6_decore.cpp
   allow compilation with newer avifile (as in ubuntu gutsy).
@@ -15,7 +18,7 @@
 
   * import/nuv/Makefile.am import/nuv/README.rtjpeg import/nuv/RTjpegN.c
     import/nuv/RTjpegN.h import/nuv/import_nuv.c import/nuv/nuppelvideo.h
-  NUV revamp (1/N): backport code from HEAD/1.1.x and make it compile.
+  NUV revamp (1/3): backport code from HEAD/1.1.x and make it compile.
 
   removed files:
     import/nuv/LICENSE.Nuppelvideo import/nuv/lzoconf.h import/nuv/minilzo.c
@@ -23,10 +26,10 @@
     import/nuv/resample.h import/nuv/rtjpeg_aud_plugin.c
     import/nuv/rtjpeg_aud_plugin.h import/nuv/rtjpeg_vid_plugin.c
     import/nuv/rtjpeg_vid_plugin.h import/nuv/soxfuncs.c import/nuv/st.h
-  NUV revamp (2/N): purge no longer needed files.
+  NUV revamp (2/3): purge no longer needed files.
   
   * import/nuv/import_nuv.c
-  NUV revamp (3/N): more build fixes (my bad).
+  NUV revamp (3/3): more build fixes (my bad).
 
   * configure.in
   transcode 1.0.6rc1.
