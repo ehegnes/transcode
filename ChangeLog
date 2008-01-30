@@ -1,6 +1,10 @@
 2008-01-30 Francesco Romani <fromani at gmail dot com>
   * configure.in
   NUV code backported from HEAD should work on x86_64 too.
+  Make autoreconf happier adding AM_PROG_CC_C_O.
+
+  * import/nuv/import_nuv.c
+  typos.
 
 2008-01-19 Francesco Romani <fromani at gmail dot com>
   * import/af6_decore.cpp

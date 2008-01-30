@@ -83,13 +83,13 @@ typedef struct {
 
 /* macro goodies */
 #define tc_log_error(tag, format, args...) \
-    tc_log("ERROR", tag, format , ## args)
+    tc_log("ERROR: ", tag, format , ## args)
 #define tc_log_info(tag, format, args...) \
-    tc_log("info", tag, format , ## args)
+    tc_log("info: ", tag, format , ## args)
 #define tc_log_warn(tag, format, args...) \
-    tc_log("warning", tag, format , ## args)
+    tc_log("Warning: ", tag, format , ## args)
 #define tc_log_msg(tag, format, args...) \
-    tc_log("", tag, format , ## args)
+    tc_log(" ", tag, format , ## args)
 
 static int tc_log(const char *pre, const char *tag, const char *fmt, ...)
 {
