@@ -507,7 +507,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
       tc_snprintf(buf, sizeof(buf), "%d", infrc);
       optstr_param(options, "infrc", "Original frc", "%d", buf, "0", "16");
       tc_snprintf(buf, sizeof(buf), "%d", numSample);
-      optstr_param(options,"examine", "How many frames to buffer", "%d", buf, "2", "25");
+      optstr_param(options,"buffer", "How many frames to buffer", "%d", buf, "2", "25");
       tc_snprintf(buf, sizeof(buf), "%d", offset);
       optstr_param(options, "subsample", "How many pixels to subsample", "%d", buf, "1", "256");
       tc_snprintf(buf, sizeof(buf), "%d", clonetype);
