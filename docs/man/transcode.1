@@ -1733,10 +1733,12 @@ above mentioned modes. It is still possible to merge them with avimerge(1).
 .B \-\-multi_input
 .B (EXPERIMENTAL)
 .br
-intelligently join input file (standard POSIX globbing supported).
+enable multiple input mode: intelligently join input files in import.
+The inputs can be expressed using standard POSIX globbing.
 While theorically all input modules are supported, it is safe to use this
 only when dealing with constant-sized audio (PCM) and intra-frame only 
-video codecs (es: MJPEG)
+video codecs (es: MJPEG). To be safe, use this mode with im, ffmpeg and raw
+import modules.
 
 .TP
 .B \-\-pre_clip t[,l[,b[,r]]]
