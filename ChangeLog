@@ -1,3 +1,7 @@
+2008-02-02 Andrew Church <achurch at achurch dot org>
+  * export/export_mp2.c
+  Fix ">&/dev/null" bashism reported by Eric Lavarde.
+
 2008-01-27 Francesco Romani <fromani at gmail dot com>
   * added files: libtcext/Makefile.am libtcext/tc_avcodec.h libtcext/tc_lzo.h
 
