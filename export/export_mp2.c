@@ -141,7 +141,7 @@ MOD_open
                            vob->mp3bitrate,
                            srate,
                            out_fname,
-                           vob->verbose > 1 ? "" : " >&/dev/null");
+                           vob->verbose > 1 ? "" : " >/dev/null 2>&1");
 
     if (tc_test_string(__FILE__, __LINE__, PATH_MAX - strlen(buf), result, errno))
         return(TC_EXPORT_ERROR);
