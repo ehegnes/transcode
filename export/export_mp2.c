@@ -140,7 +140,7 @@ MOD_open
                            vob->mp3bitrate,
                            srate,
                            out_fname,
-                           vob->verbose > 1 ? "" : " >&/dev/null");
+                           vob->verbose > 1 ? "" : " >/dev/null 2>&1");
 
     if (result < 0)
         return(TC_EXPORT_ERROR);

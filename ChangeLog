@@ -1,3 +1,7 @@
+2008-02-02 Francesco Romani <fromani at gmail dot com>
+  * export/export_mp2.c
+  Fix ">&/dev/null" bashism reported by Eric Lavarde.
+
 2008-01-30 Francesco Romani <fromani at gmail dot com>
   * import/nuv/RTjpegN.c import/nuv/RTjpegN.h import/nuv/import_nuv.c
   more NUV backport fixes from HEAD.
