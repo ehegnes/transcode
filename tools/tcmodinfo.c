@@ -274,7 +274,7 @@ int main(int argc, char *argv[])
      * we can't distinguish from OMS and NMS modules at glance, so try
      * first using new module system
      */
-    factory = tc_new_module_factory(modpath, verbose);
+    factory = tc_new_module_factory(modpath, TC_MAX(verbose - 4, 0));
     module = tc_new_module(factory, modtype, filename, TC_NONE);
 
     if (module != NULL) {
