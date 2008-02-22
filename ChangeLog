@@ -1,3 +1,10 @@
+2008-02-22 Francesco Romani <fromani at gmail dot com>
+  * import/probe_v4l.c
+  remove hardcoded PAL frame size and use maximum reported width x height
+  instead. This should'nt hurt at all tv tuners, and should improve
+  detection with tv cards/other v4l devices.
+  (addressess issue #0000049).
+
 2008-02-02 Francesco Romani <fromani at gmail dot com>
   * export/export_mp2.c
   Fix ">&/dev/null" bashism reported by Eric Lavarde.
