@@ -14,6 +14,34 @@
 #define MOD_CAP         "Imports Earth Soft PV3 codec audio/video streams"
 #define MOD_AUTHOR      "Andrew Church"
 
+/*%*
+ *%* DESCRIPTION: 
+ *%*   This module provides access to Earth Soft PV3 audio/video streams using
+ *%*   win32 binary codecs and an internal win32 emulation layer (NO wine needed).
+ *%*
+ *%* #BUILD-DEPENDS:
+ *%*
+ *%* DEPENDS:
+ *%*   PV3 win32 dlls.
+ *%*
+ *%* PROCESSING:
+ *%*   import/demuxer
+ *%*
+ *%* MEDIA:
+ *%*   video, audio
+ *%*
+ *%* #INPUT:
+ *%*
+ *%* OUTPUT:
+ *%*   YUV420P, YUV422P, PCM
+ *%*
+ *%* OPTION
+ *%*   name: dllpath
+ *%*   type: string
+ *%*   help: set path/filename to load dv.dll from
+ *%* END
+ *%*/
+
 #define MOD_FEATURES \
     TC_MODULE_FEATURE_DEMULTIPLEX|TC_MODULE_FEATURE_DECODE|TC_MODULE_FEATURE_VIDEO
 #define MOD_FLAGS \

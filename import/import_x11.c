@@ -19,7 +19,6 @@
  */
 
 #include "transcode.h"
-#include "libtc/optstr.h"
 
 #include "libtc/tcmodule-plugin.h"
 #include "libtc/tctimer.h"
@@ -27,8 +26,37 @@
 
 #include "x11source.h"
 
+/*%*
+ *%* DESCRIPTION: 
+ *%*   This module captures video frames from X window system using libX11.
+ *%*
+ *%* BUILD-DEPENDS:
+ *%*   libcx11-6 >= 1.0.0
+ *%*
+ *%* DEPENDS:
+ *%*   libcx11-6 >= 1.0.0
+ *%*
+ *%* PROCESSING:
+ *%*   import/demuxer
+ *%*
+ *%* MEDIA:
+ *%*   video
+ *%*
+ *%* #INPUT:
+ *%*
+ *%* OUTPUT:
+ *%*   YUV420P, YUV422P, RGB24*
+ *%*
+ *%* OPTION
+ *%*   name: skew_limit
+ *%*   type: integer
+ *%*   help: maximum frame A/V skew (ms) before correction attempt
+ *%* END
+ *%*/
+
+
 /*
- * TODO before 1.1.0 (approx. priority order)
+ * TODO (approx. priority order)
  * - Improve framerate emulation.
  *   It isn't easy without encoder support, and we will not have
  *   any smarter encoder at least until 1.2.0.
@@ -62,8 +90,8 @@ static const char tc_x11_help[] = ""
     "    It grabs screenshots at fixed rate from X11 connection, allowing\n"
     "    to record screencast and so on.\n"
     "Options:\n"
-    "    skew_limit  tune maximum frame skew (ms) before correction\n"
-    "    help        produce module overview and options explanations\n";
+    "    skew_limit=N  tune maximum frame skew (ms) before correction\n"
+    "    help          produce module overview and options explanations\n";
 
 #define SKEW_LIM_DEFAULT    0
 #define SKEW_LIM_MIN        0

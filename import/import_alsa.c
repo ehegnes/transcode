@@ -1,5 +1,5 @@
 /*
- * import_alsa.c -- module for importing audio through ALSA
+ * import_alsa.c -- module for import audio from ALSA devices using libalsa
  * (C) 2007 - Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
@@ -34,6 +34,32 @@
 #endif
 #include <string.h>
 
+/*%*
+ *%* DESCRIPTION: 
+ *%*   This module reads audio samples from an ALSA device using libalsa.
+ *%*
+ *%* BUILD-DEPENDS:
+ *%*   alsa-lib >= 1.0.0
+ *%*
+ *%* #DEPENDS:
+ *%*
+ *%* PROCESSING:
+ *%*   import/demuxer
+ *%*
+ *%* MEDIA:
+ *%*   audio
+ *%*
+ *%* #INPUT:
+ *%*
+ *%* OUTPUT:
+ *%*   PCM*
+ *%*
+ *%* OPTION:
+ *%*   name: device
+ *%*   type: string
+ *%*   help: selects ALSA device to use for capturing audio.
+ *%*/
+
 #define LEGACY 1
 
 #ifdef LEGACY
@@ -52,11 +78,10 @@
 
 static const char tc_alsa_help[] = ""
     "Overview:\n"
-    "    This module acts as a bridge from transcode an a ALSA server.\n"
-    "    It grabs screenshots at fixed rate from ALSA connection, allowing\n"
-    "    to record screencast and so on.\n"
+    "    This module reads audio samples from an ALSA device using libalsa.\n"
     "Options:\n"
-    "    help    produce module overview and options explanations\n";
+    "    device=dev  selects ALSA device to use\n"
+    "    help        produce module overview and options explanations\n";
 
 
 /*
@@ -66,6 +91,7 @@ static const char tc_alsa_help[] = ""
  * - suspend recovery?
  * - smarter resync?
  */
+
 
 /*************************************************************************/
 

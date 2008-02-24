@@ -37,7 +37,6 @@ static int capability_flag = TC_CAP_PCM;
 #include <sys/ioctl.h>
 #include <sys/audioio.h>
 
-#include "libtc/optstr.h"
 
 
 static int sunau_fd = -1;

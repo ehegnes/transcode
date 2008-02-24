@@ -43,7 +43,6 @@ static int capability_flag = TC_CAP_PCM;
 # endif
 #endif
 
-#include "libtc/optstr.h"
 
 static int oss_fd = -1;
 

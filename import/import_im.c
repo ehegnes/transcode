@@ -51,6 +51,37 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+/*%*
+ *%* DESCRIPTION: 
+ *%*   This module reads single images from disk using ImageMagick;
+ *%*   a stream of correlated images can be automatically read if
+ *%*   their filenames contains a common prefix and a serial number.
+ *%*   All formats supported by ImageMagick are supported as well.
+ *%*
+ *%* BUILD-DEPENDS:
+ *%*   libMagick >= 6.2.4.0
+ *%*
+ *%* DEPENDS:
+ *%*   libMagick >= 6.2.4.0
+ *%*
+ *%* PROCESSING:
+ *%*   import/demuxer
+ *%*
+ *%* MEDIA:
+ *%*   video
+ *%*
+ *%* #INPUT:
+ *%*
+ *%* OUTPUT:
+ *%*   RGB24
+ *%*
+ *%* OPTION
+ *%*   name: noseq
+ *%*   type: flag
+ *%*   help: disable internal auto loading of images with similar names.
+ *%* END
+ *%*/
+
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_RGB|TC_CAP_VID;
 

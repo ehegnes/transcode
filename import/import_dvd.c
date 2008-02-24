@@ -40,6 +40,35 @@ static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_AC3 | TC_CAP_PCM;
 
 #include "libtc/optstr.h"
 
+/*%*
+ *%* DESCRIPTION: 
+ *%*   This module provides access to DVD content using libdvdread,
+ *%*   directly from DVD device.
+ *%*   (e.g. on-the-fly operation, no intermediate disk storage needed).
+ *%*
+ *%* BUILD-DEPENDS:
+ *%*   libdvdread >= 0.9.3
+ *%*
+ *%* DEPENDS:
+ *%*   libdvdread >= 0.9.3
+ *%*
+ *%* PROCESSING:
+ *%*   import/demuxer
+ *%*
+ *%* MEDIA:
+ *%*   video, audio, extra
+ *%*
+ *%* #INPUT:
+ *%*
+ *%* OUTPUT:
+ *%*   YUV420P*, YUV422P, RGB24, PCM*
+ *%*
+ *%* OPTION
+ *%*   name: delay
+ *%*   type: integer
+ *%*   help: set device access delay (seconds).
+ *%* END
+ *%*/
 
 #define DVD_ACCESS_DELAY    3
 /* seconds */
