@@ -1,3 +1,7 @@
+2008-02-24 Francesco Romani <fromani at gmail dot com>
+  * configure.in
+  new experimental code is now disabled by default.
+
 2008-02-22 Francesco Romani <fromani at gmail dot com>
   * import/probe_v4l.c
   remove hardcoded PAL frame size and use maximum reported width x height
