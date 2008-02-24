@@ -19,6 +19,10 @@
   Annotations for other kind of modules will follow (maybe even after
   1.1.0 released since they are easy and not problematic to do).
 
+  * add file: docs/man/transcode.1.xml
+  add docbook source for transcode manpage, kindly provided by
+  Thomas Wehrspann <thomas at wehrspann dot de>.
+
 2008-02-22 Francesco Romani <fromani at gmail dot com>
   * import/probe_v4l.c
   remove hardcoded PAL frame size and use maximum reported width x height
