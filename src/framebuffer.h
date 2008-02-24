@@ -122,7 +122,7 @@ enum tcframestatus_ {
 /* 
  * Size vs Length
  *
- * Size represent the effective size of audio/video buffer,
+ * Size represents the effective size of audio/video buffer,
  * while length represent the amount of valid data into buffer.
  * Until 1.1.0, there isn't such distinction, and 'size'
  * have approximatively a mixed meaning of above.
