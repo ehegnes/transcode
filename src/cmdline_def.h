@@ -1349,6 +1349,12 @@ TC_OPTION(demuxer_sync,     'M',   "N",
 
 /********/ TC_HEADER("Codec-specific options") /********/
 
+TC_OPTION(dv_yv12_mode,       0,   0,
+                "(libdv) force YV12 mode for PAL\n"
+                "Use this option if transcode autodetection fails,"
+                " with DV video.",
+                vob->dv_yuy2_mode = TC_FALSE;
+)
 TC_OPTION(dv_yuy2_mode,       0,   0,
                 "(libdv) use YUY2 mode for PAL [YV12]\n"
                 "If you experience crashes decoding DV video,"
