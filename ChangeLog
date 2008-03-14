@@ -1,3 +1,7 @@
+2008-03-14 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_xvid.c
+  add a few newer options.
+
 2008-03-13 Francesco Romani <fromani at gmail dot com>
   * src/cmdline_def.h
   (re-)add --dv_yv12_mode option to allow the user to override

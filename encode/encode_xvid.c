@@ -62,8 +62,8 @@
  ****************************************************************************/
 
 #define MOD_NAME    "encode_xvid.so"
-#define MOD_VERSION "v0.0.5 (2007-08-10)"
-#define MOD_CAP     "XviD 1.x encoder"
+#define MOD_VERSION "v0.0.6 (2008-03-14)"
+#define MOD_CAP     "XviD 1.1.x encoder"
 
 #define MOD_FEATURES \
     TC_MODULE_FEATURE_ENCODE|TC_MODULE_FEATURE_VIDEO
@@ -124,11 +124,13 @@ typedef struct {
     int cfg_hqacpred;
     int cfg_chromame;
     int cfg_vhq;
+    int cfg_bvhq;
     int cfg_motion;
     int cfg_stats;
     int cfg_greyscale;
     int cfg_turbo;
     int cfg_full1pass;
+    int cfg_lumimask;
 
     /* MPEG4 stream buffer */
     int   stream_size;
@@ -502,6 +504,7 @@ static void reset_module(XviDPrivateData *mod)
     mod->cfg_hqacpred = 1;
     mod->cfg_chromame = 1;
     mod->cfg_vhq = 1;
+    mod->cfg_bvhq = 0;
     mod->cfg_motion = 6;
     mod->cfg_turbo = 0;
     mod->cfg_full1pass = 0;
@@ -511,6 +514,7 @@ static void reset_module(XviDPrivateData *mod)
     mod->cfg_create.max_bframes = 1;
     mod->cfg_create.bquant_ratio = 150;
     mod->cfg_create.bquant_offset = 100;
+    mod->cfg_lumimask = 0;
 }
 
 static void cleanup_module(XviDPrivateData *mod)
@@ -620,6 +624,7 @@ static void read_config_file(XviDPrivateData *mod)
             {"motion", &mod->cfg_motion, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 6},
             {"chromame", &mod->cfg_chromame, TCCONF_TYPE_FLAG, 0, 0, 1},
             {"vhq", &mod->cfg_vhq, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 4},
+            {"bvhq", &mod->cfg_bvhq, TCCONF_TYPE_FLAG, 0, 0, 1},
             {"max_bframes", &create->max_bframes, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 20},
             {"bquant_ratio", &create->bquant_ratio, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 200},
             {"bquant_offset", &create->bquant_offset, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 200},
@@ -636,7 +641,11 @@ static void read_config_file(XviDPrivateData *mod)
             {"stats", &mod->cfg_stats, TCCONF_TYPE_FLAG, 0, 0, 1},
             {"greyscale", &mod->cfg_greyscale, TCCONF_TYPE_FLAG, 0, 0, 1},
             {"turbo", &mod->cfg_turbo, TCCONF_TYPE_FLAG, 0, 0, 1},
+#if XVID_API >= XVID_MAKE_API(4,1)
+            {"threads", &create->num_threads, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 1, 8}
+#endif            
             {"full1pass", &mod->cfg_full1pass, TCCONF_TYPE_FLAG, 0, 0, 1},
+            {"luminance_masking", &mod->cfg_lumimask, TCCONF_TYPE_FLAG, 0, 0, 1},
 
             /* section [quantizer] */
 //            {"quantizer", "Quantizer settings", TCCONF_TYPE_SECTION, 0, 0, 0},
@@ -784,6 +793,11 @@ static void dispatch_settings(XviDPrivateData *mod)
         frame->motion |= XVID_ME_SKIP_DELTASEARCH;
         frame->motion |= XVID_ME_FAST_MODEINTERPOLATE;
         frame->motion |= XVID_ME_BFRAME_EARLYSTOP;
+    }
+    if (mod->cfg_bvhq) {
+#if XVID_API >= XVID_MAKE_API(4,1)
+        frame->vop_flags |= XVID_VOP_RD_BVOP;
+#endif
     }
 
     /* motion level == 0 means no motion search which is equivalent to
@@ -940,6 +954,14 @@ static void set_create_struct(XviDPrivateData *mod, const vob_t *vob)
         x->plugins[x->num_plugins].func  = xvid_plugin_single;
         x->plugins[x->num_plugins].param = onepass;
         x->num_plugins++;
+    }
+
+    if (mod->cfg_lumimask) {
+#if XVID_API >= XVID_MAKE_API(4,1)
+        x->plugins[x->num_plugins].func  = xvid_plugin_lumimasking;
+        x->plugins[x->num_plugins].param = NULL;
+        x->num_plugins++;
+#endif
     }
 
     return;
