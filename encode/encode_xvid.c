@@ -642,7 +642,7 @@ static void read_config_file(XviDPrivateData *mod)
             {"greyscale", &mod->cfg_greyscale, TCCONF_TYPE_FLAG, 0, 0, 1},
             {"turbo", &mod->cfg_turbo, TCCONF_TYPE_FLAG, 0, 0, 1},
 #if XVID_API >= XVID_MAKE_API(4,1)
-            {"threads", &create->num_threads, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 1, 8}
+            {"threads", &create->num_threads, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 1, 8},
 #endif            
             {"full1pass", &mod->cfg_full1pass, TCCONF_TYPE_FLAG, 0, 0, 1},
             {"luminance_masking", &mod->cfg_lumimask, TCCONF_TYPE_FLAG, 0, 0, 1},
