@@ -1,3 +1,11 @@
+2008-03-19 Francesco Romani <fromani at gmail dot com>
+  * configure.in
+  use pkg-config a bit more.
+  support both old style (to be nice with debian/ubuntu) and new style
+  ffmpeg headers layout (if someone has a cleaner fix, just speak out!).
+  do not check for Xfixes: nobody needs it, yet.
+  Drop static linkage support for ffmpeg libraries: deprecated, unsupported.
+
 2008-03-17 Andrew Church <achurch at achurch dot org>
   * encode/encode_xvid.c
   Typo fix.
