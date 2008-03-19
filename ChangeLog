@@ -1,3 +1,11 @@
+2008-03-19 Francesco Romani <fromani at gmail dot com>
+  * configure.in
+  use pkg-config more extensively.
+  support both old style (to be nice with debian/ubuntu) and new style
+  ffmpeg headers layout (if someone has a cleaner fix, just speak out!).
+  do not check for Xfixes: nobody needs it, yet.
+  minor fixes (backported from HEAD).
+
 2008-03-13 Francesco Romani <fromani at gmail dot com>
   * src/cmdline_def.h
   (re-)add --dv_yv12_mode option to allow the user to override
