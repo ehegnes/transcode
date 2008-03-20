@@ -632,7 +632,7 @@ AC_SUBST(LIBAVCODEC_LIBS)
 dnl
 dnl libavformat
 dnl
-ffmpeg_lavf_inc="ffmpeg" # need to be reset before every check
+ffmpeg_lavf_inc="ffmpeg"
 LIBAVFORMAT_EXTRA_LIBS="$LIBAVFORMAT_EXTRA_LIBS $($PKG_CONFIG --libs libavformat)"
 TC_PKG_CHECK(libavformat, optional, LIBAVFORMAT, no, [libavformat/avformat.h],
  avformat, av_register_all, libavformat, [http://www.ffmpeg.org/])
