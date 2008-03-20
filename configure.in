@@ -790,7 +790,7 @@ dnl
 dnl libpostproc
 dnl
 LIBPOSTPROC_EXTRA_LIBS="$LIBPOSTPROC_EXTRA_LIBS $($PKG_CONFIG --libs libpostproc)"
-TC_PKG_CHECK(libpostproc, no, LIBPOSTPROC, no, [postproc/postprocess.h],
+TC_PKG_CHECK(libpostproc, no, LIBPOSTPROC, no, [libpostproc/postprocess.h],
   postproc, pp_postprocess, libpostproc, [http://www.ffmpeg.org/])
 TC_PKG_HAVE(libpostproc, LIBPOSTPROC)
 
