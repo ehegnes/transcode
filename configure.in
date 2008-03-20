@@ -581,13 +581,13 @@ ffmpeg_headers_layout="old"
 dnl
 dnl libavcodec
 dnl
-ffmpeg_inc="ffmpeg" # need to be reset before every check
+ffmpeg_lavc_inc="ffmpeg"
 LIBAVCODEC_EXTRA_LIBS="$LIBAVCODEC_EXTRA_LIBS $($PKG_CONFIG --libs libavcodec)"
-TC_PKG_CHECK(libavcodec, no, LIBAVCODEC, no, [libavcodec/avcodec.h],
+TC_PKG_CHECK(libavcodec, optional, LIBAVCODEC, no, [libavcodec/avcodec.h],
  avcodec, avcodec_thread_init, libavcodec, [http://www.ffmpeg.org/])
 if test x"$have_libavcodec" = x"yes" ; then
   ffmpeg_headers_layout="new"
-  ffmpeg_inc="libavcodec"
+  ffmpeg_lavc_inc="libavcodec"
 else
 # second try, old include path
   TC_PKG_CHECK(libavcodec, required, LIBAVCODEC, no, [ffmpeg/avcodec.h],
@@ -598,7 +598,7 @@ if test x"$have_libavcodec" = x"yes" ; then
   CPPFLAGS="$CPPFLAGS $LIBAVCODEC_CFLAGS"
   AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <stdio.h>
-#include <$ffmpeg_inc/avcodec.h>
+#include <$ffmpeg_lavc_inc/avcodec.h>
 int
 main()
 {
@@ -632,13 +632,13 @@ AC_SUBST(LIBAVCODEC_LIBS)
 dnl
 dnl libavformat
 dnl
-ffmpeg_inc="ffmpeg" # need to be reset before every check
+ffmpeg_lavf_inc="ffmpeg"
 LIBAVFORMAT_EXTRA_LIBS="$LIBAVFORMAT_EXTRA_LIBS $($PKG_CONFIG --libs libavformat)"
-TC_PKG_CHECK(libavformat, no, LIBAVFORMAT, no, [libavformat/avformat.h],
+TC_PKG_CHECK(libavformat, optional, LIBAVFORMAT, no, [libavformat/avformat.h],
  avformat, av_register_all, libavformat, [http://www.ffmpeg.org/])
 if test x"$have_libavformat" = x"yes" ; then
   ffmpeg_headers_layout="new"
-  ffmpeg_inc="libavformat"
+  ffmpeg_lavf_inc="libavformat"
 else
 # second try, old include path
   TC_PKG_CHECK(libavformat, required, LIBAVFORMAT, no, [ffmpeg/avformat.h],
@@ -649,8 +649,8 @@ if test x"$have_libavformat" = x"yes" ; then
   CPPFLAGS="$CPPFLAGS $LIBAVFORMAT_CFLAGS"
   AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <stdio.h>
-#include <$ffmpeg_inc/avformat.h>
-#include <$ffmpeg_inc/avcodec.h>
+#include <$ffmpeg_lavf_inc/avformat.h>
+#include <$ffmpeg_lavc_inc/avcodec.h>
 int
 main()
 {

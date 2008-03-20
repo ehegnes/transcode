@@ -1,9 +1,14 @@
+2008-03-20 Francesco Romani <fromani at gmail dot com>
+  * configure.in acinclude.m4
+  proper ffmpeg headers layout detection, second try.
+
 2008-03-19 Francesco Romani <fromani at gmail dot com>
   * configure.in
   use pkg-config more extensively.
   support both old style (to be nice with debian/ubuntu) and new style
   ffmpeg headers layout (if someone has a cleaner fix, just speak out!).
   do not check for Xfixes: nobody needs it, yet.
+  Drop static linkage support for ffmpeg libraries: deprecated, unsupported.
   minor fixes (backported from HEAD).
 
 2008-03-13 Francesco Romani <fromani at gmail dot com>

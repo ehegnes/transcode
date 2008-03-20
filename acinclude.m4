@@ -458,7 +458,7 @@ dnl Test for pkg-name, and define var-name_CFLAGS and var-name_LIBS
 dnl   and HAVE_var-name if found
 dnl
 dnl 1 name          name of package; required (used in messages, option names)
-dnl 2 req-enable    enable by default, 'required', 'yes' or 'no'; required
+dnl 2 req-enable    enable by default, 'required', 'optional', 'yes' or 'no'; required
 dnl 3 var-name      name stub for variables, preferably uppercase; required
 dnl 4 conf-script   name of "-config" script or 'no'
 dnl 5 header        header file to check or 'none'
@@ -469,7 +469,9 @@ dnl 9 url           homepage for the package
 
 AC_DEFUN([TC_PKG_CHECK],
 [
-if test x"$2" != x"required" ; then
+if test x"$2" == x"required" -o x"$2" == x"optional" ; then
+  enable_$1="yes"
+else
   AC_MSG_CHECKING([whether $1 support is requested])
   AC_ARG_ENABLE($1,
     AC_HELP_STRING([--enable-$1],
@@ -481,8 +483,6 @@ if test x"$2" != x"required" ; then
     esac],
     enable_$1="$2")
   AC_MSG_RESULT($enable_$1)
-else
-  enable_$1="yes"
 fi
 
 AC_ARG_WITH($1-prefix,
@@ -643,21 +643,23 @@ dnl TC_PKG_ERROR(name, object, req-enable, pkg, url, [error message])
 dnl
 AC_DEFUN([TC_PKG_ERROR],
 [
-tc_pkg_err="yes"
 this_pkg_err="yes"
+if test x"$3" != x"optional" ; then
+  tc_pkg_err="yes"
 
-prob=""
-if test x"$3" = x"required" ; then
-  prob="requirement failed"
-else
-  prob="option '--enable-$1' failed"
-fi
-msg="ERROR: $prob: $6
+  prob=""
+  if test x"$3" = x"required" ; then
+    prob="requirement failed"
+  else
+    prob="option '--enable-$1' failed"
+  fi
+  msg="ERROR: $prob: $6
 $2 can be found in the following packages:
   $4  $5
 
 "
-tc_pkg_err_text="$tc_pkg_err_text$msg"
+  tc_pkg_err_text="$tc_pkg_err_text$msg"
+fi
 ])
 
 dnl -----------------------------------------------------------------------
