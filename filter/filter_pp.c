@@ -34,7 +34,7 @@
 #include <ctype.h>
 #include <stdint.h>
 
-#include "postprocess.h"
+#include <libpostproc/postprocess.h>
 
 /* FIXME: these use the filter ID as an index--the ID can grow
  * arbitrarily large, so this needs to be fixed */
