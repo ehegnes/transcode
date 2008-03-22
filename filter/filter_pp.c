@@ -39,7 +39,7 @@
 
 #include <ctype.h>
 
-#include "postprocess.h"
+#include <libpostproc/postprocess.h>
 
 
 /*************************************************************************/

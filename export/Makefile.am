@@ -143,8 +143,7 @@ export_pvm_la_SOURCES = export_pvm.c ../pvm3/pvm_interface.c ../pvm3/pvm_parser.
 export_pvm_la_CPPFLAGS = $(AM_CPPFLAGS) $(PVM3_CFLAGS)
 export_pvm_la_LDFLAGS = -module -avoid-version
 
-export_pvn_la_SOURCES = export_pvn.c ../multiplex/multiplex_pvn.c
-export_pvn_la_CPPFLAGS = $(AM_CPPFLAGS) -DOMS_COMPATIBLE=1
+export_pvn_la_SOURCES = export_pvn.c
 export_pvn_la_LDFLAGS = -module -avoid-version
 
 export_raw_la_SOURCES = export_raw.c aud_aux.c
@@ -197,10 +196,17 @@ endif
 
 pkg_DATA = xvid4.cfg $(PROFILES)
 
+if ENABLE_EXPERIMENTAL
 install-exec-hook:
 	@mkdir -p $(DESTDIR)$(MOD_PATH)
 	@rm -f $(DESTDIR)$(MOD_PATH)/export_xvid.so
 	@$(LN_S) export_xvid4.so $(DESTDIR)$(MOD_PATH)/export_xvid.so
 	@mkdir -p $(DESTDIR)$(PROF_PATH)
 	@cp $(PROFILES) $(DESTDIR)$(PROF_PATH)
+else
+install-exec-hook:
+	@mkdir -p $(DESTDIR)$(MOD_PATH)
+	@rm -f $(DESTDIR)$(MOD_PATH)/export_xvid.so
+	@$(LN_S) export_xvid4.so $(DESTDIR)$(MOD_PATH)/export_xvid.so
+endif
 
