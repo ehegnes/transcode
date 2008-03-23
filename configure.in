@@ -1344,10 +1344,10 @@ dnl warnings when checking whether -Werror works
 dnl
 AC_ARG_ENABLE([warnings-as-errors],
     AC_HELP_STRING([--enable-warnings-as-errors], [treat warnings as errors]))
-dnl GCC 4.2.0 through 4.2.2 spit out bogus warnings when un-consting arguments
-dnl in a function call (GCC bug 29478), so don't use -Werror there
-if test x"$GCC" = x"yes" && test -n "`$CC -v 2>&1 | tail -1 | grep '4\.2\.[[0-2]]'`"; then
-    AC_MSG_WARN([GCC 4.2.[[0-2]] produce spurious warnings, -Werror disabled])
+dnl GCC 4.2.x spits out bogus warnings when un-consting arguments in a
+dnl function call (GCC bug 29478), so don't use -Werror there
+if test x"$GCC" = x"yes" && test -n "`$CC -v 2>&1 | tail -1 | grep '4\.2\.'`"; then
+    AC_MSG_WARN([GCC 4.2.x produces spurious warnings, -Werror disabled])
 elif test x"$GCC" = x"yes" ; then
     OPT_CFLAGS="-Wall -Wstrict-prototypes -Wmissing-prototypes"
     TMP_CFLAGS=""

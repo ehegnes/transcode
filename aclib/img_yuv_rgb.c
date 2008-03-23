@@ -1164,31 +1164,31 @@ static inline void sse2_store_rgb24(uint8_t *dest)
 {
     /* It looks like it's fastest to go to RGB32 first, then shift the
      * result to merge the 24-bit pixels together. */
-    asm(SSE2_RGB_TO_RGBA                                                 "\
-        push "EBX"                                                      \n\
+    asm(SSE2_RGB_TO_RGBA"                                               \n\
+        "PUSH(EBX)"                                                     \n\
         "SSE2_RGB32_TO_RGB24(0)"                                        \n\
         "SSE2_RGB32_TO_RGB24(1)"                                        \n\
         "SSE2_RGB32_TO_RGB24(2)"                                        \n\
         "SSE2_RGB32_TO_RGB24(3)"                                        \n\
-        pop "EBX"                                                       \n"
+        "POP(EBX)"                                                      \n"
         : /* no outputs */
         : "D" (dest)
-        : "eax", "ecx", "edx", "esi"
+        : "eax", "ecx", "edx", "esi" COMMA_FAKE_PUSH_REG
     );
 }
 
 static inline void sse2_store_bgr24(uint8_t *dest)
 {
     asm(SSE2_RGB_TO_BGRA                                                 "\
-        push "EBX"                                                      \n\
+        "PUSH(EBX)"                                                     \n\
         "SSE2_RGB32_TO_RGB24(0)"                                        \n\
         "SSE2_RGB32_TO_RGB24(1)"                                        \n\
         "SSE2_RGB32_TO_RGB24(2)"                                        \n\
         "SSE2_RGB32_TO_RGB24(3)"                                        \n\
-        pop "EBX"                                                       \n"
+        "POP(EBX)"                                                      \n"
         : /* no outputs */
         : "D" (dest)
-        : "eax", "ecx", "edx", "esi"
+        : "eax", "ecx", "edx", "esi" COMMA_FAKE_PUSH_REG
     );
 }
 
@@ -1339,10 +1339,14 @@ DEFINE_RGB2YUV_SSE2_SET(bgra32, 4,2,1,0)
 static inline void sse2_load_rgb24(uint8_t *src)
 {
     asm("\
-        push "EBX"                                                      \n\
-        # Make stack space for loading XMM registers                    \n\
-        sub $24, "ESP"                                                  \n\
-        # Copy source pixels to appropriate positions in stack (this    \n\
+        "PUSH(EBX)"                                                     \n\
+        # Make stack space for loading XMM registers                    \n"
+#ifdef ARCH_X86_64
+"       sub $24+128, "ESP"                                              \n"
+#else
+"       sub $24, "ESP"                                                  \n"
+#endif
+"       # Copy source pixels to appropriate positions in stack (this    \n\
         # seems to be the fastest way to get them where we want them)   \n\
         movl $8, %%ebx                                                  \n\
         movl $24, %%edx                                                 \n\
@@ -1363,12 +1367,16 @@ static inline void sse2_load_rgb24(uint8_t *src)
         movq 8("ESP"), %%xmm1                                           \n\
         punpcklbw %%xmm7, %%xmm1                                        \n\
         movq 16("ESP"), %%xmm2                                          \n\
-        punpcklbw %%xmm7, %%xmm2                                        \n\
-        add $24, "ESP"                                                  \n\
-        pop "EBX"                                                       \n"
+        punpcklbw %%xmm7, %%xmm2                                        \n"
+#ifdef ARCH_X86_64
+"       add $24+128, "ESP"                                              \n"
+#else
+"       add $24, "ESP"                                                  \n"
+#endif
+"       "POP(EBX)"                                                      \n"
         : /* no outputs */
         : "S" (src)
-        : "eax", "ecx", "edx", "edi"
+        : "eax", "ecx", "edx", "edi" COMMA_FAKE_PUSH_REG
     );
 }
 
@@ -1550,15 +1558,18 @@ static inline void sse2_rgb_to_yuv411p(
         "SSE2_STRIPV"                                                   \n\
         # Store into destination pointers                               \n\
         movq %%xmm3, ("EAX")                                            \n\
-        push "EAX"  # needed because GCC might rely on it later         \n\
+        "PUSH(EAX)"  # needed because GCC might rely on it later        \n\
         movd %%xmm4, %%eax                                              \n\
         movw %%ax, ("ECX")                                              \n\
         movd %%xmm0, %%eax                                              \n\
         movw %%ax, ("EDX")                                              \n\
-        pop "EAX"                                                       \n"
+        "POP(EAX)"                                                      \n"
         : /* no outputs */
         : "a" (destY+y*width+x), "c" (destU+y*(width/4)+(x/4)),
           "d" (destV+y*(width/4)+(x/4)), "D" (&rgb_data), "m" (rgb_data)
+#ifdef ARCH_X86_64
+        : FAKE_PUSH_REG
+#endif
     );
 }
 
