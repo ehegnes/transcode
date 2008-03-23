@@ -1,3 +1,12 @@
+2008-03-23 Andrew Church <achurch at achurch dot org>
+  * aclib/img_rgb_packed.c aclib/img_x86_common.h aclib/img_yuv_mixed.c
+    aclib/img_yuv_planar.c aclib/img_yuv_rgb.c
+  Fix image format conversion on x86-64.
+
+  * configure.in
+  Extend GCC -Werror workaround to all 4.2.x revisions, since the bug is
+  listed as WONTFIX for 4.2.x.
+
 2008-03-22 Francesco Romani <fromani at gmail dot com>
   * filter/filter_pp.c
   fix postprocess.h include path.
