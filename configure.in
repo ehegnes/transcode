@@ -1184,10 +1184,17 @@ TC_PKG_HAVE(sdl, SDL)
 dnl
 dnl ImageMagick
 dnl
-IMAGEMAGICK_EXTRA_LIBS="$IMAGEMAGICK_EXTRA_LIBS -lz -lm"
-dnl MagickWand libraries/headers always (?) are a superset of MagickCore ones.
-TC_PKG_CHECK(imagemagick, no, IMAGEMAGICK, Wand-config, [magick/api.h],
+TC_PKG_CHECK(libpostproc, no, LIBPOSTPROC, no, [libpostproc/postprocess.h],
+  postproc, pp_postprocess, libpostproc, [http://www.ffmpeg.org/])
+TC_PKG_HAVE(libpostproc, LIBPOSTPROC)
+IMAGEMAGICK_EXTRA_LIBS="$IMAGEMAGICK_EXTRA_LIBS $($PKG_CONFIG --libs ImageMagick)"
+TC_PKG_CHECK(imagemagick, no, IMAGEMAGICK, no, [magick/api.h],
  Magick, InitializeMagick, Wand, [http://www.imagemagick.org/])
+if test x"$have_imagemagick" = x"no" ; then
+dnl second try: new layout (yes, IM is sick too).
+  TC_PKG_CHECK(imagemagick, no, IMAGEMAGICK, no, [magick/api.h],
+    MagickCore, InitializeMagick, no, [http://www.imagemagick.org/])
+fi
 TC_PKG_HAVE(imagemagick, IMAGEMAGICK)
 if test x"$have_imagemagick" = x"yes" ; then
   AC_CHECK_HEADER([wand/magick-wand.h],
