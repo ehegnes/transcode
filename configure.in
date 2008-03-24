@@ -1048,12 +1048,12 @@ dnl
 dnl libquicktime
 dnl
 LIBQUICKTIME_EXTRA_LIBS="$LIBQUICKTIME_EXTRA_LIBS $($PKG_CONFIG --libs libquicktime)"
-TC_PKG_CHECK(libquicktime, no, LIBQUICKTIME, lqt-config, [quicktime.h],
+TC_PKG_CHECK(libquicktime, no, LIBQUICKTIME, no, [quicktime.h],
  quicktime, quicktime_open, libquicktime,
  [http://libquicktime.sourceforge.net/])
 if test x"$have_libquicktime" = x"yes" ; then
   AC_CHECK_LIB(quicktime, lqt_encode_video,
-    [AC_DEFINE([LIBQUICKTIME_000904], [1], [Have libquicktime 0.9.4 or newer])],
+    [AC_DEFINE([LIBQUICKTIME_000904], [1], [Have libquicktime 1.0.0 or newer])],
     [],
     [$LIBQUICKTIME_LIBS $LIBQUICKTIME_EXTRA_LIBS])
 fi

@@ -2,6 +2,9 @@
   * configure.in
   add a bit more wizardy to catch up last ImagrMagick API breakage.
 
+  * INSTALL configure.in
+  bump libquicktime requirements to 1.0.x, and look in correct paths.
+
 2008-03-23 Andrew Church <achurch at achurch dot org>
   * aclib/img_rgb_packed.c aclib/img_x86_common.h aclib/img_yuv_mixed.c
     aclib/img_yuv_planar.c aclib/img_yuv_rgb.c
