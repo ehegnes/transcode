@@ -2,6 +2,9 @@
   * filter/filter_resample.c import/import_ffmpeg.c libtcext/tc_avcodec.h
   correct new-layout header inclusion.
 
+  * filter/preview/Makefile.am
+  build filter_pv if and only if we HAVE_LIBXV.
+
 2008-03-24 Francesco Romani <fromani at gmail dot com>
   * configure.in
   add a bit more wizardy to catch up last ImagrMagick API breakage.
