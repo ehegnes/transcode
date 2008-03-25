@@ -36,11 +36,9 @@
 #include "libtc/libtc.h"
 #include "libtc/optstr.h"
 #include "libtc/tcmodule-plugin.h"
+#include "libtcext/tc_avcodec.h"
 
-#include <ffmpeg/avcodec.h>
-
-typedef struct
-{
+typedef struct {
     uint8_t *resample_buf;
     size_t resample_bufsize;
 

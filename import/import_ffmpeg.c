@@ -42,9 +42,6 @@ static int capability_flag = TC_CAP_YUV|TC_CAP_RGB;
 #define MOD_PRE ffmpeg
 #include "import_def.h"
 
-#include <ffmpeg/avcodec.h>
-#include <ffmpeg/avformat.h>
-
 /*
  * libavcodec is not thread-safe. We must protect concurrent access to it.
  * this is visible (without the mutex of course) with
