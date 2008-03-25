@@ -24,6 +24,10 @@ LIBS = \
 
 pkgdir = $(MOD_PATH)
 
+if HAVE_LIBXV
+MOD_PV = filter_pv.la
+endif
+
 if HAVE_LIBDV
 MOD_PREVIEW = filter_preview.la
 endif
@@ -32,7 +36,7 @@ if HAVE_SDL
 MOD_SDLVIEW = filter_sdlview.la
 endif
 
-pkg_LTLIBRARIES = $(MOD_PREVIEW) $(MOD_SDLVIEW) filter_pv.la
+pkg_LTLIBRARIES = $(MOD_PREVIEW) $(MOD_SDLVIEW) $(MOD_PV)
 
 filter_preview_la_SOURCES = filter_preview.c display.c
 filter_preview_la_LDFLAGS = -module -avoid-version
