@@ -35,7 +35,7 @@
 #include <ffmpeg/avformat.h>
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/avutil.h>
-#endif /* HAVE_FFMPEG_SPLIT_HEADERS */
+#endif /* HAVE_LIBAVHEADERS */
 
 /*************************************************************************/
 
