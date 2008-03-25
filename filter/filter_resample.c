@@ -35,9 +35,9 @@
 #include "filter.h"
 #include "libtc/libtc.h"
 #include "libtc/optstr.h"
+#include "libtc/tcavcodec.h"
 #include "libtc/tcmodule-plugin.h"
 
-#include <ffmpeg/avcodec.h>
 
 typedef struct
 {

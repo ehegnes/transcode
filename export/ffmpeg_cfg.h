@@ -2,7 +2,7 @@
 #define __FFMPEG_CFG_H
 
 #include "libtc/cfgfile.h"
-#include <ffmpeg/avcodec.h>
+#include "libtc/tcavcodec.h"
 
 //char *lavc_param_vcodec = "mpeg4";
 //extern int lavc_param_vbitrate;
