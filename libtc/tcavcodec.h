@@ -27,9 +27,15 @@
 #include "config.h"
 #endif
 
+#ifdef HAVE_LIBAVHEADERS
+#include <libavutil/avutil.h>
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#else
 #include <ffmpeg/avformat.h>
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/avutil.h>
+#endif /* HAVE_FFMPEG_SPLIT_HEADERS */
 
 /*************************************************************************/
 
