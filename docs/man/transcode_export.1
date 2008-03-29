@@ -19,12 +19,13 @@ export settings. Those settings are passed to export modules through \fBmodule o
 the \fBmodule configuration file\fP; both configuration file and options can be present at same time:
 in that case, the options overrides the configuration file. Passing option strings to export modules
 is done like to pass options to filter modules:
-The syntax is
+The syntax is:
 
 .RS 4
 .B transcode \-y vmod=options,amod=options
 .RE
 
+see transcode_filter(1) for full reference and examples.
 
 The \-F parameter has different meanings for different export modules, as documented on section below.
 .br
@@ -97,13 +98,13 @@ transcode will use the new-style encode/multiplex modules (still under developme
 see the encode and multiplex directories); if no multiplex module is given,
 the traditional export modules will be used.
 .br
-To see what your transcode has, do a
+To see what export modules are avalaible for your transcode installation, do a
 
 .RS 4
-.B ls -1 `tcmodinfo -p`/export*.so
+.B ls -1 $( tcmodinfo -p )/export*.so
 .RE
 
-A full-blown transcode installation has the following export modules:
+A complete transcode installation has the following export modules:
 .RS
 .\" Here starts the generated export part, produced by make-module-man.sed
 .TP 4
@@ -374,4 +375,5 @@ many others.  See AUTHORS for details.
 .SH SEE ALSO
 .BR transcode (1),
 .BR tcmodinfo (1),
+.BR transcode_filter(1),
 .br

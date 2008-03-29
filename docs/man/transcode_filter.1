@@ -7,27 +7,33 @@ transcode \- filter modules collection
 \fBtranscode\fP is Copyright (C) 2001-2003 by Thomas Oestreich, 2003-2004 Tilmann
 Bitterberg, 2004-2008 Transcode Team
 
-.SH MODULES
+.SH MODULE OPTIONS
 The syntax for filter options is simple. A filter is specified with
-.RS 8
+
+.RS 4
 .nf
 \-J filter=\fIoptionstring\fP
 .fi
 .RE
+
 The optionstring can contain multiple options which are separated by colons \`:\'
-.RS 8
+
+.RS 4
 .nf
 \-J filter=\fIoption1\fP:\fIoption2\fP:\fIoption3\fP
 .fi
 .RE
+
 An option can have an argument or non (bool). For options with an argument, the
 format in which the argument has to be given to the option is specified in a
 printf(1) like string. The most common case is `%d' which simply means a number. The argument has to be seperated from the option by a \`=\'.
-.RS 8
+
+.RS 4
 .nf
 \-J filter=\fIbool1\fP:\fIoption1\fP=\fI15\fP:\fIoption2\fP=\fI20x30\fP
 .fi
 .RE
+
 Most filters try to do the right thing with the default options. You should
 play with various parameters if you are not satisfied with the default
 behaviour. If you have no idea what a filter does, its very likely that you
@@ -36,11 +42,23 @@ don't need it.
 If a filter takes (for eg.) a filename as an argument, make sure that the
 filename does not contain a `:' or a `='. Its a limitation of the parser. A
 comma `,' is possible but must be extra quoted. For the text filter that is
-.RS 8
+
+.RS 4
 .nf
 \-J text=string="Hello\\, World"
 .fi
 .RE
+
+.SH FILTER MODULES
+To see what filter modules are avalaible for your transcode installation, do a
+
+.RS 4
+.B ls -1 $( tcmodinfo -p )/filter*.so
+.RE
+
+A complete transcode installation has the following filter modules:
+
+.br
 .\" Here starts the generated filter part, produced by make-filter-man.sh
 .TP 4
 \fB29to23\fP - \fBframe rate conversion filter (interpolating 29 to 23)\fP
@@ -1830,7 +1848,14 @@ Run as a PRE filter
 .\" Here ends the generated filter part, produced by make-filter-man.sh
 
 .PP
+.SH AUTHORS
+.B tcdecode
+was written by Thomas Oestreich
+.br
+<ostreich@theorie.physik.uni-goettingen.de> with contributions from
+many others.  See AUTHORS for details.
+.PP
 .SH SEE ALSO
 .BR transcode (1),
 .BR tcmodinfo (1),
-
+.br
