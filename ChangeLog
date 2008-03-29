@@ -1,3 +1,17 @@
+2008-03-29 Francesco Romani <fromani at gmail dot com>
+  * added files: docs/man/transcode_import.1 docs/man/transcode_filter.1
+                 docs/man/transcode_export.1
+  add split manpage stubs (still need some work).
+
+  * docs/man/transcode.1.xml
+  minor fixes to make `xmlto' happy.
+
+  * docs/man/transcode.1
+  regenerated from xml. Minor glitches spotted, they will be fixed ASAP.
+
+  * docs/man/Makefile.am
+  updated to cope with split manpage.
+
 2008-03-25 Francesco Romani <fromani at gmail dot com>
   * filter/preview/Makefile.am
   build filter_pv if and only if we HAVE_LIBXV.

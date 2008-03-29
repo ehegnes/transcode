@@ -1,5 +1,8 @@
 man_MANS = \
 	transcode.1 \
+	transcode_export.1 \
+	transcode_filter.1 \
+	transcode_import.1 \
 	tccat.1 \
 	tcprobe.1 \
 	tcdemux.1 \
@@ -18,4 +21,5 @@ man_MANS = \
 	avisync.1
 
 EXTRA_DIST = \
-	$(man_MANS)
+	$(man_MANS) \
+	transcode.1.xml
