@@ -6,25 +6,45 @@ transcode \- export modules collection
 .SH COPYRIGHT
 \fBtranscode\fP is Copyright (C) 2001-2003 by Thomas Oestreich, 2003-2004 Tilmann
 Bitterberg, 2004-2008 Transcode Team
-.SH MODULES
+.SH ENCODER PARAMETERS STRING
+
+Module-dependent parameters can be passed to encoder using the -F transcode(1) option:
+
+.RS 4
+.B transcode \-F \fIcodec_string\fP
+.RE
+
+Those parameters tune the general behaviour of the export module. More specific settings can fine-tune the
+export settings. Those settings are passed to export modules through \fBmodule options\fP or through
+the \fBmodule configuration file\fP; both configuration file and options can be present at same time:
+in that case, the options overrides the configuration file. Passing option strings to export modules
+is done like to pass options to filter modules:
+The syntax is
+
+.RS 4
+.B transcode \-y vmod=options,amod=options
+.RE
+
+
+The \-F parameter has different meanings for different export modules, as documented on section below.
+.br
+
+.SH ENCODER MODULES PARAMETERS
 
 .TP
-.B \-F \fIcodec_string\fP
-encoder parameter strings [module dependent].
-.br
-The \-F parameter has different meanings for different export modules.
-.br
-
--y \fIffmpeg\fP:
+\fIffmpeg\fP:
   The codec String for the codec you want to encode. Example values are -F mpeg4 or -F mpeg1video or -F huffyuv. To get a list of valid codecs, use -F list
 
--y \fIim\fP:
+.TP
+\fIim\fP:
   The name of the image format you want to export. Example values are '-F jpg' (default) or '-F png' or -F 'gif'. With -F jpg, -w gives quality in percent. With -F png, the first digit of -w gives compression level, the second one gives quality, so -w 95 selects best compression level (9) and 5 means PNG adaptive filtering.
 
--y \fIjpg\fP:
+.TP
+\fIjpg\fP:
   The quality of the JPEG encode in percent. Example values are '-F 75' (default) or '-F 100'
 
--y \fImov\fP:
+.TP
+\fImov\fP:
   Syntax: -F "<vcodec>,<acodec>[,<parameters>]"
     <vcodec> = Videocodec to encode with. Default: "mjpa"
     <acodec> = Audiocodec to encode with. Default: "ima4"
@@ -33,7 +53,8 @@ The \-F parameter has different meanings for different export modules.
 
 Note: You can use "list" instead of a video/audiocodec or parameter to get a list of supported options.
 
--y \fImpeg\fP:
+.TP
+\fImpeg\fP:
   Syntax: -F "<base-profile>[,<resizer-mode>[,user-profile]]"
     <base-profile> can be one of
       '1' = MPEG 1 (default)
@@ -50,7 +71,8 @@ Note: You can use "list" instead of a video/audiocodec or parameter to get a lis
        4 = 352x240
     <user-profile> is a filename of the profile file. You can either specify the absolute path to the file or if you transcode will look for it in the directory where you started transcode.
 
--y \fImpeg2enc\fP:
+.TP
+\fImpeg2enc\fP:
   Syntax: -F "<base-profile>[,<options_string>]"
     <base-profile> can be one of
       '0' = Generic MPEG1 (default)
@@ -63,17 +85,24 @@ Note: You can use "list" instead of a video/audiocodec or parameter to get a lis
       '8' = DVD
     <options_string> will be passed down to mpeg2enc untouched by transcode. Have a look at the manpage for mpeg2enc.
 
--y \fIraw\fP:
+.TP
+\fIraw\fP:
   The name of the image format to use for uncompressed video. Examples are I420 (YUV 4:2:0 planar), YV12 (the same thing with U and V reversed), or UYVY (YUV 4:2:2 packed). Use "-F help" to get a list of formats.
 
-.TP
-.B \-y \fIvmod\fP[,\fIamod\fP[,\fImmod\fP]]
-video[,audio[,multiplex]] export modules [null].  If omitted, transcode will
-encode to the \fInull\fP module.  If a multiplex module is given, transcode
-will use the new-style encode/multiplex modules (still under development,
+.SH EXPORT MODULES
+If no module is specified through the \fI-y\fP option, transcode will use
+the \fInull\fP module for both audio and video export. If a multiplex module
+is given, by giving \fBthree\fP export module names instead the usual two,
+transcode will use the new-style encode/multiplex modules (still under development,
 see the encode and multiplex directories); if no multiplex module is given,
 the traditional export modules will be used.
 .br
+To see what your transcode has, do a
+
+.RS 4
+.B ls -1 `tcmodinfo -p`/export*.so
+.RE
+
 A full-blown transcode installation has the following export modules:
 .RS
 .\" Here starts the generated export part, produced by make-module-man.sed
@@ -333,19 +362,16 @@ Supported processing formats: audio - RAW (pass-through) PCM AC3, video - RGB YU
 .\" Here ends the generated export part, produced by make-module-man.sed
 .RE
 .IP
-To see what your transcode has, do a
-.br
-.nf
-.B ls -1 `tcmodinfo -p`/export*.so
-.fi
-.IP
-It is possible to pass option strings to export modules like to filter modules.
-The syntax is
-.nf
-.B  \-y vmod=options,amod=options
 
+.PP
+.SH AUTHORS
+.B tcdecode
+was written by Thomas Oestreich
+.br
+<ostreich@theorie.physik.uni-goettingen.de> with contributions from
+many others.  See AUTHORS for details.
 .PP
 .SH SEE ALSO
 .BR transcode (1),
 .BR tcmodinfo (1),
-
+.br
