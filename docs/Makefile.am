@@ -26,6 +26,7 @@ docs_DATA = \
 	README.vcd \
 	README.xvid-credits \
 	RELNOTES-0.6.13 \
+	RELNOTES-1.1.0 \
 	export_ffmpeg.txt \
 	export_mp2.txt \
 	filter-socket.txt \

@@ -1,0 +1,132 @@
+===============================
+ Transcode 1.1.0 Release Notes
+===============================
+:Info: See <http://www.transcoding.org> for more documentation.
+:Author: Francesco Romani <fromani@gmail.com>
+:Date: $Date: 2008-03-30 08:51:43 $
+:Revision: $Revision: 1.1.2.1 $
+
+
+Introduction
+============
+
+The transcode team is pleased to announce the avalbility of transcode 1.1.0.
+Transcode 1.1.0 is our new major release, that establishes a new milestone for
+the project: we have started a massive reorganization of the code, aiming to
+address some historical weakness of the project and to prepare land for next
+major enhancements.
+Despite the huge effort expended, 1.1.0 is a transitional release.
+Most of the resources were employed to make the project foundations better, 
+and a very few benefits surfaced so far; But our effort was fruitful, so
+we are ready to develop some new exciting news for next releases. Expect
+quicker and more interesting releases soon.
+
+
+Overview
+========
+
+This section quickly outlines the changes between transcode 1.0.x and 1.1.0.
+Every point remainds to a detailed description in the further sections.
+
+
+(transcode) Command line reorganization
+  Some options are renamed, some other are merged, a few others are removed,
+  in order to make the command line more rational and consistent; online help
+  (-h) layout was massively reorganized to improve readability.
+
+(transcode) Module cleanup
+  During 1.1.0 development cycle duplicated, obsolete or even broken modules
+  were dropped to reduce the maintance burden without reducing the feature set.
+  Some modules that duplicates the functionalities of the core ware removed as
+  well, and core functionalities was enhanced.
+
+(overall) Internal colorspace rationalization
+  Usage of default colorspace (YUV420P) used internally in transcode is made
+  consistent through core and modules. No more random usage of -k option,
+  that is still of course avalabile, and no more blue people.
+
+(transcode) Frame counter improvements
+  ...
+
+(tools) New output modes for tcprobe
+  tcprobe features two now output modes: extended output (option -X) is more
+  human-friendly and less cluttered; raw output (-R) is intended to be more stable
+  in time and easier to parse for machines. Old output mode is of course still
+  the default
+
+(overall) **LOT** of bugfixes
+  **ALL** bugfixes, and much more, applied to 1.0.x branch are of course
+  applied as well on this release.
+
+(transcode) new multiple input mode (**technology preview**)
+  In the past releases, a few modules where capable to handle a directory as a source
+  and join all file contained. This feature extend trasparently this capability to *all*
+  modules, allowing the user to specify a collection of -of course, homogeneous- sources
+  that will be intelligently join. This feature can be enabled using --multi_input mode,
+  but is still a preview, only a few modules are supported. See transcode(1) for details.
+
+(overall) new experimental modules (**technology preview**)
+  As part of internal reorganization and rationalization (see below), a new, revised, improved
+  architecture for writing transcode modules was introduced. New architecture (*NMS* in transcode
+  jargon) allows to write more specialized modules, enhances their combinations and reduces
+  code replication. A fair number of new modules are been written, and more are avalaible
+  in CVS; those modules are fairly stable, but disabled by default to simplify things for the user.
+  We expect to fully switch to new modules at least for export side for transcode 1.2.0.
+
+(overall) better module introspection (**technology preview**)
+  Another important benefit of new module architecture...
+
+(modules) new modules
+  - import_vag
+  - import_pv3
+
+(modules) improved modules [**DOCUMENTA OPZIONI MODULI!**]
+  - import_mplayer
+  - import_avi
+  - filter_logo
+  - all LZO-related modules
+  - import_vob (nodemux)
+  - import_ffmpeg (nopad)
+
+(overall) massive architectural reorganization
+  - aclib
+  - libtc
+  - libtcvideo
+  - libtcaudio
+
+(overall) growing testsuite
+  foobar
+
+(documentation) documentation improvements
+  buzbaz
+
+(documentation) Manpage revision
+  WRITEME
+
+(tools) more helper tools
+  - tcexport
+  - tcmodchain
+
+User visible Changes
+====================
+
+
+For Developers
+==============
+
+
+Bugs
+====
+
+
+More Technology Preview
+=======================
+
+Export profiles
+---------------
+
+
+Last Words
+==========
+
+

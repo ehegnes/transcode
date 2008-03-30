@@ -108,33 +108,33 @@ struct tcfactory_ {
 static int dummy_init(TCModuleInstance *self, uint32_t features)
 {
     DUMMY_HEAVY_CHECK(self, "initialization");
-    return -1;
+    return TC_ERROR;
 }
 
 static int dummy_fini(TCModuleInstance *self)
 {
     DUMMY_HEAVY_CHECK(self, "finalization");
-    return -1;
+    return TC_ERROR;
 }
 
 static int dummy_configure(TCModuleInstance *self,
                             const char *options, vob_t *vob)
 {
     DUMMY_HEAVY_CHECK(self, "configuration");
-    return -1;
+    return TC_ERROR;
 }
 
 static int dummy_stop(TCModuleInstance *self)
 {
     DUMMY_HEAVY_CHECK(self, "stopping");
-    return -1;
+    return TC_ERROR;
 }
 
 static int dummy_inspect(TCModuleInstance *self,
                          const char *param, const char **value)
 {
     DUMMY_HEAVY_CHECK(self, "inspect");
-    return -1;
+    return TC_ERROR;
 }
 
 static int dummy_encode_video(TCModuleInstance *self,
@@ -142,7 +142,7 @@ static int dummy_encode_video(TCModuleInstance *self,
                               vframe_list_t *outframe)
 {
     DUMMY_CHECK(self, "encode_video");
-    return -1;
+    return TC_ERROR;
 }
 
 static int dummy_encode_audio(TCModuleInstance *self,
@@ -150,7 +150,7 @@ static int dummy_encode_audio(TCModuleInstance *self,
                               aframe_list_t *outframe)
 {
     DUMMY_CHECK(self, "encode_audio");
-    return -1;
+    return TC_ERROR;
 }
 
 static int dummy_decode_video(TCModuleInstance *self,
@@ -158,7 +158,7 @@ static int dummy_decode_video(TCModuleInstance *self,
                               vframe_list_t *outframe)
 {
     DUMMY_CHECK(self, "decode_video");
-    return -1;
+    return TC_ERROR;
 }
 
 static int dummy_decode_audio(TCModuleInstance *self,
@@ -166,44 +166,52 @@ static int dummy_decode_audio(TCModuleInstance *self,
                               aframe_list_t *outframe)
 {
     DUMMY_CHECK(self, "decode_audio");
-    return -1;
+    return TC_ERROR;
 }
 
 static int dummy_filter_video(TCModuleInstance *self,
                               vframe_list_t *frame)
 {
     DUMMY_CHECK(self, "filter_video");
-    return -1;
+    return TC_ERROR;
 }
 
 static int dummy_filter_audio(TCModuleInstance *self,
                               aframe_list_t *frame)
 {
     DUMMY_CHECK(self, "filter_audio");
-    return -1;
+    return TC_ERROR;
 }
 
 static int dummy_multiplex(TCModuleInstance *self,
                            vframe_list_t *vframe, aframe_list_t *aframe)
 {
     DUMMY_CHECK(self, "multiplex");
-    return -1;
+    return TC_ERROR;
 }
 
 static int dummy_demultiplex(TCModuleInstance *self,
                              vframe_list_t *vframe, aframe_list_t *aframe)
 {
     DUMMY_CHECK(self, "demultiplex");
-    return -1;
+    return TC_ERROR;
 }
 
 #undef DUMMY_HEAVY_CHECK
 #undef DUMMY_CHECK
 
-static const TCCodecID dummy_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
-static const TCCodecID dummy_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
-static const TCFormatID dummy_formats_in[] = { TC_FORMAT_RAW, TC_FORMAT_ERROR };
-static const TCFormatID dummy_formats_out[] = { TC_FORMAT_RAW, TC_FORMAT_ERROR };
+static const TCCodecID dummy_codecs_in[] = { 
+    TC_CODEC_ANY, TC_CODEC_ERROR 
+};
+static const TCCodecID dummy_codecs_out[] = { 
+    TC_CODEC_ANY, TC_CODEC_ERROR 
+};
+static const TCFormatID dummy_formats_in[] = { 
+    TC_FORMAT_RAW, TC_FORMAT_ERROR 
+};
+static const TCFormatID dummy_formats_out[] = { 
+    TC_FORMAT_RAW, TC_FORMAT_ERROR 
+};
 
 static TCModuleInfo dummy_info = {
     .features    = TC_MODULE_FEATURE_NONE,
@@ -551,8 +559,7 @@ static int tc_module_class_copy(const TCModuleClass *klass,
         return -1;
     }
 
-    if (!klass->init || !klass->fini
-     || !klass->configure || !klass->stop
+    if (!klass->init || !klass->fini || !klass->configure || !klass->stop
      || !klass->inspect) {
         /* should'nt happen */
         tc_log_error(__FILE__, "can't setup a module class without "

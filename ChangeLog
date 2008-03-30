@@ -1,3 +1,16 @@
+2008-03-30 Francesco Romani <fromani at gmail dot com>
+  * added file: docs/RELNOTES-1.1.0
+  initial stub for release notes document
+
+  * docs/Makefile.am
+  ship RELNOTES-1.1.0.
+
+  * docs/man/transcode_export.1
+  fix cut'n'past error.
+
+  * libtc/tcmodule.c
+  minor STYLE resync.
+
 2008-03-29 Francesco Romani <fromani at gmail dot com>
   * added files: docs/man/transcode_import.1 docs/man/transcode_filter.1
                  docs/man/transcode_export.1
