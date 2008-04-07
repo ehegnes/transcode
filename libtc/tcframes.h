@@ -75,7 +75,7 @@ enum tcframestatus_ {
  * FRAME_NULL -> FRAME_EMPTY -> FRAME_WAIT -> FRAME_LOCKED -> FRAME_READY
  * :_buffer_:    \_decoder_/    \______filter_stage______/    \encoder_%/
  * \__pool__/         |         :                                  ^    :
- *                    |         \_______________encoder $__________|____/
+ *                    |         \_______________encoder_$__________|____/
  *                    V                                            ^
  *                    `-------------->------------->---------------'
  *
