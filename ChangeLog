@@ -1,3 +1,14 @@
+2008-04-12 Francesco Romani <fromani at gmail dot com>
+  * filter/preview/Makefile.am
+  build filter_pv only if we HAVE_LIBXV.
+
+  * configure.in
+  detect new libavcodec headers layout, while retaining compatibility
+  with old layout as well.
+  patch courtesy of Alexis Ballier <aballier at gentoo dot org>
+  for libpostproc, switch to new layout alone.
+  transcode 1.0.6rc2.
+
 2008-02-02 Francesco Romani <fromani at gmail dot com>
   * export/export_mp2.c
   Fix ">&/dev/null" bashism reported by Eric Lavarde.

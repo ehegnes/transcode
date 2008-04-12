@@ -30,7 +30,11 @@
 #include "filter.h"
 #include "optstr.h"
 
+#if HAVE_LIBAVCODEC_AVCODEC_H
+#include <libavcodec/avcodec.h>
+#else
 #include <ffmpeg/avcodec.h>
+#endif
 
 static char * resample_buffer = NULL;
 static int bytes_per_sample;

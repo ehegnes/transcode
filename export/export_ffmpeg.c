@@ -36,7 +36,11 @@
 #include "vid_aux.h"
 // FIXME
 #undef EMULATE_FAST_INT
+#if HAVE_LIBAVCODEC_AVCODEC_H
+#include <libavcodec/avcodec.h>
+#else
 #include <ffmpeg/avcodec.h>
+#endif
 
 #if !defined(INFINITY) && defined(HUGE_VAL)
 #define INFINITY HUGE_VAL

@@ -1,13 +1,13 @@
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT(transcode,1.0.6rc1)
+AC_INIT(transcode,1.0.6rc2)
 AC_CONFIG_AUX_DIR(autotools)
 AC_CONFIG_SRCDIR(src/transcode.c)
 
 dnl Detect the canonical host and target build environment
 AC_CANONICAL_SYSTEM
 
-AM_INIT_AUTOMAKE(transcode,1.0.6rc1)
+AM_INIT_AUTOMAKE(transcode,1.0.6rc2)
 AM_CONFIG_HEADER(config.h)
   
 AM_MAINTAINER_MODE
@@ -612,14 +612,19 @@ AC_ARG_ENABLE(libavcodec-static,
   esac],
   [enable_libavcodec_static=no])
 LIBAVCODEC_EXTRA_LIBS="$LIBAVCODEC_EXTRA_LIBS $($PKG_CONFIG --libs libavcodec)"
-TC_PKG_CHECK(libavcodec, required, LIBAVCODEC, no, [ffmpeg/avcodec.h],
- avcodec, avcodec_thread_init, FFMpeg, [http://www.ffmpeg.org/])
+AC_CHECK_HEADERS([ffmpeg/avcodec.h libavcodec/avcodec.h])
+TC_PKG_CHECK(libavcodec, required, LIBAVCODEC, no, none,
+ avcodec, avcodec_thread_init, FFmpeg, [http://www.ffmpeg.org/])
 if test x"$have_libavcodec" = x"yes" ; then
   save_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$CPPFLAGS $LIBAVCODEC_CFLAGS"
   AC_TRY_RUN([
 #include <stdio.h>
+#if  HAVE_LIBAVCODEC_AVCODEC_H
+#include <libavcodec/avcodec.h>
+#else
 #include <ffmpeg/avcodec.h>
+#endif
 int
 main()
 {
@@ -826,7 +831,8 @@ AM_CONDITIONAL(HAVE_IBP, test x"$have_ibp" = x"yes")
 dnl
 dnl libpostproc
 dnl
-TC_PKG_CHECK(libpostproc, no, LIBPOSTPROC, no, postprocess.h,
+LIBPOSTPROC_EXTRA_LIBS="$LIBPOSTPROC_EXTRA_LIBS $($PKG_CONFIG --libs libpostproc)"
+TC_PKG_CHECK(libpostproc, no, LIBPOSTPROC, no, [libpostproc/postprocess.h],
   postproc, pp_postprocess, libpostproc, [http://www.ffmpeg.org/])
 TC_PKG_HAVE(libpostproc, LIBPOSTPROC)
 

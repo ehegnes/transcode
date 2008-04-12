@@ -38,7 +38,11 @@ static int capability_flag = TC_CAP_YUV | TC_CAP_RGB | TC_CAP_VID;
 
 // FIXME
 #undef EMULATE_FAST_INT
+#if HAVE_LIBAVCODEC_AVCODEC_H
+#include <libavcodec/avcodec.h>
+#else
 #include <ffmpeg/avcodec.h>
+#endif
 
 #include "libvo/yuv2rgb.h"
 #include "avilib/avilib.h"
