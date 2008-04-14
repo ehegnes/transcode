@@ -33,48 +33,40 @@
 #include "libtcvideo/tcvideo.h"
 
 /*%*
- *%* DESCRIPTION: 
+ *%* DESCRIPTION 
  *%*   This module reads video frames from an capture device using bktr module.
- *%*   This module is designed to work under *BSD. For linux, use the v4l module.
+ *%*   This module is designed to work on *BSD. For linux, use the v4l module.
  *%*
- *%* #BUILD-DEPENDS:
+ *%* #BUILD-DEPENDS
  *%*
- *%* #DEPENDS:
+ *%* #DEPENDS
  *%*
- *%* PROCESSING:
+ *%* PROCESSING
  *%*   import/demuxer
  *%*
- *%* MEDIA:
+ *%* MEDIA
  *%*   video
  *%*
- *%* #INPUT:
+ *%* #INPUT
  *%*
- *%* OUTPUT:
+ *%* OUTPUT
  *%*   YUV420, YUV422P, RGB24
  *%*
  *%* OPTION
- *%*   name: format
- *%*   type: string
- *%*   help: selects video normalization.
- *%* END
+ *%*   format (string)
+ *%*     selects video normalization.
  *%*
  *%* OPTION
- *%*   name: vsource
- *%*   type: string
- *%*   help: selects video source (device dependant input).
- *%* END
+ *%*   vsource (string)
+ *%*     selects video source (device dependant input).
  *%*
  *%* OPTION
- *%*   name: asource
- *%*   type: string
- *%*   help: selects audio source (device dependant input).
- *%* END
+ *%*   asource (string)
+ *%*     selects audio source (device dependant input).
  *%*
  *%* OPTION
- *%*   name: tunerdev
- *%*   type: string
- *%*   help: selects tuner devince.
- *%* END
+ *%*   tunerdev (string)
+ *%*     help: selects tuner devince.
  *%*/
  
 static int verbose_flag = TC_QUIET;

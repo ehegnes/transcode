@@ -1,3 +1,13 @@
+2008-04-14 Francesco Romani <fromani at gmail dot com>
+  * added file: docs/tcmkmodhelp.py
+  add script to autogenerate XML manpage (part) from annotated source.
+  Still incomplete (WIP).
+
+  * import/import_alsa.c import/import_bktr.c import/import_dvd.c
+    import/import_im.c import/import_pv3.c import/import_vag.c
+    import/import_vob.c import/import_x11.c import/v4l/import_v4l2.c
+  re-annotate sources to be used with new autogeneration script.
+
 2008-03-30 Francesco Romani <fromani at gmail dot com>
   * added file: docs/RELNOTES-1.1.0
   initial stub for release notes document

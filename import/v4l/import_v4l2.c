@@ -31,67 +31,53 @@ static int verbose_flag     = TC_QUIET;
 static int capability_flag  = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422 | TC_CAP_PCM;
 
 /*%*
- *%* DESCRIPTION: 
+ *%* DESCRIPTION 
  *%*   This module allow to capture video frames through a V4L2 (V4L api version 2)
  *%*   device. While audio capturing is possible, this kind of usage is discouraged
  *%*   in favour of OSS or ALSA import modules.
  *%*
- *%* #BUILD-DEPENDS:
+ *%* #BUILD-DEPENDS
  *%*
- *%* #DEPENDS:
+ *%* #DEPENDS
  *%*
- *%* PROCESSING:
+ *%* PROCESSING
  *%*   import/demuxer
  *%*
- *%* MEDIA:
+ *%* MEDIA
  *%*   video, audio
  *%*
- *%* #INPUT:
+ *%* #INPUT
  *%*
- *%* OUTPUT:
+ *%* OUTPUT
  *%*   YUV420P, YUV422P, RGB24, PCM
  *%*
- *%* OPTION:
- *%*   name: resync_margin
- *%*   type: integer
- *%*   help: threshold audio/video desync (in frames) that triggers resync once reached.
- *%* END
+ *%* OPTION
+ *%*   resync_margin (integer)
+ *%*     threshold audio/video desync (in frames) that triggers resync once reached.
+ *%*
+ *%* OPTION
+ *%*   resync_interval (integer)
+ *%*     checks the resync_margin every given amount of frames.
+ *%*
+ *%* OPTION
+ *%*   overrun_guard (integer)
+ *%*     flag (default off). Toggles the buffer overrun guard, that prevents crash when capture buffers are full.
+ *%*
+ *%* OPTION
+ *%*   crop (string)
+ *%*     forces cropping into selected window (format: WIDTHxHEIGHT+LEFTxTOP)
+ *%*
+ *%* OTPION
+ *%*   convert (integer)
+ *%*     forces video frames convertion by using index; use -1 to get a list of supported conversions.
  *%*
  *%* OPTION:
- *%*   name: resync_interval
- *%*   type: integer
- *%*   help: checks the resync_margin every given amount of frames.
- *%* END
+ *%*   format (integer)
+ *%*     forces video frames convertion by using index; use -1 to get a list of supported conversions.
  *%*
  *%* OPTION:
- *%*   name: overrun_guard
- *%*   type: integer
- *%*   help: flag (default off). Toggles the buffer overrun guard, that prevents crash when capture buffers are full.
- *%* END
- *%*
- *%* OPTION:
- *%*   name: crop
- *%*   type: string
- *%*   help: forces cropping into selected window (format: WIDTHxHEIGHT+LEFTxTOP)
- *%* END
- *%*
- *%* OTPION:
- *%*   name: convert
- *%*   type: integer
- *%*   help: forces video frames convertion by using index; use -1 to get a list of supported conversions.
- *%* END
- *%*
- *%* OPTION:
- *%*   name: format
- *%*   type: integer
- *%*   help: forces video frames convertion by using index; use -1 to get a list of supported conversions.
- *%* END
- *%*
- *%* OPTION:
- *%*   name: format
- *%*   type: string
- *%*   help: forces output format to given one; use "list" to get a list of supported formats.
- *%* END
+ *%*   format (string)
+ *%*     forces output format to given one; use "list" to get a list of supported formats.
  *%*/
 
 #define MOD_PRE         v4l2

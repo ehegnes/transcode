@@ -35,29 +35,28 @@
 #include <string.h>
 
 /*%*
- *%* DESCRIPTION: 
+ *%* DESCRIPTION 
  *%*   This module reads audio samples from an ALSA device using libalsa.
  *%*
- *%* BUILD-DEPENDS:
+ *%* BUILD-DEPENDS
  *%*   alsa-lib >= 1.0.0
  *%*
- *%* #DEPENDS:
+ *%* #DEPENDS
  *%*
- *%* PROCESSING:
+ *%* PROCESSING
  *%*   import/demuxer
  *%*
- *%* MEDIA:
+ *%* MEDIA
  *%*   audio
  *%*
- *%* #INPUT:
+ *%* #INPUT
  *%*
- *%* OUTPUT:
+ *%* OUTPUT
  *%*   PCM*
  *%*
- *%* OPTION:
- *%*   name: device
- *%*   type: string
- *%*   help: selects ALSA device to use for capturing audio.
+ *%* OPTION
+ *%*   device (string)
+ *%*     selects ALSA device to use for capturing audio.
  *%*/
 
 #define LEGACY 1

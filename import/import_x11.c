@@ -27,31 +27,29 @@
 #include "x11source.h"
 
 /*%*
- *%* DESCRIPTION: 
+ *%* DESCRIPTION 
  *%*   This module captures video frames from X window system using libX11.
  *%*
- *%* BUILD-DEPENDS:
+ *%* BUILD-DEPENDS
  *%*   libcx11-6 >= 1.0.0
  *%*
- *%* DEPENDS:
+ *%* DEPENDS
  *%*   libcx11-6 >= 1.0.0
  *%*
- *%* PROCESSING:
+ *%* PROCESSING
  *%*   import/demuxer
  *%*
- *%* MEDIA:
+ *%* MEDIA
  *%*   video
  *%*
- *%* #INPUT:
+ *%* #INPUT
  *%*
- *%* OUTPUT:
+ *%* OUTPUT
  *%*   YUV420P, YUV422P, RGB24*
  *%*
  *%* OPTION
- *%*   name: skew_limit
- *%*   type: integer
- *%*   help: maximum frame A/V skew (ms) before correction attempt
- *%* END
+ *%*   skew_limit (integer)
+ *%*     maximum frame A/V skew (ms) before correction attempt
  *%*/
 
 

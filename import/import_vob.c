@@ -31,30 +31,28 @@
 #include "libtc/optstr.h"
 
 /*%*
- *%* DESCRIPTION: 
+ *%* DESCRIPTION 
  *%*   This module imports audio/video from VOB files. If you need direct
  *%*   DVD access, use import_dvd module.
  *%*
- *%* #BUILD-DEPENDS:
+ *%* #BUILD-DEPENDS
  *%*
- *%* #DEPENDS:
+ *%* #DEPENDS
  *%*
- *%* PROCESSING:
+ *%* PROCESSING
  *%*   import/demuxer
  *%*
- *%* MEDIA:
+ *%* MEDIA
  *%*   video, audio
  *%*
- *%* #INPUT:
+ *%* #INPUT
  *%*
- *%* OUTPUT:
+ *%* OUTPUT
  *%*   YUV420P*, RGB24, PCM, AC3
  *%*
  *%* OPTION
- *%*   name: nodemux
- *%*   type: flag
- *%*   help: skip demuxing processing stage. This sometimes improves A/V sync.
- *%* END
+ *%*   nodemux (flag)
+ *%*     skip demuxing processing stage. This sometimes improves A/V sync.
  *%*/
 
 static int verbose_flag = TC_QUIET;

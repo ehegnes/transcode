@@ -3,8 +3,8 @@
 ===============================
 :Info: See <http://www.transcoding.org> for more documentation.
 :Author: Francesco Romani <fromani@gmail.com>
-:Date: $Date: 2008-03-30 08:51:43 $
-:Revision: $Revision: 1.1.2.1 $
+:Date: $Date: 2008-04-14 20:20:46 $
+:Revision: $Revision: 1.1.2.2 $
 
 
 Introduction
@@ -46,13 +46,15 @@ Every point remainds to a detailed description in the further sections.
   that is still of course avalabile, and no more blue people.
 
 (transcode) Frame counter improvements
-  ...
+  The output of frame counter, that also acts as progress meter, was rewritten
+  and improved. Now it shows more precisely the extimate finishing time, and
+  it now precisely shows the number of frames in every processing step.
 
 (tools) New output modes for tcprobe
   tcprobe features two now output modes: extended output (option -X) is more
   human-friendly and less cluttered; raw output (-R) is intended to be more stable
   in time and easier to parse for machines. Old output mode is of course still
-  the default
+  the default.
 
 (overall) **LOT** of bugfixes
   **ALL** bugfixes, and much more, applied to 1.0.x branch are of course
@@ -81,12 +83,27 @@ Every point remainds to a detailed description in the further sections.
   - import_pv3
 
 (modules) improved modules [**DOCUMENTA OPZIONI MODULI!**]
-  - import_mplayer
-  - import_avi
+  - import_mplayer:
+    this module was greatly improved to better integrate with mplayer, autodetecting the proper
+    settings. A -M option was also added to tcprobe, to let the program use mplayer internally 
+    for probing, in order to have coherent settings.
+    A further option --mplayer_probe was added to transcode. This option automatically loads
+    mplayer import modules both for audio and video streams and also force mplayer for
+    detection of streams parameters.
+    Using --mplayer_probe will (Just Work[tm]) in a broad amount of cases.
+  - import_avi:
+    internal colorspace conversion for raw content was added. Now this module trasparently
+    convert the raw content to selected colorspace.
   - filter_logo
-  - all LZO-related modules
-  - import_vob (nodemux)
-  - import_ffmpeg (nopad)
+  - all LZO-related modules:
+    those modules are ported, and thus now require, to liblzo version 2.
+  - import_vob:
+    The `nodemux' option was added. This option allow to skip the internal synchronization
+    code that can deliver broken results in some still unknown cases.
+  - import_ffmpeg:
+    The `nopad' option was added. This option allow to force to off the input padding setting
+    that is sometims incorrectly setup by libavcodec in some still unknown cases.
+    Use this setting if you see the 'slice end reached but...' message during your transcoding.
 
 (overall) massive architectural reorganization
   - aclib
@@ -100,7 +117,7 @@ Every point remainds to a detailed description in the further sections.
 (documentation) documentation improvements
   buzbaz
 
-(documentation) Manpage revision
+(documentation) manpage revision and split
   WRITEME
 
 (tools) more helper tools
@@ -110,6 +127,7 @@ Every point remainds to a detailed description in the further sections.
 User visible Changes
 ====================
 
+* frame counter
 
 For Developers
 ==============

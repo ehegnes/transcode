@@ -14,29 +14,27 @@
 #define MOD_AUTHOR      "Andrew Church"
 
 /*%*
- *%* DESCRIPTION: 
+ *%* DESCRIPTION 
  *%*   This module decodes VAG-format audio (from PlayStation).
  *%*
- *%* #BUILD-DEPENDS:
+ *%* #BUILD-DEPENDS
  *%*
- *%* #DEPENDS:
+ *%* #DEPENDS
  *%*
- *%* PROCESSING:
+ *%* PROCESSING
  *%*   import/demuxer
  *%*
- *%* MEDIA:
+ *%* MEDIA
  *%*   audio
  *%*
- *%* #INPUT:
+ *%* #INPUT
  *%*
- *%* OUTPUT:
+ *%* OUTPUT
  *%*   PCM
  *%*
  *%* OPTION
- *%*   name: blocksize
- *%*   type: integer
- *%*   help: stereo blocking size.
- *%* END
+ *%*   blocksize (integer)
+ *%*     stereo blocking size.
  *%*/
 
 

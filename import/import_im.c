@@ -52,34 +52,32 @@
 #include <stdio.h>
 
 /*%*
- *%* DESCRIPTION: 
+ *%* DESCRIPTION 
  *%*   This module reads single images from disk using ImageMagick;
  *%*   a stream of correlated images can be automatically read if
  *%*   their filenames contains a common prefix and a serial number.
  *%*   All formats supported by ImageMagick are supported as well.
  *%*
- *%* BUILD-DEPENDS:
+ *%* BUILD-DEPENDS
  *%*   libMagick >= 6.2.4.0
  *%*
- *%* DEPENDS:
+ *%* DEPENDS
  *%*   libMagick >= 6.2.4.0
  *%*
- *%* PROCESSING:
+ *%* PROCESSING
  *%*   import/demuxer
  *%*
- *%* MEDIA:
+ *%* MEDIA
  *%*   video
  *%*
- *%* #INPUT:
+ *%* #INPUT
  *%*
- *%* OUTPUT:
+ *%* OUTPUT
  *%*   RGB24
  *%*
  *%* OPTION
- *%*   name: noseq
- *%*   type: flag
- *%*   help: disable internal auto loading of images with similar names.
- *%* END
+ *%*   noseq (flag)
+ *%*     disable internal auto loading of images with similar names.
  *%*/
 
 static int verbose_flag = TC_QUIET;
