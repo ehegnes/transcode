@@ -4,6 +4,7 @@ EXTRA_DIST = \
 	$(docs_DATA) \
 	filter-help.txt \
 	make-filter-man.sh \
+	make-import-man.sh \
 	make-module-man.sed \
 	export-mods.txt \
 	import-mods.txt
