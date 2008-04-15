@@ -23,3 +23,4 @@ man_MANS = \
 EXTRA_DIST = \
 	$(man_MANS) \
 	transcode.1.xml
+	transcode_import.1.xml
