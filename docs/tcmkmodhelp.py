@@ -34,15 +34,57 @@ class TaggedSource(object):
 # common XML output ancestor
 
 class TCModuleDoc(object):
-    def __init__(self, name, src):
-        self._name = name
+    def __init__(self, name, src, srcname=""):
+        self._name    = name
+        if srcname:
+            self._srcname = srcname
+        else:
+            self._srcname = "unknown"
         if src:
             self.parse(src)
 
     def to_xml(self):
-        raise NotImplementedError
+        # feel free to suggest something nicer.
+        res = "<!-- %s -->" %(self._srcname)
+        T = self._tree
+        if not T:
+            return res
+        res += "\n" + \
+"            <varlistentry>\n" + \
+"                <term>\n" + \
+"                    <option>%s</option>\n" %(self._name) + \
+"                    <emphasis>[%s]</emphasis>\n" %(",".join(T["MEDIA"])) + \
+"                </term>\n" + \
+"                <listitem>\n" + \
+"                    <para>%s</para>\n" %(T["DESCRIPTION"])
+        if "BUILD_DEPENDS" in T:
+            res += \
+"                    <para>At compile time, this module requires: %s</para>\n" %(T["BUILD_DEPENDS"])
+        if "DEPENDS" in T:
+            res += \
+"                    <para>At run time, this module requires: %s</para>\n" %(T["DEPENDS"])
+        opttree = T["OPTION"]
+        if opttree:
+            res += "<para>This module accepts the following options:</para>\n"
+        for (n, t), d in opttree.items():
+            res += \
+"                    <variablelist>\n" + \
+"                        <varlistentry>\n" + \
+"                            <term>\n" + \
+"                                <literal>%s (%s)</literal>\n" %(n, t) + \
+"                            </term>\n" + \
+"                            <listitem>\n" + \
+"                                <para>%s</para>\n" %(d) + \
+"                            </listitem>\n" + \
+"                        </varlistentry>\n" + \
+"                    </variablelist>\n"
+        res += "" + \
+"                </listitem>\n" + \
+"            </varlistentry>"
+        return res
     def to_text(self):
-        raise NotImplementedError
+        # the simplest thing that works.
+        return "\n".join("%s: %s" %(k, self._tree[k]) for k in sorted(self._tree) )
     def parse(self, data):
         raise NotImplementedError
         
@@ -84,8 +126,6 @@ class TCModuleDocFromTaggedSource(TCModuleDoc):
                 if cur_sec not in self._tree:
                     self._tree[cur_sec] = {}
                 self._parse_opts(line, src, self._tree[cur_sec], all_secs)
-    def to_text(self):
-        return "\n".join("%s: %s" %(k, self._tree[k]) for k in sorted(self._tree) )
 
 def _main():
     parser = optparse.OptionParser()
@@ -95,35 +135,31 @@ def _main():
     parser.add_option("-b", "--binary", dest="use_binary",
                       action="store_true", default=False,
                       help="analyse module objects using tcmodinfo")
-    parser.add_option("-t", "--type",
-                      dest="module_type", metavar="TYPE",
-                      help="select module type")
-    parser.add_option("-n", "--name",
-                      dest="module_name", metavar="NAME",
-                      help="select module name")
-    parser.add_option("-p", "--path", default=".",
-                      dest="path", metavar="DIR",
-                      help="look for module source or on this path" +
-                           "or prepend given path to PATH for tcmodinfo")
     options, args = parser.parse_args()
 
     if not options.use_source and not options.use_binary:
         print "either source or binary analysis mode must be selected"
-        sys.exit(1)
-    if not options.module_name:
-        print "missing module name"
-        sys.exit(1)
-    if not options.module_type:
-        print "missing module type"
         sys.exit(1)
 
     if options.use_binary:
         print "not yet supported!"
         sys.exit()
     if options.use_source:
-        doc = TCModuleDocFromTaggedSource(options.module_name,
-                                          TaggedSource(sys.stdin))
-        print doc.to_text()
+        Src = TaggedSource
+
+    print "<!-- begin module list -->"
+    for mod in args:
+        try:
+            modname   = os.path.basename(mod)
+            pre, name = modname.split('_')
+            root, ext = os.path.splitext(name)
+            doc = TCModuleDocFromTaggedSource(root,
+                                              TaggedSource(open(mod)),
+                                              modname)
+            print doc.to_xml()
+        except IOError:
+            pass # XXX
+    print "<!-- end module list -->"
 
 if __name__ == "__main__":
     _main()

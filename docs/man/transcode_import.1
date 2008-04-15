@@ -1,316 +1,172 @@
-.TH transcode import modules  1 "3th February 2008" "transcode_import(1)"
-.SH NAME
-transcode \- import modules collection
-.SH SYNOPSIS
-.B transcode -x module[,module]
-.SH COPYRIGHT
-\fBtranscode\fP is Copyright (C) 2001-2003 by Thomas Oestreich, 2003-2004 Tilmann
-Bitterberg, 2004-2008 Transcode Team
-.SH MODULES
-
-.TP
-.B \-x \fIvmod\fP[\fI,amod\fP]
-video[,audio] import modules [auto,auto]. If omitted, transcode will probe
-for appropriate import modules. A full-blown transcode installation has the following import modules:
-.RS
-.\" Here starts the generated import part, produced by make-module-man.sed
-.TP 4
-\fBac3\fP \- (audio) AC3
-.br
-This module has no compile-time dependencies.
-This module has no run-time dependencies.
-Support for this module is good.
-.RS 8
-decodes AC3 audio from MPEG program streams or raw streams.
-.br
-Supported processing formats: audio - PCM AC3, video - none
-.RE
-.TP 4
-\fBavi\fP \- (video) * | (audio) *
-.br
-This module has no compile-time dependencies.
-This module has no run-time dependencies.
-Support for this module is good.
-.RS 8
-RGB/PCM from RIFF AVI files.
-.br
-Supported processing formats: audio - RAW (pass-through) PCM, video - RAW (pass-through) RGB YUV YUV420
-.RE
-.TP 4
-\fBbktr\fP \- (video) bktr
-.br
-This module has no compile-time dependencies.
-This module has no run-time dependencies.
-Support for this module is good.
-.RS 8
-grabs video frames from bktr(4) devices on BSD systems
-.br
-Supported processing formats: audio - none, video - RGB YUV YUV420
-.RE
-.TP 4
-\fBdv\fP \- (video) DV | (audio) PCM
-.br
-This module has no compile-time dependencies.
-This module has no run-time dependencies.
-Support for this module is good.
-.RS 8
-Digital Video and PCM audio from RIFF AVI-files or raw streams.
-.br
-Supported processing formats: audio - PCM, video - RAW (pass-through) RGB YUV DV YUV420
-.RE
-.TP 4
-\fBdvd\fP \- (video) DVD | (audio) MPEG/AC3/PCM
-.br
-At compile-time libdvdread must be available.
-This module has no run-time dependencies.
-Support for this module is good.
-.RS 8
-on-the-fly DVD transcoding.
-.br
-Supported processing formats: audio - PCM AC3, video - RGB YUV
-.RE
-.TP 4
-\fBffmpeg\fP \- (video) FFmpeg: MSMPEG/MPEG/MJPEG
-.br
-This module has no compile-time dependencies.
-This module has no run-time dependencies.
-Support for this module is good.
-.RS 8
-interface to ffmpeg library supported video codecs and file formats
-.br
-Supported processing formats: audio - none, video - RAW (pass-through) RGB YUV
-.RE
-.TP 4
-\fBim\fP \- (video) RGB
-.br
-At compile-time ImageMagick must be available.
-At run-time ImageMagick must be present.
-Support for this module is fair.
-.RS 8
-interface to ImageMagick library supported picture codecs and file formats for making animations. Reads images with a counter pattern.
-.br
-Supported processing formats: audio - none, video - RAW (pass-through) RGB
-.RE
-.TP 4
-\fBimlist\fP \- (video) RGB
-.br
-At compile-time ImageMagick must be available.
-At run-time ImageMagick must be present.
-Support for this module is fair.
-.RS 8
-interface to ImageMagick library supported picture codecs and file formats for making animations. Reads images from a list.
-.br
-Supported processing formats: audio - RAW (pass-through), video - RAW (pass-through) RGB
-.RE
-.TP 4
-\fBlve\fP \- (video/audio) MPEG/VOB/LVE
-.br
-At compile-time liblve must be available.
-This module has no run-time dependencies.
-Support for this module is fair.
-.RS 8
-imports video from an LVE edit list
-.br
-Supported processing formats: audio - PCM, video - YUV
-.RE
-.TP 4
-\fBlzo\fP \- (video) LZO
-.br
-At compile-time lzo must be available.
-This module has no run-time dependencies.
-Support for this module is good.
-.RS 8
-imports AVI-files with LZO loss-less compression for video.
-.br
-Supported processing formats: audio - RAW (pass-through) PCM, video - RAW (pass-through) RGB YUV
-.RE
-.TP 4
-\fBmov\fP \- (video) * | (audio) *
-.br
-At compile-time libquicktime must be available.
-This module has no run-time dependencies.
-Support for this module is good.
-.RS 8
-Quicktime file format, audio/video codecs supported by quicktime4linux.
-.br
-Supported processing formats: audio - PCM, video - RAW (pass-through) RGB YUV
-.RE
-.TP 4
-\fBmp3\fP \- (audio) MPEG
-.br
-This module has no compile-time dependencies.
-This module has no run-time dependencies.
-Support for this module is good.
-.RS 8
-MPEG audio from program streams or raw streams.
-.br
-Supported processing formats: audio - PCM, video - none
-.RE
-.TP 4
-\fBmpeg2\fP \- (video) MPEG2
-.br
-This module has no compile-time dependencies.
-This module has no run-time dependencies.
-Support for this module is good.
-.RS 8
-video track from MPEG program streams or raw streams, extracted and decoded by mpeg2dec.
-.br
-Supported processing formats: audio - none, video - RAW (pass-through) RGB YUV
-.RE
-.TP 4
-\fBmplayer\fP \- (video) rendered by mplayer | (audio) rendered by mplayer
-.br
-This module has no compile-time dependencies.
-At run-time mplayer must be present.
-Support for this module is fair.
-.RS 8
-interface to Mplayer for decoding unsupported codecs, exotic file formats or more ore less broken sources.
-.br
-Supported processing formats: audio - PCM, video - RAW (pass-through) RGB YUV
-.RE
-.TP 4
-\fBnull\fP \- (video) null | (audio) null
-.br
-This module has no compile-time dependencies.
-This module has no run-time dependencies.
-Support for this module is fair.
-.RS 8
-dummy module, reads from /dev/zero.
-.br
-Supported processing formats: audio - none, video - none
-.RE
-.TP 4
-\fBnuv\fP \- (video) YUV | (audio) PCM
-.br
-At compile-time liblzo must be available.
-This module has no run-time dependencies.
-Support for this module is fair.
-.RS 8
-interface to NuppelVideo file format.
-.br
-Supported processing formats: audio - PCM, video - YUV
-.RE
-.TP 4
-\fBogg\fP \- (video) all | (audio) Ogg Vorbis
-.br
-This module has no compile-time dependencies.
-This module has no run-time dependencies.
-Support for this module is good.
-.RS 8
-decodes Ogg Vorbis audio streams.
-.br
-Supported processing formats: audio - RAW (pass-through) PCM, video - RAW (pass-through) RGB YUV
-.RE
-.TP 4
-\fBraw\fP \- (video) RGB/YUV | (audio) PCM
-.br
-This module has no compile-time dependencies.
-This module has no run-time dependencies.
-Support for this module is fair.
-.RS 8
-RGB/PCM from RIFF AVI/WAVE files or raw streams.
-.br
-Supported processing formats: audio - PCM, video - RGB YUV YUV420
-.RE
-.TP 4
-\fBsunau\fP \- (audio) pcm
-.br
-This module has no compile-time dependencies.
-This module has no run-time dependencies.
-Support for this module is good.
-.RS 8
-grabs raw PCM audio from audio(4) devices on some BSD systems
-.br
-Supported processing formats: audio - PCM, video - none
-.RE
-.TP 4
-\fBv4l\fP \- (video) v4l | (audio) PCM
-.br
-This module has no compile-time dependencies.
-This module has no run-time dependencies.
-Support for this module is fair.
-.RS 8
-interface for grabbing sound/video from v4l devices on linux systems.
-.br
-Supported processing formats: audio - PCM, video - RGB YUV
-.RE
-.TP 4
-\fBv4l2\fP \- (video) v4l2 | (audio) pcm
-.br
-This module has no compile-time dependencies.
-This module has no run-time dependencies.
-Support for this module is good.
-.RS 8
-interface for grabbing sound/video from v4l2 devices on linux systems. prefered over import_v4l.
-.br
-Supported processing formats: audio - PCM, video - RGB YUV YUV420
-.RE
-.TP 4
-\fBvnc\fP \- (video) VNC
-.br
-This module has no compile-time dependencies.
-At run-time vncrec must be present.
-Support for this module is fair.
-.RS 8
-imports video from the vncrec program.
-.br
-Supported processing formats: audio - none, video - RAW (pass-through) RGB YUV
-.RE
-.TP 4
-\fBvob\fP \- (video) MPEG-2 | (audio) MPEG/AC3/PCM | (subtitle)
-.br
-This module has no compile-time dependencies.
-This module has no run-time dependencies.
-Support for this module is good.
-.RS 8
-MPEG/AC3 program streams in VOB files (found on unencrypted/ripped DVDs).
-.br
-Supported processing formats: audio - PCM AC3, video - RAW (pass-through) RGB YUV
-.RE
-.TP 4
-\fBxml\fP \- (video) * | (audio) *
-.br
-At compile-time libxml2 must be available.
-At run-time libxml2 must be present.
-Support for this module is fair.
-.RS 8
-interface to XML files with file listing and frame range produced by kino.
-.br
-Supported processing formats: audio - RAW (pass-through) PCM, video - RAW (pass-through) RGB YUV DV
-.RE
-.TP 4
-\fByuv4mpeg\fP \- (video) YUV4MPEGx | (audio) WAVE
-.br
-This module has no compile-time dependencies.
-This module has no run-time dependencies.
-Support for this module is good.
-.RS 8
-YUV from video streams produced by mjpegtools (YUV4MPEG) and RIFF WAVE pcm audio.
-.br
-Supported processing formats: audio - PCM, video - RGB YUV
-.RE
-.\" Here ends the generated import part, produced by make-module-man.sed
-.RE
-.IP
-To see what your transcode has, do a
-.nf
-.B ls -1 `tcmodinfo -p`/import*.so
-.fi
-.IP
-It is possible to pass option strings to import modules like to filter modules.
-The average user does not this feature and not many modules support it. The syntax is
-.B  \-x vmod=options,amod=options
-.br
-Example
-.nf
-  \-x rawlist=uyvy,null
-.fi
-.br
-To tell the rawlist import module (which reads images from a list of files) the
-colour space of the images.
-
+.\"     Title: transcode_import
+.\"    Author: 
+.\" Generator: DocBook XSL Stylesheets v1.73.2 <http://docbook.sf.net/>
+.\"      Date: 14th July 2008
+.\"    Manual: 15th April 2008
+.\"    Source: transcode_import(1)
+.\"
+.TH "TRANSCODE_IMPORT" "1" "14th July 2008" "transcode_import(1)" "15th April 2008"
+.\" disable hyphenation
+.nh
+.\" disable justification (adjust text to left margin only)
+.ad l
+.SH "NAME"
+transcode_import \- transcode import modules collection
+.SH "SYNOPSIS"
+.HP 10
+\fBtranscode\fR \-x\ \fIname\fR\ [\ \fI,name\fR\ ]  [\fIother\ options\fR]
+.SH "COPYRIGHT"
 .PP
-.SH SEE ALSO
-.BR transcode (1),
-.BR tcmodinfo (1),
 
+\fBtranscode\fR
+is Copyright (C) 2001\-2003 by Thomas Oestreich, 2003\-2004 Tilmann Bitterberg, 2004\-2008 Transcode Team
+.SH "IMPORT MODULES"
+.PP
+If no module is specified through the \-x option,
+\fBtranscode\fR
+will autodetect them using internal probing code\&. If just one import module is specified, it is used both for video and audio import; if both modules are specified, the first is used for video import, the second for audio import\&. To see what import modules are avalaible for your transcode installation, do a
+.sp
+.RS 4
+.nf
+           $ ls \-1 $( tcmodinfo \-p )/import*\&.so
+           
+.fi
+.RE
+.sp
+A complete transcode installation has the following import modules\&.
+.PP
+\fBalsa\fR \fI[audio]\fR
+.RS 4
+This module reads audio samples from an ALSA device using libalsa\&.
+.sp
+This module accepts the following options:
+.PP
+device (string)
+.RS 4
+selects ALSA device to use for capturing audio\&.
+.RE
+.RE
+.PP
+\fBbktr\fR \fI[video]\fR
+.RS 4
+This module reads video frames from an capture device using bktr module\&. This module is designed to work on *BSD\&. For linux, use the v4l module\&.
+.sp
+This module accepts the following options:
+.PP
+tunerdev (string)
+.RS 4
+help: selects tuner devince\&.
+.RE
+.PP
+vsource (string)
+.RS 4
+selects video source (device dependant input)\&.
+.RE
+.PP
+format (string)
+.RS 4
+selects video normalization\&.
+.RE
+.PP
+asource (string)
+.RS 4
+selects audio source (device dependant input)\&.
+.RE
+.RE
+.PP
+\fBdvd\fR \fI[video, audio, extra]\fR
+.RS 4
+This module provides access to DVD content using libdvdread, directly from DVD device\&. (e\&.g\&. on\-the\-fly operation, no intermediate disk storage needed)\&.
+.sp
+At run time, this module requires: libdvdread >= 0\&.9\&.3
+.sp
+This module accepts the following options:
+.PP
+delay (integer)
+.RS 4
+set device access delay (seconds)\&.
+.RE
+.RE
+.PP
+\fBim\fR \fI[video]\fR
+.RS 4
+This module reads single images from disk using ImageMagick; a stream of correlated images can be automatically read if their filenames contains a common prefix and a serial number\&. All formats supported by ImageMagick are supported as well\&.
+.sp
+At run time, this module requires: libMagick >= 6\&.2\&.4\&.0
+.sp
+This module accepts the following options:
+.PP
+noseq (flag)
+.RS 4
+disable internal auto loading of images with similar names\&.
+.RE
+.RE
+.PP
+\fBpv3\fR \fI[video, audio]\fR
+.RS 4
+This module provides access to Earth Soft PV3 audio/video streams using win32 binary codecs and an internal win32 emulation layer (NO wine needed)\&.
+.sp
+At run time, this module requires: PV3 win32 dlls\&.
+.sp
+This module accepts the following options:
+.PP
+dllpath (string)
+.RS 4
+set path/filename to load dv\&.dll from
+.RE
+.RE
+.PP
+\fBvag\fR \fI[audio]\fR
+.RS 4
+This module decodes VAG\-format audio (from PlayStation)\&.
+.sp
+This module accepts the following options:
+.PP
+blocksize (integer)
+.RS 4
+stereo blocking size\&.
+.RE
+.RE
+.PP
+\fBvob\fR \fI[video, audio]\fR
+.RS 4
+This module imports audio/video from VOB files\&. If you need direct DVD access, use import_dvd module\&.
+.sp
+This module accepts the following options:
+.PP
+nodemux (flag)
+.RS 4
+skip demuxing processing stage\&. This sometimes improves A/V sync\&.
+.RE
+.RE
+.PP
+\fBx11\fR \fI[video]\fR
+.RS 4
+This module captures video frames from X window system using libX11\&.
+.sp
+At run time, this module requires: libcx11\-6 >= 1\&.0\&.0
+.sp
+This module accepts the following options:
+.PP
+skew_limit (integer)
+.RS 4
+maximum frame A/V skew (ms) before correction attempt
+.RE
+.RE
+.SH "AUTHORS"
+.PP
+Written by Thomas Oestreich <ostreich@theorie\&.physik\&.uni\-goettingen\&.de>, Tilmann Bitterberg and the Transcode\-Team
+.PP
+See the
+\fIAUTHORS\fR
+file for details\&.
+.SH "SEE ALSO"
+.PP
+
+\fBtranscode\fR(1)
+,
+\fBtcmodinfo\fR(1)
+,
+\fBtranscode_filter\fR(1)
+,
+\fBtranscode_export\fR(1)
