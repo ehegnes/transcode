@@ -67,15 +67,15 @@ static int capability_flag  = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422 | TC_CAP_P
  *%*   crop (string)
  *%*     forces cropping into selected window (format: WIDTHxHEIGHT+LEFTxTOP)
  *%*
- *%* OTPION
+ *%* OPTION
  *%*   convert (integer)
  *%*     forces video frames convertion by using index; use -1 to get a list of supported conversions.
  *%*
- *%* OPTION:
+ *%* OPTION
  *%*   format (integer)
  *%*     forces video frames convertion by using index; use -1 to get a list of supported conversions.
  *%*
- *%* OPTION:
+ *%* OPTION
  *%*   format (string)
  *%*     forces output format to given one; use "list" to get a list of supported formats.
  *%*/
