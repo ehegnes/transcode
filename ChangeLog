@@ -13,6 +13,9 @@
   * docs/man/transcode_import.1
   regenerate from XML source.
 
+  * configure.in
+  transcode 1.1.0 beta 0.
+
 2008-04-14 Francesco Romani <fromani at gmail dot com>
   * added file: docs/tcmkmodhelp.py
   add script to autogenerate XML manpage (part) from annotated source.
