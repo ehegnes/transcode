@@ -360,8 +360,13 @@ static int lame_encode(TCModuleInstance *self,
 
     pd = self->userdata;
 
-    if (in == NULL && pd->flush_flag) {
+    if (in == NULL) {
         /* flush request */
+        if (!pd->flush_flag) {
+            /* No-flush option given, so don't do anything */
+            out->audio_len = 0;
+            return TC_OK;
+        }
         if (out->audio_size < LAME_FLUSH_BUFFER_SIZE) {
             /* paranoia is a virtue */
             tc_log_error(MOD_NAME, "output buffer too small for"
