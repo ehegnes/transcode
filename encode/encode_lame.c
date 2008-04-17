@@ -173,8 +173,7 @@ static int lame_configure(TCModuleInstance *self,
                      (vob->a_vbr!=0));
         return TC_ERROR;
     }
-    quality = vob->mp3quality<0.0 ? 0 : vob->mp3quality>9.0 ? 9 :
-        (int)vob->mp3quality;
+    quality = (int)TC_CLAMP(vob->mp3quality, 0.0, 9.0);
     if (lame_set_quality(pd->lgf, quality) < 0) {
         tc_log_error(MOD_NAME, "lame_set_quality(%d) failed", quality);
         return TC_ERROR;
@@ -361,8 +360,13 @@ static int lame_encode(TCModuleInstance *self,
 
     pd = self->userdata;
 
-    if (in == NULL && pd->flush_flag) {
+    if (in == NULL) {
         /* flush request */
+        if (!pd->flush_flag) {
+            /* No-flush option given, so don't do anything */
+            out->audio_len = 0;
+            return TC_OK;
+        }
         if (out->audio_size < LAME_FLUSH_BUFFER_SIZE) {
             /* paranoia is a virtue */
             tc_log_error(MOD_NAME, "output buffer too small for"
@@ -421,19 +425,9 @@ static int lame_encode(TCModuleInstance *self,
 
 static const TCCodecID lame_codecs_in[] = { TC_CODEC_PCM, TC_CODEC_ERROR };
 static const TCCodecID lame_codecs_out[] = { TC_CODEC_MP3, TC_CODEC_ERROR };
-static const TCFormatID lame_formats[] = { TC_FORMAT_ERROR };
+TC_MODULE_CODEC_FORMATS(lame);
 
-static const TCModuleInfo lame_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = lame_codecs_in,
-    .codecs_out  = lame_codecs_out,
-    .formats_in  = lame_formats,
-    .formats_out = lame_formats
-};
+TC_MODULE_INFO(lame);
 
 static const TCModuleClass lame_class = {
     .info         = &lame_info,
