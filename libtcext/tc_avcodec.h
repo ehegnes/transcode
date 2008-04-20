@@ -56,12 +56,18 @@ extern pthread_mutex_t tc_libavcodec_mutex;
 
 
 #define TC_INIT_LIBAVCODEC do { \
-    TC_LOCK_LIBAVCODEC; \
-    avcodec_init(); \
+    TC_LOCK_LIBAVCODEC;     \
+    avcodec_init();         \
     avcodec_register_all(); \
-    TC_UNLOCK_LIBAVCODEC; \
+    TC_UNLOCK_LIBAVCODEC;   \
 } while (0)
 
+/* FIXME: not sure that locks are needed */
+#define TC_INIT_LIBAVFORMAT do { \
+    TC_LOCK_LIBAVCODEC;  \
+    av_register_all();   \
+    TC_UNLOCK_LIBAVCODEC \
+} while (0)
 
 #endif  /* TC_AVCODEC_H */
 

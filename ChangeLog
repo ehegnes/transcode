@@ -15,6 +15,9 @@
     encode/encode_null.c encode/encode_xvid.c
   switch to TC_MODULE_ENTRY_POINT macro.
 
+  * libtcext/tc_avcodec.h
+  add support for initializiation of libavformat.
+
 2008-04-16 Andrew Church <achurch at achurch dot org>
   * encode/encode_lame.c
   Fix crash at end of encoding when -O (no-flush) option is given.
