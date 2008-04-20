@@ -21,6 +21,10 @@
   * libtcext/tc_avcodec.h
   add support for initializiation of libavformat.
 
+  * libtc/tccodecs.c libtc/tccodecs.h
+  add VP6 codec (for FLV).
+  bump copyright year.
+
 2008-04-16 Andrew Church <achurch at achurch dot org>
   * encode/encode_lame.c
   Fix crash at end of encoding when -O (no-flush) option is given.
