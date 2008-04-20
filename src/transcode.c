@@ -1365,7 +1365,7 @@ int main(int argc, char *argv[])
             tc_log_info(PACKAGE, "V: %-16s | %s in %s (module=%s)",
                         "import format",
                         tc_codec_to_comment(vob->v_codec_flag),
-                        mformat2str(vob->v_format_flag),
+                        tc_format_to_comment(vob->v_format_flag),
                         no_vin_codec == 0 ? im_vid_mod : vob->vmod_probed);
             tc_log_info(PACKAGE, "A: %-16s | %s (%s)", "auto-probing",
                         (vob->audio_in_file != NULL) ?vob->audio_in_file :"N/A",
@@ -1373,7 +1373,7 @@ int main(int argc, char *argv[])
             tc_log_info(PACKAGE, "A: %-16s | %s in %s (module=%s)",
                         "import format",
                         tc_codec_to_comment(vob->a_codec_flag),
-                        mformat2str(vob->a_format_flag),
+                        tc_format_to_comment(vob->a_format_flag),
                         no_ain_codec==0 ? im_aud_mod : vob->amod_probed);
         }
     }

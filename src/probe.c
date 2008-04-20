@@ -131,14 +131,14 @@ int probe_source(const char *vid_file, const char *aud_file, int range,
     probe_to_vob(vid_file ? &vinfo : NULL, aud_file ? &ainfo : NULL,
                  flags, vob);
     if (verbose & TC_DEBUG) {
-        tc_log_info(PACKAGE, "(%s) V magic=0x%lx, A magic=0x%lx,"
+        tc_log_info(PACKAGE, "(%s) V format=0x%lx, A format=0x%lx,"
                     " V codec=0x%lx, A codec=0x%lx", __FILE__,
                     vob->v_format_flag, vob->a_format_flag,
                     vob->v_codec_flag, vob->a_codec_flag);
-        tc_log_info(PACKAGE, "(%s) V magic=%s, A magic=%s, V codec=%s,"
+        tc_log_info(PACKAGE, "(%s) V format=%s, A format=%s, V codec=%s,"
                     " A codec=%s", __FILE__,
-                    mformat2str(vob->v_format_flag),
-                    mformat2str(vob->a_format_flag),
+                    tc_format_to_comment(vob->v_format_flag),
+                    tc_format_to_comment(vob->a_format_flag),
                     tc_codec_to_comment(vob->v_codec_flag),
                     tc_codec_to_comment(vob->a_codec_flag));
     }
@@ -546,6 +546,9 @@ void probe_to_vob(ProbeInfo *vinfo, ProbeInfo *ainfo, int flags, vob_t *vob)
         /* Select appropriate import modules */
         select_modules(flags, vob);
     }
+    /* this has to be done AFTER the module autoselection */
+    vob->v_format_flag = tc_magic_to_format(vob->v_format_flag);
+    vob->a_format_flag = tc_magic_to_format(vob->a_format_flag);
 }
 
 /*************************************************************************/

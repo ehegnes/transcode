@@ -39,6 +39,15 @@
   * tools/tcstub.c
   pull tccodecs and tcformats functions from libtc.
 
+  * src/transcode.c
+  switch to new tcformats functions.
+  
+  * src/probe.c
+  switch to new tcformats functions.
+  convert {a,v}_format_flag to a real TC_FORMAT_ value, instead
+  a MAGIC one (more to come)
+  drop now-unneeded mformat2str.
+
 2008-04-16 Andrew Church <achurch at achurch dot org>
   * encode/encode_lame.c
   Fix crash at end of encoding when -O (no-flush) option is given.
