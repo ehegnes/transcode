@@ -6,6 +6,10 @@
   bump copyright year.
   sync with libtcext/tc_ogg.h changes.
 
+  * encode/encode_lavc.c
+  bump copyright year.
+  small enahcements in the function to list codecs.
+
 2008-04-16 Andrew Church <achurch at achurch dot org>
   * encode/encode_lame.c
   Fix crash at end of encoding when -O (no-flush) option is given.

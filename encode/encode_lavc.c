@@ -1,6 +1,6 @@
 /*
  * encode_lavc.c -- encode A/V frames using libavcodec.
- * (C) 2007 Francesco Romani <fromani at gmail dot com>
+ * (C) 2007-2008 Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
  *
@@ -37,7 +37,7 @@
 #include <math.h>
 
 #define MOD_NAME    "encode_lavc.so"
-#define MOD_VERSION "v0.0.7 (2007-10-27)"
+#define MOD_VERSION "v0.0.8 (2008-04-20)"
 #define MOD_CAP     "libavcodec based encoder (" LIBAVCODEC_IDENT ")"
 
 #define MOD_FEATURES \
@@ -350,22 +350,28 @@ static const char* tc_lavc_list_codecs(void)
 
         for (i = 0; tc_lavc_codecs_out[i] != TC_CODEC_ERROR; i++) {
             char sbuf[TC_BUF_MIN];
-            size_t slen = 0;
+            int slen = 0;
 
-            tc_snprintf(sbuf, sizeof(sbuf), "%15s: %s\n",
-                        tc_codec_to_string(tc_lavc_codecs_out[i]),
-                        tc_codec_to_comment(tc_lavc_codecs_out[i]));
-            slen = strlen(sbuf);
-            if (used + slen <= sizeof(buf)) {
+            slen = tc_codec_description(tc_lavc_codecs_out[i], sbuf, sizeof(sbuf)) + 1;
+            /* + 1 for the final '\n' */
+            if (slen < 0) {
+                tc_log_error(MOD_NAME, "codec description too long! "
+                                       "This should'nt happen. "
+                                       "Please file a bug report.");
+                strlcpy(buf, "internal error", sizeof(buf));
+            } else if (used + slen > sizeof(buf)) {
+                tc_log_error(MOD_NAME, "too much codecs! "
+                                       "This should'nt happen. "
+                                       "Please file a bug report.");
+                strlcpy(buf, "internal error", sizeof(buf));
+            } else {
+                sbuf[slen - 1] = '\n';
                 strlcpy(buf + used, sbuf, sizeof(buf) - used);
                 used += slen;
                 /* chomp final '\0' except for first round */
-            } else {
-                tc_log_error(MOD_NAME, "too much codecs! this should happen. "
-                                       "Please file a bug report.");
-                strlcpy(buf, "internal error", sizeof(buf));
             }
         }
+        buf[used] = '\0';
         ready = TC_TRUE;
     }
     return buf;
@@ -1285,6 +1291,9 @@ static int tc_lavc_init(TCModuleInstance *self, uint32_t features)
     TC_MODULE_SELF_CHECK(self, "init");
     TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
+    /* FIXME: move into core? */
+    TC_INIT_LIBAVCODEC;
+
     pd = tc_malloc(sizeof(TCLavcPrivateData));
     if (pd == NULL) {
         tc_log_error(MOD_NAME, "unable to allocate private data");
@@ -1337,9 +1346,6 @@ static int tc_lavc_configure(TCModuleInstance *self,
 
     pd->flush_flag = vob->encoder_flush;
     
-    /* FIXME: move into core? */
-    TC_INIT_LIBAVCODEC;
-
     avcodec_get_frame_defaults(&pd->ff_venc_frame);
     /*
      * auxiliary config data needs to be blanked too
@@ -1524,10 +1530,7 @@ static const TCModuleClass tc_lavc_class = {
     .encode_video = tc_lavc_encode_video,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &tc_lavc_class;
-}
+TC_MODULE_ENTRY_POINT(tc_lavc);
 
 /*************************************************************************/
 
