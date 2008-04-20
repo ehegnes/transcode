@@ -342,7 +342,7 @@ int tc_codec_description(TCCodecID codec, char *buf, size_t bufsize)
                       tc_codecs_info[idx].fourcc,
                       tc_codecs_info[idx].multipass ?"yes" :"no",
                       tc_codecs_info[idx].comment);
-    return ret;
+    return ret; // FIXME
 }
 
 int tc_codec_is_multipass(TCCodecID codec)

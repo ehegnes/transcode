@@ -2,7 +2,7 @@
  *  libtc.h - include file for utilities library for transcode
  *
  *  Copyright (C) Thomas Oestreich - August 2003
- *  Copyright (C) Transcode Team - 2005-2006
+ *  Copyright (C) Transcode Team - 2005-2008
  *
  *  This file is part of transcode, a video stream processing tool
  *
@@ -108,7 +108,7 @@ typedef enum {
 /*
  * libtc_init:
  *     tune up some libtc settings.
- *     You DO NOT always NEED to use this function since libtc has it
+ *     You DO NOT always NEED to use this function because libtc has it
  *     (most of time) sane defaults; just use this function to adapt
  *     libtc behaviour to some unusual conditions, like if stderr is a file
  *     and not a terminal.
@@ -207,9 +207,9 @@ __attribute__((format(printf,3,4)))
  *      "foobar". Same story for short options "-V": use "-V" not "V".
  *      If given option isn't found in string option array, do nothing
  *      and return succesfull (see below). If option is found but
- *      it's argument isn't found, don't mangle string options array
+ *      its argument isn't found, don't mangle string options array
  *      but return failure.
- *      If BOTH option and it's value its found, store a pointer to
+ *      If BOTH option and its value is found, store a pointer to
  *      option value into "optval" parameter and remove both option
  *      and value from string options array.
  * Parameters:
@@ -251,7 +251,7 @@ int tc_mangle_cmdline(int *argc, char ***argv,
 int tc_test_program(const char *name);
 
 /*
- * Safer string functions from OpenBSD, since these are not in all
+ * Safer string functions from OpenBSD, because these are not in all
  * libc implementations.
  */
 
@@ -630,13 +630,13 @@ int tc_probe_path(const char *name);
 int tc_translate_codec_id(TCCodecID codec);
 
 /*
- * tc_codec_to_string:
- *     return a short constant descriptive string given codec identifier,
+ * tc_codec_to_comment:
+ *     return a short constant descriptive string given the codec identifier.
  *
  * Parameters:
  *     codec: TC_CODEC_* value to represent.
  * Return value:
- *     a constant string representing the given codec (there is no need to
+ *     a constant string dscribing the given codec (there is no need to
  *     free() it).
  * Postconditions:
  *     Always return something sensible, even if unknown codec id was given.
@@ -645,23 +645,24 @@ const char* tc_codec_to_comment(TCCodecID codec);
 
 /*
  * tc_codec_to_string:
- *     return the codec name as a constant string given codec identifier
+ *     return the codec name as a lowercase constant string,
+ *     given the codec identifier.
  *
  * Parameters:
- *     codec: TC_CODEC_* value to represent
+ *     codec: the TC_CODEC_* value to represent.
  * Return value:
  *     a constant string representing the given codec (there is no need to
  *     free() it).
- *     NULL of codec is (yet) unknown
+ *     NULL if codec is (yet) unknown.
  */
 const char* tc_codec_to_string(TCCodecID codec);
 
 /*
  * tc_codec_from_string:
- *     extract codec identifier from it's string representation
+ *     extract codec identifier from its string representation
  *
  * Parameters:
- *     codec: string representation of codec
+ *     codec: string representation of codec, lowercase (name).
  * Return value:
  *     the correspinding TC_CODEC_* of given string representation,
  *     or TC_CODEC_ERROR if string is unknown or wrong.
@@ -683,7 +684,7 @@ const char* tc_codec_fourcc(TCCodecID codec);
 
 /*
  * tc_codec_description:
- *     describe a codec, given it's ID.
+ *     describe a codec, given its ID.
  *
  * Parameters:
  *     codec: TC_CODEC_* value to get the description for.
@@ -691,8 +692,8 @@ const char* tc_codec_fourcc(TCCodecID codec);
  *     bufsize: size of the given buffer.
  * Return value:
  *     -1 if requested codec isn't known.
- *     +1 truncation error (given buffer too small).
- *     0  no errors.
+ *     0  truncation error (given buffer too small).
+ *     >0 no errors.
  */
 int tc_codec_description(TCCodecID codec, char *buf, size_t bufsize);
 
@@ -707,6 +708,77 @@ int tc_codec_description(TCCodecID codec, char *buf, size_t bufsize);
  *     TC_FALSE: given codec is NOT multipass capable OR is not known.
  */
 int tc_codec_is_multipass(TCCodecID codec);
+
+/* format helpers **********************************************************/
+
+/*
+ * tc_format_from_string:
+ *     extract format identifier from its string representation.
+ *
+ * Parameters:
+ *     format: string representation of codec, lowercase (name).
+ * Return value:
+ *     the correspinding TC_FORMAT_* of given string representation,
+ *     or TC_FORMAT_ERROR if string is unknown or wrong.
+ */
+TCFormatID tc_format_from_string(const char *codec);
+
+/*
+ * tc_format_to_string:
+ *     return the format name as a lowercase constant string,
+ *     given the format identifier.
+ *
+ * Parameters:
+ *     codec: the TC_FORMAT_* value to represent.
+ * Return value:
+ *     a constant string representing the given codec (there is no need to
+ *     free() it).
+ *     NULL if codec is (yet) unknown.
+ */
+const char* tc_format_to_string(TCFormatID codec);
+
+/*
+ * tc_format_to_comment:
+ *     return a short constant descriptive string given the format identifier.
+ *
+ * Parameters:
+ *     codec: TC_FORMAT_* value to represent.
+ * Return value:
+ *     a constant string dscribing the given format (there is no need to
+ *     free() it).
+ * Postconditions:
+ *     Always return something sensible, even if unknown codec id was given.
+ */
+const char* tc_format_to_comment(TCFormatID codec);
+
+/*
+ * tc_format_description:
+ *     describe a format, given its ID.
+ *
+ * Parameters:
+ *     format: TC_FORMAT_* value to get the description for.
+ *     buf: buffer provided to caller. Description will be stored here.
+ *     bufsize: size of the given buffer.
+ * Return value:
+ *     -1 if requested format isn't known.
+ *     0  truncation error (given buffer too small).
+ *     >0 no errors.
+ */
+int tc_format_description(TCFormatID format, char *buf, size_t bufsize);
+
+/*
+ * tc_magic_to_format:
+ *     translate a magic value into a TCFormatID.
+ *     To be used in contexts on which a magic value is used to mean
+ *     a format (see comment in import/magic.h)
+ *
+ * Parameters:
+ *     magic: magic value to convert into a TCFormatID
+ * Return value:
+ *     the corresponding TCFormatID or TC_FORMAT_ERROR if the magic
+ *     value isn't known.
+ */
+int tc_magic_to_format(int magic);
 
 /*************************************************************************/
 
@@ -726,7 +798,7 @@ int tc_codec_is_multipass(TCCodecID codec);
  *            but vob_t pointer isn't used (yet) in order to avoid
  *            libtc/transcode.h interdependency.
  *            I'm not yet convinced that those informations should go
- *            in TCExportInfo since only transcode core needs them.
+ *            in TCExportInfo because only transcode core needs them.
  *            Perhaps the cleanest solution is to introduce yet
  *            another structure :\.
  *            If anyone has a better solution just let me know -- FR.
@@ -757,7 +829,7 @@ int tc_compute_fast_resize_values(void *_vob, int strict);
  * This function might return quite high values in sar_num and
  * sar_den. Depending on what codec these parameters are given to,
  * eventually a common factor should be reduced first. In case of x264
- * this is not needed, since it's done in x264's code.
+ * this is not needed, because it's done in x264's code.
  *
  * Parameters:
  *         vob: constant pointer to vob structure.

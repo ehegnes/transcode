@@ -30,6 +30,12 @@
   * libtc/tcformats.h libtc/Makefile.am
   start to reorganize and cleanup the remaining format/magic mess.
 
+  * libtc/tccodecs.c
+  typos.
+
+  * libtc/libtc.h
+  documentation for new tcformats functions.
+
 2008-04-16 Andrew Church <achurch at achurch dot org>
   * encode/encode_lame.c
   Fix crash at end of encoding when -O (no-flush) option is given.
