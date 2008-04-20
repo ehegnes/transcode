@@ -13,6 +13,9 @@
   * encode/encode_copy.c encode/encode_dv.c encode/encode_faac.c
     encode/encode_im.c encode/encode_lame.c encode/encode_lzo.c
     encode/encode_null.c encode/encode_xvid.c
+    multiplex/multiplex_avi.c multiplex/multiplex_null.c
+    multiplex/multiplex_pvn.c multiplex/multiplex_raw.c
+    multiplex/multiplex_wav.c multiplex/multiplex_y4m.c
   switch to TC_MODULE_ENTRY_POINT macro.
 
   * libtcext/tc_avcodec.h

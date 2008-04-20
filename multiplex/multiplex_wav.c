@@ -196,10 +196,7 @@ static const TCModuleClass tc_wav_class = {
     .multiplex    = tc_wav_multiplex,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &tc_wav_class;
-}
+TC_MODULE_ENTRY_POINT(tc_wav);
 
 /*************************************************************************/
 

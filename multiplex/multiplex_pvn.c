@@ -298,10 +298,7 @@ static const TCModuleClass pvn_class = {
     .multiplex = pvn_multiplex,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &pvn_class;
-}
+TC_MODULE_ENTRY_POINT(pvn);
 
 /*************************************************************************/
 /*

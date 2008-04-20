@@ -284,10 +284,7 @@ static const TCModuleClass tc_y4m_class = {
     .multiplex    = tc_y4m_multiplex,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &tc_y4m_class;
-}
+TC_MODULE_ENTRY_POINT(tc_y4m);
 
 /*************************************************************************/
 

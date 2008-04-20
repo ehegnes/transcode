@@ -129,10 +129,7 @@ static const TCModuleClass null_class = {
     .multiplex    = null_multiplex,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &null_class;
-}
+TC_MODULE_ENTRY_POINT(null);
 
 /*************************************************************************/
 

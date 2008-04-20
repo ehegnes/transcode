@@ -241,10 +241,7 @@ static const TCModuleClass avi_class = {
     .multiplex    = avi_multiplex,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &avi_class;
-}
+TC_MODULE_ENTRY_POINT(avi);
 
 /*************************************************************************/
 
