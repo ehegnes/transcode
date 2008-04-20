@@ -55,14 +55,6 @@
 
 /*************************************************************************/
 
-static void tc_ogg_del_packet(ogg_packet *op)
-{
-    tc_free(op->packet);
-    memset(op, 0, sizeof(*op));
-}
-
-/*************************************************************************/
-
 typedef struct oggextradata_ OGGExtraData;
 struct oggextradata_ {
     uint32_t magic;
@@ -71,6 +63,12 @@ struct oggextradata_ {
     ogg_packet code;
 };
 
+#ifdef TC_ENCODER
+static void tc_ogg_del_packet(ogg_packet *op)
+{
+    tc_free(op->packet);
+    memset(op, 0, sizeof(*op));
+}
 
 static void tc_ogg_del_extradata(OGGExtraData *oxd)
 {
@@ -92,6 +90,7 @@ static int tc_ogg_dup_packet(ogg_packet *dst, const ogg_packet *src)
     }
     return ret;
 }
+#endif /* TC_ENCODER */
 
 #endif /* TC_OGG_H */
 
