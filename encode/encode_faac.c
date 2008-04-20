@@ -297,10 +297,7 @@ static const TCModuleClass faac_class = {
     .encode_audio = faac_encode,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &faac_class;
-}
+TC_MODULE_ENTRY_POINT(faac);
 
 /*************************************************************************/
 

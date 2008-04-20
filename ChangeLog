@@ -10,6 +10,11 @@
   bump copyright year.
   small enahcements in the function to list codecs.
 
+  * encode/encode_copy.c encode/encode_dv.c encode/encode_faac.c
+    encode/encode_im.c encode/encode_lame.c encode/encode_lzo.c
+    encode/encode_null.c encode/encode_xvid.c
+  switch to TC_MODULE_ENTRY_POINT macro.
+
 2008-04-16 Andrew Church <achurch at achurch dot org>
   * encode/encode_lame.c
   Fix crash at end of encoding when -O (no-flush) option is given.

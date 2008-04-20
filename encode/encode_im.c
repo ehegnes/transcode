@@ -1,6 +1,6 @@
 /*
  *  encode_im.c -- encodes video frames using ImageMagick.
- *  (C) 2007 Francesco Romani <fromani at gmail dot com>
+ *  (C) 2007-2008 Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
  *
@@ -278,10 +278,7 @@ static const TCModuleClass tc_im_class = {
     .encode_video = tc_im_encode_video,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &tc_im_class;
-}
+TC_MODULE_ENTRY_POINT(tc_im);
 
 /*************************************************************************/
 

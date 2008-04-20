@@ -441,10 +441,7 @@ static const TCModuleClass lame_class = {
     .encode_audio = lame_encode,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &lame_class;
-}
+TC_MODULE_ENTRY_POINT(lame);
 
 /*************************************************************************/
 

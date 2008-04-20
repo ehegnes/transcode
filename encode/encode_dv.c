@@ -1,8 +1,8 @@
 /*
  *  encode_dv.c - encode a DV video stream using libdv
- *  (C) 2005-2006 Francesco Romani <fromani at gmail dot com>
+ *  (C) 2005-2008 Francesco Romani <fromani at gmail dot com>
  *  Based on code
- *  Copyright (C) Thomas Östreich et Al. - June 2001
+ *  Copyright (C) Thomas Oestreich et Al. - June 2001
  *
  * This file is part of transcode, a video stream processing tool.
  * transcode is free software, distributable under the terms of the GNU
@@ -287,10 +287,7 @@ static const TCModuleClass tc_dv_class = {
     .encode_video = tc_dv_encode_video,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &tc_dv_class;
-}
+TC_MODULE_ENTRY_POINT(tc_dv);
 
 /*************************************************************************/
 

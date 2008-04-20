@@ -1,6 +1,6 @@
 /*
  *  encode_null.c -- produces empty (as in zero-sized) A/V frames.
- *  (C) 2005-2007 Francesco Romani <fromani at gmail dot com>
+ *  (C) 2005-2008 Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
  *
@@ -130,10 +130,7 @@ static const TCModuleClass null_class = {
     .encode_audio = null_encode_audio,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &null_class;
-}
+TC_MODULE_ENTRY_POINT(null);
 
 /*************************************************************************/
 
