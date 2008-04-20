@@ -1,6 +1,6 @@
 /*
  *  encode_theora.c -- produces a theora stream using libtheora.
- *  (C) 2007 Francesco Romani <fromani at gmail dot com>
+ *  (C) 2007-2008 Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
  *
@@ -31,10 +31,11 @@
 #include "libtc/ratiocodes.h"
 #include "libtc/tcmodule-plugin.h"
 
+#define TC_ENCODER 1
 #include "libtcext/tc_ogg.h"
 
 #define MOD_NAME    "encode_theora.so"
-#define MOD_VERSION "v0.1.0 (2007-12-30)"
+#define MOD_VERSION "v0.1.1 (2008-04-20)"
 #define MOD_CAP     "theora video encoder using libtheora"
 
 #define MOD_FEATURES \
@@ -171,7 +172,6 @@ static int tc_theora_configure(TCModuleInstance *self,
                                const char *options, vob_t *vob)
 {
     uint32_t x_off = 0, y_off = 0, w = 0, h = 0;
-    int nsens = 1, quick = 0, sharp = 0;
     TheoraPrivateData *pd = NULL;
     theora_info ti;
     int ret = TC_ERROR;

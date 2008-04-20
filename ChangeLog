@@ -2,6 +2,10 @@
   * libtcext/tc_ogg.h
   reduce cheating a bit by #ifdef'ining the included functions.
 
+  * encode/encode_theora.c encode/encode_vorbis.c
+  bump copyright year.
+  sync with libtcext/tc_ogg.h changes.
+
 2008-04-16 Andrew Church <achurch at achurch dot org>
   * encode/encode_lame.c
   Fix crash at end of encoding when -O (no-flush) option is given.
