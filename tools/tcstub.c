@@ -251,6 +251,23 @@ void dummy_misc(void)
     tc_frc_code_to_ratio(3, &n, &d);
 }
 
+#include "libtc/tccodecs.h"
+void dummy_tccodec(void);
+void dummy_tccodec(void)
+{
+    const char *str;
+    str = tc_codec_to_string(TC_CODEC_UNKNOWN);
+}
+
+#include "libtc/tcformats.h"
+void dummy_tcformat(void);
+void dummy_tcformat(void)
+{
+    const char *str;
+    str = tc_format_to_string(TC_FORMAT_UNKNOWN);
+}
+
+
 #include "libtc/static_optstr.h"
 #include "avilib/static_avilib.h"
 #include "avilib/static_wavlib.h"

@@ -36,6 +36,9 @@
   * libtc/libtc.h
   documentation for new tcformats functions.
 
+  * tools/tcstub.c
+  pull tccodecs and tcformats functions from libtc.
+
 2008-04-16 Andrew Church <achurch at achurch dot org>
   * encode/encode_lame.c
   Fix crash at end of encoding when -O (no-flush) option is given.
