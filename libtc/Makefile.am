@@ -29,6 +29,7 @@ libtc_la_SOURCES = \
 	strlcpy.c \
 	tc_functions.c \
 	tccodecs.c \
+	tcformats.c \
 	tcframes.c \
 	tcglob.c \
 	tcmodule.c \
