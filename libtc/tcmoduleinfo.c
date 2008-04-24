@@ -100,17 +100,37 @@ static void codecs_to_string(const TCCodecID *codecs, char *buffer,
 
     for (i = 0; codecs[i] != TC_CODEC_ERROR; i++) {
         const char *codec = tc_codec_to_string(codecs[i]);
-        if (codec == NULL) {
-            continue;
+        if (codec != NULL) {
+            strlcat(buffer, codec, bufsize);
+            strlcat(buffer, " ", bufsize);
+            found = 1;
         }
-        strlcat(buffer, codec, bufsize);
-        strlcat(buffer, " ", bufsize);
-        found = 1;
     }
     if (!found) {
         strlcpy(buffer, fallback_string, bufsize);
     }
 }
+
+static void formats_to_string(const TCFormatID *formats, char *buffer,
+                              size_t bufsize)
+{
+    int i = 0;
+
+    if (buffer == NULL || bufsize < TC_BUF_LINE) {
+        return;
+    }
+
+    buffer[0] = '\0';
+
+    for (i = 0; formats[i] != TC_FORMAT_ERROR; i++) {
+        const char *format = tc_format_to_string(formats[i]);
+        if (format != NULL) {
+            strlcat(buffer, format, bufsize);
+            strlcat(buffer, " ", bufsize);
+        }
+    }
+}
+
 
 void tc_module_info_log(const TCModuleInfo *info, int verbose)
 {
@@ -175,65 +195,14 @@ void tc_module_info_log(const TCModuleInfo *info, int verbose)
         codecs_to_string(info->codecs_in, buffer, sizeof(buffer), str);
         tc_log_info(info->name, "accepts    : %s", buffer);
 
-        codecs_to_string(info->codecs_out, buffer, sizeof(buffer), str);
-        tc_log_info(info->name, "produces   : %s", buffer);
+        if (info->features & TC_MODULE_FEATURE_MULTIPLEX) {
+            formats_to_string(info->formats_out, buffer, sizeof(buffer));
+            tc_log_info(info->name, "muxes in   : %s", buffer);
+        } else {
+            codecs_to_string(info->codecs_out, buffer, sizeof(buffer), str);
+            tc_log_info(info->name, "encodes in : %s", buffer);
+        }
     }
-}
-
-#define COPY_ID_ARRAY(FIELD) do { \
-    int i; \
-    for (i = 0; src->FIELD[i] != TC_CODEC_ERROR; i++) { \
-        ; /* do nothing */ \
-    } \
-    i++; /* for end mark (TC_CODEC_ERROR) */ \
-    dst->FIELD = tc_malloc(i * sizeof(TCCodecID)); \
-    if (dst->FIELD == NULL) { \
-        goto no_mem_ ## FIELD; \
-    } \
-    memcpy((TCCodecID *)dst->FIELD , src->FIELD , i * sizeof(TCCodecID)); \
-} while (0)
-
-
-int tc_module_info_copy(const TCModuleInfo *src, TCModuleInfo *dst)
-{
-    if (src == NULL || dst == NULL) {
-        return -1;
-    }
-    dst->features = src->features;
-    dst->flags = src->flags;
-
-    dst->name = tc_strdup(src->name);
-    if (dst->name == NULL) {
-        goto no_mem_name;
-    }
-    dst->version = tc_strdup(src->version);
-    if (dst->version == NULL) {
-        goto no_mem_version;
-    }
-    dst->description = tc_strdup(src->description);
-    if (dst->description == NULL) {
-        goto no_mem_description;
-    }
-
-    COPY_ID_ARRAY(codecs_in);
-    COPY_ID_ARRAY(codecs_out);
-
-    return 0;
-
-    /*
-     * void* casts to silence warning from gcc 4.x (free requires void*,
-     * argument is const something*
-     */
-no_mem_codecs_out:
-    tc_free((void*)dst->codecs_in);
-no_mem_codecs_in:
-    tc_free((void*)dst->description);
-no_mem_description:
-    tc_free((void*)dst->version);
-no_mem_version:
-    tc_free((void*)dst->name);
-no_mem_name:
-    return 1;
 }
 
 void tc_module_info_free(TCModuleInfo *info)

@@ -8,6 +8,11 @@
   * encode/encode_lavc.c
   minor internal updates.
 
+  * libtc/tcmodule.c libtc/tcmoduleinfo.c
+  simplify the tcmodule library by avoiding the TCModuleInfo deep copy.
+  We trust our modules, and doing so we save memory and we do NOT loss
+  anything in safery.
+
 2008-04-20 Francesco Romani <fromani at gmail dot com>
   * libtcext/tc_ogg.h
   reduce cheating a bit by #ifdef'ining the included functions.

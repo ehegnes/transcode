@@ -476,8 +476,6 @@ static int descriptor_fini(TCModuleDescriptor *desc, void *unused)
     }
 
     if (desc->status == TC_DESCRIPTOR_DONE) {
-        /* a deep copy was performed */
-        tc_module_info_free(&(desc->info));
         if (desc->type != NULL) {
             tc_free((void*)desc->type);  /* avoid const warning */
             desc->type = NULL;
@@ -546,11 +544,8 @@ static void make_modtype(char *buf, size_t bufsize,
 } while (0)
 
 static int tc_module_class_copy(const TCModuleClass *klass,
-                                TCModuleClass *nklass,
-                                int soft_copy)
+                                TCModuleClass *nklass)
 {
-    int ret;
-
     if (!klass || !nklass) {
         /* 'impossible' condition */
         tc_log_error(__FILE__, "bad module class reference for setup: %s%s",
@@ -568,11 +563,13 @@ static int tc_module_class_copy(const TCModuleClass *klass,
     }
 
     /* register only method really provided by given class */
-    nklass->init = klass->init;
-    nklass->fini = klass->fini;
+    nklass->init      = klass->init;
+    nklass->fini      = klass->fini;
     nklass->configure = klass->configure;
-    nklass->stop = klass->stop;
-    nklass->inspect = klass->inspect;
+    nklass->stop      = klass->stop;
+    nklass->inspect   = klass->inspect;
+
+    nklass->info      = klass->info;
 
     COPY_IF_NOT_NULL(encode_audio);
     COPY_IF_NOT_NULL(encode_video);
@@ -583,16 +580,7 @@ static int tc_module_class_copy(const TCModuleClass *klass,
     COPY_IF_NOT_NULL(multiplex);
     COPY_IF_NOT_NULL(demultiplex);
 
-    if (soft_copy == TC_TRUE) {
-        memcpy((TCModuleInfo *)klass->info, nklass->info,
-               sizeof(TCModuleInfo));
-        ret = 0;
-    } else {
-        /* hard copy, create exact duplicate */
-        ret = tc_module_info_copy(klass->info,
-                                  (TCModuleInfo *)nklass->info);
-    }
-    return ret;
+    return 0;
 }
 
 #undef COPY_IF_NOT_NULL
@@ -691,7 +679,7 @@ static int tc_load_module(TCFactory factory,
     desc->status = TC_DESCRIPTOR_CREATED;
 
     /* soft copy is enough here, since information will be overwritten */
-    tc_module_class_copy(&dummy_class, &(desc->klass), TC_TRUE);
+    tc_module_class_copy(&dummy_class, &(desc->klass));
 
     modentry = dlsym(desc->so_handle, "tc_plugin_setup");
     if (!modentry) {
@@ -701,7 +689,7 @@ static int tc_load_module(TCFactory factory,
     }
     nclass = modentry();
 
-    ret = tc_module_class_copy(nclass, &(desc->klass), TC_FALSE);
+    ret = tc_module_class_copy(nclass, &(desc->klass));
 
     if (ret !=  0) {
         /* should'nt happen */
