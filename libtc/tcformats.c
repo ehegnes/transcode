@@ -94,6 +94,10 @@ static const TCFormatInfo tc_formats_info[] = {
       "VDR MPEG format",
     },
     { 
+      TC_FORMAT_MPEG_MP4, "mp4", TC_AUDIO|TC_VIDEO|TC_EXTRA,
+      "MP4 container (system) format",
+    },
+    { 
       TC_FORMAT_MXF, "mxf", TC_AUDIO|TC_VIDEO,
       "Media eXchangeFormat",
     },
@@ -238,8 +242,7 @@ static int id_matcher(const TCFormatInfo *info, const void *userdata)
     if (info == NULL || userdata == NULL) {
         return TC_FALSE;
     }
-
-    return (*(int*)userdata == info->id) ?TC_TRUE :TC_FALSE;
+    return (*((TCFormatID*)userdata) == info->id) ?TC_TRUE :TC_FALSE;
 }
 
 /*
@@ -306,9 +309,9 @@ static int find_tc_format(const TCFormatInfo *infos,
 
 /* public API ************************************************************/
 
-const char* tc_format_to_string(TCFormatID codec)
+const char* tc_format_to_string(TCFormatID format)
 {
-    int idx = find_tc_format(tc_formats_info, id_matcher, &codec);
+    int idx = find_tc_format(tc_formats_info, id_matcher, &format);
 
     if (idx == TC_NULL_MATCH) { /* not found */
         return "unknown";
