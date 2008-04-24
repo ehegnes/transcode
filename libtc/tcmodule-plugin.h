@@ -110,37 +110,37 @@ static int tc_module_cap_check(uint32_t flags)
  */
 
 #define TC_MODULE_GENERIC_INIT(MODNAME, MODDATA) \
-static int MODNAME ## _init(TCModuleInstance *self, uint32_t features) \
-{ \
-    MODDATA *pd = NULL; \
-    \
-    TC_MODULE_SELF_CHECK(self, "init"); \
-    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features); \
-    \
-    pd = tc_malloc(sizeof(MODDATA)); \
-    if (pd == NULL) { \
-        tc_log_error(MOD_NAME, "init: out of memory!"); \
-        return TC_ERROR; \
-    } \
-    \
-    self->userdata = pd; \
-    \
-    if (verbose) { \
-        tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP); \
-    } \
-    \
-    return TC_OK; \
-}
+    static int MODNAME ## _init(TCModuleInstance *self, uint32_t features) \
+    { \
+        MODDATA *pd = NULL; \
+        \
+        TC_MODULE_SELF_CHECK(self, "init"); \
+        TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features); \
+        \
+        pd = tc_malloc(sizeof(MODDATA)); \
+        if (pd == NULL) { \
+            tc_log_error(MOD_NAME, "init: out of memory!"); \
+            return TC_ERROR; \
+        } \
+        \
+        self->userdata = pd; \
+        \
+        if (verbose) { \
+            tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP); \
+        } \
+        \
+        return TC_OK; \
+    }
 
 #define TC_MODULE_GENERIC_FINI(MODNAME) \
-static int MODNAME ## _fini(TCModuleInstance *self) \
-{ \
-    TC_MODULE_SELF_CHECK(self, "fini"); \
-    \
-    tc_free(self->userdata); \
-    self->userdata = NULL; \
-    return TC_OK; \
-}
+    static int MODNAME ## _fini(TCModuleInstance *self) \
+    { \
+        TC_MODULE_SELF_CHECK(self, "fini"); \
+        \
+        tc_free(self->userdata); \
+        self->userdata = NULL; \
+        return TC_OK; \
+    }
 
 /*
  * autogeneration macro for TCModuleInfo descriptor
@@ -183,10 +183,10 @@ static const TCFormatID PREFIX ## _formats_out[] = { TC_FORMAT_ERROR }
 const TCModuleClass *tc_plugin_setup(void);
 
 #define TC_MODULE_ENTRY_POINT(MODNAME) \
-extern const TCModuleClass *tc_plugin_setup(void) \
-{ \
-    return &( MODNAME ## _class); \
-} \
+    extern const TCModuleClass *tc_plugin_setup(void) \
+    { \
+        return &( MODNAME ## _class); \
+    }
 
 
 /* TODO: unify in a proper way OLDINTERFACE and OLDINTERFACE_M */
