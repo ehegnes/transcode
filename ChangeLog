@@ -1,3 +1,7 @@
+2008-04-24 Francesco Romani <fromani at gmail dot com>
+  * libtcext/tc_avcodec.h
+  typo.
+
 2008-04-20 Francesco Romani <fromani at gmail dot com>
   * libtcext/tc_ogg.h
   reduce cheating a bit by #ifdef'ining the included functions.
