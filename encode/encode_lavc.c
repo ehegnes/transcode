@@ -37,7 +37,7 @@
 #include <math.h>
 
 #define MOD_NAME    "encode_lavc.so"
-#define MOD_VERSION "v0.0.8 (2008-04-20)"
+#define MOD_VERSION "v0.0.9 (2008-04-23)"
 #define MOD_CAP     "libavcodec based encoder (" LIBAVCODEC_IDENT ")"
 
 #define MOD_FEATURES \
@@ -352,7 +352,7 @@ static const char* tc_lavc_list_codecs(void)
             char sbuf[TC_BUF_MIN];
             int slen = 0;
 
-            slen = tc_codec_description(tc_lavc_codecs_out[i], sbuf, sizeof(sbuf)) + 1;
+            slen = tc_codec_description(tc_lavc_codecs_out[i], sbuf, sizeof(sbuf) - 1);
             /* + 1 for the final '\n' */
             if (slen < 0) {
                 tc_log_error(MOD_NAME, "codec description too long! "
@@ -365,10 +365,9 @@ static const char* tc_lavc_list_codecs(void)
                                        "Please file a bug report.");
                 strlcpy(buf, "internal error", sizeof(buf));
             } else {
-                sbuf[slen - 1] = '\n';
+                sbuf[slen] = '\n';
                 strlcpy(buf + used, sbuf, sizeof(buf) - used);
-                used += slen;
-                /* chomp final '\0' except for first round */
+                used += slen + 1; /* for the trailing newline */
             }
         }
         buf[used] = '\0';
@@ -1300,10 +1299,6 @@ static int tc_lavc_init(TCModuleInstance *self, uint32_t features)
         return TC_ERROR;
     }
 
-    /* enforce NULL-ness of dangerous (segfault-friendly) stuff */
-    pd->psnr_file = NULL;
-    pd->stats_file = NULL;
-
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
     }
@@ -1312,18 +1307,7 @@ static int tc_lavc_init(TCModuleInstance *self, uint32_t features)
     return TC_OK;
 }
 
-
-static int tc_lavc_fini(TCModuleInstance *self)
-{
-    TC_MODULE_SELF_CHECK(self, "fini");
-
-    /* _stop() does the magic; FIXME: recall from here? */
-    tc_free(self->userdata);
-    self->userdata = NULL;
-
-    return TC_OK;
-}
-
+TC_MODULE_GENERIC_FINI(tc_lavc)
 
 #define ABORT_IF_NOT_OK(RET) do { \
     if ((RET) != TC_OK) { \
