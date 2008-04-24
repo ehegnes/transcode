@@ -11,7 +11,7 @@
   * libtc/tcmodule.c libtc/tcmoduleinfo.c
   simplify the tcmodule library by avoiding the TCModuleInfo deep copy.
   We trust our modules, and doing so we save memory and we do NOT loss
-  anything in safery.
+  anything in safety.
 
 2008-04-20 Francesco Romani <fromani at gmail dot com>
   * libtcext/tc_ogg.h
