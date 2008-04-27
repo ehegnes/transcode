@@ -19,6 +19,7 @@ endif
 if ENABLE_EXPERIMENTAL
 pkg_LTLIBRARIES = \
 	multiplex_avi.la \
+	multiplex_lavf.la \
 	multiplex_null.la \
 	$(MULTIPLEX_OGG) \
 	multiplex_pvn.la \
@@ -29,6 +30,11 @@ endif
 
 multiplex_avi_la_SOURCES = multiplex_avi.c
 multiplex_avi_la_LDFLAGS = -module -avoid-version
+
+multiplex_lavf_la_SOURCES = multiplex_lavf.c
+multiplex_lavf_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBAVFORMAT_CFLAGS)
+multiplex_lavf_la_LDFLAGS = -module -avoid-version
+multiplex_lavf_la_LIBADD = $(LIBAVFORMAT_LIBS)
 
 multiplex_null_la_SOURCES = multiplex_null.c
 multiplex_null_la_LDFLAGS = -module -avoid-version
