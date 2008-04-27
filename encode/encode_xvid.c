@@ -461,7 +461,7 @@ static const TCCodecID tc_xvid_codecs_in[] = {
 };
 
 static const TCCodecID tc_xvid_codecs_out[] = {
-    TC_CODEC_XVID,
+    TC_CODEC_MPEG4VIDEO,
     TC_CODEC_ERROR
 };
 
