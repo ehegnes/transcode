@@ -2,6 +2,16 @@
   * multiplex/multiplex_lavf.c
   testing hooks. Still work in progress.
 
+  * encode/encode_lavc.c
+  add very first experimental audio encoding support.
+  I had this patch on my local tree for a while, it's
+  time to put it in the wild, in the hope to help
+  the multiplex_lavf stabilization process.
+  Moreover, once stable, having lavc audio encoding support
+  removes the last significant obstacle to switch to
+  a full-NMS export layer, dropping the old code enterely.
+  Stay tuned.
+
 2008-04-27 Francesco Romani <fromani at gmail dot com>
   * added file: multiplex/multiplex_lavf.c
 

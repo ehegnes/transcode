@@ -37,11 +37,11 @@
 #include <math.h>
 
 #define MOD_NAME    "encode_lavc.so"
-#define MOD_VERSION "v0.0.9 (2008-04-23)"
+#define MOD_VERSION "v0.1.0 (2008-04-27)"
 #define MOD_CAP     "libavcodec based encoder (" LIBAVCODEC_IDENT ")"
 
 #define MOD_FEATURES \
-    TC_MODULE_FEATURE_ENCODE|TC_MODULE_FEATURE_VIDEO
+    TC_MODULE_FEATURE_ENCODE|TC_MODULE_FEATURE_VIDEO|TC_MODULE_FEATURE_AUDIO
 
 #define MOD_FLAGS \
     TC_MODULE_FLAG_RECONFIGURABLE
@@ -106,9 +106,15 @@ typedef struct tclavcprivatedata_ TCLavcPrivateData;
 
 /* this is to reduce if()s in out encode_video() */
 typedef void (*PreEncodeVideoFn)(struct tclavcprivatedata_ *pd,
-                                 vframe_list_t *vframe);
+                                 TCFrameVideo *vframe);
 
 struct tclavcprivatedata_ {
+    /* shared section *****************************************************/
+    TCLavcConfigData confdata;
+    
+    int flush_flag;
+
+    /* video support ******************************************************/
     int vcodec_id;
     TCCodecID tc_pix_fmt;
 
@@ -116,8 +122,6 @@ struct tclavcprivatedata_ {
     AVCodecContext ff_vcontext;
 
     AVCodec *ff_vcodec;
-
-    TCLavcConfigData confdata;
 
     struct {
         int active;
@@ -130,17 +134,29 @@ struct tclavcprivatedata_ {
     FILE *stats_file;
     FILE *psnr_file;
 
-    vframe_list_t *vframe_buf;
+    TCFrameVideo *vframe_buf;
     /* for colorspace conversions in prepare functions */
     PreEncodeVideoFn pre_encode_video;
 
-    int flush_flag;
+    /* audio support *****************************************************/
+    int acodec_id;
+    
+    AVCodecContext ff_acontext;
+    AVCodec *ff_acodec;
+
+    TCFrameAudio *aframe_buf;
+    
+    int audio_buf_pos; /* position in the buffer (for remaining data) */
+    
+    int audio_bps; /* bytes per sample */
+    int audio_bpf; /* bytes per frame */
 };
 
 /*************************************************************************/
 
 static const TCCodecID tc_lavc_codecs_in[] = {
     TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_RGB,
+    TC_CODEC_PCM,
     TC_CODEC_ERROR
 };
 
@@ -149,6 +165,8 @@ static const TCCodecID tc_lavc_codecs_in[] = {
 #define FF_VCODEC_ID(pd) (tc_lavc_internal_codecs[(pd)->vcodec_id])
 #define TC_VCODEC_ID(pd) (tc_lavc_codecs_out[(pd)->vcodec_id])
 
+#define FF_ACODEC_ID(pd) (tc_lavc_internal_codecs[(pd)->acodec_id])
+#define TC_ACODEC_ID(pd) (tc_lavc_codecs_out[(pd)->acodec_id])
 /* WARNING: the two arrays below MUST BE KEPT SYNCHRONIZED! */
 
 static const TCCodecID tc_lavc_codecs_out[] = { 
@@ -161,6 +179,10 @@ static const TCCodecID tc_lavc_codecs_out[] = {
     TC_CODEC_DV,
     TC_CODEC_MJPEG, TC_CODEC_LJPEG,
     TC_CODEC_MP42, TC_CODEC_MP43,
+
+    TC_CODEC_MP2,
+    TC_CODEC_AC3,
+
     TC_CODEC_ERROR
 };
 
@@ -174,6 +196,10 @@ static const enum CodecID tc_lavc_internal_codecs[] = {
     CODEC_ID_DVVIDEO,
     CODEC_ID_MJPEG, CODEC_ID_LJPEG,
     CODEC_ID_MSMPEG4V2, CODEC_ID_MSMPEG4V3,
+
+    CODEC_ID_MP2,
+    CODEC_ID_AC3,
+
     CODEC_ID_NONE
 };
 
@@ -211,7 +237,7 @@ TC_MODULE_CODEC_FORMATS(tc_lavc);
  */
 
 static void pre_encode_video_yuv420p(TCLavcPrivateData *pd,
-                                     vframe_list_t *vframe)
+                                     TCFrameVideo *vframe)
 {
     avpicture_fill((AVPicture *)&pd->ff_venc_frame, vframe->video_buf,
                     PIX_FMT_YUV420P,
@@ -220,7 +246,7 @@ static void pre_encode_video_yuv420p(TCLavcPrivateData *pd,
 
 
 static void pre_encode_video_yuv420p_huffyuv(TCLavcPrivateData *pd,
-                                             vframe_list_t *vframe)
+                                             TCFrameVideo *vframe)
 {
     uint8_t *src[3] = { NULL, NULL, NULL };
 
@@ -236,7 +262,7 @@ static void pre_encode_video_yuv420p_huffyuv(TCLavcPrivateData *pd,
 }
 
 static void pre_encode_video_yuv422p(TCLavcPrivateData *pd,
-                                     vframe_list_t *vframe)
+                                     TCFrameVideo *vframe)
 {
     uint8_t *src[3] = { NULL, NULL, NULL };
 
@@ -253,7 +279,7 @@ static void pre_encode_video_yuv422p(TCLavcPrivateData *pd,
 
 
 static void pre_encode_video_yuv422p_huffyuv(TCLavcPrivateData *pd,
-                                             vframe_list_t *vframe)
+                                             TCFrameVideo *vframe)
 {
     avpicture_fill((AVPicture *)&pd->ff_venc_frame, vframe->video_buf,
                    PIX_FMT_YUV422P,
@@ -263,7 +289,7 @@ static void pre_encode_video_yuv422p_huffyuv(TCLavcPrivateData *pd,
 
 
 static void pre_encode_video_rgb24(TCLavcPrivateData *pd,
-                                   vframe_list_t *vframe)
+                                   TCFrameVideo *vframe)
 {
     avpicture_fill((AVPicture *)&pd->ff_venc_frame, pd->vframe_buf->video_buf,
                    PIX_FMT_YUV420P,
@@ -847,7 +873,7 @@ static int tc_lavc_init_buf(TCLavcPrivateData *pd, const vob_t *vob)
 
 
 /*
- * tc_lavc_settings_from_vob:
+ * tc_lavc_video_settings_from_vob:
  *      translate vob settings and store them in module
  *      private data and in avcodec context, in correct format.
  *
@@ -860,7 +886,7 @@ static int tc_lavc_init_buf(TCLavcPrivateData *pd, const vob_t *vob)
  * Side Effects:
  *      various helper subroutines will be called.
  */
-static int tc_lavc_settings_from_vob(TCLavcPrivateData *pd, const vob_t *vob)
+static int tc_lavc_video_settings_from_vob(TCLavcPrivateData *pd, const vob_t *vob)
 {
     int ret = 0;
 
@@ -924,6 +950,18 @@ static int tc_lavc_settings_from_vob(TCLavcPrivateData *pd, const vob_t *vob)
         return ret;
     }
     return tc_lavc_init_multipass(pd, vob);
+}
+
+
+static int tc_lavc_audio_settings_from_vob(TCLavcPrivateData *pd, const vob_t *vob)
+{
+    pd->ff_acontext.bit_rate = vob->mp3bitrate * 1000;  // bitrate dest.
+    pd->ff_acontext.channels = vob->dm_chan;             // channels
+    pd->ff_acontext.sample_rate = vob->a_rate;
+    pd->audio_bps = vob->dm_chan * vob->dm_bits/8;
+    pd->audio_bpf = pd->ff_acontext.frame_size * pd->audio_bps; // FIXME
+    pd->audio_buf_pos = 0;
+    return TC_OK;
 }
 
 #define PCTX(field) &(pd->ff_vcontext.field)
@@ -1030,12 +1068,12 @@ static void tc_lavc_dispatch_settings(TCLavcPrivateData *pd)
 {
     /* some translation... */
     pd->ff_vcontext.bit_rate_tolerance = pd->confdata.vrate_tolerance * 1000;
-    pd->ff_vcontext.rc_min_rate = pd->confdata.rc_min_rate * 1000;
-    pd->ff_vcontext.rc_max_rate = pd->confdata.rc_max_rate * 1000;
-    pd->ff_vcontext.rc_buffer_size = pd->confdata.rc_buffer_size * 1024;
-    pd->ff_vcontext.lmin = (int)(FF_QP2LAMBDA * pd->confdata.lmin + 0.5);
-    pd->ff_vcontext.lmax = (int)(FF_QP2LAMBDA * pd->confdata.lmax + 0.5);
-    pd->ff_vcontext.me_method = ME_ZERO + pd->confdata.me_method;
+    pd->ff_vcontext.rc_min_rate        = pd->confdata.rc_min_rate * 1000;
+    pd->ff_vcontext.rc_max_rate        = pd->confdata.rc_max_rate * 1000;
+    pd->ff_vcontext.rc_buffer_size     = pd->confdata.rc_buffer_size * 1024;
+    pd->ff_vcontext.lmin               = (int)(FF_QP2LAMBDA * pd->confdata.lmin + 0.5);
+    pd->ff_vcontext.lmax               = (int)(FF_QP2LAMBDA * pd->confdata.lmax + 0.5);
+    pd->ff_vcontext.me_method          = ME_ZERO + pd->confdata.me_method;
 
     pd->ff_vcontext.flags = 0;
     SET_FLAG(pd, mv0);
@@ -1315,15 +1353,60 @@ TC_MODULE_GENERIC_FINI(tc_lavc)
     } \
 } while (0)
 
+static int tc_lavc_stop_video(TCLavcPrivateData *pd)
+{
+    tc_lavc_fini_buf(pd);
 
-static int tc_lavc_configure(TCModuleInstance *self,
-                             const char *options, vob_t *vob)
+    if (PSNR_REQUESTED(pd)) {
+        psnr_print(pd);
+        psnr_close(pd);
+    }
+
+    tc_lavc_fini_rc_override(pd);
+    /* ok, now really start the real teardown */
+    tc_lavc_fini_multipass(pd);
+
+    if (pd->ff_vcodec != NULL) {
+        avcodec_close(&pd->ff_vcontext);
+        pd->ff_vcodec = NULL;
+    }
+
+    return TC_OK;
+}
+
+static int tc_lavc_stop_audio(TCLavcPrivateData *pd)
+{
+    if (pd->ff_acodec != NULL) {
+        avcodec_close(&pd->ff_acontext);
+        pd->ff_acodec = NULL;
+    }
+    return TC_OK;
+}
+
+static int tc_lavc_stop(TCModuleInstance *self)
+{
+    TCLavcPrivateData *pd = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "stop");
+
+    pd = self->userdata;
+
+    if (self->features & TC_MODULE_FEATURE_VIDEO) {
+        tc_lavc_stop_video(pd);
+    }
+    if (self->features & TC_MODULE_FEATURE_AUDIO) {
+        tc_lavc_stop_audio(pd);
+    }
+    return TC_OK;
+}
+
+static int tc_lavc_configure_video(TCModuleInstance *self,
+                                   const char *options, vob_t *vob)
 {
     const char *vcodec_name = tc_codec_to_string(vob->ex_v_codec);
     TCLavcPrivateData *pd = NULL;
     int ret = TC_OK;
 
-    TC_MODULE_SELF_CHECK(self, "configure");
     TC_MODULE_SELF_CHECK(options, "configure"); /* paranoia */
 
     pd = self->userdata;
@@ -1350,7 +1433,7 @@ static int tc_lavc_configure(TCModuleInstance *self,
         tc_log_info(MOD_NAME, "using video codec '%s'", vcodec_name);
     }
 
-    ret = tc_lavc_settings_from_vob(pd, vob);
+    ret = tc_lavc_video_settings_from_vob(pd, vob);
     ABORT_IF_NOT_OK(ret);
 
     /* calling WARNING: order matters here */
@@ -1400,8 +1483,81 @@ failed:
     return TC_ERROR;
 }
 
+static int tc_lavc_configure_audio(TCModuleInstance *self,
+                                   const char *options, vob_t *vob)
+{
+    const char *acodec_name = tc_codec_to_string(vob->ex_a_codec);
+    TCLavcPrivateData *pd = NULL;
+    int ret = TC_OK;
+
+    TC_MODULE_SELF_CHECK(options, "configure"); /* paranoia */
+
+    pd = self->userdata;
+
+    /* 
+     * we must do first since we NEED valid vcodec_name
+     * ASAP to read right section of configuration file.
+     */
+    pd->acodec_id = tc_codec_is_supported(vob->ex_a_codec);
+    if (pd->acodec_id == TC_NULL_MATCH) {
+        tc_log_error(MOD_NAME, "unsupported codec `%s'", acodec_name);
+        return TC_ERROR;
+    }
+    if (verbose) {
+        tc_log_info(MOD_NAME, "using video codec '%s'", acodec_name);
+    }
+
+    pd->ff_acodec = avcodec_find_encoder(FF_ACODEC_ID(pd));
+    if (pd->ff_acodec == NULL) {
+        tc_log_error(MOD_NAME, "unable to find a libavcodec encoder for `%s'",
+                     tc_codec_to_string(TC_ACODEC_ID(pd)));
+        goto failed;
+    }
+
+    TC_LOCK_LIBAVCODEC;
+    ret = avcodec_open(&pd->ff_acontext, pd->ff_acodec);
+    TC_UNLOCK_LIBAVCODEC;
+
+    if (ret < 0) {
+        tc_log_error(MOD_NAME, "avcodec_open() failed");
+        goto failed;
+    }
+ 
+    avcodec_get_context_defaults(&pd->ff_acontext);
+    return tc_lavc_audio_settings_from_vob(pd, vob);
+
+failed:
+    return TC_ERROR;
+}
+
 #undef ABORT_IF_NOT_OK
 
+static int tc_lavc_configure(TCModuleInstance *self,
+                             const char *options, vob_t *vob)
+{
+    int ret = TC_OK;
+
+    TC_MODULE_SELF_CHECK(self, "configure");
+
+
+    if (self->features & TC_MODULE_FEATURE_VIDEO) {
+        ret = tc_lavc_configure_video(self, options, vob);
+        if (ret != TC_OK) {
+            goto failure;
+        }
+    }
+    if (self->features & TC_MODULE_FEATURE_AUDIO) {
+        ret = tc_lavc_configure_audio(self, options, vob);
+        if (ret != TC_OK) {
+            goto failure;
+        }
+    }
+    return TC_OK;
+
+failure:
+    tc_lavc_stop(self);
+    return TC_ERROR;
+}
 
 static int tc_lavc_inspect(TCModuleInstance *self,
                            const char *param, const char **value)
@@ -1413,45 +1569,14 @@ static int tc_lavc_inspect(TCModuleInstance *self,
         *value = tc_lavc_help;
     }
 
-    if (optstr_lookup(param, "vcodec")) {
-        *value = "must be selected by user\n";
-    }
-
     if (optstr_lookup(param, "list")) {
         *value = tc_lavc_list_codecs();
     }
     return TC_OK;
 }
 
-static int tc_lavc_stop(TCModuleInstance *self)
-{
-    TCLavcPrivateData *pd = NULL;
-
-    TC_MODULE_SELF_CHECK(self, "stop");
-
-    pd = self->userdata;
-
-    tc_lavc_fini_buf(pd);
-
-    if (PSNR_REQUESTED(pd)) {
-        psnr_print(pd);
-        psnr_close(pd);
-    }
-
-    tc_lavc_fini_rc_override(pd);
-    /* ok, now really start the real teardown */
-    tc_lavc_fini_multipass(pd);
-
-    if (pd->ff_vcodec != NULL) {
-        avcodec_close(&pd->ff_vcontext);
-        pd->ff_vcodec = NULL;
-    }
-
-    return TC_OK;
-}
-
 static int tc_lavc_flush_video(TCModuleInstance *self,
-                               vframe_list_t *outframe)
+                               TCFrameVideo *outframe)
 {
     outframe->video_len = 0;
     return TC_OK;
@@ -1459,8 +1584,8 @@ static int tc_lavc_flush_video(TCModuleInstance *self,
 
 
 static int tc_lavc_encode_video(TCModuleInstance *self,
-                                vframe_list_t *inframe,
-                                vframe_list_t *outframe)
+                                TCFrameVideo *inframe,
+                                TCFrameVideo *outframe)
 {
     TCLavcPrivateData *pd = NULL;
 
@@ -1497,6 +1622,82 @@ static int tc_lavc_encode_video(TCModuleInstance *self,
     return tc_lavc_write_logs(pd, outframe->video_len);
 }
 
+static int tc_lavc_flush_audio(TCModuleInstance *self,
+                               TCFrameAudio *outframe)
+{
+    outframe->audio_len = 0; /* FIXME */
+    return TC_OK;
+}
+
+#define INT_BUF_GET(PD)    ((PD)->aframe_buf->audio_buf)
+#define INT_BUF_POS(PD)    (INT_BUF_GET(PD) + ((PD)->audio_buf_pos))
+#define INT_BUF_FWD(PD, N) ((PD)->audio_buf_pos += (N))
+
+static int tc_lavc_encode_audio(TCModuleInstance *self,
+                                TCFrameAudio *inframe,
+                                TCFrameAudio *outframe)
+{
+    int in_size      = inframe->audio_len;
+    int out_size     = 0;
+    uint8_t *in_buf  = inframe->audio_buf;
+    uint8_t *out_buf = outframe->audio_buf;
+    TCLavcPrivateData *pd = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "encode_audio");
+
+    pd = self->userdata;
+
+    if (inframe == NULL && pd->flush_flag) {
+        return tc_lavc_flush_audio(self, outframe); // FIXME
+    }
+
+    //-- any byte in mpa-buffer left from past call ? --
+    if (pd->audio_buf_pos > 0) {
+        int bytes_needed = pd->audio_bps - pd->audio_buf_pos;
+
+        //-- complete frame -> encode --
+        if (in_size >= bytes_needed) {
+            ac_memcpy(INT_BUF_POS(pd), in_buf, bytes_needed);
+            TC_LOCK_LIBAVCODEC;
+            out_size = avcodec_encode_audio(&pd->ff_acontext, out_buf,
+                                            SIZE_PCM_FRAME, // FIXME
+                                            (int16_t*)INT_BUF_GET(pd));
+                                            /* yes, at the start */
+            TC_UNLOCK_LIBAVCODEC;
+
+            out_buf += out_size;
+            in_size -= bytes_needed;
+            in_buf  += bytes_needed;
+
+            pd->audio_buf_pos = 0;
+        } else {
+            //-- incomplete frame -> append bytes to mpa-buffer and return --
+            ac_memcpy(INT_BUF_POS(pd), in_buf, in_size);
+            pd->audio_buf_pos += in_size;
+            return TC_OK;
+        }
+    }
+    //-- encode only as much "full" frames as available --
+    while (in_size >= pd->audio_bpf) {
+        TC_LOCK_LIBAVCODEC;
+        out_size = avcodec_encode_audio(&pd->ff_acontext, out_buf,
+                                        SIZE_PCM_FRAME, // FIXME
+                                        (int16_t*)in_buf);
+        TC_UNLOCK_LIBAVCODEC;
+
+        out_buf += out_size;
+        in_size -= pd->audio_bpf;
+        in_buf  += pd->audio_bpf;
+    }
+
+    //-- hold rest of bytes in mpa-buffer --
+    if (in_size > 0) {
+        pd->audio_buf_pos = in_size;
+        ac_memcpy(INT_BUF_GET(pd), in_buf, in_size);
+    }
+
+    return TC_OK;
+}
 
 /*************************************************************************/
 
@@ -1512,6 +1713,7 @@ static const TCModuleClass tc_lavc_class = {
     .inspect      = tc_lavc_inspect,
 
     .encode_video = tc_lavc_encode_video,
+    .encode_audio = tc_lavc_encode_audio,
 };
 
 TC_MODULE_ENTRY_POINT(tc_lavc);
@@ -1527,3 +1729,4 @@ TC_MODULE_ENTRY_POINT(tc_lavc);
  *
  * vim: expandtab shiftwidth=4:
  */
+
