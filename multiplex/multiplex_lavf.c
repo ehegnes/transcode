@@ -29,7 +29,7 @@
 #include "libtcext/tc_avcodec.h"
 
 #define MOD_NAME    "multiplex_lavf.so"
-#define MOD_VERSION "v0.0.3 (2008-04-27)"
+#define MOD_VERSION "v0.0.4 (2008-04-28)"
 #define MOD_CAP     "libavformat based multiplexor (" LIBAVFORMAT_IDENT ")"
 
 #define MOD_FEATURES \
@@ -44,12 +44,19 @@ static const char tc_lavf_help[] = ""
     "Options:\n"
     "    help    produce module overview and options explanations\n";
 
+/* until 0.1.x at least */
+#define LAVF_TEST 1
+#define DEBUG     1
+
 /*************************************************************************/
 
 static const TCCodecID tc_lavf_codecs_in[] = {
     TC_CODEC_PCM, TC_CODEC_LPCM,
     TC_CODEC_AC3, TC_CODEC_DTS, TC_CODEC_MP2,
     TC_CODEC_AAC,
+#ifdef LAVF_TEST    
+    TC_CODEC_MP3,
+#endif
     TC_CODEC_MPEG2VIDEO, TC_CODEC_MPEG4VIDEO,
     TC_CODEC_H264, TC_CODEC_SVQ1, TC_CODEC_SVQ3,
     TC_CODEC_ERROR
@@ -59,6 +66,9 @@ static const TCFormatID tc_lavf_formats_out[] = {
     TC_FORMAT_MPEG_TS,
     TC_FORMAT_MPEG_MP4,
     TC_FORMAT_MOV,
+#ifdef LAVF_TEST
+    TC_FORMAT_AVI,
+#endif
     TC_FORMAT_ERROR
 };
 
@@ -114,6 +124,18 @@ static const struct fmt_desc fmt_descs[] = {
           TC_CODEC_ERROR
         }
     },
+#ifdef LAVF_TEST
+    {
+        TC_FORMAT_AVI,
+        "avi",
+        0,
+        {
+            TC_CODEC_MP3,
+            TC_CODEC_MPEG4VIDEO,
+            TC_CODEC_ERROR,
+        }
+    },
+#endif
     {
         TC_FORMAT_ERROR,
         NULL,

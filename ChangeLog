@@ -1,3 +1,7 @@
+2008-04-28 Francesco Romani <fromani at gmail dot com>
+  * multiplex/multiplex_lavf.c
+  testing hooks. Still work in progress.
+
 2008-04-27 Francesco Romani <fromani at gmail dot com>
   * added file: multiplex/multiplex_lavf.c
 
