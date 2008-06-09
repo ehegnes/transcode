@@ -1,3 +1,7 @@
+2008-06-29 Francesco Romani <fromani at gmail dot com>
+  * multiplex/multiplex_wav.c multiplex/multiplex_y4m.c
+  fix module features.
+
 2008-04-28 Francesco Romani <fromani at gmail dot com>
   * multiplex/multiplex_lavf.c
   testing hooks. Still work in progress.
