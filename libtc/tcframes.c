@@ -62,7 +62,7 @@ int tc_video_planes_size(size_t psizes[3],
     return 0;
 }
 
-/* blank )set to zero) rightmost X bits of I */
+/* blanks (set to zero) rightmost X bits of I */
 #define TRUNC_VALUE(i, x)	(((i) >> (x)) << (x))
 
 size_t tc_audio_frame_size(double samples, int channels,
@@ -259,6 +259,60 @@ void tc_del_audio_frame(aframe_list_t *aptr)
         tc_buffree(aptr->internal_audio_buf);
 #endif
         tc_free(aptr);
+    }
+}
+
+/* XXX: move those into (public) header file? */
+#define PCM_SILENCE     (0)
+#define BLACK_Y         (0)
+#define BLACK_UV        (128)
+#define BLACK_RGB       (0)
+
+void tc_blank_video_frame(TCFrameVideo *ptr)
+{
+    size_t psizes[3] = { 0, 0, 0};
+    tc_video_planes_size(psizes,
+                         ptr->v_width, ptr->v_height,
+                         ptr->v_codec);
+    
+    if (ptr) {
+        switch (ptr->v_codec) {
+          case CODEC_RGB: /* fallthrough, backward compatibility */
+          case TC_CODEC_RGB:
+            memset(ptr->video_buf, BLACK_RGB, ptr->video_size);
+            break;
+          case CODEC_YUV: /* fallthrough, backward compatibility */
+          case TC_CODEC_YUV420P:
+            /* fallthrough, the algorythm is the same modulo the 
+             * UV planes size */
+          case CODEC_YUV422: /* fallthrough, backward compatibility */
+          case TC_CODEC_YUV422P:
+            memset(ptr->video_buf,             BLACK_Y,  psizes[0]            );
+            memset(ptr->video_buf + psizes[0], BLACK_UV, psizes[1] + psizes[2]);
+            break;
+          default:
+            tc_log_warn(__FILE__, "tc_blank_video_frame():"
+                        " format %s (0x%X) not yet supported",
+                        tc_codec_to_string(ptr->v_codec),
+                        ptr->v_codec);
+        }
+    }
+}
+
+void tc_blank_audio_frame(TCFrameAudio *ptr)
+{
+    if (ptr) {
+        switch (ptr->a_codec) {
+          case CODEC_PCM: /* fallthrough, backward compatibility */
+          case TC_CODEC_PCM:
+            memset(ptr->audio_buf, PCM_SILENCE, ptr->audio_size);
+            break;
+          default:
+            tc_log_warn(__FILE__, "tc_blank_audio_frame():"
+                        " format %s (0x%X) not yet supported",
+                        tc_codec_to_string(ptr->a_codec),
+                        ptr->a_codec);
+        }
     }
 }
 

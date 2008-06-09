@@ -75,7 +75,7 @@ enum tcframestatus_ {
  * FRAME_NULL -> FRAME_EMPTY -> FRAME_WAIT -> FRAME_LOCKED -> FRAME_READY
  * :_buffer_:    \_decoder_/    \______filter_stage______/    \encoder_%/
  * \__pool__/         |         :                                  ^    :
- *                    |         \_______________encoder_$__________|____/
+ *                    |         \_______________encoder $__________|____/
  *                    V                                            ^
  *                    `-------------->------------->---------------'
  *
@@ -348,9 +348,9 @@ size_t tc_audio_frame_size(double samples, int channels,
                            int bits, int *adjust);
 
 /*
- * tc_alloc_video_frame:
- *     allocate, but NOT initialize, a vframe_list_t large enough
- *     to hold a video frame large as given size.
+ * tc_alloc_{video,audio}_frame:
+ *     allocate, but NOT initialize, a {TCFrameVideo,TCFrameAudio},
+ *     large enough to hold a video frame large as given size.
  *     This function guarantee that video buffer(s) memory will
  *     be page-aligned.
  *
@@ -360,25 +360,11 @@ size_t tc_audio_frame_size(double samples, int channels,
  *              but only primary. This allow to save memory since
  *              secondary video buffer isn't ALWAYS needed.
  * Return Value:
- *     pointer to a new vframe_list_t (free it using tc_del_video_frame,
+ *     pointer to a new TCFrameVideo (free it using tc_del_video_frame,
  *     not manually! ) if succesfull, NULL otherwise.
  */
-vframe_list_t *tc_alloc_video_frame(size_t size, int partial);
-
-/*
- * tc_alloc_audio_frame:
- *     allocate, but NOT initialize, an aframe_list_t large enough
- *     to hold a audio frame large as given size.
- *     This function guarantee that audio buffer memory will
- *     be page-aligned.
- *
- * Parameters:
- *        size: size in bytes of audio frame that will be contained.
- * Return Value:
- *     pointer to a new aframe_list_t (free it using tc_del_audio_frame,
- *     not manually! ) if succesfull, NULL otherwise.
- */
-aframe_list_t *tc_alloc_audio_frame(size_t size);
+TCFrameVideo *tc_alloc_video_frame(size_t size, int partial);
+TCFrameAudio *tc_alloc_audio_frame(size_t size);
 
 
 /*
@@ -388,23 +374,23 @@ aframe_list_t *tc_alloc_audio_frame(size_t size);
  *     cleaning flags et. al.
  *     You usually always need to use this function unless you
  *     perfectly knows what you're doing.
- *     Do nothing if missing vframe_list_t to (re)initialize of
+ *     Do nothing if missing TCFrameVideo to (re)initialize of
  *     one or more parameter are wrong.
  *
  * Parameters:
- *       vptr: pointer to vframe_list_t to (re)initialize.
+ *       vptr: pointer to TCFrameVideo to (re)initialize.
  *      width: video frame width.
  *     height: video frame height.
  *     format: video frame format.
  * Return Value:
  *     None
  * Preconditions:
- *     given vframe_list_t MUST be already allocated to be large
+ *     given TCFrameVideo MUST be already allocated to be large
  *     enough to safely store a video frame with given
  *     parameters. This function DO NOT check if this precondition
  *     is respected.
  */
-void tc_init_video_frame(vframe_list_t *vptr,
+void tc_init_video_frame(TCFrameVideo *vptr,
                          int width, int height, int format);
 /*
  * tc_init_audio_frame:
@@ -412,30 +398,30 @@ void tc_init_video_frame(vframe_list_t *vptr,
  *     (re)setting video buffer pointers,cleaning flags et. al.
  *     You usually always need to use this function unless you
  *     perfectly knows what you're doing.
- *     Do nothing if missing aframe_list_t to (re)initialize of
+ *     Do nothing if missing TCFrameAudio to (re)initialize of
  *     one or more parameter are wrong.
  *
  * Parameters:
- *       aptr: pointer to aframe_list_t to (re)initialize.
+ *       aptr: pointer to TCFrameAudio to (re)initialize.
  *    samples: audio frame samples that this audio frame
- *             will contain (WARNING: aframe_list_t MUST
+ *             will contain (WARNING: TCFrameAudio MUST
  *             be allocated accordingly).
  *   channels: audio frame channels.
  *       bits: audio frame bit for sample.
  * Return Value:
  *     None
  * Preconditions:
- *     given aframe_list_t MUST be already allocated to be large
+ *     given TCFrameAudio MUST be already allocated to be large
  *     enough to safely store an audio frame with given
  *     parameters. This function DO NOT check if this precondition
  *     is respected.
  */
-void tc_init_audio_frame(aframe_list_t *aptr,
+void tc_init_audio_frame(TCFrameAudio *aptr,
                          double samples, int channels, int bits);
 
 /*
  * tc_new_video_frame:
- *     allocate and initialize a new vframe_list_t large enough
+ *     allocate and initialize a new TCFrameVideo large enough
  *     to hold a video frame represented by given parameters.
  *     This function guarantee that video buffer(s) memory will
  *     be page-aligned.
@@ -448,56 +434,57 @@ void tc_init_audio_frame(aframe_list_t *aptr,
  *             but only primary. This allow to save memory since
  *             secondary video buffer isn't ALWAYS needed.
  * Return Value:
- *     pointer to a new vframe_list_t (free it using tc_del_video_frame,
+ *     pointer to a new TCFrameVideo (free it using tc_del_video_frame,
  *     not manually! ) if succesfull, NULL otherwise.
  */
-vframe_list_t *tc_new_video_frame(int width, int height, int format,
+TCFrameVideo *tc_new_video_frame(int width, int height, int format,
                                   int partial);
 
 /*
  * tc_new_audio_frame:
- *     allocate and initialize a new aframe_list_t large enough
+ *     allocate and initialize a new TCFrameAudio large enough
  *     to hold an audio frame represented by given parameters.
  *     This function guarantee that audio buffer memory will
  *     be page-aligned.
  *
  * Parameters:
  *    samples: audio frame samples that this audio frame
- *             will contain (WARNING: aframe_list_t MUST
+ *             will contain (WARNING: TCFrameAudio MUST
  *             be allocated accordingly).
  *   channels: audio frame channels.
  *       bits: audio frame bit for sample.
  * Return Value:
- *     pointer to a new aframe_list_t (free it using tc_del_audio_frame,
+ *     pointer to a new TCFrameAudio (free it using tc_del_audio_frame,
  *     not manually! ) if succesfull, NULL otherwise.
  */
-aframe_list_t *tc_new_audio_frame(double samples, int channels, int bits);
+TCFrameAudio *tc_new_audio_frame(double samples, int channels, int bits);
 
 
 /*
- * tc_del_video_frame:
- *     safely deallocate memory obtained with tc_new_video_frame
- *     or tc_alloc_video_frame.
+ * tc_del_{video,audio}_frame:
+ *     safely deallocate memory obtained with tc_new_{video,audio}_frame
+ *     or tc_alloc_{video,audio}_frame.
  *
  * Parameters:
- *     vptr: a pointer to a vframe_list_t obtained by calling
- *     tc_new_video_frame or tc_alloc_video_frame.
+ *     {vptr,aptr}: a pointer to a TCFrame{Video,Audio} obtained by calling
+ *     tc_new_{video,audio}_frame or tc_alloc_{video,audio}_frame.
  * Return Value:
  *     None
  */
-void tc_del_video_frame(vframe_list_t *vptr);
+void tc_del_video_frame(TCFrameVideo *vptr);
+void tc_del_audio_frame(TCFrameAudio *aptr);
 
 /*
- * tc_del_audio_frame:
- *     safely deallocate memory obtained with tc_new_audio_frame
- *     or tc_alloc_audio_frame.
+ * tc_blank_{video,audio}_frame:
+ *      fill a provided frame with per-format valid but blank (null)
+ *      content.
  *
  * Parameters:
- *     vptr: a pointer to a vframe_list_t obtained by calling
- *     tc_new_audio_frame or tc_alloc_audio_frame.
+ *     ptr: pointer to frame to fill.
  * Return Value:
- *     None
+ *     None.
  */
-void tc_del_audio_frame(aframe_list_t *aptr);
+void tc_blank_video_frame(TCFrameVideo *ptr);
+void tc_blank_audio_frame(TCFrameAudio *ptr);
 
 #endif  /* TCFRAMES_H */
