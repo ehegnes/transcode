@@ -1,4 +1,11 @@
-2008-06-29 Francesco Romani <fromani at gmail dot com>
+2008-06-14 Andrew Church <achurch at achurch dot org>
+  * libtc/tcframes.c
+  Fix compilation error (duplicate case value in switch).
+
+  * src/transcode.c
+  Fix bug preventing --buffers option from taking effect.
+
+2008-06-10 Francesco Romani <fromani at gmail dot com>
   * multiplex/multiplex_wav.c multiplex/multiplex_y4m.c
   fix module features.
 

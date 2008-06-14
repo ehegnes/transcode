@@ -1255,7 +1255,6 @@ int main(int argc, char *argv[])
 
     double fch, asr;
     int leap_bytes1, leap_bytes2;
-    int max_frame_buffer = TC_FRAME_BUFFER; 
 
     struct fc_time *tstart = NULL;
 

@@ -303,7 +303,9 @@ void tc_blank_audio_frame(TCFrameAudio *ptr)
 {
     if (ptr) {
         switch (ptr->a_codec) {
+#if 0  // re-enable if CODEC_PCM != TC_CODEC_PCM
           case CODEC_PCM: /* fallthrough, backward compatibility */
+#endif
           case TC_CODEC_PCM:
             memset(ptr->audio_buf, PCM_SILENCE, ptr->audio_size);
             break;
