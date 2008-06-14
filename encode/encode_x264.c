@@ -36,7 +36,7 @@
 
 
 #define MOD_NAME    "encode_x264.so"
-#define MOD_VERSION "v0.2.3 (2008-01-23)"
+#define MOD_VERSION "v0.2.4 (2008-06-14)"
 #define MOD_CAP     "x264 encoder"
 
 #define MOD_FEATURES \
@@ -481,8 +481,10 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
     if (tc_accel & AC_MMXEXT)   params->cpu |= X264_CPU_MMXEXT;
     if (tc_accel & AC_SSE)      params->cpu |= X264_CPU_SSE;
     if (tc_accel & AC_SSE2)     params->cpu |= X264_CPU_SSE2;
+#if X264_BUILD < 60
     if (tc_accel & AC_3DNOW)    params->cpu |= X264_CPU_3DNOW;
     if (tc_accel & AC_3DNOWEXT) params->cpu |= X264_CPU_3DNOWEXT;
+#endif
 
     return TC_OK;
 }

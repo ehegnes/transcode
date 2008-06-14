@@ -1,4 +1,7 @@
 2008-06-14 Andrew Church <achurch at achurch dot org>
+  * encode/encode_x264.c
+  Fix compilation with recent x264 builds.
+
   * libtc/tcframes.c
   Fix compilation error (duplicate case value in switch).
 
