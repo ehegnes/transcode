@@ -132,8 +132,6 @@ decoder_error:
 
 }
 
-
-
 #else /* HAVE_LZO */
 
 void decode_lzo(decode_t *decode)

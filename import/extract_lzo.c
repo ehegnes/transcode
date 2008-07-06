@@ -31,8 +31,7 @@
 
 #ifdef HAVE_LZO
 
-#include <lzo/lzo1x.h>
-#include <lzo/lzoutil.h>
+#include "libtc/tc_lzo.h"
 
 #define BUFFER_SIZE SIZE_RGB_FRAME<<1
 
@@ -51,7 +50,6 @@ void extract_lzo(info_t *ipipe)
   char *video;
 
   int key, error=0;
-
 
   long frames, bytes, n;
 
@@ -93,7 +91,6 @@ void extract_lzo(info_t *ipipe)
 
     (int)AVI_set_video_position(avifile,ipipe->frame_limit[0]);
     for (n=ipipe->frame_limit[0]; n<=frames; ++n) {
-
       // video
       if((bytes = AVI_read_frame(avifile, video, &key))<0) {
 	error=1;
@@ -109,14 +106,12 @@ void extract_lzo(info_t *ipipe)
 
     break;
 
-
   case TC_MAGIC_RAW:
   default:
 
     if(ipipe->magic == TC_MAGIC_UNKNOWN)
       tc_log_warn(__FILE__, "no file type specified, assuming %s",
 		  filetype(TC_MAGIC_RAW));
-
 
     error = tc_preadwrite(ipipe->fd_in, ipipe->fd_out);
     if (error < 0)
