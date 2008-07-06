@@ -63,7 +63,8 @@ MOD_init
 {
 
     if(param->flag == TC_VIDEO) {
-      if(verbose & TC_DEBUG) tc_log_info(MOD_NAME, "max AVI-file size limit = %lu bytes",
+      if(verbose & TC_DEBUG)
+          tc_log_info(MOD_NAME, "max AVI-file size limit = %lu bytes",
 		                         (unsigned long) AVI_max_size());
 
       /*
@@ -71,16 +72,16 @@ MOD_init
        */
 
       if (lzo_init() != LZO_E_OK) {
-	tc_log_warn(MOD_NAME, "lzo_init() failed");
-	return(TC_EXPORT_ERROR);
+          tc_log_warn(MOD_NAME, "lzo_init() failed");
+          return(TC_EXPORT_ERROR);
       }
 
       wrkmem = (lzo_bytep) lzo_malloc(LZO1X_1_MEM_COMPRESS);
       out = (lzo_bytep) lzo_malloc(vob->ex_v_height*vob->ex_v_width*3*2);
 
       if (wrkmem == NULL || out == NULL) {
-	tc_log_error(MOD_NAME, "out of memory");
-	return(TC_EXPORT_ERROR);
+          tc_log_error(MOD_NAME, "out of memory");
+          return(TC_EXPORT_ERROR);
       }
 
       codec = vob->im_v_codec;
@@ -88,7 +89,8 @@ MOD_init
       return(0);
     }
 
-    if(param->flag == TC_AUDIO) return(tc_audio_init(vob, verbose_flag));
+    if(param->flag == TC_AUDIO)
+       return(tc_audio_init(vob, verbose_flag));
 
     // invalid flag
     return(TC_EXPORT_ERROR);
@@ -126,8 +128,8 @@ MOD_open
 	  AVI_set_comment_fd(vob->avifile_out, vob->avi_comment_fd);
 
       if(!info_shown && verbose_flag)
-	tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d",
-		"LZO2", vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
+          tc_log_info(MOD_NAME, "codec=%s, fps=%6.3f, width=%d, height=%d",
+                      "LZO2", vob->ex_fps, vob->ex_v_width, vob->ex_v_height);
 
       info_shown=1;
 
@@ -193,10 +195,9 @@ MOD_encode
 
     if (r == LZO_E_OK) {
       if(verbose & TC_DEBUG)
-	tc_log_info(MOD_NAME, "compressed %lu bytes into %lu bytes",
-		    (long) param->size, (long) out_len);
+	      tc_log_info(MOD_NAME, "compressed %lu bytes into %lu bytes",
+		             (long) param->size, (long) out_len);
     } else {
-
       /* this should NEVER happen */
       tc_log_warn(MOD_NAME, "internal error - compression failed: %d", r);
       return(TC_EXPORT_ERROR);
@@ -205,7 +206,7 @@ MOD_encode
     /* check for an incompressible block */
     if (out_len >= param->size)  {
       if(verbose & TC_DEBUG)
-	tc_log_info(MOD_NAME, "block contains incompressible data");
+	      tc_log_info(MOD_NAME, "block contains incompressible data");
       h.flags |= TC_LZO_NOT_COMPRESSIBLE;
       ac_memcpy(out+sizeof(h), param->buffer, param->size);
       out_len = param->size;
@@ -232,7 +233,8 @@ MOD_encode
 
   }
 
-  if(param->flag == TC_AUDIO) return(tc_audio_encode(param->buffer, param->size, avifile2));
+  if(param->flag == TC_AUDIO)
+      return(tc_audio_encode(param->buffer, param->size, avifile2));
 
   // invalid flag
   return(TC_EXPORT_ERROR);
@@ -255,7 +257,8 @@ MOD_stop
     return(0);
   }
 
-  if(param->flag == TC_AUDIO) return(tc_audio_stop());
+  if(param->flag == TC_AUDIO)
+      return(tc_audio_stop());
 
   return(TC_EXPORT_ERROR);
 }
@@ -277,7 +280,8 @@ MOD_close
     avifile1=NULL;
   }
 
-  if(param->flag == TC_AUDIO) return(tc_audio_close());
+  if(param->flag == TC_AUDIO)
+      return(tc_audio_close());
 
   //outputfile
   if(vob->avifile_out!=NULL) {

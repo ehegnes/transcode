@@ -183,10 +183,10 @@ static const TCFormatID PREFIX ## _formats_out[] = { TC_FORMAT_ERROR }
 const TCModuleClass *tc_plugin_setup(void);
 
 #define TC_MODULE_ENTRY_POINT(MODNAME) \
-extern const TCModuleClass *tc_plugin_setup(void) \
-{ \
-    return &( MODNAME ## _class); \
-} \
+    extern const TCModuleClass *tc_plugin_setup(void) \
+    { \
+        return &( MODNAME ## _class); \
+    }
 
 
 /* TODO: unify in a proper way OLDINTERFACE and OLDINTERFACE_M */
