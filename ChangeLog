@@ -1,9 +1,12 @@
 2008-07-06 Francesco Romani <fromani at gmail dot com>
   * INSTALL configure.in export/export_lzo.c import/decode_lzo.c
-    import/import_lzo.c libtc/Makefile.am
+    import/import_lzo.c export/Makefile.am libtc/Makefile.am
 
   * added file: libtc/tc_lzo.h
   drop LZO1 support, and switch to LZO2 only (mostly backport from 1.1.x).
+
+  * removed file: export/tc_lzo.h
+  replaced by libtc/tc_lzo.h
 
   * configure.in
   transcode 1.0.6rc3.

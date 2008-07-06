@@ -254,7 +254,6 @@ EXTRA_DIST = \
 	export_af6.conf \
 	export_def.h \
 	ffmpeg_cfg.h \
-	tc_lzo.h \
 	vbr.h \
 	vid_aux.h \
 	xvid2.h \
