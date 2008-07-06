@@ -377,17 +377,18 @@ Optional packages:
           directory where libquicktime libraries [libquicktime.so] are installed
     affected modules: export_mov.so, import_mov.so
 
-  lzo  http://www.oberhumer.com/opensource/lzo/
+  lzo  http://www.oberhumer.com/opensource/lzo/ (requires version 2.x)
+    LZO support is required to enable NUV/NuppelVideo import support.
     related options:
       --enable-lzo (disabled)
-          build with liblzo support for compressing raw AVIs
+          build with liblzo support
       --with-lzo-prefix=PFX (/usr)
           prefix where lzo is installed
       --with-lzo-includes=DIR (/usr/include)
-          directory where lzo headers [lzo1x.h] are installed
+          directory where lzo headers [lzo/lzo1x.h] are installed
       --with-lzo-libs=DIR (/usr/lib)
-          directory where lzo libraries [liblzo.so] are installed
-    affected modules: export_lzo.so, import_lzo.so
+          directory where lzo libraries [liblzo2.so] are installed
+    affected modules: export_lzo.so, import_lzo.so, import_nuv.so
 
   libxml2  http://xmlsoft.org/
     related options:

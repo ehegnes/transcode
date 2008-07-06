@@ -1,3 +1,13 @@
+2008-07-06 Francesco Romani <fromani at gmail dot com>
+  * INSTALL configure.in export/export_lzo.c import/import_lzo.c
+    libtc/Makefile.am
+
+  * added file: libtc/tc_lzo.h
+  drop LZO1 support, and switch to LZO2 only (mostly backport from 1.1.x).
+
+  * configure.in
+  transcode 1.0.6rc3.
+
 2008-04-12 Francesco Romani <fromani at gmail dot com>
   * filter/preview/Makefile.am
   build filter_pv only if we HAVE_LIBXV.
