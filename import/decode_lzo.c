@@ -4,20 +4,20 @@
  *  Copyright (C) Tilmann Bitterberg - 2003
  *
  *  This file is part of transcode, a video stream processing tool
- *      
+ *
  *  transcode is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation; either version 2, or (at your option)
  *  any later version.
- *   
+ *
  *  transcode is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *   
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
 
@@ -27,12 +27,7 @@
 
 #ifdef HAVE_LZO
 
-#include <lzo1x.h>
-#if (LZO_VERSION > 0x1070)
-#  include <lzoutil.h>
-#endif
-
-#include "export/tc_lzo.h"
+#include "libtc/tc_lzo.h"
 
 #define MOD_NAME    "decode_lzo"
 
@@ -59,7 +54,7 @@ void decode_lzo(decode_t *decode)
     /*
      * Step 1: initialize the LZO library
      */
-    
+
     if (lzo_init() != LZO_E_OK) {
       fprintf(stderr, "[%s] lzo_init() failed\n", MOD_NAME);
       goto decoder_error;
@@ -68,7 +63,7 @@ void decode_lzo(decode_t *decode)
     wrkmem = (lzo_bytep) lzo_malloc(LZO1X_1_MEM_COMPRESS);
     out = (lzo_bytep) lzo_malloc(BUFFER_SIZE);
     inbuf = (lzo_bytep) lzo_malloc(BUFFER_SIZE);
-    
+
     if (wrkmem == NULL || out == NULL) {
       fprintf(stderr, "[%s] out of memory\n", MOD_NAME);
       goto decoder_error;
@@ -100,15 +95,20 @@ void decode_lzo(decode_t *decode)
 	    goto decoder_error;
 	}
 
-
-	r = lzo1x_decompress(inbuf, bytes, out, &out_len, wrkmem);
+	if (h.flags & TC_LZO_NOT_COMPRESSIBLE) {
+	  tc_memcpy(out, inbuf, bytes);
+	  out_len = bytes;
+	  r = LZO_E_OK;
+	} else {
+	  r = lzo1x_decompress(inbuf, bytes, out, &out_len, wrkmem);
+	}
 
 	if (r == LZO_E_OK) {
-	    if(verbose & TC_DEBUG) 
+	    if(verbose & TC_DEBUG)
 		fprintf(stderr, "decompressed %lu bytes into %lu bytes\n",
 				    (long) bytes, (long) out_len);
 	} else {
-      
+
 	    /* this should NEVER happen */
 	    fprintf(stderr, "[%s] internal error - decompression failed: %d\n", MOD_NAME, r);
 	    goto decoder_error;
@@ -125,19 +125,8 @@ decoder_out:
 
 decoder_error:
     import_exit(1);
-    
+
 }
-
-
-
-
-
-
-
-
-
-
-
 
 #else /* HAVE_LZO */
 

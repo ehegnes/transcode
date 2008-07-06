@@ -93,7 +93,7 @@ MOD_init
        return(audio_init(vob, verbose_flag));
 
     // invalid flag
-    return(TC_EXPORT_ERROR)
+    return(TC_EXPORT_ERROR);
 }
 
 /* ------------------------------------------------------------
@@ -224,7 +224,7 @@ MOD_encode
       AVI_print_error("avi video write error");
 
       return(TC_EXPORT_ERROR);
-    
+    }    
     return(0);
 
   }
