@@ -16,18 +16,7 @@
 #include "libtc/libtc.h"
 #include "aclib/ac.h"
 #include "import/magic.h"
-
-#include <lzo1x.h>
-#if (LZO_VERSION > 0x1070)
-#  include <lzoutil.h>
-#endif
-
-#define LZO2 1
-#undef LZO2
-
-#ifdef LZO2
-#include "tc_lzo.h"
-#endif
+#include "libtc/tc_lzo.h"
 
 
 

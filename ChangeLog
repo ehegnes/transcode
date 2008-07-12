@@ -1,3 +1,7 @@
+2008-07-12 Francesco Romani <fromani at gmail dot com>
+  * import/nuv/import_nuv.c
+  update NUV import module as well to support LZO2.
+
 2008-07-06 Francesco Romani <fromani at gmail dot com>
   * INSTALL configure.in export/export_lzo.c import/decode_lzo.c
     import/import_lzo.c export/Makefile.am libtc/Makefile.am
