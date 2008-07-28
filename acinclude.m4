@@ -469,7 +469,7 @@ dnl 9 url           homepage for the package
 
 AC_DEFUN([TC_PKG_CHECK],
 [
-if test x"$2" == x"required" -o x"$2" == x"optional" ; then
+if test x"$2" = x"required" -o x"$2" = x"optional" ; then
   enable_$1="yes"
 else
   AC_MSG_CHECKING([whether $1 support is requested])
