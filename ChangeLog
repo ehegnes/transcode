@@ -5,6 +5,10 @@
   * encode/encode_x264.c
   Fix compilation with recent x264 builds. (Backport from HEAD)
 
+  * acinclude.m4
+  portability fix (closes bug #0000066)
+  Kindly provided by `dryeo'.
+
 2008-04-17 Francesco Romani <fromani at gmail dot com>
   * encode/encode_lame.c
   Backport from HEAD: Fix crash at end of encoding when -O (no-flush) 
