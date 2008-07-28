@@ -27,6 +27,8 @@
 #include "config.h"
 #endif
 
+#include <pthread.h>
+
 #ifdef HAVE_LIBAVHEADERS
 #include <libavutil/avutil.h>
 #include <libavcodec/avcodec.h>
