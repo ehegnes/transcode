@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME        "import_v4l2.so"
-#define MOD_VERSION     "v1.4.1 (2007-11-18)"
+#define MOD_VERSION     "v1.4.2 (2008-08-04)"
 #define MOD_CODEC       "(video) v4l2 | (audio) pcm"
 
 #include "transcode.h"
@@ -282,7 +282,7 @@ static int v4l2_mute(int flag)
         if(verbose_flag & TC_INFO)
             tc_log_perror(MOD_NAME, "VIDIOC_S_CTRL");
 
-    return(1);
+    return 1;
 }
 
 static int v4l2_video_clone_frame(char *dest, size_t size)
@@ -292,7 +292,7 @@ static int v4l2_video_clone_frame(char *dest, size_t size)
     else
         ac_memcpy(dest, v4l2_resync_previous_frame, size);
 
-    return(1);
+    return 1;
 }
 
 static void v4l2_save_frame(const char * source, size_t length)
@@ -319,7 +319,7 @@ static int v4l2_video_grab_frame(char * dest, size_t length)
         tc_log_perror(MOD_NAME, "VIDIOC_DQBUF");
 
         if(errno != EIO)
-            return(0);
+            return TC_OK;
         else
         {
             eio = 1;
@@ -367,11 +367,11 @@ static int v4l2_video_grab_frame(char * dest, size_t length)
         if(ioctl(v4l2_video_fd, VIDIOC_QBUF, &buffer) < 0)
         {
             tc_log_perror(MOD_NAME, "VIDIOC_QBUF");
-            return(0);
+            return TC_OK;
         }
     }
 
-    return(1);
+    return 1;
 }
 
 static int v4l2_video_count_buffers(void)
@@ -467,11 +467,11 @@ static void v4l2_parse_options(const char * options_in)
  * V4L2 CORE
  * ============================================================*/
 
-static int v4l2_video_init(int layout, const char * device, int width,
-               int height, int fps, const char * options)
+static int v4l2_video_init(int layout, const char *device, int width,
+                           int height, int fps, const char *options)
 {
     int ix, found, arg;
-    v4l2_format_convert_table_t * fcp;
+    v4l2_format_convert_table_t *fcp = NULL;
 
     struct v4l2_cropcap cropcap;
     struct v4l2_crop crop;
@@ -480,88 +480,89 @@ static int v4l2_video_init(int layout, const char * device, int width,
     struct v4l2_buffer buffer;
     struct v4l2_capability caps;
     struct v4l2_streamparm streamparm;
-    v4l2_std_id stdid;
     struct v4l2_standard standard;
+    v4l2_std_id stdid;
 
-    switch(layout)
-    {
-        case(CODEC_RGB):    v4l2_fmt = IMG_RGB_DEFAULT; break;
-        case(CODEC_YUV):    v4l2_fmt = IMG_YUV_DEFAULT; break;
-        case(CODEC_YUV422): v4l2_fmt = IMG_YUV422P;     break;
-
-        default:
-        {
-            tc_log_error(MOD_NAME, "layout (%d) must be one of CODEC_RGB, CODEC_YUV or CODEC_YUV422", layout);
-            return(1);
-        }
+    switch (layout) {
+      case CODEC_RGB:
+        v4l2_fmt = IMG_RGB_DEFAULT;
+        break;
+      case CODEC_YUV:
+        v4l2_fmt = IMG_YUV_DEFAULT;
+        break;
+      case CODEC_YUV422:
+        v4l2_fmt = IMG_YUV422P;
+        break;
+      default:
+        tc_log_error(MOD_NAME, "colorspace (%d) must be one of CODEC_RGB, CODEC_YUV or CODEC_YUV422", layout);
+        return 1 ;
     }
 
     v4l2_tcvhandle = tcv_init();
     if (!v4l2_tcvhandle) {
         tc_log_error(MOD_NAME, "tcv_init() failed");
-        return(1);
+        return 1;
     }
 
     v4l2_parse_options(options);
 
-    if(v4l2_convert_index == -1)    // list
-    {
-        for(ix = 0, fcp = v4l2_format_convert_table, found = 0; ix < (sizeof(v4l2_format_convert_table) / sizeof(*v4l2_format_convert_table)); ix++)
+    if (v4l2_convert_index == -1) {
+        /* list */
+        found  = 0;
+        fcp = v4l2_format_convert_table;
+        for (ix = 0; ix < (sizeof(v4l2_format_convert_table) / sizeof(*v4l2_format_convert_table)); ix++)
             tc_log_info(MOD_NAME, "conversion index: %d = %s", ix, fcp[ix].description);
 
-        return(1);
+        return 1;
     }
 
-    if(verbose_flag & TC_INFO)
-    {
-        if(v4l2_resync_margin_frames == 0)
+    if (verbose_flag & TC_INFO) {
+        if (v4l2_resync_margin_frames == 0) {
             tc_log_info(MOD_NAME, "%s", "resync disabled");
-        else
+        } else {
             tc_log_info(MOD_NAME, "resync enabled, margin = %d frames, interval = %d frames,",
-                    v4l2_resync_margin_frames,
-                    v4l2_resync_interval_frames);
+                        v4l2_resync_margin_frames,
+                        v4l2_resync_interval_frames);
+       }
     }
 
-    if(device)
+    if (device)
         v4l2_device = tc_strdup(device);
 
-    if((v4l2_video_fd = open(device, O_RDWR, 0)) < 0)
-    {
+    v4l2_video_fd = open(device, O_RDWR, 0);
+    if (v4l2_video_fd < 0) {
         tc_log_error(MOD_NAME, "cannot open video device %s", device);
-        return(1);
+        return 1;
     }
 
-    if(ioctl(v4l2_video_fd, VIDIOC_QUERYCAP, &caps) < 0)
-    {
+    if (ioctl(v4l2_video_fd, VIDIOC_QUERYCAP, &caps) < 0) {
         tc_log_error(MOD_NAME, "driver does not support querying capabilities");
-        return(1);
+        return 1;
     }
 
-    if(!(caps.capabilities & V4L2_CAP_VIDEO_CAPTURE))
-    {
+    if (!(caps.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
         tc_log_error(MOD_NAME, "driver does not support video capture");
-        return(1);
+        return 1;
     }
 
-    if(!(caps.capabilities & V4L2_CAP_STREAMING))
-    {
+    if (!(caps.capabilities & V4L2_CAP_STREAMING)) {
         tc_log_error(MOD_NAME, "driver does not support streaming (mmap) video capture");
-        return(1);
+        return 1;
     }
 
-    if(verbose_flag & TC_INFO)
-        tc_log_info(MOD_NAME, "video grabbing, driver = %s, card = %s",
+    if (verbose_flag & TC_INFO)
+        tc_log_info(MOD_NAME, "v4l2 video grabbing, driver = %s, card = %s",
                 caps.driver, caps.card);
 
-    v4l2_width = width;
+    v4l2_width  = width;
     v4l2_height = height;
-
-    for(ix = 0, fcp = v4l2_format_convert_table, found = 0; ix < (sizeof(v4l2_format_convert_table) / sizeof(*v4l2_format_convert_table)); ix++)
-    {
-        if(fcp[ix].to != v4l2_fmt)
+    found       = 0;
+    fcp         = v4l2_format_convert_table;
+    for (ix = 0; ix < (sizeof(v4l2_format_convert_table) / sizeof(*v4l2_format_convert_table)); ix++) {
+        if (fcp[ix].to != v4l2_fmt)
             continue;
 
-        if((v4l2_convert_index >= 0) && (v4l2_convert_index != ix))
+        if ((v4l2_convert_index >= 0) && (v4l2_convert_index != ix))
             continue;
 
         memset(&format, 0, sizeof(format));
@@ -570,24 +571,23 @@ static int v4l2_video_init(int layout, const char * device, int width,
         format.fmt.pix.height       = height;
         format.fmt.pix.pixelformat  = fcp[ix].v4l_format;
 
-        if(ioctl(v4l2_video_fd, VIDIOC_S_FMT, &format) < 0)
-        {
-            tc_log_perror(MOD_NAME, "VIDIOC_S_FMT: ");
-            tc_log_error(MOD_NAME, "Pixel format conversion: %s", fcp[ix].description);
-        }
-        else
-        {
-            tc_log_info(MOD_NAME, "Pixel format conversion: %s", fcp[ix].description);
+        if (ioctl(v4l2_video_fd, VIDIOC_S_FMT, &format) < 0) {
+            if (verbose_flag >= TC_INFO) {
+                tc_log_warn(MOD_NAME, "bad pixel format conversion: %s", fcp[ix].description);
+            }
+        } else {
+            if (verbose_flag >= TC_INFO) {
+                tc_log_info(MOD_NAME, "found pixel format conversion: %s", fcp[ix].description);
+            }
             v4l2_convert_index = ix;
             found = 1;
             break;
         }
     }
 
-    if(!found)
-    {
+    if (!found) {
         tc_log_error(MOD_NAME, "no usable pixel format supported by card");
-        return(1);
+        return 1;
     }
 
     memset(&streamparm, 0, sizeof(streamparm));
@@ -596,125 +596,112 @@ static int v4l2_video_init(int layout, const char * device, int width,
     streamparm.parm.capture.timeperframe.numerator      = 1e7;
     streamparm.parm.capture.timeperframe.denominator    = fps;
 
-    if(ioctl(v4l2_video_fd, VIDIOC_S_PARM, &streamparm) < 0)
-    {
-        tc_log_warn(MOD_NAME, "driver does not support setting parameters (ioctl(VIDIOC_S_PARM) returns \"%s\")",
-            errno <= sys_nerr ? sys_errlist[errno] : "unknown");
+    if (ioctl(v4l2_video_fd, VIDIOC_S_PARM, &streamparm) < 0) {
+        if (verbose_flag) {
+            tc_log_warn(MOD_NAME, "driver does not support setting parameters (ioctl(VIDIOC_S_PARM) returns \"%s\")",
+                        errno <= sys_nerr ? sys_errlist[errno] : "unknown");
+        }
     }
 
-    if(!strcmp(v4l2_format_string, "list")) // list
-    {
-        for(ix = 0; ix < 128; ix++)
-        {
+    if (!strcmp(v4l2_format_string, "list")) {
+        for (ix = 0; ix < 128; ix++) {
             standard.index = ix;
 
-            if(ioctl(v4l2_video_fd, VIDIOC_ENUMSTD, &standard) < 0)
-            {
-                if(errno == EINVAL)
+            if (ioctl(v4l2_video_fd, VIDIOC_ENUMSTD, &standard) < 0) {
+                if (errno == EINVAL)
                     break;
 
                 tc_log_perror(MOD_NAME, "VIDIOC_ENUMSTD");
-                return(1);
+                return 1;
             }
 
             tc_log_info(MOD_NAME, "%s", standard.name);
         }
 
-        return(1);
+        return 1;
     }
 
-    if(strlen(v4l2_format_string) > 0)
-    {
-        for(ix = 0; ix < 128; ix++)
-        {
+    if (strlen(v4l2_format_string) > 0) {
+        for (ix = 0; ix < 128; ix++) {
             standard.index = ix;
 
-            if(ioctl(v4l2_video_fd, VIDIOC_ENUMSTD, &standard) < 0)
-            {
-                if(errno == EINVAL)
+            if (ioctl(v4l2_video_fd, VIDIOC_ENUMSTD, &standard) < 0) {
+                if (errno == EINVAL)
                     break;
 
                 tc_log_perror(MOD_NAME, "VIDIOC_ENUMSTD");
-                return(1);
+                return 1;
             }
 
-            if(!strcasecmp(standard.name, v4l2_format_string))
+            if (!strcasecmp(standard.name, v4l2_format_string))
                 break;
         }
 
-        if(ix == 128)
-        {
+        if (ix == 128) {
             tc_log_error(MOD_NAME, "unknown format %s", v4l2_format_string);
-            return(1);
+            return 1;
         }
 
-        if(ioctl(v4l2_video_fd, VIDIOC_S_STD, &standard.id) < 0)
-        {
+        if (ioctl(v4l2_video_fd, VIDIOC_S_STD, &standard.id) < 0) {
             tc_log_perror(MOD_NAME, "VIDIOC_S_STD");
             return(-1);
         }
 
-        if(verbose_flag & TC_INFO)
+        if (verbose_flag & TC_INFO)
             tc_log_info(MOD_NAME, "colour & framerate standard set to: [%s]", standard.name);
     }
 
-    if(ioctl(v4l2_video_fd, VIDIOC_G_STD, &stdid) < 0)
-    {
+    if (ioctl(v4l2_video_fd, VIDIOC_G_STD, &stdid) < 0) {
         tc_log_warn(MOD_NAME, "driver does not support get std (ioctl(VIDIOC_G_STD) returns \"%s\")",
                     errno <= sys_nerr ? sys_errlist[errno] : "unknown");
         memset(&stdid, 0, sizeof(v4l2_std_id));
     }
 
-    if(stdid & V4L2_STD_525_60)
+    if (stdid & V4L2_STD_525_60) {
         v4l2_frame_rate = 30;
-    else
-        if(stdid & V4L2_STD_625_50)
+    } else {
+        if (stdid & V4L2_STD_625_50) {
             v4l2_frame_rate = 25;
-        else
-        {
+        } else {
             tc_log_info(MOD_NAME, "unknown TV std, defaulting to 50 Hz field rate");
             v4l2_frame_rate = 25;
         }
+    }
 
-    if(verbose_flag & TC_INFO)
-    {
-        tc_log_info(MOD_NAME, "checking colour & framerate standards: ");
-
-        for(ix = 0; ix < 128; ix++)
-        {
+    if (verbose_flag & TC_INFO) {
+        for (ix = 0; ix < 128; ix++) {
             standard.index = ix;
 
-            if(ioctl(v4l2_video_fd, VIDIOC_ENUMSTD, &standard) < 0)
-            {
-                if(errno == EINVAL)
+            if (ioctl(v4l2_video_fd, VIDIOC_ENUMSTD, &standard) < 0) {
+                if (errno == EINVAL)
                     break;
 
                 tc_log_perror(MOD_NAME, "VIDIOC_ENUMSTD");
-                return(1);
+                return 1;
             }
 
-            if(standard.id == stdid)
-                tc_log_info(MOD_NAME, "[%s] ", standard.name);
+            if (standard.id == stdid)
+                tc_log_info(MOD_NAME, "v4l device supports format [%s] ", standard.name);
         }
 
         tc_log_info(MOD_NAME, "receiving %d frames / sec", v4l2_frame_rate);
     }
 
-    if(strcmp(v4l2_crop_parm, ""))
-    {
-        if(sscanf(v4l2_crop_parm, "%ux%u+%ux%u", &v4l2_crop_width, &v4l2_crop_height,
-                    &v4l2_crop_left, &v4l2_crop_top) == 4)
+    if (strcmp(v4l2_crop_parm, "")) {
+        if (sscanf(v4l2_crop_parm, "%ux%u+%ux%u",
+                    &v4l2_crop_width, &v4l2_crop_height,
+                    &v4l2_crop_left, &v4l2_crop_top) == 4) {
             v4l2_crop_enabled = 1;
-        else
-        {
-            v4l2_crop_height = v4l2_crop_width =
-                v4l2_crop_top = v4l2_crop_left = 0;
+        } else {
+            v4l2_crop_height  = 0; 
+            v4l2_crop_width   = 0;
+            v4l2_crop_top     = 0;
+            v4l2_crop_left    = 0;
             v4l2_crop_enabled = 0;
         }
     }
 
-    if((verbose_flag & TC_INFO) && v4l2_crop_enabled)
-    {
+    if ((verbose_flag & TC_INFO) && v4l2_crop_enabled) {
         tc_log_info(MOD_NAME, "source frame set to: %dx%d+%dx%d",
             v4l2_crop_width, v4l2_crop_height,
             v4l2_crop_left, v4l2_crop_top);
@@ -722,166 +709,147 @@ static int v4l2_video_init(int layout, const char * device, int width,
 
     cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-    if(ioctl(v4l2_video_fd, VIDIOC_CROPCAP, &cropcap) < 0)
-    {
+    if (ioctl(v4l2_video_fd, VIDIOC_CROPCAP, &cropcap) < 0) {
         tc_log_warn(MOD_NAME, "driver does not support cropping (ioctl(VIDIOC_CROPCAP) returns \"%s\"), disabled",
-            errno <= sys_nerr ? sys_errlist[errno] : "unknown");
-    }
-    else
-    {
-        tc_log_info(MOD_NAME, "frame size: %dx%d", width, height);
-        tc_log_info(MOD_NAME, "cropcap bounds: %dx%d +%d+%d",
-                cropcap.bounds.width,
-                cropcap.bounds.height,
-                cropcap.bounds.left,
-                cropcap.bounds.top);
-        tc_log_info(MOD_NAME, "cropcap defrect: %dx%d +%d+%d",
-                cropcap.defrect.width,
-                cropcap.defrect.height,
-                cropcap.defrect.left,
-                cropcap.defrect.top);
-        tc_log_info(MOD_NAME, "cropcap pixelaspect: %d/%d",
-                cropcap.pixelaspect.numerator,
-                cropcap.pixelaspect.denominator);
+                    errno <= sys_nerr ? sys_errlist[errno] : "unknown");
+    } else {
+        if (verbose_flag & TC_INFO) {
+            tc_log_info(MOD_NAME, "frame size: %dx%d", width, height);
+            tc_log_info(MOD_NAME, "cropcap bounds: %dx%d +%d+%d",
+                        cropcap.bounds.width, cropcap.bounds.height,
+                        cropcap.bounds.left,  cropcap.bounds.top);
+            tc_log_info(MOD_NAME, "cropcap defrect: %dx%d +%d+%d",
+                        cropcap.defrect.width, cropcap.defrect.height,
+                        cropcap.defrect.left,  cropcap.defrect.top);
+            tc_log_info(MOD_NAME, "cropcap pixelaspect: %d/%d",
+                        cropcap.pixelaspect.numerator,
+                        cropcap.pixelaspect.denominator);
+        }
 
-        if((width > cropcap.bounds.width) || (height > cropcap.bounds.height) || (width < 0) || (height < 0))
-        {
+        if ((width > cropcap.bounds.width)
+         || (height > cropcap.bounds.height)
+         || (width < 0) || (height < 0)) {
             tc_log_error(MOD_NAME, "capturing dimensions exceed maximum crop area: %dx%d",
                          cropcap.bounds.width, cropcap.bounds.height);
-            return(1);
+            return 1;
         }
 
         crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-        if(ioctl(v4l2_video_fd, VIDIOC_G_CROP, &crop) < 0)
-        {
+        if (ioctl(v4l2_video_fd, VIDIOC_G_CROP, &crop) < 0) {
             tc_log_warn(MOD_NAME, "driver does not support inquering cropping parameters (ioctl(VIDIOC_G_CROP) returns \"%s\")",
                 errno <= sys_nerr ? sys_errlist[errno] : "unknown");
-        }
-        else
-        {
-            tc_log_info(MOD_NAME, "default cropping: %dx%d +%d+%d",
-                crop.c.width,
-                crop.c.height,
-                crop.c.left,
-                crop.c.top);
+        } else {
+            if (verbose_flag & TC_INFO) {
+                tc_log_info(MOD_NAME, "default cropping: %dx%d +%d+%d",
+                            crop.c.width, crop.c.height,
+                            crop.c.left,  crop.c.top);
+            }
         }
 
-        if(v4l2_crop_enabled)
-        {
-            crop.type       = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-            crop.c.width    = v4l2_crop_width;
-            crop.c.height   = v4l2_crop_height;
-            crop.c.left     = v4l2_crop_left;
-            crop.c.top      = v4l2_crop_top;
+        if (v4l2_crop_enabled) {
+            crop.type     = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+            crop.c.width  = v4l2_crop_width;
+            crop.c.height = v4l2_crop_height;
+            crop.c.left   = v4l2_crop_left;
+            crop.c.top    = v4l2_crop_top;
 
-            if(ioctl(v4l2_video_fd, VIDIOC_S_CROP, &crop) < 0)
-            {
+            if (ioctl(v4l2_video_fd, VIDIOC_S_CROP, &crop) < 0) {
                 tc_log_perror(MOD_NAME, "VIDIOC_S_CROP");
-                return(1);
+                return 1;
             }
 
             crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-            if(ioctl(v4l2_video_fd, VIDIOC_G_CROP, &crop) < 0)
-            {
+            if (ioctl(v4l2_video_fd, VIDIOC_G_CROP, &crop) < 0) {
                 tc_log_warn(MOD_NAME, "driver does not support inquering cropping parameters (ioctl(VIDIOC_G_CROP) returns \"%s\")",
                     errno <= sys_nerr ? sys_errlist[errno] : "unknown");
-            }
-            else
-            {
-                tc_log_info(MOD_NAME, "cropping after set frame source: %dx%d +%d+%d",
-                    crop.c.width,
-                    crop.c.height,
-                    crop.c.left,
-                    crop.c.top);
+            } else {
+                if (verbose_flag & TC_INFO) {
+                    tc_log_info(MOD_NAME, "cropping after set frame source: %dx%d +%d+%d",
+                                crop.c.width, crop.c.height,
+                                crop.c.left,  crop.c.top);
+                }
             }
         }
     }
 
     // get buffer data
 
-    reqbuf.type     = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    reqbuf.memory   = V4L2_MEMORY_MMAP;
-    reqbuf.count    = 32;
+    reqbuf.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    reqbuf.memory = V4L2_MEMORY_MMAP;
+    reqbuf.count  = 32;
 
-    if(ioctl(v4l2_video_fd, VIDIOC_REQBUFS, &reqbuf) < 0)
-    {
+    if (ioctl(v4l2_video_fd, VIDIOC_REQBUFS, &reqbuf) < 0) {
         tc_log_perror(MOD_NAME, "VIDIOC_REQBUFS");
-        return(1);
+        return 1;
     }
 
     v4l2_buffers_count = reqbuf.count;
 
-    if(v4l2_buffers_count < 2)
-    {
+    if (v4l2_buffers_count < 2) {
         tc_log_error(MOD_NAME, "not enough buffers for capture");
-        return(1);
+        return 1;
     }
 
-    if(verbose_flag & TC_INFO)
+    if (verbose_flag & TC_INFO)
         tc_log_info(MOD_NAME, "%d buffers available", v4l2_buffers_count);
 
-    if(!(v4l2_buffers = tc_zalloc(v4l2_buffers_count * sizeof(*v4l2_buffers))))
-    {
+    v4l2_buffers = tc_zalloc(v4l2_buffers_count * sizeof(*v4l2_buffers));
+    if (!v4l2_buffers) {
         tc_log_error(MOD_NAME, "out of memory\n");
-        return(1);
+        return 1;
     }
 
     // mmap
 
-    for(ix = 0; ix < v4l2_buffers_count; ix++)
-    {
+    for (ix = 0; ix < v4l2_buffers_count; ix++) {
         buffer.type     = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         buffer.memory   = V4L2_MEMORY_MMAP;
         buffer.index    = ix;
 
-        if(ioctl(v4l2_video_fd, VIDIOC_QUERYBUF, &buffer) < 0)
-        {
+        if (ioctl(v4l2_video_fd, VIDIOC_QUERYBUF, &buffer) < 0) {
             tc_log_perror(MOD_NAME, "VIDIOC_QUERYBUF");
-            return(1);
+            return 1;
         }
 
         v4l2_buffers[ix].length = buffer.length;
         v4l2_buffers[ix].start  = mmap(0, buffer.length, PROT_READ | PROT_WRITE, MAP_SHARED, v4l2_video_fd, buffer.m.offset);
 
-        if(v4l2_buffers[ix].start == MAP_FAILED)
-        {
+        if (v4l2_buffers[ix].start == MAP_FAILED) {
             tc_log_perror(MOD_NAME, "mmap");
-            return(1);
+            return 1;
         }
     }
 
     // enqueue all buffers
 
-    for(ix = 0; ix < v4l2_buffers_count; ix++)
-    {
+    for (ix = 0; ix < v4l2_buffers_count; ix++) {
         buffer.type     = V4L2_BUF_TYPE_VIDEO_CAPTURE;
         buffer.memory   = V4L2_MEMORY_MMAP;
         buffer.index    = ix;
 
-        if(ioctl(v4l2_video_fd, VIDIOC_QBUF, &buffer) < 0)
-        {
+        if (ioctl(v4l2_video_fd, VIDIOC_QBUF, &buffer) < 0) {
             tc_log_perror(MOD_NAME, "VIDIOC_QBUF");
-            return(1);
+            return 1;
         }
     }
 
     // unmute
 
-    if(!v4l2_mute(0))
-        return(1);
+    if (!v4l2_mute(0))
+        return 1;
 
     // start capture
     arg = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-    if(ioctl(v4l2_video_fd, VIDIOC_STREAMON, &arg) < 0) /* ugh, needs VIDEO_CAPTURE */
-    {
+    if (ioctl(v4l2_video_fd, VIDIOC_STREAMON, &arg) < 0) {
+        /* ugh, needs VIDEO_CAPTURE */
         tc_log_perror(MOD_NAME, "VIDIOC_STREAMON");
-        return(1);
+        return 1;
     }
 
-    return(0);
+    return TC_OK;
 }
 
 static int v4l2_video_get_frame(size_t size, char * data)
@@ -902,7 +870,7 @@ static int v4l2_video_get_frame(size_t size, char * data)
             if(ioctl(v4l2_video_fd, VIDIOC_STREAMOFF, &arg) < 0)
                 tc_log_perror(MOD_NAME, "VIDIOC_STREAMOFF");
 
-            return(1);
+            return 1;
         }
     }
 
@@ -911,30 +879,30 @@ static int v4l2_video_get_frame(size_t size, char * data)
         case(resync_clone):
         {
             if(!v4l2_video_clone_frame(data, size))
-                return(1);
+                return 1;
             break;
         }
 
         case(resync_drop):
         {
             if(!v4l2_video_grab_frame(0, 0))
-                return(1);
+                return 1;
             if(!v4l2_video_grab_frame(data, size))
-                return(1);
+                return 1;
             break;
         }
 
         case(resync_none):
         {
             if(!v4l2_video_grab_frame(data, size))
-                return(1);
+                return 1;
             break;
         }
 
         default:
         {
             tc_log_error(MOD_NAME, "impossible case");
-            return(1);
+            return 1;
         }
     }
 
@@ -973,7 +941,7 @@ static int v4l2_video_get_frame(size_t size, char * data)
 
     v4l2_video_sequence++;
 
-    return(0);
+    return TC_OK;
 }
 
 static int v4l2_video_grab_stop(void)
@@ -982,16 +950,16 @@ static int v4l2_video_grab_stop(void)
 
     // mute
 
-    if(!v4l2_mute(1))
-        return(1);
+    if (!v4l2_mute(1))
+        return 1;
 
-    if(ioctl(v4l2_video_fd, VIDIOC_STREAMOFF, &arg) < 0) /* ugh */
-    {
+    if (ioctl(v4l2_video_fd, VIDIOC_STREAMOFF, &arg) < 0) {
+        /* ugh */
         tc_log_perror(MOD_NAME, "VIDIOC_STREAMOFF");
-        return(1);
+        return 1;
     }
 
-    for(ix = 0; ix < v4l2_buffers_count; ix++)
+    for (ix = 0; ix < v4l2_buffers_count; ix++)
         munmap(v4l2_buffers[ix].start, v4l2_buffers[ix].length);
 
     close(v4l2_video_fd);
@@ -1003,7 +971,7 @@ static int v4l2_video_grab_stop(void)
     tcv_free(v4l2_tcvhandle);
     v4l2_tcvhandle = 0;
 
-    return(0);
+    return TC_OK;
 }
 
 static int v4l2_audio_init(const char * device, int rate, int bits,
@@ -1012,39 +980,36 @@ static int v4l2_audio_init(const char * device, int rate, int bits,
     int version, tmp;
 
     v4l2_audio_fd = open(device, O_RDONLY, 0);
-    if(v4l2_audio_fd < 0)
-    {
+    if (v4l2_audio_fd < 0) {
         tc_log_perror(MOD_NAME, "open audio device");
-        return(1);
+        return 1;
     }
 
-    if(!strcmp(device, "/dev/null") || !strcmp(device, "/dev/zero"))
-        return(0);
+    if (!strcmp(device, "/dev/null")
+     || !strcmp(device, "/dev/zero")) {
+        return TC_OK;
+    }
 
-    if(bits != 8 && bits != 16)
-    {
+    if (bits != 8 && bits != 16) {
         tc_log_error(MOD_NAME, "bits/sample must be 8 or 16");
-        return(1);
+        return 1;
     }
 
-    if(ioctl(v4l2_audio_fd, OSS_GETVERSION, &version) < 0)
-    {
+    if (ioctl(v4l2_audio_fd, OSS_GETVERSION, &version) < 0) {
         tc_log_perror(MOD_NAME, "OSS_GETVERSION");
-        return(1);
+        return 1;
     }
 
     tmp = (bits == 8) ?AFMT_U8 :AFMT_S16_LE;
 
-    if(ioctl(v4l2_audio_fd, SNDCTL_DSP_SETFMT, &tmp) < 0)
-    {
+    if (ioctl(v4l2_audio_fd, SNDCTL_DSP_SETFMT, &tmp) < 0) {
         tc_log_perror(MOD_NAME, "SNDCTL_DSP_SETFMT");
-        return(1);
+        return 1;
     }
 
-    if(ioctl(v4l2_audio_fd, SNDCTL_DSP_CHANNELS, &channels) < 0)
-    {
+    if (ioctl(v4l2_audio_fd, SNDCTL_DSP_CHANNELS, &channels) < 0) {
         tc_log_perror(MOD_NAME, "SNDCTL_DSP_CHANNELS");
-        return(1);
+        return 1;
     }
 
     // check for saa7134
@@ -1059,27 +1024,22 @@ static int v4l2_audio_init(const char * device, int rate, int bits,
      * it's operation depending on it.
      *
      */
-    if(ioctl(v4l2_audio_fd, SNDCTL_DSP_SPEED, &tmp) >= 0)
-    {
-        if(tmp == 0 || tmp == 32000)
+    if (ioctl(v4l2_audio_fd, SNDCTL_DSP_SPEED, &tmp) >= 0) {
+        if (tmp == 0 || tmp == 32000)
             v4l2_saa7134_audio = 1;
     }
 
-    if(v4l2_saa7134_audio)
-    {
+    if (v4l2_saa7134_audio) {
         if(verbose_flag & TC_INFO)
             tc_log_info(MOD_NAME,
                         "Audio input from saa7134 detected, you should "
                         "set audio sample rate to 32 Khz using -e");
-    }
-    else
-    {
+    } else {
         /* this is the real sample rate setting */
         tmp = rate;
-        if(ioctl(v4l2_audio_fd, SNDCTL_DSP_SPEED, &tmp) < 0)
-        {
+        if (ioctl(v4l2_audio_fd, SNDCTL_DSP_SPEED, &tmp) < 0) {
             tc_log_perror(MOD_NAME, "SNDCTL_DSP_SPEED");
-            return(1);
+            return 1;
         }
         if (tmp != rate) {
             tc_log_warn(MOD_NAME, "sample rate requested=%i obtained=%i",
@@ -1087,54 +1047,50 @@ static int v4l2_audio_init(const char * device, int rate, int bits,
         }
     }
 
-    return(0);
+    return TC_OK;
 }
 
-static int v4l2_audio_grab_frame(size_t size, char * buffer)
+static int v4l2_audio_grab_frame(size_t size, char *buffer)
 {
-    int left;
-    int offset;
+    int left     = size;
+    int offset   = 0;
     int received;
 
-    for(left = size, offset = 0; left > 0;)
-    {
+    while (left > 0)  {
         received = read(v4l2_audio_fd, buffer + offset, left);
 
-        if(received == 0)
+        if (received == 0)
             tc_log_warn(MOD_NAME, "audio grab: received == 0");
 
-        if(received < 0)
-        {
-            if(errno == EINTR)
+        if (received < 0) {
+            if (errno == EINTR) {
                 received = 0;
-            else
-            {
+            } else {
                 tc_log_perror(MOD_NAME, "read audio");
-                return(TC_IMPORT_ERROR);
+                return TC_ERROR;
             }
         }
 
-        if(received > left)
-        {
-            tc_log_error(MOD_NAME, "read returns more bytes than requested! (requested: %d, returned: %d", left, received);
-            return(TC_IMPORT_ERROR);
+        if (received > left) {
+            tc_log_error(MOD_NAME,
+                        "read returns more bytes than requested! (requested: %d, returned: %d", left, received);
+            return TC_ERROR;
         }
 
         offset += received;
-        left -= received;
+        left   -= received;
     }
 
     v4l2_audio_sequence++;
 
-    return(0);
+    return TC_OK;
 }
 
 static int v4l2_audio_grab_stop(void)
 {
     close(v4l2_audio_fd);
 
-    if(verbose_flag & TC_INFO)
-    {
+    if (verbose_flag & TC_INFO) {
         tc_log_msg(MOD_NAME, "Totals: sequence V/A: %d/%d, frames C/D: %d/%d",
                 v4l2_video_sequence,
                 v4l2_audio_sequence,
@@ -1142,7 +1098,7 @@ static int v4l2_audio_grab_stop(void)
                 v4l2_video_dropped);
     }
 
-    return(0);
+    return TC_OK;
 }
 
 /* ============================================================
@@ -1155,35 +1111,23 @@ static int v4l2_audio_grab_stop(void)
 
 MOD_open
 {
-    if(param->flag == TC_VIDEO)
-    {
-        if(verbose_flag & TC_INFO)
-            tc_log_info(MOD_NAME, "v4l2 video grabbing");
-
-        if(v4l2_video_init(vob->im_v_codec, vob->video_in_file, vob->im_v_width, vob->im_v_height, vob->fps,
-                    vob->im_v_string))
-            return(TC_IMPORT_ERROR);
-
-        return(0);
+    if (param->flag == TC_VIDEO) {
+        if (v4l2_video_init(vob->im_v_codec, vob->video_in_file,
+                            vob->im_v_width, vob->im_v_height,
+                            vob->fps, vob->im_v_string)) {
+            return TC_ERROR;
+        }
+    } else if(param->flag == TC_AUDIO) {
+        if (v4l2_audio_init(vob->audio_in_file,
+                            vob->a_rate, vob->a_bits, vob->a_chan)) {
+            return TC_ERROR;
+        }
+    } else {
+        tc_log_error(MOD_NAME, "unsupported request (init)");
+        return TC_ERROR;
     }
-    else
-        if(param->flag == TC_AUDIO)
-        {
-            if(verbose_flag & TC_INFO)
-                tc_log_info(MOD_NAME, "v4l2 audio grabbing");
 
-            if(v4l2_audio_init(vob->audio_in_file, vob->a_rate, vob->a_bits, vob->a_chan))
-                return(TC_IMPORT_ERROR);
-
-            return(0);
-        }
-        else
-        {
-            tc_log_error(MOD_NAME, "unsupported request (init)");
-            return(TC_IMPORT_ERROR);
-        }
-
-    return(0);
+    return TC_OK;
 }
 
 /* ------------------------------------------------------------
@@ -1192,32 +1136,22 @@ MOD_open
 
 MOD_decode
 {
-    if(param->flag == TC_VIDEO)
-    {
-        if(v4l2_video_get_frame(param->size, param->buffer))
-        {
+    if (param->flag == TC_VIDEO) {
+        if (v4l2_video_get_frame(param->size, param->buffer)) {
             tc_log_error(MOD_NAME, "error in grabbing video");
-            return(TC_IMPORT_ERROR);
+            return TC_ERROR;
         }
-    }
-    else
-    {
-        if(param->flag == TC_AUDIO)
-        {
-            if(v4l2_audio_grab_frame(param->size, param->buffer))
-            {
-                tc_log_error(MOD_NAME, "error in grabbing audio");
-                return(TC_IMPORT_ERROR);
-            }
+    } else if (param->flag == TC_AUDIO) {
+        if (v4l2_audio_grab_frame(param->size, param->buffer)) {
+            tc_log_error(MOD_NAME, "error in grabbing audio");
+            return TC_ERROR;
         }
-        else
-        {
-            tc_log_error(MOD_NAME, "unsupported request (decode)");
-            return(TC_IMPORT_ERROR);
-        }
+    } else {
+        tc_log_error(MOD_NAME, "unsupported request (decode)");
+        return TC_ERROR;
     }
 
-    return(0);
+    return TC_OK;
 }
 
 /* ------------------------------------------------------------
@@ -1226,20 +1160,16 @@ MOD_decode
 
 MOD_close
 {
-    if(param->flag == TC_VIDEO)
-    {
+    if (param->flag == TC_VIDEO) {
         v4l2_video_grab_stop();
+    } else if(param->flag == TC_AUDIO) {
+        v4l2_audio_grab_stop();
+    } else {
+        tc_log_error(MOD_NAME, "unsupported request (close)");
+        return TC_ERROR;
     }
-    else
-        if(param->flag == TC_AUDIO)
-        {
-            v4l2_audio_grab_stop();
-        }
-        else
-        {
-            tc_log_error(MOD_NAME, "unsupported request (close)");
-            return(TC_IMPORT_ERROR);
-        }
 
-    return(0);
+    return TC_OK;
 }
+
+

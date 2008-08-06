@@ -1,3 +1,8 @@
+2008-08-06 Francesco Romani <fromani at gmail dot com>
+  * import/v4l/import_v4l2.c
+  various minor (cosmetic) enhancements (closing bugs
+  #0000055 and #0000056).
+
 2008-07-28 Francesco Romani <fromani at gmail dot com>
   * libtc/tcavcodec.h
   #include <pthread.h> (closes bug #0000067)
