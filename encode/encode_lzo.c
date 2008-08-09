@@ -1,6 +1,6 @@
 /*
  * encode_lzo.c -- encode video frames individually using LZO.
- * (C) 2005-2007 Francesco Romani <fromani at gmail dot com>
+ * (C) 2005-2008 Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
  *
@@ -112,11 +112,7 @@ static int tc_lzo_init(TCModuleInstance *self, uint32_t features)
 
 static int tc_lzo_fini(TCModuleInstance *self)
 {
-    LZOPrivateData *pd = NULL;
-
     TC_MODULE_SELF_CHECK(self, "fini");
-
-    pd = self->userdata;
 
     tc_lzo_stop(self);
 
@@ -263,23 +259,15 @@ static int tc_lzo_encode_video(TCModuleInstance *self,
 static const TCCodecID tc_lzo_codecs_in[] = {
     TC_CODEC_YUY2, TC_CODEC_RGB, TC_CODEC_YUV420P, TC_CODEC_ERROR
 };
-static const TCCodecID tc_lzo_codecs_out[] = { TC_CODEC_LZO2, TC_CODEC_ERROR };
-static const TCFormatID tc_lzo_formats[] = { TC_FORMAT_ERROR };
-
-static const TCModuleInfo tc_lzo_info = {
-    .features    = TC_MODULE_FEATURE_ENCODE|TC_MODULE_FEATURE_VIDEO,
-    .flags       = TC_MODULE_FLAG_RECONFIGURABLE,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = tc_lzo_codecs_in,
-    .codecs_out  = tc_lzo_codecs_out,
-    .formats_in  = tc_lzo_formats,
-    .formats_out = tc_lzo_formats
+static const TCCodecID tc_lzo_codecs_out[] = { 
+    TC_CODEC_LZO2, TC_CODEC_ERROR 
 };
+TC_MODULE_CODEC_FORMATS(tc_lzo);
+
+TC_MODULE_INFO(tc_lzo);
 
 static const TCModuleClass tc_lzo_class = {
-    .info         = &tc_lzo_info,
+    TC_MODULE_CLASS_HEAD(tc_lzo),
 
     .init         = tc_lzo_init,
     .fini         = tc_lzo_fini,
@@ -290,10 +278,7 @@ static const TCModuleClass tc_lzo_class = {
     .encode_video = tc_lzo_encode_video,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &tc_lzo_class;
-}
+TC_MODULE_ENTRY_POINT(tc_lzo)
 
 /*************************************************************************/
 

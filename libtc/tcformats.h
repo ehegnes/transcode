@@ -36,6 +36,7 @@ typedef enum {
 
     /* video only */
     TC_FORMAT_YUV4MPEG,
+    TC_FORMAT_PVN,
 
     /* audio + video */
     TC_FORMAT_AVI,
@@ -49,18 +50,22 @@ typedef enum {
     TC_FORMAT_MPEG_PES,
     TC_FORMAT_MPEG_VOB,
     TC_FORMAT_MPEG_VDR,
+    TC_FORMAT_MPEG_MP4,
+    TC_FORMAT_MXF,
+    TC_FORMAT_PV3,
+    TC_FORMAT_VAG,
+    TC_FORMAT_NUV,
+    TC_FORMAT_FLV,
 
     /* special */
     TC_FORMAT_RAW,      /* no container */
     TC_FORMAT_ALSA,
     TC_FORMAT_X11,
     TC_FORMAT_XML,
-    TC_FORMAT_MXF,
-    TC_FORMAT_PVN,
-    TC_FORMAT_PV3,
-    TC_FORMAT_VAG,
-    TC_FORMAT_NUV,
-
+    TC_FORMAT_VIDEO4LINUX,
+    TC_FORMAT_OSS,
+    TC_FORMAT_BKTR,
+    TC_FORMAT_VNC,
     TC_FORMAT_DVD,
     TC_FORMAT_DVD_PAL,  /* temporary */
     TC_FORMAT_DVD_NTSC, /* temporary */

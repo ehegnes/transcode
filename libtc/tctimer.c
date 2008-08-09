@@ -40,7 +40,7 @@
 /*************************************************************************/
 /* utilities */
 
-static inline uint64_t tc_timeval_to_microsecs(const struct timeval *tv)
+static uint64_t tc_timeval_to_microsecs(const struct timeval *tv)
 {
     return (tv->tv_sec * 1000000 + tv->tv_usec);
 }

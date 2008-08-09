@@ -38,6 +38,21 @@
 #include "transcode.h"
 #include "tcmodule-info.h"
 
+#define TC_MODULE_VERSION_MAJOR     2
+#define TC_MODULE_VERSION_MINOR     0
+#define TC_MODULE_VERSION_MICRO     0
+
+#define TC_MAKE_MOD_VERSION(MAJOR, MINOR, MICRO) \
+         (((    0UL & 0xFF) << 24) \
+         |(((MAJOR) & 0xFF) << 16) \
+         |(((MINOR) & 0xFF) <<  8) \
+         | ((MICRO) & 0xFF))
+
+#define TC_MODULE_VERSION   \
+        TC_MAKE_MOD_VERSION(TC_MODULE_VERSION_MAJOR, \
+                            TC_MODULE_VERSION_MINOR, \
+                            TC_MODULE_VERSION_MICRO)
+
 /*
  * allowed status transition chart:
  *
@@ -98,6 +113,8 @@ struct tcmoduleinstance_ {
 /* can be shared between _all_ instances */
 typedef struct tcmoduleclass_ TCModuleClass;
 struct tcmoduleclass_ {
+    uint32_t version;
+
     int id; /* opaque internal handle */
 
     const TCModuleInfo *info;

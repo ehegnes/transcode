@@ -548,7 +548,7 @@ static const TCModuleInfo nuv_info = {
 };
 
 static const TCModuleClass nuv_class = {
-    .info         = &nuv_info,
+    TC_MODULE_CLASS_HEAD(nuv),
 
     .init         = nuv_init,
     .fini         = nuv_fini,
@@ -560,10 +560,7 @@ static const TCModuleClass nuv_class = {
     .demultiplex  = nuv_demultiplex,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &nuv_class;
-}
+TC_MODULE_ENTRY_POINT(nuv)
 
 /*************************************************************************/
 /*************************************************************************/

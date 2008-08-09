@@ -90,6 +90,7 @@ static int capability_flag = TC_CAP_RGB|TC_CAP_VID;
 #include <sys/types.h>
 #include <regex.h>
 
+
 static char *head = NULL, *tail = NULL;
 static int first_frame = 0, current_frame = 0, decoded_frame = 0, pad = 0;
 static int width = 0, height = 0;

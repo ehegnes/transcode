@@ -1,3 +1,24 @@
+2008-08-09 Francesco Romani <fromani at gmail dot com>
+  * encode/encode_copy.c encode/encode_faac.c encode/encode_lame.c
+    encode/encode_lzo.c encode/encode_null.c encode/encode_x264.c
+    encode/encode_xvid.c
+    filter/filter_astat.c filter/filter_detectsilence.c
+    filter/filter_doublefps.c filter/filter_levels.c filter/filter_modfps.c
+    filter/filter_null.c filter/filter_resample.c filter/preview/filter_sdlview.c
+    import/import_alsa.c import/import_im.c import/import_oss.c
+    import/import_pv3.c import/import_pvn.c import/import_sunau.c
+    import/import_vag.c import/import_x11.c import/tcdecode.c
+    import/nuv/import_nuv.c libtc/libtc.h libtc/tc_functions.c
+    libtc/tccodecs.c libtc/tcformats.h libtc/tcmodule-data.h
+    libtc/tcmodule-info.h libtc/tcmodule-plugin.h libtc/tcmodule.c
+    libtc/tcmoduleinfo.c libtc/tctimer.c libtc/tctimer.h 
+    multiplex/multiplex_avi.c multiplex/multiplex_null.c multiplex/multiplex_raw.c
+    multiplex/multiplex_y4m.c
+  - realign libtc as much as possible with HEAD.
+  - backport module versioning infrastructure from HEAD.
+  - align copyright year from HEAD.
+  - minor aligement/updates/fixes/cosmetics from HEAD.
+
 2008-08-06 Francesco Romani <fromani at gmail dot com>
   * import/v4l/import_v4l2.c
   various minor (cosmetic) enhancements (closing bugs

@@ -430,7 +430,7 @@ TC_MODULE_CODEC_FORMATS(lame);
 TC_MODULE_INFO(lame);
 
 static const TCModuleClass lame_class = {
-    .info         = &lame_info,
+    TC_MODULE_CLASS_HEAD(lame),
 
     .init         = lamemod_init,
     .fini         = lame_fini,
@@ -441,10 +441,7 @@ static const TCModuleClass lame_class = {
     .encode_audio = lame_encode,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &lame_class;
-}
+TC_MODULE_ENTRY_POINT(lame);
 
 /*************************************************************************/
 

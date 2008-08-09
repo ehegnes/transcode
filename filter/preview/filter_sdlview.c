@@ -20,7 +20,7 @@
 
 
 #define MOD_NAME        "filter_sdlview.so"
-#define MOD_VERSION     "v1.0.1 (2007-07-04)"
+#define MOD_VERSION     "v1.0.2 (2007-12-08)"
 #define MOD_CAP         "preview video frames using SDL"
 #define MOD_AUTHOR      "Francesco Romani"
 
@@ -319,24 +319,12 @@ static const TCCodecID sdlview_codecs_in[] = {
 static const TCCodecID sdlview_codecs_out[] = { 
     TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_RGB, TC_CODEC_ERROR 
 };
-static const TCFormatID sdlview_formats[] = { 
-    TC_FORMAT_ERROR
-};
+TC_MODULE_FILTER_FORMATS(sdlview);
 
-static const TCModuleInfo sdlview_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = sdlview_codecs_in,
-    .codecs_out  = sdlview_codecs_out,
-    .formats_in  = sdlview_formats,
-    .formats_out = sdlview_formats
-};
+TC_MODULE_INFO(sdlview);
 
 static const TCModuleClass sdlview_class = {
-    .info         = &sdlview_info,
+    TC_MODULE_CLASS_HEAD(sdlview),
 
     .init         = sdlview_init,
     .fini         = sdlview_fini,
@@ -347,10 +335,7 @@ static const TCModuleClass sdlview_class = {
     .filter_video = sdlview_filter_video,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &sdlview_class;
-}
+TC_MODULE_ENTRY_POINT(sdlview)
 
 /*************************************************************************/
 

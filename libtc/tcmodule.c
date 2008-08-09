@@ -476,8 +476,6 @@ static int descriptor_fini(TCModuleDescriptor *desc, void *unused)
     }
 
     if (desc->status == TC_DESCRIPTOR_DONE) {
-        /* a deep copy was performed */
-        tc_module_info_free(&(desc->info));
         if (desc->type != NULL) {
             tc_free((void*)desc->type);  /* avoid const warning */
             desc->type = NULL;
@@ -546,11 +544,8 @@ static void make_modtype(char *buf, size_t bufsize,
 } while (0)
 
 static int tc_module_class_copy(const TCModuleClass *klass,
-                                TCModuleClass *nklass,
-                                int soft_copy)
+                                TCModuleClass *nklass)
 {
-    int ret;
-
     if (!klass || !nklass) {
         /* 'impossible' condition */
         tc_log_error(__FILE__, "bad module class reference for setup: %s%s",
@@ -568,11 +563,13 @@ static int tc_module_class_copy(const TCModuleClass *klass,
     }
 
     /* register only method really provided by given class */
-    nklass->init = klass->init;
-    nklass->fini = klass->fini;
+    nklass->init      = klass->init;
+    nklass->fini      = klass->fini;
     nklass->configure = klass->configure;
-    nklass->stop = klass->stop;
-    nklass->inspect = klass->inspect;
+    nklass->stop      = klass->stop;
+    nklass->inspect   = klass->inspect;
+
+    nklass->info      = klass->info;
 
     COPY_IF_NOT_NULL(encode_audio);
     COPY_IF_NOT_NULL(encode_video);
@@ -583,19 +580,76 @@ static int tc_module_class_copy(const TCModuleClass *klass,
     COPY_IF_NOT_NULL(multiplex);
     COPY_IF_NOT_NULL(demultiplex);
 
-    if (soft_copy == TC_TRUE) {
-        memcpy((TCModuleInfo *)klass->info, nklass->info,
-               sizeof(TCModuleInfo));
-        ret = 0;
-    } else {
-        /* hard copy, create exact duplicate */
-        ret = tc_module_info_copy(klass->info,
-                                  (TCModuleInfo *)nklass->info);
-    }
-    return ret;
+    return 0;
 }
 
 #undef COPY_IF_NOT_NULL
+
+/*************************************************************************
+ * module versioning helpers                                             *
+ *************************************************************************/
+
+struct tcmodver {
+    int reserved;
+    int major;
+    int minor;
+    int micro;
+};
+
+static void expand_version(uint32_t version, struct tcmodver *modver)
+{
+    modver->reserved = (version & 0xFF000000) >> 24;
+    modver->major    = (version & 0x00FF0000) >> 16;
+    modver->minor    = (version & 0x0000FF00) >>  8;
+    modver->micro    = (version & 0x000000FF);
+}
+
+/*
+ * tc_module_version_matches:
+ *     check compatibilty between the transcode core version and
+ *     a supplied module version.
+ *     Only a major version mismatch gives incompatibility (...yet).
+ *
+ * Parameters:
+ *     modversion: the module version being checked.
+ * Return Value:
+ *     0  if module is incompatible with transcode core
+ *     !0 otherwise.
+ * Side Effects:
+ *     in case of incompatibilty (of any degree), messages are
+ *     tc_log()'d out.
+ */
+static int tc_module_version_matches(uint32_t modversion)
+{
+    struct tcmodver ver_core, ver_mod;
+
+    expand_version(TC_MODULE_VERSION, &ver_core);
+    expand_version(modversion,        &ver_mod);
+
+    if (ver_core.reserved != ver_mod.reserved) {
+        tc_log_error(__FILE__, "internal version error");
+        return 0;
+    }
+
+    /* different major versions are a no-no */
+    if (ver_core.major != ver_mod.major) {
+        tc_log_error(__FILE__, "incompatible module version "
+                               "(core=%i.%i.%i|module=%i.%i.%i)",
+                               ver_core.major, ver_core.minor, ver_core.micro,
+                               ver_mod.major, ver_mod.minor, ver_mod.micro);
+        return 0;
+    }
+    /* if you use different minor version, you've to know that */
+    if (ver_core.minor != ver_mod.minor) {
+        tc_log_error(__FILE__, "old module version "
+                               "(core=%i.%i.%i|module=%i.%i.%i)",
+                               ver_core.major, ver_core.minor, ver_core.micro,
+                               ver_mod.major, ver_mod.minor, ver_mod.micro);
+        /* still compatible! */
+    }
+    /* different micro version are ok'd silently */
+    return 1;
+}
 
 
 /*************************************************************************
@@ -691,7 +745,7 @@ static int tc_load_module(TCFactory factory,
     desc->status = TC_DESCRIPTOR_CREATED;
 
     /* soft copy is enough here, since information will be overwritten */
-    tc_module_class_copy(&dummy_class, &(desc->klass), TC_TRUE);
+    tc_module_class_copy(&dummy_class, &(desc->klass));
 
     modentry = dlsym(desc->so_handle, "tc_plugin_setup");
     if (!modentry) {
@@ -701,7 +755,12 @@ static int tc_load_module(TCFactory factory,
     }
     nclass = modentry();
 
-    ret = tc_module_class_copy(nclass, &(desc->klass), TC_FALSE);
+    if (!tc_module_version_matches(nclass->version)) {
+        /* reason already tc_log'd out */
+        goto failed_setup;
+    }
+
+    ret = tc_module_class_copy(nclass, &(desc->klass));
 
     if (ret !=  0) {
         /* should'nt happen */

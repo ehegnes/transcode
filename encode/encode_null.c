@@ -1,6 +1,6 @@
 /*
- *  encode_null.c -- produce empty (as in zero-sized) A/V frames.
- *  (C) 2005-2007 Francesco Romani <fromani at gmail dot com>
+ *  encode_null.c -- produces empty (as in zero-sized) A/V frames.
+ *  (C) 2005-2008 Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
  *
@@ -38,7 +38,7 @@
 
 static const char null_help[] = ""
     "Overview:\n"
-    "    this module absorb provided A/V frames and produces fake,"
+    "    this module absorbs provided A/V frames and produces fake,"
     "    empty \"encoded\" frames.\n"
     "Options:\n"
     "    help    produce module overview and options explanations\n";
@@ -113,23 +113,12 @@ static int null_encode_audio(TCModuleInstance *self,
 
 static const TCCodecID null_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
 static const TCCodecID null_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
-static const TCFormatID null_formats[] = { TC_FORMAT_ERROR };
+TC_MODULE_CODEC_FORMATS(null);
 
-
-static const TCModuleInfo null_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = null_codecs_in,
-    .codecs_out  = null_codecs_out,
-    .formats_in  = null_formats,
-    .formats_out = null_formats
-};
+TC_MODULE_INFO(null);
 
 static const TCModuleClass null_class = {
-    .info         = &null_info,
+    TC_MODULE_CLASS_HEAD(null),
 
     .init         = null_init,
     .fini         = null_fini,
@@ -141,11 +130,7 @@ static const TCModuleClass null_class = {
     .encode_audio = null_encode_audio,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &null_class;
-}
-
+TC_MODULE_ENTRY_POINT(null)
 /*************************************************************************/
 
 /*

@@ -86,15 +86,13 @@ int tc_module_info_match(int tc_codec,
 #undef HAVE_FEATURE
 
 
-#define DATA_BUF_SIZE   256
-
 static void codecs_to_string(const TCCodecID *codecs, char *buffer,
                              size_t bufsize, const char *fallback_string)
 {
     int found = 0;
     int i = 0;
 
-    if (buffer == NULL || bufsize < DATA_BUF_SIZE) {
+    if (buffer == NULL || bufsize < TC_BUF_LINE) {
         return;
     }
 
@@ -102,12 +100,11 @@ static void codecs_to_string(const TCCodecID *codecs, char *buffer,
 
     for (i = 0; codecs[i] != TC_CODEC_ERROR; i++) {
         const char *codec = tc_codec_to_string(codecs[i]);
-        if (codec == NULL) {
-            continue;
+        if (codec != NULL) {
+            strlcat(buffer, codec, bufsize);
+            strlcat(buffer, " ", bufsize);
+            found = 1;
         }
-        strlcat(buffer, codec, bufsize);
-        strlcat(buffer, " ", bufsize);
-        found = 1;
     }
     if (!found) {
         strlcpy(buffer, fallback_string, bufsize);
@@ -116,7 +113,7 @@ static void codecs_to_string(const TCCodecID *codecs, char *buffer,
 
 void tc_module_info_log(const TCModuleInfo *info, int verbose)
 {
-    char buffer[DATA_BUF_SIZE];
+    char buffer[TC_BUF_LINE];
 
     if (info == NULL) {
         return;
@@ -133,9 +130,9 @@ void tc_module_info_log(const TCModuleInfo *info, int verbose)
 
     if (verbose >= TC_DEBUG) {
         if (info->features == TC_MODULE_FEATURE_NONE) {
-            strlcpy(buffer, "none (this shouldn't happen!", DATA_BUF_SIZE);
+            strlcpy(buffer, "none (this shouldn't happen!", sizeof(buffer));
         } else {
-            tc_snprintf(buffer, DATA_BUF_SIZE, "%s%s%s",
+            tc_snprintf(buffer, sizeof(buffer), "%s%s%s",
                   (info->features & TC_MODULE_FEATURE_VIDEO) ?"video " :"",
                   (info->features & TC_MODULE_FEATURE_AUDIO) ?"audio " :"",
                   (info->features & TC_MODULE_FEATURE_EXTRA) ?"extra" :"");
@@ -143,9 +140,9 @@ void tc_module_info_log(const TCModuleInfo *info, int verbose)
         tc_log_info(info->name, "can handle : %s", buffer);
 
         if (info->features == TC_MODULE_FEATURE_NONE) {
-            strlcpy(buffer, "nothing (this shouldn't happen!", DATA_BUF_SIZE);
+            strlcpy(buffer, "nothing (this shouldn't happen!", sizeof(buffer));
         } else {
-            tc_snprintf(buffer, DATA_BUF_SIZE, "%s%s%s",
+            tc_snprintf(buffer, sizeof(buffer), "%s%s%s",
                         (info->features & TC_MODULE_FEATURE_FILTER)
                             ?"filtering " :"",
                         (info->features & TC_MODULE_FEATURE_ENCODE)
@@ -156,81 +153,30 @@ void tc_module_info_log(const TCModuleInfo *info, int verbose)
         tc_log_info(info->name, "can do     : %s", buffer);
 
         if (info->flags == TC_MODULE_FLAG_NONE) {
-            strlcpy(buffer, "none", DATA_BUF_SIZE);
+            strlcpy(buffer, "none", sizeof(buffer));
         } else {
-            tc_snprintf(buffer, DATA_BUF_SIZE, "%s",
+            tc_snprintf(buffer, sizeof(buffer), "%s%s%s%s",
                         (info->flags & TC_MODULE_FLAG_RECONFIGURABLE)
-                            ?"reconfigurable " :"");
+                            ?"reconfigurable " :"",
+                        (info->flags & TC_MODULE_FLAG_DELAY)
+                            ?"delay " :"",
+                        (info->flags & TC_MODULE_FLAG_BUFFERING)
+                            ?"buffering " :"",
+                        (info->flags & TC_MODULE_FLAG_CONVERSION)
+                            ?"conversion " :"");
         }
         tc_log_info(info->name, "flags      : %s", buffer);
-
     }
 
     if (verbose >= TC_INFO) {
         const char *str = (info->features & TC_MODULE_FEATURE_MULTIPLEX)
                                     ?"a media stream" :"nothing";
-        codecs_to_string(info->codecs_in, buffer, DATA_BUF_SIZE, str);
+        codecs_to_string(info->codecs_in, buffer, sizeof(buffer), str);
         tc_log_info(info->name, "accepts    : %s", buffer);
 
-        codecs_to_string(info->codecs_out, buffer, DATA_BUF_SIZE, str);
+        codecs_to_string(info->codecs_out, buffer, TC_BUF_LINE, str);
         tc_log_info(info->name, "produces   : %s", buffer);
     }
-}
-
-#define COPY_ID_ARRAY(FIELD) do { \
-    int i; \
-    for (i = 0; src->FIELD[i] != TC_CODEC_ERROR; i++) { \
-        ; /* do nothing */ \
-    } \
-    i++; /* for end mark (TC_CODEC_ERROR) */ \
-    dst->FIELD = tc_malloc(i * sizeof(TCCodecID)); \
-    if (dst->FIELD == NULL) { \
-        goto no_mem_ ## FIELD; \
-    } \
-    memcpy((TCCodecID *)dst->FIELD , src->FIELD , i * sizeof(TCCodecID)); \
-} while (0)
-
-
-int tc_module_info_copy(const TCModuleInfo *src, TCModuleInfo *dst)
-{
-    if (src == NULL || dst == NULL) {
-        return -1;
-    }
-    dst->features = src->features;
-    dst->flags = src->flags;
-
-    dst->name = tc_strdup(src->name);
-    if (dst->name == NULL) {
-        goto no_mem_name;
-    }
-    dst->version = tc_strdup(src->version);
-    if (dst->version == NULL) {
-        goto no_mem_version;
-    }
-    dst->description = tc_strdup(src->description);
-    if (dst->description == NULL) {
-        goto no_mem_description;
-    }
-
-    COPY_ID_ARRAY(codecs_in);
-    COPY_ID_ARRAY(codecs_out);
-
-    return 0;
-
-    /*
-     * void* casts to silence warning from gcc 4.x (free requires void*,
-     * argument is const something*
-     */
-no_mem_codecs_out:
-    tc_free((void*)dst->codecs_in);
-no_mem_codecs_in:
-    tc_free((void*)dst->description);
-no_mem_description:
-    tc_free((void*)dst->version);
-no_mem_version:
-    tc_free((void*)dst->name);
-no_mem_name:
-    return 1;
 }
 
 void tc_module_info_free(TCModuleInfo *info)

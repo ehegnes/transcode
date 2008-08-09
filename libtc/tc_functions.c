@@ -438,7 +438,7 @@ ssize_t tc_pread(int fd, uint8_t *buf, size_t len)
 }
 
 
-ssize_t tc_pwrite(int fd, uint8_t *buf, size_t len)
+ssize_t tc_pwrite(int fd, const uint8_t *buf, size_t len)
 {
     ssize_t n = 0;
     ssize_t r = 0;

@@ -223,26 +223,14 @@ static int raw_fini(TCModuleInstance *self)
 /*************************************************************************/
 
 static const TCCodecID raw_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
-
-/* a multiplexor is at the end of pipeline */
-static const TCCodecID raw_codecs_out[] = { TC_CODEC_ERROR };
-static const TCFormatID raw_formats_in[] = { TC_FORMAT_ERROR };
 static const TCFormatID raw_formats_out[] = { TC_FORMAT_RAW, TC_FORMAT_ERROR };
+/* a multiplexor is at the end of pipeline */
+TC_MODULE_MPLEX_FORMATS_CODECS(raw);
 
-static const TCModuleInfo raw_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = raw_codecs_in,
-    .codecs_out  = raw_codecs_out,
-    .formats_in  = raw_formats_in,
-    .formats_out = raw_formats_out
-};
+TC_MODULE_INFO(raw);
 
 static const TCModuleClass raw_class = {
-    .info         = &raw_info,
+    TC_MODULE_CLASS_HEAD(raw),
 
     .init         = raw_init,
     .fini         = raw_fini,
@@ -253,10 +241,7 @@ static const TCModuleClass raw_class = {
     .multiplex    = raw_multiplex,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &raw_class;
-}
+TC_MODULE_ENTRY_POINT(raw)
 
 /*************************************************************************/
 

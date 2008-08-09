@@ -1,6 +1,6 @@
 /*
- * import_alsa.c -- module for import audio from ALSA devices using libalsa
- * (C) 2007 - Francesco Romani <fromani at gmail dot com>
+ * import_alsa.c -- module for importing audio through ALSA
+ * (C) 2008 - Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
  *
@@ -90,7 +90,6 @@ static const char tc_alsa_help[] = ""
  * - suspend recovery?
  * - smarter resync?
  */
-
 
 /*************************************************************************/
 
@@ -453,7 +452,7 @@ static const TCModuleInfo tc_alsa_info = {
 };
 
 static const TCModuleClass tc_alsa_class = {
-    .info         = &tc_alsa_info,
+    TC_MODULE_CLASS_HEAD(tc_alsa),
 
     .init         = tc_alsa_init,
     .fini         = tc_alsa_fini,
@@ -464,10 +463,7 @@ static const TCModuleClass tc_alsa_class = {
     .demultiplex  = tc_alsa_demultiplex,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &tc_alsa_class;
-}
+TC_MODULE_ENTRY_POINT(tc_alsa)
 
 /*************************************************************************/
 

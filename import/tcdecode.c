@@ -34,7 +34,7 @@
 
 extern long fileinfo(int fd, int skip);
 
-int verbose=TC_QUIET;
+int verbose = TC_QUIET;
 
 void import_exit(int code)
 {

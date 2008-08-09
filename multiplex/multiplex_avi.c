@@ -216,33 +216,21 @@ static int avi_fini(TCModuleInstance *self)
 static const TCCodecID avi_codecs_in[] = {
     TC_CODEC_PCM, TC_CODEC_AC3, TC_CODEC_MP2, TC_CODEC_MP3,
     TC_CODEC_AAC, /* FIXME: that means asking for troubles */
-    TC_CODEC_YUV420P, TC_CODEC_DV, TC_CODEC_DIVX3, TC_CODEC_DIVX4,
-    TC_CODEC_DIVX5, TC_CODEC_XVID,
+    TC_CODEC_YUV420P, TC_CODEC_DV,
+    TC_CODEC_DIVX3, TC_CODEC_DIVX4, TC_CODEC_DIVX5, TC_CODEC_XVID,
     TC_CODEC_H264, /* FIXME: that means asking for troubles */
     TC_CODEC_MPEG4VIDEO, TC_CODEC_MPEG1VIDEO, TC_CODEC_MJPEG,
     TC_CODEC_LZO1, TC_CODEC_LZO2, TC_CODEC_RGB,
     TC_CODEC_ERROR
 };
 static const TCFormatID avi_formats_out[] = { TC_FORMAT_AVI, TC_FORMAT_ERROR };
-
 /* a multiplexor is at the end of pipeline */
-static const TCCodecID avi_codecs_out[] = { TC_CODEC_ERROR };
-static const TCFormatID avi_formats_in[] = { TC_FORMAT_ERROR };
+TC_MODULE_MPLEX_FORMATS_CODECS(avi);
 
-static const TCModuleInfo avi_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = avi_codecs_in,
-    .codecs_out  = avi_codecs_out,
-    .formats_in  = avi_formats_in,
-    .formats_out = avi_formats_out
-};
+TC_MODULE_INFO(avi);
 
 static const TCModuleClass avi_class = {
-    .info         = &avi_info,
+    TC_MODULE_CLASS_HEAD(avi),
 
     .init         = avi_init,
     .fini         = avi_fini,
@@ -253,10 +241,7 @@ static const TCModuleClass avi_class = {
     .multiplex    = avi_multiplex,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &avi_class;
-}
+TC_MODULE_ENTRY_POINT(avi)
 
 /*************************************************************************/
 

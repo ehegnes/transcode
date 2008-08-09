@@ -1,6 +1,6 @@
 /*
  * encode_copy.c -- passthrough A/V frames through deep copy.
- * (C) 2005-2007 Francesco Romani <fromani at gmail dot com>
+ * (C) 2005-2008 Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
  *
@@ -26,7 +26,7 @@
 #include "libtc/tcmodule-plugin.h"
 
 #define MOD_NAME    "encode_copy.so"
-#define MOD_VERSION "v0.0.3 (2007-01-27)"
+#define MOD_VERSION "v0.0.4 (2007-11-18)"
 #define MOD_CAP     "copy (passthrough) A/V frames"
 
 #define MOD_FEATURES \
@@ -96,21 +96,21 @@ static int copy_stop(TCModuleInstance *self)
 }
 
 static int copy_encode_video(TCModuleInstance *self,
-                              vframe_list_t *inframe, vframe_list_t *outframe)
+                             vframe_list_t *inframe, vframe_list_t *outframe)
 {
     TC_MODULE_SELF_CHECK(self, "encode_video");
 
-    vframe_copy(outframe, inframe, 1);
-    /* vframe_copy will not do this, so we copy attributes explicitely */
-    outframe->attributes = inframe->attributes;
-    /* enforce full length (we can deal with uncompressed frames) */
-    outframe->video_len = outframe->video_size;
-
+    if (inframe == NULL) {
+        outframe->video_len = 0;
+    } else {
+        vframe_copy(outframe, inframe, 1);
+        outframe->video_len = outframe->video_size;
+    }
     return TC_OK;
 }
 
 static int copy_encode_audio(TCModuleInstance *self,
-                              aframe_list_t *inframe, aframe_list_t *outframe)
+                             aframe_list_t *inframe, aframe_list_t *outframe)
 {
     TC_MODULE_SELF_CHECK(self, "encode_audio");
 
@@ -118,12 +118,8 @@ static int copy_encode_audio(TCModuleInstance *self,
         outframe->audio_len = 0;
     } else {
         aframe_copy(outframe, inframe, 1);
-        /* aframe_copy will not do this, so we copy attributes explicitely */
-        outframe->attributes = inframe->attributes;
-        /* enforce full length (we deal with uncompressed frames */
         outframe->audio_len = outframe->audio_size;
     }
-
     return TC_OK;
 }
 
@@ -132,22 +128,12 @@ static int copy_encode_audio(TCModuleInstance *self,
 
 static const uint32_t copy_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
 static const uint32_t copy_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
-static const TCFormatID copy_formats[] = { TC_FORMAT_ERROR };
+TC_MODULE_CODEC_FORMATS(copy);
 
-static const TCModuleInfo copy_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = copy_codecs_in,
-    .codecs_out  = copy_codecs_out,
-    .formats_in  = copy_formats,
-    .formats_out = copy_formats
-};
+TC_MODULE_INFO(copy);
 
 static const TCModuleClass copy_class = {
-    .info         = &copy_info,
+    TC_MODULE_CLASS_HEAD(copy),
 
     .init         = copy_init,
     .fini         = copy_fini,
@@ -159,10 +145,7 @@ static const TCModuleClass copy_class = {
     .encode_audio = copy_encode_audio,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &copy_class;
-}
+TC_MODULE_ENTRY_POINT(copy);
 
 /*************************************************************************/
 

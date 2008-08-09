@@ -228,7 +228,7 @@ static const TCModuleInfo vag_info = {
 };
 
 static const TCModuleClass vag_class = {
-    .info         = &vag_info,
+    TC_MODULE_CLASS_HEAD(vag),
 
     .init         = vag_init,
     .fini         = vag_fini,
@@ -239,10 +239,7 @@ static const TCModuleClass vag_class = {
     .decode_audio = vag_decode,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &vag_class;
-}
+TC_MODULE_ENTRY_POINT(vag)
 
 /*************************************************************************/
 /*************************************************************************/

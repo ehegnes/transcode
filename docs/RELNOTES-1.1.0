@@ -3,8 +3,8 @@
 ===============================
 :Info: See <http://www.transcoding.org> for more documentation.
 :Author: Francesco Romani <fromani@gmail.com>
-:Date: $Date: 2008-04-14 20:20:46 $
-:Revision: $Revision: 1.1.2.2 $
+:Date: $Date: 2008-08-09 21:24:38 $
+:Revision: $Revision: 1.1.2.3 $
 
 
 Introduction
@@ -124,10 +124,13 @@ Every point remainds to a detailed description in the further sections.
   - tcexport
   - tcmodchain
 
+
 User visible Changes
 ====================
 
-* frame counter
+See the document `CHANGES-1.0-1.1' for a detailed list of user-visible changes,
+including commandline options and their syntax, and transcode's output.
+
 
 For Developers
 ==============

@@ -1,21 +1,21 @@
 /*
-    Copyright (C) 2004 Bryan Mayland <bmayland@leoninedev.com>
-    For use in transcode by Tilmann Bitterberg <transcode@tibit.org>
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/
+ *  Copyright (C) 2004 Bryan Mayland <bmayland@leoninedev.com>
+ *  For use in transcode by Tilmann Bitterberg <transcode@tibit.org>
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
 
 #define MOD_NAME    "filter_levels.so"
 #define MOD_VERSION "v1.2.0 (2007-06-07)"
@@ -47,7 +47,8 @@ static const char levels_help[] = ""
     "    input   luma range of input (0-255)\n"
     "    gamma   gamma ramp to apply to input luma (F)\n"
     "    output  luma range of output (0-255)\n"
-    "    pre     act as pre processing filter (I)\n";
+    "    pre     act as pre processing filter (I)\n"
+    "    help    print this help message\n";
 
 
 #define DEFAULT_IN_GAMMA   1.0
@@ -78,7 +79,6 @@ typedef struct {
 static void build_map(uint8_t *map, int inlow, int inhigh,
                       float ingamma, int outlow, int outhigh)
 {
-    float f;
     int i;
 
     for (i = 0; i < MAP_SIZE; i++) {
@@ -87,7 +87,7 @@ static void build_map(uint8_t *map, int inlow, int inhigh,
         } else if (i >= inhigh) {
             map[i] = outhigh;
         } else {
-            f = (float)(i - inlow) / (inhigh - inlow);
+            float f = (float)(i - inlow) / (inhigh - inlow);
             map[i] = pow(f, 1/ingamma) * (outhigh - outlow) + outlow; // XXX
         }
     }
@@ -106,38 +106,7 @@ static void build_map(uint8_t *map, int inlow, int inhigh,
  * tcmodule-data.h for function details.
  */
 
-static int levels_init(TCModuleInstance *self, uint32_t features)
-{
-    LevelsPrivateData *pd = NULL;
-
-    TC_MODULE_SELF_CHECK(self, "init");
-    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
-
-    pd = tc_malloc(sizeof(LevelsPrivateData));
-    if (pd == NULL) {
-        tc_log_error(MOD_NAME, "init: out of memory!");
-        return TC_ERROR;
-    }
-
-    /* default configuration! */
-    pd->in_black     = DEFAULT_IN_BLACK;
-    pd->in_white     = DEFAULT_IN_WHITE;
-    pd->in_gamma     = DEFAULT_IN_GAMMA;
-    pd->out_black    = DEFAULT_OUT_BLACK;
-    pd->out_white    = DEFAULT_OUT_WHITE;
-    pd->is_prefilter = TC_FALSE;
-
-    build_map(pd->lumamap, pd->in_black, pd->in_white,
-              pd->in_gamma, pd->out_black, pd->out_white);
-
-    self->userdata = pd;
-
-    if (verbose) {
-        tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-    }
-
-    return TC_OK;
-}
+TC_MODULE_GENERIC_INIT(levels, LevelsPrivateData)
 
 /*************************************************************************/
 
@@ -146,14 +115,7 @@ static int levels_init(TCModuleInstance *self, uint32_t features)
  * tcmodule-data.h for function details.
  */
 
-static int levels_fini(TCModuleInstance *self)
-{
-    TC_MODULE_SELF_CHECK(self, "fini");
-
-    tc_free(self->userdata);
-    self->userdata = NULL;
-    return TC_OK;
-}
+TC_MODULE_GENERIC_FINI(levels)
 
 /*************************************************************************/
 
@@ -171,7 +133,7 @@ static int levels_configure(TCModuleInstance *self,
 
     pd = self->userdata;
 
-    if(vob->im_v_codec != CODEC_YUV) {
+    if (vob->im_v_codec != CODEC_YUV) {
         tc_log_error(MOD_NAME, "This filter is only capable of YUV mode");
         return TC_ERROR;
     }
@@ -194,13 +156,11 @@ static int levels_configure(TCModuleInstance *self,
     build_map(pd->lumamap, pd->in_black, pd->in_white,
               pd->in_gamma, pd->out_black, pd->out_white);
 
-    if (verbose >= TC_DEBUG) {
-        /* legacy. To be removed? */
-        tc_log_info(MOD_NAME, "scaling %d-%d gamma %f to %d-%d",
+    if (verbose) {
+        tc_log_info(MOD_NAME, "scaling %d-%d gamma %f to %d-%d (%s-process)",
                     pd->in_black, pd->in_white,
                     pd->in_gamma,
-                    pd->out_black, pd->out_white);
-        tc_log_info(MOD_NAME, "%s-processing filter",
+                    pd->out_black, pd->out_white,
                     (pd->is_prefilter) ?"pre" :"post");
     }
     return TC_OK;
@@ -305,25 +265,12 @@ static const TCCodecID levels_codecs_in[] = {
 static const TCCodecID levels_codecs_out[] = { 
     TC_CODEC_YUV420P, TC_CODEC_ERROR
 };
-static const TCFormatID levels_formats[] = { 
-    TC_FORMAT_ERROR
-};
+TC_MODULE_FILTER_FORMATS(levels);
 
-/* new module support */
-static const TCModuleInfo levels_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = levels_codecs_in,
-    .codecs_out  = levels_codecs_out,
-    .formats_in  = levels_formats,
-    .formats_out = levels_formats
-};
+TC_MODULE_INFO(levels);
 
 static const TCModuleClass levels_class = {
-    .info         = &levels_info,
+    TC_MODULE_CLASS_HEAD(levels),
 
     .init         = levels_init,
     .fini         = levels_fini,
@@ -334,10 +281,7 @@ static const TCModuleClass levels_class = {
     .filter_video = levels_filter_video,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &levels_class;
-}
+TC_MODULE_ENTRY_POINT(levels)
 
 /*************************************************************************/
 

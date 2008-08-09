@@ -26,6 +26,15 @@
 
 #include <stdint.h>
 
+
+
+typedef union tctimestamp_ TCTimestamp;
+union tctimestamp_ {
+    uint64_t u;
+    double   d;
+};
+
+
 /*
  * Quick Summary:
  *
@@ -34,10 +43,10 @@
  * I've chosen to factorize such code and put here on libtc
  * in order to make it more visible and to promote reviews.
  * 
- * This code may look overengeneered, I'd like to make it generic
+ * This code may look overengineered, I'd like to make it generic
  * in order to easily introduce further, platform-specific, timing
  * support (i.e. Linux RTC). They aren't yet ready since the overall
- * X11 source support is still on work. More will follow soone.
+ * X11 source support is still on work. More will follow soon.
  *
  */
 

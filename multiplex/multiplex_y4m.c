@@ -370,7 +370,7 @@ static const TCModuleInfo yw_info = {
 };
 
 static const TCModuleClass yw_class = {
-    .info         = &yw_info,
+    TC_MODULE_CLASS_HEAD(yw),
 
     .init         = yw_init,
     .fini         = yw_fini,
@@ -381,10 +381,7 @@ static const TCModuleClass yw_class = {
     .multiplex    = yw_multiplex,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &yw_class;
-}
+TC_MODULE_ENTRY_POINT(yw);
 
 /*************************************************************************/
 
