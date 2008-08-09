@@ -604,7 +604,7 @@ TC_MODULE_FILTER_FORMATS(dnr);
 TC_MODULE_INFO(dnr);
 
 static const TCModuleClass dnr_class = {
-    .info         = &dnr_info,
+    TC_MODULE_CLASS_HEAD(dnr),
 
     .init         = dnr_init,
     .fini         = dnr_fini,

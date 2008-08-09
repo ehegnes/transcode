@@ -470,7 +470,7 @@ TC_MODULE_CODEC_FORMATS(tc_xvid);
 TC_MODULE_INFO(tc_xvid);
 
 static const TCModuleClass xvid_class = {
-    .info         = &tc_xvid_info,
+    TC_MODULE_CLASS_HEAD(tc_xvid),
 
     .init         = tc_xvid_init,
     .fini         = tc_xvid_fini,
@@ -481,10 +481,7 @@ static const TCModuleClass xvid_class = {
     .encode_video = tc_xvid_encode_video
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &xvid_class;
-}
+TC_MODULE_ENTRY_POINT(xvid)
 
 
 /*****************************************************************************

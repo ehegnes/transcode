@@ -273,7 +273,7 @@ TC_MODULE_MPLEX_FORMATS_CODECS(tc_y4m);
 TC_MODULE_INFO(tc_y4m);
 
 static const TCModuleClass tc_y4m_class = {
-    .info         = &tc_y4m_info,
+    TC_MODULE_CLASS_HEAD(tc_y4m),
 
     .init         = tc_y4m_init,
     .fini         = tc_y4m_fini,

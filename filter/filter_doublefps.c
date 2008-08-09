@@ -452,7 +452,7 @@ TC_MODULE_FILTER_FORMATS(doublefps);
 TC_MODULE_INFO(doublefps);
 
 static const TCModuleClass doublefps_class = {
-    .info         = &doublefps_info,
+    TC_MODULE_CLASS_HEAD(doublefps),
 
     .init         = doublefps_init,
     .fini         = doublefps_fini,

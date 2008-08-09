@@ -271,7 +271,7 @@ TC_MODULE_FILTER_FORMATS(lowpass);
 TC_MODULE_INFO(lowpass);
 
 static const TCModuleClass lowpass_class = {
-    .info         = &lowpass_info,
+    TC_MODULE_CLASS_HEAD(lowpass),
 
     .init         = lowpass_init,
     .fini         = lowpass_fini,

@@ -376,7 +376,7 @@ TC_MODULE_FILTER_FORMATS(fields);
 TC_MODULE_INFO(fields);
 
 static const TCModuleClass fields_class = {
-    .info         = &fields_info,
+    TC_MODULE_CLASS_HEAD(fields),
 
     .init         = fields_init,
     .fini         = fields_fini,

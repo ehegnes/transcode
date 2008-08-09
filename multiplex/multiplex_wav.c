@@ -185,7 +185,7 @@ TC_MODULE_MPLEX_FORMATS_CODECS(tc_wav);
 TC_MODULE_INFO(tc_wav);
 
 static const TCModuleClass tc_wav_class = {
-    .info         = &tc_wav_info,
+    TC_MODULE_CLASS_HEAD(tc_wav),
 
     .init         = tc_wav_init,
     .fini         = tc_wav_fini,

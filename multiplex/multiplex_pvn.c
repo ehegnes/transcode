@@ -287,7 +287,7 @@ TC_MODULE_MPLEX_FORMATS_CODECS(pvn);
 TC_MODULE_INFO(pvn);
 
 static const TCModuleClass pvn_class = {
-    .info      = &pvn_info,
+    TC_MODULE_CLASS_HEAD(pvn),
 
     .init      = pvn_init,
     .fini      = pvn_fini,

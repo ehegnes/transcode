@@ -230,7 +230,7 @@ TC_MODULE_MPLEX_FORMATS_CODECS(avi);
 TC_MODULE_INFO(avi);
 
 static const TCModuleClass avi_class = {
-    .info         = &avi_info,
+    TC_MODULE_CLASS_HEAD(avi),
 
     .init         = avi_init,
     .fini         = avi_fini,

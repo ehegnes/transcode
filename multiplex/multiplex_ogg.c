@@ -584,7 +584,7 @@ TC_MODULE_MPLEX_FORMATS_CODECS(tc_ogg);
 TC_MODULE_INFO(tc_ogg);
 
 static const TCModuleClass tc_ogg_class = {
-    .info         = &tc_ogg_info,
+    TC_MODULE_CLASS_HEAD(tc_ogg),
 
     .init         = tc_ogg_init,
     .fini         = tc_ogg_fini,

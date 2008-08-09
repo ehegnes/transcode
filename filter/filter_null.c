@@ -265,7 +265,7 @@ TC_MODULE_FILTER_FORMATS(null);
 TC_MODULE_INFO(null);
 
 static const TCModuleClass null_class = {
-    .info         = &null_info,
+    TC_MODULE_CLASS_HEAD(null),
 
     .init         = null_init,
     .fini         = null_fini,

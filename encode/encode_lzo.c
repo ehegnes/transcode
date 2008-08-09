@@ -268,7 +268,7 @@ TC_MODULE_CODEC_FORMATS(tc_lzo);
 TC_MODULE_INFO(tc_lzo);
 
 static const TCModuleClass tc_lzo_class = {
-    .info         = &tc_lzo_info,
+    TC_MODULE_CLASS_HEAD(tc_lzo),
 
     .init         = tc_lzo_init,
     .fini         = tc_lzo_fini,

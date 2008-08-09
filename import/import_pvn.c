@@ -851,7 +851,7 @@ static const TCModuleInfo pvn_info = {
 };
 
 static const TCModuleClass pvn_class = {
-    .info         = &pvn_info,
+    TC_MODULE_CLASS_HEAD(pvn),
 
     .init         = pvn_init,
     .fini         = pvn_fini,
@@ -862,10 +862,7 @@ static const TCModuleClass pvn_class = {
     .demultiplex  = pvn_demultiplex,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &pvn_class;
-}
+TC_MODULE_ENTRY_POINT(pvn)
 
 /*************************************************************************/
 /*************************************************************************/

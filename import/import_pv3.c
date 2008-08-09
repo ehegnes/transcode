@@ -754,7 +754,7 @@ static const TCModuleInfo pv3_info = {
 };
 
 static const TCModuleClass pv3_class = {
-    .info         = &pv3_info,
+    TC_MODULE_CLASS_HEAD(pv3),
 
     .init         = pv3_init,
     .fini         = pv3_fini,
@@ -766,10 +766,7 @@ static const TCModuleClass pv3_class = {
     .demultiplex  = pv3_demultiplex,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &pv3_class;
-}
+TC_MODULE_ENTRY_POINT(pv3)
 
 /*************************************************************************/
 /*************************************************************************/

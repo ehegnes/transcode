@@ -212,7 +212,7 @@ TC_MODULE_FILTER_FORMATS(resample);
 TC_MODULE_INFO(resample);
 
 static const TCModuleClass resample_class = {
-    .info         = &resample_info,
+    TC_MODULE_CLASS_HEAD(resample),
 
     .init         = resample_init,
     .fini         = resample_fini,

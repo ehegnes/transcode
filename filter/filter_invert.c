@@ -213,7 +213,7 @@ TC_MODULE_FILTER_FORMATS(invert);
 TC_MODULE_INFO(invert);
 
 static const TCModuleClass invert_class = {
-    .info         = &invert_info,
+    TC_MODULE_CLASS_HEAD(invert),
 
     .init         = invert_init,
     .fini         = invert_fini,

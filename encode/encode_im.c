@@ -267,7 +267,7 @@ TC_MODULE_CODEC_FORMATS(tc_im);
 TC_MODULE_INFO(tc_im);
 
 static const TCModuleClass tc_im_class = {
-    .info         = &tc_im_info,
+    TC_MODULE_CLASS_HEAD(tc_im),
 
     .init         = tc_im_init,
     .fini         = tc_im_fini,

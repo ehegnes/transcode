@@ -1704,7 +1704,7 @@ static int tc_lavc_encode_audio(TCModuleInstance *self,
 TC_MODULE_INFO(tc_lavc);
 
 static const TCModuleClass tc_lavc_class = {
-    .info         = &tc_lavc_info,
+    TC_MODULE_CLASS_HEAD(tc_lavc),
 
     .init         = tc_lavc_init,
     .fini         = tc_lavc_fini,

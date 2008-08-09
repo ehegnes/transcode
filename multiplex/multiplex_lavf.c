@@ -739,7 +739,7 @@ TC_MODULE_MPLEX_FORMATS_CODECS(tc_lavf);
 TC_MODULE_INFO(tc_lavf);
 
 static const TCModuleClass tc_lavf_class = {
-    .info         = &tc_lavf_info,
+    TC_MODULE_CLASS_HEAD(tc_lavf),
 
     .init         = tc_lavf_init,
     .fini         = tc_lavf_fini,

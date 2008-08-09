@@ -282,7 +282,7 @@ TC_MODULE_FILTER_FORMATS(astat);
 TC_MODULE_INFO(astat);
 
 static const TCModuleClass astat_class = {
-    .info         = &astat_info,
+    TC_MODULE_CLASS_HEAD(astat),
 
     .init         = astat_init,
     .fini         = astat_fini,

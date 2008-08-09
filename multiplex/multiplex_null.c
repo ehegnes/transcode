@@ -118,7 +118,7 @@ TC_MODULE_MPLEX_FORMATS_CODECS(null);
 TC_MODULE_INFO(null);
 
 static const TCModuleClass null_class = {
-    .info         = &null_info,
+    TC_MODULE_CLASS_HEAD(null),
 
     .init         = null_init,
     .fini         = null_fini,

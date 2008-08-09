@@ -427,7 +427,7 @@ TC_MODULE_CODEC_FORMATS(tc_theora);
 TC_MODULE_INFO(tc_theora);
 
 static const TCModuleClass tc_theora_class = {
-    .info         = &tc_theora_info,
+    TC_MODULE_CLASS_HEAD(tc_theora),
 
     .init         = tc_theora_init,
     .fini         = tc_theora_fini,

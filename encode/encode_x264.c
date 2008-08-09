@@ -776,7 +776,7 @@ TC_MODULE_CODEC_FORMATS(x264);
 TC_MODULE_INFO(x264);
 
 static const TCModuleClass x264_class = {
-    .info         = &x264_info,
+    TC_MODULE_CLASS_HEAD(x264),
 
     .init         = x264_init,
     .fini         = x264_fini,
@@ -787,10 +787,7 @@ static const TCModuleClass x264_class = {
     .encode_video = x264_encode_video,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &x264_class;
-}
+TC_MODULE_ENTRY_POINT(x264)
 
 /*************************************************************************/
 

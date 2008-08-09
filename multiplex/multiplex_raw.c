@@ -233,7 +233,7 @@ TC_MODULE_MPLEX_FORMATS_CODECS(raw);
 TC_MODULE_INFO(raw);
 
 static const TCModuleClass raw_class = {
-    .info         = &raw_info,
+    TC_MODULE_CLASS_HEAD(raw),
 
     .init         = raw_init,
     .fini         = raw_fini,

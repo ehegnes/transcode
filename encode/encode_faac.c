@@ -286,7 +286,7 @@ TC_MODULE_CODEC_FORMATS(faac);
 TC_MODULE_INFO(faac);
 
 static const TCModuleClass faac_class = {
-    .info         = &faac_info,
+    TC_MODULE_CLASS_HEAD(faac),
 
     .init         = faac_init,
     .fini         = faac_fini,

@@ -577,7 +577,7 @@ TC_MODULE_FILTER_FORMATS(xsharpen);
 TC_MODULE_INFO(xsharpen);
 
 static const TCModuleClass xsharpen_class = {
-    .info         = &xsharpen_info,
+    TC_MODULE_CLASS_HEAD(xsharpen),
 
     .init         = xsharpen_init,
     .fini         = xsharpen_fini,

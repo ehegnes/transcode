@@ -270,7 +270,7 @@ TC_MODULE_FILTER_FORMATS(levels);
 TC_MODULE_INFO(levels);
 
 static const TCModuleClass levels_class = {
-    .info         = &levels_info,
+    TC_MODULE_CLASS_HEAD(levels),
 
     .init         = levels_init,
     .fini         = levels_fini,

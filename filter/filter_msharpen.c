@@ -507,7 +507,7 @@ TC_MODULE_FILTER_FORMATS(msharpen);
 TC_MODULE_INFO(msharpen);
 
 static const TCModuleClass msharpen_class = {
-    .info         = &msharpen_info,
+    TC_MODULE_CLASS_HEAD(msharpen),
 
     .init         = msharpen_init,
     .fini         = msharpen_fini,

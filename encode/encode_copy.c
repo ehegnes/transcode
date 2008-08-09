@@ -133,7 +133,7 @@ TC_MODULE_CODEC_FORMATS(copy);
 TC_MODULE_INFO(copy);
 
 static const TCModuleClass copy_class = {
-    .info         = &copy_info,
+    TC_MODULE_CLASS_HEAD(copy),
 
     .init         = copy_init,
     .fini         = copy_fini,

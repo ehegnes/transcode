@@ -8,6 +8,17 @@
   * import/v4l/import_v4l2.c
   STYLE/cosmetic fixes.
 
+  * docs/tech/filter_template.c encode/encode*.c
+    filter/filter_astat.c filter/filter_detectsilence.c filter/filter_dnr.c
+    filter/filter_doublefps.c filter/filter_facemask.c filter/filter_fields.c
+    filter/filter_invert.c filter/filter_levels.c filter/filter_lowpass.c
+    filter/filter_msharpen.c filter/filter_null.c filter/filter_pp.c
+    filter/filter_resample.c filter/filter_xsharpen.c
+    filter/preview/filter_sdlview.c import/import_alsa.c import/import_pv3.c
+    import/import_pvn.c import/import_vag.c import/import_x11.c 
+    import/nuv/import_nuv.c multiplex/multiplex*.c
+  module versioning support step 2/2 : modules support.
+
 2008-07-28 Francesco Romani <fromani at gmail dot com>
   * libtcext/tc_avcodec.h
   #include <pthread.h> (closes bug #0000067)

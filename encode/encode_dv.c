@@ -276,7 +276,7 @@ TC_MODULE_CODEC_FORMATS(tc_dv);
 TC_MODULE_INFO(tc_dv);
 
 static const TCModuleClass tc_dv_class = {
-    .info         = &tc_dv_info,
+    TC_MODULE_CLASS_HEAD(tc_dv),
 
     .init         = tc_dv_init,
     .fini         = tc_dv_fini,

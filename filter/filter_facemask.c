@@ -361,7 +361,7 @@ TC_MODULE_FILTER_FORMATS(facemask);
 TC_MODULE_INFO(facemask);
 
 static const TCModuleClass facemask_class = {
-    .info         = &facemask_info,
+    TC_MODULE_CLASS_HEAD(facemask),
 
     .init         = facemask_init,
     .fini         = facemask_fini,

@@ -329,7 +329,7 @@ static const TCModuleInfo tc_x11_info = {
 };
 
 static const TCModuleClass tc_x11_class = {
-    .info         = &tc_x11_info,
+    TC_MODULE_CLASS_HEAD(tc_x11),
 
     .init         = tc_x11_init,
     .fini         = tc_x11_fini,
@@ -340,10 +340,7 @@ static const TCModuleClass tc_x11_class = {
     .demultiplex  = tc_x11_demultiplex,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &tc_x11_class;
-}
+TC_MODULE_ENTRY_POINT(tc_x11)
 
 /*************************************************************************/
 /*************************************************************************/

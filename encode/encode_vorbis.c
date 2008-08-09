@@ -343,7 +343,7 @@ TC_MODULE_CODEC_FORMATS(tc_vorbis);
 TC_MODULE_INFO(tc_vorbis);
 
 static const TCModuleClass tc_vorbis_class = {
-    .info         = &tc_vorbis_info,
+    TC_MODULE_CLASS_HEAD(tc_vorbis),
 
     .init         = tc_vorbis_init,
     .fini         = tc_vorbis_fini,

@@ -355,7 +355,7 @@ TC_MODULE_FILTER_FORMATS(pp);
 TC_MODULE_INFO(pp);
 
 static const TCModuleClass pp_class = {
-    .info         = &pp_info,
+    TC_MODULE_CLASS_HEAD(pp),
 
     .init         = pp_init,
     .fini         = pp_fini,

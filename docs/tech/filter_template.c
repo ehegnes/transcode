@@ -212,24 +212,13 @@ static const TCCodecID template_codecs_in[] = {
 static const TCCodecID template_codecs_out[] = { 
     TC_CODEC_ERROR 
 };
-static const TCFormatID template_formats[] = { 
-    TC_FORMAT_ERROR
-};
 
-static const TCModuleInfo template_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = template_codecs_in,
-    .codecs_out  = template_codecs_out,
-    .formats_in  = template_formats,
-    .formats_out = template_formats
-};
+TC_MODULE_FILTER_FORMATS(template);
+
+TC_MODULE_INFO(template);
 
 static const TCModuleClass template_class = {
-    .info         = &template_info,
+    TC_MODULE_CLASS_HEAD(template),
 
     .init         = template_init,
     .fini         = template_fini,
@@ -242,10 +231,7 @@ static const TCModuleClass template_class = {
     .filter_audio = template_filter_audio,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &template_class;
-}
+TC_MODULE_ENTRY_POINT(template)
 
 /*************************************************************************/
 

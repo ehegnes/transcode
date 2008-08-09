@@ -430,7 +430,7 @@ TC_MODULE_CODEC_FORMATS(lame);
 TC_MODULE_INFO(lame);
 
 static const TCModuleClass lame_class = {
-    .info         = &lame_info,
+    TC_MODULE_CLASS_HEAD(lame),
 
     .init         = lamemod_init,
     .fini         = lame_fini,

@@ -317,7 +317,7 @@ TC_MODULE_FILTER_FORMATS(detectsilence);
 TC_MODULE_INFO(detectsilence);
 
 static const TCModuleClass detectsilence_class = {
-    .info         = &detectsilence_info,
+    TC_MODULE_CLASS_HEAD(detectsilence),
 
     .init         = detectsilence_init,
     .fini         = detectsilence_fini,

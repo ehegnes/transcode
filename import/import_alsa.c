@@ -427,7 +427,7 @@ static const TCModuleInfo tc_alsa_info = {
 };
 
 static const TCModuleClass tc_alsa_class = {
-    .info         = &tc_alsa_info,
+    TC_MODULE_CLASS_HEAD(tc_alsa),
 
     .init         = tc_alsa_init,
     .fini         = tc_alsa_fini,
@@ -438,10 +438,7 @@ static const TCModuleClass tc_alsa_class = {
     .demultiplex  = tc_alsa_demultiplex,
 };
 
-extern const TCModuleClass *tc_plugin_setup(void)
-{
-    return &tc_alsa_class;
-}
+TC_MODULE_ENTRY_POINT(tc_alsa)
 
 /*************************************************************************/
 

@@ -324,7 +324,7 @@ TC_MODULE_FILTER_FORMATS(sdlview);
 TC_MODULE_INFO(sdlview);
 
 static const TCModuleClass sdlview_class = {
-    .info         = &sdlview_info,
+    TC_MODULE_CLASS_HEAD(sdlview),
 
     .init         = sdlview_init,
     .fini         = sdlview_fini,
