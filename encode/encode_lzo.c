@@ -279,7 +279,7 @@ static const TCModuleClass tc_lzo_class = {
     .encode_video = tc_lzo_encode_video,
 };
 
-TC_MODULE_ENTRY_POINT(tc_lzo);
+TC_MODULE_ENTRY_POINT(tc_lzo)
 
 /*************************************************************************/
 

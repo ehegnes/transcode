@@ -244,7 +244,7 @@ static const TCModuleClass raw_class = {
     .multiplex    = raw_multiplex,
 };
 
-TC_MODULE_ENTRY_POINT(raw);
+TC_MODULE_ENTRY_POINT(raw)
 
 /*************************************************************************/
 

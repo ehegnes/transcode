@@ -145,8 +145,8 @@ static const TCCodecInfo tc_codecs_info[] = {
                            "xiph vorbis",             0, TC_AUDIO },
     { TC_CODEC_FLAC,       "flac",        "FLAC",
                            "xiph flac",              0, TC_AUDIO },
-    { TC_CODEC_SPEEX,      "sppex",       "SPEX",
-                           "xiph sppex",             0, TC_AUDIO },
+    { TC_CODEC_SPEEX,      "speex",       "SPEX",
+                           "xiph speex",             0, TC_AUDIO },
     { TC_CODEC_VAG,        "vag",         NULL,
                            "PS-VAG",                 0, TC_AUDIO },
     /* FIXME: add more codec informations, on demand */

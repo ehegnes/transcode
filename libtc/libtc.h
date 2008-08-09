@@ -636,7 +636,7 @@ int tc_translate_codec_id(TCCodecID codec);
  * Parameters:
  *     codec: TC_CODEC_* value to represent.
  * Return value:
- *     a constant string dscribing the given codec (there is no need to
+ *     a constant string describing the given codec (there is no need to
  *     free() it).
  * Postconditions:
  *     Always return something sensible, even if unknown codec id was given.

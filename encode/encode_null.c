@@ -130,7 +130,7 @@ static const TCModuleClass null_class = {
     .encode_audio = null_encode_audio,
 };
 
-TC_MODULE_ENTRY_POINT(null);
+TC_MODULE_ENTRY_POINT(null)
 
 /*************************************************************************/
 
