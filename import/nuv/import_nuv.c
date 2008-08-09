@@ -560,7 +560,7 @@ static const TCModuleClass nuv_class = {
     .demultiplex  = nuv_demultiplex,
 };
 
-TC_MODULE_ENTRY_POINT(nuv);
+TC_MODULE_ENTRY_POINT(nuv)
 
 /*************************************************************************/
 /*************************************************************************/

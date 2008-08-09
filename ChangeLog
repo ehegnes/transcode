@@ -19,6 +19,16 @@
     import/nuv/import_nuv.c multiplex/multiplex*.c
   module versioning support step 2/2 : modules support.
 
+  * filter/filter_levels.c filter/filter_resample.c import/extract_lzo.c 
+    import/import_alsa.c import/import_bktr.c import/import_dvd.c 
+    import/import_im.c import/import_lzo.c import/import_oss.c
+    import/import_pv3.c import/import_vag.c import/import_vob.c
+    import/import_x11.c import/probe_im.c import/tccat.c import/tcdecode.c
+    import/tcdemux.c import/tcextract.c import/tcprobe.c import/tcscan.c
+    import/tcxmlcheck.c import/nuv/import_nuv.c import/v4l/import_v4l2.c
+  misc fixes (mostly typos or bump copyright year); trivial alignments
+  with 1.1.x.
+
 2008-07-28 Francesco Romani <fromani at gmail dot com>
   * libtcext/tc_avcodec.h
   #include <pthread.h> (closes bug #0000067)

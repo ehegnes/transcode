@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME        "import_v4l2.so"
-#define MOD_VERSION     "v1.4.2 (2007-11-18)"
+#define MOD_VERSION     "v1.4.2 (2008-08-04)"
 #define MOD_CODEC       "(video) v4l2 | (audio) pcm"
 
 #include "transcode.h"
@@ -494,7 +494,7 @@ static int v4l2_video_init(int layout, const char *device, int width,
         v4l2_fmt = IMG_YUV422P;
         break;
       default:
-        tc_log_error(MOD_NAME, "layout (%d) must be one of CODEC_RGB, CODEC_YUV or CODEC_YUV422", layout);
+        tc_log_error(MOD_NAME, "colorspace (%d) must be one of CODEC_RGB, CODEC_YUV or CODEC_YUV422", layout);
         return 1 ;
     }
 
@@ -551,7 +551,7 @@ static int v4l2_video_init(int layout, const char *device, int width,
     }
 
     if (verbose_flag & TC_INFO)
-        tc_log_info(MOD_NAME, "video grabbing, driver = %s, card = %s",
+        tc_log_info(MOD_NAME, "v4l2 video grabbing, driver = %s, card = %s",
                 caps.driver, caps.card);
 
     v4l2_width  = width;
@@ -668,22 +668,22 @@ static int v4l2_video_init(int layout, const char *device, int width,
         }
     }
 
-    for (ix = 0; ix < 128; ix++) {
-        standard.index = ix;
+    if (verbose_flag & TC_INFO) {
+        for (ix = 0; ix < 128; ix++) {
+            standard.index = ix;
 
-        if (ioctl(v4l2_video_fd, VIDIOC_ENUMSTD, &standard) < 0) {
-            if (errno == EINVAL)
-                break;
+            if (ioctl(v4l2_video_fd, VIDIOC_ENUMSTD, &standard) < 0) {
+                if (errno == EINVAL)
+                    break;
 
-            tc_log_perror(MOD_NAME, "VIDIOC_ENUMSTD");
-            return 1;
+                tc_log_perror(MOD_NAME, "VIDIOC_ENUMSTD");
+                return 1;
+            }
+
+            if (standard.id == stdid)
+                tc_log_info(MOD_NAME, "v4l device supports format [%s] ", standard.name);
         }
 
-        if (standard.id == stdid)
-            tc_log_info(MOD_NAME, "v4l device supports format [%s] ", standard.name);
-    }
-
-    if (verbose_flag & TC_INFO) {
         tc_log_info(MOD_NAME, "receiving %d frames / sec", v4l2_frame_rate);
     }
 
@@ -1112,18 +1112,12 @@ static int v4l2_audio_grab_stop(void)
 MOD_open
 {
     if (param->flag == TC_VIDEO) {
-        if (verbose_flag & TC_INFO)
-            tc_log_info(MOD_NAME, "v4l2 video grabbing");
-
         if (v4l2_video_init(vob->im_v_codec, vob->video_in_file,
                             vob->im_v_width, vob->im_v_height,
                             vob->fps, vob->im_v_string)) {
             return TC_ERROR;
         }
     } else if(param->flag == TC_AUDIO) {
-        if (verbose_flag & TC_INFO)
-            tc_log_info(MOD_NAME, "v4l2 audio grabbing");
-
         if (v4l2_audio_init(vob->audio_in_file,
                             vob->a_rate, vob->a_bits, vob->a_chan)) {
             return TC_ERROR;

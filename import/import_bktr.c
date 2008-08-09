@@ -32,6 +32,43 @@
 #include "libtc/optstr.h"
 #include "libtcvideo/tcvideo.h"
 
+/*%*
+ *%* DESCRIPTION 
+ *%*   This module reads video frames from an capture device using bktr module.
+ *%*   This module is designed to work on *BSD. For linux, use the v4l module.
+ *%*
+ *%* #BUILD-DEPENDS
+ *%*
+ *%* #DEPENDS
+ *%*
+ *%* PROCESSING
+ *%*   import/demuxer
+ *%*
+ *%* MEDIA
+ *%*   video
+ *%*
+ *%* #INPUT
+ *%*
+ *%* OUTPUT
+ *%*   YUV420, YUV422P, RGB24
+ *%*
+ *%* OPTION
+ *%*   format (string)
+ *%*     selects video normalization.
+ *%*
+ *%* OPTION
+ *%*   vsource (string)
+ *%*     selects video source (device dependant input).
+ *%*
+ *%* OPTION
+ *%*   asource (string)
+ *%*     selects audio source (device dependant input).
+ *%*
+ *%* OPTION
+ *%*   tunerdev (string)
+ *%*     help: selects tuner devince.
+ *%*/
+ 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422;
 

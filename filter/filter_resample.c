@@ -170,6 +170,7 @@ static int resample_inspect(TCModuleInstance *self,
     return TC_OK;
 }
 
+/* internal helper to avoid an useless double if() */
 static int resample_filter_audio(TCModuleInstance *self, aframe_list_t *frame)
 {
     ResamplePrivateData *pd = self->userdata;
@@ -223,7 +224,7 @@ static const TCModuleClass resample_class = {
     .filter_audio = resample_filter_audio,
 };
 
-TC_MODULE_ENTRY_POINT(resample);
+TC_MODULE_ENTRY_POINT(resample)
 
 /*************************************************************************/
 

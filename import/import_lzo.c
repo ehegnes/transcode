@@ -173,24 +173,23 @@ MOD_decode
       uint8_t *compdata = out + sizeof(*h);
       int compsize = out_len - sizeof(*h);
       if (h->magic != video_codec) {
-	tc_log_warn(MOD_NAME, "frame with invalid magic 0x%08X", h->magic);
-	return (TC_IMPORT_ERROR);
+          tc_log_warn(MOD_NAME, "frame with invalid magic 0x%08X", h->magic);
+	      return (TC_IMPORT_ERROR);
       }
       if (h->flags & TC_LZO_NOT_COMPRESSIBLE) {
-	ac_memcpy(param->buffer, compdata, compsize);
-	size = compsize;
-	r = LZO_E_OK;
+          ac_memcpy(param->buffer, compdata, compsize);
+	      size = compsize;
+	      r = LZO_E_OK;
       } else {
-	r = lzo1x_decompress(compdata, compsize, param->buffer, &size, wrkmem);
+	      r = lzo1x_decompress(compdata, compsize, param->buffer, &size, wrkmem);
       }
     }
 
     if (r == LZO_E_OK) {
       if(verbose & TC_DEBUG)
-	  tc_log_info(MOD_NAME, "decompressed %lu bytes into %lu bytes",
-		      (long) out_len, (long) param->size);
+	      tc_log_info(MOD_NAME, "decompressed %lu bytes into %lu bytes",
+		              (long) out_len, (long) param->size);
     } else {
-
       /* this should NEVER happen */
       tc_log_warn(MOD_NAME, "internal error - decompression failed: %d", r);
       return(TC_IMPORT_ERROR);

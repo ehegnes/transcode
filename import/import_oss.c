@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "import_oss.so"
-#define MOD_VERSION "v0.0.2 (2006-10-06)"
+#define MOD_VERSION "v0.0.3 (2007-11-18)"
 #define MOD_CODEC   "(audio) pcm"
 
 #include "transcode.h"
@@ -55,7 +55,7 @@ static int oss_stop(void);
 static int oss_init(const char *audio_device,
                     int sample_rate, int precision, int channels)
 {
-    int encoding;
+    int encoding, rate = sample_rate;
 
     if (!strcmp(audio_device, "/dev/null")
      || !strcmp(audio_device, "/dev/zero")) {
@@ -84,9 +84,14 @@ static int oss_init(const char *audio_device,
         return TC_IMPORT_ERROR;
     }
 
-    if (ioctl(oss_fd, SNDCTL_DSP_SPEED, &sample_rate) < 0) {
+
+    if (ioctl(oss_fd, SNDCTL_DSP_SPEED, &rate) < 0) {
         tc_log_perror(MOD_NAME, "SNDCTL_DSP_SPEED");
         return TC_IMPORT_ERROR;
+    }
+    if (rate != sample_rate) {
+        tc_log_warn(MOD_NAME, "sample rate requested=%i obtained=%i",
+                              sample_rate, rate);
     }
 
     return TC_IMPORT_OK;

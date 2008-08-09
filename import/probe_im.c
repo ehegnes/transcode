@@ -94,7 +94,8 @@ void probe_im(info_t *ipipe)
 	ipipe->probe_info->height = MagickGetImageHeight(wand);
 
 	/* slide show? */
-	ipipe->probe_info->fps = 1;
+	ipipe->probe_info->frc = 9;   /* FRC for 1 fps */
+	ipipe->probe_info->fps = 1.0;
 
 	ipipe->probe_info->magic = ipipe->magic;
 	ipipe->probe_info->codec = TC_CODEC_RGB;
