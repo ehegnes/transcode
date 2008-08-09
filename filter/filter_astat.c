@@ -157,7 +157,7 @@ static int astat_configure(TCModuleInstance *self,
 
 static int astat_stop(TCModuleInstance *self)
 {
-    int ret = TC_OK; /* let's be optimistic... */
+    int ret = TC_OK; /* optimistism... */
     AStatPrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "stop");
