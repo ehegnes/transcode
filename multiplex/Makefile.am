@@ -31,7 +31,6 @@ endif
 multiplex_avi_la_SOURCES = multiplex_avi.c
 multiplex_avi_la_LDFLAGS = -module -avoid-version
 
-multiplex_lavf_la_SOURCES = multiplex_lavf.c
 multiplex_lavf_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBAVFORMAT_CFLAGS)
 multiplex_lavf_la_LDFLAGS = -module -avoid-version
 multiplex_lavf_la_LIBADD = $(LIBAVFORMAT_LIBS)

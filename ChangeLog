@@ -1,3 +1,7 @@
+2008-08-09 Francesco Romani <fromani at gmail dot com>
+  * multiplex/Makefile.am
+  cleanup.
+
 2008-07-28 Francesco Romani <fromani at gmail dot com>
   * libtcext/tc_avcodec.h
   #include <pthread.h> (closes bug #0000067)
