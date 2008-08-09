@@ -92,7 +92,7 @@ static int capability_flag = TC_CAP_RGB|TC_CAP_VID;
 
 
 static char *head = NULL, *tail = NULL;
-static int first_frame = 0, current_frame = 0, pad = 0;
+static int first_frame = 0, current_frame = 0, decoded_frame = 0, pad = 0;
 static int width = 0, height = 0;
 static MagickWand *wand = NULL;
 static int auto_seq_read = TC_TRUE; 
