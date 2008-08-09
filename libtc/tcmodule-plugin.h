@@ -158,6 +158,12 @@ static const TCModuleInfo PREFIX ## _info = { \
     .formats_out = PREFIX ## _formats_out \
 }
 
+/* please note the MISSING trailing comma */
+#define TC_MODULE_CLASS_HEAD(PREFIX) \
+    .version     = TC_MODULE_VERSION,  \
+    .info        = & ( PREFIX ## _info)
+
+
 /*
  * autogeneration for supported codecs/multiplexors
  */
