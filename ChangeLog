@@ -5,6 +5,9 @@
   * libtc/tcmodule.c libtc/tcmodule-data.h libtc/tcmodule-plugin.h
   module versioning support step 1/2 : core support.
 
+  * import/v4l/import_v4l2.c
+  STYLE/cosmetic fixes.
+
 2008-07-28 Francesco Romani <fromani at gmail dot com>
   * libtcext/tc_avcodec.h
   #include <pthread.h> (closes bug #0000067)
