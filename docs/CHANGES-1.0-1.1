@@ -1,0 +1,43 @@
+
+Command line options:
+---------------------
+
+* -i [changed]
+  is now  mandatory 
+
+* --ext [removed]
+  is gone (deprecated)
+
+* --use_rgb [removed]
+  is gone (see -V below)
+
+* --uyvy [removed]
+  is gone (see -V below)
+
+* -V [changed]
+  now requires an argument (colorspace):
+  yuv420p (default)
+  yuv422p
+  rgb24
+
+* -N [changed]
+  now accepts also string as argument
+
+* -y [changed]
+  now accepts an additional comma-separated argument for
+  new-style multiplexor module to use
+
+* --dir_mode [removed]
+  is gone, replaced by --multi_input (ADDME...)
+
+* --import_v4l [removed]
+  is gone (obsolete, deprecated)
+
+* --print_status --progress_off [removed]
+  are gone, replaced by --progress_meter and --progress_rate
+  (see manpage)
+
+* --color [removed]
+  is gone, replaced by --no_log_color
+  (warning: this can change again before 1.1.0 released)
+

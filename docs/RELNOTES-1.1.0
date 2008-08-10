@@ -3,8 +3,8 @@
 ===============================
 :Info: See <http://www.transcoding.org> for more documentation.
 :Author: Francesco Romani <fromani@gmail.com>
-:Date: $Date: 2008-08-09 21:24:38 $
-:Revision: $Revision: 1.1.2.3 $
+:Date: $Date: 2008-08-10 11:07:07 $
+:Revision: $Revision: 1.1.2.4 $
 
 
 Introduction
@@ -25,9 +25,9 @@ quicker and more interesting releases soon.
 Overview
 ========
 
-This section quickly outlines the changes between transcode 1.0.x and 1.1.0.
-Every point remainds to a detailed description in the further sections.
+This section outlines the changes between transcode 1.0.x and 1.1.0.
 
+---
 
 (transcode) Command line reorganization
   Some options are renamed, some other are merged, a few others are removed,
@@ -35,10 +35,10 @@ Every point remainds to a detailed description in the further sections.
   (-h) layout was massively reorganized to improve readability.
 
 (transcode) Module cleanup
-  During 1.1.0 development cycle duplicated, obsolete or even broken modules
-  were dropped to reduce the maintance burden without reducing the feature set.
-  Some modules that duplicates the functionalities of the core ware removed as
-  well, and core functionalities was enhanced.
+  During 1.1.0 development cycle the duplicated, obsolete or even broken modules
+  are been dropped in order to reduce the maintenance burden without reducing the
+  feature set. Some modules that duplicates the functionalities of the core are 
+  been removed as well, and core functionalities was enhanced.
 
 (overall) Internal colorspace rationalization
   Usage of default colorspace (YUV420P) used internally in transcode is made
@@ -76,14 +76,21 @@ Every point remainds to a detailed description in the further sections.
   We expect to fully switch to new modules at least for export side for transcode 1.2.0.
 
 (overall) better module introspection (**technology preview**)
-  Another important benefit of new module architecture...
+  Another important benefit of new module architecture is to allow the modules to communicate
+  with transcode core in more complete and unified fashion. The immediate benefit is that
+  now tcmodinfo is capable to show some module properties (of NMS-compliant modules).
+  In the long term, this will allow some more juicy things like autocalculation of optimum
+  buffer size, auto colorspace negotiation and so on.
 
 (modules) new modules
-  - import_vag
-  - import_pv3
+  * import_vag:
+    decodes VAG audio from PlayStation.
+  * import_pv3:
+    provides access to Earth Soft PV3 audio/video streams using
+    win32 binary codecs and an internal win32 emulation layer (NO wine needed).
 
-(modules) improved modules [**DOCUMENTA OPZIONI MODULI!**]
-  - import_mplayer:
+(modules) improved modules
+  * import_mplayer:
     this module was greatly improved to better integrate with mplayer, autodetecting the proper
     settings. A -M option was also added to tcprobe, to let the program use mplayer internally 
     for probing, in order to have coherent settings.
@@ -91,38 +98,52 @@ Every point remainds to a detailed description in the further sections.
     mplayer import modules both for audio and video streams and also force mplayer for
     detection of streams parameters.
     Using --mplayer_probe will (Just Work[tm]) in a broad amount of cases.
-  - import_avi:
+  * import_avi:
     internal colorspace conversion for raw content was added. Now this module trasparently
     convert the raw content to selected colorspace.
-  - filter_logo
-  - all LZO-related modules:
+  * filter_logo:
+    WRITEME
+  * all LZO-related modules:
     those modules are ported, and thus now require, to liblzo version 2.
-  - import_vob:
+  * import_vob:
     The `nodemux' option was added. This option allow to skip the internal synchronization
     code that can deliver broken results in some still unknown cases.
-  - import_ffmpeg:
+  * import_ffmpeg:
     The `nopad' option was added. This option allow to force to off the input padding setting
     that is sometims incorrectly setup by libavcodec in some still unknown cases.
     Use this setting if you see the 'slice end reached but...' message during your transcoding.
 
+  You can see the full list of modules options by reading the new split manpages (see below).
+
 (overall) massive architectural reorganization
-  - aclib
-  - libtc
-  - libtcvideo
-  - libtcaudio
+  A great amount of effort was spended in order to reorganize, modularize and document the
+  transcode codebase. The first result is the introduction of the following libraries:
+
+  * aclib      - ASM accelerated low-level routines.
+  * libtc      - utilities and common infrastructure.
+  * libtcvideo - high-level video conversion/handling routines.
+  * libtcaudio - high-level audio conversion/handling routines.
 
 (overall) growing testsuite
-  foobar
+  During the 1.1.0 development cycle, we've steadily incremented the amount of automated tests for
+  the codebase. The long-term goal is to have a comprehensive and automatic test suite, including
+  the autogeneration of sample test files.
 
 (documentation) documentation improvements
-  buzbaz
+  The improvement of documentation for both user and developer side was another goal of this
+  new development cycle. Foundations are been laid with the reorganization of manpages.
+  Much more effort was spent -and will be spent- with the careful and comprehensive introduction
+  of source code comments, describing internal APIs; with the introduction of developer-oriented
+  documentation and tutorial. More will come. Keep your eyes on docs/tech tree and on our sites.
 
 (documentation) manpage revision and split
-  WRITEME
+  The transcode manpage was a huge, scaring beast. We're splitted it into four pieces, describing
+  the transcode core and the modules, divided per module class (import, filter, export).
+  Splitted manpages are now the official reference for the options of the modules.
 
 (tools) more helper tools
-  - tcexport
-  - tcmodchain
+  * tcexport    - provides direct access to transcode export layer.
+  * tcmodchain  - test if two modules can be joined together.
 
 
 User visible Changes
@@ -140,11 +161,8 @@ Bugs
 ====
 
 
-More Technology Preview
-=======================
-
-Export profiles
----------------
+Technology Previews
+===================
 
 
 Last Words
