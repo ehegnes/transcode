@@ -1552,7 +1552,9 @@ MOD_stop
 
     //-- release encoder --
     if (lavc_venc_codec) {
-      avcodec_close(lavc_venc_context);
+      /* AC: Temporarily commented out due to what may be a bug in ffmpeg
+       * (crash on encode completion).
+      avcodec_close(lavc_venc_context); */
       lavc_venc_codec = NULL;
     }
 

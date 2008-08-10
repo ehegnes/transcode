@@ -1,4 +1,8 @@
 2008-08-10 Andrew Church <achurch at achurch dot org>
+  * export/export_ffmpeg.c
+  Work around an apparent bug in libavcodec causing crashes on encoding
+  completion.
+
   * import/import_raw.c
   Fix a bug causing -x ...,raw to fail.
 
