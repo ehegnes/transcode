@@ -6,6 +6,9 @@
 
   * docs/RELNOTES-1.1.0
   More bits of 1.1.0 release notes.
+  
+  * configure.in
+  transcode 1.1.0-beta1.
 
 2008-08-09 Francesco Romani <fromani at gmail dot com>
   * encode/encode_copy.c encode/encode_faac.c encode/encode_lame.c
