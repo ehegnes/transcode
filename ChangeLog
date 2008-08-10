@@ -1,3 +1,7 @@
+2008-08-10 Francesco Romani <fromani at gmail dot com>
+  * configure.in
+  remove senseless (cut 'n' paste heritage) libpostproc double check.
+
 2008-08-09 Francesco Romani <fromani at gmail dot com>
   * encode/encode_copy.c encode/encode_faac.c encode/encode_lame.c
     encode/encode_lzo.c encode/encode_null.c encode/encode_x264.c
