@@ -1184,9 +1184,6 @@ TC_PKG_HAVE(sdl, SDL)
 dnl
 dnl ImageMagick
 dnl
-TC_PKG_CHECK(libpostproc, no, LIBPOSTPROC, no, [libpostproc/postprocess.h],
-  postproc, pp_postprocess, libpostproc, [http://www.ffmpeg.org/])
-TC_PKG_HAVE(libpostproc, LIBPOSTPROC)
 IMAGEMAGICK_EXTRA_LIBS="$IMAGEMAGICK_EXTRA_LIBS $($PKG_CONFIG --libs ImageMagick)"
 TC_PKG_CHECK(imagemagick, no, IMAGEMAGICK, no, [magick/api.h],
  Magick, InitializeMagick, Wand, [http://www.imagemagick.org/])
