@@ -75,7 +75,7 @@ MOD_open
             return TC_IMPORT_ERROR;
         }
 
-        return TC_IMPORT_ERROR;
+        return TC_IMPORT_OK;
     }
 
     if (param->flag == TC_VIDEO) {

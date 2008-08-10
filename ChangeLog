@@ -1,3 +1,7 @@
+2008-08-10 Andrew Church <achurch at achurch dot org>
+  * import/import_raw.c
+  Fix a bug causing -x ...,raw to fail.
+
 2008-08-09 Francesco Romani <fromani at gmail dot com>
   * multiplex/Makefile.am
   cleanup.
