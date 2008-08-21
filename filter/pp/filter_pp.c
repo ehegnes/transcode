@@ -35,7 +35,7 @@
 #include <ctype.h>
 #include <inttypes.h>
 
-#include "postprocess.h"
+#include <libpostproc/postprocess.h>
 
 static pp_mode_t *mode[MAX_FILTER];
 static pp_context_t *context[MAX_FILTER];
