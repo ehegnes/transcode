@@ -1,3 +1,11 @@
+2008-09-03 Francesco Romani <fromani at gmail dot com>
+  * configure.in filter/Makefile.am
+
+  * added directory: filter/stabilize
+
+  add stabilization plugins contributed by 
+  Georg Martius <georg dot martius at web dot de>
+
 2008-08-10 Francesco Romani <fromani at gmail dot com>
   * configure.in
   remove senseless (cut 'n' paste heritage) libpostproc double check.

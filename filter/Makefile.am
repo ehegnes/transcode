@@ -268,6 +268,7 @@ SUBDIRS = \
 	divxkey \
 	extsub \
 	$(PREVIEW) \
+	stabilize \
 	$(SUBTITLER) \
 	$(F_TOMSMOCOMP) \
 	yuvdenoise

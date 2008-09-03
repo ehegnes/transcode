@@ -1431,6 +1431,7 @@ AC_CONFIG_FILES([
 	filter/divxkey/Makefile
 	filter/extsub/Makefile
 	filter/preview/Makefile
+	filter/stabilize/Makefile
 	filter/subtitler/Makefile
 	filter/tomsmocomp/Makefile
 	filter/yuvdenoise/Makefile
