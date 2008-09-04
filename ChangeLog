@@ -1,3 +1,8 @@
+2008-09-04 Francesco Romani <fromani at gmail dot com>
+  * configure.in
+  better pkg-config usage, and simplify imagrmagick testings.
+  More robust broken wand header detection.
+
 2008-09-03 Francesco Romani <fromani at gmail dot com>
   * configure.in filter/Makefile.am
 

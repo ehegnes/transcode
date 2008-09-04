@@ -1186,16 +1186,14 @@ dnl ImageMagick
 dnl
 IMAGEMAGICK_EXTRA_LIBS="$IMAGEMAGICK_EXTRA_LIBS $($PKG_CONFIG --libs ImageMagick)"
 TC_PKG_CHECK(imagemagick, no, IMAGEMAGICK, no, [magick/api.h],
- Magick, InitializeMagick, Wand, [http://www.imagemagick.org/])
-if test x"$have_imagemagick" = x"no" ; then
-dnl second try: new layout (yes, IM is sick too).
-  TC_PKG_CHECK(imagemagick, no, IMAGEMAGICK, no, [magick/api.h],
-    MagickCore, InitializeMagick, no, [http://www.imagemagick.org/])
-fi
+ none, InitializeMagick, Wand, [http://www.imagemagick.org/])
 TC_PKG_HAVE(imagemagick, IMAGEMAGICK)
 if test x"$have_imagemagick" = x"yes" ; then
+  SAVE_CPPFLAGS="$CPPFLAGS"
+  CPPFLAGS="$IMAGEMAGICK_CFLAGS $CPPFLAGS"
   AC_CHECK_HEADER([wand/magick-wand.h],
     [AC_DEFINE([HAVE_BROKEN_WAND], [1], ["have old wand header"])])
+  CPPFLAGS="$SAVE_CPPFLAGS"
 fi
 
 dnl
