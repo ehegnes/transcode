@@ -1,6 +1,18 @@
 2008-09-06 Francesco Romani <fromani at gmail dot com>
+  * acinclude.m4
+  new code (TC_PKG_CONFIG_CHECK) to look up for a dependency by 
+  relying on pkg-config exclusively.
+  automatic fallback in TC_PKG_CHECK to pkg-config if present.
+
   * configure.in
-  automatic fallback to pkg-config if present.
+  switch to TC_PKG_CONFIG_CHECK for dependencies that surely provides
+  .pc files
+
+  * INSTALL
+  update dependency requisites.
+
+  * import/Makefile.am
+  separate libmpeg2 and libmpeg2convert cflags/libs, and use both of them.
 
 2008-09-04 Francesco Romani <fromani at gmail dot com>
   * configure.in
