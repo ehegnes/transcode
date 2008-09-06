@@ -1,6 +1,10 @@
+2008-09-06 Francesco Romani <fromani at gmail dot com>
+  * configure.in
+  automatic fallback to pkg-config if present.
+
 2008-09-04 Francesco Romani <fromani at gmail dot com>
   * configure.in
-  better pkg-config usage, and simplify imagrmagick testings.
+  better pkg-config usage, and simplify ImageMagick tests.
   More robust broken wand header detection.
 
 2008-08-10 Francesco Romani <fromani at gmail dot com>

@@ -573,6 +573,8 @@ if test x"$enable_$1" = x"yes" ; then
       [$3_CFLAGS="$$1_ii"],
       [TC_PKG_ERROR($1, $5, $2, $8, $9, [cannot compile $5])])
     CPPFLAGS="$save_CPPFLAGS"
+  elif test x"$pkg_config_$1" != x"no" ; then
+     $3_CFLAGS="`$PKG_CONFIG $8 --cflags`"
   fi
 
   # get and test the _LIBS
@@ -625,6 +627,8 @@ if test x"$enable_$1" = x"yes" ; then
       [TC_PKG_ERROR($1, lib$6, $2, $8, $9, [cannot link against lib$6])],
       [$$3_EXTRA_LIBS])
     LDFLAGS="$save_LDFLAGS"
+  elif test x"$pkg_config_$1" != x"no" ; then
+     $3_LIBS="`$PKG_CONFIG $8 --libs`"
   fi
 
   if test x"$this_pkg_err" = x"no" ; then
