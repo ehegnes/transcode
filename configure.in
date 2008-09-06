@@ -491,6 +491,7 @@ dnl ---------------------------------------------------------------------
 dnl
 dnl pkgconfig
 dnl
+PKG_PROG_PKG_CONFIG([0.20])
 if test -z "$PKG_CONFIG" ; then
   AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
 fi
@@ -693,11 +694,12 @@ fi
 dnl
 dnl libmpeg2
 dnl
-LIBMPEG2_EXTRA_LIBS="$LIBMPEG2_EXTRA_LIBS $($PKG_CONFIG --libs libmpeg2) $($PKG_CONFIG --libs libmpeg2convert)"
-TC_PKG_CHECK(libmpeg2, required, LIBMPEG2, no, mpeg2dec/mpeg2.h,
-  mpeg2, mpeg2_init, mpeg2dec, [http://libmpeg2.sourceforge.net/])
+TC_PKG_CONFIG_CHECK(libmpeg2, required, LIBMPEG2, libmpeg2,
+                    [http://libmpeg2.sf.net/])
+TC_PKG_CONFIG_CHECK(libmpeg2convert, required, LIBMPEG2CONVERT,
+                    libmpeg2convert, [http://libmpeg2.sf.net/])
 TC_PKG_HAVE(libmpeg2, LIBMPEG2)
-
+TC_PKG_HAVE(libmpeg2convert, LIBMPEG2CONVERT)
 
 dnl
 dnl build options
@@ -789,16 +791,13 @@ AC_CHECK_HEADERS([encore2.h])
 dnl
 dnl libpostproc
 dnl
-LIBPOSTPROC_EXTRA_LIBS="$LIBPOSTPROC_EXTRA_LIBS $($PKG_CONFIG --libs libpostproc)"
-TC_PKG_CHECK(libpostproc, no, LIBPOSTPROC, no, [libpostproc/postprocess.h],
-  postproc, pp_postprocess, libpostproc, [http://www.ffmpeg.org/])
+TC_PKG_CONFIG_CHECK(libpostproc, no, LIBPOSTPROC, libpostproc, [http://ffmpeg.mplayerhq.hu/])
 TC_PKG_HAVE(libpostproc, LIBPOSTPROC)
 
 dnl
 dnl freetype2
 dnl
-TC_PKG_CHECK(freetype2, no, FREETYPE2, freetype-config, ft2build.h,
-  freetype, FT_Init_FreeType, freetype, [http://www.freetype.org/])
+TC_PKG_CONFIG_CHECK(freetype2, no, FREETYPE2, freetype2, [http://www.freetype.org/])
 TC_PKG_HAVE(freetype2, FREETYPE2)
 
 dnl
@@ -897,8 +896,7 @@ TC_PKG_HAVE(xvid, XVID)
 dnl
 dnl x264
 dnl
-TC_PKG_CHECK(x264, no, X264, no, [x264.h], x264, x264_param_default, x264,
- [http://developers.videolan.org/x264.html])
+TC_PKG_CONFIG_CHECK(x264, no, X264, x264, [http://developers.videolan.org/x264.html])
 if test x"$have_x264" = x"yes" ; then
   AC_MSG_CHECKING([x264 version])
   AC_RUN_IFELSE([AC_LANG_SOURCE([[
@@ -930,41 +928,35 @@ TC_PKG_HAVE(x264, X264)
 dnl
 dnl ogg
 dnl
-TC_PKG_CHECK(ogg, no, OGG, no, [ogg/ogg.h], ogg, ogg_stream_init, ogg,
- [http://www.xiph.org/ogg/])
+TC_PKG_CONFIG_CHECK(ogg, no, OGG, ogg, [http://www.xiph.org/ogg/])
 TC_PKG_HAVE(ogg, OGG)
 
 dnl
 dnl vorbis
 dnl
-VORBIS_EXTRA_LIBS="$VORBIS_EXTRA_LIBS $($PKG_CONFIG --libs vorbis)"
-TC_PKG_CHECK(vorbis, no, VORBIS, no, [vorbis/codec.h], vorbis,
- vorbis_info_init, vorbis, [http://www.xiph.org/ogg/vorbis/])
+TC_PKG_CONFIG_CHECK(vorbis, no, VORBIS, vorbis, [http://www.xiph.org/ogg/vorbis/])
 TC_PKG_HAVE(vorbis, VORBIS)
 
 dnl
 dnl vorbisenc
 dnl 
 dnl
-VORBISENC_EXTRA_LIBS="$VORBISENC_EXTRA_LIBS $($PKG_CONFIG --libs vorbisenc)"
-TC_PKG_CHECK(vorbisenc, no, VORBISENC, no, [vorbis/vorbisenc.h], vorbisenc,
- vorbis_encode_setup_init, vorbisenc, [http://www.xiph.org/ogg/vorbis/])
+dnl VORBISENC_EXTRA_LIBS="$VORBISENC_EXTRA_LIBS $($PKG_CONFIG --libs vorbisenc)"
+dnl TC_PKG_CHECK(vorbisenc, no, VORBISENC, no, [vorbis/vorbisenc.h], vorbisenc,
+dnl  vorbis_encode_setup_init, vorbisenc, [http://www.xiph.org/ogg/vorbis/])
+TC_PKG_CONFIG_CHECK(vorbisenc, no, VORBISENC, vorbisenc, [http://www.xiph.org/ogg/vorbis/])
 TC_PKG_HAVE(vorbisenc, VORBISENC)
 
 dnl
 dnl theora
 dnl
-THEORA_EXTRA_LIBS="$THEORA_EXTRA_LIBS $($PKG_CONFIG --libs theora)"
-TC_PKG_CHECK(theora, no, THEORA, no, [theora/theora.h], theora,
- theora_info_init, theora, [http://www.theora.org/])
+TC_PKG_CONFIG_CHECK(theora, no, THEORA, theora, [http://www.theora.org/])
 TC_PKG_HAVE(theora, THEORA)
 
 dnl
 dnl shout
 dnl
-SHOUT_EXTRA_LIBS="$SHOUT_EXTRA_LIBS $($PKG_CONFIG --libs shout)"
-TC_PKG_CHECK(shout, no, SHOUT, shout, [shout/shout.h], shout,
- shout_new, shout, [http://www.icecast.org/])
+TC_PKG_CONFIG_CHECK(shout, no, SHOUT, shout, [http://www.icecast.org/])
 TC_PKG_HAVE(shout, SHOUT)
 
 dnl
@@ -1039,17 +1031,13 @@ TC_PKG_HAVE(pvm3, PVM3)
 dnl
 dnl libdv
 dnl
-LIBDV_EXTRA_LIBS="$LIBDV_EXTRA_LIBS $($PKG_CONFIG --libs libdv)"
-TC_PKG_CHECK(libdv, no, LIBDV, no, [libdv/dv.h], dv, dv_encoder_new,
- libdv, [http://libdv.sourceforge.net/])
+TC_PKG_CONFIG_CHECK(libdv, no, LIBDV, libdv, [http://libdv.sourceforge.net/])
 TC_PKG_HAVE(libdv, LIBDV)
 
 dnl
 dnl libquicktime
 dnl
-LIBQUICKTIME_EXTRA_LIBS="$LIBQUICKTIME_EXTRA_LIBS $($PKG_CONFIG --libs libquicktime)"
-TC_PKG_CHECK(libquicktime, no, LIBQUICKTIME, no, [quicktime.h],
- quicktime, quicktime_open, libquicktime,
+TC_PKG_CONFIG_CHECK(libquicktime, no, LIBQUICKTIME, libquicktime,
  [http://libquicktime.sourceforge.net/])
 if test x"$have_libquicktime" = x"yes" ; then
   AC_CHECK_LIB(quicktime, lqt_encode_video,
@@ -1089,9 +1077,7 @@ TC_PKG_HAVE(faac, FAAC)
 dnl
 dnl libxml2
 dnl
-LIBXML2_EXTRA_LIBS="$LIBXML2_EXTRA_LIBS $($PKG_CONFIG --libs libxml-2.0)"
-TC_PKG_CHECK(libxml2, no, LIBXML2, xml2-config, [libxml/parser.h],
- xml2, xmlStrcmp, libxml-2.0, [http://xmlsoft.org])
+TC_PKG_CONFIG_CHECK(libxml2, no, LIBXML2, libxml-2.0, [http://xmlsoft.org])
 TC_PKG_HAVE(libxml2, LIBXML2)
 
 dnl
@@ -1112,8 +1098,7 @@ AC_SUBST(XIO_LIBS)
 dnl
 dnl mjpegtools (actually only YUV4MPEG)
 dnl
-TC_PKG_CHECK(mjpegtools, no, MJPEGTOOLS, mjpegtools-config,
- [mjpegtools/yuv4mpeg.h], mjpegutils, y4m_si_get_height, mjpegtools,
+TC_PKG_CONFIG_CHECK(mjpegtools, no, MJPEGTOOLS, mjpegtools,
  [http://mjpeg.sourceforge.net/])
 if test x"$have_mjpegtools" = x"yes" ; then
   # check if mjpegtools version >= Mar 31 2004
@@ -1141,12 +1126,11 @@ TC_PKG_HAVE(mjpegtools, MJPEGTOOLS)
 dnl
 dnl SDL
 dnl
-TC_PKG_CHECK(sdl, no, SDL, sdl-config, SDL.h, SDL, SDL_Init, SDL,
-  [http://www.libsdl.org/])
+TC_PKG_CONFIG_CHECK(sdl, no, SDL, sdl, [http://www.libsdl.org/])
 if test x"$have_sdl" = x"yes" ; then
   sdl_major_version=1
-  sdl_minor_version=1
-  sdl_micro_version=6
+  sdl_minor_version=2
+  sdl_micro_version=5
   save_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
   AC_RUN_IFELSE([AC_LANG_SOURCE([[
@@ -1184,9 +1168,7 @@ TC_PKG_HAVE(sdl, SDL)
 dnl
 dnl ImageMagick
 dnl
-IMAGEMAGICK_EXTRA_LIBS="$IMAGEMAGICK_EXTRA_LIBS $($PKG_CONFIG --libs ImageMagick)"
-TC_PKG_CHECK(imagemagick, no, IMAGEMAGICK, no, [magick/api.h],
- none, InitializeMagick, Wand, [http://www.imagemagick.org/])
+TC_PKG_CONFIG_CHECK(imagemagick, no, IMAGEMAGICK, ImageMagick, [http://www.imagemagick.org/])
 TC_PKG_HAVE(imagemagick, IMAGEMAGICK)
 if test x"$have_imagemagick" = x"yes" ; then
   SAVE_CPPFLAGS="$CPPFLAGS"

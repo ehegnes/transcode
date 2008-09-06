@@ -112,9 +112,10 @@ Mandatory packages:
 
   libz
   libm
+  pkg-config
     (these generally come with any and all OSes)
 
-  libavcodec from FFmpeg >= 0.4.9-pre1  http://ffmpeg.sourceforge.net/
+  libavcodec from FFmpeg (SVN snapshot >= 20080705)  http://ffmpeg.mplayerhq.hu/
     related options:
       --with-libavcodec-prefix=PFX (/usr)
           prefix where libavcodec is installed
@@ -129,6 +130,7 @@ Mandatory packages:
           WARNING: not supported at all, don't complain
 
   libmpeg2 from mpeg2dec >= 0.4.0b  http://libmpeg2.sourceforge.net/
+  libmpeg2convert is needed as well (shipped in the same package of libmpeg2)
     related options:
       --with-libmpeg2-prefix=PFX (/usr)
           prefix where libmpeg2 is installed
@@ -171,7 +173,7 @@ OS dependent packages:
 
 Optional packages:
 
-  libpostproc (part of FFmpeg) http://www.ffmpeg.org/
+  libpostproc (part of FFmpeg) http://ffmpeg.mplayerhq.hu/
     related options:
       --enable-libpostproc (disabled)
           build with libpostproc support for video processing
@@ -371,7 +373,8 @@ Optional packages:
           directory where libquicktime libraries [libquicktime.so] are installed
     affected modules: export_mov.so, import_mov.so
 
-  lzo  http://www.oberhumer.com/opensource/lzo/ (requires version 2.x)
+  lzo  http://www.oberhumer.com/opensource/lzo/
+    LZO version >= 2.0 is required.
     LZO support is required to enable NUV/NuppelVideo import support.
     related options:
       --enable-lzo (disabled)
@@ -395,18 +398,6 @@ Optional packages:
       --with-libxml2-libs=DIR (/usr/lib)
           directory where libxml2 libraries [libxml2.so] are installed
     affected modules: import_xml.so
-
-  gtk  http://www.gtk.org/
-    related options:
-      --enable-gtk (disabled)
-          build with gtk support for graphical display
-      --with-gtk-prefix=PFX (/usr)
-          directory where gtk is installed
-      --with-gtk-includes=DIR (/usr/include)
-          directory where gtk headers [gtk/gtk.h] are installed
-      --with-gtk-libs=DIR (/usr/lib)
-          directory where gtk libraries [libgtk.so] are installed
-    affected modules: filter_preview.so
 
   ImageMagick  http://www.imagemagick.com/
     related options:

@@ -642,6 +642,53 @@ fi
 ])
 
 dnl -----------------------------------------------------------------------
+dnl -----------------------------------------------------------------------
+
+dnl TC_PKG_CONFIG_CHECK(name, req-enable, var-name, pkgconfig-name, url)
+dnl Test for pkg-name, and define var-name_CFLAGS and var-name_LIBS
+dnl   and HAVE_var-name if found; like TC_PKG_CHECK, but using pkg-config
+dnl
+dnl 1 name          name of package; required (used in messages, option names)
+dnl 2 req-enable    enable by default, 'required', 'optional', 'yes' or 'no'; required
+dnl 3 var-name      name stub for variables, preferably uppercase; required
+dnl 4 pkg           pkg-config name
+dnl 5 url           homepage for the package
+
+AC_DEFUN([TC_PKG_CONFIG_CHECK],
+[
+if test x"$2" = x"required" -o x"$2" = x"optional" ; then
+  enable_$1="yes"
+else
+  AC_MSG_CHECKING([whether $1 support is requested])
+  AC_ARG_ENABLE($1,
+    AC_HELP_STRING([--enable-$1],
+      [build with $1 support ($2)]),
+    [case "${enableval}" in
+      yes) ;;
+      no)  ;;
+      *) AC_MSG_ERROR(bad value ${enableval} for --enable-$1) ;;
+    esac],
+    enable_$1="$2")
+  AC_MSG_RESULT($enable_$1)
+fi
+
+have_$1="no"
+this_pkg_err="no"
+
+if test x"$enable_$1" = x"yes" ; then
+   PKG_CHECK_MODULES($3, $4,
+       [have_$1="yes"],
+       [TC_PKG_ERROR($1, $4, $3, $4, $5)])
+else
+  $3_CFLAGS=""
+  $3_LIBS=""
+fi
+])
+
+
+
+dnl -----------------------------------------------------------------------
+dnl -----------------------------------------------------------------------
 
 dnl TC_PKG_ERROR(name, object, req-enable, pkg, url, [error message])
 dnl

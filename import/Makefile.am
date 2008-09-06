@@ -168,7 +168,7 @@ import_mp3_la_SOURCES = import_mp3.c
 import_mp3_la_LDFLAGS = -module -avoid-version
 
 import_mpeg2_la_SOURCES = import_mpeg2.c
-import_mpeg2_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBMPEG2_CFLAGS)
+import_mpeg2_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBMPEG2_CFLAGS) $(LIBMPEG2CONVERT_CFLAGS)
 import_mpeg2_la_LDFLAGS = -module -avoid-version
 
 import_mplayer_la_SOURCES = import_mplayer.c
@@ -320,6 +320,7 @@ tcdecode_LDADD = \
 	$(LZO_LIBS) \
 	$(LIBQUICKTIME_LIBS) \
 	$(LIBMPEG2_LIBS) \
+	$(LIBMPEG2CONVERT_LIBS) \
 	$(OGG_LIBS) \
 	$(THEORA_LIBS) \
 	$(VORBIS_LIBS) \
@@ -337,6 +338,7 @@ tcdecode_CFLAGS = $(AM_CFLAGS) \
 	$(LZO_CFLAGS) \
 	$(LIBQUICKTIME_CFLAGS) \
 	$(LIBMPEG2_CFLAGS) \
+	$(LIBMPEG2CONVERT_CFLAGS) \
 	$(OGG_CFLAGS) \
 	$(THEORA_CFLAGS) \
 	$(VORBIS_CFLAGS)
