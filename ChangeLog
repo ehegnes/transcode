@@ -1,3 +1,11 @@
+2008-09-08 Francesco Romani <fromani at gmail dot com>
+  * added file: docs/socket_protocol.txt
+
+  * removed file: docs/filter-socket.txt
+
+  renamed filter-socket.txt -> socket_protocol.txt
+  (will be updated soon).
+
 2008-09-06 Francesco Romani <fromani at gmail dot com>
   * acinclude.m4
   new code (TC_PKG_CONFIG_CHECK) to look up for a dependency by 
