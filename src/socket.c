@@ -94,6 +94,30 @@ static int sendstr(int sock, const char *str)
 /*************************************************************************/
 
 /**
+ * WRITEME
+ */
+
+static void dump_processing(int sock)
+{
+    uint32_t dropped = 0, encoded = 0;
+    int im = 0, fl = 0, ex = 0;
+    char buf[TC_BUF_LINE];
+    int n;
+
+    dropped = tc_get_frames_dropped();
+    encoded = tc_get_frames_encoded();
+    tc_framebuffer_get_counters(&im, &fl, &ex);
+
+    n = tc_snprintf(buf, sizeof(buf),
+                    "E=%lu|D=%lu|im=%i|fl=%i|ex=%i",
+                    encoded, dropped, im, fl, ex);
+    if (n > 0)
+        sendall(sock, buf, n);
+}
+
+/*************************************************************************/
+
+/**
  * dump_vob:  Send the contents of the global `vob' structure over the
  * socket in a "parameter=value" format, one field per line.
  *
@@ -106,7 +130,7 @@ static int sendstr(int sock, const char *str)
 static void dump_vob(int sock)
 {
     vob_t *vob = tc_get_vob();
-    char buf[1000];
+    char buf[TC_BUF_MAX];
     int n;
 
 #define SEND(field,fmt) \
@@ -319,8 +343,7 @@ static int handle_config(char *params)
     filter_id = tc_filter_find(filter_name);
     if (!filter_id)
         return 0;
-    else
-	return tc_filter_configure(filter_id, filter_params) == 0;
+    return tc_filter_configure(filter_id, filter_params) == 0;
 }
 
 /*************************************************************************/
@@ -396,6 +419,8 @@ static int handle_help(char *params)
             "    slowfw | slowbw | rotate |\n"
             "    rotate | display | slower |\n"
             "    faster | toggle | grab ]\n"
+            "status\n"
+            "stop\n"
             "help\n"
             "version\n"
             "quit\n"
@@ -520,33 +545,33 @@ static int handle_preview(char *params)
         arg = 0;
 
     if        (!strncasecmp(cmdstr, "draw",    2)) {
-	cmd = TC_SOCK_PV_DRAW;
+        cmd = TC_SOCK_PV_DRAW;
     } else if (!strncasecmp(cmdstr, "pause",  2)) {
-	cmd = TC_SOCK_PV_PAUSE;
+        cmd = TC_SOCK_PV_PAUSE;
     } else if (!strncasecmp(cmdstr, "undo", 2)) {
-	cmd = TC_SOCK_PV_UNDO;
+        cmd = TC_SOCK_PV_UNDO;
     } else if (!strncasecmp(cmdstr, "fastfw", 6)) {
-	cmd = TC_SOCK_PV_FAST_FW;
+        cmd = TC_SOCK_PV_FAST_FW;
     } else if (!strncasecmp(cmdstr, "fastbw", 6)) {
-	cmd = TC_SOCK_PV_FAST_BW;
+        cmd = TC_SOCK_PV_FAST_BW;
     } else if (!strncasecmp(cmdstr, "slowfw", 6)) {
-	cmd = TC_SOCK_PV_SLOW_FW;
+        cmd = TC_SOCK_PV_SLOW_FW;
     } else if (!strncasecmp(cmdstr, "slowbw", 6)) {
-	cmd = TC_SOCK_PV_SLOW_BW;
+        cmd = TC_SOCK_PV_SLOW_BW;
     } else if (!strncasecmp(cmdstr, "toggle", 6)) {
-	cmd = TC_SOCK_PV_TOGGLE;
+        cmd = TC_SOCK_PV_TOGGLE;
     } else if (!strncasecmp(cmdstr, "slower", 6)) {
-	cmd = TC_SOCK_PV_SLOWER;
+        cmd = TC_SOCK_PV_SLOWER;
     } else if (!strncasecmp(cmdstr, "faster", 6)) {
-	cmd = TC_SOCK_PV_FASTER;
+        cmd = TC_SOCK_PV_FASTER;
     } else if (!strncasecmp(cmdstr, "rotate", 6)) {
-	cmd = TC_SOCK_PV_ROTATE;
+        cmd = TC_SOCK_PV_ROTATE;
     } else if (!strncasecmp(cmdstr, "display", 6)) {
-	cmd = TC_SOCK_PV_DISPLAY;
+        cmd = TC_SOCK_PV_DISPLAY;
     } else if (!strncasecmp(cmdstr, "grab", 4)) {
-	cmd = TC_SOCK_PV_SAVE_JPG;
+        cmd = TC_SOCK_PV_SAVE_JPG;
     } else {
-	return 0;
+        return 0;
     }
 
     pthread_mutex_lock(&tc_socket_msg_lock);
@@ -609,19 +634,26 @@ static int handle(char *buf)
         retval = 1;
     } else if (strncasecmp(cmd, "preview", 3) == 0) {
         retval = handle_preview(params);
-    } else if (strncasecmp(cmd, "progress", 3) == 0) {
+    } else if (strncasecmp(cmd, "progress", 5) == 0) {
         tc_progress_meter = !tc_progress_meter;
+        retval = 1;
+    } else if (strncasecmp(cmd, "processing", 10) == 0) {
+        dump_processing(client_sock);
         retval = 1;
     } else if (strncasecmp(cmd, "quit", 2) == 0
             || strncasecmp(cmd, "exit", 2) == 0) {
         return 0;  // tell caller to close socket
     } else if (strncasecmp(cmd, "unload", 2) == 0) {
-	retval = 0;  // FIXME: not implemented
+        retval = 0;  // FIXME: not implemented
     } else if (strncasecmp(cmd, "version", 2) == 0) {
         sendstr(client_sock, PACKAGE_VERSION "\n");
         retval = 1;
+    } else if (strncasecmp(cmd, "stop", 4)) {
+        tc_interrupt();
+        tc_framebuffer_interrupt();
+        retval = 1;
     } else {
-	retval = 0;
+        retval = 0;
     }
 
     sendstr(client_sock, retval ? "OK\n" : "FAILED\n");
