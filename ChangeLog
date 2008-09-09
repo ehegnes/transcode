@@ -2,6 +2,9 @@
   * src/socket.c
   implement 'stop' and 'processing' commands.
 
+  * docs/socket_protocol.txt
+  update socket protocol documentation.
+
 2008-09-08 Francesco Romani <fromani at gmail dot com>
   * added file: docs/socket_protocol.txt
 

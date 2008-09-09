@@ -1,5 +1,5 @@
-Date: 2003-01-21
-Version: 0.9
+Date: 2008-09-09
+Version: 1.0
 Author: Tilmann Bitterberg <transcode@tibit.org>
 
 ** PREFACE
@@ -89,6 +89,19 @@ unload <filter>
 list [ load | enable | disable ]
   Query list of loaded, enabled or disabled filters.
   Output will be a CSV list like "smooth", "smartdeinter"
+
+stop
+  Immediately stop the processing and order to transcode to
+  shutdown as soon as is possible, exactly like sending an
+  interruption from command line.
+
+processing
+  Report the processing status by sending back to the client
+  a format string like that
+   E=%lu|D=%lu|im=%i|fl=%i|ex=%i
+  with the following meaning: [E]ncoded frame so far; [D]ropped
+  frames so far; frames currently staging in [im]port, [f]i[l]ter
+  and [ex]port buffers.
 
 
 /* ********************************************************* */
