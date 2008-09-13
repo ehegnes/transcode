@@ -1,3 +1,7 @@
+2008-09-13 Francesco Romani <fromani at gmail dot com>
+  * import/v4l/import_v4l2.c
+  made module STYLEish and port it to optstr.
+
 2008-09-09 Francesco Romani <fromani at gmail dot com>
   * src/socket.c
   implement 'stop' and 'processing' commands.
