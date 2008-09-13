@@ -78,7 +78,7 @@ void libtc_init(int *argc, char ***argv)
     } else {
         const char *envvar = getenv(TC_LOG_COLOR_ENV_VAR);
         if (envvar != NULL) {
-                tc_log_use_colors = TC_FALSE;
+            tc_log_use_colors = TC_FALSE;
         }
     }
 }
