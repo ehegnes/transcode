@@ -1,3 +1,12 @@
+2008-09-15 Francesco Romani <fromani at gmail dot com>
+  filter/stabilize/*
+  made code more STYLEish. Patch by
+  Georg Martius <georg dot martius at web dot de>
+
+  added files: filter/stabilize/linkedlist.{c,h}
+  add linked list implementation by
+  Georg Martius <georg dot martius at web dot de>
+
 2008-09-13 Francesco Romani <fromani at gmail dot com>
   * import/v4l/import_v4l2.c
   made module STYLEish and port it to optstr.

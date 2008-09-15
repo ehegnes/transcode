@@ -21,143 +21,252 @@
  *
  */
 
-#include "transform.h"
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
+#include "transcode.h"
 #include "libtc/libtc.h"
 #include <stdlib.h>
+#include <math.h>
+#include "transform.h"
 
+/* normal round function */
 int myround(double x){
-  double x_;
-  x_ = floor(x);
-  if(x-x_ >= 0.5)
-    return ((int)x_)+1;
-  else
-    return (int)x_;
+    double x_;
+    x_ = floor(x);
+    if(x-x_ >= 0.5)
+        return ((int)x_)+1;
+    else
+        return (int)x_;
 }
 
-transform_t null_transform(){ 
-  transform_t t;
-  t.x=0;
-  t.y=0;
-  t.alpha=0;
-  t.extra=0;
-  return t;
+/***********************************************************************
+ * helper functions to create and operate with transforms.
+ * all functions are non-destructive
+ */
+
+/* create a zero initialized transform*/
+Transform null_transform(){ 
+    Transform t;
+    t.x     = 0;
+    t.y     = 0;
+    t.alpha = 0;
+    t.extra = 0;
+    return t;
 }
 
-transform_t add_transforms(const transform_t* t1, const transform_t* t2){
-  transform_t t;
-  t.x = t1->x + t2->x;
-  t.y = t1->y + t2->y;
-  t.alpha = t1->alpha + t2->alpha;
-  t.extra = 0;
-  return t;
+/* create an initialized transform*/
+Transform new_transform(double x, double y, double alpha, int extra){ 
+    Transform t;
+    t.x     = x;
+    t.y     = y;
+    t.alpha = alpha;
+    t.extra = extra;
+    return t;
 }
 
-transform_t add_transforms_(const transform_t t1, const transform_t t2){
-  return add_transforms(&t1,&t2);
+/* adds two transforms */
+Transform add_transforms(const Transform* t1, const Transform* t2){
+    Transform t;
+    t.x = t1->x + t2->x;
+    t.y = t1->y + t2->y;
+    t.alpha = t1->alpha + t2->alpha;
+    t.extra = 0;
+    return t;
 }
 
-transform_t sub_transforms(const transform_t* t1, const transform_t* t2){
-  transform_t t;
-  t.x = t1->x - t2->x;
-  t.y = t1->y - t2->y;
-  t.alpha = t1->alpha - t2->alpha;
-  t.extra = 0;
-  return t;
+/* like add_transform but with non-pointer signature */
+Transform add_transforms_(const Transform t1, const Transform t2){
+    return add_transforms(&t1,&t2);
 }
 
-transform_t mult_transform(const transform_t* t1, double f){
-  transform_t t;
-  t.x = t1->x * f;
-  t.y = t1->y * f;
-  t.alpha = t1->alpha * f;
-  t.extra = 0;
-  return t;
+/* subtracts two transforms */
+Transform sub_transforms(const Transform* t1, const Transform* t2){
+    Transform t;
+    t.x = t1->x - t2->x;
+    t.y = t1->y - t2->y;
+    t.alpha = t1->alpha - t2->alpha;
+    t.extra = 0;
+    return t;
 }
 
-transform_t mult_transform_(const transform_t t1, double f){
-  return mult_transform(&t1,f);
+/* multiplies a transforms with a scalar */
+Transform mult_transform(const Transform* t1, double f){
+    Transform t;
+    t.x = t1->x * f;
+    t.y = t1->y * f;
+    t.alpha = t1->alpha * f;
+    t.extra = 0;
+    return t;
 }
 
-static int cmptrans_x(const void *t1, const void* t2){
-  double a = ((transform_t*)t1)->x;
-  double b = ((transform_t*)t2)->x;
-  return a<b ? -1: ( a>b ? 1: 0  );
+/* like mult_transform but with non-pointer signature */
+Transform mult_transform_(const Transform t1, double f){
+    return mult_transform(&t1,f);
 }
 
-static int cmptrans_y(const void *t1, const void* t2){
-  double a = ((transform_t*)t1)->y;
-  double b = ((transform_t*)t2)->y;
-  return a<b ? -1: ( a>b ? 1: 0  );
+/* compares a transform with respect to x (for sort function) */
+int cmp_trans_x(const void *t1, const void* t2){
+    double a = ((Transform*)t1)->x;
+    double b = ((Transform*)t2)->x;
+    return a < b ? -1 : ( a > b ? 1 : 0 );
 }
-/* static int cmptrans_alpha(const void *t1, const void* t2){ */
-/*   double a = ((transform_t*)t1)->alpha; */
-/*   double b = ((transform_t*)t2)->alpha; */
-/*   return a<b ? -1: ( a>b ? 1: 0  ); */
+
+/* compares a transform with respect to y (for sort function) */
+int cmp_trans_y(const void *t1, const void* t2){
+    double a = ((Transform*)t1)->y;
+    double b = ((Transform*)t2)->y;
+    return a < b ? -1 : ( a > b ? 1: 0 );
+}
+
+/* static int cmp_trans_alpha(const void *t1, const void* t2){ */
+/*   double a = ((Transform*)t1)->alpha; */
+/*   double b = ((Transform*)t2)->alpha; */
+/*   return a < b ? -1 : ( a > b ? 1 : 0 ); */
 /* } */
 
 
-static int cmpdouble(const void *t1, const void* t2){
-  double a = *((double*)t1);
-  double b = *((double*)t2);
-  return a<b ? -1: ( a>b ? 1: 0  );
+/* compares two double values (for sort function)*/
+int cmp_double(const void *t1, const void* t2){
+    double a = *((double*)t1);
+    double b = *((double*)t2);
+    return a < b ? -1 : ( a > b ? 1 : 0 );
 }
 
-transform_t median_xy_transform(const transform_t* transforms, int len){
-  transform_t* ts = NEW(transform_t,len);
-  transform_t t;
-  memcpy(ts,transforms, sizeof(transform_t)*len ); 
-  int half=len/2;
-  qsort(ts,len, sizeof(transform_t), cmptrans_x);
-  if(len%2==0) t.x = ts[half].x; else t.x = (ts[half].x + ts[half+1].x)/2;
-  qsort(ts,len, sizeof(transform_t), cmptrans_y);
-  if(len%2==0) t.y = ts[half].y; else t.y = (ts[half].y + ts[half+1].y)/2;
-  t.alpha=0;
-  t.extra=0;
-  tc_free(ts);
-  return t;
+/**
+ * median_xy_transform: calulcates the median of an array 
+ * of transforms, considering only x and y
+ *
+ * Parameters:
+ *    transforms: array of transforms.
+ *           len: length  of array
+ * Return value:
+ *     A new transform with x and y beeing the median of 
+ *     all transforms. alpha and other fields are 0.
+ * Preconditions:
+ *     len>0
+ * Side effects:
+ *     None
+ */
+Transform median_xy_transform(const Transform* transforms, int len){
+    Transform* ts = NEW(Transform,len);
+    Transform t;
+    memcpy(ts,transforms, sizeof(Transform)*len ); 
+    int half = len/2;
+    qsort(ts, len, sizeof(Transform), cmp_trans_x);
+    t.x = len % 2 == 0 ? ts[half].x : (ts[half].x + ts[half+1].x)/2;
+    qsort(ts, len, sizeof(Transform), cmp_trans_y);
+    t.y = len % 2 == 0 ? ts[half].y : (ts[half].y + ts[half+1].y)/2;
+    t.alpha = 0;
+    t.extra = 0;
+    tc_free(ts);
+    return t;
 }
 
+/**
+ * cleanmean_xy_transform: calulcates the cleaned mean of an array 
+ * of transforms, considering only x and y
+ *
+ * Parameters:
+ *    transforms: array of transforms.
+ *           len: length  of array
+ * Return value:
+ *     A new transform with x and y beeing the cleaned mean 
+ *     (meaning upper and lower pentile are removed) of 
+ *     all transforms. alpha and other fields are 0.
+ * Preconditions:
+ *     len>0
+ * Side effects:
+ *     None
+ */
+Transform cleanmean_xy_transform(const Transform* transforms, int len){
+    Transform* ts = NEW(Transform,len);
+    Transform t = null_transform();
+    int cut = len / 5;
+    int i;
+    t.x     = 0; 
+    t.y     = 0; 
+    t.alpha = 0;
+    memcpy(ts, transforms, sizeof(Transform) * len); 
+    qsort(ts,len, sizeof(Transform), cmp_trans_x);
+    for(i = cut; i < len - cut; i++){ // all but cutted
+        t.x += ts[i].x;
+    }
+    qsort(ts, len, sizeof(Transform), cmp_trans_y);
+    for(i = cut; i < len - cut; i++){ // all but cutted
+        t.y += ts[i].y;
+    }
+    tc_free(ts);
+    return mult_transform(&t, 1.0 / (len - (2.0 * cut)));
+}
+
+
+/**
+ * media: median of a double array
+ *
+ * Parameters:
+ *            ds: array of values
+ *           len: length  of array
+ * Return value:
+ *     the median value of the array
+ * Preconditions: len>0
+ * Side effects:  ds will be sorted!
+ */
 double median(double* ds, int len){
-  qsort(ds,len, sizeof(double), cmpdouble);
-  int half=len/2;
-  if(len%2==0) return ds[half]; else return (ds[half] + ds[half+1])/2;
+    qsort(ds,len, sizeof(double), cmp_double);
+    int half=len/2;
+    return len % 2 == 0 ? ds[half] : (ds[half] + ds[half+1])/2;
 }
 
-double mean(double* ds, int len){
-  double sum=0;
-  int i=0;
-  for(i=0; i<len; i++)
-    sum += ds[i];
-  return sum/len;
+/**
+ * mean: mean of a double array 
+ *
+ * Parameters:
+ *            ds: array of values
+ *           len: length  of array
+ * Return value: the mean value of the array
+ * Preconditions: len>0
+ * Side effects:  None
+ */
+double mean(const double* ds, int len){
+    double sum=0;
+    int i = 0;
+    for(i = 0; i < len; i++)
+        sum += ds[i];
+    return sum / len;
 }
 
-// mean with cutted upper and lower pentile
+/**
+ * cleanmean: mean with cutted upper and lower pentile 
+ *
+ * Parameters:
+ *            ds: array of values
+ *           len: length  of array
+ * Return value:
+ *     the mean value of the array without the upper 
+ *     and lower pentile (20% each)
+ * Preconditions: len>0
+ * Side effects:  ds will be sorted!
+ */
 double cleanmean(double* ds, int len){
-  int cut = len/5;
-  double sum=0;
-  int i=0;
-  qsort(ds,len, sizeof(double), cmpdouble);
-  for(i=cut; i<len-cut; i++){ // all but first and last
-    sum     +=ds[i];
-  }
-  return sum/(len-2.0*cut);
+    int cut    = len / 5;
+    double sum = 0;
+    int i      = 0;
+    qsort(ds, len, sizeof(double), cmp_double);
+    for(i = cut; i < len - cut; i++){ // all but first and last
+        sum += ds[i];
+    }
+    return sum / (len - (2.0 * cut));
 }
 
-transform_t cleanmean_xy_transform(const transform_t* transforms, int len){
-  transform_t* ts = NEW(transform_t,len);
-  transform_t t = null_transform();
-  int cut = len/5;
-  int i;
-  t.x=0; t.y=0; t.alpha=0;
-  memcpy(ts,transforms, sizeof(transform_t)*len ); 
-  qsort(ts,len, sizeof(transform_t), cmptrans_x);
-  for(i=cut; i<len-cut; i++){ // all but cutted
-    t.x     +=ts[i].x;
-  }
-  qsort(ts,len, sizeof(transform_t), cmptrans_y);
-  for(i=cut; i<len-cut; i++){ // all but cutted
-    t.y     +=ts[i].y;
-  }
-  tc_free(ts);
-  return mult_transform(&t,1.0/(len-2.0*cut));
-}
+
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */
