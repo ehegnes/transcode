@@ -1,5 +1,9 @@
+2008-09-16 Francesco Romani <fromani at gmail dot com>
+  * filter/stabilize/filter_stabilize.c filter/stabilize/transform.c
+  minor STYLE tweaks and fixes.
+
 2008-09-15 Francesco Romani <fromani at gmail dot com>
-  filter/stabilize/*
+  * filter/stabilize/*
   made code more STYLEish. Patch by
   Georg Martius <georg dot martius at web dot de>
 

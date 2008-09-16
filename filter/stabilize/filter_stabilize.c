@@ -29,7 +29,7 @@
 */
 
 #define MOD_NAME    "filter_stabilize.so"
-#define MOD_VERSION "v0.41 (2008-09-14)"
+#define MOD_VERSION "v0.4.2 (2008-09-16)"
 #define MOD_CAP     "extracts relative transformations of \n\
 \tsubsequent frames (used for stabilization together with the\n\
 \ttransform filter in a second pass)"
@@ -51,6 +51,8 @@
 
 #include <math.h>
 
+#define DEFAULT_TRANS_FILE_NAME     "transforms.dat"
+
 /* if defined we are very verbose and generate files to analyse
  * this is really just for debugging and development */
 // #define STABVERBOSE
@@ -59,7 +61,7 @@ typedef struct _field {
     int x;     // middle position x
     int y;     // middle position y
     int size;  // size of field
-}Field;
+} Field;
 
 /* private date structure of this filter*/
 typedef struct _stab_data {
@@ -135,10 +137,11 @@ Transform calcFieldTransRGB(StabData* sd, const Field* field,
 Transform calcTransFields(StabData* sd, calcFieldTransFunc fieldfunc);
 void addTrans(StabData* sd, Transform sl);
 
-void addTrans(StabData* sd, Transform sl){
-    if(sd->lastTrans){
+void addTrans(StabData* sd, Transform sl)
+{
+    if (sd->lastTrans) {
         sd->lastTrans = linked_list_add(sd->lastTrans, &sl, sizeof(Transform));
-    }else{
+    } else {
         sd->transs = linked_list_new(&sl, sizeof(Transform));
         sd->lastTrans=sd->transs;
     }
@@ -148,16 +151,16 @@ void addTrans(StabData* sd, Transform sl){
 /** initialise measurement fields on the frame
     @param field_setup 1: only one field, 3 some fields (9), 5: many (25)
 */
-int initFields(StabData* sd, int field_setup){
-    if(field_setup < 1) 
-        field_setup=1;
+int initFields(StabData* sd, int field_setup)
+{
+    if (field_setup < 1) 
+        field_setup = 1;
   
-    sd->field_num=field_setup*field_setup;  
-    if(!(sd->fields=NEW(Field, sd->field_num))){
+    sd->field_num = field_setup*field_setup;  
+    if (!(sd->fields = NEW(Field, sd->field_num))) {
         tc_log_error(MOD_NAME, "malloc failed!\n");
         return 0;
-    }
-    {
+    } else {
         int i, j;
         int s;
         int f=0;
@@ -169,11 +172,11 @@ int initFields(StabData* sd, int field_setup){
         int step_y  = (field_setup == 1) ? 0 : 
             (sd->height - size - 2*sd->maxshift - 2)/(field_setup - 1);
         s=field_setup/2;
-        for(i=-s; i<=s; i++){
-            for(j=-s; j<=s; j++){
-                sd->fields[f].x=center_x + i*step_x;
-                sd->fields[f].y=center_y + j*step_y;
-                sd->fields[f].size=size;
+        for (i = -s; i <= s; i++) {
+            for (j = -s; j <= s; j++) {
+                sd->fields[f].x = center_x + i*step_x;
+                sd->fields[f].y = center_y + j*step_y;
+                sd->fields[f].size = size;
 #ifdef STABVERBOSE
                 tc_log_msg(MOD_NAME, "field %2i: %i, %i\n", 
                            f, sd->fields[f].x, sd->fields[f].y);
@@ -192,11 +195,12 @@ int initFields(StabData* sd, int field_setup){
    \param d_y shift in y direction
 */
 double compareImg(unsigned char* I1, unsigned char* I2, 
-                  int width, int height,  int bytesPerPixel, int d_x, int d_y){
+                  int width, int height,  int bytesPerPixel, int d_x, int d_y)
+{
     int i, j;
-    unsigned char* p1;
-    unsigned char* p2;
-    long int sum=0;  
+    unsigned char* p1 = NULL;
+    unsigned char* p2 = NULL;
+    long int sum = 0;  
     int effectWidth = width - abs(d_x);
     int effectHeight = height - abs(d_y);
 
@@ -209,28 +213,28 @@ double compareImg(unsigned char* I1, unsigned char* I2,
 /*   fprintf(pic1, "P6\n%i %i\n255\n", effectWidth, effectHeight); */
 /*   fprintf(pic2, "P6\n%i %i\n255\n", effectWidth, effectHeight); */
 
-    for(i=0; i< effectHeight; i++){
-        p1=I1;
-        p2=I2;
-        if(d_y>0){ 
-            p1 += (i + d_y)*width*bytesPerPixel;
-            p2 += i*width*bytesPerPixel;
+    for (i = 0; i < effectHeight; i++) {
+        p1 = I1;
+        p2 = I2;
+        if (d_y > 0 ){ 
+            p1 += (i + d_y) * width * bytesPerPixel;
+            p2 += i * width * bytesPerPixel;
         } else {
-            p1 += i*width*bytesPerPixel;
-            p2 += (i - d_y)*width*bytesPerPixel;
+            p1 += i * width * bytesPerPixel;
+            p2 += (i - d_y) * width * bytesPerPixel;
         }
-        if(d_x>0){ 
-            p1 += d_x*bytesPerPixel;
+        if (d_x > 0) { 
+            p1 += d_x * bytesPerPixel;
         } else {
-            p2-=d_x*bytesPerPixel; 
+            p2 -= d_x * bytesPerPixel; 
         }
         // TODO: use some mmx or sse stuff here
-        for(j=0; j<effectWidth*bytesPerPixel; j++){
+        for(j = 0; j < effectWidth * bytesPerPixel; j++) {
             /* debugging code continued */
             /* fwrite(p1,1,1,pic1);fwrite(p1,1,1,pic1);fwrite(p1,1,1,pic1);
                fwrite(p2,1,1,pic2);fwrite(p2,1,1,pic2);fwrite(p2,1,1,pic2); 
              */
-            sum+= abs((int)*p1 - (int)*p2);
+            sum += abs((int)*p1 - (int)*p2);
             p1++;
             p2++;      
         }
@@ -252,24 +256,25 @@ double compareImg(unsigned char* I1, unsigned char* I2,
    \param d_y shift in y direction   
 */
 double compareSubImg(unsigned char* I1, unsigned char* I2, const Field* field, 
-                     int width, int height, int bytesPerPixel,int d_x,int d_y){
+                     int width, int height, int bytesPerPixel, int d_x, int d_y)
+{
     int k, j;
-    unsigned char* p1;
-    unsigned char* p2;
-    int s2 = field->size/2;
-    double sum=0;
+    unsigned char* p1 = NULL;
+    unsigned char* p2 = NULL;
+    int s2 = field->size / 2;
+    double sum = 0;
 
     p1=I1 + ((field->x - s2) + (field->y - s2)*width)*bytesPerPixel;
     p2=I2 + ((field->x - s2 + d_x) + (field->y - s2 + d_y)*width)*bytesPerPixel;
     // TODO: use some mmx or sse stuff here
-    for(j=0; j<field->size; j++){
-        for(k=0; k<field->size*bytesPerPixel; k++){
+    for (j = 0; j < field->size; j++){
+        for (k = 0; k < field->size * bytesPerPixel; k++) {
             sum += abs((int)*p1 - (int)*p2);
             p1++;
             p2++;     
         }
-        p1 += (width - field->size)*bytesPerPixel;
-        p2 += (width - field->size)*bytesPerPixel;
+        p1 += (width - field->size) * bytesPerPixel;
+        p2 += (width - field->size) * bytesPerPixel;
     }
     return sum/((double) field->size *field->size* bytesPerPixel);
 }
@@ -281,17 +286,19 @@ double compareSubImg(unsigned char* I1, unsigned char* I2, const Field* field,
     shift images to all possible positions and calc summed error
     Shift with minimal error is selected.
 */
-Transform calcShiftRGBSimple(StabData* sd){
-    int x=0, y=0;
+Transform calcShiftRGBSimple(StabData* sd)
+{
+    int x = 0, y = 0;
     int i, j;
-    double minerror=1e20;  
-    for(i=-sd->maxshift; i<=sd->maxshift; i++){
-        for(j=-sd->maxshift; j<=sd->maxshift; j++){
+    double minerror = 1e20;  
+    for (i = -sd->maxshift; i <= sd->maxshift; i++) {
+        for (j = -sd->maxshift; j <= sd->maxshift; j++) {
             double error = compareImg(sd->curr, sd->prev, 
                                       sd->width, sd->height, 3, i, j);
-            if(error<minerror){
-                minerror=error;
-                x=i;y=j;
+            if (error < minerror) {
+                minerror = error;
+                x = i;
+                y = j;
             }	
         }
     } 
@@ -305,15 +312,16 @@ Transform calcShiftRGBSimple(StabData* sd){
     shift images to all possible positions and calc summed error
     Shift with minimal error is selected.
 */
-Transform calcShiftYUVSimple(StabData* sd){
-    int x=0, y=0;
+Transform calcShiftYUVSimple(StabData* sd)
+{
+    int x = 0, y = 0;
     int i, j;
     unsigned char *Y_c, *Y_p;// , *Cb, *Cr;
 #ifdef STABVERBOSE
-    FILE *f=0;
+    FILE *f = NULL;
     char buffer[32];
-    sprintf(buffer, "f%04i.dat", sd->t);
-    f=fopen(buffer, "w");
+    tc_snprintf(buffer, sizeof(buffer), "f%04i.dat", sd->t);
+    f = fopen(buffer, "w");
     fprintf(f, "# splot \"%s\"\n", buffer);
 #endif
 
@@ -326,17 +334,18 @@ Transform calcShiftYUVSimple(StabData* sd){
     //Cb_p = sd->prev + sd->width*sd->height;
     //Cr_p = sd->prev + 5*sd->width*sd->height/4;
 
-    double minerror=1e20;  
-    for(i=-sd->maxshift; i<=sd->maxshift; i++){
-        for(j=-sd->maxshift; j<=sd->maxshift; j++){
+    double minerror = 1e20;  
+    for (i = -sd->maxshift; i <= sd->maxshift; i++) {
+        for (j = -sd->maxshift; j <= sd->maxshift; j++) {
             double error = compareImg(Y_c, Y_p, 
                                       sd->width, sd->height, 1, i, j);
 #ifdef STABVERBOSE
             fprintf(f, "%i %i %f\n", i, j, error);
 #endif
-            if(error<minerror){
-                minerror=error;
-                x=i;y=j;
+            if (error < minerror) {
+                minerror = error;
+                x = i;
+                y = j;
             }	
         }
     }  
@@ -352,11 +361,13 @@ Transform calcShiftYUVSimple(StabData* sd){
 /* calulcates rotation angle for the given transform and 
  * field with respect to center
  */
-double calcAngle(StabData* sd, Field* field, Transform* t){
-    int center_x= sd->width/2;
-    int center_y= sd->height/2;
-    if(field->x == center_x  && field->y == center_y) return 0;
-    else{
+double calcAngle(StabData* sd, Field* field, Transform* t)
+{
+    int center_x = sd->width/2;
+    int center_y = sd->height/2;
+    if (field->x == center_x && field->y == center_y) {
+        return 0;
+    } else {
         // double r = sqrt(field->x*field->x + field->y*field->y);   
         double a1 = atan2(field->y - center_y, field->x - center_x);
         double a2 = atan2(field->y - center_y + t->y, 
@@ -371,55 +382,51 @@ double calcAngle(StabData* sd, Field* field, Transform* t){
 /* calculates the optimal transformation for one field in YUV frames
  * (only luminance)
  */
-Transform calcFieldTransYUV(StabData* sd, const Field* field, int fieldnum){
-    Transform t;
+Transform calcFieldTransYUV(StabData* sd, const Field* field, int fieldnum)
+{
+    Transform t = null_transform();
+    uint8_t *Y_c = sd->curr, *Y_p = sd->prev;
+    // we only use the luminance part of the image
     int i, j;
-    unsigned char *Y_c, *Y_p;
-  
+
 #ifdef STABVERBOSE
-    FILE *f=0;
+    FILE *f = NULL;
     char buffer[32];
-    sprintf(buffer, "f%04i_%02i.dat", sd->t, fieldnum);
-    f=fopen(buffer, "w");
+    tc_snprintf(buffer, sizeof(buffer), "f%04i_%02i.dat", sd->t, fieldnum);
+    f = fopen(buffer, "w");
     fprintf(f, "# splot \"%s\"\n", buffer);
 #endif
-
-    t.alpha=0;
-    t.x=0;
-    t.y=0;
-    t.extra=0;
-    // we only use the luminance part of the image
-    Y_c  = sd->curr;  
-    Y_p  = sd->prev;   
   
-    double minerror=1e20;  
-    for(i=-sd->maxshift; i<=sd->maxshift; i += sd->stepsize){
-        for(j=-sd->maxshift; j<=sd->maxshift; j += sd->stepsize){      
+    double minerror = 1e20;  
+    for (i = -sd->maxshift; i <= sd->maxshift; i += sd->stepsize) {
+        for(j = -sd->maxshift; j <= sd->maxshift; j += sd->stepsize) {
             double error = compareSubImg(Y_c, Y_p, field, 
                                          sd->width, sd->height, 1, i, j);
 #ifdef STABVERBOSE
             fprintf(f, "%i %i %f\n", i, j, error);
 #endif
-            if(error<minerror){
-                minerror=error;
-                t.x=i;t.y=j;
+            if (error < minerror) {
+                minerror = error;
+                t.x = i;
+                t.y = j;
             }	
         }
     }
-    if(sd->stepsize>1){
+    if (sd->stepsize > 1) {
         int r = sd->stepsize - 1;
-        for(i=t.x - r; i<=t.x + r; i += 1){
-            for(j=-t.y - r; j<=t.y + r; j += 1){      
-                if(i==t.x && j==t.y) 
+        for (i = t.x - r; i <= t.x + r; i += 1) {
+            for (j = -t.y - r; j <= t.y + r; j += 1) {
+                if (i == t.x && j == t.y) 
                     continue; //no need to check this since already done
                 double error = compareSubImg(Y_c, Y_p, field, 
                                              sd->width, sd->height, 1, i, j);
 #ifdef STABVERBOSE
                 fprintf(f, "%i %i %f\n", i, j, error);
 #endif 	
-                if(error<minerror){
-                    minerror=error;
-                    t.x=i;t.y=j;
+                if (error < minerror){
+                    minerror = error;
+                    t.x = i;
+                    t.y = j;
                 }	
             }
         }
@@ -429,17 +436,17 @@ Transform calcFieldTransYUV(StabData* sd, const Field* field, int fieldnum){
     tc_log_msg(MOD_NAME, "Minerror: %f\n", minerror);
 #endif
 
-    if(!sd->allowmax && fabs(t.x) == sd->maxshift){
+    if (!sd->allowmax && fabs(t.x) == sd->maxshift) {
 #ifdef STABVERBOSE 
         tc_log_msg(MOD_NAME, "maximal x shift ");
 #endif
-        t.x=0;
+        t.x = 0;
     }
-    if(!sd->allowmax && fabs(t.y) == sd->maxshift){
+    if (!sd->allowmax && fabs(t.y) == sd->maxshift) {
 #ifdef STABVERBOSE 
         tc_log_msg(MOD_NAME, "maximal y shift ");
 #endif
-        t.y=0;
+        t.y = 0;
     }
     return t;
 }
@@ -447,43 +454,40 @@ Transform calcFieldTransYUV(StabData* sd, const Field* field, int fieldnum){
 /* calculates the optimal transformation for one field in RGB 
  *   slower than the YUV version because it uses all three color channels
  */
-Transform calcFieldTransRGB(StabData* sd, const Field* field, int fieldnum){
-    Transform t;
+Transform calcFieldTransRGB(StabData* sd, const Field* field, int fieldnum)
+{
+    Transform t = null_transform();
+    uint8_t *I_c = sd->curr, *I_p = sd->prev;
     int i, j;
-    unsigned char *I_c, *I_p;
-    t.alpha=0;
-    t.x=0;
-    t.y=0;
-    t.extra=0;
-    I_c  = sd->curr;  
-    I_p  = sd->prev;   
   
-    double minerror=1e20;  
-    for(i=-sd->maxshift; i<=sd->maxshift; i += 2){
-        for(j=-sd->maxshift; j<=sd->maxshift; j += 2){      
+    double minerror = 1e20;  
+    for (i = -sd->maxshift; i <= sd->maxshift; i += 2) {
+        for(j=-sd->maxshift; j <= sd->maxshift; j += 2) {      
             double error = compareSubImg(I_c, I_p, field, 
                                          sd->width, sd->height, 3, i, j);
-            if(error<minerror){
-                minerror=error;
-                t.x=i;t.y=j;
+            if (error < minerror) {
+                minerror = error;
+                t.x = i;
+                t.y = j;
             }	
         }
     }
-    for(i=t.x - 1; i<=t.x + 1; i += 2){
-        for(j=-t.y - 1; j<=t.y + 1; j += 2){      
+    for (i = t.x - 1; i <= t.x + 1; i += 2) {
+        for (j = -t.y - 1; j <= t.y + 1; j += 2) {
             double error = compareSubImg(I_c, I_p, field, 
                                          sd->width, sd->height, 3, i, j);
-            if(error<minerror){
-                minerror=error;
-                t.x=i;t.y=j;
+            if(error < minerror) {
+                minerror = error;
+                t.x = i;
+                t.y = j;
             }	
         }
     }
-    if(!sd->allowmax && fabs(t.x) == sd->maxshift){
-        t.x=0;
+    if (!sd->allowmax && fabs(t.x) == sd->maxshift) {
+        t.x = 0;
     }
-    if(!sd->allowmax && fabs(t.y) == sd->maxshift){
-        t.y=0;
+    if (!sd->allowmax && fabs(t.y) == sd->maxshift) {
+        t.y = 0;
     }
     return t;
 }
@@ -498,19 +502,21 @@ Transform calcFieldTransRGB(StabData* sd, const Field* field, int fieldnum){
  *   after shift removal
  *   calculate rotation angle as cleaned mean of all angle
 */
-Transform calcTransFields(StabData* sd, calcFieldTransFunc fieldfunc){
+Transform calcTransFields(StabData* sd, calcFieldTransFunc fieldfunc)
+{
     Transform* ts = NEW(Transform, sd->field_num);
+    double *angles = NEW(double, sd->field_num);
     int i;
     Transform t;
 #ifdef STABVERBOSE
-    FILE *f=0;
+    FILE *f = NULL;
     char buffer[32];
-    sprintf(buffer, "k%04i.dat", sd->t);
-    f=fopen(buffer, "w");
+    tc_snprintf(buffer, sizeof(buffer), "k%04i.dat", sd->t);
+    f = fopen(buffer, "w");
     fprintf(f, "# plot \"%s\" w l, \"\" every 2:1:0\n", buffer);
 #endif
 
-    for(i=0; i<sd->field_num; i++){
+    for (i = 0; i < sd->field_num; i++) {
         ts[i] = fieldfunc(sd, &sd->fields[i], i);
         //ts[i] = calcFieldTransYUV(sd, &sd->fields[i], i);
 #ifdef STABVERBOSE
@@ -534,21 +540,19 @@ Transform calcTransFields(StabData* sd, calcFieldTransFunc fieldfunc){
     t= cleanmean_xy_transform(ts, sd->field_num);
 
     // substract avg
-    for(i=0; i < sd->field_num; i++){
+    for (i = 0; i < sd->field_num; i++) {
         ts[i] = sub_transforms(&ts[i], &t);
     }
     // figure out angle
-    {
-        double* angles = NEW(double, sd->field_num);
-        if(sd->field_num == 1) t.alpha = 0;// one is always the center
-        else{      
-            for(i=0; i < sd->field_num; i++){
-                angles[i] = calcAngle(sd, &sd->fields[i], &ts[i]);
-            }
-            // t.alpha = - mean(angles, sd->field_num);
-            // t.alpha = - median(angles, sd->field_num);
-            t.alpha = -cleanmean(angles, sd->field_num);
+    if (sd->field_num == 1) {
+        t.alpha = 0; // one is always the center
+    } else{      
+        for (i = 0; i < sd->field_num; i++) {
+            angles[i] = calcAngle(sd, &sd->fields[i], &ts[i]);
         }
+        // t.alpha = - mean(angles, sd->field_num);
+        // t.alpha = - median(angles, sd->field_num);
+        t.alpha = -cleanmean(angles, sd->field_num);
     }
 #ifdef STABVERBOSE
     fclose(f);
@@ -576,20 +580,23 @@ static int stabilize_init(TCModuleInstance *self, uint32_t features)
     TC_MODULE_SELF_CHECK(self, "init");
     TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
 
-    if((sd = (StabData*)tc_malloc(sizeof(StabData))) == NULL){
+    sd = tc_zalloc(sizeof(StabData));
+    if (!sd) {
         tc_log_error(MOD_NAME, "init: out of memory!");
         return TC_ERROR;
     }
 
-    if((sd->vob = tc_get_vob())==NULL) return TC_ERROR;
+    sd->vob = tc_get_vob();
+    if (!sd->vob)
+        return TC_ERROR;
 
     /**** Initialise private data structure */
 
-    sd->t=0;
-    sd->hasSeenOneFrame=0;
-    sd->transs=0;
-    sd->lastTrans=0;
-    sd->prev=0;
+    sd->t = 0;
+    sd->hasSeenOneFrame = 0;
+    sd->transs = 0;
+    sd->lastTrans = 0;
+    sd->prev = 0;
 
     self->userdata = sd;
     if (verbose) {
@@ -619,41 +626,45 @@ static int stabilize_fini(TCModuleInstance *self)
  * tcmodule-data.h for function details.
  */
 static int stabilize_configure(TCModuleInstance *self,
-			       const char *options, vob_t *vob)
+            			       const char *options, vob_t *vob)
 {
+    int field_setup;
+
     StabData *sd = NULL;
     TC_MODULE_SELF_CHECK(self, "configure");
 
     sd = self->userdata;
 
-    int field_setup;
     //    sd->framesize = sd->vob->im_v_width * MAX_PLANES * sizeof(char) * 2 * sd->vob->im_v_height * 2;    
     sd->framesize = sd->vob->im_v_size;    
-    if((sd->prev = tc_malloc(sd->framesize))!=NULL)
-        memset(sd->prev, 0, sd->framesize);
-    else{
-        tc_log_error(MOD_NAME, "malloc failed\n");
-        return (-1);
+    sd->prev = tc_zalloc(sd->framesize); /* FIXME */
+    if (!sd->prev) {
+        tc_log_error(MOD_NAME, "malloc failed");
+        return TC_ERROR;
     }
 
     sd->width  = sd->vob->ex_v_width;
     sd->height = sd->vob->ex_v_height;
 
-    sd->hasSeenOneFrame=0;
-    sd->transs=0;
-    sd->lastTrans=0;
+    sd->hasSeenOneFrame = 0;
+    sd->transs = 0;
+    sd->lastTrans = 0;
     
     // Options
-    sd->maxshift=48;
-    sd->stepsize=2;
-    sd->allowmax=1;
-    sd->result = (char*)tc_malloc(sizeof(char)*255);
-    if(strlen(sd->vob->video_in_file)<250)
-        sprintf(sd->result, "%s.trf", sd->vob->video_in_file);
-    else sprintf(sd->result, "transforms.dat");
-    sd->algo=1;
-    field_setup=3;
-    sd->field_size= MIN(sd->width, sd->height)/10;
+    sd->maxshift = 48;
+    sd->stepsize = 2;
+    sd->allowmax = 1;
+    sd->result = tc_malloc(TC_BUF_LINE);
+    if (strlen(sd->vob->video_in_file) < TC_BUF_LINE - 1) {
+        tc_snprintf(sd->result, TC_BUF_LINE, "%s.trf", sd->vob->video_in_file);
+    } else {
+        tc_log_warn(MOD_NAME, "input name too long, using default `%s'",
+                    DEFAULT_TRANS_FILE_NAME);
+        tc_snprintf(sd->result, TC_BUF_LINE, "transforms.dat");
+    }
+    sd->algo = 1;
+    field_setup = 3;
+    sd->field_size = TC_MIN(sd->width, sd->height)/10;
 
     if (options != NULL) {            
         optstr_get(options, "result",    "%[^:]", sd->result);
@@ -675,15 +686,18 @@ static int stabilize_configure(TCModuleInstance *self,
         tc_log_info(MOD_NAME, "        result = %s", sd->result);
     }
     
-    if(sd->maxshift > sd->width/2) sd->maxshift=sd->width/2;
-    if(sd->maxshift > sd->height/2) sd->maxshift=sd->height/2;
+    if (sd->maxshift > sd->width / 2)
+        sd->maxshift = sd->width / 2;
+    if (sd->maxshift > sd->height / 2)
+        sd->maxshift = sd->height / 2;
 
-    if(sd->algo==1){
-        if(!initFields(sd, field_setup)){
+    if (sd->algo==1) {
+        if (!initFields(sd, field_setup)) {
             return TC_ERROR;
         }
     }
-    if((sd->f = fopen(sd->result, "w")) == NULL){
+    sd->f = fopen(sd->result, "w");
+    if (sd->f == NULL) {
         tc_log_error(MOD_NAME, "cannot open result file %s!\n", sd->result);
         return TC_ERROR;
     }    
@@ -706,26 +720,26 @@ static int stabilize_filter_video(TCModuleInstance *self,
   
     sd = self->userdata;
   
-    if(sd->hasSeenOneFrame){
-        sd->curr=(unsigned char*)frame->video_buf;
-        if (sd->vob->im_v_codec == CODEC_RGB){
-            if(sd->algo==0)
+    if (sd->hasSeenOneFrame) {
+        sd->curr = frame->video_buf;
+        if (sd->vob->im_v_codec == CODEC_RGB) {
+            if(sd->algo == 0)
                 addTrans(sd, calcShiftRGBSimple(sd));
-            else if (sd->algo==1)
+            else if (sd->algo == 1)
                 addTrans(sd, calcTransFields(sd, calcFieldTransRGB));
-        }else if(sd->vob->im_v_codec == CODEC_YUV){
-            if(sd->algo==0)
+        } else if(sd->vob->im_v_codec == CODEC_YUV) {
+            if (sd->algo == 0)
                 addTrans(sd, calcShiftYUVSimple(sd));
-            else if (sd->algo==1)
+            else if (sd->algo == 1)
                 addTrans(sd, calcTransFields(sd, calcFieldTransYUV));
-        }else{
+        } else {
             tc_log_warn(MOD_NAME, "unsupported Codec: %i\n",
                         sd->vob->im_v_codec);
-            return (-1);
+            return TC_ERROR;
         }
-    }else{
-        sd->hasSeenOneFrame=1;
-        addTrans(sd, new_transform(0, 0, 0, 0));
+    } else {
+        sd->hasSeenOneFrame = 1;
+        addTrans(sd, null_transform());
     }
     memcpy(sd->prev, frame->video_buf, sd->framesize);
     sd->t++;
@@ -744,26 +758,28 @@ static int stabilize_stop(TCModuleInstance *self)
     sd = self->userdata;
 
     // print transs
-    int i=0;
+    int i = 0;
     LinkedList* sl = sd->transs;
-    if(sd->f){
+    if (sd->f) {
         fprintf(sd->f, "# Transforms\n#C FrameNr x y alpha extra\n");
     
-        while(sl){
-            if(sl->item){
+        for (; sl; sl = sl->next) {
+            if (sl->item) {
                 Transform* t = (Transform*)sl->item;
                 fprintf(sd->f, "%i %5.4lf %5.4lf %8.5lf %i\n", i, t->x, t->y, 
                         t->alpha, t->extra);
             }
-            sl=sl->next;
+            sl = sl->next;
             i++;
         }
     
         fclose(sd->f); 
     }
     linked_list_delete(sd->transs);
-    if(sd->prev) tc_free(sd->prev);
-    if(sd->result) tc_free(sd->result);
+    if (sd->prev)
+        tc_free(sd->prev);
+    if (sd->result)
+        tc_free(sd->result);
     return TC_OK;
 }
 
