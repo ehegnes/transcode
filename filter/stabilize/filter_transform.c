@@ -25,7 +25,7 @@
 */
 
 #define MOD_NAME    "filter_transform.so"
-#define MOD_VERSION "v0.41 (2008-09-14)"
+#define MOD_VERSION "v0.4.2 (2008-09-18)"
 #define MOD_CAP     "transforms each frame according to transformations\n\
  given in an input file (e.g. translation, rotate) see also filter stabilize"
 #define MOD_AUTHOR  "Georg Martius"
@@ -45,7 +45,8 @@
 
 #include <math.h>
 
-#define clip(x, mi, ma) ((x) < (mi)) ? mi : ( (x)>(ma) ? ma : x )
+#define DEFAULT_TRANS_FILE_NAME     "transforms.dat"
+
 #define PIXEL(img, x, y, w, h, def) ((x) < 0 || (y) < 0) ? def       \
     : (((x) >=w || (y) >= h) ? def : img[(x) + (y) * w]) 
 
@@ -79,7 +80,7 @@ typedef struct {
     /* threshhold below which no rotation is performed */
     double rotation_threshhold; 
     
-    char input[256];
+    char input[TC_BUF_LINE];
     FILE* f;
 
     char conf_str[TC_BUF_MIN];
@@ -104,7 +105,7 @@ static const char transform_help[] = ""
 
 /* forward deklarations, please look below for documentation*/
 void interpolate(unsigned char *rv, float x, float y, 
-		 unsigned char* img, int width, int height, unsigned char def);
+        		 unsigned char* img, int width, int height, unsigned char def);
 int transformRGB(TransformData* td);
 int transformYUV(TransformData* td);
 int read_input_file(TransformData* td);
@@ -124,10 +125,11 @@ int preprocess_transforms(TransformData* td);
  * Return value:  None
  */
 void interpolate(unsigned char *rv, float x, float y, 
-		 unsigned char* img, int width, int height, unsigned char def){
-    if(x< - 1 || x>width || y< - 1 || y>height){
+		 unsigned char* img, int width, int height, unsigned char def)
+{
+    if (x < - 1 || x > width || y < -1 || y > height) {
         *rv = def;    
-    }else{
+    } else {
         int x_c = (int)ceilf(x);
         int x_f = (int)floorf(x);
         int y_c = (int)ceilf(y);
@@ -155,7 +157,8 @@ void interpolate(unsigned char *rv, float x, float y,
  * Preconditions:
  *  The frame must be in RGB format
  */
-int transformRGB(TransformData* td){
+int transformRGB(TransformData* td)
+{
     tc_log_warn(MOD_NAME, "Not Supported yet!"); 
     return 0;
 }
@@ -170,7 +173,8 @@ int transformRGB(TransformData* td){
  * Preconditions:
  *  The frame must be in YUV format
  */
-int transformYUV(TransformData* td){
+int transformYUV(TransformData* td)
+{
     Transform t;
     int x = 0, y = 0;
     unsigned char *Y_1, *Y_2, *Cb_1, *Cb_2, *Cr_1, *Cr_2;
@@ -196,9 +200,9 @@ int transformYUV(TransformData* td){
      *      p_s = M^{-1}(p_d - c_d - t) + c_s
      */
     /* Luminance channel */
-    if(fabs(t.alpha) > td->rotation_threshhold){
-        for(x = 0; x < td->width_dest; x++){
-            for(y = 0; y < td->height_dest; y++){
+    if (fabs(t.alpha) > td->rotation_threshhold) {
+        for (x = 0; x < td->width_dest; x++) {
+            for (y = 0; y < td->height_dest; y++) {
                 float x_d1 = (x - c_d_x);
                 float y_d1 = (y - c_d_y);
                 float x_s  =  cos(-t.alpha) * x_d1 
@@ -211,20 +215,22 @@ int transformYUV(TransformData* td){
                             td->crop ? 16 : *dest);
             }
         }
-    }else{ 
+     }else { 
         /* no rotation, just translation 
          *(also no interpolation, since no size change (so far) 
          */
         int round_tx = myround(t.x);
         int round_ty = myround(t.y);
-        for(x = 0; x < td->width_dest; x++){
-            for(y = 0; y < td->height_dest; y++){
+        for (x = 0; x < td->width_dest; x++) {
+            for (y = 0; y < td->height_dest; y++) {
                 short p = PIXEL(Y_1, x - round_tx, y - round_ty, 
                                 td->width_src, td->height_src, -1);
-                if(p == -1){
-                    if(td->crop==1) Y_2[x + y * td->width_dest] = 16;
-                }else
+                if (p == -1) {
+                    if (td->crop == 1)
+                        Y_2[x + y * td->width_dest] = 16;
+                } else {
                     Y_2[x + y * td->width_dest] = (unsigned char)p;
+                }
             }
         }
     }
@@ -234,9 +240,9 @@ int transformYUV(TransformData* td){
     int wd2 = td->width_dest/2;
     int hs2 = td->height_src/2;
     int hd2 = td->height_dest/2;
-    if(fabs(t.alpha) > td->rotation_threshhold){
-        for(x = 0; x < wd2; x++){
-            for(y = 0; y < hd2; y++){
+    if (fabs(t.alpha) > td->rotation_threshhold) {
+        for (x = 0; x < wd2; x++) {
+            for (y = 0; y < hd2; y++) {
                 float x_d1 = x - (c_d_x)/2;
                 float y_d1 = y - (c_d_y)/2;
                 float x_s  =  cos(-t.alpha) * x_d1 
@@ -251,21 +257,21 @@ int transformYUV(TransformData* td){
                             td->crop ? 128 : *dest);      	
             }
         }
-    }else{ // no rotation, no interpolation, just translation 
+    } else { // no rotation, no interpolation, just translation 
         int round_tx2 = myround(t.x/2.0);
         int round_ty2 = myround(t.y/2.0);        
-        for(x = 0; x < wd2; x++){
-            for(y = 0; y < hd2; y++){
+        for (x = 0; x < wd2; x++) {
+            for (y = 0; y < hd2; y++) {
                 short cr = PIXEL(Cr_1, x - round_tx2, y - round_ty2, 
                                  wd2, hd2, -1);
                 short cb = PIXEL(Cb_1, x - round_tx2, y - round_ty2, 
                                  wd2, hd2, -1);
-                if(cr == -1){
-                    if(td->crop==1){ 
+                if (cr == -1) {
+                    if (td->crop==1) { 
                         Cr_2[x + y * wd2] = 128;
                         Cb_2[x + y * wd2] = 128;
                     }
-                }else{
+                } else {
                     Cr_2[x + y * wd2] = (unsigned char)cr;
                     Cb_2[x + y * wd2] = (unsigned char)cb;
                 }
@@ -291,29 +297,36 @@ int transformYUV(TransformData* td){
  *         number of transforms read
  * Preconditions: td->f is opened
  */
-int read_input_file(TransformData* td){
-    char l[1024];
+int read_input_file(TransformData* td)
+{
+    char l[TC_BUF_MAX];
     int s = 0;
     int i = 0;
     int ti; // time (ignored)
     Transform t;
-    while( fgets(l, 1024, td->f)){
-        if(l[0]=='#') continue;    //  ignore comments
-        if(strlen(l)==0) continue; //  ignore empty lines
+
+    while (fgets(l, sizeof(l), td->f)) {
+        if (l[0] == '#')
+            continue;    //  ignore comments
+        if (strlen(l) == 0)
+            continue; //  ignore empty lines
     
-        if(sscanf(l, "%i %lf %lf %lf %i", &ti, &t.x, &t.y, &t.alpha, 
-                  &t.extra) != 5){
+        if (sscanf(l, "%i %lf %lf %lf %i", &ti, &t.x, &t.y, &t.alpha, 
+                  &t.extra) != 5) {
             tc_log_error(MOD_NAME, "Cannot parse line: %s", l);
             return 0;
         }
     
-        if(i>=s){ // resize transform array
-            if(s==0) s = 256;
-            else s*=2;
+        if (i>=s) { // resize transform array
+            if (s == 0)
+                s = 256;
+            else
+                s*=2;
             /* tc_log_info(MOD_NAME, "resize: %i\n", s); */
-            if(!(td->trans = realloc(td->trans, sizeof(Transform)* s))){
-                tc_log_error(MOD_NAME, "Cannot allocate memory \
- form transformations: %i\n", s);
+            td->trans = realloc(td->trans, sizeof(Transform)* s);
+            if (!td->trans) {
+                tc_log_error(MOD_NAME, "Cannot allocate memory"
+                                       " for transformations: %i\n", s);
                 return 0;
             }
         }
@@ -341,14 +354,17 @@ int read_input_file(TransformData* td){
  * Side effects:
  *     td->trans will be modified
  */
-int preprocess_transforms(TransformData* td){
+int preprocess_transforms(TransformData* td)
+{
     Transform* ts = td->trans;
     int i;
-    if(td->trans_len < 1) return 0;
-    if(verbose & TC_DEBUG){
+
+    if (td->trans_len < 1)
+        return 0;
+    if (verbose & TC_DEBUG) {
         tc_log_msg(MOD_NAME, "Preprocess transforms:");
     }
-    if(td->smoothing>0){
+    if (td->smoothing>0) {
         /* smoothing */
         Transform* ts2 = NEW(Transform, td->trans_len);
         memcpy(ts2, ts, sizeof(Transform) * td->trans_len);
@@ -378,7 +394,7 @@ int preprocess_transforms(TransformData* td){
         }
         mult_transform(&s_sum, 2); // choice b (comment out for choice a)
 
-        for(i = 0; i < td->trans_len; i++){
+        for (i = 0; i < td->trans_len; i++) {
             Transform* old = ((i - td->smoothing - 1) < 0) 
                 ? &null : &ts2[(i - td->smoothing - 1)];
             Transform* new = ((i + td->smoothing) >= td->trans_len) 
@@ -397,7 +413,7 @@ int preprocess_transforms(TransformData* td){
                                    mult_transform(&ts[i], tau));
             ts[i] = sub_transforms(&ts[i], &avg2);
 
-            if(verbose & TC_DEBUG ){
+            if (verbose & TC_DEBUG) {
                 tc_log_msg(MOD_NAME, 
                            "s_sum: %5lf %5lf %5lf, ts: %5lf, %5lf, %5lf\n", 
                            s_sum.x, s_sum.y, s_sum.alpha, 
@@ -413,36 +429,34 @@ int preprocess_transforms(TransformData* td){
   
   
     /*  invert? */
-    if(td->invert){
-        for(i = 0; i < td->trans_len; i++){
+    if (td->invert) {
+        for (i = 0; i < td->trans_len; i++) {
             ts[i] = mult_transform(&ts[i], -1);      
         }
     }
   
     /* relative to absolute */
-    if(td->relative){
+    if (td->relative) {
         Transform t = ts[0];
-        for(i = 1; i < td->trans_len; i++){
-            if(verbose  & TC_DEBUG ){
+        for (i = 1; i < td->trans_len; i++) {
+            if (verbose  & TC_DEBUG) {
                 tc_log_msg(MOD_NAME, "shift: %5lf\t %5lf\t %lf \n", 
-                       t.x, t.y, t.alpha *180/M_PI);
+                           t.x, t.y, t.alpha *180/M_PI);
             }
             ts[i] = add_transforms(&ts[i], &t); 
             t = ts[i];
         }
     }
     /* crop at maximal shift */
-    if(td->maxshift != -1)
-        for(i = 0; i < td->trans_len; i++){    
-            ts[i].x     = clip(ts[i].x, -td->maxshift, td->maxshift);
-            ts[i].y     = clip(ts[i].y, -td->maxshift, td->maxshift);
+    if (td->maxshift != -1)
+        for (i = 0; i < td->trans_len; i++) {
+            ts[i].x     = TC_CLAMP(ts[i].x, -td->maxshift, td->maxshift);
+            ts[i].y     = TC_CLAMP(ts[i].y, -td->maxshift, td->maxshift);
         }
-    if(td->maxangle != - 1.0)
-        for(i = 0; i < td->trans_len; i++)
-            ts[i].alpha = clip(ts[i].alpha, -td->maxangle, td->maxangle);
+    if (td->maxangle != - 1.0)
+        for (i = 0; i < td->trans_len; i++)
+            ts[i].alpha = TC_CLAMP(ts[i].alpha, -td->maxangle, td->maxangle);
   
-  
-
     return 1;
 }
 
@@ -457,7 +471,8 @@ static int transform_init(TCModuleInstance *self, uint32_t features)
     TC_MODULE_SELF_CHECK(self, "init");
     TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
     
-    if((td = (TransformData*)tc_malloc(sizeof(TransformData))) == NULL){
+    td = tc_malloc(sizeof(TransformData));
+    if (td == NULL){
         tc_log_error(MOD_NAME, "init: out of memory!");
         return TC_ERROR;
     }
@@ -482,7 +497,9 @@ static int transform_configure(TCModuleInstance *self,
 
     td = self->userdata;
 
-    if((td->vob = vob)== NULL) return TC_ERROR;
+    td->vob = vob;
+    if (!td->vob)
+        return TC_ERROR; /* cannot happen */
 
     /**** Initialise private data structure */
 
@@ -490,9 +507,8 @@ static int transform_configure(TCModuleInstance *self,
      *  MAX_PLANES * sizeof(char) * 2 * td->vob->im_v_height * 2;    
      */
     td->framesize_src = td->vob->im_v_size;    
-    if((td->src = tc_malloc(td->framesize_src)) != NULL)
-        memset(td->src, 0, td->framesize_src);
-    else{
+    td->src = tc_zalloc(td->framesize_src); /* FIXME */
+    if (td->src == NULL) {
         tc_log_error(MOD_NAME, "tc_malloc failed\n");
         return TC_ERROR;
     }
@@ -513,9 +529,13 @@ static int transform_configure(TCModuleInstance *self,
     /* Options */
     td->maxshift = -1;
     td->maxangle = -1;
-    if(strlen(td->vob->video_in_file) < 250)
-        sprintf(td->input, "%s.trf", td->vob->video_in_file);
-    else sprintf(td->input, "transforms.dat");
+    if (strlen(td->vob->video_in_file) < 250) {
+        tc_snprintf(td->input, TC_BUF_LINE, "%s.trf", td->vob->video_in_file);
+    } else {
+        tc_log_warn(MOD_NAME, "input name too long, using default `%s'",
+                    DEFAULT_TRANS_FILE_NAME);
+        tc_snprintf(td->input, TC_BUF_LINE, "transforms.dat");
+    }
     td->crop = 0;
     td->relative = 1;
     td->invert = 0;
@@ -526,10 +546,11 @@ static int transform_configure(TCModuleInstance *self,
     if (options != NULL) {
         optstr_get(options, "input", "%[^:]", (char*)&td->input);
     }
-    if((td->f = fopen(td->input, "r")) == NULL){
+    td->f = fopen(td->input, "r");
+    if(td->f == NULL) {
         tc_log_error(MOD_NAME, "cannot open input file %s!\n", td->input);
         /* return (-1); when called using tcmodinfo this will fail */ 
-    }else if(!read_input_file(td)){ /* read input file */
+    } else if(!read_input_file(td)) { /* read input file */
         tc_log_info(MOD_NAME, "error parsing input file %s!\n", td->input);
         // return (-1);      
     }
@@ -543,7 +564,7 @@ static int transform_configure(TCModuleInstance *self,
         optstr_get(options, "invert"   , "%d", &td->invert);
         optstr_get(options, "relative" , "%d", &td->relative);
     }
-    if(verbose){
+    if (verbose) {
         tc_log_info(MOD_NAME, "Image Transformation/Stabilization Settings:");
         tc_log_info(MOD_NAME, "    maxshift  = %d", td->maxshift);
         tc_log_info(MOD_NAME, "    maxangle  = %f", td->maxangle);
@@ -557,10 +578,12 @@ static int transform_configure(TCModuleInstance *self,
         tc_log_info(MOD_NAME, "    input     = %s", td->input);
     }
   
-    if(td->maxshift > td->width_dest/2) td->maxshift = td->width_dest/2;
-    if(td->maxshift > td->height_dest/2) td->maxshift = td->height_dest/2;
+    if (td->maxshift > td->width_dest/2
+        ) td->maxshift = td->width_dest/2;
+    if (td->maxshift > td->height_dest/2)
+        td->maxshift = td->height_dest/2;
   
-    if(!preprocess_transforms(td)){
+    if (!preprocess_transforms(td)) {
         tc_log_error(MOD_NAME, "error while preprocessing transforms!");
         return TC_ERROR;            
     }
@@ -574,7 +597,8 @@ static int transform_configure(TCModuleInstance *self,
  * See tcmodule-data.h for function details.
  */
 static int transform_filter_video(TCModuleInstance *self, 
-                                  vframe_list_t *frame) {
+                                  vframe_list_t *frame) 
+{
     TransformData *td = NULL;
   
     TC_MODULE_SELF_CHECK(self, "filter_video");
@@ -582,18 +606,18 @@ static int transform_filter_video(TCModuleInstance *self,
   
     td = self->userdata;
 
-    td->dest = (unsigned char*)frame->video_buf;    
+    td->dest = frame->video_buf;
     memcpy(td->src, frame->video_buf, td->framesize_src);
-    if(td->current_trans >= td->trans_len){
+    if (td->current_trans >= td->trans_len) {
         tc_log_error(MOD_NAME, "not enough transforms found!\n");
         return TC_ERROR;
     }
   
-    if (td->vob->im_v_codec == CODEC_RGB){
+    if (td->vob->im_v_codec == CODEC_RGB) {
         transformRGB(td);
-    }else if(td->vob->im_v_codec == CODEC_YUV){
+    } else if(td->vob->im_v_codec == CODEC_YUV) {
         transformYUV(td);
-    }else{
+    } else {
         tc_log_error(MOD_NAME, "unsupported Codec: %i\n", td->vob->im_v_codec);
         return TC_ERROR;
     }
@@ -626,9 +650,18 @@ static int transform_stop(TCModuleInstance *self)
     TransformData *td = NULL;
     TC_MODULE_SELF_CHECK(self, "stop");
     td = self->userdata;
-    if(td->src) tc_free(td->src);    
-    if(td->trans) tc_free(td->trans);    
-    if(td->f) fclose(td->f);
+    if (td->src) {
+        tc_free(td->src);
+        td->src = NULL;
+    }
+    if (td->trans) {
+        tc_free(td->trans);
+        td->trans = NULL;
+    }
+    if (td->f) {
+        fclose(td->f);
+        td->f = NULL;
+    }
     return TC_OK;
 }
 
@@ -645,7 +678,7 @@ static int transform_stop(TCModuleInstance *self)
  * the module.  See tcmodule-data.h for function details.
  */
 static int transform_inspect(TCModuleInstance *self, 
-			     const char *param, const char **value)
+            			     const char *param, const char **value)
 {
     TransformData *td = NULL;
     

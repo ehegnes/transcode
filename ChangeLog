@@ -1,3 +1,7 @@
+2008-09-18 Francesco Romani <fromani at gmail dot com>
+  * filter/stabilize/filter_transform.c
+  minor STYLE tweaks and fixes.
+
 2008-09-16 Francesco Romani <fromani at gmail dot com>
   * filter/stabilize/filter_stabilize.c filter/stabilize/transform.c
   minor STYLE tweaks and fixes.
