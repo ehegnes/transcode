@@ -323,7 +323,7 @@ int read_input_file(TransformData* td)
             else
                 s*=2;
             /* tc_log_info(MOD_NAME, "resize: %i\n", s); */
-            td->trans = realloc(td->trans, sizeof(Transform)* s);
+            td->trans = tc_realloc(td->trans, sizeof(Transform)* s);
             if (!td->trans) {
                 tc_log_error(MOD_NAME, "Cannot allocate memory"
                                        " for transformations: %i\n", s);
@@ -472,7 +472,7 @@ static int transform_init(TCModuleInstance *self, uint32_t features)
     TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
     
     td = tc_malloc(sizeof(TransformData));
-    if (td == NULL){
+    if (td == NULL) {
         tc_log_error(MOD_NAME, "init: out of memory!");
         return TC_ERROR;
     }
