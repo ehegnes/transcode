@@ -98,6 +98,7 @@
             Most commonly needed options are <option>-o</option>, <option>-y</option>, <option>-w</option>, <option>-a</option>, <option>-b</option>,
             <option>-M</option>, <option>-F</option> and a fair number of transcode session needs a little more than
             those. See section below for full description of all transcode options.
+            To inspect the properties of a module, such as their parameters or the help text, use the 'tcmodinfo' tool.
         </para>
     </refsect1>
     

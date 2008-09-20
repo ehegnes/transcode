@@ -1,3 +1,13 @@
+2008-09-20 Francesco Romani <fromani at gmail dot com>
+  * src/cmdline.c docs/man/transcode.1 docs/man/transcode.1.xml
+  suggest the usage of tcmodinfo to query for the parameters of the modules.
+
+  * docs/RELNOTES-1.1.0
+  complete the first version of the release notes.
+
+  * docs/CHANGES-1.0-1.1
+  'program output' section stub.
+
 2008-09-06 Francesco Romani <fromani at gmail dot com>
   * configure.in
   automatic fallback to pkg-config if present.
