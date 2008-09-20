@@ -204,6 +204,8 @@ static void usage(void)
 #define TC_OPTIONS_TO_HELP optwidth
 #include "cmdline_def.h"
 #undef TC_OPTIONS_TO_HELP
+    printf("\n");
+    printf("use tcmodinfo to discover module properties and configurable options.\n");
 }
 
 
