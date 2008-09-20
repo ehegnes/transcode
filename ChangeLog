@@ -1,3 +1,10 @@
+2008-09-20 Francesco Romani <fromani at gmail dot com>
+  * added files: libtc/tclist.c libtc/tclist.h testsuite/test-tclist.c
+
+  * testsuite/Makefile.am
+
+  add work-in-progress linked list support to libtc.
+
 2008-09-18 Francesco Romani <fromani at gmail dot com>
   * filter/stabilize/filter_transform.c
   minor STYLE tweaks and fixes.

@@ -33,6 +33,7 @@ noinst_PROGRAMS = \
 	test-resize-values \
 	test-tclog \
 	test-tcglob \
+	test-tclist \
 	test-tcmodule \
 	test-tcmoduleinfo \
 	test-tcstrdup
@@ -69,6 +70,9 @@ test_tclog_LDADD = $(LIBTC_LIBS)
 
 test_tcglob_SOURCES = test-tcglob.c
 test_tcglob_LDADD = $(LIBTC_LIBS)
+
+test_tclist_SOURCES = test-tclist.c
+test_tclist_LDADD = $(LIBTC_LIBS)
 
 test_tcmodule_SOURCES = test-tcmodule.c
 test_tcmodule_LDADD = $(LIBTC_LIBS)
