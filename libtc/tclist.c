@@ -316,12 +316,23 @@ static int free_item_all(TCListItem *item, void *unused)
     return 0;
 }
 
-int tc_list_fini_all(TCList *L)
+void tc_list_del(TCList *L, int deepclean)
 {
-    /* if !use_cache, this will not hurt anyone */
-    foreach_item(L->cache, DIR_FORWARD, free_item_all, NULL);
-    /* now reset to clean status */
-    return tc_list_init(L, 0);
+    if (deepclean) {
+        foreach_item(L->head,  DIR_FORWARD, free_item_all, NULL);
+        /* if !use_cache, this will not hurt anyone */
+        foreach_item(L->cache, DIR_FORWARD, free_item_all, NULL);
+    }
+    tc_free(L);
+}
+
+TCList *tc_list_new(int usecache)
+{
+    TCList *L = tc_malloc(sizeof(TCList));
+    if (L) {
+        tc_list_init(L, usecache);
+    }
+    return L;
 }
 
 /*************************************************************************/

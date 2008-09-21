@@ -6,7 +6,7 @@
   enable the build of tclist.
 
   * libtc/tclist.c libtc/tclist.h
-  fixes and enhancements.
+  fixes and enhancements. Small API change.
 
   * testsuite/test-tclist.c
   more tests.
