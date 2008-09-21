@@ -11,6 +11,13 @@
   * testsuite/test-tclist.c
   more tests.
 
+  * encode/encode_lavc.c export/export_ffmpeg.c export/ffmpeg_cfg.c
+    import/decode_lavc.c import/import_ffmpeg.c
+  keep up with last FFmpeg API changes.
+
+  * encode/encode_x264.c
+  keep up with x264 r64 API changes.
+
 2008-09-20 Francesco Romani <fromani at gmail dot com>
   * added files: libtc/tclist.c libtc/tclist.h testsuite/test-tclist.c
 

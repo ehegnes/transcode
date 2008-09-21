@@ -149,7 +149,11 @@ static TCConfigEntry conf[] ={
     /* How many B-frames between 2 reference pictures */
     OPT_RANGE(i_bframe,                   "bframes",        0,    16)
     /* Use adaptive B-frame encoding */
+#if X264_BUILD < 64
     OPT_FLAG (b_bframe_adaptive,          "b_adapt")
+#else
+    OPT_FLAG (i_bframe_adaptive,          "b_adapt")
+#endif
     /* How often B-frames are used */
     OPT_RANGE(i_bframe_bias,              "b_bias",       -90,   100)
     /* Keep some B-frames as references */
@@ -256,8 +260,10 @@ static TCConfigEntry conf[] ={
     /* QP ratio between P and B frames */
     OPT_FLOAT(rc.f_pb_factor,             "pb_ratio")
 
+#if X264_BUILD < 64
     /* Rate control equation for 2-pass encoding (like FFmpeg) */
     OPT_STR  (rc.psz_rc_eq,               "rc_eq")
+#endif
     /* Complexity blurring before QP compression */
     OPT_RANGF(rc.f_complexity_blur,       "cplx_blur",    0.0, 999.0)
     /* QP curve compression: 0.0 = constant bitrate, 1.0 = constant quality */

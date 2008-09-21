@@ -1093,10 +1093,12 @@ static void tc_lavc_dispatch_settings(TCLavcPrivateData *pd)
     SET_FLAG(pd, v4mv);
     SET_FLAG(pd, closedgop);
 
+#if LIBAVCODEC_VERSION_INT < ((52<<16)+(0<<8)+0)
     /* FIXME: coherency check */
     if (pd->ff_vcontext.rtp_payload_size > 0) {
         pd->ff_vcontext.rtp_mode = 1;
     }
+#endif
     if (pd->confdata.flags.closedgop) {
         pd->ff_vcontext.scenechange_threshold = 1000000;
     }
@@ -1230,11 +1232,19 @@ static int tc_lavc_read_config(TCLavcPrivateData *pd,
         { "ildct", PAUX(flags.ildct), TCCONF_TYPE_FLAG, 0, 0, CODEC_FLAG_INTERLACED_DCT },
         { "naq", PAUX(flags.naq), TCCONF_TYPE_FLAG, 0, 0, CODEC_FLAG_NORMALIZE_AQP },
         { "vdpart", PAUX(flags.vdpart), TCCONF_TYPE_FLAG, 0, 0, CODEC_FLAG_PART },
+#if LIBAVCODEC_VERSION_INT < ((52<<16)+(0<<8)+0)
         { "aic", PAUX(flags.aic), TCCONF_TYPE_FLAG, 0, 0, CODEC_FLAG_H263P_AIC },
+#else        
+        { "aic", PAUX(flags.aic), TCCONF_TYPE_FLAG, 0, 0, CODEC_FLAG_AC_PRED },
+#endif
         { "aiv", PAUX(flags.aiv), TCCONF_TYPE_FLAG, 0, 0, CODEC_FLAG_H263P_AIV },
         { "umv", PAUX(flags.umv), TCCONF_TYPE_FLAG, 0, 0, CODEC_FLAG_H263P_UMV },
         { "psnr", PAUX(flags.psnr), TCCONF_TYPE_FLAG, 0, 0, CODEC_FLAG_PSNR },
+#if LIBAVCODEC_VERSION_INT < ((52<<16)+(0<<8)+0)
         { "trell", PAUX(flags.trell), TCCONF_TYPE_FLAG, 0, 0, CODEC_FLAG_TRELLIS_QUANT },
+#else
+        { "trell", PCTX(trellis), TCCONF_TYPE_FLAG, 0, 0, 1 },
+#endif
         { "gray", PAUX(flags.gray), TCCONF_TYPE_FLAG, 0, 0, CODEC_FLAG_GRAY },
         { "v4mv", PAUX(flags.v4mv), TCCONF_TYPE_FLAG, 0, 0, CODEC_FLAG_4MV },
         { "closedgop", PAUX(flags.closedgop), TCCONF_TYPE_FLAG, 0, 0, CODEC_FLAG_CLOSED_GOP },
