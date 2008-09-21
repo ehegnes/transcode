@@ -519,7 +519,7 @@ TCList *module_read_config_list(const char *filename,
     if (!list) {
         tc_log_error(tag, "module_read_config_list(): unable to allocate list");
     }
-    tc_list_init(list);
+    tc_list_init(list, 0);
 
     /* Open the file */
     tc_snprintf(path_buf, sizeof(path_buf), "%s/%s",
@@ -575,19 +575,14 @@ TCList *module_read_config_list(const char *filename,
  * Return value:
  *     None.
  */
-void module_free_config_list(TCConfigList *list, int refonly)
+void module_free_config_list(TCList *list, int refonly)
 {
-    if (!refonly) {
-        tc_list_fini_all(list);
-    } else {
-        tc_list_fini(list);
-    }
-    tc_free(list);
+    tc_list_del(list, !refonly);
 }
 
 static int elem_printer(TCListItem *item, void *tag)
 {
-    tc_log_info(tag, "%s", item->data);
+    tc_log_info(tag, "%s", (const char*)item->data);
     return 0;
 }
     
@@ -618,7 +613,7 @@ void module_print_config_list(const TCList *list,
     }
 
     tc_log_info(tag, "[%s]", section);
-    tc_list_foreach(list, elem_printer, tag);
+    tc_list_foreach((TCList*)list, elem_printer, (char*)tag); /* ugh */
 }
 
 /*************************************************************************/

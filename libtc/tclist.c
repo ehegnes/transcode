@@ -63,6 +63,31 @@ static TCListItem *start_item(TCList *L, int direction)
     return ret;
 }
 
+static void del_item(TCList *L, TCListItem *IT)
+{
+    if (L->use_cache) {
+        IT->prev = NULL;
+        IT->data = NULL;
+        IT->next = L->cache;
+        L->cache = IT;
+    } else {
+        tc_free(IT);
+    }
+}
+
+static TCListItem *new_item(TCList *L)
+{
+    TCListItem *IT = NULL;
+    if (L->use_cache && L->cache) {
+        IT = L->cache;
+        L->cache = L->cache->next;
+    } else {
+        IT = tc_zalloc(sizeof(TCListItem));
+    }
+    return IT;
+}
+
+
 static int foreach_item(TCListItem *start, int direction,
                         TCListVisitor vis, void *userdata)
 {
@@ -129,11 +154,8 @@ static TCListItem *find_position(TCList *L, int pos)
                 FD.stop_idx = L->nelems + pos;
             }
             /* we can now catch some over/under-run common cases */
-            if (FD.stop_idx < 0) {
-                ret = L->head;
-            } else if (FD.stop_idx >= L->nelems) {
-                ret = L->tail;
-            } else { /* we want something in the middle, so let's run */
+            if (FD.stop_idx > 0 || FD.stop_idx < L->nelems) {
+                /* we want something in the middle, so let's run */
                 FD.ptr = NULL; /* for safeness */
                 foreach_item(start_item(L, FD.dir), FD.dir, elem_finder, &FD);
                 ret = FD.ptr; /* cannot fail */
@@ -143,28 +165,42 @@ static TCListItem *find_position(TCList *L, int pos)
     return ret;
 }
 
-static void del_item(TCList *L, TCListItem *IT)
+static int item_insert_before(TCList *L, int pos, void *data)
 {
-    if (L->use_cache) {
-        IT->prev = NULL;
-        IT->data = NULL;
-        IT->next = L->cache;
-        L->cache = IT;
-    } else {
-        tc_free(IT);
+    int ret = TC_ERROR;
+    TCListItem *ref = find_position(L, pos);
+    if (ref) {
+        TCListItem *ext = new_item(L);
+        if (ext) {
+            ext->data = data;
+            ref->prev->next = ext;
+            ext->prev = ref->prev;
+            ext->next = ref;
+            ref->prev = ext;
+            L->nelems++;
+            ret = TC_OK;
+        }
     }
+    return ret;
 }
 
-static TCListItem *new_item(TCList *L)
+static int item_insert_after(TCList *L, int pos, void *data)
 {
-    TCListItem *IT = NULL;
-    if (L->use_cache && L->cache) {
-        IT = L->cache;
-        L->cache = L->cache->next;
-    } else {
-        IT = tc_zalloc(sizeof(TCListItem));
+    int ret = TC_ERROR;
+    TCListItem *ref = find_position(L, pos);
+    if (ref) {
+        TCListItem *ext = new_item(L);
+        if (ext) {
+            ext->data = data;
+            ref->next->prev = ext;
+            ext->next = ref->next;
+            ext->prev = ref;
+            ref->next = ext;
+            L->nelems++;
+            ret = TC_OK;
+        }
     }
-    return IT;
+    return ret;
 }
 
 /*************************************************************************/
@@ -238,7 +274,7 @@ int tc_list_prepend(TCList *L, void *data)
             /* at least one element */
             L->head->prev = IT;
         }
-        L->head =IT;
+        L->head = IT;
         L->nelems++;
  
         ret = TC_OK;
@@ -246,17 +282,21 @@ int tc_list_prepend(TCList *L, void *data)
     return ret;
 }
 
+
 int tc_list_insert(TCList *L, int pos, void *data)
 {
     int ret = TC_ERROR;
-/*    if (L && data) {
+    if (L && data) {
         if (pos == 0) {
             ret = tc_list_prepend(L, data);
         } else if (pos == -1) {
             ret = tc_list_append(L, data);
+        } else if (pos > 0) {
+            ret = item_insert_before(L, pos, data);
         } else {
+            ret = item_insert_after(L, pos, data);
         }
-    }*/
+    }
     return ret;
 }
 

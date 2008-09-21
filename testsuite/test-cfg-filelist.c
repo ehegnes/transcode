@@ -32,7 +32,7 @@
 
 int main(int argc, char *argv[])
 {
-    TCConfigList *list = NULL;
+    TCList *list = NULL;
     const char *filename = NULL, *section = NULL;
     
     if (argc != 3) {
