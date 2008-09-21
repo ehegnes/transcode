@@ -170,7 +170,11 @@ void decode_lavc(decode_t *decode)
   lavc_dec_context->width  = x_dim;
   lavc_dec_context->height = y_dim;
 
-  lavc_dec_context->error_resilience = 2;
+#if LIBAVCODEC_VERSION_INT < ((52<<16)+(0<<8)+0)
+  lavc_dec_context->error_resilience  = 2;
+#else
+  lavc_dec_context->error_recognition = 2;
+#endif
   lavc_dec_context->error_concealment = 3;
   lavc_dec_context->workaround_bugs = FF_BUG_AUTODETECT;
 

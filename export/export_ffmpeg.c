@@ -665,8 +665,10 @@ MOD_init
     lavc_venc_context->luma_elim_threshold= lavc_param_luma_elim_threshold;
     lavc_venc_context->chroma_elim_threshold= lavc_param_chroma_elim_threshold;
     lavc_venc_context->rtp_payload_size   = lavc_param_packet_size;
+#if LIBAVCODEC_VERSION_INT < ((52<<16)+(0<<8)+0)   
     if (lavc_param_packet_size)
         lavc_venc_context->rtp_mode       = 1;
+#endif        
     lavc_venc_context->strict_std_compliance= lavc_param_strict;
     lavc_venc_context->i_quant_factor     = lavc_param_vi_qfactor;
     lavc_venc_context->i_quant_offset     = lavc_param_vi_qoffset;
@@ -886,7 +888,6 @@ MOD_init
     lavc_venc_context->flags |= lavc_param_gmc;
     lavc_venc_context->flags |= lavc_param_closedgop;
     lavc_venc_context->flags |= lavc_param_trunc;
-    lavc_venc_context->flags |= lavc_param_trell;
     lavc_venc_context->flags |= lavc_param_aic;
     lavc_venc_context->flags |= lavc_param_umv;
     lavc_venc_context->flags |= lavc_param_v4mv;
@@ -898,6 +899,11 @@ MOD_init
     lavc_venc_context->flags |= lavc_param_ss;
     lavc_venc_context->flags |= lavc_param_alt;
     lavc_venc_context->flags |= lavc_param_ilme;
+#if LIBAVCODEC_VERSION_INT < ((52<<16)+(0<<8)+0)   
+    lavc_venc_context->flags |= lavc_param_trell;
+#else
+    lavc_venc_context->trellis = lavc_param_trell;
+#endif
 
     if (lavc_param_gray)
         lavc_venc_context->flags |= CODEC_FLAG_GRAY;

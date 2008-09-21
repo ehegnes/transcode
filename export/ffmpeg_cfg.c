@@ -194,12 +194,20 @@ TCConfigEntry lavcopts_conf[]={
     {"predia", &lavc_param_pre_dia_size, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, -2000, 2000},
     {"dia", &lavc_param_dia_size, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, -2000, 2000},
     {"qpel", &lavc_param_qpel, TCCONF_TYPE_FLAG, 0, 0, CODEC_FLAG_QPEL},
+#if LIBAVCODEC_VERSION_INT < ((52<<16)+(0<<8)+0)   
     {"trell", &lavc_param_trell, TCCONF_TYPE_FLAG, 0, 0, CODEC_FLAG_TRELLIS_QUANT},
+#else
+    {"trell", &lavc_param_trell, TCCONF_TYPE_FLAG, 0, 0, 1},
+#endif
     {"last_pred", &lavc_param_last_pred, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 2000},
     {"preme", &lavc_param_pre_me, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 2000},
     {"subq", &lavc_param_me_subpel_quality, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 8},
     {"me_range", &lavc_param_me_range, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 16000},
+#if LIBAVCODEC_VERSION_INT < ((52<<16)+(0<<8)+0)   
     {"aic", &lavc_param_aic, TCCONF_TYPE_FLAG, 0, 0, CODEC_FLAG_H263P_AIC},
+#else
+    {"aic", &lavc_param_aic, TCCONF_TYPE_FLAG, 0, 0, CODEC_FLAG_AC_PRED},
+#endif    
     {"umv", &lavc_param_umv, TCCONF_TYPE_FLAG, 0, 0, CODEC_FLAG_H263P_UMV},
     {"ibias", &lavc_param_ibias, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, -512, 512},
     {"pbias", &lavc_param_pbias, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, -512, 512},
