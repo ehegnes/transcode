@@ -149,7 +149,9 @@ int tc_list_prepend(TCList *L, void *data);
 
 /*
  * tc_list_insert:
- *      WRITEME
+ *      the newly-inserted elements BECOMES the position `pos' on the list.
+ *      Position after the last -> the last.
+ *      Position before the first -> the first.
  */
 int tc_list_insert(TCList *L, int pos, void *data);
 

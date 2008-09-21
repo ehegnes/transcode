@@ -26,25 +26,51 @@
 
 /*************************************************************************/
 
+enum {
+    DIR_BACKWARD = -1,
+    DIR_FORWARD  = +1
+};
+
 static int free_item(TCListItem *item, void *unused)
 {
-    free(item);
+    tc_free(item);
     return 0;
 }
 
-static TCListItem* next_item(TCListItem *cur, int reversed)
+static TCListItem* next_item(TCListItem *cur, int direction)
 {
-    return (!cur) ?NULL :((reversed) ?cur->prev :cur->next);
+    TCListItem *ret = NULL;
+    if (cur) {
+        if (direction == DIR_BACKWARD) {
+            ret = cur->prev;
+        } else {
+            ret = cur->next;
+        }
+    }
+    return ret;
 }
 
-static int foreach_item(TCListItem *start, int reversed, 
+static TCListItem *start_item(TCList *L, int direction)
+{
+    TCListItem *ret = NULL;
+    if (L) {
+         if (direction == DIR_BACKWARD) {
+            ret = L->tail;
+        } else {
+            ret = L->head;
+        }
+    }
+    return ret;
+}
+
+static int foreach_item(TCListItem *start, int direction,
                         TCListVisitor vis, void *userdata)
 {
     int ret = 0;
     TCListItem *cur = NULL, *inc = NULL;
 
     for (cur = start; cur; cur = inc) {
-        inc = next_item(cur, reversed);
+        inc = next_item(cur, direction);
         ret = vis(cur, userdata);
         if (ret != 0) {
             break;
@@ -54,18 +80,67 @@ static int foreach_item(TCListItem *start, int reversed,
     return ret;
 }
 
-static TCListItem *find_item(TCList *L, int pos)
+struct find_data {
+    int         dir;
+    int         cur_idx;
+    int         stop_idx;
+    TCListItem *ptr;
+};
+
+static int elem_finder(TCListItem *item, void *userdata)
 {
-    /* common cases first */
+    struct find_data *FD = userdata;
+    int ret = 0;
+
+    FD->ptr = item;
+
+    if (FD->cur_idx != FD->stop_idx) {
+       FD->cur_idx += FD->dir;
+    } else {
+        ret = 1;
+    }
+    return ret;
+}
+
+static TCListItem *find_position(TCList *L, int pos)
+{
+    TCListItem *ret = NULL;
     if (L) {
+        /* common cases first */
         if (pos == 0) {
-            return L->head;
+            ret = L->head;
         } else if (pos == -1) {
-            return L->tail;
-//        } else {
+            ret = L->tail;
+        } else {
+            /* if we're here we can't avoid a full scan */
+            struct find_data FD = { DIR_FORWARD, 0, 0, NULL };
+            if (pos >= 0) {
+                FD.dir      = DIR_FORWARD; /* enforce */
+                FD.cur_idx  = 0;
+                FD.stop_idx = pos;
+            } else {
+                /* 
+                 * we're perfectly fine with negative indexes;
+                 * we'll just starting from the end going backwards
+                 * with -1 being the last element.
+                 */
+                FD.dir      = DIR_BACKWARD;
+                FD.cur_idx  = L->nelems - 1;
+                FD.stop_idx = L->nelems + pos;
+            }
+            /* we can now catch some over/under-run common cases */
+            if (FD.stop_idx < 0) {
+                ret = L->head;
+            } else if (FD.stop_idx >= L->nelems) {
+                ret = L->tail;
+            } else { /* we want something in the middle, so let's run */
+                FD.ptr = NULL; /* for safeness */
+                foreach_item(start_item(L, FD.dir), FD.dir, elem_finder, &FD);
+                ret = FD.ptr; /* cannot fail */
+            }
         }
     }
-    return NULL;
+    return ret;
 }
 
 static void del_item(TCList *L, TCListItem *IT)
@@ -111,7 +186,8 @@ int tc_list_init(TCList *L, int elemcache)
 int tc_list_fini(TCList *L)
 {
     /* if !use_cache, this will not hurt anyone */
-    foreach_item(L->cache, 0, free_item, NULL);
+    foreach_item(L->head,  DIR_FORWARD, free_item, NULL);
+    foreach_item(L->cache, DIR_FORWARD, free_item, NULL);
     /* now reset to clean status */
     return tc_list_init(L, 0);
 }
@@ -123,7 +199,7 @@ int tc_list_size(TCList *L)
 
 int tc_list_foreach(TCList *L, TCListVisitor vis, void *userdata)
 {
-    return foreach_item(L->head, 0, vis, userdata);
+    return foreach_item(L->head, DIR_FORWARD, vis, userdata);
 }
 
 int tc_list_append(TCList *L, void *data)
@@ -134,10 +210,13 @@ int tc_list_append(TCList *L, void *data)
     if (IT) {
         IT->data = data;
         IT->prev = L->tail;
-        L->tail = IT;
         if (!L->head) {
             L->head = IT;
+        } else {
+            /* at least one element */
+            L->tail->next = IT;
         }
+        L->tail = IT;
         L->nelems++;
  
         ret = TC_OK;
@@ -153,10 +232,13 @@ int tc_list_prepend(TCList *L, void *data)
     if (IT) {
         IT->data = data;
         IT->next = L->head;
-        L->head =IT;
         if (!L->tail) {
             L->tail = IT;
+        } else {
+            /* at least one element */
+            L->head->prev = IT;
         }
+        L->head =IT;
         L->nelems++;
  
         ret = TC_OK;
@@ -180,17 +262,33 @@ int tc_list_insert(TCList *L, int pos, void *data)
 
 void *tc_list_get(TCList *L, int pos)
 {
-    TCListItem *IT = find_item(L, pos);
+    TCListItem *IT = find_position(L, pos);
     return (IT) ?IT->data :NULL;
 }
 
 void *tc_list_pop(TCList *L, int pos)
 {
-    TCListItem *IT = find_item(L, pos);
+    TCListItem *IT = find_position(L, pos);
     void *data = NULL;
     if (IT) {
         data = IT->data;
+        if (L->head == IT) {
+            if (IT->next) {
+                IT->next->prev = NULL;
+            }
+            L->head = IT->next;
+        } else if (L->tail == IT) {
+            if (IT->prev) {
+                IT->prev->next = NULL;
+            }
+            L->tail = IT->prev;
+        } else {
+            IT->next->prev = IT->prev;
+            IT->prev->next = IT->next;
+        }
+        
         del_item(L, IT);
+        L->nelems--;
     }
     return data;
 }
@@ -221,7 +319,7 @@ static int free_item_all(TCListItem *item, void *unused)
 int tc_list_fini_all(TCList *L)
 {
     /* if !use_cache, this will not hurt anyone */
-    foreach_item(L->cache, 0, free_item_all, NULL);
+    foreach_item(L->cache, DIR_FORWARD, free_item_all, NULL);
     /* now reset to clean status */
     return tc_list_init(L, 0);
 }

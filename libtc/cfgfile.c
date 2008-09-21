@@ -485,65 +485,6 @@ static void parse_line_error(const char *buf, const char *filename, int line,
 /*************************************************************************/
 
 /**
- * list_new: create a new list item storing a copy of given data string.
- *
- * Parameters:
- *      value: string to copy into new list item.
- * Return value:
- *      pointer to new list item if succesfull.
- *      NULL otherwise.
- */
-
-static TCConfigList *list_new(const char *value)
-{
-    TCConfigList *list = tc_malloc(sizeof(TCConfigList));
-    if (list) {
-        list->next = NULL;
-        list->last = NULL;
-        list->value = NULL;
-
-        if (value) {
-            list->value = tc_strdup(value);
-            if (!list->value) {
-                tc_free(list);
-                list = NULL;
-            }
-        }
-    }
-    return list;
-}
-
-/**
- * list_append: append a new item storing given data on a given list.
- *
- * Parameters:
- *      list: list to append new item
- *     value: value to be copied into new item
- * Return value:
- *     0 succesfull
- *     !0 error
- */
-
-static int list_append(TCConfigList *list, const char *value)
-{
-    int ret = 1;
-    TCConfigList *item = list_new(value);
-    if (item) {
-        if (list->last != NULL) {
-            /* typical case */
-            list->last->next = item;
-        } else {
-            /* second item, special case */
-            list->next = item;
-        }
-        list->last = item;
-
-        ret = 0;
-    }
-    return ret;
-}
-
-/**
  * module_read_config_list:  Read a list section from given configuration
  * file and return the corresponding data list.
  *
@@ -556,11 +497,11 @@ static int list_append(TCConfigList *list, const char *value)
  *     NULL otherwise.
  */
 
-TCConfigList *module_read_config_list(const char *filename,
-                                      const char *section, const char *tag)
+TCList *module_read_config_list(const char *filename,
+                                const char *section, const char *tag)
 {
     char buf[TC_BUF_MAX], path_buf[PATH_MAX+1];
-    TCConfigList *list = NULL;
+    TCList *list = tc_malloc(sizeof(TCList));
     FILE *f = NULL;
     int line = 0;
 
@@ -568,13 +509,17 @@ TCConfigList *module_read_config_list(const char *filename,
     if (!tag)
         tag = __FILE__;
     if (!filename) {
-        tc_log_error(tag, "module_read_config(): missing filename");
+        tc_log_error(tag, "module_read_config_list(): missing filename");
         return 0;
     }
     if (!section) {
-        tc_log_error(tag, "module_read_config(): missing section");
+        tc_log_error(tag, "module_read_config_list(): missing section");
         return 0;
     }
+    if (!list) {
+        tc_log_error(tag, "module_read_config_list(): unable to allocate list");
+    }
+    tc_list_init(list);
 
     /* Open the file */
     tc_snprintf(path_buf, sizeof(path_buf), "%s/%s",
@@ -604,15 +549,7 @@ TCConfigList *module_read_config_list(const char *filename,
         if (*buf == '[') {
             break;
         } else {
-            int err = 1;
-
-            if (list) {
-                err = list_append(list, buf);
-            } else {
-                list = list_new(buf);
-                err = (list == NULL) ?1 :0;
-            }
-
+            int err  = tc_list_append_dup(list, buf, strlen(buf) + 1);
             if (err) {
                 tc_log_error(tag, "out of memory at line %i", line);
                 module_free_config_list(list, 0);
@@ -638,32 +575,34 @@ TCConfigList *module_read_config_list(const char *filename,
  * Return value:
  *     None.
  */
-
 void module_free_config_list(TCConfigList *list, int refonly)
 {
-    TCConfigList *item = NULL;
-    while (list) {
-        item = list->next;
-        if (!refonly) {
-            tc_free((void*)list->value);
-        }
-        tc_free(list);
-        list = item;
+    if (!refonly) {
+        tc_list_fini_all(list);
+    } else {
+        tc_list_fini(list);
     }
+    tc_free(list);
 }
+
+static int elem_printer(TCListItem *item, void *tag)
+{
+    tc_log_info(tag, "%s", item->data);
+    return 0;
+}
+    
 
 /**
  * module_print_config_list:  Prints the given configuration list.
  *
  * Parameters:
- *     list: Head of configuration list.
+ *     list: Configuration list to be printed.
  *  section: Name of section on which configuration list belongs.
  *      tag: Tag to use in log messages.
  * Return value:
  *     None.
  */
-
-void module_print_config_list(const TCConfigList *list,
+void module_print_config_list(const TCList *list,
                               const char *section, const char *tag)
 {
     /* Sanity checks */
@@ -679,9 +618,7 @@ void module_print_config_list(const TCConfigList *list,
     }
 
     tc_log_info(tag, "[%s]", section);
-    for (; list != NULL; list = list->next) {
-        tc_log_info(tag, "%s", list->value);
-    }
+    tc_list_foreach(list, elem_printer, tag);
 }
 
 /*************************************************************************/

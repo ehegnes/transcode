@@ -11,6 +11,8 @@
 #ifndef LIBTC_CFGFILE_H
 #define LIBTC_CFGFILE_H
 
+#include "tclist.h"
+
 /*************************************************************************/
 
 /* Configuration entry types */
@@ -54,23 +56,16 @@ void module_print_config(const TCConfigEntry *conf, const char *tag);
 
 /*************************************************************************/
 
-typedef struct tcconfiglist_ TCConfigList;
-struct tcconfiglist_ {
-    char *value;
-    TCConfigList *next;
-    TCConfigList *last;
-};
-
 /* Read a List section of a configuration file. Triggered by PVM module. */
-TCConfigList *module_read_config_list(const char *filename,
-                                      const char *section, const char *tag);
+TCList *module_read_config_list(const char *filename,
+                                const char *section, const char *tag);
 
 /* Print module configuration list for a given section */
-void module_print_config_list(const TCConfigList *list,
+void module_print_config_list(const TCList *list,
 			      const char *section, const char *tag);
 
 /* Dispose a configuration list produced by read_config_list */
-void module_free_config_list(TCConfigList *list, int refonly);
+void module_free_config_list(TCList *list, int refonly);
 
 /*************************************************************************/
 

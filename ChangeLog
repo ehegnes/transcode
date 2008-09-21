@@ -1,3 +1,16 @@
+2008-09-21 Francesco Romani <fromani at gmail dot com>
+  * libtc/cfgfile.c libtc/cfgfile.h
+  switch to new tclist implementation.
+
+  * libtc/Makefile.am
+  enable the build of tclist.
+
+  * libtc/tclist.c libtc/tclist.h
+  fixes and enhancements.
+
+  * testsuite/test-tclist.c
+  more tests.
+
 2008-09-20 Francesco Romani <fromani at gmail dot com>
   * added files: libtc/tclist.c libtc/tclist.h testsuite/test-tclist.c
 
