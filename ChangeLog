@@ -1,10 +1,13 @@
 2008-09-21 Francesco Romani <fromani at gmail dot com>
   * encode/encode_lavc.c export/export_ffmpeg.c export/ffmpeg_cfg.c
     import/decode_lavc.c import/import_ffmpeg.c
- keep up with last FFmpeg API changes.
+  keep up with last FFmpeg API changes.
 
- * encode/encode_x264.c
- keep up with x264 r64 API changes.
+  * encode/encode_x264.c
+  keep up with x264 r64 API changes.
+
+  * configure.in
+  transcode 1.1.0-beta2
 
 2008-09-20 Francesco Romani <fromani at gmail dot com>
   * src/cmdline.c docs/man/transcode.1 docs/man/transcode.1.xml
