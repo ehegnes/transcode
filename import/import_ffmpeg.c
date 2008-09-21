@@ -361,7 +361,11 @@ do_avi:
     lavc_dec_context->height = y_dim;
 
     if (vob->decolor) lavc_dec_context->flags |= CODEC_FLAG_GRAY;
+#if LIBAVCODEC_VERSION_INT < ((52<<16)+(0<<8)+0)
     lavc_dec_context->error_resilience = FF_ER_COMPLIANT;
+#else
+    lavc_dec_context->error_recognition = FF_ER_COMPLIANT;
+#endif
     lavc_dec_context->error_concealment = FF_EC_GUESS_MVS|FF_EC_DEBLOCK;
     lavc_dec_context->workaround_bugs = workarounds;
     lavc_dec_context->codec_tag= (fourCC[0]<<24) | (fourCC[1]<<16) |

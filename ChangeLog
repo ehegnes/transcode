@@ -1,3 +1,12 @@
+2008-09-21 Francesco Romani <fromani at gmail dot com>
+  * export/export_ffmpeg.c export/ffmpeg_cfg.c import/decode_lavc.c
+    import/import_ffmpeg.c
+  keep up with lastest ffmpeg API changes.
+  Patch courtesy of Alexis Ballier <aballier at gentoo dot org>
+
+  * configure.in
+  transcode 1.0.7rc1
+
 2008-08-21 Francesco Romani <fromani at gmail dot com>
   * filter/pp/filter_pp.c
   fix include header path.
