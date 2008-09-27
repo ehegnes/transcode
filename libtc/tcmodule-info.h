@@ -51,11 +51,9 @@
 #define TC_MODULE_FLAG_DELAY            0x00000002
 /* module require more than one input frame to work */
 #define TC_MODULE_FLAG_BUFFERING        0x00000004
-/* module require extra internal buffering 
- * (XXX: this flag will hopefully vanish soon) */
+/* module require extra internal buffering */ 
 #define TC_MODULE_FLAG_CONVERSION       0x00000010
-/* module requires an unavoidable csp conversion)
- * (XXX: this flag will hopefully vanish soon) */
+/* module requires an unavoidable csp conversion) */
 
 /*
  * this structure will hold all the interesting informations
