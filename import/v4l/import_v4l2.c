@@ -2,6 +2,8 @@
  *  import_v4l2.c
  *
  *  By Erik Slagter <erik@slagter.name> Sept 2003
+ *  some cleanup and tuning support:
+ *  Francesco Romani <fromani@gmail.com> Sept 2008
  *
  *  This file is part of transcode, a video stream processing tool
  *
@@ -22,13 +24,13 @@
  */
 
 #define MOD_NAME        "import_v4l2.so"
-#define MOD_VERSION     "v1.5.0 (2008-09-13)"
+#define MOD_VERSION     "v1.6.0 (2008-10-28)"
 #define MOD_CODEC       "(video) v4l2 | (audio) pcm"
 
 #include "transcode.h"
 
 static int verbose_flag     = TC_QUIET;
-static int capability_flag  = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422 | TC_CAP_PCM;
+static int capability_flag  = TC_CAP_RGB|TC_CAP_YUV|TC_CAP_YUV422|TC_CAP_PCM;
 
 /*%*
  *%* DESCRIPTION 
@@ -69,7 +71,8 @@ static int capability_flag  = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422 | TC_CAP_P
  *%*
  *%* OPTION
  *%*   convert (integer)
- *%*     forces video frames convertion by using index; use -1 to get a list of supported conversions.
+ *%*     forces video frames convertion by using index; use the special value "list"
+ *%*     to get a list of supported conversions.
  *%*
  *%* OPTION
  *%*   format (integer)
@@ -78,9 +81,20 @@ static int capability_flag  = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422 | TC_CAP_P
  *%* OPTION
  *%*   format (string)
  *%*     forces output format to given one; use "list" to get a list of supported formats.
+ *%*
+ *%* OPTION
+ *%*   input (string)
+ *%*     select the V4L input source. V4L cards have often have more than an input source like,
+ *%*     say, a tv tuner and a composite source. Use "list" parameter to get a list of supported
+ *%*     input sources.
+ *%*
+ *%* OPTION
+ *%*   channel (string)
+ *%*     synthonize the V4L tuner to selected TV channel. The channel frequncies are taken by
+ *%*     the module configuration file.
  *%*/
 
-#define MOD_PRE         v4l2
+#define MOD_PRE         tc_v4l2
 #include "import_def.h"
 
 #define _ISOC9X_SOURCE 1
@@ -103,14 +117,14 @@ static int capability_flag  = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422 | TC_CAP_P
 
 #include "libtc/libtc.h"
 #include "libtc/optstr.h"
+#include "libtc/cfgfile.h"
 #include "libtcvideo/tcvideo.h"
 
-#define TC_V4L2_BUFFERS_NUM          (32)
-
+#define TC_V4L2_CHANNELS_FILE           "tvchannels.cfg"
+#define TC_V4L2_BUFFERS_NUM             (32)
+#define TC_V4L2_DEFAULT_TUNER_ID        (0)
 
 /*
-    use se ts=4 for correct layout
-
     Changelog
 
     1.0.0   EMS first published version
@@ -154,7 +168,11 @@ static int capability_flag  = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_YUV422 | TC_CAP_P
                 adjusted saa7134 audio message to make clear the user must take action
     1.4.0   AC  switch to aclib for image conversion
     1.5.0   FR  made STYLEish and switched to optstr
+    1.6.0   FR  tuning support
+            internal rename v4l2_* -> tc_v4l_* to make te code libv4l-safe.
 */
+
+/* TODO: memset() verify and sanitization */
 
 typedef enum { 
     resync_none,
@@ -175,7 +193,6 @@ struct tcv4lbuffer {
     void    *start;
     size_t  length;
 };
-static TCV4LBuffer *v4l2_buffers = NULL;
 
 typedef struct tccroparea_ TCCropArea;
 struct tccroparea_ {
@@ -187,37 +204,42 @@ struct tccroparea_ {
 
 typedef struct v4l2source_ V4L2Source;
 struct v4l2source_ {
-    int             video_fd;
-    int             audio_fd;
-    ImageFormat     fmt;
-    int             overrun_guard;
-    int             buffers_count;
-    int             frame_rate;
-    int             width;
-    int             height;
-    TCCropArea      crop;
-    int             crop_enabled;
-    int             convert_idx;
-    int             tuner_index;
+    int               video_fd;
+    int               audio_fd;
 
-    char            crop_parm[128];
-    char            format_string[128];
+    ImageFormat       fmt;
+    int               overrun_guard;
+    int               buffers_count;
 
-    TCVHandle       tcvhandle;
+    int               frame_rate;
+    int               width;
+    int               height;
+ 
+    TCCropArea        crop;
+    int               crop_enabled;
+    int               convert_id;
 
-    TCV4LBuffer     buffers[TC_V4L2_BUFFERS_NUM];
+    struct v4l2_input input;
+    struct v4l2_tuner tuner;
+    int               has_tuner; /* flag */
 
-    int             saa7134_audio;
+    char              crop_parm[TC_BUF_MIN];
+    char              format_name[TC_BUF_MIN];
+    char              input_name[TC_BUF_MIN];
+    char              channel_name[TC_BUF_MIN];
 
-    v4l2_resync_op  video_resync_op;
-    int             resync_margin_frames;
-    int             resync_interval_frames;
-    int             video_sequence;
-    int             audio_sequence;
-    int             video_cloned;
-    int             video_dropped;
+    TCVHandle         tcvhandle;
+    TCV4LBuffer       buffers[TC_V4L2_BUFFERS_NUM];
+    int               saa7134_audio;
+    v4l2_resync_op    video_resync_op;
+    int               resync_margin_frames;
+    int               resync_interval_frames;
+    int               video_sequence;
+    int               audio_sequence;
+    int               video_cloned;
+    int               video_dropped;
 
-    uint8_t         *resync_previous_frame;
+    uint8_t           *resync_previous_frame;
 };
 
 static TCV4LConversion v4l2_format_conversions[] = {
@@ -249,11 +271,11 @@ static TCV4LConversion v4l2_format_conversions[] = {
  * IMAGE FORMAT CONVERSION ROUTINE
  * ============================================================*/
 
-static void v4l2_format_convert(V4L2Source *vs,
-                                uint8_t *source, uint8_t *dest)
+static void tc_v4l2_convert(V4L2Source *vs,
+                            uint8_t *source, uint8_t *dest)
 {
-    if (vs->convert_idx >= 0) {
-        const TCV4LConversion *conv = &v4l2_format_conversions[vs->convert_idx];
+    if (vs->convert_id >= 0) {
+        const TCV4LConversion *conv = &v4l2_format_conversions[vs->convert_id];
         tcv_convert(vs->tcvhandle,
                     source, dest, vs->width, vs->height,
                     conv->from, conv->to);
@@ -265,7 +287,7 @@ static void v4l2_format_convert(V4L2Source *vs,
  * UTILS
  * ============================================================*/
 
-static int v4l2_mute(V4L2Source *vs, int flag)
+static int tc_v4l2_mute(V4L2Source *vs, int flag)
 {
     struct v4l2_control control = {
         .id    = V4L2_CID_AUDIO_MUTE,
@@ -282,7 +304,7 @@ static int v4l2_mute(V4L2Source *vs, int flag)
 }
 
 
-static int v4l2_video_clone_frame(V4L2Source *vs, uint8_t *dest, size_t size)
+static int tc_v4l2_video_clone_frame(V4L2Source *vs, uint8_t *dest, size_t size)
 {
     if (!vs->resync_previous_frame)
         memset(dest, 0, size);
@@ -292,7 +314,7 @@ static int v4l2_video_clone_frame(V4L2Source *vs, uint8_t *dest, size_t size)
     return 1;
 }
 
-static void v4l2_save_frame(V4L2Source *vs, const uint8_t *source, size_t length)
+static void tc_v4l2_video_save_frame(V4L2Source *vs, const uint8_t *source, size_t length)
 {
     if (!vs->resync_previous_frame)
         vs->resync_previous_frame = tc_malloc(length);
@@ -300,17 +322,17 @@ static void v4l2_save_frame(V4L2Source *vs, const uint8_t *source, size_t length
     ac_memcpy(vs->resync_previous_frame, source, length);
 }
 
-static int v4l2_video_grab_frame(V4L2Source *vs, uint8_t *dest, size_t length)
+static int tc_v4l2_video_grab_frame(V4L2Source *vs, uint8_t *dest, size_t length)
 {
     static struct v4l2_buffer buffer;
-    int ix;
-    int eio = 0;
+    int ix, err = 0, eio = 0;
 
     // get buffer
     buffer.type     = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buffer.memory   = V4L2_MEMORY_MMAP;
 
-    if (ioctl(vs->video_fd, VIDIOC_DQBUF, &buffer) < 0) {
+    err = ioctl(vs->video_fd, VIDIOC_DQBUF, &buffer);
+    if (err < 0) {
         tc_log_perror(MOD_NAME,
                       "error in setup grab buffer (ioctl(VIDIOC_DQBUF) failed)");
 
@@ -325,7 +347,8 @@ static int v4l2_video_grab_frame(V4L2Source *vs, uint8_t *dest, size_t length)
                 buffer.index    = ix;
                 buffer.flags    = 0;
 
-                if (ioctl(vs->video_fd, VIDIOC_DQBUF, &buffer) < 0)
+                err = ioctl(vs->video_fd, VIDIOC_DQBUF, &buffer);
+                if (err < 0)
                     tc_log_perror(MOD_NAME,
                                   "error in recovering grab buffer (ioctl(DQBUF) failed)");
             }
@@ -336,7 +359,8 @@ static int v4l2_video_grab_frame(V4L2Source *vs, uint8_t *dest, size_t length)
                 buffer.index    = ix;
                 buffer.flags    = 0;
 
-                if (ioctl(vs->video_fd, VIDIOC_QBUF, &buffer) < 0)
+                err = ioctl(vs->video_fd, VIDIOC_QBUF, &buffer);
+                if (err < 0)
                     tc_log_perror(MOD_NAME,
                                   "error in recovering grab buffer (ioctl(QBUF) failed)");
             }
@@ -347,7 +371,7 @@ static int v4l2_video_grab_frame(V4L2Source *vs, uint8_t *dest, size_t length)
 
     // copy frame
     if (dest) {
-        v4l2_format_convert(vs, vs->buffers[ix].start, dest);
+        tc_v4l2_convert(vs, vs->buffers[ix].start, dest);
     }
 
     // enqueue buffer again
@@ -356,7 +380,8 @@ static int v4l2_video_grab_frame(V4L2Source *vs, uint8_t *dest, size_t length)
         buffer.memory   = V4L2_MEMORY_MMAP;
         buffer.flags    = 0;
 
-        if (ioctl(vs->video_fd, VIDIOC_QBUF, &buffer) < 0) {
+        err = ioctl(vs->video_fd, VIDIOC_QBUF, &buffer);
+        if (err < 0) {
             tc_log_perror(MOD_NAME, "error in enqueuing buffer (ioctl(VIDIOC_QBUF) failed)");
             return TC_OK;
         }
@@ -365,7 +390,7 @@ static int v4l2_video_grab_frame(V4L2Source *vs, uint8_t *dest, size_t length)
     return 1;
 }
 
-static int v4l2_video_count_buffers(V4L2Source *vs)
+static int tc_v4l2_video_count_buffers(V4L2Source *vs)
 {
     struct v4l2_buffer buffer;
     int ix, ret, buffers_filled = 0;
@@ -389,8 +414,9 @@ static int v4l2_video_count_buffers(V4L2Source *vs)
     return buffers_filled;
 }
 
-static int v4l2_setup_cropping(V4L2Source *vs, const char *v4l2_crop_parm,
-                               int width, int height)
+static int tc_v4l2_video_setup_cropping(V4L2Source *vs,
+                                        const char *v4l2_crop_parm,
+                                        int width, int height)
 {
     size_t slen = strlen(v4l2_crop_parm);
     struct v4l2_cropcap cropcap;
@@ -398,7 +424,7 @@ static int v4l2_setup_cropping(V4L2Source *vs, const char *v4l2_crop_parm,
     int ret;
     
     if (!v4l2_crop_parm || !slen) {
-        return TC_ERROR;
+        return TC_OK;
     }
     if (sscanf(v4l2_crop_parm, "%ux%u+%ux%u",
                &vs->crop.width, &vs->crop.height,
@@ -487,11 +513,13 @@ static int v4l2_setup_cropping(V4L2Source *vs, const char *v4l2_crop_parm,
     return 0;
 }
 
-static int v4l2_check_capabilities(V4L2Source *vs)
+static int tc_v4l2_video_check_capabilities(V4L2Source *vs)
 {
     struct v4l2_capability caps;
+    int err = 0;
 
-    if (ioctl(vs->video_fd, VIDIOC_QUERYCAP, &caps) < 0) {
+    err = ioctl(vs->video_fd, VIDIOC_QUERYCAP, &caps);
+    if (err < 0) {
         tc_log_error(MOD_NAME, "driver does not support querying capabilities");
         return TC_ERROR;
     }
@@ -515,36 +543,40 @@ static int v4l2_check_capabilities(V4L2Source *vs)
     return TC_OK;
 }
 
-static int v4l2_setup_image_format(V4L2Source *vs, int width, int height)
+static int tc_v4l2_video_setup_image_format(V4L2Source *vs, int width, int height)
 {
     TCV4LConversion *fcp = v4l2_format_conversions;
-    int ix = 0, found = 0;
+    int ix = 0, err = 0, found = 0;
+    struct v4l2_format format;
 
     vs->width  = width;
     vs->height = height;
 
     for (ix = 0; ix < CONVERSIONS_NUM; ix++) {
-        if ((fcp[ix].to == vs->fmt) && ((vs->convert_idx >= 0) && (vs->convert_idx == ix))) {
-            struct v4l2_format format;
+        if (fcp[ix].to != vs->fmt)
+            continue;
 
-            memset(&format, 0, sizeof(format));
-            format.type                 = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-            format.fmt.pix.width        = width;
-            format.fmt.pix.height       = height;
-            format.fmt.pix.pixelformat  = fcp[ix].v4l_format;
+        if ((vs->convert_id >= 0) && (vs->convert_id != ix))
+            continue;
 
-            if (ioctl(vs->video_fd, VIDIOC_S_FMT, &format) < 0) {
-                if (verbose_flag >= TC_INFO) {
-                    tc_log_warn(MOD_NAME, "bad pixel format conversion: %s", fcp[ix].description);
-                }
-            } else {
-                if (verbose_flag >= TC_INFO) {
-                    tc_log_info(MOD_NAME, "found pixel format conversion: %s", fcp[ix].description);
-                }
-                vs->convert_idx = ix;
-                found = 1;
-                break;
+        memset(&format, 0, sizeof(format));
+        format.type                 = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+        format.fmt.pix.width        = width;
+        format.fmt.pix.height       = height;
+        format.fmt.pix.pixelformat  = fcp[ix].v4l_format;
+
+        err = ioctl(vs->video_fd, VIDIOC_S_FMT, &format);
+        if (err < 0) {
+            if (verbose_flag >= TC_INFO) {
+                tc_log_warn(MOD_NAME, "bad pixel format conversion: %s", fcp[ix].description);
             }
+        } else {
+            if (verbose_flag >= TC_INFO) {
+                tc_log_info(MOD_NAME, "found pixel format conversion: %s", fcp[ix].description);
+            }
+            vs->convert_id = ix;
+            found = 1;
+            break;
         }
     }
 
@@ -555,9 +587,10 @@ static int v4l2_setup_image_format(V4L2Source *vs, int width, int height)
     return TC_OK;
 }
 
-static int v4l2_setup_stream_parameters(V4L2Source *vs, int fps)
+static int tc_v4l2_video_setup_stream_parameters(V4L2Source *vs, int fps)
 {
     struct v4l2_streamparm streamparm;
+    int err = 0;
 
     memset(&streamparm, 0, sizeof(streamparm));
     streamparm.type                                     = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -565,7 +598,8 @@ static int v4l2_setup_stream_parameters(V4L2Source *vs, int fps)
     streamparm.parm.capture.timeperframe.numerator      = 1e7;
     streamparm.parm.capture.timeperframe.denominator    = fps;
 
-    if (ioctl(vs->video_fd, VIDIOC_S_PARM, &streamparm) < 0) {
+    err = ioctl(vs->video_fd, VIDIOC_S_PARM, &streamparm);
+    if (err < 0) {
         if (verbose_flag) {
             tc_log_warn(MOD_NAME, "driver does not support setting parameters (ioctl(VIDIOC_S_PARM) returns \"%s\")",
                         errno <= sys_nerr ? sys_errlist[errno] : "unknown");
@@ -574,63 +608,14 @@ static int v4l2_setup_stream_parameters(V4L2Source *vs, int fps)
     return TC_OK;
 }
 
-static int v4l2_setup_TV_standard(V4L2Source *vs)
+static int tc_v4l2_video_get_TV_standard(V4L2Source *vs)
 {
     struct v4l2_standard standard;
     v4l2_std_id stdid;
-    int ix = 0;
+    int err = 0;
 
-    if (!strcmp(vs->format_string, "list")) {
-        for (ix = 0; ix < 128; ix++) {
-            standard.index = ix;
-
-            if (ioctl(vs->video_fd, VIDIOC_ENUMSTD, &standard) < 0) {
-                if (errno == EINVAL)
-                    break;
-
-                tc_log_perror(MOD_NAME,
-                              "error in enumerating TV standards (ioctl(VIDIOC_ENUMSTD) failed)");
-                return TC_ERROR;
-            }
-
-            tc_log_info(MOD_NAME, "%s", standard.name);
-        }
-
-        return TC_ERROR;
-    }
-
-    if (strlen(vs->format_string) > 0) {
-        for (ix = 0; ix < 128; ix++) {
-            standard.index = ix;
-
-            if (ioctl(vs->video_fd, VIDIOC_ENUMSTD, &standard) < 0) {
-                if (errno == EINVAL)
-                    break;
-
-                tc_log_perror(MOD_NAME,
-                              "error in enumerating TV standards (ioctl(VIDIOC_ENUMSTD) failed)");
-                return TC_ERROR;
-            }
-
-            if (!strcasecmp(standard.name, vs->format_string))
-                break;
-        }
-
-        if (ix == 128) {
-            tc_log_error(MOD_NAME, "unknown format %s", vs->format_string);
-            return TC_ERROR;
-        }
-
-        if (ioctl(vs->video_fd, VIDIOC_S_STD, &standard.id) < 0) {
-            tc_log_perror(MOD_NAME, "error in setting TV standard (ioctl(VIDIOC_S_STD) failed)");
-            return -1;
-        }
-
-        if (verbose_flag & TC_INFO)
-            tc_log_info(MOD_NAME, "colour & framerate standard set to: [%s]", standard.name);
-    }
-
-    if (ioctl(vs->video_fd, VIDIOC_G_STD, &stdid) < 0) {
+    err = ioctl(vs->video_fd, VIDIOC_G_STD, &stdid);
+    if (err < 0) {
         tc_log_warn(MOD_NAME, "driver does not support get std (ioctl(VIDIOC_G_STD) returns \"%s\")",
                     errno <= sys_nerr ? sys_errlist[errno] : "unknown");
         memset(&stdid, 0, sizeof(v4l2_std_id));
@@ -640,16 +625,19 @@ static int v4l2_setup_TV_standard(V4L2Source *vs)
         vs->frame_rate = 30;
     } else if (stdid & V4L2_STD_625_50) {
         vs->frame_rate = 25;
-   } else {
+    } else {
         tc_log_info(MOD_NAME, "unknown TV std, defaulting to 50 Hz field rate");
         vs->frame_rate = 25;
     }
 
     if (verbose_flag & TC_INFO) {
+        int ix;
+
         for (ix = 0; ix < 128; ix++) {
             standard.index = ix;
 
-            if (ioctl(vs->video_fd, VIDIOC_ENUMSTD, &standard) < 0) {
+            err = ioctl(vs->video_fd, VIDIOC_ENUMSTD, &standard);
+            if (err < 0) {
                 if (errno == EINVAL)
                     break;
 
@@ -664,24 +652,104 @@ static int v4l2_setup_TV_standard(V4L2Source *vs)
 
         tc_log_info(MOD_NAME, "receiving %d frames / sec", vs->frame_rate);
     }
-
     return TC_OK;
 }
 
-static int v4l2_get_capture_buffer_count(V4L2Source *vs)
+static int tc_v4l2_video_list_TV_standards(V4L2Source *vs)
+{
+    struct v4l2_standard standard;
+    int ix, err = 0;
+
+    for (ix = 0; ix < 128; ix++) {
+        standard.index = ix;
+
+        err = ioctl(vs->video_fd, VIDIOC_ENUMSTD, &standard);
+        if (err < 0) {
+            if (errno == EINVAL)
+                break;
+
+            tc_log_perror(MOD_NAME,
+                          "error in enumerating TV standards (ioctl(VIDIOC_ENUMSTD) failed)");
+            return TC_ERROR;
+        }
+
+        if (standard.id & vs->input.std) {
+            tc_log_info(MOD_NAME, "%s", standard.name);
+        }
+    }
+
+    return TC_ERROR;
+}
+
+static int tc_v4l2_video_setup_TV_standard(V4L2Source *vs)
+{
+    struct v4l2_standard standard;
+    int err, ix = 0, found  = 0, supported = 0;
+
+    if (!strcmp(vs->format_name, "list")) {
+        return tc_v4l2_video_list_TV_standards(vs);
+    }
+
+    if (strlen(vs->format_name) > 0) {
+        for (ix = 0; ix < 128; ix++) {
+            standard.index = ix;
+
+            err = ioctl(vs->video_fd, VIDIOC_ENUMSTD, &standard);
+            if (err < 0) {
+                if (errno == EINVAL)
+                    break;
+
+                tc_log_perror(MOD_NAME,
+                              "error in enumerating TV standards (ioctl(VIDIOC_ENUMSTD) failed)");
+                return TC_ERROR;
+            }
+
+            if (!strcasecmp(standard.name, vs->format_name)) {
+                found = 1;
+                if (standard.id & vs->input.std) {
+                    supported = 1;
+                }
+            }
+        }
+
+        if (!found) {
+            tc_log_error(MOD_NAME, "unknown format '%s'", vs->format_name);
+            return TC_ERROR;
+        }
+        if (!supported) {
+            tc_log_error(MOD_NAME, "current input doesn't support format '%s'", vs->format_name);
+            return TC_ERROR;
+        }
+
+        err = ioctl(vs->video_fd, VIDIOC_S_STD, &standard.id);
+        if (err < 0) {
+            tc_log_perror(MOD_NAME, "error in setting TV standard (ioctl(VIDIOC_S_STD) failed)");
+            return TC_ERROR;
+        }
+
+        if (verbose_flag & TC_INFO) {
+            tc_log_info(MOD_NAME, "colour & framerate standard set to: [%s]", standard.name);
+        }
+    }
+    return tc_v4l2_video_get_TV_standard(vs);
+}
+
+static int tc_v4l2_video_get_capture_buffer_count(V4L2Source *vs)
 {
     struct v4l2_requestbuffers reqbuf;
+    int err = 0;
 
     reqbuf.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     reqbuf.memory = V4L2_MEMORY_MMAP;
     reqbuf.count  = TC_V4L2_BUFFERS_NUM;
 
-    if (ioctl(vs->video_fd, VIDIOC_REQBUFS, &reqbuf) < 0) {
+    err = ioctl(vs->video_fd, VIDIOC_REQBUFS, &reqbuf);
+    if (err < 0) {
         tc_log_perror(MOD_NAME, "VIDIOC_REQBUFS");
         return TC_ERROR;
     }
 
-    vs->buffers_count = reqbuf.count;
+    vs->buffers_count = TC_MIN(reqbuf.count, TC_V4L2_BUFFERS_NUM);
 
     if (vs->buffers_count < 2) {
         tc_log_error(MOD_NAME, "not enough buffers for capture");
@@ -689,16 +757,17 @@ static int v4l2_get_capture_buffer_count(V4L2Source *vs)
     }
 
     if (verbose_flag & TC_INFO)
-        tc_log_info(MOD_NAME, "%d buffers available", vs->buffers_count);
+        tc_log_info(MOD_NAME, "%i buffers available (maximum supported: %i)",
+                    vs->buffers_count, TC_V4L2_BUFFERS_NUM);
 
     return TC_OK;
 }
 
 
-static int v4l2_setup_capture_buffers(V4L2Source *vs)
+static int tc_v4l2_video_setup_capture_buffers(V4L2Source *vs)
 {
     struct v4l2_buffer buffer;
-    int ix = 0;
+    int ix, err = 0;
 
     /* map the buffers */
     for (ix = 0; ix < vs->buffers_count; ix++) {
@@ -706,15 +775,16 @@ static int v4l2_setup_capture_buffers(V4L2Source *vs)
         buffer.memory   = V4L2_MEMORY_MMAP;
         buffer.index    = ix;
 
-        if (ioctl(vs->video_fd, VIDIOC_QUERYBUF, &buffer) < 0) {
+        err = ioctl(vs->video_fd, VIDIOC_QUERYBUF, &buffer);
+        if (err < 0) {
             tc_log_perror(MOD_NAME, "VIDIOC_QUERYBUF");
             return TC_ERROR;
         }
 
-        v4l2_buffers[ix].length = buffer.length;
-        v4l2_buffers[ix].start  = mmap(0, buffer.length, PROT_READ|PROT_WRITE, MAP_SHARED, vs->video_fd, buffer.m.offset);
+        vs->buffers[ix].length = buffer.length;
+        vs->buffers[ix].start  = mmap(0, buffer.length, PROT_READ|PROT_WRITE, MAP_SHARED, vs->video_fd, buffer.m.offset);
 
-        if (v4l2_buffers[ix].start == MAP_FAILED) {
+        if (vs->buffers[ix].start == MAP_FAILED) {
             tc_log_perror(MOD_NAME, "mmap");
             return TC_ERROR;
         }
@@ -726,7 +796,8 @@ static int v4l2_setup_capture_buffers(V4L2Source *vs)
         buffer.memory   = V4L2_MEMORY_MMAP;
         buffer.index    = ix;
 
-        if (ioctl(vs->video_fd, VIDIOC_QBUF, &buffer) < 0) {
+        err = ioctl(vs->video_fd, VIDIOC_QBUF, &buffer);
+        if (err < 0) {
             tc_log_perror(MOD_NAME, "VIDIOC_QBUF");
             return TC_ERROR;
         }
@@ -735,11 +806,12 @@ static int v4l2_setup_capture_buffers(V4L2Source *vs)
     return TC_OK;
 }
 
-static int v4l2_capture_start(V4L2Source *vs)
+static int tc_v4l2_capture_start(V4L2Source *vs)
 {
-    int arg = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    int err = 0, arg = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-    if (ioctl(vs->video_fd, VIDIOC_STREAMON, &arg) < 0) {
+    err = ioctl(vs->video_fd, VIDIOC_STREAMON, &arg);
+    if (err < 0) {
         /* ugh, needs VIDEO_CAPTURE */
         tc_log_perror(MOD_NAME, "VIDIOC_STREAMON");
         return TC_ERROR;
@@ -748,11 +820,12 @@ static int v4l2_capture_start(V4L2Source *vs)
     return TC_OK;
 }
 
-static int v4l2_capture_stop(V4L2Source *vs)
+static int tc_v4l2_capture_stop(V4L2Source *vs)
 {
-    int arg = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    int err = 0, arg = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-    if (ioctl(vs->video_fd, VIDIOC_STREAMOFF, &arg) < 0) {
+    err = ioctl(vs->video_fd, VIDIOC_STREAMOFF, &arg);
+    if (err < 0) {
         /* ugh, needs VIDEO_CAPTURE */
         tc_log_perror(MOD_NAME, "VIDIOC_STREAMOFF");
         return TC_ERROR;
@@ -761,9 +834,75 @@ static int v4l2_capture_stop(V4L2Source *vs)
     return TC_OK;
 }
 
-
-static int v4l2_parse_options(V4L2Source *vs, int layout, const char *options)
+static int tc_v4l2_video_get_tuner_properties(V4L2Source *vs)
 {
+    int err = 0;
+
+    memset(&(vs->tuner), 0, sizeof(vs->tuner));
+
+    if (vs->input.type != V4L2_INPUT_TYPE_TUNER) {
+        if (verbose_flag) {
+            tc_log_info(MOD_NAME, "input has not tuner");
+        }
+    } else {
+        vs->tuner.index = vs->input.tuner;
+        err = ioctl(vs->video_fd, VIDIOC_G_TUNER, &(vs->tuner));
+        if (err) {
+            tc_log_perror(MOD_NAME, "getting input tuner properties");
+            return TC_ERROR;
+        }
+        
+        if (verbose_flag) {
+            tc_log_info(MOD_NAME, "input has attached tuner '%s'", vs->tuner.name);
+        }
+        vs->has_tuner = 1;
+    }
+    return TC_OK;
+}
+
+static int tc_v4l2_video_set_tuner_frequency(V4L2Source *vs)
+{
+    /* sanity check */
+    if (vs->has_tuner && (vs->channel_name && strlen(vs->channel_name))) {
+        struct v4l2_frequency freq;
+        int chan_freq = 0, div = 625000; /* unit = Hz/10, in KHz */
+        int ret = 0;
+
+        TCConfigEntry chan_conf[] = {
+            { "frequency", &chan_freq, TCCONF_TYPE_INT, 0, 0, 0 },
+            /* FIXME: add limits */
+            /* End of the config file */
+            { NULL, 0, 0, 0, 0, 0 }
+        };
+
+        ret = module_read_config(TC_V4L2_CHANNELS_FILE,
+                                 vs->channel_name,
+                                 chan_conf, MOD_NAME);
+        if (!ret) {
+            tc_log_error(MOD_NAME, "missing channels configuration file.");
+            return TC_ERROR;
+        }
+
+        if (vs->tuner.capability & V4L2_TUNER_CAP_LOW) {
+            div /= 1000; /* KHz -> Hz */
+        }
+        memset(&freq, 0, sizeof(freq));
+        freq.tuner     = vs->tuner.index;
+        freq.type      = vs->tuner.type;
+        freq.frequency = 10 * chan_freq / div;
+
+        ret = ioctl(vs->video_fd, VIDIOC_S_FREQUENCY, &freq);
+        if (ret != 0) {
+            tc_log_perror(MOD_NAME, "tuning the channel");
+            return TC_ERROR;
+        }
+    }
+    return TC_OK; /* silently skip on error */
+}
+
+static int tc_v4l2_parse_options(V4L2Source *vs, int layout, const char *options)
+{
+    char fmt_name[TC_BUF_MIN] = { '\0' };
     int ix = 0;
 
     switch (layout) {
@@ -783,20 +922,30 @@ static int v4l2_parse_options(V4L2Source *vs, int layout, const char *options)
         return TC_ERROR;
     }
 
-    optstr_get(options, "resync_margin",   "%i",    &vs->resync_margin_frames);
-    optstr_get(options, "resync_interval", "%i",    &vs->resync_interval_frames);
-    optstr_get(options, "overrun_guard",   "%i",    &vs->overrun_guard);
-    optstr_get(options, "crop",            "%[^:]", vs->crop_parm);
-    optstr_get(options, "convert",         "%i",    &vs->convert_idx);
-    optstr_get(options, "format",          "%[^:]", vs->format_string);
+    /* reset to defaults */
+    vs->convert_id = -1;
 
-    if (vs->convert_idx == -1) { /* list */
+    if (options) {
+        optstr_get(options, "resync_margin",   "%i",    &vs->resync_margin_frames);
+        optstr_get(options, "resync_interval", "%i",    &vs->resync_interval_frames);
+        optstr_get(options, "overrun_guard",   "%i",    &vs->overrun_guard);
+        optstr_get(options, "crop",            "%[^:]", vs->crop_parm);
+        optstr_get(options, "format",          "%[^:]", vs->format_name);
+        optstr_get(options, "convert",         "%[^:]", fmt_name);
+        optstr_get(options, "input",           "%[^:]", vs->input_name);
+        optstr_get(options, "channel",         "%[^:]", vs->channel_name);
+    }
+
+    if (!strcmp(fmt_name, "list")) {
         TCV4LConversion *fcp = v4l2_format_conversions;
         for (ix = 0; ix < CONVERSIONS_NUM; ix++)
             tc_log_info(MOD_NAME,
                         "conversion index: %d = %s", ix, fcp[ix].description);
 
         return TC_ERROR;
+    }
+    if (fmt_name[0]) { /* ugly */
+        vs->convert_id = atoi(fmt_name);
     }
 
     if (verbose_flag & TC_INFO) {
@@ -810,7 +959,82 @@ static int v4l2_parse_options(V4L2Source *vs, int layout, const char *options)
 
     return TC_OK;
 }
+
+static int tc_v4l2_video_get_input_source(V4L2Source *vs)
+{
+    int err = 0;
+    
+    err = ioctl(vs->video_fd, VIDIOC_G_INPUT, &(vs->input.index));
+    if (err) {
+        tc_log_perror(MOD_NAME, "getting the default input source");
+        return TC_ERROR;
+    }
+    err = ioctl(vs->video_fd, VIDIOC_ENUMINPUT, &(vs->input));
+    if (err) {
+        tc_log_perror(MOD_NAME, "getting the default input source properties");
+        return TC_ERROR;
+    }
+    if (verbose_flag) {
+        tc_log_info(MOD_NAME, "using input '%s'", vs->input.name);
+    }
  
+    return TC_OK;
+}
+
+static int tc_v4l2_video_list_input_sources(V4L2Source *vs)
+{
+    struct v4l2_input input;
+    int err = 0;
+    uint32_t i;
+
+    for (i = 0; !err; i++) {
+        input.index = i;
+        err = ioctl(vs->video_fd, VIDIOC_ENUMINPUT, &input);
+        if (!err) {
+            tc_log_info(MOD_NAME, "input source: '%s'", input.name);
+        }
+    }
+    return TC_ERROR;
+}
+
+static int tc_v4l2_video_setup_input_source(V4L2Source *vs)
+{
+   if (!strcmp(vs->input_name, "list")) {
+        return tc_v4l2_video_list_input_sources(vs);
+   }
+
+    if (strlen(vs->input_name) > 0) {
+        int err = 0, idx = 0, found = 0;
+        uint32_t i = 0;
+
+        for (i = 0; !err; i++) {
+            vs->input.index = i;
+            err = ioctl(vs->video_fd, VIDIOC_ENUMINPUT, &(vs->input));
+            if (!err) {
+                if (strcasecmp(vs->input.name, vs->input_name) == 0) {
+                    found = 1;
+                }
+            }
+        }
+        /* sanity checks */
+        if (err && errno != EINVAL) {
+            tc_log_perror(MOD_NAME, "selecting the input source");
+            return TC_ERROR;
+        }
+        if (!found) {
+            tc_log_error(MOD_NAME, "unknown input source '%s'", vs->input_name);
+            return TC_ERROR;
+        } 
+
+        idx = vs->input.index;
+        err = ioctl(vs->video_fd, VIDIOC_S_INPUT, &idx);
+        if (err) {
+            tc_log_perror(MOD_NAME, "setting the input source");
+            return TC_ERROR;
+        }
+    }
+    return tc_v4l2_video_get_input_source(vs);
+}
 
 /* ============================================================
  * V4L2 CORE
@@ -822,12 +1046,12 @@ static int v4l2_parse_options(V4L2Source *vs, int layout, const char *options)
     } \
 } while (0)
 
-static int v4l2_video_init(V4L2Source *vs, 
+static int tc_v4l2_video_init(V4L2Source *vs, 
                            int layout, const char *device,
                            int width, int height, int fps,
                            const char *options)
 {
-    int ret = v4l2_parse_options(vs, layout, options);
+    int ret = tc_v4l2_parse_options(vs, layout, options);
     RETURN_IF_FAILED(ret);
 
     vs->tcvhandle = tcv_init();
@@ -842,37 +1066,46 @@ static int v4l2_video_init(V4L2Source *vs,
         return TC_ERROR;
     }
 
-    ret = v4l2_check_capabilities(vs);
+    ret = tc_v4l2_video_check_capabilities(vs);
     RETURN_IF_FAILED(ret);
 
-    ret = v4l2_setup_image_format(vs, width, height);
+    ret = tc_v4l2_video_setup_image_format(vs, width, height);
     RETURN_IF_FAILED(ret);
 
-    ret = v4l2_setup_stream_parameters(vs, fps);
+    ret = tc_v4l2_video_setup_stream_parameters(vs, fps);
     RETURN_IF_FAILED(ret);
 
-    ret = v4l2_setup_TV_standard(vs);
+    ret = tc_v4l2_video_setup_input_source(vs);
     RETURN_IF_FAILED(ret);
 
-    ret = v4l2_setup_cropping(vs, vs->crop_parm, width, height);
+    ret = tc_v4l2_video_setup_TV_standard(vs);
     RETURN_IF_FAILED(ret);
 
-    ret = v4l2_get_capture_buffer_count(vs);
+    ret = tc_v4l2_video_get_tuner_properties(vs);
     RETURN_IF_FAILED(ret);
 
-    ret = v4l2_setup_capture_buffers(vs);
+    tc_v4l2_video_set_tuner_frequency(vs);
     RETURN_IF_FAILED(ret);
 
-    if (!v4l2_mute(vs, 0))
+    ret = tc_v4l2_video_setup_cropping(vs, vs->crop_parm, width, height);
+    RETURN_IF_FAILED(ret);
+
+    ret = tc_v4l2_video_get_capture_buffer_count(vs);
+    RETURN_IF_FAILED(ret);
+
+    ret = tc_v4l2_video_setup_capture_buffers(vs);
+    RETURN_IF_FAILED(ret);
+
+    if (!tc_v4l2_mute(vs, 0))
         return TC_ERROR;
 
-    return v4l2_capture_start(vs);
+    return tc_v4l2_capture_start(vs);
 }
 
-static int v4l2_video_get_frame(V4L2Source *vs, uint8_t *data, size_t size)
+static int tc_v4l2_video_get_frame(V4L2Source *vs, uint8_t *data, size_t size)
 {
     if (vs->overrun_guard) {
-        int buffers_filled = v4l2_video_count_buffers(vs);
+        int buffers_filled = tc_v4l2_video_count_buffers(vs);
 
         if (buffers_filled > (vs->buffers_count * 3 / 4)) {
             tc_log_error(MOD_NAME, "running out of capture buffers (%d left from %d total), "
@@ -880,25 +1113,25 @@ static int v4l2_video_get_frame(V4L2Source *vs, uint8_t *data, size_t size)
                                    vs->buffers_count - buffers_filled,
                                    vs->buffers_count);
 
-            return v4l2_capture_stop(vs);
+            return tc_v4l2_capture_stop(vs);
         }
     }
 
     switch (vs->video_resync_op) {
         case resync_clone:
-            if (!v4l2_video_clone_frame(vs, data, size))
+            if (!tc_v4l2_video_clone_frame(vs, data, size))
                 return 1;
             break;
 
         case resync_drop:
-            if (!v4l2_video_grab_frame(vs, 0, 0))
+            if (!tc_v4l2_video_grab_frame(vs, 0, 0))
                 return 1;
-            if (!v4l2_video_grab_frame(vs, data, size))
+            if (!tc_v4l2_video_grab_frame(vs, data, size))
                 return 1;
             break;
 
         case resync_none:
-            if (!v4l2_video_grab_frame(vs, data, size))
+            if (!tc_v4l2_video_grab_frame(vs, data, size))
                 return 1;
             break;
 
@@ -915,7 +1148,7 @@ static int v4l2_video_get_frame(V4L2Source *vs, uint8_t *data, size_t size)
      && ((vs->resync_interval_frames == 0) || (vs->video_sequence % vs->resync_interval_frames) == 0)) {
         if (abs(vs->audio_sequence - vs->video_sequence) > vs->resync_margin_frames) {
             if (vs->audio_sequence > vs->video_sequence) {
-                v4l2_save_frame(vs, data, size);
+                tc_v4l2_video_save_frame(vs, data, size);
                 vs->video_cloned++;
                 vs->video_resync_op = resync_clone;
             } else {
@@ -937,14 +1170,14 @@ static int v4l2_video_get_frame(V4L2Source *vs, uint8_t *data, size_t size)
     return TC_OK;
 }
 
-static int v4l2_video_grab_stop(V4L2Source *vs)
+static int tc_v4l2_video_grab_stop(V4L2Source *vs)
 {
     int ix, ret;
 
-    if (!v4l2_mute(vs, 1))
+    if (!tc_v4l2_mute(vs, 1))
         return 1;
 
-    ret = v4l2_capture_stop(vs);
+    ret = tc_v4l2_capture_stop(vs);
     RETURN_IF_FAILED(ret);
 
     for (ix = 0; ix < vs->buffers_count; ix++)
@@ -962,10 +1195,10 @@ static int v4l2_video_grab_stop(V4L2Source *vs)
     return TC_OK;
 }
 
-static int v4l2_audio_init(V4L2Source *vs, const char *device,
+static int tc_v4l2_audio_init(V4L2Source *vs, const char *device,
                            int rate, int bits, int channels)
 {
-    int version, tmp;
+    int version, tmp, err = 0;
 
     vs->audio_fd = open(device, O_RDONLY, 0);
     if (vs->audio_fd < 0) {
@@ -983,19 +1216,22 @@ static int v4l2_audio_init(V4L2Source *vs, const char *device,
         return TC_ERROR;
     }
 
-    if (ioctl(vs->audio_fd, OSS_GETVERSION, &version) < 0) {
+    err = ioctl(vs->audio_fd, OSS_GETVERSION, &version);
+    if (err < 0) {
         tc_log_perror(MOD_NAME, "OSS_GETVERSION");
         return TC_ERROR;
     }
 
     tmp = (bits == 8) ?AFMT_U8 :AFMT_S16_LE;
 
-    if (ioctl(vs->audio_fd, SNDCTL_DSP_SETFMT, &tmp) < 0) {
+    err = ioctl(vs->audio_fd, SNDCTL_DSP_SETFMT, &tmp);
+    if (err < 0) {
         tc_log_perror(MOD_NAME, "SNDCTL_DSP_SETFMT");
         return TC_ERROR;
     }
 
-    if (ioctl(vs->audio_fd, SNDCTL_DSP_CHANNELS, &channels) < 0) {
+    err = ioctl(vs->audio_fd, SNDCTL_DSP_CHANNELS, &channels);
+    if (err < 0) {
         tc_log_perror(MOD_NAME, "SNDCTL_DSP_CHANNELS");
         return TC_ERROR;
     }
@@ -1012,7 +1248,8 @@ static int v4l2_audio_init(V4L2Source *vs, const char *device,
      * it's operation depending on it.
      *
      */
-    if (ioctl(vs->audio_fd, SNDCTL_DSP_SPEED, &tmp) >= 0) {
+    err = ioctl(vs->audio_fd, SNDCTL_DSP_SPEED, &tmp);
+    if (err >= 0) {
         if (tmp == 0 || tmp == 32000)
             vs->saa7134_audio = 1;
     }
@@ -1025,7 +1262,8 @@ static int v4l2_audio_init(V4L2Source *vs, const char *device,
     } else {
         /* this is the real sample rate setting */
         tmp = rate;
-        if (ioctl(vs->audio_fd, SNDCTL_DSP_SPEED, &tmp) < 0) {
+        err = ioctl(vs->audio_fd, SNDCTL_DSP_SPEED, &tmp);
+        if (err < 0) {
             tc_log_perror(MOD_NAME, "SNDCTL_DSP_SPEED");
             return TC_ERROR;
         }
@@ -1038,7 +1276,7 @@ static int v4l2_audio_init(V4L2Source *vs, const char *device,
     return TC_OK;
 }
 
-static int v4l2_audio_grab_frame(V4L2Source *vs, uint8_t *buffer, size_t size)
+static int tc_v4l2_audio_grab_frame(V4L2Source *vs, uint8_t *buffer, size_t size)
 {
     int left     = size;
     int offset   = 0;
@@ -1075,7 +1313,7 @@ static int v4l2_audio_grab_frame(V4L2Source *vs, uint8_t *buffer, size_t size)
     return TC_OK;
 }
 
-static int v4l2_audio_grab_stop(V4L2Source *vs)
+static int tc_v4l2_audio_grab_stop(V4L2Source *vs)
 {
     close(vs->audio_fd);
 
@@ -1101,14 +1339,14 @@ static V4L2Source VS;
 MOD_open
 {
     if (param->flag == TC_VIDEO) {
-        if (v4l2_video_init(&VS,
+        if (tc_v4l2_video_init(&VS,
                             vob->im_v_codec, vob->video_in_file,
                             vob->im_v_width, vob->im_v_height,
                             vob->fps, vob->im_v_string)) {
             return TC_ERROR;
         }
     } else if(param->flag == TC_AUDIO) {
-        if (v4l2_audio_init(&VS,
+        if (tc_v4l2_audio_init(&VS,
                             vob->audio_in_file,
                             vob->a_rate, vob->a_bits, vob->a_chan)) {
             return TC_ERROR;
@@ -1128,12 +1366,12 @@ MOD_open
 MOD_decode
 {
     if (param->flag == TC_VIDEO) {
-        if (v4l2_video_get_frame(&VS, param->buffer, param->size)) {
+        if (tc_v4l2_video_get_frame(&VS, param->buffer, param->size)) {
             tc_log_error(MOD_NAME, "error in grabbing video");
             return TC_ERROR;
         }
     } else if (param->flag == TC_AUDIO) {
-        if (v4l2_audio_grab_frame(&VS, param->buffer, param->size)) {
+        if (tc_v4l2_audio_grab_frame(&VS, param->buffer, param->size)) {
             tc_log_error(MOD_NAME, "error in grabbing audio");
             return TC_ERROR;
         }
@@ -1152,9 +1390,9 @@ MOD_decode
 MOD_close
 {
     if (param->flag == TC_VIDEO) {
-        v4l2_video_grab_stop(&VS);
+        tc_v4l2_video_grab_stop(&VS);
     } else if (param->flag == TC_AUDIO) {
-        v4l2_audio_grab_stop(&VS);
+        tc_v4l2_audio_grab_stop(&VS);
     } else {
         tc_log_error(MOD_NAME, "unsupported request (close)");
         return TC_ERROR;
