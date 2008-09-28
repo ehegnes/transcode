@@ -24,7 +24,7 @@
  */
 
 #define MOD_NAME        "import_v4l2.so"
-#define MOD_VERSION     "v1.6.0 (2008-10-28)"
+#define MOD_VERSION     "v1.6.1 (2008-10-28)"
 #define MOD_CODEC       "(video) v4l2 | (audio) pcm"
 
 #include "transcode.h"
@@ -90,8 +90,8 @@ static int capability_flag  = TC_CAP_RGB|TC_CAP_YUV|TC_CAP_YUV422|TC_CAP_PCM;
  *%*
  *%* OPTION
  *%*   channel (string)
- *%*     synthonize the V4L tuner to selected TV channel. The channel frequncies are taken by
- *%*     the module configuration file.
+ *%*     synthonize the V4L tuner to selected TV channel. The channel frequencies are taken by
+ *%*     the module configuration file, and they must be expressed in KHz.
  *%*/
 
 #define MOD_PRE         tc_v4l2
@@ -170,6 +170,7 @@ static int capability_flag  = TC_CAP_RGB|TC_CAP_YUV|TC_CAP_YUV422|TC_CAP_PCM;
     1.5.0   FR  made STYLEish and switched to optstr
     1.6.0   FR  tuning support
             internal rename v4l2_* -> tc_v4l_* to make te code libv4l-safe.
+    1.6.1   FR  verbosiness fixes (made module more silent by default).
 */
 
 /* TODO: memset() verify and sanitization */
@@ -295,7 +296,7 @@ static int tc_v4l2_mute(V4L2Source *vs, int flag)
     };
     int ret = ioctl(vs->video_fd, VIDIOC_S_CTRL, &control);
     if (ret < 0) {
-        if (verbose_flag & TC_INFO)
+        if (verbose_flag > TC_INFO)
             tc_log_perror(MOD_NAME,
                           "error in muting (ioctl(VIDIOC_S_CTRL) failed)");
         return 0;
@@ -534,7 +535,7 @@ static int tc_v4l2_video_check_capabilities(V4L2Source *vs)
         return TC_ERROR;
     }
 
-    if (verbose_flag & TC_INFO)
+    if (verbose_flag > TC_INFO)
         tc_log_info(MOD_NAME, "v4l2 video grabbing, driver = %s, card = %s",
                     caps.driver, caps.card);
 
@@ -571,7 +572,7 @@ static int tc_v4l2_video_setup_image_format(V4L2Source *vs, int width, int heigh
                 tc_log_warn(MOD_NAME, "bad pixel format conversion: %s", fcp[ix].description);
             }
         } else {
-            if (verbose_flag >= TC_INFO) {
+            if (verbose_flag > TC_INFO) {
                 tc_log_info(MOD_NAME, "found pixel format conversion: %s", fcp[ix].description);
             }
             vs->convert_id = ix;
@@ -630,7 +631,7 @@ static int tc_v4l2_video_get_TV_standard(V4L2Source *vs)
         vs->frame_rate = 25;
     }
 
-    if (verbose_flag & TC_INFO) {
+    if (verbose_flag > TC_INFO) {
         int ix;
 
         for (ix = 0; ix < 128; ix++) {
@@ -646,8 +647,10 @@ static int tc_v4l2_video_get_TV_standard(V4L2Source *vs)
                 return TC_ERROR;
             }
 
-            if (standard.id == stdid)
-                tc_log_info(MOD_NAME, "v4l device supports format [%s] ", standard.name);
+            if (standard.id == stdid) {
+                tc_log_info(MOD_NAME, "V4L2 device supports format [%s] ", standard.name);
+                break;
+            }
         }
 
         tc_log_info(MOD_NAME, "receiving %d frames / sec", vs->frame_rate);
@@ -727,7 +730,7 @@ static int tc_v4l2_video_setup_TV_standard(V4L2Source *vs)
             return TC_ERROR;
         }
 
-        if (verbose_flag & TC_INFO) {
+        if (verbose_flag > TC_INFO) {
             tc_log_info(MOD_NAME, "colour & framerate standard set to: [%s]", standard.name);
         }
     }
@@ -756,7 +759,7 @@ static int tc_v4l2_video_get_capture_buffer_count(V4L2Source *vs)
         return TC_ERROR;
     }
 
-    if (verbose_flag & TC_INFO)
+    if (verbose_flag > TC_INFO)
         tc_log_info(MOD_NAME, "%i buffers available (maximum supported: %i)",
                     vs->buffers_count, TC_V4L2_BUFFERS_NUM);
 
@@ -841,7 +844,7 @@ static int tc_v4l2_video_get_tuner_properties(V4L2Source *vs)
     memset(&(vs->tuner), 0, sizeof(vs->tuner));
 
     if (vs->input.type != V4L2_INPUT_TYPE_TUNER) {
-        if (verbose_flag) {
+        if (verbose_flag > TC_INFO) {
             tc_log_info(MOD_NAME, "input has not tuner");
         }
     } else {
@@ -852,7 +855,7 @@ static int tc_v4l2_video_get_tuner_properties(V4L2Source *vs)
             return TC_ERROR;
         }
         
-        if (verbose_flag) {
+        if (verbose_flag > TC_INFO) {
             tc_log_info(MOD_NAME, "input has attached tuner '%s'", vs->tuner.name);
         }
         vs->has_tuner = 1;
@@ -865,8 +868,7 @@ static int tc_v4l2_video_set_tuner_frequency(V4L2Source *vs)
     /* sanity check */
     if (vs->has_tuner && (vs->channel_name && strlen(vs->channel_name))) {
         struct v4l2_frequency freq;
-        int chan_freq = 0, div = 625000; /* unit = Hz/10, in KHz */
-        int ret = 0;
+        int ret = 0, chan_freq = 0;
 
         TCConfigEntry chan_conf[] = {
             { "frequency", &chan_freq, TCCONF_TYPE_INT, 0, 0, 0 },
@@ -879,17 +881,24 @@ static int tc_v4l2_video_set_tuner_frequency(V4L2Source *vs)
                                  vs->channel_name,
                                  chan_conf, MOD_NAME);
         if (!ret) {
-            tc_log_error(MOD_NAME, "missing channels configuration file.");
+            tc_log_error(MOD_NAME, "Error reading the frequencies"
+                                   " configuration file.");
             return TC_ERROR;
         }
 
-        if (vs->tuner.capability & V4L2_TUNER_CAP_LOW) {
-            div /= 1000; /* KHz -> Hz */
-        }
         memset(&freq, 0, sizeof(freq));
         freq.tuner     = vs->tuner.index;
         freq.type      = vs->tuner.type;
-        freq.frequency = 10 * chan_freq / div;
+        /* 
+         * The base unit (see V4L spec) is 62.5 KHz. 
+         * From configuration file we got frequency in KHz.
+         * In order to safely do an integer division, we multiply
+         * both operands by 4 (so 62.5*4 = 250)
+         */
+        freq.frequency = (chan_freq * 4) / 250;
+        if (vs->tuner.capability & V4L2_TUNER_CAP_LOW) {
+            freq.frequency *= 1000; /* KHz -> Hz */
+        }
 
         ret = ioctl(vs->video_fd, VIDIOC_S_FREQUENCY, &freq);
         if (ret != 0) {
@@ -948,7 +957,7 @@ static int tc_v4l2_parse_options(V4L2Source *vs, int layout, const char *options
         vs->convert_id = atoi(fmt_name);
     }
 
-    if (verbose_flag & TC_INFO) {
+    if (verbose_flag > TC_INFO) {
         if (vs->resync_margin_frames == 0) {
             tc_log_info(MOD_NAME, "resync disabled");
         } else {
@@ -974,7 +983,7 @@ static int tc_v4l2_video_get_input_source(V4L2Source *vs)
         tc_log_perror(MOD_NAME, "getting the default input source properties");
         return TC_ERROR;
     }
-    if (verbose_flag) {
+    if (verbose_flag > TC_INFO) {
         tc_log_info(MOD_NAME, "using input '%s'", vs->input.name);
     }
  
@@ -1157,7 +1166,7 @@ static int tc_v4l2_video_get_frame(V4L2Source *vs, uint8_t *data, size_t size)
             }
         }
 
-        if (vs->video_resync_op != resync_none && (verbose_flag & TC_INFO)) {
+        if (vs->video_resync_op != resync_none && (verbose_flag > TC_INFO)) {
             tc_log_msg(MOD_NAME, "OP: %s VS/AS: %d/%d C/D: %d/%d",
                        vs->video_resync_op == resync_drop ? "drop" : "clone",
                        vs->video_sequence, vs->audio_sequence,
@@ -1255,7 +1264,7 @@ static int tc_v4l2_audio_init(V4L2Source *vs, const char *device,
     }
 
     if (vs->saa7134_audio) {
-        if(verbose_flag & TC_INFO)
+        if(verbose_flag)
             tc_log_info(MOD_NAME,
                         "Audio input from saa7134 detected, you should "
                         "set audio sample rate to 32 Khz using -e");
@@ -1317,7 +1326,7 @@ static int tc_v4l2_audio_grab_stop(V4L2Source *vs)
 {
     close(vs->audio_fd);
 
-    if (verbose_flag & TC_INFO) {
+    if (verbose_flag) {
         tc_log_msg(MOD_NAME, "Totals: sequence V/A: %d/%d, frames C/D: %d/%d",
                    vs->video_sequence, vs->audio_sequence,
                    vs->video_cloned,  vs->video_dropped);

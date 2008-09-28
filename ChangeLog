@@ -2,7 +2,10 @@
   * import/v4l/import_v4l2.c
   bugfixes against the regressions introduced in module version 1.5.0.
   internal renaming to be libv4l safe, just in case.
-  add basic experimental (= mostly untested) tuning support.
+  add basic experimental (= fairly untested) tuning support.
+  And yes, I've changed my mind on this topic, having in-module tuning
+  capabilities is useful.
+  made module more silent by default.
 
 2008-09-21 Francesco Romani <fromani at gmail dot com>
   * libtc/cfgfile.c libtc/cfgfile.h
