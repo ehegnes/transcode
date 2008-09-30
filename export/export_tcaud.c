@@ -1,6 +1,6 @@
 /*
  *  export_tcaud.c - generic audio export frontend module
- *  (C) 2007 Francesco Romani <fromani at gmail dot com>
+ *  (C) 2007-2008 Francesco Romani <fromani at gmail dot com>
  *  incorporates code from former aud_aux.c, which was
  *  Copyright (C) Thomas Oestreich - June 2001
  *  Copyright (C) Nicolas LAURENT - August 2003

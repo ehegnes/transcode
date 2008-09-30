@@ -2,7 +2,7 @@
  * test-cfg-filelist.c -- testsuite for module_*_config_list family; 
  *                        everyone feel free to add more tests and improve
  *                        existing ones.
- * (C) 2007 - Francesco Romani <fromani -at- gmail -dot- com>
+ * (C) 2007-2008 - Francesco Romani <fromani -at- gmail -dot- com>
  *
  * This file is part of transcode, a video stream processing tool.
  *
