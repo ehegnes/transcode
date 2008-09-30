@@ -1,6 +1,6 @@
 /*
  * wavlib.h - simple WAV I/O library interface
- * Copyright (C) 2006 Francesco Romani <fromani at gmail dot com>
+ * Copyright (C) 2006-2008 Francesco Romani <fromani at gmail dot com>
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the authors be held liable for any damages
@@ -46,8 +46,8 @@ static uint16_t bswap_16(uint16_t x)
 static uint32_t bswap_32(uint32_t x)
 {
     return (((x & 0xff000000UL) >> 24) |
-            ((x & 0x00ff0000UL) >> 8) |
-            ((x & 0x0000ff00UL) << 8) |
+            ((x & 0x00ff0000UL) >>  8) |
+            ((x & 0x0000ff00UL) <<  8) |
             ((x & 0x000000ffUL) << 24));
 }
 
@@ -56,8 +56,8 @@ static uint64_t bswap_64(uint64_t x)
     return (((x & 0xff00000000000000ULL) >> 56) |
             ((x & 0x00ff000000000000ULL) >> 40) |
             ((x & 0x0000ff0000000000ULL) >> 24) |
-            ((x & 0x000000ff00000000ULL) >> 8)  |
-            ((x & 0x00000000ff000000ULL) << 8)  |
+            ((x & 0x000000ff00000000ULL) >>  8) |
+            ((x & 0x00000000ff000000ULL) <<  8) |
             ((x & 0x0000000000ff0000ULL) << 24) |
             ((x & 0x000000000000ff00ULL) << 40) |
             ((x & 0x00000000000000ffULL) << 56));
