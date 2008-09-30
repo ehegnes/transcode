@@ -44,10 +44,10 @@
 #include "filter.h"
 #include "libtc/libtc.h"
 #include "libtc/optstr.h"
+#include "libtc/tclist.h"
 #include "libtc/tccodecs.h"
 #include "libtc/tcmodule-plugin.h"
 #include "transform.h"
-#include "linkedlist.h"
 
 #include <math.h>
 
@@ -74,8 +74,7 @@ typedef struct _stab_data {
     int width, height;
 
     /* list of transforms*/
-    LinkedList* transs;
-    LinkedList* lastTrans;
+    TCList* transs;
 
     Field* fields;
 
@@ -139,12 +138,10 @@ void addTrans(StabData* sd, Transform sl);
 
 void addTrans(StabData* sd, Transform sl)
 {
-    if (sd->lastTrans) {
-        sd->lastTrans = linked_list_add(sd->lastTrans, &sl, sizeof(Transform));
-    } else {
-        sd->transs = linked_list_new(&sl, sizeof(Transform));
-        sd->lastTrans=sd->transs;
+    if (!sd->transs) {
+        sd->transs = tc_list_new(0);
     }
+    tc_list_append_dup(sd->transs, &sl, sizeof(sl));
 }
 
 
@@ -560,7 +557,23 @@ Transform calcTransFields(StabData* sd, calcFieldTransFunc fieldfunc)
     return t;
 }
 
+struct iterdata {
+    FILE *f;
+    int  counter;
+};
 
+static int stabilize_dump_trans(TCListItem *item, void *userdata)
+{
+    struct iterdata *ID = userdata;
+
+    if (item->data) {
+        Transform* t = item->data;
+        fprintf(ID->f, "%i %5.4lf %5.4lf %8.5lf %i\n",
+                ID->counter, t->x, t->y, t->alpha, t->extra);
+        ID->counter++;
+    }
+    return 0; /* never give up */
+}
 
 /*************************************************************************/
 
@@ -595,7 +608,6 @@ static int stabilize_init(TCModuleInstance *self, uint32_t features)
     sd->t = 0;
     sd->hasSeenOneFrame = 0;
     sd->transs = 0;
-    sd->lastTrans = 0;
     sd->prev = 0;
 
     self->userdata = sd;
@@ -648,7 +660,6 @@ static int stabilize_configure(TCModuleInstance *self,
 
     sd->hasSeenOneFrame = 0;
     sd->transs = 0;
-    sd->lastTrans = 0;
     
     // Options
     sd->maxshift = 48;
@@ -758,28 +769,27 @@ static int stabilize_stop(TCModuleInstance *self)
     sd = self->userdata;
 
     // print transs
-    int i = 0;
-    LinkedList* sl = sd->transs;
     if (sd->f) {
+        struct iterdata ID;
+        ID.counter = 0;
+        ID.f       = sd->f;
+
         fprintf(sd->f, "# Transforms\n#C FrameNr x y alpha extra\n");
+   
+        tc_list_foreach(sd->transs, stabilize_dump_trans, &ID);
     
-        for (; sl; sl = sl->next) {
-            if (sl->item) {
-                Transform* t = (Transform*)sl->item;
-                fprintf(sd->f, "%i %5.4lf %5.4lf %8.5lf %i\n", i, t->x, t->y, 
-                        t->alpha, t->extra);
-            }
-            sl = sl->next;
-            i++;
-        }
-    
-        fclose(sd->f); 
+        fclose(sd->f);
+        sd->f = NULL;
     }
-    linked_list_delete(sd->transs);
-    if (sd->prev)
+    tc_list_del(sd->transs, 1);
+    if (sd->prev) {
         tc_free(sd->prev);
-    if (sd->result)
+        sd->prev = NULL;
+    }
+    if (sd->result) {
         tc_free(sd->result);
+        sd->result = NULL;
+    }
     return TC_OK;
 }
 

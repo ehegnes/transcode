@@ -1,7 +1,7 @@
 /*
  * decode_ulaw.c -- uLaw decoding support
  * Copyright (C) Stefan Scheffler - Aug 2007
- * (C) 2007 - Francesco Romani <fromani -at- gmail -dot- com>
+ * (C) 2007-2008 - Francesco Romani <fromani -at- gmail -dot- com>
  *
  * This file is part of transcode, a video stream processing tool.
  *

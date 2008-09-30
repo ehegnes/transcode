@@ -1,3 +1,7 @@
+2008-09-30 Francesco Romani <fromani at gmail dot com>
+  * (too much files)
+  bump copyright year 2007->2008 (late, again).
+
 2008-09-28 Francesco Romani <fromani at gmail dot com>
   * import/v4l/import_v4l2.c
   bugfixes against the regressions introduced in module version 1.5.0.
