@@ -1,3 +1,16 @@
+2008-10-01 Francesco Romani <fromani at gmail dot com>
+   docs/Makefile.am docs/man/Makefile.am docs/man/tcdecode.1
+   docs/man/transcode.1
+
+   * added files: docs/RELNOTES-1.1.0 docs/make-import-man.sh
+     docs/tcmkmodhelp.py docs/man/transcode.1.xml
+     docs/man/transcode_export.1 docs/man/transcode_filter.1
+     docs/man/transcode_import.1 docs/man/transcode_import.1.xml
+
+   Merge 1.1.0 relnotes.
+   Merge new split manpage from 1.1.x branch, as well as XML source
+   file and support scripts.
+
 2008-09-30 Francesco Romani <fromani at gmail dot com>
   * (too much files)
   bump copyright year 2007->2008 (late, again).

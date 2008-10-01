@@ -4,13 +4,13 @@ EXTRA_DIST = \
 	$(docs_DATA) \
 	filter-help.txt \
 	make-filter-man.sh \
+	make-import-man.sh \
 	make-module-man.sed \
 	export-mods.txt \
 	import-mods.txt
 
 SUBDIRS = \
 	man \
-        pvm3 \
 	html \
 	tech
 
@@ -27,8 +27,10 @@ docs_DATA = \
 	README.vcd \
 	README.xvid-credits \
 	RELNOTES-0.6.13 \
+	RELNOTES-1.1.0 \
 	export_ffmpeg.txt \
 	export_mp2.txt \
+	socket_protocol.txt \
 	filter_dnr.txt \
 	filter_logo.txt \
 	filter_logoaway.txt \
@@ -41,5 +43,4 @@ docs_DATA = \
 	import_yuv.txt \
 	import_x11.txt \
 	faq \
-	template.cfg.txt \
-	socket_protocol.txt
+	template.cfg.txt
