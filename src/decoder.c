@@ -485,6 +485,7 @@ static int video_import_loop(vob_t *vob)
         if (video_decdata.fd != NULL) {
             if (vbytes && (ret = mfread(ptr->video_buf, vbytes, 1, video_decdata.fd)) != 1)
                 ret = -1;
+            ptr->video_len  = vbytes;
             ptr->video_size = vbytes;
         } else {
             import_para.fd         = NULL;
@@ -496,7 +497,8 @@ static int video_import_loop(vob_t *vob)
 
             ret = tcv_import(TC_IMPORT_DECODE, &import_para, vob);
 
-            ptr->video_size = import_para.size;
+            ptr->video_len   = import_para.size;
+            ptr->video_size  = import_para.size;
             ptr->attributes |= import_para.attributes;
         }
 
@@ -507,6 +509,7 @@ static int video_import_loop(vob_t *vob)
             if (verbose >= TC_DEBUG)
                 tc_log_msg(__FILE__, "video data read failed - end of stream");
 
+            ptr->video_len  = 0;
             ptr->video_size = 0;
             if (!tc_has_more_video_in_file(vob)) {
                 ptr->attributes = TC_FRAME_IS_END_OF_STREAM;
@@ -565,6 +568,7 @@ static int video_import_loop(vob_t *vob)
         if (abytes && (ret = mfread(ptr->audio_buf, abytes, 1, audio_decdata.fd)) != 1) { \
             ret = -1; \
         } \
+        ptr->audio_len  = abytes; \
         ptr->audio_size = abytes; \
     } else { \
         import_para.fd         = NULL; \
@@ -575,6 +579,7 @@ static int video_import_loop(vob_t *vob)
         \
         ret = tca_import(TC_IMPORT_DECODE, &import_para, vob); \
         \
+        ptr->audio_len  = import_para.size; \
         ptr->audio_size = import_para.size; \
     } \
 } while (0)
@@ -643,6 +648,7 @@ static int audio_import_loop(vob_t *vob)
             if (verbose >= TC_DEBUG)
                 tc_log_msg(__FILE__, " zero padding %d", vob->sync);
             memset(ptr->audio_buf, 0, abytes);
+            ptr->audio_len  = abytes;
             ptr->audio_size = abytes;
             vob->sync++;
         }
@@ -655,6 +661,7 @@ static int audio_import_loop(vob_t *vob)
             if (verbose >= TC_DEBUG)
                 tc_log_msg(__FILE__, "audio data read failed - end of stream");
 
+            ptr->audio_len  = 0;
             ptr->audio_size = 0;
             if (!tc_has_more_audio_in_file(vob)) {
                 ptr->attributes = TC_FRAME_IS_END_OF_STREAM;
@@ -982,7 +989,7 @@ struct tcmultiimportdata_ {
 /* FIXME: explain a such horrible thing */
 
 
-#define SEQDATA_INIT(MEDIA, VOB, KIND) do {                           \
+#define MULTIDATA_INIT(MEDIA, VOB, KIND) do {                           \
     MEDIA ## _multidata.kind         = KIND;                          \
                                                                       \
     MEDIA ## _multidata.vob          = VOB;                           \
@@ -994,7 +1001,7 @@ struct tcmultiimportdata_ {
     MEDIA ## _multidata.next         = tc_next_ ## MEDIA ## _in_file; \
 } while (0)
 
-#define SEQDATA_FINI(MEDIA) do { \
+#define MULTIDATA_FINI(MEDIA) do { \
     ; /* nothing */ \
 } while (0)
 
@@ -1073,7 +1080,7 @@ void tc_multi_import_threads_create(vob_t *vob)
     int ret;
 
     probe_from_vob(&(audio_multidata.infos), vob);
-    SEQDATA_INIT(audio, vob, TC_AUDIO);
+    MULTIDATA_INIT(audio, vob, TC_AUDIO);
     tc_import_audio_start();
     ret = pthread_create(&audio_decdata.thread_id, NULL,
                          multi_import_thread, &audio_multidata);
@@ -1082,7 +1089,7 @@ void tc_multi_import_threads_create(vob_t *vob)
     }
 
     probe_from_vob(&(video_multidata.infos), vob);
-    SEQDATA_INIT(video, vob, TC_VIDEO);
+    MULTIDATA_INIT(video, vob, TC_VIDEO);
     tc_import_video_start();
     ret = pthread_create(&video_decdata.thread_id, NULL,
                          multi_import_thread, &video_multidata);
@@ -1096,8 +1103,8 @@ void tc_multi_import_threads_create(vob_t *vob)
 
 void tc_multi_import_threads_cancel(void)
 {
-    SEQDATA_FINI(audio);
-    SEQDATA_FINI(video);
+    MULTIDATA_FINI(audio);
+    MULTIDATA_FINI(video);
 
     tc_import_threads_cancel();
 }
