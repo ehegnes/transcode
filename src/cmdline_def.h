@@ -1336,7 +1336,7 @@ TC_OPTION(demuxer_sync,     'M',   "N",
                 "demuxer PES AV sync mode\n"
                 "(0=off|1=PTS only|2=full) [1]",
                 vob->demuxer = strtol(optarg, &optarg, 10);
-                if (*optarg || vob->demuxer < 0 || vob->demuxer > 4) {
+                if (*optarg || vob->demuxer < 0 || vob->demuxer > 5) {
                     tc_error("Invalid argument for -M/--demuxer_sync");
                     goto short_usage;
                 }
@@ -1502,6 +1502,25 @@ TC_OPTION(chapter_mode,       'U', "base",
                     goto short_usage;
                 chbase = optarg;
                 core_mode = TC_MODE_DVD_CHAPTER;
+)
+
+/********/ TC_HEADER("Synchronization options") /********/
+
+TC_OPTION(resync_interval,            0,   "N",
+                "check for A/V (re)synchronization every N frames [0]",
+		vob->resync_frame_interval = strtol(optarg, &optarg, 10);
+                if (*optarg || vob->resync_frame_interval < 0) {
+                    tc_error("Invalid argument for --resync_interval");
+                    goto short_usage;
+                }
+)
+TC_OPTION(resync_margin,            0,   "N",
+                "set maximum A/V drift to N frames  before to trigger (re)synchronization [1]",
+		vob->resync_frame_margin = strtol(optarg, &optarg, 10);
+                if (*optarg || vob->resync_frame_margin < 0) {
+                    tc_error("Invalid argument for --resync_margin");
+                    goto short_usage;
+                }
 )
 
 /********/ TC_HEADER("Miscellaneous options") /********/

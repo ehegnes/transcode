@@ -487,4 +487,8 @@ void tc_del_audio_frame(TCFrameAudio *aptr);
 void tc_blank_video_frame(TCFrameVideo *ptr);
 void tc_blank_audio_frame(TCFrameAudio *ptr);
 
+
+void tc_blank_video_frame(TCFrameVideo *vptr);
+void tc_blank_audio_frame(TCFrameAudio *aptr);
+
 #endif  /* TCFRAMES_H */

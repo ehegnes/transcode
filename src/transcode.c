@@ -1031,6 +1031,9 @@ static vob_t *new_vob(void)
     vob->attributes          = 0;
     vob->export_attributes   = TC_EXPORT_ATTRIBUTE_NONE;
 
+    vob->resync_frame_interval = 0;
+    vob->resync_frame_margin   = 1;
+
     return vob;
 }
 
@@ -1263,6 +1266,7 @@ static const char *demuxer_desc[] = {
     "initial MPEG sequence / enforce frame rate",
     "sync AV at initial PTS",
     "initial PTS / enforce frame rate",
+    "sync AV by adjusting frames",
 };
 
 static const char *deinterlace_desc[] = {
@@ -1272,7 +1276,6 @@ static const char *deinterlace_desc[] = {
     "zoom to full frame (slow)",
     "drop field / half height (fast)",
     "interpolate scanlines / blend frames",
-
 };
 
  static const char *antialias_desc[] = {

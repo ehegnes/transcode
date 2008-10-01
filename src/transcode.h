@@ -296,6 +296,11 @@ typedef struct _vob_t {
 
     int audio_file_flag;        // Nonzero if audio goes to its own file
 
+    // Resync parameters
+
+    int resync_frame_interval;
+    int resync_frame_margin;
+
     // Encoding parameters
 
     int divxbitrate;

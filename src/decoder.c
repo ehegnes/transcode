@@ -34,6 +34,7 @@
 #include "frame_threads.h"
 #include "cmdline.h"
 #include "probe.h"
+#include "synchronizer.h"
 
 
 /*************************************************************************/
@@ -53,6 +54,8 @@ typedef struct tcdecoderdata_ TCDecoderData;
 struct tcdecoderdata_ {
     const char *tag;            /* audio or video? used for logging */
     FILE *fd;                   /* for stream import                */
+    int bytes;                  /* XXX                              */
+    vob_t *vob;                 /* XXX                              */
     void *im_handle;            /* import module handle             */
     volatile int active_flag;   /* active or not?                   */
     pthread_t thread_id;
@@ -438,6 +441,35 @@ static int stop_cause(int ret)
     return ret;
 }
 
+
+static int video_get_frame(void *ctx, TCFrameVideo *ptr)
+{
+    transfer_t import_para;
+    TCDecoderData *video_decdata = ctx;
+    int ret = TC_OK;
+
+    if (video_decdata->fd != NULL) {
+        if (video_decdata->bytes && (ret = mfread(ptr->video_buf, video_decdata->bytes, 1, video_decdata->fd)) != 1)
+            ret = TC_ERROR;
+        ptr->video_len  = video_decdata->bytes;
+        ptr->video_size = video_decdata->bytes;
+    } else {
+        import_para.fd         = NULL;
+        import_para.buffer     = ptr->video_buf;
+        import_para.buffer2    = ptr->video_buf2;
+        import_para.size       = video_decdata->bytes;
+        import_para.flag       = TC_VIDEO;
+        import_para.attributes = ptr->attributes;
+
+        ret = tcv_import(TC_IMPORT_DECODE, &import_para, video_decdata->vob);
+
+        ptr->video_len  = import_para.size;
+        ptr->video_size = import_para.size;
+        ptr->attributes |= import_para.attributes;
+    }
+    return ret;
+}
+
 /*
  * {video,audio}_import_loop: data import loops. Feed frame FIFOs with
  * new data forever until are interrupted or stopped.
@@ -449,9 +481,8 @@ static int stop_cause(int ret)
  */
 static int video_import_loop(vob_t *vob)
 {
-    int ret = 0, vbytes = 0;
+    int ret = 0;
     vframe_list_t *ptr = NULL;
-    transfer_t import_para;
     TCFrameStatus next = (tc_frame_threads_have_video_workers())
                             ?TC_FRAME_WAIT :TC_FRAME_READY;
     int im_ret = TC_IM_THREAD_UNKNOWN;
@@ -459,13 +490,13 @@ static int video_import_loop(vob_t *vob)
     if (verbose >= TC_DEBUG)
         tc_log_msg(__FILE__, "video thread id=%ld", (unsigned long)pthread_self());
 
-    vbytes = vob->im_v_size;
+    video_decdata.vob   = vob;
+    video_decdata.bytes = vob->im_v_size;
 
     while (tc_running()) {
-
         if (verbose >= TC_THREADS)
             tc_log_msg(__FILE__, "%10s [%ld] V=%d bytes", "requesting",
-                       vframecount, vbytes);
+                       vframecount, video_decdata.bytes);
 
         /* stage 1: register new blank frame */
         ptr = vframe_register(vframecount);
@@ -482,25 +513,7 @@ static int video_import_loop(vob_t *vob)
         if (verbose >= TC_THREADS)
             tc_log_msg(__FILE__, "new video frame registered and marked, now filling...");
 
-        if (video_decdata.fd != NULL) {
-            if (vbytes && (ret = mfread(ptr->video_buf, vbytes, 1, video_decdata.fd)) != 1)
-                ret = -1;
-            ptr->video_len  = vbytes;
-            ptr->video_size = vbytes;
-        } else {
-            import_para.fd         = NULL;
-            import_para.buffer     = ptr->video_buf;
-            import_para.buffer2    = ptr->video_buf2;
-            import_para.size       = vbytes;
-            import_para.flag       = TC_VIDEO;
-            import_para.attributes = ptr->attributes;
-
-            ret = tcv_import(TC_IMPORT_DECODE, &import_para, vob);
-
-            ptr->video_len   = import_para.size;
-            ptr->video_size  = import_para.size;
-            ptr->attributes |= import_para.attributes;
-        }
+        ret = tc_sync_get_video_frame(ptr, video_get_frame, &video_decdata);
 
         if (verbose >= TC_THREADS)
             tc_log_msg(__FILE__, "new video frame filled (%s)", (ret == -1) ?"FAILED" :"OK");
@@ -518,9 +531,9 @@ static int video_import_loop(vob_t *vob)
             }
         }
 
-        ptr->v_height   = vob->im_v_height;
-        ptr->v_width    = vob->im_v_width;
-        ptr->v_bpp      = BPP;
+        ptr->v_height = vob->im_v_height;
+        ptr->v_width  = vob->im_v_width;
+        ptr->v_bpp    = BPP;
 
         if (verbose >= TC_THREADS)
             tc_log_msg(__FILE__, "new video frame is being processed");
@@ -562,33 +575,36 @@ static int video_import_loop(vob_t *vob)
     return stop_cause(im_ret);
 }
 
+static int audio_get_frame(void *ctx, TCFrameAudio *ptr)
+{
+    transfer_t import_para;
+    TCDecoderData *audio_decdata = ctx;
+    int ret = TC_OK;
 
-#define GET_AUDIO_FRAME do { \
-    if (audio_decdata.fd != NULL) { \
-        if (abytes && (ret = mfread(ptr->audio_buf, abytes, 1, audio_decdata.fd)) != 1) { \
-            ret = -1; \
-        } \
-        ptr->audio_len  = abytes; \
-        ptr->audio_size = abytes; \
-    } else { \
-        import_para.fd         = NULL; \
-        import_para.buffer     = ptr->audio_buf; \
-        import_para.size       = abytes; \
-        import_para.flag       = TC_AUDIO; \
-        import_para.attributes = ptr->attributes; \
-        \
-        ret = tca_import(TC_IMPORT_DECODE, &import_para, vob); \
-        \
-        ptr->audio_len  = import_para.size; \
-        ptr->audio_size = import_para.size; \
-    } \
-} while (0)
+    if (audio_decdata->fd != NULL) {
+        if (audio_decdata->bytes && (ret = mfread(ptr->audio_buf, audio_decdata->bytes, 1, audio_decdata->fd)) != 1)
+            ret = TC_ERROR;
+        ptr->audio_len  = audio_decdata->bytes;
+        ptr->audio_size = audio_decdata->bytes;
+    } else {
+        import_para.fd         = NULL;
+        import_para.buffer     = ptr->audio_buf;
+        import_para.size       = audio_decdata->bytes;
+        import_para.flag       = TC_AUDIO;
+        import_para.attributes = ptr->attributes;
 
+        ret = tcv_import(TC_IMPORT_DECODE, &import_para, audio_decdata->vob);
+
+        ptr->audio_len  = import_para.size;
+        ptr->audio_size = import_para.size;
+    }
+    return ret;
+}
+ 
 static int audio_import_loop(vob_t *vob)
 {
-    int ret = 0, abytes;
+    int ret = 0;
     aframe_list_t *ptr = NULL;
-    transfer_t import_para;
     TCFrameStatus next = (tc_frame_threads_have_audio_workers())
                             ?TC_FRAME_WAIT :TC_FRAME_READY;
     int im_ret = TC_IM_THREAD_UNKNOWN;
@@ -597,19 +613,20 @@ static int audio_import_loop(vob_t *vob)
         tc_log_msg(__FILE__, "audio thread id=%ld",
                    (unsigned long)pthread_self());
 
-    abytes = vob->im_a_size;
+    audio_decdata.vob   = vob;
+    audio_decdata.bytes = vob->im_a_size;
 
     while (tc_running()) {
         /* stage 1: audio adjustment for non-PAL frame rates */
         if (aframecount != 0 && aframecount % TC_LEAP_FRAME == 0) {
-            abytes = vob->im_a_size + vob->a_leap_bytes;
+            audio_decdata.bytes = vob->im_a_size + vob->a_leap_bytes;
         } else {
-            abytes = vob->im_a_size;
+            audio_decdata.bytes = vob->im_a_size;
         }
 
         if (verbose >= TC_THREADS)
             tc_log_msg(__FILE__, "%10s [%ld] A=%d bytes",
-                       "requesting", aframecount, abytes);
+                       "requesting", aframecount, audio_decdata.bytes);
 
         /* stage 2: register new blank frame */
         ptr = aframe_register(aframecount);
@@ -626,33 +643,7 @@ static int audio_import_loop(vob_t *vob)
             tc_log_msg(__FILE__, "new video frame registered and marked, now syncing...");
 
         /* stage 3: fill the frame with data */
-        /* stage 3.1: resync audio by discarding frames, if needed */
-        if (vob->sync > 0) {
-            // discard vob->sync frames
-            while (vob->sync--) {
-                GET_AUDIO_FRAME;
-
-                if (ret == -1)
-                    break;
-            }
-            vob->sync++;
-        }
-
-        /* stage 3.2: grab effective audio data */
-        if (vob->sync == 0) {
-            GET_AUDIO_FRAME;
-        }
-
-        /* stage 3.3: silence at last */
-        if (vob->sync < 0) {
-            if (verbose >= TC_DEBUG)
-                tc_log_msg(__FILE__, " zero padding %d", vob->sync);
-            memset(ptr->audio_buf, 0, abytes);
-            ptr->audio_len  = abytes;
-            ptr->audio_size = abytes;
-            vob->sync++;
-        }
-        /* stage 3.x final note: all this stuff can be done in a cleaner way... */
+        ret = tc_sync_get_audio_frame(ptr, audio_get_frame, &audio_decdata);
 
         if (verbose >= TC_THREADS)
             tc_log_msg(__FILE__, "syncing done, new audio frame ready to be filled...");
@@ -698,7 +689,7 @@ static int audio_import_loop(vob_t *vob)
     return stop_cause(im_ret);
 }
 
-#undef GET_AUDIO_FRAME
+
 #undef MARK_TIME_RANGE
 
 /*************************************************************************/
@@ -792,6 +783,7 @@ void tc_import_threads_create(vob_t *vob)
 
 int tc_import_init(vob_t *vob, const char *a_mod, const char *v_mod)
 {
+    TCSyncMethodID sync_method = (vob->demuxer == 5) ?TC_SYNC_ADJUST_FRAMES :TC_SYNC_NONE;
     transfer_t import_para;
     int caps;
 
@@ -819,7 +811,7 @@ int tc_import_init(vob_t *vob, const char *a_mod, const char *v_mod)
 
     tc_pthread_main = pthread_self();
 
-    return TC_OK;
+    return tc_sync_init(vob, sync_method, TC_AUDIO);
 }
 
 
@@ -854,6 +846,8 @@ void tc_import_shutdown(void)
 
     unload_module(video_decdata.im_handle);
     video_decdata.im_handle = NULL;
+
+    tc_sync_fini();
 }
 
 

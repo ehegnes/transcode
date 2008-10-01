@@ -318,6 +318,60 @@ void tc_blank_audio_frame(TCFrameAudio *ptr)
     }
 }
 
+/* XXX: move those into (public) header file? */
+#define PCM_SILENCE     (0)
+#define BLACK_Y         (0)
+#define BLACK_UV        (128)
+#define BLACK_RGB       (0)
+
+void tc_blank_video_frame(TCFrameVideo *vptr)
+{
+    size_t psizes[3] = { 0, 0, 0};
+    tc_video_planes_size(psizes,
+                         vptr->v_width, vptr->v_height,
+                         vptr->v_codec);
+    
+    if (vptr) {
+        switch (vptr->v_codec) {
+          case CODEC_RGB: /* fallthrough, backward compatibility */
+          case TC_CODEC_RGB:
+            memset(vptr->video_buf, BLACK_RGB, vptr->video_size);
+            break;
+          case CODEC_YUV: /* fallthrough, backward compatibility */
+          case TC_CODEC_YUV420P:
+            /* fallthrough, the algorythm is the same modulo the 
+             * UV planes size */
+          case CODEC_YUV422: /* fallthrough, backward compatibility */
+          case TC_CODEC_YUV422P:
+            memset(vptr->video_buf,             BLACK_Y,  psizes[0]);
+            memset(vptr->video_buf + psizes[0], BLACK_UV, psizes[1] + psizes[2]);
+            break;
+          default:
+            tc_log_warn(__FILE__, "tc_blank_video_frame():"
+                        " format %s (0x%X) not yet supported",
+                        tc_codec_to_string(vptr->v_codec),
+                        vptr->v_codec);
+        }
+    }
+}
+
+void tc_blank_audio_frame(TCFrameAudio *aptr)
+{
+    if (aptr) {
+        switch (aptr->a_codec) {
+          case CODEC_PCM: /* fallthrough, backward compatibility */
+//          case TC_CODEC_PCM:
+            memset(aptr->audio_buf, PCM_SILENCE, aptr->audio_size);
+            break;
+          default:
+            tc_log_warn(__FILE__, "tc_blank_audio_frame():"
+                        " format %s (0x%X) not yet supported",
+                        tc_codec_to_string(aptr->a_codec),
+                        aptr->a_codec);
+        }
+    }
+}
+
 /*************************************************************************/
 
 /*

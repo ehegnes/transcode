@@ -46,6 +46,7 @@ EXTRA_DIST = \
 	probe.h \
 	socket.h \
 	split.h \
+	synchronizer.h \
 	tc_defaults.h \
 	transcode.h \
 	video_trans.h 
@@ -65,5 +66,6 @@ transcode_SOURCES = \
 	framebuffer.c \
 	probe.c \
 	socket.c \
+	synchronizer.c \
 	split.c \
 	video_trans.c
