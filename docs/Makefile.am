@@ -6,6 +6,7 @@ EXTRA_DIST = \
 	make-filter-man.sh \
 	make-import-man.sh \
 	make-module-man.sed \
+	tcmkmodhelp.py \
 	export-mods.txt \
 	import-mods.txt
 
@@ -30,7 +31,6 @@ docs_DATA = \
 	RELNOTES-1.1.0 \
 	export_ffmpeg.txt \
 	export_mp2.txt \
-	socket_protocol.txt \
 	filter_dnr.txt \
 	filter_logo.txt \
 	filter_logoaway.txt \
@@ -43,4 +43,5 @@ docs_DATA = \
 	import_yuv.txt \
 	import_x11.txt \
 	faq \
+	socket_protocol.txt \
 	template.cfg.txt

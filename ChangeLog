@@ -7,8 +7,8 @@
      docs/man/transcode_export.1 docs/man/transcode_filter.1
      docs/man/transcode_import.1 docs/man/transcode_import.1.xml
 
-   Merge 1.1.0 relnotes.
-   Merge new split manpage from 1.1.x branch, as well as XML source
+   merge 1.1.0 relnotes.
+   merge new split manpage from 1.1.x branch, as well as XML source
    file and support scripts.
 
 2008-09-30 Francesco Romani <fromani at gmail dot com>
