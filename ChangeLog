@@ -15,9 +15,6 @@
     src/frame_threads.h src/transcode.c
   resync multi input (formerly directory mode) fixes from 1.1.x branch.
 
-  * libtc/tcframes.c libtc/tcframes.h
-  add support for blank audio/video frames
-
   * added files: src/synchronizer.c src/synchronizer.h
 
   * src/Makefile.am src/cmdline_def.h src/decoder.c src/transcode.c
