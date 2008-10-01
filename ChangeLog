@@ -11,6 +11,10 @@
    merge new split manpage from 1.1.x branch, as well as XML source
    file and support scripts.
 
+  * src/cmdline.c src/cmdline_def.h src/decoder.c src/decoder.h
+    src/frame_threads.h src/transcode.c
+  resync multi input (formerly directory mode) fixes from 1.1.x branch.
+
 2008-09-30 Francesco Romani <fromani at gmail dot com>
   * (too much files)
   bump copyright year 2007->2008 (late, again).
