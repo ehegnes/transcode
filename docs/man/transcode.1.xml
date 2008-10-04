@@ -384,7 +384,7 @@
                     <emphasis>mode</emphasis>
                 </term>
                 <listitem>
-                    <para>demuxer PES AV sync modes (0-4) [1].</para>
+                    <para>select AV synchronization mode (0-5) [1].</para>
                     
                     <variablelist>
                         <varlistentry>
@@ -393,7 +393,9 @@
                             </term>
                             <listitem>
                                 <para>
-                                    The demuxer takes care that the right video frames go together with the right audio frame. This can sometimes be a complex task and transcode tries to aid you as much as possible. <emphasis>WARNING:</emphasis> It does make a difference if you (the user) specifies a demuxer to use or if transcode resp. tcprobe(1) chooses the one which it thinks is right for your material. This is done on purpose to avoid mystic side-effects. So think twice, wether you specify a demuxer or let transcode choose one or you might end up with an off-sync result.
+                                    The import code takes care that the right video frames go together with the right audio frame. This can sometimes be a complex task and transcode tries to aid you as much as possible. <emphasis>WARNING:</emphasis> It does make a difference if you (the user) specifies a demuxer to use or if transcode resp. tcprobe(1) chooses the one which it thinks is right for your material. This is done on purpose to avoid mystic side-effects. So think twice, wether you specify a demuxer or let transcode choose one or you might end up with an off-sync result.
+The modes 0-4 are the historical transcode ones. They deal only with MPEG-like material and they can sometimes be ineffective. Modes starting from 5 are the new ones using the new synchronizer
+infrastructure. Those modes can be used with any kind of source material. The only drawback is that they are still under development.
                                 </para>
                             </listitem>
                         </varlistentry>
@@ -445,6 +447,16 @@
                             <listitem>
                                 <para>
                                     (like -M 2): initial PTS / enforce frame rate, with additional frame rate enforcement (for NTSC).
+                                </para>
+                            </listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term>
+                                <literal>5</literal>
+                            </term>
+                            <listitem>
+                                <para>
+                    Enforce A/V sync by cloning or dropping frames.
                                 </para>
                             </listitem>
                         </varlistentry>
@@ -1596,6 +1608,28 @@
                             </listitem>
                         </varlistentry>
                     </variablelist>
+                </listitem>
+            </varlistentry>
+ 
+            <varlistentry>
+                <term>
+                    <option>--resync_interval</option>
+                </term>
+                <listitem>
+                    <para>set how often the resynchronization engine should check form A/V drift, and correct it if needed.</para>
+                <para>It is recommended to use a resync interval which is an exact multiple of fps value.</para>
+                <para>Please note that not all resynchronization engines can honour this option.</para>
+                </listitem>
+            </varlistentry>
+ 
+            <varlistentry>
+                <term>
+                    <option>--resync_margin</option>
+                </term>
+                <listitem>
+                    <para>set the maximum allowed A/V drift, expressed in frames.</para>
+                    <para>When the resynchronization engine checks for drift correction, it takes action if and only
+                    if the drift threshold equals or exceeds the given margin.</para>
                 </listitem>
             </varlistentry>
             

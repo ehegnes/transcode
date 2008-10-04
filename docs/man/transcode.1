@@ -190,13 +190,13 @@ enable black/white by removing colors mode (grayscale) [off]\&. Please note this
 .PP
 \fB\-M \fR \fImode\fR
 .RS 4
-demuxer PES AV sync modes (0\-4) [1]\&.
+select AV synchronization mode (0\-5) [1]\&.
 .PP
 \fIOverview\fR
 .RS 4
-The demuxer takes care that the right video frames go together with the right audio frame\&. This can sometimes be a complex task and transcode tries to aid you as much as possible\&.
+The import code takes care that the right video frames go together with the right audio frame\&. This can sometimes be a complex task and transcode tries to aid you as much as possible\&.
 \fIWARNING:\fR
-It does make a difference if you (the user) specifies a demuxer to use or if transcode resp\&. tcprobe(1) chooses the one which it thinks is right for your material\&. This is done on purpose to avoid mystic side\-effects\&. So think twice, wether you specify a demuxer or let transcode choose one or you might end up with an off\-sync result\&.
+It does make a difference if you (the user) specifies a demuxer to use or if transcode resp\&. tcprobe(1) chooses the one which it thinks is right for your material\&. This is done on purpose to avoid mystic side\-effects\&. So think twice, wether you specify a demuxer or let transcode choose one or you might end up with an off\-sync result\&. The modes 0\-4 are the historical transcode ones\&. They deal only with MPEG\-like material and they can sometimes be ineffective\&. Modes starting from 5 are the new ones using the new synchronizer infrastructure\&. Those modes can be used with any kind of source material\&. The only drawback is that they are still under development\&.
 .RE
 .PP
 0
@@ -222,6 +222,11 @@ NTSC VOB stream synchronization feature\&. This mode generates synchronization i
 4
 .RS 4
 (like \-M 2): initial PTS / enforce frame rate, with additional frame rate enforcement (for NTSC)\&.
+.RE
+.PP
+5
+.RS 4
+Enforce A/V sync by cloning or dropping frames\&.
 .RE
 .RE
 .PP
@@ -996,6 +1001,22 @@ are
 .RS 4
 2\&.21:1
 .RE
+.RE
+.PP
+\fB\-\-resync_interval\fR
+.RS 4
+set how often the resynchronization engine should check form A/V drift, and correct it if needed\&.
+.sp
+It is recommended to use a resync interval which is an exact multiple of fps value\&.
+.sp
+Please note that not all resynchronization engines can honour this option\&.
+.RE
+.PP
+\fB\-\-resync_margin\fR
+.RS 4
+set the maximum allowed A/V drift, expressed in frames\&.
+.sp
+When the resynchronization engine checks for drift correction, it takes action if and only if the drift threshold equals or exceeds the given margin\&.
 .RE
 .PP
 \fB\-\-keep_asr \fR

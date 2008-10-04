@@ -36,13 +36,40 @@
 
 /*************************************************************************/
 
+/*
+ * Synchronizer methods
+ * --------------------
+ *
+ * A `synchro(nizer) method' is a real backend function implementing the
+ * A/V resync code. They are selected when the synchro engine is initialized
+ * by the init function. Their common interface is the following:
+ *
+ * Parameters:
+ *      sy: pointer to a TCSynchronizer structure holding the synchro engine
+ *          context and common data.
+ *  {a,v}f: pointer to a TC{Audio,Video}Frame structure to be filled with
+ *          frame data.
+ *  filler: filler function to be called to get raw(= potentially out of 
+ *          sync) frames from the demuxer.
+ *     ctx: opaque data to be passed to the filler function.
+ *
+ * Return Value:
+ *     TC_OK if succesfull, 
+ *     TC_ERROR otherwise.
+ */
+
+/*************************************************************************/
+
 typedef struct tcsynchronizer_ TCSynchronizer;
 struct tcsynchronizer_ {
+    const char *method_name;
+
     int verbose;
-    int audio_shift; /* see vob->sync; all methods must to support this. */
+    int audio_shift; /* see vob->sync; all methods must support this. */
 
     void *privdata;
 
+    /* synchro methods */
     int (*get_video)(TCSynchronizer *sy, TCFrameVideo *vf,
                      TCFillFrameVideo filler, void *ctx);
     int (*get_audio)(TCSynchronizer *sy, TCFrameAudio *af,
@@ -52,10 +79,22 @@ struct tcsynchronizer_ {
 
 /*************************************************************************/
 
+/*
+ * tc_sync_audio_shift:
+ *     (Synchro metod)
+ *
+ *     attempt to resyncronize A/V tracks by correncting the initial
+ *     delay. This isn't a very strong nor proven effective algorhytm,
+ *     and it is maintained here mostly for backward compatibility.
+ *
+ *     So, ALL synchro methods has to call this function to be
+ *     backward compatible.
+ */
 static int tc_sync_audio_shift(TCSynchronizer *sy, TCFrameAudio *af,
                                TCFillFrameAudio filler, void *ctx)
 {
     int i;
+
     /* add silence if needed */
     if (sy->audio_shift < 0) {
         tc_blank_audio_frame(af);
@@ -71,6 +110,10 @@ static int tc_sync_audio_shift(TCSynchronizer *sy, TCFrameAudio *af,
 }
 
 /*************************************************************************/
+
+/*
+ * None synchro method: just call the filler once and happily exit.
+ */
 
 static int tc_sync_none_get_video(TCSynchronizer *sy, TCFrameVideo *vf,
                                   TCFillFrameVideo filler, void *ctx)
@@ -94,15 +137,21 @@ static int tc_sync_none_fini(TCSynchronizer *sy)
 
 static int tc_sync_none_init(TCSynchronizer *sy, vob_t *vob, int master)
 {
+    sy->method_name = "none";
     sy->audio_shift = vob->sync;
-    sy->privdata     = NULL;
-    sy->get_video    = tc_sync_none_get_video;
-    sy->get_audio    = tc_sync_none_get_audio;
-    sy->fini         = tc_sync_none_fini;
+    sy->privdata    = NULL;
+    sy->get_video   = tc_sync_none_get_video;
+    sy->get_audio   = tc_sync_none_get_audio;
+    sy->fini        = tc_sync_none_fini;
     return TC_OK;
 }
 
 /*************************************************************************/
+
+/*
+ * Adjust synchro metod:
+ * FIXME: writeme
+ */
 
 typedef enum { 
     AdjustNone = 0,
@@ -112,10 +161,11 @@ typedef enum {
 
 typedef struct adjustcontext_ AdjustContext;
 struct adjustcontext_ {
-    AdjustOperation op;
+    const char *method_name;
+    AdjustOperation op;     /* what to do next? */
 
-    int frames_margin;
-    int frames_interval;
+    int frames_margin;      /* max drift allowed */
+    int frames_interval;    /* how often should I check? */
    
     int video_counter;
     int audio_counter;
@@ -123,7 +173,7 @@ struct adjustcontext_ {
     int video_cloned;
     int video_dropped;
 
-    TCFrameVideo *saved;
+    TCFrameVideo *saved;    /* in order to support cloning */
 };
 
 static int adjust_clone(AdjustContext *ctx, TCFrameVideo *vf)
@@ -132,7 +182,8 @@ static int adjust_clone(AdjustContext *ctx, TCFrameVideo *vf)
         tc_blank_video_frame(vf);
     } else {
         if (vf->video_size != ctx->saved->video_size) {
-            tc_log_error(__FILE__, "WRITEME!!");
+            tc_log_error(__FILE__, "(%s) WRITEME!!"
+                         ctx->method_name);
             return TC_ERROR;
         }
         ac_memcpy(vf->video_buf, ctx->saved->video_buf, vf->video_size);
@@ -143,7 +194,8 @@ static int adjust_clone(AdjustContext *ctx, TCFrameVideo *vf)
 static int adjust_save(AdjustContext *ctx, TCFrameVideo *vf)
 {
    if (vf->video_size != ctx->saved->video_size) {
-        tc_log_error(__FILE__, "WRITEME!!");
+        tc_log_error(__FILE__, "(%s) WRITEME!!"
+                     ctx->method_name);
         return TC_ERROR;
     }
     ac_memcpy(ctx->saved->video_buf, vf->video_buf, ctx->saved->video_size);
@@ -153,7 +205,8 @@ static int adjust_save(AdjustContext *ctx, TCFrameVideo *vf)
 static void adjust_print(AdjustContext *ctx, int verbose)
 {
     if (ctx->op != AdjustNone  && (verbose >= TC_INFO)) {
-        tc_log_info(__FILE__, "OP: %s VS/AS: %d/%d C/D: %d/%d",
+        tc_log_info(__FILE__, "(%s) OP: %s VS/AS: %d/%d C/D: %d/%d",
+                    ctx->method_name,
                     (ctx->op != AdjustDrop) ?"drop" :"clone",
                     ctx->video_counter, ctx->audio_counter,
                     ctx->video_cloned, ctx->video_dropped);
@@ -205,8 +258,9 @@ static int tc_sync_adjust_get_audio(TCSynchronizer *sy, TCFrameAudio *af,
     AdjustContext *ctx = NULL;
     TC_SYNC_ARG_CHECK(af);
     ctx = sy->privdata;
+    tc_sync_audio_shift(sy, af, filler, ud);
     ctx->audio_counter++;
-    return filler(ctx, af);
+    return filler(ud, af);
 }
 
 static int tc_sync_adjust_fini(TCSynchronizer *sy)
@@ -232,7 +286,9 @@ static int tc_sync_adjust_init(TCSynchronizer *sy, vob_t *vob, int master)
     AdjustContext *ctx = NULL;
     
     if (master != TC_AUDIO) {
-        tc_log_error(__FILE__, "only audio master source supported yet");
+        tc_log_error(__FILE__, 
+                     "(adjust) only audio master source supported yet");
+        /* can't yet use method_name */
         return TC_ERROR;
     }
     
@@ -245,9 +301,12 @@ static int tc_sync_adjust_init(TCSynchronizer *sy, vob_t *vob, int master)
     if (!ctx->saved) {
         goto no_frame;
     }
+    ctx->method_name     = "adjust";
     ctx->op              = AdjustNone;
     ctx->frames_margin   = vob->resync_frame_margin;
     ctx->frames_interval = vob->resync_frame_interval;
+    /* vertical alignement intentionally changed */
+    sy->method_name = ctx->method_name; /* let's recycle some bytes */
     sy->privdata    = ctx;
     sy->audio_shift = vob->sync;
     sy->verbose     = vob->verbose;
@@ -255,7 +314,8 @@ static int tc_sync_adjust_init(TCSynchronizer *sy, vob_t *vob, int master)
     sy->get_audio   = tc_sync_adjust_get_audio;
     sy->fini        = tc_sync_adjust_fini;
 
-    tc_log_info(__FILE__, "resync frames: interval=%i/margin=%i",
+    tc_log_info(__FILE__, "(%s) resync frames: interval=%i/margin=%i",
+                sy->method_name,
                 ctx->frames_interval, ctx->frames_margin);
     return TC_OK;
 
@@ -281,9 +341,12 @@ static const TCSyncMethod methods[] = {
     { TC_SYNC_NULL,          NULL                  },
 };
 
+/* it doesn't yet make sense to have more than one synchro engine */
 static TCSynchronizer tcsync;
 
 /*************************************************************************/
+
+/* front-end functions */
 
 int tc_sync_init(vob_t *vob, TCSyncMethodID method, int master)
 {
@@ -293,7 +356,7 @@ int tc_sync_init(vob_t *vob, TCSyncMethodID method, int master)
             return methods[i].init(&tcsync, vob, master);
         }
     }
-    return 1;
+    return TC_ERROR;
 }
 
 int tc_sync_fini(void)
@@ -313,4 +376,15 @@ int tc_sync_get_audio_frame(TCFrameAudio *af,
     return tcsync.get_audio(&tcsync, af, filler, ctx);
 }
 
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */
 

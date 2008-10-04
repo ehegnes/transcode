@@ -1,15 +1,21 @@
+2008-10-04 Francesco Romani <fromani at gmail dot com>
+  * docs/man/transcode.1 docs/man/transcode.1.xml
+    src/synchronizer.c src/synchronizer.h
+
+  add basic documentation for newly introduced synchro engine.
+
 2008-10-01 Francesco Romani <fromani at gmail dot com>
-   docs/Makefile.am docs/man/Makefile.am docs/man/tcdecode.1
-   docs/man/transcode.1
+  * docs/Makefile.am docs/man/Makefile.am docs/man/tcdecode.1
+    docs/man/transcode.1
 
-   * added files: docs/RELNOTES-1.1.0 docs/make-import-man.sh
-     docs/tcmkmodhelp.py docs/man/transcode.1.xml
-     docs/man/transcode_export.1 docs/man/transcode_filter.1
-     docs/man/transcode_import.1 docs/man/transcode_import.1.xml
+  * added files: docs/RELNOTES-1.1.0 docs/make-import-man.sh
+    docs/tcmkmodhelp.py docs/man/transcode.1.xml
+    docs/man/transcode_export.1 docs/man/transcode_filter.1
+    docs/man/transcode_import.1 docs/man/transcode_import.1.xml
 
-   merge 1.1.0 relnotes.
-   merge new split manpage from 1.1.x branch, as well as XML source
-   file and support scripts.
+  merge 1.1.0 relnotes.
+  merge new split manpage from 1.1.x branch, as well as XML source
+  file and support scripts.
 
   * src/cmdline.c src/cmdline_def.h src/decoder.c src/decoder.h
     src/frame_threads.h src/transcode.c
