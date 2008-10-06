@@ -333,7 +333,7 @@ MOD_open
 #if LIBAVCODEC_VERSION_INT < ((52<<16)+(0<<8)+0)
         vff_data.dec_context->error_resilience  = FF_ER_COMPLIANT;
 #else
-        vff_data.dec_context->error_recognition = FF_ERR_COMPLIANT;
+        vff_data.dec_context->error_recognition = FF_ER_COMPLIANT;
 #endif
         vff_data.dec_context->error_concealment = FF_EC_GUESS_MVS|FF_EC_DEBLOCK;
         vff_data.dec_context->workaround_bugs = workarounds;
