@@ -182,7 +182,7 @@ static int adjust_clone(AdjustContext *ctx, TCFrameVideo *vf)
         tc_blank_video_frame(vf);
     } else {
         if (vf->video_size != ctx->saved->video_size) {
-            tc_log_error(__FILE__, "(%s) WRITEME!!"
+            tc_log_error(__FILE__, "(%s) WRITEME!!",
                          ctx->method_name);
             return TC_ERROR;
         }
@@ -194,7 +194,7 @@ static int adjust_clone(AdjustContext *ctx, TCFrameVideo *vf)
 static int adjust_save(AdjustContext *ctx, TCFrameVideo *vf)
 {
    if (vf->video_size != ctx->saved->video_size) {
-        tc_log_error(__FILE__, "(%s) WRITEME!!"
+        tc_log_error(__FILE__, "(%s) WRITEME!!",
                      ctx->method_name);
         return TC_ERROR;
     }
