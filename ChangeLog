@@ -1,3 +1,7 @@
+2008-10-07 Francesco Romani <fromani at gmail dot com>
+  * import/import_im.c
+  fix strange behaviour with --multi_input and some libMagick versions.
+
 2008-10-04 Francesco Romani <fromani at gmail dot com>
   * docs/man/transcode.1 docs/man/transcode.1.xml
     src/synchronizer.c src/synchronizer.h

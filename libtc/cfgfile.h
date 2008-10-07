@@ -36,7 +36,7 @@ typedef struct {
 
 #define TCCONF_FLAG_MIN         (1<<0)
 #define TCCONF_FLAG_MAX         (1<<1)
-#define TCCONF_FLAG_RANGE        (1<<0)
+#define TCCONF_FLAG_RANGE       (1<<0)
 
 /*************************************************************************/
 
