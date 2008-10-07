@@ -1,3 +1,7 @@
+2008-10-07 Francesco Romani <fromani at gmail dot com>
+  * import/import_im.c
+  fix strange behaviour with --multi_input and some libMagick versions.
+
 2008-10-01 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c
   resync with HEAD: always initialize frame length to sane value.

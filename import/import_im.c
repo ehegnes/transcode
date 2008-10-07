@@ -24,7 +24,7 @@
  */
 
 #define MOD_NAME    "import_im.so"
-#define MOD_VERSION "v0.1.2 (2008-01-14)"
+#define MOD_VERSION "v0.1.3 (2008-10-07)"
 #define MOD_CODEC   "(video) RGB"
 
 #ifdef HAVE_CONFIG_H
@@ -93,6 +93,7 @@ static int capability_flag = TC_CAP_RGB|TC_CAP_VID;
 
 static char *head = NULL, *tail = NULL;
 static int first_frame = 0, current_frame = 0, decoded_frame = 0, pad = 0;
+static int total_frame = 0;
 static int width = 0, height = 0;
 static MagickWand *wand = NULL;
 static int auto_seq_read = TC_TRUE; 
@@ -207,9 +208,12 @@ MOD_open
         width         = vob->im_v_width;
         height        = vob->im_v_height;
 
-        MagickWandGenesis();
-        wand = NewMagickWand();
+        if (total_frame == 0) {
+            /* only the very first time */
+            MagickWandGenesis();
+        }
 
+        wand = NewMagickWand();
         if (wand == NULL) {
             tc_log_error(MOD_NAME, "cannot create magick wand");
             return TC_IMPORT_ERROR;
@@ -296,6 +300,7 @@ MOD_decode
 
         param->attributes |= TC_FRAME_IS_KEYFRAME;
 
+        total_frame++;
         current_frame++;
         decoded_frame++;
     
@@ -319,6 +324,8 @@ MOD_close
     }
 
     if (param->flag == TC_VIDEO) {
+        vob_t *vob = tc_get_vob();
+
         if (param->fd != NULL)
             pclose(param->fd);
         if (head != NULL)
@@ -328,8 +335,12 @@ MOD_close
 
         if (wand != NULL) {
             DestroyMagickWand(wand);
-            MagickWandTerminus();
             wand = NULL;
+
+            if (!tc_has_more_video_in_file(vob)) {
+                /* ...can you hear that? is the sound of the ugliness... */
+                MagickWandTerminus();
+            }
         }
         return TC_IMPORT_OK;
     }
