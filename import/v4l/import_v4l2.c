@@ -224,7 +224,7 @@ static v4l2_parameter_t v4l2_parameters[] =
 
 static v4l2_format_convert_table_t v4l2_format_convert_table[] =
 {
-    { V4L2_PIX_FMT_RGB24,   IMG_RGB24,   IMG_RGB_DEFAULT, "RGB24 [packed] -> RGB [packed] (no conversion" },
+    { V4L2_PIX_FMT_RGB24,   IMG_RGB24,   IMG_RGB_DEFAULT, "RGB24 [packed] -> RGB [packed] (no conversion)" },
     { V4L2_PIX_FMT_BGR24,   IMG_BGR24,   IMG_RGB_DEFAULT, "BGR24 [packed] -> RGB [packed]" },
     { V4L2_PIX_FMT_RGB32,   IMG_RGBA32,  IMG_RGB_DEFAULT, "RGB32 [packed] -> RGB [packed]" },
     { V4L2_PIX_FMT_BGR32,   IMG_BGRA32,  IMG_RGB_DEFAULT, "BGR32 [packed] -> RGB [packed]" },
