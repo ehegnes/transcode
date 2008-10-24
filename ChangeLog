@@ -1,6 +1,19 @@
+2008-10-24 Francesco Romani <fromani at gmail dot com>
+  * removed files:  import/v4l/audio.c import/v4l/audio.h
+    import/v4l/channels.h import/v4l/common.c import/v4l/common.h
+    import/v4l/counter.h import/v4l/frequencies.c
+    import/v4l/frequencies.h import/v4l/vcr.h import/v4l/video.c
+    import/v4l/video.h
+
+  * import/v4l/import_v4l.c import/v4l/Makefile.am
+  new lean and mean version of v4l v1 import module.
+  While still deprecated, the module will likely still stay around for 
+  a while, so a slimmer version is easier to maintain.
+
 2008-10-07 Francesco Romani <fromani at gmail dot com>
   * import/import_im.c
-  fix strange behaviour with --multi_input and some libMagick versions.
+  fix strange behaviour (hang on libMagick [re]initialization)
+  with --multi_input and some libMagick versions.
 
 2008-10-01 Francesco Romani <fromani at gmail dot com>
   * src/decoder.c
