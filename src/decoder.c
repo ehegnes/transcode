@@ -464,14 +464,14 @@ static int video_import_loop(vob_t *vob)
     while (tc_running()) {
 
         if (verbose >= TC_THREADS)
-            tc_log_msg(__FILE__, "%10s [%ld] V=%d bytes", "requesting",
+            tc_log_msg(__FILE__, "(V) %10s [%ld] %i bytes", "requesting",
                        vframecount, vbytes);
 
         /* stage 1: register new blank frame */
         ptr = vframe_register(vframecount);
         if (ptr == NULL) {
             if (verbose >= TC_THREADS)
-                tc_log_msg(__FILE__, "frame registration interrupted!");
+                tc_log_msg(__FILE__, "(V) frame registration interrupted!");
             break;
         }
 
@@ -480,7 +480,7 @@ static int video_import_loop(vob_t *vob)
         MARK_TIME_RANGE(ptr, vob);
 
         if (verbose >= TC_THREADS)
-            tc_log_msg(__FILE__, "new video frame registered and marked, now filling...");
+            tc_log_msg(__FILE__, "(V) new frame registered and marked, now filling...");
 
         if (video_decdata.fd != NULL) {
             if (vbytes && (ret = mfread(ptr->video_buf, vbytes, 1, video_decdata.fd)) != 1)
@@ -503,11 +503,11 @@ static int video_import_loop(vob_t *vob)
         }
 
         if (verbose >= TC_THREADS)
-            tc_log_msg(__FILE__, "new video frame filled (%s)", (ret == -1) ?"FAILED" :"OK");
+            tc_log_msg(__FILE__, "(V) new frame filled (%s)", (ret == -1) ?"FAILED" :"OK");
 
         if (ret < 0) {
             if (verbose >= TC_DEBUG)
-                tc_log_msg(__FILE__, "video data read failed - end of stream");
+                tc_log_msg(__FILE__, "(V) data read failed - end of stream");
 
             ptr->video_len  = 0;
             ptr->video_size = 0;
@@ -523,7 +523,7 @@ static int video_import_loop(vob_t *vob)
         ptr->v_bpp      = BPP;
 
         if (verbose >= TC_THREADS)
-            tc_log_msg(__FILE__, "new video frame is being processed");
+            tc_log_msg(__FILE__, "(V) new frame is being processed");
 
         /* stage 3: account filled frame and process it if needed */
         if (TC_FRAME_NEED_PROCESSING(ptr)) {
@@ -536,17 +536,17 @@ static int video_import_loop(vob_t *vob)
         }
 
         if (verbose >= TC_THREADS)
-            tc_log_msg(__FILE__, "new video frame ready to be pushed");
+            tc_log_msg(__FILE__, "(V) new frame ready to be pushed");
 
         /* stage 4: push frame to next transcoding layer */
         vframe_push_next(ptr, next);
 
         if (verbose >= TC_THREADS)
-            tc_log_msg(__FILE__, "%10s [%ld] V=%d bytes", "received",
+            tc_log_msg(__FILE__, "(V) %10s [%ld] %i bytes", "received",
                        vframecount, ptr->video_size);
 
         if (verbose >= TC_THREADS)
-            tc_log_msg(__FILE__, "new video frame pushed");
+            tc_log_msg(__FILE__, "(V) new frame pushed");
 
         if (ret < 0) {
             /* 
@@ -608,14 +608,14 @@ static int audio_import_loop(vob_t *vob)
         }
 
         if (verbose >= TC_THREADS)
-            tc_log_msg(__FILE__, "%10s [%ld] A=%d bytes",
+            tc_log_msg(__FILE__, "(A) %10s [%ld] %i bytes",
                        "requesting", aframecount, abytes);
 
         /* stage 2: register new blank frame */
         ptr = aframe_register(aframecount);
         if (ptr == NULL) {
             if (verbose >= TC_THREADS)
-                tc_log_msg(__FILE__, "frame registration interrupted!");
+                tc_log_msg(__FILE__, "(A) frame registration interrupted!");
             break;
         }
 
@@ -623,7 +623,7 @@ static int audio_import_loop(vob_t *vob)
         MARK_TIME_RANGE(ptr, vob);
 
         if (verbose >= TC_THREADS)
-            tc_log_msg(__FILE__, "new video frame registered and marked, now syncing...");
+            tc_log_msg(__FILE__, "(A) new frame registered and marked, now syncing...");
 
         /* stage 3: fill the frame with data */
         /* stage 3.1: resync audio by discarding frames, if needed */
@@ -655,11 +655,11 @@ static int audio_import_loop(vob_t *vob)
         /* stage 3.x final note: all this stuff can be done in a cleaner way... */
 
         if (verbose >= TC_THREADS)
-            tc_log_msg(__FILE__, "syncing done, new audio frame ready to be filled...");
+            tc_log_msg(__FILE__, "(A) syncing done, new frame ready to be filled...");
 
         if (ret < 0) {
             if (verbose >= TC_DEBUG)
-                tc_log_msg(__FILE__, "audio data read failed - end of stream");
+                tc_log_msg(__FILE__, "(A) data read failed - end of stream");
 
             ptr->audio_len  = 0;
             ptr->audio_size = 0;
@@ -685,7 +685,7 @@ static int audio_import_loop(vob_t *vob)
         aframe_push_next(ptr, next);
 
         if (verbose >= TC_THREADS)
-            tc_log_msg(__FILE__, "%10s [%ld] A=%d bytes", "received",
+            tc_log_msg(__FILE__, "(A) %10s [%ld] %i bytes", "received",
                                  aframecount, ptr->audio_size);
 
         if (ret < 0) {

@@ -8,6 +8,13 @@
   *  docs/man/transcode_import.1
   regenerate (xmlto man transcode_import.1.xml) from up-to-date XML source.
 
+  * src/framebuffer.c
+  internal debug messages should be plain and colorless:
+  use tc_log_msg, not tc_log_info
+
+  * src/decoder.c
+  log messages easier to parse (even for humans).
+
 2008-10-24 Francesco Romani <fromani at gmail dot com>
   * removed files:  import/v4l/audio.c import/v4l/audio.h
     import/v4l/channels.h import/v4l/common.c import/v4l/common.h
