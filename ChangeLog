@@ -1,3 +1,13 @@
+2008-10-25 Francesco Romani <fromani at gmail dot com>
+  * docs/make-import-man.sh
+  scan import subdirectories.
+
+  *  docs/man/transcode_import.1.xml
+  update with v4l module documentation
+
+  *  docs/man/transcode_import.1
+  regenerate (xmlto man transcode_import.1.xml) from up-to-date XML source.
+
 2008-10-24 Francesco Romani <fromani at gmail dot com>
   * removed files:  import/v4l/audio.c import/v4l/audio.h
     import/v4l/channels.h import/v4l/common.c import/v4l/common.h

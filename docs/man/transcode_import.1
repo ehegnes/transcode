@@ -153,6 +153,48 @@ skew_limit (integer)
 maximum frame A/V skew (ms) before correction attempt
 .RE
 .RE
+.PP
+\fBv4l2\fR \fI[video, audio]\fR
+.RS 4
+This module allow to capture video frames through a V4L2 (V4L api version 2) device\&. While audio capturing is possible, this kind of usage is discouraged in favour of OSS or ALSA import modules\&.
+.sp
+This module accepts the following options:
+.PP
+overrun_guard (integer)
+.RS 4
+flag (default off)\&. Toggles the buffer overrun guard, that prevents crash when capture buffers are full\&.
+.RE
+.PP
+resync_margin (integer)
+.RS 4
+threshold audio/video desync (in frames) that triggers resync once reached\&.
+.RE
+.PP
+crop (string)
+.RS 4
+forces cropping into selected window (format: WIDTHxHEIGHT+LEFTxTOP)
+.RE
+.PP
+resync_interval (integer)
+.RS 4
+checks the resync_margin every given amount of frames\&.
+.RE
+.PP
+format (integer)
+.RS 4
+forces video frames convertion by using index; use \-1 to get a list of supported conversions\&.
+.RE
+.PP
+format (string)
+.RS 4
+forces output format to given one; use "list" to get a list of supported formats\&.
+.RE
+.PP
+convert (integer)
+.RS 4
+forces video frames convertion by using index; use \-1 to get a list of supported conversions\&.
+.RE
+.RE
 .SH "AUTHORS"
 .PP
 Written by Thomas Oestreich <ostreich@theorie\&.physik\&.uni\-goettingen\&.de>, Tilmann Bitterberg and the Transcode\-Team
