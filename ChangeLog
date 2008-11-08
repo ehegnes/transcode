@@ -5,6 +5,13 @@
   * configure.in libtcext/tc_avcodec.h
   now only the ffmpeg new header layout is supported and thus required.
 
+  * tools/avifix.c
+  modernize the code. Add debug option.
+
+  * avilib/avilib.h
+  make AVIStreamHeader structure (more) 64 bit safe.
+  (closes bug #0000071)
+
 2008-10-25 Francesco Romani <fromani at gmail dot com>
   * import/v4l/import_v4l.c
   implement the `read' capture method (it can be enabled using the
