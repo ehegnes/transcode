@@ -12,6 +12,9 @@
   make AVIStreamHeader structure (more) 64 bit safe.
   (closes bug #0000071)
 
+  * configure.in
+  transcode 1.1.0-rc2
+
 2008-10-25 Francesco Romani <fromani at gmail dot com>
   * docs/make-import-man.sh
   scan import subdirectories.
