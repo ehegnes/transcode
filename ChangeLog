@@ -1,3 +1,10 @@
+2008-11-08 Francesco Romani <fromani at gmail dot com>
+  * INSTALL
+  (at last) update the ffmpeg requisite documentation.
+
+  * configure.in libtc/tcavcodec.h
+  now only the ffmpeg new header layout is supported and thus required.
+
 2008-10-25 Francesco Romani <fromani at gmail dot com>
   * docs/make-import-man.sh
   scan import subdirectories.
