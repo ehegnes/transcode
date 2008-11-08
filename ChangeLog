@@ -1,3 +1,7 @@
+2008-11-08 Francesco Romani <fromani at gmail dot com>
+  * configure.in
+  transcode 1.0.7.
+
 2008-09-21 Francesco Romani <fromani at gmail dot com>
   * export/export_ffmpeg.c export/ffmpeg_cfg.c import/decode_lavc.c
     import/import_ffmpeg.c
