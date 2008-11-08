@@ -1,4 +1,7 @@
 2008-11-08 Francesco Romani <fromani at gmail dot com>
+  * avilib/avilib.h: make AVIStreamHeader structure (more) 64 bit safe.
+  (closes bug #0000071)
+
   * configure.in
   transcode 1.0.7.
 
