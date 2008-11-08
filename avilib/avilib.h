@@ -431,19 +431,20 @@ struct wave_header
 	struct chunk_struct  data;
 };
 
-struct AVIStreamHeader {
-  long  fccType;
-  long  fccHandler;
-  long  dwFlags;
-  long  dwPriority;
-  long  dwInitialFrames;
-  long  dwScale;
-  long  dwRate;
-  long  dwStart;
-  long  dwLength;
-  long  dwSuggestedBufferSize;
-  long  dwQuality;
-  long  dwSampleSize;
-};
+struct AVIStreamHeader
+{
+  uint32_t  fccType;
+  uint32_t  fccHandler;
+  uint32_t  dwFlags;
+  uint32_t  dwPriority;
+  uint32_t  dwInitialFrames;
+  uint32_t  dwScale;
+  uint32_t  dwRate;
+  uint32_t  dwStart;
+  uint32_t  dwLength;
+  uint32_t  dwSuggestedBufferSize;
+  uint32_t  dwQuality;
+  uint32_t  dwSampleSize;
+} __attribute__((__packed__));
 
 #endif

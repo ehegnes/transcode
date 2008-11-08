@@ -5,6 +5,12 @@
   * configure.in libtc/tcavcodec.h
   now only the ffmpeg new header layout is supported and thus required.
 
+  * tools/avifix.c
+  modernize the code. Add debug option.
+
+  * avilib/avilib.h
+  make AVIStreamHeader structure (more) 64 bit safe.
+
 2008-10-25 Francesco Romani <fromani at gmail dot com>
   * docs/make-import-man.sh
   scan import subdirectories.
