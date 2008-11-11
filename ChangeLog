@@ -1,4 +1,11 @@
-2008-11-08 Francesco Romani <fromani at gmail dot com>
+22008-11-11 Francesco Romani <fromani at gmail dot com>
+  * avilib/abilib.h
+  restore symbols accidentally wiped away with last commit.
+
+  * avilib/avilib.c
+  removed dead code.
+
+008-11-08 Francesco Romani <fromani at gmail dot com>
   * INSTALL
   (at last) update the ffmpeg requisite documentation.
 
