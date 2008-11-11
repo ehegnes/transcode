@@ -20,6 +20,7 @@
  */
 
 #include "wavlib.h"
+#include "platform.h"
 
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -45,8 +46,8 @@ static uint16_t bswap_16(uint16_t x)
 static uint32_t bswap_32(uint32_t x)
 {
     return (((x & 0xff000000UL) >> 24) |
-            ((x & 0x00ff0000UL) >> 8) |
-            ((x & 0x0000ff00UL) << 8) |
+            ((x & 0x00ff0000UL) >>  8) |
+            ((x & 0x0000ff00UL) <<  8) |
             ((x & 0x000000ffUL) << 24));
 }
 
@@ -55,8 +56,8 @@ static uint64_t bswap_64(uint64_t x)
     return (((x & 0xff00000000000000ULL) >> 56) |
             ((x & 0x00ff000000000000ULL) >> 40) |
             ((x & 0x0000ff0000000000ULL) >> 24) |
-            ((x & 0x000000ff00000000ULL) >> 8)  |
-            ((x & 0x00000000ff000000ULL) << 8)  |
+            ((x & 0x000000ff00000000ULL) >>  8) |
+            ((x & 0x00000000ff000000ULL) <<  8) |
             ((x & 0x0000000000ff0000ULL) << 24) |
             ((x & 0x000000000000ff00ULL) << 40) |
             ((x & 0x00000000000000ffULL) << 56));
@@ -110,50 +111,6 @@ make_wav_put_bits(64)
 static inline uint32_t make_tag(uint8_t a, uint8_t b, uint8_t c, uint8_t d)
 {
     return (a | (b << 8) | (c << 16) | (d << 24));
-}
-
-static ssize_t wav_fdread(int fd, uint8_t *buf, size_t len)
-{
-    ssize_t n = 0;
-    ssize_t r = 0;
-
-    while (r < len) {
-        n = read(fd, buf + r, len - r);
-
-        if (n == 0) {  /* EOF */
-            break;
-        }
-        if (n < 0) {
-            if (errno == EINTR) {
-                continue;
-            } else {
-                break;
-            }
-        }
-        r += n;
-    }
-    return r;
-}
-
-
-static ssize_t wav_fdwrite(int fd, const uint8_t *buf, size_t len)
-{
-    ssize_t n = 0;
-    ssize_t r = 0;
-
-    while (r < len) {
-        n = write(fd, buf + r, len - r);
-
-        if (n < 0) {
-            if (errno == EINTR) {
-                continue;
-            } else {
-                break;
-            }
-        }
-        r += n;
-    }
-    return r;
 }
 
 /*************************************************************************
@@ -261,7 +218,7 @@ static int wav_parse_header(WAV handle, WAVError *err)
         return -1;
     }
 
-    r = wav_fdread(handle->fd, hdr, WAV_HEADER_LEN);
+    r = plat_read(handle->fd, hdr, WAV_HEADER_LEN);
     if (r != WAV_HEADER_LEN) {
         WAV_SET_ERROR(err, WAV_BAD_FORMAT);
         goto bad_wav;
@@ -348,7 +305,7 @@ int wav_write_header(WAV handle, int force)
     ph = wav_put_bits32(ph, make_tag('d', 'a', 't', 'a'));
     ph = wav_put_bits32(ph, handle->len);
 
-    w = wav_fdwrite(handle->fd, hdr, WAV_HEADER_LEN);
+    w = plat_write(handle->fd, hdr, WAV_HEADER_LEN);
 
     if (!handle->has_pipe) {
         ret = lseek(handle->fd, pos, SEEK_CUR);
@@ -373,11 +330,11 @@ WAV wav_open(const char *filename, WAVMode mode, WAVError *err)
     if (!filename || !strlen(filename)) {
         WAV_SET_ERROR(err, WAV_BAD_PARAM);
     } else {
-        fd = open(filename, oflags,
-                  S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH);
+        fd = plat_open(filename, oflags,
+                       S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH);
         wav = wav_fdopen(fd, mode, err);
         if (!wav) {
-            close(fd);
+            plat_close(fd);
         } else {
             wav->close_fd = 1;
         }
@@ -385,15 +342,14 @@ WAV wav_open(const char *filename, WAVMode mode, WAVError *err)
     return wav;
 }
 
-#define DEL_WAV(wav) \
-        do { \
-            free((wav)); \
-            (wav) = NULL; \
-        } while (0)
+#define DEL_WAV(wav) do { \
+    plat_free((wav)); \
+    (wav) = NULL; \
+} while (0)
 
 WAV wav_fdopen(int fd, WAVMode mode, WAVError *err)
 {
-    WAV wav = calloc(1, sizeof(struct wav_));
+    WAV wav = plat_zalloc(sizeof(struct wav_));
 
     if (!wav) {
         WAV_SET_ERROR(err, WAV_NO_MEM);
@@ -445,10 +401,10 @@ int wav_close(WAV handle)
     }
 
     if (handle->close_fd) {
-        ret = close(handle->fd);
+        ret = plat_close(handle->fd);
         RETURN_IF_IOERROR(ret);
     }
-    free(handle);
+    plat_free(handle);
 
     return 0;
 }
@@ -539,10 +495,11 @@ static void bswap_buffer(void *data, size_t bytes)
     }
 }
 
-#define SWAP_WRITE_CHUNK(data, len) \
+#define SWAP_WRITE_CHUNK(data, len) do { \
         memcpy(conv_buf, (data), (len)); \
         bswap_buffer(conv_buf, (len)); \
-        ret = wav_fdwrite(fd, conv_buf, (len))
+        ret = plat_write(fd, conv_buf, (len)) \
+} while (0)
 
 static ssize_t wav_bswap_fdwrite(int fd, const uint8_t *buf, size_t len)
 {
@@ -581,7 +538,7 @@ ssize_t wav_read_data(WAV handle, uint8_t *buffer, size_t bufsize)
         WAV_SET_ERROR(&(handle->error), WAV_UNSUPPORTED);
         return -1;
     }
-    r = wav_fdread(handle->fd, buffer, bufsize);
+    r = plat_read(handle->fd, buffer, bufsize);
 
 #ifdef WAV_BIG_ENDIAN
     bswap_buffer(buffer, r);
@@ -610,7 +567,7 @@ ssize_t wav_write_data(WAV handle, const uint8_t *buffer, size_t bufsize)
 #ifdef WAV_BIG_ENDIAN
     w = wav_bswap_fdwrite(handle->fd, buffer, bufsize);
 #else
-    w = wav_fdwrite(handle->fd, buffer, bufsize);
+    w = plat_write(handle->fd, buffer, bufsize);
 #endif
     if (w == bufsize) {
         handle->len += w;

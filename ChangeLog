@@ -5,6 +5,12 @@
   * avilib/avilib.c
   removed dead code.
 
+  * added files: avilib/platform.h avilib/platform_tc.c
+    avilib/platform_posix.c
+
+  * avilib/Makefile.am avilib/wavlib.h avilib/wavlib.c
+  resync avilib with HEAD.
+
 008-11-08 Francesco Romani <fromani at gmail dot com>
   * INSTALL
   (at last) update the ffmpeg requisite documentation.
