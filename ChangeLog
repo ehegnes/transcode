@@ -1,3 +1,7 @@
+22008-11-15 Francesco Romani <fromani at gmail dot com>
+  * configure.in
+  transcode 1.1.0-rc3
+
 22008-11-11 Francesco Romani <fromani at gmail dot com>
   * avilib/abilib.h
   restore symbols accidentally wiped away with last commit.
