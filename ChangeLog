@@ -1,3 +1,12 @@
+2008-11-15 Francesco Romani <fromani at gmail dot com>
+  * INSTALL configure.in export/aud_aux.c export/export_ffmpeg.c
+    export/ffmpeg_cfg.h filter/filter_resample.c import/decode_lavc.c
+    import/import_ffmpeg.c
+  bump FFmpeg libraries requisite to SVN >= 20080705. Drop old header
+  layout support. Drop static linking support (unsupported from ages).
+  Update user documentation accordingly.
+  transcode 1.0.7. (really)
+
 2008-11-08 Francesco Romani <fromani at gmail dot com>
   * avilib/avilib.h: make AVIStreamHeader structure (more) 64 bit safe.
   (closes bug #0000071)

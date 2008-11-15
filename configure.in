@@ -602,72 +602,38 @@ TC_PKG_INIT
 dnl
 dnl libavcodec
 dnl
-AC_ARG_ENABLE(libavcodec-static,
-  AC_HELP_STRING([--enable-libavcodec-static],
-    [link binaries and modules to static libavcodec WARNING: creates huge binaries WARNING: only tested on linux x86]),
-  [case "${enableval}" in
-    yes) ;;
-    no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-libavcodec-static) ;;
-  esac],
-  [enable_libavcodec_static=no])
 LIBAVCODEC_EXTRA_LIBS="$LIBAVCODEC_EXTRA_LIBS $($PKG_CONFIG --libs libavcodec)"
-AC_CHECK_HEADERS([ffmpeg/avcodec.h libavcodec/avcodec.h])
-TC_PKG_CHECK(libavcodec, required, LIBAVCODEC, no, none,
- avcodec, avcodec_thread_init, FFmpeg, [http://www.ffmpeg.org/])
+TC_PKG_CHECK(libavcodec, required, LIBAVCODEC, no, [libavcodec/avcodec.h],
+ avcodec, avcodec_thread_init, libavcodec, [http://www.ffmpeg.org/])
 if test x"$have_libavcodec" = x"yes" ; then
   save_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$CPPFLAGS $LIBAVCODEC_CFLAGS"
-  AC_TRY_RUN([
+  AC_RUN_IFELSE([AC_LANG_SOURCE([[
 #include <stdio.h>
-#if  HAVE_LIBAVCODEC_AVCODEC_H
 #include <libavcodec/avcodec.h>
-#else
-#include <ffmpeg/avcodec.h>
-#endif
 int
 main()
 {
-  if (LIBAVCODEC_BUILD < 4718)
-  {
-    printf("error: transcode needs at least libavcodec build 4718");
-    printf("install ffmpeg 0.4.9-pre1 or newer, or a cvs version after 20040703");
+  /* 3344640 == ((51<<16)+(9<<8)+0) == 51.9.0 */
+  if (LIBAVCODEC_BUILD < 3344640) {
+    printf("error: transcode needs at least libavcodec 51.9");
+    printf("install a cvs version after 20060814");
     return(1);
   }
-  /* 3344640 == ((51<<16)+(9<<8)+0) == 51.9.0 */
-#if LIBAVCODEC_BUILD >= 3344640
+
   printf("VER=%s\n", AV_STRINGIFY(LIBAVCODEC_VERSION));
-#else
-  printf("VER=%s\n", FFMPEG_VERSION);
-#endif /* LIBAVCODEC_BUILD >= 51.9.0 check */
   printf("BUILD=%d\n", LIBAVCODEC_BUILD);
   return(0);
 }
-],
+]])],
     [LIBAVCODEC_VERSION="`./conftest$ac_exeext | sed -ne 's,VER=\(.*\),\1,p'`"
       LIBAVCODEC_BUILD="`./conftest$ac_exeext | sed -ne 's,BUILD=\(.*\),\1,p'`"],
-    [TC_PKG_ERROR(libavcodec, ffmpeg/avcodec.h, required, libavcodec, [http://www.ffmpeg.org],
-      [cannot compile ffmpeg/avcodec.h])],
-    [echo $ac_n "cross compiling; assumed OK... $ac_c"
+    [AC_MSG_RESULT([failed])
+     TC_PKG_ERROR(libavcodec, avcodec.h, required, FFmpeg, [http://www.ffmpeg.org],
+      [cannot compile avcodec.h])],
+    [AC_MSG_RESULT([cross compiling; assumed OK...])
       LIBAVCODEC_VERSION=""
       LIBAVCODEC_BUILD=""])
-  if test x"$enable_libavcodec_static" = x"yes" ; then
-    if test x"$deplibs_check_method" != x"pass_all" ; then
-      AC_MSG_ERROR([linking static archives into shared objects not supported on this platform]) 
-    fi
-    save_LIBS="$LIBS"
-    dnl $_w_libavcodec_l comes from TC_PKG_CHECK()
-    LIBS="$LIBS $w_libavcodec_l${deflib}/libavcodec.a $LIBAVCODEC_EXTRA_LIBS"
-    AC_TRY_LINK([
-#include <ffmpeg/avcodec.h>
-],[
-AVCodecContext *ctx = (void *)0;
-avcodec_thread_init(ctx, 0);
-],
-      [LIBAVCODEC_LIBS="$w_libavcodec_l${deflib}/libavcodec.a $LIBAVCODEC_EXTRA_LIBS"],
-      [AC_MSG_ERROR([cannot link statically with libavcodec])])
-    LIBS="$save_LIBS"
-  fi
   CPPFLAGS="$save_CPPFLAGS"
 fi
 AC_SUBST(LIBAVCODEC_VERSION)

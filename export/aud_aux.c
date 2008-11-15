@@ -33,11 +33,7 @@
 
 #include "transcode.h"
 
-#if HAVE_LIBAVCODEC_AVCODEC_H
 #include <libavcodec/avcodec.h>
-#else
-#include <ffmpeg/avcodec.h>
-#endif
 
 #include "aud_aux.h"
 #include "ac3.h"

@@ -31,11 +31,7 @@
 #ifdef EMULATE_FAST_INT
 #undef EMULATE_FAST_INT
 #endif
-#if HAVE_LIBAVCODEC_AVCODEC_H
 #include <libavcodec/avcodec.h>
-#else
-#include <ffmpeg/avcodec.h>
-#endif
 #include "yuv2rgb.h"
 
 #define READ_BUFFER_SIZE (10*1024*1024)

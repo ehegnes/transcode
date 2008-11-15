@@ -114,7 +114,7 @@ Mandatory packages:
   libm
     (these generally come with any and all OSes)
 
-  libavcodec from FFmpeg >= 0.9.1pre1  http://ffmpeg.sourceforge.net/
+  libavcodec from FFmpeg SVN (snapshot >= 20080705) http://ffmpeg.mplayerhq.hu/
     related options:
       --with-libavcodec-prefix=PFX (/usr)
           prefix where libavcodec is installed
@@ -122,11 +122,6 @@ Mandatory packages:
           directory where libavcodec headers [ffmpeg/avcodec.h] are installed
       --with-libavcodec-libs=DIR (/usr/lib)
           prefix where libavcodec libraries [libavcodec.so] are installed
-      --enable-libavcodec-static (disabled)
-          link binaries and modules statically to libavcodec
-          WARNING: creates huge binaries
-          WARNING: only tested on linux x86
-          WARNING: not supported at all, don't complain
 
   libmpeg2 from mpeg2dec >= 0.4.0b  http://libmpeg2.sourceforge.net/
     related options:
