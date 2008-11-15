@@ -603,8 +603,8 @@ main()
     [LIBAVCODEC_VERSION="`./conftest$ac_exeext | sed -ne 's,VER=\(.*\),\1,p'`"
       LIBAVCODEC_BUILD="`./conftest$ac_exeext | sed -ne 's,BUILD=\(.*\),\1,p'`"],
     [AC_MSG_RESULT([failed])
-     TC_PKG_ERROR(libavcodec, ffmpeg/avcodec.h, required, FFmpeg, [http://www.ffmpeg.org],
-      [cannot compile ffmpeg/avcodec.h])],
+     TC_PKG_ERROR(libavcodec, avcodec.h, required, FFmpeg, [http://www.ffmpeg.org],
+      [cannot compile avcodec.h])],
     [AC_MSG_RESULT([cross compiling; assumed OK...])
       LIBAVCODEC_VERSION=""
       LIBAVCODEC_BUILD=""])
