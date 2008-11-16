@@ -1,3 +1,7 @@
+22008-11-16 Francesco Romani <fromani at gmail dot com>
+  * import/v4l/import_v4l.c
+  align to HEAD.
+
 22008-11-15 Francesco Romani <fromani at gmail dot com>
   * configure.in
   transcode 1.1.0-rc3
