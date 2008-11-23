@@ -2,6 +2,9 @@
   * docs/RELNOTES-1.1.0
   Document that UYVY was dropped, and that now yuv422 is planar YUV 4:2:2.
 
+  * avilib/wavlib.c
+  typo (fix build on Big Endian archs like PPC).
+
 22008-11-16 Francesco Romani <fromani at gmail dot com>
   * import/v4l/import_v4l.c
   align to HEAD.
