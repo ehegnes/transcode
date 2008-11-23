@@ -3,8 +3,8 @@
 ===============================
 :Info: See <http://www.transcoding.org> for more documentation.
 :Author: Francesco Romani <fromani@gmail.com>
-:Date: $Date: 2008-09-20 09:54:18 $
-:Revision: $Revision: 1.1.2.5 $
+:Date: $Date: 2008-11-23 10:27:18 $
+:Revision: $Revision: 1.1.2.6 $
 
 
 Introduction
@@ -44,6 +44,8 @@ This section outlines the changes between transcode 1.0.x and 1.1.0.
   Usage of default colorspace (YUV420P) used internally in transcode is made
   consistent through core and modules. No more random usage of -k option,
   that is still of course avalabile, and no more blue people.
+  The support to UYVY colorspace (YUV 4:2:2 packed) was dropped in favour of
+  planar YUV 4:2:2. Now transcode associates yuv422 to planar, no longer to packed.
 
 (transcode) Frame counter improvements
   The output of frame counter, that also acts as progress meter, was rewritten
