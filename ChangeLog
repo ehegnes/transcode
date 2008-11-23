@@ -1,3 +1,7 @@
+2008-11-23 Francesco Romani <fromani at gmail dot com>
+  * avilib/wavlib.c
+  typo (fix build on Big Endian archs like PPC).
+
 2008-11-11 Francesco Romani <fromani at gmail dot com>
   * avilib/abilib.h
   restore symbols accidentally wiped away with last commit.
