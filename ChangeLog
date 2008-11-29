@@ -1,3 +1,7 @@
+2008-11-29 Francesco Romani <fromani at gmail dot com>
+  * import/import_raw.c
+  made the code more STYLE-compliant.
+
 22008-11-23 Francesco Romani <fromani at gmail dot com>
   * docs/RELNOTES-1.1.0
   Document that UYVY was dropped, and that now yuv422 is planar YUV 4:2:2.
