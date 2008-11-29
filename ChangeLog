@@ -1,3 +1,10 @@
+2008-11-29 Andrew Church <achurch at achurch dot org>
+  * export/export_im.c export/export_jpg.c export/export_ppm.c
+    src/encoder.c
+  Make --frame_interval work for all export modules (not just im/jpg/ppm)
+  by discarding the proper number of decoded frames during the encoding
+  phase.
+
 2008-11-23 Francesco Romani <fromani at gmail dot com>
   * avilib/wavlib.c
   typo (fix build on Big Endian archs like PPC).

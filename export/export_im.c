@@ -57,9 +57,6 @@ static int counter=0;
 static const char *prefix="frame.";
 static const char *type;
 
-static int interval=1;
-static unsigned int int_counter=0;
-
 ImageInfo *image_info;
 
 /* ------------------------------------------------------------
@@ -70,9 +67,6 @@ ImageInfo *image_info;
 
 MOD_init
 {
-
-    /* set the 'spit-out-frame' interval */
-    interval = vob->frame_interval;
 
     if(param->flag == TC_VIDEO) {
       int quality = 75;
@@ -173,9 +167,6 @@ MOD_encode
   char *out_buffer = param->buffer;
   Image *image=NULL;
   int res;
-
-  if ((++int_counter-1) % interval != 0)
-      return (0);
 
   if(param->flag == TC_VIDEO) {
 

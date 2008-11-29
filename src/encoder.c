@@ -78,7 +78,7 @@ static int tc_rotate_if_needed_by_bytes(TCRotateContext *rotor,
 /* new-style encoder */
 
 static int encoder_export(TCEncoderData *data, vob_t *vob);
-static void encoder_skip(TCEncoderData *data);
+static void encoder_skip(TCEncoderData *data, int out_of_range);
 static int encoder_flush(TCEncoderData *data);
 
 /* rest of API is already public */
@@ -1318,17 +1318,24 @@ void tc_outstream_rotate(void)
 /*
  * fake encoding, simply adjust frame counters.
  */
-static void encoder_skip(TCEncoderData *data)
+static void encoder_skip(TCEncoderData *data, int out_of_range)
 {
     if (tc_progress_meter) {
         if (!data->fill_flag) {
             data->fill_flag = 1;
         }
-        counter_print(0, data->buffer->frame_id, data->saved_frame_last,
-                      data->frame_first-1);
+        if (out_of_range) {
+            counter_print(0, data->buffer->frame_id, data->saved_frame_last,
+                          data->frame_first-1);
+        } else { /* skipping from --frame_interval */
+            int last = (data->frame_last == TC_FRAME_LAST) ?(-1) :data->frame_last;
+            counter_print(1, data->buffer->frame_id, data->frame_first, last);
+        }
     }
-    data->buffer->vptr->attributes |= TC_FRAME_IS_OUT_OF_RANGE;
-    data->buffer->aptr->attributes |= TC_FRAME_IS_OUT_OF_RANGE;
+    if (out_of_range) {
+        data->buffer->vptr->attributes |= TC_FRAME_IS_OUT_OF_RANGE;
+        data->buffer->aptr->attributes |= TC_FRAME_IS_OUT_OF_RANGE;
+    }
 }
 
 static int need_stop(TCEncoderData *encdata)
@@ -1344,7 +1351,9 @@ static int need_stop(TCEncoderData *encdata)
 
 void tc_encoder_loop(vob_t *vob, int frame_first, int frame_last)
 {
-    int err = 0, eos = 0; /* End Of Stream flag */
+    int err = 0;
+    int skip = 0; /* Frames to skip before next frame to encode */
+    int eos = 0;  /* End Of Stream flag */
 
     if (encdata.this_frame_last != frame_last) {
         encdata.old_frame_last  = encdata.this_frame_last;
@@ -1384,9 +1393,15 @@ void tc_encoder_loop(vob_t *vob, int frame_first, int frame_last)
         /* check frame id */
         if (frame_first <= encdata.buffer->frame_id
           && encdata.buffer->frame_id < frame_last) {
-            encoder_export(&encdata, vob);
+            if (skip > 0) { /* skip frame */
+                encoder_skip(&encdata, 0);
+                skip--;
+            } else { /* encode frame */
+                encoder_export(&encdata, vob);
+                skip = vob->frame_interval - 1;
+            }
         } else { /* frame not in range */
-            encoder_skip(&encdata);
+            encoder_skip(&encdata, 1);
         } /* frame processing loop */
 
         /* release frame buffer memory */

@@ -47,9 +47,6 @@ static const char *prefix="frame.";
 static int jpeg_quality =0;
 #define JPEG_DEFAULT_QUALITY 85
 
-static int interval=1;
-static unsigned int int_counter=0;
-
 JSAMPLE * image_buffer;	/* Points to large array of R,G,B-order data */
 static unsigned char **line[3];
 
@@ -196,9 +193,6 @@ static void write_rgb_JPEG_file (char * filename, int quality, int width, int he
 MOD_init
 {
 
-    /* set the 'spit-out-frame' interval */
-    interval = vob->frame_interval;
-
     if(param->flag == TC_VIDEO) {
 
       width = vob->ex_v_width;
@@ -279,9 +273,6 @@ MOD_encode
 {
 
   char *out_buffer = param->buffer;
-
-  if ((++int_counter-1) % interval != 0)
-      return (0);
 
   if(param->flag == TC_VIDEO) {
 
