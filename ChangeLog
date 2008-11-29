@@ -2,7 +2,11 @@
   * import/import_raw.c
   made the code more STYLE-compliant.
 
-22008-11-23 Francesco Romani <fromani at gmail dot com>
+  * export/export_ffmpeg.c
+  cleanup a bit the encode fields handling, and remove a stale log message.
+  Closes tcforge bug #14740.
+
+2008-11-23 Francesco Romani <fromani at gmail dot com>
   * docs/RELNOTES-1.1.0
   Document that UYVY was dropped, and that now yuv422 is planar YUV 4:2:2.
 
