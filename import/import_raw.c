@@ -112,7 +112,7 @@ MOD_open
 
         switch (codec) {
           case CODEC_RGB:
-            ret = tc_snprintf(import_cmd_buf, sizeof(import_cmf_buf),
+            ret = tc_snprintf(import_cmd_buf, sizeof(import_cmd_buf),
                               "%s -i \"%s\" -d %d %s | tcextract -a %d -x rgb -d %d",
                               cat_buf, vob->video_in_file, vob->verbose, co, vob->v_track, vob->verbose);
             break;
