@@ -1,3 +1,8 @@
+2008-12-09 Andrew Church <achurch at achurch dot org>
+  * encode/encode_x264.c encode/x264.cfg
+  Update x264 encoder to compile with x264 version 65, and remove obsolete
+  options "bidir_me" and "brdo" from the example configuration file.
+
 2008-12-09 Francesco Romani <fromani at gmail dot com>
   * export/export_mov.c
   use optstr_get to parse meta data and extended/codecs options.
