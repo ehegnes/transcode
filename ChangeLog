@@ -1,3 +1,8 @@
+2008-12-09 Francesco Romani <fromani at gmail dot com>
+  * export/export_mov.c
+  use optstr_get to parse meta data and extended/codecs options.
+  Patch courtesy of Stefan Scheffler <stefanscheffler at gmx dot net>
+
 2008-11-29 Francesco Romani <fromani at gmail dot com>
   * import/import_raw.c
   made the code more STYLE-compliant.

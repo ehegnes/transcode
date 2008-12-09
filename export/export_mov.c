@@ -484,54 +484,41 @@ MOD_init
 
 
     /* set extended parameters */
-    if (vob->ex_profile_name != NULL) {  /* check for extended option */
-        char param[strlen(vob->ex_profile_name)],
-             qtvalue[strlen(vob->ex_profile_name)];
+    if (vob->ex_profile_name != NULL) {
+        int i;
+        char meta[128];
 
-        int k = 0;
-        int i, j = 0;
-        int qtvalue_i = 0; /* for int values */
+        if (optstr_get(vob->ex_profile_name, "copyright", "%128[^:]", meta) > 0) {
+            quicktime_set_copyright(qtfile, meta);
+        }
+        if(optstr_get(vob->ex_profile_name, "name", "%128[^:]", meta) > 0) {
+            quicktime_set_name(qtfile, meta);
+        }
+        if(optstr_get(vob->ex_profile_name, "info", "%128[^:]", meta) > 0) {
+            quicktime_set_name(qtfile, meta);
+        }
 
-        for(i=0;i<=strlen(vob->ex_profile_name);i++,j++) {
-            /* try to catch bad input */
-            if (vob->ex_profile_name[i] == ','){
-                tc_log_warn(MOD_NAME, "bad -F option found");
-		tc_log_warn(MOD_NAME, "try something like this: \"-F vc,ac,opt1=val,opt2=val...\"");
-                return(TC_EXPORT_ERROR);
-                break;
-            }
-            if (vob->ex_profile_name[i] == '=') {
-                param[j] = 0;
-                j=-1; /* set to 0 by for loop above */
+        for (i = 0; i < (* qt_codec_info)->num_encoding_parameters; i++) {
+            lqt_parameter_info_t param = (* qt_codec_info)->encoding_parameters[i];
 
-                for(i++,k=0;i<=strlen(vob->ex_profile_name) && vob->ex_profile_name[i] != 0;i++,k++) {
-                    /* try to catch bad input */
-                    if (vob->ex_profile_name[i] == '=') {
-                        tc_log_warn(MOD_NAME, "bad -F option found, aborting ...");
-			tc_log_warn(MOD_NAME, "try something like this: \"-F vc,ac,opt1=val,opt2=val...\"");
-                        return(TC_EXPORT_ERROR);
-                        break;
-                    }
-                    if (vob->ex_profile_name[i] != ',') qtvalue[k] = vob->ex_profile_name[i];
-                    else break;
-                }
-
-                qtvalue[k] = 0;
-                /* exception for copyright, name, info */
-                /* everything else is assumed to be of type int */
-                if (strcmp(param, "copyright") == 0||
-                    strcmp(param, "name") == 0||
-                    strcmp(param, "info") == 0) {
-                    if (strcmp(param, "name") == 0) quicktime_set_name(qtfile, qtvalue);
-                    if (strcmp(param, "copyright") == 0) quicktime_set_copyright(qtfile, qtvalue);
-                    if (strcmp(param, "info") == 0) quicktime_set_info(qtfile, qtvalue);
-                }
-                else {
-                    qtvalue_i = atoi(qtvalue);
-                    quicktime_set_parameter(qtfile, param, &qtvalue_i);
+            if (param.type == LQT_PARAMETER_INT) {
+                int val;
+                if (optstr_get(vob->ex_profile_name, param.name, "%i", &val) > 0) {
+                    lqt_set_video_parameter(qtfile, 0, param.name, &val);
                 }
             }
-            else param[j] = vob->ex_profile_name[i];
+            else if (param.type == LQT_PARAMETER_FLOAT) {
+                float val;
+                if (optstr_get(vob->ex_profile_name, param.name, "%f", &val) > 0) {
+                    lqt_set_video_parameter(qtfile, 0, param.name, &val);
+                }
+            }
+            else if (param.type == LQT_PARAMETER_STRING || param.type == LQT_PARAMETER_STRINGLIST) {
+                char val[128];
+                if (optstr_get(vob->ex_profile_name, param.name, "%128[^:]", val) > 0) {
+                    lqt_set_video_parameter(qtfile, 0, param.name, val);
+                }
+            }
         }
     }
 
