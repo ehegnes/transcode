@@ -269,7 +269,8 @@ SUBDIRS = \
 	$(PREVIEW) \
 	$(SUBTITLER) \
 	$(F_TOMSMOCOMP) \
-	yuvdenoise
+	yuvdenoise \
+	stabilize
 
 pkg_SCRIPTS = \
 	filter_list.awk \

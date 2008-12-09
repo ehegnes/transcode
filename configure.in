@@ -1402,6 +1402,7 @@ AC_CONFIG_FILES([
 	filter/subtitler/Makefile
 	filter/tomsmocomp/Makefile
 	filter/yuvdenoise/Makefile
+	filter/stabilize/Makefile
 	import/Makefile
 	import/nuv/Makefile
 	import/v4l/Makefile

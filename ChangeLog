@@ -3,6 +3,19 @@
   use optstr_get to parse meta data and extended/codecs options.
   Patch courtesy of Stefan Scheffler <stefanscheffler at gmx dot net>
 
+  * libtc/Makefile.am libtc/tclist.c libtc/tclist.h
+  Backport tclist implementation from HEAD.
+  Bugfix courtesy of Georg Martius <georg dot martius at web dot de>
+
+  Added files: filter/stabilize/Changelog filter/stabilize/Makefile.am
+   filter/stabilize/README filter/stabilize/filter_stabilize.c
+   filter/stabilize/filter_transform.c filter/stabilize/transform.c
+   filter/stabilize/transform.h
+
+  * configure.in filter/Makefile.am
+  Merge stabilization plugin version 0.44.
+  Code courtesy of Georg Martius <georg dot martius at web dot de>
+
 2008-11-29 Francesco Romani <fromani at gmail dot com>
   * import/import_raw.c
   made the code more STYLE-compliant.
