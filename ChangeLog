@@ -3,6 +3,9 @@
   use optstr_get to parse meta data and extended/codecs options.
   Patch courtesy of Stefan Scheffler <stefanscheffler at gmx dot net>
 
+  * libtc/tclist.c
+  Bugfix courtesy of Georg Martius <georg dot martius at web dot de>
+
   * added files: filter/stabilize/Changelog filter/stabilize/README
 
   * removed files: filter/stabilize/linkedlist.c filter/stabilize/linkedlist.h
