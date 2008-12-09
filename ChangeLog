@@ -3,6 +3,15 @@
   use optstr_get to parse meta data and extended/codecs options.
   Patch courtesy of Stefan Scheffler <stefanscheffler at gmx dot net>
 
+  * added files: filter/stabilize/Changelog filter/stabilize/README
+
+  * removed files: filter/stabilize/linkedlist.c filter/stabilize/linkedlist.h
+
+  * filter/stabilize/Makefile.am filter/stabilize/filter_stabilize.c
+    filter/stabilize/filter_transform.c filter/stabilize/transform.c
+    filter/stabilize/transform.h
+  Update stabilization plugin to version 0.44.
+
 2008-11-29 Francesco Romani <fromani at gmail dot com>
   * import/import_raw.c
   made the code more STYLE-compliant.

@@ -15,7 +15,7 @@ pkgdir = $(MOD_PATH)
 
 pkg_LTLIBRARIES = filter_stabilize.la filter_transform.la
 
-filter_stabilize_la_SOURCES = filter_stabilize.c transform.c linkedlist.c
+filter_stabilize_la_SOURCES = filter_stabilize.c transform.c 
 filter_stabilize_la_LDFLAGS = -module -avoid-version
 
 filter_transform_la_SOURCES = filter_transform.c transform.c
