@@ -2,6 +2,9 @@
   * import/extract_rgb.c
   Avoid allocating large buffers on the stack.
 
+  * import/import_ffmpeg.c
+  Fix a crash when reading from raw streams.
+
   * testsuite/Makefile.am testsuite/test-average.c
   Add a quick-and-dirty test harness for ac_average().
 
