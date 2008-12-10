@@ -51,7 +51,7 @@ void extract_rgb(info_t *ipipe)
 
     switch (ipipe->magic) {
       case TC_MAGIC_AVI:
-	    if (ipipe->nav_seek_file) {
+	if (ipipe->nav_seek_file) {
             avifile = AVI_open_indexfd(ipipe->fd_in, 0, ipipe->nav_seek_file);
         } else {
             avifile = AVI_open_fd(ipipe->fd_in, 1);
