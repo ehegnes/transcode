@@ -1,4 +1,7 @@
 2008-12-11 Andrew Church <achurch at achurch dot org>
+  * import/extract_rgb.c
+  Avoid allocating large buffers on the stack.
+
   * testsuite/Makefile.am testsuite/test-average.c
   Add a quick-and-dirty test harness for ac_average().
 
