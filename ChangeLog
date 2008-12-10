@@ -1,9 +1,15 @@
 2008-12-10 Andrew Church <achurch at achurch dot org>
+  * configure.in
+  Fix ImageMagick check to include -lMagickWand in the library list.
+
   * encode/encode_im.c
   Fix overuse of const causing a compilation warning.
 
   * export/aud_aux.c import/decode_mp3.c
   Fix compilation warnings when LAME support is diabled.
+
+  * filter/filter_logo.c
+  Fix compilation error caused by a deprecated function.
 
   * import/decode_dv.c
   Fix a compilation warning when libdv support is diabled.
