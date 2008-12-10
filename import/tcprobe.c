@@ -251,7 +251,7 @@ static int tc_scan_directory_info(const char *dname,
         char path_buf[PATH_MAX + 1];
         uint32_t magic = TC_MAGIC_UNKNOWN;
         struct stat stat_buf;
-        int fd, err;
+        int fd = -1, err;
 
         entry = readdir(dir);
         if (entry == NULL) {

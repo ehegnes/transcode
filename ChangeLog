@@ -1,3 +1,16 @@
+2008-12-10 Andrew Church <achurch at achurch dot org>
+  * export/aud_aux.c import/decode_mp3.c
+  Fix compilation warnings when LAME support is diabled.
+
+  * import/decode_dv.c
+  Fix a compilation warning when libdv support is diabled.
+
+  * import/tcprobe.c
+  Avoid a potential uninitialized variable.
+
+  * import/tcxmlcheck.c
+  Avoid a missing-return warning when libxml2 support is disabled.
+
 2008-12-09 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c encode/x264.cfg
   Update x264 encoder to compile with x264 version 65, and remove obsolete
