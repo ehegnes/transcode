@@ -1,4 +1,7 @@
 2008-12-10 Andrew Church <achurch at achurch dot org>
+  * encode/encode_im.c
+  Fix overuse of const causing a compilation warning.
+
   * export/aud_aux.c import/decode_mp3.c
   Fix compilation warnings when LAME support is diabled.
 
