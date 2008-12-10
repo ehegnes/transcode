@@ -1,3 +1,7 @@
+2008-12-11 Andrew Church <achurch at achurch dot org>
+  * testsuite/Makefile.am testsuite/test-average.c
+  Add a quick-and-dirty test harness for ac_average().
+
 2008-12-10 Andrew Church <achurch at achurch dot org>
   * configure.in
   Fix ImageMagick check to include -lMagickWand in the library list.
