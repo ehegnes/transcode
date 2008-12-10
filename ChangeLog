@@ -1,3 +1,29 @@
+2008-12-11 Andrew Church <achurch at achurch dot org>
+  * import/extract_rgb.c
+  Avoid allocating large buffers on the stack.
+
+  * testsuite/Makefile.am testsuite/test-average.c
+  Add a quick-and-dirty test harness for ac_average().
+
+2008-12-10 Andrew Church <achurch at achurch dot org>
+  * configure.in
+  Fix ImageMagick check to include -lMagickWand in the library list.
+
+  * export/aud_aux.c import/decode_mp3.c
+  Fix compilation warnings when LAME support is diabled.
+
+  * filter/filter_logo.c
+  Fix compilation error caused by a deprecated function.
+
+  * import/decode_dv.c
+  Fix a compilation warning when libdv support is diabled.
+
+  * import/tcprobe.c
+  Avoid a potential uninitialized variable.
+
+  * import/tcxmlcheck.c
+  Avoid a missing-return warning when libxml2 support is disabled.
+
 2008-12-09 Francesco Romani <fromani at gmail dot com>
   * export/export_mov.c
   use optstr_get to parse meta data and extended/codecs options.
