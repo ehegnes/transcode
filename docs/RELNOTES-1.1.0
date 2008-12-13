@@ -3,8 +3,8 @@
 ===============================
 :Info: See <http://www.transcoding.org> for more documentation.
 :Author: Francesco Romani <fromani@gmail.com>
-:Date: $Date: 2008-11-23 10:27:18 $
-:Revision: $Revision: 1.1.2.6 $
+:Date: $Date: 2008-12-13 15:14:22 $
+:Revision: $Revision: 1.1.2.7 $
 
 
 Introduction
@@ -90,6 +90,22 @@ This section outlines the changes between transcode 1.0.x and 1.1.0.
   * import_pv3:
     provides access to Earth Soft PV3 audio/video streams using
     win32 binary codecs and an internal win32 emulation layer (NO wine needed).
+  * filter_yait:
+    yait is an advanced, two-step inverse telecine filter contributed by Allan Snider.
+    The filter purpose and working method can be summarized as follows:
+    "[yait] is designed specifically to handle mixed progressive and NTSC telecined data
+     (2:3 pulldown), converting from NTSC_VIDEO (29.97 fps) to NTSC_FILM
+     (23.976 fps).  It uses row save and copy operations to reconstruct progressive
+     frames.  It is provided as an alternative to the -J ivtc,32detect,decimate method."
+  * filter_stabilize, filter_transform:
+    This pair of filter constitutes the vid.stab project of Georg Martius.
+    The project can be summarized as follows:
+    "Imagine you captured a nice video with your camcorder, compact camera or even cell phone
+     while skiing, cycling or whatever sports and the video is basically just jiggled.
+     Modern cameras come along with hardware stabilisation, however this does not work 
+     if you have really strong vibrations - rather the contrary sometimes this mechanisms start
+     to oscillate. vid.stab is your friend in this matter."
+    Find out more on http://public.hronopik.de/vid.stab/ .
 
 (modules) improved modules
   * import_mplayer:
