@@ -2,6 +2,9 @@
   * docs/RELNOTES-1.1.0
   document the new filters.
 
+  * configure.in
+  transcode 1.1.0-rc4
+
 2008-12-11 Andrew Church <achurch at achurch dot org>
   * import/extract_rgb.c
   Avoid allocating large buffers on the stack.
