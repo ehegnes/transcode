@@ -339,7 +339,7 @@ Optional packages:
           directory where libdvdread libraries [libdvdread.so] are installed
     affected modules: import_dvd.so
 
-  PVM3  http://www.netlib.org/pvm3/
+  PVM3  http://www.netlib.org/pvm3/ [UNSUPPORTED, probably BROKEN]
     related options:
       --enable-pvm3 (disabled)
           build with pvm3 support for parallelizing transcode

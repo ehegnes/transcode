@@ -3,8 +3,8 @@
 ===============================
 :Info: See <http://www.transcoding.org> for more documentation.
 :Author: Francesco Romani <fromani@gmail.com>
-:Date: $Date: 2008-12-13 15:14:22 $
-:Revision: $Revision: 1.1.2.7 $
+:Date: $Date: 2008-12-24 09:51:18 $
+:Revision: $Revision: 1.1.2.8 $
 
 
 Introduction
@@ -83,6 +83,10 @@ This section outlines the changes between transcode 1.0.x and 1.1.0.
   now tcmodinfo is capable to show some module properties (of NMS-compliant modules).
   In the long term, this will allow some more juicy things like autocalculation of optimum
   buffer size, auto colorspace negotiation and so on.
+
+(pvm3) the pvm3 code is officially marked as unsupported (and please remember that it was
+  informmaly unsupported from a while), and it is probably broken. It is leaved as it is
+  for legacy purposes, but users depending on this should stick on 1.0.x branch.
 
 (modules) new modules
   * import_vag:

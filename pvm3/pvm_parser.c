@@ -33,6 +33,7 @@
 #endif
 
 #include "libtc/libtc.h"
+#include "libtc/tclist.h"
 #include "libtc/cfgfile.h"
 
 #include <stdio.h>
@@ -78,7 +79,7 @@ static pvm_config_env s_pvm_conf;
 /*************************************************************************/
 /* forward declarations of dispatchers */
 
-static pvm_config_filelist *dispatch_list(TCConfigList *src, int type,
+static pvm_config_filelist *dispatch_list(TCList *src, int type,
                                           char *codec, char *destination,
                                           pvm_config_filelist **ret);
 
@@ -270,31 +271,65 @@ static PVMListItem pvm_filelist[] = {
 /*************************************************************************/
 /* dispatcher functions */
 
-static pvm_config_filelist *dispatch_list(TCConfigList *src, int type,
+/*
+ * yes, that's ugly (and I don't really wnat expend too much on this).
+ * Improvements are warmly welcome, but a rewrite from scratch is
+ * probably the way to go.
+ */
+
+struct dispatch_data {
+    pvm_config_filelist *head;
+    pvm_config_filelist *tail;
+    char                *codec;
+    char                *destination;
+    int                 type;
+};
+
+
+static int dispatch_list_item(TCListItem *item, void *userdata)
+{
+    struct dispatch_data *DD = userdata;
+    int ret = 0;
+
+    pvm_config_filelist *cur = tc_zalloc(sizeof(pvm_config_filelist)); // XXX
+
+    if (!cur) {
+        ret = 1;
+    } else {
+        cur->s_type        = DD->type;
+        cur->p_codec       = DD->codec;       // softref
+        cur->p_destination = DD->destination; // softref
+        cur->p_filename    = item->data;      // hardref
+
+        if (!DD->head) {
+            DD->head = cur;
+            DD->tail = cur;
+        } else {
+            DD->tail->p_next = cur;
+            cur = DD->tail->p_next;
+        }
+    }
+    return ret;
+}
+
+static pvm_config_filelist *dispatch_list(TCList *src, int type,
                                           char *codec, char *destination,
                                           pvm_config_filelist **ret)
 {
-    pvm_config_filelist *head = NULL, *tail = NULL, *item = NULL;
-    for (; src != NULL; src = src->next) {
-        item = tc_zalloc(sizeof(pvm_config_filelist)); // XXX
+    struct dispatch_data DD = {
+        .head        = NULL,
+        .tail        = NULL,
+        .type        = type,
+        .codec       = codec,
+        .destination = destination,
+    };
 
-        item->s_type = type;
-        item->p_codec = codec; // softref
-        item->p_destination = destination; // softref
-        item->p_filename = src->value; // hardref
+    tc_list_foreach(src, dispatch_list_item, &DD);
 
-        if (!head) {
-            head = item;
-            tail = item;
-        } else {
-            tail->p_next = item;
-            tail = tail->p_next;
-        }
-    }
     if (ret) {
-        *ret = tail;
+        *ret = DD.tail;
     }
-    return head;
+    return DD.head;
 }
 
 
@@ -445,9 +480,9 @@ static void parse_filelist(char *p_hostfile)
 {
     int i = 0;
     for (i = 0; pvm_filelist[i].name != NULL; i++) {
-        TCConfigList *list = module_read_config_list(p_hostfile,
-                                                     pvm_filelist[i].name, 
-                                                     __FILE__);
+        TCList *list = module_read_config_list(p_hostfile,
+                                               pvm_filelist[i].name, 
+                                               __FILE__);
         if (list) {
             int type = pvm_filelist[i].type;
             char *codec = (type == TC_VIDEO) 
