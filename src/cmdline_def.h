@@ -1508,7 +1508,7 @@ TC_OPTION(chapter_mode,       'U', "base",
 
 #ifdef TC_OPTIONS_TO_HELP
 /* produce ONLY help messages since this option require special tratment */
-TC_OPTION(no_log_color,      0,  0,
+TC_OPTION(log_no_color,      0,  0,
                 "disable colors in log messages [use colors]",
                 ; /* nothing */
 )

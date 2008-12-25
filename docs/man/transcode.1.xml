@@ -2112,7 +2112,7 @@
             
             <varlistentry>
                 <term>
-                    <option>--no_log_color </option>
+                    <option>--log_no_color </option>
                 </term>
                 <listitem>
                     <para>
@@ -2295,7 +2295,7 @@
         <variablelist>
             <varlistentry>
                 <term>
-                    <emphasis>TRANSCODE_NO_LOG_COLOR</emphasis>
+                    <emphasis>TRANSCODE_LOG_NO_COLOR</emphasis>
                 </term>
                 <listitem>
                     <para>if set, forces the colored logging off for all the tools of transcode suite.</para>

@@ -1304,7 +1304,7 @@ demux AC3/A52 to separate channels [off]
 disable liba52 dolby surround [enabled]\&. Selects whether the output is plain stereo (if the option is set) or if it is Dolby Pro Logic \- also called Dolby surround or 3:1 \- downmix (if the option is not used)\&.
 .RE
 .PP
-\fB\-\-no_log_color \fR
+\fB\-\-log_no_color \fR
 .RS 4
 disable colored log messages\&. By default transcode use colors in log messages in order to easily distinguish message classes\&. That behaviour can be problematic if output of transcode is a file or a pipe, so this option came handful\&.
 .RE
@@ -1413,7 +1413,7 @@ and /docs/filter\-socket\&.txt for more information about the protocol\&.
 .RE
 .SH "ENVIRONMENT"
 .PP
-\fITRANSCODE_NO_LOG_COLOR\fR
+\fITRANSCODE_LOG_NO_COLOR\fR
 .RS 4
 if set, forces the colored logging off for all the tools of transcode suite\&.
 .RE

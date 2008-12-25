@@ -2,7 +2,7 @@
 #
 # test-cfg-filelist.sh -- frontend for configuration file testsuite.
 #                         autogenerates test data.
-# (C) 2007 - Francesco Romani <fromani -at- gmail -dot- com>
+# (C) 2007-2008 - Francesco Romani <fromani -at- gmail -dot- com>
 #
 # This file is part of transcode, a video stream processing tool.
 #
@@ -46,7 +46,7 @@ function testit() {
 	return 0
 }
 
-export "TRANSCODE_NO_LOG_COLOR=1"
+export "TRANSCODE_LOG_NO_COLOR=1"
 
 DIRS="/usr /boot /usr/bin /usr/lib"
 I=0

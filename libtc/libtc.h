@@ -75,8 +75,8 @@ enum {
 #define COL_WHITE           COL(37)
 #define COL_GRAY            "\033[0m"
 
-#define TC_LOG_COLOR_ENV_VAR	"TRANSCODE_NO_LOG_COLOR"
-#define TC_LOG_COLOR_OPTION     "--no_log_color"
+#define TC_LOG_COLOR_ENV_VAR	"TRANSCODE_LOG_NO_COLOR"
+#define TC_LOG_COLOR_OPTION     "--log_no_color"
 
 /* 
  * Made to be compatible with 
