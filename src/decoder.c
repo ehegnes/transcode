@@ -217,12 +217,6 @@ static int mfread(uint8_t *buf, int size, int nelem, FILE *f)
 /*               status handling functions                               */
 /*************************************************************************/
 
-/*
- * Notes about import thread status (stop) flag:
- *
- * XXX: WRITEME.
- *
- */
 
 /*
  * tc_import_{video,audio}_stop (Thread safe): mark the import status flag
@@ -986,7 +980,6 @@ struct tcmultiimportdata_ {
 
     int (*next)(vob_t *vob);
 };
-/* FIXME: explain a such horrible thing */
 
 
 #define MULTIDATA_INIT(MEDIA, VOB, KIND) do {                           \
@@ -1014,7 +1007,7 @@ static TCMultiImportData video_multidata;
 
 static void *multi_import_thread(void *_sid)
 {
-    static int status = TC_IM_THREAD_UNKNOWN; // XXX
+    static int status = TC_IM_THREAD_UNKNOWN; /* can't we be more specific? */
 
     TCMultiImportData *sid = _sid;
     int ret = TC_OK, track_id = sid->vob->a_track;
@@ -1121,3 +1114,4 @@ void tc_multi_import_threads_cancel(void)
  *
  * vim: expandtab shiftwidth=4:
  */
+

@@ -125,6 +125,7 @@ void tc_import_threads_create(vob_t *vob);
  * Preconditions:
  *      import threads are terminated for any reason
  *      (regular stop, end of stream reached, forced interruption).
+ *      tc_import_threads_create was used to startup the threads.
  */
 void tc_import_threads_cancel(void);
 
@@ -150,7 +151,43 @@ int tc_import_video_status(void);
 
 /*************************************************************************/
 
+/*
+ * tc_multi_import_threads_create (Thread safe):
+ * like tc_import_threads_create, but setup internal machinery for 
+ * multi-input handling.
+ *
+ * CRITICAL NOTE:
+ * You MUST use EITHER tc_multi_import_threads_create *OR*
+ * tc_import_threads_create.
+ * You CANNOT use BOTH in the same code path, or nasty things will happen
+ *
+ * Parameters:
+ *      vob: vob structure.
+ * Return Value:
+ *      None.
+ * Preconditions:
+ *      import modules are loaded and initialized correctly;
+ *      tc_import_init was executed succesfully.
+ *      import streams are been opened correctly;
+ *      tc_import_open was executed succesfully.
+ */
 void tc_multi_import_threads_create(vob_t *vob);
+
+/*
+ * tc_multi_import_threads_cancel (Thread safe):
+ * like tc_import_threads_cancel, but you MUST use this function if you
+ * called tc_multi_input_threads_create before. 
+ * Otherwise things will turn nasty.
+ *
+ * Parameters:
+ *      None.
+ * Return Value:
+ *      None.
+ * Preconditions:
+ *      import threads are terminated for any reason
+ *      (regular stop, end of stream reached, forced interruption).
+ *      tc_multi_import_threads_create was used to startup the threads.
+ */
 void tc_multi_import_threads_cancel(void);
 
 #endif /* DECODER_H */
