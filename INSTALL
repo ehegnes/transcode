@@ -112,9 +112,10 @@ Mandatory packages:
 
   libz
   libm
+  pkg-config
     (these generally come with any and all OSes)
 
-  libavcodec from FFmpeg >= 20080706 (SVN)  http://ffmpeg.mplayerhq.hu/
+  libavcodec from FFmpeg SVN (snapshot >= 20080706)  http://ffmpeg.mplayerhq.hu/
     related options:
       --with-libavcodec-prefix=PFX (/usr)
           prefix where libavcodec is installed
@@ -133,6 +134,7 @@ Mandatory packages:
           prefix where libavformat libraries [libavformat.so] are installed
 
   libmpeg2 from mpeg2dec >= 0.4.0b  http://libmpeg2.sourceforge.net/
+  libmpeg2convert is needed as well (shipped in the same package of libmpeg2)
     related options:
       --with-libmpeg2-prefix=PFX (/usr)
           prefix where libmpeg2 is installed
@@ -175,7 +177,7 @@ OS dependent packages:
 
 Optional packages:
 
-  libpostproc (part of FFmpeg) http://www.ffmpeg.org/
+  libpostproc (part of FFmpeg) http://ffmpeg.mplayerhq.hu/
     related options:
       --enable-libpostproc (disabled)
           build with libpostproc support for video processing
@@ -375,7 +377,8 @@ Optional packages:
           directory where libquicktime libraries [libquicktime.so] are installed
     affected modules: export_mov.so, import_mov.so
 
-  lzo  http://www.oberhumer.com/opensource/lzo/ (requires version 2.x)
+  lzo  http://www.oberhumer.com/opensource/lzo/
+    LZO version >= 2.0 is required.
     LZO support is required to enable NUV/NuppelVideo import support.
     related options:
       --enable-lzo (disabled)

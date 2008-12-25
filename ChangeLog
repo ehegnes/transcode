@@ -6,6 +6,9 @@
   * docs/CHANGES-1.0-1.1
   More option descriptions.
 
+  * INSTALL
+  align with HEAD.
+
 2008-12-23 Francesco Romani <fromani at gmail dot com>
   * pvm3/pvm_parser.c
   let the code compile again using TCList.
