@@ -1,3 +1,11 @@
+2008-12-25 Francesco Romani <fromani at gmail dot com>
+  * docs/man/transcode.1 docs/man/transcode.1.xml libtc/libtc.h
+    src/cmdline_def.h testsuite/test-cfg-filelist.sh
+  no_log_color -> log_no_color for (future) consistency.
+
+  * docs/CHANGES-1.0-1.1
+  More option descriptions.
+
 2008-12-23 Francesco Romani <fromani at gmail dot com>
   * pvm3/pvm_parser.c
   let the code compile again using TCList.
