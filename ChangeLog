@@ -2,6 +2,9 @@
   * import/tcprobe.c
   skip '.' and '..' when scanning a directory.
 
+  * avilib/platform.h avilib/platform_posix.c avilib/platform_tc.c
+  correct #includes for MacOsX.
+
 2008-12-25 Francesco Romani <fromani at gmail dot com>
   * docs/man/transcode.1 docs/man/transcode.1.xml libtc/libtc.h
     src/cmdline_def.h testsuite/test-cfg-filelist.sh

@@ -20,15 +20,12 @@
 
 
 #include "platform.h"
+
 #include "libtc/xio.h"
 #include "libtc/libtc.h"
 
-#include <fcntl.h>
-#include <unistd.h>
-
 #include <string.h>
 #include <stdarg.h>
-#include <stdio.h>
 #include <errno.h>
 
 
