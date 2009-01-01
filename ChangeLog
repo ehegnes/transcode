@@ -22,6 +22,11 @@
   internal refactoring; stop decoding threads at cancel()
   (and when asked for).
 
+  * src/encoder-buffer.c src/encoder.c src/frame_threads.c src/transcode.c
+    src/transcode.h
+  fixes for new framebuffer code and PSU mode bugs 
+  (yes, they are interdependent).
+
 2008-12-25 Francesco Romani <fromani at gmail dot com>
   * docs/man/transcode.1 docs/man/transcode.1.xml libtc/libtc.h
     src/cmdline_def.h testsuite/test-cfg-filelist.sh
