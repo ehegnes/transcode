@@ -31,7 +31,7 @@ typedef off_t off64_t;
 #define lseek64 lseek
 #endif
 
-/* get the next valid directorey entry */
+/* get the next valid directory entry */
 static int tc_dirlist_next(TCDirList *tcdir)
 {
     struct dirent *dent = NULL;
@@ -95,7 +95,7 @@ static int tc_dirlist_sortbuf(TCDirList *tcdir)
     qsort(tcdir->entries, tcdir->nfiles, sizeof(char *), compare_name);
 
     tcdir->buffered = 1;
-    tcdir->findex = 0;
+    tcdir->findex   = 0;
 
     return 0;
 }
@@ -138,11 +138,11 @@ int tc_dirlist_open(TCDirList *tcdir, const char *dirname, int sort)
     }
 
     tcdir->filename[0] = '\0';
-    tcdir->entries = NULL;
-    tcdir->nfiles = 0;
-    tcdir->findex = 0;
-    tcdir->buffered = 0;
-    tcdir->dir_name = dirname;
+    tcdir->entries     = NULL;
+    tcdir->nfiles      = 0;
+    tcdir->findex      = 0;
+    tcdir->buffered    = 0;
+    tcdir->dir_name    = dirname;
 
     ret = tc_dirlist_set_path_sep(tcdir);
     if (ret != 0) {
