@@ -1,3 +1,32 @@
+2009-01-01 Francesco Romani <fromani at gmail dot com>
+  * import/tcprobe.c
+  skip '.' and '..' when scanning a directory.
+
+  * avilib/platform.h avilib/platform_posix.c avilib/platform_tc.c
+  correct #includes for MacOsX.
+
+  * src/encoder-common.c src/encoder-common.h
+  add tc_start() function (useful for PSU mode).
+
+  * src/framebuffer.h src/framebuffer.c
+  massive rewrite of framebuffer core. Removing all the old cruft
+  lead to a much cleaner code, fix PSU mode bugs and all known design
+  flaws.
+
+  * added files: testsuite/test-tclist.c testsuite/test-tcframefifo.c
+
+  * testsuite/Makefile.am:
+  test cases for tclist and (partially) for the new framebuffer code.
+
+  * src/decoder.c
+  internal refactoring; stop decoding threads at cancel()
+  (and when asked for).
+
+  * src/encoder-buffer.c src/encoder.c src/frame_threads.c src/transcode.c
+    src/transcode.h
+  fixes for new framebuffer code and PSU mode bugs 
+  (yes, they are interdependent).
+
 2008-12-23 Francesco Romani <fromani at gmail dot com>
   * pvm3/pvm_parser.c
   let the code compile again using TCList.
