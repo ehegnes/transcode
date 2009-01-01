@@ -13,6 +13,11 @@
   lead to a much cleaner code, fix PSU mode bugs and all known design
   flaws.
 
+  * added files: testsuite/test-tclist.c testsuite/test-tcframefifo.c
+
+  * testsuite/Makefile.am:
+  test cases for tclist and (partially) for the new framebuffer code.
+
 2008-12-25 Francesco Romani <fromani at gmail dot com>
   * docs/man/transcode.1 docs/man/transcode.1.xml libtc/libtc.h
     src/cmdline_def.h testsuite/test-cfg-filelist.sh
