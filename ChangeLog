@@ -8,6 +8,11 @@
   * src/encoder-common.c src/encoder-common.h
   add tc_start() function (useful for PSU mode).
 
+  * src/framebuffer.h src/framebuffer.c
+  massive rewrite of framebuffer core. Removing all the old cruft
+  lead to a much cleaner code, fix PSU mode bugs and all known design
+  flaws.
+
 2008-12-25 Francesco Romani <fromani at gmail dot com>
   * docs/man/transcode.1 docs/man/transcode.1.xml libtc/libtc.h
     src/cmdline_def.h testsuite/test-cfg-filelist.sh
