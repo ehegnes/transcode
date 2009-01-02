@@ -950,8 +950,6 @@ vframe_list_t *vframe_dup(vframe_list_t *f)
                                          0, TC_FRAME_WAIT);
     if (!TCFRAMEPTR_IS_NULL(frame)) {
         vframe_copy(frame.video, f, 1);
-        /* currently noone seems to care about this */
-        frame.video->clone_flag = f->clone_flag + 1;
         tc_frame_ring_put_frame(&tc_video_ringbuffer,
                                 TC_FRAME_WAIT, frame);
     }
@@ -1162,7 +1160,6 @@ void vframe_copy(vframe_list_t *dst, const vframe_list_t *src,
     /* copy all common fields with just one move */
     ac_memcpy(dst, src, sizeof(frame_list_t));
     
-    dst->clone_flag   = src->clone_flag;
     dst->deinter_flag = src->deinter_flag;
     dst->free         = src->free;
     /* 
@@ -1173,11 +1170,9 @@ void vframe_copy(vframe_list_t *dst, const vframe_list_t *src,
     if (copy_data == 1) {
         /* really copy video data */
         ac_memcpy(dst->video_buf,  src->video_buf,  dst->video_size);
-        ac_memcpy(dst->video_buf2, src->video_buf2, dst->video_size);
     } else {
         /* soft copy, new frame points to old video data */
         dst->video_buf  = src->video_buf;
-        dst->video_buf2 = src->video_buf2;
     }
 }
 
