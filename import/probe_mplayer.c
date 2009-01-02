@@ -1,6 +1,6 @@
 /*
  * probe_mplayer.c -- probe stream data using external mplayer binary
- * (C) 2005-2008 - Francesco Romani <fromani -at- gmail -dot- com>
+ * (C) 2005-2009 - Francesco Romani <fromani -at- gmail -dot- com>
  *
  * This file is part of transcode, a video stream processing tool.
  *

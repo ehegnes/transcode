@@ -1,7 +1,7 @@
 /*
  * tc_avcodec.h -- transcode's support macros and tools for easier
  *                libavcodec/libavformat/libavutil usage
- * (C) 2007-2008 - Francesco Romani <fromani at gmail dot com>
+ * (C) 2007-2009 - Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
  *

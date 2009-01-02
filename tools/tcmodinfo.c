@@ -41,7 +41,7 @@ enum {
 
 void version(void)
 {
-    printf("%s (%s v%s) (C) 2001-2008 Tilmann Bitterberg, "
+    printf("%s (%s v%s) (C) 2001-2009 Tilmann Bitterberg, "
            "Transcode Team\n", EXE, PACKAGE, VERSION);
 }
 
