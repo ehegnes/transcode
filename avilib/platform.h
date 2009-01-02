@@ -1,7 +1,7 @@
 /*
  * platform.h -- platform utilities wrapper for stream handling libraries
  *               (avilib, wavilib) in transcode.
- * (C) 2007-2008 - Francesco Romani <fromani -at- gmail -dot- com>
+ * (C) 2007-2009 - Francesco Romani <fromani -at- gmail -dot- com>
  *
  * This software is provided 'as-is', without any express or implied
  * warranty.  In no event will the authors be held liable for any damages

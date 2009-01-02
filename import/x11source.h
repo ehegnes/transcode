@@ -1,6 +1,6 @@
 /*
  * x11source.h - X11/transcode bridge code, allowing screen capture.
- * (C) 2006-2008 - Francesco Romani <fromani -at- gmail -dot- com>
+ * (C) 2006-2009 - Francesco Romani <fromani -at- gmail -dot- com>
  *
  * This file is part of transcode, a video stream processing tool.
  *

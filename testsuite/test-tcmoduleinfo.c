@@ -2,7 +2,7 @@
  * test-tcmoduleinfo.c -- testsuite for tcmoduleinfo* functions; 
  *                        everyone feel free to add more tests and improve
  *                        existing ones.
- * (C) 2006-2008 - Francesco Romani <fromani -at- gmail -dot- com>
+ * (C) 2006-2009 - Francesco Romani <fromani -at- gmail -dot- com>
  *
  * This file is part of transcode, a video stream processing tool.
  *

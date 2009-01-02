@@ -3,7 +3,7 @@
  *
  *  Copyright (C) Thomas Oestreich - June 2001
  *  Updates and Enhancements
- *  (C) 2007-2008 - Francesco Romani <fromani -at- gmail -dot- com>
+ *  (C) 2007-2009 - Francesco Romani <fromani -at- gmail -dot- com>
  *
  *  This file is part of transcode, a video stream processing tool
  *
