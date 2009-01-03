@@ -8,7 +8,6 @@ SUBDIRS = html
 docsdir = $(datadir)/doc/transcode/tech
 
 docs_DATA = \
-	LIBRARIES \
 	OPTIMIZERS \
 	architecture.txt \
 	avi_comments.txt \
@@ -17,6 +16,7 @@ docs_DATA = \
 	filter-API.txt \
 	ibp_support.txt \
 	import-API.txt \
+	libraries.txt \
 	module-system-API.txt \
 	filter_template.c
 

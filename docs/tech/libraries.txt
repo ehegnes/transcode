@@ -1,9 +1,9 @@
 TRANSCODE LIBRARIES ORGANIZATION
 ================================
 
-(OBSOLETE SINCE 20070427, see html documentation for an up-to-date information)
 
->>> Introduction
+Summary
+-------
 
 As part of 1.1.0 development cycle, an huge internal reorganization
 effort has undergone. Reorganization isn't yet (as 1.1.0 released)
@@ -20,7 +20,8 @@ much about API/ABI stability yet, and we don't do testing on
 this direction. Help us to improve code, or use it at own risk :)
 
 
->>> Overview
+Overview
+--------
 
 Library: aclib
 Dependencies: None
