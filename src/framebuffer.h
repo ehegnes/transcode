@@ -529,4 +529,27 @@ void aframe_get_counters(int *im, int *fl, int *ex);
  */
 void tc_framebuffer_get_counters(int *im, int *fl, int *ex);
 
+/* Internal functions used in unit tests: */
+#ifdef FBUF_TEST
+typedef struct tcframefifo_ TCFrameFifo;
+typedef struct tcframepool_ TCFramePool;
+extern const char *frame_status_name(TCFrameStatus S);
+extern void tc_frame_fifo_dump_status(TCFrameFifo *F, const char *tag);
+extern void tc_frame_fifo_del(TCFrameFifo *F);
+extern int tc_frame_fifo_empty(TCFrameFifo *F);
+extern int tc_frame_fifo_size(TCFrameFifo *F);
+extern TCFramePtr tc_frame_fifo_get(TCFrameFifo *F);
+extern int tc_frame_fifo_put(TCFrameFifo *F, TCFramePtr ptr);
+extern TCFrameFifo *tc_frame_fifo_new(int size, int sorted);
+extern int tc_frame_pool_init(TCFramePool *P, int size, int sorted,
+                              const char *tag, const char *ptag);
+extern int tc_frame_pool_fini(TCFramePool *P);
+extern void tc_frame_pool_dump_status(TCFramePool *P);
+extern void tc_frame_pool_put_frame(TCFramePool *P, TCFramePtr ptr);
+extern TCFramePtr tc_frame_pool_get_frame(TCFramePool *P);
+extern TCFramePtr tc_frame_pool_pull_frame(TCFramePool *P);
+extern void tc_frame_pool_push_frame(TCFramePool *P, TCFramePtr ptr);
+extern void tc_frame_pool_wakeup(TCFramePool *P, int broadcast);
+#endif
+
 #endif /* FRAMEBUFFER_H */

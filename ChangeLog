@@ -1,3 +1,8 @@
+2009-01-04 Andrew Church <achurch at achurch dot org>
+  * export/export_mov.c filter/filter_pp.c src/framebuffer.c
+    src/framebuffer.h testsuite/test-tcframefifo.c
+  Fix compilation warnings.
+
 2009-01-02 Francesco Romani <fromani at gmail dot com>
   * almost eveything :)
   bump copyright year to 2009.

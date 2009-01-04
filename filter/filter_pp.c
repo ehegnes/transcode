@@ -319,9 +319,10 @@ static int pp_inspect(TCModuleInstance *self,
 static int pp_filter_video(TCModuleInstance *self,
                                vframe_list_t *frame)
 {
-    PPPrivateData *pd = NULL;
-    uint8_t *pp_page[3] = { NULL, NULL, NULL }; // XXX: redundant?
-    int ppStride[3] = { 0, 0, 0 };
+    PPPrivateData *pd;
+    uint8_t *pp_page[3];
+    const uint8_t *pp_srcpage[3];  // To avoid a compiler warning
+    int ppStride[3];
 
     TC_MODULE_SELF_CHECK(self, "filter");
     TC_MODULE_SELF_CHECK(frame, "filter");
@@ -330,12 +331,15 @@ static int pp_filter_video(TCModuleInstance *self,
 
     YUV_INIT_PLANES(pp_page, frame->video_buf,
                     IMG_YUV420P, pd->width, pd->height);
+    pp_srcpage[0] = pp_page[0];
+    pp_srcpage[1] = pp_page[1];
+    pp_srcpage[2] = pp_page[2];
 
     ppStride[0] = pd->width;
     ppStride[1] = pd->width/2;
     ppStride[2] = pd->width/2;
 
-    pp_postprocess(pp_page, ppStride,  pp_page, ppStride,
+    pp_postprocess(pp_srcpage, ppStride, pp_page, ppStride,
                    pd->width, pd->height, NULL, 0, 
                    pd->mode, pd->context, 0);
 

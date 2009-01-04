@@ -28,27 +28,6 @@
 #include "libtc/libtc.h"
 #include "src/framebuffer.h"
 
-
-/*
- * yes, that's cheesy.
- */
-
-typedef struct tcframefifo_ TCFrameFifo;
-
-void tc_frame_fifo_dump_status(TCFrameFifo *F, const char *tag);
-
-int tc_frame_fifo_empty(TCFrameFifo *F);
-int tc_frame_fifo_size(TCFrameFifo *F);
-
-TCFramePtr tc_frame_fifo_pull(TCFrameFifo *F);
-
-TCFramePtr tc_frame_fifo_get(TCFrameFifo *F);
-int tc_frame_fifo_put(TCFrameFifo *F, TCFramePtr ptr);
-
-void tc_frame_fifo_del(TCFrameFifo *F);
-TCFrameFifo *tc_frame_fifo_new(int size, int sorted);
-
-
 /*************************************************************************/
 
 #define TC_TEST_BEGIN(NAME, SIZE, SORTED) \

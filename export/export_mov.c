@@ -32,6 +32,7 @@
 #include "transcode.h"
 #include "import/magic.h"
 #include "encoder.h"
+#include "libtc/optstr.h"
 #include "libtcvideo/tcvideo.h"
 #include <stdio.h>
 #include <stdlib.h>

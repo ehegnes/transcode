@@ -199,7 +199,9 @@ aframe_list_t *aframe_alloc_single(void)
 
 /*************************************************************************/
 
+#ifndef FBUF_TEST
 typedef struct tcframefifo_ TCFrameFifo;
+#endif
 struct tcframefifo_ {
     TCFramePtr  *frames;
     int         size;
@@ -349,7 +351,9 @@ STATIC TCFrameFifo *tc_frame_fifo_new(int size, int sorted)
 
 /*************************************************************************/
 
+#ifndef FBUF_TEST
 typedef struct tcframepool_ TCFramePool;
+#endif
 struct tcframepool_ {
     const char      *ptag;      /* given from ringbuffer */
     const char      *tag;
