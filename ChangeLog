@@ -3,6 +3,9 @@
   yuv420p fixes.
  Patch courtesy of Stefan Scheffler <stefanscheffler at gmx dot net>
 
+  * filter/stabilize/filter_stabilize.c filter/stabilize/filter_transform.c
+  move from (incorrect) slot TC_PREVIEW to TC_PRE_S_PROCESS.
+
 2009-01-04 Andrew Church <achurch at achurch dot org>
   * export/export_mov.c filter/filter_pp.c src/framebuffer.c
     src/framebuffer.h testsuite/test-tcframefifo.c
