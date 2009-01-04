@@ -1,3 +1,8 @@
+2009-02-04 Francesco Romani <fromani at gmail dot com>
+  * import/import_mov.c
+  yuv420p fixes.
+ Patch courtesy of Stefan Scheffler <stefanscheffler at gmx dot net>
+
 2009-01-04 Andrew Church <achurch at achurch dot org>
   * export/export_mov.c filter/filter_pp.c src/framebuffer.c
     src/framebuffer.h testsuite/test-tcframefifo.c
