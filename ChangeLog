@@ -1,3 +1,11 @@
+2009-02-04 Francesco Romani <fromani at gmail dot com>
+  * import/import_mov.c
+  yuv420p fixes.
+ Patch courtesy of Stefan Scheffler <stefanscheffler at gmx dot net>
+
+  * filter/stabilize/filter_stabilize.c filter/stabilize/filter_transform.c
+  move from (incorrect) slot TC_PREVIEW to TC_PRE_S_PROCESS.
+
 2009-01-02 Francesco Romani <fromani at gmail dot com>
   * almost eveything :)
   bump copyright year to 2009.

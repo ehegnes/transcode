@@ -226,29 +226,52 @@ MOD_open
               break;
 
         case CODEC_YUV:
-              /* use raw mode when possible */
-              /* not working ?*/
-              /* if (strcmp(qt_codec, "yv12")) rawVideo=1; */
-	      	    /* allocate buffer for row pointers */
-	      	    row_ptr = tc_malloc(3*sizeof(char *));
-                    if(row_ptr==0) {
-		        tc_log_error(MOD_NAME,"can't alloc row pointers");
-			return(TC_IMPORT_ERROR);
-	      	    }
+            /* use raw mode when possible */
+            /* not working ?*/
+            /* if (strcmp(qt_codec, "yv12")) rawVideo=1; */
 
-              quicktime_set_cmodel(qt_video, BC_YUV420P); qt_cm = BC_YUV420P;
-              break;
+            /* allocate buffer for row pointers */
+            row_ptr = tc_malloc(3*sizeof(char *));
+            if(row_ptr==0) {
+                tc_log_error(MOD_NAME,"can't alloc row pointers");
+                return(TC_IMPORT_ERROR);
+            }
+
+            if (!quicktime_reads_cmodel(qt_video, BC_YUV420P, 0)) {
+                if (quicktime_reads_cmodel(qt_video, BC_YUVJ420P, 0)) {
+                    /* stolen from import_ffmpeg */
+                    /* load levels filter */
+                    if (!tc_filter_add("levels", "output=16-240:pre=1")) {
+                        tc_log_warn(MOD_NAME, "cannot load levels filter. Try -V rgb24.");
+                    }
+                    quicktime_set_cmodel(qt_video, BC_YUVJ420P);
+
+                } else {
+                    tc_log_error(MOD_NAME,"unable to handle colormodel. Try -V rgb24.");
+                    return(TC_IMPORT_ERROR);
+                }
+            } else {
+                quicktime_set_cmodel(qt_video, BC_YUV420P);
+            }
+
+            qt_cm = BC_YUV420P;
+            break;
 
         case CODEC_YUV422:
-		    /* allocate buffer for row pointers */
-	      	    row_ptr = tc_malloc(3*sizeof(char *));
-                    if(row_ptr==0) {
-		        tc_log_error(MOD_NAME,"can't alloc row pointers");
-			return(TC_IMPORT_ERROR);
-	      	    }
+            /* allocate buffer for row pointers */
+            row_ptr = tc_malloc(3*sizeof(char *));
+            if(row_ptr==0) {
+                tc_log_error(MOD_NAME,"can't alloc row pointers");
+                return(TC_IMPORT_ERROR);
+            }
 
-              quicktime_set_cmodel(qt_video, BC_YUV422P); qt_cm = BC_YUV422P;
-              break;
+            if (!quicktime_reads_cmodel(qt_video, BC_YUV422P, 0)) {
+                tc_log_error(MOD_NAME,"unable to handle colormodel. Try -V rgb24.");
+                return(TC_IMPORT_ERROR);
+            }
+
+            quicktime_set_cmodel(qt_video, BC_YUV422P); qt_cm = BC_YUV422P;
+            break;
 
         case CODEC_YUY2:
               quicktime_set_cmodel(qt_video, BC_YUV422); qt_cm = BC_YUV422;
