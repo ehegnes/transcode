@@ -149,6 +149,20 @@ int tc_import_status(void);
 int tc_import_audio_status(void);
 int tc_import_video_status(void);
 
+/*
+ * tc_import_{,video_,audio_}running (Thread safe):
+ * check if respectively video or audio import thread is running.
+ *
+ * Parameters:
+ *      None.
+ * Return Value:
+ *      !0: thread is running.
+ *       0: thread is stopped or stopping.
+ */
+int tc_import_video_running(void);
+int tc_import_audio_running(void);
+
+
 /*************************************************************************/
 
 /*

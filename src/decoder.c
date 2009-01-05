@@ -270,7 +270,7 @@ static int tc_import_thread_is_active(TCDecoderData *decdata)
     pthread_mutex_lock(&decdata->lock);
     flag = decdata->active_flag;
     pthread_mutex_unlock(&decdata->lock);
-    return flag;;
+    return flag;
 }
 
 /*************************************************************************/
@@ -709,6 +709,16 @@ int tc_import_status()
     return tc_import_video_status() && tc_import_audio_status();
 }
 
+int tc_import_video_running(void)
+{
+    return tc_import_thread_is_active(&video_decdata);
+}
+
+int tc_import_audio_running(void)
+{
+    return tc_import_thread_is_active(&audio_decdata);
+}
+
 int tc_import_video_status(void)
 {
     return (tc_import_thread_is_active(&video_decdata) || vframe_have_more());
@@ -725,13 +735,15 @@ void tc_import_threads_cancel(void)
     void *status = NULL;
     int vret, aret;
 
-    tc_import_thread_stop(&video_decdata);
-    tc_import_thread_stop(&audio_decdata);
-    tc_framebuffer_interrupt_stage(TC_FRAME_NULL);
-
     if (tc_decoder_delay)
         tc_log_info(__FILE__, "sleeping for %i seconds to cool down", tc_decoder_delay);
     sleep(tc_decoder_delay);
+    tc_log_info(__FILE__, "cancelling the import threads");
+
+    tc_import_thread_stop(&video_decdata);
+    tc_import_thread_stop(&audio_decdata);
+
+    tc_framebuffer_interrupt_import();
 
     vret = pthread_join(video_decdata.thread_id, &status);
     if (verbose >= TC_DEBUG) {

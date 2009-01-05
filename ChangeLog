@@ -6,6 +6,9 @@
   align to HEAD, in order to reduce circular dependencies between libtc/tcframes.h
   and src/framebuffer.h .
 
+  * src/decoder.c src/decoder.h
+  add functions to query the status of import threads. Needed by PSU mode hangup fix.
+
 2009-01-04 Francesco Romani <fromani at gmail dot com>
   * import/import_mov.c
   yuv420p fixes.
