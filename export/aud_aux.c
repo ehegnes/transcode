@@ -1080,6 +1080,7 @@ int audio_close(void)
 		fd=NULL;
 	}
 
+    avifile2 = NULL;
 	return(TC_EXPORT_OK);
 }
 
