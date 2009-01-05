@@ -17,6 +17,11 @@
   * tools/tcstub.c tools/tcstub.h
   update stubs for new decoder query functions.
 
+  * removed file: testsuite/test-tcframefifo.c
+ 
+  * testsuite/Makefile.am
+  newfb unit tests are no longer useful here.
+
 2009-01-04 Francesco Romani <fromani at gmail dot com>
   * import/import_mov.c
   yuv420p fixes.
