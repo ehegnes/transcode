@@ -11,8 +11,11 @@
 
   * src/encoder-buffer.c src/encoder.c src/framebuffer.c src/framebuffer.h
     src/transcode.c
-  shipping an enterely new framebuffer code just before the final isn't exactly
+  to ship an enterely new framebuffer code just before the final isn't exactly
   the smartest thing in the world, so return to (a fixed version of) oldfb.
+
+  * tools/tcstub.c tools/tcstub.h
+  update stubs for new decoder query functions.
 
 2009-01-04 Francesco Romani <fromani at gmail dot com>
   * import/import_mov.c

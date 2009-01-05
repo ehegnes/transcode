@@ -145,7 +145,6 @@ void tc_del_audio_frame(aframe_list_t *aptr)
     return;
 }
 
-
 #endif /* TC_FRAMEBUFFER_STUBS */
 
 
@@ -184,6 +183,17 @@ void tc_socket_parameter(void) {}
 void tc_socket_preview(void) {}
 void tc_socket_poll(void) {}
 void tc_socket_wait(void) {}
+
+int tc_import_video_running(void)
+{
+    return TC_TRUE;
+}
+
+int tc_import_audio_running(void)
+{
+    return TC_TRUE;
+}
+
 
 int load_plugin(const char *path, int id, int verbose)
 {

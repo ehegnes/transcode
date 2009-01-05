@@ -80,6 +80,9 @@ extern struct filter_struct filter[MAX_FILTERS];
 
 int load_plugin(const char *path, int id, int verbose);
 
+int tc_import_video_running(void);
+int tc_import_audio_running(void);
+
 #endif /* TC_STUB_H */
 
 /* vim: sw=4
