@@ -71,20 +71,20 @@ static int            mpa_bytes_ps, mpa_bytes_pf;
 #define MP3_CHUNK_SZ (2*1152)
 
 static int verbose_flag=TC_DEBUG;
-#define IS_AUDIO_MONO	(avi_aud_chan == 1)
+#define IS_AUDIO_MONO   (avi_aud_chan == 1)
 #ifdef HAVE_LAME
-#define IS_VBR		(lame_get_VBR(lgf) != vbr_off)
+#define IS_VBR      (lame_get_VBR(lgf) != vbr_off)
 #endif
 
 /* Output buffer */
-#define OUTPUT_SIZE	SIZE_PCM_FRAME
+#define OUTPUT_SIZE SIZE_PCM_FRAME
 static char *output   = NULL;
 #ifdef HAVE_LAME
 static int output_len = 0;
 #endif
 
 /* Input buffer */
-#define INPUT_SIZE	SIZE_PCM_FRAME
+#define INPUT_SIZE  SIZE_PCM_FRAME
 static char *input   = NULL;
 #ifdef HAVE_LAME
 static int input_len = 0;
@@ -137,160 +137,160 @@ static int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate);
  */
 static int tc_audio_init_lame(vob_t *vob, int o_codec)
 {
-	static int initialized=0;
+    static int initialized=0;
 
-	if (!initialized)
-		if (verbose_flag & TC_DEBUG)
-			tc_info("Audio: using new version");
+    if (!initialized)
+        if (verbose_flag & TC_DEBUG)
+            tc_info("Audio: using new version");
 
-	if(initialized==0)
-	{
+    if(initialized==0)
+    {
 #ifdef HAVE_LAME
-		int preset = 0;
-		lgf=lame_init();
-		if(lgf<0)
-		{
-			tc_warn("Lame encoder init failed.");
-			return(TC_EXPORT_ERROR);
-		}
+        int preset = 0;
+        lgf=lame_init();
+        if(lgf<0)
+        {
+            tc_warn("Lame encoder init failed.");
+            return(TC_EXPORT_ERROR);
+        }
 
-		if(!(verbose_flag & TC_DEBUG)) lame_set_msgf  (lgf, no_debug);
-		if(!(verbose_flag & TC_DEBUG)) lame_set_debugf(lgf, no_debug);
-		if(!(verbose_flag & TC_DEBUG)) lame_set_errorf(lgf, no_debug);
+        if(!(verbose_flag & TC_DEBUG)) lame_set_msgf  (lgf, no_debug);
+        if(!(verbose_flag & TC_DEBUG)) lame_set_debugf(lgf, no_debug);
+        if(!(verbose_flag & TC_DEBUG)) lame_set_errorf(lgf, no_debug);
 
-		lame_set_bWriteVbrTag(lgf, 0);
-		lame_set_quality(lgf, vob->mp3quality);
+        lame_set_bWriteVbrTag(lgf, 0);
+        lame_set_quality(lgf, vob->mp3quality);
 
-		/* Setting bitrate */
-		if(vob->a_vbr)
-		{ /* VBR */
-			lame_set_VBR(lgf, vob->a_vbr);
-			/*  1 = best vbr q  6=~128k */
-			lame_set_VBR_q(lgf, vob->mp3quality);
-			/*
-			 * if(vob->mp3bitrate>0)
-			 *	lame_set_VBR_mean_bitrate_kbps(
-			 *		lgf,
-			 *		vob->mp3bitrate);
-			 */
-		} else {
-			lame_set_VBR(lgf, 0);
-			lame_set_brate(lgf, vob->mp3bitrate);
-		}
+        /* Setting bitrate */
+        if(vob->a_vbr)
+        { /* VBR */
+            lame_set_VBR(lgf, vob->a_vbr);
+            /*  1 = best vbr q  6=~128k */
+            lame_set_VBR_q(lgf, vob->mp3quality);
+            /*
+             * if(vob->mp3bitrate>0)
+             *  lame_set_VBR_mean_bitrate_kbps(
+             *      lgf,
+             *      vob->mp3bitrate);
+             */
+        } else {
+            lame_set_VBR(lgf, 0);
+            lame_set_brate(lgf, vob->mp3bitrate);
+        }
 
-		/* Playing with bitreservoir */
-		if(vob->bitreservoir == TC_FALSE)
-			lame_set_disable_reservoir(lgf, 1);
+        /* Playing with bitreservoir */
+        if(vob->bitreservoir == TC_FALSE)
+            lame_set_disable_reservoir(lgf, 1);
 
-		/* Mono / Sterero ? */
-		if (IS_AUDIO_MONO)
-		{
-			lame_set_num_channels(lgf, avi_aud_chan);
-			lame_set_mode(lgf, MONO);
-		} else {
-			lame_set_num_channels(lgf, 2);
-			lame_set_mode(lgf, JOINT_STEREO);
-		}
-		/* Overide defaults */
-		if (vob->mp3mode==1)
-			lame_set_mode(lgf, STEREO);
-		if (vob->mp3mode==2)
-			lame_set_mode(lgf, MONO);
+        /* Mono / Sterero ? */
+        if (IS_AUDIO_MONO)
+        {
+            lame_set_num_channels(lgf, avi_aud_chan);
+            lame_set_mode(lgf, MONO);
+        } else {
+            lame_set_num_channels(lgf, 2);
+            lame_set_mode(lgf, JOINT_STEREO);
+        }
+        /* Overide defaults */
+        if (vob->mp3mode==1)
+            lame_set_mode(lgf, STEREO);
+        if (vob->mp3mode==2)
+            lame_set_mode(lgf, MONO);
 
-		/* sample rate */
-		lame_set_in_samplerate(lgf, vob->a_rate);
-		lame_set_out_samplerate(lgf, avi_aud_rate);
+        /* sample rate */
+        lame_set_in_samplerate(lgf, vob->a_rate);
+        lame_set_out_samplerate(lgf, avi_aud_rate);
 
-		/* Optimisations */
-		if(tc_accel & AC_MMX)
-			lame_set_asm_optimizations(lgf, MMX, 1);
+        /* Optimisations */
+        if(tc_accel & AC_MMX)
+            lame_set_asm_optimizations(lgf, MMX, 1);
 
-		if(tc_accel & AC_3DNOW)
-			lame_set_asm_optimizations(lgf, AMD_3DNOW, 1);
+        if(tc_accel & AC_3DNOW)
+            lame_set_asm_optimizations(lgf, AMD_3DNOW, 1);
 
-		if(tc_accel & AC_SSE)
-			lame_set_asm_optimizations(lgf, SSE, 1);
+        if(tc_accel & AC_SSE)
+            lame_set_asm_optimizations(lgf, SSE, 1);
 
 
-		/* Preset stuff */
-		if (vob->lame_preset && strlen (vob->lame_preset))
-		{
-			char *c = strchr (vob->lame_preset, ',');
-			int fast = 0;
+        /* Preset stuff */
+        if (vob->lame_preset && strlen (vob->lame_preset))
+        {
+            char *c = strchr (vob->lame_preset, ',');
+            int fast = 0;
 
-			if (c && *c && *(c+1)) {
-				if (strcmp(c+1, "fast"))
-				{
-					*c = '\0';
-					fast = 1;
-				}
-			}
+            if (c && *c && *(c+1)) {
+                if (strcmp(c+1, "fast"))
+                {
+                    *c = '\0';
+                    fast = 1;
+                }
+            }
 
-			if (strcmp (vob->lame_preset, "standard") == 0)
-			{
-				preset = fast?STANDARD_FAST:STANDARD;
-				vob->a_vbr = 1;
-			}
-			else if (strcmp (vob->lame_preset, "medium") == 0)
-			{
-				preset = fast?MEDIUM_FAST:MEDIUM;
-				vob->a_vbr = 1;
-			}
-			else if (strcmp (vob->lame_preset, "extreme") == 0)
-			{
-				preset = fast?EXTREME_FAST:EXTREME;
-				vob->a_vbr = 1;
-			}
-			else if (strcmp (vob->lame_preset, "insane") == 0) {
-				preset = INSANE;
-				vob->a_vbr = 1;
-			}
-			else if ( atoi(vob->lame_preset) != 0)
-			{
-				vob->a_vbr = 1;
-				preset = atoi(vob->lame_preset);
-				avi_aud_bitrate = preset;
-			}
-			else
-				tc_warn("Lame preset `%s' not supported. "
-				        "Falling back defaults.",
-				        vob->lame_preset);
+            if (strcmp (vob->lame_preset, "standard") == 0)
+            {
+                preset = fast?STANDARD_FAST:STANDARD;
+                vob->a_vbr = 1;
+            }
+            else if (strcmp (vob->lame_preset, "medium") == 0)
+            {
+                preset = fast?MEDIUM_FAST:MEDIUM;
+                vob->a_vbr = 1;
+            }
+            else if (strcmp (vob->lame_preset, "extreme") == 0)
+            {
+                preset = fast?EXTREME_FAST:EXTREME;
+                vob->a_vbr = 1;
+            }
+            else if (strcmp (vob->lame_preset, "insane") == 0) {
+                preset = INSANE;
+                vob->a_vbr = 1;
+            }
+            else if ( atoi(vob->lame_preset) != 0)
+            {
+                vob->a_vbr = 1;
+                preset = atoi(vob->lame_preset);
+                avi_aud_bitrate = preset;
+            }
+            else
+                tc_warn("Lame preset `%s' not supported. "
+                        "Falling back defaults.",
+                        vob->lame_preset);
 
-			if (fast == 1)
-				*c = ',';
+            if (fast == 1)
+                *c = ',';
 
-			if (preset)
-			{
-				if (verbose_flag & TC_DEBUG)
-					tc_info("Using Lame preset `%s'.",
-				        	vob->lame_preset);
-				lame_set_preset(lgf, preset);
-			}
-		}
+            if (preset)
+            {
+                if (verbose_flag & TC_DEBUG)
+                    tc_info("Using Lame preset `%s'.",
+                            vob->lame_preset);
+                lame_set_preset(lgf, preset);
+            }
+        }
 
-		/* Init Lame ! */
-		lame_init_params(lgf);
-		if(verbose_flag)
-			tc_info("Audio: using lame-%s",
-				get_lame_version());
-		if (verbose_flag & TC_DEBUG) {
-			tc_info("Lame config: PCM -> %s",
-			        (o_codec==CODEC_MP3)?"MP3":"MP2");
-			tc_info("             bitrate         : %d kbit/s",
-			        vob->mp3bitrate);
-			tc_info("             ouput samplerate: %d Hz",
-		        	(vob->mp3frequency>0)?vob->mp3frequency:vob->a_rate);
-	  	}
-		/* init lame encoder only on first call */
-		initialized = 1;
-	}
+        /* Init Lame ! */
+        lame_init_params(lgf);
+        if(verbose_flag)
+            tc_info("Audio: using lame-%s",
+                get_lame_version());
+        if (verbose_flag & TC_DEBUG) {
+            tc_info("Lame config: PCM -> %s",
+                    (o_codec==CODEC_MP3)?"MP3":"MP2");
+            tc_info("             bitrate         : %d kbit/s",
+                    vob->mp3bitrate);
+            tc_info("             ouput samplerate: %d Hz",
+                    (vob->mp3frequency>0)?vob->mp3frequency:vob->a_rate);
+        }
+        /* init lame encoder only on first call */
+        initialized = 1;
+    }
 
-	return(TC_EXPORT_OK);
+    return(TC_EXPORT_OK);
 }
 #else  /* HAVE_LAME */
-	}
-	tc_warn("No Lame support available!");
-	return(TC_EXPORT_ERROR);
+    }
+    tc_warn("No Lame support available!");
+    return(TC_EXPORT_ERROR);
 }
 #endif
 
@@ -311,9 +311,9 @@ static int tc_audio_init_ffmpeg(vob_t *vob, int o_codec)
     TC_INIT_LIBAVCODEC;
 
     switch (o_codec) {
-	case   0x50: codeid = CODEC_ID_MP2; break;
-	case 0x2000: codeid = CODEC_ID_AC3; break;
-	default    : tc_warn("cannot init ffmpeg with %x", o_codec);
+    case   0x50: codeid = CODEC_ID_MP2; break;
+    case 0x2000: codeid = CODEC_ID_AC3; break;
+    default    : tc_warn("cannot init ffmpeg with %x", o_codec);
     }
 
     //-- get it --
@@ -338,10 +338,10 @@ static int tc_audio_init_ffmpeg(vob_t *vob, int o_codec)
       if (!vob->mp3frequency)                     // sample-rate dest.
         mpa_ctx.sample_rate = vob->a_rate;
       else {
-	//ThOe added ffmpeg re-sampling capability
+    //ThOe added ffmpeg re-sampling capability
         mpa_ctx.sample_rate = vob->mp3frequency;
-	ReSamplectx = audio_resample_init(vob->dm_chan, vob->dm_chan,
-					  vob->mp3frequency, vob->a_rate);
+    ReSamplectx = audio_resample_init(vob->dm_chan, vob->dm_chan,
+                      vob->mp3frequency, vob->a_rate);
       }
       */
 
@@ -378,38 +378,38 @@ static int tc_audio_init_ffmpeg(vob_t *vob, int o_codec)
  */
 static int tc_audio_init_raw(vob_t *vob)
 {
-	if(vob->pass_flag & TC_AUDIO)
-	{
-		avi_t *avifile;
+    if(vob->pass_flag & TC_AUDIO)
+    {
+        avi_t *avifile;
 
-		avifile = AVI_open_input_file(vob->audio_in_file, 1);
-		if(avifile != NULL)
-		{
-			/* set correct pass-through track: */
-			AVI_set_audio_track(avifile, vob->a_track);
+        avifile = AVI_open_input_file(vob->audio_in_file, 1);
+        if(avifile != NULL)
+        {
+            /* set correct pass-through track: */
+            AVI_set_audio_track(avifile, vob->a_track);
 
-			/*
-			 * small hack to fix incorrect samplerates caused by
-			 * transcode < 0.5.0-20011109
-			 */
-			if (vob->mp3frequency==0)
-				vob->mp3frequency=AVI_audio_rate(avifile);
+            /*
+             * small hack to fix incorrect samplerates caused by
+             * transcode < 0.5.0-20011109
+             */
+            if (vob->mp3frequency==0)
+                vob->mp3frequency=AVI_audio_rate(avifile);
 
-			avi_aud_rate    =  vob->mp3frequency;
-			avi_aud_chan    =  AVI_audio_channels(avifile);
-			avi_aud_bits    =  AVI_audio_bits(avifile);
-			avi_aud_codec   =  AVI_audio_format(avifile);
-			avi_aud_bitrate =  AVI_audio_mp3rate(avifile);
+            avi_aud_rate    =  vob->mp3frequency;
+            avi_aud_chan    =  AVI_audio_channels(avifile);
+            avi_aud_bits    =  AVI_audio_bits(avifile);
+            avi_aud_codec   =  AVI_audio_format(avifile);
+            avi_aud_bitrate =  AVI_audio_mp3rate(avifile);
 
-			AVI_close(avifile);
-		} else {
-			AVI_print_error("avi open error");
-			return(TC_EXPORT_ERROR);
-		}
-	} else
-		tc_audio_encode_function=tc_audio_mute;
+            AVI_close(avifile);
+        } else {
+            AVI_print_error("avi open error");
+            return(TC_EXPORT_ERROR);
+        }
+    } else
+        tc_audio_encode_function=tc_audio_mute;
 
-	return(TC_EXPORT_OK);
+    return(TC_EXPORT_OK);
 }
 
 
@@ -424,156 +424,155 @@ static int tc_audio_init_raw(vob_t *vob)
 
 int tc_audio_init(vob_t *vob, int v)
 {
-	int ret=TC_EXPORT_OK;
-	int sample_size;
-	verbose_flag=v;
+    int ret=TC_EXPORT_OK;
+    int sample_size;
+    verbose_flag=v;
 
-	/* Default */
-	avi_aud_bitrate = vob->mp3bitrate;
-	avi_aud_codec = vob->ex_a_codec;
+    /* Default */
+    avi_aud_bitrate = vob->mp3bitrate;
+    avi_aud_codec = vob->ex_a_codec;
 
-	avi_aud_bits=vob->dm_bits;
-	avi_aud_chan=vob->dm_chan;
-	avi_aud_rate=(vob->mp3frequency != 0)?vob->mp3frequency:vob->a_rate;
+    avi_aud_bits=vob->dm_bits;
+    avi_aud_chan=vob->dm_chan;
+    avi_aud_rate=(vob->mp3frequency != 0)?vob->mp3frequency:vob->a_rate;
 
-	lame_flush=vob->encoder_flush;
+    lame_flush=vob->encoder_flush;
 
-	/* For encoding */
-	sample_size = avi_aud_bits * 8 * avi_aud_chan;
+    /* For encoding */
+    sample_size = avi_aud_bits * 8 * avi_aud_chan;
 
-	/*
-	 * Sanity checks
-	 */
-	if((sample_size == 0) &&
-	   (vob->im_a_codec != CODEC_NULL))
-	{
-		tc_warn("Zero sample size detected for audio format `0x%x'. "
-		      "Muting.", vob->im_a_codec);
-		tc_audio_encode_function=tc_audio_mute;
-		return(TC_EXPORT_OK);
-	}
+    /*
+     * Sanity checks
+     */
+    if((sample_size == 0) &&
+       (vob->im_a_codec != CODEC_NULL))
+    {
+        tc_warn("Zero sample size detected for audio format `0x%x'. "
+              "Muting.", vob->im_a_codec);
+        tc_audio_encode_function=tc_audio_mute;
+        return(TC_EXPORT_OK);
+    }
+
+    output = malloc (OUTPUT_SIZE);
+    input  = malloc (INPUT_SIZE);
+    if (!output || !input) {
+        tc_log_error(__FILE__, "(%s:%d) Out of memory", __FILE__, __LINE__);
+        return (TC_EXPORT_ERROR);
+    }
 
 
-	output = malloc (OUTPUT_SIZE);
-	input  = malloc (INPUT_SIZE);
-	if (!output || !input) {
-	    tc_log_error(__FILE__, "(%s:%d) Out of memory", __FILE__, __LINE__);
-	    return (TC_EXPORT_ERROR);
-	}
+    /* paranoia... */
+    memset (output, 0, OUTPUT_SIZE);
+    memset (input, 0, INPUT_SIZE);
 
+    if (verbose_flag & TC_DEBUG)
+        tc_info("Audio submodule in=0x%x out=0x%x", vob->im_a_codec, vob->ex_a_codec);
 
-	/* paranoia... */
-	memset (output, 0, OUTPUT_SIZE);
-	memset (input, 0, INPUT_SIZE);
+    switch(vob->im_a_codec)
+    {
+    case CODEC_PCM:
+        switch(vob->ex_a_codec)
+        {
+        case CODEC_NULL:
+            tc_audio_encode_function = tc_audio_mute;
+            break;
 
-	if (verbose_flag & TC_DEBUG)
-		tc_info("Audio submodule in=0x%x out=0x%x", vob->im_a_codec, vob->ex_a_codec);
+        case CODEC_MP3:
+            ret=tc_audio_init_lame(vob, vob->ex_a_codec);
+            tc_audio_encode_function = tc_audio_encode_mp3;
+            break;
 
-	switch(vob->im_a_codec)
-	{
-	case CODEC_PCM:
-		switch(vob->ex_a_codec)
-		{
-		case CODEC_NULL:
-			tc_audio_encode_function = tc_audio_mute;
-			break;
+        case CODEC_PCM:
+            tc_info("PCM -> PCM");
+            /* adjust bitrate with magic ! */
+            avi_aud_bitrate=(vob->a_rate*4)/1000*8;
+            tc_audio_encode_function = tc_audio_pass_through_pcm;
+            break;
 
-		case CODEC_MP3:
-			ret=tc_audio_init_lame(vob, vob->ex_a_codec);
-			tc_audio_encode_function = tc_audio_encode_mp3;
-			break;
+        case CODEC_MP2:
+            tc_info("PCM -> MP2");
+            ret=tc_audio_init_ffmpeg(vob, vob->ex_a_codec);
+            tc_audio_encode_function = tc_audio_encode_ffmpeg;
+            break;
 
-		case CODEC_PCM:
-			tc_info("PCM -> PCM");
-			/* adjust bitrate with magic ! */
-			avi_aud_bitrate=(vob->a_rate*4)/1000*8;
-			tc_audio_encode_function = tc_audio_pass_through_pcm;
-			break;
+        case CODEC_AC3:
+            tc_info("PCM -> AC3");
+            ret=tc_audio_init_ffmpeg(vob, vob->ex_a_codec);
+            tc_audio_encode_function = tc_audio_encode_ffmpeg;
+            break;
 
-		case CODEC_MP2:
-			tc_info("PCM -> MP2");
-			ret=tc_audio_init_ffmpeg(vob, vob->ex_a_codec);
-			tc_audio_encode_function = tc_audio_encode_ffmpeg;
-			break;
+        default:
+            tc_warn("Conversion not supported (in=0x%x out=0x%x)",
+                    vob->im_a_codec, vob->ex_a_codec);
+            ret=TC_EXPORT_ERROR;
+            break;
+        }
+        break;
 
-		case CODEC_AC3:
-			tc_info("PCM -> AC3");
-			ret=tc_audio_init_ffmpeg(vob, vob->ex_a_codec);
-			tc_audio_encode_function = tc_audio_encode_ffmpeg;
-			break;
+    case CODEC_MP2:
+    case CODEC_MP3: /* only pass through supported */
+        switch(vob->ex_a_codec)
+        {
+        case CODEC_NULL:
+            tc_audio_encode_function = tc_audio_mute;
+            break;
 
-		default:
-			tc_warn("Conversion not supported (in=0x%x out=0x%x)",
-			        vob->im_a_codec, vob->ex_a_codec);
-			ret=TC_EXPORT_ERROR;
-			break;
-		}
-		break;
+        case CODEC_MP2:
+        case CODEC_MP3:
+            tc_audio_encode_function = tc_audio_pass_through;
+            break;
 
-	case CODEC_MP2:
-	case CODEC_MP3: /* only pass through supported */
-		switch(vob->ex_a_codec)
-		{
-		case CODEC_NULL:
-			tc_audio_encode_function = tc_audio_mute;
-			break;
+        default:
+            tc_warn("Conversion not supported (in=x0%x out=x0%x)",
+                    vob->im_a_codec, vob->ex_a_codec);
+            ret=TC_EXPORT_ERROR;
+            break;
+        }
+        break;
 
-		case CODEC_MP2:
-		case CODEC_MP3:
-			tc_audio_encode_function = tc_audio_pass_through;
-			break;
+    case CODEC_AC3: /* only pass through supported */
+        switch(vob->ex_a_codec)
+        {
+        case CODEC_NULL:
+            tc_audio_encode_function = tc_audio_mute;
+            break;
 
-		default:
-			tc_warn("Conversion not supported (in=x0%x out=x0%x)",
-			        vob->im_a_codec, vob->ex_a_codec);
-			ret=TC_EXPORT_ERROR;
-			break;
-		}
-		break;
+        case CODEC_AC3:
+            tc_info("AC3->AC3");
+            if (vob->audio_file_flag) {
+                tc_audio_encode_function = tc_audio_pass_through;
+            } else {
+                tc_audio_encode_function = tc_audio_pass_through_ac3;
+            }
+            /*
+             *the bitrate can only be determined in the encoder
+             * section. `bitrate_flags' will be set to 1 after
+             * bitrate is determined.
+             */
+            break;
+        default:
+            tc_warn("Conversion not supported (in=0x%x out=0x%x)",
+                    vob->im_a_codec, vob->ex_a_codec);
+            ret=TC_EXPORT_ERROR;
+            break;
+        }
+        break;
 
-	case CODEC_AC3: /* only pass through supported */
-		switch(vob->ex_a_codec)
-		{
-		case CODEC_NULL:
-			tc_audio_encode_function = tc_audio_mute;
-			break;
+    case CODEC_NULL: /* no audio requested */
+        tc_audio_encode_function = tc_audio_mute;
+        break;
 
-		case CODEC_AC3:
-			tc_info("AC3->AC3");
-			if (vob->audio_file_flag) {
-				tc_audio_encode_function = tc_audio_pass_through;
-			} else {
-				tc_audio_encode_function = tc_audio_pass_through_ac3;
-			}
-			/*
-			 *the bitrate can only be determined in the encoder
-			 * section. `bitrate_flags' will be set to 1 after
-			 * bitrate is determined.
-			 */
-			break;
-		default:
-			tc_warn("Conversion not supported (in=0x%x out=0x%x)",
-			        vob->im_a_codec, vob->ex_a_codec);
-			ret=TC_EXPORT_ERROR;
-			break;
-		}
-		break;
+    case CODEC_RAW: /* pass-through mode */
+        tc_audio_encode_function = tc_audio_pass_through;
+        ret=tc_audio_init_raw(vob);
+        break;
 
-	case CODEC_NULL: /* no audio requested */
-		tc_audio_encode_function = tc_audio_mute;
-		break;
-
-	case CODEC_RAW: /* pass-through mode */
-		tc_audio_encode_function = tc_audio_pass_through;
-		ret=tc_audio_init_raw(vob);
-		break;
-
-	default:
-		tc_warn("Conversion not supported (in=x0%x out=x0%x)",
-		      vob->im_a_codec, vob->ex_a_codec);
-		ret=TC_EXPORT_ERROR;
-		break;
-	}
+    default:
+        tc_warn("Conversion not supported (in=x0%x out=x0%x)",
+              vob->im_a_codec, vob->ex_a_codec);
+        ret=TC_EXPORT_ERROR;
+        break;
+    }
 
     return(ret);
 }
@@ -589,74 +588,74 @@ int tc_audio_init(vob_t *vob, int v)
  */
 int tc_audio_open(vob_t *vob, avi_t *avifile)
 {
-	if (tc_audio_encode_function != tc_audio_mute)
-	{
-		if(vob->audio_file_flag)
-		{
-			if(! fd)
-			{
-				if (vob->audio_out_file[0] == '|')
-				{
-					fd = popen(vob->audio_out_file+1, "w");
-					if (! fd)
-					{
-						tc_warn("Cannot popen() audio "
-						        "file `%s'",
-						        vob->audio_out_file+1);
-						return(TC_EXPORT_ERROR);
-					}
-					is_pipe = 1;
-				} else {
-					fd = fopen(vob->audio_out_file, "w");
-					if (! fd)
-					{
-						tc_warn("Cannot open() audio "
-						      "file `%s'",
-						      vob->audio_out_file);
-						return(TC_EXPORT_ERROR);
-					}
-				}
-			}
+    if (tc_audio_encode_function != tc_audio_mute)
+    {
+        if(vob->audio_file_flag)
+        {
+            if(! fd)
+            {
+                if (vob->audio_out_file[0] == '|')
+                {
+                    fd = popen(vob->audio_out_file+1, "w");
+                    if (! fd)
+                    {
+                        tc_warn("Cannot popen() audio "
+                                "file `%s'",
+                                vob->audio_out_file+1);
+                        return(TC_EXPORT_ERROR);
+                    }
+                    is_pipe = 1;
+                } else {
+                    fd = fopen(vob->audio_out_file, "w");
+                    if (! fd)
+                    {
+                        tc_warn("Cannot open() audio "
+                              "file `%s'",
+                              vob->audio_out_file);
+                        return(TC_EXPORT_ERROR);
+                    }
+                }
+            }
 
-			if (verbose_flag & TC_DEBUG)
-				tc_info("Sending audio output to %s",
-			        	vob->audio_out_file);
-		} else {
+            if (verbose_flag & TC_DEBUG)
+                tc_info("Sending audio output to %s",
+                        vob->audio_out_file);
+        } else {
 
-			if(avifile==NULL)
-			{
-				tc_audio_encode_function = tc_audio_mute;
-				tc_info("No option `-m' found. Muting sound.");
-				return(TC_EXPORT_OK);
-			}
+            if(avifile==NULL)
+            {
+                tc_audio_encode_function = tc_audio_mute;
+                tc_info("No option `-m' found. Muting sound.");
+                return(TC_EXPORT_OK);
+            }
 
-			AVI_set_audio(avifile,
-				      avi_aud_chan,
-				      avi_aud_rate,
-				      avi_aud_bits,
-				      avi_aud_codec,
-				      avi_aud_bitrate);
-			AVI_set_audio_vbr(avifile, vob->a_vbr);
+            AVI_set_audio(avifile,
+                      avi_aud_chan,
+                      avi_aud_rate,
+                      avi_aud_bits,
+                      avi_aud_codec,
+                      avi_aud_bitrate);
+            AVI_set_audio_vbr(avifile, vob->a_vbr);
 
-			if (vob->avi_comment_fd > 0)
-				AVI_set_comment_fd(avifile,
-						   vob->avi_comment_fd);
+            if (vob->avi_comment_fd > 0)
+                AVI_set_comment_fd(avifile,
+                           vob->avi_comment_fd);
 
-			if(avifile2 == NULL)
-				avifile2 = avifile; /* save for close */
+            if(avifile2 == NULL)
+                avifile2 = avifile; /* save for close */
 
-			if (verbose_flag & TC_DEBUG)
-				tc_info("AVI stream: format=0x%x, rate=%ld Hz, "
-			        	"bits=%d, channels=%d, bitrate=%d",
-				        avi_aud_codec,
-				        avi_aud_rate,
-				        avi_aud_bits,
-				        avi_aud_chan,
-			        	avi_aud_bitrate);
-		}
-  	}
+            if (verbose_flag & TC_DEBUG)
+                tc_info("AVI stream: format=0x%x, rate=%ld Hz, "
+                        "bits=%d, channels=%d, bitrate=%d",
+                        avi_aud_codec,
+                        avi_aud_rate,
+                        avi_aud_bits,
+                        avi_aud_chan,
+                        avi_aud_bitrate);
+        }
+    }
 
-	return(TC_EXPORT_OK);
+    return(TC_EXPORT_OK);
 }
 
 
@@ -665,22 +664,22 @@ int tc_audio_open(vob_t *vob, avi_t *avifile)
  */
 static int tc_audio_write(char *buffer, size_t size, avi_t *avifile)
 {
-	if (fd != NULL)
-	{
-		if (fwrite(buffer, size, 1, fd) != 1)
-		{
-			tc_warn("Audio file write error (errno=%d) [%s].", errno, strerror(errno));
-			return(TC_EXPORT_ERROR);
-		}
-	} else {
-		if (AVI_write_audio(avifile, buffer, size) < 0)
-		{
-			AVI_print_error("AVI file audio write error");
-			return(TC_EXPORT_ERROR);
-		}
-	}
+    if (fd != NULL)
+    {
+        if (fwrite(buffer, size, 1, fd) != 1)
+        {
+            tc_warn("Audio file write error (errno=%d) [%s].", errno, strerror(errno));
+            return(TC_EXPORT_ERROR);
+        }
+    } else {
+        if (AVI_write_audio(avifile, buffer, size) < 0)
+        {
+            AVI_print_error("AVI file audio write error");
+            return(TC_EXPORT_ERROR);
+        }
+    }
 
-	return(TC_EXPORT_OK);
+    return(TC_EXPORT_OK);
 }
 
 
@@ -717,111 +716,111 @@ static int tc_audio_write(char *buffer, size_t size, avi_t *avifile)
 static int tc_audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile)
 {
 #ifdef HAVE_LAME
-	int outsize=0;
-	int count=0;
+    int outsize=0;
+    int count=0;
 
-	/*
-	 * Apend the new incoming audio to the already available but not yet
-	 * consumed.
-	 */
+    /*
+     * Apend the new incoming audio to the already available but not yet
+     * consumed.
+     */
         ac_memcpy (input+input_len, aud_buffer, aud_size);
-	input_len += aud_size;
-	if (verbose_flag & TC_DEBUG)
-		tc_info("audio_encode_mp3: input buffer size=%d", input_len);
+    input_len += aud_size;
+    if (verbose_flag & TC_DEBUG)
+        tc_info("audio_encode_mp3: input buffer size=%d", input_len);
 
-	/*
-	 * As long as lame doesn't return encoded data (lame needs to fill its
-	 * internal buffers) AND as long as there is enough input data left.
-	 */
-	while(input_len >= MP3_CHUNK_SZ)
-	{
-		if(IS_AUDIO_MONO)
-		{
-			outsize = lame_encode_buffer(
-				lgf,
-				(short int *)(input+count*MP3_CHUNK_SZ),
-				(short int *)(input+count*MP3_CHUNK_SZ),
-				MP3_CHUNK_SZ/2,
-				output+output_len,
-				OUTPUT_SIZE - output_len);
-		} else {
-			outsize = lame_encode_buffer_interleaved(
-				lgf,
-				(short int *) (input+count*MP3_CHUNK_SZ),
-				MP3_CHUNK_SZ/4,
-				output + output_len,
-				OUTPUT_SIZE - output_len);
-		}
+    /*
+     * As long as lame doesn't return encoded data (lame needs to fill its
+     * internal buffers) AND as long as there is enough input data left.
+     */
+    while(input_len >= MP3_CHUNK_SZ)
+    {
+        if(IS_AUDIO_MONO)
+        {
+            outsize = lame_encode_buffer(
+                lgf,
+                (short int *)(input+count*MP3_CHUNK_SZ),
+                (short int *)(input+count*MP3_CHUNK_SZ),
+                MP3_CHUNK_SZ/2,
+                output+output_len,
+                OUTPUT_SIZE - output_len);
+        } else {
+            outsize = lame_encode_buffer_interleaved(
+                lgf,
+                (short int *) (input+count*MP3_CHUNK_SZ),
+                MP3_CHUNK_SZ/4,
+                output + output_len,
+                OUTPUT_SIZE - output_len);
+        }
 
-		if(outsize < 0)
-		{
-			tc_warn("Lame encoding error: (%s)",
-			        lame_error2str(outsize));
-			return(TC_EXPORT_ERROR);
-		}
+        if(outsize < 0)
+        {
+            tc_warn("Lame encoding error: (%s)",
+                    lame_error2str(outsize));
+            return(TC_EXPORT_ERROR);
+        }
 
-		output_len += outsize;
-		input_len  -= MP3_CHUNK_SZ;
+        output_len += outsize;
+        input_len  -= MP3_CHUNK_SZ;
 
-		++count;
+        ++count;
 
-		if (verbose_flag & TC_DEBUG)
-			tc_info("Encoding: count=%d outsize=%d output_len=%d "
-		        "consumed=%d",
-		        count, outsize, output_len, count*MP3_CHUNK_SZ);
-	}
-	/* Update input */
-	memmove(input, input+count*MP3_CHUNK_SZ, input_len);
+        if (verbose_flag & TC_DEBUG)
+            tc_info("Encoding: count=%d outsize=%d output_len=%d "
+                "consumed=%d",
+                count, outsize, output_len, count*MP3_CHUNK_SZ);
+    }
+    /* Update input */
+    memmove(input, input+count*MP3_CHUNK_SZ, input_len);
 
 
-	if (verbose_flag & TC_DEBUG)
-		tc_info("output_len=%d input_len=%d count=%d",
-			output_len, input_len, count);
+    if (verbose_flag & TC_DEBUG)
+        tc_info("output_len=%d input_len=%d count=%d",
+            output_len, input_len, count);
 
-	/*
-	 * Now, it's time to write mp3 data to output stream...
-	 */
-	if (IS_VBR)
-	{
-		int offset=0;
-		int size;
+    /*
+     * Now, it's time to write mp3 data to output stream...
+     */
+    if (IS_VBR)
+    {
+        int offset=0;
+        int size;
 
-		/*
-		 * In VBR mode, we should write _complete_ chunk. And their
-		 * size may change from one to other... So we should analyse
-		 * each one and write it if enough data is avaible.
-		 */
+        /*
+         * In VBR mode, we should write _complete_ chunk. And their
+         * size may change from one to other... So we should analyse
+         * each one and write it if enough data is avaible.
+         */
 
-		if (verbose_flag & TC_DEBUG)
-			tc_info("Writing... (output_len=%d)\n", output_len);
-		while((size=tc_get_mp3_header(output+offset, NULL, NULL)) > 0)
-		{
-			if (size > output_len)
-				break;
+        if (verbose_flag & TC_DEBUG)
+            tc_info("Writing... (output_len=%d)\n", output_len);
+        while((size=tc_get_mp3_header(output+offset, NULL, NULL)) > 0)
+        {
+            if (size > output_len)
+                break;
 
-			if (verbose_flag & TC_DEBUG)
-				tc_info("Writing chunk of size=%d", size);
-			tc_audio_write(output+offset, size, avifile);
-			offset += size;
-			output_len -= size;
-		}
-		memmove(output, output+offset, output_len);
-		if (verbose_flag & TC_DEBUG)
-			tc_info("Writing OK (output_len=%d)", output_len);
-	} else {
-		/*
-		 * in CBR mode, write our data in simplest way.
-		 * Thinking too much about chunk will break audio playback
-		 * on archos Jukebox Multimedia...
-		 */
-		tc_audio_write(output, output_len, avifile);
-		output_len=0;
-	}
-	return(TC_EXPORT_OK);
+            if (verbose_flag & TC_DEBUG)
+                tc_info("Writing chunk of size=%d", size);
+            tc_audio_write(output+offset, size, avifile);
+            offset += size;
+            output_len -= size;
+        }
+        memmove(output, output+offset, output_len);
+        if (verbose_flag & TC_DEBUG)
+            tc_info("Writing OK (output_len=%d)", output_len);
+    } else {
+        /*
+         * in CBR mode, write our data in simplest way.
+         * Thinking too much about chunk will break audio playback
+         * on archos Jukebox Multimedia...
+         */
+        tc_audio_write(output, output_len, avifile);
+        output_len=0;
+    }
+    return(TC_EXPORT_OK);
 }
 #else   // HAVE_LAME
-	tc_warn("No Lame support available!");
-	return(TC_EXPORT_ERROR);
+    tc_warn("No Lame support available!");
+    return(TC_EXPORT_ERROR);
 }
 #endif
 
@@ -847,13 +846,13 @@ static int tc_audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile
       //------------------------------
       if ( bytes_avail >= bytes_needed ) {
 
-	ac_memcpy(&mpa_buf[mpa_buf_ptr], in_buf, bytes_needed);
+    ac_memcpy(&mpa_buf[mpa_buf_ptr], in_buf, bytes_needed);
 
-	TC_LOCK_LIBAVCODEC;
-	out_size = avcodec_encode_audio(&mpa_ctx, (unsigned char *)output,
-					OUTPUT_SIZE, (short *)mpa_buf);
-	TC_UNLOCK_LIBAVCODEC;
-	tc_audio_write(output, out_size, avifile);
+    TC_LOCK_LIBAVCODEC;
+    out_size = avcodec_encode_audio(&mpa_ctx, (unsigned char *)output,
+                    OUTPUT_SIZE, (short *)mpa_buf);
+    TC_UNLOCK_LIBAVCODEC;
+    tc_audio_write(output, out_size, avifile);
 
         in_size -= bytes_needed;
         in_buf  += bytes_needed;
@@ -865,7 +864,7 @@ static int tc_audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile
       //---------------------------------------------------------------
       else {
 
-	ac_memcpy(&mpa_buf[mpa_buf_ptr], aud_buffer, bytes_avail);
+    ac_memcpy(&mpa_buf[mpa_buf_ptr], aud_buffer, bytes_avail);
         mpa_buf_ptr += bytes_avail;
         return (0);
       }
@@ -878,7 +877,7 @@ static int tc_audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile
     while (in_size >= mpa_bytes_pf) {
       TC_LOCK_LIBAVCODEC;
       out_size = avcodec_encode_audio(&mpa_ctx, (unsigned char *)output,
-				      OUTPUT_SIZE, (short *)in_buf);
+                      OUTPUT_SIZE, (short *)in_buf);
       TC_UNLOCK_LIBAVCODEC;
 
       tc_audio_write(output, out_size, avifile);
@@ -899,42 +898,42 @@ static int tc_audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile
 
 static int tc_audio_pass_through_ac3(char *aud_buffer, int aud_size, avi_t *avifile)
 {
-	if(bitrate == 0)
-	{
-		int i;
-		uint16_t sync_word = 0;
+    if(bitrate == 0)
+    {
+        int i;
+        uint16_t sync_word = 0;
 
-		/* try to determine bitrate from audio frame: */
-		for(i=0;i<aud_size-3;++i)
-		{
-			sync_word = (sync_word << 8) + (uint8_t) aud_buffer[i];
-			if(sync_word == 0x0b77)
-			{
-				/* from import/ac3scan.c */
-				static const int bitrates[] = {
-					32, 40, 48, 56,
-					64, 80, 96, 112,
-					128, 160, 192, 224,
-					256, 320, 384, 448,
-					512, 576, 640
-				};
-				int ratecode = (aud_buffer[i+3] & 0x3E) >> 1;
-				if (ratecode < sizeof(bitrates)/sizeof(*bitrates))
-					bitrate = bitrates[ratecode];
-				break;
-			}
-		}
+        /* try to determine bitrate from audio frame: */
+        for(i=0;i<aud_size-3;++i)
+        {
+            sync_word = (sync_word << 8) + (uint8_t) aud_buffer[i];
+            if(sync_word == 0x0b77)
+            {
+                /* from import/ac3scan.c */
+                static const int bitrates[] = {
+                    32, 40, 48, 56,
+                    64, 80, 96, 112,
+                    128, 160, 192, 224,
+                    256, 320, 384, 448,
+                    512, 576, 640
+                };
+                int ratecode = (aud_buffer[i+3] & 0x3E) >> 1;
+                if (ratecode < sizeof(bitrates)/sizeof(*bitrates))
+                    bitrate = bitrates[ratecode];
+                break;
+            }
+        }
 
-		/* assume bitrate > 0 is OK. */
-		if (bitrate > 0)
-		{
-			AVI_set_audio_bitrate(avifile, bitrate);
-			if (verbose_flag & TC_DEBUG)
-				tc_info("bitrate %d kBits/s", bitrate);
-		}
-	}
+        /* assume bitrate > 0 is OK. */
+        if (bitrate > 0)
+        {
+            AVI_set_audio_bitrate(avifile, bitrate);
+            if (verbose_flag & TC_DEBUG)
+                tc_info("bitrate %d kBits/s", bitrate);
+        }
+    }
 
-	return(tc_audio_write(aud_buffer, aud_size, avifile));
+    return(tc_audio_write(aud_buffer, aud_size, avifile));
 }
 
 
@@ -944,17 +943,17 @@ static int tc_audio_pass_through_ac3(char *aud_buffer, int aud_size, avi_t *avif
 static int tc_audio_pass_through_pcm(char *aud_buffer, int aud_size, avi_t *avifile)
 {
 #ifdef WORDS_BIGENDIAN
-	int i;
-	char tmp;
+    int i;
+    char tmp;
 
-	for(i=0; i<aud_size; i+=2)
-	{
-		tmp = aud_buffer[i+1];
-		aud_buffer[i+1] = aud_buffer[i];
-		aud_buffer[i] = tmp;
-	}
+    for(i=0; i<aud_size; i+=2)
+    {
+        tmp = aud_buffer[i+1];
+        aud_buffer[i+1] = aud_buffer[i];
+        aud_buffer[i] = tmp;
+    }
 #endif
-	return(tc_audio_write(aud_buffer, aud_size, avifile));
+    return(tc_audio_write(aud_buffer, aud_size, avifile));
 
 }
 
@@ -963,7 +962,7 @@ static int tc_audio_pass_through_pcm(char *aud_buffer, int aud_size, avi_t *avif
  */
 static int tc_audio_pass_through(char *aud_buffer, int aud_size, avi_t *avifile)
 {
-	return(tc_audio_write(aud_buffer, aud_size, avifile));
+    return(tc_audio_write(aud_buffer, aud_size, avifile));
 
 }
 
@@ -972,14 +971,14 @@ static int tc_audio_pass_through(char *aud_buffer, int aud_size, avi_t *avifile)
  */
 static int tc_audio_mute(char *aud_buffer, int aud_size, avi_t *avifile)
 {
-	/*
-	 * Avoid Gcc to complain
-	 */
-	(void)aud_buffer;
-	(void)aud_size;
-	(void)avifile;
+    /*
+     * Avoid Gcc to complain
+     */
+    (void)aud_buffer;
+    (void)aud_size;
+    (void)avifile;
 
-	return(TC_EXPORT_OK);
+    return(TC_EXPORT_OK);
 }
 
 
@@ -1004,63 +1003,71 @@ int tc_audio_encode(char *aud_buffer, int aud_size, avi_t *avifile)
  */
 int tc_audio_close()
 {
-	/* reset bitrate flag for AC3 pass-through */
-	bitrate = 0;
+    /* reset bitrate flag for AC3 pass-through */
+    bitrate = 0;
 
-	if (tc_audio_encode_function == tc_audio_encode_mp3)
-	{
+    if (tc_audio_encode_function == tc_audio_encode_mp3)
+    {
 #ifdef HAVE_LAME
-		if(lame_flush) {
+        if(lame_flush) {
 
-			int outsize=0;
+            int outsize=0;
 
-			outsize = lame_encode_flush(lgf, output, 0);
+            outsize = lame_encode_flush(lgf, output, 0);
 
-			if (verbose_flag & TC_DEBUG)
-				tc_info("flushing %d audio bytes", outsize);
+            if (verbose_flag & TC_DEBUG)
+                tc_info("flushing %d audio bytes", outsize);
 
-			if (outsize>0)
-				tc_audio_write(output, outsize, avifile2);
-		}
+            if (output && outsize > 0) {
+                tc_audio_write(output, outsize, avifile2);
+            }
+        }
 #endif
-	}
+    }
 
-	if(fd)
-	{
-		if (is_pipe)
-			pclose(fd);
-		else
-			fclose(fd);
-		fd=NULL;
-	}
+    if(fd)
+    {
+        if (is_pipe)
+            pclose(fd);
+        else
+            fclose(fd);
+        fd=NULL;
+    }
 
-	return(TC_EXPORT_OK);
+    avifile2 = NULL;
+    return(TC_EXPORT_OK);
 }
 
 
 
 int tc_audio_stop()
 {
-        if (input) free(input); input = NULL;
-        if (output) free(output); output = NULL;
+        if (input) {
+            free(input);
+            input = NULL;
+        }
+        if (output) {
+            free(output);
+            output = NULL;
+        }
 #ifdef HAVE_LAME
-	if (tc_audio_encode_function == tc_audio_encode_mp3)
-		lame_close(lgf);
+    if (tc_audio_encode_function == tc_audio_encode_mp3)
+        lame_close(lgf);
 #endif
 
-	if (tc_audio_encode_function == tc_audio_encode_ffmpeg)
-	{
-	    //-- release encoder --
-	    if (mpa_codec) avcodec_close(&mpa_ctx);
+    if (tc_audio_encode_function == tc_audio_encode_ffmpeg)
+    {
+        //-- release encoder --
+        if (mpa_codec) avcodec_close(&mpa_ctx);
 
-	    //-- cleanup buffer resources --
-	    if (mpa_buf) free(mpa_buf);
-	    mpa_buf     = NULL;
-	    mpa_buf_ptr = 0;
+        //-- cleanup buffer resources --
+        if (mpa_buf) free(mpa_buf);
+        mpa_buf     = NULL;
+        mpa_buf_ptr = 0;
 
-	}
+    }
 
-	return(0);
+    return(0);
 }
 
 
@@ -1071,16 +1078,16 @@ int tc_audio_stop()
  */
 static char * lame_error2str(int error)
 {
-	switch (error)
-	{
-	case -1: return "-1:  mp3buf was too small";
-	case -2: return "-2:  malloc() problem";
-	case -3: return "-3:  lame_init_params() not called";
-	case -4: return "-4:  psycho acoustic problems";
-	case -5: return "-5:  ogg cleanup encoding error";
-	case -6: return "-6:  ogg frame encoding error";
-	default: return "Unknown lame error";
-	}
+    switch (error)
+    {
+    case -1: return "-1:  mp3buf was too small";
+    case -2: return "-2:  malloc() problem";
+    case -3: return "-3:  lame_init_params() not called";
+    case -4: return "-4:  psycho acoustic problems";
+    case -5: return "-5:  ogg cleanup encoding error";
+    case -6: return "-6:  ogg frame encoding error";
+    default: return "Unknown lame error";
+    }
 }
 
 // from mencoder
@@ -1113,8 +1120,8 @@ static int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate){
     // head_check:
     if( (newhead & 0xffe00000) != 0xffe00000 ||
         (newhead & 0x0000fc00) == 0x0000fc00){
-	//tc_log_warn(__FILE__, "head_check failed");
-	return -1;
+    //tc_log_warn(__FILE__, "head_check failed");
+    return -1;
     }
 
     if((4-((newhead>>17)&3))!=3){
@@ -1136,8 +1143,8 @@ static int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate){
       sampling_frequency = ((newhead>>10)&0x3) + (lsf*3);
 
     if(sampling_frequency>8){
-	tc_warn("invalid sampling_frequency");
-	return -1;  // valid: 0..8
+    tc_warn("invalid sampling_frequency");
+    return -1;  // valid: 0..8
     }
 
     crc = ((newhead>>16)&0x1)^0x1;
@@ -1166,8 +1173,8 @@ static int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate){
     framesize = tabsel_123[lsf][2][bitrate_index] * 144000;
 
     if(!framesize){
-	tc_warn("invalid framesize/bitrate_index");
-	return -1;  // valid: 1..14
+    tc_warn("invalid framesize/bitrate_index");
+    return -1;  // valid: 1..14
     }
 
     framesize /= freqs[sampling_frequency]<<lsf;

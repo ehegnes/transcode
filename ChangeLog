@@ -1,4 +1,8 @@
-2009-02-04 Francesco Romani <fromani at gmail dot com>
+2009-01-05 Francesco Romani <fromani at gmail dot com>
+  * export/aud_aux.c
+  NULLify internal avifile reference on close (avoid segfault on output rotation).
+
+2009-01-04 Francesco Romani <fromani at gmail dot com>
   * import/import_mov.c
   yuv420p fixes.
  Patch courtesy of Stefan Scheffler <stefanscheffler at gmx dot net>
