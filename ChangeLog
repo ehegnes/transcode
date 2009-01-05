@@ -2,6 +2,10 @@
   * export/aud_aux.c
   NULLify internal avifile reference on close (avoid segfault on output rotation).
 
+  * libtc/tcframes.h
+  align to HEAD, in order to reduce circular dependencies between libtc/tcframes.h
+  and src/framebuffer.h .
+
 2009-01-04 Francesco Romani <fromani at gmail dot com>
   * import/import_mov.c
   yuv420p fixes.
