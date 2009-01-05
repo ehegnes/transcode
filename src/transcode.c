@@ -718,9 +718,11 @@ static int transcode_mode_psu(vob_t *vob, const char *psubase)
                     tc_warn("failed to close encoder - non fatal");
             }
 
-            // for debug
-            vframe_dump_status();
-            aframe_dump_status();
+            if (verbose >= TC_CLEANUP) {
+                // for debug
+                vframe_dump_status();
+                aframe_dump_status();
+            }
 
             // cancel import threads
             tc_import_threads_cancel();

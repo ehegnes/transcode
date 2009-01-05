@@ -27,240 +27,13 @@
 #ifndef FRAMEBUFFER_H
 #define FRAMEBUFFER_H
 
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif
-
 #include <stdint.h>
 
+#include "libtc/tcframes.h"
 #include "tc_defaults.h"
 
 
-/* frame attributes */
-typedef enum tcframeattributes_ TCFrameAttributes;
-enum tcframeattributes_ {
-    TC_FRAME_IS_KEYFRAME       =   1,
-    TC_FRAME_IS_INTERLACED     =   2,
-    TC_FRAME_IS_BROKEN         =   4,
-    TC_FRAME_IS_SKIPPED        =   8,
-    TC_FRAME_IS_CLONED         =  16,
-    TC_FRAME_WAS_CLONED        =  32,
-    TC_FRAME_IS_OUT_OF_RANGE   =  64,
-    TC_FRAME_IS_DELAYED        = 128,
-    TC_FRAME_IS_END_OF_STREAM  = 256,
-};
-
-#define TC_FRAME_NEED_PROCESSING(PTR) \
-    (!((PTR)->attributes & TC_FRAME_IS_OUT_OF_RANGE) \
-     && !((PTR)->attributes & TC_FRAME_IS_END_OF_STREAM))
-
-typedef enum tcframestatus_ TCFrameStatus;
-enum tcframestatus_ {
-    TC_FRAME_NULL    = -1, /* on the frame pool, not yet claimed   */
-    TC_FRAME_EMPTY   = 0,  /* claimed and being filled by decoder  */
-    TC_FRAME_WAIT,         /* needs further processing (filtering) */
-    TC_FRAME_LOCKED,       /* being procedded by filter layer      */
-    TC_FRAME_READY,        /* ready to be processed by encoder     */
-};
-
-/*
- * frame status transitions scheme (overview)
- *
- *     
- *     .-------<----- +-------<------+------<------+-------<-------.
- *     |              ^              ^             ^               ^
- *     V              |              |             |               |
- * FRAME_NULL -> FRAME_EMPTY -> FRAME_WAIT -> FRAME_LOCKED -> FRAME_READY
- * :_buffer_:    \_decoder_/    \______filter_stage______/    \encoder_%/
- * \__pool__/         |         :                                  ^    :
- *                    |         \_______________encoder $__________|____/
- *                    V                                            ^
- *                    `-------------->------------->---------------'
- *
- * Notes:
- *  % - regular case, frame (processing) threads avalaibles
- *  $ - practical (default) case, filtering is carried by encoder thread.
- */
-
-/*************************************************************************/
-
-/*
- * NOTE: The following warning will become irrelevant once NMS is
- *       in place, and frame_list_t can go away completely.  --AC
- *       (here's a FIXME tag so we don't forget)
- *
- * BIG FAT WARNING:
- *
- * These structures must be kept in sync: meaning that if you add
- * another field to the vframe_list_t you must add it at the end
- * of the structure.
- *
- * aframe_list_t, vframe_list_t and the wrapper frame_list_t share
- * the same offsets to their elements up to the field "size". That
- * means that when a filter is called with at init time with the
- * anonymouse frame_list_t, it can already access the size.
- *
- *          -- tibit
- */
-
-/* This macro factorizes common frame data fields.
- * Is not possible to completely factor out all frame_list_t fields
- * because video and audio typess uses different names for same fields,
- * and existing code relies on this assumption.
- * Fixing this is stuff for 1.2.0 and beyond, for which I would like
- * to introduce some generic frame structure or something like it. -- FR.
- */
-#define TC_FRAME_COMMON \
-    int id;                       /* frame id (sequential uint) */ \
-    int bufid;                    /* buffer id                  */ \
-    int tag;                      /* init, open, close, ...     */ \
-    int filter_id;                /* filter instance to run     */ \
-    TCFrameStatus status;         /* see enumeration above      */ \
-    TCFrameAttributes attributes; /* see enumeration above      */
-/* BEWARE: semicolon NOT NEEDED */
-
-/* 
- * Size vs Length
- *
- * Size represents the effective size of audio/video buffer,
- * while length represent the amount of valid data into buffer.
- * Until 1.1.0, there isn't such distinction, and 'size'
- * have approximatively a mixed meaning of above.
- *
- * In the long shot[1] (post-1.1.0) transcode will start
- * intelligently allocate frame buffers based on highest
- * request of all modules (core included) through filter
- * mangling pipeline. This will lead on circumstances on
- * which valid data into a buffer is less than buffer size:
- * think to demuxer->decoder transition or RGB24->YUV420.
- * 
- * There also are more specific cases like a full-YUV420P
- * pipeline with final conversion to RGB24 and raw output,
- * so we can have something like
- *
- * framebuffer size = sizeof(RGB24_frame)
- * after demuxer:
- *     frame length << frame size (compressed data)
- * after decoder:
- *     frame length < frame size (YUV420P smaller than RGB24)
- * in filtering:
- *      frame length < frame size (as above)
- * after encoding (in fact just colorspace transition):
- *     frame length == frame size (data becomes RGB24)
- * into muxer:
- *     frame length == frame size (as above)
- *
- * In all those cases having a distinct 'lenght' fields help
- * make things nicer and easier.
- *
- * +++
- *
- * [1] in 1.1.0 that not happens due to module interface constraints
- * since we're still bound to Old Module System.
- */
-
-typedef struct frame_list frame_list_t;
-struct frame_list {
-    TC_FRAME_COMMON
-
-    int codec;   /* codec identifier */
-
-    int size;    /* buffer size avalaible */
-    int len;     /* how much data is valid? */
-
-    int param1;  /* v_width  or a_rate */
-    int param2;  /* v_height or a_bits */
-    int param3;  /* v_bpp    or a_chan */
-
-    struct frame_list *next;
-    struct frame_list *prev;
-};
-
-
-typedef struct vframe_list vframe_list_t;
-struct vframe_list {
-    TC_FRAME_COMMON
-    /* frame physical parameter */
-    
-    int v_codec;       /* codec identifier */
-
-    int video_size;    /* buffer size avalaible */
-    int video_len;     /* how much data is valid? */
-
-    int v_width;
-    int v_height;
-    int v_bpp;
-
-    struct vframe_list *next;
-    struct vframe_list *prev;
-
-    int clone_flag;     
-    /* set to N if frame needs to be processed (encoded) N+1 times. */
-    int deinter_flag;
-    /* set to N for internal de-interlacing with "-I N" */
-
-    uint8_t *video_buf;  /* pointer to current buffer */
-    uint8_t *video_buf2; /* pointer to backup buffer */
-
-    int free; /* flag */
-
-    uint8_t *video_buf_RGB[2];
-
-    uint8_t *video_buf_Y[2];
-    uint8_t *video_buf_U[2];
-    uint8_t *video_buf_V[2];
-
-#ifdef STATBUFFER
-    uint8_t *internal_video_buf_0;
-    uint8_t *internal_video_buf_1;
-#else
-    uint8_t internal_video_buf_0[SIZE_RGB_FRAME];
-    uint8_t internal_video_buf_1[SIZE_RGB_FRAME];
-#endif
-};
-
-
-typedef struct aframe_list aframe_list_t;
-struct aframe_list {
-    TC_FRAME_COMMON
-
-    int a_codec;       /* codec identifier */
-
-    int audio_size;    /* buffer size avalaible */
-    int audio_len;     /* how much data is valid? */
-
-    int a_rate;
-    int a_bits;
-    int a_chan;
-
-    struct aframe_list *next;
-    struct aframe_list *prev;
-
-    uint8_t *audio_buf;
-
-#ifdef STATBUFFER
-    uint8_t *internal_audio_buf;
-#else
-    uint8_t internal_audio_buf[SIZE_PCM_FRAME * 2];
-#endif
-};
-
-/* 
- * generic pointer type, needed at least by internal code.
- * In the long (long) shot I'd like to use a unique generic
- * data container, like AVPacket (libavcodec) or something like it.
- * (see note about TC_FRAME_COMMON above) -- FR
- */
-typedef union tcframeptr_ TCFramePtr;
-union tcframeptr_ {
-    frame_list_t *generic;
-    vframe_list_t *video;
-    aframe_list_t *audio;
-};
-
-/*************************************************************************/
-
-/*
+/*************************************************************************
  * Transcode Framebuffer in a Nutshell (aka: how this code works)
  * --------------------------------------------------------------
  *
@@ -393,20 +166,7 @@ void tc_framebuffer_set_specs(const TCFrameSpecs *specs);
  *     function (see description above).
  */
 void tc_framebuffer_interrupt(void);
-
-/*
- * tc_framebuffer_interrupt_stage: (thread safe)
- *     like tc_framebuffer_interrupt, but involves only a given processing stage.
- *
- * Parameters:
- *     S: a TCFrameStatus representing the processing stage to interrupt.
- * Return Value:
- *     None.
- * Side effects:
- *     Any function claiming frames from the specified processing stage 
- *     will fail after the invocation of this function.
- */
-void tc_framebuffer_interrupt_stage(TCFrameStatus S);
+void tc_framebuffer_interrupt_import(void);
 
 /*
  * vframe_alloc, aframe_alloc: (NOT thread safe)
@@ -602,26 +362,6 @@ void vframe_remove(vframe_list_t *ptr);
 void aframe_remove(aframe_list_t *ptr);
 
 /*
- * vframe_reinject, aframe_reinject: (thread safe)
- *     Respectively reinject an audio or video frame
- *     into the originating frame pool, so the reinjected frame will
- *     be obtained again when the frame pool is queried again.
- *
- *     Those function are (and should be) used when a processing
- *     stage needs to see again a given frame.
- *
- *     In transcode, those functions are (and should be) used
- *     only when the encoder handles a cloned frame.
- *
- * Parameters:
- *     ptr: framebuffer to reinject.
- * Return Value:
- *     None.
- */
-void aframe_reinject(aframe_list_t *ptr);
-void vframe_reinject(vframe_list_t *ptr);
-
-/*
  * vframe_push_next, aframe_push_next: (thread safe)
  *     Push a frame into next processing stage, by changing
  *     its status.
@@ -661,7 +401,6 @@ void aframe_push_next(aframe_list_t *ptr, TCFrameStatus status);
  *     Being frame claiming functions, those functions will block
  *     calling thread until a new frame will be avalaible, OR
  *     until an interruption happens.
- *     clone_flag for copied video framebuffer is handled intelligently.
  */
 vframe_list_t *vframe_dup(vframe_list_t *f);
 aframe_list_t *aframe_dup(aframe_list_t *f);

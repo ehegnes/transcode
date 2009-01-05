@@ -1349,12 +1349,6 @@ void tc_encoder_loop(vob_t *vob, int frame_first, int frame_last)
 {
     int err = 0, eos = 0; /* End Of Stream flag */
 
-    if (verbose >= TC_DEBUG) {
-        tc_log_info(__FILE__,
-                    "encoder loop started [%i/%i)",
-                    frame_first, frame_last);
-    }
-
     if (encdata.this_frame_last != frame_last) {
         encdata.old_frame_last  = encdata.this_frame_last;
         encdata.this_frame_last = frame_last;
@@ -1365,7 +1359,7 @@ void tc_encoder_loop(vob_t *vob, int frame_first, int frame_last)
     encdata.frame_last  = frame_last;
     encdata.saved_frame_last = encdata.old_frame_last;
 
-    while (!eos && !need_stop(&encdata)) {
+    while (!need_stop(&encdata)) {
         /* stop here if pause requested */
         tc_pause();
 
@@ -1386,10 +1380,13 @@ void tc_encoder_loop(vob_t *vob, int frame_first, int frame_last)
         }
 
         eos = is_last_frame(&encdata, tc_cluster_mode);
+        if (eos) {
+            break;
+        }
 
         /* check frame id */
-        if (!eos && (frame_first <= encdata.buffer->frame_id
-          && encdata.buffer->frame_id < frame_last)) {
+        if (frame_first <= encdata.buffer->frame_id
+          && encdata.buffer->frame_id < frame_last) {
             encoder_export(&encdata, vob);
         } else { /* frame not in range */
             encoder_skip(&encdata);

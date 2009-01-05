@@ -204,6 +204,11 @@ static int encoder_acquire_vframe(TCEncoderBuffer *buf, vob_t *vob)
         got_frame = TC_TRUE;
         buf->frame_id = buf->vptr->id + tc_get_frames_skipped_cloned();
 
+        if (verbose & TC_STATS) {
+            tc_log_info(__FILE__, "got frame %p (id=%i)",
+                                  buf->vptr, buf->frame_id);
+        }
+
         /*
          * now we do the post processing ... this way, if just a video frame is
          * skipped, we'll know.
@@ -231,19 +236,20 @@ static int encoder_acquire_vframe(TCEncoderBuffer *buf, vob_t *vob)
                  * up also skipping the clone?  or perhaps they'll keep,
                  * but modify the clone?  Best to do the whole drill :/
                  */
-                if (verbose >= TC_DEBUG) {
-                    tc_log_info (__FILE__, "[%i|%i] V pointer done. "
+                if (verbose & TC_DEBUG) {
+                    tc_log_info (__FILE__, "(%i) V pointer done. "
                                            "Skipped and Cloned: (%i)",
-                                           buf->vptr->id, buf->vptr->bufid,
+                                           buf->vptr->id,
                                            (buf->vptr->attributes));
                 }
 
                 /* update flags */
                 buf->vptr->attributes &= ~TC_FRAME_IS_CLONED;
                 buf->vptr->attributes |= TC_FRAME_WAS_CLONED;
-
-                vframe_reinject(buf->vptr);
-                buf->vptr = NULL;
+                /*
+                 * this has to be done here,
+                 * frame_threads.c won't see the frame again
+                 */
             }
             if (buf->vptr != NULL
               && !(buf->vptr->attributes & TC_FRAME_IS_CLONED)
@@ -256,12 +262,6 @@ static int encoder_acquire_vframe(TCEncoderBuffer *buf, vob_t *vob)
             got_frame = TC_FALSE;
         }
     } while (!got_frame);
-
-    if (verbose >= TC_FLIST) {
-        tc_log_info(__FILE__,
-                    "acquired video frame [%p] (id=%i|%i)",
-                    buf->vptr, buf->vptr->id, buf->frame_id);
-    }
 
     return 0;
 }
@@ -279,6 +279,10 @@ static int encoder_acquire_aframe(TCEncoderBuffer *buf, vob_t *vob)
         }
         got_frame = TC_TRUE;
 
+        if (verbose & TC_STATS) {
+            tc_log_info(__FILE__, "got audio frame (id=%i)", buf->aptr->id);
+        }
+
         apply_audio_filters(buf->aptr, vob);
 
         if (buf->aptr->attributes & TC_FRAME_IS_SKIPPED) {
@@ -294,28 +298,22 @@ static int encoder_acquire_aframe(TCEncoderBuffer *buf, vob_t *vob)
               && (buf->aptr->attributes & TC_FRAME_IS_CLONED)
             ) {
                 if (verbose & TC_DEBUG) {
-                    tc_log_info(__FILE__, "[%i|%i] A pointer done."
-                                          " Skipped and Cloned: (%i)",
-                                        buf->aptr->id, buf->aptr->bufid,
-                                        (buf->aptr->attributes));
+                    tc_log_info(__FILE__, "(%i) A pointer done. Skipped and Cloned: (%i)",
+                                        buf->aptr->id, (buf->aptr->attributes));
                 }
 
                 /* adjust clone flags */
                 buf->aptr->attributes &= ~TC_FRAME_IS_CLONED;
                 buf->aptr->attributes |= TC_FRAME_WAS_CLONED;
 
-                aframe_reinject(buf->aptr);
-                buf->aptr = NULL;
+                /*
+                 * this has to be done here,
+                 * frame_threads.c won't see the frame again
+                 */
             }
             got_frame = TC_FALSE;
         }
     } while (!got_frame);
-
-    if (verbose >= TC_FLIST) {
-        tc_log_info(__FILE__,
-                    "acquired audio frame [%p] (id=%i)",
-                    buf->aptr, buf->aptr->id);
-    }
 
     return 0;
 }
@@ -332,12 +330,6 @@ static void encoder_dispose_vframe(TCEncoderBuffer *buf)
     if (buf->vptr != NULL
       && !(buf->vptr->attributes & TC_FRAME_IS_CLONED)
     ) {
-        if (verbose >= TC_FLIST) {
-            tc_log_info(__FILE__,
-                        "disposed video frame [%p]",
-                        buf->aptr);
-        }
-
         vframe_remove(buf->vptr);
         /* reset pointer for next retrieve */
         buf->vptr = NULL;
@@ -346,7 +338,7 @@ static void encoder_dispose_vframe(TCEncoderBuffer *buf)
     if (buf->vptr != NULL
       && (buf->vptr->attributes & TC_FRAME_IS_CLONED)
     ) {
-        if(verbose >= TC_DEBUG) {
+        if(verbose & TC_DEBUG) {
             tc_log_info(__FILE__, "(%i) V pointer done. Cloned: (%i)",
                                 buf->vptr->id, (buf->vptr->attributes));
         }
@@ -354,10 +346,6 @@ static void encoder_dispose_vframe(TCEncoderBuffer *buf)
         buf->vptr->attributes |= TC_FRAME_WAS_CLONED;
         // update counter
         //tc_update_frames_cloned(1);
-
-        vframe_reinject(buf->vptr);
-        /* reset pointer for next retrieve */
-        buf->vptr = NULL;
     }
 }
 
@@ -367,12 +355,6 @@ static void encoder_dispose_aframe(TCEncoderBuffer *buf)
     if (buf->aptr != NULL
       && !(buf->aptr->attributes & TC_FRAME_IS_CLONED)
     ) {
-        if (verbose >= TC_FLIST) {
-            tc_log_info(__FILE__,
-                        "disposed audio frame [%p]",
-                        buf->aptr);
-        }
-
         aframe_remove(buf->aptr);
         /* reset pointer for next retrieve */
         buf->aptr = NULL;
@@ -381,17 +363,13 @@ static void encoder_dispose_aframe(TCEncoderBuffer *buf)
     if (buf->aptr != NULL
       && (buf->aptr->attributes & TC_FRAME_IS_CLONED)
     ) {
-        if (verbose >= TC_DEBUG) {
+        if (verbose & TC_DEBUG) {
             tc_log_info(__FILE__, "(%i) A pointer done. Cloned: (%i)",
                                  buf->aptr->id, (buf->aptr->attributes));
         }
 
         buf->aptr->attributes &= ~TC_FRAME_IS_CLONED;
         buf->aptr->attributes |= TC_FRAME_WAS_CLONED;
-
-        aframe_reinject(buf->aptr);
-        /* reset pointer for next retrieve */
-        buf->aptr = NULL;
     }
 }
 
