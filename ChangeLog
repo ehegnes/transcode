@@ -1,3 +1,7 @@
+2009-01-11 Francesco Romani <fromani at gmail dot com>
+  * configure.in import/Makefile.am
+  tcrequant is likely broken, so it's deprecated.
+
 2009-01-05 Francesco Romani <fromani at gmail dot com>
   * export/aud_aux.c
   NULLify internal avifile reference on close (avoid segfault on output rotation).

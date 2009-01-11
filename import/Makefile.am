@@ -246,13 +246,17 @@ EXTRA_DIST = \
 	tc.h \
 	probe_stream.h
 
+if ENABLE_DEPRECATED
+TCREQUANT = tcrequant
+endif
+
 bin_PROGRAMS = \
 	tccat \
 	tcdecode \
 	tcdemux \
 	tcextract \
 	tcprobe \
-	tcrequant \
+	$(TCREQUANT) \
 	tcscan \
 	tcxmlcheck \
 	tcxpm2rgb
