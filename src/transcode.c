@@ -1193,7 +1193,7 @@ static void parse_navigation_file(vob_t *vob, const char *nav_seek_file)
 static void setup_input_sources(vob_t *vob)
 {
     if (vob->video_in_file == NULL && vob->audio_in_file == NULL)
-        tc_error("no input sources avalaible");
+        tc_error("no input sources available");
     if (vob->audio_in_file == NULL)
         vob->audio_in_file = vob->video_in_file;
 
