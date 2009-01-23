@@ -1,3 +1,7 @@
+2009-01-23 Andrew Church <achurch at achurch dot org>
+  * export/aud_aux.c
+  Fix compilation error.
+
 2009-01-22 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c
   Fix compilation error with x264 version 66 (and rearrange the other
