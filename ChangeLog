@@ -1,6 +1,6 @@
 2009-01-23 Andrew Church <achurch at achurch dot org>
-  * export/aud_aux.c
-  Fix compilation error.
+  * export/aud_aux.c import/import_mov.c
+  Fix compilation errors.
 
 2009-01-22 Andrew Church <achurch at achurch dot org>
   * encode/encode_x264.c

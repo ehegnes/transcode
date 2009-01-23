@@ -41,6 +41,7 @@ static int capability_flag = TC_CAP_PCM | TC_CAP_RGB | TC_CAP_YUV |
 #include "magic.h"
 
 #include "aclib/imgconvert.h"
+#include "src/filter.h"
 
 /* movie handles */
 static quicktime_t *qt_audio=NULL;
