@@ -1,3 +1,8 @@
+2009-01-24 Andrew Church <achurch at achurch dot org>
+  * src/framebuffer.c
+  Fix crash when using video transformations (temporary buffers were not
+  being allocated).
+
 2009-01-23 Andrew Church <achurch at achurch dot org>
   * export/aud_aux.c import/import_mov.c
   Fix compilation errors.

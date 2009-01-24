@@ -162,8 +162,10 @@ void tc_framebuffer_set_specs(const TCFrameSpecs *specs)
 static TCFramePtr tc_video_alloc(const TCFrameSpecs *specs)
 {
     TCFramePtr frame;
+    /* NOTE: The temporary frame buffer is _required_ (hence TC_FALSE)
+     *       if any video transformations (-j, -Z, etc.) are used! */
     frame.video = tc_new_video_frame(specs->width, specs->height,
-                                      specs->format, TC_TRUE);
+                                      specs->format, TC_FALSE);
     return frame;
 }
 
@@ -188,7 +190,7 @@ static void tc_audio_free(TCFramePtr frame)
 vframe_list_t *vframe_alloc_single(void)
 {
     return tc_new_video_frame(tc_specs.width, tc_specs.height,
-                              tc_specs.format, TC_TRUE);
+                              tc_specs.format, TC_FALSE);
 }
 
 aframe_list_t *aframe_alloc_single(void)
