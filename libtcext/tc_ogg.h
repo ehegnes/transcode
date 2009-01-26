@@ -1,6 +1,6 @@
 /*
  *  tc_ogg.h -- transcode OGG/Xiph formats utilities.
- *  (C) 2007-2008 Francesco Romani <fromani at gmail dot com>
+ *  (C) 2007-2009 Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
  *
@@ -64,32 +64,9 @@ struct oggextradata_ {
 };
 
 #ifdef TC_ENCODER
-static void tc_ogg_del_packet(ogg_packet *op)
-{
-    tc_free(op->packet);
-    memset(op, 0, sizeof(*op));
-}
-
-static void tc_ogg_del_extradata(OGGExtraData *oxd)
-{
-    oxd->magic = TC_CODEC_ERROR;
-    tc_ogg_del_packet(&oxd->header);
-    tc_ogg_del_packet(&oxd->comment);
-    tc_ogg_del_packet(&oxd->code);
-}
-
-static int tc_ogg_dup_packet(ogg_packet *dst, const ogg_packet *src)
-{
-    int ret = TC_ERROR;
-
-    ac_memcpy(dst, src, sizeof(ogg_packet));
-    dst->packet = tc_malloc(src->bytes);
-    if (dst->packet) {
-        ac_memcpy(dst->packet, src->packet, src->bytes);
-        ret = TC_OK;
-    }
-    return ret;
-}
+void tc_ogg_del_packet(ogg_packet *op);
+void tc_ogg_del_extradata(OGGExtraData *oxd);
+int tc_ogg_dup_packet(ogg_packet *dst, const ogg_packet *src);
 #endif /* TC_ENCODER */
 
 #endif /* TC_OGG_H */

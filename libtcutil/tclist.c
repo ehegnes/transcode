@@ -18,8 +18,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <string.h>
 
-#include "libtc.h"
+
+#include "common.h"
+#include "memutils.h"
 #include "tclist.h"
 
 /*************************************************************************/
@@ -84,6 +87,7 @@ static TCListItem *new_item(TCList *L)
     }
     return IT;
 }
+
 
 static int foreach_item(TCListItem *start, int direction,
                         TCListVisitor vis, void *userdata)
@@ -338,7 +342,7 @@ int tc_list_insert_dup(TCList *L, int pos, void *data, size_t size)
     void *mem = tc_malloc(size);
     if (mem) {
         memcpy(mem, data, size);
-        ret = tc_list_insert(L, pos, mem);
+        ret = tc_list_insert(L, pos, data);
         if (ret == TC_ERROR) {
             tc_free(mem);
         }
@@ -348,9 +352,7 @@ int tc_list_insert_dup(TCList *L, int pos, void *data, size_t size)
 
 static int free_item_all(TCListItem *item, void *unused)
 {
-    if (item->data != NULL) {
-        free(item->data);
-    }
+    free(item->data);
     free(item);
     return 0;
 }

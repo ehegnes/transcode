@@ -46,13 +46,14 @@
 #define MOD_FLAGS  \
     TC_MODULE_FLAG_RECONFIGURABLE | TC_MODULE_FLAG_DELAY
   
-#include "transcode.h"
-#include "filter.h"
+#include "src/transcode.h"
+#include "src/filter.h"
 #include "libtc/libtc.h"
-#include "libtc/optstr.h"
-#include "libtc/tclist.h"
 #include "libtc/tccodecs.h"
-#include "libtc/tcmodule-plugin.h"
+#include "libtcutil/optstr.h"
+#include "libtcutil/tclist.h"
+#include "libtcmodule/tcmodule-plugin.h"
+
 #include "transform.h"
 
 #include <math.h>

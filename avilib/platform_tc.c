@@ -21,8 +21,10 @@
 
 #include "platform.h"
 
-#include "libtc/xio.h"
 #include "libtc/libtc.h"
+#include "libtcutil/xio.h"
+#include "libtcutil/ioutils.h"
+#include "libtcutil/memutils.h"
 
 #include <string.h>
 #include <stdarg.h>
@@ -104,7 +106,8 @@ int plat_log_send(PlatLogLevel level,
     tc_vsnprintf(buffer, TC_BUF_MAX, fmt, ap);
     va_end(ap);
 
-    return tc_log(trans_tab[level], tag, "%s", buffer);
+    /* Always log, ignore the priority filter */
+    return tc_log(trans_tab[level], TC_QUIET, tag, "%s", buffer);
 }
 
 int plat_log_close(void)
