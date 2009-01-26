@@ -531,16 +531,19 @@ void tc_framebuffer_get_counters(int *im, int *fl, int *ex);
 
 /* Internal functions used in unit tests: */
 #ifdef FBUF_TEST
-typedef struct tcframefifo_ TCFrameFifo;
+typedef struct tcframequeue_ TCFrameQueue;
 typedef struct tcframepool_ TCFramePool;
+
 extern const char *frame_status_name(TCFrameStatus S);
-extern void tc_frame_fifo_dump_status(TCFrameFifo *F, const char *tag);
-extern void tc_frame_fifo_del(TCFrameFifo *F);
-extern int tc_frame_fifo_empty(TCFrameFifo *F);
-extern int tc_frame_fifo_size(TCFrameFifo *F);
-extern TCFramePtr tc_frame_fifo_get(TCFrameFifo *F);
-extern int tc_frame_fifo_put(TCFrameFifo *F, TCFramePtr ptr);
-extern TCFrameFifo *tc_frame_fifo_new(int size, int sorted);
+extern int is_heap(TCFrameQueue *Q, int debug);
+
+extern void tc_frame_queue_dump_status(TCFrameQueue *Q, const char *tag);
+extern void tc_frame_queue_del(TCFrameQueue *Q);
+extern int tc_frame_queue_empty(TCFrameQueue *Q);
+extern int tc_frame_queue_size(TCFrameQueue *Q);
+extern TCFramePtr tc_frame_queue_get(TCFrameQueue *Q);
+extern int tc_frame_queue_put(TCFrameQueue *Q, TCFramePtr ptr);
+extern TCFrameQueue *tc_frame_queue_new(int size, int sorted);
 extern int tc_frame_pool_init(TCFramePool *P, int size, int sorted,
                               const char *tag, const char *ptag);
 extern int tc_frame_pool_fini(TCFramePool *P);

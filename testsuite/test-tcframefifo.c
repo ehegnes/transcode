@@ -30,22 +30,26 @@
 
 /*************************************************************************/
 
-#define TC_TEST_BEGIN(NAME, SIZE, SORTED) \
-static int tcframefifo_ ## NAME ## _test(void) \
+#define TC_TEST_BEGIN(NAME, SIZE, PRIORITY) \
+static int tcframequeue_ ## NAME ## _test(void) \
 { \
     const char *TC_TEST_name = # NAME ; \
     const char *TC_TEST_errmsg = ""; \
     int TC_TEST_step = -1; \
+    int TC_TEST_dump = TC_FALSE; \
     \
-    TCFrameFifo *F = NULL; \
+    TCFrameQueue *Q = NULL; \
     \
     tc_log_info(__FILE__, "running test: [%s]", # NAME); \
-    F = tc_frame_fifo_new((SIZE), (SORTED)); \
-    if (F) {
+    Q = tc_frame_queue_new((SIZE), (PRIORITY)); \
+    if (Q) {
 
 
 #define TC_TEST_END \
-        tc_frame_fifo_del(F); \
+        if (TC_TEST_dump) { \
+            tc_frame_queue_dump_status(Q, TC_TEST_name); \
+        } \
+        tc_frame_queue_del(Q); \
         return 0; \
     } \
 TC_TEST_failure: \
@@ -53,8 +57,15 @@ TC_TEST_failure: \
         tc_log_warn(__FILE__, "FAILED test [%s] at step %i", TC_TEST_name, TC_TEST_step); \
     } \
     tc_log_warn(__FILE__, "FAILED test [%s] NOT verified: %s", TC_TEST_name, TC_TEST_errmsg); \
+    if (TC_TEST_dump) { \
+        tc_frame_queue_dump_status(Q, TC_TEST_name); \
+    } \
     return 1; \
 }
+
+#define TC_TEST_SET_DUMP(DUMP) do { \
+    TC_TEST_dump = (DUMP); \
+} while (0);
 
 #define TC_TEST_SET_STEP(STEP) do { \
     TC_TEST_step = (STEP); \
@@ -74,62 +85,81 @@ TC_TEST_failure: \
 
 
 #define TC_RUN_TEST(NAME) \
-    errors += tcframefifo_ ## NAME ## _test()
+    errors += tcframequeue_ ## NAME ## _test()
 
 #define TCFRAMEPTR_IS_NULL(ptr) (ptr.generic == NULL)
 
 /*************************************************************************/
 
 enum {
-    UNSORTED = 0,
-    SORTED   = 1,
-    FIFOSIZE = 10
+    UNPRIORITY = 0,
+    PRIORITY   = 1,
+    QUEUESIZE = 10
 };
 
 static void init_frames(int num, frame_list_t *frames, TCFramePtr *ptrs)
 {
+    frame_list_t *cur = NULL;
     int i;
 
     for (i = 0; i < num; i++) {
-        frame_list_t *cur = &(frames[i]);
+        cur = &(frames[i]);
         memset(cur, 0, sizeof(frame_list_t));
 
         cur->bufid      = i;
-
+        cur->id         = i;
         ptrs[i].generic = cur;
+#if 0
+        tc_log_info("IF",
+                    "(%p) ptr[%i].generic->id=%i",
+                    ptrs[i].generic, i, ptrs[i].generic->id);
+#endif                    
     }
 }
 
+#if 0
+static void dump_frames(int num, TCFramePtr *ptrs)
+{
+    int i;
 
-TC_TEST_BEGIN(U_init_empty, FIFOSIZE, UNSORTED)
-    TC_TEST_IS_TRUE(tc_frame_fifo_empty(F));
-    TC_TEST_IS_TRUE(tc_frame_fifo_size(F) == 0);
+    for (i = 0; i < num && ptrs[i].generic; i++) {
+        tc_log_info("DD",
+                    "(%p) ptr[%i].generic->id=%i",
+                    ptrs[i].generic, i, ptrs[i].generic->id);
+    }
+}
+#endif
+
+
+TC_TEST_BEGIN(U_init_empty, QUEUESIZE, UNPRIORITY)
+    TC_TEST_IS_TRUE(tc_frame_queue_empty(Q));
+    TC_TEST_IS_TRUE(tc_frame_queue_size(Q) == 0);
 TC_TEST_END
 
-TC_TEST_BEGIN(U_get1, FIFOSIZE, UNSORTED)
+TC_TEST_BEGIN(U_get1, QUEUESIZE, UNPRIORITY)
     TCFramePtr fp = { .generic = NULL };
 
-    TC_TEST_IS_TRUE(tc_frame_fifo_empty(F));
+    TC_TEST_IS_TRUE(tc_frame_queue_empty(Q));
 
-    fp = tc_frame_fifo_get(F);
+    fp = tc_frame_queue_get(Q);
     TC_TEST_IS_TRUE(TCFRAMEPTR_IS_NULL(fp));
-    TC_TEST_IS_TRUE(tc_frame_fifo_size(F) == 0);
+    TC_TEST_IS_TRUE(tc_frame_queue_size(Q) == 0);
 TC_TEST_END
 
 
-TC_TEST_BEGIN(U_put1, FIFOSIZE, UNSORTED)
+TC_TEST_BEGIN(U_put1, QUEUESIZE, UNPRIORITY)
     frame_list_t frame[1];
     TCFramePtr ptr[1];
 
     int wakeup = 0;
     init_frames(1, frame, ptr);
     
-    wakeup = tc_frame_fifo_put(F, ptr[0]);
+    wakeup = tc_frame_queue_put(Q, ptr[0]);
     TC_TEST_IS_TRUE(wakeup);
-    TC_TEST_IS_TRUE(tc_frame_fifo_size(F) == 1);
+    TC_TEST_IS_TRUE(tc_frame_queue_size(Q) == 1);
 TC_TEST_END
 
-TC_TEST_BEGIN(U_put1_get1, FIFOSIZE, UNSORTED)
+TC_TEST_BEGIN(U_put1_get1, QUEUESIZE, UNPRIORITY)
     frame_list_t frame[1];
     TCFramePtr ptr[1];
     TCFramePtr fp = { .generic = NULL };
@@ -137,46 +167,53 @@ TC_TEST_BEGIN(U_put1_get1, FIFOSIZE, UNSORTED)
     int wakeup = 0;
     init_frames(1, frame, ptr);
     
-    wakeup = tc_frame_fifo_put(F, ptr[0]);
+    wakeup = tc_frame_queue_put(Q, ptr[0]);
     TC_TEST_IS_TRUE(wakeup);
-    TC_TEST_IS_TRUE(tc_frame_fifo_size(F) == 1);
+    TC_TEST_IS_TRUE(tc_frame_queue_size(Q) == 1);
 
-    fp = tc_frame_fifo_get(F);
+    fp = tc_frame_queue_get(Q);
     TC_TEST_IS_TRUE(!TCFRAMEPTR_IS_NULL(fp));
-    TC_TEST_IS_TRUE(tc_frame_fifo_size(F) == 0);
+    TC_TEST_IS_TRUE(tc_frame_queue_size(Q) == 0);
 TC_TEST_END
 
 /*************************************************************************/
 
-TC_TEST_BEGIN(S_init_empty, FIFOSIZE, SORTED)
-    TC_TEST_IS_TRUE(tc_frame_fifo_empty(F));
-    TC_TEST_IS_TRUE(tc_frame_fifo_size(F) == 0);
+TC_TEST_BEGIN(S_init_empty, QUEUESIZE, PRIORITY)
+    TC_TEST_IS_TRUE(tc_frame_queue_empty(Q));
+    TC_TEST_IS_TRUE(tc_frame_queue_size(Q) == 0);
+    TC_TEST_IS_TRUE(is_heap(Q, 0));
 TC_TEST_END
 
-TC_TEST_BEGIN(S_get1, FIFOSIZE, SORTED)
+TC_TEST_BEGIN(S_get1, QUEUESIZE, PRIORITY)
     TCFramePtr fp = { .generic = NULL };
 
-    TC_TEST_IS_TRUE(tc_frame_fifo_empty(F));
+    TC_TEST_IS_TRUE(tc_frame_queue_empty(Q));
+    TC_TEST_IS_TRUE(is_heap(Q, 0));
 
-    fp = tc_frame_fifo_get(F);
+    fp = tc_frame_queue_get(Q);
     TC_TEST_IS_TRUE(TCFRAMEPTR_IS_NULL(fp));
-    TC_TEST_IS_TRUE(tc_frame_fifo_size(F) == 0);
+    TC_TEST_IS_TRUE(tc_frame_queue_size(Q) == 0);
+
+    TC_TEST_IS_TRUE(is_heap(Q, 0));
 TC_TEST_END
 
 
-TC_TEST_BEGIN(S_put1, FIFOSIZE, SORTED)
+TC_TEST_BEGIN(S_put1, QUEUESIZE, PRIORITY)
     frame_list_t frame[1];
     TCFramePtr ptr[1];
 
     int wakeup = 0;
     init_frames(1, frame, ptr);
     
-    wakeup = tc_frame_fifo_put(F, ptr[0]);
+    TC_TEST_IS_TRUE(ptr[0].generic->id == 0);
+    wakeup = tc_frame_queue_put(Q, ptr[0]);
     TC_TEST_IS_TRUE(wakeup);
-    TC_TEST_IS_TRUE(tc_frame_fifo_size(F) == 1);
+    TC_TEST_IS_TRUE(tc_frame_queue_size(Q) == 1);
+
+    TC_TEST_IS_TRUE(is_heap(Q, 0));
 TC_TEST_END
 
-TC_TEST_BEGIN(S_put1_get1, FIFOSIZE, SORTED)
+TC_TEST_BEGIN(S_put1_get1, QUEUESIZE, PRIORITY)
     frame_list_t frame[1];
     TCFramePtr ptr[1];
     TCFramePtr fp = { .generic = NULL };
@@ -184,19 +221,235 @@ TC_TEST_BEGIN(S_put1_get1, FIFOSIZE, SORTED)
     int wakeup = 0;
     init_frames(1, frame, ptr);
     
-    wakeup = tc_frame_fifo_put(F, ptr[0]);
+    TC_TEST_IS_TRUE(ptr[0].generic->id == 0);
+    wakeup = tc_frame_queue_put(Q, ptr[0]);
     TC_TEST_IS_TRUE(wakeup);
-    TC_TEST_IS_TRUE(tc_frame_fifo_size(F) == 1);
+    TC_TEST_IS_TRUE(tc_frame_queue_size(Q) == 1);
+    TC_TEST_IS_TRUE(is_heap(Q, 0));
 
-    fp = tc_frame_fifo_get(F);
+    fp = tc_frame_queue_get(Q);
     TC_TEST_IS_TRUE(!TCFRAMEPTR_IS_NULL(fp));
-    TC_TEST_IS_TRUE(tc_frame_fifo_size(F) == 0);
+    TC_TEST_IS_TRUE(tc_frame_queue_size(Q) == 0);
+    TC_TEST_IS_TRUE(fp.generic->id == 0);
+    TC_TEST_IS_TRUE(is_heap(Q, 0));
 TC_TEST_END
+
+TC_TEST_BEGIN(S_put4, QUEUESIZE, PRIORITY)
+    frame_list_t frame[4];
+    TCFramePtr ptr[4];
+    int i = 0;
+
+    int wakeup = 0;
+    init_frames(4, frame, ptr);
+
+    for (i = 0; i < 4; i++) {
+        TC_TEST_IS_TRUE(ptr[i].generic->id == i);
+        wakeup = tc_frame_queue_put(Q, ptr[i]);
+        TC_TEST_IS_TRUE(wakeup);
+        TC_TEST_IS_TRUE(tc_frame_queue_size(Q) == (i+1));
+        TC_TEST_IS_TRUE(is_heap(Q, 0));
+    }
+
+    TC_TEST_IS_TRUE(is_heap(Q, 0));
+TC_TEST_END
+
+TC_TEST_BEGIN(S_put4_rev, QUEUESIZE, PRIORITY)
+    frame_list_t frame[4];
+    TCFramePtr ptr[4];
+    int i = 0;
+
+    int wakeup = 0;
+    init_frames(4, frame, ptr);
+    
+    for (i = 0; i < 4; i++) {
+        wakeup = tc_frame_queue_put(Q, ptr[4-i-1]);
+        TC_TEST_IS_TRUE(wakeup);
+        TC_TEST_IS_TRUE(tc_frame_queue_size(Q) == (i+1));
+        TC_TEST_IS_TRUE(is_heap(Q, 0));
+    }
+
+    TC_TEST_IS_TRUE(is_heap(Q, 0));
+TC_TEST_END
+
+TC_TEST_BEGIN(S_putMax, QUEUESIZE, PRIORITY)
+    frame_list_t frame[QUEUESIZE];
+    TCFramePtr ptr[QUEUESIZE];
+    int i = 0;
+
+    int wakeup = 0;
+    init_frames(QUEUESIZE, frame, ptr);
+    
+    for (i = 0; i < QUEUESIZE; i++) {
+        wakeup = tc_frame_queue_put(Q, ptr[i]);
+        TC_TEST_IS_TRUE(wakeup);
+        TC_TEST_IS_TRUE(tc_frame_queue_size(Q) == (i+1));
+        TC_TEST_IS_TRUE(is_heap(Q, 0));
+    }
+
+    TC_TEST_IS_TRUE(is_heap(Q, 0));
+TC_TEST_END
+
+
+TC_TEST_BEGIN(S_putMax_rev, QUEUESIZE, PRIORITY)
+    frame_list_t frame[QUEUESIZE];
+    TCFramePtr ptr[QUEUESIZE];
+    int i = 0;
+
+    int wakeup = 0;
+    init_frames(QUEUESIZE, frame, ptr);
+    
+    for (i = 0; i < QUEUESIZE; i++) {
+        wakeup = tc_frame_queue_put(Q, ptr[QUEUESIZE-i-1]);
+        TC_TEST_IS_TRUE(wakeup);
+        TC_TEST_IS_TRUE(tc_frame_queue_size(Q) == (i+1));
+        TC_TEST_IS_TRUE(is_heap(Q, 0));
+    }
+
+    TC_TEST_IS_TRUE(is_heap(Q, 0));
+TC_TEST_END
+
+
+
+TC_TEST_BEGIN(S_put4_get2, QUEUESIZE, PRIORITY)
+    frame_list_t frame[4];
+    TCFramePtr ptr[4];
+    TCFramePtr fp = { .generic = NULL };
+    int i = 0;
+
+    int wakeup = 0;
+    init_frames(4, frame, ptr);
+    
+    for (i = 0; i < 4; i++) {
+        wakeup = tc_frame_queue_put(Q, ptr[i]);
+        TC_TEST_IS_TRUE(wakeup);
+        TC_TEST_IS_TRUE(tc_frame_queue_size(Q) == (i+1));
+        TC_TEST_IS_TRUE(is_heap(Q, 0));
+    }
+
+    for (i = 0; i < 2; i++) {
+        fp = tc_frame_queue_get(Q);
+        TC_TEST_IS_TRUE(!TCFRAMEPTR_IS_NULL(fp));
+        TC_TEST_IS_TRUE(fp.generic->id == i);
+        TC_TEST_IS_TRUE(tc_frame_queue_size(Q) == (4-i-1));
+        TC_TEST_IS_TRUE(is_heap(Q, 0));
+    }
+
+    TC_TEST_IS_TRUE(is_heap(Q, 0));
+TC_TEST_END
+
+
+TC_TEST_BEGIN(S_put5_get5, QUEUESIZE, PRIORITY)
+    frame_list_t frame[5];
+    TCFramePtr ptr[5];
+    TCFramePtr fp = { .generic = NULL };
+    int i = 0;
+
+    int wakeup = 0;
+    init_frames(5, frame, ptr);
+    
+    for (i = 0; i < 5; i++) {
+        wakeup = tc_frame_queue_put(Q, ptr[i]);
+        TC_TEST_IS_TRUE(wakeup);
+        TC_TEST_IS_TRUE(tc_frame_queue_size(Q) == (i+1));
+        TC_TEST_IS_TRUE(is_heap(Q, 0));
+    }
+
+    for (i = 0; i < 5; i++) {
+        fp = tc_frame_queue_get(Q);
+        TC_TEST_IS_TRUE(!TCFRAMEPTR_IS_NULL(fp));
+        TC_TEST_IS_TRUE(fp.generic->id == i);
+        TC_TEST_IS_TRUE(tc_frame_queue_size(Q) == (5-i-1));
+        TC_TEST_IS_TRUE(is_heap(Q, 0));
+    }
+
+    TC_TEST_IS_TRUE(is_heap(Q, 0));
+TC_TEST_END
+
+TC_TEST_BEGIN(S_put5_get5_rev, QUEUESIZE, PRIORITY)
+    frame_list_t frame[5];
+    TCFramePtr ptr[5];
+    TCFramePtr fp = { .generic = NULL };
+    int i = 0;
+
+    int wakeup = 0;
+    init_frames(5, frame, ptr);
+    
+    for (i = 0; i < 5; i++) {
+        wakeup = tc_frame_queue_put(Q, ptr[5-i-1]);
+        TC_TEST_IS_TRUE(wakeup);
+        TC_TEST_IS_TRUE(tc_frame_queue_size(Q) == (i+1));
+        TC_TEST_IS_TRUE(is_heap(Q, 0));
+    }
+    
+    for (i = 0; i < 5; i++) {
+        fp = tc_frame_queue_get(Q);
+        TC_TEST_IS_TRUE(!TCFRAMEPTR_IS_NULL(fp));
+        TC_TEST_IS_TRUE(fp.generic->id == i);
+        TC_TEST_IS_TRUE(tc_frame_queue_size(Q) == (5-i-1));
+        TC_TEST_IS_TRUE(is_heap(Q, 0));
+    }
+    TC_TEST_IS_TRUE(is_heap(Q, 0));
+TC_TEST_END
+
+TC_TEST_BEGIN(S_putMax_getMax, QUEUESIZE, PRIORITY)
+    frame_list_t frame[QUEUESIZE];
+    TCFramePtr ptr[QUEUESIZE];
+    TCFramePtr fp = { .generic = NULL };
+    int i = 0;
+
+    int wakeup = 0;
+    init_frames(QUEUESIZE, frame, ptr);
+    
+    for (i = 0; i < QUEUESIZE; i++) {
+        wakeup = tc_frame_queue_put(Q, ptr[i]);
+        TC_TEST_IS_TRUE(wakeup);
+        TC_TEST_IS_TRUE(tc_frame_queue_size(Q) == (i+1));
+        TC_TEST_IS_TRUE(is_heap(Q, 0));
+    }
+
+    for (i = 0; i < QUEUESIZE; i++) {
+        fp = tc_frame_queue_get(Q);
+        TC_TEST_IS_TRUE(!TCFRAMEPTR_IS_NULL(fp));
+        TC_TEST_IS_TRUE(fp.generic->id == i);
+        TC_TEST_IS_TRUE(tc_frame_queue_size(Q) == (QUEUESIZE-i-1));
+        TC_TEST_IS_TRUE(is_heap(Q, 0));
+    }
+
+    TC_TEST_IS_TRUE(is_heap(Q, 0));
+TC_TEST_END
+
+TC_TEST_BEGIN(S_putMax_getMax_rev, QUEUESIZE, PRIORITY)
+    frame_list_t frame[QUEUESIZE];
+    TCFramePtr ptr[QUEUESIZE];
+    TCFramePtr fp = { .generic = NULL };
+    int i = 0;
+
+    int wakeup = 0;
+    init_frames(QUEUESIZE, frame, ptr);
+    
+    for (i = 0; i < QUEUESIZE; i++) {
+        wakeup = tc_frame_queue_put(Q, ptr[QUEUESIZE - i - 1]);
+        TC_TEST_IS_TRUE(wakeup);
+        TC_TEST_IS_TRUE(tc_frame_queue_size(Q) == (i+1));
+        TC_TEST_IS_TRUE(is_heap(Q, 0));
+    }
+
+    for (i = 0; i < QUEUESIZE; i++) {
+        fp = tc_frame_queue_get(Q);
+        TC_TEST_IS_TRUE(!TCFRAMEPTR_IS_NULL(fp));
+        TC_TEST_IS_TRUE(fp.generic->id == i);
+        TC_TEST_IS_TRUE(tc_frame_queue_size(Q) == (QUEUESIZE-i-1));
+        TC_TEST_IS_TRUE(is_heap(Q, 0));
+    }
+
+    TC_TEST_IS_TRUE(is_heap(Q, 0));
+TC_TEST_END
+
 
 
 /*************************************************************************/
 
-static int test_frame_fifo_all(void)
+static int test_frame_queue_all(void)
 {
     int errors = 0;
 
@@ -209,6 +462,15 @@ static int test_frame_fifo_all(void)
     TC_RUN_TEST(S_get1);
     TC_RUN_TEST(S_put1);
     TC_RUN_TEST(S_put1_get1);
+    TC_RUN_TEST(S_put4);
+    TC_RUN_TEST(S_put4_rev);
+    TC_RUN_TEST(S_putMax);
+    TC_RUN_TEST(S_putMax_rev);
+    TC_RUN_TEST(S_put4_get2);
+    TC_RUN_TEST(S_put5_get5);
+    TC_RUN_TEST(S_put5_get5_rev);
+    TC_RUN_TEST(S_putMax_getMax);
+    TC_RUN_TEST(S_putMax_getMax_rev);
 
     return errors;
 }
@@ -229,7 +491,7 @@ int main(int argc, char *argv[])
         verbose = atoi(argv[1]);
     }
 
-    errors = test_frame_fifo_all();
+    errors = test_frame_queue_all();
 
     putchar('\n');
     tc_log_info(__FILE__, "test summary: %i error%s (%s)",

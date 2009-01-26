@@ -189,6 +189,8 @@ static void tc_audio_free(TCFramePtr frame)
 
 vframe_list_t *vframe_alloc_single(void)
 {
+    /* NOTE: The temporary frame buffer is _required_ (hence TC_FALSE)
+     *       if any video transformations (-j, -Z, etc.) are used! */
     return tc_new_video_frame(tc_specs.width, tc_specs.height,
                               tc_specs.format, TC_FALSE);
 }
@@ -202,153 +204,232 @@ aframe_list_t *aframe_alloc_single(void)
 /*************************************************************************/
 
 #ifndef FBUF_TEST
-typedef struct tcframefifo_ TCFrameFifo;
+typedef struct tcframequeue_ TCFrameQueue;
 #endif
-struct tcframefifo_ {
+struct tcframequeue_ {
     TCFramePtr  *frames;
     int         size;
     int         num;
     int         first;
     int         last;
 
-    int         *avalaible;
-    int         (*len)(TCFrameFifo *F);
-    TCFramePtr  (*get)(TCFrameFifo *F);
-    int         (*put)(TCFrameFifo *F, TCFramePtr ptr);
+    int         priority;
+    TCFramePtr  (*get)(TCFrameQueue *Q);
+    int         (*put)(TCFrameQueue *Q, TCFramePtr ptr);
 };
 
-STATIC void tc_frame_fifo_dump_status(TCFrameFifo *F, const char *tag)
+STATIC void tc_frame_queue_dump_status(TCFrameQueue *Q, const char *tag)
 {
     int i = 0;
-    tc_log_msg(FPOOL_NAME, "(%s|fifo|%s) size=%i num=%i first=%i last=%i",
-               tag, (F->avalaible) ?"sorted" :"plain",
-               F->size, F->num, F->first, F->last);
+    tc_log_msg(FPOOL_NAME, "(%s|queue|%s) size=%i num=%i first=%i last=%i",
+               tag, (Q->priority) ?"HEAP" :"FIFO",
+               Q->size, Q->num, Q->first, Q->last);
 
-    for (i = 0; i < F->size; i++) {
-        frame_list_t *ptr = F->frames[i].generic;
-        int avail = (F->avalaible) ?F->avalaible[i] :-1;
+    for (i = 0; i < Q->size; i++) {
+        frame_list_t *ptr = (i < Q->num) ?Q->frames[i].generic :NULL;
+        /* small trick to avoid heap noise */
 
         tc_log_msg(FPOOL_NAME,
-                   "(%s|fifo) #%i ptr=%p (bufid=%i|status=%s) avail=%i",
+                   "(%s|queue) #%i ptr=%p (id=%i|bufid=%i|status=%s)",
                    tag, i, ptr,
+                   (ptr) ?ptr->id    :-1,
                    (ptr) ?ptr->bufid :-1,
-                   (ptr) ?frame_status_name(ptr->status) :"unknown",
-                   avail);
+                   (ptr) ?frame_status_name(ptr->status) :"unknown");
     }
 }
 
-STATIC void tc_frame_fifo_del(TCFrameFifo *F)
+STATIC void tc_frame_queue_del(TCFrameQueue *Q)
 {
-    tc_free(F);
+    tc_free(Q);
 }
 
-STATIC int tc_frame_fifo_empty(TCFrameFifo *F)
+STATIC int tc_frame_queue_empty(TCFrameQueue *Q)
 {
-    return (F->len(F) == 0) ?TC_TRUE :TC_FALSE;
+    return (Q->num == 0) ?TC_TRUE :TC_FALSE;
 }
 
-STATIC int tc_frame_fifo_size(TCFrameFifo *F)
+STATIC int tc_frame_queue_size(TCFrameQueue *Q)
 {
-    return F->num;
+    return Q->num;
 }
 
-static int fifo_len(TCFrameFifo *F)
+STATIC TCFramePtr tc_frame_queue_get(TCFrameQueue *Q)
 {
-    return F->num;
+    return Q->get(Q);
 }
 
-static TCFramePtr fifo_get(TCFrameFifo *F)
+STATIC int tc_frame_queue_put(TCFrameQueue *Q, TCFramePtr ptr)
+{
+    return Q->put(Q, ptr);
+}
+
+
+static TCFramePtr fifo_get(TCFrameQueue *Q)
 {
     TCFramePtr ptr = { .generic = NULL };
-    if (F->num > 0) {
-        ptr = F->frames[F->first];
-        F->first = (F->first + 1) % F->size;
-        F->num--;
+    if (Q->num > 0) {
+        ptr = Q->frames[Q->first];
+        Q->first = (Q->first + 1) % Q->size;
+        Q->num--;
     }
     return ptr;
 }
 
-static int fifo_put(TCFrameFifo *F, TCFramePtr ptr)
+static int fifo_put(TCFrameQueue *Q, TCFramePtr ptr)
 {
     int ret = 0;
-    if (F->num < F->size) {
-        F->frames[F->last] = ptr;
-        F->last            = (F->last + 1) % F->size;
-        F->num++;
+    if (Q->num < Q->size) {
+        Q->frames[Q->last] = ptr;
+        Q->last = (Q->last + 1) % Q->size;
+        Q->num++;
         ret = 1;
     }
     return ret;
 }
 
-STATIC TCFramePtr tc_frame_fifo_get(TCFrameFifo *F)
-{
-    return F->get(F);
-}
+/*
+ * heap auxiliary functions work into the Key domain (K)
+ * while heap main functions (Queue hierarchy) work into the
+ * Position domain (P).
+ * Of course Queue data is in P too.
+ */
 
-STATIC int tc_frame_fifo_put(TCFrameFifo *F, TCFramePtr ptr)
-{
-    return F->put(F, ptr);
-}
+#define KEY(J)          ((J)+1)
+#define POS(K)          ((K)-1)
+#define PARENT(K)       ( (K) / 2)
+#define LEFT_SON(K)     ( (K) * 2)
+#define RIGHT_SON(K)    (((K) * 2) + 1)
 
-static int fifo_len_sorted(TCFrameFifo *F)
-{
-    return F->avalaible[F->first];
-}
+#define FRAME_ID(Q, J)  ((Q)->frames[(J)].generic->id)
+#define FRAME_SWAP(Q, Ja, Jb) do {         \
+    TCFramePtr tmp = (Q)->frames[(Ja)];    \
+    (Q)->frames[(Ja)] = (Q)->frames[(Jb)]; \
+    (Q)->frames[(Jb)] = tmp;               \
+} while (0);
 
-static TCFramePtr fifo_get_sorted(TCFrameFifo *F)
+#ifdef FBUF_TEST
+int is_heap(TCFrameQueue *Q, int debug)
 {
-    TCFramePtr ptr = { .generic = NULL };
-    if (F->avalaible[F->first]) {
-        ptr = F->frames[F->first];
-        F->avalaible[F->first] = TC_FALSE;   /* consume it... */
-        F->first = (F->first + 1) % F->size; /* ..and wait next one */
-        F->num--;
+    int k, t, good = 1, N = KEY(Q->num - 1);
+
+    if (debug) {
+        tc_log_info("* is_heap", "N=%i Q->num=%i", N, Q->num);
+        tc_frame_queue_dump_status(Q, "is_heap");
     }
-    return ptr;
-}
 
-static int fifo_put_sorted(TCFrameFifo *F, TCFramePtr ptr)
-{
-    int ret = 0;
-    F->frames[ptr.generic->bufid] = ptr;
-    F->avalaible[ptr.generic->bufid] = TC_TRUE;
-    F->num++;
-    /* special case need special handling */
-    if (ptr.generic->attributes & TC_FRAME_WAS_CLONED) {
-        /* roll back, we want the same frame again */
-        F->first = ptr.generic->bufid;
-    }
-    if (ptr.generic->bufid == F->first) {
-        ret = 1;
-    }
-    return ret;
-}
+    for (k = N; k > 1; k--) {
+        if (debug) {
+            tc_log_info("is_heap", "> k=%i(%i)", k, POS(k));
+        }
+        for (t = k; good && (t > 1 && PARENT(t) >= 1); t = PARENT(t)) {
+            int P    = POS(t);
+            int PP   = POS(PARENT(t));
+            int pid  = FRAME_ID(Q, P);
+            int ppid = FRAME_ID(Q, PP);
 
-STATIC TCFrameFifo *tc_frame_fifo_new(int size, int sorted)
-{
-    TCFrameFifo *F = NULL;
-    uint8_t *mem = NULL;
-    size_t memsize = sizeof(TCFrameFifo) + (sizeof(TCFramePtr) * size);
-    size_t xsize = (sorted) ?(sizeof(int) * size) :0;
-
-    mem = tc_zalloc(memsize + xsize);
-    if (mem) {
-        F          = (TCFrameFifo *)mem;
-        F->frames  = (TCFramePtr *)(mem + sizeof(TCFrameFifo));
-        F->size    = size;
-        if (sorted) {
-            F->get       = fifo_get_sorted;
-            F->put       = fifo_put_sorted;
-            F->len       = fifo_len_sorted;
-            F->avalaible = (int*)(mem + memsize);
-        } else {
-            F->get       = fifo_get;
-            F->put       = fifo_put;
-            F->len       = fifo_len;
-            F->avalaible = NULL;
+            if (pid < ppid) {
+                good = 0;
+            }
+            if (debug || !good) {
+                tc_log_info((good) ?"is_heap" :"HEAP_VIOLATION",
+                            ">> t=%i(%i) parent=%i(%i) pid=%i ppid=%i",
+                            t, P, PARENT(t), PP, pid, ppid);
+                if (!good) {
+                    tc_frame_queue_dump_status(Q, "HEAP_VIOLATION");
+                }
+            }
+ 
         }
     }
-    return F;
+    return good;
+}
+#endif
+
+static int pick_son(TCFrameQueue *Q, int k)
+{
+    int N = KEY(Q->num), L = LEFT_SON(k), R = RIGHT_SON(k);
+    int ret = L;
+
+    if ((R < N) && (FRAME_ID(Q, POS(R)) < FRAME_ID(Q, POS(L)))) {
+        /* right son has to exist */
+        ret = R;
+    }
+    return ret;
+}
+
+static void heap_down(TCFrameQueue *Q, int k)
+{
+    int S, N = KEY(Q->num);
+    while (k < N) {
+        int J = POS(k);
+        S = POS(pick_son(Q, k));
+        if ((S < N) && (FRAME_ID(Q, J) > FRAME_ID(Q, S))) {
+            FRAME_SWAP(Q, J, S);
+        } else {
+            break;
+        }
+        k = KEY(S);
+    }
+}
+
+static void heap_up(TCFrameQueue *Q, int k)
+{
+    for (; k > 1; k /= 2) {
+        int J = POS(k), P = POS(PARENT(k));
+        if (FRAME_ID(Q, J) < FRAME_ID(Q, P)) {
+            FRAME_SWAP(Q, J, P);
+        }
+    }
+}
+
+
+static TCFramePtr heap_get(TCFrameQueue *Q)
+{
+    TCFramePtr ptr = { .generic = NULL };
+    if (Q->num > 0) {
+        ptr = Q->frames[0];
+        Q->num--; /* must overwrite the last one */
+        Q->frames[0] =  Q->frames[Q->num];
+        /* *** */
+        heap_down(Q, KEY(0));
+    }
+    return ptr;
+}
+
+static int heap_put(TCFrameQueue *Q, TCFramePtr ptr)
+{
+    int ret = 0;
+    if (Q->num < Q->size) {
+        int last = Q->num;
+        Q->frames[last] = ptr;
+        Q->num++;
+        ret = 1;
+        /* *** */
+        heap_up(Q, KEY(last));
+    }
+    return ret;
+}
+
+STATIC TCFrameQueue *tc_frame_queue_new(int size, int priority)
+{
+    TCFrameQueue *Q = NULL;
+    uint8_t *mem = NULL;
+
+    mem = tc_zalloc(sizeof(TCFrameQueue) + (sizeof(TCFramePtr) * size));
+    if (mem) {
+        Q           = (TCFrameQueue *)mem;
+        Q->frames   = (TCFramePtr *)(mem + sizeof(TCFrameQueue));
+        Q->size     = size;
+        Q->priority = priority;
+        if (priority) {
+            Q->get       = heap_get;
+            Q->put       = heap_put;
+        } else {
+            Q->get       = fifo_get;
+            Q->put       = fifo_put;
+        }
+    }
+    return Q;
 }
 
 /*************************************************************************/
@@ -364,10 +445,10 @@ struct tcframepool_ {
     pthread_cond_t  empty;
     int             waiting;    /* how many thread blocked here? */
 
-    TCFrameFifo     *fifo;
+    TCFrameQueue   *queue;
 };
 
-STATIC int tc_frame_pool_init(TCFramePool *P, int size, int sorted,
+STATIC int tc_frame_pool_init(TCFramePool *P, int size, int priority,
                               const char *tag, const char *ptag)
 {
     int ret = TC_ERROR;
@@ -378,8 +459,8 @@ STATIC int tc_frame_pool_init(TCFramePool *P, int size, int sorted,
         P->ptag     = (ptag) ?ptag :"unknown";
         P->tag      = (tag)  ?tag  :"unknown";
         P->waiting  = 0;
-        P->fifo     = tc_frame_fifo_new(size, sorted);
-        if (P->fifo) {
+        P->queue     = tc_frame_queue_new(size, priority);
+        if (P->queue) {
             ret = TC_OK;
         }
     }
@@ -388,9 +469,9 @@ STATIC int tc_frame_pool_init(TCFramePool *P, int size, int sorted,
 
 STATIC int tc_frame_pool_fini(TCFramePool *P)
 {
-    if (P && P->fifo) {
-        tc_frame_fifo_del(P->fifo);
-        P->fifo = NULL;
+    if (P && P->queue) {
+        tc_frame_queue_del(P->queue);
+        P->queue = NULL;
     }
     return TC_OK;
 }
@@ -399,14 +480,14 @@ STATIC void tc_frame_pool_dump_status(TCFramePool *P)
 {
     tc_log_msg(FPOOL_NAME, "(%s|%s) waiting=%i fifo status:",
                P->ptag, P->tag, P->waiting);
-    tc_frame_fifo_dump_status(P->fifo, P->tag);
+    tc_frame_queue_dump_status(P->queue, P->tag);
 }
 
 STATIC void tc_frame_pool_put_frame(TCFramePool *P, TCFramePtr ptr)
 {
     int wakeup = 0;
     pthread_mutex_lock(&P->lock);
-    wakeup = tc_frame_fifo_put(P->fifo, ptr);
+    wakeup = tc_frame_queue_put(P->queue, ptr);
 
     if (verbose >= TC_FLIST)
         tc_log_msg(FPOOL_NAME,
@@ -433,7 +514,7 @@ STATIC TCFramePtr tc_frame_pool_get_frame(TCFramePool *P)
                    P->tag, P->ptag, PTHREAD_ID);
 
     P->waiting++;
-    while (!interrupted && tc_frame_fifo_empty(P->fifo)) {
+    while (!interrupted && tc_frame_queue_empty(P->queue)) {
         if (verbose >= TC_FLIST)
             tc_log_msg(FPOOL_NAME,
                        "(get_frame|%s|%s|%li) blocking (no frames in pool)",
@@ -451,7 +532,7 @@ STATIC TCFramePtr tc_frame_pool_get_frame(TCFramePool *P)
     P->waiting--;
 
     if (!interrupted) {
-        ptr = tc_frame_fifo_get(P->fifo);
+        ptr = tc_frame_queue_get(P->queue);
     }
 
     if (verbose >= TC_FLIST)
@@ -468,13 +549,13 @@ STATIC TCFramePtr tc_frame_pool_get_frame(TCFramePool *P)
 /* to be used ONLY in safe places like init, fini, flush */
 STATIC TCFramePtr tc_frame_pool_pull_frame(TCFramePool *P)
 {
-    return tc_frame_fifo_get(P->fifo);
+    return tc_frame_queue_get(P->queue);
 }
 
 /* ditto */
 STATIC void tc_frame_pool_push_frame(TCFramePool *P, TCFramePtr ptr)
 {
-    tc_frame_fifo_put(P->fifo, ptr);
+    tc_frame_queue_put(P->queue, ptr);
 }
 
 STATIC void tc_frame_pool_wakeup(TCFramePool *P, int broadcast)
@@ -536,7 +617,7 @@ static int tc_frame_ring_get_pool_size(TCFrameRing *rfb,
     if (locked) {
         pthread_mutex_lock(&P->lock);
     }
-    size = tc_frame_fifo_size(P->fifo);
+    size = tc_frame_queue_size(P->queue);
     if (locked) {
         pthread_mutex_unlock(&P->lock);
     }
