@@ -5,6 +5,10 @@
   albeit perhaps less elegant, priority queue.
   Also add first unit-tests.
 
+  * almost everything
+  split libtc into smaller libraries, and update the source code 
+  and the build system accordingly.
+
 2009-01-24 Andrew Church <achurch at achurch dot org>
   * src/framebuffer.c
   Fix crash when using video transformations (temporary buffers were not
