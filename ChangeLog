@@ -1,3 +1,10 @@
+2009-01-26 Francesco Romani  <fromani at gmail dot com>
+  * src/framebuffer.c src/framebuffer.h testsuite/test-tcframefifo.c
+  fix new framebuffer code by adding priority queues.
+  Switch from (broken) pseudo-sliding window approach to more robust,
+  albeit perhaps less elegant, priority queue.
+  Also add first unit-tests.
+
 2009-01-24 Andrew Church <achurch at achurch dot org>
   * src/framebuffer.c
   Fix crash when using video transformations (temporary buffers were not
