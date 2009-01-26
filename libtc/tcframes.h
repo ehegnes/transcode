@@ -438,7 +438,7 @@ void tc_init_audio_frame(TCFrameAudio *aptr,
  *     not manually! ) if succesfull, NULL otherwise.
  */
 TCFrameVideo *tc_new_video_frame(int width, int height, int format,
-                                  int partial);
+                                 int partial);
 
 /*
  * tc_new_audio_frame:
