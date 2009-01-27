@@ -24,7 +24,6 @@
 # include "config.h"
 #endif
 
-#include "src/tc_defaults.h"
 
 #include "libtcutil/memutils.h"
 #include "libtcutil/logging.h"
