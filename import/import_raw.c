@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "import_raw.so"
-#define MOD_VERSION "v0.3.3 (2008-11-23)"
+#define MOD_VERSION "v0.3.3 (2007-08-26)"
 #define MOD_CODEC   "(video) RGB/YUV | (audio) PCM"
 
 #include "src/transcode.h"
@@ -33,8 +33,7 @@ static int capability_flag = TC_CAP_RGB|TC_CAP_YUV|TC_CAP_PCM|TC_CAP_YUV422;
 #define MOD_PRE raw
 #include "import_def.h"
 
-#define MAX_BUF 1024
-static char import_cmd_buf[MAX_BUF];
+char import_cmd_buf[TC_BUF_MAX];
 static int codec;
 
 /* ------------------------------------------------------------
@@ -45,26 +44,26 @@ static int codec;
 
 MOD_open
 {
-    char cat_buf[1024];
+    char cat_buf[TC_BUF_MAX];
     char *co = NULL;
 
     if (param->flag == TC_AUDIO) {
-        //directory mode?
+        co = (vob->a_codec_flag == TC_CODEC_ULAW) ?"ulaw" :"pcm"; // XXX
+
+        /* multiple inputs? */
         if (tc_file_check(vob->audio_in_file) == 1) {
             tc_snprintf(cat_buf, sizeof(cat_buf), "tccat -a");
         } else {
-            if (vob->im_a_string) {
-                tc_snprintf(cat_buf, sizeof(cat_buf), "tcextract -x pcm %s", vob->im_a_string);
-            } else {
-                tc_snprintf(cat_buf, sizeof(cat_buf), "tcextract -x pcm");
-            }
+            tc_snprintf(cat_buf, sizeof(cat_buf),
+                        "tcextract -x %s %s", co,
+                        (vob->im_a_string) ?vob->im_v_string :"");
         }
-
-        if (tc_snprintf(import_cmd_buf, sizeof(import_cmd_buf),
-                        "%s -i \"%s\" -d %d | tcextract -a %d -x pcm -d %d -t raw",
-                        cat_buf, vob->audio_in_file, vob->verbose, vob->a_track, vob->verbose) < 0) {
+        if (tc_snprintf(import_cmd_buf, TC_BUF_MAX, 
+                        "%s -i \"%s\" -d %d | tcextract -a %d -x %s -d %d -t raw",
+                        cat_buf, vob->audio_in_file, vob->verbose, vob->a_track,
+                        co, vob->verbose) < 0) {
             tc_log_perror(MOD_NAME, "cmd buffer overflow");
-            return TC_ERROR;
+            return TC_IMPORT_ERROR;
         }
 
 	    if (verbose_flag)
@@ -73,68 +72,44 @@ MOD_open
         param->fd = popen(import_cmd_buf, "r");
         if (param->fd == NULL) {
             tc_log_perror(MOD_NAME, "popen audio stream");
-            return TC_ERROR;
+            return TC_IMPORT_ERROR;
         }
 
-        return TC_OK;
+        return TC_IMPORT_OK;
     }
 
     if (param->flag == TC_VIDEO) {
-        int ret = 0;
-
         codec = vob->im_v_codec;
 
-        //directory mode?
+        switch (codec) {
+          case TC_CODEC_RGB24:
+            co = "rgb";
+            break;
+          case TC_CODEC_YUV422P:
+            co = "yuv422p";
+            break;
+          case TC_CODEC_YUV420P: /* fallthrough */
+          default:
+            co = "yuv420p";
+            break;
+        }
+
+        /* multiple inputs? */
         if (tc_file_check(vob->video_in_file) == 1) {
             tc_snprintf(cat_buf, sizeof(cat_buf), "tccat");
-            co = "";
         } else {
-            if (vob->im_v_string) {
-                tc_snprintf(cat_buf, sizeof(cat_buf), "tcextract %s", vob->im_v_string);
-            } else {
-                tc_snprintf(cat_buf, sizeof(cat_buf), "tcextract");
-            }
-
-            switch (codec) {
-              case CODEC_RGB:
-                co = "-x rgb";
-                break;
-              case CODEC_YUV422:
-                co = "-x yuv422p";
-                break;
-              case CODEC_YUV: /* fallthrough */
-              default:
-                co = "-x yuv420p";
-                break;
-	        }
+            tc_snprintf(cat_buf, sizeof(cat_buf),
+                        "tcextract %s",
+                        (vob->im_v_string) ?vob->im_v_string :"");
         }
 
-
-        switch (codec) {
-          case CODEC_RGB:
-            ret = tc_snprintf(import_cmd_buf, sizeof(import_cmd_buf),
-                              "%s -i \"%s\" -d %d %s | tcextract -a %d -x rgb -d %d",
-                              cat_buf, vob->video_in_file, vob->verbose, co, vob->v_track, vob->verbose);
-            break;
-          
-          case CODEC_YUV422:
-            ret = tc_snprintf(import_cmd_buf, sizeof(import_cmd_buf),
-                              "%s -i \"%s\" -d %d %s | tcextract -a %d -x yuv422p -d %d",
-                              cat_buf, vob->video_in_file, vob->verbose, co, vob->v_track, vob->verbose);
-	        break;
-
-          case CODEC_YUV: /* fallthrough */
-          default:
-            ret = tc_snprintf(import_cmd_buf, sizeof(import_cmd_buf),
-                              "%s -i \"%s\" -d %d %s | tcextract -a %d -x yuv420p -d %d",
-                              cat_buf, vob->video_in_file, vob->verbose, co, vob->v_track, vob->verbose);
-            break;
-        }
-
-        if (ret  < 0) {
+	    if (tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+                        "%s -i \"%s\" -d %d -x %s | tcextract -a %d -x %s -d %d",
+                        cat_buf, vob->video_in_file, vob->verbose, co,
+                        vob->v_track, co, vob->verbose) < 0) {
             tc_log_perror(MOD_NAME, "cmd buffer overflow");
-            return TC_ERROR;
-	    }
+            return TC_IMPORT_ERROR;
+        }
 
         if (verbose_flag)
             tc_log_info(MOD_NAME, "%s", import_cmd_buf);
@@ -142,13 +117,13 @@ MOD_open
         param->fd = popen(import_cmd_buf, "r");
         if (param->fd == NULL) {
             tc_log_perror(MOD_NAME, "popen video stream");
-            return TC_ERROR;
+            return TC_IMPORT_ERROR;
         }
 
-        return TC_OK;
+        return TC_IMPORT_OK;
     }
 
-    return TC_ERROR;
+    return TC_IMPORT_ERROR;
 }
 
 
@@ -159,10 +134,9 @@ MOD_open
  * ------------------------------------------------------------*/
 
 MOD_decode
-{   
-    return TC_OK;
+{
+    return TC_IMPORT_OK;
 }
-
 
 /* ------------------------------------------------------------
  *
@@ -172,10 +146,11 @@ MOD_decode
 
 MOD_close
 {
-    if (param->fd != NULL)
+    if (param->fd != NULL) {
         pclose(param->fd);
-
-    return TC_OK;
+        param->fd = NULL;
+    }
+    return TC_IMPORT_OK;
 }
 
 /*************************************************************************/
@@ -189,4 +164,3 @@ MOD_close
  *
  * vim: expandtab shiftwidth=4:
  */
-
