@@ -106,7 +106,6 @@
 #define TC_FRAME_FIRST          0
 #define TC_FRAME_LAST     INT_MAX
 
-#define TC_LEAP_FRAME        1000
 #define TC_MAX_AUD_TRACKS      32
 
 //--------------------------------------------------

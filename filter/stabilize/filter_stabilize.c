@@ -750,7 +750,7 @@ static int stabilize_filter_video(TCModuleInstance *self,
                 addTrans(sd, calcShiftRGBSimple(sd));
             else if (sd->algo == 1)
                 addTrans(sd, calcTransFields(sd, calcFieldTransRGB));
-        } else if (sd->vob->im_v_codec == TC_CCODEC_YUV420P) {
+        } else if (sd->vob->im_v_codec == TC_CODEC_YUV420P) {
             if (sd->algo == 0)
                 addTrans(sd, calcShiftYUVSimple(sd));
             else if (sd->algo == 1)
