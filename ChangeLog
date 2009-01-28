@@ -15,4 +15,5 @@ transcode-1.2.0
 [!] Fix compilation error with x264 version 66.
 [*] Improved internal buffering system.
 [!] Fix misuse of configuration files which leads to crash.
+[*] Improved debug messages handling and internal debug API.
 ===========================================================================
