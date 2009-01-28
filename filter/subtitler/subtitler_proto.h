@@ -3,7 +3,7 @@ extern int rgb_to_yuv(int r, int g, int b, int *y, int *u, int *v);
 extern font_desc_t *add_font(\
     char *name, int symbols, int size, int iso_extension, double outline_thickness, double blur_radius);
 //extern void paste_bitmap(FT_Bitmap *bitmap, int x, int y);
-extern void write_header(FILE *f);
+extern int write_header(FILE *f);
 extern int write_bitmap(void *buffer, char type);
 extern int render(void);
 //extern FT_ULong decode_char(char c);

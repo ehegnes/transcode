@@ -33,11 +33,9 @@
 
 #include "aud_scan.h"
 #include "aud_scan_avi.h"
+#include "avimisc.h"
 
 #define EXE "avisync"
-
-/* AVI_info is no longer in avilib */
-void AVI_info(avi_t *avifile);
 
 void version(void)
 {
@@ -280,8 +278,11 @@ int main(int argc, char *argv[])
 	      " -n 0x1 -g 16x16 -y raw,raw -c 0-5 -e %ld,%d,%d -b %ld -q0",
 	      tmp0, rate,bits,chan, mp3rate);
 
-      printf(cmd);
-      system(cmd);
+      printf("%s\n", cmd);
+      if (system(cmd) != 0) {
+          fprintf(stderr, "Command failed\n");
+          exit(1);
+      }
 
       if(NULL == (avifile3 = AVI_open_input_file(tmp0,1))) {
 	  AVI_print_error("AVI open");
@@ -758,7 +759,7 @@ int main(int argc, char *argv[])
   if (avifile3) {
       memset(nulls, 0, sizeof(nulls));
       tc_snprintf(nulls, sizeof(nulls), "rm -f %s", tmp0);
-      system(nulls);
+      if (system(nulls) != 0) /*ignore failure*/;
       AVI_close(avifile3);
   }
 

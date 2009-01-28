@@ -532,7 +532,9 @@ static int yait_ops(vframe_list_t * ptr)
     w = ptr->v_width;
     h = ptr->v_height;
 
-    fgets(buf, 256, Ops_fp);
+    if (!fgets(buf, 256, Ops_fp))
+	return (TC_FALSE);
+
     op = yait_ops_get(buf, Fn, &mode);
 
     if (op < 0)
@@ -565,7 +567,9 @@ static int yait_ops_chk(void)
     char buf[256], *p;
     int fn, op;
 
-    fscanf(Ops_fp, "%d:", &fn);
+    if (fscanf(Ops_fp, "%d:", &fn) != 1)
+	return (TC_FALSE);
+
     rewind(Ops_fp);
     for (;;) {
         p = fgets(buf, 256, Ops_fp);

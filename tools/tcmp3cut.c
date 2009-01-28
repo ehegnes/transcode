@@ -215,7 +215,10 @@ int main(int argc, char *argv[])
       // find mp3 header
       while ((total += read(fd, header, 4))) {
 	  if ( (framesize = tc_get_mp3_header (header, &chans, &srate, &bitrate)) > 0) {
-	      fwrite (header, 4, 1,out);
+	      if (fwrite (header, 4, 1, out) != 1) {
+                  perror("write frame header");
+                  return -1;
+              }
 	      ms += (framesize*8)/(bitrate);
 	      break;
 	  }
@@ -241,7 +244,10 @@ int main(int argc, char *argv[])
 	      on = 0;
 	  } else {
 	      total += bytes_read;
-	      fwrite (buffer, bytes_read, 1,out);
+	      if (fwrite (buffer, bytes_read, 1, out) != 1) {
+                  perror("write");
+                  return -1;
+              }
 	      while ((total += read(fd, header, 4))) {
 
 		  //printf("%x %x %x %x\n", header[0]&0xff, header[1]&0xff, header[2]&0xff, header[3]&0xff);
@@ -271,7 +277,10 @@ int main(int argc, char *argv[])
 			      return -1;
 			  }
 		      }
-		      fwrite (header, 4, 1,out);
+		      if (fwrite (header, 4, 1, out) != 1) {
+                          perror("write");
+                          return -1;
+                      }
 
 		      ++chunks;
 		      break;

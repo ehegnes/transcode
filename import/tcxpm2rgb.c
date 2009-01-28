@@ -291,7 +291,10 @@ int main (int argc, char *argv[])
 	return 1;
     }
 
-    fgets(linebuf, MAX_BUF, f);
+    if (!fgets(linebuf, MAX_BUF, f)) {
+	tc_log_error(EXE, "Error reading header");
+	return 1;
+    }
     n = sscanf(linebuf+1, "%d %d %d %d", &width, &height, &colors, &bwidth);
     if (n != 4 || (bwidth > 2) || (width == 0) || (height == 0) || (colors == 0)) {
 	tc_log_error(EXE, "Error reading header");

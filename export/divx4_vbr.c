@@ -148,14 +148,20 @@ int VbrControl_init_2pass_vbr_encoding(const char *filename, int bitrate,
     m_bDrop = TC_FALSE;
     m_iCount = 0;
 
-    fread(head, 10, 1, m_pFile);
+    if (fread(head, 10, 1, m_pFile) != 1) {
+	return -1;
+    }
     if (strncmp("##version ", head, 10) == 0) {
         int version;
         int iOldQual;
         float old_qual = 0, new_qual = 0;
         
-        fscanf(m_pFile, "%d\n", &version);
-        fscanf(m_pFile, "quality %d\n", &iOldQual);
+        if (fscanf(m_pFile, "%d\n", &version) != 1) {
+	    return -1;
+	}
+        if (fscanf(m_pFile, "quality %d\n", &iOldQual) != 1) {
+	    return -1;
+	}
         switch (iOldQual) {
           case 5:
             old_qual = 1.f;
@@ -201,11 +207,14 @@ int VbrControl_init_2pass_vbr_encoding(const char *filename, int bitrate,
 /* removed C++ dependencies, now read file twice :-( */
 
     while (!feof(m_pFile)) {
-        fscanf(m_pFile, "Frame %d: intra %d, quant %d, texture %d, "
-                        "motion %d, total %d\n",
-               &iNumFrames, (int *) &(vFrame.is_key_frame),
-               &(vFrame.quant), &(vFrame.text_bits),
-               &(vFrame.motion_bits), &(vFrame.total_bits));
+        int res = fscanf(m_pFile, "Frame %d: intra %d, quant %d, texture %d, "
+                                  "motion %d, total %d\n",
+                         &iNumFrames, (int *) &(vFrame.is_key_frame),
+                         &(vFrame.quant), &(vFrame.text_bits),
+                         &(vFrame.motion_bits), &(vFrame.total_bits));
+	if (res != 6) {
+	    return -1;
+	}
 
         vFrame.total_bits += vFrame.text_bits*(qual_multiplier-1);
         vFrame.text_bits *= qual_multiplier;
@@ -233,11 +242,15 @@ int VbrControl_init_2pass_vbr_encoding(const char *filename, int bitrate,
     fseek(m_pFile, lFrameStart, SEEK_SET); /* start again */
 
     for (i = 0; i < iNumFrames; i++) {
-        fscanf(m_pFile, "Frame %d: intra %d, quant %d, texture %d, "
-                        "motion %d, total %d\n",
-               &dummy, (int *) &(m_vFrames[i].is_key_frame),
-               &(m_vFrames[i].quant), &(m_vFrames[i].text_bits),
-               &(m_vFrames[i].motion_bits), &(m_vFrames[i].total_bits));
+        int res = fscanf(m_pFile, "Frame %d: intra %d, quant %d, texture %d, "
+                                  "motion %d, total %d\n",
+                         &dummy, (int *) &(m_vFrames[i].is_key_frame),
+                         &(m_vFrames[i].quant), &(m_vFrames[i].text_bits),
+                         &(m_vFrames[i].motion_bits),
+                         &(m_vFrames[i].total_bits));
+	if (res != 6) {
+	    return -1;
+	}
 
         m_vFrames[i].total_bits += m_vFrames[i].text_bits*(qual_multiplier-1);
         m_vFrames[i].text_bits  *= qual_multiplier;

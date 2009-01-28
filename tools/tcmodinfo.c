@@ -102,23 +102,27 @@ static int do_connect_socket(const char *socketfile)
 
     if (retval>0) {
         if (FD_ISSET(0, &rfds)) {
-        fgets(buf, OPTS_SIZE, stdin);
+            if (!fgets(buf, OPTS_SIZE, stdin)) {
+                perror("reading on stdin");
+                break;
+            }
         }
         if (FD_ISSET(sock, &rfds)) {
-        if ( (n = read(sock, buf, OPTS_SIZE)) < 0) {
-            perror("reading on stream socket");
-            break;
-        } else if (n == 0) { // EOF
-            fprintf (stderr, "Server closed connection\n");
-            break;
-        }
-        printf("%s", buf);
-        continue;
+            if ( (n = read(sock, buf, OPTS_SIZE)) < 0) {
+                perror("reading on stream socket");
+                break;
+            } else if (n == 0) { // EOF
+                fprintf (stderr, "Server closed connection\n");
+                break;
+            }
+            printf("%s", buf);
+            continue;
         }
     }
 
-    if (write(sock, buf, strlen(buf)) < 0)
+    if (write(sock, buf, strlen(buf)) < 0) {
         perror("writing on stream socket");
+    }
 
     memset(buf, 0, sizeof (buf));
 

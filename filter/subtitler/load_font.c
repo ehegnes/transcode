@@ -225,7 +225,8 @@ if(debug_flag)
 if(raw->c)
 	{
 	raw->pal = malloc(raw->c * 3);
-	fread(raw->pal, 3, raw->c, f);
+	if (fread(raw->pal, 3, raw->c, f) != raw->c)
+	    return NULL;
 	bpp = 1;
 	}
 else
@@ -234,7 +235,8 @@ else
 	bpp = 3;
 	}
 raw->bmp = malloc(raw->h * raw->w * bpp);
-fread(raw->bmp, raw->h * raw->w * bpp, 1, f);
+if (fread(raw->bmp, raw->h * raw->w * bpp, 1, f) != 1)
+    return NULL;
 
 fclose(f);
 
@@ -623,7 +625,7 @@ else
 } /* end function paste_bitmap */
 
 
-void write_header(FILE *f)
+int write_header(FILE *f)
 {
 static unsigned char   header[800] = "mhwanh";
 int i;
@@ -652,7 +654,7 @@ header[13] = (unsigned char)(colors&0xff); // patch AMD64 by Tilmann Bitterberg
 
 for (i = 32; i<800; ++i) header[i] = (i - 32) / 3;
 
-fwrite(header, 1, 800, f);
+return fwrite(header, 1, 800, f) == 800;
 } /* end function write_header */
 
 
@@ -671,9 +673,13 @@ if(! f)
 	return 0;
 	}
 
-write_header(f);
+if (!write_header(f)
+ || fwrite(buffer, 1, width * height, f) != width * height)
+	{
+	tc_log_msg(MOD_NAME, "subtitler(): write_bitmap(): could not write to %s\n", name);
 
-fwrite(buffer, 1, width * height, f);
+	return 0;
+	}
 
 fclose(f);
 

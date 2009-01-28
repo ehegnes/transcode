@@ -104,7 +104,12 @@ static int lock(void)
 
     pid = getpid();
     tc_snprintf(lock_buffer, sizeof(lock_buffer), "%10d", pid);
-    write(fd, lock_buffer, 11);
+    if (write(fd, lock_buffer, 11) != 11) {
+        tc_log_warn(__FILE__, "Couldn't write to lock file");
+	close(fd);
+	unlink(lock_file);
+	return 1;
+    }
     close(fd);
 
     return 0;
@@ -1046,7 +1051,15 @@ int dvd_read(int arg_title, int arg_chapter, int arg_angle)
         return -1;
       }
 
-      fwrite( data, cur_output_size, DVD_VIDEO_LB_LEN, stdout );
+      if (fwrite( data, DVD_VIDEO_LB_LEN, cur_output_size, stdout )
+	  != cur_output_size
+      ) {
+	tc_log_perror(__FILE__, "Write failed");
+        ifoClose( vts_file );
+        ifoClose( vmg_file );
+        DVDCloseFile( title );
+        return -1;
+      }
 
       if(verbose & TC_STATS)
         tc_log_msg(__FILE__, "%d %d", cur_pack, cur_output_size);
@@ -1283,7 +1296,13 @@ int dvd_stream(int arg_title,int arg_chapid)
     }
 
     //write NAV packet
-    fwrite(data, 1, DVD_VIDEO_LB_LEN, stdout);
+    if (fwrite(data, DVD_VIDEO_LB_LEN, 1, stdout) != 1) {
+      tc_log_perror(__FILE__, "Write failed");
+      ifoClose( vts_file );
+      ifoClose( vmg_file );
+      DVDCloseFile( title );
+      return -1;
+    }
 
     if(data[38]==0 && data[39]==0 && data[40]==1 && data[41]==0xBF &&
        data[1024]==0 && data[1025]==0 && data[1026]==1 && data[1027]==0xBF) {
@@ -1307,7 +1326,15 @@ int dvd_stream(int arg_title,int arg_chapid)
       rip_counter_close();
 
       if(len>=0) {
-          if(len>0)fwrite(data, len, DVD_VIDEO_LB_LEN, stdout);
+          if(len>0) {
+	      if (fwrite(data, DVD_VIDEO_LB_LEN, len, stdout) != len) {
+		  tc_log_perror(__FILE__, "Write failed");
+		  ifoClose( vts_file );
+		  ifoClose( vmg_file );
+		  DVDCloseFile( title );
+		  return -1;	
+	      }
+	  }
           tc_log_msg(__FILE__, "%ld blocks written", blocks_written+len);
       }
 
@@ -1317,7 +1344,13 @@ int dvd_stream(int arg_title,int arg_chapid)
     return -1;
       }
 
-      fwrite(data, blocks, DVD_VIDEO_LB_LEN, stdout);
+      if (fwrite(data, DVD_VIDEO_LB_LEN, blocks, stdout) != blocks) {
+	tc_log_perror(__FILE__, "Write failed");
+	ifoClose( vts_file );
+	ifoClose( vmg_file );
+	DVDCloseFile( title );
+	return -1;
+      }
       blocks_written += blocks;
 
       counter_print(1, blocks_written, startsec, startusec);

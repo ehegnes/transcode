@@ -22,15 +22,15 @@ void dummy_xio(void)
 	struct stat tmp;
 
 	i = xio_open("", O_RDONLY);
-	xio_read(i, NULL, 0);
-	xio_write(i, NULL, 0);
-	xio_ftruncate(i, 0);
-	xio_lseek(i, 0, 0);
-	xio_fstat(i, &tmp);
-	xio_lstat("", &tmp);
-	xio_stat("", &tmp);
-	xio_rename("", "");
-	xio_close(i);
+	i = xio_read(i, NULL, 0);
+	i = xio_write(i, NULL, 0);
+	i = xio_ftruncate(i, 0);
+	i = xio_lseek(i, 0, 0);
+	i = xio_fstat(i, &tmp);
+	i = xio_lstat("", &tmp);
+	i = xio_stat("", &tmp);
+	i = xio_rename("", "");
+	i = xio_close(i);
 }
 
 #endif /* STATIC_XIO_H */

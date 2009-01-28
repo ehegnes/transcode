@@ -32,12 +32,10 @@
 #include "avilib/avilib.h"
 #include "libtc/framecode.h"
 #include "aud_scan_avi.h"
+#include "avimisc.h"
 
 #define EXE "avisplit"
 #define MBYTE (1<<20)
-
-/* AVI_info is no longer in avilib */
-void AVI_info(avi_t *avifile);
 
 void version(void)
 {

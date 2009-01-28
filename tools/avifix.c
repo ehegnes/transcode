@@ -32,11 +32,9 @@
 #include <string.h>
 
 #include "avilib/avilib.h"
+#include "avimisc.h"
 
 #define EXE "avifix"
-
-/* AVI_info is no longer in avilib */
-void AVI_info(avi_t *avifile);
 
 void version(void)
 {

@@ -222,7 +222,11 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,ProbeInfo *p_first
 	                        *s_tot_frames_video+=(p_audio_video->s_end_video - p_audio_video->s_start_video);       //selected frames
 			}
 			else
-				system(s_probe_cmd_buf);
+				if (system(s_probe_cmd_buf) != 0)
+				{
+					tc_log_error(__FILE__, "command failed: %s",
+					             s_probe_cmd_buf);
+				}
 		}
 		if (p_audio_video->p_nome_audio != NULL)
 		{

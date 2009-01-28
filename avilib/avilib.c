@@ -1940,7 +1940,9 @@ int avi_parse_index_from_file(avi_t *AVI, const char *filename)
     if (!(fd = fopen(filename, "r"))) { perror ("avi_parse_index_from_file: fopen"); return -1; }
 
     // read header
-    fgets(data, 100, fd);
+    if (!fgets(data, sizeof(data), fd)) {
+	return -1;
+    }
 
     if ( strncasecmp(data, "AVIIDX1", 7) != 0) {
     plat_log_send(PLAT_LOG_ERROR, __FILE__, "%s: Not an AVI index file", filename);
@@ -1948,9 +1950,11 @@ int avi_parse_index_from_file(avi_t *AVI, const char *filename)
     }
 
     // read comment
-    fgets(data, 100, fd);
+    if (!fgets(data, sizeof(data), fd)) {
+	return -1;
+    }
     f_pos = ftell(fd);
-    while (fgets(data, 100, fd)) {
+    while (fgets(data, sizeof(data), fd)) {
 	d = data[5] - '1';
 	if        (d == 0) {
 	    vid_chunks++;
@@ -1983,7 +1987,7 @@ int avi_parse_index_from_file(avi_t *AVI, const char *filename)
     vid_chunks = 0;
     for(j=0; j<AVI->anum; ++j) aud_chunks[j] = tot_chunks[j] = 0;
 
-    while (fgets(data, 100, fd)) {
+    while (fgets(data, sizeof(data), fd)) {
 	// this is very slow
 	// sscanf(data, "%*s %d %*d %*d %lld %lld %d %*f", &type,  &pos, &len, &key);
 	c     = strchr (data, ' ');

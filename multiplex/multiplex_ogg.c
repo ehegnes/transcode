@@ -334,10 +334,16 @@ static int tc_ogg_send(ogg_stream_state *os, FILE *f, TCShout *tcsh,
         if (ret == 0) {
             break;
         }
-        fwrite(og.header, 1, og.header_len, f);
+        if (fwrite(og.header, 1, og.header_len, f) != og.header_len) {
+            tc_log_perror(MOD_NAME, "Write error");
+            return -1;
+        }
         tcsh->send(tcsh, og.header, og.header_len);
         bytes += og.header_len;
-        fwrite(og.body,   1, og.body_len,   f);
+        if (fwrite(og.body,   1, og.body_len,   f) != og.body_len) {
+            tc_log_perror(MOD_NAME, "Write error");
+            return -1;
+        }
         tcsh->send(tcsh, og.body, og.body_len);
         bytes += og.body_len;
 

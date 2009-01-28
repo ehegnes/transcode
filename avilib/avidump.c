@@ -321,27 +321,31 @@ static void dump_vals(int fd, int count, struct VAL *names)
 {
     uint32_t i,j,val32;
     uint16_t val16;
-    off_t val64;
+    int64_t val64;
     char val8;
 
     for (i = 0; names[i].type != EoLST; i++) {
 	switch (names[i].type) {
 	case INT8:
-	    xio_read(fd, &val8, 1);
+	    if (xio_read(fd, &val8, 1) <= 0)
+		return;
 	    printf("\t%-12s = %d\n",names[i].name,val8);
 	    break;
 	case INT64:
-	    xio_read(fd, &val64, 8);
+	    if (xio_read(fd, &val64, 8) <= 0)
+		return;
 	    val64 = SWAP8(val64);
 	    printf("\t%-12s = 0x%016llx\n",names[i].name, (unsigned long long)val64);
 	    break;
 	case INT32:
-	    xio_read(fd, &val32, 4);
+	    if (xio_read(fd, &val32, 4) <= 0)
+		return;
 	    val32 = SWAP4(val32);
 	    printf("\t%-12s = %ld\n",names[i].name,(long)val32);
 	    break;
 	case CCODE:
-	    xio_read(fd, &val32,4);
+	    if (xio_read(fd, &val32,4) <= 0)
+		return;
 	    val32 = SWAP4(val32);
 	    if (val32) {
 		printf("\t%-12s = %c%c%c%c (0x%lx)\n",names[i].name,
@@ -355,7 +359,8 @@ static void dump_vals(int fd, int count, struct VAL *names)
 	    }
 	    break;
 	case _TAG:
-	    xio_read(fd, &val32,4);
+	    if (xio_read(fd, &val32,4) <= 0)
+		return;
 	    val32 = SWAP4(val32);
 	    if (val32) {
 		printf("\t%-12s = %c%c%c%c\n",names[i].name,
@@ -368,7 +373,8 @@ static void dump_vals(int fd, int count, struct VAL *names)
 	    }
 	    break;
 	case FLAGS:
-	    xio_read(fd, &val32,4);
+	    if (xio_read(fd, &val32,4) <= 0)
+		return;
 	    val32 = SWAP4(val32);
 	    printf("\t%-12s = 0x%lx\n",names[i].name,(long)val32);
 	    if (names[i].flags) {
@@ -379,13 +385,15 @@ static void dump_vals(int fd, int count, struct VAL *names)
 	    }
 	    break;
 	case INT16:
-	    xio_read(fd, &val16,2);
+	    if (xio_read(fd, &val16,2) <= 0)
+		return;
 	    val16 = SWAP2(val16);
 	    printf("\t%-12s = %u\n",names[i].name,(uint32_t)val16);
 	    break;
 
 	case HEX16:
-	    xio_read(fd, &val16,2);
+	    if (xio_read(fd, &val16,2) <= 0)
+		return;
 	    val16 = SWAP2(val16);
 	    printf("\t%-12s = 0x%x\n",names[i].name,(uint32_t)val16);
 	    break;
@@ -484,6 +492,7 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
 #endif
 
     if (!ReadChunkHead(fd, &chunkid, chunksize)) {  /* read chunk header */
+      error:
 	printf("  *****  Error reading chunk at filepos 0x%s\n",
 	       off_t_to_char(filepos,16,1));
 	return(FALSE);
@@ -579,7 +588,8 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
     case strhtag:
     {
 	char   typestr[5];
-	xio_read(fd, &fcc_type,sizeof(FOURCC));
+	if (xio_read(fd, &fcc_type,sizeof(FOURCC)) <= 0)
+	    goto error;
 	FOURCC2Str(fcc_type,typestr);
 	printf("\tfcc_type     = %s\n",typestr);
 	dump_vals(fd,sizeof(names_strh)/sizeof(struct VAL),names_strh);
@@ -606,16 +616,19 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
 
     case indxtag: {
 	uint32_t chunks=*chunksize-sizeof(names_indx)/sizeof(char*);
-	off_t offset;
+	int64_t offset;
 	uint32_t size, duration;
 	uint32_t u=0;
 	off_t indxend = datapos + chunks;
 	dump_vals(fd,sizeof(names_indx)/sizeof(char*),names_indx);
 
 	while (datapos < indxend) {
-	    xio_read(fd, &offset,8);
-	    xio_read(fd, &size, 4);
-	    xio_read(fd, &duration,4);
+	    if (xio_read(fd, &offset, 8) <= 0
+	     || xio_read(fd, &size, 4) <= 0
+	     || xio_read(fd, &duration, 4) <= 0
+	    ) {
+		goto error;
+	    }
 	    offset = SWAP8(offset);
 	    size = SWAP4(size);
 	    duration = SWAP4(duration);
@@ -637,8 +650,11 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
 	dump_vals(fd,sizeof(names_stdidx)/sizeof(char*),names_stdidx);
 
 	while (datapos < indxend) {
-	    xio_read(fd, &offset,4);
-	    xio_read(fd, &size, 4);
+	    if (xio_read(fd, &offset, 4) <= 0
+	     || xio_read(fd, &size, 4) <= 0
+	    ) {
+		goto error;
+	    }
 	    offset = SWAP4(offset);
 	    size = SWAP4(size);
 	    key  = size;
@@ -661,7 +677,8 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
 	    static uint32_t u=0;
 
 	    //tag:
-	    xio_read(fd, &val32,4);
+	    if (xio_read(fd, &val32, 4) <= 0)
+		goto error;
 	    val32 = SWAP4(val32);
 	    if(val32==Tag00db) {
 		printf("\t\t [%6d] %s=%c%c%c%c ", u++, "tag",
@@ -677,17 +694,20 @@ static boolean ProcessChunk(int fd, off_t filepos, off_t filesize,
 	
 	
 	    //flag
-	    xio_read(fd, &val32, 4);
+	    if (xio_read(fd, &val32, 4) <= 0)
+		goto error;
 	    val32 = SWAP4(val32);
 	    printf("flags=%02ld ",(long)val32);
 
 	    //pos
-	    xio_read(fd, &val32, 4);
+	    if (xio_read(fd, &val32, 4) <= 0)
+		goto error;
 	    val32 = SWAP4(val32);
 	    printf("0x%08lx",(long)val32);
 
 	    //size
-	    xio_read(fd, &val32, 4);
+	    if (xio_read(fd, &val32, 4) <= 0)
+		goto error;
 	    val32 = SWAP4(val32);
 	    printf("%8ld\n",(long)val32);
 
@@ -759,7 +779,8 @@ static boolean DumpChunk(int fd, off_t filepos, off_t filesize,
       char   formstr[5];     /* format of chunk converted to string */
       DWORD  subchunksize;   /* size of a read subchunk             */
 
-      xio_read(fd, &formtype,sizeof(FOURCC));    /* read the form type */
+      if (xio_read(fd, &formtype,sizeof(FOURCC)) <= 0) /* read the form type */
+        return(FALSE);
       FOURCC2Str(formtype,formstr);           /* make it printable  */
 
       datashowed=sizeof(FOURCC);    /* we showed the form type      */

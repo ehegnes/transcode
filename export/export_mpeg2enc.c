@@ -412,9 +412,12 @@ MOD_encode
 	return(TC_EXPORT_ERROR);
       }
 
-      fwrite(param->buffer, sa_size_l, 1, sa_ip);
-      fwrite(param->buffer + sa_size_l, sa_size_c, 1, sa_ip);
-      fwrite(param->buffer + sa_size_l + sa_size_c, sa_size_c, 1, sa_ip);
+      if (fwrite(param->buffer, sa_size_l, 1, sa_ip) != 1
+       || fwrite(param->buffer + sa_size_l, sa_size_c, 1, sa_ip) != 1
+       || fwrite(param->buffer + sa_size_l + sa_size_c, sa_size_c, 1, sa_ip) != 1
+      ) {
+	  return(TC_EXPORT_ERROR);
+      }
 
       return (0);
   }

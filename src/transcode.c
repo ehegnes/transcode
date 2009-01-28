@@ -1134,8 +1134,9 @@ static void parse_navigation_file(vob_t *vob, const char *nav_seek_file)
                 tmptime = tmptime->next;
             }
         } else { // is_aviindex==1
-            fgets(buf, sizeof(buf), fp); // magic
-            fgets(buf, sizeof(buf), fp); // comment
+            char *dummy;  // Avoid compiler warnings
+            dummy = fgets(buf, sizeof(buf), fp); // magic
+            dummy = fgets(buf, sizeof(buf), fp); // comment
 
             while (tmptime) {
                 int new_frame_a, type, key;

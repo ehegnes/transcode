@@ -271,11 +271,15 @@ static int demux (uint8_t * buf, uint8_t * end, int flags)
 	break;
     case DEMUX_DATA:
 	if (demux_pid || (state_bytes > end - buf)) {
-	    fwrite (buf, end - buf, 1, stdout);
+	    if (fwrite (buf, end - buf, 1, stdout) != 1) {
+		tc_log_perror(__FILE__, "Write error");
+	    }
 	    state_bytes -= end - buf;
 	    return 0;
 	}
-	fwrite (buf, state_bytes, 1, stdout);
+	if (fwrite (buf, state_bytes, 1, stdout) != 1) {
+	    tc_log_perror(__FILE__, "Write error");
+	}
 	buf += state_bytes;
 	break;
     case DEMUX_SKIP:
@@ -369,13 +373,18 @@ static int demux (uint8_t * buf, uint8_t * end, int flags)
 		DONEBYTES (len);
 		bytes = 6 + (header[4] << 8) + header[5] - len;
 		if (demux_pid || (bytes > end - buf)) {
-		    fwrite (buf, end - buf, 1, stdout);
+		    if (fwrite (buf, end - buf, 1, stdout) != 1) {
+			tc_log_perror(__FILE__, "Write error");
+		    }
 		    state = DEMUX_DATA;
 		    state_bytes = bytes - (end - buf);
 		    return 0;
-		} else if (bytes <= 0)
+		} else if (bytes <= 0) {
 		    continue;
-		fwrite (buf, bytes, 1, stdout);
+		}
+		if (fwrite (buf, bytes, 1, stdout) != 1) {
+		    tc_log_perror(__FILE__, "Write error");
+		}
 		buf += bytes;
 	    } else if (header[3] < 0xb9) {
 		tc_log_info(__FILE__,

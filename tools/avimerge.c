@@ -31,11 +31,9 @@
 
 #include "aud_scan.h"
 #include "aud_scan_avi.h"
+#include "avimisc.h"
 
 #define EXE "avimerge"
-
-/* AVI_info is no longer in avilib */
-void AVI_info(avi_t *avifile);
 
 void version(void)
 {

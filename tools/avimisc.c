@@ -33,6 +33,7 @@
 
 #include "libtcutil/xio.h"
 #include "avilib/avilib.h"
+#include "avimisc.h"
 
 
 void AVI_info(avi_t *avifile)
