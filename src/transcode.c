@@ -276,7 +276,7 @@ static void *event_thread(void* blocked_)
         tc_socket_wait();
 
         if (tc_interrupted()) {
-            if (verbose & TC_INFO)
+            if (verbose >= TC_INFO)
                 tc_log_info(PACKAGE, "(sighandler) %s received", signame);
 
             /* Kill the tcprobe process if it's running */
@@ -552,7 +552,7 @@ static int transcode_mode_avi_split(vob_t *vob)
         if (frame_a >= frame_b)
             break;
 
-        if (verbose & TC_DEBUG)
+        if (verbose >= TC_DEBUG)
             tc_log_msg(PACKAGE, "import status=%d", tc_import_status());
 
         // check for user cancelation request
@@ -665,7 +665,7 @@ static int transcode_mode_psu(vob_t *vob, const char *psubase)
             // update vob structure
             vob->video_out_file = buf;
 
-            if (verbose & TC_INFO)
+            if (verbose >= TC_INFO)
                 tc_log_info(PACKAGE, "using output filename %s",
                             vob->video_out_file);
         }
@@ -677,7 +677,7 @@ static int transcode_mode_psu(vob_t *vob, const char *psubase)
 
         ret = split_stream(vob, nav_seek_file, psu_cur, &fa, &fb, 0);
 
-        if (verbose & TC_DEBUG)
+        if (verbose >= TC_DEBUG)
             tc_log_msg(PACKAGE,"processing PSU %d, -L %d -c %d-%d %s (ret=%d)",
                        psu_cur, vob->vob_offset, fa, fb, buf, ret);
 
@@ -732,7 +732,7 @@ static int transcode_mode_psu(vob_t *vob, const char *psubase)
 
             vob->psu_offset += (double) (fb-fa);
         } else {
-            if (verbose & TC_INFO)
+            if (verbose >= TC_INFO)
                 tc_log_info(PACKAGE, "skipping PSU %d with %d frame(s)",
                             psu_cur, fb-fa);
 
@@ -814,7 +814,7 @@ static int transcode_mode_dvd(vob_t *vob)
         // start the AV import threads that load the frames into transcode
         tc_import_threads_create(vob);
 
-        if (verbose & TC_DEBUG)
+        if (verbose >= TC_DEBUG)
             tc_log_msg(PACKAGE, "%d chapters for title %d detected",
                        vob->dvd_max_chapters, vob->dvd_title);
 
@@ -1273,7 +1273,7 @@ static void teardown_input_sources(vob_t *vob)
 
 
 #define SHUTDOWN_MARK(STAGE) do { \
-    if (verbose & TC_DEBUG) { \
+    if (verbose >= TC_DEBUG) { \
         fprintf(stderr, " %s |", (STAGE)); \
         fflush(stderr); \
     } \
@@ -1523,7 +1523,7 @@ int main(int argc, char *argv[])
     if (vob->demuxer == -1) {
         vob->demuxer = 1;
     }
-    if (verbose & TC_INFO) {
+    if (verbose >= TC_INFO) {
         tc_log_info(PACKAGE, "V: %-16s | (%i) %s", "AV demux/sync",
                     vob->demuxer, demuxer_desc[vob->demuxer]);
     }
@@ -1542,7 +1542,7 @@ int main(int argc, char *argv[])
             ex_aud_mod = "raw";
         no_a_out_codec = 0;
 
-        if (verbose & TC_INFO)
+        if (verbose >= TC_INFO)
             tc_log_info(PACKAGE, "V: %-16s | yes", "pass-through");
     }
 
@@ -1586,7 +1586,7 @@ int main(int argc, char *argv[])
             vob->im_v_height--;
         }
     }
-    if (verbose & TC_INFO) {
+    if (verbose >= TC_INFO) {
         if (vob->im_v_width && vob->im_v_height) {
             tc_log_info(PACKAGE, "V: %-16s | %03dx%03d  %4.2f:1  %s",
                         "import frame", vob->im_v_width, vob->im_v_height,
@@ -1838,7 +1838,7 @@ int main(int argc, char *argv[])
     if (pre_im_clip) {
         CLIP_CHECK(pre_im_clip, "pre_clip", "--pre_clip");
 
-        if (verbose & TC_INFO) {
+        if (verbose >= TC_INFO) {
             tc_log_info(PACKAGE, "V: %-16s | %03dx%03d (%d,%d,%d,%d)",
                        "pre clip frame", vob->ex_v_width, vob->ex_v_height,
                        vob->pre_im_clip_top, vob->pre_im_clip_left,
@@ -1850,7 +1850,7 @@ int main(int argc, char *argv[])
     if (im_clip) {
         CLIP_CHECK(im_clip, "clip", "-j");
 
-        if (verbose & TC_INFO) {
+        if (verbose >= TC_INFO) {
             tc_log_info(PACKAGE, "V: %-16s | %03dx%03d", "clip frame (<-)",
                         vob->ex_v_width, vob->ex_v_height);
         }
@@ -1862,7 +1862,7 @@ int main(int argc, char *argv[])
         tc_error("invalid parameter for option -I");
     }
 
-    if ((verbose & TC_INFO) && vob->deinterlace) {
+    if ((verbose >= TC_INFO) && vob->deinterlace) {
         tc_log_info(PACKAGE,
                     "V: %-16s | (mode=%i) %s",
                     "de-interlace", vob->deinterlace,
@@ -1939,7 +1939,7 @@ int main(int argc, char *argv[])
             else
                 resize2 = TC_TRUE;
 
-            if (verbose & TC_INFO) {
+            if (verbose >= TC_INFO) {
                 tc_log_info(PACKAGE, "V: %-16s | Using -B %d,%d,8 -X %d,%d,8",
                             "fast resize",
                             vob->vert_resize1, vob->hori_resize1,
@@ -1947,7 +1947,7 @@ int main(int argc, char *argv[])
             }
             zoom = TC_FALSE;
         } else {
-            if(verbose & TC_INFO) {
+            if(verbose >= TC_INFO) {
                 tc_log_info(PACKAGE,
                             "V: %-16s | requested but can't be used (W or H mod 8 != 0)",
                             "fast resize");
@@ -1988,7 +1988,7 @@ int main(int argc, char *argv[])
         vob->vert_resize2 *= (vob->resize2_mult/8);
         vob->hori_resize2 *= (vob->resize2_mult/8);
 
-        if (verbose & TC_INFO && vob->ex_v_height > 0)
+        if (verbose >= TC_INFO && vob->ex_v_height > 0)
             tc_log_info(PACKAGE,
                         "V: %-16s | %03dx%03d  %4.2f:1 (-X)",
                         "new aspect ratio",
@@ -2023,7 +2023,7 @@ int main(int argc, char *argv[])
         vob->vert_resize1 *= (vob->resize1_mult/8);
         vob->hori_resize1 *= (vob->resize1_mult/8);
 
-        if (verbose & TC_INFO && vob->ex_v_height > 0)
+        if (verbose >= TC_INFO && vob->ex_v_height > 0)
             tc_log_info(PACKAGE,
                         "V: %-16s | %03dx%03d  %4.2f:1 (-B)",
                         "new aspect ratio",
@@ -2038,7 +2038,7 @@ int main(int argc, char *argv[])
         vob->ex_v_width  = vob->zoom_width;
         vob->ex_v_height = vob->zoom_height;
 
-        if (verbose & TC_INFO && vob->ex_v_height > 0)
+        if (verbose >= TC_INFO && vob->ex_v_height > 0)
             tc_log_info(PACKAGE,
                         "V: %-16s | %03dx%03d  %4.2f:1 (%s)",
                         "zoom",
@@ -2049,7 +2049,7 @@ int main(int argc, char *argv[])
     if (ex_clip) {
         CLIP_CHECK(ex_clip, "clip", "-Y");
 
-        if (verbose & TC_INFO)
+        if (verbose >= TC_INFO)
             tc_log_info(PACKAGE,
                         "V: %-16s | %03dx%03d", "clip frame (->)",
                         vob->ex_v_width, vob->ex_v_height);
@@ -2063,7 +2063,7 @@ int main(int argc, char *argv[])
         //new aspect ratio:
         asr *= (double)vob->ex_v_width/vob->ex_v_height*(vob->reduce_h*vob->ex_v_height)/
                 (vob->reduce_w*vob->ex_v_width);
-        if (verbose & TC_INFO)
+        if (verbose >= TC_INFO)
             tc_log_info(PACKAGE,
                         "V: %-16s | %03dx%03d  %4.2f:1 (-r)",
                         "rescale frame",
@@ -2171,7 +2171,7 @@ int main(int argc, char *argv[])
         if (vob->ex_v_width - vob->ex_clip_left - vob->ex_clip_right <= 0)
             tc_error("invalid left/right clip parameter calculated from --keep_asr");
 
-        if (verbose & TC_INFO)
+        if (verbose >= TC_INFO)
             tc_log_info(PACKAGE, "V: %-16s | yes (%d,%d,%d,%d)", "keep aspect",
                         vob->ex_clip_top, vob->ex_clip_left,
                         vob->ex_clip_bottom, vob->ex_clip_right);
@@ -2179,23 +2179,23 @@ int main(int argc, char *argv[])
 
     // -z
 
-    if (flip && verbose & TC_INFO)
+    if (flip && verbose >= TC_INFO)
         tc_log_info(PACKAGE, "V: %-16s | yes", "flip frame");
 
     // -l
-    if (mirror && verbose & TC_INFO)
+    if (mirror && verbose >= TC_INFO)
         tc_log_info(PACKAGE, "V: %-16s | yes", "mirror frame");
 
     // -k
-    if (rgbswap && verbose & TC_INFO)
+    if (rgbswap && verbose >= TC_INFO)
         tc_log_info(PACKAGE, "V: %-16s | yes", "rgb2bgr");
 
     // -K
-    if (decolor && verbose & TC_INFO)
+    if (decolor && verbose >= TC_INFO)
         tc_log_info(PACKAGE, "V: %-16s | yes", "b/w reduction");
 
     // -G
-    if (dgamma && verbose & TC_INFO)
+    if (dgamma && verbose >= TC_INFO)
         tc_log_info(PACKAGE, "V: %-16s | %.3f", "gamma correction", vob->gamma);
 
     // number of bits/pixel
@@ -2211,7 +2211,7 @@ int main(int argc, char *argv[])
     // which is not brilliant, but okay.
 
     if (vob->divxbitrate > 0 && vob->divxmultipass != 3
-      && verbose & TC_INFO) {
+      && verbose >= TC_INFO) {
         double div = vob->ex_v_width * vob->ex_v_height * vob->fps;
         double bpp = vob->divxbitrate * 1000;
         const char *judge = "";
@@ -2233,7 +2233,7 @@ int main(int argc, char *argv[])
     if (vob->antialias < 0 || vob->antialias > 3) {
         tc_error("invalid parameter for option -C");
     } else {
-        if ((verbose & TC_INFO) && vob->antialias) {
+        if ((verbose >= TC_INFO) && vob->antialias) {
             tc_log_info(PACKAGE,
                         "V: %-16s | (mode=%d|%.2f|%.2f) %s",
                         "anti-alias",
@@ -2247,7 +2247,7 @@ int main(int argc, char *argv[])
     if (post_ex_clip) {
         CLIP_CHECK(post_ex_clip, "post_clip", "--post_clip");
 
-        if (verbose & TC_INFO)
+        if (verbose >= TC_INFO)
             tc_log_info(PACKAGE,
                         "V: %-16s | %03dx%03d",
                         "post clip frame",
@@ -2266,13 +2266,13 @@ int main(int argc, char *argv[])
 
     // -f
 
-    if (verbose & TC_INFO)
+    if (verbose >= TC_INFO)
         tc_log_info(PACKAGE, "V: %-16s | %.3f,%d",
                     "decoding fps,frc",
                     vob->fps, vob->im_frc);
 
     // -R
-    if (vob->divxmultipass && verbose & TC_INFO) {
+    if (vob->divxmultipass && verbose >= TC_INFO) {
         switch (vob->divxmultipass) {
           case 1:
             tc_log_info(PACKAGE,
@@ -2313,27 +2313,27 @@ int main(int argc, char *argv[])
     if (vob->im_v_codec == TC_CODEC_YUV420P) {
         vob->ex_v_size = (3*vob->ex_v_height * vob->ex_v_width)>>1;
         vob->im_v_size = (3*vob->im_v_height * vob->im_v_width)>>1;
-        if (verbose & TC_INFO)
+        if (verbose >= TC_INFO)
             tc_log_info(PACKAGE,
                         "V: %-16s | YUV420 (4:2:0) aka I420",
                         "video format");
     } else if (vob->im_v_codec == TC_CODEC_YUV422P) {
         vob->ex_v_size = (2*vob->ex_v_height * vob->ex_v_width);
         vob->im_v_size = (2*vob->im_v_height * vob->im_v_width);
-        if (verbose & TC_INFO)
+        if (verbose >= TC_INFO)
             tc_log_info(PACKAGE,
                         "V: %-16s | YUV422 (4:2:2) planar",
                         "video format");
      } else if (vob->im_v_codec == TC_CODEC_UYVY) {
         vob->ex_v_size = (2*vob->ex_v_height * vob->ex_v_width);
         vob->im_v_size = (2*vob->im_v_height * vob->im_v_width);
-        if (verbose & TC_INFO)
+        if (verbose >= TC_INFO)
             tc_log_info(PACKAGE,
                         "V: %-16s | UYVY (4:2:2) packed",
                         "video format");
     } else {
         vob->ex_v_size = vob->ex_v_height * vob->ex_v_width * BPP/8;
-        if (verbose & TC_INFO)
+        if (verbose >= TC_INFO)
             tc_log_info(PACKAGE,
                         "V: %-16s | RGB24",
                         "video format");
@@ -2348,7 +2348,7 @@ int main(int argc, char *argv[])
     if (no_ain_codec == 1 && vob->has_audio == 0
      && vob->a_codec_flag == TC_CODEC_AC3) {
         if (vob->amod_probed == NULL || strcmp(vob->amod_probed,"null") == 0) {
-            if (verbose & TC_DEBUG)
+            if (verbose >= TC_DEBUG)
                 tc_log_warn(PACKAGE,
                             "problems detecting audio format - using 'null' module");
             vob->a_codec_flag = 0;
@@ -2366,12 +2366,12 @@ int main(int argc, char *argv[])
 
     //audio import disabled
     if (vob->a_codec_flag == 0) {
-        if (verbose & TC_INFO)
+        if (verbose >= TC_INFO)
             tc_log_info(PACKAGE, "A: %-16s | disabled", "import");
         im_aud_mod = "null";
     } else {
         //audio format, if probed sucessfully
-        if (verbose & TC_INFO) {
+        if (verbose >= TC_INFO) {
             if (vob->a_stream_bitrate)
                 tc_log_info(PACKAGE,
                             "A: %-16s | 0x%-5lx %-12s [%4d,%2d,%1d] %4d kbps",
@@ -2394,7 +2394,7 @@ int main(int argc, char *argv[])
         // Input is more than 2 channels (i.e. 5.1 AC3) but PCM internal
         // representation can't handle that, adjust the channel count to reflect
         // what modules will actually have presented to them.
-        if (verbose & TC_INFO)
+        if (verbose >= TC_INFO)
             tc_log_info(PACKAGE,
                         "A: %-16s | %d channels -> %d channels",
                         "downmix", vob->a_chan, 2);
@@ -2403,7 +2403,7 @@ int main(int argc, char *argv[])
 
     if (vob->ex_a_codec == 0 || vob->a_codec_flag == 0
      || ex_aud_mod == NULL || strcmp(ex_aud_mod, "null") == 0) {
-        if (verbose & TC_INFO)
+        if (verbose >= TC_INFO)
             tc_log_info(PACKAGE, "A: %-16s | disabled", "export");
         ex_aud_mod = "null";
     } else {
@@ -2431,7 +2431,7 @@ int main(int argc, char *argv[])
             break;
         }
 
-        if (verbose & TC_INFO) {
+        if (verbose >= TC_INFO) {
             if (vob->pass_flag & TC_AUDIO)
                 tc_log_info(PACKAGE,
                             "A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps",
@@ -2490,7 +2490,7 @@ int main(int argc, char *argv[])
 
     // --export_fps
 
-    if(verbose & TC_INFO)
+    if(verbose >= TC_INFO)
         tc_log_info(PACKAGE,
                     "V: %-16s | %.3f,%d",
                     "encoding fps,frc",
@@ -2499,13 +2499,13 @@ int main(int argc, char *argv[])
 
     // --a52_demux
 
-    if ((vob->a52_mode & TC_A52_DEMUX) && (verbose & TC_INFO))
+    if ((vob->a52_mode & TC_A52_DEMUX) && (verbose >= TC_INFO))
         tc_log_info(PACKAGE,
                     "A: %-16s | %s", "A52 demuxing",
                     "(yes) 3 front, 2 rear, 1 LFE (5.1)");
 
     //audio language, if probed sucessfully
-    if(vob->lang_code > 0 && (verbose & TC_INFO))
+    if(vob->lang_code > 0 && (verbose >= TC_INFO))
         tc_log_info(PACKAGE,
                     "A: %-16s | %c%c",
                     "language",
@@ -2539,7 +2539,7 @@ int main(int argc, char *argv[])
     // final size in bytes
     vob->ex_a_size = vob->im_a_size;
 
-    if (verbose & TC_INFO)
+    if (verbose >= TC_INFO)
         tc_log_info(PACKAGE,
                     "A: %-16s | %d (%.6f)",
                     "bytes per frame", vob->im_a_size, fch);
@@ -2547,11 +2547,11 @@ int main(int argc, char *argv[])
     if(no_audio_adjust) {
         vob->a_leap_bytes=0;
 
-        if (verbose & TC_INFO)
+        if (verbose >= TC_INFO)
             tc_log_info(PACKAGE, "A: %-16s | disabled", "adjustment");
 
     } else
-        if (verbose & TC_INFO)
+        if (verbose >= TC_INFO)
             tc_log_info(PACKAGE,
                         "A: %-16s | %d@%d", "adjustment",
                         vob->a_leap_bytes, vob->a_leap_frame);
@@ -2562,7 +2562,7 @@ int main(int argc, char *argv[])
         //tc_error("option -s not yet implemented for mono streams");
     }
 
-    if (vob->volume > 0 && (verbose & TC_INFO))
+    if (vob->volume > 0 && (verbose >= TC_INFO))
         tc_log_info(PACKAGE,
                     "A: %-16s | %5.3f",
                     "rescale stream", vob->volume);
@@ -2574,7 +2574,7 @@ int main(int argc, char *argv[])
         vob->sync_ms -= vob->sync * (int) (1000.0/vob->ex_fps);
     }
 
-    if ((vob->sync || vob->sync_ms) && (verbose & TC_INFO))
+    if ((vob->sync || vob->sync_ms) && (verbose >= TC_INFO))
         tc_log_info(PACKAGE,
                     "A: %-16s | %d ms [ %d (A) | %d ms ]",
                     "AV shift",
@@ -2583,7 +2583,7 @@ int main(int argc, char *argv[])
 
     // -d
     if (pcmswap)
-        if (verbose & TC_INFO)
+        if (verbose >= TC_INFO)
             tc_log_info(PACKAGE, "A: %-16s | yes", "swap bytes");
 
     // -E
@@ -2603,7 +2603,7 @@ int main(int argc, char *argv[])
             ex_aud_mod = "raw";
         no_a_out_codec = 0;
 
-        if (verbose & TC_INFO)
+        if (verbose >= TC_INFO)
             tc_log_info(PACKAGE, "A: %-16s | yes", "pass-through");
     }
 
@@ -2616,7 +2616,7 @@ int main(int argc, char *argv[])
 
     // --accel
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
-    if (verbose & TC_INFO)
+    if (verbose >= TC_INFO)
         tc_log_info(PACKAGE, "V: IA32/AMD64 accel | %s ",
                     ac_flagstotext(tc_accel & ac_cpuinfo()));
 #endif
@@ -2625,7 +2625,7 @@ int main(int argc, char *argv[])
 
     // more checks with warnings
 
-    if (verbose & TC_INFO) {
+    if (verbose >= TC_INFO) {
         // -o
         if (vob->video_out_file == NULL && vob->audio_out_file == NULL
          && core_mode == TC_MODE_DEFAULT) {
@@ -2663,7 +2663,7 @@ int main(int argc, char *argv[])
         tc_buffer_delay_enc = (vob->pass_flag & TC_VIDEO || ex_vid_mod==NULL || strcmp(ex_vid_mod, "null") == 0)
                                 ?TC_DELAY_MIN :TC_DELAY_MAX;
 
-    if (verbose & TC_DEBUG)
+    if (verbose >= TC_DEBUG)
         tc_log_msg(PACKAGE, "encoder delay = decode=%d encode=%d usec",
                    tc_buffer_delay_dec, tc_buffer_delay_enc);
 
@@ -2697,7 +2697,7 @@ int main(int argc, char *argv[])
 
     tc_framebuffer_set_specs(&specs);
 
-    if (verbose & TC_INFO) {
+    if (verbose >= TC_INFO) {
         tc_log_info(PACKAGE, "V: video buffer     | %i @ %ix%i [0x%x]",
                     max_frame_buffer, specs.width, specs.height, specs.format);
         tc_log_info(PACKAGE, "A: audio buffer     | %i @ %ix%ix%i",
@@ -2706,7 +2706,7 @@ int main(int argc, char *argv[])
 
 #ifdef STATBUFFER
     // allocate buffer
-    if (verbose & TC_DEBUG)
+    if (verbose >= TC_DEBUG)
         tc_log_msg(PACKAGE, "allocating %d framebuffers (static)",
                    max_frame_buffer);
 
@@ -2716,7 +2716,7 @@ int main(int argc, char *argv[])
         tc_error("static framebuffer allocation failed");
 
 #else
-    if(verbose & TC_DEBUG)
+    if(verbose >= TC_DEBUG)
         tc_log_msg(PACKAGE, "%d framebuffers (dynamic) requested",
                    max_frame_buffer);
 #endif
@@ -2812,16 +2812,16 @@ int main(int argc, char *argv[])
     SHUTDOWN_MARK("control socket");
 
     // all done
-    if (verbose & TC_DEBUG)
+    if (verbose >= TC_DEBUG)
         fprintf(stderr, " done\n");
 
  summary:
     // print a summary
-    if ((verbose & TC_INFO) && vob->clip_count)
+    if ((verbose >= TC_INFO) && vob->clip_count)
         tc_log_info(PACKAGE, "clipped %d audio samples",
                     vob->clip_count/2);
 
-    if (verbose & TC_INFO) {
+    if (verbose >= TC_INFO) {
         long drop = - tc_get_frames_dropped();
 
         tc_log_info(PACKAGE, "encoded %ld frames (%ld dropped, %ld cloned),"
@@ -2835,7 +2835,7 @@ int main(int argc, char *argv[])
     // free buffers
     vframe_free();
     aframe_free();
-    if(verbose & TC_DEBUG)
+    if(verbose >= TC_DEBUG)
         tc_log_msg(PACKAGE, "buffer released");
 #endif
 
