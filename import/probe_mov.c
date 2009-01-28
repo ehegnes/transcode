@@ -68,12 +68,10 @@ void probe_mov(info_t *ipipe)
     codec  = quicktime_audio_compressor(qt_file, j);
 
     if(strcasecmp(codec,QUICKTIME_RAW)==0 || strcasecmp(codec,QUICKTIME_TWOS)==0)
-      ipipe->probe_info->track[j].format = CODEC_PCM;
-    else if(strcasecmp(codec,QUICKTIME_IMA4)==0)
-      ipipe->probe_info->track[j].format = CODEC_IMA4;
+      ipipe->probe_info->track[j].format = TC_CODEC_PCM;
     else
       /* XXX not right but works */
-      ipipe->probe_info->track[j].format = CODEC_PCM;
+      ipipe->probe_info->track[j].format = TC_CODEC_PCM;
 
     if (! binary_dump)
     	tc_log_info(__FILE__, "audio codec=%s", codec);

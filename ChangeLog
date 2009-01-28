@@ -1,6 +1,8 @@
 2009-01-28 Andrew Church <achurch@achurch.org>
-  * export/export_mov.c
-  Update CODEC_* to TC_CODEC_*.
+  * export/export_mov.c filter/tomsmocomp/filter_tomsmocomp.c
+    filter/tomsmocomp/filter_tomsmocomp.h import/import_mov.c
+    import/import_pv3.c import/nuv/import_nuv.c import/probe_mov.c
+  Update CODEC_* to TC_CODEC_*; update header paths for libtc split.
 
 2009-01-26 Francesco Romani <fromani at gmail dot com>
   * src/framebuffer.c src/framebuffer.h testsuite/test-tcframefifo.c

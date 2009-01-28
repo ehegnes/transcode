@@ -212,7 +212,7 @@ MOD_open
 
     /* set color model */
     switch(vob->im_v_codec) {
-        case CODEC_RGB:
+        case TC_CODEC_RGB24:
               /* use raw mode when possible */
               /* not working ?*/
               /*if (strcmp(qt_codec, "raw ")) rawVideo=1; */
@@ -226,7 +226,7 @@ MOD_open
               quicktime_set_cmodel(qt_video, BC_RGB888); qt_cm = BC_RGB888;
               break;
 
-        case CODEC_YUV:
+        case TC_CODEC_YUV420P:
             /* use raw mode when possible */
             /* not working ?*/
             /* if (strcmp(qt_codec, "yv12")) rawVideo=1; */
@@ -258,7 +258,7 @@ MOD_open
             qt_cm = BC_YUV420P;
             break;
 
-        case CODEC_YUV422:
+        case TC_CODEC_YUV422P:
             /* allocate buffer for row pointers */
             row_ptr = tc_malloc(3*sizeof(char *));
             if(row_ptr==0) {
@@ -274,14 +274,12 @@ MOD_open
             quicktime_set_cmodel(qt_video, BC_YUV422P); qt_cm = BC_YUV422P;
             break;
 
-        case CODEC_YUY2:
+        case TC_CODEC_YUY2:
               quicktime_set_cmodel(qt_video, BC_YUV422); qt_cm = BC_YUV422;
               break;
 
          /* passthrough */
-         case CODEC_RAW_RGB:
-         case CODEC_RAW_YUV:
-         case CODEC_RAW:
+         case TC_CODEC_RAW:
               rawVideoMode = 1;
               break;
 

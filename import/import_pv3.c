@@ -741,14 +741,14 @@ static int pv3_decode_video(TCModuleInstance *self,
 
     if (!tcv_convert(pd->tcvhandle, yuy2_frame, outframe->video_buf,
                      outframe->v_width, outframe->v_height, IMG_YUY2,
-                     vob->im_v_codec==CODEC_YUV422 ? IMG_YUV422P : IMG_YUV420P)
+                     vob->im_v_codec==TC_CODEC_YUV422P ? IMG_YUV422P : IMG_YUV420P)
     ) {
         tc_log_warn(MOD_NAME, "Video format conversion failed");
         return TC_ERROR;
     }
 
     outframe->video_size = outframe->v_width * outframe->v_height;
-    if (vob->im_v_codec == CODEC_YUV422) {
+    if (vob->im_v_codec == TC_CODEC_YUV422P) {
         outframe->video_size +=
             (outframe->v_width/2) * outframe->v_height * 2;
     } else {

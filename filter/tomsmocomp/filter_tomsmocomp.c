@@ -176,9 +176,9 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	/* video parameters */
 	switch (vob->im_v_codec) {
-	case CODEC_YUY2:
-	case CODEC_YUV:
-	case CODEC_YUV422:
+	case TC_CODEC_YUY2:
+	case TC_CODEC_YUV420P:
+	case TC_CODEC_YUV422P:
 	    break;
 	default:
 	    tc_log_error (MOD_NAME, "only working with YUV (4:2:2 and 4:2:0) and YUY2 frame data...");
@@ -284,14 +284,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	/* Convert / Copy to yuy2 */
 	switch (tmc->codec) {
-	case CODEC_YUY2:
+	case TC_CODEC_YUY2:
 	    ac_memcpy (tmc->frameIn, ptr->video_buf, tmc->size);
 	    break;
-	case CODEC_YUV:
+	case TC_CODEC_YUV420P:
 	    tcv_convert(tmc->tcvhandle, ptr->video_buf, tmc->frameIn,
 			tmc->width, tmc->height, IMG_YUV_DEFAULT, IMG_YUY2);
 	    break;
-	case CODEC_YUV422:
+	case TC_CODEC_YUV422P:
 	    tcv_convert(tmc->tcvhandle, ptr->video_buf, tmc->frameIn,
 			tmc->width, tmc->height, IMG_YUV422P, IMG_YUY2);
 	    break;
@@ -304,14 +304,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
 	    /* Now convert back */
 	    switch (tmc->codec) {
-	    case CODEC_YUY2:
+	    case TC_CODEC_YUY2:
 		ac_memcpy (ptr->video_buf, tmc->frameOut, tmc->size);
 		break;
-	    case CODEC_YUV:
+	    case TC_CODEC_YUV420P:
 		tcv_convert(tmc->tcvhandle, tmc->frameOut,  ptr->video_buf,
 			    tmc->width, tmc->height, IMG_YUY2, IMG_YUV_DEFAULT);
 		break;
-	    case CODEC_YUV422:
+	    case TC_CODEC_YUV422P:
 		tcv_convert(tmc->tcvhandle, tmc->frameOut,  ptr->video_buf,
 			    tmc->width, tmc->height, IMG_YUY2, IMG_YUV422P);
 		break;

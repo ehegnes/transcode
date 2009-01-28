@@ -10,8 +10,8 @@
 
 #include "transcode.h"
 #include "libtc/libtc.h"
-#include "libtc/optstr.h"
-#include "libtc/tcmodule-plugin.h"
+#include "libtcmodule/tcmodule-plugin.h"
+#include "libtcutil/optstr.h"
 #include "aclib/ac.h"
 #include "nuppelvideo.h"
 #include "RTjpegN.h"
