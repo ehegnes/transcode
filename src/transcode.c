@@ -894,15 +894,6 @@ static vob_t *new_vob(void)
     vob->min_quantizer       = VMINQUANTIZER;
     vob->max_quantizer       = VMAXQUANTIZER;
 
-    vob->rc_period           = RC_PERIOD;
-    vob->rc_reaction_period  = RC_REACTION_PERIOD;
-    vob->rc_reaction_ratio   = RC_REACTION_RATIO;
-
-    vob->divx5_vbv_prof      = DIVX5_VBV_PROFILE;
-    vob->divx5_vbv_bitrate   = DIVX5_VBV_BITRATE;
-    vob->divx5_vbv_size      = DIVX5_VBV_SIZE;
-    vob->divx5_vbv_occupancy = DIVX5_VBV_OCCUPANCY;
-
     vob->mp3bitrate          = ABITRATE;
     vob->mp3frequency        = 0;
     vob->mp3quality          = AQUALITY;
@@ -1050,8 +1041,6 @@ static vob_t *new_vob(void)
     vob->ttime               = NULL;
 
     vob->psu_offset          = 0.0f;
-    vob->bitreservoir        = TC_TRUE;
-    vob->lame_preset         = NULL;
 
     vob->ts_pid1             = 0x0;
     vob->ts_pid2             = 0x0;

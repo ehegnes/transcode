@@ -314,22 +314,10 @@ typedef struct _vob_t {
     int min_quantizer;
     int max_quantizer;
 
-    int rc_period;
-    int rc_reaction_period;
-    int rc_reaction_ratio;
-
-    int divx5_vbv_prof;         // Profile number
-    int divx5_vbv_bitrate;      // Video Bitrate Verifier constraint overrides
-    int divx5_vbv_size;
-    int divx5_vbv_occupancy;
-
     int mp3bitrate;
     int mp3frequency;
     float mp3quality;           // 0=best (very slow), 9=worst (default=5)
     int mp3mode;                // 0=joint-stereo, 1=full-stereo, 2=mono
-
-    int bitreservoir;
-    const char *lame_preset;
 
     const char *audiologfile;
 
