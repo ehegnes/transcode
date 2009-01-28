@@ -32,7 +32,7 @@
 #include "transcode.h"
 #include "import/magic.h"
 #include "encoder.h"
-#include "libtc/optstr.h"
+#include "libtcutil/optstr.h"
 #include "libtcvideo/tcvideo.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -249,7 +249,7 @@ MOD_init
 
     /* set qt codecs */
     /* not needed for passthrough*/
-    if (vob->im_v_codec != CODEC_RAW && vob->im_v_codec != CODEC_RAW_YUV && vob->im_v_codec != CODEC_RAW_RGB) {
+    if (vob->im_v_codec != TC_CODEC_RAW) {
         if(qt_codec == NULL || strlen(qt_codec)==0) {
             /* default */
             qt_codec = "mjpa";
@@ -279,30 +279,28 @@ MOD_init
 
     /* set color model */
     switch(vob->im_v_codec) {
-        case CODEC_RGB:
+        case TC_CODEC_RGB24:
             qt_cm = BC_RGB888;
             tc_cm = IMG_RGB_DEFAULT;
             break;
 
-        case CODEC_YUV:
+        case TC_CODEC_YUV420P:
             qt_cm = BC_YUV420P;
             tc_cm = IMG_YUV_DEFAULT;
             break;
 
-        case CODEC_YUV422:
+        case TC_CODEC_YUV422P:
             tc_cm = IMG_YUV422P;
             qt_cm = BC_YUV422P;
             break;
 
-        case CODEC_YUY2:
+        case TC_CODEC_YUY2:
             tc_cm = IMG_YUY2;
             qt_cm = BC_YUV422;
             break;
 
          /* passthrough */
-        case CODEC_RAW_RGB:
-        case CODEC_RAW_YUV:
-        case CODEC_RAW:
+        case TC_CODEC_RAW:
             /* set out output codec to input codec */
             if(qt_codec == NULL || strlen(qt_codec)==0) {
                 switch (vob->v_codec_flag) {
@@ -371,7 +369,7 @@ MOD_init
     
     /* if cs conversation not supported for codec do conversation */
     /* not required for pass through */
-    if (vob->im_v_codec != CODEC_RAW && vob->im_v_codec != CODEC_RAW_YUV && vob->im_v_codec != CODEC_RAW_RGB) {
+    if (vob->im_v_codec != TC_CODEC_RAW) {
         if (quicktime_writes_cmodel(qtfile, qt_cm, 0) != 1) { 
             if (verbose_flag != TC_QUIET) {
                 tc_log_info(MOD_NAME,"Colorspace not supported for this codec converting to RGB");
@@ -568,7 +566,7 @@ MOD_init
 
     /* check encoder mode */
     switch(vob->im_a_codec) {
-        case CODEC_PCM:
+        case TC_CODEC_PCM:
             /* allocate sample buffers */
             audbuf0 = (int16_t*)malloc(vob->ex_a_size);
             audbuf1 = (int16_t*)malloc(vob->ex_a_size);

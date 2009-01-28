@@ -1,4 +1,8 @@
-2009-01-26 Francesco Romani  <fromani at gmail dot com>
+2009-01-28 Andrew Church <achurch@achurch.org>
+  * export/export_mov.c
+  Update CODEC_* to TC_CODEC_*.
+
+2009-01-26 Francesco Romani <fromani at gmail dot com>
   * src/framebuffer.c src/framebuffer.h testsuite/test-tcframefifo.c
   fix new framebuffer code by adding priority queues.
   Switch from (broken) pseudo-sliding window approach to more robust,
