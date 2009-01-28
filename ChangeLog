@@ -4,6 +4,18 @@
     import/import_pv3.c import/nuv/import_nuv.c import/probe_mov.c
   Update CODEC_* to TC_CODEC_*; update header paths for libtc split.
 
+  * tools/avimisc.h (added)
+    avilib/avidump.c avilib/avilib.c export/divx4_vbr.c
+    export/export_mpeg2enc.c filter/filter_yait.c
+    filter/subtitler/load_font.c filter/subtitler/subtitler_proto.h
+    import/dvd_reader.c import/probe_xml.c import/tcxpm2rgb.c
+    import/ts_reader.c libtcutil/static_xio.h multiplex/multiplex_ogg.c
+    src/transcode.c tools/avifix.c tools/aviindex.c tools/avimerge.c
+    tools/avimisc.c tools/avisplit.c tools/avisync.c tools/tcmodinfo.c
+    tools/tcmp3cut.c
+  Fix various compiler warnings, mostly related to ignoring return values
+  from I/O system calls.
+
 2009-01-26 Francesco Romani <fromani at gmail dot com>
   * src/framebuffer.c src/framebuffer.h testsuite/test-tcframefifo.c
   fix new framebuffer code by adding priority queues.
