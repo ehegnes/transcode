@@ -464,22 +464,19 @@ static int video_import_loop(vob_t *vob)
                             ?TC_FRAME_WAIT :TC_FRAME_READY;
     int im_ret = TC_IM_THREAD_UNKNOWN;
 
-    if (verbose >= TC_DEBUG)
-        tc_log_msg(__FILE__, "video thread id=%ld", (unsigned long)pthread_self());
+    tc_debug(TC_DEBUG_THREADS, "video thread id=%ld", (unsigned long)pthread_self());
 
     video_decdata.vob   = vob;
     video_decdata.bytes = vob->im_v_size;
 
     while (tc_running() && tc_import_thread_is_active(&video_decdata)) {
-        if (verbose >= TC_THREADS)
-            tc_log_msg(__FILE__, "(V) %10s [%ld] %i bytes", "requesting",
-                       vframecount, video_decdata.bytes);
+        tc_debug(TC_DEBUG_THREADS, "(V) %10s [%ld] %i bytes", "requesting",
+                 vframecount, video_decdata.bytes);
 
         /* stage 1: register new blank frame */
         ptr = vframe_register(vframecount);
         if (ptr == NULL) {
-            if (verbose >= TC_THREADS)
-                tc_log_msg(__FILE__, "(V) frame registration interrupted!");
+            tc_debug(TC_DEBUG_THREADS, "(V) frame registration interrupted!");
             break;
         }
 

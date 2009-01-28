@@ -489,10 +489,10 @@ STATIC void tc_frame_pool_put_frame(TCFramePool *P, TCFramePtr ptr)
     pthread_mutex_lock(&P->lock);
     wakeup = tc_frame_queue_put(P->queue, ptr);
 
-    if (verbose >= TC_FLIST)
-        tc_log_msg(FPOOL_NAME,
-                   "(put_frame|%s|%s|%li) wakeup=%i waiting=%i",
-                    P->tag, P->ptag, PTHREAD_ID, wakeup, P->waiting);
+    tc_debug(TC_DEBUG_FLIST,
+             "(%s|put_frame|%s|%s|%li) wakeup=%i waiting=%i",
+             FPOOL_NAME,
+             P->tag, P->ptag, PTHREAD_ID, wakeup, P->waiting);
 
     if (P->waiting && wakeup) {
         pthread_cond_signal(&P->empty);
@@ -508,24 +508,24 @@ STATIC TCFramePtr tc_frame_pool_get_frame(TCFramePool *P)
     TCFramePtr ptr = { .generic = NULL };
     pthread_mutex_lock(&P->lock);
 
-    if (verbose >= TC_FLIST)
-        tc_log_msg(FPOOL_NAME,
-                   "(get_frame|%s|%s|%li) requesting frame",
-                   P->tag, P->ptag, PTHREAD_ID);
+    tc_debug(TC_DEBUG_FLIST,
+             "(%s|get_frame|%s|%s|%li) requesting frame",
+             FPOOL_NAME,
+             P->tag, P->ptag, PTHREAD_ID);
 
     P->waiting++;
     while (!interrupted && tc_frame_queue_empty(P->queue)) {
-        if (verbose >= TC_FLIST)
-            tc_log_msg(FPOOL_NAME,
-                       "(get_frame|%s|%s|%li) blocking (no frames in pool)",
-                       P->tag, P->ptag, PTHREAD_ID);
+        tc_debug(TC_DEBUG_THREADS,
+                 "(%s|get_frame|%s|%s|%li) blocking (no frames in pool)",
+                 FPOOL_NAME,
+                 P->tag, P->ptag, PTHREAD_ID);
 
         pthread_cond_wait(&P->empty, &P->lock);
 
-        if (verbose >= TC_FLIST)
-            tc_log_msg(FPOOL_NAME,
-                       "(get_frame|%s|%s|%li) UNblocking",
-                       P->tag, P->ptag, PTHREAD_ID);
+        tc_debug(TC_DEBUG_FLIST,
+                 "(%s|get_frame|%s|%s|%li) UNblocking",
+                 FPOOL_NAME,
+                 P->tag, P->ptag, PTHREAD_ID);
 
         interrupted = !tc_running();
     }
@@ -535,12 +535,12 @@ STATIC TCFramePtr tc_frame_pool_get_frame(TCFramePool *P)
         ptr = tc_frame_queue_get(P->queue);
     }
 
-    if (verbose >= TC_FLIST)
-        tc_log_msg(FPOOL_NAME,
-                   "(got_frame|%s|%s|%li) frame=%p #%i",
-                   P->tag, P->ptag, PTHREAD_ID,
-                   ptr.generic,
-                   (ptr.generic) ?ptr.generic->bufid :(-1));
+    tc_debug(TC_DEBUG_FLIST,
+             "(%s|got_frame|%s|%s|%li) frame=%p #%i",
+             FPOOL_NAME,
+             P->tag, P->ptag, PTHREAD_ID,
+             ptr.generic,
+             (ptr.generic) ?ptr.generic->bufid :(-1));
 
     pthread_mutex_unlock(&P->lock);
     return ptr;
@@ -644,15 +644,15 @@ static TCFramePtr tc_frame_ring_get_frame(TCFrameRing *rfb,
 static void tc_frame_ring_dump_status(TCFrameRing *rfb,
                                       const char *id)
 {
-    tc_log_msg(FRBUF_NAME,
-               "(%s|%s|%li) frame status: null=%i empty=%i wait=%i"
-               " locked=%i ready=%i",
-               id, rfb->tag, PTHREAD_ID,
-               tc_frame_ring_get_pool_size(rfb, TC_FRAME_NULL,   TC_FALSE),
-               tc_frame_ring_get_pool_size(rfb, TC_FRAME_EMPTY,  TC_FALSE),
-               tc_frame_ring_get_pool_size(rfb, TC_FRAME_WAIT,   TC_FALSE),
-               tc_frame_ring_get_pool_size(rfb, TC_FRAME_LOCKED, TC_FALSE), /* legacy */
-               tc_frame_ring_get_pool_size(rfb, TC_FRAME_READY,  TC_FALSE));
+    tc_debug(TC_DEBUG_FLIST,
+             "(%s|%s|%s|%li) frame status: null=%i empty=%i wait=%i"
+             " locked=%i ready=%i",
+             FRBUF_NAME, id, rfb->tag, PTHREAD_ID,
+             tc_frame_ring_get_pool_size(rfb, TC_FRAME_NULL,   TC_FALSE),
+             tc_frame_ring_get_pool_size(rfb, TC_FRAME_EMPTY,  TC_FALSE),
+             tc_frame_ring_get_pool_size(rfb, TC_FRAME_WAIT,   TC_FALSE),
+             tc_frame_ring_get_pool_size(rfb, TC_FRAME_LOCKED, TC_FALSE), /* legacy */
+             tc_frame_ring_get_pool_size(rfb, TC_FRAME_READY,  TC_FALSE));
 }
 
 
@@ -722,23 +722,20 @@ static int tc_frame_ring_init(TCFrameRing *rfb,
     for (i = 0; i < size; i++) {
         rfb->frames[i] = rfb->alloc(rfb->specs);
         if (TCFRAMEPTR_IS_NULL(rfb->frames[i])) {
-            if (verbose >= TC_DEBUG) {
-                tc_log_error(FRING_NAME,
-                             "(init|%s) failed frame allocation", tag);
-            }
+            tc_debug(TC_DEBUG_FLIST,
+                     "(%s|init|%s) failed frame allocation",
+                     FRING_NAME, tag);
             return -1;
         }
 
         rfb->frames[i].generic->bufid = i;
         tc_frame_ring_put_frame(rfb, TC_FRAME_NULL, rfb->frames[i]);
 
-        if (verbose >= TC_FLIST) {
-            tc_log_error(FRING_NAME,
-                         "(init|%s) frame [%p] allocated at bufid=[%i]",
-                         tag,
-                         rfb->frames[i].generic,
-                         rfb->frames[i].generic->bufid);
-        }
+        tc_debug(TC_DEBUG_FLIST, 
+                 "(%s|init|%s) frame [%p] allocated at bufid=[%i]",
+                 FRING_NAME, tag,
+                 rfb->frames[i].generic,
+                 rfb->frames[i].generic->bufid);
  
     }
     return 0;
@@ -772,12 +769,10 @@ static void tc_frame_ring_fini(TCFrameRing *rfb)
         }
    
         for (i = 0; i < rfb->size; i++) {
-            if (verbose >= TC_CLEANUP) {
-                tc_log_info(FRING_NAME,
-                            "(fini|%s) freeing frame #%i in [%s] status",
-                            rfb->tag, i,
-                            frame_status_name(rfb->frames[i].generic->status));
-            }
+            tc_debug(TC_DEBUG_CLEANUP,
+                     "(%s|fini|%s) freeing frame #%i in [%s] status",
+                     FRING_NAME, rfb->tag, i,
+                     frame_status_name(rfb->frames[i].generic->status));
             rfb->free(rfb->frames[i]);
         }
         tc_free(rfb->frames);
@@ -810,11 +805,9 @@ static TCFramePtr tc_frame_ring_register_frame(TCFrameRing *rfb,
 {
     TCFramePtr ptr;
 
-    if (verbose >= TC_FLIST)
-        tc_log_msg(FRING_NAME,
-                   "(register_frame|%s|%li) registering frame id=[%i]",
-                   rfb->tag, PTHREAD_ID,
-                   id);
+    tc_debug(TC_DEBUG_FLIST,
+             "(%s|register_frame|%s|%li) registering frame id=[%i]",
+             FRING_NAME, rfb->tag, PTHREAD_ID, id);
 
     ptr = tc_frame_ring_get_frame(rfb, TC_FRAME_NULL);
 
@@ -832,9 +825,7 @@ static TCFramePtr tc_frame_ring_register_frame(TCFrameRing *rfb,
 
         ptr.generic->status = status;
 
-        if (verbose >= TC_FLIST) {
-            tc_frame_ring_dump_status(rfb, "register_frame");
-        }
+        tc_frame_ring_dump_status(rfb, "register_frame");
     }
     return ptr; 
 }
@@ -861,9 +852,7 @@ static void tc_frame_ring_remove_frame(TCFrameRing *rfb,
         /* release valid pointer to pool */
         tc_frame_ring_put_frame(rfb, TC_FRAME_NULL, frame);
 
-        if (verbose >= TC_FLIST) {
-            tc_frame_ring_dump_status(rfb, "remove_frame");
-        }
+        tc_frame_ring_dump_status(rfb, "remove_frame");
     }
 }
 
@@ -874,9 +863,7 @@ static void tc_frame_ring_reinject_frame(TCFrameRing *rfb,
         /* reinject valid pointer into pool */
         tc_frame_ring_put_frame(rfb, frame.generic->status, frame);
 
-        if (verbose >= TC_FLIST) {
-            tc_frame_ring_dump_status(rfb, "reinject_frame");
-        }
+        tc_frame_ring_dump_status(rfb, "reinject_frame");
     }
 }
 
@@ -900,27 +887,23 @@ static int tc_frame_ring_flush(TCFrameRing *rfb)
         TCFrameStatus S = rfb->frames[i].generic->status;
 
         if (S == TC_FRAME_NULL) {
-            if (verbose >= TC_FLIST) {
-                /* 99% of times we don't want to see this. */
-                tc_log_info(FRING_NAME,
-                            "(flush|%s) frame #%i already free (not flushed)",
-                            rfb->tag, i);
-            }
+            /* 99% of times we don't want to see this. */
+            tc_debug(TC_DEBUG_CLEANUP,
+                     "(%s|flush|%s) frame #%i already free (not flushed)",
+                     FRING_NAME, rfb->tag, i);
         } else {
             TCFramePool *P = tc_frame_ring_get_pool(rfb, S);
             TCFramePtr frame;
 
-            if (verbose >= TC_CLEANUP) {
-                tc_log_info(FRING_NAME,
-                            "(flush|%s) flushing frame #%i in [%s] status",
-                            rfb->tag, i, frame_status_name(S));
-            }
+            tc_debug(TC_DEBUG_CLEANUP,
+                     "(%s|flush|%s) flushing frame #%i in [%s] status",
+                     FRING_NAME, rfb->tag, i, frame_status_name(S));
 
             frame = tc_frame_pool_pull_frame(P);
             if (TCFRAMEPTR_IS_NULL(frame)) {
-                tc_log_info(FRING_NAME,
-                            "(flush|%s) got NULL while flushing frame #%i",
-                            rfb->tag, i);
+                tc_debug(TC_DEBUG_CLEANUP,
+                         "(%s|flush|%s) got NULL while flushing frame #%i",
+                         FRING_NAME, rfb->tag, i);
                 tc_frame_pool_dump_status(P);
             } else {
                 frame.generic->status = TC_FRAME_NULL;
@@ -941,12 +924,10 @@ static void tc_frame_ring_wakeup(TCFrameRing *rfb, int stage)
 
     for (i = 0; i < TC_FRAME_STAGE_NUM; i++) {
         if (stage == TC_FRAME_STAGE_ALL || stage == i) {
-            if (verbose >= TC_CLEANUP) {
-                tc_log_info(FRING_NAME,
-                            "(wakeup|%s|%li) waking up pool [%s]",
-                            rfb->tag, PTHREAD_ID,
-                            frame_stages[i].name);
-            }
+            tc_debug(TC_DEBUG_CLEANUP,
+                     "(%s|wakeup|%s|%li) waking up pool [%s]",
+                     FRING_NAME, rfb->tag, PTHREAD_ID,
+                     frame_stages[i].name);
 
             tc_frame_pool_wakeup(&(rfb->pools[i]), frame_stages[i].broadcast);
         }
@@ -956,15 +937,14 @@ static void tc_frame_ring_wakeup(TCFrameRing *rfb, int stage)
 static void tc_frame_ring_push_next(TCFrameRing *rfb,
                                     TCFramePtr ptr, int status)
 {
-    if (verbose >= TC_FLIST) {
-        tc_log_msg(FRBUF_NAME,
-                   "(push_next|%s|%li) frame=[%p] bufid=[%i] [%s] -> [%s]",
-                   rfb->tag, PTHREAD_ID,
-                   ptr.generic,
-                   ptr.generic->bufid,
-                   frame_status_name(ptr.generic->status),
-                   frame_status_name(status));
-    }
+    tc_debug(TC_DEBUG_FLIST,
+             "(%s|push_next|%s|%li) frame=[%p] bufid=[%i] [%s] -> [%s]",
+             FRBUF_NAME, rfb->tag, PTHREAD_ID,
+             ptr.generic,
+             ptr.generic->bufid,
+             frame_status_name(ptr.generic->status),
+             frame_status_name(status));
+
     tc_frame_ring_put_frame(rfb, status, ptr);
 }
 
