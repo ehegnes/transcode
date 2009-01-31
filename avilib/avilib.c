@@ -3,7 +3,7 @@
  *
  *  Copyright (C) Thomas Oestreich - June 2001
  *  multiple audio track support Copyright (C) 2002 Thomas Oestreich
- *  Version 1.1.0: Copyright (C) 2007-2008 Francesco Romani
+ *  Version 1.1.0: Copyright (C) 2007-2009 Francesco Romani
  *
  *  Original code:
  *  Copyright (C) 1999 Rainer Johanni <Rainer@Johanni.de>

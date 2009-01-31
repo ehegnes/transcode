@@ -1,6 +1,6 @@
 /*
  *  encode_dv.c - encode a DV video stream using libdv
- *  (C) 2005-2008 Francesco Romani <fromani at gmail dot com>
+ *  (C) 2005-2009 Francesco Romani <fromani at gmail dot com>
  *  Based on code
  *  Copyright (C) Thomas Oestreich et Al. - June 2001
  *
