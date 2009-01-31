@@ -8,4 +8,5 @@ Key:
 transcode-1.1.1
 ---------------
 [*] Switched to new, terse ChangeLog format.
+[-] The import_imlist module is deprecated. Use --multi_input -x im instead.
 ===========================================================================

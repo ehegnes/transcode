@@ -45,10 +45,10 @@
 #undef PACKAGE_TARNAME
 #undef PACKAGE_VERSION
 
-#include "transcode.h"
-
 #include <stdlib.h>
 #include <stdio.h>
+
+#include "src/transcode.h"
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_RGB|TC_CAP_VID;
@@ -89,6 +89,14 @@ MOD_open
 
         width  = vob->im_v_width;
         height = vob->im_v_height;
+
+        tc_log_warn(MOD_NAME,
+                    "This module is DEPRECATED.");
+        tc_log_warn(MOD_NAME,
+                    "Please consider to use the multi input mode"
+                    " (--multi_input) with import_im module.");
+        tc_log_warn(MOD_NAME,
+                    "(e.g.) transcode --multi_input -x im ...");
 
         fd = fopen(vob->video_in_file, "r");
         if (fd == NULL) {
