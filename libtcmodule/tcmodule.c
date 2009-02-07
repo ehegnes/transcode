@@ -219,7 +219,7 @@ static int void_filter_video(TCModuleInstance *self,
 {
     DUMMY_CHECK(self,  "filter_video");
     DUMMY_CHECK(frame, "filter_video");
-    return TC_ERROR;
+    return TC_OK;
 }
 
 static int void_filter_audio(TCModuleInstance *self,
@@ -227,7 +227,7 @@ static int void_filter_audio(TCModuleInstance *self,
 {
     DUMMY_CHECK(self,  "filter_audio");
     DUMMY_CHECK(frame, "filter_audio");
-    return TC_ERROR;
+    return TC_OK;
 }
 
 static int void_write_video(TCModuleInstance *self,
@@ -235,7 +235,7 @@ static int void_write_video(TCModuleInstance *self,
 {
     DUMMY_CHECK(self,  "write_video");
     DUMMY_CHECK(frame, "write_video");
-    return TC_ERROR;
+    return 0;
 }
 
 static int void_write_audio(TCModuleInstance *self,
@@ -243,7 +243,7 @@ static int void_write_audio(TCModuleInstance *self,
 {
     DUMMY_CHECK(self,  "write_audio");
     DUMMY_CHECK(frame, "write_audio");
-    return TC_ERROR;
+    return 0;
 }
 
 
@@ -252,7 +252,7 @@ static int void_read_video(TCModuleInstance *self,
 {
     DUMMY_CHECK(self,  "read_video");
     DUMMY_CHECK(frame, "read_video");
-    return TC_ERROR;
+    return 0;
 }
 
 static int void_read_audio(TCModuleInstance *self,
@@ -260,7 +260,7 @@ static int void_read_audio(TCModuleInstance *self,
 {
     DUMMY_CHECK(self,  "read_audio");
     DUMMY_CHECK(frame, "read_audio");
-    return TC_ERROR;
+    return 0;
 }
 
 
