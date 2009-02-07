@@ -21,7 +21,7 @@
 #include "libtcmodule/tcmodule-plugin.h"
 
 #define MOD_NAME    "encode_dv.so"
-#define MOD_VERSION "v0.0.4 (2007-07-11)"
+#define MOD_VERSION "v0.0.5 (2009-02-03)"
 #define MOD_CAP     "Digital Video encoder"
 
 #define MOD_FEATURES \
@@ -259,16 +259,17 @@ static int tc_dv_encode_video(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const TCCodecID tc_dv_codecs_in[] = {
+static const TCCodecID tc_dv_codecs_video_in[] = {
     TC_CODEC_YUY2, TC_CODEC_RGB24, TC_CODEC_YUV420P,
     TC_CODEC_ERROR
 };
 
-static const TCCodecID tc_dv_codecs_out[] = {
+static const TCCodecID tc_dv_codecs_video_out[] = {
     TC_CODEC_DV,
     TC_CODEC_ERROR
 };
 
+TC_MODULE_AUDIO_UNSUPPORTED(tc_dv);
 TC_MODULE_CODEC_FORMATS(tc_dv);
 
 TC_MODULE_INFO(tc_dv);

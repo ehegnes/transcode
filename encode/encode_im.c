@@ -46,7 +46,7 @@
 
 
 #define MOD_NAME    "encode_im.so"
-#define MOD_VERSION "v0.1.0 (2007-11-19)"
+#define MOD_VERSION "v0.1.1 (2009-02-07)"
 #define MOD_CAP     "ImageMagick video frames encoder"
 
 #define MOD_FEATURES \
@@ -205,7 +205,7 @@ static int tc_im_fini(TCModuleInstance *self)
 }
 
 static int tc_im_encode_video(TCModuleInstance *self,
-                              vframe_list_t *inframe, vframe_list_t *outframe)
+                              TCFrameVideo *inframe, TCFrameVideo *outframe)
 {
     TCIMPrivateData *pd = NULL;
     MagickBooleanType status;
@@ -254,14 +254,15 @@ static int tc_im_encode_video(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const TCCodecID tc_im_codecs_in[] = { 
+static const TCCodecID tc_im_codecs_video_in[] = { 
     TC_CODEC_RGB24, TC_CODEC_ERROR
 };
-static const TCCodecID tc_im_codecs_out[] = {
+static const TCCodecID tc_im_codecs_video_out[] = {
     TC_CODEC_JPEG, TC_CODEC_TIFF, TC_CODEC_PNG,
     TC_CODEC_PPM,  TC_CODEC_PGM,  TC_CODEC_GIF,
     TC_CODEC_ERROR
 };
+TC_MODULE_VIDEO_UNSUPPORTED(tc_im);
 TC_MODULE_CODEC_FORMATS(tc_im);
 
 TC_MODULE_INFO(tc_im);

@@ -27,7 +27,7 @@
 #include "libtcmodule/tcmodule-plugin.h"
 
 #define MOD_NAME    "encode_copy.so"
-#define MOD_VERSION "v0.0.4 (2007-11-18)"
+#define MOD_VERSION "v0.0.5 (2009-02-03)"
 #define MOD_CAP     "copy (passthrough) A/V frames"
 
 #define MOD_FEATURES \
@@ -97,38 +97,42 @@ static int copy_stop(TCModuleInstance *self)
 }
 
 static int copy_encode_video(TCModuleInstance *self,
-                             vframe_list_t *inframe, vframe_list_t *outframe)
+                             TCFrameVideo *inframe, TCFrameVideo *outframe)
 {
     TC_MODULE_SELF_CHECK(self, "encode_video");
 
-    if (inframe == NULL) {
-        outframe->video_len = 0;
-    } else {
-        vframe_copy(outframe, inframe, 1);
-        outframe->video_len = outframe->video_size;
-    }
+    vframe_copy(outframe, inframe, 1);
+    outframe->video_len = outframe->video_size;
+
     return TC_OK;
 }
 
 static int copy_encode_audio(TCModuleInstance *self,
-                             aframe_list_t *inframe, aframe_list_t *outframe)
+                             TCFrameAudio *inframe, TCFrameAudio *outframe)
 {
     TC_MODULE_SELF_CHECK(self, "encode_audio");
 
-    if (inframe == NULL) {
-        outframe->audio_len = 0;
-    } else {
-        aframe_copy(outframe, inframe, 1);
-        outframe->audio_len = outframe->audio_size;
-    }
+    aframe_copy(outframe, inframe, 1);
+    outframe->audio_len = outframe->audio_size;
+
     return TC_OK;
 }
 
 
 /*************************************************************************/
 
-static const uint32_t copy_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
-static const uint32_t copy_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static const uint32_t copy_codecs_video_in[] = { 
+    TC_CODEC_ANY, TC_CODEC_ERROR 
+};
+static const uint32_t copy_codecs_audio_in[] = { 
+    TC_CODEC_ANY, TC_CODEC_ERROR 
+};
+static const uint32_t copy_codecs_video_out[] = { 
+    TC_CODEC_ANY, TC_CODEC_ERROR 
+};
+static const uint32_t copy_codecs_audio_out[] = { 
+    TC_CODEC_ANY, TC_CODEC_ERROR 
+};
 TC_MODULE_CODEC_FORMATS(copy);
 
 TC_MODULE_INFO(copy);

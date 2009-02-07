@@ -36,7 +36,7 @@
 
 
 #define MOD_NAME    "encode_x264.so"
-#define MOD_VERSION "v0.2.4 (2008-06-14)"
+#define MOD_VERSION "v0.2.5 (2009-02-07)"
 #define MOD_CAP     "x264 encoder"
 
 #define MOD_FEATURES \
@@ -753,7 +753,7 @@ static int x264_inspect(TCModuleInstance *self,
  */
 
 static int x264_encode_video(TCModuleInstance *self,
-                            vframe_list_t *inframe, vframe_list_t *outframe)
+                            TCFrameVideo *inframe, TCFrameVideo *outframe)
 {
     X264PrivateData *pd;
     x264_nal_t *nal;
@@ -765,11 +765,6 @@ static int x264_encode_video(TCModuleInstance *self,
     pd = self->userdata;
 
     pd->framenum++;
-
-    if (inframe == NULL) {
-        outframe->video_len = 0;
-        return TC_OK;
-    }
 
     pic.img.i_csp = X264_CSP_I420;
     pic.img.i_plane = 3;
@@ -827,8 +822,13 @@ static int x264_encode_video(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const TCCodecID x264_codecs_in[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
-static const TCCodecID x264_codecs_out[] = { TC_CODEC_H264, TC_CODEC_ERROR };
+static const TCCodecID x264_codecs_video_in[] = { 
+    TC_CODEC_YUV420P, TC_CODEC_ERROR
+};
+static const TCCodecID x264_codecs_video_out[] = { 
+    TC_CODEC_H264, TC_CODEC_ERROR
+};
+TC_MODULE_AUDIO_UNSUPPORTED(x264);
 TC_MODULE_CODEC_FORMATS(x264);
 
 TC_MODULE_INFO(x264);

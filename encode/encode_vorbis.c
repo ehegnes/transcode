@@ -36,7 +36,7 @@
 #include "libtcext/tc_ogg.h"
 
 #define MOD_NAME    "encode_vorbis.so"
-#define MOD_VERSION "v0.0.6 (2007-12-30)"
+#define MOD_VERSION "v0.0.7 (2009-02-07)"
 #define MOD_CAP     "vorbis audio encoder using libvorbis"
 
 #define MOD_FEATURES \
@@ -257,15 +257,46 @@ static int tc_vorbis_outframe(VorbisPrivateData *pd, TCFrameAudio *f)
 
 #define MAX_S16F (32768.0f)
 
+static int tc_vorbis_flush(TCModuleInstance *self, TCAudioFrame *frame)
+{
+    VorbisPrivateData *pd = NULL;
+    int ret, eos = TC_FALSE, has_aud = HAS_AUDIO(inframe);
+
+    TC_MODULE_SELF_CHECK(self, "flush_audio");
+
+    pd = self->userdata;
+
+#ifdef TC_VORBIS_DEBUG
+    tc_log_info(MOD_NAME, "(%s) START FLUSH AUDIO FRAME", __func__);
+    tc_log_info(MOD_NAME, "(%s) invoked out=%p", __func__, frame);
+#endif
+
+     if (pd->flush_flag && !pd->end_of_stream) {
+        /* 
+         * End of file. Tell the library we're at end of stream so that it 
+         * can handle the  last frame and mark end of stream in the output 
+         * properly 
+         */
+        vorbis_analysis_wrote(&pd->vd, 0);
+     }
+    ret = tc_vorbis_outframe(pd, frame);
+    pd->end_of_stream = TC_TRUE; /* this must be set AFTER last frame processed */
+    return ret;
+}
+
 
 static int tc_vorbis_encode_audio(TCModuleInstance *self,
                                   TCFrameAudio *inframe,
                                   TCFrameAudio *outframe)
 {
     VorbisPrivateData *pd = NULL;
-    int ret, eos = TC_FALSE, has_aud = HAS_AUDIO(inframe);
+    int ret, bps, samples, i = 0;
+    int16_t *aptr = NULL;
+    float **buffer;
 
-    TC_MODULE_SELF_CHECK(self, "encode_audio");
+    TC_MODULE_SELF_CHECK(self,     "encode_audio");
+    TC_MODULE_SELF_CHECK(inframe,  "encode_audio");
+    TC_MODULE_SELF_CHECK(outframe, "encode_audio");
 
     pd = self->userdata;
 
@@ -274,39 +305,24 @@ static int tc_vorbis_encode_audio(TCModuleInstance *self,
     tc_log_info(MOD_NAME, "(%s) invoked in=%p out=%p", __func__, inframe, outframe);
 #endif
 
-    if (!has_aud) {
-        if (pd->flush_flag && !pd->end_of_stream) {
-            /* 
-             * End of file. Tell the library we're at end of stream so that it 
-             * can handle the  last frame and mark end of stream in the output 
-             * properly 
-             */
-            vorbis_analysis_wrote(&pd->vd, 0);
-            eos = TC_TRUE;
-        }
-    } else {
-        int16_t *aptr = (int16_t*)inframe->audio_buf;
-        int bps = (pd->channels * pd->bits) / 8;
-        int samples = inframe->audio_size / bps;
-        int i = 0;
-        float **buffer = vorbis_analysis_buffer(&pd->vd, samples);
+    aptr = (int16_t*)inframe->audio_buf;
+    bps = (pd->channels * pd->bits) / 8;
+    samples = inframe->audio_size / bps;
+    buffer = vorbis_analysis_buffer(&pd->vd, samples);
 
-        if (pd->channels == 1) {
-            for (i = 0; i < samples; i++) {
-               buffer[0][i] = aptr[i        ]/MAX_S16F;
-            }
-        } else { /* if (pd->channels == 2 ) */
-            for (i = 0; i < samples; i++) {
-               buffer[0][i] = aptr[i * 2    ]/MAX_S16F;
-               buffer[1][i] = aptr[i * 2 + 1]/MAX_S16F;
-            }
+    if (pd->channels == 1) {
+        for (i = 0; i < samples; i++) {
+            buffer[0][i] = aptr[i        ]/MAX_S16F;
         }
-
-        vorbis_analysis_wrote(&pd->vd, samples);
+    } else { /* if (pd->channels == 2 ) */
+        for (i = 0; i < samples; i++) {
+            buffer[0][i] = aptr[i * 2    ]/MAX_S16F;
+            buffer[1][i] = aptr[i * 2 + 1]/MAX_S16F;
+        }
     }
-    ret = tc_vorbis_outframe(pd, outframe);
-    pd->end_of_stream = eos; /* this must be set AFTER last frame processed */
-    return ret;
+
+    vorbis_analysis_wrote(&pd->vd, samples);
+    return tc_vorbis_outframe(pd, outframe);
 }
 
 
@@ -332,12 +348,13 @@ TC_MODULE_GENERIC_FINI(tc_vorbis);
 
 /*************************************************************************/
 
-static const TCCodecID tc_vorbis_codecs_in[] = {
+static const TCCodecID tc_vorbis_codecs_audio_in[] = {
     TC_CODEC_PCM, TC_CODEC_ERROR
 };
-static const TCCodecID tc_vorbis_codecs_out[] = { 
+static const TCCodecID tc_vorbis_codecs_audio_out[] = { 
     TC_CODEC_VORBIS, TC_CODEC_ERROR
 };
+TC_MODULE_VIDEO_UNSUPPORTED(tc_vorbis);
 TC_MODULE_CODEC_FORMATS(tc_vorbis);
 
 TC_MODULE_INFO(tc_vorbis);
@@ -352,6 +369,7 @@ static const TCModuleClass tc_vorbis_class = {
     .inspect      = tc_vorbis_inspect,
 
     .encode_audio = tc_vorbis_encode_audio,
+    .flush_audio  = tc_vorbis_flush,
 };
 
 TC_MODULE_ENTRY_POINT(tc_vorbis);
