@@ -44,10 +44,10 @@
  */
 typedef struct tcmodule_ *TCModule;
 struct tcmodule_ {
-    const TCModuleClass *klass;
+    const TCModuleClass	*klass;
     /* pointer to class data shared between all instances */
 
-    TCModuleInstance instance;
+    TCModuleInstance 	instance;
     /* each module has it's private instance data, it's embedded here */
 };
 

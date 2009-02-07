@@ -62,12 +62,12 @@
  */
 typedef struct tcmoduleinfo_ TCModuleInfo;
 struct tcmoduleinfo_ {
-    uint32_t features; /* what this module can do? */
-    uint32_t flags; /* quirks */
+    uint32_t        features; /* what this module can do? */
+    uint32_t        flags; /* quirks */
 
-    const char *name;
-    const char *version;
-    const char *description;
+    const char      *name;
+    const char      *version;
+    const char      *description;
 
     /*
      * the following two MUST point to an array of TC_CODEC_*
