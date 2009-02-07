@@ -117,6 +117,9 @@ int optstr_get(const char *options, const char *name, const char *fmt, ...)
     if( *ch == '=' )
         ch++;
 
+    if( !*ch )
+        return 0;
+
     va_start(ap, fmt);
 
 #ifndef HAVE_VSSCANF
