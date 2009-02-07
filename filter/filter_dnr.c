@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_dnr.so"
-#define MOD_VERSION "v0.3.0 (2007-12-08)"
+#define MOD_VERSION "v0.3.1 (2009-02-07)"
 #define MOD_CAP     "dynamic noise reduction"
 #define MOD_AUTHOR  "Gerhard Monzel"
 
@@ -594,12 +594,13 @@ static int dnr_filter_video(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const TCCodecID dnr_codecs_in[] = { 
+static const TCCodecID dnr_codecs_video_in[] = { 
     TC_CODEC_YUV420P, TC_CODEC_RGB24, TC_CODEC_ERROR
 };
-static const TCCodecID dnr_codecs_out[] = { 
+static const TCCodecID dnr_codecs_video_out[] = { 
     TC_CODEC_YUV420P, TC_CODEC_RGB24, TC_CODEC_ERROR
 };
+TC_MODULE_AUDIO_UNSUPPORTED(dnr);
 TC_MODULE_FILTER_FORMATS(dnr);
 
 TC_MODULE_INFO(dnr);

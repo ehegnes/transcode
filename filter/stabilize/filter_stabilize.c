@@ -35,7 +35,7 @@
 */
 
 #define MOD_NAME    "filter_stabilize.so"
-#define MOD_VERSION "v0.4.3 (2008-11-30)"
+#define MOD_VERSION "v0.4.4 (2009-02-06)"
 #define MOD_CAP     "extracts relative transformations of \n\
     subsequent frames (used for stabilization together with the\n\
     transform filter in a second pass)"
@@ -841,12 +841,13 @@ static int stabilize_inspect(TCModuleInstance *self,
     return TC_OK;
 }
 
-static const TCCodecID stabilize_codecs_in[] = { 
+static const TCCodecID stabilize_codecs_video_in[] = { 
     TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_RGB24, TC_CODEC_ERROR 
 };
-static const TCCodecID stabilize_codecs_out[] = { 
+static const TCCodecID stabilize_codecs_video_out[] = { 
     TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_RGB24, TC_CODEC_ERROR 
 };
+TC_MODULE_AUDIO_UNSUPPORTED(stabilize);
 TC_MODULE_FILTER_FORMATS(stabilize); 
 
 TC_MODULE_INFO(stabilize);

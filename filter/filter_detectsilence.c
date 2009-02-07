@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_detectsilence.so"
-#define MOD_VERSION "v0.1.3 (2007-06-09)"
+#define MOD_VERSION "v0.1.4 (2009-02-07)"
 #define MOD_CAP     "audio silence detection with optional tcmp3cut commandline generation"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
@@ -229,7 +229,7 @@ static int detectsilence_inspect(TCModuleInstance *self,
     static char buf[TC_BUF_MIN]; // XXX
     DSPrivateData *pd = NULL;
 
-    TC_MODULE_SELF_CHECK(self, "inspect");
+    TC_MODULE_SELF_CHECK(self,  "inspect");
     TC_MODULE_SELF_CHECK(param, "inspect");
     TC_MODULE_SELF_CHECK(value, "inspect");
 
@@ -266,7 +266,7 @@ static int detectsilence_filter_audio(TCModuleInstance *self,
     double p = 0.0;
     int i, sum;
 
-    TC_MODULE_SELF_CHECK(self, "filter_audio");
+    TC_MODULE_SELF_CHECK(self,  "filter_audio");
     TC_MODULE_SELF_CHECK(frame, "filter_audio");
 
     pd = self->userdata;
@@ -307,12 +307,13 @@ static int detectsilence_filter_audio(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const TCCodecID detectsilence_codecs_in[] = { 
+static const TCCodecID detectsilence_codecs_audio_in[] = { 
     TC_CODEC_PCM, TC_CODEC_ERROR
 };
-static const TCCodecID detectsilence_codecs_out[] = { 
+static const TCCodecID detectsilence_codecs_audio_out[] = { 
     TC_CODEC_PCM, TC_CODEC_ERROR 
 };
+TC_MODULE_VIDEO_UNSUPPORTED(detectsilence);
 TC_MODULE_FILTER_FORMATS(detectsilence);
 
 TC_MODULE_INFO(detectsilence);

@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_astat.so"
-#define MOD_VERSION "v0.2.0 (2007-06-06)"
+#define MOD_VERSION "v0.2.1 (2009-02-07)"
 #define MOD_CAP     "audio statistics filter plugin"
 #define MOD_AUTHOR  "Thomas Oestreich"
 
@@ -214,7 +214,7 @@ static int astat_inspect(TCModuleInstance *self,
 {
     AStatPrivateData *pd = NULL;
 
-    TC_MODULE_SELF_CHECK(self, "inspect");
+    TC_MODULE_SELF_CHECK(self,  "inspect");
     TC_MODULE_SELF_CHECK(param, "inspect");
     TC_MODULE_SELF_CHECK(value, "inspect");
 
@@ -254,7 +254,7 @@ static int astat_filter_audio(TCModuleInstance *self, aframe_list_t *frame)
     int16_t *s = NULL;
     int n;
 
-    TC_MODULE_SELF_CHECK(self, "filter_audio");
+    TC_MODULE_SELF_CHECK(self,  "filter_audio");
     TC_MODULE_SELF_CHECK(frame, "filter_audio");
 
     pd = self->userdata;
@@ -271,12 +271,13 @@ static int astat_filter_audio(TCModuleInstance *self, aframe_list_t *frame)
 
 /*************************************************************************/
 
-static const TCCodecID astat_codecs_in[] = { 
+static const TCCodecID astat_codecs_audio_in[] = { 
     TC_CODEC_PCM, TC_CODEC_ERROR 
 };
-static const TCCodecID astat_codecs_out[] = { 
+static const TCCodecID astat_codecs_audio_out[] = { 
     TC_CODEC_PCM, TC_CODEC_ERROR 
 };
+TC_MODULE_VIDEO_UNSUPPORTED(astat);
 TC_MODULE_FILTER_FORMATS(astat);
 
 TC_MODULE_INFO(astat);

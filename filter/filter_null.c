@@ -12,7 +12,7 @@
 /* public (user-visible) Name of the filter */
 #define MOD_NAME    "filter_null.so"
 /* version of the filter */
-#define MOD_VERSION "v1.1.0 (2007-06-02)"
+#define MOD_VERSION "v1.2.0 (2009-02-07)"
 /* A short description */
 #define MOD_CAP     "demo filter plugin; does nothing"
 /* Author(s) of the filter */
@@ -188,8 +188,8 @@ static int null_filter_video(TCModuleInstance *self, vframe_list_t *frame)
     NullPrivateData *pd = NULL;
     int pre = 0;
 
-    TC_MODULE_SELF_CHECK(self, "filer_video");
-    TC_MODULE_SELF_CHECK(frame, "filer_video");
+    TC_MODULE_SELF_CHECK(self, "filter_video");
+    TC_MODULE_SELF_CHECK(frame, "filter_video");
 
     pd = self->userdata;
     pre = (frame->tag & TC_PRE_M_PROCESS);
@@ -226,8 +226,8 @@ static int null_filter_audio(TCModuleInstance *self, aframe_list_t *frame)
     NullPrivateData *pd = NULL;
     int pre = 0;
 
-    TC_MODULE_SELF_CHECK(self, "filer_audio");
-    TC_MODULE_SELF_CHECK(frame, "filer_audio");
+    TC_MODULE_SELF_CHECK(self, "filter_audio");
+    TC_MODULE_SELF_CHECK(frame, "filter_audio");
 
     pd = self->userdata;
     pre = (frame->tag & TC_PRE_M_PROCESS);
@@ -254,10 +254,16 @@ static int null_filter_audio(TCModuleInstance *self, aframe_list_t *frame)
 
 /*************************************************************************/
 
-static const TCCodecID null_codecs_in[] = { 
+static const TCCodecID null_codecs_video_in[] = { 
     TC_CODEC_ANY, TC_CODEC_ERROR
 };
-static const TCCodecID null_codecs_out[] = {
+static const TCCodecID null_codecs_video_out[] = {
+    TC_CODEC_ANY, TC_CODEC_ERROR
+};
+static const TCCodecID null_codecs_audio_in[] = { 
+    TC_CODEC_ANY, TC_CODEC_ERROR
+};
+static const TCCodecID null_codecs_audio_out[] = {
     TC_CODEC_ANY, TC_CODEC_ERROR
 };
 TC_MODULE_FILTER_FORMATS(null);

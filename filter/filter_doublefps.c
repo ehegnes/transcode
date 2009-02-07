@@ -9,7 +9,7 @@
  */
 
 #define MOD_NAME        "filter_doublefps.so"
-#define MOD_VERSION     "v1.1 (2006-05-14)"
+#define MOD_VERSION     "v1.1.1 (2009-02-07)"
 #define MOD_CAP         "double frame rate by deinterlacing fields into frames"
 #define MOD_AUTHOR      "Andrew Church"
 
@@ -443,10 +443,14 @@ static int doublefps_filter_audio(TCModuleInstance *self, aframe_list_t *frame)
 
 /*************************************************************************/
 
-static const TCCodecID doublefps_codecs_in[] =
-    { TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_PCM, TC_CODEC_ERROR };
-static const TCCodecID doublefps_codecs_out[] =
-    { TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_PCM, TC_CODEC_ERROR };
+static const TCCodecID doublefps_codecs_video_in[] =
+    { TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_ERROR };
+static const TCCodecID doublefps_codecs_video_out[] =
+    { TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_ERROR };
+static const TCCodecID doublefps_codecs_audio_in[] =
+    { TC_CODEC_PCM, TC_CODEC_ERROR };
+static const TCCodecID doublefps_codecs_audio_out[] =
+    { TC_CODEC_PCM, TC_CODEC_ERROR };
 TC_MODULE_FILTER_FORMATS(doublefps);
 
 TC_MODULE_INFO(doublefps);

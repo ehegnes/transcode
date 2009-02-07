@@ -18,7 +18,7 @@
  */
 
 #define MOD_NAME    "filter_levels.so"
-#define MOD_VERSION "v1.2.0 (2007-06-07)"
+#define MOD_VERSION "v1.2.1 (2009-02-07)"
 #define MOD_CAP     "Luminosity level scaler"
 #define MOD_AUTHOR  "Bryan Mayland"
 
@@ -260,12 +260,13 @@ static int levels_filter_video(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const TCCodecID levels_codecs_in[] = { 
+static const TCCodecID levels_codecs_video_in[] = { 
     TC_CODEC_YUV420P, TC_CODEC_ERROR
 };
-static const TCCodecID levels_codecs_out[] = { 
+static const TCCodecID levels_codecs_video_out[] = { 
     TC_CODEC_YUV420P, TC_CODEC_ERROR
 };
+TC_MODULE_AUDIO_UNSUPPORTED(levels);
 TC_MODULE_FILTER_FORMATS(levels);
 
 TC_MODULE_INFO(levels);

@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_pp.so"
-#define MOD_VERSION "v1.2.5 (2007-12-09)"
+#define MOD_VERSION "v1.2.6 (2009-02-07)"
 #define MOD_CAP     "Mplayers postprocess filters"
 #define MOD_AUTHOR  "Michael Niedermayer et al, Gerhard Monzel"
 
@@ -317,7 +317,7 @@ static int pp_inspect(TCModuleInstance *self,
  */
 
 static int pp_filter_video(TCModuleInstance *self,
-                               vframe_list_t *frame)
+                           TCFrameVideo *frame)
 {
     PPPrivateData *pd;
     uint8_t *pp_page[3];
@@ -348,12 +348,13 @@ static int pp_filter_video(TCModuleInstance *self,
 
 /**************************************************************************/
 
-static const TCCodecID pp_codecs_in[] = { 
+static const TCCodecID pp_codecs_video_in[] = { 
     TC_CODEC_YUV420P, TC_CODEC_ERROR
 };
-static const TCCodecID pp_codecs_out[] = { 
+static const TCCodecID pp_codecs_video_out[] = { 
     TC_CODEC_YUV420P, TC_CODEC_ERROR
 };
+TC_MODULE_AUDIO_UNSUPPORTED(pp);
 TC_MODULE_FILTER_FORMATS(pp);
 
 TC_MODULE_INFO(pp);
@@ -417,7 +418,7 @@ static int pp_process(TCModuleInstance *self, frame_list_t *frame)
     if (((frame->tag & TC_PRE_M_PROCESS  &&  pd->pre_flag)
      ||  (frame->tag & TC_POST_M_PROCESS && !pd->pre_flag))
      && !(frame->attributes & TC_FRAME_IS_SKIPPED)) {
-        return pp_filter_video(self, (vframe_list_t*)frame);
+        return pp_filter_video(self, (TCFrameVideo*)frame);
     }
     return TC_OK;
 }
