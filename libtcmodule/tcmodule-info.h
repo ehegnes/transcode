@@ -71,14 +71,18 @@ struct tcmoduleinfo_ {
 
     /*
      * the following two MUST point to an array of TC_CODEC_*
-     * terminated by a TC_CODEC_ERROR value
+     * terminated by a TC_CODEC_ERROR value.
+     * The preferred one is the first one.
      */
-    const TCCodecID *codecs_in;
-    const TCCodecID *codecs_out;
+    const TCCodecID *codecs_video_in;
+    const TCCodecID *codecs_video_out;
+    const TCCodecID *codecs_audio_in;
+    const TCCodecID *codecs_audio_out;
 
     /*
      * the following two MUST point to an array of TC_FORMAT_*
-     * terminated by a TC_FORMAT_ERROR value
+     * terminated by a TC_FORMAT_ERROR value.
+     * The preferred one is the first one.
      */
     const TCFormatID *formats_in;
     const TCFormatID *formats_out;
