@@ -136,7 +136,7 @@ static int raw_open(TCModuleInstance *self, const char *filename)
             return TC_ERROR;
         }
     }
-    if (vob->verbose >= TC_DEBUG) {
+    if (verbose >= TC_DEBUG) {
         tc_log_info(MOD_NAME, "video output: %s (%s)",
                     vid_name, (pd->fd_vid == -1) ?"FAILED" :"OK");
         tc_log_info(MOD_NAME, "audio output: %s (%s)",

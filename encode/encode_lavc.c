@@ -332,7 +332,7 @@ static int tc_codec_is_supported(TCCodecID codec, const TCCodecID *codec_list)
     int i = 0, ret = TC_NULL_MATCH;
 
     for (i = 0; codec_list[i] != TC_CODEC_ERROR; i++) {
-        if (codec == codecs_list[i]) {
+        if (codec == codec_list[i]) {
             ret = i;
             break;
         }
@@ -360,6 +360,39 @@ static double psnr(double d) {
     return -10.0 * log(d) / log(10);
 }
 
+static int list_codecs(const TCCodecID *codecs,
+                       char *buf, size_t bufsize,
+                       size_t *used)
+{
+    int i = 0, ret = 0;
+
+    for (i = 0; codecs[i] != TC_CODEC_ERROR; i++) {
+        char sbuf[TC_BUF_MIN] = { '\0' };
+        int slen = 0;
+
+        slen = tc_codec_description(codecs[i], sbuf, sizeof(sbuf) - 1);
+        /* + 1 for the final '\n' */
+        if (slen < 0) {
+            tc_log_error(MOD_NAME, "codec description too long! "
+                                   "This should'nt happen. "
+                                   "Please file a bug report.");
+            strlcpy(buf, "internal error", bufsize);
+            ret = -1;
+        } else if (*used + slen > bufsize) {
+            tc_log_error(MOD_NAME, "too much codecs! "
+                                   "This should'nt happen. "
+                                   "Please file a bug report.");
+            strlcpy(buf, "internal error", bufsize);
+            ret = -1;
+        } else {
+            sbuf[slen] = '\n';
+            strlcpy(buf + *used, sbuf, bufsize - *used);
+            *used += slen + 1; /* for the trailing newline */
+        }
+    }
+    return ret;
+}
+
 /*
  * tc_lavc_list_codecs:
  *      (NOT Thread safe. But do anybody cares since
@@ -384,30 +417,15 @@ static const char* tc_lavc_list_codecs(void)
 
     if (!ready) {
         size_t used = 0;
-        int i = 0;
+        int err;
 
-        for (i = 0; tc_lavc_codecs_out[i] != TC_CODEC_ERROR; i++) {
-            char sbuf[TC_BUF_MIN];
-            int slen = 0;
-
-            slen = tc_codec_description(tc_lavc_codecs_out[i], sbuf, sizeof(sbuf) - 1);
-            /* + 1 for the final '\n' */
-            if (slen < 0) {
-                tc_log_error(MOD_NAME, "codec description too long! "
-                                       "This should'nt happen. "
-                                       "Please file a bug report.");
-                strlcpy(buf, "internal error", sizeof(buf));
-            } else if (used + slen > sizeof(buf)) {
-                tc_log_error(MOD_NAME, "too much codecs! "
-                                       "This should'nt happen. "
-                                       "Please file a bug report.");
-                strlcpy(buf, "internal error", sizeof(buf));
-            } else {
-                sbuf[slen] = '\n';
-                strlcpy(buf + used, sbuf, sizeof(buf) - used);
-                used += slen + 1; /* for the trailing newline */
-            }
+        err = list_codecs(tc_lavc_codecs_video_out,
+                          buf, sizeof(buf), &used);
+        if (!err) {
+            err = list_codecs(tc_lavc_codecs_audio_out,
+                              buf, sizeof(buf), &used);
         }
+
         buf[used] = '\0';
         ready = TC_TRUE;
     }

@@ -183,17 +183,17 @@ static const TCCodecID  PREFIX ## _codecs_audio_out[] = { TC_CODEC_ERROR }; \
 static const TCFormatID PREFIX ## _formats_in[] = { TC_FORMAT_ERROR }
 
 #define TC_MODULE_DEMUX_FORMATS_CODECS(PREFIX) \
-static const TCCodecID  PREFIX ## _codecs_video_in = { TC_CODEC_ERROR }; \
-static const TCCodecID  PREFIX ## _codecs_audio_in = { TC_CODEC_ERROR }; \
+static const TCCodecID  PREFIX ## _codecs_video_in[] = { TC_CODEC_ERROR }; \
+static const TCCodecID  PREFIX ## _codecs_audio_in[] = { TC_CODEC_ERROR }; \
 static const TCFormatID PREFIX ## _formats_out[] = { TC_FORMAT_ERROR }
 
 #define TC_MODULE_VIDEO_UNSUPPORTED(PREFIX) \
-static const TCCodecID  PREFIX ## _codecs_video_in  = { TC_CODEC_ERROR }; \
-static const TCCodecID  PREFIX ## _codecs_video_out = { TC_CODEC_ERROR };
+static const TCCodecID  PREFIX ## _codecs_video_in[]  = { TC_CODEC_ERROR }; \
+static const TCCodecID  PREFIX ## _codecs_video_out[] = { TC_CODEC_ERROR }
 
 #define TC_MODULE_AUDIO_UNSUPPORTED(PREFIX) \
-static const TCCodecID  PREFIX ## _codecs_audio_in  = { TC_CODEC_ERROR }; \
-static const TCCodecID  PREFIX ## _codecs_audio_out = { TC_CODEC_ERROR };
+static const TCCodecID  PREFIX ## _codecs_audio_in[]  = { TC_CODEC_ERROR }; \
+static const TCCodecID  PREFIX ## _codecs_audio_out[] = { TC_CODEC_ERROR }
 
 
 /*

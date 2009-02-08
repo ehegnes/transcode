@@ -124,7 +124,7 @@ METHOD int pvn_configure(TCModuleInstance *self,
     pd->width   = vob->ex_v_width;
     pd->height  = vob->ex_v_height;
     pd->decolor = vob->decolor;
-    pd->ex_fpd  = vob->ex_fps;
+    pd->ex_fps  = vob->ex_fps;
 
     return TC_OK;
 }
@@ -308,7 +308,7 @@ static const TCCodecID pvn_codecs_audio_in[] = {
 static const TCCodecID pvn_codecs_video_in[] = { 
     TC_CODEC_RGB24, TC_CODEC_ERROR 
 };
-static const TCFormatID pvn_formats_video_out[] = { 
+static const TCFormatID pvn_formats_out[] = { 
     TC_FORMAT_PVN, TC_CODEC_ERROR 
 };
 /* a multiplexor is at the end of pipeline */

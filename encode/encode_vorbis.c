@@ -257,10 +257,10 @@ static int tc_vorbis_outframe(VorbisPrivateData *pd, TCFrameAudio *f)
 
 #define MAX_S16F (32768.0f)
 
-static int tc_vorbis_flush(TCModuleInstance *self, TCAudioFrame *frame)
+static int tc_vorbis_flush(TCModuleInstance *self, TCFrameAudio *frame)
 {
     VorbisPrivateData *pd = NULL;
-    int ret, eos = TC_FALSE, has_aud = HAS_AUDIO(inframe);
+    int ret;
 
     TC_MODULE_SELF_CHECK(self, "flush_audio");
 
@@ -290,7 +290,7 @@ static int tc_vorbis_encode_audio(TCModuleInstance *self,
                                   TCFrameAudio *outframe)
 {
     VorbisPrivateData *pd = NULL;
-    int ret, bps, samples, i = 0;
+    int bps, samples, i = 0;
     int16_t *aptr = NULL;
     float **buffer;
 

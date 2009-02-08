@@ -85,8 +85,8 @@ static int tc_module_inspect(TCModule handle,
 __attribute__((unused))
 #endif
 static int tc_module_encode_video(TCModule handle,
-                                  vframe_list_t *inframe,
-                                  vframe_list_t *outframe)
+                                  TCFrameVideo *inframe,
+                                  TCFrameVideo *outframe)
 {
     return handle->klass->encode_video(&(handle->instance),
                                        inframe, outframe);
@@ -96,8 +96,8 @@ static int tc_module_encode_video(TCModule handle,
 __attribute__((unused))
 #endif
 static int tc_module_encode_audio(TCModule handle,
-                                  aframe_list_t *inframe,
-                                  aframe_list_t *outframe)
+                                  TCFrameAudio *inframe,
+                                  TCFrameAudio *outframe)
 {
     return handle->klass->encode_audio(&(handle->instance),
                                        inframe, outframe);
@@ -107,8 +107,8 @@ static int tc_module_encode_audio(TCModule handle,
 __attribute__((unused))
 #endif
 static int tc_module_decode_video(TCModule handle,
-                                  vframe_list_t *inframe,
-                                  vframe_list_t *outframe)
+                                  TCFrameVideo *inframe,
+                                  TCFrameVideo *outframe)
 {
     return handle->klass->decode_video(&(handle->instance),
                                        inframe, outframe);
@@ -118,8 +118,8 @@ static int tc_module_decode_video(TCModule handle,
 __attribute__((unused))
 #endif
 static int tc_module_decode_audio(TCModule handle,
-                                  aframe_list_t *inframe,
-                                  aframe_list_t *outframe)
+                                  TCFrameAudio *inframe,
+                                  TCFrameAudio *outframe)
 {
     return handle->klass->decode_audio(&(handle->instance),
                                        inframe, outframe);
@@ -129,7 +129,7 @@ static int tc_module_decode_audio(TCModule handle,
 __attribute__((unused))
 #endif
 static int tc_module_filter_video(TCModule handle,
-                                  vframe_list_t *frame)
+                                  TCFrameVideo *frame)
 {
     return handle->klass->filter_video(&(handle->instance), frame);
 }
@@ -138,7 +138,7 @@ static int tc_module_filter_video(TCModule handle,
 __attribute__((unused))
 #endif
 static int tc_module_filter_audio(TCModule handle,
-                                  aframe_list_t *frame)
+                                  TCFrameAudio *frame)
 {
     return handle->klass->filter_audio(&(handle->instance), frame);
 }
@@ -146,22 +146,52 @@ static int tc_module_filter_audio(TCModule handle,
 #ifdef HAVE_GCC_ATTRIBUTES
 __attribute__((unused))
 #endif
-static int tc_module_multiplex(TCModule handle,
-                               vframe_list_t *vframe,
-                               aframe_list_t *aframe)
+static int tc_module_open(TCModule handle, const char *filename)
 {
-    return handle->klass->multiplex(&(handle->instance), vframe, aframe);
+    return handle->klass->open(&(handle->instance), filename);
 }
 
 #ifdef HAVE_GCC_ATTRIBUTES
 __attribute__((unused))
 #endif
-static int tc_module_demultiplex(TCModule handle,
-                                 vframe_list_t *vframe,
-                                 aframe_list_t *aframe)
+static int tc_module_close(TCModule handle)
 {
-    return handle->klass->demultiplex(&(handle->instance), vframe, aframe);
+    return handle->klass->close(&(handle->instance));
 }
+
+
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
+static int tc_module_write_video(TCModule handle, TCFrameVideo *frame)
+{
+    return handle->klass->write_video(&(handle->instance), frame);
+}
+
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
+static int tc_module_write_audio(TCModule handle, TCFrameAudio *frame)
+{
+    return handle->klass->write_audio(&(handle->instance), frame);
+}
+
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
+static int tc_module_read_video(TCModule handle, TCFrameVideo *frame)
+{
+    return handle->klass->read_video(&(handle->instance), frame);
+}
+
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
+static int tc_module_read_audio(TCModule handle, TCFrameAudio *frame)
+{
+    return handle->klass->read_audio(&(handle->instance), frame);
+}
+
 
 #ifdef HAVE_GCC_ATTRIBUTES
 __attribute__((unused))

@@ -456,8 +456,12 @@ static int lame_encode(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const TCCodecID lame_codecs_in[] = { TC_CODEC_PCM, TC_CODEC_ERROR };
-static const TCCodecID lame_codecs_out[] = { TC_CODEC_MP3, TC_CODEC_ERROR };
+static const TCCodecID lame_codecs_audio_in[] = { 
+    TC_CODEC_PCM, TC_CODEC_ERROR 
+};
+static const TCCodecID lame_codecs_audio_out[] = { 
+    TC_CODEC_MP3, TC_CODEC_ERROR 
+};
 TC_MODULE_VIDEO_UNSUPPORTED(lame);
 TC_MODULE_CODEC_FORMATS(lame);
 

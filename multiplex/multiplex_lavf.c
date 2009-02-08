@@ -122,7 +122,7 @@ static const struct fmt_desc fmt_descs[] = {
         .codecs_aud = {
             TC_CODEC_AAC,
             TC_CODEC_ERROR
-        }
+        },
         .codecs_vid = {
             TC_CODEC_MPEG4VIDEO, TC_CODEC_H264, TC_CODEC_SVQ1, TC_CODEC_SVQ3,
             TC_CODEC_ERROR
@@ -135,7 +135,7 @@ static const struct fmt_desc fmt_descs[] = {
         .codecs_aud = {
             TC_CODEC_AAC,
             TC_CODEC_ERROR
-        }
+        },
         .codecs_vid = {
             TC_CODEC_MPEG4VIDEO,
             TC_CODEC_ERROR
@@ -149,7 +149,7 @@ static const struct fmt_desc fmt_descs[] = {
         .codecs_aud = {
             TC_CODEC_MP3,
             TC_CODEC_ERROR,
-        }
+        },
         .codecs_vid = {
             TC_CODEC_MPEG4VIDEO,
             TC_CODEC_ERROR,
@@ -162,7 +162,7 @@ static const struct fmt_desc fmt_descs[] = {
         .lavf_flags = 0,
         .codecs_aud = {
             TC_CODEC_ERROR
-        }
+        },
         .codecs_aud = {
             TC_CODEC_ERROR
         }
@@ -507,7 +507,7 @@ static int tc_lavf_write(AVFormatContext *ctx, AVPacket *pkt,
 
 /*************************************************************************/
 
-static int tc_lavf_write_video(TCLavfPrivateData *pd,
+static int tc_lavf_write_video(TCModuleInstance *self,
                                TCFrameVideo *frame)
 {
 //    AVCodecContext *c = pd->vstream->codec;
@@ -721,6 +721,7 @@ static int tc_lavf_open(TCModuleInstance *self, const char *filename)
     int ret = 0;
     const struct fmt_desc *des = NULL;
     TCLavfPrivateData *pd = NULL;
+    vob_t *vob = tc_get_vob();
 
     TC_MODULE_SELF_CHECK(self, "configure");
 
@@ -755,6 +756,7 @@ static int tc_lavf_open(TCModuleInstance *self, const char *filename)
     return TC_OK;
 }
 
+#if 0
 static double tc_lavf_get_stream_pts(const AVStream *st)
 {
     if (!st) {
@@ -762,6 +764,7 @@ static double tc_lavf_get_stream_pts(const AVStream *st)
     }
     return (double)st->pts.val * st->time_base.num / st->time_base.den;
 }
+#endif
 
 /*************************************************************************/
 
@@ -779,7 +782,7 @@ static const TCModuleClass tc_lavf_class = {
     .inspect      = tc_lavf_inspect,
 
     .open         = tc_lavf_open,
-    .close        = tc_lavf_stop,
+    .close        = tc_lavf_close,
     .write_audio  = tc_lavf_write_audio,
     .write_video  = tc_lavf_write_video,
 };

@@ -172,7 +172,10 @@ static int tc_wav_fini(TCModuleInstance *self)
 
 /*************************************************************************/
 
-static const TCCodecID tc_wav_codecs_in[] = { 
+static const TCCodecID tc_wav_codecs_video_in[] = { 
+    TC_CODEC_ERROR
+};
+static const TCCodecID tc_wav_codecs_audio_in[] = { 
     TC_CODEC_PCM, TC_CODEC_ERROR
 };
 static const TCFormatID tc_wav_formats_out[] = { 

@@ -254,9 +254,13 @@ static const char tc_ogg_help[] = ""
     "    stream  enable shout streaming using given label as identifier\n"
     "    help    produce module overview and options explanations\n";
 
-static const TCCodecID tc_ogg_codecs_in[] = {
-    TC_CODEC_THEORA, TC_CODEC_VORBIS, TC_CODEC_ERROR
+static const TCCodecID tc_ogg_codecs_video_in[] = {
+    TC_CODEC_THEORA, TC_CODEC_ERROR
 };
+static const TCCodecID tc_ogg_codecs_audio_in[] = {
+    TC_CODEC_VORBIS, TC_CODEC_ERROR
+};
+
 
 typedef struct oggprivatedata_ OGGPrivateData;
 struct oggprivatedata_ {
@@ -397,9 +401,9 @@ static int tc_ogg_write(ogg_stream_state *os, FILE *f, TCShout *tcsh)
     } \
 } while (0)
 
-#define RETURN_IF_NOT_SUPPORTED(XD, MSG) do { \
+#define RETURN_IF_NOT_SUPPORTED(XD, CODECS, MSG) do { \
     if ((XD)) { \
-        if (!is_supported(tc_ogg_codecs_in, (XD)->magic)) { \
+        if (!is_supported((CODECS), (XD)->magic)) { \
             tc_log_error(MOD_NAME, (MSG)); \
             return TC_ERROR; \
         } \
@@ -409,8 +413,10 @@ static int tc_ogg_write(ogg_stream_state *os, FILE *f, TCShout *tcsh)
 static int tc_ogg_setup(OGGPrivateData *pd,
                         OGGExtraData *vxd, OGGExtraData *axd)
 {
-    RETURN_IF_NOT_SUPPORTED(vxd, "unrecognized video extradata");
-    RETURN_IF_NOT_SUPPORTED(axd, "unrecognized audio extradata");
+    RETURN_IF_NOT_SUPPORTED(vxd, tc_ogg_codecs_video_in, 
+                            "unrecognized video extradata");
+    RETURN_IF_NOT_SUPPORTED(axd, tc_ogg_codecs_audio_in,
+                            "unrecognized audio extradata");
 
     SETUP_STREAM_HEADER(&(pd->vs),   vxd, pd->outfile, &(pd->tcsh));
     SETUP_STREAM_HEADER(&(pd->as),   axd, pd->outfile, &(pd->tcsh));
@@ -476,7 +482,13 @@ static int tc_ogg_configure(TCModuleInstance *self,
 static int tc_ogg_open(TCModuleInstance *self,
                        const char *filename)
 {
-    int vserial, aserial;
+    int ret, vserial, aserial;
+    OGGPrivateData *pd = NULL;
+    vob_t *vob = tc_get_vob();
+
+    TC_MODULE_SELF_CHECK(self, "open");
+
+    pd = self->userdata;
 
     srand(time(NULL));
     /* need two inequal serial numbers */

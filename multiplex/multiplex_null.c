@@ -92,7 +92,8 @@ static int null_stop(TCModuleInstance *self)
 
 /*************************************************************************/
 
-static const TCCodecID null_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static const TCCodecID null_codecs_video_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static const TCCodecID null_codecs_audio_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
 static const TCFormatID null_formats_out[] = { TC_FORMAT_NULL, TC_FORMAT_ERROR };
 /* a multiplexor is at the end of pipeline */
 TC_MODULE_MPLEX_FORMATS_CODECS(null);

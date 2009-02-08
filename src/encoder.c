@@ -501,10 +501,10 @@ static void export_update_formats(vob_t *vob, const TCModuleInfo *vinfo,
      * the simplest things that work, now/
      */
     if (!(vob->export_attributes & TC_EXPORT_ATTRIBUTE_VCODEC)) {
-        vob->ex_v_codec = vinfo->codecs_out[0];
+        vob->ex_v_codec = vinfo->codecs_video_out[0];
     }
     if (!(vob->export_attributes & TC_EXPORT_ATTRIBUTE_ACODEC)) {
-        vob->ex_a_codec = ainfo->codecs_out[0];
+        vob->ex_a_codec = ainfo->codecs_audio_out[0];
     }
 }
 

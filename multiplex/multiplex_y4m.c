@@ -83,7 +83,7 @@ static int tc_y4m_inspect(TCModuleInstance *self,
     return TC_OK;
 }
 
-static int tc_y4m_open(Y4MPrivateData *pd, const char *filename)
+static int tc_y4m_open(TCModuleInstance *self, const char *filename)
 {
     int asr, ret;
     y4m_ratio_t framerate;

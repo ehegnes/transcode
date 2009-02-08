@@ -37,6 +37,7 @@
 
 #include "tcmodule-data.h"
 #include "tcmodule-core.h"
+#include "tcmodule-plugin.h"
 
 
 #define TC_FACTORY_MAX_HANDLERS     (16)
@@ -130,6 +131,14 @@ static int void_inspect(TCModuleInstance *self,
 
 /*************************************************************************/
 
+#define MOD_FEATURES TC_MODULE_FEATURE_NONE
+#define MOD_FLAGS TC_MODULE_FLAG_NONE
+#define MOD_VERSION "0.0.0"
+#define MOD_NAME "void"
+#define MOD_CAP "internal void module"
+#define MOD_DESCRIPTION "internal void module"
+
+
 static int void_open(TCModuleInstance *self,
                       const char *filename)
 {
@@ -200,7 +209,7 @@ static int void_flush_video(TCModuleInstance *self,
     TC_MODULE_SELF_CHECK(self,  "flush_video");
     TC_MODULE_SELF_CHECK(frame, "flush_video");
 
-    outframe->video_len = 0;
+    frame->video_len = 0;
     return TC_OK;
 }
 
@@ -210,39 +219,39 @@ static int void_flush_audio(TCModuleInstance *self,
     TC_MODULE_SELF_CHECK(self,  "flush_audio");
     TC_MODULE_SELF_CHECK(frame, "flush_audio");
 
-    outframe->audio_len = 0;
+    frame->audio_len = 0;
     return TC_OK;
 }
 
 static int void_filter_video(TCModuleInstance *self,
                              TCFrameVideo *frame)
 {
-    DUMMY_CHECK(self,  "filter_video");
-    DUMMY_CHECK(frame, "filter_video");
+    TC_MODULE_SELF_CHECK(self,  "filter_video");
+    TC_MODULE_SELF_CHECK(frame, "filter_video");
     return TC_OK;
 }
 
 static int void_filter_audio(TCModuleInstance *self,
                              TCFrameAudio *frame)
 {
-    DUMMY_CHECK(self,  "filter_audio");
-    DUMMY_CHECK(frame, "filter_audio");
+    TC_MODULE_SELF_CHECK(self,  "filter_audio");
+    TC_MODULE_SELF_CHECK(frame, "filter_audio");
     return TC_OK;
 }
 
 static int void_write_video(TCModuleInstance *self,
                             TCFrameVideo *frame)
 {
-    DUMMY_CHECK(self,  "write_video");
-    DUMMY_CHECK(frame, "write_video");
+    TC_MODULE_SELF_CHECK(self,  "write_video");
+    TC_MODULE_SELF_CHECK(frame, "write_video");
     return 0;
 }
 
 static int void_write_audio(TCModuleInstance *self,
                             TCFrameAudio *frame)
 {
-    DUMMY_CHECK(self,  "write_audio");
-    DUMMY_CHECK(frame, "write_audio");
+    TC_MODULE_SELF_CHECK(self,  "write_audio");
+    TC_MODULE_SELF_CHECK(frame, "write_audio");
     return 0;
 }
 
@@ -250,42 +259,42 @@ static int void_write_audio(TCModuleInstance *self,
 static int void_read_video(TCModuleInstance *self,
                            TCFrameVideo *frame)
 {
-    DUMMY_CHECK(self,  "read_video");
-    DUMMY_CHECK(frame, "read_video");
+    TC_MODULE_SELF_CHECK(self,  "read_video");
+    TC_MODULE_SELF_CHECK(frame, "read_video");
     return 0;
 }
 
 static int void_read_audio(TCModuleInstance *self,
                            TCFrameAudio *frame)
 {
-    DUMMY_CHECK(self,  "read_audio");
-    DUMMY_CHECK(frame, "read_audio");
+    TC_MODULE_SELF_CHECK(self,  "read_audio");
+    TC_MODULE_SELF_CHECK(frame, "read_audio");
     return 0;
 }
 
 
 /*************************************************************************/
 
-static const TCCodecID void_codecs_in[] = { 
+static const TCCodecID void_codecs_video_in[] = { 
     TC_CODEC_ANY, TC_CODEC_ERROR 
 };
-static const TCCodecID void_codecs_out[] = { 
+static const TCCodecID void_codecs_video_out[] = { 
+    TC_CODEC_ANY, TC_CODEC_ERROR 
+};
+static const TCCodecID void_codecs_audio_in[] = { 
+    TC_CODEC_ANY, TC_CODEC_ERROR 
+};
+static const TCCodecID void_codecs_audio_out[] = { 
     TC_CODEC_ANY, TC_CODEC_ERROR 
 };
 static const TCFormatID void_formats_in[] = { 
-    TC_FORMAT_ERROR 
+    TC_FORMAT_ANY, TC_FORMAT_ERROR 
 };
 static const TCFormatID void_formats_out[] = { 
-    TC_FORMAT_ERROR 
+    TC_FORMAT_ANY, TC_FORMAT_ERROR 
 };
 
-#define MOD_FEATURS TC_MODULE_FEATURE_NONE
-#define MOD_FLAGS TC_MODULE_FLAG_NONE
-#define MOD_VERSION "0.0.0"
-#define MOD_NAME "void"
-#define MOD_DESCRIPTION "internal void module"
-
-TC_MODULE_INFO(dummy);
+TC_MODULE_INFO(void);
 
 static const TCModuleClass void_class = {
     .id           = 0,
@@ -299,7 +308,7 @@ static const TCModuleClass void_class = {
     .stop         = void_stop,
 
     .open         = void_open,
-    .close        = void_close
+    .close        = void_close,
 
     .encode_audio = void_encode_audio,
     .encode_video = void_encode_video,
@@ -642,14 +651,18 @@ static int tc_module_class_copy(const TCModuleClass *klass,
 
     nklass->info      = klass->info;
 
+    COPY_IF_NOT_NULL(open);
+    COPY_IF_NOT_NULL(close);
     COPY_IF_NOT_NULL(encode_audio);
     COPY_IF_NOT_NULL(encode_video);
     COPY_IF_NOT_NULL(decode_audio);
     COPY_IF_NOT_NULL(decode_video);
     COPY_IF_NOT_NULL(filter_audio);
     COPY_IF_NOT_NULL(filter_video);
-    COPY_IF_NOT_NULL(multiplex);
-    COPY_IF_NOT_NULL(demultiplex);
+    COPY_IF_NOT_NULL(write_video);
+    COPY_IF_NOT_NULL(write_video);
+    COPY_IF_NOT_NULL(read_video);
+    COPY_IF_NOT_NULL(read_audio);
 
     return 0;
 }

@@ -120,7 +120,7 @@ static int avi_open(TCModuleInstance *self,
     }
 
 	AVI_set_video(pd->avifile, vob->ex_v_width, vob->ex_v_height,
-	              vob->ex_fps, fcc);
+	              vob->ex_fps, pd->fcc);
 
     AVI_set_audio_track(pd->avifile, vob->a_track);
     AVI_set_audio(pd->avifile, vob->dm_chan, pd->arate, vob->dm_bits,
@@ -154,7 +154,7 @@ static int avi_close(TCModuleInstance *self)
     return TC_OK;
 }
 
-static int avi_write_video(TCModuleInstance *self,  TCFrameVideo *frame);
+static int avi_write_video(TCModuleInstance *self,  TCFrameVideo *frame)
 {
     uint32_t size_before, size_after;
     int ret, key = 0;
@@ -166,11 +166,11 @@ static int avi_write_video(TCModuleInstance *self,  TCFrameVideo *frame);
     pd = self->userdata;
     size_before = AVI_bytes_written(pd->avifile);
 
-    key = ((vframe->attributes & TC_FRAME_IS_KEYFRAME)
+    key = ((frame->attributes & TC_FRAME_IS_KEYFRAME)
            || pd->force_kf) ?1 :0;
 
-    ret = AVI_write_frame(pd->avifile, (const char*)vframe->video_buf,
-                          vframe->video_len, key);
+    ret = AVI_write_frame(pd->avifile, (const char*)frame->video_buf,
+                          frame->video_len, key);
 
     if(ret < 0) {
         tc_log_error(MOD_NAME, "avilib error writing video: %s",
@@ -183,7 +183,7 @@ static int avi_write_video(TCModuleInstance *self,  TCFrameVideo *frame);
 }
 
 
-static int avi_write_audio(TCModuleInstance *self,  TCFrameAudio *frame);
+static int avi_write_audio(TCModuleInstance *self,  TCFrameAudio *frame)
 {
     uint32_t size_before, size_after;
     int ret;
@@ -195,8 +195,8 @@ static int avi_write_audio(TCModuleInstance *self,  TCFrameAudio *frame);
     pd = self->userdata;
     size_before = AVI_bytes_written(pd->avifile);
 
- 	ret = AVI_write_audio(pd->avifile, (const char*)aframe->audio_buf,
-                          aframe->audio_len);
+ 	ret = AVI_write_audio(pd->avifile, (const char*)frame->audio_buf,
+                          frame->audio_len);
     if (ret < 0) {
         tc_log_error(MOD_NAME, "avilib error writing audio: %s",
                      AVI_strerror());
