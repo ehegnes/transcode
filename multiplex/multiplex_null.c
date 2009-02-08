@@ -90,24 +90,6 @@ static int null_stop(TCModuleInstance *self)
     return TC_OK;
 }
 
-static int null_multiplex(TCModuleInstance *self,
-                         vframe_list_t *vframe, aframe_list_t *aframe)
-{
-    int asize = 0, vsize = 0;
-
-    TC_MODULE_SELF_CHECK(self, "multiplex");
-
-    if (vframe != NULL) {
-        vsize = vframe->video_len;
-    }
-
-    if (aframe != NULL) {
-        asize = aframe->audio_len;
-    }
-
-    return vsize + asize;
-}
-
 /*************************************************************************/
 
 static const TCCodecID null_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
@@ -125,8 +107,6 @@ static const TCModuleClass null_class = {
     .configure    = null_configure,
     .stop         = null_stop,
     .inspect      = null_inspect,
-
-    .multiplex    = null_multiplex,
 };
 
 TC_MODULE_ENTRY_POINT(null)

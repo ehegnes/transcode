@@ -27,7 +27,7 @@
 #include "avilib/avilib.h"
 
 #define MOD_NAME    "multiplex_avi.so"
-#define MOD_VERSION "v0.0.2 (2005-12-29)"
+#define MOD_VERSION "v0.1.0 (2009-02-07)"
 #define MOD_CAP     "create an AVI stream using avilib"
 
 #define MOD_FEATURES \
@@ -52,6 +52,10 @@ static const char avi_help[] = ""
 typedef struct {
     avi_t *avifile;
     int force_kf; /* boolean flag */
+    vob_t *vob;
+    int arate;
+    int abitrate;
+    const char *fcc;
 } AVIPrivateData;
 
 static int avi_inspect(TCModuleInstance *self,
@@ -69,24 +73,23 @@ static int avi_inspect(TCModuleInstance *self,
 static int avi_configure(TCModuleInstance *self,
                           const char *options, vob_t *vob)
 {
-    const char *fcc = NULL;
     AVIPrivateData *pd = NULL;
-    int arate = (vob->mp3frequency != 0)
-                    ?vob->mp3frequency :vob->a_rate;
-    int abitrate = (vob->ex_a_codec == TC_CODEC_PCM)
-                    ?(vob->a_rate*4)/1000*8 :vob->mp3bitrate;
 
     TC_MODULE_SELF_CHECK(self, "configure");
     TC_MODULE_SELF_CHECK(vob, "configure"); /* hackish? */
 
     pd = self->userdata;
-
-    fcc = tc_codec_fourcc(vob->ex_v_codec);
-    if (fcc == NULL) {
-        fcc = DEFAULT_FOURCC;
+    pd->vob      = vob;
+    pd->arate    = (vob->mp3frequency != 0)
+                    ?vob->mp3frequency :vob->a_rate;
+    pd->abitrate = (vob->ex_a_codec == TC_CODEC_PCM)
+                    ?(vob->a_rate*4)/1000*8 :vob->mp3bitrate;
+    pd->fcc      = tc_codec_fourcc(vob->ex_v_codec);
+    if (pd->fcc == NULL) {
+        pd->fcc = DEFAULT_FOURCC;
     }
     if (verbose >= TC_DEBUG) {
-        tc_log_info(MOD_NAME, "AVI FourCC: '%s'", fcc);
+        tc_log_info(MOD_NAME, "AVI FourCC: '%s'", pd->fcc);
     }
 
     if (vob->ex_v_codec == TC_CODEC_RGB24
@@ -96,6 +99,19 @@ static int avi_configure(TCModuleInstance *self,
     } else {
         pd->force_kf = TC_FALSE;
     }
+    return TC_OK;
+}
+
+static int avi_open(TCModuleInstance *self,
+                    const char *filename)
+{
+    AVIPrivateData *pd = NULL;
+    vob_t *vob = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "configure");
+
+    pd = self->userdata;
+    vob = pd->vob;
 
     pd->avifile = AVI_open_output_file(vob->video_out_file);
     if(!pd->avifile) {
@@ -107,8 +123,8 @@ static int avi_configure(TCModuleInstance *self,
 	              vob->ex_fps, fcc);
 
     AVI_set_audio_track(pd->avifile, vob->a_track);
-    AVI_set_audio(pd->avifile, vob->dm_chan, arate, vob->dm_bits,
-                  vob->ex_a_codec, abitrate);
+    AVI_set_audio(pd->avifile, vob->dm_chan, pd->arate, vob->dm_bits,
+                  vob->ex_a_codec, pd->abitrate);
     AVI_set_audio_vbr(pd->avifile, vob->a_vbr);
 
     return TC_OK;
@@ -116,9 +132,17 @@ static int avi_configure(TCModuleInstance *self,
 
 static int avi_stop(TCModuleInstance *self)
 {
+    /* do nothing succesfully */
+    TC_MODULE_SELF_CHECK(self, "stop");
+    return TC_OK;
+}
+
+
+static int avi_close(TCModuleInstance *self)
+{
     AVIPrivateData *pd = NULL;
 
-    TC_MODULE_SELF_CHECK(self, "stop");
+    TC_MODULE_SELF_CHECK(self, "close");
 
     pd = self->userdata;
 
@@ -130,45 +154,56 @@ static int avi_stop(TCModuleInstance *self)
     return TC_OK;
 }
 
-static int avi_multiplex(TCModuleInstance *self,
-                         vframe_list_t *vframe, aframe_list_t *aframe)
+static int avi_write_video(TCModuleInstance *self,  TCFrameVideo *frame);
+{
+    uint32_t size_before, size_after;
+    int ret, key = 0;
+
+    AVIPrivateData *pd = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "write_video");
+
+    pd = self->userdata;
+    size_before = AVI_bytes_written(pd->avifile);
+
+    key = ((vframe->attributes & TC_FRAME_IS_KEYFRAME)
+           || pd->force_kf) ?1 :0;
+
+    ret = AVI_write_frame(pd->avifile, (const char*)vframe->video_buf,
+                          vframe->video_len, key);
+
+    if(ret < 0) {
+        tc_log_error(MOD_NAME, "avilib error writing video: %s",
+                     AVI_strerror());
+        return TC_ERROR;
+    }
+
+    size_after = AVI_bytes_written(pd->avifile);
+    return (size_after - size_before);
+}
+
+
+static int avi_write_audio(TCModuleInstance *self,  TCFrameAudio *frame);
 {
     uint32_t size_before, size_after;
     int ret;
 
     AVIPrivateData *pd = NULL;
 
-    TC_MODULE_SELF_CHECK(self, "multiplex");
+    TC_MODULE_SELF_CHECK(self, "write_audio");
 
     pd = self->userdata;
     size_before = AVI_bytes_written(pd->avifile);
 
-    if (vframe != NULL && vframe->video_len > 0) {
-        int key = ((vframe->attributes & TC_FRAME_IS_KEYFRAME)
-                        || pd->force_kf) ?1 :0;
-
-        ret = AVI_write_frame(pd->avifile, (const char*)vframe->video_buf,
-                              vframe->video_len, key);
-
-        if(ret < 0) {
-            tc_log_error(MOD_NAME, "avilib error writing video: %s",
-                         AVI_strerror());
-            return TC_ERROR;
-        }
-    }
-
-    if (aframe != NULL && aframe->audio_len > 0) {
- 		ret = AVI_write_audio(pd->avifile, (const char*)aframe->audio_buf,
-                              aframe->audio_len);
- 		if (ret < 0) {
-            tc_log_error(MOD_NAME, "avilib error writing audio: %s",
-                         AVI_strerror());
-			return TC_ERROR;
-		}
-    }
+ 	ret = AVI_write_audio(pd->avifile, (const char*)aframe->audio_buf,
+                          aframe->audio_len);
+    if (ret < 0) {
+        tc_log_error(MOD_NAME, "avilib error writing audio: %s",
+                     AVI_strerror());
+	    return TC_ERROR;
+	}
 
     size_after = AVI_bytes_written(pd->avifile);
-
     return (size_after - size_before);
 }
 
@@ -203,8 +238,6 @@ static int avi_fini(TCModuleInstance *self)
 {
     TC_MODULE_SELF_CHECK(self, "fini");
 
-    avi_stop(self);
-
     tc_free(self->userdata);
     self->userdata = NULL;
 
@@ -213,9 +246,12 @@ static int avi_fini(TCModuleInstance *self)
 
 /*************************************************************************/
 
-static const TCCodecID avi_codecs_in[] = {
+static const TCCodecID avi_codecs_audio_in[] = {
     TC_CODEC_PCM, TC_CODEC_AC3, TC_CODEC_MP2, TC_CODEC_MP3,
     TC_CODEC_AAC, /* FIXME: that means asking for troubles */
+    TC_CODEC_ERROR
+};
+static const TCCodecID avi_codecs_video_in[] = {
     TC_CODEC_YUV420P, TC_CODEC_DV,
     TC_CODEC_DIVX3, TC_CODEC_DIVX4, TC_CODEC_DIVX5, TC_CODEC_XVID,
     TC_CODEC_H264, /* FIXME: that means asking for troubles */
@@ -238,7 +274,10 @@ static const TCModuleClass avi_class = {
     .stop         = avi_stop,
     .inspect      = avi_inspect,
 
-    .multiplex    = avi_multiplex,
+    .open         = avi_open,
+    .close        = avi_close,
+    .write_audio  = avi_write_audio,
+    .write_video  = avi_write_video,
 };
 
 TC_MODULE_ENTRY_POINT(avi)

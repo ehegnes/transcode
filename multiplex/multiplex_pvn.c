@@ -21,7 +21,7 @@
 #define MOD_NAME        "multiplex_pvn.so"
 #endif
 
-#define MOD_VERSION     "v1.0 (2006-10-06)"
+#define MOD_VERSION     "v1.1.0 (2009-02-08)"
 #define MOD_CAP         "Writes PVN video files"
 #define MOD_AUTHOR      "Andrew Church"
 
@@ -47,6 +47,8 @@ typedef struct {
     int fd;                // Output file descriptor
     int framecount;        // Number of frames written
     off_t framecount_pos;  // File position of frame count (for rewriting)
+    int decolor;
+    double ex_fps;
 } PrivateData;
 
 /*************************************************************************/
@@ -56,8 +58,8 @@ typedef struct {
 int pvn_init(TCModuleInstance *self, uint32_t features);
 int pvn_configure(TCModuleInstance *self, const char *options, vob_t *vob);
 int pvn_fini(TCModuleInstance *self);
-int pvn_multiplex(TCModuleInstance *self,
-                  vframe_list_t *vframe, aframe_list_t *aframe);
+int pvn_write_video(TCModuleInstance *self,
+                    TCFrameVideo *vframe);
 #endif
 
 /*************************************************************************/
@@ -70,12 +72,21 @@ int pvn_multiplex(TCModuleInstance *self,
  * pvn_stop:  Reset this instance of the module.  See tcmodule-data.h for
  * function details.
  */
-
 static int pvn_stop(TCModuleInstance *self)
+{
+    TC_MODULE_SELF_CHECK(self, "stop");
+    return TC_OK;
+}
+
+/**
+ * pvn_stop:  Close the file used for processing.  See tcmodule-data.h for
+ * function details.
+ */
+static int pvn_close(TCModuleInstance *self)
 {
     PrivateData *pd = NULL;
 
-    TC_MODULE_SELF_CHECK(self, "stop");
+    TC_MODULE_SELF_CHECK(self, "close");
 
     pd = self->userdata;
 
@@ -107,49 +118,61 @@ METHOD int pvn_configure(TCModuleInstance *self,
                          const char *options, vob_t *vob)
 {
     PrivateData *pd = NULL;
-    char buf[TC_BUF_MAX];
-    int len;
 
     TC_MODULE_SELF_CHECK(self, "configure");
 
-    pd->width  = vob->ex_v_width;
-    pd->height = vob->ex_v_height;
+    pd->width   = vob->ex_v_width;
+    pd->height  = vob->ex_v_height;
+    pd->decolor = vob->decolor;
+    pd->ex_fpd  = vob->ex_fps;
+
+    return TC_OK;
+}
+
+METHOD int pvn_open(TCModuleInstance *self, const char *filename)
+{
+    char buf[TC_BUF_MAX] = { '\0' };
+    int len = 0;
+    PrivateData *pd = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "open");
+
     /* FIXME: stdout should be handled in a more standard fashion */
-    if (strcmp(vob->video_out_file, "-") == 0) {  // allow /dev/stdout too?
+    if (strcmp(filename, "-") == 0) {  // allow /dev/stdout too?
         pd->fd = 1;
     } else {
-        pd->fd = open(vob->video_out_file, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        pd->fd = open(filename, O_WRONLY | O_CREAT | O_TRUNC, 0666);
         if (pd->fd < 0) {
             tc_log_error(MOD_NAME, "Unable to open %s: %s",
-                         vob->video_out_file, strerror(errno));
+                         filename, strerror(errno));
             goto fail;
         }
     }
     len = tc_snprintf(buf, sizeof(buf), "PV%da\r\n%d %d\r\n",
-                      vob->decolor ? 5 : 6,
+                      pd->decolor ? 5 : 6,
                       pd->width, pd->height);
     if (len < 0)
         goto fail;
     if (tc_pwrite(pd->fd, buf, len) != len) {
         tc_log_error(MOD_NAME, "Unable to write header to %s: %s",
-                     vob->video_out_file, strerror(errno));
+                     filename, strerror(errno));
         goto fail;
     }
     pd->framecount_pos = lseek(pd->fd, 0, SEEK_CUR);  // failure okay
     len = tc_snprintf(buf, sizeof(buf), "%10d\r\n8\r\n%lf\r\n",
-                      0, (double)vob->ex_fps);
+                      0, (double)pd->ex_fps);
     if (len < 0)
         goto fail;
     if (tc_pwrite(pd->fd, buf, len) != len) {
         tc_log_error(MOD_NAME, "Unable to write header to %s: %s",
-                     vob->video_out_file, strerror(errno));
+                     filename, strerror(errno));
         goto fail;
     }
 
     return TC_OK;
 
   fail:
-    pvn_stop(self);
+    pvn_close(self);
     return TC_ERROR;
 }
 
@@ -235,12 +258,12 @@ static int pvn_inspect(TCModuleInstance *self,
 /*************************************************************************/
 
 /**
- * pvn_multiplex:  Multiplex a frame of data.  See tcmodule-data.h for
+ * pvn_write_video:  Multiplex a frame of data.  See tcmodule-data.h for
  * function details.
  */
 
-METHOD int pvn_multiplex(TCModuleInstance *self,
-                         vframe_list_t *vframe, aframe_list_t *aframe)
+METHOD int pvn_write_video(TCModuleInstance *self,
+                           TCFrameVideo *vframe)
 {
     PrivateData *pd = NULL;
 
@@ -279,8 +302,15 @@ METHOD int pvn_multiplex(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const TCCodecID pvn_codecs_in[] = { TC_CODEC_RGB24, TC_CODEC_ERROR };
-static const TCFormatID pvn_formats_out[] = { TC_FORMAT_PVN, TC_CODEC_ERROR };
+static const TCCodecID pvn_codecs_audio_in[] = { 
+    TC_CODEC_ERROR 
+};
+static const TCCodecID pvn_codecs_video_in[] = { 
+    TC_CODEC_RGB24, TC_CODEC_ERROR 
+};
+static const TCFormatID pvn_formats_video_out[] = { 
+    TC_FORMAT_PVN, TC_CODEC_ERROR 
+};
 /* a multiplexor is at the end of pipeline */
 TC_MODULE_MPLEX_FORMATS_CODECS(pvn);
 
@@ -289,13 +319,15 @@ TC_MODULE_INFO(pvn);
 static const TCModuleClass pvn_class = {
     TC_MODULE_CLASS_HEAD(pvn),
 
-    .init      = pvn_init,
-    .fini      = pvn_fini,
-    .configure = pvn_configure,
-    .stop      = pvn_stop,
-    .inspect   = pvn_inspect,
+    .init        = pvn_init,
+    .fini        = pvn_fini,
+    .configure   = pvn_configure,
+    .stop        = pvn_stop,
+    .inspect     = pvn_inspect,
 
-    .multiplex = pvn_multiplex,
+    .open        = pvn_open,
+    .close       = pvn_close,
+    .write_video = pvn_write_video,
 };
 
 TC_MODULE_ENTRY_POINT(pvn);

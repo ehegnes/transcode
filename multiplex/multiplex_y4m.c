@@ -42,7 +42,7 @@
 #endif
 
 #define MOD_NAME    "multiplex_y4m.so"
-#define MOD_VERSION "v0.1.0 (2007-11-17)"
+#define MOD_VERSION "v0.2.0 (2009-02-08)"
 #define MOD_CAP     "write YUV4MPEG2 video stream"
 
 #define MOD_FEATURES \
@@ -67,6 +67,7 @@ typedef struct {
 
     int width;
     int height;
+    vob_t *vob;
 } Y4MPrivateData;
 
 
@@ -82,12 +83,18 @@ static int tc_y4m_inspect(TCModuleInstance *self,
     return TC_OK;
 }
 
-static int tc_y4m_open_video(Y4MPrivateData *pd, const char *filename,
-                             vob_t *vob)
+static int tc_y4m_open(Y4MPrivateData *pd, const char *filename)
 {
     int asr, ret;
     y4m_ratio_t framerate;
     y4m_ratio_t asr_rate;
+    Y4MPrivateData *pd = NULL;
+    vob_t *vob = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "open");
+
+    pd  = self->userdata;
+    vob = pd->vob;
 
     /* avoid fd loss in case of failed configuration */
     if (pd->fd_vid == -1) {
@@ -155,15 +162,23 @@ static int tc_y4m_configure(TCModuleInstance *self,
 
     pd->width  = vob->ex_v_width;
     pd->height = vob->ex_v_height;
+    pd->vob    = vob;
     
-    return tc_y4m_open_video(pd, vob->video_out_file, vob);
+    return TC_OK;
 }
 
 static int tc_y4m_stop(TCModuleInstance *self)
 {
+    TC_MODULE_SELF_CHECK(self, "stop");
+
+    return TC_OK;
+}
+
+static int tc_y4m_close(TCModuleInstance *self)
+{
     Y4MPrivateData *pd = NULL;
 
-    TC_MODULE_SELF_CHECK(self, "stop");
+    TC_MODULE_SELF_CHECK(self, "close");
 
     pd = self->userdata;
 
@@ -183,37 +198,31 @@ static int tc_y4m_stop(TCModuleInstance *self)
     return TC_OK;
 }
 
-static int tc_y4m_multiplex(TCModuleInstance *self,
-                            vframe_list_t *vframe, aframe_list_t *aframe)
+static int tc_y4m_write_video(TCModuleInstance *self,
+                              TCFrameVideo *vframe)
 {
+    uint8_t *planes[3] = { NULL, NULL, NULL };
     ssize_t w_vid = 0;
+    int ret = 0;
 
     Y4MPrivateData *pd = NULL;
 
-    TC_MODULE_SELF_CHECK(self, "multiplex");
+    TC_MODULE_SELF_CHECK(self, "write_video");
 
     pd = self->userdata;
-    if (vframe != NULL && vframe->video_len > 0) {
-        uint8_t *planes[3] = { NULL, NULL, NULL };
-        int ret = 0;
 
-        y4m_init_frame_info(&pd->frameinfo);
-        YUV_INIT_PLANES(planes, vframe->video_buf, IMG_YUV420P,
-                        pd->width, pd->height);
+    y4m_init_frame_info(&pd->frameinfo);
+    YUV_INIT_PLANES(planes, vframe->video_buf, IMG_YUV420P,
+                    pd->width, pd->height);
         
-        ret = y4m_write_frame(pd->fd_vid, &(pd->streaminfo),
-                                 &pd->frameinfo, planes);
-        if (ret != Y4M_OK) {
-            tc_log_warn(MOD_NAME, "error while writing video frame: %s",
-                                  y4m_strerr(ret));
-            return TC_ERROR;
-        }
-        w_vid = vframe->video_len;
+    ret = y4m_write_frame(pd->fd_vid, &(pd->streaminfo),
+                             &pd->frameinfo, planes);
+    if (ret != Y4M_OK) {
+        tc_log_warn(MOD_NAME, "error while writing video frame: %s",
+                              y4m_strerr(ret));
+        return TC_ERROR;
     }
-
-    if (aframe != NULL && aframe->audio_len > 0) {
-        return TC_OK;
-    }
+    w_vid = vframe->video_len;
 
     return (int)w_vid;
 }
@@ -260,8 +269,11 @@ static int tc_y4m_fini(TCModuleInstance *self)
 
 /*************************************************************************/
 
-static const TCCodecID tc_y4m_codecs_in[] = { 
+static const TCCodecID tc_y4m_codecs_video_in[] = { 
     TC_CODEC_YUV420P, TC_CODEC_ERROR
+};
+static const TCCodecID tc_y4m_codecs_audio_in[] = { 
+    TC_CODEC_ERROR
 };
 static const TCFormatID tc_y4m_formats_out[] = { 
     TC_FORMAT_YUV4MPEG, TC_FORMAT_ERROR
@@ -280,7 +292,9 @@ static const TCModuleClass tc_y4m_class = {
     .stop         = tc_y4m_stop,
     .inspect      = tc_y4m_inspect,
 
-    .multiplex    = tc_y4m_multiplex,
+    .open         = tc_y4m_open,
+    .close        = tc_y4m_close,
+    .write_video  = tc_y4m_write_video,
 };
 
 TC_MODULE_ENTRY_POINT(tc_y4m);

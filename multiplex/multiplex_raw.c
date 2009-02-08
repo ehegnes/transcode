@@ -31,7 +31,7 @@
 #include "libtcmodule/tcmodule-plugin.h"
 
 #define MOD_NAME    "multiplex_raw.so"
-#define MOD_VERSION "v0.0.3 (2006-03-06)"
+#define MOD_VERSION "v0.1.0 (2009-02-07)"
 #define MOD_CAP     "write each stream in a separate file"
 
 #define MOD_FEATURES \
@@ -55,8 +55,9 @@ static const char raw_help[] = ""
     "    help    produce module overview and options explanations\n";
 
 typedef struct {
-    int fd_aud;
-    int fd_vid;
+    int      fd_aud;
+    int      fd_vid;
+    uint32_t features;
 } RawPrivateData;
 
 static int raw_inspect(TCModuleInstance *self,
@@ -74,30 +75,48 @@ static int raw_inspect(TCModuleInstance *self,
 static int raw_configure(TCModuleInstance *self,
                          const char *options, vob_t *vob)
 {
-    char vid_name[PATH_MAX];
-    char aud_name[PATH_MAX];
+    TC_MODULE_SELF_CHECK(self, "configure");
+    return TC_OK;
+}
+
+static int raw_stop(TCModuleInstance *self)
+{
+    TC_MODULE_SELF_CHECK(self, "stop");
+    return TC_OK;
+}
+
+
+#define HAS_VIDEO(PD)   ((PD)->features & TC_MODULE_FEATURE_VIDEO) 
+#define HAS_AUDIO(PD)   ((PD)->features & TC_MODULE_FEATURE_AUDIO) 
+
+static int raw_open(TCModuleInstance *self, const char *filename)
+{
+    char vid_name[PATH_MAX] = { '\0' };
+    char aud_name[PATH_MAX] = { '\0' };
     RawPrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "configure");
 
     pd = self->userdata;
 
-    // XXX
-    if (vob->audio_out_file == NULL
-      || !strcmp(vob->audio_out_file, "/dev/null")) {
+    if (HAS_VIDEO(pd) && HAS_AUDIO(pd)) {
         /* use affine names */
         tc_snprintf(vid_name, PATH_MAX, "%s.%s",
-                    vob->video_out_file, RAW_VID_EXT);
+                    filename, RAW_VID_EXT);
         tc_snprintf(aud_name, PATH_MAX, "%s.%s",
-                    vob->video_out_file, RAW_AUD_EXT);
+                    filename, RAW_AUD_EXT);
+    } else if (HAS_VIDEO(pd)) {
+        strlcpy(vid_name, filename, PATH_MAX);
+    } else if (HAS_AUDIO(pd)) {
+        strlcpy(aud_name, filename, PATH_MAX);
     } else {
-        /* copy names verbatim */
-        strlcpy(vid_name, vob->video_out_file, PATH_MAX);
-        strlcpy(aud_name, vob->audio_out_file, PATH_MAX);
+        /* cannot happen */
+        tc_log_error(MOD_NAME, "missing filename!");
+        return TC_ERROR;
     }
     
     /* avoid fd loss in case of failed configuration */
-    if (pd->fd_vid == -1) {
+    if (HAS_VIDEO(pd) && pd->fd_vid == -1) {
         pd->fd_vid = open(vid_name,
                           O_RDWR|O_CREAT|O_TRUNC,
                           S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
@@ -108,7 +127,7 @@ static int raw_configure(TCModuleInstance *self,
     }
 
     /* avoid fd loss in case of failed configuration */
-    if (pd->fd_aud == -1) {
+    if (HAS_AUDIO(pd) && pd->fd_aud == -1) {
         pd->fd_aud = open(aud_name,
                           O_RDWR|O_CREAT|O_TRUNC,
                           S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
@@ -126,7 +145,7 @@ static int raw_configure(TCModuleInstance *self,
     return TC_OK;
 }
 
-static int raw_stop(TCModuleInstance *self)
+static int raw_close(TCModuleInstance *self)
 {
     RawPrivateData *pd = NULL;
     int verr, aerr;
@@ -158,33 +177,42 @@ static int raw_stop(TCModuleInstance *self)
     return TC_OK;
 }
 
-static int raw_multiplex(TCModuleInstance *self,
-                         vframe_list_t *vframe, aframe_list_t *aframe)
+static int raw_write_video(TCModuleInstance *self, TCFrameVideo *frame)
 {
-    ssize_t w_aud = 0, w_vid = 0;
+    ssize_t w_vid = 0;
 
     RawPrivateData *pd = NULL;
 
-    TC_MODULE_SELF_CHECK(self, "multiplex");
+    TC_MODULE_SELF_CHECK(self, "write_video");
 
     pd = self->userdata;
 
-    if (vframe != NULL && vframe->video_len > 0) {
-        w_vid = tc_pwrite(pd->fd_vid, vframe->video_buf, vframe->video_len);
-        if(w_vid < 0) {
-            return TC_ERROR;
-        }
+    w_vid = tc_pwrite(pd->fd_vid, frame->video_buf, frame->video_len);
+    if(w_vid < 0) {
+        return TC_ERROR;
     }
 
-    if (aframe != NULL && aframe->audio_len > 0) {
-        w_aud = tc_pwrite(pd->fd_aud, aframe->audio_buf, aframe->audio_len);
- 		if (w_aud < 0) {
-			return TC_ERROR;
-		}
-    }
-
-    return (int)(w_vid + w_aud);
+    return (int)(w_vid);
 }
+
+static int raw_write_audio(TCModuleInstance *self, TCFrameAudio *frame)
+{
+    ssize_t w_aud = 0;
+
+    RawPrivateData *pd = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "write_audio");
+
+    pd = self->userdata;
+
+    w_aud = tc_pwrite(pd->fd_aud, frame->audio_buf, frame->audio_len);
+ 	if (w_aud < 0) {
+	    return TC_ERROR;
+    }
+
+    return (int)(w_aud);
+}
+
 
 static int raw_init(TCModuleInstance *self, uint32_t features)
 {
@@ -198,8 +226,9 @@ static int raw_init(TCModuleInstance *self, uint32_t features)
         return TC_ERROR;
     }
 
-    pd->fd_aud = -1;
-    pd->fd_vid = -1;
+    pd->fd_aud   = -1;
+    pd->fd_vid   = -1;
+    pd->features = features;
 
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
@@ -213,8 +242,6 @@ static int raw_fini(TCModuleInstance *self)
 {
     TC_MODULE_SELF_CHECK(self, "fini");
 
-    raw_stop(self);
-
     tc_free(self->userdata);
     self->userdata = NULL;
 
@@ -224,7 +251,12 @@ static int raw_fini(TCModuleInstance *self)
 
 /*************************************************************************/
 
-static const TCCodecID raw_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static const TCCodecID raw_codecs_video_in[] = { 
+    TC_CODEC_ANY, TC_CODEC_ERROR 
+};
+static const TCCodecID raw_codecs_audio_in[] = { 
+    TC_CODEC_ANY, TC_CODEC_ERROR 
+};
 static const TCFormatID raw_formats_out[] = { TC_FORMAT_RAW, TC_FORMAT_ERROR };
 /* a multiplexor is at the end of pipeline */
 TC_MODULE_MPLEX_FORMATS_CODECS(raw);
@@ -240,7 +272,10 @@ static const TCModuleClass raw_class = {
     .stop         = raw_stop,
     .inspect      = raw_inspect,
 
-    .multiplex    = raw_multiplex,
+    .open         = raw_open,
+    .close        = raw_close,
+    .write_video  = raw_write_video,
+    .write_audio  = raw_write_audio,
 };
 
 TC_MODULE_ENTRY_POINT(raw)
