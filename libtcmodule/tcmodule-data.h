@@ -110,20 +110,6 @@ struct tcmoduleinstance_ {
     // FIXME: add status to enforce correct operation sequence?
 };
 
-typedef struct tcmoduleactions_ TCModuleActions;
-struct tcmoduleactions_ {
-    int (*open)(TCModuleInstance *self, const char *filename);
-    int (*close)(TCModuleInstance *self);
-
-    int (*encode)(TCModuleInstance *self,
-                  TCFramePtr inframe, TCFramePtr outframe);
-    int (*decode)(TCModuleInstance *self,
-                  TCFramePtr inframe, TCFramePtr outframe);
-    int (*filter)(TCModuleInstance *self, TCFramePtr frame);
-    int (*write)(TCModuleInstance *self, TCFramePtr frame);
-    int (*read)(TCModuleInstance *self, TCFramePtr frame);
-};
-
 /* can be shared between _all_ instances */
 typedef struct tcmoduleclass_ TCModuleClass;
 struct tcmoduleclass_ {
