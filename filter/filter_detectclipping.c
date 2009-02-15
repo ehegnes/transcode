@@ -3,7 +3,8 @@
  *
  *  Copyright (C) Tilmann Bitterberg - June 2002
  *    Based on Code from mplayers cropdetect by A'rpi
- *
+ *    Updated by Antonio Beamud Montero (Microgenesis S.A.) - Jan 2009
+ *    
  *  This file is part of transcode, a video stream processing tool
  *
  *  transcode is free software; you can redistribute it and/or modify
@@ -23,9 +24,9 @@
  */
 
 #define MOD_NAME    "filter_detectclipping.so"
-#define MOD_VERSION "v0.1.0 (2003-11-01)"
+#define MOD_VERSION "v0.2.0 (2009-01-30)"
 #define MOD_CAP     "detect clipping parameters (-j or -Y)"
-#define MOD_AUTHOR  "Tilmann Bitterberg, A'rpi"
+#define MOD_AUTHOR  "Tilmann Bitterberg, A'rpi, A. Beamud"
 
 #include "src/transcode.h"
 #include "src/filter.h"
@@ -37,12 +38,14 @@
 
 typedef struct MyFilterData {
     /* configurable */
-	unsigned int start;
-	unsigned int end;
-	unsigned int step;
-	int post;
+        unsigned int start;
+        unsigned int end;
+        unsigned int step;
+        int post;
 	int limit;
-	int x1, y1, x2, y2;
+        FILE *log;
+        int frames;
+        int x1, y1, x2, y2;
 
     /* internal */
 	int stride, bpp;
@@ -73,7 +76,8 @@ static void help_optstr(void)
 "* Options\n"
 "    'range' apply filter to [start-end]/step frames [0-oo/1]\n"
 "    'limit' the sum of a line must be below this limit to be considered black\n"
-"     'post' run as a POST filter (calc -Y instead of the default -j)\n"
+"    'post' run as a POST filter (calc -Y instead of the default -j)\n"
+"    'log' file to save a detailed values.\n"
 		, MOD_CAP);
 }
 
@@ -115,6 +119,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	      "%u-%u/%d", buf, "0", "oo", "0", "oo", "1", "oo");
       optstr_param (options, "limit", "the sum of a line must be below this limit to be considered as black", "%d", "24", "0", "255");
       optstr_param (options, "post", "run as a POST filter (calc -Y instead of the default -j)", "", "0");
+      optstr_param(options, "log", "file to save a detailed values", "", "");
 
       return 0;
   }
@@ -133,12 +138,16 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if(mfd[ptr->filter_id] == NULL)
         return (-1);
 
+    char log_name[PATH_MAX];
+    memset(log_name, 0, PATH_MAX);    
 
     mfd[ptr->filter_id]->start=0;
     mfd[ptr->filter_id]->end=(unsigned int)-1;
     mfd[ptr->filter_id]->step=1;
     mfd[ptr->filter_id]->limit=24;
     mfd[ptr->filter_id]->post = 0;
+    mfd[ptr->filter_id]->log = NULL;
+    mfd[ptr->filter_id]->frames = 0;
 
     if (options != NULL) {
 
@@ -147,6 +156,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	optstr_get (options, "range",  "%u-%u/%d",    &mfd[ptr->filter_id]->start, &mfd[ptr->filter_id]->end, &mfd[ptr->filter_id]->step);
 	optstr_get (options, "limit",  "%d",    &mfd[ptr->filter_id]->limit);
 	if (optstr_lookup (options, "post")!=NULL) mfd[ptr->filter_id]->post = 1;
+        optstr_get (options, "log", "%[^:]", &log_name);
     }
 
 
@@ -155,6 +165,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	tc_log_info (MOD_NAME, "              range = %u-%u", mfd[ptr->filter_id]->start, mfd[ptr->filter_id]->end);
 	tc_log_info (MOD_NAME, "               step = %u", mfd[ptr->filter_id]->step);
 	tc_log_info (MOD_NAME, "              limit = %u", mfd[ptr->filter_id]->limit);
+        tc_log_info (MOD_NAME, "                log = %s", log_name);
 	tc_log_info (MOD_NAME, "    run POST filter = %s", mfd[ptr->filter_id]->post?"yes":"no");
     }
 
@@ -178,6 +189,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
     mfd[ptr->filter_id]->x2 = 0;
     mfd[ptr->filter_id]->y2 = 0;
     mfd[ptr->filter_id]->fno = 0;
+    if (strlen(log_name) != 0)
+        if (!(mfd[ptr->filter_id]->log = fopen(log_name, "w")))
+	     perror("could not open file for writing");
+		
+
 
     if (vob->im_v_codec == TC_CODEC_YUV420P) {
 	mfd[ptr->filter_id]->stride = mfd[ptr->filter_id]->post?vob->ex_v_width:vob->im_v_width;
@@ -192,6 +208,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     // filter init ok.
     if (verbose) tc_log_info(MOD_NAME, "%s %s #%d", MOD_VERSION, MOD_CAP, ptr->filter_id);
+    if(mfd[ptr->filter_id]->log)
+        fprintf(mfd[ptr->filter_id]->log,"#fps:%f\n",vob->fps);
 
     return(0);
   }
@@ -205,6 +223,8 @@ int tc_filter(frame_list_t *ptr_, char *options)
   if(ptr->tag & TC_FILTER_CLOSE) {
 
     if (mfd[ptr->filter_id]) {
+        fprintf(mfd[ptr->filter_id]->log,"#total: %d",mfd[ptr->filter_id]->frames);
+        fclose(mfd[ptr->filter_id]->log);
 	free(mfd[ptr->filter_id]);
     }
     mfd[ptr->filter_id]=NULL;
@@ -276,11 +296,21 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	mfd[ptr->filter_id]->post?"-Y":"-j",
 	t, l, b, r
 	  );
+    if(mfd[ptr->filter_id]->log)
+        fprintf(mfd[ptr->filter_id]->log, "%d %d %d %d %d\n",
+                mfd[ptr->filter_id]->frames,
+                t, l , b, r);
+    
+
 
     }
 
   }
-
+  if((ptr->tag & TC_PRE_S_PROCESS) && (ptr->tag & TC_VIDEO)){
+	  /* ever count the frames, and only analize the non skipped frames */
+	  mfd[ptr->filter_id]->frames++;
+  }
+  
   return(0);
 }
 

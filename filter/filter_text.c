@@ -21,8 +21,16 @@
  *
  */
 
+/*
+ * 	v0.1.4 -> v0.1.5:	(Allan Snider)
+ * 		- change posdef to keypad location
+ * 		- changed default font path, new standard location
+ * 		- add "frame" option, similar to tstamp, but just
+ * 			writes a frame number (ptr->id)
+ */
+
 #define MOD_NAME    "filter_text.so"
-#define MOD_VERSION "v0.1.4 (2004-02-14)"
+#define MOD_VERSION "v0.1.5 (2007-02-14)"
 #define MOD_CAP     "write text in the image"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
@@ -41,7 +49,11 @@
 
 // basic parameter
 
-enum POS { NONE, TOP_LEFT, TOP_RIGHT, BOT_LEFT, BOT_RIGHT, CENTER, BOT_CENTER };
+/* use keypad naviation */
+enum POS { NONE=0,
+	TOP_LEFT=7, TOP_CENTER=8, TOP_RIGHT=9,
+	CTR_LEFT=4, CTR_CENTER=5, CTR_RIGHT=6,
+	BOT_LEFT=1, BOT_CENTER=2, BOT_RIGHT=3 };
 
 #define MAX_OPACITY 100
 
@@ -80,6 +92,7 @@ typedef struct MyFilterData {
 	int fade;            /* fade in/out (speed) */
 	int transparent;     /* do not draw a black bounding box */
 	int tstamp;          /* */
+	int frame;           /* string is "Frame: %06d", ptr->id */
 	int antialias;       /* do sub frame anti-aliasing (not done) */
 	int R, G, B;         /* color to apply in RGB */
 	int Y, U, V;         /* color to apply in YUV */
@@ -93,7 +106,6 @@ typedef struct MyFilterData {
 	int start_fade_out;
 	int boundX, boundY;
 	int fade_in, fade_out;
-
 
 	FT_Library  library;
 	FT_Face     face;
@@ -117,8 +129,9 @@ static void help_optstr(void)
 "          'fade' Fade in and/or fade out [0=off, 1=slow, 10=fast]\n"
 " 'notransparent' disable transparency\n"
 "           'pos' Position (0-width x 0-height) [0x0]\n"
-"        'posdef' Position (0=None 1=TopL 2=TopR 3=BotL 4=BotR 5=Cent 6=BotCent) [0]\n"
-"        'tstamp' add timestamp to each frame (overrides string)\n"
+"        'posdef' Position (keypad number, 0=None) [0]\n"
+"        'tstamp' add timestamp to each frame (overridden by string)\n"
+"        'frame'  add frame number to each frame (overridden by string)\n"
 		, MOD_CAP);
 }
 
@@ -219,7 +232,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
   static float elapsed_ss;
   static uint8_t *buf = NULL;
   static uint8_t *p, *q;
-  char *default_font = "/usr/X11R6/lib/X11/fonts/TrueType/arial.ttf";
+  char *default_font = "/usr/share/fonts/corefonts/arial.ttf";
   extern int flip; // transcode.c
 
   if (ptr->tag & TC_AUDIO)
@@ -258,10 +271,17 @@ int tc_filter(frame_list_t *ptr_, char *options)
       optstr_param (options, "pos", "Position (0-width x 0-height)",
 	      "%dx%d", "0x0", "0", "width", "0", "height");
 
-      optstr_param (options, "posdef", "Position (0=None 1=TopL 2=TopR 3=BotL 4=BotR 5=Cent 6=BotCent)",  "%d", "0", "0", "5");
+      optstr_param (options, "posdef", "Position (keypad number, 0=None)",
+		"%d", "0", "0", "9");
 
-      optstr_param (options, "notransparent", "disable transparency (enables block box)", "", "0");
-      optstr_param (options, "tstamp", "add timestamp to each frame (overrides string)", "", "0");
+      optstr_param (options, "notransparent", "disable transparency (enables block box)",
+		"", "0");
+
+      optstr_param (options, "tstamp", "add timestamps (overridden by string)",
+		"", "0");
+
+      optstr_param (options, "frame", "add frame numbers (overridden by string)",
+		 "", "0");
 
       return 0;
   }
@@ -300,6 +320,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     mfd->do_time=1;
     mfd->tstamp=0;
+    mfd->frame=0;
     mfd->opaque=MAX_OPACITY;
     mfd->fade_in = 0;
     mfd->fade_out = 0;
@@ -349,6 +370,10 @@ int tc_filter(frame_list_t *ptr_, char *options)
             mfd->string = "[ timestamp ]";
 	    mfd->do_time = 0;
 	    mfd->tstamp = 1;
+	} else if (optstr_lookup (options, "frame") ) {
+	    mfd->string=strdup("Frame: dddddd");
+	    mfd->do_time = 0;
+	    mfd->frame = 1;
 	} else {
 	    // do `date` as default
 	    mytime = time(NULL);
@@ -456,36 +481,66 @@ int tc_filter(frame_list_t *ptr_, char *options)
     switch (mfd->pos) {
 	case NONE: /* 0 */
 	    break;
+
 	case TOP_LEFT:
 	    mfd->posx = 0;
 	    mfd->posy = 0;
 	    break;
+
+	case TOP_CENTER:
+	    mfd->posx = (width - mfd->boundX)/2;
+	    mfd->posy = 0;
+	    if (mfd->posx&1)
+		mfd->posx++;
+	    break;
+
 	case TOP_RIGHT:
 	    mfd->posx = width  - mfd->boundX;
 	    mfd->posy = 0;
 	    break;
+
+	case CTR_LEFT:
+	    mfd->posx = 0;
+	    mfd->posy = (height- mfd->boundY)/2;
+	    if (mfd->posy&1)
+		mfd->posy++;
+	    break;
+
+	case CTR_CENTER:
+	    mfd->posx = (width - mfd->boundX)/2;
+	    mfd->posy = (height- mfd->boundY)/2;
+
+	    /* align to not cause color disruption */
+	    if (mfd->posx&1)
+		mfd->posx++;
+	    if (mfd->posy&1)
+		mfd->posy++;
+	    break;
+
+	case CTR_RIGHT:
+	    mfd->posx = width  - mfd->boundX;
+	    mfd->posy = (height- mfd->boundY)/2;
+	    if (mfd->posy&1)
+		mfd->posy++;
+	    break;
+
 	case BOT_LEFT:
 	    mfd->posx = 0;
 	    mfd->posy = height - mfd->boundY;
 	    break;
+
+	case BOT_CENTER:
+	    mfd->posx = (width - mfd->boundX)/2;
+	    mfd->posy = height - mfd->boundY;
+	    if (mfd->posx&1)
+		mfd->posx++;
+	    break;
+
 	case BOT_RIGHT:
 	    mfd->posx = width  - mfd->boundX;
 	    mfd->posy = height - mfd->boundY;
 	    break;
-	case CENTER:
-	    mfd->posx = (width - mfd->boundX)/2;
-	    mfd->posy = (height- mfd->boundY)/2;
-	    /* align to not cause color disruption */
-	    if (mfd->posx&1) mfd->posx++;
-	    if (mfd->posy&1) mfd->posy++;
-	    break;
-	case BOT_CENTER:
-	    mfd->posx = (width - mfd->boundX)/2;
-	    mfd->posy = height - mfd->boundY;
-	    if (mfd->posx&1) mfd->posx++;
-	    break;
     }
-
 
     if ( mfd->posy < 0 || mfd->posx < 0 ||
 	    mfd->posx+mfd->boundX > width ||
@@ -563,6 +618,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	    tc_snprintf(tstampbuf, sizeof(tstampbuf),
 			"%02i:%02i:%02i.%02i", hh, mm, ss, ss_frame);
 	    mfd->string = tstampbuf;
+	    font_render(width,height,codec,w,h,i,p,q,buf);
+	}
+
+	else if (mfd->frame) {
+	    sprintf(mfd->string, "Frame: %06d", ptr->id);  
 	    font_render(width,height,codec,w,h,i,p,q,buf);
 	}
 
