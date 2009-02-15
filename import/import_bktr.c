@@ -595,7 +595,7 @@ static void copy_buf_rgb(char *dest, size_t size)
 
     /* bktr_buffer_size was set to width * height * 4 (32 bits) */
     /* so width * height = bktr_buffer_size / 4                 */
-    tcv_convert(bktr_buffer, dest, bktr_buffer_size/4, 1,
+    tcv_convert(bktr_tcvhandle, bktr_buffer, dest, bktr_buffer_size/4, 1,
                 IMG_ARGB32, IMG_RGB24);
 }
 
