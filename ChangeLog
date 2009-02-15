@@ -16,4 +16,5 @@ transcode-1.2.0
 [*] Improved internal buffering system.
 [!] Fix misuse of configuration files which leads to crash.
 [*] Improved debug messages handling and internal debug API.
+[-] The import_imlist module is deprecated. Use --multi_input -x im instead.
 ===========================================================================
