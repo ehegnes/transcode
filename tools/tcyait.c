@@ -31,11 +31,19 @@
  *		Yet Another Inverse Telecine filter.
  *
  *	Usage:
- *		tcyait [-d] [-l log] [-o ops] [-m mode]
- *	        	-d		print debug info to stdout
- *	        	-l log		specify input yait log file name
- *	        	-o ops		specify output yait frame operations file name
- *	        	-m mode		specify transcode de-interlace method to use
+ *		tcyait [-dnlotbwmEO] [arg...]
+ *			-d		Print debug information to stdout
+ *			-n		Do not drop frames, always de-interlace
+ *			-k		No forced keep frames
+ *			-l log		Input yait log file name
+ *			-o ops		Output yait frame ops file name
+ *			-t thresh	Interlace detection threshold (>1)
+ *			-b blend	forced blend threshold (>thresh)
+ *			-w size		Drop frame look ahead window (0-20)
+ *			-m mode		Transcode blend method (0-5)
+ *			-E thresh	Even pattern threhold [thresh]
+ *			-O thresh	Odd pattern threhold [thresh]
+ *			-N noise	minimum normalized delta, else considered noise
  *
  *		By default, reads "yait.log" and produces "yait.ops".
  *
@@ -49,7 +57,7 @@
  */
 
 
-#define	YAIT_VERSION		"v0.1"
+#define	YAIT_VERSION		"v0.2"
 
 #define	TRUE			1
 #define	FALSE			0
@@ -57,15 +65,25 @@
 /* program defaults */
 #define	Y_LOG_FN		"yait.log"	/* log file read */
 #define	Y_OPS_FN		"yait.ops"	/* frame operation file written */
+#define	Y_THRESH		1.2		/* even/odd ratio to detect interlace */
+#define	Y_DROPWIN_SIZE		15		/* drop frame look ahead window */
 #define	Y_DEINT_MODE		3		/* default transcode de-interlace mode */
 
-#define	Y_THRESH		1.1		/* even/odd ratio to detect interlace */
+/* limits */
+#define	Y_DEINT_MIN		0
+#define	Y_DEINT_MAX		5
+#define	Y_DROPWIN_MIN		0
+#define	Y_DROPWIN_MAX		60
+
 #define	Y_MTHRESH		1.02		/* minimum ratio allowing de-interlace */
-#define	Y_WEIGHT		0.001		/* normalized delta to filter ratio noise */
+#define	Y_NOISE			0.003		/* normalized delta too weak, noise */
+#define	Y_SCENE_CHANGE		0.15		/* normalized delta > 15% of max delta */
 
-#define	Y_FTHRESH		1.4		/* force de-interlace if over this ratio */
-#define	Y_FWEIGHT		0.01		/* force de-interlace if over this weight */
+/* force de-interlace */
+#define	Y_FBLEND		1.6		/* if ratio is > this */
+#define	Y_FWEIGHT		0.01		/* if over this weight */
 
+/* frame operation flags */
 #define	Y_OP_ODD		0x10
 #define	Y_OP_EVEN		0x20
 #define	Y_OP_PAT		0x30
@@ -93,6 +111,7 @@ struct fi_t
 	double	r;		/* even/odd delta ratio, filtered */
 	double	ro;		/* ratio, original value */
 	double	w;		/* statistical strength */
+	double	nd;		/* normalized delta */
 	int	fn;		/* frame number */
 	int	ed;		/* even row delta */
 	int	od;		/* odd row delta */
@@ -112,8 +131,16 @@ struct fi_t
 char *Prog;			/* argv[0] */
 char *LogFn;			/* log file name, default "yait.log" */
 char *OpsFn;			/* ops file name, default "yait.ops" */
+double Thresh;			/* row delta ratio interlace detection threshold */
+double EThresh;			/* even interlace detection threshold */
+double OThresh;			/* odd interlace detection threshold */
+double Blend;			/* force frame blending over this threshold */
+double Noise;			/* minimum normalized delta */
+int DropWin;			/* drop frame look ahead window */
 int DeintMode;			/* transcode de-interlace mode, (1-5) */
 int DebugFi;			/* dump debug frame info */
+int NoDrops;			/* force de-interlace everywhere (non vfr) */
+int NoKeeps;			/* Don't force keep frames (allows a/v sync drift) */
 
 FILE *LogFp;			/* log file */
 FILE *OpsFp;			/* ops file */
@@ -121,10 +148,18 @@ FILE *OpsFp;			/* ops file */
 Fi *Fl;				/* frame list */
 Fi **Fa;			/* frame array */
 Fi **Ga;			/* group array */
+int *Da;			/* drop count array */
 int Nf;				/* number of frames */
-int Ng;				/* number of frames in group */
-int Nd;				/* number of frames dropped */
+int Ng;				/* number of elements in Ga */
+int Nd;				/* number of elements in Da */
 int Md;				/* max delta */
+
+int Stat_nd;			/* total number of dropped frames */
+int Stat_nb;			/* total number of blended frames */
+int Stat_no;			/* total number of odd interlaced pairs */
+int Stat_ne;			/* total number of even interlaced pairs */
+int Stat_fd;			/* total number of forced drops */
+int Stat_fk;			/* total number of forced keeps */
 
 
 /*
@@ -140,10 +175,10 @@ static void yait_find_ip( void );
 static void yait_chk_ip( int );
 static void yait_chk_pairs( int );
 static void yait_chk_tuplets( int );
-static int yait_find_odd( double, int, double* );
-static int yait_find_even( double, int, double* );
-static int yait_ffmin( int );
-static int yait_ffmax( int );
+static int yait_find_odd( double, int, double*, int );
+static int yait_find_even( double, int, double*, int );
+static int yait_ffmin( int, int );
+static int yait_ffmax( int, int );
 static int yait_m5( int );
 static void yait_mark_grp( int, int, double );
 static void yait_find_drops( void );
@@ -162,6 +197,7 @@ static double yait_tst_ip( int, int );
 static void yait_deint( void );
 static void yait_write_ops( void );
 static char *yait_write_op( Fi* );
+static void yait_fini( void );
 
 static void yait_debug_fi( void );
 static char *yait_op( int op );
@@ -210,11 +246,14 @@ main( int argc, char **argv )
 	/* let transcode de-interlace frames we missed */
 	yait_deint();
 
+	/* print frame ops file */
+	yait_write_ops();
+
 	if( DebugFi )
 		yait_debug_fi();
 
-	/* print frame ops file */
-	yait_write_ops();
+	/* graceful exit */
+	yait_fini();
 
 	return( 0 );
 	}
@@ -232,7 +271,13 @@ yait_parse_args( int argc, char **argv )
 
 	LogFn = Y_LOG_FN;
 	OpsFn = Y_OPS_FN;
+	Thresh = Y_THRESH;
+	EThresh = 0;
+	OThresh = 0;
+	Blend = Y_FBLEND;
+	Noise = Y_NOISE;
 	DeintMode = Y_DEINT_MODE;
+	DropWin = Y_DROPWIN_SIZE;
 
 	--argc;
 	Prog = *argv++;
@@ -247,6 +292,14 @@ yait_parse_args( int argc, char **argv )
 					DebugFi = TRUE;
 					break;
 
+				case 'n':
+					NoDrops = TRUE;
+					break;
+
+				case 'k':
+					NoKeeps = TRUE;
+					break;
+
 				case 'l':
 					yait_chkac( &argc );
 					LogFn = *++argv;
@@ -255,6 +308,36 @@ yait_parse_args( int argc, char **argv )
 				case 'o':
 					yait_chkac( &argc );
 					OpsFn = *++argv;
+					break;
+
+				case 't':
+					yait_chkac( &argc );
+					Thresh = atof( *++argv );
+					break;
+
+				case 'E':
+					yait_chkac( &argc );
+					EThresh = atof( *++argv );
+					break;
+
+				case 'O':
+					yait_chkac( &argc );
+					OThresh = atof( *++argv );
+					break;
+
+				case 'b':
+					yait_chkac( &argc );
+					Blend = atof( *++argv );
+					break;
+
+				case 'N':
+					yait_chkac( &argc );
+					Noise = atof( *++argv );
+					break;
+
+				case 'w':
+					yait_chkac( &argc );
+					DropWin = atoi( *++argv );
 					break;
 
 				case 'm':
@@ -269,6 +352,35 @@ yait_parse_args( int argc, char **argv )
 		--argc;
 		argv++;
 		}
+
+	if( Thresh <= 1 )
+		{
+		printf( "Invalid threshold specified (%g).\n\n", Thresh );
+		yait_usage();
+		}
+
+	if( Blend <= Thresh )
+		{
+		printf( "Invalid blend threshold specified (%g).\n\n", Blend );
+		yait_usage();
+		}
+
+	if( DropWin<Y_DROPWIN_MIN || DropWin>Y_DROPWIN_MAX )
+		{
+		printf( "Invalid drop window size specified (%d).\n\n", DropWin );
+		yait_usage();
+		}
+
+	if( DeintMode<Y_DEINT_MIN || DeintMode>Y_DEINT_MAX )
+		{
+		printf( "Invalid de-interlace method specified (%d).\n\n", DeintMode );
+		yait_usage();
+		}
+
+	if( !EThresh )
+		EThresh = Thresh;
+	if( !OThresh )
+		OThresh = Thresh;
 
 	if( argc )
 		yait_usage();
@@ -295,11 +407,20 @@ yait_chkac( int *ac )
 static void
 yait_usage( void )
 	{
-	printf( "Usage: %s [-d] [-l log] [-o ops] [-m mode]\n", Prog );
+	printf( "Usage: %s [-dnklotbwmEON] [arg...] \n", Prog );
 	printf( "\t-d\t\tPrint debug information to stdout.\n" );
-	printf( "\t-l log\t\tSpecify input yait log file name [yait.log].\n" );
-	printf( "\t-o ops\t\tSpecify output yait frame ops file name [yait.ops].\n" );
-	printf( "\t-m mode\t\tSpecify transcode de-interlace method [3].\n\n" );
+	printf( "\t-n\t\tDo not drop frames, always de-interlace.\n" );
+	printf( "\t-k\t\tNo forced keep frames.\n" );
+	printf( "\t-l log\t\tInput yait log file name [%s].\n", Y_LOG_FN );
+	printf( "\t-o ops\t\tOutput yait frame ops file name [%s].\n", Y_OPS_FN );
+	printf( "\t-t thresh\tInterlace detection threshold (>1) [%g].\n", Y_THRESH );
+	printf( "\t-b blend\tforced blend threshold (>thresh) [%g].\n", Y_FBLEND );
+	printf( "\t-w size\t\tDrop frame look ahead window (0-20) [%d].\n", Y_DROPWIN_SIZE );
+	printf( "\t-m mode\t\tTranscode blend method (0-5) [%d].\n", Y_DEINT_MODE );
+	printf( "\t-E thresh\tEven pattern threshold [%g].\n", Y_THRESH );
+	printf( "\t-O thresh\tOdd pattern threshold [%g].\n", Y_THRESH );
+	printf( "\t-N noise\tMinimum normalized delta, else noise [%g].\n", Y_NOISE );
+	printf( "\n" );
 
 	exit( 1 );
 	}
@@ -362,9 +483,13 @@ yait_read_log( void )
 		exit( 1 );
 		}
 
+	/* number of 5 frame groups */
+	Nd = Nf / 5;
+
 	Fa = (Fi**) malloc( (Nf+1) * sizeof(Fi*) );
 	Ga = (Fi**) malloc( (Nf+1) * sizeof(Fi*) );
-	if( !Fa || !Ga )
+	Da = (int*) malloc( Nd * sizeof(int) );
+	if( !Fa || !Ga || !Da )
 		{
 		perror( "malloc" );
 		exit( 1 );
@@ -437,7 +562,9 @@ yait_read_log( void )
 static double
 yait_calc_ratio( int ed, int od )
 	{
-	double r = 0.0;
+	double r;
+
+	r = 1;
 
 	/* compute ratio, >1 odd, <-1 even */
 	if( !ed && !od )
@@ -486,17 +613,18 @@ yait_find_ip( void )
 	int m, p, i;
 
 	/* mark obvious drop frames */
-	for( i=1; i<Nf-1; i++ )
-		{
-		f = Fa[i];
-		if( f->r )
-			continue;
+	if( !NoDrops )
+		for( i=1; i<Nf-1; i++ )
+			{
+			f = Fa[i];
+			if( f->r )
+				continue;
 
-		if( !Fa[i-1]->r && !Fa[i+1]->r )
-			continue;
+			if( !Fa[i-1]->r && !Fa[i+1]->r )
+				continue;
 
-		f->drop = TRUE;
-		}
+			f->drop = TRUE;
+			}
 
 	/* create group array, ommiting drops */
 	Ng = 0;
@@ -529,12 +657,14 @@ yait_find_ip( void )
 		exit( 1 );
 		}
 
+	/* compute normalized row deltas and */
 	/* filter out weak r values (noise) */
 	for( i=0; i<Ng; i++ )
 		{
 		f = Ga[i];
-		if( (f->ed + f->od) / (double) Md < Y_WEIGHT )
-			f->r = 0;
+		f->nd = (f->ed + f->od) / (double) Md;
+		if( f->nd < Noise )
+			f->r = 1;
 		}
 
 	/* adjust for incomplete interleave patterns */
@@ -553,14 +683,14 @@ yait_find_ip( void )
 			continue;
 			}
 
-		p = yait_find_odd( Y_THRESH, i, &w );
+		p = yait_find_odd( OThresh, i, &w, 4 );
 		if( p != -1 )
 			{
 			yait_mark_grp( p, i, w );
 			continue;
 			}
 
-		p = yait_find_even( Y_THRESH, i, &w );
+		p = yait_find_even( EThresh, i, &w, 4 );
 		if( p != -1 )
 			yait_mark_grp( p+10, i, w );
 		}
@@ -577,7 +707,9 @@ yait_find_ip( void )
 static void
 yait_chk_ip( int n )
 	{
-	yait_chk_pairs( n );
+	if( !NoDrops )
+		yait_chk_pairs( n );
+
 	yait_chk_tuplets( n );
 	}
 
@@ -607,15 +739,15 @@ yait_chk_pairs( int n )
 		}
 
 	for( i=2; i<4; i++ )
-		if( ra[i] < Y_THRESH )
+		if( ra[i] < Thresh )
 			return;
 
 	/* adjacent frames to the tuplet must be <thresh */
-	if( ra[1]>Y_THRESH || ra[4]>Y_THRESH )
+	if( ra[1]>Thresh || ra[4]>Thresh )
 		return;
 
 	/* we only need one edge frame to be <thresh */
-	if( ra[0]>Y_THRESH && ra[5]>Y_THRESH )
+	if( ra[0]>Thresh && ra[5]>Thresh )
 		return;
 
 	if( fa[2]->r>0 && fa[3]->r>0 )
@@ -626,8 +758,8 @@ yait_chk_pairs( int n )
 
 	/* two isolated high r values of opposite sign */
 	/* drop the interlaced frame, erase the pattern */
-	fa[2]->r = 0;
-	fa[3]->r = 0;
+	fa[2]->r = 1;
+	fa[3]->r = 1;
 
 	fa[2]->drop = TRUE;
 	}
@@ -660,15 +792,15 @@ yait_chk_tuplets( int n )
 		}
 
 	for( i=2; i<5; i++ )
-		if( ra[i] < Y_THRESH )
+		if( ra[i] < Thresh )
 			return;
 
 	/* adjacent frames to the tuplet must be <thresh */
-	if( ra[1]>Y_THRESH || ra[5]>Y_THRESH )
+	if( ra[1]>Thresh || ra[5]>Thresh )
 		return;
 
 	/* we only need one edge frame to be <thresh */
-	if( ra[0]>Y_THRESH && ra[6]>Y_THRESH )
+	if( ra[0]>Thresh && ra[6]>Thresh )
 		return;
 
 	if( fa[2]->r>0 && fa[4]->r>0 )
@@ -679,7 +811,7 @@ yait_chk_tuplets( int n )
 
 	/* isolated tuplet of high r values of opposite sign */
 	if( ra[3]>ra[2] || ra[3]>ra[4] )
-		fa[3]->r = 0;
+		fa[3]->r = 1;
 	}
 
 
@@ -688,7 +820,7 @@ yait_chk_tuplets( int n )
  */
 
 static int
-yait_find_odd( double thresh, int n, double *w )
+yait_find_odd( double thresh, int n, double *w, int win )
 	{
 	double re, ro;
 	int me, mo;
@@ -696,8 +828,8 @@ yait_find_odd( double thresh, int n, double *w )
 
 	/* find max even/odd correlations */
 	/* (r<0 - even, r>0 - odd) */
-	me = yait_ffmin( n );
-	mo = yait_ffmax( n );
+	me = yait_ffmin( n, win );
+	mo = yait_ffmax( n, win );
 
 	p = -1;
 	if( yait_m5(mo-2) == yait_m5(me) )
@@ -707,7 +839,8 @@ yait_find_odd( double thresh, int n, double *w )
 		if( re>thresh && ro>thresh )
 			{
 			p = yait_m5( mo - 4 );
-			*w = re + ro;
+			if( w )
+				*w = re + ro;
 			}
 		}
 
@@ -720,14 +853,14 @@ yait_find_odd( double thresh, int n, double *w )
  */
 
 static int
-yait_find_even( double thresh, int n, double *w )
+yait_find_even( double thresh, int n, double *w, int win )
 	{
 	double re, ro;
 	int me, mo;
 	int p;
 
-	me = yait_ffmin( n );
-	mo = yait_ffmax( n );
+	me = yait_ffmin( n, win );
+	mo = yait_ffmax( n, win );
 
 	p = -1;
 	if( yait_m5(me-2) == yait_m5(mo) )
@@ -737,7 +870,8 @@ yait_find_even( double thresh, int n, double *w )
 		if( re>thresh && ro>thresh )
 			{
 			p = yait_m5( me - 4 );
-			*w = re + ro;
+			if( w )
+				*w = re + ro;
 			}
 		}
 
@@ -750,7 +884,7 @@ yait_find_even( double thresh, int n, double *w )
  */
 
 static int
-yait_ffmin( int n )
+yait_ffmin( int n, int w )
 	{
 	Fi *f;
 	int m, i;
@@ -758,7 +892,7 @@ yait_ffmin( int n )
 
 	r = 0;
 	m = 0;
-	for( i=n; i<n+4; i++ )
+	for( i=n; i<n+w; i++ )
 		{
 		if( i < 0 )
 			break;
@@ -783,7 +917,7 @@ yait_ffmin( int n )
  */
 
 static int
-yait_ffmax( int n )
+yait_ffmax( int n, int w )
 	{
 	Fi *f;
 	int m, i;
@@ -791,7 +925,7 @@ yait_ffmax( int n )
 
 	r = 0;
 	m = 0;
-	for( i=n; i<n+4; i++ )
+	for( i=n; i<n+w; i++ )
 		{
 		if( i < 0 )
 			break;
@@ -826,13 +960,29 @@ yait_m5( int n )
 
 /*
  *	yait_mark_grp:
+ *		Try to catch the situation where a progressive frame is missing
+ *	between interlace groups.  This will cause an erroneous (opposite) ip
+ *	pattern to be detected.  The first sequence shown below is a normal (odd)
+ *	telecine pattern.  The second shows what happens when a progressive frame
+ *	is missing.  We want to reject the even pattern detected.  Therefore, if
+ *	we find an identical pattern at n+4 we keep it.  If not, we reject if an
+ *	opposite pattern follows at n+2 of greater weight.
+ *
+ *		n:  0   1   2   3   4   0   1   2   3   4
+ *		r:  0  -1   0   1   0   0  -1   0   1   0
+ *                     odd                 odd
+ *
+ *		n:  0   1   2   3   4   1   2   3   4
+ *		r:  0  -1   0   1   0  -1   0   1   0
+ *                     odd     even    odd
  */
 
 static void
 yait_mark_grp( int p, int n, double w )
 	{
 	Fi *f;
-	int t, i;
+	double nw;
+	int np, t, i;
 
 	if( n%5 != (p+2)%5 )
 		return;
@@ -841,6 +991,30 @@ yait_mark_grp( int p, int n, double w )
 	f = Ga[n];
 	if( w <= f->w )
 		return;
+
+	/* check for same pattern at n+4 */
+	if( p < 10 )
+		np = yait_find_odd( OThresh, n+4, NULL, 5 );
+	else
+		np = yait_find_even( EThresh, n+4, NULL, 5 );
+	if( np < 0 )
+		{
+		/* no pattern at n+4, reject if opposite ip at n+2 */
+		if( p < 10 )
+			np = yait_find_even( EThresh, n+2, &nw, 5 );
+		else
+			np = yait_find_odd( OThresh, n+2, &nw, 5 );
+
+		if( np>=0 && nw>w )
+			return;
+		}
+
+	/* erase previous pattern */
+	if( n > 1 )
+		{
+		Ga[n-1]->op = 0;
+		Ga[n-2]->op = 0;
+		}
 
 	/* this frame and next are interlaced */
 	t = (p < 10) ? Y_OP_ODD : Y_OP_EVEN;
@@ -851,7 +1025,7 @@ yait_mark_grp( int p, int n, double w )
 	/* assume 1 progressive on either side of the tuplet */
 	for( i=n-1; i<n+4; i++ )
 		{
-		if( i<0 || i>Ng-1 )
+		if( i<0 || i>=Ng )
 			continue;
 
 		f = Ga[i];
@@ -864,9 +1038,9 @@ yait_mark_grp( int p, int n, double w )
 /*
  *	yait_find_drops:
  *		For every group of 5 frames, make sure we drop a frame.  Allow up to a
- *	4 group lookahead to make up for extra or missing drops.  (The duplicated frames
- *	generated by --hard_fps can be quite early or late in the sequence).  If a group
- *	requires a drop, but none exists, mark the group as requiring de-interlacing.
+ *	DropWin (default 15) group lookahead to make up for extra or missing drops.  (The
+ *	duplicated frames generated by --hard_fps can be quite early or late in the sequence).
+ *	If a group requires a drop, but none exists, mark the group as requiring de-interlacing.
  *	Finally, consequetive marked groups inherit surrounding interleave patterns.
  *
  *	Each group will receive one of the following flags:
@@ -893,85 +1067,72 @@ static void
 yait_find_drops( void )
 	{
 	Fi *f;
-	int ed;
-	int d, n;
+	int d, l;
 
-	/* running count of extra drops */
-	ed = 0;
+	/* populate drop counts */
+	for( d=0; d<Nd; d++ )
+		Da[d] = yait_cnt_drops( d*5 );
 
-	/* process by groups of 5 */
-	for( n=0; n<Nf; n+=5 )
+	/* balance drop counts restricted by window size */
+	for( d=0; d<Nd; d++ )
 		{
-		f = Fa[n];
+		f = Fa[d*5];
 
-		/* get number of drops */
-		d = yait_cnt_drops( n );
-
-		/* we can't really handle this well, so force the keep of frames */
-		/* until we have only two extra drops */
-		while( d > 2 )
+		/* this is what we want to see */
+		if( Da[d] == 1 )
 			{
-			yait_keep_frame( n );
-			d = yait_cnt_drops( n );
-			}
-
-		/* no drops in group */
-		if( !d )
-			{
-			if( ed > 0 )
-				{
-				/* an extra drop was available */
-				f->gf = Y_WITHDRAW_DROP;
-				--ed;
-				continue;
-				}
-
-			/* look ahead for an extra drop */
-			d = yait_extra_drop( n );
-			if( d )
-				{
-				/* consume the next extra drop */
-				f->gf = Y_BORROW_DROP;
-				--ed;
-				continue;
-				}
-
-			/* mark group to be de-interlaced */
-			f->gf = Y_FORCE_DEINT;
-
+			if( !f->gf )
+				f->gf = Y_HAS_DROP;
 			continue;
 			}
 
-		/* extra drop exists */
-		if( d > 1 )
+		/* group is missing a drop? */
+		if( !Da[d] )
 			{
-			if( ed < 0 )
+			/* look ahead for an extra drop */
+			l = yait_extra_drop( d );
+			if( l )
 				{
-				/* we needed it */
-				f->gf = Y_RETURN_DROP;
-				ed++;
+				/* found one */
+				Da[d]++;
+				f->gf = Y_BORROW_DROP;
+
+				--Da[l];
+				Fa[l*5]->gf = Y_RETURN_DROP;
 				continue;
 				}
+
+			/* no extra drops exist, mark for de-interlacing */
+			f->gf = Y_FORCE_DEINT;
+			continue;
+			}
+
+		/* we have too many drops */
+		while( Da[d] > 1 )
+			{
+			--Da[d];
 
 			/* look ahead for a missing drop */
-			d = yait_missing_drop( n );
-			if( d )
+			l = yait_missing_drop( d );
+			if( l )
 				{
-				/* we can use it later */
+				/* found one */
 				f->gf = Y_BANK_DROP;
-				ed++;
+
+				Da[l]++;
+				Fa[l*5]->gf = Y_WITHDRAW_DROP;
 				continue;
 				}
 
-			/* we can't use an extra drop, keep one */
-			f->gf = Y_FORCE_KEEP;
-			yait_keep_frame( n );
+			/* we have to keep a drop */
+			if( !NoKeeps )
+				{
+				f->gf = Y_FORCE_KEEP;
+				yait_keep_frame( d*5 );
 
-			continue;
+				Stat_fk++;
+				}
 			}
-
-		/* group has a single drop frame */
-		f->gf = Y_HAS_DROP;
 		}
 	}
 
@@ -1000,66 +1161,49 @@ yait_cnt_drops( int n )
 
 /*
  *	yait_extra_drop:
- *		Scan four groups ahead for an extra drop.
+ *		Scan DropWin groups ahead for an extra drop.
  */
 
 static int
-yait_extra_drop( int n )
+yait_extra_drop( int d )
 	{
-	int da[4], d, e, g, i;
+	int l, w;
 
-	d = 0;
-	for( g=0; g<4; g++ )
+	for( w=0; w<DropWin; w++ )
 		{
-		i = n + (g+1) * 5;
-		da[g] = yait_cnt_drops( i );
-		d += da[g];
+		l = d + w + 1;
+		if( l >= Nd )
+			return( 0 );
+
+		if( Da[l] > 1 )
+			return( l );
 		}
 
-	if( d < 5 )
-		return( FALSE );
-
-	/* find group with the extra drop */
-	for( e=0; e<4; e++ )
-		if( da[e] > 1 )
-			break;
-
-	/* make sure extra drop wouldn't be accounted for */
-	d = 0;
-	for( g=0; g<3; g++ )
-		{
-		i = n + ((e+1)+(g+1)) * 5;
-		d += yait_cnt_drops( i );
-		}
-
-	if( d < 3 )
-		return( FALSE );
-
-	return( TRUE );
+	return( 0 );
 	}
 
 
 /*
  *	yait_missing_drop:
- *		Scan four groups ahead for a missing drop.
+ *		Scan DropWin groups ahead for a missing drop.
  */
 
 static int
-yait_missing_drop( int n )
+yait_missing_drop( int d )
 	{
-	int d, g, i;
+	int l, w;
 
-	d = 0;
-	for( g=0; g<4; g++ )
+	for( w=0; w<DropWin; w++ )
 		{
-		i = n + (g+1) * 5;
-		d += yait_cnt_drops( i );
+		l = d + w + 1;
+		if( l >= Nd )
+			return( 0 );
+
+		if( !Da[l] )
+			return( l );
 		}
 
-	if( d > 3 )
-		return( FALSE );
-
-	return( TRUE );
+	return( 0 );
 	}
 
 
@@ -1116,7 +1260,7 @@ yait_keep_frame( int n )
 
 		f = Fa[d-1];
 		if( f->drop )
-			/* sheesh, two dups in a row */
+			/* two dups in a row */
 			f = Fa[d-2];
 
 		if( !f->op )
@@ -1231,6 +1375,8 @@ yait_ivtc_keep( int d )
 
 	fd = Fa[d];
 	fp = Fa[d-1];
+	if( fp->drop )
+		fp = Fa[d-2];
 
 	if( fp->op & Y_OP_COPY )
 		{
@@ -1442,7 +1588,8 @@ yait_drop_frame( int n )
 			}
 		}
 
-	Fa[ (mr>Y_THRESH)?fr:fd ]->drop = TRUE;
+	Fa[ (mr>Thresh)?fr:fd ]->drop = TRUE;
+	Stat_fd++;
 	}
 
 
@@ -1467,7 +1614,7 @@ yait_ivtc_grp( int n, int p1, int p2 )
 	/* yait_tst_ip() returns the sum of two ratios */
 	/* we want both ratios > Y_MTHRESH */
 	thresh = Y_MTHRESH * 2;
-	if( m1<thresh && m2<thresh )
+	if( !NoDrops && m1<thresh && m2<thresh )
 		/* neither pattern matches, force a drop instead */
 		return( -1 );
 
@@ -1573,86 +1720,57 @@ yait_tst_ip( int n, int p )
  *	pattern interlace frames solely on row delta information.  Perhaps we should
  *	have built 32detect into the log generation, and added an extra flag field if
  *	we thought the frame was interlaced.  This also would help when trying to
- *	assign ambiguous ip patterns.  Unfortunately, the affect I see when I tell
- *	transcode to de-interlace are horribly encoded frames, as though the bit
- *	rate drops down to nothing.  So, more investigation is required.
- *
- *		Also, sequences of requested frame blending usually indicate a
- *	problem.  The ip pattern was not detected correctly.  This is especially
- *	true when a progressive frame is missing.  For example:
- *
- * 		Normal (odd) case:
- *			0 -1 0 1 0	0 -1 0 1 0
- *			  odd             odd
- *
- * 		Missing frame:
- * 			0 -1 0 1 0	-1 0 1 0
- * 			  odd  even          deint
- *
- *		Because a frame was missing, an even interlace pattern was
- *	erroneously determined, which then causes the last two frames of the
- *	sequence to be blended.  I'm currently stumped here.  I usually examine
- *	the original video and edit the .ops file directly to correct the problem.
+ *	assign ambiguous ip patterns.
  */
 
 static void
 yait_deint( void )
 	{
-	Fi *f1, *f2, *f;
-	int os, i;
+	Fi *fp, *fn, *f;
+	int i;
 
-	for( i=1; i<Ng-2; i++ )
+	for( i=1; i<Ng-1; i++ )
 		{
+		fp = Ga[i-1];
 		f = Ga[i];
+		fn = Ga[i+1];
 
 		if( f->op&Y_OP_PAT || f->drop )
 			/* already being de-interlaced or dropped */
 			continue;
 
-		if( fabs(f->r) < Y_FTHRESH )
+		if( fp->op & Y_OP_PAT )
+			/* trailing element of a tuplet */
+			continue;
+
+		if( fabs(f->r) < Blend )
 			/* it isn't interlaced (we think) */
 			continue;
 
-		if( (f->ed + f->od) / (double) Md < Y_FWEIGHT )
+		if( f->nd < Y_FWEIGHT )
 			/* delta is too weak, interlace is likely not visible */
 			continue;
 
-		f1 = Ga[i+1];
-		f2 = Ga[i+2];
-
-		/* kludge: if this is the trailing frame of an ip tuplet, then */
-		/* only de-interlace if a high ratio exists within the next two */
-		/* frames and are not accounted for */
-		if( Ga[i-1]->op & Y_OP_PAT )
-			{
-			if( fabs(f1->r)<Y_THRESH && fabs(f2->r)<Y_THRESH )
-				continue;
-
-			if( f1->op&Y_OP_PAT || f2->op&Y_OP_PAT )
-				continue;
-
-			/* looks like we made a bad choice for the ip pattern */
-			/* too late now, so just blend frames */
-			}
-
-		/* set os true if next frame has opposite sign ratio */
-		os = (f->r*f1->r < 0) ? TRUE : FALSE;
-
-		/* only reject now if next frame has same sign > thresh */
-		if( !os && fabs(f1->r)>Y_THRESH )
+		if( fp->nd>Y_SCENE_CHANGE || f->nd>Y_SCENE_CHANGE )
+			/* can't make a decision over scene changes */
 			continue;
 
 		/* this frame is interlaced with no operation assigned */
 		f->op = Y_OP_DEINT;
 
-		/* if the next frame ratio < thresh, it is similar and */
-		/* therefore interlaced as well (probably) */
-		if( fabs(f1->r) < Y_FTHRESH )
-			if( !(f1->op&Y_OP_PAT) && !f1->drop )
-				f1->op = Y_OP_DEINT;
+		/* if the next frame ratio < thresh, it is similar, unless */
+		/* a scene change, therefore interlaced as well */
+		if( fabs(fn->r)<Thresh && fn->nd<Y_SCENE_CHANGE )
+			if( !(fn->op&Y_OP_PAT) && !fn->drop )
+				fn->op = Y_OP_DEINT;
 
-		/* skip next */
-		i++;
+		/* if the next frame(s) are duplicates of this, mark them */
+		/* for blending as well, as the may eventually be force kept */
+		while( f->next && !f->next->gi )
+			{
+			f = f->next;
+			f->op = Y_OP_DEINT;
+			}
 		}
 	}
 
@@ -1687,7 +1805,7 @@ yait_write_op( Fi *f )
 		{
 		*p++ = 'd';
 		*p = 0;
-		Nd++;
+		Stat_nd++;
 		return( buf );
 		}
 
@@ -1703,13 +1821,39 @@ yait_write_op( Fi *f )
 	if( op & Y_OP_DROP )
 		{
 		*p++ = 'd';
-		Nd++;
+		Stat_nd++;
+		if( op & Y_OP_ODD )
+			Stat_no++;
+		else
+			Stat_ne++;
 		}
 	if( op & Y_OP_DEINT )
+		{
 		*p++ = '0' + DeintMode;
+		Stat_nb++;
+		}
 	*p = 0;
 
 	return( buf );
+	}
+
+
+/*
+ *	yait_fini:
+ *		Free up allocations.
+ */
+
+static void
+yait_fini( void )
+	{
+	int i;
+
+	for( i=0; i<Nf; i++ )
+		free( Fa[i] );
+
+	free( Fa );
+	free( Ga );
+	free( Da );
 	}
 
 
@@ -1722,6 +1866,26 @@ yait_debug_fi( void )
 	{
 	Fi *f;
 	int i;
+
+	printf( "Options:\n" );
+	printf( "\tLog file: %s\n", LogFn );
+	printf( "\tOps file: %s\n", OpsFn );
+	printf( "\tEven Threshold: %g\n", EThresh );
+	printf( "\tOdd Threshold: %g\n", OThresh );
+	printf( "\tBlend threshold: %g\n", Blend );
+	printf( "\tDrop window size: %d\n", DropWin );
+	printf( "\tDe-interlace mode: %d\n\n", DeintMode );
+
+	printf( "Stats:\n" );
+	printf( "\tTotal number of frames: %d\n", Nf );
+	printf( "\tNumber of frames divided by 5: %d\n", Nf/5 );
+	printf( "\tTotal dropped frames: %d\n", Stat_nd );
+	printf( "\tTotal blended frames: %d\n", Stat_nb );
+	printf( "\tTotal odd interlaced pairs: %d\n", Stat_no );
+	printf( "\tTotal even interlaced pairs: %d\n", Stat_ne );
+	printf( "\tNumber of forced frame drops: %d\n", Stat_fd );
+	printf( "\tNumber of forced frame keeps: %d\n\n", Stat_fk );
+	printf( "\tMax row delta: %d\n\n", Md );
 
 	i = 0;
 	for( f=Fl; f; f=f->next, i++ )

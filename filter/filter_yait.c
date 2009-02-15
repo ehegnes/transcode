@@ -694,8 +694,12 @@ yait_ops_decode( char *str, int *mode )
 	while( *str )
 		{
 		c = *str++;
-		if( c>='1' && c<='5' )
+		if( c>='0' && c<='5' )
 			{
+			if( c == '0' )
+				/* no operation */
+				continue;
+
 			op |= Y_OP_DEINT;
 			if( mode )
 				*mode = c - '0';
