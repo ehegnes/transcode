@@ -2842,6 +2842,7 @@ int main(int argc, char *argv[])
 // it is just there to trick the linker to not remove
 // unneeded object files from a .a file.
 
+#include "libtc/static_tclist.h"
 #include "libtc/static_optstr.h"
 #include "libtc/static_tctimer.h"
 #include "avilib/static_avilib.h"
