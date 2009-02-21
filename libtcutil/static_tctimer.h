@@ -12,7 +12,8 @@
 
 #include "libtcutil/tctimer.h"
 void dummy_tctimer(void);
-void dummy_tctimer(void) {
+void dummy_tctimer(void) 
+{
     TCTimer t;
 
     tc_timer_init_soft(&t, 0);

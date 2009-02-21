@@ -44,6 +44,7 @@ EXTRA_DIST = \
 	memutils.h \
 	optstr.h \
 	static_optstr.h \
+	static_tclist.h \
 	static_tctimer.h \
 	static_xio.h \
 	strutils.h \

@@ -18,19 +18,19 @@
 void dummy_xio(void);
 void dummy_xio(void)
 {
-	int i;
-	struct stat tmp;
+    int i;
+    struct stat tmp;
 
-	i = xio_open("", O_RDONLY);
-	i = xio_read(i, NULL, 0);
-	i = xio_write(i, NULL, 0);
-	i = xio_ftruncate(i, 0);
-	i = xio_lseek(i, 0, 0);
-	i = xio_fstat(i, &tmp);
-	i = xio_lstat("", &tmp);
-	i = xio_stat("", &tmp);
-	i = xio_rename("", "");
-	i = xio_close(i);
+    i = xio_open("", O_RDONLY);
+    i = xio_read(i, NULL, 0);
+    i = xio_write(i, NULL, 0);
+    i = xio_ftruncate(i, 0);
+    i = xio_lseek(i, 0, 0);
+    i = xio_fstat(i, &tmp);
+    i = xio_lstat("", &tmp);
+    i = xio_stat("", &tmp);
+    i = xio_rename("", "");
+    i = xio_close(i);
 }
 
 #endif /* STATIC_XIO_H */

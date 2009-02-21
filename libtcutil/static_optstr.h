@@ -12,7 +12,8 @@
 
 #include "libtcutil/optstr.h"
 void dummy_optstr(void);
-void dummy_optstr(void) {
+void dummy_optstr(void)
+{
   optstr_lookup(NULL, NULL);
   optstr_get(NULL, NULL, NULL);
   optstr_filter_desc(NULL, NULL, NULL, NULL, NULL, NULL, NULL);
