@@ -14,8 +14,11 @@
 #include "libtcutil/ioutils.h"
 #include "libtcutil/memutils.h"
 #include "libtcutil/strutils.h"
+#include "libtcutil/tclist.h"
+
 void dummy_tcutil(void);
-void dummy_tcutil(void) {
+void dummy_tcutil(void)
+{
     optstr_param(NULL, NULL, NULL, NULL, NULL);
     tc_test_string(__FILE__, __LINE__, 0, 0, 0);
     tc_test_program(NULL); 
@@ -23,6 +26,8 @@ void dummy_tcutil(void) {
 
     strlcat(NULL, NULL, 0);
     strlcpy(NULL, NULL, 0);
+
+    tc_list_init(NULL, 0);
 }
 
 #endif /* STATIC_TCUTIL_H */
