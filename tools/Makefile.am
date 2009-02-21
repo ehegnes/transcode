@@ -87,8 +87,7 @@ avisplit_LDADD = \
 
 tcmodinfo_SOURCES = tcmodinfo.c tcstub.c
 tcmodinfo_CPPFLAGS = $(AM_CPPFLAGS) \
-	$(DLDARWIN_CFLAGS) \
-	-DTC_FRAMEBUFFER_STUBS=1
+	$(DLDARWIN_CFLAGS)
 tcmodinfo_LDADD = \
 	$(DLDARWIN_LIBS) \
 	$(ACLIB_LIBS) \
@@ -102,8 +101,7 @@ tcmodinfo_LDFLAGS = -export-dynamic
 
 tcmodchain_SOURCES = tcmodchain.c tcstub.c
 tcmodchain_CPPFLAGS = $(AM_CPPFLAGS) \
-	$(DLDARWIN_CFLAGS) \
-	-DTC_FRAMEBUFFER_STUBS=1
+	$(DLDARWIN_CFLAGS)
 tcmodchain_LDADD = \
 	$(DLDARWIN_LIBS) \
 	$(ACLIB_LIBS) \

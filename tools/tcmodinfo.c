@@ -357,6 +357,18 @@ int main(int argc, char *argv[])
    return status;
 }
 
+/* just for correct linking purposes */
+#ifdef ENABLE_EXPERIMENTAL
+#include "libtc/tcframes.h"
+void dummy_tcframes(void);
+void dummy_tcframes(void) {
+    tc_del_video_frame(NULL);
+    tc_del_audio_frame(NULL);
+}
+
+
+#endif
+
 /*************************************************************************/
 
 /*
