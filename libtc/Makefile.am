@@ -48,6 +48,7 @@ EXTRA_DIST = \
 	ratiocodes.h \
 	static_xio.h \
 	static_optstr.h \
+	static_tclist.h \
 	static_tctimer.h \
 	tc_lzo.h \
 	tccodecs.h \
