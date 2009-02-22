@@ -219,19 +219,6 @@ static void tc_module_show_info(TCModule handle, int verbose)
     tc_module_info_log(handle->klass->info, verbose);
 }
 
-/* FIXME: that's just ugly. */
-#ifdef HAVE_GCC_ATTRIBUTES
-__attribute__((unused))
-#endif
-static void tc_module_pass_extradata(TCModule source, TCModule dest)
-{
-    if (source != NULL && dest != NULL) {
-        /* soft copy */
-        dest->instance.extradata      = source->instance.extradata; 
-        dest->instance.extradata_size = source->instance.extradata_size;
-    }
-}
-
 
 /* factory data type. */
 typedef struct tcfactory_ *TCFactory;
