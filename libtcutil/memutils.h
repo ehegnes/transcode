@@ -23,8 +23,20 @@
 #ifndef MEMUTILS_H
 #define MEMUTILS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 #include <stdint.h>
+
+/*************************************************************************/
+
+typedef struct tcmemchunk_ TCMemChunk;
+struct tcmemchunk_ {
+    void  *data;
+    size_t size;
+};
 
 /*************************************************************************/
 
