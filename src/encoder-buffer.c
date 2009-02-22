@@ -28,6 +28,7 @@
 #endif
 
 #include "transcode.h"
+#include "export.h"
 #include "decoder.h"
 #include "encoder.h"
 #include "filter.h"
@@ -87,8 +88,8 @@ static int have_vid_threads = 0;
  *              vob: pointer to vob_t structure holding stream
  *                   parameters.
  */
-static void apply_video_filters(vframe_list_t *vptr, vob_t *vob);
-static void apply_audio_filters(aframe_list_t *aptr, vob_t *vob);
+static void apply_video_filters(TCFrameVideo *vptr, vob_t *vob);
+static void apply_audio_filters(TCFrameAudio *aptr, vob_t *vob);
 
 /*
  * encoder_acquire_{v,a}frame:
@@ -132,7 +133,7 @@ static void encoder_dispose_aframe(TCEncoderBuffer *buf);
 
 /*************************************************************************/
 
-static void apply_video_filters(vframe_list_t *vptr, vob_t *vob)
+static void apply_video_filters(TCFrameVideo *vptr, vob_t *vob)
 {
     if (!have_vid_threads) {
         if (TC_FRAME_NEED_PROCESSING(vptr)) {
@@ -161,7 +162,7 @@ static void apply_video_filters(vframe_list_t *vptr, vob_t *vob)
     }
 }
 
-static void apply_audio_filters(aframe_list_t *aptr, vob_t *vob)
+static void apply_audio_filters(TCFrameAudio *aptr, vob_t *vob)
 {
     /* now we try to process the audio frame */
     if (!have_aud_threads) {
