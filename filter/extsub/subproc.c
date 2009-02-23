@@ -371,6 +371,16 @@ static int parse_ctrl_sequence(unsigned char *data,
           parsed[n].linestart.used=1 ;
           offset += 5 ;
           break ;
+
+        case 0x07:
+          // CHG_COLCON, see http://dvd.sourceforge.net/dvdinfo/spu.html
+          // To implement this, I would suggest to extend the size of the
+          // picture to the combined size of the subpicture and the
+          // size/coordinates defined within this control, merging
+          // both datas.
+          offset += read_short(data+offset+1)+1;
+          break;
+
         default:
           fprintf(stderr, "unknown ctrl sequence 0x%x\n", data[offset]) ;
 	  ++offset;
