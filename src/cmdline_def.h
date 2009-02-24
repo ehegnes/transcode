@@ -1383,7 +1383,7 @@ TC_OPTION(autosplit,          'W', "n,m[,file]",
                            &vob->vob_chunk_max, vob_logfile) < 2
                  || vob->vob_chunk < 0
                  || vob->vob_chunk_max <= 0
-                 || vob->vob_chunk >= vob->vob_chunk_max
+                 || vob->vob_chunk >= vob->vob_chunk_max + 1
                 ) {
                     tc_error("Invalid parameter for -W/--autosplit");
                     goto short_usage;

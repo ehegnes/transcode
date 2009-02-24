@@ -2249,7 +2249,7 @@ int main(int argc, char *argv[])
         if (vob->vob_chunk < 0 || vob->vob_chunk < 0)
             tc_error("invalid parameter for option -W");
     } else {
-        if (vob->vob_chunk < 0 || vob->vob_chunk > vob->vob_chunk_max)
+        if (vob->vob_chunk < 0 || vob->vob_chunk > vob->vob_chunk_max + 1)
             tc_error("invalid parameter for option -W");
     }
 
