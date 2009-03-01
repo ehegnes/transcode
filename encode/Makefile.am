@@ -16,7 +16,7 @@ if HAVE_FAAC
 ENCODE_FAAC = encode_faac.la
 endif
 
-if HAVE_IMAGEMAGICK
+if HAVE_GRAPHICSMAGICK
 ENCODE_IM = encode_im.la
 endif
 
@@ -76,9 +76,9 @@ encode_faac_la_LDFLAGS = -module -avoid-version
 encode_faac_la_LIBADD = $(FAAC_LIBS)
 
 encode_im_la_SOURCES = encode_im.c
-encode_im_la_CPPFLAGS = $(AM_CPPFLAGS) $(IMAGEMAGICK_CFLAGS)
+encode_im_la_CPPFLAGS = $(AM_CPPFLAGS) $(GRAPHICSMAGICK_CFLAGS)
 encode_im_la_LDFLAGS = -module -avoid-version
-encode_im_la_LIBADD = $(IMAGEMAGICK_LIBS) -lm
+encode_im_la_LIBADD = $(GRAPHICSMAGICK_LIBS) -lm
 
 encode_lavc_la_SOURCES = encode_lavc.c
 encode_lavc_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBAVCODEC_CFLAGS)
