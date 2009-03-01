@@ -195,7 +195,7 @@ static int levels_inspect(TCModuleInstance *self,
 {
     LevelsPrivateData *pd = NULL;
 
-    TC_MODULE_SELF_CHECK(self, "inspect");
+    TC_MODULE_SELF_CHECK(self,  "inspect");
     TC_MODULE_SELF_CHECK(param, "inspect");
     
     pd = self->userdata;
@@ -206,23 +206,23 @@ static int levels_inspect(TCModuleInstance *self,
 
     if (optstr_lookup(param, "pre")) {
         tc_snprintf(pd->conf_str, sizeof(pd->conf_str),
-                    "pre=%i", pd->is_prefilter);
+                    "%i", pd->is_prefilter);
         *value = pd->conf_str;
     }
     if (optstr_lookup(param, "gamma")) {
         tc_snprintf(pd->conf_str, sizeof(pd->conf_str),
-                    "gamma=%.3f", pd->in_gamma);
+                    "%.3f", pd->in_gamma);
         *value = pd->conf_str;
     }
     if (optstr_lookup(param, "input")) {
         tc_snprintf(pd->conf_str, sizeof(pd->conf_str),
-                    "input=%i-%i",
+                    "%i-%i",
                     pd->in_black, pd->in_white);
         *value = pd->conf_str;
     }
     if (optstr_lookup(param, "output")) {
         tc_snprintf(pd->conf_str, sizeof(pd->conf_str),
-                    "output=%i-%i",
+                    "%i-%i",
                     pd->out_black, pd->out_white);
         *value = pd->conf_str;
     }
@@ -243,7 +243,7 @@ static int levels_filter_video(TCModuleInstance *self,
     LevelsPrivateData *pd = NULL;
     int y_size = 0, i = 0;
 
-    TC_MODULE_SELF_CHECK(self, "filter");
+    TC_MODULE_SELF_CHECK(self,  "filter");
     TC_MODULE_SELF_CHECK(frame, "filter");
 
     pd = self->userdata;
