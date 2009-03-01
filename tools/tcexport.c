@@ -447,10 +447,11 @@ int main(int argc, char *argv[])
     TCVHandle tcv_handle = tcv_init();
     TCEncConf config;
     vob_t *vob = tc_get_vob();
+    TCEncoderBuffer *rawsource_buffer = NULL;
 
     /* reset some fields */
     vob->audiologfile = AUDIO_LOG_FILE;
-    vob->divxlogfile = VIDEO_LOG_FILE;
+    vob->divxlogfile  = VIDEO_LOG_FILE;
 
     ac_init(AC_ALL);
     tc_config_set_dir(NULL);
@@ -509,9 +510,10 @@ int main(int argc, char *argv[])
     ret = tc_rawsource_open(vob);
     EXIT_IF(ret != 2, "can't open input sources", STATUS_IO_ERROR);
 
-    EXIT_IF(tc_rawsource_buffer == NULL, "can't get rawsource handle",
+    rawsource_buffer = tc_rawsource_get_buffer();
+    EXIT_IF(rawsource_buffer == NULL, "can't get rawsource handle",
             STATUS_IO_ERROR);
-    ret = tc_export_init(tc_rawsource_buffer, factory);
+    ret = tc_export_init(rawsource_buffer, factory);
     EXIT_IF(ret != 0, "can't setup export subsystem", STATUS_MODULE_ERROR);
 
     ret = tc_export_setup(vob,

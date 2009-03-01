@@ -52,51 +52,63 @@ typedef struct tcrawsource_ {
     int eof_flag;
     int sources;
 
-    vframe_list_t *vframe;
-    aframe_list_t *aframe;
+    TCFrameVideo *vframe;
+    TCFrameAudio *aframe;
     int acount;
+
+    int inited;
 } TCFileSource;
 
 static TCFileSource rawsource = {
     .im_handle = NULL,
 
-    .eof_flag = TC_FALSE,
-    .sources = 0,
+    .eof_flag  = TC_FALSE,
+    .sources   = 0,
 
-    .vframe = NULL,
-    .aframe = NULL,
-    .acount = 0,
+    .vframe    = NULL,
+    .aframe    = NULL,
+    .acount    = 0,
+
+    .inited    = TC_FALSE
 };
 
 static TCEncoderBuffer raw_buffer = {
-    .frame_id = 0,
+    .frame_id            = 0,
 
-    .vptr = NULL,
-    .aptr = NULL,
+    .vptr                = NULL,
+    .aptr                = NULL,
 
     .acquire_video_frame = rawsource_read_video,
     .acquire_audio_frame = rawsource_read_audio,
     .dispose_video_frame = rawsource_dummy,
     .dispose_audio_frame = rawsource_dummy,
 };
-TCEncoderBuffer *tc_rawsource_buffer = NULL;
 
-static int rawsource_read_video(TCEncoderBuffer *buf, vob_t *vob)
+TCEncoderBuffer *tc_rawsource_get_buffer(void)
+{
+    if (rawsource.inited) {
+        return &raw_buffer;
+    }
+    return NULL;
+}
+
+int tc_rawsource_read_video(vob_t *vob, TCFrameVideo *vframe)
 {
     int ret;
 
-    if (!buf) {
+    if (!vob || !vframe) {
         /* paranoia */
-        return -1;
+        tc_log_error(__FILE__, "bad (NULL) parameters");
+        return TC_ERROR;
     }
-    if (vob->im_v_size > rawsource.vframe->video_size) {
+    if (vob->im_v_size > vframe->video_size) {
         /* paranoia */
         tc_log_error(__FILE__, "video buffer too small"
                                " (this should'nt happen)");
-        return -1;
+        return TC_ERROR;
     }
 
-    rawsource.im_para.buffer  = rawsource.vframe->video_buf;
+    rawsource.im_para.buffer  = vframe->video_buf;
     rawsource.im_para.buffer2 = NULL;
     rawsource.im_para.size    = vob->im_v_size;
     rawsource.im_para.flag    = TC_VIDEO;
@@ -105,39 +117,37 @@ static int rawsource_read_video(TCEncoderBuffer *buf, vob_t *vob)
     if (ret != TC_IMPORT_OK) {
         /* read failed */
         rawsource.eof_flag = TC_TRUE;
-        return -1;
+        return TC_ERROR;
     }
-    rawsource.vframe->video_size = rawsource.im_para.size;
-    rawsource.vframe->attributes = rawsource.im_para.attributes;
-
-    raw_buffer.vptr = rawsource.vframe;
-    raw_buffer.frame_id++;
-    return 0;
+    vframe->video_size = rawsource.im_para.size;
+    vframe->attributes = rawsource.im_para.attributes;
+    return TC_OK;
 }
 
-static int rawsource_read_audio(TCEncoderBuffer *buf, vob_t *vob)
+
+int tc_rawsource_read_audio(vob_t *vob, TCFrameAudio *aframe)
 {
-    int ret = 0;
+    int ret;
     int abytes = vob->im_a_size;
 
-    // audio adjustment for non PAL frame rates:
+    if (!vob || !aframe) {
+        tc_log_error(__FILE__, "bad (NULL) parameters");
+        return TC_ERROR;
+    }
 
+    // audio adjustment for non PAL frame rates:
     if (rawsource.acount != 0 && rawsource.acount % TC_LEAP_FRAME == 0) {
         abytes += vob->a_leap_bytes;
     }
 
-    if (!buf) {
-        /* paranoia */
-        return -1;
-    }
-    if (abytes > rawsource.aframe->audio_size) {
+    if (abytes > aframe->audio_size) {
         /* paranoia */
         tc_log_error(__FILE__, "audio buffer too small"
                                " (this should'nt happen)");
-        return -1;
+        return TC_ERROR;
     }
 
-    rawsource.im_para.buffer  = rawsource.aframe->audio_buf;
+    rawsource.im_para.buffer  = aframe->audio_buf;
     rawsource.im_para.buffer2 = NULL;
     rawsource.im_para.size    = abytes;
     rawsource.im_para.flag    = TC_AUDIO;
@@ -146,14 +156,46 @@ static int rawsource_read_audio(TCEncoderBuffer *buf, vob_t *vob)
     if (ret != TC_IMPORT_OK) {
         /* read failed */
         rawsource.eof_flag = TC_TRUE;
-        return -1;
+        return TC_ERROR;
     }
-    rawsource.acount++;
-    rawsource.aframe->audio_size = rawsource.im_para.size;
-    rawsource.aframe->attributes = rawsource.im_para.attributes;
+    aframe->audio_size = rawsource.im_para.size;
+    aframe->attributes = rawsource.im_para.attributes;
+    return TC_OK;
+}
 
-    raw_buffer.aptr = rawsource.aframe;
-    return 0;
+static int rawsource_read_video(TCEncoderBuffer *buf, vob_t *vob)
+{
+    int ret;
+
+    if (!buf) { /* paranoia */
+        tc_log_error(__FILE__, "invalid (NULL) state");
+        return TC_ERROR;
+    }
+
+    ret = tc_rawsource_read_video(vob, buf->vframe);
+    if (ret == TC_OK) {
+        raw_buffer.vptr = rawsource.vframe;
+        raw_buffer.frame_id++;
+    }
+    return ret;
+}
+
+
+static int rawsource_read_audio(TCEncoderBuffer *buf, vob_t *vob)
+{
+    int ret;
+
+    if (!buf) {  /* paranoia */
+        tc_log_error(__FILE__, "invalid (NULL) state");
+        return TC_ERROR;
+    }
+
+    ret = tc_rawsource_read_audio(vob, buf->aframe);
+    if (ret == TC_OK) {
+        raw_buffer.aptr = rawsource.aframe;
+        rawsource.acount++;
+    }
+    return ret;
 }
 
 static void rawsource_dummy(TCEncoderBuffer *buf)
@@ -217,7 +259,7 @@ int tc_rawsource_open(vob_t *vob)
     }
 
     if (num_sources > 0) {
-        tc_rawsource_buffer = &raw_buffer;
+        rawsource.inited = TC_TRUE;
     }
     return num_sources;
 
@@ -226,7 +268,7 @@ load_failed:
 aframe_failed:
     tc_del_video_frame(rawsource.vframe);
 vframe_failed:
-    return -1;
+    return TC_ERROR;
 }
 
 static void tc_rawsource_free(void)
@@ -272,7 +314,7 @@ int tc_rawsource_close(void)
             rawsource.im_handle = NULL;
         }
     }
-    return 0;
+    return TC_OK;
 }
 
 /*************************************************************************/
