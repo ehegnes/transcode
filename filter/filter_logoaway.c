@@ -64,7 +64,7 @@
  */
 
 #define MOD_NAME    "filter_logoaway.so"
-#define MOD_VERSION "v0.5 (2004-03-07)"
+#define MOD_VERSION "v0.5.1 (2004-03-01)"
 #define MOD_CAP     "remove an image from the video"
 #define MOD_AUTHOR  "Thomas Wehrspann"
 
@@ -173,40 +173,40 @@ static unsigned char alpha_blending(unsigned char srcPixel, unsigned char destPi
  *          instance    filter instance
  * @return  void        nothing
  *********************************************************/
-static void work_with_rgb_frame(char *buffer, int width, int height, int instance)
+static void work_with_rgb_frame(logoaway_data *LD, char *buffer, int width, int height)
 {
   int row, col, i;
   int xdistance, ydistance, distance_west, distance_north;
   unsigned char hcalc, vcalc;
-  int buf_off, packet_off, buf_off_xpos, buf_off_width, buf_off_ypos, buf_off_height;
+  int buf_off, pkt_off, buf_off_xpos, buf_off_width, buf_off_ypos, buf_off_height;
   int alpha_hori, alpha_vert;
-  uint8_t px;
+  uint8_t alpha_px, new_px;
 
-  if(data[instance]->dump) { // DUMP
-    for(row=data[instance]->ypos; row<data[instance]->height; ++row) {
-      for(col=data[instance]->xpos; col<data[instance]->width; ++col) {
+  if(LD->dump) { // DUMP
+    for(row=LD->ypos; row<LD->height; ++row) {
+      for(col=LD->xpos; col<LD->width; ++col) {
 
-        packet_off = ((row-data[instance]->ypos)*(data[instance]->width-data[instance]->xpos)+(col-data[instance]->xpos)) * 3;
+        pkt_off = ((row-LD->ypos)*(LD->width-LD->xpos)+(col-LD->xpos)) * 3;
         buf_off = ((height-row)*width+col) * 3;
 
         /* R */
-        data[instance]->dump_buf[packet_off +0] = buffer[buf_off +0];
+        LD->dump_buf[pkt_off +0] = buffer[buf_off +0];
 
         /* G */
-        data[instance]->dump_buf[packet_off +1] = buffer[buf_off +1];
+        LD->dump_buf[pkt_off +1] = buffer[buf_off +1];
 
         /* B */
-        data[instance]->dump_buf[packet_off +2] = buffer[buf_off +2];
+        LD->dump_buf[pkt_off +2] = buffer[buf_off +2];
       }
     }
 
-    data[instance]->dumpimage = ConstituteImage(data[instance]->width-data[instance]->xpos, data[instance]->height-data[instance]->ypos, "RGB", CharPixel, data[instance]->dump_buf, &data[instance]->exception_info);
-    tc_snprintf (data[instance]->dumpimage->filename, MaxTextExtent, "dump[%d].png", instance);
+    LD->dumpimage = ConstituteImage(LD->width-LD->xpos, LD->height-LD->ypos, "RGB", CharPixel, LD->dump_buf, &LD->exception_info);
+    tc_snprintf (LD->dumpimage->filename, MaxTextExtent, "dump[%d].png", instance);
 
-    WriteImage(data[instance]->dumpimage_info, data[instance]->dumpimage);
+    WriteImage(LD->dumpimage_info, LD->dumpimage);
   }
 
-  switch(data[instance]->mode) {
+  switch(LD->mode) {
 
   case 0: // NONE
 
@@ -214,23 +214,32 @@ static void work_with_rgb_frame(char *buffer, int width, int height, int instanc
 
   case 1: // SOLID
 
-      for(row=data[instance]->ypos; row<data[instance]->height; ++row) {
-        for(col=data[instance]->xpos; col<data[instance]->width; ++col) {
+      for(row=LD->ypos; row<LD->height; ++row) {
+        for(col=LD->xpos; col<LD->width; ++col) {
 
           buf_off = ((height-row)*width+col) * 3;
-          packet_off = (row-data[instance]->ypos) * (data[instance]->width-data[instance]->xpos) + (col-data[instance]->xpos);
-
+          pkt_off = (row-LD->ypos) * (LD->width-LD->xpos) + (col-LD->xpos);
           /* R */
-          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off].red);
-          buffer[buf_off +0] = data[instance]->alpha?(alpha_blending( buffer[buf_off +0],  data[instance]->rcolor,  px )):data[instance]->rcolor;
-
+          if (!LD->alpha) {
+              buffer[buf_off +0] = LD->rcolor;
+          } else {
+              alpha_px = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off].red);
+              buffer[buf_off +0] = alpha_blending(buffer[buf_off +0], LD->rcolor, alpha_px);
+          }
           /* G */
-          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off].green);
-          buffer[buf_off +1] = data[instance]->alpha?(alpha_blending( buffer[buf_off +1],  data[instance]->gcolor,  px )):data[instance]->gcolor;
-
+          if (!LD->alpha) {
+              buffer[buf_off +1] = LD->gcolor;
+          } else {
+              alpha_px = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off].green);
+              buffer[buf_off +1] = alpha_blending(buffer[buf_off +1], LD->gcolor, alpha_px);
+          }
           /* B */
-          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off].blue);
-          buffer[buf_off +2] = data[instance]->alpha?(alpha_blending( buffer[buf_off +2],  data[instance]->bcolor,  px )):data[instance]->bcolor;
+          if (!LD->alpha) {
+              buffer[buf_off +2] = LD->bcolor;
+          } else {
+              alpha_px = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off].blue);
+              buffer[buf_off +2] = alpha_blending(buffer[buf_off +2], LD->bcolor, alpha_px);
+          }
         }
       }
 
@@ -238,44 +247,57 @@ static void work_with_rgb_frame(char *buffer, int width, int height, int instanc
 
   case 2: // XY
 
-      xdistance = 256 / (data[instance]->width - data[instance]->xpos);
-      ydistance = 256 / (data[instance]->height - data[instance]->ypos);
-      for(row=data[instance]->ypos; row<data[instance]->height; ++row) {
-        distance_north = data[instance]->height - row;
+      xdistance = 256 / (LD->width - LD->xpos);
+      ydistance = 256 / (LD->height - LD->ypos);
+      for(row=LD->ypos; row<LD->height; ++row) {
+        distance_north = LD->height - row;
 
         alpha_vert = ydistance * distance_north;
 
-        buf_off_xpos = ((height-row)*width+data[instance]->xpos) * 3;
-        buf_off_width = ((height-row)*width+data[instance]->width) * 3;
+        buf_off_xpos = ((height-row)*width+LD->xpos) * 3;
+        buf_off_width = ((height-row)*width+LD->width) * 3;
 
-        for(col=data[instance]->xpos; col<data[instance]->width; ++col) {
-          distance_west  = data[instance]->width - col;
+        for(col=LD->xpos; col<LD->width; ++col) {
+          distance_west  = LD->width - col;
 
           alpha_hori = xdistance * distance_west;
 
-          buf_off_ypos = ((height-data[instance]->ypos)*width+col) * 3;
-          buf_off_height = ((height-data[instance]->height)*width+col) * 3;
+          buf_off_ypos = ((height-LD->ypos)*width+col) * 3;
+          buf_off_height = ((height-LD->height)*width+col) * 3;
           buf_off = ((height-row)*width+col) * 3;
 
-          packet_off = (row-data[instance]->ypos) * (data[instance]->width-data[instance]->xpos) + (col-data[instance]->xpos);
+          pkt_off = (row-LD->ypos) * (LD->width-LD->xpos) + (col-LD->xpos);
 
           /* R */
-          hcalc = alpha_blending( buffer[buf_off_xpos +0], buffer[buf_off_width  +0], alpha_hori );
-          vcalc = alpha_blending( buffer[buf_off_ypos +0], buffer[buf_off_height +0], alpha_vert );
-          px    = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off].red);
-          buffer[buf_off +0] = data[instance]->alpha?alpha_blending( buffer[buf_off +0], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, px):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
-
+          hcalc  = alpha_blending(buffer[buf_off_xpos +0], buffer[buf_off_width  +0], alpha_hori);
+          vcalc  = alpha_blending(buffer[buf_off_ypos +0], buffer[buf_off_height +0], alpha_vert);
+          new_px = (hcalc*LD->xweight + vcalc*LD->yweight)/100;
+          if (!LD->alpha) {
+              buffer[buf_off +0] = new_px;
+          } else {
+              alpha_px = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off].red);
+              buffer[buf_off +0] = alpha_blending(buffer[buf_off +0], new_px, alpha_px);
+          }
           /* G */
-          hcalc = alpha_blending( buffer[buf_off_xpos +1], buffer[buf_off_width  +1], alpha_hori );
-          vcalc = alpha_blending( buffer[buf_off_ypos +1], buffer[buf_off_height +1], alpha_vert );
-          /* sic */
-          buffer[buf_off +1] = data[instance]->alpha?alpha_blending( buffer[buf_off +1], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, px):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
-
+          hcalc  = alpha_blending(buffer[buf_off_xpos +1], buffer[buf_off_width  +1], alpha_hori);
+          vcalc  = alpha_blending(buffer[buf_off_ypos +1], buffer[buf_off_height +1], alpha_vert);
+          new_px = (hcalc*LD->xweight + vcalc*LD->yweight)/100;
+          if (!LD->alpha) {
+              buffer[buf_off +1] = new_px;
+          } else {
+              alpha_px = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off].green);
+              buffer[buf_off +1] = alpha_blending(buffer[buf_off +1], new_px, alpha_px);
+          }
           /* B */
-          hcalc = alpha_blending( buffer[buf_off_xpos +2], buffer[buf_off_width  +2], alpha_hori );
-          vcalc = alpha_blending( buffer[buf_off_ypos +2], buffer[buf_off_height +2], alpha_vert );
-          /* sic */
-          buffer[buf_off +2] = data[instance]->alpha?alpha_blending( buffer[buf_off +2], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, px):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+          hcalc  = alpha_blending(buffer[buf_off_xpos +2], buffer[buf_off_width  +2], alpha_hori);
+          vcalc  = alpha_blending(buffer[buf_off_ypos +2], buffer[buf_off_height +2], alpha_vert);
+          new_px = (hcalc*LD->xweight + vcalc*LD->yweight)/100;
+          if (!LD->alpha) {
+              buffer[buf_off +2] = new_px;
+          } else {
+              alpha_px = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off].red);
+              buffer[buf_off +2] = alpha_blending(buffer[buf_off +2], new_px, alpha_px);
+          }
         }
       }
 
@@ -283,61 +305,66 @@ static void work_with_rgb_frame(char *buffer, int width, int height, int instanc
 
   case 3: // SHAPE
 
-      xdistance = 256 / (data[instance]->width - data[instance]->xpos);
-      ydistance = 256 / (data[instance]->height - data[instance]->ypos);
-      for(row=data[instance]->ypos; row<data[instance]->height; ++row) {
-        distance_north = data[instance]->height - row;
+      xdistance = 256 / (LD->width - LD->xpos);
+      ydistance = 256 / (LD->height - LD->ypos);
+      for(row=LD->ypos; row<LD->height; ++row) {
+        distance_north = LD->height - row;
 
         alpha_vert = ydistance * distance_north;
 
-        for(col=data[instance]->xpos; col<data[instance]->width; ++col) {
-          distance_west  = data[instance]->width - col;
+        for(col=LD->xpos; col<LD->width; ++col) {
+          distance_west  = LD->width - col;
 
           alpha_hori = xdistance * distance_west;
 
           buf_off = ((height-row)*width+col) * 3;
-          packet_off = (row-data[instance]->ypos) * (data[instance]->width-data[instance]->xpos) + (col-data[instance]->xpos);
+          pkt_off = (row-LD->ypos) * (LD->width-LD->xpos) + (col-LD->xpos);
 
-          buf_off_xpos = ((height-row)*width+data[instance]->xpos) * 3;
-          buf_off_width = ((height-row)*width+data[instance]->width) * 3;
-          buf_off_ypos = ((height-data[instance]->ypos)*width+col) * 3;
-          buf_off_height = ((height-data[instance]->height)*width+col) * 3;
+          buf_off_xpos   = ((height-row)*width+LD->xpos)   * 3;
+          buf_off_width  = ((height-row)*width+LD->width)  * 3;
+          buf_off_ypos   = ((height-LD->ypos)*width+col)   * 3;
+          buf_off_height = ((height-LD->height)*width+col) * 3;
 
-          i=0;
-          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off-i].red);
-          while( (px != 255) && (col-i>data[instance]->xpos) ) i++;
+          i = 0;
+          alpha_px = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off-i].red);
+          while ((alpha_px != 255) && (col-i>LD->xpos))
+            i++;
           buf_off_xpos   = ((height-row)*width + col-i) * 3;
-          i=0;
-          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off+i].red);
-          while( (px != 255) && (col+i<data[instance]->width) ) i++;
+          i = 0;
+          alpha_px = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off+i].red);
+          while ((alpha_px != 255) && (col+i<LD->width))
+            i++;
           buf_off_width  = ((height-row)*width + col+i) * 3;
 
-          i=0;
-          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off-i*(data[instance]->width-data[instance]->xpos)].red);
-          while( (px != 255) && (row-i>data[instance]->ypos) ) i++;
+          i = 0;
+          alpha_px = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off-i*(LD->width-LD->xpos)].red);
+          while ((alpha_px != 255) && (row-i>LD->ypos))
+            i++;
           buf_off_ypos   = (height*width*3)-((row-i)*width - col) * 3;
-          i=0;
-          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off+i*(data[instance]->width-data[instance]->xpos)].red);
-          while( (px != 255) && (row+i<data[instance]->height) ) i++;
+          i = 0;
+          alpha_px = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off+i*(LD->width-LD->xpos)].red);
+          while ((alpha_px != 255) && (row+i<LD->height))
+            i++;
           buf_off_height = (height*width*3)-((row+i)*width - col) * 3;
 
+          alpha_px     = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off].red);
           /* R */
-          hcalc = alpha_blending( buffer[buf_off_xpos +0], buffer[buf_off_width  +0], alpha_hori );
-          vcalc = alpha_blending( buffer[buf_off_ypos +0], buffer[buf_off_height +0], alpha_vert );
-          px    = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off].red);
-          buffer[buf_off +0] = data[instance]->alpha?alpha_blending( buffer[buf_off +0], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, px):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
-
+          hcalc  = alpha_blending(buffer[buf_off_xpos +0], buffer[buf_off_width  +0], alpha_hori);
+          vcalc  = alpha_blending(buffer[buf_off_ypos +0], buffer[buf_off_height +0], alpha_vert);
+          new_px = (hcalc*LD->xweight + vcalc*LD->yweight)/100;
+          buffer[buf_off +0] = alpha_blending(buffer[buf_off +0], new_px, alpha_px);
           /* G */
-          hcalc = alpha_blending( buffer[buf_off_xpos +1], buffer[buf_off_width  +1], alpha_hori );
-          vcalc = alpha_blending( buffer[buf_off_ypos +1], buffer[buf_off_height +1], alpha_vert );
-          /* sic */
-          buffer[buf_off +1] = data[instance]->alpha?alpha_blending( buffer[buf_off +1], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, px):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
-
+          hcalc = alpha_blending(buffer[buf_off_xpos +1], buffer[buf_off_width  +1], alpha_hori);
+          vcalc = alpha_blending(buffer[buf_off_ypos +1], buffer[buf_off_height +1], alpha_vert);
+          new_px = (hcalc*LD->xweight + vcalc*LD->yweight)/100;
+          /* reuse red alpha_px. sic. */
+          buffer[buf_off +1] = alpha_blending(buffer[buf_off +1], new_px, alpha_px);
           /* B */
-          hcalc = alpha_blending( buffer[buf_off_xpos +2], buffer[buf_off_width  +2], alpha_hori );
-          vcalc = alpha_blending( buffer[buf_off_ypos +2], buffer[buf_off_height +2], alpha_vert );
-          /* sic */
-          buffer[buf_off +2] = data[instance]->alpha?alpha_blending( buffer[buf_off +2], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, px):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+          hcalc = alpha_blending(buffer[buf_off_xpos +2], buffer[buf_off_width  +2], alpha_hori);
+          vcalc = alpha_blending(buffer[buf_off_ypos +2], buffer[buf_off_height +2], alpha_vert);
+          new_px = (hcalc*LD->xweight + vcalc*LD->yweight)/100;
+          /* reuse red alpha_px. sic. */
+          buffer[buf_off +2] = alpha_blending(buffer[buf_off +2], new_px, alpha_px);
         }
       }
 
@@ -345,19 +372,19 @@ static void work_with_rgb_frame(char *buffer, int width, int height, int instanc
 
   }
 
-  if(data[instance]->border) { // BORDER
-    for(row=data[instance]->ypos; row<data[instance]->height; ++row) {
-      if((row == data[instance]->ypos) || (row==data[instance]->height-1)) {
-        for(col=data[instance]->xpos*3; col<data[instance]->width*3; ++col) if(col&1) buffer[((height-row)*width*3+col)] = 255 & 0xff;
+  if(LD->border) { 
+    for(row=LD->ypos; row<LD->height; ++row) {
+      if((row == LD->ypos) || (row==LD->height-1)) {
+        for(col=LD->xpos*3; col<LD->width*3; ++col) if(col&1) buffer[((height-row)*width*3+col)] = 255 & 0xff;
       }
       if(row&1) {
-        buf_off = ((height-row)*width+data[instance]->xpos)*3;
+        buf_off = ((height-row)*width+LD->xpos)*3;
         buffer[buf_off +0] = 255;
         buffer[buf_off +1] = 255;
         buffer[buf_off +2] = 255;
       }
       if(row&1) {
-        buf_off = ((height-row)*width+data[instance]->width)*3;
+        buf_off = ((height-row)*width+LD->width)*3;
         buffer[buf_off +0] = 255;
         buffer[buf_off +1] = 255;
         buffer[buf_off +2] = 255;
@@ -377,50 +404,56 @@ static void work_with_rgb_frame(char *buffer, int width, int height, int instanc
  *          instance    filter instance
  * @return  void        nothing
  *********************************************************/
-static void work_with_yuv_frame(char *buffer, int width, int height, int instance)
+static void work_with_yuv_frame(logoaway_data *LD, char *buffer, int width, int height)
 {
   int row, col, i;
   int craddr, cbaddr;
   int xdistance, ydistance, distance_west, distance_north;
   unsigned char hcalc, vcalc;
-  int buf_off, packet_off=0, buf_off_xpos, buf_off_width, buf_off_ypos, buf_off_height;
+  int buf_off, pkt_off=0, buf_off_xpos, buf_off_width, buf_off_ypos, buf_off_height;
   int alpha_hori, alpha_vert;
-  uint8_t px;
+  uint8_t alpha_px, new_px;
 
   craddr = (width * height);
   cbaddr = (width * height) * 5 / 4;
 
-  switch(data[instance]->mode) {
+  switch(LD->mode) {
 
   case 0: // NONE
 
       break;
 
-  case 1: // SOLID //FIXME : "Raender" entfernen
-
+  case 1: // SOLID 
       /* Y */
-      for(row=data[instance]->ypos; row<data[instance]->height; ++row) {
-        for(col=data[instance]->xpos; col<data[instance]->width; ++col) {
+      for(row=LD->ypos; row<LD->height; ++row) {
+        for(col=LD->xpos; col<LD->width; ++col) {
 
           buf_off = row*width+col;
-          packet_off = (row-data[instance]->ypos) * (data[instance]->width-data[instance]->xpos) + (col-data[instance]->xpos);
-          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off].red);
-
-          buffer[buf_off] = data[instance]->alpha?alpha_blending( buffer[buf_off], data[instance]->ycolor, px):data[instance]->ycolor;
+          pkt_off = (row-LD->ypos) * (LD->width-LD->xpos) + (col-LD->xpos);
+          if (!LD->alpha) {
+            buffer[buf_off] = LD->ycolor;
+          } else {
+            alpha_px = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off].red);
+            buffer[buf_off] = alpha_blending(buffer[buf_off], LD->ycolor, alpha_px);
+          }
         }
       }
 
       /* Cb, Cr */
-      for(row=data[instance]->ypos/2+1; row<data[instance]->height/2; ++row) {
-        for(col=data[instance]->xpos/2+1; col<data[instance]->width/2; ++col) {
+      for(row=LD->ypos/2+1; row<LD->height/2; ++row) {
+        for(col=LD->xpos/2+1; col<LD->width/2; ++col) {
 
           buf_off = row*width/2+col;
-          packet_off = (row*2-data[instance]->ypos) * (data[instance]->width-data[instance]->xpos) + (col*2-data[instance]->xpos);
-
+          pkt_off = (row*2-LD->ypos) * (LD->width-LD->xpos) + (col*2-LD->xpos);
           /* sic */
-          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off].red);
-          buffer[craddr + buf_off] = data[instance]->alpha?alpha_blending( buffer[craddr + buf_off], data[instance]->ucolor, px):data[instance]->ucolor;
-          buffer[cbaddr + buf_off] = data[instance]->alpha?alpha_blending( buffer[cbaddr + buf_off], data[instance]->vcolor, px):data[instance]->vcolor;
+          alpha_px = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off].red);
+          if (!LD->alpha) {
+            buffer[craddr + buf_off] = LD->ucolor;
+            buffer[cbaddr + buf_off] = LD->vcolor;
+          } else {
+            buffer[craddr + buf_off] = alpha_blending(buffer[craddr + buf_off], LD->ucolor, alpha_px);
+            buffer[cbaddr + buf_off] = alpha_blending(buffer[cbaddr + buf_off], LD->vcolor, alpha_px);
+          }
         }
       }
 
@@ -429,64 +462,80 @@ static void work_with_yuv_frame(char *buffer, int width, int height, int instanc
   case 2: // XY
 
       /* Y' */
-      xdistance = 256 / (data[instance]->width - data[instance]->xpos);
-      ydistance = 256 / (data[instance]->height - data[instance]->ypos);
-      for(row=data[instance]->ypos; row<data[instance]->height; ++row) {
-        distance_north = data[instance]->height - row;
+      xdistance = 256 / (LD->width - LD->xpos);
+      ydistance = 256 / (LD->height - LD->ypos);
+      for(row=LD->ypos; row<LD->height; ++row) {
+        distance_north = LD->height - row;
 
         alpha_vert = ydistance * distance_north;
 
-        buf_off_xpos = row*width+data[instance]->xpos;
-        buf_off_width = row*width+data[instance]->width;
+        buf_off_xpos = row*width+LD->xpos;
+        buf_off_width = row*width+LD->width;
 
-        for(col=data[instance]->xpos; col<data[instance]->width; ++col) {
-          distance_west  = data[instance]->width - col;
+        for(col=LD->xpos; col<LD->width; ++col) {
+          distance_west  = LD->width - col;
 
           alpha_hori = xdistance * distance_west;
 
           buf_off = row*width+col;
-          buf_off_ypos = data[instance]->ypos*width+col;
-          buf_off_height = data[instance]->height*width+col;
+          buf_off_ypos = LD->ypos*width+col;
+          buf_off_height = LD->height*width+col;
 
-          packet_off = (row-data[instance]->ypos) * (data[instance]->width-data[instance]->xpos) + (col-data[instance]->xpos);
+          pkt_off = (row-LD->ypos) * (LD->width-LD->xpos) + (col-LD->xpos);
 
-          hcalc = alpha_blending( buffer[buf_off_xpos], buffer[buf_off_width],  alpha_hori );
-          vcalc = alpha_blending( buffer[buf_off_ypos], buffer[buf_off_height], alpha_vert );
-          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off].red);
-          buffer[buf_off] = data[instance]->alpha?alpha_blending( buffer[buf_off], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, px):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+          hcalc = alpha_blending(buffer[buf_off_xpos], buffer[buf_off_width],  alpha_hori);
+          vcalc = alpha_blending(buffer[buf_off_ypos], buffer[buf_off_height], alpha_vert);
+          alpha_px = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off].red);
+          new_px = (hcalc*LD->xweight + vcalc*LD->yweight)/100;
+          if (!LD->alpha) {
+            buffer[buf_off] = new_px;
+          } else {
+            buffer[buf_off] = alpha_blending(buffer[buf_off], new_px, alpha_px);
+          }
         }
       }
 
       /* Cb, Cr */
-      xdistance = 512 / (data[instance]->width - data[instance]->xpos);
-      ydistance = 512 / (data[instance]->height - data[instance]->ypos);
-      for (row=data[instance]->ypos/2+1; row<data[instance]->height/2; ++row) {
-        distance_north = data[instance]->height/2 - row;
+      xdistance = 512 / (LD->width - LD->xpos);
+      ydistance = 512 / (LD->height - LD->ypos);
+      for (row=LD->ypos/2+1; row<LD->height/2; ++row) {
+        distance_north = LD->height/2 - row;
 
         alpha_vert = ydistance * distance_north;
 
-        buf_off_xpos = row*width/2+data[instance]->xpos/2;
-        buf_off_width = row*width/2+data[instance]->width/2;
+        buf_off_xpos = row*width/2+LD->xpos/2;
+        buf_off_width = row*width/2+LD->width/2;
 
-        for (col=data[instance]->xpos/2+1; col<data[instance]->width/2; ++col) {
-          distance_west  = data[instance]->width/2 - col;
+        for (col=LD->xpos/2+1; col<LD->width/2; ++col) {
+          distance_west  = LD->width/2 - col;
 
           alpha_hori = xdistance * distance_west;
 
           buf_off = row*width/2+col;
-          buf_off_ypos = data[instance]->ypos/2*width/2+col;
-          buf_off_height = data[instance]->height/2*width/2+col;
+          buf_off_ypos = LD->ypos/2*width/2+col;
+          buf_off_height = LD->height/2*width/2+col;
 
-          packet_off = (row*2-data[instance]->ypos) * (data[instance]->width-data[instance]->xpos) + (col*2-data[instance]->xpos);
+          pkt_off = (row*2-LD->ypos) * (LD->width-LD->xpos) + (col*2-LD->xpos);
+          alpha_px = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off].red); 
+          /* sic, reuse red alpha_px */
 
-          hcalc = alpha_blending( buffer[craddr + buf_off_xpos], buffer[craddr + buf_off_width],  alpha_hori );
-          vcalc = alpha_blending( buffer[craddr + buf_off_ypos], buffer[craddr + buf_off_height], alpha_vert );
-          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off].red); /* sic */
-          buffer[craddr + buf_off] = data[instance]->alpha?alpha_blending( buffer[craddr + buf_off], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, px):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+          hcalc  = alpha_blending(buffer[craddr + buf_off_xpos], buffer[craddr + buf_off_width],  alpha_hori);
+          vcalc  = alpha_blending(buffer[craddr + buf_off_ypos], buffer[craddr + buf_off_height], alpha_vert);
+          new_px = (hcalc*LD->xweight + vcalc*LD->yweight)/100;
+          if (!LD->alpha) {
+            buffer[craddr + buf_off] = new_px;
+          } else {
+            buffer[craddr + buf_off] = alpha_blending(buffer[craddr + buf_off], new_px, alpha_px);
+          }
 
-          hcalc = alpha_blending( buffer[cbaddr + buf_off_xpos], buffer[cbaddr + buf_off_width],  alpha_hori );
-          vcalc = alpha_blending( buffer[cbaddr + buf_off_ypos], buffer[cbaddr + buf_off_height], alpha_vert );
-          buffer[cbaddr + buf_off] = data[instance]->alpha?alpha_blending( buffer[cbaddr + buf_off], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, px):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+          hcalc  = alpha_blending(buffer[cbaddr + buf_off_xpos], buffer[cbaddr + buf_off_width],  alpha_hori);
+          vcalc  = alpha_blending(buffer[cbaddr + buf_off_ypos], buffer[cbaddr + buf_off_height], alpha_vert);
+          new_px = (hcalc*LD->xweight + vcalc*LD->yweight)/100;
+          if (!LD->alpha) {
+            buffer[cbaddr + buf_off] = new_px;
+          } else {
+            buffer[cbaddr + buf_off] = alpha_blending(buffer[cbaddr + buf_off], new_px, alpha_px);
+          }
         }
       }
 
@@ -494,110 +543,116 @@ static void work_with_yuv_frame(char *buffer, int width, int height, int instanc
 
   case 3: // SHAPE
 
-      xdistance = 256 / (data[instance]->width - data[instance]->xpos);
-      ydistance = 256 / (data[instance]->height - data[instance]->ypos);
-      for(row=data[instance]->ypos; row<data[instance]->height; ++row) {
-        distance_north = data[instance]->height - row;
+      xdistance = 256 / (LD->width - LD->xpos);
+      ydistance = 256 / (LD->height - LD->ypos);
+      for(row=LD->ypos; row<LD->height; ++row) {
+        distance_north = LD->height - row;
 
         alpha_vert = ydistance * distance_north;
 
-        for(col=data[instance]->xpos; col<data[instance]->width; ++col) {
-          distance_west  = data[instance]->width - col;
+        for(col=LD->xpos; col<LD->width; ++col) {
+          distance_west  = LD->width - col;
 
           alpha_hori = xdistance * distance_west;
 
           buf_off = (row*width+col);
-          packet_off = (row-data[instance]->ypos) * (data[instance]->width-data[instance]->xpos) + (col-data[instance]->xpos);
+          pkt_off = (row-LD->ypos) * (LD->width-LD->xpos) + (col-LD->xpos);
 
-          i=0;
-          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off-i].red);
-          while( (px != 255) && (col-i>data[instance]->xpos) ) i++;
+          i = 0;
+          alpha_px = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off-i].red);
+          while ((alpha_px != 255) && (col-i>LD->xpos))
+            i++;
           buf_off_xpos   = (row*width + col-i);
-          i=0;
-          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off+i].red);
-          while( (px != 255) && (col+i<data[instance]->width) ) i++;
+          i = 0;
+          alpha_px = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off+i].red);
+          while ((alpha_px != 255) && (col+i<LD->width))
+            i++;
           buf_off_width  = (row*width + col+i);
 
-          i=0;
-          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off-i*(data[instance]->width-data[instance]->xpos)].red);
-          while( (px != 255) && (row-i>data[instance]->ypos) ) i++;
+          i = 0;
+          alpha_px = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off-i*(LD->width-LD->xpos)].red);
+          while ((alpha_px != 255) && (row-i>LD->ypos))
+            i++;
           buf_off_ypos   = ((row-i)*width + col);
-          i=0;
-          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off+i*(data[instance]->width-data[instance]->xpos)].red);
-          while( (px != 255) && (row+i<data[instance]->height) ) i++;
+          i = 0;
+          alpha_px = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off+i*(LD->width-LD->xpos)].red);
+          while ((alpha_px != 255) && (row+i<LD->height))
+            i++;
           buf_off_height = ((row+i)*width + col);
 
-          hcalc = alpha_blending( buffer[buf_off_xpos], buffer[buf_off_width],  alpha_hori );
-          vcalc = alpha_blending( buffer[buf_off_ypos], buffer[buf_off_height], alpha_vert );
-          px    = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off].red);
-          buffer[buf_off] = data[instance]->alpha?alpha_blending( buffer[buf_off], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, px):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+          hcalc  = alpha_blending( buffer[buf_off_xpos], buffer[buf_off_width],  alpha_hori );
+          vcalc  = alpha_blending( buffer[buf_off_ypos], buffer[buf_off_height], alpha_vert );
+          alpha_px     = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off].red);
+          new_px = (hcalc*LD->xweight + vcalc*LD->yweight)/100;
+          buffer[buf_off] = alpha_blending(buffer[buf_off], new_px, alpha_px);
         }
       }
 
       /* Cb, Cr */
-      xdistance = 512 / (data[instance]->width - data[instance]->xpos);
-      ydistance = 512 / (data[instance]->height - data[instance]->ypos);
-      for (row=data[instance]->ypos/2+1; row<data[instance]->height/2; ++row) {
-        distance_north = data[instance]->height/2 - row;
+      xdistance = 512 / (LD->width - LD->xpos);
+      ydistance = 512 / (LD->height - LD->ypos);
+      for (row=LD->ypos/2+1; row<LD->height/2; ++row) {
+        distance_north = LD->height/2 - row;
 
         alpha_vert = ydistance * distance_north;
 
-        for (col=data[instance]->xpos/2+1; col<data[instance]->width/2; ++col) {
-          distance_west  = data[instance]->width/2 - col;
+        for (col=LD->xpos/2+1; col<LD->width/2; ++col) {
+          distance_west  = LD->width/2 - col;
 
           alpha_hori = xdistance * distance_west;
 
-          i=0;
-          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off-i].red);
-          while( (px != 255) && (col-i>data[instance]->xpos) ) i++;
+          i = 0;
+          alpha_px = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off-i].red);
+          while ((alpha_px != 255) && (col-i>LD->xpos))
+            i++;
           buf_off_xpos   = (row*width/2 + col-i);
-          i=0;
-          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off+i].red);
-          while( (px != 255) && (col+i<data[instance]->width) ) i++;
+          i = 0;
+          alpha_px = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off+i].red);
+          while ((alpha_px != 255) && (col+i<LD->width))
+            i++;
           buf_off_width  = (row*width/2 + col+i);
 
-          i=0;
-          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off-i*(data[instance]->width-data[instance]->xpos)].red);
-          while( (px != 255) && (row-i>data[instance]->ypos) ) i++;
+          i = 0;
+          alpha_px = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off-i*(LD->width-LD->xpos)].red);
+          while ((alpha_px != 255) && (row-i>LD->ypos))
+            i++;
           buf_off_ypos   = ((row-i)*width/2 + col);
-          i=0;
-          px = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off+i*(data[instance]->width-data[instance]->xpos)].red);
-          while( (px != 255) && (row+i<data[instance]->height) ) i++;
+          i = 0;
+          alpha_px = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off+i*(LD->width-LD->xpos)].red);
+          while ((alpha_px != 255) && (row+i<LD->height))
+            i++;
           buf_off_height = ((row+i)*width/2 + col);
 
           buf_off = row*width/2+col;
-          buf_off_ypos = data[instance]->ypos/2*width/2+col;
-          buf_off_height = data[instance]->height/2*width/2+col;
+          buf_off_ypos = LD->ypos/2*width/2+col;
+          buf_off_height = LD->height/2*width/2+col;
 
-          packet_off = (row*2-data[instance]->ypos) * (data[instance]->width-data[instance]->xpos) + (col*2-data[instance]->xpos);
+          pkt_off = (row*2-LD->ypos) * (LD->width-LD->xpos) + (col*2-LD->xpos);
 
-          hcalc = alpha_blending( buffer[craddr + buf_off_xpos], buffer[craddr + buf_off_width],  alpha_hori );
-          vcalc = alpha_blending( buffer[craddr + buf_off_ypos], buffer[craddr + buf_off_height], alpha_vert );
-          px    = (uint8_t)ScaleQuantumToChar(data[instance]->pixel_packet[packet_off].red);
-          buffer[craddr + buf_off] = data[instance]->alpha?alpha_blending( buffer[craddr + buf_off], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, px):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+          alpha_px    = (uint8_t)ScaleQuantumToChar(LD->pixel_packet[pkt_off].red);
+          /* sic: reuse the red component */
+          hcalc  = alpha_blending(buffer[craddr + buf_off_xpos], buffer[craddr + buf_off_width],  alpha_hori);
+          vcalc  = alpha_blending(buffer[craddr + buf_off_ypos], buffer[craddr + buf_off_height], alpha_vert);
+          new_px = (hcalc*LD->xweight + vcalc*LD->yweight)/100;
+          buffer[craddr + buf_off] = alpha_blending(buffer[craddr + buf_off], new_px, alpha_px);
 
-          hcalc = alpha_blending( buffer[cbaddr + buf_off_xpos], buffer[cbaddr + buf_off_width],  alpha_hori );
-          vcalc = alpha_blending( buffer[cbaddr + buf_off_ypos], buffer[cbaddr + buf_off_height], alpha_vert );
-          /* sic */
-          buffer[cbaddr + buf_off] = data[instance]->alpha?alpha_blending( buffer[cbaddr + buf_off], (hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100, px):((hcalc*data[instance]->xweight + vcalc*data[instance]->yweight)/100);
+          hcalc  = alpha_blending(buffer[cbaddr + buf_off_xpos], buffer[cbaddr + buf_off_width],  alpha_hori);
+          vcalc  = alpha_blending(buffer[cbaddr + buf_off_ypos], buffer[cbaddr + buf_off_height], alpha_vert);
+          new_px = (hcalc*LD->xweight + vcalc*LD->yweight)/100;
+          buffer[cbaddr + buf_off] = alpha_blending(buffer[cbaddr + buf_off], new_px, alpha_px);
         }
       }
 
       break;
-          buf_off_xpos = (row*width+data[instance]->xpos);
-          buf_off_width = (row*width+data[instance]->width);
-          buf_off_ypos = (data[instance]->ypos*width+col);
-          buf_off_height = (data[instance]->height*width+col);
-
   }
 
-  if(data[instance]->border) { // BORDER
-    for(row=data[instance]->ypos; row<data[instance]->height; ++row) {
-      if((row == data[instance]->ypos) || (row==data[instance]->height-1)) {
-        for(col=data[instance]->xpos; col<data[instance]->width; ++col) if(col&1) buffer[row*width+col] = 255 & 0xff;
+  if(LD->border) {
+    for(row=LD->ypos; row<LD->height; ++row) {
+      if((row == LD->ypos) || (row==LD->height-1)) {
+        for(col=LD->xpos; col<LD->width; ++col) if(col&1) buffer[row*width+col] = 255 & 0xff;
       }
-      if(row&1) buffer[row*width+data[instance]->xpos] = 255 & 0xff;
-      if(row&1) buffer[row*width+data[instance]->width] = 255 & 0xff;
+      if(row&1) buffer[row*width+LD->xpos]  = 255 & 0xff;
+      if(row&1) buffer[row*width+LD->width] = 255 & 0xff;
     }
   }
 
@@ -656,7 +711,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     tc_snprintf (buf, sizeof(buf), "%s",  data[instance]->file);
     optstr_param (options, "file",   "Image with alpha/shape information",  "%s",        buf);
 
-    return 0;
+    return TC_OK;
   }
 
 
@@ -669,11 +724,11 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
   if(ptr->tag & TC_FILTER_INIT) {
 
-    if((vob = tc_get_vob())==NULL) return(-1);
+    if((vob = tc_get_vob())==NULL) return TC_ERROR;
 
     if((data[instance] = tc_malloc (sizeof(logoaway_data))) == NULL) {
       tc_log_error(MOD_NAME, "can't allocate filter data");
-      return (-1);
+      return TC_ERROR;
     }
 
     data[instance]->start    = 0;
@@ -738,23 +793,23 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
     if( (data[instance]->xpos > vob->im_v_width) || (data[instance]->ypos > vob->im_v_height) || (data[instance]->xpos < 0) || (data[instance]->ypos < 0) )  {
       tc_log_error(MOD_NAME, "invalid position");
-      return(-1);
+      return TC_ERROR;
     }
     if( (data[instance]->width > vob->im_v_width) || (data[instance]->height > vob->im_v_height) || (data[instance]->width-data[instance]->xpos < 0) || (data[instance]->height-data[instance]->ypos < 0) ) {
       tc_log_error(MOD_NAME, "invalid size");
-      return(-1);
+      return TC_ERROR;
     }
     if( (data[instance]->xweight > 100) || (data[instance]->xweight < 0) ) {
       tc_log_error(MOD_NAME, "invalid x weight");
-      return(-1);
+      return TC_ERROR;
     }
     if( (data[instance]->mode < 0) || (data[instance]->mode > 3) ) {
       tc_log_error(MOD_NAME, "invalid mode");
-      return(-1);
+      return TC_ERROR;
     }
     if( (data[instance]->mode == 3) && (data[instance]->alpha == 0) ) {
       tc_log_error(MOD_NAME, "alpha/shape file needed for SHAPE-mode");
-      return(-1);
+      return TC_ERROR;
     }
 
     if((data[instance]->alpha) || (data[instance]->dump)) {
@@ -769,13 +824,13 @@ int tc_filter(frame_list_t *ptr_, char *options)
         if (data[instance]->image == (Image *) NULL) {
           tc_log_error(MOD_NAME, "\n");
           MagickWarning (data[instance]->exception_info.severity, data[instance]->exception_info.reason, data[instance]->exception_info.description);
-          return(-1);
+          return TC_ERROR;
         }
 
         if ((data[instance]->image->columns != (data[instance]->width-data[instance]->xpos)) || (data[instance]->image->rows != (data[instance]->height-data[instance]->ypos))) {
           tc_log_error(MOD_NAME, "\"%s\" has incorrect size", data[instance]->file);
 
-          return(-1);
+          return TC_ERROR;
         }
 
         data[instance]->pixel_packet = GetImagePixels(data[instance]->image, 0, 0, data[instance]->image->columns, data[instance]->image->rows);
@@ -788,7 +843,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
       }
     }
 
-    return(0);
+    return TC_OK;
   }
 
 
@@ -817,7 +872,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if(data[instance]) free(data[instance]);
     data[instance] = NULL;
 
-    return(0);
+    return TC_OK;
   }
 
 
@@ -830,13 +885,14 @@ int tc_filter(frame_list_t *ptr_, char *options)
 
   if(ptr->tag & TC_PRE_M_PROCESS && ptr->tag & TC_VIDEO && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
 
-    if (ptr->id < data[instance]->start || ptr->id > data[instance]->end) return (0);
-
-    if(vob->im_v_codec==CODEC_RGB) {
-      work_with_rgb_frame(ptr->video_buf, vob->im_v_width, vob->im_v_height, instance);
-    } else {
-      work_with_yuv_frame(ptr->video_buf, vob->im_v_width, vob->im_v_height, instance);
+    if (ptr->id >= data[instance]->start && ptr->id <= data[instance]->end) {
+      if(vob->im_v_codec==CODEC_RGB) {
+        work_with_rgb_frame(data[instance], ptr->video_buf, vob->im_v_width, vob->im_v_height);
+      } else {
+        work_with_yuv_frame(data[instance], ptr->video_buf, vob->im_v_width, vob->im_v_height);
+      }
     }
   }
-  return(0);
+  return TC_OK;
 }
+

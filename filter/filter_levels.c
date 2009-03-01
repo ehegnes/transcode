@@ -125,7 +125,7 @@ TC_MODULE_GENERIC_FINI(levels)
  */
 
 static int levels_configure(TCModuleInstance *self,
-            			    const char *options, vob_t *vob)
+                            const char *options, vob_t *vob)
 {
     LevelsPrivateData *pd = NULL;
 
