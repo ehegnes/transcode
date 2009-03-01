@@ -5,6 +5,14 @@ Key:
 [-] feature dropped
 
 ===========================================================================
+transcode-1.1.2
+---------------
+[!] Make the -W option work again like 1.0.x branch.
+[!] Proper handling of the alpha data in filter_logoaway (avoid segfault).
+[!] Fixed bugs: #15007
+===========================================================================
+
+===========================================================================
 transcode-1.1.1
 ---------------
 [*] Switched to new, terse ChangeLog format.
