@@ -26,9 +26,12 @@
 #include "transcode.h"
 #include "encoder.h"
 
-extern TCEncoderBuffer *tc_rawsource_buffer;
+TCEncoderBuffer *tc_rawsource_get_buffer(void);
 
 int tc_rawsource_open(vob_t *vob);
 int tc_rawsource_close(void);
+
+int tc_rawsource_read_video(vob_t *vob, TCFrameVideo *vframe);
+int tc_rawsource_read_audio(vob_t *vob, TCFrameAudio *aframe);
 
 #endif /* _FILE_SOURCE_H */
