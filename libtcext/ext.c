@@ -31,6 +31,10 @@
 
 #include "tc_ogg.h"
 
+/*************************************************************************/
+/* OGG support                                                           */
+/*************************************************************************/
+
 /* watch out the 'n' here */
 #ifndef TC_ENCODER
 void tc_ogg_del_packet(ogg_packet *op);
@@ -65,9 +69,89 @@ int tc_ogg_dup_packet(ogg_packet *dst, const ogg_packet *src)
     return ret;
 }
 
+
+/*************************************************************************/
+/* libav* support                                                        */
 /*************************************************************************/
 
+
 pthread_mutex_t tc_libavcodec_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+/*************************************************************************/
+/* GraphicsMagick support                                                */
+/*************************************************************************/
+
+pthread_mutex_t tc_magick_mutex = PTHREAD_MUTEX_INITIALIZER;
+static int magick_usecount = 0;
+
+int tc_magick_init(TCMagickContext *ctx, const char *format)
+{
+    int ret = TC_OK;
+    pthread_mutex_lock(&magick_mutex);
+
+    if (magick_usecount == 0) {
+        InitializeMagick(""); /* FIXME */
+    }
+    magick_usecount++;
+    pthread_mutex_unlock(&magick_mutex);
+
+    GetExceptionInfo(&ctx->exception_info);
+    ctx->image_info = CloneImageInfo(NULL);
+
+    /* FIXME */
+
+    return ret;
+}
+
+int tc_magick_fini(TCMagickContext *ctx)
+{
+    int ret = TC_OK;
+    if (ctx->image != NULL) {
+        DestroyImage(ctx->image);
+        DestroyImageInfo(ctx->image_info);
+    }
+    DestroyExceptionInfo(&ctx->exception_info);
+
+    pthread_mutex_lock(&magick_mutex);
+    magick_usecount--;
+    if (magick_usecount == 0) {
+        DestroyMagick();
+    }
+    pthread_mutex_unlock(&magick_mutex);
+
+    return ret;
+}
+
+/* FIXME */
+int tc_magick_encode_RGBin(TCMagickContext *ctx,
+                           int width, int height, const uint8_t *data)
+{
+    int ret = TC_OK;
+
+    /* FIXME */
+    ctx->image = ConstituteImage(width, height,
+                                 "RGB", CharPixel, data,
+                                 &ctx->exception_info);
+    /* FIXME */
+    return ret;
+}
+
+int tc_magick_encode_filein(TCMagickContext *ctx, const char *filename)
+{
+    strlcpy(ctx->image_info->filename, filename, MaxTextExtent);
+    ctx->image = ReadImage(ctx->image_info, &ctx->exception_info);
+
+    if (ctx->image == NULL) {
+        return TC_ERROR;
+    }
+    return TC_OK;
+}
+
+int tc_magick_encode_frameout(TCMagickContext *ctx, TCFrameVideo *frame)
+{
+    return TC_ERROR;
+}
+
 
 /*************************************************************************/
 
