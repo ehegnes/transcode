@@ -91,6 +91,7 @@ static vob_t *vob=NULL;
 static char *modes[] = {"NONE", "SOLID", "XY", "SHAPE"};
 
 typedef struct logoaway_data {
+  int           id; /* legacy, for dump */
   unsigned int  start, end;
   int           xpos, ypos;
   int           width, height;
@@ -202,7 +203,7 @@ static void work_with_rgb_frame(logoaway_data *LD, char *buffer, int width, int 
     }
 
     LD->dumpimage = ConstituteImage(LD->width-LD->xpos, LD->height-LD->ypos, "RGB", CharPixel, LD->dump_buf, &LD->exception_info);
-    tc_snprintf (LD->dumpimage->filename, MaxTextExtent, "dump[%d].png", instance);
+    tc_snprintf(LD->dumpimage->filename, MaxTextExtent, "dump[%d].png", LD->id);
 
     WriteImage(LD->dumpimage_info, LD->dumpimage);
   }
@@ -670,7 +671,7 @@ static void work_with_yuv_frame(logoaway_data *LD, char *buffer, int width, int 
 int tc_filter(frame_list_t *ptr_, char *options)
 {
   vframe_list_t *ptr = (vframe_list_t *)ptr_;
-  int instance=ptr->filter_id;
+  int instance = ptr->filter_id;
 
 
   //----------------------------------
@@ -750,6 +751,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     data[instance]->vcolor   = 128;
     data[instance]->alpha    = 0;
     data[instance]->dump     = 0;
+    data[instance]->id       = instance;
 
     // filter init ok.
 
