@@ -52,8 +52,6 @@
  * ------------------------------------------------------------*/
 
 
-int pcmswap     = TC_FALSE;
-int rgbswap     = TC_FALSE;
 int rescale     = TC_FALSE;
 int im_clip     = TC_FALSE;
 int ex_clip     = TC_FALSE;
@@ -63,11 +61,7 @@ int flip        = TC_FALSE;
 int mirror      = TC_FALSE;
 int resize1     = TC_FALSE;
 int resize2     = TC_FALSE;
-int decolor     = TC_FALSE;
 int zoom        = TC_FALSE;
-int dgamma      = TC_FALSE;
-int keepasr     = TC_FALSE;
-int fast_resize = TC_FALSE;
 
 // global information structure
 static vob_t *vob = NULL;
@@ -1055,6 +1049,12 @@ static vob_t *new_vob(void)
     vob->resync_frame_interval = 0;
     vob->resync_frame_margin   = 1;
 
+    vob->rgbswap             = TC_FALSE;
+    vob->pcmswap;            = TC_FALSE;
+    vob->dgamma              = TC_FALSE;
+    vob->keepasr             = TC_FALSE;
+    vob->fast_resize         = TC_TRUE;
+ 
     return vob;
 }
 
@@ -1916,7 +1916,7 @@ int main(int argc, char *argv[])
     }
 
     // -Z ...,fast
-    if (fast_resize) {
+    if (vob->fast_resize) {
         int ret = tc_compute_fast_resize_values(vob, TC_FALSE);
         if (ret == 0) {
             if (vob->hori_resize1 == 0 && vob->vert_resize1 == 0)
@@ -2068,7 +2068,7 @@ int main(int argc, char *argv[])
     }
 
     // --keep_asr
-    if (keepasr) {
+    if (vob->keepasr) {
         int clip, zoomto;
         double asr_out = (double)vob->ex_v_width/(double)vob->ex_v_height;
         double asr_in  = (double)vob->im_v_width/(double)vob->im_v_height;
@@ -2176,15 +2176,15 @@ int main(int argc, char *argv[])
         tc_log_info(PACKAGE, "V: %-16s | yes", "mirror frame");
 
     // -k
-    if (rgbswap && verbose >= TC_INFO)
+    if (vob->rgbswap && verbose >= TC_INFO)
         tc_log_info(PACKAGE, "V: %-16s | yes", "rgb2bgr");
 
     // -K
-    if (decolor && verbose >= TC_INFO)
+    if (vob->decolor && verbose >= TC_INFO)
         tc_log_info(PACKAGE, "V: %-16s | yes", "b/w reduction");
 
     // -G
-    if (dgamma && verbose >= TC_INFO)
+    if (vob->dgamma && verbose >= TC_INFO)
         tc_log_info(PACKAGE, "V: %-16s | %.3f", "gamma correction", vob->gamma);
 
     // number of bits/pixel
@@ -2571,7 +2571,7 @@ int main(int argc, char *argv[])
                     vob->sync, vob->sync_ms);
 
     // -d
-    if (pcmswap)
+    if (vob->pcmswap)
         if (verbose >= TC_INFO)
             tc_log_info(PACKAGE, "A: %-16s | yes", "swap bytes");
 

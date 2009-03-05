@@ -1095,7 +1095,7 @@ TC_OPTION(zoom,               'Z', "[W]x[H][,mode]",
                 if (*s == ',') {
                     s++;
                     if (strncmp(s, "fast", strlen(s)) == 0)
-                        fast_resize = TC_TRUE;
+                        vob->fast_resize = TC_TRUE;
                     else if (strncmp(s, "interlaced", strlen(s)) == 0)
                         vob->zoom_interlaced = TC_TRUE;
                 }
@@ -1172,11 +1172,10 @@ TC_OPTION(mirror,             'l', 0,
 )
 TC_OPTION(swap_colors,        'k', 0,
                 "swap red/blue (Cb/Cr) in video frame [off]",
-                rgbswap = TC_TRUE;
+                vob->rgbswap = TC_TRUE;
 )
 TC_OPTION(grayscale,          'K', 0,
                 "enable grayscale mode [off]",
-                decolor = TC_TRUE;
                 vob->decolor = TC_TRUE;
 )
 TC_OPTION(gamma,              'G', "val",
@@ -1186,7 +1185,7 @@ TC_OPTION(gamma,              'G', "val",
                     tc_error("Invalid argument for -G/--gamma");
                     goto short_usage;
                 }
-                dgamma = TC_TRUE;
+                vob->dgamma = TC_TRUE;
 )
 TC_OPTION(antialias,          'C', "mode",
                 "enable anti-aliasing mode (1-3) [off]",
@@ -1261,7 +1260,7 @@ TC_OPTION(keep_asr,           0,   0,
 
 TC_OPTION(audio_swap,         'd', 0,
                 "swap bytes in audio stream [off]",
-                pcmswap = TC_TRUE;
+                vob->pcmswap = TC_TRUE;
 )
 TC_OPTION(audio_scale,        's', "g[,c,f,r]",
                 "scale volume by gain[,center,front,rear] [1,1,1,1]",
