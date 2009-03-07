@@ -54,7 +54,7 @@ typedef struct {
     int framenum;
     int interval;
     int width;
-    int height;
+    uint height;
     int flush_flag;
     x264_param_t x264params;
     x264_t *enc;
@@ -63,6 +63,8 @@ typedef struct {
 /* Static structure to provide pointers for configuration entries */
 static struct confdata_struct {
     x264_param_t x264params;
+    /* Dummy fields for obsolete options */
+    int dummy_direct_8x8;
 #if X264_BUILD >= 65
     /* Dummy fields for obsolete options */
     int dummy_bidir_me;
@@ -203,8 +205,6 @@ static TCConfigEntry conf[] ={
     OPT_FLAG (analyse.b_weighted_bipred,  "weight_b")
     /* Spatial vs temporal MV prediction, 0=none 1=spatial 2=temporal 3=auto */
     OPT_RANGE(analyse.i_direct_mv_pred,   "direct_pred",    0,     3)
-    /* Forbid 4x4 direct partitions (-1 = auto) */
-    OPT_FLAG (analyse.i_direct_8x8_inference, "direct_8x8")
     /* QP difference between chroma and luma */
     OPT_RANGE(analyse.i_chroma_qp_offset, "chroma_qp_offset",-12, 12)
 
@@ -216,17 +216,6 @@ static TCConfigEntry conf[] ={
     OPT_RANGE(analyse.i_mv_range,         "mv_range",      -1,  2048)
     /* Subpixel motion estimation quality: 1=fast, 9=best */
     OPT_RANGE(analyse.i_subpel_refine,    "subq",           1,     9)
-#if X264_BUILD < 65
-    /* Bidirectional motion estimation */
-    OPT_FLAG (analyse.b_bidir_me,         "bidir_me")
-    /* RD based mode decision for B-frames */
-    OPT_FLAG (analyse.b_bframe_rdo,       "brdo")
-#else
-    {"bidir_me",   &confdata.dummy_bidir_me, TCCONF_TYPE_FLAG, 0, 0, 1},
-    {"nobidir_me", &confdata.dummy_bidir_me, TCCONF_TYPE_FLAG, 0, 1, 0},
-    {"brdo",       &confdata.dummy_brdo,     TCCONF_TYPE_FLAG, 0, 0, 1},
-    {"nobrdo",     &confdata.dummy_brdo,     TCCONF_TYPE_FLAG, 0, 1, 0},
-#endif
     /* Chroma ME for subpel and mode decision in P-frames */
     OPT_FLAG (analyse.b_chroma_me,        "chroma_me")
     /* Allow each MB partition in P-frames to have its own reference number */
@@ -272,10 +261,6 @@ static TCConfigEntry conf[] ={
     /* QP ratio between P and B frames */
     OPT_FLOAT(rc.f_pb_factor,             "pb_ratio")
 
-#if X264_BUILD < 64
-    /* Rate control equation for 2-pass encoding (like FFmpeg) */
-    OPT_STR  (rc.psz_rc_eq,               "rc_eq")
-#endif
     /* Complexity blurring before QP compression */
     OPT_RANGF(rc.f_complexity_blur,       "cplx_blur",    0.0, 999.0)
     /* QP curve compression: 0.0 = constant bitrate, 1.0 = constant quality */
@@ -293,6 +278,26 @@ static TCConfigEntry conf[] ={
     OPT_FLAG (b_aud,                      "aud")
     OPT_NONE (b_repeat_headers)
     OPT_NONE (i_sps_id)
+
+    /* Obsolete options (scheduled for future removal) */
+
+    {"direct_8x8",   &confdata.dummy_direct_8x8, TCCONF_TYPE_FLAG, 0, 0, 1},
+    {"nodirect_8x8", &confdata.dummy_direct_8x8, TCCONF_TYPE_FLAG, 0, 1, 0},
+#if X264_BUILD < 65
+    /* Bidirectional motion estimation */
+    OPT_FLAG (analyse.b_bidir_me,         "bidir_me")
+    /* RD based mode decision for B-frames */
+    OPT_FLAG (analyse.b_bframe_rdo,       "brdo")
+#else
+    {"bidir_me",   &confdata.dummy_bidir_me, TCCONF_TYPE_FLAG, 0, 0, 1},
+    {"nobidir_me", &confdata.dummy_bidir_me, TCCONF_TYPE_FLAG, 0, 1, 0},
+    {"brdo",       &confdata.dummy_brdo,     TCCONF_TYPE_FLAG, 0, 0, 1},
+    {"nobrdo",     &confdata.dummy_brdo,     TCCONF_TYPE_FLAG, 0, 1, 0},
+#endif
+#if X264_BUILD < 64
+    /* Rate control equation for 2-pass encoding (like FFmpeg) */
+    OPT_STR  (rc.psz_rc_eq,               "rc_eq")
+#endif
 
     {NULL}
 };
@@ -596,6 +601,9 @@ static int x264_configure(TCModuleInstance *self,
 
     /* Watch for obsolete options being set */
 #if X264_BUILD >= 65
+    confdata.dummy_direct_8x8 = -1;
+#endif
+#if X264_BUILD >= 65
     confdata.dummy_bidir_me = -1;
     confdata.dummy_brdo = -1;
 #endif
@@ -616,6 +624,10 @@ static int x264_configure(TCModuleInstance *self,
     }
 
     /* Complain about obsolete options being set */
+    if (confdata.dummy_direct_8x8 != -1) {
+        tc_log_warn(MOD_NAME, "Option direct_8x8 is obsolete, and is now"
+                    " always active.");
+    }
 #if X264_BUILD >= 65
     if (confdata.dummy_bidir_me != -1) {
         tc_log_warn(MOD_NAME,
