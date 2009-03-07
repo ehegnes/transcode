@@ -54,7 +54,7 @@ typedef struct {
     int framenum;
     int interval;
     int width;
-    uint height;
+    int height;
     int flush_flag;
     x264_param_t x264params;
     x264_t *enc;
