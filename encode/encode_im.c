@@ -133,7 +133,7 @@ static int tc_im_configure(TCModuleInstance *self,
                     pd->img_fmt, pd->quality);
     }
 
-    ret = tc_magick_init(&pd->magick, pd->img_fmt);
+    ret = tc_magick_init(&pd->magick, pd->quality);
     if (ret != TC_OK) {
         tc_log_error(MOD_NAME, "cannot create Magick context");
         return ret;
@@ -193,16 +193,12 @@ static int tc_im_encode_video(TCModuleInstance *self,
     ret = tc_magick_encode_RGBin(&pd->magick, pd->width, pd->height,
                                  inframe->video_buf);
     if (ret != TC_OK) {
-        tc_magick_log_error(&pd->magick);
-        return TC_ERROR;
+        return ret;
     }
 
-    /* don't bother wrapping functionalities used once */
-    pd->magick->image_info->quality = pd->quality;
-   
     /* doing like that won't hurt if `encode' fails */
     outframe->attributes |= TC_FRAME_IS_KEYFRAME;
-    return tc_magick_encode_frameout(&pd->magick, outframe);
+    return tc_magick_encode_frameout(&pd->magick, pd->img_fmt, outframe);
 }
 
 
