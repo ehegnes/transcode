@@ -30,12 +30,24 @@
 #include "aclib/ac.h"
 
 #include "tc_ogg.h"
+#include "tc_magick.h"
+
+
+
+
+/*************************************************************************/
+/* libav* support                                                        */
+/*************************************************************************/
+
+pthread_mutex_t tc_libavcodec_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 
 /*************************************************************************/
 /* OGG support                                                           */
 /*************************************************************************/
 
 /* watch out the 'n' here */
+/* FIXME */
 #ifndef TC_ENCODER
 void tc_ogg_del_packet(ogg_packet *op);
 void tc_ogg_del_extradata(OGGExtraData *oxd);
@@ -71,26 +83,52 @@ int tc_ogg_dup_packet(ogg_packet *dst, const ogg_packet *src)
 
 
 /*************************************************************************/
-/* libav* support                                                        */
-/*************************************************************************/
-
-
-pthread_mutex_t tc_libavcodec_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-/*************************************************************************/
 /* GraphicsMagick support                                                */
 /*************************************************************************/
 
 pthread_mutex_t tc_magick_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int magick_usecount = 0;
 
-int tc_magick_init(TCMagickContext *ctx, const char *format)
+
+/* GraphicsMagick exception handlers */
+
+static void tc_magick_warning_handler(const ExceptionType ex,
+                                      const char *reason,
+                                      const char *description)
+{
+    tc_log_warn("tc_magick", "[%i] %s (%s)", ex, description, reason);
+}
+
+
+static void tc_magick_error_handler(const ExceptionType ex,
+                                    const char *reason,
+                                    const char *description)
+{
+    tc_log_error("tc_magick", "[%i] %s (%s)", ex, description, reason);
+}
+
+static void tc_magick_fatal_handler(const ExceptionType ex,
+                                    const char *reason,
+                                    const char *description)
+{
+    tc_log_error("tc_magick", "[%i] %s (%s)", ex, description, reason);
+}
+
+
+
+
+int tc_magick_init(TCMagickContext *ctx, int quality)
 {
     int ret = TC_OK;
     pthread_mutex_lock(&magick_mutex);
 
     if (magick_usecount == 0) {
-        InitializeMagick(""); /* FIXME */
+        InitializeMagick("");
+
+        /* once for everyone */
+        SetWarningHandler(tc_magick_warning_handler);
+        SetErrorHandler(tc_magick_error_handler);
+        SetFatalErrorHandler(tc_magick_fatal_handler);
     }
     magick_usecount++;
     pthread_mutex_unlock(&magick_mutex);
@@ -98,7 +136,9 @@ int tc_magick_init(TCMagickContext *ctx, const char *format)
     GetExceptionInfo(&ctx->exception_info);
     ctx->image_info = CloneImageInfo(NULL);
 
-    /* FIXME */
+    if (quality != TC_MAGICK_QUALITY_NULL) {
+        ctx->image_info->quality = quality;
+    }
 
     return ret;
 }
@@ -122,36 +162,76 @@ int tc_magick_fini(TCMagickContext *ctx)
     return ret;
 }
 
-/* FIXME */
-int tc_magick_encode_RGBin(TCMagickContext *ctx,
-                           int width, int height, const uint8_t *data)
+int tc_magick_RGBin(TCMagickContext *ctx,
+                    int width, int height, const uint8_t *data)
 {
     int ret = TC_OK;
 
-    /* FIXME */
     ctx->image = ConstituteImage(width, height,
                                  "RGB", CharPixel, data,
                                  &ctx->exception_info);
-    /* FIXME */
+
+    if (ctx->image == NULL) {
+        CatchException(&ctx->exception_info);
+        ret = TC_ERROR;
+    }
     return ret;
 }
 
-int tc_magick_encode_filein(TCMagickContext *ctx, const char *filename)
+int tc_magick_filein(TCMagickContext *ctx, const char *filename)
 {
+    int ret = TC_OK;
     strlcpy(ctx->image_info->filename, filename, MaxTextExtent);
     ctx->image = ReadImage(ctx->image_info, &ctx->exception_info);
 
     if (ctx->image == NULL) {
-        return TC_ERROR;
+        CatchException(&ctx->exception_info);
+        ret = TC_ERROR;
     }
-    return TC_OK;
+    return ret;
 }
 
-int tc_magick_encode_frameout(TCMagickContext *ctx, TCFrameVideo *frame)
+int tc_magick_frameout(TCMagickContext *ctx, const char *format,
+                       TCFrameVideo *frame)
 {
-    return TC_ERROR;
+    int ret = TC_ERROR;
+    size_t len = 0;
+    uint8_t *data = NULL;
+    
+    strlcpy(ctx->image_info->magick, format, MaxTextExtent);
+
+    data = ImageToBlob(ctx->image_info, ctx->image, &len,
+                       &ctx->exception_info);
+    if (!data || len <= 0) {
+        CatchException(&ctx->exception_info);
+    } else {
+        /* FIXME: can we use some kind of direct rendering? */
+       ac_memcpy(frame->video_buf, data, len);
+       frame->video_len = (int)len;
+       ret = TC_OK;
+    }
+    return ret;
 }
 
+
+int tc_magick_RGBout(TCMagickContext *ctx, 
+                     int width, int height, uint8_t *data)
+{
+    unsigned int status = 0;
+    int ret = TC_OK;
+
+    status = DispatchImage(ctx->image,
+                           0, 0, width, height,
+                           "RGB", CharPixel,
+                           data,
+                           &ctx->exception_info);
+
+    if (status != MagickPass) {
+        CatchException(&ctx->exception_info);
+        ret = TC_ERROR;
+    }
+    return ret;
+}
 
 /*************************************************************************/
 
