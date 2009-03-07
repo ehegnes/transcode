@@ -23,10 +23,10 @@
 
 #include "libtc/tcframes.h"
 
-#include <stdio.h>
-#include <string.h>
-#include <time.h>
 #include <sys/types.h>
+#include <string.h>
+#include <stdio.h>
+#include <time.h>
 
 #include <magick/api.h>
 
@@ -38,16 +38,20 @@ struct tcmagickcontext_ {
     PixelPacket   *pixel_packet;
 };
 
-int tc_magick_init(TCMagickContext *ctx, const char *format);
+/* unspecified quality */
+#define TC_MAGICK_QUALITY_NULL		(-1)
+
+int tc_magick_init(TCMagickContext *ctx, int quality);
 int tc_magick_fini(TCMagickContext *ctx);
 
-int tc_magick_log_error(TCMagickContext *ctx);
-
 /* Can't find a good name, so let's mimic theora */
-int tc_magick_encode_filein(TCMagickContext *ctx, const char *filename);
-int tc_magick_encode_RGBin(TCMagickContext *ctx,
-                           int width, int height, const uint8_t *data);
-int tc_magick_encode_frameout(TCMagickContext *ctx, TCFrameVideo *frame);
+int tc_magick_filein(TCMagickContext *ctx, const char *filename);
+int tc_magick_RGBin(TCMagickContext *ctx,
+                    int width, int height, const uint8_t *data);
+int tc_magick_RGBout(TCMagickContext *ctx, 
+                     int width, int height, uint8_t *data);
+int tc_magick_frameout(TCMagickContext *ctx, const char *format,
+                       TCFrameVideo *frame);
 
 
 #endif /* TC_MAGICK_H */
