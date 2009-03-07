@@ -24,31 +24,15 @@
  */
 
 #define MOD_NAME    "import_imlist.so"
-#define MOD_VERSION "v0.1.1 (2007-08-04)"
+#define MOD_VERSION "v0.2.0 (2009-03-07)"
 #define MOD_CODEC   "(video) RGB"
 
 #ifdef HAVE_CONFIG_H
 # include "config.h"
 #endif
 
-/* Note: because of ImageMagick bogosity, this must be included first, so
- * we can undefine the PACKAGE_* symbols it splats into our namespace */
-#ifdef HAVE_BROKEN_WAND
-#include <wand/magick-wand.h>
-#else /* we have a SANE wand header */
-#include <wand/MagickWand.h>
-#endif /* HAVE_BROKEN_WAND */
-
-#undef PACKAGE_BUGREPORT
-#undef PACKAGE_NAME
-#undef PACKAGE_STRING
-#undef PACKAGE_TARNAME
-#undef PACKAGE_VERSION
-
-#include <stdlib.h>
-#include <stdio.h>
-
 #include "src/transcode.h"
+#include "libtcext/tc_magick.h"
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_RGB|TC_CAP_VID;
@@ -57,20 +41,17 @@ static int capability_flag = TC_CAP_RGB|TC_CAP_VID;
 #include "import_def.h"
 
 
-static int TCHandleMagickError(MagickWand *wand)
-{
-    ExceptionType severity;
-    const char *description = MagickGetException(wand, &severity);
+typedef struct tcimprivatedata_ TCIMPrivateData;
+struct tcimprivatedata_ {
+    TCMagickContext magick;
 
-    tc_log_error(MOD_NAME, "%s", description);
+    int             width;
+    int             height;
+    FILE            *fd;
+};
 
-    MagickRelinquishMemory((void*)description);
-    return TC_IMPORT_ERROR;
-}
+static TCIMPrivateData IM;
 
-static int width = 0, height = 0;
-static FILE *fd = NULL;
-static MagickWand *wand = NULL;
 
 /* ------------------------------------------------------------
  *
@@ -81,14 +62,16 @@ static MagickWand *wand = NULL;
 MOD_open
 {
     if (param->flag == TC_AUDIO) {
-        return(TC_IMPORT_OK);
+        return TC_OK;
     }
 
     if (param->flag == TC_VIDEO) {
+        int ret = TC_ERROR;
+
         param->fd = NULL;
 
-        width  = vob->im_v_width;
-        height = vob->im_v_height;
+        IM.width  = vob->im_v_width;
+        IM.height = vob->im_v_height;
 
         tc_log_warn(MOD_NAME,
                     "This module is DEPRECATED.");
@@ -100,21 +83,19 @@ MOD_open
 
         fd = fopen(vob->video_in_file, "r");
         if (fd == NULL) {
-            return TC_IMPORT_ERROR;
+            return TC_ERROR;
         }
 
-        MagickWandGenesis();
-        wand = NewMagickWand();
-
-        if (wand == NULL) {
-            tc_log_error(MOD_NAME, "cannot create magick wand");
-            return TC_IMPORT_ERROR;
+        ret = tc_magick_init(&IM.magick, TC_MAGICK_QUALITY_NULL);
+        if (ret != TC_OK) {
+            tc_log_error(MOD_NAME, "cannot create magick context");
+            return ret;
         }
 
-        return TC_IMPORT_OK;
+        return TC_OK;
     }
 
-    return TC_IMPORT_ERROR;
+    return TC_ERROR;
 }
 
 
@@ -127,47 +108,36 @@ MOD_open
 MOD_decode
 {
     char filename[PATH_MAX+1];
-    MagickBooleanType status;
+    int ret = TC_ERROR;
 
     if (param->flag == TC_AUDIO) {
-        return TC_IMPORT_OK;
+        return TC_OK;
     }
 
     if (param->flag == TC_VIDEO) {
         // read a filename from the list
-        if (fgets(filename, PATH_MAX, fd) == NULL) {
-            return TC_IMPORT_ERROR;
+        if (fgets(filename, PATH_MAX, IM.fd) == NULL) {
+            return TC_ERROR;
         }
         filename[PATH_MAX] = '\0'; /* enforce */
         tc_strstrip(filename);
 
-        ClearMagickWand(wand);
-        /* 
-         * This avoids IM to buffer all read images.
-         * I'm quite sure that this can be done in a smarter way,
-         * but I haven't yet figured out how. -- FRomani
-         */
-
-        status = MagickReadImage(wand, filename);
-        if (status == MagickFalse) {
-            return TCHandleMagickError(wand);
+        ret = tc_magick_filein(&IM.magick, filename);
+        if (ret != TC_OK) {
+            return ret;
         }
 
-        MagickSetLastIterator(wand);
-
-        status = MagickGetImagePixels(wand,
-                                      0, 0, width, height,
-                                      "RGB", CharPixel,
-                                      param->buffer);
-        if (status == MagickFalse) {
-            return TCHandleMagickError(wand);
+        ret = tc_magick_RGBout(&IM.magick,
+                               IM.width, IM.height, param->buffer);
+        if (ret != TC_OK) {
+            return ret;
         }
 
         param->attributes |= TC_FRAME_IS_KEYFRAME;
 
-        return TC_IMPORT_OK;
+        return TC_OK;
     }
-    return TC_IMPORT_ERROR;
+    return TC_ERROR;
 }
 
 /* ------------------------------------------------------------
@@ -179,25 +149,19 @@ MOD_decode
 MOD_close
 {
     if (param->flag == TC_AUDIO) {
-        return TC_IMPORT_OK;
+        return TC_OK;
     }
 
     if (param->flag == TC_VIDEO) {
-        if (fd != NULL) {
-            fclose(fd);
-            fd = NULL;
+        if (IM.fd != NULL) {
+            fclose(IM.fd);
+            IM.fd = NULL;
         }
 
-        if (wand != NULL) {
-            DestroyMagickWand(wand);
-            MagickWandTerminus();
-            wand = NULL;
-        }
-
-        return TC_IMPORT_OK;
+        return tc_magick_fini(&IM.magick);
     }
 
-    return TC_IMPORT_ERROR;
+    return TC_ERROR;
 }
 
 /*************************************************************************/
@@ -211,3 +175,4 @@ MOD_close
  *
  * vim: expandtab shiftwidth=4:
  */
+
