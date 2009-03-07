@@ -2,8 +2,8 @@
  *  import_im.c
  *
  *  Copyright (C) Thomas Oestreich - June 2001
- *  port to MagickWand API:
- *  Copyright (C) Francesco Romani - July 2007
+ *  port to GraphicsMagick API:
+ *  Copyright (C) Francesco Romani - March 2009
  *
  *  This file is part of transcode, a video stream processing tool
  *
@@ -24,32 +24,17 @@
  */
 
 #define MOD_NAME    "import_im.so"
-#define MOD_VERSION "v0.1.3 (2008-10-07)"
+#define MOD_VERSION "v0.2.0 (2009-03-07)"
 #define MOD_CODEC   "(video) RGB"
 
 #ifdef HAVE_CONFIG_H
 # include "config.h"
 #endif
 
-/* Note: because of ImageMagick bogosity, this must be included first, so
- * we can undefine the PACKAGE_* symbols it splats into our namespace */
-#ifdef HAVE_BROKEN_WAND
-#include <wand/magick-wand.h>
-#else /* we have a SANE wand header */
-#include <wand/MagickWand.h>
-#endif /* HAVE_BROKEN_WAND */
-
-#undef PACKAGE_BUGREPORT
-#undef PACKAGE_NAME
-#undef PACKAGE_STRING
-#undef PACKAGE_TARNAME
-#undef PACKAGE_VERSION
-
 #include "src/transcode.h"
 #include "libtcutil/optstr.h"
 
-#include <stdlib.h>
-#include <stdio.h>
+#include "libtcext/tc_magick.h"
 
 /*%*
  *%* DESCRIPTION 
@@ -59,10 +44,10 @@
  *%*   All formats supported by ImageMagick are supported as well.
  *%*
  *%* BUILD-DEPENDS
- *%*   libMagick >= 6.2.4.0
+ *%*   libGraphicsMagick >= 1.0.11
  *%*
  *%* DEPENDS
- *%*   libMagick >= 6.2.4.0
+ *%*   libGraphicsMagick >= 1.0.11
  *%*
  *%* PROCESSING
  *%*   import/demuxer
@@ -91,29 +76,48 @@ static int capability_flag = TC_CAP_RGB|TC_CAP_VID;
 #include <regex.h>
 
 
-static char *head = NULL, *tail = NULL;
-static int first_frame = 0, current_frame = 0, decoded_frame = 0, pad = 0;
-static int total_frame = 0;
-static int width = 0, height = 0;
-static MagickWand *wand = NULL;
-static int auto_seq_read = TC_TRUE; 
-/* 
- * automagically read further images with filename like the first one 
- * enabled by default for backward compatibility, but obsoleted
- * by core option --multi_input
- */
+typedef struct tcimprivatedata_ TCIMPrivateData;
+struct tcimprivatedata_ {
+    TCMagickContext magick;
 
-static int TCHandleMagickError(MagickWand *wand)
+    int             width;
+    int             height;
+
+    char            *head;
+    char            *tail;
+
+    int             first_frame;
+    int             current_frame;
+    int             decoded_frame;
+    int             total_frame;
+
+    int             pad;
+    /* 
+     * automagically read further images with filename like the first one 
+     * enabled by default for backward compatibility, but obsoleted
+     * by core option --multi_input
+     */
+    int             auto_seq_read;
+};
+
+static TCIMPrivateData IM;
+
+
+/*************************************************************************/
+
+static void tc_im_defaults(TCIMPrivateData *pd)
 {
-    ExceptionType severity;
-    const char *description = MagickGetException(wand, &severity);
-
-    tc_log_error(MOD_NAME, "%s", description);
-
-    MagickRelinquishMemory((void*)description);
-    return TC_IMPORT_ERROR;
+    pd->head            = NULL;
+    pd->tail            = NULL;
+    pd->first_frame     = 0;
+    pd->current_frame   = 0;
+    pd->decoded_frame   = 0;
+    pd->total_frame     = 0;
+    pd->width           = 0;
+    pd->height          = 0;
+    pd->pad             = 0;
+    pd->auto_seq_read   = TC_TRUE; 
 }
-
 
 /* ------------------------------------------------------------
  *
@@ -125,71 +129,73 @@ static int TCHandleMagickError(MagickWand *wand)
 /* I suspect we have a lot of potential memleaks in here -- FRomani */
 MOD_open
 {
-    int result, slen = 0;
+    int err = 0, slen = 0;
     char *regex = NULL, *frame = NULL;
     regex_t preg;
     regmatch_t pmatch[4];
 
     if (param->flag == TC_AUDIO) {
-        return TC_IMPORT_OK;
+        return TC_OK;
     }
 
     if (param->flag == TC_VIDEO) {
+        tc_im_defaults(&IM);
+
         param->fd = NULL;
 
         // get the frame name and range
         regex = "\\([^0-9]\\+[-._]\\?\\)\\?\\([0-9]\\+\\)\\([-._].\\+\\)\\?";
-        result = regcomp(&preg, regex, 0);
-        if (result) {
+        err = regcomp(&preg, regex, 0);
+        if (err) {
             tc_log_perror(MOD_NAME, "ERROR:  Regex compile failed.\n");
-            return TC_IMPORT_ERROR;
+            return TC_ERROR;
         }
 
-        result = regexec(&preg, vob->video_in_file, 4, pmatch, 0);
-        if (result) {
+        err = regexec(&preg, vob->video_in_file, 4, pmatch, 0);
+        if (err) {
             tc_log_warn(MOD_NAME, "Regex match failed: no image sequence");
             slen = strlen(vob->video_in_file) + 1;
-            head = tc_malloc(slen);
-            if (head == NULL) {
+            IM.head = tc_malloc(slen);
+            if (IM.head == NULL) {
                 tc_log_perror(MOD_NAME, "filename head");
-                return TC_IMPORT_ERROR;
+                return TC_ERROR;
             }
-            strlcpy(head, vob->video_in_file, slen);
-            tail = tc_malloc(1); /* URGH -- FRomani */
-            tail[0] = 0;
-            first_frame = -1;
+            strlcpy(IM.head, vob->video_in_file, slen);
+            IM.tail = tc_malloc(1); /* URGH -- FRomani */
+            IM.tail[0] = 0;
+            IM.first_frame = -1;
         } else {
             // split the name into head, frame number, and tail
             slen = pmatch[1].rm_eo - pmatch[1].rm_so + 1;
-            head = tc_malloc(slen);
-            if (head == NULL) {
+            IM.head = tc_malloc(slen);
+            if (IM.head == NULL) {
                 tc_log_perror(MOD_NAME, "filename head");
-                return TC_IMPORT_ERROR;
+                return TC_ERROR;
             }
-            strlcpy(head, vob->video_in_file, slen);
+            strlcpy(IM.head, vob->video_in_file, slen);
 
             slen = pmatch[2].rm_eo - pmatch[2].rm_so + 1;
             frame = tc_malloc(slen);
             if (frame == NULL) {
                 tc_log_perror(MOD_NAME, "filename frame");
-                return TC_IMPORT_ERROR;
+                return TC_ERROR;
             }
             strlcpy(frame, vob->video_in_file + pmatch[2].rm_so, slen);
 
             // If the frame number is padded with zeros, record how many digits
             // are actually being used.
             if (frame[0] == '0') {
-                pad = pmatch[2].rm_eo - pmatch[2].rm_so;
+                IM.pad = pmatch[2].rm_eo - pmatch[2].rm_so;
             }
-            first_frame = atoi(frame);
+            IM.first_frame = atoi(frame);
 
             slen = pmatch[3].rm_eo - pmatch[3].rm_so + 1;
-            tail = tc_malloc(slen);
-            if (tail == NULL) {
+            IM.tail = tc_malloc(slen);
+            if (IM.tail == NULL) {
                 tc_log_perror(MOD_NAME, "filename tail");
-                return TC_IMPORT_ERROR;
+                return TC_ERROR;
             }
-            strlcpy(tail, vob->video_in_file + pmatch[3].rm_so, slen);
+            strlcpy(IM.tail, vob->video_in_file + pmatch[3].rm_so, slen);
 
             tc_free(frame);
         }
@@ -203,26 +209,24 @@ MOD_open
             }
         }
  
-        current_frame = first_frame;
-        decoded_frame = 0;
-        width         = vob->im_v_width;
-        height        = vob->im_v_height;
+        IM.current_frame = first_frame;
+        IM.decoded_frame = 0;
+        IM.width         = vob->im_v_width;
+        IM.height        = vob->im_v_height;
 
-        if (total_frame == 0) {
+        if (IM.total_frame == 0) {
             /* only the very first time */
-            MagickWandGenesis();
+            int ret = tc_magick_init(&IM.magick, TC_MAGICK_QUALITY_NULL);
+            if (ret != TC_OK) {
+                tc_log_error(MOD_NAME, "cannot create magick context");
+                return ret;
+            }
         }
 
-        wand = NewMagickWand();
-        if (wand == NULL) {
-            tc_log_error(MOD_NAME, "cannot create magick wand");
-            return TC_IMPORT_ERROR;
-        }
-
-        return TC_IMPORT_OK;
+        return TC_OK;
     }
 
-    return TC_IMPORT_ERROR;
+    return TC_ERROR;
 }
 
 
@@ -235,80 +239,64 @@ MOD_open
 MOD_decode
 {
     char *frame = NULL, *filename = NULL;
-    int slen;
-    MagickBooleanType status;
+    int slen, ret;
 
     if (param->flag == TC_AUDIO) {
-        return TC_IMPORT_OK;
+        return TC_OK;
     }
 
     if (param->flag == TC_VIDEO) {
         if (!auto_seq_read) {
-            if (decoded_frame > 0) {
-                return TC_IMPORT_ERROR;
+            if (IM.decoded_frame > 0) {
+                return TC_ERROR;
             }
             filename = tc_strdup(vob->video_in_file);
         } else {
             // build the filename for the current frame
-            slen = strlen(head) + pad + strlen(tail) + 1;
+            slen = strlen(IM.head) + IM.pad + strlen(IM.tail) + 1;
             filename = tc_malloc(slen);
-            if (pad) {
-                char framespec[10];
-                frame = tc_malloc(pad+1);
-                tc_snprintf(framespec, 10, "%%0%dd", pad);
-                tc_snprintf(frame, pad+1, framespec, current_frame);
-                frame[pad] = '\0';
-            } else if (first_frame >= 0) {
+            if (IM.pad) {
+                char framespec[10] = { '\0' };
+                frame = tc_malloc(IM.pad+1);
+                tc_snprintf(framespec, 10, "%%0%dd", IM.pad);
+                tc_snprintf(frame, IM.pad+1, framespec, IM.current_frame);
+                frame[IM.pad] = '\0';
+            } else if (IM.first_frame >= 0) {
                 frame = tc_malloc(10);
-                tc_snprintf(frame, 10, "%d", current_frame);
+                tc_snprintf(frame, 10, "%d", IM.current_frame);
             }
-            strlcpy(filename, head, slen);
+            strlcpy(filename, IM.head, slen);
             if (frame != NULL) {
                 strlcat(filename, frame, slen);
                 tc_free(frame);
                 frame = NULL;
             }
-            strlcat(filename, tail, slen);
+            strlcat(filename, IM.tail, slen);
         }
 
-        ClearMagickWand(wand);
-        /* 
-         * This avoids IM to buffer all read images.
-         * I'm quite sure that this can be done in a smarter way,
-         * but I haven't yet figured out how. -- FRomani
-         */
-
-        status = MagickReadImage(wand, filename);
-        if (status == MagickFalse) {
-            if (auto_seq_read) {
-                /* let's assume that image sequence ends here */
-                return TC_IMPORT_ERROR;
-            }
-            return TCHandleMagickError(wand);
+        ret = tc_magick_filein(&IM.magick, filename);
+        if (ret != TC_OK) {
+            return ret;
         }
 
-        MagickSetLastIterator(wand);
-
-        status = MagickGetImagePixels(wand,
-                                      0, 0, width, height,
-                                      "RGB", CharPixel,
-                                      param->buffer);
+        ret = tc_magick_RGBout(&IM.magick, 
+                               IM.width, IM.height, param->buffer); 
         /* param->size already set correctly by caller */
-        if (status == MagickFalse) {
-            return TCHandleMagickError(wand);
+        if (ret != TC_OK) {
+            return ret;
         }
 
         param->attributes |= TC_FRAME_IS_KEYFRAME;
 
-        total_frame++;
-        current_frame++;
-        decoded_frame++;
+        IM.total_frame++;
+        IM.current_frame++;
+        IM.decoded_frame++;
     
         tc_free(filename);
 
-        return TC_IMPORT_OK;
+        return TC_OK;
     }
-    return TC_IMPORT_ERROR;
+    return TC_ERROR;
 }
 
 /* ------------------------------------------------------------
@@ -320,31 +308,33 @@ MOD_decode
 MOD_close
 {
     if (param->flag == TC_AUDIO) {
-        return TC_IMPORT_OK;
+        return TC_OK;
     }
 
     if (param->flag == TC_VIDEO) {
         vob_t *vob = tc_get_vob();
+        int ret = TC_OK;
 
-        if (param->fd != NULL)
+        if (param->fd != NULL) {
             pclose(param->fd);
-        if (head != NULL)
-            tc_free(head);
-        if (tail != NULL)
-            tc_free(tail);
-
-        if (wand != NULL) {
-            DestroyMagickWand(wand);
-            wand = NULL;
-
-            if (!tc_has_more_video_in_file(vob)) {
-                /* ...can you hear that? is the sound of the ugliness... */
-                MagickWandTerminus();
-            }
+            param->fd = NULL;
         }
-        return TC_IMPORT_OK;
+        if (head != NULL) {
+            tc_free(IM.head);
+            IM.head = NULL;
+        }
+        if (tail != NULL) {
+            tc_free(IM.tail);
+            IM.tail = NULL;
+        }
+
+        if (!tc_has_more_video_in_file(vob)) {
+            /* ...can you hear this? it's the sound of the ugliness... */
+            ret = tc_magick_fini(&IM.magick);
+        }
+        return ret;
     }
-    return TC_IMPORT_ERROR;
+    return TC_ERROR;
 }
 
 /*************************************************************************/
