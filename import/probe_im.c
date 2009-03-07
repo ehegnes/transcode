@@ -25,92 +25,55 @@
 # include "config.h"
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
-
-#ifdef HAVE_IMAGEMAGICK
-/* Note: because of ImageMagick bogosity, this must be included first, so
- * we can undefine the PACKAGE_* symbols it splats into our namespace.
- * However, since we need config.h to find out whether we can include it
- * in the first place, we also have to undefine the symbols beforehand. */
-# undef PACKAGE_BUGREPORT
-# undef PACKAGE_NAME
-# undef PACKAGE_STRING
-# undef PACKAGE_TARNAME
-# undef PACKAGE_VERSION
-
-# ifdef HAVE_BROKEN_WAND
-# include <wand/magick-wand.h>
-# else /* we have a SANE wand header */
-# include <wand/MagickWand.h>
-# endif /* HAVE_BROKEN_WAND */
-
-# undef PACKAGE_BUGREPORT
-# undef PACKAGE_NAME
-# undef PACKAGE_STRING
-# undef PACKAGE_TARNAME
-# undef PACKAGE_VERSION
-#endif
-
-#include "transcode.h"
-#include "tcinfo.h"
-#include "ioaux.h"
 #include "tc.h"
+#include "ioaux.h"
 #include "libtc/libtc.h"
+#include "libtcext/tc_magick.h"
 
-#ifdef HAVE_IMAGEMAGICK
+#include "src/transcode.h"
+#include "src/tcinfo.h"
+
+#ifdef HAVE_GRAPHICSMAGICK
 
 
 void probe_im(info_t *ipipe)
 {
-    MagickWand *wand = NULL;
-    MagickBooleanType status;
-
-    MagickWandGenesis();
-    wand = NewMagickWand();
-
-    if (wand == NULL) {
-        tc_log_error(__FILE__, "cannot create magick wand");
+    TCMagickContext magick;
+    int ret = TC_ERROR;
+    
+    ret = tc_magick_init(&magick, TC_MAGICK_QUALITY_NULL);
+    if (ret != TC_OK) {
+        tc_log_error(__FILE__, "cannot create magick context");
         ipipe->error = 1;
         return;
     }
 
-    status = MagickReadImage(wand, ipipe->name);
-    if (status == MagickFalse) {
-        ExceptionType severity;
-        const char *description = MagickGetException(wand, &severity);
-
-        tc_log_error(__FILE__, "%s", description);
-
-        MagickRelinquishMemory((void*)description);
+    ret = tc_magick_filein(&magick, ipipe->name);
+    if (ret != TC_OK) {
+        tc_log_error(__FILE__, "cannot read image file");
         ipipe->error = 1;
         return;
     }
-    MagickSetLastIterator(wand);
 
-
-	/* read all video parameter from input file */
-	ipipe->probe_info->width = MagickGetImageWidth(wand);
-	ipipe->probe_info->height = MagickGetImageHeight(wand);
-
+	ipipe->probe_info->width  = magick->image->columns;
+	ipipe->probe_info->height = magick->image->rows;
 	/* slide show? */
-	ipipe->probe_info->frc = 9;   /* FRC for 1 fps */
-	ipipe->probe_info->fps = 1.0;
+	ipipe->probe_info->frc    = 9;   /* FRC for 1 fps */
+	ipipe->probe_info->fps    = 1.0;
 
-	ipipe->probe_info->magic = ipipe->magic;
-	ipipe->probe_info->codec = TC_CODEC_RGB24;
+	ipipe->probe_info->codec  = TC_CODEC_RGB24;
+	ipipe->probe_info->magic  = ipipe->magic;
 
-    DestroyMagickWand(wand);
-    MagickWandTerminus();
+    tc_magick_fini(&magick);
 
 	return;
 }
 
-#else   // HAVE_IMAGEMAGICK
+#else   // HAVE_GRAPHICSMAGICK
 
 void probe_im(info_t *ipipe)
 {
-	tc_log_error(__FILE__, "no support for ImageMagick compiled - exit.");
+	tc_log_error(__FILE__, "no support for GraphicsMagick compiled - exit.");
 	ipipe->error = 1;
 	return;
 }
