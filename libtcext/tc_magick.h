@@ -39,7 +39,7 @@ struct tcmagickcontext_ {
 };
 
 /* unspecified quality */
-#define TC_MAGICK_QUALITY_NULL		(-1)
+#define TC_MAGICK_QUALITY_DEFAULT		(-1)
 
 int tc_magick_init(TCMagickContext *ctx, int quality);
 int tc_magick_fini(TCMagickContext *ctx);
