@@ -60,7 +60,8 @@ static const char levels_help[] = ""
 
 #define MAP_SIZE           256
 
-typedef struct {
+typedef struct levelsprivatedata_ LevelsPrivateData;
+struct levelsprivatedata_ {
     int in_black;
     int in_white;
     float in_gamma;
@@ -72,7 +73,7 @@ typedef struct {
     int is_prefilter;
 
     char conf_str[TC_BUF_MIN];
-} LevelsPrivateData;
+};
 
 
 /*************************************************************************/
