@@ -180,8 +180,10 @@ void *tc_list_pop(TCList *L, int pos);
 
 /*************************************************************************/
 
+int tc_list_fini_cleanup(TCList *L);
+
 TCList *tc_list_new(int usecache);
-void tc_list_del(TCList *L, int deepclean);
+void tc_list_del(TCList *L, int clean);
 
 int tc_list_insert_dup(TCList *L, int pos, void *data, size_t size);
 #define tc_list_append_dup(L, DATA, SIZE) tc_list_insert_dup(L, -1, DATA, SIZE)
