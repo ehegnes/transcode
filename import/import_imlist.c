@@ -86,7 +86,7 @@ MOD_open
             return TC_ERROR;
         }
 
-        ret = tc_magick_init(&IM.magick, TC_MAGICK_QUALITY_NULL);
+        ret = tc_magick_init(&IM.magick, TC_MAGICK_QUALITY_DEFAULT);
         if (ret != TC_OK) {
             tc_log_error(MOD_NAME, "cannot create magick context");
             return ret;

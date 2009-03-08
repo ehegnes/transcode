@@ -41,7 +41,7 @@ void probe_im(info_t *ipipe)
     TCMagickContext magick;
     int ret = TC_ERROR;
     
-    ret = tc_magick_init(&magick, TC_MAGICK_QUALITY_NULL);
+    ret = tc_magick_init(&magick, TC_MAGICK_QUALITY_DEFAULT);
     if (ret != TC_OK) {
         tc_log_error(__FILE__, "cannot create magick context");
         ipipe->error = 1;

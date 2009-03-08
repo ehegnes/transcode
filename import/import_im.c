@@ -216,7 +216,7 @@ MOD_open
 
         if (IM.total_frame == 0) {
             /* only the very first time */
-            int ret = tc_magick_init(&IM.magick, TC_MAGICK_QUALITY_NULL);
+            int ret = tc_magick_init(&IM.magick, TC_MAGICK_QUALITY_DEFAULT);
             if (ret != TC_OK) {
                 tc_log_error(MOD_NAME, "cannot create magick context");
                 return ret;

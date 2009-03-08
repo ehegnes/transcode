@@ -136,7 +136,7 @@ int tc_magick_init(TCMagickContext *ctx, int quality)
     GetExceptionInfo(&ctx->exception_info);
     ctx->image_info = CloneImageInfo(NULL);
 
-    if (quality != TC_MAGICK_QUALITY_NULL) {
+    if (quality != TC_MAGICK_QUALITY_DEFAULT) {
         ctx->image_info->quality = quality;
     }
 
