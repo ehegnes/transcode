@@ -22,401 +22,491 @@
  *
  */
 
-/* Note: because of ImageMagick bogosity, this must be included first, so
- * we can undefine the PACKAGE_* symbols it splats into our namespace */
-#include <magick/api.h>
-#undef PACKAGE_BUGREPORT
-#undef PACKAGE_NAME
-#undef PACKAGE_STRING
-#undef PACKAGE_TARNAME
-#undef PACKAGE_VERSION
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <math.h>
 #include <stdint.h>
 
 #include "src/transcode.h"
 #include "src/filter.h"
 #include "libtc/libtc.h"
+#include "libtcutil/tclist.h"
 #include "libtcutil/optstr.h"
+#include "libtcext/tc_magick.h"
 
 #define MOD_NAME    "filter_compare.so"
-#define MOD_VERSION "v0.1.2 (2003-08-29)"
+#define MOD_VERSION "v0.2.0 (2009-03-06)"
 #define MOD_CAP     "compare with other image to find a pattern"
 #define MOD_AUTHOR  "Antonio Beamud"
 
-#define DELTA_COLOR 45.0
 
-// FIXME: Try to implement the YUV colorspace
+#define DELTA_COLOR            45.0
+#define DEFAULT_COMPARE_IMG    "compare.png"
+#define DEFAULT_RESULTS_LOG    "compare.log"
 
-typedef struct pixelsMask {
-	unsigned int row;
-	unsigned int col;
-	unsigned char r,g,b;
-	unsigned char delta_r,delta_g,delta_b;
 
-	struct pixelsMask *next;
+// FIXME: Implement the YUV colorspace support.
 
-}pixelsMask;
+typedef struct pixelsmask_ PixelsMask;
+struct pixelsMask_ {
+    unsigned int    row;
+    unsigned int    col;
 
-typedef struct compareData {
+    uint8_t         r;
+    uint8_t         g;
+    uint8_t         b;
+};
 
-	FILE *results;
+typedef struct comparedata_ ComparePrivateData;
+struct comparedata_ {
+    TCMagickContext magick;
+    FILE            *results;
 
-	float delta;
-	int step;
+    float           delta;
+    int             step;
 
-	pixelsMask *pixel_mask;
+    TCList          pixel_mask;
+    int             pixel_count;
 
-	vob_t *vob;
+    vob_t           *vob;
 
-	unsigned int frames;
+    unsigned int    frames;
 
-	int width, height;
-	int size;
+    int             width;
+    int             height;
+    int             size;
 
-} compareData;
+    int             flip;
+    int             rgbswap;
+    char            conf_str[TC_BUF_MIN];
 
-/* FIXME: this uses the filter ID as an index--the ID can grow
- * arbitrarily large, so this needs to be fixed */
-static compareData *compare[100];
-extern int rgbswap;
+    /* the following are used only during setup routines;
+     * so, before and after they point to NULL 
+     */
+    const char      *pattern_name;
+    const char      *results_name;
+};
 
+
+static const char compare_help[] = ""
+    "* Overview\n"
+    "    Generate a file in with information about the times, \n"
+    "    frame, etc the pattern defined in the image \n"
+    "    parameter is observed.\n"
+    "* Options\n"
+    "    'pattern' path to the file used like pattern\n"
+    "    'results' path to the file used to write the results\n"
+    "    'delta'   delta error allowed\n"
+    "    'rgbswap' enable G/B color swapping\n"
+    "    'flip'    flip the pattern image\n";
+
+
+/*************************************************************************/
+/* Helpers                                                               */
+/*************************************************************************/
 /*-------------------------------------------------
  *
  * single function interface
  *
  *-------------------------------------------------*/
 
-static void help_optstr(void)
+static void compare_defaults(ComparePrivateData *pd, vob_t *vob)
 {
-    tc_log_info(MOD_NAME, "(%s) help"
-"* Overview\n"
-"    Generate a file in with information about the times, \n"
-"    frame, etc the pattern defined in the image \n"
-"    parameter is observed.\n"
-"* Options\n"
-"    'pattern' path to the file used like pattern\n"
-"    'results' path to the file used to write the results\n"
-"    'delta' delta error allowed\n"
-		, MOD_CAP);
+    pd->vob          = vob;
+    pd->width        = vob->ex_v_width;
+    pd->height       = vob->ex_v_height;
+    pd->rgbswap      = vob->rgbswap;
+    pd->flip         = TC_TRUE;
+    pd->delta        = DELTA_COLOR;
+    pd->step         = 1;
+    pd->frames       = 0;
+    pd->results      = NULL;
+    pd->compare_name = NULL; /* see note above */
+    pd->results_name = NULL; /* see note above */
+}
+
+static int compare_parse_options(ComparePrivateData *pd,
+                                 const char *options)
+{
+    int ret = TC_OK;
+
+    if (optstr_get(options, "pattern", "%[^:]", pd->pattern_name) != 1) {
+        strlcpy(pd->pattern_name, DEFAULT_COMPARE_IMG, PATH_MAX);
+    }
+    if (optstr_get(options, "results", "%[^:]", pd->results_name) != 1) {
+        strlcpy(pd->results_name, DEFAULT_RESULTS_LOG, PATH_MAX);
+    }
+
+    optstr_get(options, "delta",   "%f",    &pd->delta);
+    optstr_get(options, "rgbswap", "%i",    &pd->rgbswap);
+    optstr_get(options, "flip",    "%i",    &pd->flip);
+
+    if (verbose) {
+        tc_log_info(MOD_NAME, "Compare Image Settings:");
+        tc_log_info(MOD_NAME, "      pattern = %s", pd->pattern_name);
+        tc_log_info(MOD_NAME, "      results = %s", pd->results_name);
+        tc_log_info(MOD_NAME, "        delta = %f", pd->delta);
+        tc_log_info(MOD_NAME, "      rgbswap = %i", pd->rgbswap);
+        tc_log_info(MOD_NAME, "         flip = %i", pd->flip);
+    }
+
+    return ret;
+}
+
+static int compare_open_log(ComparePrivateData *pd)
+{
+    int ret = TC_OK;
+    pd->results = fopen(pd->results_name, "w");
+    if (pd->results) {
+        fprintf(pd->results, "#fps:%f\n", pd->vob->fps);
+    } else }
+        tc_log_error(MOD_NAME, "could not open file for writing");
+        ret =  TC_ERROR;
+    }
+    return ret;
+}
+
+#define RETURN_IF_GM_ERROR(PTR, PD) do { \
+    if (!(PTR)) { \
+        CatchException(&(PD)->magick->exception_info); \
+        return TC_ERROR; \
+    } \
+} while (0)
+    
+
+static int compare_setup_pattern(ComparePrivateData *pd)
+{
+    int r = 0, t = 0, j = 0;
+	Image *pattern = NULL, *resized = NULL;
+    PixelPacket *pixels = NULL;
+
+    /* FIXME: filter used */
+    /* FIXME: switch to tcvideo? */
+    resized = ResizeImage(pd->magick->image,
+                          pd->width, pd->height,
+                          GaussianFilter,  1.0,
+                          &pd->exception_info);
+    RETURN_IF_GM_ERROR(resized, pd);
+
+    if (pd->flip) {
+        pattern = FlipImage(resized, &exception_info);
+    } else {
+        pattern = resized;
+    }
+    RETURN_IF_GM_ERROR(pattern, pd);
+
+    pixels = GetImagePixels(pattern, 0, 0,
+                            pattern->columns,
+                            pattern->rows);
+
+    for (t = 0; t < pattern->rows; t++) {
+        for (r = 0; r < pattern->columns; r++) {
+            j = t * pattern->columns + r;
+            if (pixels[j].opacity == 0) {
+                PixelsMask pm = {
+                    .row = t;
+                    .col = r;
+                    .r   = (uint8_t)ScaleQuantumToChar(pixels[j].red);
+                    .g   = (uint8_t)ScaleQuantumToChar(pixels[j].green);
+                    .b   = (uint8_t)ScaleQuantumToChar(pixels[j].blue);
+                };
+                tc_list_append_dup(&pd->pixel_mask, &pm, sizeof(pm));
+                /* FIXME: return value */
+            }
+        }
+    }
+
+    pd->pixel_count = tc_list_size(&pd->pixel_mask);
+    return TC_OK;
+}
+
+/*************************************************************************/
+/*************************************************************************/
+
+/* Module interface routines and data. */
+
+/*************************************************************************/
+
+/**
+ * compare_init:  Initialize this instance of the module.  See
+ * tcmodule-data.h for function details.
+ */
+
+TC_MODULE_GENERIC_INIT(compare, ComparePrivateData)
+
+/*************************************************************************/
+
+/**
+ * compare_fini:  Clean up after this instance of the module.  See
+ * tcmodule-data.h for function details.
+ */
+
+TC_MODULE_GENERIC_FINI(compare)
+
+/*************************************************************************/
+
+/**
+ * compare_configure:  Configure this instance of the module.  See
+ * tcmodule-data.h for function details.
+ */
+
+#define RETURN_IF_NOT_OK(PD, RET) do { \
+    if ((RET) != TC_OK) { \
+        /* avoid dangling pointers */ \
+        (PD)->pattern_name = NULL; \
+        (PD)->results_name = NULL; \
+        \
+        return (RET); \
+    } \
+} while (0)
+
+static int compare_configure(TCModuleInstance *self,
+                             const char *options, vob_t *vob)
+{
+    ComparePrivateData *pd = NULL;
+    char pattern_name[PATH_MAX + 1] = { '\0' };
+    char results_name[PATH_MAX + 1] = { '\0' };
+    int ret = TC_OK;
+
+    TC_MODULE_SELF_CHECK(self, "configure");
+
+    pd = self->userdata;
+
+    tc_list_init(&pd->pixel_mask, TC_FALSE);
+
+    /* careful here, see note above */
+    compare_defaults(pd, vob);
+
+    pd->pattern_name = pattern_name;
+    pd->results_name = results_name;
+
+    ret = compare_parse_options(pd, options);
+    RETURN_IF_NOT_OK(pd, ret);
+
+    ret = tc_magick_init(&pd->magick, TC_MAGICK_QUALITY_DEFAULT);
+    RETURN_IF_NOT_OK(pd, ret);
+
+    ret = tc_magick_filein(&pd->magick, pd->pattern_name);
+    RETURN_IF_NOT_OK(pd, ret);
+
+    ret = compare_open_log(pd);
+    RETURN_IF_NOT_OK(pd, ret);
+
+    ret = compare_setup_pattern(pd);
+    RETURN_IF_NOT_OK(pd, ret);
+
+    /* no longer needed (see note above) */
+    pd->pattern_name = NULL;
+    pd->results_name = NULL;
+    return TC_OK;
 }
 
 
-int tc_filter(frame_list_t *ptr_, char *options)
+/*************************************************************************/
+
+/**
+ * compare_stop:  Reset this instance of the module.  See tcmodule-data.h
+ * for function details.
+ */
+
+static int compare_stop(TCModuleInstance *self)
 {
-	vframe_list_t *ptr = (vframe_list_t *)ptr_;
-	int instance = ptr->filter_id;
-	Image *pattern, *resized, *orig = 0;
-	ImageInfo *image_info;
+    ComparePrivateData *pd = NULL;
 
-	PixelPacket *pixel_packet;
-	pixelsMask *pixel_last;
-	ExceptionInfo exception_info;
+    TC_MODULE_SELF_CHECK(self, "stop");
 
-	if(ptr->tag & TC_FILTER_GET_CONFIG) {
-		char buf[128];
-		optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION,
-				   MOD_AUTHOR, "VRYMO", "1");
+    pd = self->userdata;
 
-		tc_snprintf(buf, 128, "/dev/null");
-		optstr_param(options, "pattern", "Pattern image file path", "%s", buf);
-		tc_snprintf(buf, 128, "results.dat");
-		optstr_param(options, "results", "Results file path" , "%s", buf);
-		tc_snprintf(buf, 128, "%f", compare[instance]->delta);
-		optstr_param(options, "delta", "Delta error", "%f",buf,"0.0", "100.0");
-		return 0;
-	}
+    tc_list_fini_cleanup(&pd->pixels);
+    /* FIXME: free images */
 
-	//----------------------------------
-	//
-	// filter init
-	//
-	//----------------------------------
+    if (pd->results) {
+        fclose(pd->results);
+        pd->results = NULL;
+    }
 
+    tc_magick_fini(&pd->context);
 
-	if(ptr->tag & TC_FILTER_INIT)
-	{
-
-		unsigned int t,r,index;
-		pixelsMask *temp;
-
-		compare[instance] = tc_malloc(sizeof(compareData));
-		if(compare[instance] == NULL)
-			return (-1);
-
-		compare[instance]->vob = tc_get_vob();
-		if(compare[instance]->vob ==NULL)
-            return(-1);
-
-		compare[instance]->delta=DELTA_COLOR;
-		compare[instance]->step=1;
-		compare[instance]->width=0;
-		compare[instance]->height=0;
-		compare[instance]->frames = 0;
-		compare[instance]->pixel_mask = NULL;
-		pixel_last = NULL;
-
-		compare[instance]->width = compare[instance]->vob->ex_v_width;
-		compare[instance]->height = compare[instance]->vob->ex_v_height;
-
-		if (options != NULL) {
-			char pattern_name[PATH_MAX];
-			char results_name[PATH_MAX];
-			memset(pattern_name,0,PATH_MAX);
-			memset(results_name,0,PATH_MAX);
-
-			if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
-
-			optstr_get(options, "pattern", "%[^:]", pattern_name);
-			optstr_get(options, "results", "%[^:]", results_name);
-			optstr_get(options, "delta", "%f", &compare[instance]->delta);
-
-			if (verbose > 1) {
-				tc_log_info(MOD_NAME, "Compare Image Settings:");
-				tc_log_info(MOD_NAME, "      pattern = %s\n", pattern_name);
-				tc_log_info(MOD_NAME, "      results = %s\n", results_name);
-				tc_log_info(MOD_NAME, "        delta = %f\n", compare[instance]->delta);
-			}
-
-			if (strlen(results_name) == 0) {
-				// Ponemos el nombre del fichero al original con extension dat
-				strlcpy(results_name, "/tmp/compare.dat", sizeof(results_name));
-
-			}
-			if (!(compare[instance]->results = fopen(results_name, "w")))
-			{
-				tc_log_perror(MOD_NAME, "could not open file for writing");
-			}
-
-			InitializeMagick("");
-			if (verbose > 1)
-                tc_log_info(MOD_NAME, "Magick Initialized successfully");
-
-			GetExceptionInfo(&exception_info);
-			image_info = CloneImageInfo ((ImageInfo *) NULL);
-			strlcpy(image_info->filename, pattern_name, MaxTextExtent);
-			if (verbose > 1)
-			     tc_log_info(MOD_NAME, "Trying to open image");
-			orig = ReadImage(image_info,
-					 &exception_info);
-
-			if (orig == (Image *) NULL) {
-				MagickWarning(exception_info.severity,
-					      exception_info.reason,
-					      exception_info.description);
-				strlcpy(pattern_name, "/dev/null", sizeof(pattern_name));
-			}else{
-			       if (verbose > 1)
-			       		tc_log_info(MOD_NAME, "Image loaded successfully");
-			     }
-		}
-
-		else{
-			tc_log_perror(MOD_NAME, "Not image provided");
-		}
-
-		if (options != NULL)
-			if (optstr_lookup (options, "help")) {
-				help_optstr();
-			}
-
-
-		fprintf(compare[instance]->results,"#fps:%f\n",compare[instance]->vob->fps);
-
-		if (orig != NULL){
-                        // Flip and resize
-			if (compare[instance]->vob->im_v_codec == TC_CODEC_YUV420P)
-				TransformRGBImage(orig,YCbCrColorspace);
-			if (verbose > 1) tc_log_info(MOD_NAME, "Resizing the Image");
-			resized = ResizeImage(orig,
-					      compare[instance]->width,
-					      compare[instance]->height,
-					      GaussianFilter,
-					      1,
-					      &exception_info);
-			if (verbose > 1)
-				tc_log_info(MOD_NAME, "Flipping the Image");
-			pattern = FlipImage(resized, &exception_info);
-			if (pattern == (Image *) NULL) {
-				MagickError (exception_info.severity,
-					     exception_info.reason,
-					     exception_info.description);
-			}
-
-			// Filling the matrix with the pixels values not
-			// alpha
-
-			if (verbose > 1) tc_log_info(MOD_NAME, "GetImagePixels");
-			pixel_packet = GetImagePixels(pattern,0,0,
-						      pattern->columns,
-						      pattern->rows);
-
-			if (verbose > 1) tc_log_info(MOD_NAME, "Filling the Image matrix");
-			for (t = 0; t < pattern->rows; t++)
-				for (r = 0; r < pattern->columns; r++){
-					index = t*pattern->columns + r;
-					if (pixel_packet[index].opacity == 0){
-						temp=tc_malloc(sizeof(struct pixelsMask));
-						temp->row=t;
-						temp->col=r;
-						temp->r = (uint8_t)ScaleQuantumToChar(pixel_packet[index].red);
-						temp->g = (uint8_t)ScaleQuantumToChar(pixel_packet[index].green);
-						temp->b = (uint8_t)ScaleQuantumToChar(pixel_packet[index].blue);
-						temp->next=NULL;
-
-						if (pixel_last == NULL){
-							pixel_last = temp;
-							compare[instance]->pixel_mask = temp;
-						}else{
-							pixel_last->next = temp;
-							pixel_last = temp;
-						}
-					}
-				}
-
-			if (verbose)
-                tc_log_info(MOD_NAME, "%s %s",
-					    MOD_VERSION, MOD_CAP);
-		}
-		return(0);
-	}
-
-
-	//----------------------------------
-	//
-	// filter close
-	//
-	//----------------------------------
-
-
-	if(ptr->tag & TC_FILTER_CLOSE) {
-
-		if (compare[instance] != NULL) {
-			fclose(compare[instance]->results);
-			free(compare[instance]);
-		}
-		DestroyMagick();
-		compare[instance]=NULL;
-
-		return(0);
-
-	} /* filter close */
-
-	//----------------------------------
-	//
-	// filter frame routine
-	//
-	//----------------------------------
-
-
-	// tag variable indicates, if we are called before
-	// transcodes internal video/audio frame processing routines
-	// or after and determines video/audio context
-
-	if((ptr->tag & TC_POST_M_PROCESS) && (ptr->tag & TC_VIDEO))  {
-		// For now I only support RGB color space
-		pixelsMask *item = NULL;
-		double sr,sg,sb;
-		double avg_dr,avg_dg,avg_db;
-
-		if (compare[instance]->vob->im_v_codec == TC_CODEC_RGB24){
-
-			int r,g,b,c;
-			double width_long;
-
-			if (compare[instance]->pixel_mask != NULL)
-			{
-				item = compare[instance]->pixel_mask;
-				c = 0;
-
-				sr = 0.0;
-				sg = 0.0;
-				sb = 0.0;
-
-				width_long = compare[instance]->width*3;
-				while(item){
-					r = item->row*width_long + item->col*3;
-					g = item->row*width_long
-						+ item->col*3 + 1;
-					b = item->row*width_long
-						+ item->col*3 + 2;
-
-				// diff between points
-				// Interchange RGB values if necesary
-					sr = sr + (double)abs((unsigned char)ptr->video_buf[r] - item->r);
-					sg = sg + (double)abs((unsigned char)ptr->video_buf[g] - item->g);
-					sb = sb + (double)abs((unsigned char)ptr->video_buf[b] - item->b);
-					item = item->next;
-					c++;
-				}
-
-				avg_dr = sr/(double)c;
-				avg_dg = sg/(double)c;
-				avg_db = sb/(double)c;
-
-				if ((avg_dr < compare[instance]->delta) && (avg_dg < compare[instance]->delta) && (avg_db < compare[instance]->delta))
-					fprintf(compare[instance]->results,"1");
-				else
-					fprintf(compare[instance]->results,"n");
-				fflush(compare[instance]->results);
-			}
-			compare[instance]->frames++;
-			return(0);
-		}else{
-
-                        // The colospace is YUV
-
-                        // FIXME: Doesn't works, I need to code all this part
-			// again
-
-			int Y,Cr,Cb,c;
-
-			if (compare[instance]->pixel_mask != NULL)
-			{
-				item = compare[instance]->pixel_mask;
-				c = 0;
-
-				sr = 0.0;
-				sg = 0.0;
-				sb = 0.0;
-
-				while(item){
-					Y  = item->row*compare[instance]->width + item->col;
-					Cb = compare[instance]->height*compare[instance]->width
-						+ (int)((item->row*compare[instance]->width + item->col)/4);
-					Cr = compare[instance]->height*compare[instance]->width
-						+ (int)((compare[instance]->height*compare[instance]->width)/4)
-						+ (int)((item->row*compare[instance]->width + item->col)/4);
-
-				        // diff between points
-				        // Interchange RGB values if necesary
-
-					sr = sr + (double)abs((unsigned char)ptr->video_buf[Y] - item->r);
-					sg = sg + (double)abs((unsigned char)ptr->video_buf[Cb] - item->g);
-					sb = sb + (double)abs((unsigned char)ptr->video_buf[Cr] - item->b);
-					item = item->next;
-					c++;
-				}
-
-				avg_dr = sr/(double)c;
-				avg_dg = sg/(double)c;
-				avg_db = sb/(double)c;
-
-				if ((avg_dr < compare[instance]->delta) && (avg_dg < compare[instance]->delta) && (avg_db < compare[instance]->delta))
-					fprintf(compare[instance]->results,"1");
-				else
-					fprintf(compare[instance]->results,"n");
-			}
-			compare[instance]->frames++;
-			return(0);
-
-		}
-	}
-
-	return(0);
+    return TC_OK;
 }
+
+/*************************************************************************/
+
+/**
+ * compare_inspect:  Return the value of an option in this instance of
+ * the module.  See tcmodule-data.h for function details.
+ */
+
+static int compare_inspect(TCModuleInstance *self,
+                           const char *param, const char **value)
+{
+    ComparePrivateData *pd = NULL;
+
+    TC_MODULE_SELF_CHECK(self,  "inspect");
+    TC_MODULE_SELF_CHECK(param, "inspect");
+    
+    pd = self->userdata;
+
+    if (optstr_lookup(param, "help")) {
+        *value = compare_help;
+    }
+    if (optstr_lookup(param, "delta")) {
+        tc_snprintf(pd->conf_str, sizeof(pd->conf_str), "%f", pd->delta);
+        *value = pd->conf_str;
+    }
+    if (optstr_lookup(param, "rgbswap")) {
+        tc_snprintf(pd->conf_str, sizeof(pd->conf_str), "%i", pd->rgbswap);
+        *value = pd->conf_str;
+    }
+    if (optstr_lookup(param, "flip")) {
+        tc_snprintf(pd->conf_str, sizeof(pd->conf_str), "%i", pd->flip);
+        *value = pd->conf_str;
+    }
+    /* see note above for compare_name and results_name */
+    return TC_OK;
+}
+
+/*************************************************************************/
+
+typedef struct workitem_ WorkItem;
+struct workitem_ {
+    const uint8_t   *buf;
+    int             stride;
+    double          sr;
+    double          sg;
+    double          sb;
+};
+
+
+static int image_compare(TCListItem *item, void *userdata)
+{
+    PixelMask *pix = item->data;
+    WorkItem  *wi  = userdata;
+
+    int r   = pix->row * wi->stride + pix->col * 3;
+    int g   = pix->row * wi->stride + pix->col * 3 + 1;
+    int b   = pix->row * wi->stride + pix->col * 3 + 2;
+
+    wi->sr += (double)abs(buf[r] - pix->r);
+    wi->sg += (double)abs(buf[g] - pix->g);
+    wi->sb += (double)abs(buf[b] - pix->b);
+}
+
+/**
+ * compare_filter_video:  perform the image comparation for each frame of
+ * this video stream. See tcmodule-data.h for function details.
+ */
+
+static int compare_filter_video(TCModuleInstance *self,
+                                TCFrameVideo *frame)
+{
+    ComparePrivateData *pd = NULL;
+    double avg_dr = 0.0, avg_dg = 0.0, avg_db = 0.0;
+    WorkItem W;
+
+    TC_MODULE_SELF_CHECK(self,  "filter");
+    TC_MODULE_SELF_CHECK(frame, "filter");
+
+    pd = self->userdata;
+
+    w.stride = pd->width * 3;
+    W.count  = 0;
+    W.sr     = 0.0;
+    W.sg     = 0.0;
+    W.sb     = 0.0;
+    W.buf    = frame->video_buf;
+
+    tc_list_foreach(&pd->pixel_mask, image_compare, &W);
+
+    avg_dr = W.sr / pd->pixel_count;
+    avg_dg = W.sg / pd->pixel_count;
+    avg_db = W.sb / pd->pixel_count;
+
+    if ((avg_dr < pd->delta) && (avg_dg < pd->delta) && (avg_db < pd->delta))
+        fprintf(pd->results,"1");
+    else
+        fprintf(pd->results,"n");
+
+    fflush(pd->results); /* FIXME */
+    pd->frames++;
+
+    return TC_OK;
+}
+
+
+/*************************************************************************/
+
+static const TCCodecID compare_codecs_in[] = { 
+    TC_CODEC_RGB24, TC_CODEC_ERROR
+};
+static const TCCodecID compare_codecs_out[] = { 
+    TC_CODEC_RGB24, TC_CODEC_ERROR
+};
+TC_MODULE_FILTER_FORMATS(compare);
+
+TC_MODULE_INFO(compare);
+
+static const TCModuleClass compare_class = {
+    TC_MODULE_CLASS_HEAD(compare),
+
+    .init         = compare_init,
+    .fini         = compare_fini,
+    .configure    = compare_configure,
+    .stop         = compare_stop,
+    .inspect      = compare_inspect,
+
+    .filter_video = compare_filter_video,
+};
+
+TC_MODULE_ENTRY_POINT(compare)
+
+/*************************************************************************/
+
+static int compare_get_config(TCModuleInstance *self, char *options)
+{
+    ComparePrivateData *pd = NULL;
+    char buf[TC_BUF_MIN];
+
+    TC_MODULE_SELF_CHECK(self, "get_config");
+
+    pd = self->userdata;
+
+    optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION,
+                       MOD_AUTHOR, "VRMO", "1");
+
+    tc_snprintf(buf, TC_BUF_MIN, DEFAULT_COMPARE_IMG);
+    optstr_param(options, "pattern", "Pattern image file path", "%s", buf);
+    tc_snprintf(buf, TC_BUF_MIN, DEFAULT_RESULTS_LOG);
+    optstr_param(options, "results", "Results file path" , "%s", buf);
+    tc_snprintf(buf, TC_BUF_MIN, "%f", pd->delta);
+    optstr_param(options, "delta", "Delta error", "%f",buf,"0.0", "100.0");
+    tc_snprintf(buf, TC_BUF_MIN, "%i", pd->rgbswap);
+    optstr_param(options, "rgbswap", "RGB swapping", "%i",buf,"0", "1");
+
+    return TC_OK;
+}
+
+static int compare_process(TCModuleInstance *self, TCFrame *frame)
+{
+    ComparePrivateData *pd = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "process");
+
+    pd = self->userdata;
+
+    if ((ptr->tag & TC_POST_M_PROCESS) && (ptr->tag & TC_VIDEO)) {
+        return compare_filter_video(self, (TCFrameVideo*)frame);
+    }
+    return TC_OK;
+}
+
+/*************************************************************************/
+
+/* Old-fashioned module interface. */
+
+TC_FILTER_OLDINTERFACE_M(compare)
+
+/*************************************************************************/
+
 // Proposal:
 // Tilmann Bitterberg Sat, 14 Jun 2003 00:29:06 +0200 (CEST)
 //
@@ -426,18 +516,23 @@ int tc_filter(frame_list_t *ptr_, char *options)
 //    Cr = p->video_buf + 5*mydata->width*mydata->height/4;
 
 //    for (i=0; i<mydata->width*mydata->height; i++) {
-//      pixel_packet->red == *Y++;
+//      pixels->red == *Y++;
 //      get_next_pixel();
 //    }
 
 //    for (i=0; i<mydata->width*mydata->height>>2; i++) {
-//      pixel_packet->green == *Cr++;
-//      pixel_packet->blue == *Cb++;
+//      pixels->green == *Cr++;
+//      pixels->blue == *Cb++;
 //      get_next_pixel();
 //    }
 
-
-
-
-
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */
 
