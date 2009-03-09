@@ -38,6 +38,11 @@
 #define MOD_CAP     "compare with other image to find a pattern"
 #define MOD_AUTHOR  "Antonio Beamud"
 
+#define MOD_FEATURES \
+    TC_MODULE_FEATURE_FILTER|TC_MODULE_FEATURE_VIDEO
+#define MOD_FLAGS \
+    TC_MODULE_FLAG_RECONFIGURABLE
+
 
 #define DELTA_COLOR            45.0
 #define DEFAULT_COMPARE_IMG    "compare.png"
@@ -103,11 +108,6 @@ static const char compare_help[] = ""
 /*************************************************************************/
 /* Helpers                                                               */
 /*************************************************************************/
-/*-------------------------------------------------
- *
- * single function interface
- *
- *-------------------------------------------------*/
 
 static void compare_defaults(ComparePrivateData *pd, vob_t *vob)
 {
@@ -244,11 +244,6 @@ TC_MODULE_GENERIC_FINI(compare)
 
 /*************************************************************************/
 
-/**
- * compare_configure:  Configure this instance of the module.  See
- * tcmodule-data.h for function details.
- */
-
 #define RETURN_IF_NOT_OK(PD, RET) do { \
     if ((RET) != TC_OK) { \
         /* avoid dangling pointers */ \
@@ -259,6 +254,10 @@ TC_MODULE_GENERIC_FINI(compare)
     } \
 } while (0)
 
+/**
+ * compare_configure:  Configure this instance of the module.  See
+ * tcmodule-data.h for function details.
+ */
 static int compare_configure(TCModuleInstance *self,
                              const char *options, vob_t *vob)
 {
