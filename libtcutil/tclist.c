@@ -38,6 +38,14 @@ static int free_item(TCListItem *item, void *unused)
     return 0;
 }
 
+static int free_item_all(TCListItem *item, void *unused)
+{
+    free(item->data);
+    free(item);
+    return 0;
+}
+
+
 static TCListItem* next_item(TCListItem *cur, int direction)
 {
     TCListItem *ret = NULL;
@@ -350,19 +358,19 @@ int tc_list_insert_dup(TCList *L, int pos, void *data, size_t size)
     return ret;
 }
 
-static int free_item_all(TCListItem *item, void *unused)
+int tc_list_fini_cleanup(TCList *L)
 {
-    free(item->data);
-    free(item);
-    return 0;
+    /* if !use_cache, this will not hurt anyone */
+    foreach_item(L->head,  DIR_FORWARD, free_item_all, NULL);
+    foreach_item(L->cache, DIR_FORWARD, free_item_all, NULL);
+    /* now reset to clean status */
+    return tc_list_init(L, 0);
 }
 
-void tc_list_del(TCList *L, int deepclean)
+void tc_list_del(TCList *L, int clean)
 {
-    if (deepclean) {
-        foreach_item(L->head,  DIR_FORWARD, free_item_all, NULL);
-        /* if !use_cache, this will not hurt anyone */
-        foreach_item(L->cache, DIR_FORWARD, free_item_all, NULL);
+    if (clean) {
+        tc_list_clean(L);
     }
     tc_free(L);
 }

@@ -171,7 +171,6 @@ pid_t tc_probe_pid = 0;
 
 /* symbols needed by modules */
 int verbose  = TC_INFO;
-int rgbswap  = 0;
 int tc_accel = -1;    //acceleration code
 int flip = 0;
 int max_frame_buffer = 0;

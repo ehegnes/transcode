@@ -14,5 +14,6 @@ libtcext_la_SOURCES = ext.c
 EXTRA_DIST = \
 	tc_avcodec.h \
 	tc_lzo.h \
+	tc_magick.h \
 	tc_ogg.h
 
