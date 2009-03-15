@@ -73,7 +73,7 @@ test_ratiocodes_SOURCES = test-ratiocodes.c
 test_ratiocodes_LDADD = $(LIBTC_LIBS) $(LIBTCUTIL_LIBS)
 
 test_tcframefifo_SOURCES = test-tcframefifo.c ../src/framebuffer.c
-test_tcframefifo_LDADD = $(LIBTC_LIBS) $(ACLIB_LIBS) $(LIBTCUTIL_LIBS)
+test_tcframefifo_LDADD = $(LIBTC_LIBS) $(LIBTCUTIL_LIBS) $(ACLIB_LIBS)
 
 test_tclog_SOURCES = test-tclog.c
 test_tclog_LDADD = $(LIBTC_LIBS) $(LIBTCUTIL_LIBS)
@@ -85,7 +85,7 @@ test_tclist_SOURCES = test-tclist.c
 test_tclist_LDADD = $(LIBTC_LIBS) $(LIBTCUTIL_LIBS)
 
 test_tcmodule_SOURCES = test-tcmodule.c
-test_tcmodule_LDADD = $(LIBTC_LIBS) $(LIBTCUTIL_LIBS) $(LIBTCMODULE_LIBS)
+test_tcmodule_LDADD = $(LIBTCMODULE_LIBS) $(LIBTC_LIBS) $(LIBTCUTIL_LIBS)
 test_tcmodule_LDFLAGS = -export-dynamic
 
 test_tcmoduleinfo_SOURCES = test-tcmoduleinfo.c
