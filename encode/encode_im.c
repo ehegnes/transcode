@@ -171,7 +171,7 @@ static int tc_im_stop(TCModuleInstance *self)
 
     pd = self->userdata;
 
-    return tc_magick_fini(&pd->context);
+    return tc_magick_fini(&pd->magick);
 }
 
 TC_MODULE_GENERIC_INIT(tc_im, TCIMPrivateData);
@@ -182,23 +182,21 @@ static int tc_im_encode_video(TCModuleInstance *self,
                               TCFrameVideo *inframe, TCFrameVideo *outframe)
 {
     TCIMPrivateData *pd = NULL;
-    uint8_t *img = NULL;
-    size_t img_len = 0;
     int ret = TC_OK;
 
     TC_MODULE_SELF_CHECK(self, "encode_video");
 
     pd = self->userdata;
 
-    ret = tc_magick_encode_RGBin(&pd->magick, pd->width, pd->height,
-                                 inframe->video_buf);
+    ret = tc_magick_RGBin(&pd->magick, pd->width, pd->height,
+                          inframe->video_buf);
     if (ret != TC_OK) {
         return ret;
     }
 
     /* doing like that won't hurt if `encode' fails */
     outframe->attributes |= TC_FRAME_IS_KEYFRAME;
-    return tc_magick_encode_frameout(&pd->magick, pd->img_fmt, outframe);
+    return tc_magick_frameout(&pd->magick, pd->img_fmt, outframe);
 }
 
 

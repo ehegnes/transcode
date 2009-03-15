@@ -57,8 +57,6 @@ int im_clip     = TC_FALSE;
 int ex_clip     = TC_FALSE;
 int pre_im_clip = TC_FALSE;
 int post_ex_clip= TC_FALSE;
-int flip        = TC_FALSE;
-int mirror      = TC_FALSE;
 int resize1     = TC_FALSE;
 int resize2     = TC_FALSE;
 int zoom        = TC_FALSE;
@@ -1050,10 +1048,12 @@ static vob_t *new_vob(void)
     vob->resync_frame_margin   = 1;
 
     vob->rgbswap             = TC_FALSE;
-    vob->pcmswap;            = TC_FALSE;
+    vob->pcmswap             = TC_FALSE;
     vob->dgamma              = TC_FALSE;
     vob->keepasr             = TC_FALSE;
-    vob->fast_resize         = TC_TRUE;
+    vob->fast_resize         = TC_FALSE;
+    vob->flip                = TC_FALSE;
+    vob->mirror              = TC_FALSE;
  
     return vob;
 }
@@ -2168,11 +2168,11 @@ int main(int argc, char *argv[])
 
     // -z
 
-    if (flip && verbose >= TC_INFO)
+    if (vob->flip && verbose >= TC_INFO)
         tc_log_info(PACKAGE, "V: %-16s | yes", "flip frame");
 
     // -l
-    if (mirror && verbose >= TC_INFO)
+    if (vob->mirror && verbose >= TC_INFO)
         tc_log_info(PACKAGE, "V: %-16s | yes", "mirror frame");
 
     // -k

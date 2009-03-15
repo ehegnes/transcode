@@ -25,13 +25,14 @@
 # include "config.h"
 #endif
 
+#include "src/transcode.h"
+#include "src/tcinfo.h"
+#include "ioaux.h"
 #include "tc.h"
 #include "ioaux.h"
 #include "libtc/libtc.h"
 #include "libtcext/tc_magick.h"
 
-#include "src/transcode.h"
-#include "src/tcinfo.h"
 
 #ifdef HAVE_GRAPHICSMAGICK
 
@@ -55,8 +56,8 @@ void probe_im(info_t *ipipe)
         return;
     }
 
-	ipipe->probe_info->width  = magick->image->columns;
-	ipipe->probe_info->height = magick->image->rows;
+	ipipe->probe_info->width  = magick.image->columns;
+	ipipe->probe_info->height = magick.image->rows;
 	/* slide show? */
 	ipipe->probe_info->frc    = 9;   /* FRC for 1 fps */
 	ipipe->probe_info->fps    = 1.0;

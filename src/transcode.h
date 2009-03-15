@@ -354,6 +354,8 @@ typedef struct _vob_t {
     int dgamma;
     int keepasr;
     int fast_resize;
+    int flip;
+    int mirror;
 } vob_t;
 
 
@@ -398,7 +400,6 @@ extern int im_clip;
 extern int ex_clip;
 extern int pre_im_clip;
 extern int post_ex_clip;
-extern int flip;
 extern int mirror;
 extern int resize1;
 extern int resize2;

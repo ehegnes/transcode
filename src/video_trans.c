@@ -347,13 +347,13 @@ static int do_process_frame(vob_t *vob, vframe_list_t *ptr)
 
     /**** -z: flip frame vertically ****/
 
-    if (flip) {
+    if (vob->flip) {
         PROCESS_FRAME(tcv_flip_v, &vtd);
     }
 
     /**** -l: flip flame horizontally (mirror) ****/
 
-    if (mirror) {
+    if (vob->mirror) {
         PROCESS_FRAME(tcv_flip_h, &vtd);
     }
 

@@ -172,7 +172,7 @@ static int rawsource_read_video(TCEncoderBuffer *buf, vob_t *vob)
         return TC_ERROR;
     }
 
-    ret = tc_rawsource_read_video(vob, buf->vframe);
+    ret = tc_rawsource_read_video(vob, rawsource.vframe);
     if (ret == TC_OK) {
         raw_buffer.vptr = rawsource.vframe;
         raw_buffer.frame_id++;
@@ -190,7 +190,7 @@ static int rawsource_read_audio(TCEncoderBuffer *buf, vob_t *vob)
         return TC_ERROR;
     }
 
-    ret = tc_rawsource_read_audio(vob, buf->aframe);
+    ret = tc_rawsource_read_audio(vob, rawsource.aframe);
     if (ret == TC_OK) {
         raw_buffer.aptr = rawsource.aframe;
         rawsource.acount++;

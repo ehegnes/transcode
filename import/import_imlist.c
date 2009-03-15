@@ -81,8 +81,8 @@ MOD_open
         tc_log_warn(MOD_NAME,
                     "(e.g.) transcode --multi_input -x im ...");
 
-        fd = fopen(vob->video_in_file, "r");
-        if (fd == NULL) {
+        IM.fd = fopen(vob->video_in_file, "r");
+        if (IM.fd == NULL) {
             return TC_ERROR;
         }
 

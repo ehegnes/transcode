@@ -120,7 +120,7 @@ static void tc_magick_fatal_handler(const ExceptionType ex,
 int tc_magick_init(TCMagickContext *ctx, int quality)
 {
     int ret = TC_OK;
-    pthread_mutex_lock(&magick_mutex);
+    pthread_mutex_lock(&tc_magick_mutex);
 
     if (magick_usecount == 0) {
         InitializeMagick("");
@@ -131,7 +131,7 @@ int tc_magick_init(TCMagickContext *ctx, int quality)
         SetFatalErrorHandler(tc_magick_fatal_handler);
     }
     magick_usecount++;
-    pthread_mutex_unlock(&magick_mutex);
+    pthread_mutex_unlock(&tc_magick_mutex);
 
     GetExceptionInfo(&ctx->exception_info);
     ctx->image_info = CloneImageInfo(NULL);
@@ -152,12 +152,12 @@ int tc_magick_fini(TCMagickContext *ctx)
     }
     DestroyExceptionInfo(&ctx->exception_info);
 
-    pthread_mutex_lock(&magick_mutex);
+    pthread_mutex_lock(&tc_magick_mutex);
     magick_usecount--;
     if (magick_usecount == 0) {
         DestroyMagick();
     }
-    pthread_mutex_unlock(&magick_mutex);
+    pthread_mutex_unlock(&tc_magick_mutex);
 
     return ret;
 }

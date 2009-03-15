@@ -1164,11 +1164,11 @@ TC_OPTION(reduce,             'r', "n[,m]",
 )
 TC_OPTION(flip,               'z', 0,
                 "flip video frame upside down [off]",
-                flip = TC_TRUE;
+                vob->flip = TC_TRUE;
 )
 TC_OPTION(mirror,             'l', 0,
                 "mirror video frame [off]",
-                mirror = TC_TRUE;
+                vob->mirror = TC_TRUE;
 )
 TC_OPTION(swap_colors,        'k', 0,
                 "swap red/blue (Cb/Cr) in video frame [off]",

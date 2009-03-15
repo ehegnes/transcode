@@ -370,7 +370,7 @@ int tc_list_fini_cleanup(TCList *L)
 void tc_list_del(TCList *L, int clean)
 {
     if (clean) {
-        tc_list_clean(L);
+        tc_list_fini_cleanup(L);
     }
     tc_free(L);
 }

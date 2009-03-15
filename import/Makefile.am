@@ -489,6 +489,7 @@ tcprobe_LDADD = \
 	$(LIBTCVIDEO_LIBS) \
 	$(ACLIB_LIBS) \
 	$(LIBTC_LIBS) \
+	$(LIBTCEXT_LIBS) \
 	$(LIBTCUTIL_LIBS) \
 	-lm
 

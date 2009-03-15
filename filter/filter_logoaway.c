@@ -34,12 +34,14 @@
 #define MOD_FLAGS \
     TC_MODULE_FLAG_RECONFIGURABLE
 
-#include "transcode.h"
-#include "filter.h"
+#include "src/transcode.h"
+#include "src/filter.h"
 #include "libtc/libtc.h"
-#include "libtc/optstr.h"
-
+#include "libtcutil/optstr.h"
+#include "libtcvideo/tcvideo.h"
 #include "libtcext/tc_magick.h"
+#include "libtcmodule/tcmodule-plugin.h"
+
 
 /* FIXME */
 enum {
@@ -86,11 +88,13 @@ struct logoawayprivatedata_ {
     int             rcolor, gcolor, bcolor;
     int             ycolor, ucolor, vcolor;
     char            file[PATH_MAX];
+    int             instance;
 
     int             alpha;
 
     TCMagickContext logo_ctx;
     TCMagickContext dump_ctx;
+    PixelPacket     *pixels;
 
     int             dump;
     uint8_t         *dump_buf;
@@ -100,20 +104,6 @@ struct logoawayprivatedata_ {
     int (*process_frame)(LogoAwayPrivateData *pd,
                          uint8_t *buffer, int width, int height);
 };
-
-
-/*********************************************************
- * help text
- * this function prints out a small description
- * of this filter and the commandline options,
- * when the "help" option is given
- * @param   void      nothing
- * @return  void      nothing
- *********************************************************/
-static void help_optstr(void)
-{
-    tc_log_info(MOD_NAME, "(%s) help\n%s", MOD_CAP, logoaway_help);
-}
 
 
 /*********************************************************
@@ -150,25 +140,25 @@ static void dump_image_rgb(LogoAwayPrivateData *pd,
         }
     }
 
-    ret = tc_magick_encode_RGBin(&pd->dump_ctx,
-                                 pd->width  - pd->xpos,
-                                 pd->height - pd->ypos,
-                                 pd->dump_buf);
+    ret = tc_magick_RGBin(&pd->dump_ctx,
+                          pd->width  - pd->xpos,
+                          pd->height - pd->ypos,
+                          pd->dump_buf);
     if (ret != TC_OK) {
-        tc_magick_log_error(&pd->dump_ctx);
+        tc_log_error(MOD_NAME, "FIXME");
+    } else {
+        tc_snprintf(pd->dump_ctx.image_info->filename,
+                    MaxTextExtent, "dump[%d].png", pd->instance); /* FIXME */
+
+        WriteImage(pd->dump_ctx.image_info, pd->dump_ctx.image);
     }
-
-    tc_snprintf(pd->dumpimage->filename,
-                MaxTextExtent, "dump[%d].png", instance); /* FIXME */
-
-    WriteImage(pd->dumpimage_info, pd->dumpimage);
 }
 
 /* FIXME: both the inner if(N&1)s can be factored out */
 static void draw_border_rgb(LogoAwayPrivateData *pd,
                             uint8_t *buffer, int width, int height)
 {
-    int row = 0, col = 0, buf_off = 0, pkt_off = 0;
+    int row = 0, col = 0, buf_off = 0;
 
     for (row = pd->ypos; row < pd->height; row++) {
         if ((row == pd->ypos) || (row==pd->height-1)) {
@@ -195,7 +185,7 @@ static void draw_border_rgb(LogoAwayPrivateData *pd,
 static void draw_border_yuv(LogoAwayPrivateData *pd,
                             uint8_t *buffer, int width, int height)
 {
-    int row = 0, col = 0, buf_off = 0, pkt_off = 0;
+    int row = 0, col = 0;
 
     for (row = pd->ypos; row < pd->height; row++) {
         if ((row == pd->ypos) || (row == pd->height - 1)) {
@@ -223,12 +213,8 @@ static int process_frame_null(LogoAwayPrivateData *pd,
 static int process_frame_rgb_solid(LogoAwayPrivateData *pd,
                                    uint8_t *buffer, int width, int height)
 {
-    int row, col, i;
-    int xdistance, ydistance, distance_west, distance_north;
-    unsigned char hcalc, vcalc;
-    int buf_off, pkt_off, buf_off_xpos, buf_off_width, buf_off_ypos, buf_off_height;
-    int alpha_hori, alpha_vert;
-    uint8_t px, *pixels = pd->pixel_packet;
+    int row, col, buf_off, pkt_off;
+    uint8_t px;
 
     if (pd->dump) {
         dump_image_rgb(pd, buffer, width, height);
@@ -244,13 +230,13 @@ static int process_frame_rgb_solid(LogoAwayPrivateData *pd,
                 buffer[buf_off +1] = pd->gcolor;
                 buffer[buf_off +2] = pd->bcolor;
             } else {
-                px = (uint8_t)ScaleQuantumToChar(pixels[pkt_off].red);
+                px = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off].red);
                 buffer[buf_off +0] = alpha_blending(buffer[buf_off +0], pd->rcolor, px);
                 /* G */
-                px = (uint8_t)ScaleQuantumToChar(pixels[pkt_off].green);
+                px = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off].green);
                 buffer[buf_off +1] = alpha_blending(buffer[buf_off +1], pd->gcolor, px);
                 /* B */
-                px = (uint8_t)ScaleQuantumToChar(pixels[pkt_off].blue);
+                px = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off].blue);
                 buffer[buf_off +2] = alpha_blending(buffer[buf_off +2], pd->bcolor, px);
             }
         }
@@ -266,12 +252,11 @@ static int process_frame_rgb_solid(LogoAwayPrivateData *pd,
 static int process_frame_rgb_xy(LogoAwayPrivateData *pd,
                                 uint8_t *buffer, int width, int height)
 {
-    int row, col, i;
-    int xdistance, ydistance, distance_west, distance_north;
+    int row, col, xdistance, ydistance, distance_west, distance_north;
     unsigned char hcalc, vcalc;
     int buf_off, pkt_off, buf_off_xpos, buf_off_width, buf_off_ypos, buf_off_height;
     int alpha_hori, alpha_vert;
-    uint8_t npx[3], *pixels = pd->pixel_packet;
+    uint8_t npx[3], px[3];
 
     if (pd->dump) {
         dump_image_rgb(pd, buffer, width, height);
@@ -309,14 +294,14 @@ static int process_frame_rgb_xy(LogoAwayPrivateData *pd,
             hcalc  = alpha_blending(buffer[buf_off_xpos +2], buffer[buf_off_width  +2], alpha_hori);
             vcalc  = alpha_blending(buffer[buf_off_ypos +2], buffer[buf_off_height +2], alpha_vert);
             npx[2] = ((hcalc*pd->xweight + vcalc*pd->yweight)/100);
-            if (!pd->alpha)
+            if (!pd->alpha) {
                 buffer[buf_off +0] = npx[0];
                 buffer[buf_off +1] = npx[1];
                 buffer[buf_off +2] = npx[2];
             } else {
-                px[0] = (uint8_t)ScaleQuantumToChar(pd->pixel_packet[pkt_off].red);
-                px[1] = (uint8_t)ScaleQuantumToChar(pd->pixel_packet[pkt_off].green);
-                px[2] = (uint8_t)ScaleQuantumToChar(pd->pixel_packet[pkt_off].blue);
+                px[0] = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off].red);
+                px[1] = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off].green);
+                px[2] = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off].blue);
                 buffer[buf_off +0] = alpha_blending(buffer[buf_off +0], npx[0], px[0]);
                 buffer[buf_off +1] = alpha_blending(buffer[buf_off +1], npx[1], px[1]);
                 buffer[buf_off +2] = alpha_blending(buffer[buf_off +2], npx[2], px[2]);
@@ -334,12 +319,12 @@ static int process_frame_rgb_xy(LogoAwayPrivateData *pd,
 static int process_frame_rgb_shape(LogoAwayPrivateData *pd,
                                    uint8_t *buffer, int width, int height)
 {
-    int row, col, i;
+    int row, col, i = 0;
     int xdistance, ydistance, distance_west, distance_north;
     unsigned char hcalc, vcalc;
     int buf_off, pkt_off, buf_off_xpos, buf_off_width, buf_off_ypos, buf_off_height;
     int alpha_hori, alpha_vert;
-    uint8_t px[3], npx[3], *pixels = pd->pixel_packet;
+    uint8_t tmpx, px[3], npx[3];
 
     if (pd->dump) {
         dump_image_rgb(pd, buffer, width, height);
@@ -365,25 +350,25 @@ static int process_frame_rgb_shape(LogoAwayPrivateData *pd,
             buf_off_ypos = ((height-pd->ypos)*width+col) * 3;
             buf_off_height = ((height-pd->height)*width+col) * 3;
 
-            px = (uint8_t)ScaleQuantumToChar(pd->pixel_packet[pkt_off-i].red);
+            tmpx = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off-i].red);
             i = 0;
-            while ((px != 255) && (col-i > pd->xpos))
+            while ((tmpx != 255) && (col-i > pd->xpos))
                 i++;
             buf_off_xpos   = ((height-row)*width + col-i) * 3;
-            px = (uint8_t)ScaleQuantumToChar(pd->pixel_packet[pkt_off+i].red);
+            tmpx = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off+i].red);
             i = 0;
-            while ((px != 255) && (col + i < pd->width))
+            while ((tmpx != 255) && (col + i < pd->width))
                 i++;
             buf_off_width  = ((height-row)*width + col+i) * 3;
 
-            px = (uint8_t)ScaleQuantumToChar(pd->pixel_packet[pkt_off-i*(pd->width-pd->xpos)].red);
+            tmpx = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off-i*(pd->width-pd->xpos)].red);
             i = 0;
-            while ((px != 255) && (row - i > pd->ypos))
+            while ((tmpx != 255) && (row - i > pd->ypos))
                 i++;
             buf_off_ypos   = (height*width*3)-((row-i)*width - col) * 3;
-            px = (uint8_t)ScaleQuantumToChar(pd->pixel_packet[pkt_off+i*(pd->width-pd->xpos)].red);
+            tmpx = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off+i*(pd->width-pd->xpos)].red);
             i = 0;
-            while ((px != 255) && (row + i < pd->height))
+            while ((tmpx != 255) && (row + i < pd->height))
                 i++;
             buf_off_height = (height*width*3)-((row+i)*width - col) * 3;
 
@@ -391,17 +376,17 @@ static int process_frame_rgb_shape(LogoAwayPrivateData *pd,
             hcalc  = alpha_blending(buffer[buf_off_xpos +0], buffer[buf_off_width  +0], alpha_hori);
             vcalc  = alpha_blending(buffer[buf_off_ypos +0], buffer[buf_off_height +0], alpha_vert);
             npx[0] = (hcalc*pd->xweight + vcalc*pd->yweight)/100;
-            px[0]  = (uint8_t)ScaleQuantumToChar(pd->pixel_packet[pkt_off].red);
+            px[0]  = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off].red);
             /* G */
             hcalc = alpha_blending(buffer[buf_off_xpos +1], buffer[buf_off_width  +1], alpha_hori);
             vcalc = alpha_blending(buffer[buf_off_ypos +1], buffer[buf_off_height +1], alpha_vert);
             npx[1] = (hcalc*pd->xweight + vcalc*pd->yweight)/100;
-            px[1] = (uint8_t)ScaleQuantumToChar(pd->pixel_packet[pkt_off].green);
+            px[1] = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off].green);
             /* B */
             hcalc = alpha_blending(buffer[buf_off_xpos +2], buffer[buf_off_width  +2], alpha_hori);
             vcalc = alpha_blending(buffer[buf_off_ypos +2], buffer[buf_off_height +2], alpha_vert);
             npx[2] = (hcalc*pd->xweight + vcalc*pd->yweight)/100;
-            px[2] = (uint8_t)ScaleQuantumToChar(pd->pixel_packet[pkt_off].blue);
+            px[2] = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off].blue);
 
             buffer[buf_off +0] = alpha_blending(buffer[buf_off +0], npx[0], px[0]);
             buffer[buf_off +0] = alpha_blending(buffer[buf_off +0], npx[1], px[1]);
@@ -418,13 +403,8 @@ static int process_frame_rgb_shape(LogoAwayPrivateData *pd,
 static int process_frame_yuv_solid(LogoAwayPrivateData *pd,
                                    uint8_t *buffer, int width, int height)
 {
-    int row, col, i;
-    int craddr, cbaddr;
-    int xdistance, ydistance, distance_west, distance_north;
-    unsigned char hcalc, vcalc;
-    int buf_off, pkt_off=0, buf_off_xpos, buf_off_width, buf_off_ypos, buf_off_height;
-    int alpha_hori, alpha_vert;
     uint8_t px;
+    int row, col, craddr, cbaddr, buf_off, pkt_off=0;
 
     craddr = (width * height);
     cbaddr = (width * height) * 5 / 4;
@@ -438,7 +418,7 @@ static int process_frame_yuv_solid(LogoAwayPrivateData *pd,
             if (!pd->alpha) {
                 buffer[buf_off] = pd->ycolor;
             } else {
-                px = (uint8_t)ScaleQuantumToChar(pd->pixel_packet[pkt_off].red);
+                px = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off].red);
                 buffer[buf_off] = alpha_blending(buffer[buf_off], pd->ycolor, px);
             }
         }
@@ -455,21 +435,23 @@ static int process_frame_yuv_solid(LogoAwayPrivateData *pd,
                 buffer[cbaddr + buf_off] = pd->vcolor;
             } else {
                 /* sic */
-                px = (uint8_t)ScaleQuantumToChar(pd->pixel_packet[pkt_off].red);
+                px = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off].red);
                 buffer[craddr + buf_off] = alpha_blending(buffer[craddr + buf_off], pd->ucolor, px);
                 buffer[cbaddr + buf_off] = alpha_blending(buffer[cbaddr + buf_off], pd->vcolor, px);
             }
         }
     }
 
+    if (pd->border) {
+        draw_border_yuv(pd, buffer, width, height);
+    }
     return TC_OK;
 }
 
 static int process_frame_yuv_xy(LogoAwayPrivateData *pd,
                                 uint8_t *buffer, int width, int height)
 {
-    int row, col, i;
-    int craddr, cbaddr;
+    int row, col, craddr, cbaddr;
     int xdistance, ydistance, distance_west, distance_north;
     unsigned char hcalc, vcalc;
     int buf_off, pkt_off=0, buf_off_xpos, buf_off_width, buf_off_ypos, buf_off_height;
@@ -508,7 +490,7 @@ static int process_frame_yuv_xy(LogoAwayPrivateData *pd,
           if (!pd->alpha) {
             buffer[buf_off] = npx;
           } else {
-            px = (uint8_t)ScaleQuantumToChar(pd->pixel_packet[pkt_off].red);
+            px = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off].red);
             buffer[buf_off] = alpha_blending(buffer[buf_off], npx, px);
           }
         }
@@ -548,13 +530,16 @@ static int process_frame_yuv_xy(LogoAwayPrivateData *pd,
             buffer[craddr + buf_off] = npx[0];
             buffer[cbaddr + buf_off] = npx[1];
           } else {
-            px = (uint8_t)ScaleQuantumToChar(pd->pixel_packet[pkt_off].red); /* sic */
+            px = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off].red); /* sic */
             buffer[craddr + buf_off] = alpha_blending(buffer[craddr + buf_off], npx[0], px);
             buffer[craddr + buf_off] = alpha_blending(buffer[craddr + buf_off], npx[1], px);
           }
         }
       }
 
+    if (pd->border) {
+        draw_border_yuv(pd, buffer, width, height);
+    }
     return TC_OK;
 }
 
@@ -567,7 +552,7 @@ static int process_frame_yuv_shape(LogoAwayPrivateData *pd,
     unsigned char hcalc, vcalc;
     int buf_off, pkt_off=0, buf_off_xpos, buf_off_width, buf_off_ypos, buf_off_height;
     int alpha_hori, alpha_vert;
-    uint8_t px, npx[2];
+    uint8_t px, npx[3];
 
     craddr = (width * height);
     cbaddr = (width * height) * 5 / 4;
@@ -588,28 +573,28 @@ static int process_frame_yuv_shape(LogoAwayPrivateData *pd,
           pkt_off = (row-pd->ypos) * (pd->width-pd->xpos) + (col-pd->xpos);
 
           i=0;
-          px = (uint8_t)ScaleQuantumToChar(pd->pixel_packet[pkt_off-i].red);
+          px = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off-i].red);
           while( (px != 255) && (col-i>pd->xpos) ) i++;
           buf_off_xpos   = (row*width + col-i);
           i=0;
-          px = (uint8_t)ScaleQuantumToChar(pd->pixel_packet[pkt_off+i].red);
+          px = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off+i].red);
           while( (px != 255) && (col+i<pd->width) ) i++;
           buf_off_width  = (row*width + col+i);
 
           i=0;
-          px = (uint8_t)ScaleQuantumToChar(pd->pixel_packet[pkt_off-i*(pd->width-pd->xpos)].red);
+          px = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off-i*(pd->width-pd->xpos)].red);
           while( (px != 255) && (row-i>pd->ypos) ) i++;
           buf_off_ypos   = ((row-i)*width + col);
           i=0;
-          px = (uint8_t)ScaleQuantumToChar(pd->pixel_packet[pkt_off+i*(pd->width-pd->xpos)].red);
+          px = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off+i*(pd->width-pd->xpos)].red);
           while( (px != 255) && (row+i<pd->height) ) i++;
           buf_off_height = ((row+i)*width + col);
 
-          hcalc = alpha_blending( buffer[buf_off_xpos], buffer[buf_off_width],  alpha_hori );
-          vcalc = alpha_blending( buffer[buf_off_ypos], buffer[buf_off_height], alpha_vert );
-          px    = (uint8_t)ScaleQuantumToChar(pd->pixel_packet[pkt_off].red);
-          npx   = ((hcalc*pd->xweight + vcalc*pd->yweight)/100);
-          buffer[buf_off] = alpha_blending(buffer[buf_off], npx, px);
+          hcalc  = alpha_blending( buffer[buf_off_xpos], buffer[buf_off_width],  alpha_hori );
+          vcalc  = alpha_blending( buffer[buf_off_ypos], buffer[buf_off_height], alpha_vert );
+          px     = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off].red);
+          npx[0] = ((hcalc*pd->xweight + vcalc*pd->yweight)/100); /* FIXME */
+          buffer[buf_off] = alpha_blending(buffer[buf_off], npx[0], px);
         }
       }
 
@@ -627,20 +612,20 @@ static int process_frame_yuv_shape(LogoAwayPrivateData *pd,
           alpha_hori = xdistance * distance_west;
 
           i=0;
-          px = (uint8_t)ScaleQuantumToChar(pd->pixel_packet[pkt_off-i].red);
+          px = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off-i].red);
           while( (px != 255) && (col-i>pd->xpos) ) i++;
           buf_off_xpos   = (row*width/2 + col-i);
           i=0;
-          px = (uint8_t)ScaleQuantumToChar(pd->pixel_packet[pkt_off+i].red);
+          px = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off+i].red);
           while( (px != 255) && (col+i<pd->width) ) i++;
           buf_off_width  = (row*width/2 + col+i);
 
           i=0;
-          px = (uint8_t)ScaleQuantumToChar(pd->pixel_packet[pkt_off-i*(pd->width-pd->xpos)].red);
+          px = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off-i*(pd->width-pd->xpos)].red);
           while( (px != 255) && (row-i>pd->ypos) ) i++;
           buf_off_ypos   = ((row-i)*width/2 + col);
           i=0;
-          px = (uint8_t)ScaleQuantumToChar(pd->pixel_packet[pkt_off+i*(pd->width-pd->xpos)].red);
+          px = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off+i*(pd->width-pd->xpos)].red);
           while( (px != 255) && (row+i<pd->height) ) i++;
           buf_off_height = ((row+i)*width/2 + col);
 
@@ -650,22 +635,24 @@ static int process_frame_yuv_shape(LogoAwayPrivateData *pd,
 
           pkt_off = (row*2-pd->ypos) * (pd->width-pd->xpos) + (col*2-pd->xpos);
 
-          px     = (uint8_t)ScaleQuantumToChar(pd->pixel_packet[pkt_off].red);
+          px     = (uint8_t)ScaleQuantumToChar(pd->pixels[pkt_off].red);
           /* sic */
-          hcalc  = alpha_blending( buffer[craddr + buf_off_xpos], buffer[craddr + buf_off_width],  alpha_hori );
-          vcalc  = alpha_blending( buffer[craddr + buf_off_ypos], buffer[craddr + buf_off_height], alpha_vert );
-          npx[0] = ((hcalc*pd->xweight + vcalc*pd->yweight)/100);
-          hcalc  = alpha_blending( buffer[cbaddr + buf_off_xpos], buffer[cbaddr + buf_off_width],  alpha_hori );
-          vcalc  = alpha_blending( buffer[cbaddr + buf_off_ypos], buffer[cbaddr + buf_off_height], alpha_vert );
+          hcalc  = alpha_blending(buffer[craddr + buf_off_xpos], buffer[craddr + buf_off_width],  alpha_hori);
+          vcalc  = alpha_blending(buffer[craddr + buf_off_ypos], buffer[craddr + buf_off_height], alpha_vert);
           npx[1] = ((hcalc*pd->xweight + vcalc*pd->yweight)/100);
+          hcalc  = alpha_blending(buffer[cbaddr + buf_off_xpos], buffer[cbaddr + buf_off_width],  alpha_hori);
+          vcalc  = alpha_blending(buffer[cbaddr + buf_off_ypos], buffer[cbaddr + buf_off_height], alpha_vert);
+          npx[2] = ((hcalc*pd->xweight + vcalc*pd->yweight)/100);
 
-          buffer[craddr + buf_off] = alpha_blending(buffer[craddr + buf_off], npx[0], px);
-          buffer[cbaddr + buf_off] = alpha_blending(buffer[cbaddr + buf_off], npx[1], px); 
+          buffer[craddr + buf_off] = alpha_blending(buffer[craddr + buf_off], npx[1], px);
+          buffer[cbaddr + buf_off] = alpha_blending(buffer[cbaddr + buf_off], npx[2], px); 
         }
       }
 
 
-
+    if (pd->border) {
+        draw_border_yuv(pd, buffer, width, height);
+    }
     return TC_OK;
 }
 
@@ -689,49 +676,46 @@ static int logoaway_setup(LogoAwayPrivateData *pd, vob_t *vob)
             return TC_ERROR; /* FIXME */
         }
 
-        tc_magick_init(&pd->dump_ctx, NULL);
+        tc_magick_init(&pd->dump_ctx, TC_MAGICK_QUALITY_DEFAULT);
     }
 
     if (pd->alpha) {
         int ret = TC_OK;
 
-        tc_magick_init(&pd->logo_ctx, NULL);
+        tc_magick_init(&pd->logo_ctx, TC_MAGICK_QUALITY_DEFAULT);
 
-        ret =  tc_magick_encode_filein(&ctx->logo_ctx, pd->file);
+        ret =  tc_magick_filein(&pd->logo_ctx, pd->file);
         if (ret != TC_OK) {
-            tc_log_error(MOD_NAME, "\n");
-            MagickWarning(pd->exception_info.severity,
-                          pd->exception_info.reason,
-                          pd->exception_info.description);
             free_dump_buf(pd);
             return ret;
         }
 
-        if ((pd->image->columns != (pd->width-pd->xpos))
-          || (pd->image->rows != (pd->height-pd->ypos))) {
+        if ((pd->logo_ctx.image->columns != (pd->width-pd->xpos))
+          || (pd->logo_ctx.image->rows != (pd->height-pd->ypos))) {
             tc_log_error(MOD_NAME, "\"%s\" has incorrect size", pd->file);
             free_dump_buf(pd);
             return TC_ERROR;
         }
 
-        pd->pixel_packet = GetImagePixels(pd->image, 0, 0,
-                                          pd->image->columns, pd->image->rows);
+        pd->pixels = GetImagePixels(pd->logo_ctx.image, 0, 0,
+                                    pd->logo_ctx.image->columns,
+                                    pd->logo_ctx.image->rows);
     }
 
     /* FIXME: this can be improved. What about a LUT? */
     switch (pd->mode) {
       case MODE_SOLID:
-        pd->process_frame = (pd->im_v_codec == TC_CODEC_RGB)
+        pd->process_frame = (vob->im_v_codec == TC_CODEC_RGB24)
                                 ?process_frame_rgb_solid
                                 :process_frame_yuv_solid;
         break;
       case MODE_XY:
-        pd->process_frame = (pd->im_v_codec == TC_CODEC_RGB)
+        pd->process_frame = (vob->im_v_codec == TC_CODEC_RGB24)
                                 ?process_frame_rgb_xy
                                 :process_frame_yuv_xy;
         break;
       case MODE_SHAPE:
-        pd->process_frame = (pd->im_v_codec == TC_CODEC_RGB)
+        pd->process_frame = (vob->im_v_codec == TC_CODEC_RGB24)
                                 ?process_frame_rgb_shape
                                 :process_frame_yuv_shape;
         break;
@@ -765,9 +749,9 @@ static void logoaway_defaults(LogoAwayPrivateData *pd)
     pd->dump     = 0;
 }
 
-static int logoaway_check_options(LogoAwayPrivateData *pd)
+static int logoaway_check_options(LogoAwayPrivateData *pd, vob_t *vob)
 {
-    if (vob->im_v_codec != TC_CODEC_RGB
+    if (vob->im_v_codec != TC_CODEC_RGB24
       && vob->im_v_codec != TC_CODEC_YUV420P) {
         tc_log_error(MOD_NAME, "unsupported colorspace");
         return TC_ERROR;
@@ -881,12 +865,12 @@ static int logoaway_configure(TCModuleInstance *self,
         }
     }
 
-    ret = logoaway_check_options(pd);
+    ret = logoaway_check_options(pd, vob);
     if (ret == TC_OK) {
         if (verbose) {
             logoaway_show_options(pd);
         }
-        ret = logoaway_setup(self, vob);
+        ret = logoaway_setup(pd, vob);
     }
     return ret;
 }
@@ -994,7 +978,7 @@ static int logoaway_filter_video(TCModuleInstance *self,
 
     pd = self->userdata;
 
-    if (frame->id >= pd->start && ptr->id <= pd->end) {
+    if (frame->id >= pd->start && frame->id <= pd->end) {
         ret = pd->process_frame(pd, frame->video_buf,
                                 frame->v_width, frame->v_height);
     }
