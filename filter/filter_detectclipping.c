@@ -156,7 +156,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	optstr_get (options, "range",  "%u-%u/%d",    &mfd[ptr->filter_id]->start, &mfd[ptr->filter_id]->end, &mfd[ptr->filter_id]->step);
 	optstr_get (options, "limit",  "%d",    &mfd[ptr->filter_id]->limit);
 	if (optstr_lookup (options, "post")!=NULL) mfd[ptr->filter_id]->post = 1;
-        optstr_get (options, "log", "%[^:]", &log_name);
+        optstr_get (options, "log", "%[^:]", log_name);
     }
 
 

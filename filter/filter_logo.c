@@ -57,13 +57,13 @@
 # define ScaleCharToQuantum(x) ((x)*71777214294589695ULL)
 #endif
 
-#include "transcode.h"
-#include "filter.h"
+#include "src/transcode.h"
+#include "src/filter.h"
 #include "libtc/libtc.h"
-#include "libtc/optstr.h"
+#include "libtcutil/optstr.h"
 #include "libtcvideo/tcvideo.h"
-
 #include "libtcext/tc_magick.h"
+#include "libtcmodule/tcmodule-plugin.h"
 
 
 #define DEFAULT_LOGO_FILE   "logo.png"
@@ -80,10 +80,10 @@ typedef int (*RenderLogoFn)(LogoPrivateData *pd,
                              const WorkItem *W, TCFrameVideo *frame);
 
 struct workitem_ {
-    PixelPacket *pixels,
+    PixelPacket *pixels;
     int         do_fade;
     float       fade_coeff;
-}
+};
 
 struct logoprivatedata_ {
     /* public */
@@ -100,6 +100,7 @@ struct logoprivatedata_ {
     unsigned int fadeout;        /* No. of frames to fade out       */
 
     /* private */
+    uint8_t     **yuv;           /* buffer for RGB->YUV conversion  */
     unsigned int nr_of_images;   /* animated: number of images      */
     unsigned int cur_seq;        /* animated: current image         */
     int          cur_delay;      /* animated: current delay         */
@@ -107,7 +108,8 @@ struct logoprivatedata_ {
 
     /* These used to be static (per-module), but are now per-instance. */
     vob_t       *vob;            /* video info from transcode       */
-    TCMagicContext magick;
+    TCMagickContext magick;
+    Image       *images;
 
     /* Coefficients used for transparency calculations. Pre-generating these
      * in a lookup table provides a small speed boost.
@@ -261,7 +263,7 @@ static int flogo_convert_image(TCVHandle    tcvhandle,
     return 1;
 }
 
-static int flogo_defaults(LogoPrivateData *pd, vob_t *vob)
+static void flogo_defaults(LogoPrivateData *pd, vob_t *vob)
 {
     memset(pd, 0, sizeof(*pd));
 
@@ -296,7 +298,7 @@ static int flogo_parse_options(LogoPrivateData *pd,
 
     if (verbose) {
         tc_log_info(MOD_NAME, " Logo renderer Settings:");
-        tc_log_info(MOD_NAME, "         file = %s",    pd->file);
+        tc_log_info(MOD_NAME, "         file = %s",    logo_file);
         tc_log_info(MOD_NAME, "       posdef = %d",    pd->pos);
         tc_log_info(MOD_NAME, "          pos = %dx%d", pd->posx,
                                                        pd->posy);
@@ -313,7 +315,7 @@ static int flogo_parse_options(LogoPrivateData *pd,
     return TC_OK;
 }
 
-static int flogo_compute_position(LogoPrivateData *pd),
+static int flogo_compute_position(LogoPrivateData *pd)
 {
     switch (pd->pos) {
       case NONE: /* 0 */
@@ -323,20 +325,20 @@ static int flogo_compute_position(LogoPrivateData *pd),
         pd->posy = pd->rgb_offset;
         break;
       case TOP_RIGHT:
-        pd->posx = pd->vob->ex_v_width  - pd->magick->image->columns;
+        pd->posx = pd->vob->ex_v_width  - pd->magick.image->columns;
         break;
       case BOT_LEFT:
-        pd->posy = pd->vob->ex_v_height - pd->magick->image->rows 
+        pd->posy = pd->vob->ex_v_height - pd->magick.image->rows 
                  - pd->rgb_offset;
         break;
       case BOT_RIGHT:
-        pd->posx = pd->vob->ex_v_width  - pd->magick->image->columns;
-        pd->posy = pd->vob->ex_v_height - pd->magick->image->rows
+        pd->posx = pd->vob->ex_v_width  - pd->magick.image->columns;
+        pd->posy = pd->vob->ex_v_height - pd->magick.image->rows
                  - pd->rgb_offset;
         break;
       case CENTER:
-        pd->posx = (pd->vob->ex_v_width - pd->magick->image->columns)/2;
-        pd->posy = (pd->vob->ex_v_height- pd->magick->image->rows)/2;
+        pd->posx = (pd->vob->ex_v_width - pd->magick.image->columns)/2;
+        pd->posy = (pd->vob->ex_v_height- pd->magick.image->rows)/2;
         /* align to not cause color disruption */
         if (pd->posx & 1)
             pd->posx++;
@@ -346,8 +348,8 @@ static int flogo_compute_position(LogoPrivateData *pd),
     }
 
     if (pd->posy < 0 || pd->posx < 0
-     || (pd->posx + pd->magick->image->columns) > pd->vob->ex_v_width
-     || (pd->posy + pd->magick->image->rows)    > pd->vob->ex_v_height) {
+     || (pd->posx + pd->magick.image->columns) > pd->vob->ex_v_width
+     || (pd->posy + pd->magick.image->rows)    > pd->vob->ex_v_height) {
         tc_log_error(MOD_NAME, "invalid position");
         return TC_ERROR;
     }
@@ -397,7 +399,7 @@ static void set_delay(LogoPrivateData *pd)
 
         pd->cur_seq = (pd->cur_seq + 1) % pd->nr_of_images;
 
-        pd->images = pd->image;
+        pd->images = pd->magick.image;
         for (seq = 0; seq < pd->cur_seq; seq++)
             pd->images = pd->images->next;
 
@@ -409,17 +411,16 @@ static int load_images(LogoPrivateData *pd)
 {
     Image         *timg;
     Image         *nimg;
-    ImageInfo     *image_info;
-    ExceptionInfo  exception_info;
 
-    pd->images = (Image *)GetFirstImageInList(pd->image);
+    pd->images = GetFirstImageInList(pd->magick.image);
     nimg = NewImageList();
 
     while (pd->images != (Image *)NULL) {
         if (pd->flip) {
-            timg = FlipImage(pd->images, &exception_info);
+            timg = FlipImage(pd->images, 
+                             &pd->magick.exception_info);
             if (timg == NULL) {
-                CatchException(&ctx->exception_info);
+                CatchException(&pd->magick.exception_info);
                 return TC_ERROR;
             }
             AppendImageToList(&nimg, timg);
@@ -432,26 +433,30 @@ static int load_images(LogoPrivateData *pd)
     // check for memleaks;
     //DestroyImageList(image);
     if (pd->flip) {
-        pd->image = nimg;
+        /* DANGEROUS!!! */
+        pd->magick.image = nimg;
     }
 
     /* for running through image sequence */
-    pd->images = pd->image;
+    /* DANGEROUS!!! */
+    pd->images = pd->magick.image;
 
     return TC_OK;
 }
 
-static int sanity_check(LogoPrivateData *pd, vob_t *vob)
+static int sanity_check(LogoPrivateData *pd,
+                        vob_t *vob, const char *logo_file)
 {
-    if (pd->magick->image->columns > vob->ex_v_width
-     || pd->magick->image->rows    > vob->ex_v_height) {
-        tc_log_error(MOD_NAME, "\"%s\" is too large", file);
+    if (pd->magick.image->columns > vob->ex_v_width
+     || pd->magick.image->rows    > vob->ex_v_height) {
+        tc_log_error(MOD_NAME, "\"%s\" is too large", logo_file);
         return TC_ERROR;
     }
 
     if (vob->im_v_codec == TC_CODEC_YUV420P) {
-        if ((pd->image->columns & 1) || (pd->image->rows & 1)) {
-            tc_log_error(MOD_NAME, "\"%s\" has odd sizes", pd->file);
+        if ((pd->magick.image->columns & 1)
+         || (pd->magick.image->rows & 1)) {
+            tc_log_error(MOD_NAME, "\"%s\" has odd sizes", logo_file);
             return TC_ERROR;
         }
     }
@@ -459,25 +464,26 @@ static int sanity_check(LogoPrivateData *pd, vob_t *vob)
     return TC_OK;
 }
 
-static int setup_logo_rgb(LogoPrivateData *pd)
+static int setup_logo_rgb(LogoPrivateData *pd, vob_t *vob)
 {
     /* for RGB format is origin bottom left */
     /* for RGB, rgbswap is done in the frame routine */
-    pd->rgb_offset = vob->ex_v_height - pd->image->rows;
+    pd->rgb_offset = vob->ex_v_height - pd->magick.image->rows;
     pd->posy       = pd->rgb_offset   - pd->posy;
+
+    return TC_OK;
 }
 
 /* convert Magick RGB image format to YUV */
 /* todo: convert the magick image if it's not rgb! (e.g. cmyk) */
 static int setup_logo_yuv(LogoPrivateData *pd)
 {
-    uint8_t     **yuv;          /* buffer for RGB->YUV conversion  */
     TCVHandle   tcvhandle;      /* handle for RGB->YUV conversion  */
     Image       *image;
     uint8_t     *yuv_hqbuf = NULL;
     /* Round up for odd-size images */
-    unsigned long width  = pd->image->columns;
-    unsigned long height = pd->image->rows;
+    unsigned long width  = pd->magick.image->columns;
+    unsigned long height = pd->magick.image->rows;
     int i;
 
     tcvhandle = tcv_init();
@@ -491,8 +497,8 @@ static int setup_logo_yuv(LogoPrivateData *pd)
      * This buffer needs to be large enough to store a temporary
      * 24-bit RGB image (extracted from the GraphicsMagick handle).
      */
-    yuv = flogo_yuvbuf_alloc(width*height * 3, pd->nr_of_images);
-    if (yuv == NULL) {
+    pd->yuv = flogo_yuvbuf_alloc(width*height * 3, pd->nr_of_images);
+    if (pd->yuv == NULL) {
         tc_log_error(MOD_NAME, "(%d) out of memory\n", __LINE__);
         return TC_ERROR;
     }
@@ -506,29 +512,30 @@ static int setup_logo_yuv(LogoPrivateData *pd)
         }
     }
 
-    image = GetFirstImageInList(pd->image);
+    image = GetFirstImageInList(pd->magick.image);
 
     for (i = 0; i < pd->nr_of_images; i++) {
         if (!pd->hqconv) {
-            flogo_convert_image(tcvhandle, image, yuv[i],
+            flogo_convert_image(tcvhandle, image, pd->yuv[i],
                                 IMG_YUV420P, pd->rgbswap);
         } else {
             flogo_convert_image(tcvhandle, image, yuv_hqbuf,
                                 IMG_YUV444P, pd->rgbswap);
             // Copy over Y data from the 444 image
-            ac_memcpy(yuv[i], yuv_hqbuf, width * height);
+            ac_memcpy(pd->yuv[i], yuv_hqbuf, width * height);
+
             // Resize U plane by 1/2 in each dimension, into the
             // pd YUV buffer
             tcv_zoom(tcvhandle,
                      yuv_hqbuf + (width * height),
-                     yuv[i] + (width * height),
+                     pd->yuv[i] + (width * height),
                      width, height, 1,
                      width / 2, height / 2,
                      TCV_ZOOM_LANCZOS3);
             // Do the same with the V plane
             tcv_zoom(tcvhandle,
                      yuv_hqbuf + 2*width*height,
-                     yuv[i] + width*height + (width/2)*(height/2),
+                     pd->yuv[i] + width*height + (width/2)*(height/2),
                      width, height, 1,
                      width / 2, height / 2,
                      TCV_ZOOM_LANCZOS3);
@@ -539,7 +546,6 @@ static int setup_logo_yuv(LogoPrivateData *pd)
     tcv_free(tcvhandle);
     if (pd->hqconv)
         tc_free(yuv_hqbuf);
-    flogo_yuvbuf_free(yuv, pd->nr_of_images);
 
     return TC_OK;
 }
@@ -555,21 +561,24 @@ static int render_logo_rgb(LogoPrivateData *pd,
      * opacity = MaxRGB as fully transparent.
      */
     Quantum opacity;
-    uint8_t     *video_buf;
+    uint8_t *video_buf = NULL;
+    PixelPacket *pixels = GetImagePixels(pd->images, 0, 0,
+                                         pd->images->columns,
+                                         pd->images->rows);
 
     if (pd->rgbswap) {
         r_off = 2;
         b_off = 0;
     }
 
-    for (row = 0; row < pd->image->rows; row++) {
-        video_buf = ptr->video_buf + 3 * ((row + pd->posy) * vob->ex_v_width + pd->posx);
+    for (row = 0; row < pd->magick.image->rows; row++) {
+        video_buf = frame->video_buf + 3 * ((row + pd->posy) * pd->vob->ex_v_width + pd->posx);
 
-        for (col = 0; col < pd->image->columns; col++) {
+        for (col = 0; col < pd->magick.image->columns; col++) {
             opacity = pixels->opacity;
 
-            if (do_fade)
-                opacity += (Quantum)((MaxRGB - opacity) * fade_coeff);
+            if (W->do_fade)
+                opacity += (Quantum)((MaxRGB - opacity) * W->fade_coeff);
 
             if (opacity == 0) {
                 *(video_buf + r_off) = ScaleQuantumToChar(pixels->red);
@@ -596,9 +605,9 @@ static int render_logo_rgb(LogoPrivateData *pd,
 }
 
 static int render_logo_yuv(LogoPrivateData *pd,
-                             const WorkItem *W, TCFrameVideo *frame)
+                           const WorkItem *W, TCFrameVideo *frame)
 {
-    unsigned long vid_size = vob->ex_v_width * vob->ex_v_height;
+    unsigned long vid_size = pd->vob->ex_v_width * pd->vob->ex_v_height;
     unsigned long img_size = pd->images->columns * pd->images->rows;
     uint8_t *img_pixel_Y, *img_pixel_U, *img_pixel_V;
     uint8_t *vid_pixel_Y, *vid_pixel_U, *vid_pixel_V;
@@ -608,24 +617,28 @@ static int render_logo_yuv(LogoPrivateData *pd,
      */
     Quantum opacity;
     int row, col;
+    PixelPacket *pixels = GetImagePixels(pd->images, 0, 0,
+                                         pd->images->columns,
+                                         pd->images->rows);
+
 
     /* FIXME: yet another independent reimplementation of
      * the YUV planes pointer assignement.
      */
-    img_pixel_Y = yuv[pd->cur_seq];
+    img_pixel_Y = pd->yuv[pd->cur_seq];
     img_pixel_U = img_pixel_Y + img_size;
     img_pixel_V = img_pixel_U + img_size/4;
 
     for (row = 0; row < pd->images->rows; row++) {
-        vid_pixel_Y = ptr->video_buf + (row + pd->posy)*pd->vob->ex_v_width + pd->posx;
-        vid_pixel_U = ptr->video_buf + vid_size + (row/2 + pd->posy/2)*(pd->vob->ex_v_width/2) + pd->posx/2;
+        vid_pixel_Y = frame->video_buf + (row + pd->posy)*pd->vob->ex_v_width + pd->posx;
+        vid_pixel_U = frame->video_buf + vid_size + (row/2 + pd->posy/2)*(pd->vob->ex_v_width/2) + pd->posx/2;
         vid_pixel_V = vid_pixel_U + vid_size/4;
         for (col = 0; col < pd->images->columns; col++) {
             int do_UV_pixels = (pd->grayout == 0 && !(row % 2) && !(col % 2)) ? 1 : 0;
             opacity = pixels->opacity;
 
-            if (do_fade)
-                opacity += (Quantum)((MaxRGB - opacity) * fade_coeff);
+            if (W->do_fade)
+                opacity += (Quantum)((MaxRGB - opacity) * W->fade_coeff);
 
             if (opacity == 0) {
                 *vid_pixel_Y = *img_pixel_Y;
@@ -703,12 +716,14 @@ static int logo_configure(TCModuleInstance *self,
                           const char *options, vob_t *vob)
 {
     char file[PATH_MAX + 1] = { '\0' }; /* input filename */
-    ComparePrivateData *pd = NULL;
+    LogoPrivateData *pd = NULL;
     int ret = TC_OK;
 
     TC_MODULE_SELF_CHECK(self, "configure");
 
     pd = self->userdata;
+
+    flogo_defaults(pd, vob);
 
     ret = flogo_parse_options(pd, options, file);
     RETURN_IF_NOT_OK(ret);
@@ -719,18 +734,19 @@ static int logo_configure(TCModuleInstance *self,
     ret = tc_magick_filein(&pd->magick, file);
     RETURN_IF_NOT_OK(ret);
 
-    ret = sanity_check(pd, vob);
+    ret = sanity_check(pd, vob, file);
     RETURN_IF_NOT_OK(ret);
 
     ret = load_images(pd);
     RETURN_IF_NOT_OK(ret);
 
     /* initial delay. real delay = 1/100 sec * delay */
-    pd->cur_delay = pd->image->delay*vob->fps/100;
+    /* FIXME */
+    pd->cur_delay = pd->magick.image->delay*vob->fps/100;
 
     if (verbose >= TC_DEBUG)
-        tc_log_info(MOD_NAME, "Nr: %d Delay: %d pd->image->del %lu|",
-                    pd->nr_of_images, pd->cur_delay, pd->image->delay);
+        tc_log_info(MOD_NAME, "Nr: %d Delay: %d ImageDelay %lu|",
+                    pd->nr_of_images, pd->cur_delay, pd->magick.image->delay);
 
     if (vob->im_v_codec == TC_CODEC_YUV420P) {
         ret = setup_logo_yuv(pd);
@@ -738,7 +754,7 @@ static int logo_configure(TCModuleInstance *self,
 
         pd->render = render_logo_yuv;
     } else {
-        ret = setup_logo_rgb(pd);
+        ret = setup_logo_rgb(pd, vob);
         RETURN_IF_NOT_OK(ret);
 
         pd->render = render_logo_rgb;
@@ -760,13 +776,18 @@ static int logo_configure(TCModuleInstance *self,
 
 static int logo_stop(TCModuleInstance *self)
 {
-    ComparePrivateData *pd = NULL;
+    LogoPrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "stop");
 
     pd = self->userdata;
 
     tc_magick_fini(&pd->magick);
+
+    if (pd->yuv) {
+        flogo_yuvbuf_free(pd->yuv, pd->nr_of_images);
+        pd->yuv = NULL;
+    }
 
     return TC_OK;
 }
@@ -781,7 +802,7 @@ static int logo_stop(TCModuleInstance *self)
 static int logo_inspect(TCModuleInstance *self,
                         const char *param, const char **value)
 {
-    ComparePrivateData *pd = NULL;
+    LogoPrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self,  "inspect");
     TC_MODULE_SELF_CHECK(param, "inspect");
@@ -805,8 +826,7 @@ static int logo_inspect(TCModuleInstance *self,
 static int logo_filter_video(TCModuleInstance *self,
                              TCFrameVideo *frame)
 {
-    ComparePrivateData *pd = NULL;
-    double avg_dr = 0.0, avg_dg = 0.0, avg_db = 0.0;
+    LogoPrivateData *pd = NULL;
     WorkItem W = { NULL, 0, 0.0 };
 
     TC_MODULE_SELF_CHECK(self,  "filter");
@@ -814,7 +834,7 @@ static int logo_filter_video(TCModuleInstance *self,
 
     pd = self->userdata;
 
-    if (ptr->id < pd->start || ptr->id > pd->end) {
+    if (frame->id < pd->start || frame->id > pd->end) {
         /* out of the interval, so skip processing */
         return TC_OK;
     }
@@ -878,9 +898,9 @@ static int logo_get_config(TCModuleInstance *self, char *options)
 
 static int logo_process(TCModuleInstance *self, TCFrame *frame)
 {
-    if ((ptr->tag & TC_POST_M_PROCESS)
-      && (ptr->tag & TC_VIDEO)
-      && !(ptr->attributes & TC_FRAME_IS_SKIPPED)) {
+    if ((frame->tag & TC_POST_M_PROCESS)
+      && (frame->tag & TC_VIDEO)
+      && !(frame->attributes & TC_FRAME_IS_SKIPPED)) {
         return logo_filter_video(self, (TCFrameVideo*)frame);
     }
     return TC_OK;

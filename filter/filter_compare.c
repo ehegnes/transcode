@@ -32,6 +32,8 @@
 #include "libtcutil/tclist.h"
 #include "libtcutil/optstr.h"
 #include "libtcext/tc_magick.h"
+#include "libtcmodule/tcmodule-plugin.h"
+
 
 #define MOD_NAME    "filter_compare.so"
 #define MOD_VERSION "v0.2.0 (2009-03-06)"
@@ -52,7 +54,7 @@
 // FIXME: Implement the YUV colorspace support.
 
 typedef struct pixelsmask_ PixelsMask;
-struct pixelsMask_ {
+struct pixelsmask_ {
     unsigned int    row;
     unsigned int    col;
 
@@ -87,8 +89,8 @@ struct comparedata_ {
     /* the following are used only during setup routines;
      * so, before and after they point to NULL 
      */
-    const char      *pattern_name;
-    const char      *results_name;
+    char            *pattern_name;
+    char            *results_name;
 };
 
 
@@ -120,7 +122,7 @@ static void compare_defaults(ComparePrivateData *pd, vob_t *vob)
     pd->step         = 1;
     pd->frames       = 0;
     pd->results      = NULL;
-    pd->compare_name = NULL; /* see note above */
+    pd->pattern_name = NULL; /* see note above */
     pd->results_name = NULL; /* see note above */
 }
 
@@ -158,7 +160,7 @@ static int compare_open_log(ComparePrivateData *pd)
     pd->results = fopen(pd->results_name, "w");
     if (pd->results) {
         fprintf(pd->results, "#fps:%f\n", pd->vob->fps);
-    } else }
+    } else {
         tc_log_error(MOD_NAME, "could not open file for writing");
         ret =  TC_ERROR;
     }
@@ -167,7 +169,7 @@ static int compare_open_log(ComparePrivateData *pd)
 
 #define RETURN_IF_GM_ERROR(PTR, PD) do { \
     if (!(PTR)) { \
-        CatchException(&(PD)->magick->exception_info); \
+        CatchException(&(PD)->magick.exception_info); \
         return TC_ERROR; \
     } \
 } while (0)
@@ -181,14 +183,14 @@ static int compare_setup_pattern(ComparePrivateData *pd)
 
     /* FIXME: filter used */
     /* FIXME: switch to tcvideo? */
-    resized = ResizeImage(pd->magick->image,
+    resized = ResizeImage(pd->magick.image,
                           pd->width, pd->height,
                           GaussianFilter,  1.0,
-                          &pd->exception_info);
+                          &pd->magick.exception_info);
     RETURN_IF_GM_ERROR(resized, pd);
 
     if (pd->flip) {
-        pattern = FlipImage(resized, &exception_info);
+        pattern = FlipImage(resized, &pd->magick.exception_info);
     } else {
         pattern = resized;
     }
@@ -203,11 +205,11 @@ static int compare_setup_pattern(ComparePrivateData *pd)
             j = t * pattern->columns + r;
             if (pixels[j].opacity == 0) {
                 PixelsMask pm = {
-                    .row = t;
-                    .col = r;
-                    .r   = (uint8_t)ScaleQuantumToChar(pixels[j].red);
-                    .g   = (uint8_t)ScaleQuantumToChar(pixels[j].green);
-                    .b   = (uint8_t)ScaleQuantumToChar(pixels[j].blue);
+                    .row = t,
+                    .col = r,
+                    .r   = (uint8_t)ScaleQuantumToChar(pixels[j].red),
+                    .g   = (uint8_t)ScaleQuantumToChar(pixels[j].green),
+                    .b   = (uint8_t)ScaleQuantumToChar(pixels[j].blue),
                 };
                 tc_list_append_dup(&pd->pixel_mask, &pm, sizeof(pm));
                 /* FIXME: return value */
@@ -315,7 +317,7 @@ static int compare_stop(TCModuleInstance *self)
 
     pd = self->userdata;
 
-    tc_list_fini_cleanup(&pd->pixels);
+    tc_list_fini_cleanup(&pd->pixel_mask);
     /* FIXME: free images */
 
     if (pd->results) {
@@ -323,7 +325,7 @@ static int compare_stop(TCModuleInstance *self)
         pd->results = NULL;
     }
 
-    tc_magick_fini(&pd->context);
+    tc_magick_fini(&pd->magick);
 
     return TC_OK;
 }
@@ -360,7 +362,7 @@ static int compare_inspect(TCModuleInstance *self,
         tc_snprintf(pd->conf_str, sizeof(pd->conf_str), "%i", pd->flip);
         *value = pd->conf_str;
     }
-    /* see note above for compare_name and results_name */
+    /* see note above for pattern_name and results_name */
     return TC_OK;
 }
 
@@ -378,16 +380,18 @@ struct workitem_ {
 
 static int image_compare(TCListItem *item, void *userdata)
 {
-    PixelMask *pix = item->data;
+    PixelsMask *pix = item->data;
     WorkItem  *wi  = userdata;
 
     int r   = pix->row * wi->stride + pix->col * 3;
     int g   = pix->row * wi->stride + pix->col * 3 + 1;
     int b   = pix->row * wi->stride + pix->col * 3 + 2;
 
-    wi->sr += (double)abs(buf[r] - pix->r);
-    wi->sg += (double)abs(buf[g] - pix->g);
-    wi->sb += (double)abs(buf[b] - pix->b);
+    wi->sr += (double)abs(wi->buf[r] - pix->r);
+    wi->sg += (double)abs(wi->buf[g] - pix->g);
+    wi->sb += (double)abs(wi->buf[b] - pix->b);
+
+    return 0;
 }
 
 /**
@@ -407,8 +411,7 @@ static int compare_filter_video(TCModuleInstance *self,
 
     pd = self->userdata;
 
-    w.stride = pd->width * 3;
-    W.count  = 0;
+    W.stride = pd->width * 3;
     W.sr     = 0.0;
     W.sg     = 0.0;
     W.sb     = 0.0;
@@ -492,7 +495,7 @@ static int compare_process(TCModuleInstance *self, TCFrame *frame)
 
     pd = self->userdata;
 
-    if ((ptr->tag & TC_POST_M_PROCESS) && (ptr->tag & TC_VIDEO)) {
+    if ((frame->tag & TC_POST_M_PROCESS) && (frame->tag & TC_VIDEO)) {
         return compare_filter_video(self, (TCFrameVideo*)frame);
     }
     return TC_OK;

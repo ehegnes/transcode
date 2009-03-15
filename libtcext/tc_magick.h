@@ -30,7 +30,7 @@
 
 #include <magick/api.h>
 
-typedef struct tcmagickcontext_ TCMagicContext;
+typedef struct tcmagickcontext_ TCMagickContext;
 struct tcmagickcontext_ {
     ExceptionInfo exception_info;
     Image         *image;

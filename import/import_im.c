@@ -202,14 +202,14 @@ MOD_open
 
         if (vob->im_v_string != NULL) {
             if (optstr_lookup(vob->im_v_string, "noseq")) {
-                auto_seq_read = TC_FALSE;
+                IM.auto_seq_read = TC_FALSE;
                 if (verbose > TC_INFO) {
                     tc_log_info(MOD_NAME, "automagic image sequential read disabled");
                 }
             }
         }
  
-        IM.current_frame = first_frame;
+        IM.current_frame = IM.first_frame;
         IM.decoded_frame = 0;
         IM.width         = vob->im_v_width;
         IM.height        = vob->im_v_height;
@@ -246,7 +246,7 @@ MOD_decode
     }
 
     if (param->flag == TC_VIDEO) {
-        if (!auto_seq_read) {
+        if (!IM.auto_seq_read) {
             if (IM.decoded_frame > 0) {
                 return TC_ERROR;
             }
@@ -319,11 +319,11 @@ MOD_close
             pclose(param->fd);
             param->fd = NULL;
         }
-        if (head != NULL) {
+        if (IM.head != NULL) {
             tc_free(IM.head);
             IM.head = NULL;
         }
-        if (tail != NULL) {
+        if (IM.tail != NULL) {
             tc_free(IM.tail);
             IM.tail = NULL;
         }
