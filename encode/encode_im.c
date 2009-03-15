@@ -23,30 +23,17 @@
 # include "config.h"
 #endif
 
-/* Note: because of ImageMagick bogosity, this must be included first, so
- * we can undefine the PACKAGE_* symbols it splats into our namespace */
-#ifdef HAVE_BROKEN_WAND
-#include <wand/magick-wand.h>
-#else /* we have a SANE wand header */
-#include <wand/MagickWand.h>
-#endif /* HAVE_BROKEN_WAND */
-
-#undef PACKAGE_BUGREPORT
-#undef PACKAGE_NAME
-#undef PACKAGE_STRING
-#undef PACKAGE_TARNAME
-#undef PACKAGE_VERSION
-
 #include "src/transcode.h"
 #include "src/framebuffer.h"
 #include "libtcutil/optstr.h"
 
 #include "libtcmodule/tcmodule-plugin.h"
 
+#include "libtcext/tc_magick.h"
 
 
 #define MOD_NAME    "encode_im.so"
-#define MOD_VERSION "v0.1.0 (2007-11-19)"
+#define MOD_VERSION "v0.2.0 (2009-03-01)"
 #define MOD_CAP     "ImageMagick video frames encoder"
 
 #define MOD_FEATURES \
@@ -70,32 +57,43 @@ static const char tc_im_help[] = ""
 
 typedef struct tcimprivatedata_ TCIMPrivateData;
 struct tcimprivatedata_ {
-    MagickWand *wand;
-    unsigned long quality;
-    int width, height;
-    char opt_buf[TC_BUF_MIN];
-    char img_fmt[FMT_NAME_LEN];
+    TCMagickContext magick;
+
+    unsigned long   quality;
+    int             width;
+    int             height;
+    char            opt_buf[TC_BUF_MIN];
+    char            img_fmt[FMT_NAME_LEN];
 };
 
-static int TCHandleMagickError(MagickWand *wand)
-{
-    ExceptionType severity;
-    char *description = MagickGetException(wand, &severity);
 
-    tc_log_error(MOD_NAME, "%s", description);
 
-    MagickRelinquishMemory(description);
-    return TC_ERROR;
-}
+static const TCCodecID tc_im_codecs_out[] = {
+    TC_CODEC_JPEG, TC_CODEC_TIFF, TC_CODEC_PNG,
+    TC_CODEC_PPM,  TC_CODEC_PGM,  TC_CODEC_GIF,
+    TC_CODEC_ERROR
+};
+
 
 /*************************************************************************/
+
+static int is_supported(TCCodecID codec)
+{
+    int i, found = TC_FALSE;
+    for (i = 0; !found && tc_im_codecs_out[i] != TC_CODEC_ERROR; i++) {
+        if (codec == tc_im_codecs_out[i]) {
+            found = TC_TRUE;
+        }
+    }
+    return found;
+}
 
 static int tc_im_configure(TCModuleInstance *self,
                           const char *options, vob_t *vob)
 {
+    TCCodecID id = TC_CODEC_ERROR;
     TCIMPrivateData *pd = NULL;
     int ret = 0;
-    TCCodecID id = TC_CODEC_ERROR;
 
     TC_MODULE_SELF_CHECK(self, "configure");
 
@@ -106,12 +104,24 @@ static int tc_im_configure(TCModuleInstance *self,
     pd->height  = vob->ex_v_height;
 
     pd->img_fmt[0] = '\0';
-    optstr_get(options, "format", "%15s", pd->img_fmt);
-    id = tc_codec_from_string(pd->img_fmt);
-    
-    if (id == TC_CODEC_ERROR) {
+
+    ret = optstr_get(options, "format", "%15s", pd->img_fmt);
+    if (ret != 1) {
+        /* missing option, let's use the default */
         strlcpy(pd->img_fmt, DEFAULT_FORMAT, sizeof(pd->img_fmt));
+    } else {
+        /* the user gave us something */
+        id = tc_codec_from_string(pd->img_fmt);
+        if (id == TC_CODEC_ERROR) {
+            tc_log_error(MOD_NAME, "unknown format: `%s'", pd->img_fmt);
+            return TC_ERROR;
+        }
+        if (!is_supported(id)) {
+            tc_log_error(MOD_NAME, "unsupported format: `%s'", pd->img_fmt);
+            return TC_ERROR;
+        }
     }
+    
 
     ret = optstr_get(options, "quality", "%lu", &pd->quality);
     if (ret != 1) {
@@ -123,10 +133,10 @@ static int tc_im_configure(TCModuleInstance *self,
                     pd->img_fmt, pd->quality);
     }
 
-    pd->wand = NewMagickWand();
-    if (pd->wand == NULL) {
-        tc_log_error(MOD_NAME, "cannot create magick wand");
-        return TC_ERROR;
+    ret = tc_magick_init(&pd->magick, pd->quality);
+    if (ret != TC_OK) {
+        tc_log_error(MOD_NAME, "cannot create Magick context");
+        return ret;
     }
     return TC_OK;
 }
@@ -161,94 +171,34 @@ static int tc_im_stop(TCModuleInstance *self)
 
     pd = self->userdata;
 
-    if (pd->wand != NULL) {
-        DestroyMagickWand(pd->wand);
-        pd->wand = NULL;
-    }
-    return TC_OK;
+    return tc_magick_fini(&pd->context);
 }
 
-static int tc_im_init(TCModuleInstance *self, uint32_t features)
-{
-    TCIMPrivateData *pd = NULL;
+TC_MODULE_GENERIC_INIT(tc_im, TCIMPrivateData);
 
-    TC_MODULE_SELF_CHECK(self, "init");
-    TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
-
-    MagickWandGenesis();
-
-    pd = tc_zalloc(sizeof(TCIMPrivateData));
-    if (!pd) {
-        tc_log_error(MOD_NAME, "init: can't allocate private data");
-        return TC_ERROR;
-    }
-    self->userdata = pd;
-
-    if (verbose) {
-        tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
-    }
-    return TC_OK;
-}
-
-static int tc_im_fini(TCModuleInstance *self)
-{
-    TC_MODULE_SELF_CHECK(self, "fini");
-
-    tc_im_stop(self);
-
-    tc_free(self->userdata);
-    self->userdata = NULL;
-
-    MagickWandTerminus();
-
-    return TC_OK;
-}
+TC_MODULE_GENERIC_FINI(tc_im);
 
 static int tc_im_encode_video(TCModuleInstance *self,
-                              vframe_list_t *inframe, vframe_list_t *outframe)
+                              TCFrameVideo *inframe, TCFrameVideo *outframe)
 {
     TCIMPrivateData *pd = NULL;
-    MagickBooleanType status;
     uint8_t *img = NULL;
     size_t img_len = 0;
+    int ret = TC_OK;
 
     TC_MODULE_SELF_CHECK(self, "encode_video");
 
     pd = self->userdata;
 
-    ClearMagickWand(pd->wand);
-    /* 
-     * This avoids IM to buffer all read images.
-     * I'm quite sure that this can be done in a smarter way,
-     * but I haven't yet figured out how. -- FRomani
-     */
-
-    status = MagickConstituteImage(pd->wand, pd->width, pd->height, "RGB",
-                                   CharPixel, inframe->video_buf);
-    if (status == MagickFalse) {
-        return TCHandleMagickError(pd->wand);
+    ret = tc_magick_encode_RGBin(&pd->magick, pd->width, pd->height,
+                                 inframe->video_buf);
+    if (ret != TC_OK) {
+        return ret;
     }
 
-    MagickSetLastIterator(pd->wand);
-
-    status = MagickSetFormat(pd->wand, pd->img_fmt);
-    if (status == MagickFalse) {
-        return TCHandleMagickError(pd->wand);
-    }
-    MagickSetCompressionQuality(pd->wand, pd->quality); /* will not fail */
-    
-    img = MagickGetImageBlob(pd->wand, &img_len);
-    if (!img) {
-        return TCHandleMagickError(pd->wand);
-    }
-
-    ac_memcpy(outframe->video_buf, img, img_len);
-    outframe->video_len = img_len;
+    /* doing like that won't hurt if `encode' fails */
     outframe->attributes |= TC_FRAME_IS_KEYFRAME;
-
-    MagickRelinquishMemory(img);
-
-    return TC_OK;
+    return tc_magick_encode_frameout(&pd->magick, pd->img_fmt, outframe);
 }
 
 
@@ -256,11 +206,6 @@ static int tc_im_encode_video(TCModuleInstance *self,
 
 static const TCCodecID tc_im_codecs_in[] = { 
     TC_CODEC_RGB24, TC_CODEC_ERROR
-};
-static const TCCodecID tc_im_codecs_out[] = {
-    TC_CODEC_JPEG, TC_CODEC_TIFF, TC_CODEC_PNG,
-    TC_CODEC_PPM,  TC_CODEC_PGM,  TC_CODEC_GIF,
-    TC_CODEC_ERROR
 };
 TC_MODULE_CODEC_FORMATS(tc_im);
 

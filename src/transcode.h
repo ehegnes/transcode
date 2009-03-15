@@ -348,6 +348,12 @@ typedef struct _vob_t {
     mpeg_profile_t mpeg_profile;
 
     unsigned int export_attributes;
+
+    int rgbswap;
+    int pcmswap;
+    int dgamma;
+    int keepasr;
+    int fast_resize;
 } vob_t;
 
 
@@ -387,7 +393,6 @@ void tc_outstream_rotate_request(void);
 void version(void);
 
 extern int verbose;
-extern int pcmswap;
 extern int rescale;
 extern int im_clip;
 extern int ex_clip;
@@ -395,14 +400,9 @@ extern int pre_im_clip;
 extern int post_ex_clip;
 extern int flip;
 extern int mirror;
-extern int rgbswap;
 extern int resize1;
 extern int resize2;
-extern int decolor;
 extern int zoom;
-extern int dgamma;
-extern int keepasr;
-extern int fast_resize;
 
 // Core parameters
 

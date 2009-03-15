@@ -4,11 +4,11 @@ AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
 	-DMOD_PATH=\"$(MOD_PATH)\" \
 	-DPROF_PATH=\"$(PROF_PATH)\" \
-	-DTC_ENCODER_NG=1 \
 	-DTCEXPORT_PROFILE=1 \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src
 
+#NMS_PROGS = tcexport tcfilter tcmodchain
 NMS_PROGS = tcexport tcmodchain
 
 bin_PROGRAMS = \
@@ -149,6 +149,36 @@ tcexport_LDADD = \
 	$(PTHREAD_LIBS) \
 	-lm
 tcexport_LDFLAGS = -export-dynamic
+
+#tcfilter_SOURCES = tcfilter.c \
+#	tcstub.c \
+#	rawsink.c \
+#	rawsink.h \
+#	rawsource.c \
+#	rawsource.h \
+#	../src/probe.c \
+#	../src/dl_loader.c \
+#	../src/counter.c \
+#	../src/filter.c \
+#	../src/encoder-common.c \
+#	../src/framebuffer.c
+#tcfilter_CPPFLAGS = $(AM_CPPFLAGS) \
+#	$(DLDARWIN_CFLAGS)
+#tcfilter_LDADD = \
+#	$(DLDARWIN_LIBS) \
+#	$(ACLIB_LIBS) \
+#	$(AVILIB_LIBS) \
+#	$(WAVLIB_LIBS) \
+#	$(LIBTC_LIBS) \
+#	$(LIBTCMODULE_LIBS) \
+#	$(LIBTCUTIL_LIBS) \
+#	$(LIBTCVIDEO_LIBS) \
+#	$(LIBTCAUDIO_LIBS) \
+#	$(XIO_LIBS) \
+#	$(PTHREAD_LIBS) \
+#	-lm
+#tcfilter_LDFLAGS = -export-dynamic
+
 
 tcmp3cut_SOURCES = \
 	tcmp3cut.c \

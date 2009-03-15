@@ -40,7 +40,7 @@ static int do_process_audio(vob_t *vob, aframe_list_t *ptr)
         srcfmt = TCA_U8;
         nsamples = ptr->audio_size;
     } else if (vob->a_bits == 16) {
-        srcfmt = pcmswap ? TCA_S16BE : TCA_S16LE;
+        srcfmt = vob->pcmswap ? TCA_S16BE : TCA_S16LE;
         nsamples = ptr->audio_size / 2;
     } else {
         tc_log_error(__FILE__, "Sorry, source audio format not supported");

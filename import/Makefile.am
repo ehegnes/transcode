@@ -30,7 +30,7 @@ if HAVE_LIBDVDREAD
 IMPORT_DVD = import_dvd.la
 endif
 
-if HAVE_IMAGEMAGICK
+if HAVE_GRAPHICSMAGICK
 IMPORT_IM = import_im.la
 IMPORT_IMLIST = import_imlist.la
 endif
@@ -145,14 +145,14 @@ import_ffmpeg_la_LDFLAGS = -module -avoid-version
 import_ffmpeg_la_LIBADD = $(LIBAVFORMAT_LIBS)
 
 import_im_la_SOURCES = import_im.c
-import_im_la_CPPFLAGS = $(AM_CPPFLAGS) $(IMAGEMAGICK_CFLAGS)
+import_im_la_CPPFLAGS = $(AM_CPPFLAGS) $(GRAPHICSMAGICK_CFLAGS)
 import_im_la_LDFLAGS = -module -avoid-version
-import_im_la_LIBADD = $(IMAGEMAGICK_LIBS) -lm
+import_im_la_LIBADD = $(GRAPHICSMAGICK_LIBS) -lm
 
 import_imlist_la_SOURCES = import_imlist.c
-import_imlist_la_CPPFLAGS = $(AM_CPPFLAGS) $(IMAGEMAGICK_CFLAGS)
+import_imlist_la_CPPFLAGS = $(AM_CPPFLAGS) $(GRAPHICSMAGICK_CFLAGS)
 import_imlist_la_LDFLAGS = -module -avoid-version
-import_imlist_la_LIBADD = $(IMAGEMAGICK_LIBS) -lm
+import_imlist_la_LIBADD = $(GRAPHICSMAGICK_LIBS) -lm
 
 import_lzo_la_SOURCES = import_lzo.c
 import_lzo_la_CPPFLAGS = $(AM_CPPFLAGS) $(LZO_CFLAGS)
@@ -474,7 +474,7 @@ tcprobe_LDADD = \
 	$(WAVLIB_LIBS) \
 	$(LIBDV_LIBS) \
 	$(LIBDVDREAD_LIBS) \
-	$(IMAGEMAGICK_LIBS) \
+	$(GRAPHICSMAGICK_LIBS) \
 	$(LAME_LIBS) \
 	$(LIBQUICKTIME_LIBS) \
 	$(MJPEGTOOLS_LIBS) \
@@ -497,7 +497,7 @@ tcprobe_CFLAGS = $(AM_CFLAGS) \
 	$(LIBAVCODEC_CFLAGS) \
 	$(LIBDV_CFLAGS) \
 	$(LIBDVDREAD_CFLAGS) \
-	$(IMAGEMAGICK_CFLAGS) \
+	$(GRAPHICSMAGICK_CFLAGS) \
 	$(LAME_CFLAGS) \
 	$(LIBQUICKTIME_CFLAGS) \
 	$(MJPEGTOOLS_CFLAGS) \

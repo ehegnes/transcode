@@ -359,7 +359,7 @@ static int do_process_frame(vob_t *vob, vframe_list_t *ptr)
 
     /**** -k: red/blue swap ****/
 
-    if (rgbswap) {
+    if (vob->rgbswap) {
         if (ptr->v_codec == TC_CODEC_RGB24) {
             int i;
             for (i = 0; i < ptr->v_width * ptr->v_height; i++) {
@@ -378,7 +378,7 @@ static int do_process_frame(vob_t *vob, vframe_list_t *ptr)
 
     /**** -K: grayscale ****/
 
-    if (decolor) {
+    if (vob->decolor) {
         if (ptr->v_codec == TC_CODEC_RGB24) {
             /* Convert to 8-bit grayscale, then back to RGB24.  Just
              * averaging the values won't give us the right intensity. */
@@ -397,7 +397,7 @@ static int do_process_frame(vob_t *vob, vframe_list_t *ptr)
 
     /**** -G: gamma correction ****/
 
-    if (dgamma) {
+    if (vob->dgamma) {
         /* Only process the first plane (Y) for YUV; for RGB it's all in
          * one plane anyway */
         tcv_gamma_correct(handle, ptr->video_buf, ptr->video_buf,
