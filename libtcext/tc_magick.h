@@ -30,6 +30,15 @@
 
 #include <magick/api.h>
 
+/*
+ * Summary:
+ * This code only wraps the commonly used functions and the routine task
+ * needed by code using GraphicsMagick. Most functions are intentinally
+ * not wrapped, since isn't worth to wrap functions used just in a single
+ * place. For that reasin, the TCMagickContext structure below is NOT
+ * opaque.
+ */
+
 typedef struct tcmagickcontext_ TCMagickContext;
 struct tcmagickcontext_ {
     ExceptionInfo exception_info;
@@ -38,18 +47,108 @@ struct tcmagickcontext_ {
     PixelPacket   *pixel_packet;
 };
 
-/* unspecified quality */
 #define TC_MAGICK_QUALITY_DEFAULT		(-1)
 
+#define TC_MAGICK_GET_WIDTH(MCP)	((MCP)->image->columns)
+#define TC_MAGICK_GET_HEIGHT(MCP) 	((MCP)->image->rows)
+
+/*
+ * tc_magick_init (thread safe):
+ *     intializes the transcode GraphicsMagick module.
+ *     This is translated into an underlying GraphicsMagick initialization
+ *     just once, the first time this function is called.
+ *     Always intializes the given local GraphicsMagick context.
+ *
+ * Parameters:
+ *         ctx: pointer to a GraphicsMagick context to initialize.
+ *     quality: quality level to apply (0-100 range). Meaningful only
+ *              for subsequent tc_magick_frameout function calls.
+ * Return Value:
+ *        TC_OK: on success.
+ *     TC_ERROR: otherwise. The error reason will be tc_log()'d out.
+ */
 int tc_magick_init(TCMagickContext *ctx, int quality);
+/*
+ * tc_magick_fini (thread safe):
+ *     finalizes the transcode GraphicsMagick module.
+ *     This is translated into an underlying GraphicsMagick finalization
+ *     just once, the last time this function is called.
+ *     Always finalizes the given local GraphicsMagick context.
+ *
+ * Parameters:
+ *         ctx: pointer to a GraphicsMagick context to initialize.
+ * Return Value:
+ *        TC_OK: on success.
+ *     TC_ERROR: otherwise. The error reason will be tc_log()'d out.
+ */
 int tc_magick_fini(TCMagickContext *ctx);
 
-/* Can't find a good name, so let's mimic theora */
+/*
+ * tc_magick_filein:
+ *    load and decode into a raw frame a given file containing any image
+ *    format recognized by GraphicsMagick.
+ *
+ * Parameters:
+ *         ctx: pointer to a GraphicsMagick context to use.
+ *    filename: path of the image to load.
+ * Return Value:
+ *        TC_OK: on success.
+ *     TC_ERROR: otherwise. The error reason will be tc_log()'d out.
+ * Preconditions:
+ *     `ctx' already succesfully initialized.
+ */
 int tc_magick_filein(TCMagickContext *ctx, const char *filename);
+
+/*
+ * tc_magick_RGBin:
+ *    load an already decoded image as raw frame.
+ *
+ * Parameters:
+ *         ctx: pointer to a GraphicsMagick context to use.
+ *       width: width of the image to load.
+ *      height: height of the image to load.
+ *        data: pointer to the raw image to load.
+ * Return Value:
+ *        TC_OK: on success.
+ *     TC_ERROR: otherwise. The error reason will be tc_log()'d out.
+ * Preconditions:
+ *     `ctx' already succesfully initialized.
+ */
 int tc_magick_RGBin(TCMagickContext *ctx,
                     int width, int height, const uint8_t *data);
+/*
+ * tc_magick_RGBout:
+ *    decode and emit an image as a raw frame data.
+ *
+ * Parameters:
+ *         ctx: pointer to a GraphicsMagick context to use.
+ *       width: width of the image to emit.
+ *      height: height of the image to emit.
+ *        data: pointer to a memory area to be filled with the raw image.
+ * Return Value:
+ *        TC_OK: on success.
+ *     TC_ERROR: otherwise. The error reason will be tc_log()'d out.
+ * Preconditions:
+ *     `ctx' already succesfully initialized.
+ */
 int tc_magick_RGBout(TCMagickContext *ctx, 
                      int width, int height, uint8_t *data);
+
+/*
+ * tc_magick_RGBout:
+ *    encode and emit an image as frame data.
+ *
+ * Parameters:
+ *         ctx: pointer to a GraphicsMagick context to use.
+ *      format: a string representing any image format recognized by
+ *              GraphicsMagick (passed in verbatim).
+ *       frame: pointer to a TCFrameVideo to be filled with encoded image.
+ * Return Value:
+ *        TC_OK: on success.
+ *     TC_ERROR: otherwise. The error reason will be tc_log()'d out.
+ * Preconditions:
+ *     `ctx' already succesfully initialized.
+ */
 int tc_magick_frameout(TCMagickContext *ctx, const char *format,
                        TCFrameVideo *frame);
 
