@@ -9,6 +9,7 @@ transcode-1.1.2
 ---------------
 [!] Make the -W option work again like 1.0.x branch.
 [!] Proper handling of the alpha data in filter_logoaway (avoid segfault).
+[!] Fixed spurious write warnings when using -y *,tcaud (regression from 1.0).
 [!] Fixed bugs: #15007
 ===========================================================================
 
