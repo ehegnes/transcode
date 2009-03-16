@@ -185,6 +185,7 @@ static int parse_options(int argc, char** argv, TCEncConf *conf)
         return STATUS_BAD_PARAM;
     }
 
+    tc_ext_init();
     libtc_init(&argc, &argv);
 
     while (1) {

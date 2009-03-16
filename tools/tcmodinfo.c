@@ -162,6 +162,7 @@ int main(int argc, char *argv[])
     memset(&ptr, 0, sizeof(ptr));
 
     ac_init(AC_ALL);
+    tc_ext_init();
     tc_config_set_dir(NULL);
 
     if (argc == 1) {

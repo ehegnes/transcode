@@ -96,12 +96,14 @@ tcmodinfo_LDADD = \
 	$(DLDARWIN_LIBS) \
 	$(ACLIB_LIBS) \
 	$(AVILIB_LIBS) \
-	$(WAVLIB_LIBS) \
+	$(GRAPHICSMAGICK_LIBS) \
 	$(LIBTC_LIBS) \
+	$(LIBTCEXT_LIBS) \
 	$(LIBTCUTIL_LIBS) \
 	$(LIBTCMODULE_LIBS) \
 	$(LIBTCVIDEO_LIBS) \
 	$(PTHREAD_LIBS) \
+	$(WAVLIB_LIBS) \
 	-lm
 tcmodinfo_LDFLAGS = -export-dynamic
 
@@ -113,12 +115,14 @@ tcmodchain_LDADD = \
 	$(DLDARWIN_LIBS) \
 	$(ACLIB_LIBS) \
 	$(AVILIB_LIBS) \
-	$(WAVLIB_LIBS) \
+	$(GRAPHICSMAGICK_LIBS) \
 	$(LIBTC_LIBS) \
+	$(LIBTCEXT_LIBS) \
 	$(LIBTCUTIL_LIBS) \
 	$(LIBTCMODULE_LIBS) \
 	$(LIBTCVIDEO_LIBS) \
 	$(PTHREAD_LIBS) \
+	$(WAVLIB_LIBS) \
 	-lm
 tcmodchain_LDFLAGS = -export-dynamic
 
@@ -139,14 +143,16 @@ tcexport_LDADD = \
 	$(DLDARWIN_LIBS) \
 	$(ACLIB_LIBS) \
 	$(AVILIB_LIBS) \
-	$(WAVLIB_LIBS) \
+	$(GRAPHICSMAGICK_LIBS) \
 	$(LIBTC_LIBS) \
+	$(LIBTCEXT_LIBS) \
 	$(LIBTCMODULE_LIBS) \
 	$(LIBTCUTIL_LIBS) \
 	$(LIBTCVIDEO_LIBS) \
 	$(LIBTCAUDIO_LIBS) \
 	$(XIO_LIBS) \
 	$(PTHREAD_LIBS) \
+	$(WAVLIB_LIBS) \
 	-lm
 tcexport_LDFLAGS = -export-dynamic
 
