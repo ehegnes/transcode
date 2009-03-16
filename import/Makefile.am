@@ -319,6 +319,7 @@ tcdecode_SOURCES = \
 	decode_yuv.c
 
 tcdecode_LDADD = \
+	$(GRAPHICSMAGICK_LIBS) \
 	$(LIBAVCODEC_LIBS) \
 	$(LIBDV_LIBS) \
 	$(LAME_LIBS) \
