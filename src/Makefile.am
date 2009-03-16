@@ -19,6 +19,7 @@ endif
 
 transcode_LDADD = \
 	$(DLDARWIN_LIBS) \
+	$(GRAPHICSMAGICK_LIBS) \
 	$(LIBTC_LIBS) \
 	$(LIBTCMODULE_LIBS) \
 	$(LIBTCUTIL_LIBS) \

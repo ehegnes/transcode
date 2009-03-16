@@ -29,11 +29,21 @@
 #include "libtc/libtc.h"
 #include "aclib/ac.h"
 
+#include "tc_ext.h"
 #include "tc_ogg.h"
+#include "tc_lzo.h"
 #include "tc_magick.h"
 
 
 
+int tc_ext_init(void)
+{
+    /* 
+     * do nothing succesfully.
+     * Just a linkage helper in disguise.
+     */
+    return TC_OK;
+}
 
 /*************************************************************************/
 /* libav* support                                                        */

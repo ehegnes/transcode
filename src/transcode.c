@@ -2611,6 +2611,7 @@ int main(int argc, char *argv[])
 #endif
 
     ac_init(tc_accel);
+    tc_ext_init();
 
     // more checks with warnings
 
