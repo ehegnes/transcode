@@ -335,6 +335,7 @@ tcdecode_LDADD = \
 	$(LIBTCVIDEO_LIBS) \
 	$(ACLIB_LIBS) \
 	$(LIBTC_LIBS) \
+	$(LIBTCEXT_LIBS) \
 	$(LIBTCUTIL_LIBS)
 
 tcdecode_CFLAGS = $(AM_CFLAGS) \
