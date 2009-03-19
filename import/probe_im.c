@@ -31,10 +31,10 @@
 #include "tc.h"
 #include "ioaux.h"
 #include "libtc/libtc.h"
-#include "libtcext/tc_magick.h"
 
 
 #ifdef HAVE_GRAPHICSMAGICK
+#include "libtcext/tc_magick.h"
 
 
 void probe_im(info_t *ipipe)

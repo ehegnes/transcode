@@ -8,6 +8,10 @@ AM_CPPFLAGS = \
 
 pkgdir = $(MOD_PATH)
 
+if HAVE_FFMPEG
+MULTIPLEX_LAVF = multiplex_lavf.la
+endif
+
 if HAVE_OGG
 MULTIPLEX_OGG = multiplex_ogg.la
 endif
@@ -18,13 +22,14 @@ endif
 
 pkg_LTLIBRARIES = \
 	multiplex_avi.la \
-	multiplex_lavf.la \
+	$(MULTIPLEX_LAVF) \
 	multiplex_null.la \
 	$(MULTIPLEX_OGG) \
 	multiplex_pvn.la \
 	multiplex_raw.la \
 	$(MULTIPLEX_Y4M) \
 	multiplex_wav.la
+
 
 multiplex_avi_la_SOURCES = multiplex_avi.c
 multiplex_avi_la_LDFLAGS = -module -avoid-version

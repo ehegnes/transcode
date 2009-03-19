@@ -51,6 +51,7 @@ int tc_ext_init(void)
     return TC_OK;
 }
 
+#ifdef HAVE_FFMPEG
 
 /*************************************************************************/
 /* libav* support                                                        */
@@ -58,6 +59,7 @@ int tc_ext_init(void)
 
 pthread_mutex_t tc_libavcodec_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+#endif
 
 #ifdef HAVE_OGG
 
