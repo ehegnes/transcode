@@ -31,12 +31,16 @@
 #include "tc.h"
 
 #include "libtc/libtc.h"
-#include "libtcext/tc_avcodec.h"
 
 #define READ_BUFFER_SIZE (10*1024*1024)
 #define MOD_NAME "decode_ffmpeg"
 
 #define MAX_BUF 1024
+
+
+#ifdef HAVE_FFMPEG
+
+#include "libtcext/tc_avcodec.h"
 
 static int verbose_flag=TC_QUIET;
 
@@ -407,4 +411,28 @@ void decode_lavc(decode_t *decode)
 decoder_error:
   import_exit(1);
 }
+
+
+#else /* HAVE_FFMPEG */
+
+void decode_lavc(decode_t *decode)
+{
+    tc_log_error(__FILE__, "No support for FFmpeg configured -- exiting");
+    import_exit(1);
+}
+
+
+#endif /* HAVE_FFMPEG */
+
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */
 

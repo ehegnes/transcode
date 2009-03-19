@@ -133,7 +133,6 @@ decoder_error:
 }
 
 
-
 #else /* HAVE_LZO */
 
 void decode_lzo(decode_t *decode)
@@ -144,3 +143,15 @@ void decode_lzo(decode_t *decode)
 
 
 #endif /* HAVE_LZO */
+
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */

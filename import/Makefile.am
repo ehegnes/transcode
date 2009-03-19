@@ -30,6 +30,10 @@ if HAVE_LIBDVDREAD
 IMPORT_DVD = import_dvd.la
 endif
 
+if HAVE_FFMPEG
+IMPORT_FFMPEG = import_ffmpeg.la
+endif
+
 if HAVE_GRAPHICSMAGICK
 IMPORT_IM = import_im.la
 IMPORT_IMLIST = import_imlist.la
@@ -84,7 +88,7 @@ pkg_LTLIBRARIES = \
 	$(IMPORT_BSDAV) \
 	import_dv.la \
 	$(IMPORT_DVD) \
-	import_ffmpeg.la \
+	$(IMPORT_FFMPEG) \
 	$(IMPORT_IM) \
 	$(IMPORT_IMLIST) \
 	$(IMPORT_LZO) \

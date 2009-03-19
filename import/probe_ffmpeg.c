@@ -25,7 +25,13 @@
 #include "tc.h"
 #include "libtc/libtc.h"
 #include "libtc/ratiocodes.h"
+
+
+#ifdef HAVE_FFMPEG
+
 #include "libtcext/tc_avcodec.h"
+
+
 
 
 static void translate_info(const AVFormatContext *ctx, ProbeInfo *info)
@@ -121,6 +127,17 @@ void probe_ffmpeg(info_t *ipipe)
     av_close_input_file(lavf_dmx_context);
     return;
 }
+
+#else   // HAVE_FFMPEG
+
+void probe_ffmpeg(info_t *ipipe)
+{
+	tc_log_error(__FILE__, "no support for FFmpeg compiled - exit.");
+	ipipe->error = 1;
+	return;
+}
+
+#endif // HAVE_FFMPEG
 
 
 /*************************************************************************/

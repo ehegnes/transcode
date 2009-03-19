@@ -574,92 +574,114 @@ AC_CHECK_LIB(m, sin,
 
 TC_PKG_INIT
 
-dnl
-dnl libavcodec
-dnl
-LIBAVCODEC_EXTRA_LIBS="$LIBAVCODEC_EXTRA_LIBS $($PKG_CONFIG --libs libavcodec)"
-TC_PKG_CHECK(libavcodec, optional, LIBAVCODEC, no, [libavcodec/avcodec.h],
- avcodec, avcodec_thread_init, libavcodec, [http://www.ffmpeg.org/])
-if test x"$have_libavcodec" = x"yes" ; then
-  save_CPPFLAGS="$CPPFLAGS"
-  CPPFLAGS="$CPPFLAGS $LIBAVCODEC_CFLAGS"
-  AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#include <stdio.h>
-#include <libavcodec/avcodec.h>
-int
-main()
-{
-  /* 3344640 == ((51<<16)+(9<<8)+0) == 51.9.0 */
-  if (LIBAVCODEC_BUILD < 3344640) {
-    printf("error: transcode needs at least libavcodec 51.9");
-    printf("install a cvs version after 20060814");
-    return(1);
+AC_MSG_CHECKING([for ffmpeg support])
+AC_ARG_ENABLE(ffmpeg,
+  AC_HELP_STRING([--enable-ffmpeg],
+    [enable support for FFmpeg libraries - RECOMMENDED (yes)]),
+  [case "${enableval}" in
+    yes) ;;
+    no)  ;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --enable-ffmpeg) ;;
+  esac],
+  [enable_ffmpeg=yes])
+if test x"$enable_ffmpeg" = x"no" ; then
+  AC_MSG_RESULT(disabled)
+else
+  AC_MSG_RESULT(requested, checking for libraries)
+
+  dnl
+  dnl libavcodec
+  dnl
+  LIBAVCODEC_EXTRA_LIBS="$LIBAVCODEC_EXTRA_LIBS $($PKG_CONFIG --libs libavcodec)"
+  TC_PKG_CHECK(libavcodec, optional, LIBAVCODEC, no, [libavcodec/avcodec.h],
+   avcodec, avcodec_thread_init, libavcodec, [http://www.ffmpeg.org/])
+  if test x"$have_libavcodec" = x"yes" ; then
+    save_CPPFLAGS="$CPPFLAGS"
+    CPPFLAGS="$CPPFLAGS $LIBAVCODEC_CFLAGS"
+    AC_RUN_IFELSE([AC_LANG_SOURCE([[
+  #include <stdio.h>
+  #include <libavcodec/avcodec.h>
+  int
+  main()
+  {
+    /* 3344640 == ((51<<16)+(9<<8)+0) == 51.9.0 */
+    if (LIBAVCODEC_BUILD < 3344640) {
+      printf("error: transcode needs at least libavcodec 51.9");
+      printf("install a cvs version after 20060814");
+      return(1);
+    }
+  
+    printf("VER=%s\n", AV_STRINGIFY(LIBAVCODEC_VERSION));
+    printf("BUILD=%d\n", LIBAVCODEC_BUILD);
+    return(0);
   }
-
-  printf("VER=%s\n", AV_STRINGIFY(LIBAVCODEC_VERSION));
-  printf("BUILD=%d\n", LIBAVCODEC_BUILD);
-  return(0);
-}
-]])],
-    [LIBAVCODEC_VERSION="`./conftest$ac_exeext | sed -ne 's,VER=\(.*\),\1,p'`"
-      LIBAVCODEC_BUILD="`./conftest$ac_exeext | sed -ne 's,BUILD=\(.*\),\1,p'`"],
-    [AC_MSG_RESULT([failed])
-     TC_PKG_ERROR(libavcodec, avcodec.h, required, FFmpeg, [http://www.ffmpeg.org],
-      [cannot compile avcodec.h])],
-    [AC_MSG_RESULT([cross compiling; assumed OK...])
-      LIBAVCODEC_VERSION=""
-      LIBAVCODEC_BUILD=""])
-  CPPFLAGS="$save_CPPFLAGS"
-fi
-AC_SUBST(LIBAVCODEC_VERSION)
-AC_SUBST(LIBAVCODEC_BUILD)
-AC_SUBST(LIBAVCODEC_CFLAGS)
-AC_SUBST(LIBAVCODEC_LIBS)
-
-dnl
-dnl libavformat
-dnl
-LIBAVFORMAT_EXTRA_LIBS="$LIBAVFORMAT_EXTRA_LIBS $($PKG_CONFIG --libs libavformat)"
-TC_PKG_CHECK(libavformat, required, LIBAVFORMAT, no, [libavformat/avformat.h],
- avformat, av_register_all, libavformat, [http://www.ffmpeg.org/])
-if test x"$have_libavformat" = x"yes" ; then
-  save_CPPFLAGS="$CPPFLAGS"
-  CPPFLAGS="$CPPFLAGS $LIBAVFORMAT_CFLAGS"
-  AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#include <stdio.h>
-#include <libavformat/avformat.h>
-#include <libavcodec/avcodec.h>
-int
-main()
-{
-  /* 3278080 == ((50<<16)+(5<<8)+0) == 50.5.0 */
-  if (LIBAVFORMAT_BUILD < 3278080) {
-    printf("error: transcode needs at least libavformat 50.5");
-    printf("install a cvs version after 20060814");
-    return(1);
+  ]])],
+      [LIBAVCODEC_VERSION="`./conftest$ac_exeext | sed -ne 's,VER=\(.*\),\1,p'`"
+        LIBAVCODEC_BUILD="`./conftest$ac_exeext | sed -ne 's,BUILD=\(.*\),\1,p'`"],
+      [AC_MSG_RESULT([failed])
+       TC_PKG_ERROR(libavcodec, avcodec.h, optional, FFmpeg, [http://www.ffmpeg.org],
+        [cannot compile avcodec.h])],
+      [AC_MSG_RESULT([cross compiling; assumed OK...])
+        LIBAVCODEC_VERSION=""
+        LIBAVCODEC_BUILD=""])
+    CPPFLAGS="$save_CPPFLAGS"
+  fi
+  AC_SUBST(LIBAVCODEC_VERSION)
+  AC_SUBST(LIBAVCODEC_BUILD)
+  AC_SUBST(LIBAVCODEC_CFLAGS)
+  AC_SUBST(LIBAVCODEC_LIBS)
+  
+  dnl
+  dnl libavformat
+  dnl
+  LIBAVFORMAT_EXTRA_LIBS="$LIBAVFORMAT_EXTRA_LIBS $($PKG_CONFIG --libs libavformat)"
+  TC_PKG_CHECK(libavformat, optional, LIBAVFORMAT, no, [libavformat/avformat.h],
+   avformat, av_register_all, libavformat, [http://www.ffmpeg.org/])
+  if test x"$have_libavformat" = x"yes" ; then
+    save_CPPFLAGS="$CPPFLAGS"
+    CPPFLAGS="$CPPFLAGS $LIBAVFORMAT_CFLAGS"
+    AC_RUN_IFELSE([AC_LANG_SOURCE([[
+  #include <stdio.h>
+  #include <libavformat/avformat.h>
+  #include <libavcodec/avcodec.h>
+  int
+  main()
+  {
+    /* 3278080 == ((50<<16)+(5<<8)+0) == 50.5.0 */
+    if (LIBAVFORMAT_BUILD < 3278080) {
+      printf("error: transcode needs at least libavformat 50.5");
+      printf("install a cvs version after 20060814");
+      return(1);
+    }
+  
+    printf("VER=%s\n", AV_STRINGIFY(LIBAVFORMAT_VERSION));
+    printf("BUILD=%d\n", LIBAVFORMAT_BUILD);
+    return(0);
   }
+  ]])],
+      [LIBAVFORMAT_VERSION="`./conftest$ac_exeext | sed -ne 's,VER=\(.*\),\1,p'`"
+        LIBAVFORMAT_BUILD="`./conftest$ac_exeext | sed -ne 's,BUILD=\(.*\),\1,p'`"],
+      [AC_MSG_RESULT([failed])
+       TC_PKG_ERROR(libavformat, avformat.h, optional, FFmpeg, [http://www.ffmpeg.org],
+        [cannot compile avformat.h])],
+      [AC_MSG_RESULT([cross compiling; assumed OK...])
+        LIBAVCODEC_VERSION=""
+        LIBAVCODEC_BUILD=""])
+    CPPFLAGS="$save_CPPFLAGS"
+  fi
+  dnl FIXME: the ffmpeg developers are being INCREDIBLY STUPID. argh.
+  LIBAVFORMAT_CFLAGS="$LIBAVFORMAT_CFLAGS -Dattribute_deprecated="
+  AC_SUBST(LIBAVFORMAT_VERSION)
+  AC_SUBST(LIBAVFORMAT_BUILD)
+  AC_SUBST(LIBAVFORMAT_CFLAGS)
+  AC_SUBST(LIBAVFORMAT_LIBS)
 
-  printf("VER=%s\n", AV_STRINGIFY(LIBAVFORMAT_VERSION));
-  printf("BUILD=%d\n", LIBAVFORMAT_BUILD);
-  return(0);
-}
-]])],
-    [LIBAVFORMAT_VERSION="`./conftest$ac_exeext | sed -ne 's,VER=\(.*\),\1,p'`"
-      LIBAVFORMAT_BUILD="`./conftest$ac_exeext | sed -ne 's,BUILD=\(.*\),\1,p'`"],
-    [AC_MSG_RESULT([failed])
-     TC_PKG_ERROR(libavformat, avformat.h, required, FFmpeg, [http://www.ffmpeg.org],
-      [cannot compile avformat.h])],
-    [AC_MSG_RESULT([cross compiling; assumed OK...])
-      LIBAVCODEC_VERSION=""
-      LIBAVCODEC_BUILD=""])
-  CPPFLAGS="$save_CPPFLAGS"
+  AC_DEFINE([HAVE_FFMPEG], 1, [Have FFmpeg libraries support])
+
 fi
-dnl FIXME: the ffmpeg developers are being INCREDIBLY STUPID. argh.
-LIBAVFORMAT_CFLAGS="$LIBAVFORMAT_CFLAGS -Dattribute_deprecated="
-AC_SUBST(LIBAVFORMAT_VERSION)
-AC_SUBST(LIBAVFORMAT_BUILD)
-AC_SUBST(LIBAVFORMAT_CFLAGS)
-AC_SUBST(LIBAVFORMAT_LIBS)
+AM_CONDITIONAL(HAVE_FFMPEG, test x"$enable_ffmpeg" = x"yes")
+
+
 dnl
 dnl setup layout define once
 dnl
@@ -1440,6 +1462,19 @@ AC_CONFIG_FILES([
 AC_OUTPUT
 
 
+if test x"yes" = x"$enable_ffmpeg"; then
+    FFMPEG_OUTPUT="
+ffmpeg libraries
+----------------------------------------
+libavcodec  build              $LIBAVCODEC_BUILD
+libavcodec  version            $LIBAVCODEC_VERSION
+libavformat build              $LIBAVFORMAT_BUILD
+libavformat version            $LIBAVFORMAT_VERSION
+"
+fi
+
+
+
 AC_MSG_RESULT([
 ----------------------------------------
 Summary for transcode $VERSION:
@@ -1451,14 +1486,8 @@ enable experimental code       $enable_experimental
 enable deprecated code         $enable_deprecated
 static AV-frame buffering      $enable_statbuffer
 A52 default decoder            $enable_a52_default_decoder
-
-ffmpeg libraries
-----------------------------------------
-libavcodec  build              $LIBAVCODEC_BUILD
-libavcodec  version            $LIBAVCODEC_VERSION
-libavformat build              $LIBAVFORMAT_BUILD
-libavformat version            $LIBAVFORMAT_VERSION
-
+FFmpeg support                 $enable_ffmpeg
+$FFMPEG_OUTPUT
 hardware support
 ----------------------------------------
 v4l/v4l2                       $have_v4l
@@ -1484,7 +1513,7 @@ X11                            $USE_X11
 
 TC_PKG_REPORT
 
-if test z"yes" = z"$have_pvm3"; then
+if test x"yes" = x"$have_pvm3"; then
     AC_MSG_WARN([PVM3 support is yet untested, unsupported and may be BROKEN!.])
     AC_MSG_WARN([Please be careful and be prepared for bugs or nasty behaviours.])
     AC_MSG_WARN([Report problems on transcode-devel mailing list.])

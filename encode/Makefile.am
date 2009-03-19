@@ -16,6 +16,10 @@ if HAVE_FAAC
 ENCODE_FAAC = encode_faac.la
 endif
 
+if HAVE_FFMPEG
+ENCODE_LAVC = encode_lavc.la
+endif
+
 if HAVE_GRAPHICSMAGICK
 ENCODE_IM = encode_im.la
 endif
@@ -53,7 +57,7 @@ pkg_LTLIBRARIES = \
 	$(ENCODE_DV) \
 	$(ENCODE_FAAC) \
 	$(ENCODE_IM) \
-	encode_lavc.la \
+	$(ENCODE_LAVC) \
 	$(ENCODE_LAME) \
 	$(ENCODE_LZO) \
 	encode_null.la \
