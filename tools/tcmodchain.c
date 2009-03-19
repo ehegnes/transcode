@@ -21,6 +21,7 @@
 
 #include <glob.h>
 #include "tcstub.h"
+#include "libtcext/tc_ext.h"
 
 #define EXE "tcmodchain"
 
