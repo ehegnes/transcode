@@ -40,10 +40,11 @@
 #include "src/socket.h"
 
 #include "libtcmodule/tcmodule-core.h"
-#include "libtcutil/cfgfile.h"
 #include "libtc/libtc.h"
 #include "libtc/tccodecs.h"
 #include "libtc/tcframes.h"
+#include "libtcext/tc_ext.h"
+#include "libtcutil/cfgfile.h"
 
 #include "rawsource.h"
 #include "tcstub.h"
