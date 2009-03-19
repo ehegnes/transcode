@@ -30,9 +30,15 @@
 #include "aclib/ac.h"
 
 #include "tc_ext.h"
+#ifdef HAVE_OGG
 #include "tc_ogg.h"
+#endif
+#ifdef HAVE_LZO
 #include "tc_lzo.h"
+#endif
+#ifdef HAVE_GRAPHICSMAGICK
 #include "tc_magick.h"
+#endif
 
 
 
@@ -45,12 +51,15 @@ int tc_ext_init(void)
     return TC_OK;
 }
 
+
 /*************************************************************************/
 /* libav* support                                                        */
 /*************************************************************************/
 
 pthread_mutex_t tc_libavcodec_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+
+#ifdef HAVE_OGG
 
 /*************************************************************************/
 /* OGG support                                                           */
@@ -90,6 +99,11 @@ int tc_ogg_dup_packet(ogg_packet *dst, const ogg_packet *src)
     }
     return ret;
 }
+
+#endif
+
+
+#ifdef HAVE_GRAPHICSMAGICK
 
 
 /*************************************************************************/
@@ -242,6 +256,8 @@ int tc_magick_RGBout(TCMagickContext *ctx,
     }
     return ret;
 }
+
+#endif
 
 /*************************************************************************/
 
