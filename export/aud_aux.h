@@ -28,14 +28,6 @@
 #include "transcode.h"
 #include "avilib/avilib.h"
 
-#ifdef HAVE_LAME
-#ifdef HAVE_LAME_INC
-#include <lame/lame.h>
-#else
-#include <lame.h>
-#endif
-#endif
-
 int tc_audio_init(vob_t *vob, int debug);
 int tc_audio_open(vob_t *vob, avi_t *avifile);
 int tc_audio_encode(char *aud_buffer, int aud_size, avi_t *avifile);

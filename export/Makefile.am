@@ -13,6 +13,10 @@ EXPORT_DV = export_dv.la
 EXPORT_DVRAW = export_dvraw.la
 endif
 
+if HAVE_FFMPEG
+EXPORT_FFMPEG = export_ffmpeg.la
+endif
+
 if HAVE_IMAGEMAGICK
 EXPORT_IM = export_im.la
 endif
@@ -44,7 +48,7 @@ pkg_LTLIBRARIES = \
 	export_divx5.la \
 	$(EXPORT_DV) \
 	$(EXPORT_DVRAW) \
-	export_ffmpeg.la \
+	$(EXPORT_FFMPEG) \
 	$(EXPORT_IM) \
 	$(EXPORT_JPG) \
 	export_lame.la \

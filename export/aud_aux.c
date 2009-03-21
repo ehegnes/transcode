@@ -26,7 +26,6 @@
 #include "aud_aux.h"
 
 #include "libtc/libtc.h"
-#include "libtc/tcavcodec.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -37,12 +36,25 @@
 #include <stdint.h>
 #include <assert.h>
 
+#ifdef HAVE_LAME
+#ifdef HAVE_LAME_INC
+#include <lame/lame.h>
+#else
+#include <lame.h>
+#endif
+#endif
+
+#ifdef HAVE_FFMPEG
+#include "libtc/tcavcodec.h"
+
 
 static AVCodec        *mpa_codec = NULL;
 static AVCodecContext mpa_ctx;
 static char           *mpa_buf     = NULL;
 static int            mpa_buf_ptr  = 0;
 static int            mpa_bytes_ps, mpa_bytes_pf;
+
+#endif
 
 /*
  * Capabilities:
@@ -138,6 +150,7 @@ static int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate);
 static int tc_audio_init_lame(vob_t *vob, int o_codec)
 {
     static int initialized=0;
+    int res = TC_EXPORT_ERROR;
 
     if (!initialized)
         if (verbose_flag & TC_DEBUG)
@@ -283,16 +296,15 @@ static int tc_audio_init_lame(vob_t *vob, int o_codec)
         }
         /* init lame encoder only on first call */
         initialized = 1;
+        res = TC_EXPORT_OK;
+
+#else  /* HAVE_LAME */
+        tc_warn("No Lame support available!");
+#endif /* HAVE_LAME */
     }
 
-    return(TC_EXPORT_OK);
+    return res;
 }
-#else  /* HAVE_LAME */
-    }
-    tc_warn("No Lame support available!");
-    return(TC_EXPORT_ERROR);
-}
-#endif
 
 
 
@@ -306,65 +318,62 @@ static int tc_audio_init_lame(vob_t *vob, int o_codec)
 static int tc_audio_init_ffmpeg(vob_t *vob, int o_codec)
 {
     unsigned long codeid = 0;
-    int ret = 0;
+    int ret = 0, init_ret = TC_EXPORT_ERROR;
 
+#ifdef HAVE_FFMPEG
     TC_INIT_LIBAVCODEC;
 
     switch (o_codec) {
-    case   0x50: codeid = CODEC_ID_MP2; break;
-    case 0x2000: codeid = CODEC_ID_AC3; break;
-    default    : tc_warn("cannot init ffmpeg with %x", o_codec);
+      case   0x50:
+        codeid = CODEC_ID_MP2;
+        break;
+      case 0x2000:
+        codeid = CODEC_ID_AC3;
+        break;
+      default:
+        tc_warn("cannot init ffmpeg with %x", o_codec);
     }
 
     //-- get it --
     mpa_codec = avcodec_find_encoder(codeid);
-    if (!mpa_codec)
-    {
+    if (!mpa_codec) {
       tc_log_warn("encode_ffmpeg", "mpa codec not found !");
       return(TC_EXPORT_ERROR);
     }
 
     // OPEN
 
-      //-- set parameters (bitrate, channels and sample-rate) --
-      //--------------------------------------------------------
-      memset(&mpa_ctx, 0, sizeof(mpa_ctx));       // default all
-      mpa_ctx.bit_rate = vob->mp3bitrate * 1000;  // bitrate dest.
-      mpa_ctx.channels = vob->dm_chan;             // channels
-      mpa_ctx.sample_rate = vob->a_rate;
+    //-- set parameters (bitrate, channels and sample-rate) --
+    //--------------------------------------------------------
+    memset(&mpa_ctx, 0, sizeof(mpa_ctx));          // default all
+    mpa_ctx.bit_rate    = vob->mp3bitrate * 1000;  // bitrate dest.
+    mpa_ctx.channels    = vob->dm_chan;            // channels
+    mpa_ctx.sample_rate = vob->a_rate;
 
-      // no resampling currently available, use -J resample
-      /*
-      if (!vob->mp3frequency)                     // sample-rate dest.
-        mpa_ctx.sample_rate = vob->a_rate;
-      else {
-    //ThOe added ffmpeg re-sampling capability
-        mpa_ctx.sample_rate = vob->mp3frequency;
-    ReSamplectx = audio_resample_init(vob->dm_chan, vob->dm_chan,
-                      vob->mp3frequency, vob->a_rate);
-      }
-      */
-
-      //-- open codec --
-      //----------------
-      TC_LOCK_LIBAVCODEC;
-      ret = avcodec_open(&mpa_ctx, mpa_codec);
-      TC_UNLOCK_LIBAVCODEC;
-      if (ret < 0)
-      {
-        tc_warn("encode_ffmpeg: could not open mpa codec !");
+    //-- open codec --
+    //----------------
+    TC_LOCK_LIBAVCODEC;
+    ret = avcodec_open(&mpa_ctx, mpa_codec);
+    TC_UNLOCK_LIBAVCODEC;
+    if (ret < 0) {
+        tc_warn("tc_audio_init_ffmpeg: could not open mpa codec !");
         return(TC_EXPORT_ERROR);
-      }
+    }
 
-      //-- bytes per sample and bytes per frame --
-      mpa_bytes_ps = mpa_ctx.channels * vob->dm_bits/8;
-      mpa_bytes_pf = mpa_ctx.frame_size * mpa_bytes_ps;
+    //-- bytes per sample and bytes per frame --
+    mpa_bytes_ps = mpa_ctx.channels * vob->dm_bits/8;
+    mpa_bytes_pf = mpa_ctx.frame_size * mpa_bytes_ps;
 
-      //-- create buffer to hold 1 frame --
-      mpa_buf     = malloc(mpa_bytes_pf);
-      mpa_buf_ptr = 0;
+    //-- create buffer to hold 1 frame --
+    mpa_buf     = malloc(mpa_bytes_pf);
+    mpa_buf_ptr = 0;
+    init_ret    = TC_EXPORT_OK;
 
-    return(TC_EXPORT_OK);
+#else  /* HAVE_FFMPEG */
+    tc_warn("No FFmpeg support available!");
+#endif /* HAVE_FFMPEG */
+
+    return init_ret;
 
 }
 
@@ -664,16 +673,13 @@ int tc_audio_open(vob_t *vob, avi_t *avifile)
  */
 static int tc_audio_write(char *buffer, size_t size, avi_t *avifile)
 {
-    if (fd != NULL)
-    {
-        if (fwrite(buffer, size, 1, fd) != 1)
-        {
+    if (fd != NULL) {
+        if (fwrite(buffer, size, 1, fd) != 1) {
             tc_warn("Audio file write error (errno=%d) [%s].", errno, strerror(errno));
             return(TC_EXPORT_ERROR);
         }
     } else {
-        if (AVI_write_audio(avifile, buffer, size) < 0)
-        {
+        if (AVI_write_audio(avifile, buffer, size) < 0) {
             AVI_print_error("AVI file audio write error");
             return(TC_EXPORT_ERROR);
         }
@@ -817,15 +823,15 @@ static int tc_audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile)
         output_len=0;
     }
     return(TC_EXPORT_OK);
-}
 #else   // HAVE_LAME
     tc_warn("No Lame support available!");
     return(TC_EXPORT_ERROR);
-}
 #endif
+}
 
 static int tc_audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile)
 {
+#ifdef HAVE_LAME
     int  in_size, out_size;
     char *in_buf;
 
@@ -893,7 +899,11 @@ static int tc_audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile
       ac_memcpy(mpa_buf, in_buf, mpa_buf_ptr);
     }
 
-    return (TC_EXPORT_OK);
+    return(TC_EXPORT_OK);
+#else   // HAVE_FFMPEG
+    tc_warn("No FFMPEG support available!");
+    return(TC_EXPORT_ERROR);
+#endif
 }
 
 static int tc_audio_pass_through_ac3(char *aud_buffer, int aud_size, avi_t *avifile)
@@ -1055,6 +1065,7 @@ int tc_audio_stop()
         lame_close(lgf);
 #endif
 
+#ifdef HAVE_FFMPEG
     if (tc_audio_encode_function == tc_audio_encode_ffmpeg)
     {
         //-- release encoder --
@@ -1066,6 +1077,7 @@ int tc_audio_stop()
         mpa_buf_ptr = 0;
 
     }
+#endif    
 
     return(0);
 }
@@ -1188,3 +1200,4 @@ static int tc_get_mp3_header(unsigned char* hbuf, int* chans, int* srate){
 }
 
 #endif  // HAVE_LAME
+

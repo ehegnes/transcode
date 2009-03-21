@@ -18,6 +18,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include "transcode.h"
 #include "tcinfo.h"
@@ -25,6 +28,9 @@
 #include "tc.h"
 #include "libtc/libtc.h"
 #include "libtc/ratiocodes.h"
+
+#ifdef HAVE_FFMPEG
+
 #include "libtc/tcavcodec.h"
 
 
@@ -118,7 +124,18 @@ void probe_ffmpeg(info_t *ipipe)
     return;
 }
 
+#else   // HAVE_FFMPEG
 
+void probe_ffmpeg(info_t *ipipe)
+{
+	tc_log_error(__FILE__, "no support for FFmpeg compiled - exit.");
+	ipipe->error = 1;
+	return;
+}
+
+#endif // HAVE_FFMPEG
+
+ 
 /*************************************************************************/
 
 /*
