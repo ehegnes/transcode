@@ -47,24 +47,6 @@ A:	If your problem is that transcode is killed by a signal
 Q:	How do I make a copy of a DVD-9
 A:	For german reading users here is a link http://linuxwiki.de/DvdAuthoring (felix)
 ---
-Q:	Talking of ffmpeg, I seem to be suffering for having an
-	almost infinite number of copies of it. For example, it
-	comes bundled with transcode, mplayer and avifile. None
-	of these seem to be even closely the same file! Am I
-	missing something?
-A:	As the api of libavcodec is sometimes changing, the
-	developers thought it would a bad idea to use shared
-	libraries. Most programs using the library copied
-	this thought and link statically to a version of
-	libavcodec they supply themselves (like transcode and
-	mplayer). This will guarantee that the program sees the
-	api version it expects. When you compile libavcodec
-	seperately, you actually can build shared libraries,
-	but I have not seen a single program using them, so
-	you probably can throw them away. There is even a
-	large chance that you can delete the static library
-	files. (ems)
----
 Q:	Finally, there's the questions about the justly infamous
 	ffmpeg.cfg file. What are all the parameters and what do
 	they mean?
@@ -132,43 +114,6 @@ PA:	(Partial answer) In this form, your question cannot
 
 	With this information you should be able to refrase
 	your question a get a proper answer ;-) (ems)
----
-Q:	How do I use a CVS version of ffmpeg with transcode?
-A:	There are two ways: Quick&Dirty (but tested by me) and the more
-	official way. For this to work you also need transcode from CVS!
-
-	Q&D works like this:
-	<ul>
-	<li>make a new directory for ffmpeg, not in the transcode directory
-	(suggestion: ../ffmpeg)</li>
-	<li>get the latest cvs version of ffmpeg and unpack it there</li>
-	<li>configure and compile it</li>
-	<li>go to the transcode source directory</li>
-	<li>remove everything under ffmpeg</li>
-	<li>make a new directory ffmpeg/libavcodec with a couple of links into
-	your ffmpeg-cvs directory something like this:
-	<pre>
-        avcodec.h -> ../../../ffmpeg/ffmpeg/libavcodec/avcodec.h
-        common.h -> ../../../ffmpeg/ffmpeg/libavcodec/common.h
-        libtcavcodec.a -> ../../../ffmpeg/ffmpeg/libavcodec/libavcodec.a
-        rational.h -> ../../../ffmpeg/ffmpeg/libavcodec/rational.h
-	</pre> </li>
-	<li> create the subdirs i386 and ppc in ffmpeg/libavcodec </li>
-	<li> create Makefile.in with empty rules for the targets "all" and
-	"install" in directories ffmpeg/libavcodec, ffmpeg/libavcodec/i386 and
-	ffmpeg/libavcodec/ppc (or configure will fail):
-	<pre>
-	    $ echo -e "all:\\ninstall:" > ffmpeg/libavcodec/Makefile.in
-	    $ echo -e "all:\\ninstall:" > ffmpeg/libavcodec/i386/Makefile.in
-	    $ echo -e "all:\\ninstall:" > ffmpeg/libavcodec/ppc/Makefile.in
-	    $ echo -e "all:\\ninstall:" > ffmpeg/Makefile.in
-	</pre>
-	</li>
-	<li>now you can go to the top of the transcode source directory and type
-	configure && make.</li>
-	</ul></p><p>
-	The other way is replace all the files in the ffmpeg directory with the
-	respective files from ffmpeg cvs (which may be some work ;-)) (ems)
 ---
 Q:	Peoples' faces are purple!
 A1:	This probably means that the u and v planes (Cr/Cb) are
