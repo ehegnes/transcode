@@ -10,6 +10,9 @@ transcode-1.1.2
 [!] Make the -W option work again like 1.0.x branch.
 [!] Proper handling of the alpha data in filter_logoaway (avoid segfault).
 [!] Fixed bugs: #15007
+[*] Allow to build x264 experimental encoder with last libx264 snapshots.
+[*] Allow to build transcode without FFmpeg.
+[!] Removed outdated libav* information from the FAQ.
 ===========================================================================
 
 ===========================================================================
