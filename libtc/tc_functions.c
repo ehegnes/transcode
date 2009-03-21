@@ -41,9 +41,11 @@
 #include "ratiocodes.h"
 
 /*************************************************************************/
+#ifdef HAVE_FFMPEG
 
 pthread_mutex_t tc_libavcodec_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+#endif
 /*************************************************************************/
 
 #define TC_MSG_BUF_SIZE     (TC_BUF_MIN * 2)

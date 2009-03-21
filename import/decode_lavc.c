@@ -23,6 +23,10 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "transcode.h"
 #include "tcinfo.h"
 
@@ -31,20 +35,25 @@
 #include "tc.h"
 
 #include "libtc/libtc.h"
-#include "libtc/tcavcodec.h"
+
 
 #define READ_BUFFER_SIZE (10*1024*1024)
 #define MOD_NAME "decode_ffmpeg"
 
 #define MAX_BUF 1024
 
+#ifdef HAVE_FFMPEG
+
+#include "libtc/tcavcodec.h"
+
+
 static int verbose_flag=TC_QUIET;
 
 struct ffmpeg_codec {
-  int   id;
-  unsigned int tc_id;
-  char *name;
-  char  fourCCs[10][5];
+    int           id;
+    unsigned int  tc_id;
+    char          *name;
+    char          fourCCs[10][5];
 };
 
 // fourCC to ID mapping taken from MPlayer's codecs.conf
@@ -84,17 +93,16 @@ static struct ffmpeg_codec ffmpeg_codecs[] = {
   {0, TC_CODEC_UNKNOWN, NULL, {""}}};
 
 
-static struct ffmpeg_codec *find_ffmpeg_codec_id(unsigned int transcode_id) {
-  struct ffmpeg_codec *cdc;
+static struct ffmpeg_codec *find_ffmpeg_codec_id(unsigned int transcode_id)
+{
+    struct ffmpeg_codec *cdc = &ffmpeg_codecs[0];
+    while (cdc->name != NULL) {
+        if (cdc->tc_id == transcode_id)
+	        return cdc;
+        cdc++;
+    }
 
-  cdc = &ffmpeg_codecs[0];
-  while (cdc->name != NULL) {
-      if (cdc->tc_id == transcode_id)
-	  return cdc;
-    cdc++;
-  }
-
-  return NULL;
+    return NULL;
 }
 
 
@@ -407,4 +415,28 @@ void decode_lavc(decode_t *decode)
 decoder_error:
   import_exit(1);
 }
+
+
+#else /* HAVE_FFMPEG */
+
+void decode_lavc(decode_t *decode)
+{
+    tc_log_error(__FILE__, "No support for FFmpeg configured -- exiting");
+    import_exit(1);
+}
+
+
+#endif /* HAVE_FFMPEG */
+
+/*************************************************************************/
+
+/*
+ * Local variables:
+ *   c-file-style: "stroustrup"
+ *   c-file-offsets: ((case-label . *) (statement-case-intro . *))
+ *   indent-tabs-mode: nil
+ * End:
+ *
+ * vim: expandtab shiftwidth=4:
+ */
 

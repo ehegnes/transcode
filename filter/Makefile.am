@@ -21,8 +21,11 @@ FILTER_LOGO = filter_logo.la
 FILTER_LOGOAWAY = filter_logoaway.la
 endif
 
+if HAVE_FFMPEG
+FILTER_RESAMPLE = filter_resample.la
 if HAVE_LIBPOSTPROC
 FILTER_PP = filter_pp.la
+endif
 endif
 
 if HAVE_FREETYPE2
@@ -76,7 +79,7 @@ pkg_LTLIBRARIES = \
 	filter_normalize.la \
 	filter_null.la \
 	$(FILTER_PP) \
-	filter_resample.la \
+	$(FILTER_RESAMPLE) \
 	filter_skip.la \
 	filter_slowmo.la \
 	filter_smartbob.la \

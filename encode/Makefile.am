@@ -16,6 +16,10 @@ if HAVE_LAME
 ENCODE_LAME = encode_lame.la
 endif
 
+if HAVE_FFMPEG
+ENCODE_LAVC = encode_lavc.la
+endif
+
 if HAVE_LZO
 ENCODE_LZO = encode_lzo.la
 endif
@@ -32,8 +36,8 @@ if ENABLE_EXPERIMENTAL
 pkg_LTLIBRARIES = \
 	encode_copy.la \
 	$(ENCODE_FAAC) \
-	encode_lavc.la \
 	$(ENCODE_LAME) \
+	$(ENCODE_LAVC) \
 	$(ENCODE_LZO) \
 	encode_null.la \
 	$(ENCODE_X264) \
