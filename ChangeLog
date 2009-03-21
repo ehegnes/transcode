@@ -1,0 +1,25 @@
+Key:
+[+] feature added
+[!] bugfix of an existing feature
+[*] changement/improvement (not bugfix) of an existing feature
+[-] feature dropped
+
+===========================================================================
+transcode-1.1.2
+---------------
+[!] Make the -W option work again like 1.0.x branch.
+[!] Proper handling of the alpha data in filter_logoaway (avoid segfault).
+[!] Fixed bugs: #15007
+===========================================================================
+
+===========================================================================
+transcode-1.1.1
+---------------
+[*] Switched to new, terse ChangeLog format.
+[-] The import_imlist module is deprecated. Use --multi_input -x im instead.
+[*] Allow the dectectclipping filter to use a log file.
+[*] Big YAIT update by Allan Snider.
+[*] Added `frame' option to filter_text.
+[!] Resolved tcmodinfo linking/loading problems.
+[!] Fixed bugs: #15181, #15239
+===========================================================================
