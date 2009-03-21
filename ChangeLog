@@ -17,4 +17,9 @@ transcode-1.2.0
 [!] Fix misuse of configuration files which leads to crash.
 [*] Improved debug messages handling and internal debug API.
 [-] The import_imlist module is deprecated. Use --multi_input -x im instead.
+[*] Big YAIT update by Allan Snider.
+[!] Make the -W option work again like 1.0.x branch.
+[*] Switch from ImageMagick to GraphicsMagick.
+[*] Allow to build without FFmpeg.
+[!] Removed outdated libav* information from the FAQ.
 ===========================================================================
