@@ -117,7 +117,7 @@ static void enc_bitrate(long frames, double fps, int abitrate, double discsize)
     double audiosize, videosize, vbitrate;
 
     if (frames <= 0 || fps <= 0.0)
-	return;
+         return;
     time = frames / fps;
     audiosize = (double)abitrate/8 * time;
 
@@ -130,18 +130,18 @@ static void enc_bitrate(long frames, double fps, int abitrate, double discsize)
     /* Print recommended bitrates for user-specified or default disc sizes */
     if (discsize) {
         videosize = discsize - audiosize;
-        vbitrate = videosize / time;
+        vbitrate = videosize / time * 8;
         printf("USER CDSIZE: %4d MB | V: %6.1f MB @ %.1f kbps\n",
                (int)floor(discsize/(1024*1024)), videosize/(1024*1024),
-               vbitrate);
+               vbitrate/1024);
     } else {
         int i;
         for (i = 0; i < sizeof(defsize) / sizeof(*defsize); i++) {
-            videosize = defsize[i] - audiosize;
-            vbitrate = videosize / time;
+            videosize = defsize[i]*1024*1024 - audiosize;
+            vbitrate = videosize / time * 8;
             printf("USER CDSIZE: %4d MB | V: %6.1f MB @ %.1f kbps\n",
-                   (int)floor(discsize/(1024*1024)), videosize/(1024*1024),
-                   vbitrate);
+                   defsize[i], videosize/(1024*1024),
+                   vbitrate/1024);
         }
     }
 }
