@@ -51,6 +51,97 @@ struct zoominfo {
 #define FIXED_TO_INT(v) ((v)>>16)
 
 /*************************************************************************/
+
+/* FIXME: use a static table for every data related to a filter,
+ *        accessed by filter_id;
+ * typedef struct tcvzoomdata_ TCVZoomData;
+ * struct tcvzoom_data {
+ *     const char   *name;
+ *     double       support;
+ *     double       (*filter)(double t);
+ * };
+ */
+
+/**
+ * tcv_zoom_filter_to_string:
+ *     return the human-readable name of a given filter, as string.
+ *
+ * Parameters:
+ *     filter: Filter identifier (TCV_ZOOM_*).
+ * Return value:
+ *     name of the given filter. DO NOT free() it.
+ *     NULL if the filter is unknown/unsupported.
+ */
+const char *tcv_zoom_filter_to_string(TCVZoomFilter filter)
+{
+    const char *name = NULL;
+    if (filter == TCV_ZOOM_BELL) {
+        name = "Bell";
+    } else if (filter == TCV_ZOOM_BOX) {
+        name = "Box";
+    } else if (filter == TCV_ZOOM_B_SPLINE) {
+        name = "B_spline";
+    } else if (filter == TCV_ZOOM_HERMITE) {
+        name = "Hermite";
+    } else if (filter == TCV_ZOOM_LANCZOS3) {
+        name = "Lanczos3";
+    } else if (filter == TCV_ZOOM_MITCHELL) {
+        name = "Mitchell";
+    } else if (filter == TCV_ZOOM_TRIANGLE) {
+        name = "Triangle";
+    } else if (filter == TCV_ZOOM_CUBIC_KEYS4) {
+        name = "Cubic_Keys4";
+    } else if (filter == TCV_ZOOM_SINC8) {
+        name = "Sinc8";
+    } else if (filter == TCV_ZOOM_DEFAULT) {
+        name = "Lanczos3";
+    } else {
+        name = NULL;
+    }
+    return name;
+}
+
+/**
+ * tcv_zoom_filter_from_string:
+ *     return the filter id given its human-readable name, as string.
+ *     case insensitive.
+ *
+ * Parameters:
+ *     name: name fo the given filter.
+ * Return value:
+ *     the corrisponding identifier of the given name.
+ *     TCV_ZOOM_NULL if the filter is unknown/unsupported.
+ */
+TCVZoomFilter tcv_zoom_filter_from_string(const char *name)
+{
+    TCVZoomFilter filter = TCV_ZOOM_NULL;
+    if (strcasecmp(name, "bell") == 0) {
+        filter = TCV_ZOOM_BELL;
+    } else if (strcasecmp(name, "box") == 0) {
+        filter = TCV_ZOOM_BOX;
+    } else if (strcasecmp(name, "b_spline") == 0) {
+        filter = TCV_ZOOM_B_SPLINE;
+    } else if (strcasecmp(name, "hermite") == 0) {
+        filter = TCV_ZOOM_HERMITE;
+    } else if (strcasecmp(name, "lanczos3") == 0) {
+        filter = TCV_ZOOM_LANCZOS3;
+    } else if (strcasecmp(name, "mitchell") == 0) {
+        filter = TCV_ZOOM_MITCHELL;
+    } else if (strcasecmp(name, "triangle") == 0) {
+        filter = TCV_ZOOM_TRIANGLE;
+    } else if (strcasecmp(name, "cubic_keys4") == 0) {
+        filter = TCV_ZOOM_CUBIC_KEYS4;
+    } else if (strcasecmp(name, "sinc8") == 0) {
+        filter = TCV_ZOOM_SINC8;
+    } else if (strcasecmp(name, "default") == 0) {
+        filter = TCV_ZOOM_LANCZOS3;
+    } else {
+        filter = TCV_ZOOM_NULL;
+    }
+    return filter;
+}
+
+/*************************************************************************/
 /*************************************************************************/
 
 /**
@@ -189,6 +280,43 @@ static double mitchell_filter(double t)
 
 #undef B
 #undef C
+
+/************************************/
+/* Keys 4th-order Cubic */
+
+static const double cubic_keys4_support = 3.0;
+
+double cubic_keys4_filter(double t)
+{
+    if (t < 0.0)
+        t = -t;
+    if (t < 1.0) 
+        return (3.0 + (t * t * (-7.0 + (t * 4.0)))) / 3.0;
+    if (t < 2.0) 
+        return (30.0 + (t * (-59.0 + (t * (36.0 + (t * -7.0)))))) / 12.0;
+    if (t < 3.0)
+        return (-18.0 + (t * (21.0 + (t * (-8.0 + t))))) / 12.0;
+    return 0.0;
+}
+
+/************************************/
+/* Sinc with Lanczos window, 8 cycles */
+
+static const double sinc8_support = 8.0;
+
+double sinc8_filter(double t)
+{
+    if (t < 0.0)
+         = -t;
+    if (t == 0.0) {
+        return 1.0;
+    } else if (t < 8.0) {
+        double w = sin(PI*t / 8.0) / (PI*t / 8.0);
+        return w * sin(t*PI) / (t*PI);
+    } else {
+        return 0.0;
+    }
+}
 
 /*************************************************************************/
 
@@ -336,6 +464,14 @@ ZoomInfo *zoom_init(int old_w, int old_h, int new_w, int new_h, int Bpp,
       case TCV_ZOOM_LANCZOS3:
         zi->filter = lanczos3_filter;
         zi->fwidth = lanczos3_support;
+        break;
+      case TCV_ZOOM_CUBIC_KEYS4:
+        zi->filter = cubic_keys4_filter;
+        zi->fwidth = cubic_keys4_support;
+        break;
+      case TCV_ZOOM_SINC8:
+        zi->filter = sinc8_filter;
+        zi->fwidth = sinc8_support;
         break;
       default:
         free(zi);
