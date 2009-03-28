@@ -36,6 +36,7 @@ typedef enum {
 
 /* Filter IDs for tcv_zoom(): */
 typedef enum {
+    TCV_ZOOM_DEFAULT = 0, /* alias for an existing following id */
     TCV_ZOOM_HERMITE = 1,
     TCV_ZOOM_BOX,
     TCV_ZOOM_TRIANGLE,
@@ -43,6 +44,9 @@ typedef enum {
     TCV_ZOOM_B_SPLINE,
     TCV_ZOOM_LANCZOS3,
     TCV_ZOOM_MITCHELL,
+    TCV_ZOOM_CUBIC_KEYS4,
+    TCV_ZOOM_SINC8,
+    TCV_ZOOM_NULL, /* this one MUST be the last one */
 } TCVZoomFilter;
 
 /*************************************************************************/
@@ -88,6 +92,10 @@ int tcv_antialias(TCVHandle handle,
 
 int tcv_convert(TCVHandle handle, uint8_t *src, uint8_t *dest, int width,
                 int height, ImageFormat srcfmt, ImageFormat destfmt);
+
+const char *tcv_zoom_filter_to_string(TCVZoomFilter filter);
+
+TCVZoomFilter tcv_zoom_filter_from_string(const char *name);
 
 /*************************************************************************/
 

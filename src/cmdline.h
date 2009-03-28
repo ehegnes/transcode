@@ -27,7 +27,6 @@ extern int psu_frame_threshold;
 extern int no_vin_codec, no_ain_codec, no_v_out_codec, no_a_out_codec;
 extern int frame_a, frame_b, splitavi_frames, psu_mode;
 extern int preset_flag, auto_probe, seek_range;
-extern char *zoom_filter;
 extern int no_audio_adjust, no_split;
 extern char *fc_ttime_string;
 extern int sync_seconds;

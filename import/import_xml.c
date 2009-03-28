@@ -107,48 +107,17 @@ static video_filter_t *f_video_filter(char *p_filter)
 
 	if (p_filter !=NULL)
 	{
-		if(strcasecmp(p_filter,"bell")==0)
+        s_v_filter.s_zoom_filter = tcv_zoom_filter_from_string(p_filter);
+        if (s_v_filter.s_zoom_filter == TCV_ZOOM_NULL);
 		{
-			s_v_filter.s_zoom_filter=TCV_ZOOM_BELL;
-			s_v_filter.p_zoom_filter="Bell";
-		}
-		else if(strcasecmp(p_filter,"box")==0)
-		{
-			s_v_filter.s_zoom_filter=TCV_ZOOM_BOX;
-			s_v_filter.p_zoom_filter="Box";
-		}
-		else if(strncasecmp(p_filter,"mitchell",1)==0)
-		{
-			s_v_filter.s_zoom_filter=TCV_ZOOM_MITCHELL;
-			s_v_filter.p_zoom_filter="Mitchell";
-		}
-		else if(strncasecmp(p_filter,"hermite",1)==0)
-		{
-			s_v_filter.s_zoom_filter=TCV_ZOOM_HERMITE;
-			s_v_filter.p_zoom_filter="Hermite";
-		}
-		else if(strncasecmp(p_filter,"B_spline",1)==0)
-		{
-			s_v_filter.s_zoom_filter=TCV_ZOOM_B_SPLINE;
-			s_v_filter.p_zoom_filter="B_spline";
-		}
-		else if(strncasecmp(p_filter,"triangle",1)==0)
-		{
-			s_v_filter.s_zoom_filter=TCV_ZOOM_TRIANGLE;
-			s_v_filter.p_zoom_filter="Triangle";
-		}
-		else //"lanczos3" default
-		{
-			s_v_filter.s_zoom_filter=TCV_ZOOM_LANCZOS3;
-			s_v_filter.p_zoom_filter="Lanczos3";
+			s_v_filter.s_zoom_filter = TCV_ZOOM_LANCZOS3;
 		}
 	}
 	else //"lanczos3" default
 	{
-		s_v_filter.s_zoom_filter=TCV_ZOOM_LANCZOS3;
-		s_v_filter.p_zoom_filter="Lanczos3";
+		s_v_filter.s_zoom_filter = TCV_ZOOM_LANCZOS3;
 	}
-	return(&s_v_filter);
+	return (&s_v_filter);
 
 }
 
@@ -174,7 +143,7 @@ static void f_mod_video_frame(transfer_t *param,audiovideo_t *p_temp,int s_codec
 			p_v_filter=f_video_filter(p_temp->p_v_resize_filter);
 			if(verbose_flag)
 				tc_log_info(MOD_NAME,"setting resize video filter to %s",
-						p_v_filter->p_zoom_filter);
+                            tcv_zoom_filter_to_string(p_v_filter->s_zoom_filter));
 		}
 		switch(s_codec)
 		{

@@ -1102,32 +1102,12 @@ TC_OPTION(zoom,               'Z', "[W]x[H][,mode]",
 )
 TC_OPTION(zoom_filter,        0,   "filter",
                 "use given filter for -Z resizing [Lanczos3]",
-                if (strcasecmp(optarg, "bell") == 0) {
-                    vob->zoom_filter = TCV_ZOOM_BELL;
-                    zoom_filter = "Bell";
-                } else if (strcasecmp(optarg, "box") == 0) {
-                    vob->zoom_filter = TCV_ZOOM_BOX;
-                    zoom_filter = "Box";
-                } else if (strcasecmp(optarg, "b_spline") == 0) {
-                    vob->zoom_filter = TCV_ZOOM_B_SPLINE;
-                    zoom_filter = "B_spline";
-                } else if (strcasecmp(optarg, "hermite") == 0) {
-                    vob->zoom_filter = TCV_ZOOM_HERMITE;
-                    zoom_filter = "Hermite";
-                } else if (strcasecmp(optarg, "lanczos3") == 0) {
-                    vob->zoom_filter = TCV_ZOOM_LANCZOS3;
-                    zoom_filter = "Lanczos3";
-                } else if (strcasecmp(optarg, "mitchell") == 0) {
-                    vob->zoom_filter = TCV_ZOOM_MITCHELL;
-                    zoom_filter = "Mitchell";
-                } else if (strcasecmp(optarg, "triangle") == 0) {
-                    vob->zoom_filter = TCV_ZOOM_TRIANGLE;
-                    zoom_filter = "Triangle";
-                } else {
+                vob->zoom_filter = tcv_zoom_filter_from_string(optarg);
+		if (vob->zoom_filter == TCV_ZOOM_NULL) {
                     tc_error("invalid argument for --zoom_filter\n"
                              "filter must be one of:\n"
                              "   bell box b_spline hermite lanczos3"
-                             " mitchell triangle");
+                             " mitchell triangle cubic_keys4 sinc8");
                     goto short_usage;
                 }
 )
