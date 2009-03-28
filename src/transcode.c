@@ -2038,7 +2038,8 @@ int main(int argc, char *argv[])
             tc_log_info(PACKAGE,
                         "V: %-16s | %03dx%03d  %4.2f:1 (%s)",
                         "zoom",
-                        vob->ex_v_width, vob->ex_v_height, asr, zoom_filter);
+                        vob->ex_v_width, vob->ex_v_height, asr,
+                        tcv_zoom_filter_to_string(vob->zoom_filter));
     }
 
     // -Y

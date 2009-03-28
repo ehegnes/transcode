@@ -1374,6 +1374,14 @@
                             <term>Triangle</term>
                             <listitem><para></para></listitem>
                         </varlistentry>
+                        <varlistentry>
+                            <term>Cubic_Keys4</term>
+                            <listitem><para></para></listitem>
+                        </varlistentry>
+                        <varlistentry>
+                            <term>Sinc8</term>
+                            <listitem><para></para></listitem>
+                        </varlistentry>
                     </variablelist>
                 </listitem>
             </varlistentry>

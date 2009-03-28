@@ -46,7 +46,6 @@ int
     splitavi_frames=0,
     psu_mode=TC_FALSE;
 int preset_flag=0, auto_probe=1, seek_range=1;
-char *zoom_filter="Lanczos3";
 int no_audio_adjust=TC_FALSE, no_split=TC_FALSE;
 char *fc_ttime_string = NULL;
 int sync_seconds=0;
