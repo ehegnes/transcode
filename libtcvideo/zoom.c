@@ -286,7 +286,7 @@ static double mitchell_filter(double t)
 
 static const double cubic_keys4_support = 3.0;
 
-double cubic_keys4_filter(double t)
+static double cubic_keys4_filter(double t)
 {
     if (t < 0.0)
         t = -t;
@@ -304,10 +304,10 @@ double cubic_keys4_filter(double t)
 
 static const double sinc8_support = 8.0;
 
-double sinc8_filter(double t)
+static double sinc8_filter(double t)
 {
     if (t < 0.0)
-         = -t;
+        t = -t;
     if (t == 0.0) {
         return 1.0;
     } else if (t < 8.0) {
