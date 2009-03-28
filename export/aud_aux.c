@@ -317,10 +317,11 @@ static int tc_audio_init_lame(vob_t *vob, int o_codec)
  */
 static int tc_audio_init_ffmpeg(vob_t *vob, int o_codec)
 {
-    unsigned long codeid = 0;
-    int ret = 0, init_ret = TC_EXPORT_ERROR;
-
+    int init_ret = TC_EXPORT_ERROR;
 #ifdef HAVE_FFMPEG
+    unsigned long codeid = 0;
+    int ret = 0
+
     TC_INIT_LIBAVCODEC;
 
     switch (o_codec) {
@@ -831,7 +832,7 @@ static int tc_audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile)
 
 static int tc_audio_encode_ffmpeg(char *aud_buffer, int aud_size, avi_t *avifile)
 {
-#ifdef HAVE_LAME
+#ifdef HAVE_FFMPEG
     int  in_size, out_size;
     char *in_buf;
 
