@@ -320,7 +320,7 @@ static int tc_audio_init_ffmpeg(vob_t *vob, int o_codec)
     int init_ret = TC_EXPORT_ERROR;
 #ifdef HAVE_FFMPEG
     unsigned long codeid = 0;
-    int ret = 0
+    int ret = 0;
 
     TC_INIT_LIBAVCODEC;
 
