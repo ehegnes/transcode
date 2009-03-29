@@ -22,4 +22,5 @@ transcode-1.2.0
 [*] Switch from ImageMagick to GraphicsMagick.
 [*] Allow to build without FFmpeg.
 [!] Removed outdated libav* information from the FAQ.
+[+] Add support for CubicKeys4 and Sinc8 zoom algorhytms.
 ===========================================================================
