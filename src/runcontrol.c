@@ -1,5 +1,5 @@
 /*
- *  encoder-common.c -- asynchronous encoder runtime control and statistics.
+ *  runcontrol.c -- asynchronous encoder runtime control.
  *
  *  Copyright (C) Thomas Oestreich - June 2001
  *  Updated and partially rewritten by
@@ -31,7 +31,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include "libtc/libtc.h"
-#include "encoder-common.h"
+#include "runcontrol.h"
 #include "tc_defaults.h" /* TC_DELAY_MIN */
 
 
@@ -51,99 +51,6 @@ void tc_pause(void)
     }
 }
 
-
-/* counter, for stats and more */
-static uint32_t frames_encoded = 0;
-static uint32_t frames_dropped = 0;
-static uint32_t frames_skipped = 0;
-static uint32_t frames_cloned = 0;
-/* counters can be accessed by other (ex: import) threads */
-static pthread_mutex_t frame_counter_lock = PTHREAD_MUTEX_INITIALIZER;
-
-
-uint32_t tc_get_frames_encoded(void)
-{
-    uint32_t val;
-
-    pthread_mutex_lock(&frame_counter_lock);
-    val = frames_encoded;
-    pthread_mutex_unlock(&frame_counter_lock);
-
-    return val;
-}
-
-void tc_update_frames_encoded(uint32_t val)
-{
-    pthread_mutex_lock(&frame_counter_lock);
-    frames_encoded += val;
-    pthread_mutex_unlock(&frame_counter_lock);
-}
-
-uint32_t tc_get_frames_dropped(void)
-{
-    uint32_t val;
-
-    pthread_mutex_lock(&frame_counter_lock);
-    val = frames_dropped;
-    pthread_mutex_unlock(&frame_counter_lock);
-
-    return val;
-}
-
-void tc_update_frames_dropped(uint32_t val)
-{
-    pthread_mutex_lock(&frame_counter_lock);
-    frames_dropped += val;
-    pthread_mutex_unlock(&frame_counter_lock);
-}
-
-uint32_t tc_get_frames_skipped(void)
-{
-    uint32_t val;
-
-    pthread_mutex_lock(&frame_counter_lock);
-    val = frames_skipped;
-    pthread_mutex_unlock(&frame_counter_lock);
-
-    return val;
-}
-
-void tc_update_frames_skipped(uint32_t val)
-{
-    pthread_mutex_lock(&frame_counter_lock);
-    frames_skipped += val;
-    pthread_mutex_unlock(&frame_counter_lock);
-}
-
-uint32_t tc_get_frames_cloned(void)
-{
-    uint32_t val;
-
-    pthread_mutex_lock(&frame_counter_lock);
-    val = frames_cloned;
-    pthread_mutex_unlock(&frame_counter_lock);
-
-    return val;
-}
-
-void tc_update_frames_cloned(uint32_t val)
-{
-    pthread_mutex_lock(&frame_counter_lock);
-    frames_cloned += val;
-    pthread_mutex_unlock(&frame_counter_lock);
-}
-
-uint32_t tc_get_frames_skipped_cloned(void)
-{
-    uint32_t s, c;
-
-    pthread_mutex_lock(&frame_counter_lock);
-    s = frames_skipped;
-    c = frames_cloned;
-    pthread_mutex_unlock(&frame_counter_lock);
-
-    return (c - s);
-}
 
 /*************************************************************************/
 
@@ -200,6 +107,39 @@ void tc_interrupt(void)
         tc_run_status = TC_STATUS_INTERRUPTED;
     }
     pthread_mutex_unlock(&run_status_lock);
+}
+
+/*************************************************************************/
+
+static void tc_rc_pause(TCRunControl *RC)
+{
+    tc_pause();
+}
+
+static TCRunStatus tc_rc_status(TCRunControl *RC)
+{
+    return tc_get_run_status();
+}
+
+static TCRunControl RC = {
+    .priv   = NULL;
+    .pause  = tc_rc_pause;
+    .status = tc_rc_status;
+};
+
+int tc_runcontrol_init(void)
+{
+    return TC_OK;
+}
+
+int tc_runcontrol_fini(void)
+{
+    return TC_OK;
+}
+
+TCRunControl *tc_runcontrol_get_instance(void)
+{
+    return &RC;
 }
 
 /*************************************************************************/
