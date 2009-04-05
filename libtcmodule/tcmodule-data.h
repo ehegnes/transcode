@@ -34,12 +34,14 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "libtcutil/memutils.h"
+
 #include "framebuffer.h"
 #include "transcode.h"
 #include "tcmodule-info.h"
 
 #define TC_MODULE_VERSION_MAJOR     3
-#define TC_MODULE_VERSION_MINOR     0
+#define TC_MODULE_VERSION_MINOR     2
 #define TC_MODULE_VERSION_MICRO     0
 
 #define TC_MAKE_MOD_VERSION(MAJOR, MINOR, MICRO) \
@@ -52,6 +54,8 @@
         TC_MAKE_MOD_VERSION(TC_MODULE_VERSION_MAJOR, \
                             TC_MODULE_VERSION_MINOR, \
                             TC_MODULE_VERSION_MICRO)
+
+#define TC_MODULE_EXTRADATA_SIZE    1024
 
 /*
  * allowed status transition chart:
@@ -72,6 +76,12 @@
  *                                          +-----------+
  *
  */
+
+typedef struct tcmoduleextradata_ TCModuleExtraData;
+struct tcmoduleextradata_ {
+    TCCodecID   codec;
+    TCMemChunk  extra;
+};
 
 /*
  * Data structure private for each instance.
@@ -94,19 +104,6 @@ struct tcmoduleinstance_ {
 
     void        *userdata; /* opaque to factory, used by each module */
 
-    void        *extradata;
-    size_t      extradata_size;
-    /*
-     * extradata:
-     * opaque data needed by a module that should'nt be private.
-     * Used mainly into encoder->multiplexor communication.
-     * NOTE:
-     * I'don't see a better way to handle extradata (see encode_ffmpeg
-     * module) in current architecture. I don't want to stack modules
-     * (if encoder drives multiplexor can handle itself the extradata)
-     * nor add more operations and/or accessors. This way looks as the
-     * cleanest and cheapest to me. Suggestions welcome. -- FRomani.
-     */
     // FIXME: add status to enforce correct operation sequence?
 };
 
@@ -122,15 +119,18 @@ struct tcmoduleclass_ {
     /* mandatory operations: */
     int (*init)(TCModuleInstance *self, uint32_t features);
     int (*fini)(TCModuleInstance *self);
-    int (*configure)(TCModuleInstance *self, const char *options, vob_t *vob);
+    int (*configure)(TCModuleInstance *self, const char *options,
+                     vob_t *vob, TCModuleExtraData *xdata);
     int (*stop)(TCModuleInstance *self);
-    int (*inspect)(TCModuleInstance *self, const char *param, const char **value);
+    int (*inspect)(TCModuleInstance *self,
+                   const char *param, const char **value);
 
     /*
      * not-mandatory operations, a module doing something useful implements
      * at least one of following.
      */
-    int (*open)(TCModuleInstance *self, const char *filename);
+    int (*open)(TCModuleInstance *self, const char *filename,
+                TCModuleExtraData *xdata);
     int (*close)(TCModuleInstance *self);
 
     int (*encode_audio)(TCModuleInstance *self,
@@ -371,7 +371,7 @@ struct tcmoduleclass_ {
  *
  *
  * read_{audio,video}:
- *      extract given encode {audio,video} framer from the input stream.
+ *      extract given encode {audio,video} frame from the input stream.
  * Parameters:
  *      self: pointer to a module instance.
  *      frame: pointer to a {audio,video} frame to be filled with the one
@@ -380,12 +380,58 @@ struct tcmoduleclass_ {
  *      TC_ERROR:
  *         error occurred. A proper message should be sent to user using
  *         tc_log*().
- *      >0 number of bytes readed for demultiplexed frame.
+ *      >0 number of bytes read for demultiplexed frame.
  * Preconditions:
  *      module was already initialized AND configured.
  *      To use a uninitialized and/or unconfigured module
  *      for demultiplex will cause an undefined behaviour.
  *
+ *
+ * get_extradata:
+ *      extract extradata from the module. Extradata is opaque data needed
+ *      (or provided) by a module that should'nt be private.
+ *      Some muxers sometimes needed extradata (provided by the encoder) to
+ *      properly initialize the format; some decoders also needed extradata
+ *      needed by demuxer to properly initialize themselves.
+ * 
+ * Parameters:
+ *      self: pointer to a module instance.
+ *      xdata: pointer to a memory area where extradata is stored.
+ *             this area is guaranted to be TC_MODULE_EXTRADATA_SIZE 
+ *             bytes wide at least.
+ *      size: pointer to actual size of the extradata. When the function
+ *            is called, it contains the size of xdata area; when the
+ *            function returns, it must contain the actual size.
+ * Return Value:
+ *      See the initial note above.
+ * Preconditions:
+ *      module was already initialized AND configured.
+ *      To get extradata from a uninitialized and/or unconfigured module
+ *      will cause an undefined behaviour. It is safe to get extradata
+ *      multiple times. Extradata should assumed to change after each call
+ *      to configure() on the correspoding instance.
+ *
+ * 
+ * set_extradata:
+ *      inject extradata into the module. Extradata is opaque data needed
+ *      (or provided) by a module that should'nt be private.
+ *      Some muxers sometimes needed extradata (provided by the encoder) to
+ *      properly initialize the format; some decoders also needed extradata
+ *      needed by demuxer to properly initialize themselves.
+ * 
+ * Parameters:
+ *      self: pointer to a module instance.
+ *      xdata: pointer to a memory area where extradata is stored.
+ *      size:  size of the extradata.
+ * Return Value:
+ *      See the initial note above.
+ * Preconditions:
+ *      module was already initialized AND configured.
+ *      To set extradata to a uninitialized and/or unconfigured module
+ *      will cause an undefined behaviour. It is safe to get extradata
+ *      multiple times. Extradata should assumed to change after each call
+ *      to configure() on the correspoding instance.
+
  */
 
 #endif /* TCMODULE_DATA_H */
