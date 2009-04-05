@@ -20,6 +20,7 @@ SUBDIRS = \
 	libtc \
 	libtcaudio \
 	libtcvideo \
+	libtcexport \
 	encode \
 	export \
 	filter \

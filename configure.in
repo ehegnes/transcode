@@ -1324,6 +1324,12 @@ LIBTCVIDEO_LIBS="\$(top_builddir)/libtcvideo/libtcvideo.la"
 AC_SUBST(LIBTCVIDEO_LIBS)
 
 dnl
+dnl libtcexport
+dnl
+LIBTCEXPORT_LIBS="\$(top_builddir)/libtcexport/libtcexport.la"
+AC_SUBST(LIBTCEXPORT_LIBS)
+
+dnl
 dnl avilib
 dnl
 AVILIB_LIBS="\$(top_builddir)/avilib/libavi.la"

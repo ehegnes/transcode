@@ -25,6 +25,7 @@ transcode_LDADD = \
 	$(LIBTCEXT_LIBS) \
 	$(LIBTCAUDIO_LIBS) \
 	$(LIBTCVIDEO_LIBS) \
+	$(LIBTCEXPORT_LIBS) \
 	$(ACLIB_LIBS) \
 	$(AVILIB_LIBS) \
 	$(WAVLIB_LIBS) \
@@ -41,8 +42,7 @@ EXTRA_DIST = \
 	counter.h \
 	decoder.h \
 	dl_loader.h \
-	encoder.h \
-	encoder-common.h \
+	runcontrol.h \
 	filter.h \
 	frame_threads.h \
 	framebuffer.h \
@@ -61,8 +61,7 @@ transcode_SOURCES = \
 	counter.c \
 	decoder.c \
 	dl_loader.c \
-	encoder.c \
-	encoder-common.c \
+	runcontrol.c \
 	encoder-buffer.c \
 	filter.c \
 	frame_threads.c \

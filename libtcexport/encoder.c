@@ -46,38 +46,15 @@
 /*************************************************************************/
 /* Our data structure forward declaration                                */
 
-typedef struct tcrotatecontext_ TCRotateContext;
 typedef struct tcencoderdata_ TCEncoderData;
 
 /*************************************************************************/
 /* private function prototypes                                           */
 
-/* new-style rotation support */
-static void tc_rotate_init(TCRotateContext *rotor,
-                           const char *video_base_name,
-                           const char *audio_base_name);
-
-static void tc_rotate_set_frames_limit(TCRotateContext *rotor,
-                                       vob_t *vob, uint32_t frames);
-static void tc_rotate_set_bytes_limit(TCRotateContext *rotor,
-                                      vob_t *vob, uint64_t bytes);
-
-static void tc_rotate_output_name(TCRotateContext *rotor, vob_t *vob);
-
-static int tc_rotate_if_needed_null(TCRotateContext *rotor,
-                                    vob_t *vob, uint32_t bytes);
-static int tc_rotate_if_needed_by_frames(TCRotateContext *rotor,
-                                         vob_t *vob, uint32_t bytes);
-static int tc_rotate_if_needed_by_bytes(TCRotateContext *rotor,
-                                        vob_t *vob, uint32_t bytes);
-
-/* old-style rotation support is all public, see transcode.h */
-
 /* new-style encoder */
 
 static int encoder_export(TCEncoderData *data, vob_t *vob);
 static void encoder_skip(TCEncoderData *data, int out_of_range);
-static int encoder_flush(TCEncoderData *data);
 
 /* rest of API is already public */
 
@@ -91,346 +68,50 @@ static void free_buffers(TCEncoderData *data);
 
 
 /*************************************************************************/
-
-/*
- * new encoder module design principles
- * 1) keep it simple, stupid
- * 2) to have more than one encoder doesn't make sense in transcode, so
- * 3) new encoder will be monothread, like the old one
- */
-
-/*************************************************************************/
-/*************************************************************************/
-
-/*
- * new-style output rotation support. Always avalaible, but
- * only new code is supposed to use it.
- * This code is private since only encoder code it's supposed
- * to use it. If this change, this code will be put in a
- * separate .c/.h pair.
- *
- * The tricky part of this code it's mainly the
- * vob->{video,audio}_out_file mangling.
- * This it's still done mainly for legacy reasons.
- * After every rotation, such fields will be updated to point
- * not to real initialization data, but to private buffers of (a)
- * TCRotateContext strucutre. This can hardly seen as good, and
- * should be changed/improved in future releases.
- * Anyway, original values of mentioned field isn't lost since it
- * will be stored in TCRotateContext.{video,audio}_base_name.
- * ------------------------------------------------------------
- */
-
-/*
- * TCExportRotate:
- *    Generic function called after *every* frame was encoded.
- *    Rotate output file(s) if condition incapsulate in specific
- *    functions is satisfied.
- *
- * Parameters:
- *    rotor: TCRotateContext to use to check condition.
- *      vob: pointer to vob_t structure to update with new
- *           export file(s) name after succesfull rotation.
- *    bytes: total size of byte encoded (Audio + Video) in last
- *           rencoding loop.
- * Return value:
- *    TC_OK: successful.
- *    TC_ERROR: error happened and notified using tc_log*().
- *
- *    Of course no error can happen if rotating condition isn't met
- *    (so no rotation it's supposed to happen).
- *    Please note that caller code CANNOT know when rotation happens:
- *    This is a feature, not a bug! Having rotation policy incapsulated
- *    into this code and rotation machinery transparent to caller
- *    it's EXACTLY the purpose oft this code! :)
- */
-typedef int (*TCExportRotate)(TCRotateContext *rotor, vob_t *vob,
-                              uint32_t bytes);
-
-
-struct tcrotatecontext_ {
-    char video_path_buf[PATH_MAX+1];
-    char audio_path_buf[PATH_MAX+1];
-    const char *video_base_name;
-    const char *audio_base_name;
-    uint32_t chunk_num;
-    int null_flag;
-
-    uint32_t chunk_frames;
-
-    uint64_t encoded_bytes;
-    uint64_t chunk_bytes;
-
-    TCExportRotate rotate_if_needed;
-};
-
-/*************************************************************************/
-
-
-/* macro goody for output rotation request */
-#define TC_ROTATE_IF_NEEDED(rotor, vob, bytes) \
-    ((rotor)->rotate_if_needed((rotor), (vob), bytes))
-
-/*
- * tc_rotate_init:
- *    initialize a TCRotateContext with given basenames both for
- *    audio and video output files.
- *    Uses null rotation function as default rotation function:
- *    this means that output rotation just never happen.
- *
- * Parameters:
- *              rotor: pointer to a TCRotateContext structure to
- *                     initialize.
- *    video_base_name: basename for main export file (Audio + Video).
- *    audio_base_name: basename for auxiliary export file
- *                     (separate audio track).
- * Return value:
- *    None.
- */
-static void tc_rotate_init(TCRotateContext *rotor,
-                           const char *video_base_name,
-                           const char *audio_base_name)
-{
-    if (rotor != NULL) {
-        memset(rotor, 0, sizeof(TCRotateContext));
-        rotor->video_base_name = video_base_name;
-        rotor->audio_base_name = audio_base_name;
-        if (video_base_name == NULL || strlen(video_base_name) == 0
-         || strcmp(video_base_name, "/dev/null") == 0) {
-            rotor->null_flag = TC_TRUE;
-        } else {
-            rotor->null_flag = TC_FALSE;
-            strlcpy(rotor->video_path_buf, video_base_name,
-                    sizeof(rotor->video_path_buf));
-            /*
-             * FIXME: Yep, this taste like a duplicate.
-             * The whole *_out_file thing need a deep review,
-             * but I want to go a little ahead with the whole
-             * NMS-powered export layer and write a few more
-             * NMS export modules before to go with this. -- FR
-             */
-            if (audio_base_name == NULL || strlen(audio_base_name) == 0
-              || strcmp(audio_base_name, video_base_name) == 0
-              || strcmp(audio_base_name, "/dev/null") == 0) {
-               /*
-                * DO NOT separate export audio track, use the same
-                * export file both for audio and for video
-                */
-                strlcpy(rotor->audio_path_buf, video_base_name,
-                        sizeof(rotor->audio_path_buf));
-            } else {
-                /* separate audio file */
-                strlcpy(rotor->audio_path_buf, audio_base_name,
-                        sizeof(rotor->audio_path_buf));
-            }
-        }
-        rotor->rotate_if_needed = tc_rotate_if_needed_null;
-    }
-}
-
-/*
- * tc_rotate_set {frames,bytes}_limit:
- *    setup respecitvely frames and bytes limit for each output chunk.
- *    When calling this function user ask for rotation, so they also
- *    directly updates vob.{video,audio}_out_file so even first
- *    tc_encoder_open() later call will uses names of the right format
- *    (i.e. with the same layout of second and further chunks).
- *    This is done in order to avoid any later rename() and disomogeneities
- *    in output file name as experienced in transcode 1.0.x and before.
- *
- *    Calling this functions multiple times will not hurt anything,
- *    but only the last limit set will be honoured. In other words,
- *    it's impossible (yet) to limit output BOTH for frames and for size.
- *    This may change in future releases.
- *
- * Parameters:
- *    rotor: TCRotateContext to set limit on.
- *      vob: pointer to vob structure to update.
- *   frames: frame limit for each output chunk.
- *    bytes: size limit for each output chunk.
- * Return value:
- *    None
- * Side effects:
- *    vob parameter will be updated. Modified fields:
- *    video_out_file, audio_out_file.
- */
-
-#define PREPARE_OUTPUT_NAME(rotor, vob) \
-    if ((rotor)->chunk_num == 0) \
-        tc_rotate_output_name((rotor), (vob))
-
-static void tc_rotate_set_frames_limit(TCRotateContext *rotor,
-                                       vob_t *vob, uint32_t frames)
-{
-    if (rotor != NULL && !rotor->null_flag) {
-        rotor->chunk_frames = frames;
-        rotor->rotate_if_needed = tc_rotate_if_needed_by_frames;
-        PREPARE_OUTPUT_NAME(rotor, vob);
-    }
-}
-
-static void tc_rotate_set_bytes_limit(TCRotateContext *rotor,
-                                      vob_t *vob, uint64_t bytes)
-{
-    if (rotor != NULL && !rotor->null_flag) {
-        rotor->chunk_bytes = bytes;
-        rotor->rotate_if_needed = tc_rotate_if_needed_by_bytes;
-        PREPARE_OUTPUT_NAME(rotor, vob);
-    }
-}
-
-#undef PREPARE_OUTPUT_NAME
-
-/* helpers ***************************************************************/
-
-/*
- * all rotation helpers uses at least if()s as possible, so we must
- * drop paranoia here
- */
-
-/* 
- * tc_rotate_output_name:
- *    make names of new main/auxiliary output file chunk and updates
- *    vob fields accordingly.
- *
- * Parameters:
- *    rotor: TCRotateContext to use to make new output name(s).
- *      vob: pointer to vob_t structure to update.
- * Return value:
- *    none.
- */
-
-/* pretty naif, yet. */
-/* FIXME: OK, we must deeply review the whole *out-file thing ASAP */
-static void tc_rotate_output_name(TCRotateContext *rotor, vob_t *vob)
-{
-    tc_snprintf(rotor->video_path_buf, sizeof(rotor->video_path_buf),
-                "%s-%03i", rotor->video_base_name, rotor->chunk_num);
-    tc_snprintf(rotor->audio_path_buf, sizeof(rotor->audio_path_buf),
-                "%s-%03i", rotor->audio_base_name, rotor->chunk_num);
-    vob->video_out_file = rotor->video_path_buf;
-    vob->audio_out_file = rotor->audio_path_buf;
-    rotor->chunk_num++;
-}
-
-/*************************************************************************/
-/*
- * real rotation policy implementations. Rotate output file(s)
- * respectively:
- *  - never (_null)
- *  - when encoded frames reach limit (_by_frames)
- *  - when encoded AND written *bytes* reach limit (_by_bytes).
- *
- * For details see documentation of TCExportRotate above.
- */
-
-#define ROTATE_UPDATE_COUNTERS(bytes) do { \
-    rotor->encoded_bytes += (bytes); \
-} while (0);
-
-static int tc_rotate_if_needed_null(TCRotateContext *rotor,
-                                    vob_t *vob, uint32_t bytes)
-{
-    ROTATE_UPDATE_COUNTERS(bytes);
-    return TC_OK;
-}
-
-#define ROTATE_COMMON_CODE(rotor, vob) do { \
-    ret = tc_encoder_close(); \
-    if (ret != TC_OK) { \
-        tc_log_error(__FILE__, "unable to close output stream"); \
-        ret = TC_ERROR; \
-    } else { \
-        tc_rotate_output_name((rotor), (vob)); \
-        tc_log_info(__FILE__, "rotating video output stream to %s", \
-                               (rotor)->video_path_buf); \
-        tc_log_info(__FILE__, "rotating audio output stream to %s", \
-                               (rotor)->audio_path_buf); \
-        ret = tc_encoder_open((vob)); \
-        if (ret != TC_OK) { \
-            tc_log_error(__FILE__, "unable to reopen output stream"); \
-            ret = TC_ERROR; \
-        } \
-    } \
-} while (0)
-
-
-static int tc_rotate_if_needed_by_frames(TCRotateContext *rotor,
-                                         vob_t *vob, uint32_t bytes)
-{
-    int ret = TC_OK;
-    ROTATE_UPDATE_COUNTERS(bytes);
-
-    if (tc_get_frames_encoded() >= rotor->chunk_frames) {
-        ROTATE_COMMON_CODE(rotor, vob);
-    }
-    return ret;
-}
-
-static int tc_rotate_if_needed_by_bytes(TCRotateContext *rotor,
-                                        vob_t *vob, uint32_t bytes)
-{
-    int ret = TC_OK;
-    ROTATE_UPDATE_COUNTERS(bytes);
-
-    if (rotor->encoded_bytes >= rotor->chunk_bytes) {
-        ROTATE_COMMON_CODE(rotor, vob);
-    }
-    return ret;
-}
-
-#undef ROTATE_COMMON_CODE
-#undef ROTATE_UPDATE_COUNTERS
-
-/*************************************************************************/
-/*************************************************************************/
 /* real encoder code                                                     */
 
 
 struct tcencoderdata_ {
     /* flags, used internally */
-    int error_flag;
-    int fill_flag;
+    int             error_flag;
+    int             fill_flag;
 
     /* frame boundaries */
-    int frame_first; // XXX
-    int frame_last; // XXX
+    int             frame_first; // XXX
+    int             frame_last; // XXX
     /* needed by encoder_skip */
-    int saved_frame_last; // XXX
+    int             saved_frame_last; // XXX
 
-    int this_frame_last; // XXX
-    int old_frame_last; // XXX
+    int             this_frame_last; // XXX
+    int             old_frame_last; // XXX
 
     TCEncoderBuffer *buffer;
 
-    vframe_list_t *venc_ptr;
-    aframe_list_t *aenc_ptr;
+    TCFrameVideo    *venc_ptr;
+    TCFrameAudio    *aenc_ptr;
 
-    TCFactory factory;
+    TCFactory       factory;
 
-    TCModule vid_mod;
-    TCModule aud_mod;
-    TCModule mplex_mod;
+    TCModule        vid_mod;
+    TCModule        aud_mod;
 
     TCRotateContext rotor_data;
 };
 
 static TCEncoderData encdata = {
-    .error_flag = 0,
-    .fill_flag = 0,
-    .frame_first = 0,
-    .frame_last = 0,
-    .saved_frame_last = 0,
-    .this_frame_last = 0,
-    .old_frame_last = 0,
-    .buffer = NULL,
-    .venc_ptr = NULL,
-    .aenc_ptr = NULL,
-    .factory = NULL,
-    .vid_mod = NULL,
-    .aud_mod = NULL,
-    .mplex_mod = NULL,
-    /* rotor_data explicitely initialized later */
+    .error_flag         = 0,
+    .fill_flag          = 0,
+    .frame_first        = 0,
+    .frame_last         = 0,
+    .saved_frame_last   = 0,
+    .this_frame_last    = 0,
+    .old_frame_last     = 0,
+    .buffer             = NULL,
+    .venc_ptr           = NULL,
+    .aenc_ptr           = NULL,
+    .factory            = NULL,
+    .vid_mod            = NULL,
+    .aud_mod            = NULL,
 };
 
 
@@ -626,58 +307,6 @@ int tc_encoder_init(vob_t *vob)
 }
 
 
-/* ------------------------------------------------------------
- *
- * encoder open
- *
- * ------------------------------------------------------------*/
-
-int tc_encoder_open(vob_t *vob)
-{
-    int ret;
-    const char *options = NULL;
-
-    options = vob->ex_m_string ? vob->ex_m_string : "";
-    ret = tc_module_configure(encdata.mplex_mod, options, vob);
-    if (ret == TC_ERROR) {
-        tc_log_warn(__FILE__, "multiplexor module error: init failed");
-        return TC_ERROR;
-    }
-
-    // XXX
-    tc_module_pass_extradata(encdata.vid_mod, encdata.mplex_mod);
-
-    return TC_OK;
-}
-
-
-/* ------------------------------------------------------------
- *
- * encoder close
- *
- * ------------------------------------------------------------*/
-
-int tc_encoder_close(void)
-{
-    int ret;
-
-    /* old style code handle flushing in modules, not here */
-    ret = encoder_flush(&encdata);
-    if (ret != TC_OK) {
-        tc_log_warn(__FILE__, "error while closing encoder: flush failed");
-        return TC_ERROR;
-    }
-
-    ret = tc_module_stop(encdata.mplex_mod);
-    if (ret != TC_OK) {
-        tc_log_warn(__FILE__, "multiplexor module error: stop failed");
-        return TC_ERROR;
-    }
-
-    tc_debug(TC_DEBUG_CLEANUP, "encoder closed");
-    return TC_OK;
-}
-
 
 /* ------------------------------------------------------------
  *
@@ -818,52 +447,6 @@ static int encoder_export(TCEncoderData *data, vob_t *vob)
     } \
 } while (0)
 
-#define RETURN_IF_MUX_ERROR(BYTES) do { \
-    if ((BYTES) < 0) { \
-        tc_log_error(__FILE__, "error multiplexing final audio frame"); \
-        return TC_ERROR; \
-    } \
-} while (0)
-        
-
-/* DO NOT rotate here, this data belongs to current chunk */
-static int encoder_flush(TCEncoderData *data)
-{
-    int ret = TC_ERROR, bytes = 0;
-
-    do {
-        RESET_ATTRIBUTES(data->aenc_ptr);
-        ret = tc_module_encode_audio(data->aud_mod, NULL, data->aenc_ptr);
-        RETURN_IF_NOT_OK(ret, "audio");
-
-        bytes = tc_module_multiplex(data->mplex_mod, NULL, data->aenc_ptr);
-    } while (bytes != 0);
-    RETURN_IF_MUX_ERROR(bytes);
-
-    do {
-        RESET_ATTRIBUTES(data->venc_ptr);
-        ret = tc_module_encode_video(data->vid_mod, NULL, data->venc_ptr);
-        RETURN_IF_NOT_OK(ret, "video");
-
-        bytes = tc_module_multiplex(data->mplex_mod, data->venc_ptr, NULL);
-    } while (bytes != 0);
-    RETURN_IF_MUX_ERROR(bytes);
-
-    return TC_OK;
-}
-
-
-void tc_export_rotation_limit_frames(vob_t *vob, uint32_t frames)
-{
-    tc_rotate_set_frames_limit(&encdata.rotor_data, vob, frames);
-}
-
-void tc_export_rotation_limit_megabytes(vob_t *vob, uint32_t megabytes)
-{
-    tc_rotate_set_bytes_limit(&encdata.rotor_data,
-                              vob, megabytes * 1024 * 1024);
-}
-
 /*************************************************************************/
 
 /*
@@ -903,8 +486,8 @@ static int need_stop(TCEncoderData *encdata)
 void tc_encoder_loop(vob_t *vob, int frame_first, int frame_last)
 {
     int err  = 0;
-    int skip = 0; /* Frames to skip before next frame to encode */
     int eos  = 0; /* End Of Stream flag */
+    int skip = 0; /* Frames to skip before next frame to encode */
 
     if (verbose >= TC_DEBUG) {
         tc_log_info(__FILE__,
