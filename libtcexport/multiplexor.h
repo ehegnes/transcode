@@ -53,6 +53,21 @@
  * BOTH by frames and by size.
  */
 
+typedef struct tcrotatecontext_ TCRotateContext;
+
+typedef struct tcmultiplexor_ TCMultiplexor;
+struct tcmultiplexor_ {
+    vob_t           *vob;
+    TCFactory       factory;
+
+    TCModule        mux_main;
+    TCModule        mux_aux;
+
+    TCRotateContext *rotor_data;
+};
+
+
+
 /*
  * tc_multiplexor_limit_frames:
  *     rotate output file(s) every given amount of encoded frames.
@@ -62,8 +77,11 @@
  *     frames: maximum of frames that every output chunk should contain.
  * Return value:
  *     None.
+ * Preconditions:
+ *     Multiplexor succesfully initialized
+ *     (tc_multiplexor_init returned TC_OK).
  */
-void tc_multiplexor_limit_frames(vob_t *vob, uint32_t frames);
+void tc_multiplexor_limit_frames(TCMultiplexor *mux, uint32_t frames);
 
 /*
  * tc_multiplexor_limit_megabytes:
@@ -74,45 +92,36 @@ void tc_multiplexor_limit_frames(vob_t *vob, uint32_t frames);
  *     megabytes: maximum size that every output chunk should have.
  * Return value:
  *     None.
+ * Preconditions:
+ *     Multiplexor succesfully initialized
+ *     (tc_multiplexor_init returned TC_OK).
  */
-void tc_multiplexor_limit_megabytes(vob_t *vob, uint32_t megabytes);
+void tc_multiplexor_limit_megabytes(TCMultiplexor *mux, uint32_t megabytes);
 
 
 /*************************************************************************/
 
-int tc_multiplexor_init(vob_t *vob, TCFactory factory);
+int tc_multiplexor_init(TCMultiplexor *mux, vob_t *vob, TCFactory factory);
 
-int tc_multiplexor_fini(void);
+int tc_multiplexor_fini(TCMultiplexor *mux);
 
-/*
- * tc_multiplexor_open:
- *     open output file(s), by (re)configuring multiplexor module.
- *
- * Parameters:
- *     vob: pointer to vob_t.
- *          tc_multiplexor_open need to fetch from a vob structure some informations
- *          needed by it's inizalitation.
- * Return Value:
- *     -1: error configuring module(s) or opening file(s). Reason of error will be
- *         notified via tc_log*().
- *      0: succesfull.
- */
-int tc_multiplexor_open(const char *sink_main, const char *sink_aux);
+int tc_multiplexor_setup(TCMultiplexor *mux, const char *mux_mod_name);
+int tc_multiplexor_setup_aux(TCMultiplexor *mux, const char *mux_mod_name);
 
-/*
- * tc_multiplexor_close:
- *      stop multiplexor and close output file.
- *
- * Parameters:
- *      None.
- * Return Value:
- *      0: succesfull.
- *     <0: failure, reason will be notified via tc_log*().
- */
-int tc_multiplexor_close(void);
+int tc_multiplexor_shutdown(TCMultiplexor *mux);
+
+int tc_multiplexor_open(TCMultiplexor *mux, const char *sink_name,
+                        TCModuleExtraData *vid_xdata,
+                        TCModuleExtraData *aud_xdata);
+
+int tc_multiplexor_open_aux(TCMultiplexor *mux, const char *sink_name,
+                            TCModuleExtraData *aud_xdata);
+
+int tc_multiplexor_close(TCMultiplexor *mux);
 
 
-int tc_multiplexor_export(TCFrameVideo *vframe, TCFrameAudio *aframe);
+int tc_multiplexor_export(TCMultiplexor *mux,
+                          TCFrameVideo *vframe, TCFrameAudio *aframe);
 
 /*************************************************************************/
 
