@@ -33,42 +33,6 @@
 #ifndef EXPORT_H
 #define EXPORT_H
 
-/*************************************************************************
- * A TCEncoderBuffer structure, along with it's operations, incapsulate
- * the actions needed by encoder to acquire and dispose a single A/V frame
- * to encode.
- *
- * Main purpose of this structure is to help to modularize and cleanup
- * encoder core code. Unfortunately, a propoer cleanup and refactoring isn't
- * fully possible without heavily reviewing transcode's inner frame buffering
- * and frame handling, but this task is really critical and should planned
- * really carefully.
- *
- * The need of TCEncoderBuffer also emerges given the actual frame buffer
- * handling. TCEncoderBuffer operations take care of hide the most part
- * of nasty stuff needed by current structure (see comments in
- * encoder-buffer.c).
- *
- * A proper reorganization of frame handling core code will GREATLY shrink,
- * or even make completely unuseful, the whole TCEncoderBuffer machinery.
- */
-typedef struct tcencoderbuffer_ TCEncoderBuffer;
-struct tcencoderbuffer_ {
-    int frame_id; /* current frame identifier (both for A and V, yet) */
-
-    TCFrameVideo *vptr; /* current video frame */
-    TCFrameAudio *aptr; /* current audio frame */
-
-    int (*acquire_video_frame)(TCEncoderBuffer *buf, vob_t *vob);
-    int (*acquire_audio_frame)(TCEncoderBuffer *buf, vob_t *vob);
-    void (*dispose_video_frame)(TCEncoderBuffer *buf);
-    void (*dispose_audio_frame)(TCEncoderBuffer *buf);
-};
-
-/* default main transcode buffer */
-TCEncoderBuffer *tc_get_ringbuffer(int aworkers, int vworkers);
-
-
 /*
  * MULTITHREADING NOTE:
  * It is *GUARANTEED SAFE* to call the following functions 
@@ -123,69 +87,8 @@ void tc_export_video_notify(void);
 
 /*************************************************************************/
 
+int tc_export_setup(vob_t *vob, TCFactory factory, TCRunControl RC);
 
-/*
- * MULTITHREADING WARNING:
- * It is in general *NOT SAFE* to call functions declared from here to the end
- * of the file
- * different threads. See comments below.
- */
-
-/*
- * tc_export_init:
- *      select a TCEncoderBuffer and a TCFactory to use for further
- *      operations. Both buffer and factory will be used until a new
- *      call to tc_export_init occurs.
- *      PLEASE NOTE: there NOT are sensible defaults, so client
- *      cose NEEDS to call this function as first one in code using
- *      encoder.
- *
- * Parameters:
- *      buffer: TCEncoderBuffer to use in future encoding loops.
- *     factory: TCFactory to use for future module (un)loading.
- * Return Value:
- *       0: succesfull
- *      !0: given one or more bad (NULL) value(s).
- */
-int tc_export_setup(vob_t *vob, TCFactory factory,
-                    TCEncoderBuffer *buffer, TCRunControl RC);
-
-/*
- * tc_export_setup:
- *      load export modules (encoders and multiplexor) using Module Factory
- *      selected via tc_export_init, checking if loaded modules are
- *      compatible with requested audio/video codec, and prepare for
- *      real encoding.
- *
- * Parameters:
- *     vob: pointer to vob_t.
- *          tc_export_setup need to fetch from a vob structure some informations
- *          needed by proper loading (es: module path).
- * Return Value:
- *      0: succesfull
- *     <0: failure: failed to load one or more requested modules,
- *         *OR* there is at least one incompatibility between requested
- *         modules and requested codecs.
- *         (i.e. audio encoder module VS requested audio codec)
- *         (i.e. video encoder module VS multiplexor module)
- * Preconditions:
- *      Module Factory avalaible and selected using tc_export_init.
- */
-
-
-/*
- * tc_export_shutdown:
- *      revert operations done by tc_export_setup, unloading encoder and
- *      multiplexor modules.
- *
- * Parameters:
- *      None.
- * Return Value:
- *      None.
- * Preconditions:
- *      tc_export_setup() was previously called. To call this function if
- *      tc_export_setup() wasn't called will cause undefined behaviour.
- */
 void tc_export_shutdown(void);
 
 
@@ -213,30 +116,28 @@ void tc_export_shutdown(void);
  *     rotate output file(s) every given amount of encoded frames.
  *
  * Parameters:
- *        vob: pointer to main vob_t structure.
  *     frames: maximum of frames that every output chunk should contain.
  * Return value:
  *     None.
  */
-void tc_export_rotation_limit_frames(vob_t *vob, uint32_t frames);
+void tc_export_rotation_limit_frames(uint32_t frames);
 
 /*
  * tc_export_rotation_limit_megabytes:
  *     rotate output file(s) after a given amount of data was encoded.
  *
  * Parameters:
- *           vob: pointer to main vob_t structure.
  *     megabytes: maximum size that every output chunk should have.
  * Return value:
  *     None.
  */
-void tc_export_rotation_limit_megabytes(vob_t *vob, uint32_t megabytes);
+void tc_export_rotation_limit_megabytes(uint32_t megabytes);
 
 
 /*************************************************************************/
 
 /*************************************************************************
- * main encoder API.
+ * main export API.
  *
  * There isn't explicit reference to encoder data structure,
  * so there always be one and only one global hidden encoder instance.
@@ -257,30 +158,26 @@ void tc_export_rotation_limit_megabytes(vob_t *vob, uint32_t megabytes);
  *     initialize the A/V encoders, by (re)configuring encoder modules.
  *
  * Parameters:
- *     vob: pointer to vob_t.
- *          tc_export_init need to fetch from a vob structure some informations
- *          needed by it's inizalitation.
+ *     None.
  * Return Value:
  *     -1: error configuring modules. Reason of error will be notified
  *         via tc_log*().
  *      0: succesfull.
  */
-int tc_export_init(vob_t *vob);
+int tc_export_init(void);
 
 /*
  * tc_export_open:
  *     open output file(s), by (re)configuring multiplexor module.
  *
  * Parameters:
- *     vob: pointer to vob_t.
- *          tc_export_open need to fetch from a vob structure some informations
- *          needed by it's inizalitation.
+ *     None.
  * Return Value:
  *     -1: error configuring module(s) or opening file(s). Reason of error will be
  *         notified via tc_log*().
  *      0: succesfull.
  */
-int tc_export_open(vob_t *vob);
+int tc_export_open(void);
 
 /*
  * tc_export_loop:
@@ -293,9 +190,6 @@ int tc_export_open(vob_t *vob);
  *      LAST frame in given range will NOT.
  *
  * Parameters:
- *         vob: pointer to a vob_t structure holding both informations about
- *              input streams and settings for output streams
- *              (i.e.: bitrate, GOP size...).
  * frame_first: sequence number of first frame in range to encode.
  *              All frames before this one will be acquired via
  *              TCEncoderBuffer routines, but will also be discarded.
@@ -311,7 +205,10 @@ int tc_export_open(vob_t *vob);
  *      tc_export_init() called succesfully;
  *      tc_export_open() called succesfully;
  */
-void tc_export_loop(vob_t *vob, int frame_first, int frame_last);
+void tc_export_loop(TCFrameSource *fs, int frame_first, int frame_last);
+
+int tc_export_frames(int frame_id,
+                     TCFrameVideo *vframe, TCFrameAudio *aframe);
 
 /*
  * tc_export_stop:
