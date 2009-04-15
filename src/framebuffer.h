@@ -529,6 +529,41 @@ void aframe_get_counters(int *im, int *fl, int *ex);
  */
 void tc_framebuffer_get_counters(int *im, int *fl, int *ex);
 
+/*************************************************************************
+ * FIXME
+ * A TCFrameSource structure, along with it's operations, incapsulate
+ * the actions needed by encoder to acquire and dispose a single A/V frame
+ * to encode.
+ *
+ * Main purpose of this structure is to help to modularize and cleanup
+ * encoder core code. Unfortunately, a propoer cleanup and refactoring isn't
+ * fully possible without heavily reviewing transcode's inner frame buffering
+ * and frame handling, but this task is really critical and should planned
+ * really carefully.
+ *
+ * The need of TCFrameSource also emerges given the actual frame buffer
+ * handling. TCFrameSource operations take care of hide the most part
+ * of nasty stuff needed by current structure (see comments in
+ * encoder-buffer.c).
+ *
+ * A proper reorganization of frame handling core code will GREATLY shrink,
+ * or even make completely unuseful, the whole TCFrameSource machinery.
+ */
+
+typedef struct tcframesource_ TCFrameSource;
+struct tcframesource_ {
+    void          *privdata;
+
+    vob_t         *vob;
+
+    TCFrameVideo* (*get_video_frame)(TCFrameSource *fs);
+    TCFrameAudio* (*get_audio_frame)(TCFrameSource *fs);
+    void          (*free_video_frame)(TCFrameSource *fs, TCFrameVideo *vf);
+    void          (*free_audio_frame)(TCFrameSource *fs, TCFrameAudio *af);
+};
+
+/*************************************************************************/
+
 /* Internal functions used in unit tests: */
 #ifdef FBUF_TEST
 typedef struct tcframequeue_ TCFrameQueue;
