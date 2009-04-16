@@ -138,135 +138,214 @@ uint32_t tc_get_frames_skipped_cloned(void)
 /* the export layer facade                                               */
 /*************************************************************************/
 
+typedef struct tcframepair_ TCFramePair;
+struct tcframepair_ {
+    TCFrameVideo    *video;
+    TCFrameAudio    *audio;
+};
+
 /*************************************************************************/
+/* Our data structure forward declaration                                */
+
+typedef struct tcexportdata_ TCExportData;
+
+/*************************************************************************/
+/* private function prototypes                                           */
+
+
+static int tc_export_skip(int frame_id,
+                          TCFrameVideo *vframe, TCFrameAudio *aframe,
+                          int out_of_range);
+
+/* misc helpers */
+static int need_stop(TCExportData *expdata);
+static int is_last_frame(TCExportData *expdata, int cluster_mode);
+static void export_update_formats(vob_t *vob,
+                                  const TCModuleInfo *vinfo,
+                                  const TCModuleInfo *ainfo);
+static int alloc_buffers(TCExportData *data);
+static void free_buffers(TCExportData *data);
+
+
+/*************************************************************************/
+/* real encoder code                                                     */
+
+
+struct tcexportdata_ {
+    /* flags, used internally */
+    int                 error_flag;
+    int                 fill_flag;
+
+    /* frame boundaries */
+    int                 frame_first;      // XXX
+    int                 frame_last;       // XXX
+    /* needed by encoder_skip */
+    int                 saved_frame_last; // XXX
+
+    int                 this_frame_last;  // XXX
+    int                 old_frame_last;   // XXX
+
+    int                 frame_id;
+    /* current frame identifier (both for A and V, yet) */
+
+    TCFramePair         input;
+    TCFramePair         priv;
+
+    TCFactory           factory;
+
+    TCEncoder           enc;
+    TCMultiplexor       mux;
+
+    TCModuleExtraData   vid_xdata;
+    TCModuleExtraData   aud_xdata;
+
+    int                 has_aux;
+};
+
+static TCExportData expdata;
+
+
+/*************************************************************************/
+/*
+ * is_last_frame:
+ *      check if current frame it's supposed to be the last one in
+ *      encoding frame range. Catch all all known special cases
+ * 
+ * Parameters:
+ *           expdata: fetch current frame id from this structure reference.
+ *      cluster_mode: boolean flag. When in cluster mode we need to take
+ *                    some special care.
+ * Return value:
+ *     !0: current frame is supposed to be the last one
+ *      0: otherwise
+ */
+static int is_last_frame(TCExportData *expdata,
+                         int frame_id, int cluster_mode)
+{
+    if (cluster_mode) {
+        frame_id -= tc_get_frames_dropped();
+    }
+
+    if ((expdata->input.video->attributes & TC_FRAME_IS_END_OF_STREAM
+      || expdata->input.audio->attributes & TC_FRAME_IS_END_OF_STREAM)) {
+        /* `consume' the flag(s) */
+        expdata->input.video->attributes &= ~TC_FRAME_IS_END_OF_STREAM;
+        expdata->input.audio->attributes &= ~TC_FRAME_IS_END_OF_STREAM;
+        return 1;
+    }
+    return (frame_id == expdata->frame_last);
+}
 
 /*
- * new encoder module design principles
- * 1) keep it simple, stupid
- * 2) to have more than one encoder doesn't make sense in transcode, so
- * 3) new encoder will be monothread, like the old one
+ * export_update_formats:
+ *      coerce exported formats to the default ones from the loaded
+ *      encoder modules IF AND ONLY IF user doesn't have requested
+ *      specific ones.
+ *
+ *      That's a temporary privaround until we have a full-NMS
+ *      export layer.
+ *
+ * Parameters:
+ *        vob: pointer to vob_t structure to update.
+ *      vinfo: pointer to TCModuleInfo of video encoder module.
+ *      ainfo: pointer to TCModuleInfo of audio encoder module.
+ * Return value:
+ *      None
+ */
+static void export_update_formats(vob_t *vob,
+                                  const TCModuleInfo *vinfo,
+                                  const TCModuleInfo *ainfo)
+{
+    if (vob == NULL || vinfo == NULL || ainfo == NULL) {
+        /* should never happen */
+        tc_log_error(__FILE__, "missing export formats references");
+    }
+    /* 
+     * OK, that's pretty hackish since export_attributes should
+     * go away in near future. Neverthless, ex_a_codec features
+     * a pretty unuseful default (CODEC_MP3), so we don't use
+     * such default value to safely distinguish between -N given
+     * or not given.
+     * And so we must use another flag, and export_attributes are
+     * the simplest things that priv, now/
+     */
+    if (!(vob->export_attributes & TC_EXPORT_ATTRIBUTE_VCODEC)) {
+        vob->ex_v_codec = vinfo->codecs_video_out[0];
+    }
+    if (!(vob->export_attributes & TC_EXPORT_ATTRIBUTE_ACODEC)) {
+        vob->ex_a_codec = ainfo->codecs_audio_out[0];
+    }
+}
+
+/*************************************************************************/
+
+static int alloc_buffers(TCExportData *data)
+{
+    data->priv.video = vframe_alloc_single();
+    if (data->priv.video == NULL) {
+        goto no_vframe;
+    }
+    data->priv.audio = aframe_alloc_single();
+    if (data->priv.audio == NULL) {
+        goto no_aframe;
+    }
+    return TC_OK;
+
+no_aframe:
+    tc_del_video_frame(data->priv.video);
+no_vframe:
+    return TC_ERROR;
+}
+
+static void free_buffers(TCExportData *data)
+{
+    tc_del_video_frame(data->priv.video);
+    tc_del_audio_frame(data->priv.audio);
+}
+
+/*
+ * NOTE about counter/condition/mutex handling inside various
+ * encoder helpers.
+ *
+ * Code are still a little bit confusing since things aren't
+ * updated or used at the same function level.
+ * Code privs, but isn't still well readable.
+ * We need stil more cleanup and refactoring for future releases.
  */
 
 
-void tc_export_rotation_limit_frames(vob_t *vob, uint32_t frames)
+/*
+ * dispatch the acquired frames to encoder modules, and adjust frame counters
+ */
+int tc_export_frames(int frame_id, TCFrameVideo *vframe, TCFrameAudio *aframe);
 {
-}
-
-void tc_export_rotation_limit_megabytes(vob_t *vob, uint32_t megabytes)
-{
-}
-
-
-int tc_export_setup(vob_t *vob, TCEncoderBuffer *buffer, TCFactory factory)
-{
-}
-
-void tc_export_shutdown(void)
-{
-}
-
-
-int tc_export_init(vob_t *vob)
-{
-}
-
-int tc_export_open(vob_t *vob)
-{
-}
-
-int tc_export_stop(void)
-{
-}
-
-int tc_export_close(void)
-{
-}
-
-
-void tc_export_loop(vob_t *vob, int frame_first, int frame_last)
-{
-    return tc_encoder_loop(vob, frame_first, frame_last);
-}
-
-/* ------------------------------------------------------------
- *
- * encoder close
- *
- * ------------------------------------------------------------*/
-
-/* ------------------------------------------------------------
- *
- * encoder open
- *
- * ------------------------------------------------------------*/
-
-int tc_encoder_open(vob_t *vob)
-{
-    int ret;
-    const char *options = NULL;
-
-    options = vob->ex_m_string ? vob->ex_m_string : "";
-    ret = tc_module_configure(encdata.mplex_mod, options, vob);
-    if (ret == TC_ERROR) {
-        tc_log_warn(__FILE__, "multiplexor module error: init failed");
-        return TC_ERROR;
-    }
-
-    // XXX
-    tc_module_pass_extradata(encdata.vid_mod, encdata.mplex_mod);
-
-    return TC_OK;
-}
-
-
-/* ------------------------------------------------------------
- *
- * encoder close
- *
- * ------------------------------------------------------------*/
-
-int tc_encoder_close(void)
-{
-    int ret;
-
-    /* old style code handle flushing in modules, not here */
-    ret = encoder_flush(&encdata);
+    int ret = tc_encoder_process(&expdata.enc,
+                                 data->input.video, data->priv.video,
+                                 data->input.audio, data->priv.audio);
     if (ret != TC_OK) {
-        tc_log_warn(__FILE__, "error while closing encoder: flush failed");
-        return TC_ERROR;
+        data->error_flag = 1;
+    } else {
+        ret = tc_multiplexor_export(&expdata.mux,
+                                    data->priv.video, data->priv.audio);
+
+        if (ret != TC_OK) {
+            data->error_flag = 1;
+        }
     }
 
-    ret = tc_module_stop(encdata.mplex_mod);
-    if (ret != TC_OK) {
-        tc_log_warn(__FILE__, "multiplexor module error: stop failed");
-        return TC_ERROR;
+    if (tc_progress_meter) {
+        int last = (data->frame_last == TC_FRAME_LAST)
+                        ?(-1) :data->frame_last;
+        if (!data->fill_flag) {
+            data->fill_flag = 1;
+        }
+        counter_print(1, frame_id, data->frame_first, last);
     }
 
-    tc_debug(TC_DEBUG_CLEANUP, "encoder closed");
-    return TC_OK;
+    tc_update_frames_encoded(1);
+    return (data->error_flag) ?TC_ERROR :TC_OK;
 }
 
-
-int tc_encoder_close(void)
-{
-    int ret;
-
-    /* old style code handle flushing in modules, not here */
-    ret = encoder_flush(&encdata);
-    if (ret != TC_OK) {
-        tc_log_warn(__FILE__, "error while closing encoder: flush failed");
-        return TC_ERROR;
-    }
-
-    ret = tc_module_stop(encdata.mplex_mod);
-    if (ret != TC_OK) {
-        tc_log_warn(__FILE__, "multiplexor module error: stop failed");
-        return TC_ERROR;
-    }
-
-    tc_debug(TC_DEBUG_CLEANUP, "encoder closed");
-    return TC_OK;
-}
 
 #define RETURN_IF_NOT_OK(RET, KIND) do { \
     if ((RET) != TC_OK) { \
@@ -275,43 +354,266 @@ int tc_encoder_close(void)
     } \
 } while (0)
 
-#define RETURN_IF_MUX_ERROR(BYTES) do { \
-    if ((BYTES) < 0) { \
-        tc_log_error(__FILE__, "error multiplexing final audio frame"); \
-        return TC_ERROR; \
-    } \
-} while (0)
-        
+/*************************************************************************/
 
-/* DO NOT rotate here, this data belongs to current chunk */
-static int encoder_flush(TCEncoderData *data)
+/*
+ * fake encoding, simply adjust frame counters.
+ */
+static int tc_export_skip(int frame_id,
+                          TCFrameVideo *vframe, TCFrameAudio *aframe,
+                          int out_of_range);
 {
-    int ret = TC_ERROR, bytes = 0;
+    if (tc_progress_meter) {
+        if (!data->fill_flag) {
+            data->fill_flag = 1;
+        }
+        if (out_of_range) {
+            counter_print(0, frame_id, data->saved_frame_last,
+                          data->frame_first-1);
+        } else { /* skipping from --frame_interval */
+            int last = (data->frame_last == TC_FRAME_LAST) ?(-1) :data->frame_last;
+            counter_print(1, frame_id, data->frame_first, last);
+        }
+    }
+    if (out_of_range) {
+        vframe->attributes |= TC_FRAME_IS_OUT_OF_RANGE;
+        aframe->attributes |= TC_FRAME_IS_OUT_OF_RANGE;
+    }
+}
 
-    do {
-        RESET_ATTRIBUTES(data->aenc_ptr);
-        ret = tc_module_encode_audio(data->aud_mod, NULL, data->aenc_ptr);
-        RETURN_IF_NOT_OK(ret, "audio");
+static int need_stop(TCExportData *expdata)
+{
+    return (!tc_running() || expdata->error_flag);
+}
 
-        bytes = tc_module_multiplex(data->mplex_mod, NULL, data->aenc_ptr);
-    } while (bytes != 0);
-    RETURN_IF_MUX_ERROR(bytes);
+static int get_frame_id(TCFramePair *input)
+{
+    return input->video->id + tc_get_frames_skipped_cloned();
+}
 
-    do {
-        RESET_ATTRIBUTES(data->venc_ptr);
-        ret = tc_module_encode_video(data->vid_mod, NULL, data->venc_ptr);
-        RETURN_IF_NOT_OK(ret, "video");
+void tc_export_loop(TCFrameSource *fs, int frame_first, int frame_last)
+{
+    int err  = 0;
+    int eos  = 0; /* End Of Stream flag */
+    int skip = 0; /* Frames to skip before next frame to encode */
 
-        bytes = tc_module_multiplex(data->mplex_mod, data->venc_ptr, NULL);
-    } while (bytes != 0);
-    RETURN_IF_MUX_ERROR(bytes);
+    if (verbose >= TC_DEBUG) {
+        tc_log_info(__FILE__,
+                    "encoder loop started [%i/%i)",
+                    frame_first, frame_last);
+    }
 
-    return TC_OK;
+    if (expdata.this_frame_last != frame_last) {
+        expdata.old_frame_last  = expdata.this_frame_last;
+        expdata.this_frame_last = frame_last;
+    }
+
+    expdata.error_flag  = 0; /* reset */
+    expdata.frame_first = frame_first;
+    expdata.frame_last  = frame_last;
+    expdata.saved_frame_last = expdata.old_frame_last;
+
+    while (!eos && !need_stop(&expdata)) {
+        /* stop here if pause requested */
+        tc_pause();
+
+        expdata.input.video = fs->get_video_frame(fs);
+        if (!expdata.input.video) {
+            tc_debug(TC_DEBUG_PRIVATE,
+                     "failed to acquire next raw video frame");
+            break; /* can't acquire video frame */
+        }
+
+        expdata.input.audio = fs->get_audio_frame(fs);
+        if (!expdata.input.audio) {
+            tc_debug(TC_DEBUG_PRIVATE,
+                     "failed to acquire next raw audio frame");
+            break;  /* can't acquire frame */
+        }
+
+        expdata.frame_id = get_frame_id(&expdata.input);
+
+        eos = is_last_frame(&expdata, tc_cluster_mode);
+
+        /* check frame id */
+        if (!eos && (frame_first <= frame_id && frame_id < frame_last)) {
+            if (skip > 0) { /* skip frame */
+                tc_export_skip(frame_id,
+                               expdata.input.video, expdata.input.audio, 0);
+                skip--;
+            } else { /* encode frame */
+                tc_export_frames(frame_id,
+                                 expdata.input.video, expdata.input.audio);
+                skip = vob->frame_interval - 1;
+            }
+        } else { /* frame not in range */
+            tc_export_skip(frame_id,
+                           expdata.input.video, expdata.input.audio, 1);
+        } /* frame processing loop */
+
+        /* release frame buffer memory */
+        fs->free_video_frame(fs, expdata.input.video);
+        fs->free_audio_frame(fs, expdata.input.audio);
+    }
+    /* main frame decoding loop */
+
+    if (eos) {
+        tc_debug(TC_DEBUG_CLEANUP,
+                 "encoder last frame finished (%i/%i)",
+                 frame_id, expdata.frame_last);
+    } 
+    tc_debug(TC_DEBUG_CLEANUP,
+             "export terminated - buffer(s) empty");
+    return;
 }
 
 
 
+/*
+ * new encoder module design principles
+ * 1) keep it simple, stupid
+ * 2) to have more than one encoder doesn't make sense in transcode, so
+ * 3) new encoder will be monothread, like the old one
+ */
 
+/* FIXME: uint32_t VS int */
+void tc_export_rotation_limit_frames(uint32_t frames)
+{
+    tc_multiplexor_limit_frames(&expdata.mux, frames);
+}
+
+void tc_export_rotation_limit_megabytes(uint32_t megabytes)
+{
+    tc_multiplexor_limit_megabytes(&expdata.mux, megabytes);
+}
+
+int tc_export_new(vob_t *vob, TCFactory factory, TCRunControl RC)
+{
+    tc_encoder_init(&expdata.enc, vob, factory);
+
+    tc_multiplexor_init(&expdata.mux, vob, factory);
+}
+
+int tc_export_del(void)
+{
+    tc_encoder_fini(&expdata.enc);
+    tc_multiplexor_fini(&expdata.mux);
+}
+
+int tc_export_setup(const char *a_mod, const char *v_mod, const char *m_mod)
+{
+    int match = 0;
+
+    expdata.has_aux = TC_FALSE;
+
+    tc_encoder_setup(&expdata.enc, v_mod, a_mod);
+
+    tc_multiplexor_setup(&expdata.mux, m_mod);
+
+    export_update_formats(vob, tc_module_get_info(expdata.enc.vid_mod),
+                               tc_module_get_info(expdata.enc.aud_mod));
+
+    match = tc_module_match(vob->ex_a_codec,
+                            expdata.enc.aud_mod, expdata.mod.mux_main);
+    if (!match) {
+        tc_log_error(__FILE__, "audio encoder incompatible "
+                               "with multiplexor");
+        return TC_ERROR;
+    }
+    match = tc_module_match(vob->ex_v_codec,
+                            expdata.enc.vid_mod, expdata.enc.mux_main);
+    if (!match) {
+        tc_log_error(__FILE__, "video encoder incompatible "
+                               "with multiplexor");
+        return TC_ERROR;
+    }
+    return TC_OK; 
+}
+
+int tc_export_setup_aux(const char *m_mod)
+{
+    int match = 0;
+
+    expdata.has_aux = TC_TRUE;
+
+    tc_multiplexor_setup_aux(&expdata.mux, m_mod);
+
+    match = tc_module_match(vob->ex_a_codec,
+                            expdata.enc.aud_mod, expdata.mod.mux_aux);
+    if (!match) {
+        tc_log_error(__FILE__, "audio encoder incompatible "
+                               "with multiplexor (aux)");
+        return TC_ERROR;
+    }
+    return TC_OK;
+}
+
+void tc_export_shutdown(void)
+{
+    tc_encoder_shutdown(&expdata.enc);
+    tc_multiplexor_shutdown(&expdata.mux);
+}
+
+
+int tc_export_init(void)
+{
+    int ret = alloc_buffers(&expdata);
+    if (ret != TC_OK) {
+        tc_log_error(__FILE__, "can't allocate encoder buffers");
+        return TC_ERROR;
+    }
+
+    return tc_encoder_open(&expdata.enc,
+                           &expdata.vid_xdata, &expdata.aud_xdata);
+}
+
+int tc_export_open(void)
+{
+    tc_multiplexor_open(&expdata.mux, vob->video_out_file,
+                        &expdata.vid_xdata,
+                        (expdata.has_aux) ?NULL :&expdata.aud_xdata);
+
+    if (expdata.has_aux) {
+        tc_multiplexor_open_aux(&expdata.mux, vob->audio_out_file,
+                                &expdata.aud_xdata);
+    }
+    return TC_OK;
+}
+
+int tc_export_stop(void)
+{
+    int ret = tc_encoder_close(&expdata.enc)
+    if (ret == TC_OK) {
+        free_buffers(&expdata);
+    }
+    return ret;
+}
+
+int tc_export_close(void)
+{
+    tc_export_flush();
+
+    return tc_multiplexor_close(&expdata.mux);
+}
+
+/* DO NOT rotate here, this data belongs to current chunk */
+int tc_export_flush(void)
+{
+    int ret = TC_ERROR, bytes = 0, has_more = TC_FALSE;
+
+    do {
+        ret = tc_encoder_flush(&expdata.enc,
+                               expdata.work.video, expdata.work.audio,
+                               &has_more);
+        RETURN_IF_NOT_OK(ret);
+
+        bytes = tc_multiplexor_write(&expdata.mux,
+                                     expdata.work.video, expdata.work.audio);
+    } while (has_more || bytes > 0);
+    RETURN_IF_MUX_ERROR(bytes);
+
+    return TC_OK;
+}
 
 /*************************************************************************/
 
