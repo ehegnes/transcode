@@ -87,9 +87,55 @@ void tc_export_video_notify(void);
 
 /*************************************************************************/
 
-int tc_export_setup(vob_t *vob, TCFactory factory, TCRunControl RC);
+int tc_export_new(vob_t *vob, TCFactory factory, TCRunControl RC);
 
+int tc_export_del(void);
+
+/*
+ * tc_export_setup:
+ *      load export modules (encoders and multiplexor) using Module Factory
+ *      selected via tc_export_init, checking if loaded modules are
+ *      compatible with requested audio/video codec, and prepare for
+ *      real encoding.
+ *
+ * Parameters:
+ *     vob: pointer to vob_t.
+ *          tc_export_setup need to fetch from a vob structure some informations
+ *          needed by proper loading (es: module path).
+ *   a_mod: name of audio encoder module to load.
+ *   v_mod: name of video encoder module to load.
+ *   m_mod: name of multiplexor module to load.
+ * Return Value:
+ *      0: succesfull
+ *     <0: failure: failed to load one or more requested modules,
+ *         *OR* there is at least one incompatibility between requested
+ *         modules and requested codecs.
+ *         (i.e. audio encoder module VS requested audio codec)
+ *         (i.e. video encoder module VS multiplexor module)
+ * Preconditions:
+ *      Module Factory avalaible and selected using tc_export_init.
+ */
+int tc_export_setup(const char *a_mod, const char *v_mod, const char *m_mod);
+
+int tc_export_setup_aux(const char *m_mod);
+
+
+/*
+ * tc_export_shutdown:
+ *      revert operations done by tc_export_setup, unloading encoder and
+ *      multiplexor modules.
+ *
+ * Parameters:
+ *      None.
+ * Return Value:
+ *      None.
+ * Preconditions:
+ *      tc_export_setup() was previously called. To call this function if
+ *      tc_export_setup() wasn't called will cause undefined behaviour.
+ */
 void tc_export_shutdown(void);
+
+
 
 
 /*************************************************************************
@@ -209,6 +255,8 @@ void tc_export_loop(TCFrameSource *fs, int frame_first, int frame_last);
 
 int tc_export_frames(int frame_id,
                      TCFrameVideo *vframe, TCFrameAudio *aframe);
+
+int tc_export_flush(void);
 
 /*
  * tc_export_stop:

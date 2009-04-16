@@ -117,11 +117,16 @@ int tc_multiplexor_open(TCMultiplexor *mux, const char *sink_name,
 int tc_multiplexor_open_aux(TCMultiplexor *mux, const char *sink_name,
                             TCModuleExtraData *aud_xdata);
 
+/* FIXME: how to deal with aux? */
 int tc_multiplexor_close(TCMultiplexor *mux);
 
-
+/* write and rotate if needed */
 int tc_multiplexor_export(TCMultiplexor *mux,
                           TCFrameVideo *vframe, TCFrameAudio *aframe);
+
+/* just write */
+int tc_multiplexor_write(TCMultiplexor *mux,
+                         TCFrameVideo *vframe, TCFrameAudio *aframe);
 
 /*************************************************************************/
 

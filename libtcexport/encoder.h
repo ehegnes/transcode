@@ -73,7 +73,8 @@ int tc_encoder_process(TCEncoder *enc,
                        TCFrameAudio *ain, TCFrameAudio *aout);
 
 int tc_encoder_flush(TCEncoder *enc,
-                     TCFrameVideo *vout, TCFrameAudio *aout);
+                     TCFrameVideo *vout, TCFrameAudio *aout,
+                     int *has_more);
 
 int tc_encoder_close(TCEncoder *enc);
 
