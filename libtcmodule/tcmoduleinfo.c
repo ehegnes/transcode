@@ -21,8 +21,9 @@
 
 #include <string.h>
 
-#include "src/transcode.h"
+#include "libtcutil/logging.h"
 
+#include "tcmodule-data.h"
 #include "tcmodule-info.h"
 
 

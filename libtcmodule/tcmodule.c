@@ -33,8 +33,6 @@
 
 #include "libtc/tccodecs.h"
 
-#include "src/transcode.h"
-
 #include "tcmodule-data.h"
 #include "tcmodule-core.h"
 #include "tcmodule-plugin.h"
@@ -59,26 +57,26 @@ typedef enum {
 
 typedef struct tcmoduledescriptor_ TCModuleDescriptor;
 struct tcmoduledescriptor_ {
-    const char *type;       /* packed class + name using make_modtype below */
-    void *so_handle;        /* used by dl*() stuff */
-    TCHandleStatus status;
-    TCModuleInfo info;
+    const char      *type;      /* packed class + name using make_modtype below */
+    void            *so_handle; /* used by dl*() stuff */
+    TCHandleStatus  status;
+    TCModuleInfo    info;
 
     /* main copy of module class data.
      * all instance pointers will refer to this. */
-    TCModuleClass klass;
+    TCModuleClass   klass;
 
-    int ref_count;           /* how many instances are floating around? */
+    int             ref_count;  /* how many instances are floating around? */
 };
 
 struct tcfactory_ {
-    const char *mod_path;   /* base directory for plugin search */
-    int verbose;
+    const char          *mod_path;   /* base directory for plugin search */
+    int                 verbose;
 
-    TCModuleDescriptor descriptors[TC_FACTORY_MAX_HANDLERS];
-    int descriptor_count;
+    TCModuleDescriptor  descriptors[TC_FACTORY_MAX_HANDLERS];
+    int                 descriptor_count;
 
-    int instance_count;
+    int                 instance_count;
 };
 
 /*************************************************************************
@@ -108,7 +106,8 @@ static int void_fini(TCModuleInstance *self)
 }
 
 static int void_configure(TCModuleInstance *self,
-                            const char *options, vob_t *vob)
+                          const char *options, vob_t *vob,
+                          TCModuleExtraData *xdata[])
 {
     METHOD_CHECK(self, "configuration");
     return TC_ERROR;
@@ -140,7 +139,8 @@ static int void_inspect(TCModuleInstance *self,
 
 
 static int void_open(TCModuleInstance *self,
-                      const char *filename)
+                     const char *filename,
+                     TCModuleExtraData *xdata[]);
 {
     TC_MODULE_SELF_CHECK(self,     "open");
     TC_MODULE_SELF_CHECK(filename, "open");

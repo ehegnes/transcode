@@ -59,9 +59,10 @@ struct tcmodule_ {
 __attribute__((unused))
 #endif
 static int tc_module_configure(TCModule handle,
-                               const char *options, vob_t *vob)
+                               const char *options, TCJob *vob,
+                               TCModuleExtraData *xdata[])
 {
-    return handle->klass->configure(&(handle->instance), options, vob);
+    return handle->klass->configure(&(handle->instance), options, vob, xdata);
 }
 
 #ifdef HAVE_GCC_ATTRIBUTES
@@ -146,9 +147,10 @@ static int tc_module_filter_audio(TCModule handle,
 #ifdef HAVE_GCC_ATTRIBUTES
 __attribute__((unused))
 #endif
-static int tc_module_open(TCModule handle, const char *filename)
+static int tc_module_open(TCModule handle, const char *filename,
+                          TCModuleExtraData *xdata[]);
 {
-    return handle->klass->open(&(handle->instance), filename);
+    return handle->klass->open(&(handle->instance), filename, xdata);
 }
 
 #ifdef HAVE_GCC_ATTRIBUTES
