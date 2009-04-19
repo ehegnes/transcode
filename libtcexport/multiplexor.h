@@ -57,13 +57,24 @@ typedef struct tcrotatecontext_ TCRotateContext;
 
 typedef struct tcmultiplexor_ TCMultiplexor;
 struct tcmultiplexor_ {
-    vob_t           *vob;
-    TCFactory       factory;
+    vob_t           	*vob;
+    TCFactory       	factory;
 
-    TCModule        mux_main;
-    TCModule        mux_aux;
+    int                 has_aux;
 
-    TCRotateContext *rotor_data;
+    TCModule        	mux_main;
+    TCModule        	mux_aux;
+
+    TCRotateContext 	*rotor;
+    TCRotateContext 	*rotor_aux;
+
+    TCModuleExtraData	*vid_xdata;
+    TCModuleExtraData 	*aud_xdata;
+
+    int (*open)(TCMultiplexor *mux);
+    int (*close)(TCMultiplexor *mux);
+    int (*write)(TCMultiplexor *mux,
+                 TCFrameVideo *vframe, TCFrameAudio *aframe);
 };
 
 
@@ -105,19 +116,18 @@ int tc_multiplexor_init(TCMultiplexor *mux, vob_t *vob, TCFactory factory);
 
 int tc_multiplexor_fini(TCMultiplexor *mux);
 
-int tc_multiplexor_setup(TCMultiplexor *mux, const char *mux_mod_name);
-int tc_multiplexor_setup_aux(TCMultiplexor *mux, const char *mux_mod_name);
+int tc_multiplexor_setup(TCMultiplexor *mux,
+                         const char *mux_mod_name,
+                         const char *mux_mod_name_aux);
 
 int tc_multiplexor_shutdown(TCMultiplexor *mux);
 
-int tc_multiplexor_open(TCMultiplexor *mux, const char *sink_name,
+int tc_multiplexor_open(TCMultiplexor *mux,
+                        const char *sink_name,
+                        const char *sink_name_aux,
                         TCModuleExtraData *vid_xdata,
                         TCModuleExtraData *aud_xdata);
 
-int tc_multiplexor_open_aux(TCMultiplexor *mux, const char *sink_name,
-                            TCModuleExtraData *aud_xdata);
-
-/* FIXME: how to deal with aux? */
 int tc_multiplexor_close(TCMultiplexor *mux);
 
 /* write and rotate if needed */
