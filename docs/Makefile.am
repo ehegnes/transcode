@@ -12,6 +12,7 @@ EXTRA_DIST = \
 SUBDIRS = \
 	man \
 	html \
+	pvm3 \
 	tech
 
 docsdir = $(datadir)/doc/transcode

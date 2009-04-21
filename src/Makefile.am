@@ -40,6 +40,7 @@ EXTRA_DIST = \
 	dl_loader.h \
 	encoder.h \
 	encoder-common.h \
+	export_profile.h \
 	filter.h \
 	frame_threads.h \
 	framebuffer.h \
@@ -47,6 +48,7 @@ EXTRA_DIST = \
 	socket.h \
 	split.h \
 	tc_defaults.h \
+	tcinfo.h \
 	transcode.h \
 	video_trans.h 
 

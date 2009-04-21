@@ -248,7 +248,9 @@ EXTRA_DIST = \
 	putvlc.h \
 	getvlc.h \
 	tc.h \
-	probe_stream.h
+	probe_stream.h \
+	w32dll.h \
+	x11source.h 
 
 if ENABLE_DEPRECATED
 TCREQUANT = tcrequant

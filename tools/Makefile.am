@@ -151,3 +151,5 @@ tcyait_SOURCES = \
 tcyait_LDADD = \
 	-lm
 
+EXTRA_DIST = \
+        tcstub.h 

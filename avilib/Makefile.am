@@ -16,13 +16,16 @@ endif
 
 libavi_la_SOURCES = \
 	$(PLATFORM) \
+	platform.h \
 	avidump.c \
 	avilib.c \
-	avilib.h
+	avilib.h \
+	static_avilib.h
 
 libwav_la_SOURCES = \
 	$(PLATFORM) \
 	wavlib.c \
-	wavlib.h
+	wavlib.h \
+	static_wavlib.h
 
 EXTRA_DIST = README.avilib

@@ -51,6 +51,7 @@ EXTRA_DIST = \
 	static_tclist.h \
 	static_tctimer.h \
 	tc_lzo.h \
+	tcavcodec.h \
 	tccodecs.h \
 	tcformats.h \
 	tcframes.h \
@@ -62,4 +63,3 @@ EXTRA_DIST = \
 	tcmodule-plugin.h \
 	tctimer.h \
 	xio.h
-
