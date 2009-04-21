@@ -21,3 +21,6 @@ filter_stabilize_la_LDFLAGS = -module -avoid-version
 filter_transform_la_SOURCES = filter_transform.c transform.c
 filter_transform_la_LDFLAGS = -module -avoid-version
 
+EXTRA_DIST = \
+        transform.h 
+        
