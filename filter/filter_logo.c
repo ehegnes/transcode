@@ -25,13 +25,13 @@
  *
  */
 
-/* BIG FIXMEs:
+/* TODO:
+    - docs
+    - REtesting
+    - sequences of jpgs maybe would be nice.
+   BIG FIXMEs:
    - allocation helpers (don't reinvent a square wheel over and over again
    - check for any resource leak
- */
-  
-/* TODO:
-    - sequences of jpgs maybe would be nice.
 */
 
 #define MOD_NAME    "filter_logo.so"
@@ -77,7 +77,7 @@ typedef struct logoprivatedata_ LogoPrivateData;
 typedef struct workitem_ WorkItem;
 
 typedef int (*RenderLogoFn)(LogoPrivateData *pd,
-                             const WorkItem *W, TCFrameVideo *frame);
+                            const WorkItem *W, TCFrameVideo *frame);
 
 struct workitem_ {
     PixelPacket *pixels;
@@ -245,6 +245,7 @@ static int flogo_convert_image(TCVHandle    tcvhandle,
 
     for (row = 0; row < height; row++) {
         for (col = 0; col < width; col++) {
+            /* FIXME */
             *(dst_ptr + r_off) = (uint8_t)ScaleQuantumToChar(pixels->red);
             *(dst_ptr + g_off) = (uint8_t)ScaleQuantumToChar(pixels->green);
             *(dst_ptr + b_off) = (uint8_t)ScaleQuantumToChar(pixels->blue);

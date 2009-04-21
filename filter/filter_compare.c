@@ -34,6 +34,10 @@
 #include "libtcext/tc_magick.h"
 #include "libtcmodule/tcmodule-plugin.h"
 
+/* TODO:
+   - docs
+   - REtesting
+ */
 
 #define MOD_NAME    "filter_compare.so"
 #define MOD_VERSION "v0.2.0 (2009-03-06)"
@@ -50,8 +54,6 @@
 #define DEFAULT_COMPARE_IMG    "compare.png"
 #define DEFAULT_RESULTS_LOG    "compare.log"
 
-
-// FIXME: Implement the YUV colorspace support.
 
 typedef struct pixelsmask_ PixelsMask;
 struct pixelsmask_ {
@@ -86,8 +88,8 @@ struct comparedata_ {
     int             rgbswap;
     char            conf_str[TC_BUF_MIN];
 
-    /* the following are used only during setup routines;
-     * so, before and after they point to NULL 
+    /* the following are used only during setup routines.
+     * before and after thet, they point to NULL.
      */
     char            *pattern_name;
     char            *results_name;

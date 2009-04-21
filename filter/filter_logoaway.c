@@ -24,6 +24,13 @@
  *
  */
 
+/* TODO:
+ - reSTYLE
+ - docs
+ - retesting
+ */
+ 
+
 #define MOD_NAME    "filter_logoaway.so"
 #define MOD_VERSION "v0.6.0 (2009-02-24)"
 #define MOD_CAP     "remove an image from the video"
