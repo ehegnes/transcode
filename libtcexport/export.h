@@ -23,10 +23,9 @@
  *
  */
 
-#include "transcode.h"
-#include "runcontrol.h"
-#include "framebuffer.h"
-
+#include "src/tcjob.h"
+#include "src/runcontrol.h"
+#include "libtc/tcframes.h"
 #include "libtcmodule/tcmodule-core.h"
 
 
@@ -87,7 +86,8 @@ void tc_export_video_notify(void);
 
 /*************************************************************************/
 
-int tc_export_new(vob_t *vob, TCFactory factory, TCRunControl RC);
+/* it's a singleton, so we recycle the new/del pair... improperly */
+int tc_export_new(TCJob *vob, TCFactory factory, TCRunControl RC);
 
 int tc_export_del(void);
 
@@ -99,8 +99,8 @@ int tc_export_del(void);
  *      real encoding.
  *
  * Parameters:
- *     vob: pointer to vob_t.
- *          tc_export_setup need to fetch from a vob structure some informations
+ *     vob: pointer to TCJob.
+ *          tc_export_setup need to fetch from a TCJob structure some informations
  *          needed by proper loading (es: module path).
  *   a_mod: name of audio encoder module to load.
  *   v_mod: name of video encoder module to load.
