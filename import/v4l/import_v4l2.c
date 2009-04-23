@@ -79,10 +79,6 @@ static int capability_flag  = TC_CAP_RGB|TC_CAP_YUV|TC_CAP_YUV422|TC_CAP_PCM;
  *%*     to get a list of supported conversions.
  *%*
  *%* OPTION
- *%*   format (integer)
- *%*     forces video frames convertion by using index; use -1 to get a list of supported conversions.
- *%*
- *%* OPTION
  *%*   format (string)
  *%*     forces output format to given one; use "list" to get a list of supported formats.
  *%*
