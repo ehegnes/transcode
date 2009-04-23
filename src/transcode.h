@@ -43,11 +43,12 @@
 
 #include "aclib/ac.h"
 
-#include "tc_defaults.h"
-#include "framebuffer.h"
 #include "libtc/libtc.h"
 
-#include "tcjob.h"
+#include "tccore/tc_defaults.h"
+#include "tccore/tcjob.h"
+
+#include "framebuffer.h"
 
 /*************************************************************************/
 

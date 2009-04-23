@@ -11,9 +11,7 @@
 #ifndef TCINFO_H
 #define TCINFO_H
 
-#ifndef PROBE_H
-# include "probe.h"  // for ProbeInfo
-#endif
+#include "probe.h"  // for ProbeInfo
 
 /*************************************************************************/
 
