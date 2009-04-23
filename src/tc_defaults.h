@@ -55,13 +55,6 @@
 #define RC_REACTION_PERIOD    10
 #define RC_REACTION_RATIO     20
 
-// Divx5 VBV (Video Bitrate Verifier)
-// Home theatre profile and settings
-#define DIVX5_VBV_PROFILE                 3
-#define DIVX5_VBV_BITRATE     (4000000/400)
-#define DIVX5_VBV_SIZE      (3145728/16384)
-#define DIVX5_VBV_OCCUPANCY    (2359296/64)
-
 //----------------------------------
 
 #define ABITRATE       128
