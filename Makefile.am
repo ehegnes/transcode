@@ -28,6 +28,7 @@ SUBDIRS = \
 	multiplex \
 	$(PVM3) \
 	src \
+	tccore \
 	testsuite \
 	tools \
 	docs

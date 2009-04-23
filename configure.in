@@ -1444,6 +1444,7 @@ AC_CONFIG_FILES([
 	libtcvideo/Makefile
 	pvm3/Makefile
 	src/Makefile
+	tccore/Makefile
 	testsuite/Makefile
 	tools/Makefile
 	transcode.spec
