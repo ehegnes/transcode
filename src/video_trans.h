@@ -18,9 +18,9 @@
 
 /* Video frame processing functions. */
 
-int process_vid_frame(vob_t *vob, vframe_list_t *ptr);
-int preprocess_vid_frame(vob_t *vob, vframe_list_t *ptr);
-int postprocess_vid_frame(vob_t *vob, vframe_list_t *ptr);
+int process_vid_frame(TCJob *vob, TCFrameVideo *ptr);
+int preprocess_vid_frame(TCJob *vob, TCFrameVideo *ptr);
+int postprocess_vid_frame(TCJob *vob, TCFrameVideo *ptr);
 
 /*************************************************************************/
 

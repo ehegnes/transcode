@@ -30,7 +30,7 @@
 #include <stdint.h>
 
 #include "libtc/tcframes.h"
-#include "tc_defaults.h"
+#include "tccore/tc_defaults.h"
 
 
 /*************************************************************************
@@ -212,13 +212,13 @@ int aframe_alloc(int num);
  * Parameters:
  *      None.
  * Return Value:
- *      respectively a pointer to a vframe_list_t or aframe_list_t,
+ *      respectively a pointer to a TCFrameVideo or TCFrameAudio,
  *      like, tc_new_video_frame() or tc_new_audio_frame() called
  *      with right parameters.
  *      NULL if allocation fails.
  */
-vframe_list_t *vframe_alloc_single(void);
-aframe_list_t *aframe_alloc_single(void);
+TCFrameVideo *vframe_alloc_single(void);
+TCFrameAudio *aframe_alloc_single(void);
 
 /*
  * vframe_free, aframe_free: (NOT thread safe)
@@ -289,8 +289,8 @@ void tc_framebuffer_flush(void);
  *     calling thread until a new frame will be avalaible, OR
  *     until an interruption happens.
  */
-vframe_list_t *vframe_register(int id);
-aframe_list_t *aframe_register(int id);
+TCFrameVideo *vframe_register(int id);
+TCFrameAudio *aframe_register(int id);
 
 /*
  * vframe_reserve, aframe_reserve: (thread safe)
@@ -320,8 +320,8 @@ aframe_list_t *aframe_register(int id);
  *     calling thread until a new frame will be avalaible, OR
  *     until an interruption happens.
  */
-vframe_list_t *vframe_reserve(void);
-aframe_list_t *aframe_reserve(void);
+TCFrameVideo *vframe_reserve(void);
+TCFrameAudio *aframe_reserve(void);
 
 /*
  * vframe_retrieve, aframe_retrieve: (thread safe)
@@ -351,8 +351,8 @@ aframe_list_t *aframe_reserve(void);
  *     calling thread until a new frame will be avalaible, OR
  *     until an interruption happens.
  */
-vframe_list_t *vframe_retrieve(void);
-aframe_list_t *aframe_retrieve(void);
+TCFrameVideo *vframe_retrieve(void);
+TCFrameAudio *aframe_retrieve(void);
 
 /*
  * vframe_remove, aframe_remove: (thread safe)
@@ -371,8 +371,8 @@ aframe_list_t *aframe_retrieve(void);
  * Return Value:
  *     None.
  */
-void vframe_remove(vframe_list_t *ptr);
-void aframe_remove(aframe_list_t *ptr);
+void vframe_remove(TCFrameVideo *ptr);
+void aframe_remove(TCFrameAudio *ptr);
 
 /*
  * vframe_reinject, aframe_reinject: (thread safe)
@@ -391,8 +391,8 @@ void aframe_remove(aframe_list_t *ptr);
  * Return Value:
  *     None.
  */
-void aframe_reinject(aframe_list_t *ptr);
-void vframe_reinject(vframe_list_t *ptr);
+void aframe_reinject(TCFrameAudio *ptr);
+void vframe_reinject(TCFrameVideo *ptr);
 
 /*
  * vframe_push_next, aframe_push_next: (thread safe)
@@ -414,8 +414,8 @@ void vframe_reinject(vframe_list_t *ptr);
  *     A blocked thread can (and it will likely) be awaken
  *     by this operation.
  */
-void vframe_push_next(vframe_list_t *ptr, TCFrameStatus status);
-void aframe_push_next(aframe_list_t *ptr, TCFrameStatus status);
+void vframe_push_next(TCFrameVideo *ptr, TCFrameStatus status);
+void aframe_push_next(TCFrameAudio *ptr, TCFrameStatus status);
 
 /*
  * vframe_dup, aframe_dup: (thread safe)
@@ -435,8 +435,8 @@ void aframe_push_next(aframe_list_t *ptr, TCFrameStatus status);
  *     calling thread until a new frame will be avalaible, OR
  *     until an interruption happens.
  */
-vframe_list_t *vframe_dup(vframe_list_t *f);
-aframe_list_t *aframe_dup(aframe_list_t *f);
+TCFrameVideo *vframe_dup(TCFrameVideo *f);
+TCFrameAudio *aframe_dup(TCFrameAudio *f);
 
 /*
  * vframe_copy, aframe_copy (thread safe)
@@ -459,8 +459,8 @@ aframe_list_t *aframe_dup(aframe_list_t *f);
  * Return Value:
  *     None.
  */
-void vframe_copy(vframe_list_t *dst, const vframe_list_t *src, int copy_data);
-void aframe_copy(aframe_list_t *dst, const aframe_list_t *src, int copy_data);
+void vframe_copy(TCFrameVideo *dst, const TCFrameVideo *src, int copy_data);
+void aframe_copy(TCFrameAudio *dst, const TCFrameAudio *src, int copy_data);
 
 /*
  * vframe_dump_status, aframe_dump_status: (NOT thread safe)

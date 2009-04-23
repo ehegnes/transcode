@@ -26,6 +26,8 @@
 #ifndef DECODER_H
 #define DECODER_H
 
+#include "tccore/tcjob.h"
+
 /*
  * tc_import_init (NOT thread safe):
  * prepare import layer for execution, by loading import modules,
