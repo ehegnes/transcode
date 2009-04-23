@@ -22,8 +22,8 @@
 #ifndef EXPORT_PROFILE_H
 #define EXPORT_PROFILE_H
 
-#include "transcode.h"
-#include "tcinfo.h"
+#include "src/tcinfo.h"
+#include "src/tcjob.h"
 
 /*
  * GENERAL WARNING: none of those functions
@@ -111,6 +111,6 @@ const TCExportInfo *tc_load_export_profile(void);
  * Side effects:
  *      tc_log*() is used internally.
  */
-void tc_export_profile_to_vob(const TCExportInfo *info, vob_t *vob);
+void tc_export_profile_to_job(const TCExportInfo *info, TCJob *vob);
 
 #endif /* EXPORT_PROFILE_H */

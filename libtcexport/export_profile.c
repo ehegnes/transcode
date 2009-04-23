@@ -317,7 +317,7 @@ const TCExportInfo *tc_load_export_profile(void)
 }
 
 /* it's pretty naif yet. FR */
-void tc_export_profile_to_vob(const TCExportInfo *info, vob_t *vob)
+void tc_export_profile_to_job(const TCExportInfo *info, TCJob *vob)
 {
     if (info == NULL || vob == NULL) {
         return;
