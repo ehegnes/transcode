@@ -1266,14 +1266,17 @@ TC_OPTION(filter,             'J', "f1[,f2...]",
                 int newlen;
                 if (*optarg == '-')
                     goto short_usage;
-                newlen = size_plugstr + 1 + strlen(optarg) + 1;  // , and \0
+                newlen = size_plugstr + strlen(optarg) + 1;  // \0
+                if (size_plugstr) // it's an append...
+                    newlen++; // ... so add the and ',' separator
                 plugins_string = tc_realloc(plugins_string, newlen);
                 if (!plugins_string)
                     return 0;
                 snprintf(plugins_string + size_plugstr,
                          newlen - size_plugstr,
                          "%s%s", size_plugstr ? "," : "", optarg);
-                size_plugstr = newlen;
+                size_plugstr = newlen - 1;
+                // cut the \0 for the next append (if any)
 )
 TC_OPTION(quality,            'Q', "enc[,dec]",
                 "encoding[,decoding] quality (0=fastest-5=best) [5,5]",
