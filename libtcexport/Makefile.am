@@ -13,10 +13,12 @@ noinst_LTLIBRARIES = libtcexport.la
 libtcexport_la_SOURCES = \
 	encoder.c \
 	export.c \
+	export_profile.c \
 	multiplexor.c
 
 EXTRA_DIST = \
 	encoder.h \
 	export.h \
+	export_profile.h \
 	multiplexor.h
 
