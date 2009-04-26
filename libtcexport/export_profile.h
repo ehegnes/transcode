@@ -22,16 +22,41 @@
 #ifndef EXPORT_PROFILE_H
 #define EXPORT_PROFILE_H
 
-#include "src/tcinfo.h"
-#include "src/tcjob.h"
+#include "tccore/tcinfo.h"
+#include "tccore/tcjob.h"
+
+/*************************************************************************
+ * GENERAL WARNING: none of those functions                              *
+ * are intended to be thread-safe                                        *
+ *************************************************************************/
 
 /*
- * GENERAL WARNING: none of those functions
- * are intended to be thread-safe
+ * tc_export_profile_init:
+ *     initialize the export profile support. You need to call this
+ *     function before any *setup* or *load* function.
+ *
+ * Parameters:
+ *     None
+ * Return Value:
+ *     TC_OK if succesfull,
+ *     TC_ERROR otherwise.
  */
+int tc_export_profile_init(void);
 
 /*
- * tc_setup_export_profile:
+ * tc_export_profile_fini:
+ *     finalize the export profile support.
+ *
+ * Parameters:
+ *     None
+ * Return Value:
+ *     TC_OK if succesfull,
+ *     TC_ERROR otherwise.
+ */
+int tc_export_profile_fini(void);
+
+/*
+ * tc_export_profile_setup_from_cmdline:
  *     determine the export profile(s) to load later, by extracting
  *     informations by command line options (argc\argv).
  *     In more detail, this function handles '--export_prof PROFILE'
@@ -59,29 +84,29 @@
  *     argc != NULL
  *     argv != NULL
  */
-int tc_setup_export_profile(int *argc, char ***argv);
+int tc_export_profile_setup_from_cmdline(int *argc, char ***argv);
 
 /*
- * tc_setup_export_profile:
- *      release all resources acquired by tc_setup_export_profile.
+ * tc_export_profile_cleanup:
+ *      release all resources acquired by tc_export_profile_setup_from_*.
  *
  * Parameters:
  *      None.
  * Return vaule:
  *      None
  */
-void tc_cleanup_export_profile(void);
+void tc_export_profile_cleanup(void);
 
 /*
- * tc_load_export_profile:
+ * tc_export_profile_load_all:
  *      sequentially load all profiles recognized using
- *      tc_setup_export_profile, so if two or more profile specifies
+ *      tc_export_profile_setup_from_cmdline, so if two or more profile specifies
  *      a value for an option, the later will prevail.
  *
  * Parameters:
  *      None
  * Return value:
- *      if succesfull, return a pointer to a TCEXportInfo structure
+ *      if succesfull, return a pointer to a TCExportInfo structure
  *      intialized with sensible defaults and containing the values
  *      set by loaded profile(s). There is no need to free() returned
  *      structure, it's handled internally.
@@ -93,19 +118,43 @@ void tc_cleanup_export_profile(void);
  *      if verbose value is >= TC_INFO, tc_log out every loaded
  *      profile.
  */
-const TCExportInfo *tc_load_export_profile(void);
+const TCExportInfo *tc_export_profile_load_all(void);
 
 /*
- * tc_export_profile_to_vob:
+ * tc_export_profile_load_single:
+ *      load an export profile by name. The specified profile will be searched
+ *      into the transcode profile directory firstsequentially load all profiles recognized using
+ *      tc_export_profile_setup_from_cmdline, so if two or more profile specifies
+ *      a value for an option, the later will prevail.
+ *
+ * Parameters:
+ *      name: name (NOT fully qualified!) of the profile to load.
+ * Return value:
+ *      if succesfull, return a pointer to a TCExportInfo structure
+ *      intialized with sensible defaults and containing the values
+ *      set by loaded profile(s). There is no need to free() returned
+ *      structure, it's handled internally.
+ *      If an error happens, return NULL, and tc_log*() reason
+ *      (see side effects below).
+ * Side effects:
+ *      if verbose value is >= TC_DEBUG *AND* a profile can
+ *      be loaded, tc_log'd out the unavalaible profile.
+ *      if verbose value is >= TC_INFO, tc_log out every loaded
+ *      profile.
+ */
+const TCExportInfo *tc_export_profile_load_single(const char *name);
+
+/*
+ * tc_export_profile_to_job:
  *      translate values stored in a TCExportInfo structure into
- *      a vob_t structure, doing the needed adaptations.
+ *      a TCJob structure, doing the needed adaptations.
  *      This function ignore bad (or unreproducible, even if it's
  *      very unlikely) values/combination sotre in TCExportInfo
  *      structures reporting errors using tc_log*.
  *
  * Parameters:
  *      info: pointer to TCExportInfo to translate
- *       vob: pointer to vob_t storing translated values.
+ *       vob: pointer to TCJob storing translated values.
  * Return value:
  *      None
  * Side effects:
@@ -114,3 +163,4 @@ const TCExportInfo *tc_load_export_profile(void);
 void tc_export_profile_to_job(const TCExportInfo *info, TCJob *vob);
 
 #endif /* EXPORT_PROFILE_H */
+

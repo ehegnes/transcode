@@ -38,19 +38,21 @@
 
 /* all needed support variables/data packed in a nice structure */
 typedef struct tcexportprofile_ TCExportProfile;
-
 struct tcexportprofile_ {
-    size_t profile_count;
-    char  **profiles;
+    size_t          profile_count;
+    char            **profiles;
 
-    TCExportInfo info;
+    TCExportInfo    info;
 
     /* auxiliary variables */
-    const char *video_codec;
-    const char *audio_codec;
+    const char      *video_codec;
+    const char      *audio_codec;
 
-    const char *pre_clip_area;
-    const char *post_clip_area;
+    const char      *pre_clip_area;
+    const char      *post_clip_area;
+
+    char            home_path[PATH_MAX + 1];
+    int             inited;
 };
 
 #define CLIP_AREA_INIT  { 0, 0, 0, 0 }
@@ -59,71 +61,83 @@ struct tcexportprofile_ {
 const char *package = __FILE__;
 
 static TCExportProfile prof_data = {
-    .profile_count = 0,
-    .profiles = NULL,
+    .inited                             = TC_FALSE,
+    .profile_count                      = 0,
+    .profiles                           = NULL,
 
-    .video_codec = NULL,
-    .audio_codec = NULL,
-    .pre_clip_area = NULL,
-    .post_clip_area = NULL,
+    .video_codec                        = NULL,
+    .audio_codec                        = NULL,
+    .pre_clip_area                      = NULL,
+    .post_clip_area                     = NULL,
 
     /*
      * we need to take care of strings deallocating
      * them between tc_config_read_file() calls, to
      * avoid memleaks, so we use NULL marking here.
      */
-    .info.video.string = NULL,
-    .info.video.module = NULL,
-    .info.video.module_opts = NULL,
-    .info.video.log_file = NULL,
+    .info.video.log_file                = NULL,
+    .info.video.module = {
+        .parm = NULL,
+        .name = NULL,
+        .opts = NULL,
+    },
 
-    .info.audio.string = NULL,
-    .info.audio.module = NULL,
-    .info.audio.module_opts = NULL,
+    .info.audio.module = {
+        .parm = NULL,
+        .name = NULL,
+        .opts = NULL,
+    },
 
-    .info.mplex.string = NULL,
-    .info.mplex.module = NULL,
-    .info.mplex.module_opts = NULL,
-    .info.mplex.out_file = NULL,
-    .info.mplex.out_file_aux = NULL,
+    .info.mplex.out_file                = NULL,
+    .info.mplex.out_file_aux            = NULL,
+    .info.mplex.module = {              = NULL,
+        .parm = NULL,
+        .name = NULL,
+        .opts = NULL,
+    },
+    .info.mplex.module_aux = {
+        .parm = NULL,
+        .name = NULL,
+        .opts = NULL,
+    },
 
     /* standard initialization */
-    .info.video.width = PAL_W,
-    .info.video.height = PAL_H,
-    .info.video.keep_asr_flag = TC_FALSE,
-    .info.video.fast_resize_flag = TC_FALSE,
-    .info.video.zoom_interlaced_flag = TC_FALSE,
-    .info.video.pre_clip = CLIP_AREA_INIT,
-    .info.video.post_clip = CLIP_AREA_INIT,
-    .info.video.frc = 3, // XXX (magic number)
-    .info.video.asr = -1, // XXX
-    .info.video.par = 0,
-    .info.video.encode_fields = TC_ENCODE_FIELDS_PROGRESSIVE,
-    .info.video.gop_size = VKEYFRAMES,
-    .info.video.quantizer_min = VMINQUANTIZER,
-    .info.video.quantizer_max = VMAXQUANTIZER,
-    .info.video.format = TC_CODEC_ERROR,
-    .info.video.quality = -1,
-    .info.video.bitrate = VBITRATE,
-    .info.video.bitrate_max = VBITRATE,
-    .info.video.pass_number = VMULTIPASS,
+    .info.video.width                   = PAL_W,
+    .info.video.height                  = PAL_H,
+    .info.video.keep_asr_flag           = TC_FALSE,
+    .info.video.fast_resize_flag        = TC_FALSE,
+    .info.video.zoom_interlaced_flag    = TC_FALSE,
+    .info.video.pre_clip                = CLIP_AREA_INIT,
+    .info.video.post_clip               = CLIP_AREA_INIT,
+    .info.video.frc                     = 3, // XXX (magic number)
+    .info.video.asr                     = -1, // XXX
+    .info.video.par                     = 0,
+    .info.video.encode_fields           = TC_ENCODE_FIELDS_PROGRESSIVE,
+    .info.video.gop_size                = VKEYFRAMES,
+    .info.video.quantizer_min           = VMINQUANTIZER,
+    .info.video.quantizer_max           = VMAXQUANTIZER,
+    .info.video.format                  = TC_CODEC_ERROR,
+    .info.video.quality                 = -1,
+    .info.video.bitrate                 = VBITRATE,
+    .info.video.bitrate_max             = VBITRATE,
+    .info.video.pass_number             = VMULTIPASS,
 
-    .info.audio.format = TC_CODEC_ERROR,
-    .info.audio.quality = -1,
-    .info.audio.bitrate = ABITRATE,
-    .info.audio.sample_rate = RATE,
-    .info.audio.sample_bits = BITS,
-    .info.audio.channels = CHANNELS,
-    .info.audio.mode = AMODE,
-    .info.audio.vbr_flag = TC_FALSE,
-    .info.audio.flush_flag = TC_FALSE,
+    .info.audio.format                  = TC_CODEC_ERROR,
+    .info.audio.quality                 = -1,
+    .info.audio.bitrate                 = ABITRATE,
+    .info.audio.sample_rate             = RATE,
+    .info.audio.sample_bits             = BITS,
+    .info.audio.channels                = CHANNELS,
+    .info.audio.mode                    = AMODE,
+    .info.audio.vbr_flag                = TC_FALSE,
+    .info.audio.flush_flag              = TC_FALSE,
 };
 
 /* private helpers: declaration *******************************************/
 
 /*
- * tc_load_single_export_profile:
- *      tc_load_export_profile backend.
+ * load_profile:
+ *      tc_export_profile_load* backend.
  *      Find and load, by looking into user profile path then into system
  *      profiles path, the i-th selected profile.
  *      If profile can't be loaded, it will just skipped.
@@ -154,13 +168,12 @@ static TCExportProfile prof_data = {
  *      to avoid memleaks in subsequent calls of tc_config_read_file.
  * Preconditions:
  *      this function should be always used _after_ a succesfull
- *      call to tc_setup_export_profiles, which parse the profiles
+ *      call to tc_export_profile_setup_from_cmdlines, which parse the profiles
  *      selected by user. Otherwise it's still safe to call this function,
  *      but it always fail.
  */
-static int tc_load_single_export_profile(int i, TCConfigEntry *config,
-                                         const char *sys_path,
-                                         const char *user_path);
+static int load_profile(const char *profile, TCConfigEntry *config,
+                        const char *sys_path, const char *user_path);
 
 /* utilities used internally (yet) */
 
@@ -170,7 +183,7 @@ static int tc_load_single_export_profile(int i, TCConfigEntry *config,
  *      TCExportInfo structure
  *
  * Parameters:
- *      info: pointero to a TCExportInfo structure to cleanup.
+ *      info: pointer to a TCExportInfo structure to cleanup.
  * Return value:
  *      None.
  */
@@ -195,13 +208,38 @@ static int setup_clip_area(const char *str, TCArea *area);
 
 /*************************************************************************/
 
-int tc_setup_export_profile(int *argc, char ***argv)
+int tc_export_profile_init(void)
+{
+    int ret = TC_OK;
+
+    if (!prof_data.inited) {
+        const char *home = getenv("HOME");
+
+        if (home == NULL) {
+            tc_log_warn(package, "can't determinate home directory!");
+            ret = TC_ERROR;
+        } else {
+            tc_snprintf(prof_data.home_path, sizeof(prof_data.home_path),
+                        "%s/%s", home, USER_PROF_PATH);
+            prof_data.inited = TC_TRUE;
+        }
+    }
+    return ret;
+}
+
+int tc_export_profile_fini(void)
+{
+    return TC_OK;
+}
+
+
+int tc_export_profile_setup_from_cmdline(int *argc, char ***argv)
 {
     const char *optval = NULL;
     int ret;
 
     if (argc == NULL || argv == NULL) {
-        tc_log_warn(package, "tc_setup_export_profile: bad data reference");
+        tc_log_warn(package, "tc_export_profile_setup_from_cmdline: bad data reference");
         return -2;
     }
 
@@ -220,7 +258,7 @@ int tc_setup_export_profile(int *argc, char ***argv)
     return ret;
 }
 
-void tc_cleanup_export_profile(void)
+void tc_export_profile_cleanup(void)
 {
     tc_strfreev(prof_data.profiles);
     prof_data.profile_count = 0;
@@ -228,7 +266,18 @@ void tc_cleanup_export_profile(void)
     cleanup_strings(&prof_data.info);
 }
 
-const TCExportInfo *tc_load_export_profile(void)
+const TCExportInfo *tc_export_profile_load_all(void)
+{
+    TCExportInfo *p = &prof_data.info;
+
+    for (i = 0; p && i < prof_data.profile_count; i++) {
+        p = tc_export_profile_load_single(prof_data.profiles[i],
+                                          config, sys_path, user_path);
+    }
+    return p;
+}
+
+const TCExportInfo *tc_export_profile_load_single(const char *name)
 {
     /* not all settings will be accessible from here */
     /* note static here */
@@ -236,11 +285,11 @@ const TCExportInfo *tc_load_export_profile(void)
         /* video stuff */
         { "video_codec", &(prof_data.video_codec),
                         TCCONF_TYPE_STRING, 0, 0, 0 },
-        { "video_module", &(prof_data.info.video.module),
+        { "video_module", &(prof_data.info.video.module.name),
                         TCCONF_TYPE_STRING, 0, 0, 0 },
-        { "video_module_options", &(prof_data.info.video.module_opts),
+        { "video_module_options", &(prof_data.info.video.module.opts),
                         TCCONF_TYPE_STRING, 0, 0, 0 },
-        { "video_fourcc", &(prof_data.info.video.string),
+        { "video_fourcc", &(prof_data.info.video.module.parm),
                         TCCONF_TYPE_STRING, 0, 0, 0 },
         { "video_bitrate", &(prof_data.info.video.bitrate),
                         TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 12000000 },
@@ -277,9 +326,9 @@ const TCExportInfo *tc_load_export_profile(void)
         /* audio stuff */
         { "audio_codec", &(prof_data.audio_codec),
                         TCCONF_TYPE_STRING, 0, 0, 0 },
-        { "audio_module", &(prof_data.info.audio.module),
+        { "audio_module", &(prof_data.info.audio.module.name),
                         TCCONF_TYPE_STRING, 0, 0, 0 },
-        { "audio_module_options", &(prof_data.info.audio.module_opts),
+        { "audio_module_options", &(prof_data.info.audio.module.opts),
                         TCCONF_TYPE_STRING, 0, 0, 0 },
         { "audio_bitrate", &(prof_data.info.audio.bitrate),
                         TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 1000000 },
@@ -291,27 +340,20 @@ const TCExportInfo *tc_load_export_profile(void)
         { "audio_channels", &(prof_data.info.audio.channels),
                         TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 1, 2 },
         /* multiplexing */
-        { "mplex_module", &(prof_data.info.mplex.module),
+        { "mplex_module", &(prof_data.info.mplex.module.name),
                         TCCONF_TYPE_STRING, 0, 0, 0 },
-        { "mplex_module_options", &(prof_data.info.mplex.module_opts),
+        { "mplex_module_options", &(prof_data.info.mplex.module.opts),
+                        TCCONF_TYPE_STRING, 0, 0, 0 },
+        { "mplex_module_aux", &(prof_data.info.mplex.module_aux.name),
+                        TCCONF_TYPE_STRING, 0, 0, 0 },
+        { "mplex_module_oaux_ptions", &(prof_data.info.mplex.module_aux.opts),
                         TCCONF_TYPE_STRING, 0, 0, 0 },
         { NULL, NULL, 0, 0, 0, 0 }
     };
-    char home_path[PATH_MAX + 1];
-    const char *home = getenv("HOME");
-    int i = 0;
-
-    if (home != NULL) {
-        tc_snprintf(home_path, sizeof(home_path), "%s/%s",
-                    home, USER_PROF_PATH);
-    } else {
-        tc_log_warn(package, "can't determinate home directory!");
+    int err = load_profile(profile, profile_conf,
+                           PROF_PATH, prof_data.home_path);
+    if (err) {
         return NULL;
-    }
-
-    for (i = 0; i < prof_data.profile_count; i++) {
-        tc_load_single_export_profile(i, profile_conf,
-                                      PROF_PATH, home_path);
     }
     return &prof_data.info;
 }
@@ -322,31 +364,32 @@ void tc_export_profile_to_job(const TCExportInfo *info, TCJob *vob)
     if (info == NULL || vob == NULL) {
         return;
     }
-    vob->ex_v_string = info->video.module_opts;
-    vob->ex_a_string = info->audio.module_opts;
-    vob->ex_m_string = info->mplex.module_opts;
-    vob->ex_v_codec = info->video.format;
-    vob->ex_a_codec = info->audio.format;
-    vob->ex_v_fcc = info->video.string;
-    vob->ex_frc = info->video.frc;
-    vob->ex_asr = info->video.asr;
-    vob->ex_par = info->video.par;
-    vob->encode_fields = info->video.encode_fields;
-    vob->divxbitrate = info->video.bitrate;
-    vob->mp3bitrate = info->audio.bitrate;
-    vob->video_max_bitrate = info->video.bitrate_max;
-    vob->divxkeyframes = info->video.gop_size;
-    vob->mp3frequency = info->audio.sample_rate;
-    vob->dm_bits = info->audio.sample_bits;
-    vob->dm_chan = info->audio.channels;
-    vob->mp3mode = info->audio.mode;
-    vob->zoom_interlaced = info->video.zoom_interlaced_flag;
+    vob->ex_v_string        = info->video.module.opts;
+    vob->ex_a_string        = info->audio.module.opts;
+    vob->ex_m_string        = info->mplex.module.opts;
+    vob->ex_v_codec         = info->video.format;
+    vob->ex_a_codec         = info->audio.format;
+    vob->ex_v_fcc           = info->video.module.parm;
+    vob->ex_frc             = info->video.frc;
+    vob->ex_asr             = info->video.asr;
+    vob->ex_par             = info->video.par;
+    vob->encode_fields      = info->video.encode_fields;
+    vob->divxbitrate        = info->video.bitrate;
+    vob->mp3bitrate         = info->audio.bitrate;
+    vob->video_max_bitrate  = info->video.bitrate_max;
+    vob->divxkeyframes      = info->video.gop_size;
+    vob->mp3frequency       = info->audio.sample_rate;
+    vob->dm_bits            = info->audio.sample_bits;
+    vob->dm_chan            = info->audio.channels;
+    vob->mp3mode            = info->audio.mode;
+    vob->zoom_interlaced    = info->video.zoom_interlaced_flag;
     if (info->video.fast_resize_flag) {
         tc_compute_fast_resize_values(vob, TC_FALSE);
     } else {
         vob->zoom_width = info->video.width;
         vob->zoom_height = info->video.height;
     }
+    return;
 }
 
 /*************************************************************************
@@ -373,31 +416,28 @@ void tc_export_profile_to_job(const TCExportInfo *info, TCJob *vob)
     } \
 } while (0)
 
-static int tc_load_single_export_profile(int i, TCConfigEntry *config,
-                                         const char *sys_path,
-                                         const char *user_path)
+static int load_profile(const char *profile, TCConfigEntry *config,
+                        const char *sys_path, const char *user_path)
 {
     int found = 0, ret = 0;
     char path_buf[PATH_MAX+1];
     const char *basedir = NULL;
 
-    if (sys_path == NULL || user_path == NULL || config == NULL
-     || ((i < 0) || i >= prof_data.profile_count)) {
-        /* paranoia */
-        tc_log_warn(package, "tc_load_single_export_profile:"
-                             " bad data reference");
+    if (sys_path == NULL || user_path == NULL
+     || config == NULL || profile == NULL) {
+        tc_log_warn(package, "load_profile: bad data reference");
         return -1;
     }
 
     tc_snprintf(path_buf, sizeof(path_buf), "%s/%s.cfg",
-                user_path, prof_data.profiles[i]);
+                user_path, profile);
     ret = access(path_buf, R_OK);
     if (ret == 0) {
         found = 1;
         basedir = user_path;
     } else {
         tc_snprintf(path_buf, sizeof(path_buf), "%s/%s.cfg",
-                    sys_path, prof_data.profiles[i]);
+                    sys_path, profile);
         ret = access(path_buf, R_OK);
         if (ret == 0) {
             found = 1;
@@ -408,10 +448,9 @@ static int tc_load_single_export_profile(int i, TCConfigEntry *config,
     if (found) {
         char prof_name[TC_BUF_MIN];
         cleanup_strings(&prof_data.info);
-        tc_snprintf(prof_name, sizeof(prof_name), "%s.cfg",
-                    prof_data.profiles[i]);
+        tc_snprintf(prof_name, sizeof(prof_name), "%s.cfg", profile);
 
-        tc_config_set_dir(basedir);
+        tc_config_set_dir(basedir); /* FIXME */
         ret = tc_config_read_file(prof_name, NULL, config, package);
         if (ret == 0) {
             found = 0; /* tc_config_read_file() failed */
@@ -433,7 +472,6 @@ static int tc_load_single_export_profile(int i, TCConfigEntry *config,
     }
     return found;
 }
-
 #undef SETUP_CODEC
 #undef SETUP_CLIPPING
 
@@ -457,17 +495,19 @@ static void cleanup_strings(TCExportInfo *info)
         /* paranoia */
 
         CLEANUP_STRING(video.string);
-        CLEANUP_STRING(video.module);
-        CLEANUP_STRING(video.module_opts);
+        CLEANUP_STRING(video.module.name);
+        CLEANUP_STRING(video.module.opts);
         CLEANUP_STRING(video.log_file);
 
         CLEANUP_STRING(audio.string);
-        CLEANUP_STRING(audio.module);
-        CLEANUP_STRING(audio.module_opts);
+        CLEANUP_STRING(audio.module.name);
+        CLEANUP_STRING(audio.module.opts);
 
         CLEANUP_STRING(mplex.string);
-        CLEANUP_STRING(mplex.module);
-        CLEANUP_STRING(mplex.module_opts);
+        CLEANUP_STRING(mplex.module.name);
+        CLEANUP_STRING(mplex.module.opts);
+        CLEANUP_STRING(mplex.module_aux.name);
+        CLEANUP_STRING(mplex.module_aux.opts);
         CLEANUP_STRING(mplex.out_file);
         CLEANUP_STRING(mplex.out_file_aux);
     }
