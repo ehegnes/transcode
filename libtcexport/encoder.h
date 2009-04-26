@@ -26,23 +26,25 @@
 #ifndef ENCODER_H
 #define ENCODER_H
 
+
+#include "tccore/tcjob.h"
+#include "libtc/tcframes.h"
 #include "libtcmodule/tcmodule-core.h"
 
-#include "transcode.h"
-#include "framebuffer.h"
-
-/*
- * MULTITHREADING WARNING:
- * It is in general *NOT SAFE* to call functions declared on this header from
- * different threads. See comments below.
- */
+/*************************************************************************
+ * MULTITHREADING WARNING:                                               *
+ * It is *NOT SAFE* to call functions declared on this header from       *
+ * different threads. See comments below.                                *
+ *************************************************************************/
 
 /*************************************************************************/
 
 typedef struct tcencoder_ TCEncoder;
 struct tcencoder_ {
-    vob_t           *vob;
+    TCJob           *job;
     TCFactory       factory;
+
+    uint32_t	    processed;
 
     TCModule        vid_mod;
     TCModule        aud_mod;
@@ -50,9 +52,11 @@ struct tcencoder_ {
 
 /*************************************************************************/
 
-int tc_encoder_init(TCEncoder *enc, vob_t *vob, TCFactory factory);
+int tc_encoder_init(TCEncoder *enc, TCJob *job, TCFactory factory);
 
 int tc_encoder_fini(TCEncoder *enc);
+
+uint32_t tc_encoder_processed(TCEncoder *enc);
 
 /*************************************************************************/
 
@@ -60,7 +64,6 @@ int tc_encoder_setup(TCEncoder *enc,
                      const char *vid_mod, const char *aud_mod);
 
 void tc_encoder_shutdown(TCEncoder *enc);
-
 
 /*************************************************************************/
 
@@ -73,8 +76,7 @@ int tc_encoder_process(TCEncoder *enc,
                        TCFrameAudio *ain, TCFrameAudio *aout);
 
 int tc_encoder_flush(TCEncoder *enc,
-                     TCFrameVideo *vout, TCFrameAudio *aout,
-                     int *has_more);
+                     TCFrameVideo *vout, TCFrameAudio *aout);
 
 int tc_encoder_close(TCEncoder *enc);
 
