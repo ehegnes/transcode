@@ -1,5 +1,5 @@
 /*
- *  tcjob.h
+ *  job.h
  *
  *  Copyright (C) Thomas Oestreich - June 2001
  *
