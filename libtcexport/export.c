@@ -349,7 +349,7 @@ int tc_export_frames(int frame_id, TCFrameVideo *vframe, TCFrameAudio *aframe);
 
 #define RETURN_IF_NOT_OK(RET, KIND) do { \
     if ((RET) != TC_OK) { \
-        tc_log_error(__FILE__, "error encoding final %s frame", (KIND)); \
+        tc_log_error(__FILE__, "encoding final %s frame", (KIND)); \
         return TC_ERROR; \
     } \
 } while (0)
@@ -487,17 +487,38 @@ void tc_export_rotation_limit_megabytes(uint32_t megabytes)
     tc_multiplexor_limit_megabytes(&expdata.mux, megabytes);
 }
 
+#define RETURN_IF_ERROR(RET, MSG) do { \
+    if ((RET) != TC_OK) { \
+        tc_log_error(__FILE__, "%s", (MSG)); \
+        return TC_ERROR; \
+    } \
+} while (0)
+
+
 int tc_export_new(vob_t *vob, TCFactory factory, TCRunControl RC)
 {
-    tc_encoder_init(&expdata.enc, vob, factory);
+    int ret;
+
+    ret = tc_encoder_init(&expdata.enc, vob, factory);
+    RETURN_IF_ERROR(ret, "failed to initialize encoder");
 
     tc_multiplexor_init(&expdata.mux, vob, factory);
+    RETURN_IF_ERROR(ret, "failed to initialize multiplexor");
+
+    return tc_export_profile_init();
 }
 
 int tc_export_del(void)
 {
-    tc_encoder_fini(&expdata.enc);
-    tc_multiplexor_fini(&expdata.mux);
+    int ret;
+
+    ret = tc_encoder_fini(&expdata.enc);
+    RETURN_IF_ERROR(ret, "failed to finalize encoder");
+
+    ret = tc_multiplexor_fini(&expdata.mux);
+    RETURN_IF_ERROR(ret, "failed to finalize multiplexor");
+
+    return tc_export_profile_fini();
 }
 
 int tc_export_setup(const char *a_mod, const char *v_mod, const char *m_mod)
