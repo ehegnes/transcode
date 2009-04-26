@@ -10,7 +10,7 @@ transcode-1.1.3
 [+] Support for CubicKeys4 and Sinc8 zoom algorhytms.
 [*] Support for input selection/channel tuning into import_v4l2 
     (backport from the 1.2.x branch)
-[!] Fixed bug: #XXXXX
+[!] Fixed bug: #015502
 ===========================================================================
 
 ===========================================================================
