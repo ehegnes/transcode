@@ -27,7 +27,7 @@
 #define ENCODER_H
 
 
-#include "tccore/tcjob.h"
+#include "tccore/job.h"
 #include "libtc/tcframes.h"
 #include "libtcmodule/tcmodule-core.h"
 
@@ -69,7 +69,7 @@ void tc_encoder_shutdown(TCEncoder *enc);
 
 int tc_encoder_open(TCEncoder *enc,
                     TCModuleExtraData *vid_xdata,
-                    TCModuleExtraData *aud_xdata)
+                    TCModuleExtraData *aud_xdata);
 
 int tc_encoder_process(TCEncoder *enc,
                        TCFrameVideo *vin, TCFrameVideo *vout,

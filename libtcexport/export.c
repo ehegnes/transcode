@@ -32,6 +32,8 @@
 #include <pthread.h>
 
 #include "libtc/libtc.h"
+#include "libtc/tcframes.h"
+#include "tccore/tc_defaults.h"
 #include "export.h"
 #include "encoder.h"
 #include "multiplexor.h"
@@ -159,8 +161,9 @@ static int tc_export_skip(int frame_id,
 
 /* misc helpers */
 static int need_stop(TCExportData *expdata);
-static int is_last_frame(TCExportData *expdata, int cluster_mode);
-static void export_update_formats(vob_t *vob,
+static int is_last_frame(TCExportData *expdata,
+                         int frame_id, int cluster_mode);
+static void export_update_formats(TCJob *job,
                                   const TCModuleInfo *vinfo,
                                   const TCModuleInfo *ainfo);
 static int alloc_buffers(TCExportData *data);
@@ -172,6 +175,8 @@ static void free_buffers(TCExportData *data);
 
 
 struct tcexportdata_ {
+    const TCFrameSpecs  *specs;
+
     /* flags, used internally */
     int                 error_flag;
     int                 fill_flag;
@@ -252,11 +257,11 @@ static int is_last_frame(TCExportData *expdata,
  * Return value:
  *      None
  */
-static void export_update_formats(vob_t *vob,
+static void export_update_formats(TCJob *job,
                                   const TCModuleInfo *vinfo,
                                   const TCModuleInfo *ainfo)
 {
-    if (vob == NULL || vinfo == NULL || ainfo == NULL) {
+    if (job == NULL || vinfo == NULL || ainfo == NULL) {
         /* should never happen */
         tc_log_error(__FILE__, "missing export formats references");
     }
@@ -269,11 +274,11 @@ static void export_update_formats(vob_t *vob,
      * And so we must use another flag, and export_attributes are
      * the simplest things that priv, now/
      */
-    if (!(vob->export_attributes & TC_EXPORT_ATTRIBUTE_VCODEC)) {
-        vob->ex_v_codec = vinfo->codecs_video_out[0];
+    if (!(job->export_attributes & TC_EXPORT_ATTRIBUTE_VCODEC)) {
+        job->ex_v_codec = vinfo->codecs_video_out[0];
     }
-    if (!(vob->export_attributes & TC_EXPORT_ATTRIBUTE_ACODEC)) {
-        vob->ex_a_codec = ainfo->codecs_audio_out[0];
+    if (!(job->export_attributes & TC_EXPORT_ATTRIBUTE_ACODEC)) {
+        job->ex_a_codec = ainfo->codecs_audio_out[0];
     }
 }
 
@@ -281,11 +286,18 @@ static void export_update_formats(vob_t *vob,
 
 static int alloc_buffers(TCExportData *data)
 {
-    data->priv.video = vframe_alloc_single();
+    /* NOTE: The temporary frame buffer is _required_ (hence TC_FALSE)
+     *       if any video transformations (-j, -Z, etc.) are used! */
+    data->priv.video = tc_new_video_frame(data->specs->width,
+                                          data->specs->height,
+                                          data->specs->format,
+                                          TC_FALSE);
     if (data->priv.video == NULL) {
         goto no_vframe;
     }
-    data->priv.audio = aframe_alloc_single();
+    data->priv.audio = tc_new_audio_frame(data->specs->samples,
+                                          data->specs->channels,
+                                          data->specs->bits);
     if (data->priv.audio == NULL) {
         goto no_aframe;
     }
@@ -317,29 +329,30 @@ static void free_buffers(TCExportData *data)
 /*
  * dispatch the acquired frames to encoder modules, and adjust frame counters
  */
-int tc_export_frames(int frame_id, TCFrameVideo *vframe, TCFrameAudio *aframe);
+int tc_export_frames(int frame_id, TCFrameVideo *vframe, TCFrameAudio *aframe)
 {
     int ret = tc_encoder_process(&expdata.enc,
-                                 data->input.video, data->priv.video,
-                                 data->input.audio, data->priv.audio);
+                                 expdata.input.video, expdata.priv.video,
+                                 expdata.input.audio, expdata.priv.audio);
     if (ret != TC_OK) {
-        data->error_flag = 1;
+        expdata.error_flag = 1;
     } else {
         ret = tc_multiplexor_export(&expdata.mux,
-                                    data->priv.video, data->priv.audio);
+                                    expdata.priv.video,
+                                    expdata.priv.audio);
 
         if (ret != TC_OK) {
-            data->error_flag = 1;
+            expdata.error_flag = 1;
         }
     }
 
     if (tc_progress_meter) {
-        int last = (data->frame_last == TC_FRAME_LAST)
-                        ?(-1) :data->frame_last;
+        int last = (expdata.frame_last == TC_FRAME_LAST)
+                        ?(-1) :expdata.frame_last;
         if (!data->fill_flag) {
             data->fill_flag = 1;
         }
-        counter_print(1, frame_id, data->frame_first, last);
+        counter_print(1, frame_id, expdata.frame_first, last);
     }
 
     tc_update_frames_encoded(1);
@@ -361,7 +374,7 @@ int tc_export_frames(int frame_id, TCFrameVideo *vframe, TCFrameAudio *aframe);
  */
 static int tc_export_skip(int frame_id,
                           TCFrameVideo *vframe, TCFrameAudio *aframe,
-                          int out_of_range);
+                          int out_of_range)
 {
     if (tc_progress_meter) {
         if (!data->fill_flag) {
@@ -379,6 +392,7 @@ static int tc_export_skip(int frame_id,
         vframe->attributes |= TC_FRAME_IS_OUT_OF_RANGE;
         aframe->attributes |= TC_FRAME_IS_OUT_OF_RANGE;
     }
+    return TC_OK;
 }
 
 static int need_stop(TCExportData *expdata)
@@ -495,7 +509,7 @@ void tc_export_rotation_limit_megabytes(uint32_t megabytes)
 } while (0)
 
 
-int tc_export_new(vob_t *vob, TCFactory factory, TCRunControl RC)
+int tc_export_new(TCJob *job, TCFactory factory, TCRunControl RC)
 {
     int ret;
 

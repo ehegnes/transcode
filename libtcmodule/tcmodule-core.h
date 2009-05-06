@@ -148,7 +148,7 @@ static int tc_module_filter_audio(TCModule handle,
 __attribute__((unused))
 #endif
 static int tc_module_open(TCModule handle, const char *filename,
-                          TCModuleExtraData *xdata[]);
+                          TCModuleExtraData *xdata[])
 {
     return handle->klass->open(&(handle->instance), filename, xdata);
 }
@@ -192,6 +192,22 @@ __attribute__((unused))
 static int tc_module_read_audio(TCModule handle, TCFrameAudio *frame)
 {
     return handle->klass->read_audio(&(handle->instance), frame);
+}
+
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
+static int tc_module_flush_video(TCModule handle, TCFrameVideo *frame)
+{
+    return handle->klass->flush_video(&(handle->instance), frame);
+}
+
+#ifdef HAVE_GCC_ATTRIBUTES
+__attribute__((unused))
+#endif
+static int tc_module_flush_audio(TCModule handle, TCFrameAudio *frame)
+{
+    return handle->klass->flush_audio(&(handle->instance), frame);
 }
 
 

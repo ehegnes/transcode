@@ -46,11 +46,11 @@
 
 #include "xio.h"
 #include "libtc.h"
-#include "tc_defaults.h"
-
-#include "transcode.h"
-
 #include "ratiocodes.h"
+
+#include "tccore/tc_defaults.h"
+#include "src/transcode.h"
+
 
 /*************************************************************************/
 

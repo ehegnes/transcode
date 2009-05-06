@@ -129,9 +129,6 @@ tcexport_SOURCES = tcexport.c \
 	../src/probe.c \
 	../src/dl_loader.c \
 	../src/counter.c \
-	../src/encoder.c \
-	../src/encoder-common.c \
-	../src/export_profile.c \
 	../src/framebuffer.c
 tcexport_CPPFLAGS = $(AM_CPPFLAGS) \
 	$(DLDARWIN_CFLAGS)
@@ -145,6 +142,7 @@ tcexport_LDADD = \
 	$(LIBTCUTIL_LIBS) \
 	$(LIBTCVIDEO_LIBS) \
 	$(LIBTCAUDIO_LIBS) \
+	$(LIBTCEXPORTLIBS) \
 	$(XIO_LIBS) \
 	$(PTHREAD_LIBS) \
 	-lm

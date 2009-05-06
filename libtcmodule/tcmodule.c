@@ -32,6 +32,8 @@
 #include <string.h>
 
 #include "libtc/tccodecs.h"
+#include "libtcutil/tcutil.h"
+#include "tccore/tc_defaults.h"
 
 #include "tcmodule-data.h"
 #include "tcmodule-core.h"
@@ -140,7 +142,7 @@ static int void_inspect(TCModuleInstance *self,
 
 static int void_open(TCModuleInstance *self,
                      const char *filename,
-                     TCModuleExtraData *xdata[]);
+                     TCModuleExtraData *xdata[])
 {
     TC_MODULE_SELF_CHECK(self,     "open");
     TC_MODULE_SELF_CHECK(filename, "open");

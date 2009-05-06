@@ -29,11 +29,7 @@
 #include "config.h"
 #endif
 
-#include "transcode.h"
-#include "framebuffer.h"
 #include "multiplexor.h"
-
-#include "libtc/tcframes.h"
 
 #include <stdint.h>
 
@@ -200,18 +196,18 @@ void tc_multiplexor_limit_megabytes(TCMultiplexor *mux, uint32_t megabytes)
     tc_rotate_set_bytes_limit(mux->rotor, megabytes * 1024 * 1024);
 }
 
-#define ROTATE_COMMON_CODE(rotor, vob) do { \
+#define ROTATE_COMMON_CODE(rotor, job) do { \
     ret = tc_multiplexor_close(); \
     if (ret != TC_OK) { \
         tc_log_error(__FILE__, "unable to close output stream"); \
         ret = TC_ERROR; \
     } else { \
-        tc_rotate_output_name((rotor), (vob)); \
+        tc_rotate_output_name((rotor), (job)); \
         tc_log_info(__FILE__, "rotating video output stream to %s", \
                                (rotor)->video_path_buf); \
         tc_log_info(__FILE__, "rotating audio output stream to %s", \
                                (rotor)->audio_path_buf); \
-        ret = tc_multiplexor_open((vob)); \
+        ret = tc_multiplexor_open((job)); \
         if (ret != TC_OK) { \
             tc_log_error(__FILE__, "unable to reopen output stream"); \
             ret = TC_ERROR; \
@@ -259,36 +255,29 @@ static int dual_write(TCMultiplexor *mux,
 
 /*************************************************************************/
 
-int tc_multiplexor_init(TCMultiplexor *mux, vob_t *vob, TCFactory factory)
+int tc_multiplexor_init(TCMultiplexor *mux, TCJob *job, TCFactory factory)
 {
     int ret = TC_ERROR;
 
-    mux->rotor = tc_zalloc(sizeof(TCRotateContext));
-    if (mux->rotor) {
-        mux->vob        = vob;
-        mux->factory    = factory;
-        mux->mux_main   = NULL;
-        mux->mux_aux    = NULL;
+    mux->job        = job;
+    mux->factory    = factory;
+    mux->mux_main   = NULL;
+    mux->mux_aux    = NULL;
 
-        mux->rotor      = NULL;
-        mux->rotor_aux  = NULL;
+    mux->rotor      = NULL;
+    mux->rotor_aux  = NULL;
 
-        mux->vid_xdata  = NULL;
-        mux->aud_xdata  = NULL;
+    mux->vid_xdata  = NULL;
+    mux->aud_xdata  = NULL;
 
-        mux->has_aux    = TC_FALSE;
+    mux->has_aux    = TC_FALSE;
 
-        ret = TC_OK;
-    }
+    ret = TC_OK;
     return ret;
 }
 
 int tc_multiplexor_fini(TCMultiplexor *mux)
 {
-    if (mux->rotor) {
-        tc_free(mux->rotor);
-        mux->rotor = NULL;
-    }
     return TC_OK;
 }
 
@@ -310,8 +299,8 @@ static TCModule muxer_setup(TCMultiplexor *mux,
         return NULL;
     }
 
-    options = (mux->vob->ex_m_string) ?mux->vob->ex_m_string :"";
-    ret = tc_module_configure(mux_mod, options, mux->vob, xdata);
+    options = (mux->job->ex_m_string) ?mux->job->ex_m_string :"";
+    ret = tc_module_configure(mux_mod, options, mux->job, xdata);
     if (ret != TC_OK) {
         tc_log_error(__FILE__, "%s module error: init failed");
         return NULL;
@@ -351,7 +340,8 @@ void tc_export_shutdown(TCEncoder *enc)
     tc_debug(TC_DEBUG_MODULES, "unloading multiplexor modules");
 
     tc_del_module(mux->factory, mux->mux_main);
-    if (mux->mux_aux) {
+    tc_free(mux->rotor);
+    if (mux->has_aux) {
         tc_del_module(mux->factory, mux->mux_aux);
     }
 }

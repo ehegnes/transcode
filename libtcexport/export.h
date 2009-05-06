@@ -23,8 +23,8 @@
  *
  */
 
-#include "src/tcjob.h"
-#include "src/runcontrol.h"
+#include "tccore/job.h"
+#include "tccore/runcontrol.h"
 #include "libtc/tcframes.h"
 #include "libtcmodule/tcmodule-core.h"
 
@@ -87,117 +87,22 @@ void tc_export_video_notify(void);
 /*************************************************************************/
 
 /* it's a singleton, so we recycle the new/del pair... improperly */
-int tc_export_new(TCJob *vob, TCFactory factory, TCRunControl RC);
+int tc_export_new(TCJob *vob, TCFactory factory, TCRunControl RC,
+		  const TCFrameSpecs *specs);
 
 int tc_export_del(void);
 
-/*
- * tc_export_setup:
- *      load export modules (encoders and multiplexor) using Module Factory
- *      selected via tc_export_init, checking if loaded modules are
- *      compatible with requested audio/video codec, and prepare for
- *      real encoding.
- *
- * Parameters:
- *     vob: pointer to TCJob.
- *          tc_export_setup need to fetch from a TCJob structure some informations
- *          needed by proper loading (es: module path).
- *   a_mod: name of audio encoder module to load.
- *   v_mod: name of video encoder module to load.
- *   m_mod: name of multiplexor module to load.
- * Return Value:
- *      0: succesfull
- *     <0: failure: failed to load one or more requested modules,
- *         *OR* there is at least one incompatibility between requested
- *         modules and requested codecs.
- *         (i.e. audio encoder module VS requested audio codec)
- *         (i.e. video encoder module VS multiplexor module)
- * Preconditions:
- *      Module Factory avalaible and selected using tc_export_init.
- */
-int tc_export_setup(const char *a_mod, const char *v_mod, const char *m_mod);
+int tc_export_setup(const char *a_mod, const char *v_mod,
+                    const char *m_mod, const char *m_mod_aux);
 
-int tc_export_setup_aux(const char *m_mod);
-
-
-/*
- * tc_export_shutdown:
- *      revert operations done by tc_export_setup, unloading encoder and
- *      multiplexor modules.
- *
- * Parameters:
- *      None.
- * Return Value:
- *      None.
- * Preconditions:
- *      tc_export_setup() was previously called. To call this function if
- *      tc_export_setup() wasn't called will cause undefined behaviour.
- */
 void tc_export_shutdown(void);
 
-
-
-
-/*************************************************************************
- * new-style output rotation support.
- * This couple of functions
- *      tc_export_rotation_limit_frames
- *      tc_export_rotation_limit_megabytes
- *
- * Allow the client code to automatically split output into chunks by
- * specifying a maxmimum size, resp. in frames OR in megabytes, for each
- * output chunk.
- *
- * Those functions MUST BE used BEFORE to call first tc_export_open(),
- * otherwise will fall into unspecifed behaviour.
- * It's important to note that client code CAN call multiple times
- * (even if isn't usually useful to do so ;) ) tc_export_rotation_limit*,
- * but only one limit can be used, so the last limit set will be used.
- * In other words, is NOT (yet) possible to limit output chunk size
- * BOTH by frames and by size.
- */
-
-/*
- * tc_export_rotation_limit_frames:
- *     rotate output file(s) every given amount of encoded frames.
- *
- * Parameters:
- *     frames: maximum of frames that every output chunk should contain.
- * Return value:
- *     None.
- */
 void tc_export_rotation_limit_frames(uint32_t frames);
 
-/*
- * tc_export_rotation_limit_megabytes:
- *     rotate output file(s) after a given amount of data was encoded.
- *
- * Parameters:
- *     megabytes: maximum size that every output chunk should have.
- * Return value:
- *     None.
- */
 void tc_export_rotation_limit_megabytes(uint32_t megabytes);
 
 
 /*************************************************************************/
-
-/*************************************************************************
- * main export API.
- *
- * There isn't explicit reference to encoder data structure,
- * so there always be one and only one global hidden encoder instance.
- * In current (and in the prevedible future) doesn't make sense to
- * have more than one encoder, so it's instance is global, hidden, implicit.
- *
- * PLEASE NOTE:
- * current encoder does not _explicitely_ use more than one thread.
- * This means that audio and video encoding, as well as multiplexing, happens
- * sequentially on the same (and unique) encoder thread.
- * It's definitively possible (and already happens) that real encoder code loaded
- * by modules uses internally more than one thread, but this is completely opaque
- * to encoder.
- */
 
 /*
  * tc_export_init:

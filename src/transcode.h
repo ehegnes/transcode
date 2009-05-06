@@ -46,7 +46,7 @@
 #include "libtc/libtc.h"
 
 #include "tccore/tc_defaults.h"
-#include "tccore/tcjob.h"
+#include "tccore/job.h"
 
 #include "framebuffer.h"
 

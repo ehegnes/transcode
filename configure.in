@@ -1438,6 +1438,7 @@ AC_CONFIG_FILES([
 	libdldarwin/Makefile
 	libtc/Makefile
 	libtcext/Makefile
+	libtcexport/Makefile
 	libtcmodule/Makefile
 	libtcutil/Makefile
 	libtcaudio/Makefile

@@ -29,20 +29,20 @@
 #include "config.h"
 #endif
 
-#include "encoder.h"
-
-#include "tccore/tcjob.h"
-#include "libtc/tcframes.h"
-#include "libtcmodule/tcmodule-core.h"
 
 #include <stdint.h>
+
+#include "tccore/tc_defaults.h"
+
+#include "encoder.h"
+
 
 /*************************************************************************/
 
 int tc_encoder_init(TCEncoder *enc, 
-                    TCJob *vob, TCFactory factory)
+                    TCJob *job, TCFactory factory)
 {
-    enc->vob        = vob;
+    enc->job        = job;
     enc->factory    = factory;
     enc->aud_mod    = NULL;
     enc->vid_mod    = NULL;
@@ -69,9 +69,8 @@ uint32_t tc_encoder_processed(TCEncoder *enc)
 #define SETOK(ENC, M)   (ENC)->processed |= (M)
 
 int tc_encoder_setup(TCEncoder *enc,
-                     const char *vid_mod_name, const char *aud_mod_name);
+                     const char *vid_mod_name, const char *aud_mod_name)
 {
-    int match = 0;
     const char *mod_name = NULL;
 
     CLEAN(enc);
@@ -80,7 +79,7 @@ int tc_encoder_setup(TCEncoder *enc,
     mod_name = (aud_mod_name) ?aud_mod_name :TC_DEFAULT_EXPORT_AUDIO;
     enc->aud_mod = tc_new_module(enc->factory, "encode", mod_name, TC_AUDIO);
     if (enc->aud_mod) {
-        SETOK(TC_AUDIO);
+        SETOK(enc, TC_AUDIO);
     } else {
         tc_log_error(__FILE__, "can't load audio encoder");
         return TC_ERROR;
@@ -88,7 +87,7 @@ int tc_encoder_setup(TCEncoder *enc,
     mod_name = (vid_mod_name) ?vid_mod_name :TC_DEFAULT_EXPORT_VIDEO;
     enc->vid_mod = tc_new_module(enc->factory, "encode", mod_name, TC_VIDEO);
     if (enc->vid_mod) {
-        SETOK(TC_VIDEO);
+        SETOK(enc, TC_VIDEO);
     } else {
         tc_log_error(__FILE__, "can't load video encoder");
         return TC_ERROR;
@@ -96,15 +95,15 @@ int tc_encoder_setup(TCEncoder *enc,
     return TC_OK;
 }
 
-void tc_export_shutdown(TCEncoder *enc)
+void tc_encoder_shutdown(TCEncoder *enc)
 {
     CLEAN(enc);
     tc_debug(TC_DEBUG_MODULES, "unloading export modules");
 
     tc_del_module(enc->factory, enc->vid_mod);
-    SETOK(TC_VIDEO);
+    SETOK(enc, TC_VIDEO);
     tc_del_module(enc->factory, enc->aud_mod);
-    SETOK(TC_AUDIO);
+    SETOK(enc, TC_AUDIO);
 }
 
 
@@ -112,23 +111,26 @@ int tc_encoder_open(TCEncoder *enc,
                     TCModuleExtraData *vid_xdata,
                     TCModuleExtraData *aud_xdata)
 {
+    TCModuleExtraData *xdata[] = { NULL, NULL };
     const char *options = NULL;
     int ret;
     CLEAN(enc);
 
-    options = (enc->vob->ex_v_string) ?enc->vob->ex_v_string :"";
-    ret = tc_module_configure(enc->vid_mod, options, enc->vob, vid_xdata);
+    options = (enc->job->ex_v_string) ?enc->job->ex_v_string :"";
+    xdata[0] = vid_xdata;
+    ret = tc_module_configure(enc->vid_mod, options, enc->job, xdata);
     if (ret == TC_OK) {
-        SETOK(TC_VIDEO);
+        SETOK(enc, TC_VIDEO);
     } else {
         tc_log_error(__FILE__, "video export module error: init failed");
         return TC_ERROR;
     }
 
-    options = (enc->vob->ex_a_string) ?enc->vob->ex_a_string :"";
-    ret = tc_module_configure(enc->aud_mod, options, enc->vob, aud_xdata);
+    options = (enc->job->ex_a_string) ?enc->job->ex_a_string :"";
+    xdata[0] = aud_xdata;
+    ret = tc_module_configure(enc->aud_mod, options, enc->job, xdata);
     if (ret == TC_OK) {
-        SETOK(TC_AUDIO);
+        SETOK(enc, TC_AUDIO);
     } else {
         tc_log_warn(__FILE__, "audio export module error: init failed");
         return TC_ERROR;
@@ -145,7 +147,7 @@ int tc_encoder_close(TCEncoder *enc)
 
     ret = tc_module_stop(enc->vid_mod);
     if (ret == TC_OK) {
-        SETOK(TC_VIDEO);
+        SETOK(enc, TC_VIDEO);
     } else {
         tc_log_warn(__FILE__, "video export module error: stop failed");
         return TC_ERROR;
@@ -153,7 +155,7 @@ int tc_encoder_close(TCEncoder *enc)
 
     ret = tc_module_stop(enc->aud_mod);
     if (ret == TC_OK) {
-        SETOK(TC_AUDIO);
+        SETOK(enc, TC_AUDIO);
     } else {
         tc_log_warn(__FILE__, "audio export module error: stop failed");
         return TC_ERROR;
@@ -179,7 +181,7 @@ int tc_encoder_process(TCEncoder *enc,
     /* step 1: encode video */
     ret = tc_module_encode_video(enc->vid_mod, vin, vout);
     if (ret == TC_OK) {
-        SETOK(TC_VIDEO);
+        SETOK(enc, TC_VIDEO);
     } else {
         tc_log_error(__FILE__, "error encoding video frame");
         result = TC_ERROR;
@@ -196,7 +198,7 @@ int tc_encoder_process(TCEncoder *enc,
     } else {
         ret = tc_module_encode_audio(enc->aud_mod, ain, aout);
         if (ret == TC_OK) {
-            SETOK(TC_AUDIO);
+            SETOK(enc, TC_AUDIO);
         } else {
             tc_log_error(__FILE__, "error encoding audio frame");
             result = TC_ERROR;
@@ -207,14 +209,14 @@ int tc_encoder_process(TCEncoder *enc,
 }
 
 int tc_encoder_flush(TCEncoder *enc,
-                     TCFrameVideo *vout, TCFrameAudio *aout);
+                     TCFrameVideo *vout, TCFrameAudio *aout)
 {
     int ret, result = TC_OK;
 
     /* step 1: flush video */
     ret = tc_module_flush_video(enc->vid_mod, vout);
     if (ret == TC_OK) {
-        SETOK(TC_VIDEO);
+        SETOK(enc, TC_VIDEO);
     } else {
         tc_log_error(__FILE__, "error flushing video encoder");
         result = TC_ERROR;
@@ -222,7 +224,7 @@ int tc_encoder_flush(TCEncoder *enc,
     
     ret = tc_module_flush_audio(enc->aud_mod, aout);
     if (ret == TC_OK) {
-        SETOK(TC_AUDIO);
+        SETOK(enc, TC_AUDIO);
     } else {
         tc_log_error(__FILE__, "error flushing audio encoder");
         result = TC_ERROR;

@@ -187,7 +187,7 @@ static void tc_audio_free(TCFramePtr frame)
     tc_del_audio_frame(frame.audio);
 }
 
-vframe_list_t *vframe_alloc_single(void)
+TCFrameVideo *vframe_alloc_single(void)
 {
     /* NOTE: The temporary frame buffer is _required_ (hence TC_FALSE)
      *       if any video transformations (-j, -Z, etc.) are used! */
@@ -195,7 +195,7 @@ vframe_list_t *vframe_alloc_single(void)
                               tc_specs.format, TC_FALSE);
 }
 
-aframe_list_t *aframe_alloc_single(void)
+TCFrameAudio *aframe_alloc_single(void)
 {
     return tc_new_audio_frame(tc_specs.samples, tc_specs.channels,
                               tc_specs.bits);
@@ -985,7 +985,7 @@ void vframe_free(void)
 }
 
 
-aframe_list_t *aframe_dup(aframe_list_t *f)
+TCFrameAudio *aframe_dup(TCFrameAudio *f)
 {
     TCFramePtr frame;
 
@@ -1004,7 +1004,7 @@ aframe_list_t *aframe_dup(aframe_list_t *f)
     return frame.audio;
 }
 
-vframe_list_t *vframe_dup(vframe_list_t *f)
+TCFrameVideo *vframe_dup(TCFrameVideo *f)
 {
     TCFramePtr frame;
 
@@ -1025,21 +1025,21 @@ vframe_list_t *vframe_dup(vframe_list_t *f)
 
 /*************************************************************************/
 
-aframe_list_t *aframe_register(int id)
+TCFrameAudio *aframe_register(int id)
 {
     TCFramePtr frame = tc_frame_ring_register_frame(&tc_audio_ringbuffer,
                                                     id, TC_FRAME_EMPTY);
     return frame.audio;
 }
 
-vframe_list_t *vframe_register(int id)
+TCFrameVideo *vframe_register(int id)
 {
     TCFramePtr frame = tc_frame_ring_register_frame(&tc_video_ringbuffer,
                                                     id, TC_FRAME_EMPTY); 
     return frame.video;
 }
 
-void aframe_remove(aframe_list_t *ptr)
+void aframe_remove(TCFrameAudio *ptr)
 {
     if (ptr == NULL) {
         tc_log_warn(FRBUF_NAME, "aframe_remove: given NULL frame pointer");
@@ -1049,7 +1049,7 @@ void aframe_remove(aframe_list_t *ptr)
     }
 }
 
-void vframe_remove(vframe_list_t *ptr)
+void vframe_remove(TCFrameVideo *ptr)
 {
     if (ptr == NULL) {
         tc_log_warn(FRBUF_NAME, "vframe_remove: given NULL frame pointer");
@@ -1059,7 +1059,7 @@ void vframe_remove(vframe_list_t *ptr)
     }
 }
 
-void aframe_reinject(aframe_list_t *ptr)
+void aframe_reinject(TCFrameAudio *ptr)
 {
     if (ptr == NULL) {
         tc_log_warn(FRBUF_NAME, "aframe_reinject: given NULL frame pointer");
@@ -1069,7 +1069,7 @@ void aframe_reinject(aframe_list_t *ptr)
     }
 }
 
-void vframe_reinject(vframe_list_t *ptr)
+void vframe_reinject(TCFrameVideo *ptr)
 {
     if (ptr == NULL) {
         tc_log_warn(FRBUF_NAME, "vframe_reinject: given NULL frame pointer");
@@ -1079,31 +1079,31 @@ void vframe_reinject(vframe_list_t *ptr)
     }
 }
 
-aframe_list_t *aframe_retrieve(void)
+TCFrameAudio *aframe_retrieve(void)
 {
     TCFramePtr ptr = tc_frame_ring_get_frame(&tc_audio_ringbuffer, TC_FRAME_READY);
     return ptr.audio;
 }
 
-vframe_list_t *vframe_retrieve(void)
+TCFrameVideo *vframe_retrieve(void)
 {
     TCFramePtr ptr = tc_frame_ring_get_frame(&tc_video_ringbuffer, TC_FRAME_READY);
     return ptr.video;
 }
 
-aframe_list_t *aframe_reserve(void)
+TCFrameAudio *aframe_reserve(void)
 {
     TCFramePtr ptr = tc_frame_ring_get_frame(&tc_audio_ringbuffer, TC_FRAME_WAIT);
     return ptr.audio;
 }
 
-vframe_list_t *vframe_reserve(void)
+TCFrameVideo *vframe_reserve(void)
 {
     TCFramePtr ptr = tc_frame_ring_get_frame(&tc_video_ringbuffer, TC_FRAME_WAIT);
     return ptr.video;
 }
 
-void aframe_push_next(aframe_list_t *ptr, int status)
+void aframe_push_next(TCFrameAudio *ptr, int status)
 {
     if (ptr == NULL) {
         /* a bit more of paranoia */
@@ -1115,7 +1115,7 @@ void aframe_push_next(aframe_list_t *ptr, int status)
     }
 }
 
-void vframe_push_next(vframe_list_t *ptr, int status)
+void vframe_push_next(TCFrameVideo *ptr, int status)
 {
     if (ptr == NULL) {
         /* a bit more of paranoia */
@@ -1196,7 +1196,7 @@ int aframe_have_more(void)
 /* Frame copying routines                                                */
 /*************************************************************************/
 
-void aframe_copy(aframe_list_t *dst, const aframe_list_t *src,
+void aframe_copy(TCFrameAudio *dst, const TCFrameAudio *src,
                  int copy_data)
 {
     if (!dst || !src) {
@@ -1216,7 +1216,7 @@ void aframe_copy(aframe_list_t *dst, const aframe_list_t *src,
     }
 }
 
-void vframe_copy(vframe_list_t *dst, const vframe_list_t *src,
+void vframe_copy(TCFrameVideo *dst, const TCFrameVideo *src,
                  int copy_data)
 {
     if (!dst || !src) {

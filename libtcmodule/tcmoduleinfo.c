@@ -19,9 +19,8 @@
  */
 
 
-#include <string.h>
-
-#include "libtcutil/logging.h"
+#include "libtc/mediainfo.h"
+#include "libtcutil/tcutil.h"
 
 #include "tcmodule-data.h"
 #include "tcmodule-info.h"

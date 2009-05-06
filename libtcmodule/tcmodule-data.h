@@ -38,7 +38,7 @@
 
 #include "libtcutil/memutils.h"
 #include "libtc/tcframes.h"
-#include "src/tcjob.h"
+#include "tccore/job.h"
 
 #define TC_MODULE_VERSION_MAJOR     3
 #define TC_MODULE_VERSION_MINOR     2

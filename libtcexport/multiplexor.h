@@ -24,15 +24,14 @@
 #define MULTIPLEXOR_H
 
 #include "libtcmodule/tcmodule-core.h"
+#include "libtc/tcframes.h"
+#include "tccore/job.h"
 
-#include "transcode.h"
-#include "framebuffer.h"
-
-/*
- * MULTITHREADING WARNING:
- * It is in general *NOT SAFE* to call functions declared on this header from
- * different threads. See comments below.
- */
+/*************************************************************************
+ * MULTITHREADING WARNING:                                               *
+ * It *NOT SAFE* to call functions declared on this header from          *
+ * different threads. See comments below.                                *
+ *************************************************************************/
 
 /*************************************************************************
  * new-style output rotation support.
@@ -47,18 +46,18 @@
  * Those functions MUST BE used BEFORE to call first tc_multiplexor_open(),
  * otherwise will fall into unspecifed behaviour.
  * It's important to note that client code CAN call multiple times
- * (even if isn't usually useful to do so ;) ) tc_multiplexor_limit*,
+ * (even if it is usually pointless ;) ) tc_multiplexor_limit*,
  * but only one limit can be used, so the last limit set will be used.
- * In other words, is NOT (yet) possible to limit output chunk size
- * BOTH by frames and by size.
  */
 
 typedef struct tcrotatecontext_ TCRotateContext;
 
 typedef struct tcmultiplexor_ TCMultiplexor;
 struct tcmultiplexor_ {
-    vob_t           	*vob;
+    TCJob           	*job;
     TCFactory       	factory;
+
+    uint32_t            processed;
 
     int                 has_aux;
 
@@ -84,7 +83,7 @@ struct tcmultiplexor_ {
  *     rotate output file(s) every given amount of encoded frames.
  *
  * Parameters:
- *        vob: pointer to main vob_t structure.
+ *        mux: pointer to the multiplexor to setup.
  *     frames: maximum of frames that every output chunk should contain.
  * Return value:
  *     None.
@@ -99,7 +98,7 @@ void tc_multiplexor_limit_frames(TCMultiplexor *mux, uint32_t frames);
  *     rotate output file(s) after a given amount of data was encoded.
  *
  * Parameters:
- *           vob: pointer to main vob_t structure.
+ *           mux: pointer to the multiplexor to setup.
  *     megabytes: maximum size that every output chunk should have.
  * Return value:
  *     None.
@@ -112,7 +111,7 @@ void tc_multiplexor_limit_megabytes(TCMultiplexor *mux, uint32_t megabytes);
 
 /*************************************************************************/
 
-int tc_multiplexor_init(TCMultiplexor *mux, vob_t *vob, TCFactory factory);
+int tc_multiplexor_init(TCMultiplexor *mux, TCJob *job, TCFactory factory);
 
 int tc_multiplexor_fini(TCMultiplexor *mux);
 
@@ -151,3 +150,4 @@ int tc_multiplexor_write(TCMultiplexor *mux,
  *
  * vim: expandtab shiftwidth=4:
  */
+
