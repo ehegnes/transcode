@@ -57,7 +57,9 @@ typedef struct {
 } LZOPrivateData;
 
 static int tc_lzo_configure(TCModuleInstance *self,
-                            const char *options, vob_t *vob)
+                            const char *options,
+                            TCJob *vob,
+                            TCModuleExtraData *xdata[])
 {
     LZOPrivateData *pd = NULL;
     int ret;

@@ -580,7 +580,9 @@ static int x264_fini(TCModuleInstance *self)
  */
 
 static int x264_configure(TCModuleInstance *self,
-                         const char *options, vob_t *vob)
+                         const char *options,
+                         TCJob *vob,
+                         TCModuleExtraData *xdata[])
 {
     X264PrivateData *pd = NULL;
     char *s;

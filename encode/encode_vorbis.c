@@ -95,7 +95,7 @@ static int tc_frame_audio_add_ogg_packet(VorbisPrivateData *pd,
     int needed = sizeof(*op) + op->bytes;
     int avail = f->audio_size - f->audio_len;
 
-    TC_FRAME_SET_TIMESTAMP_DOUBLE(f, ts);
+    f->timestamp = (uint64_t)ts;
     if (avail < needed) {
         tc_log_error(__FILE__, "(%s) no buffer in frame: (avail=%i|needed=%i)",
                      __func__, avail, needed);
@@ -153,7 +153,9 @@ static int tc_ogg_new_extradata(VorbisPrivateData *pd)
 #define ZERO_QUALITY 0.00001
 
 static int tc_vorbis_configure(TCModuleInstance *self,
-                               const char *options, vob_t *vob)
+                               const char *options,
+                               TCJob *vob,
+                               TCModuleExtraData *xdata[])
 {
     VorbisPrivateData *pd = NULL;
     int samplerate = (vob->mp3frequency) ? vob->mp3frequency : vob->a_rate;

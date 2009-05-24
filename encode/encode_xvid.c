@@ -161,7 +161,9 @@ static void set_frame_struct(XviDPrivateData *mod, vob_t *vob,
 /***************************************************************************/
 
 static int tc_xvid_configure(TCModuleInstance *self,
-                          const char *options, vob_t *vob)
+                             const char *options,
+                             TCJob *vob,
+                             TCModuleExtraData *xdata[])
 {
     int ret;
     XviDPrivateData *pd = NULL;

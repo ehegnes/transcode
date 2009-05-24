@@ -104,7 +104,7 @@ static int tc_frame_video_add_ogg_packet(TheoraPrivateData *pd,
     int needed = sizeof(*op) + op->bytes;
     int avail = f->video_size - f->video_len;
 
-    TC_FRAME_SET_TIMESTAMP_DOUBLE(f, ts);
+    f->timestamp = (uint64_t)ts;
     if (avail < needed) {
         tc_log_error(__FILE__, "(%s) no buffer in frame: (avail=%i|needed=%i)",
                      __func__, avail, needed);
@@ -169,7 +169,9 @@ static int tc_ogg_new_extradata(TheoraPrivateData *pd)
 
 
 static int tc_theora_configure(TCModuleInstance *self,
-                               const char *options, vob_t *vob)
+                               const char *options,
+                               TCJob *vob,
+                               TCModuleExtraData *xdata[])
 {
     uint32_t x_off = 0, y_off = 0, w = 0, h = 0;
     TheoraPrivateData *pd = NULL;
@@ -220,8 +222,8 @@ static int tc_theora_configure(TCModuleInstance *self,
     ti.offset_x                     = x_off;
     ti.offset_y                     = y_off;
     ret = tc_frc_code_to_ratio(vob->ex_frc,
-                                    &ti.fps_numerator,
-                                    &ti.fps_denominator);
+                                &ti.fps_numerator,
+                                &ti.fps_denominator);
                                /* watch out here */
     if (ret == TC_NULL_MATCH) {
         ti.fps_numerator            = 25;

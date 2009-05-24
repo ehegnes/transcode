@@ -1439,7 +1439,9 @@ static int tc_lavc_stop(TCModuleInstance *self)
 }
 
 static int tc_lavc_configure_video(TCModuleInstance *self,
-                                   const char *options, vob_t *vob)
+                                   const char *options,
+                                   TCJob *vob,
+                                   TCModuleExtraData *xdata)
 {
     const char *vcodec_name = tc_codec_to_string(vob->ex_v_codec);
     TCLavcPrivateData *pd = NULL;
@@ -1507,8 +1509,10 @@ static int tc_lavc_configure_video(TCModuleInstance *self,
         goto failed;
     }
     /* finally, pass up the extradata, if any */
-    self->extradata      = pd->ff_vcontext.extradata;
-    self->extradata_size = pd->ff_vcontext.extradata_size;
+    xdata->stream_id  = 0; /* FIXME */
+    xdata->codec      = pd->vcodec_id;
+    xdata->extra.data = pd->ff_vcontext.extradata;
+    xdata->extra.size = pd->ff_vcontext.extradata_size;
 
     if (PSNR_REQUESTED(pd)) {
         /* errors already logged, and they can be ignored */
@@ -1523,7 +1527,9 @@ failed:
 }
 
 static int tc_lavc_configure_audio(TCModuleInstance *self,
-                                   const char *options, vob_t *vob)
+                                   const char *options,
+                                   TCJob *vob,
+                                   TCModuleExtraData *xdata)
 {
     const char *acodec_name = tc_codec_to_string(vob->ex_a_codec);
     TCLavcPrivateData *pd = NULL;
@@ -1573,7 +1579,8 @@ failed:
 #undef ABORT_IF_NOT_OK
 
 static int tc_lavc_configure(TCModuleInstance *self,
-                             const char *options, vob_t *vob)
+                             const char *options,
+                             TCJob *vob, TCModuleExtraData *xdata[])
 {
     int ret = TC_OK;
 
@@ -1581,13 +1588,13 @@ static int tc_lavc_configure(TCModuleInstance *self,
 
 
     if (self->features & TC_MODULE_FEATURE_VIDEO) {
-        ret = tc_lavc_configure_video(self, options, vob);
+        ret = tc_lavc_configure_video(self, options, vob, xdata[0]);
         if (ret != TC_OK) {
             goto failure;
         }
     }
     if (self->features & TC_MODULE_FEATURE_AUDIO) {
-        ret = tc_lavc_configure_audio(self, options, vob);
+        ret = tc_lavc_configure_audio(self, options, vob, xdata[1]);
         if (ret != TC_OK) {
             goto failure;
         }

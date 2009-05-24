@@ -86,7 +86,9 @@ static int faac_init(TCModuleInstance *self, uint32_t features)
  */
 
 static int faac_configure(TCModuleInstance *self,
-                          const char *options, vob_t *vob)
+                          const char *options,
+                          TCJob *vob,
+                          TCModuleExtraData *xdata[])
 {
     PrivateData *pd;
     int samplerate = vob->mp3frequency ? vob->mp3frequency : vob->a_rate;

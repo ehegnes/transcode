@@ -91,11 +91,13 @@ static int TCHandleMagickError(MagickWand *wand)
 /*************************************************************************/
 
 static int tc_im_configure(TCModuleInstance *self,
-                          const char *options, vob_t *vob)
+                          const char *options,
+                          TCJob *vob,
+                          TCModuleExtraData *xdata[])
 {
     TCIMPrivateData *pd = NULL;
-    int ret = 0;
     TCCodecID id = TC_CODEC_ERROR;
+    int ret = 0;
 
     TC_MODULE_SELF_CHECK(self, "configure");
 

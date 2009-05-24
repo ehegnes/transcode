@@ -54,7 +54,9 @@ typedef struct {
 
 
 static int tc_dv_configure(TCModuleInstance *self,
-                           const char *options, vob_t *vob)
+                           const char *options,
+                           TCJob *vob,
+                           TCModuleExtraData *xdata[])
 {
     DVPrivateData *pd = NULL;
 
@@ -210,7 +212,7 @@ static int tc_dv_stop(TCModuleInstance *self)
 } while (0)
 
 static int tc_dv_encode_video(TCModuleInstance *self,
-                              vframe_list_t *inframe, vframe_list_t *outframe)
+                              TCFrameVideo *inframe, TCFrameVideo *outframe)
 {
     DVPrivateData *pd = NULL;
     uint8_t *pixels[3] = { NULL, NULL, NULL };

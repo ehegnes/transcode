@@ -164,7 +164,9 @@ static int lame_setup_preset(PrivateData *pd,
  */
 
 static int lame_configure(TCModuleInstance *self,
-                          const char *options, vob_t *vob)
+                          const char *options,
+                          TCJob *vob,
+                          TCModuleExtraData *xdata[])
 {
     char lame_preset[TC_BUF_MIN] = { '\0' };
     PrivateData *pd;
