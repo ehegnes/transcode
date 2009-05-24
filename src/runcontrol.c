@@ -31,6 +31,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include "libtc/libtc.h"
+#include "counter.h"
 #include "runcontrol.h"
 #include "tc_defaults.h" /* TC_DELAY_MIN */
 
@@ -121,10 +122,17 @@ static TCRunStatus tc_rc_status(TCRunControl *RC)
     return tc_get_run_status();
 }
 
+static void tc_rc_progress(TCRunControl *RC,
+                           int encoding, int frame, int first, int last)
+{
+    counter_print(encoding, frame, first, last);
+}
+
 static TCRunControl RC = {
-    .priv   = NULL;
-    .pause  = tc_rc_pause;
-    .status = tc_rc_status;
+    .priv     = NULL;
+    .pause    = tc_rc_pause;
+    .status   = tc_rc_status;
+    .progress = tc_rc_progress;
 };
 
 int tc_runcontrol_init(void)
