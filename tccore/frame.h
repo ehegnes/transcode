@@ -191,10 +191,6 @@ enum tcframestatus_ {
  * since we're still bound to Old Module System.
  */
 
-#define TC_FRAME_GET_TIMESTAMP_UINT(FP)       ((FP)->timestamp.u)
-#define TC_FRAME_GET_TIMESTAMP_DOUBLE(FP)     ((FP)->timestamp.d)
-#define TC_FRAME_SET_TIMESTAMP_UINT(FP, TS)   ((FP)->timestamp.u = (uint64_t)(TS))
-#define TC_FRAME_SET_TIMESTAMP_DOUBLE(FP, TS) ((FP)->timestamp.d = (double)(TS))
 
 typedef struct tcframe_ TCFrame;
 struct tcframe_ {
