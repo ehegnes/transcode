@@ -11,6 +11,8 @@
 #ifndef TCINFO_H
 #define TCINFO_H
 
+#include <stdint.h>
+
 #include "probe.h"  // for ProbeInfo
 
 /*************************************************************************/
@@ -97,7 +99,7 @@ struct tcarea_ {
     int right;
 };
 
-typedef struct tcemoduledescription_ TCModuleDescription;
+typedef struct tcmoduledescription_ TCModuleDescription;
 struct tcmoduledescription_ {
     char *parm;
     char *name;

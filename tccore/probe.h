@@ -11,6 +11,8 @@
 #ifndef PROBE_H
 #define PROBE_H
 
+#include "tc_defaults.h"
+
 /*************************************************************************/
 
 /* Structures to hold probed data */

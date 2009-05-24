@@ -74,6 +74,8 @@ struct tcruncontrol_ {
 
     void        (*pause)(TCRunControl *RC);
     TCRunStatus (*status)(TCRunControl *RC); 
+    void        (*progress)(TCRunControl *RC,
+                            int encoding, int frame, int first, int last);
 };
 
 int tc_runcontrol_init(void);
