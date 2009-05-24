@@ -87,8 +87,11 @@ void tc_export_video_notify(void);
 /*************************************************************************/
 
 /* it's a singleton, so we recycle the new/del pair... improperly */
-int tc_export_new(TCJob *vob, TCFactory factory, TCRunControl RC,
+int tc_export_new(TCJob *vob, TCFactory factory,
+                  TCRunControl *run_control,
 		  const TCFrameSpecs *specs);
+
+int tc_export_config(int verbose, int progress_meter, int cluster_mode);
 
 int tc_export_del(void);
 

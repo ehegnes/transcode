@@ -22,8 +22,8 @@
 #ifndef EXPORT_PROFILE_H
 #define EXPORT_PROFILE_H
 
-#include "tccore/tcinfo.h"
-#include "tccore/tcjob.h"
+#include "tccore/info.h"
+#include "tccore/job.h"
 
 /*************************************************************************
  * GENERAL WARNING: none of those functions                              *
@@ -36,7 +36,7 @@
  *     function before any *setup* or *load* function.
  *
  * Parameters:
- *     None
+ *     None.
  * Return Value:
  *     TC_OK if succesfull,
  *     TC_ERROR otherwise.

@@ -25,6 +25,8 @@
 #include "libtc/libtc.h"
 #include "libtc/tccodecs.h"
 #include "libtcutil/cfgfile.h"
+#include "tccore/tc_defaults.h"
+#include "tccore/frame.h"
 
 /* OK, that's quite ugly but I found nothing better, yet.*/
 #ifdef TCEXPORT_PROFILE
@@ -90,7 +92,7 @@ static TCExportProfile prof_data = {
 
     .info.mplex.out_file                = NULL,
     .info.mplex.out_file_aux            = NULL,
-    .info.mplex.module = {              = NULL,
+    .info.mplex.module = {
         .parm = NULL,
         .name = NULL,
         .opts = NULL,
@@ -141,10 +143,6 @@ static TCExportProfile prof_data = {
  *      Find and load, by looking into user profile path then into system
  *      profiles path, the i-th selected profile.
  *      If profile can't be loaded, it will just skipped.
- *      If verbose >= TC_DEBUG and the profile wasn't loaded, notify
- *      the user using tc_log*.
- *      If verbose >= TC_INFO and profile was loaded, notify the user
- *      using tc_log*.
  *
  * Parameters:
  *          i: load the i-th already parsed (see below) export profile.
@@ -171,9 +169,9 @@ static TCExportProfile prof_data = {
  *      call to tc_export_profile_setup_from_cmdlines, which parse the profiles
  *      selected by user. Otherwise it's still safe to call this function,
  *      but it always fail.
- */
 static int load_profile(const char *profile, TCConfigEntry *config,
                         const char *sys_path, const char *user_path);
+ */
 
 /* utilities used internally (yet) */
 
@@ -251,9 +249,8 @@ int tc_export_profile_setup_from_cmdline(int *argc, char ***argv)
         prof_data.profiles = tc_strsplit(optval, ',',
                                          &prof_data.profile_count);
         ret = (int)prof_data.profile_count;
-        if (verbose >= TC_INFO) {
-            tc_log_info(package, "E: %-16s | %i", "profiles parsed", ret);
-        }
+
+        tc_log_info(package, "E: %-16s | %i", "profiles parsed", ret);
     }
     return ret;
 }
@@ -268,14 +265,36 @@ void tc_export_profile_cleanup(void)
 
 const TCExportInfo *tc_export_profile_load_all(void)
 {
-    TCExportInfo *p = &prof_data.info;
+    const TCExportInfo *exinfo = &prof_data.info;
+    int i = 0;
 
-    for (i = 0; p && i < prof_data.profile_count; i++) {
-        p = tc_export_profile_load_single(prof_data.profiles[i],
-                                          config, sys_path, user_path);
+    for (i = 0; exinfo != NULL && i < prof_data.profile_count; i++) {
+        exinfo = tc_export_profile_load_single(prof_data.profiles[i]);
     }
-    return p;
+    return exinfo;
 }
+
+
+#define SETUP_CODEC(TYPE) do { \
+    int codec = 0; /* shortcut  */\
+    if (prof_data.TYPE ## _codec != NULL) { \
+        codec  = tc_codec_from_string(prof_data.TYPE ## _codec); \
+        prof_data.info.TYPE.format = codec; \
+        tc_free((char*)prof_data.TYPE ## _codec); /* avoid const warning */ \
+        prof_data.TYPE ## _codec = NULL; \
+    } \
+} while (0)
+
+#define SETUP_CLIPPING(TYPE) do { \
+    if (prof_data.TYPE ## _clip_area != NULL) { \
+        memset(&(prof_data.info.video.TYPE ## _clip), 0, sizeof(TCArea)); \
+        setup_clip_area(prof_data.TYPE ## _clip_area, \
+                        &(prof_data.info.video.TYPE ## _clip)); \
+        tc_free((char*)prof_data.TYPE ## _clip_area); /* avoid const warning */ \
+        prof_data.TYPE ## _clip_area = NULL; \
+    } \
+} while (0)
+
 
 const TCExportInfo *tc_export_profile_load_single(const char *name)
 {
@@ -350,13 +369,59 @@ const TCExportInfo *tc_export_profile_load_single(const char *name)
                         TCCONF_TYPE_STRING, 0, 0, 0 },
         { NULL, NULL, 0, 0, 0, 0 }
     };
-    int err = load_profile(profile, profile_conf,
-                           PROF_PATH, prof_data.home_path);
-    if (err) {
+
+    int found = 0, ret = 0;
+    char path_buf[PATH_MAX+1];
+    const char *basedir   = NULL;
+
+    tc_snprintf(path_buf, sizeof(path_buf), "%s/%s.cfg",
+                prof_data.home_path, name);
+    ret = access(path_buf, R_OK);
+    if (ret == 0) {
+        found = 1;
+        basedir = prof_data.home_path;
+    } else {
+        tc_snprintf(path_buf, sizeof(path_buf), "%s/%s.cfg",
+                    PROF_PATH, name);
+        ret = access(path_buf, R_OK);
+        if (ret == 0) {
+            found = 1;
+            basedir = PROF_PATH;
+        }
+    }
+
+    if (found) {
+        char prof_name[TC_BUF_MIN];
+        cleanup_strings(&prof_data.info);
+        tc_snprintf(prof_name, sizeof(prof_name), "%s.cfg", name);
+
+        tc_config_set_dir(basedir); /* FIXME */
+        ret = tc_config_read_file(prof_name, NULL, profile_conf, package);
+        if (ret == 0) {
+            found = 0; /* tc_config_read_file() failed */
+        } else {
+            tc_log_info(package, "E: %-16s | %s", "loaded profile",
+                        path_buf);
+
+            SETUP_CODEC(video);
+            SETUP_CODEC(audio);
+            SETUP_CLIPPING(pre);
+            SETUP_CLIPPING(post);
+        }
+    } else {
+        tc_log_warn(package, "E: %-16s | %s (skipped)", "unable to load",
+                    path_buf);
+    }
+
+    if (!found) {
         return NULL;
     }
     return &prof_data.info;
 }
+
+#undef SETUP_CODEC
+#undef SETUP_CLIPPING
+
 
 /* it's pretty naif yet. FR */
 void tc_export_profile_to_job(const TCExportInfo *info, TCJob *vob)
@@ -396,85 +461,6 @@ void tc_export_profile_to_job(const TCExportInfo *info, TCJob *vob)
  * private helpers: implementation
  **************************************************************************/
 
-#define SETUP_CODEC(TYPE) do { \
-    int codec = 0; /* shortcut  */\
-    if (prof_data.TYPE ## _codec != NULL) { \
-        codec  = tc_codec_from_string(prof_data.TYPE ## _codec); \
-        prof_data.info.TYPE.format = codec; \
-        tc_free((char*)prof_data.TYPE ## _codec); /* avoid const warning */ \
-        prof_data.TYPE ## _codec = NULL; \
-    } \
-} while (0)
-
-#define SETUP_CLIPPING(TYPE) do { \
-    if (prof_data.TYPE ## _clip_area != NULL) { \
-        memset(&(prof_data.info.video.TYPE ## _clip), 0, sizeof(TCArea)); \
-        setup_clip_area(prof_data.TYPE ## _clip_area, \
-                        &(prof_data.info.video.TYPE ## _clip)); \
-        tc_free((char*)prof_data.TYPE ## _clip_area); /* avoid const warning */ \
-        prof_data.TYPE ## _clip_area = NULL; \
-    } \
-} while (0)
-
-static int load_profile(const char *profile, TCConfigEntry *config,
-                        const char *sys_path, const char *user_path)
-{
-    int found = 0, ret = 0;
-    char path_buf[PATH_MAX+1];
-    const char *basedir = NULL;
-
-    if (sys_path == NULL || user_path == NULL
-     || config == NULL || profile == NULL) {
-        tc_log_warn(package, "load_profile: bad data reference");
-        return -1;
-    }
-
-    tc_snprintf(path_buf, sizeof(path_buf), "%s/%s.cfg",
-                user_path, profile);
-    ret = access(path_buf, R_OK);
-    if (ret == 0) {
-        found = 1;
-        basedir = user_path;
-    } else {
-        tc_snprintf(path_buf, sizeof(path_buf), "%s/%s.cfg",
-                    sys_path, profile);
-        ret = access(path_buf, R_OK);
-        if (ret == 0) {
-            found = 1;
-            basedir = PROF_PATH;
-        }
-    }
-
-    if (found) {
-        char prof_name[TC_BUF_MIN];
-        cleanup_strings(&prof_data.info);
-        tc_snprintf(prof_name, sizeof(prof_name), "%s.cfg", profile);
-
-        tc_config_set_dir(basedir); /* FIXME */
-        ret = tc_config_read_file(prof_name, NULL, config, package);
-        if (ret == 0) {
-            found = 0; /* tc_config_read_file() failed */
-        } else {
-            if (verbose >= TC_INFO) {
-                tc_log_info(package, "E: %-16s | %s", "loaded profile",
-                            path_buf);
-            }
-            SETUP_CODEC(video);
-            SETUP_CODEC(audio);
-            SETUP_CLIPPING(pre);
-            SETUP_CLIPPING(post);
-        }
-    } else {
-        if (verbose >= TC_DEBUG) {
-            tc_log_warn(package, "E: %-16s | %s (skipped)", "unable to load",
-                        path_buf);
-        }
-    }
-    return found;
-}
-#undef SETUP_CODEC
-#undef SETUP_CLIPPING
-
 /*
  * tc_config_read_file (used internally, see later)
  * allocates new strings for option values, so
@@ -494,17 +480,17 @@ static void cleanup_strings(TCExportInfo *info)
     if (info != NULL) {
         /* paranoia */
 
-        CLEANUP_STRING(video.string);
         CLEANUP_STRING(video.module.name);
+        CLEANUP_STRING(video.module.parm);
         CLEANUP_STRING(video.module.opts);
         CLEANUP_STRING(video.log_file);
 
-        CLEANUP_STRING(audio.string);
         CLEANUP_STRING(audio.module.name);
+        CLEANUP_STRING(audio.module.parm);
         CLEANUP_STRING(audio.module.opts);
 
-        CLEANUP_STRING(mplex.string);
         CLEANUP_STRING(mplex.module.name);
+        CLEANUP_STRING(mplex.module.parm);
         CLEANUP_STRING(mplex.module.opts);
         CLEANUP_STRING(mplex.module_aux.name);
         CLEANUP_STRING(mplex.module_aux.opts);

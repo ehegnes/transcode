@@ -29,6 +29,7 @@
 #include "config.h"
 #endif
 
+#include "tccore/tc_defaults.h"
 #include "multiplexor.h"
 
 #include <stdint.h>
@@ -62,7 +63,8 @@ static int tc_rotate_needed(TCRotateContext *rotor,
 
 /*************************************************************************/
 
-typedef int (*TCExportRotate)(TCRotateContext *rotor, uint32_t bytes);
+typedef int (*TCExportRotate)(TCRotateContext *rotor,
+                              uint32_t frames, uint32_t bytes);
 
 
 struct tcrotatecontext_ {
@@ -82,9 +84,10 @@ struct tcrotatecontext_ {
 
 /*************************************************************************/
 
-static int tc_rotate_needed(TCRotateContext *rotor, uint32_t bytes)
+static int tc_rotate_needed(TCRotateContext *rotor,
+                            uint32_t frames, uint32_t bytes)
 {
-    return rotor->rotate_needed(rotor, bytes);
+    return rotor->rotate_needed(rotor, frames, bytes);
 }
 
 static void tc_rotate_init(TCRotateContext *rotor, const char *base_name)
@@ -186,7 +189,7 @@ static int tc_rotate_needed_by_bytes(TCRotateContext *rotor,
 /* real multiplexor code                                                 */
 /*************************************************************************/
 
-void tc_multiplexor_limit_frames(TCMultiplexor *mux, uint32_t frames);
+void tc_multiplexor_limit_frames(TCMultiplexor *mux, uint32_t frames)
 {
     tc_rotate_set_frames_limit(mux->rotor, frames);
 }
@@ -290,19 +293,20 @@ static TCModule muxer_setup(TCMultiplexor *mux,
 {
     TCModuleExtraData *xdata[] = { NULL };
     const char *options = NULL;
-
     TCModule mux_mod = NULL;
+    int ret;
 
     mux_mod = tc_new_module(mux->factory, "multiplex", mux_mod_name, mtype);
     if (!mux_mod) {
-        tc_log_error(__FILE__, "can't load %s module ");
+        tc_log_error(__FILE__, "can't load %s module ", mux_mod_name);
         return NULL;
     }
 
     options = (mux->job->ex_m_string) ?mux->job->ex_m_string :"";
     ret = tc_module_configure(mux_mod, options, mux->job, xdata);
     if (ret != TC_OK) {
-        tc_log_error(__FILE__, "%s module error: init failed");
+        tc_log_error(__FILE__, "%s module error: init failed",
+                     mux_mod_name);
         return NULL;
     }
     return mux_mod;
@@ -335,7 +339,8 @@ int tc_multiplexor_setup(TCMultiplexor *mux,
     return ret;
 }
 
-void tc_export_shutdown(TCEncoder *enc)
+#if 0
+void tc_export_shutdown(TCMultiplexor *mux)
 {
     tc_debug(TC_DEBUG_MODULES, "unloading multiplexor modules");
 
@@ -345,6 +350,7 @@ void tc_export_shutdown(TCEncoder *enc)
         tc_del_module(mux->factory, mux->mux_aux);
     }
 }
+#endif
 
 /*************************************************************************/
 
@@ -386,10 +392,12 @@ int tc_multiplexor_open(TCMultiplexor *mux,
                         TCModuleExtraData *vid_xdata,
                         TCModuleExtraData *aud_xdata)
 {
+    int ret;
+
     tc_debug(TC_DEBUG_MODULES, "multiplexor opened");
 
     mux->vid_xdata = vid_xdata;
-    mux->aux_xdata = aud_xdata;
+    mux->aud_xdata = aud_xdata;
 
     /* sanity checks */
     if (mux->has_aux && !sink_name_aux) {
@@ -427,7 +435,7 @@ no_rotor:
 }
 
 
-static muxer_close(TCMultiplexor *mux)
+static int muxer_close(TCMultiplexor *mux)
 {
     int ret;
 
