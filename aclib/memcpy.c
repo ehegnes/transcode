@@ -59,8 +59,15 @@ PENTIUM_CACHE_BLOCK = (PENTIUM_CACHE_SIZE/2 - PENTIUM_LINE_SIZE)        \n\
         # First align destination address to a multiple of 8 bytes      \n\
         mov $8, %%eax           # EAX <- (8-dest) & 7                   \n\
         sub %%edi, %%eax                                                \n\
-        and $7, %%eax           # ... which is the number of bytes to copy\n\
-        lea 0f, %%edx           # Use a computed jump--faster than a loop\n\
+        and $7, %%eax           # ... which is the number of bytes to copy\n"
+#ifdef ACLIB_DISABLE_X86_TEXTRELS  // Because "lea 0f" requires a textrel
+"       xchg %%eax, %%ecx                                               \n\
+        mov %%ecx, %%edx                                                \n\
+        repz movsb                                                      \n\
+        mov %%eax, %%ecx                                                \n\
+        mov %%edx, %%eax                                                \n"
+#else
+"       lea 0f, %%edx           # Use a computed jump--faster than a loop\n\
         sub %%eax, %%edx                                                \n\
         jmp *%%edx              # Execute 0-7 MOVSB's                   \n\
         movsb                                                           \n\
@@ -69,8 +76,9 @@ PENTIUM_CACHE_BLOCK = (PENTIUM_CACHE_SIZE/2 - PENTIUM_LINE_SIZE)        \n\
         movsb                                                           \n\
         movsb                                                           \n\
         movsb                                                           \n\
-        movsb                                                           \n\
-0:      sub %%eax, %%ecx        # Update count                          \n\
+        movsb                                                           \n"
+#endif
+"0:     sub %%eax, %%ecx        # Update count                          \n\
                                                                         \n\
         # Now copy data in blocks                                       \n\
 0:      mov %%ecx, %%edx        # EDX <- ECX >> 6 (cache lines to copy) \n\
@@ -114,8 +122,13 @@ PENTIUM_CACHE_BLOCK = (PENTIUM_CACHE_SIZE/2 - PENTIUM_LINE_SIZE)        \n\
 mmx.memcpy_last:                                                        \n\
         # Copy last <64 bytes, using the computed jump trick            \n\
         mov %%ecx, %%eax        # EAX <- ECX>>2                         \n\
-        shr $2, %%eax                                                   \n\
-        lea 0f, %%edx                                                   \n\
+        shr $2, %%eax                                                   \n"
+#ifdef ACLIB_DISABLE_X86_TEXTRELS
+"       xchg %%eax, %%ecx                                               \n\
+        repz movsd                                                      \n\
+        mov %%eax, %%ecx                                                \n"
+#else
+"       lea 0f, %%edx                                                   \n\
         sub %%eax, %%edx                                                \n\
         jmp *%%edx              # Execute 0-15 MOVSD's                  \n\
         movsd                                                           \n\
@@ -132,15 +145,20 @@ mmx.memcpy_last:                                                        \n\
         movsd                                                           \n\
         movsd                                                           \n\
         movsd                                                           \n\
-        movsd                                                           \n\
-0:      and $3, %%ecx           # ECX <- ECX & 3                        \n\
-        lea 0f, %%edx                                                   \n\
+        movsd                                                           \n"
+#endif
+"0:     and $3, %%ecx           # ECX <- ECX & 3                        \n"
+#ifdef ACLIB_DISABLE_X86_TEXTRELS
+"       repz movsb                                                      \n"
+#else
+"       lea 0f, %%edx                                                   \n\
         sub %%ecx, %%edx                                                \n\
         jmp *%%edx              # Execute 0-3 MOVSB's                   \n\
         movsb                                                           \n\
         movsb                                                           \n\
-        movsb                                                           \n\
-0:                                                                      \n\
+        movsb                                                           \n"
+#endif
+"0:                                                                     \n\
         # All done!                                                     \n\
         emms                    # Clean up MMX state                    \n\
         pop %%edi               # Restore destination (return value)    \n\
@@ -180,8 +198,15 @@ static void *memcpy_sse(void *dest, const void *src, size_t bytes)
         # First align destination address to a multiple of 8 bytes      \n\
         mov $8, %%eax           # EAX <- (8-dest) & 7                   \n\
         sub %%edi, %%eax                                                \n\
-        and $7, %%eax           # ... which is the number of bytes to copy\n\
-        lea 0f, %%edx           # Use a computed jump--faster than a loop\n\
+        and $7, %%eax           # ... which is the number of bytes to copy\n"
+#ifdef ACLIB_DISABLE_X86_TEXTRELS
+"       xchg %%eax, %%ecx                                               \n\
+        mov %%ecx, %%edx                                                \n\
+        repz movsb                                                      \n\
+        mov %%eax, %%ecx                                                \n\
+        mov %%edx, %%eax                                                \n"
+#else
+"       lea 0f, %%edx           # Use a computed jump--faster than a loop\n\
         sub %%eax, %%edx                                                \n\
         jmp *%%edx              # Execute 0-7 MOVSB's                   \n\
         movsb                                                           \n\
@@ -190,8 +215,9 @@ static void *memcpy_sse(void *dest, const void *src, size_t bytes)
         movsb                                                           \n\
         movsb                                                           \n\
         movsb                                                           \n\
-        movsb                                                           \n\
-0:      sub %%eax, %%ecx        # Update count                          \n\
+        movsb                                                           \n"
+#endif
+"0:     sub %%eax, %%ecx        # Update count                          \n\
                                                                         \n\
         cmp $0x10040, %%ecx     # Is this a large block? (0x10040 is an \n\
                                 # arbitrary value where prefetching and \n\
@@ -266,8 +292,13 @@ sse.memcpy_small:               # Small block copy routine--no prefetch \n"
 sse.memcpy_last:                                                        \n\
         # Copy last <64 bytes, using the computed jump trick            \n\
         mov %%ecx, %%eax        # EAX <- ECX>>2                         \n\
-        shr $2, %%eax                                                   \n\
-        lea 0f, %%edx                                                   \n\
+        shr $2, %%eax                                                   \n"
+#ifdef ACLIB_DISABLE_X86_TEXTRELS
+"       xchg %%eax, %%ecx                                               \n\
+        repz movsd                                                      \n\
+        mov %%eax, %%ecx                                                \n"
+#else
+"       lea 0f, %%edx                                                   \n\
         sub %%eax, %%edx                                                \n\
         jmp *%%edx              # Execute 0-15 MOVSD's                  \n\
         movsd                                                           \n\
@@ -284,15 +315,20 @@ sse.memcpy_last:                                                        \n\
         movsd                                                           \n\
         movsd                                                           \n\
         movsd                                                           \n\
-        movsd                                                           \n\
-0:      and $3, %%ecx           # ECX <- ECX & 3                        \n\
-        lea sse.memcpy_end, %%edx                                       \n\
+        movsd                                                           \n"
+#endif
+"0:     and $3, %%ecx           # ECX <- ECX & 3                        \n"
+#ifdef ACLIB_DISABLE_X86_TEXTRELS
+"       repz movsb                                                      \n"
+#else
+"       lea sse.memcpy_end, %%edx                                       \n\
         sub %%ecx, %%edx                                                \n\
         jmp *%%edx              # Execute 0-3 MOVSB's                   \n\
         movsb                                                           \n\
         movsb                                                           \n\
-        movsb                                                           \n\
-                                                                        \n\
+        movsb                                                           \n"
+#endif
+"                                                                       \n\
 sse.memcpy_end:                                                         \n\
         # All done!                                                     \n\
         emms                    # Clean up after MMX instructions       \n\
