@@ -27,6 +27,7 @@
 #include "libtc/libtc.h"
 #include "libtc/tccodecs.h"
 #include "libtc/ratiocodes.h"
+#include "libtcext/tc_ext.h"
 #include "libtcutil/xio.h"
 #include "libtcutil/cfgfile.h"
 
