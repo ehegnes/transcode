@@ -32,6 +32,7 @@
 #include "transcode.h"
 #include "import/magic.h"
 #include "encoder.h"
+#include "libtc/optstr.h"
 #include "libtcvideo/tcvideo.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -132,19 +133,20 @@ static int list(char *list_type)
     lqt_codec_info_t ** qi = NULL;
 
 
-    if (list_type == QT_LIST_VIDEO) qi = lqt_query_registry(0, 1, 1, 0);
-    else if (list_type == QT_LIST_AUDIO) qi = lqt_query_registry(1, 0, 1, 0);
-    else {
+    if (strcmp(list_type, QT_LIST_VIDEO) == 0) {
+        qi = lqt_query_registry(0, 1, 1, 0);
+    } else if (strcmp(list_type, QT_LIST_AUDIO) == 0) {
+        qi = lqt_query_registry(1, 0, 1, 0);
+    } else {
         qi = lqt_query_registry(1, 1, 1, 0);
     }
 
     tc_log_info(MOD_NAME, "List of supported %s:", list_type);
     tc_log_info(MOD_NAME, "Name                    comments");
     tc_log_info(MOD_NAME, "---------------         "
-		          "-----------------------------------");
-    while(qi[cod] != NULL)
-        {
-        if (list_type == QT_LIST_PARM) {
+                          "-----------------------------------");
+    while (qi[cod] != NULL) {
+        if (strcmp(list_type, QT_LIST_PARM) == 0) {
             tc_log_info(MOD_NAME, "%s:", qi[cod]->name);
             for(i = 0; i < qi[cod]->num_encoding_parameters; i++) {
                 if (qi[cod]->encoding_parameters[i].type != LQT_PARAMETER_SECTION) {
@@ -153,8 +155,7 @@ static int list(char *list_type)
                         qi[cod]->encoding_parameters[i].real_name);
                 }
             }
-        }
-        else {
+        } else {
             tc_log_info(MOD_NAME, "%-23s %s",
                 qi[cod]->name,
                 qi[cod]->description);
@@ -162,7 +163,7 @@ static int list(char *list_type)
         cod++;
     }
 
-return 1;
+    return 1;
 }
 
 /* ------------------------------------------------------------
