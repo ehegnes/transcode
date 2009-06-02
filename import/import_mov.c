@@ -27,6 +27,7 @@
 #define MOD_CODEC   "(video) * | (audio) *"
 
 #include "transcode.h"
+#include "../src/filter.h"
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_PCM | TC_CAP_RGB | TC_CAP_YUV |
