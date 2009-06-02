@@ -280,7 +280,7 @@ int main(int argc, char *argv[])
 	      " -n 0x1 -g 16x16 -y raw,raw -c 0-5 -e %ld,%d,%d -b %ld -q0",
 	      tmp0, rate,bits,chan, mp3rate);
 
-      printf(cmd);
+      printf("%s\n", cmd);
       system(cmd);
 
       if(NULL == (avifile3 = AVI_open_input_file(tmp0,1))) {
