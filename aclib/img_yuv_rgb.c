@@ -1320,7 +1320,7 @@ DEFINE_RGB2YUV_SSE2_SET(bgra32, 4,2,1,0)
 /* Split 8 RGBA pixels in XMMr/XMMb into R/G/B in XMM0/XMM1/XMM2.
  * r and b are 0 and 2 for RGB, 2 and 0 for BGR */
 #define SSE2_SPLIT_RGB32(r,b) "\
-        movdqa 176(%%edi), %%xmm7       # XMM7: 00FF*8                  \n\
+        movdqa 176("EDI"), %%xmm7       # XMM7: 00FF*8                  \n\
         movdqa %%xmm"#r", %%xmm1        # XMM1: XBGR3 XBGR2 XBGR1 XBGR0 \n\
         movdqa %%xmm"#b", %%xmm3        # XMM3: XBGR7 XBGR6 XBGR5 XBGR4 \n\
         pand %%xmm7, %%xmm"#r"          # XMMr: B3 R3 B2 R2 B1 R1 B0 R0 \n\
@@ -1396,8 +1396,8 @@ static inline void sse2_load_bgr24(uint8_t *src)
 static inline void sse2_load_rgba32(uint8_t *src)
 {
     asm("\
-        movdqu (%%esi), %%xmm0          # XMM0: XBGR3 XBGR2 XBGR1 XBGR0 \n\
-        movdqu 16(%%esi), %%xmm2        # XMM2: XBGR7 XBGR6 XBGR5 XBGR4 \n\
+        movdqu ("ESI"), %%xmm0          # XMM0: XBGR3 XBGR2 XBGR1 XBGR0 \n\
+        movdqu 16("ESI"), %%xmm2        # XMM2: XBGR7 XBGR6 XBGR5 XBGR4 \n\
         "SSE2_SPLIT_RGB32(0,2)"                                         \n"
         : /* no outputs */
         : "S" (src), "D" (&rgb_data), "m" (rgb_data)
@@ -1407,8 +1407,8 @@ static inline void sse2_load_rgba32(uint8_t *src)
 static inline void sse2_load_abgr32(uint8_t *src)
 {
     asm("\
-        movdqu (%%esi), %%xmm2          # XMM2: RGBX3 RGBX2 RGBX1 RGBX0 \n\
-        movdqu 16(%%esi), %%xmm0        # XMM0: RGBX7 RGBX6 RGBX5 RGBX4 \n\
+        movdqu ("ESI"), %%xmm2          # XMM2: RGBX3 RGBX2 RGBX1 RGBX0 \n\
+        movdqu 16("ESI"), %%xmm0        # XMM0: RGBX7 RGBX6 RGBX5 RGBX4 \n\
         psrld $8, %%xmm2                # XMM2: -RGB3 -RGB2 -RGB1 -RGB0 \n\
         psrld $8, %%xmm0                # XMM0: -RGB7 -RGB6 -RGB5 -RGB4 \n\
         "SSE2_SPLIT_RGB32(2,0)"                                         \n"
@@ -1420,8 +1420,8 @@ static inline void sse2_load_abgr32(uint8_t *src)
 static inline void sse2_load_argb32(uint8_t *src)
 {
     asm("\
-        movdqu (%%esi), %%xmm0          # XMM0: BGRX3 BGRX2 BGRX1 BGRX0 \n\
-        movdqu 16(%%esi), %%xmm2        # XMM2: BGRX7 BGRX6 BGRX5 BGRX4 \n\
+        movdqu ("ESI"), %%xmm0          # XMM0: BGRX3 BGRX2 BGRX1 BGRX0 \n\
+        movdqu 16("ESI"), %%xmm2        # XMM2: BGRX7 BGRX6 BGRX5 BGRX4 \n\
         psrld $8, %%xmm0                # XMM0: -BGR3 -BGR2 -BGR1 -BGR0 \n\
         psrld $8, %%xmm2                # XMM2: -BGR7 -BGR6 -BGR5 -BGR4 \n\
         "SSE2_SPLIT_RGB32(0,2)"                                         \n"
@@ -1433,8 +1433,8 @@ static inline void sse2_load_argb32(uint8_t *src)
 static inline void sse2_load_bgra32(uint8_t *src)
 {
     asm("\
-        movdqu (%%esi), %%xmm2          # XMM2: XRGB3 XRGB2 XRGB1 XRGB0 \n\
-        movdqu 16(%%esi), %%xmm0        # XMM0: XRGB7 XRGB6 XRGB5 XRGB4 \n\
+        movdqu ("ESI"), %%xmm2          # XMM2: XRGB3 XRGB2 XRGB1 XRGB0 \n\
+        movdqu 16("ESI"), %%xmm0        # XMM0: XRGB7 XRGB6 XRGB5 XRGB4 \n\
         "SSE2_SPLIT_RGB32(2,0)"                                         \n"
         : /* no outputs */
         : "S" (src), "D" (&rgb_data), "m" (rgb_data)

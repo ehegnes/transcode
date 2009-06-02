@@ -21,6 +21,6 @@ transcode-1.2.0
 [!] Make the -W option work again like 1.0.x branch.
 [*] Switch from ImageMagick to GraphicsMagick.
 [*] Allow to build without FFmpeg.
-[!] Removed outdated libav* information from the FAQ.
-[+] Add support for CubicKeys4 and Sinc8 zoom algorhytms.
+[!] Remove outdated libav* information from the FAQ.
+[+] Add support for CubicKeys4 and Sinc8 zoom algorithms.
 ===========================================================================

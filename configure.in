@@ -1354,6 +1354,11 @@ AC_SUBST(WAVLIB_LIBS)
 dnl
 dnl aclib
 dnl
+AC_ARG_ENABLE([x86-textrels],
+    AC_HELP_STRING([--enable-x86-textrels], [enable x86-32 optimizations which use text relocations (yes)]),
+    [if test "no" = "$enableval"; then
+         AC_DEFINE([ACLIB_DISABLE_X86_TEXTRELS], [1], [Disable x86-32 optimizations in aclib that require text relocations])
+     fi])
 ACLIB_LIBS="\$(top_builddir)/aclib/libac.la"
 AC_SUBST(ACLIB_LIBS)
 
