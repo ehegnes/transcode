@@ -341,7 +341,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
       ppStride[0] = width[instance];
       ppStride[1] = ppStride[2] = width[instance]>>1;
 
-      pp_postprocess(pp_page, ppStride,
+      pp_postprocess((void *)pp_page, ppStride,
 		     pp_page, ppStride,
 		     width[instance], height[instance],
 		     NULL, 0, mode[instance], context[instance], 0);
