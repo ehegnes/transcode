@@ -784,6 +784,11 @@ static int tc_audio_encode_mp3(char *aud_buffer, int aud_size, avi_t *avifile)
         tc_info("output_len=%d input_len=%d count=%d",
             output_len, input_len, count);
 
+    /* If we don't have any output data, there's nothing to do */
+    if (output_len == 0) {
+        return(TC_EXPORT_OK);
+    }
+
     /*
      * Now, it's time to write mp3 data to output stream...
      */
