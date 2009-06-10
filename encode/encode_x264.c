@@ -33,10 +33,13 @@
 #include "libtcmodule/tcmodule-plugin.h"
 
 #include <x264.h>
+#if X264_BUILD < 65
+# error x264 version 65 or later is required
+#endif
 
 
 #define MOD_NAME    "encode_x264.so"
-#define MOD_VERSION "v0.2.4 (2008-06-14)"
+#define MOD_VERSION "v0.3.0 (2009-06-11)"
 #define MOD_CAP     "x264 encoder"
 
 #define MOD_FEATURES \
@@ -65,10 +68,8 @@ static struct confdata_struct {
     x264_param_t x264params;
     /* Dummy fields for obsolete options */
     int dummy_direct_8x8;
-#if X264_BUILD >= 65
     int dummy_bidir_me;
     int dummy_brdo;
-#endif
     /* No local parameters at the moment */
 } confdata;
 
@@ -155,11 +156,7 @@ static TCConfigEntry conf[] ={
     /* How many B-frames between 2 reference pictures */
     OPT_RANGE(i_bframe,                   "bframes",        0,    16)
     /* Use adaptive B-frame encoding */
-#if X264_BUILD < 64
-    OPT_FLAG (b_bframe_adaptive,          "b_adapt")
-#else
     OPT_FLAG (i_bframe_adaptive,          "b_adapt")
-#endif
     /* How often B-frames are used */
     OPT_RANGE(i_bframe_bias,              "b_bias",       -90,   100)
     /* Keep some B-frames as references */
@@ -282,21 +279,10 @@ static TCConfigEntry conf[] ={
 
     {"direct_8x8",   &confdata.dummy_direct_8x8, TCCONF_TYPE_FLAG, 0, 0, 1},
     {"nodirect_8x8", &confdata.dummy_direct_8x8, TCCONF_TYPE_FLAG, 0, 1, 0},
-#if X264_BUILD < 65
-    /* Bidirectional motion estimation */
-    OPT_FLAG (analyse.b_bidir_me,         "bidir_me")
-    /* RD based mode decision for B-frames */
-    OPT_FLAG (analyse.b_bframe_rdo,       "brdo")
-#else
-    {"bidir_me",   &confdata.dummy_bidir_me, TCCONF_TYPE_FLAG, 0, 0, 1},
-    {"nobidir_me", &confdata.dummy_bidir_me, TCCONF_TYPE_FLAG, 0, 1, 0},
-    {"brdo",       &confdata.dummy_brdo,     TCCONF_TYPE_FLAG, 0, 0, 1},
-    {"nobrdo",     &confdata.dummy_brdo,     TCCONF_TYPE_FLAG, 0, 1, 0},
-#endif
-#if X264_BUILD < 64
-    /* Rate control equation for 2-pass encoding (like FFmpeg) */
-    OPT_STR  (rc.psz_rc_eq,               "rc_eq")
-#endif
+    {"bidir_me",     &confdata.dummy_bidir_me,   TCCONF_TYPE_FLAG, 0, 0, 1},
+    {"nobidir_me",   &confdata.dummy_bidir_me,   TCCONF_TYPE_FLAG, 0, 1, 0},
+    {"brdo",         &confdata.dummy_brdo,       TCCONF_TYPE_FLAG, 0, 0, 1},
+    {"nobrdo",       &confdata.dummy_brdo,       TCCONF_TYPE_FLAG, 0, 1, 0},
 
     {NULL}
 };
@@ -504,10 +490,6 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
     if (tc_accel & AC_MMXEXT)   params->cpu |= X264_CPU_MMXEXT;
     if (tc_accel & AC_SSE)      params->cpu |= X264_CPU_SSE;
     if (tc_accel & AC_SSE2)     params->cpu |= X264_CPU_SSE2;
-#if X264_BUILD < 60
-    if (tc_accel & AC_3DNOW)    params->cpu |= X264_CPU_3DNOW;
-    if (tc_accel & AC_3DNOWEXT) params->cpu |= X264_CPU_3DNOWEXT;
-#endif
 
     return TC_OK;
 }
@@ -600,13 +582,9 @@ static int x264_configure(TCModuleInstance *self,
     confdata.x264params.analyse.inter = ~0;
 
     /* Watch for obsolete options being set */
-#if X264_BUILD >= 65
     confdata.dummy_direct_8x8 = -1;
-#endif
-#if X264_BUILD >= 65
     confdata.dummy_bidir_me = -1;
     confdata.dummy_brdo = -1;
-#endif
 
     /* Read settings from configuration file */
     tc_config_read_file(X264_CONFIG_FILE, NULL, conf, MOD_NAME);
@@ -628,7 +606,6 @@ static int x264_configure(TCModuleInstance *self,
         tc_log_warn(MOD_NAME, "Option direct_8x8 is obsolete, and is now"
                     " always active.");
     }
-#if X264_BUILD >= 65
     if (confdata.dummy_bidir_me != -1) {
         tc_log_warn(MOD_NAME,
                     "Option bidir_me is obsolete in x264 version 65.\n"
@@ -640,14 +617,6 @@ static int x264_configure(TCModuleInstance *self,
                     "Option bidir_me is obsolete in x264 version 65.\n"
                     "    brdo will be automatically applied when subq >= 7.");
     }
-#endif
-
-#if X264_BUILD < 65
-    /* subq values are different in old x264 builds */
-    if (confdata.x264params.analyse.i_subpel_refine > 7) {
-        confdata.x264params.analyse.i_subpel_refine = 7;
-    }
-#endif
 
     /* Apply extra settings to $x264params */
     if (0 != x264params_set_multipass(&confdata.x264params, vob->divxmultipass,
