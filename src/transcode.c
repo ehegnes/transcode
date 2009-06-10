@@ -950,6 +950,7 @@ static vob_t *new_vob(void)
     vob->hori_resize2        = 0;
     vob->sync                = 0;
     vob->sync_ms             = 0;
+    vob->sync_samples        = 0;
     vob->dvd_title           = 1;
     vob->dvd_chapter1        = 1;
     vob->dvd_chapter2        = -1;
