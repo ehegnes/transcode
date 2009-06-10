@@ -36,7 +36,7 @@
 
 
 #define MOD_NAME    "encode_x264.so"
-#define MOD_VERSION "v0.2.4 (2008-06-14)"
+#define MOD_VERSION "v0.2.5 (2009-06-11)"
 #define MOD_CAP     "x264 encoder"
 
 #define MOD_FEATURES \
@@ -66,7 +66,6 @@ static struct confdata_struct {
     /* Dummy fields for obsolete options */
     int dummy_direct_8x8;
 #if X264_BUILD >= 65
-    /* Dummy fields for obsolete options */
     int dummy_bidir_me;
     int dummy_brdo;
 #endif
@@ -600,9 +599,7 @@ static int x264_configure(TCModuleInstance *self,
     confdata.x264params.analyse.inter = ~0;
 
     /* Watch for obsolete options being set */
-#if X264_BUILD >= 65
     confdata.dummy_direct_8x8 = -1;
-#endif
 #if X264_BUILD >= 65
     confdata.dummy_bidir_me = -1;
     confdata.dummy_brdo = -1;
