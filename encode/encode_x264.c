@@ -39,7 +39,7 @@
 
 
 #define MOD_NAME    "encode_x264.so"
-#define MOD_VERSION "v0.3.0 (2009-06-11)"
+#define MOD_VERSION "v0.3.1 (2009-06-17)"
 #define MOD_CAP     "x264 encoder"
 
 #define MOD_FEATURES \
@@ -61,6 +61,8 @@ typedef struct {
     int flush_flag;
     x264_param_t x264params;
     x264_t *enc;
+    int twopass_bug_workaround;  // Work around x264 logfile generation bug?
+    char twopass_log_path[4096]; // Logfile path (for 2-pass bug workaround)
 } X264PrivateData;
 
 /* Static structure to provide pointers for configuration entries */
@@ -70,7 +72,8 @@ static struct confdata_struct {
     int dummy_direct_8x8;
     int dummy_bidir_me;
     int dummy_brdo;
-    /* No local parameters at the moment */
+    /* Local parameters */
+    int twopass_bug_workaround;
 } confdata;
 
 /*************************************************************************/
@@ -275,6 +278,13 @@ static TCConfigEntry conf[] ={
     OPT_NONE (b_repeat_headers)
     OPT_NONE (i_sps_id)
 
+    /* Module configuration options (which do not affect encoding) */
+
+    {"2pass_bug_workaround", &confdata.twopass_bug_workaround,
+                                                 TCCONF_TYPE_FLAG, 0, 0, 1},
+    {"no2pass_bug_workaround", &confdata.twopass_bug_workaround,
+                                                 TCCONF_TYPE_FLAG, 0, 1, 0},
+
     /* Obsolete options (scheduled for future removal) */
 
     {"direct_8x8",   &confdata.dummy_direct_8x8, TCCONF_TYPE_FLAG, 0, 0, 1},
@@ -344,12 +354,11 @@ static void x264_log(void *userdata, int level, const char *format,
  * Parameters:
  *              pass: 0 = single pass
  *                    1 = 1st pass
- *                    2 = 2nd pass
- *                    3 = Nth pass, must also be used for 2nd pass
- *                                  of multipass encoding.
+ *                    2 = 2nd pass (final pass of multipass encoding)
+ *                    3 = Nth pass (intermediate passes of multipass encoding)
  *     statsfilename: where to read and write multipass stat data.
  * Return value:
- *     always 0.
+ *     Always 0.
  * Preconditions:
  *     params != NULL
  *     pass == 0 || statsfilename != NULL
@@ -386,8 +395,8 @@ static int x264params_set_multipass(x264_param_t *params,
 /*************************************************************************/
 
 /**
- * Checks or corrects some strange combinations of settings done in
- * x264params.
+ * x264params_check:  Checks or corrects some strange combinations of
+ * settings done in x264params.
  *
  * Parameters:
  *     params: x264_param_t structure to check
@@ -492,6 +501,136 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
     if (tc_accel & AC_SSE2)     params->cpu |= X264_CPU_SSE2;
 
     return TC_OK;
+}
+
+/*************************************************************************/
+
+/**
+ * do_2pass_bug_workaround:  Work around a bug present in at least x264
+ * versions 65 through 67 which causes invalid frame numbers to be written
+ * to the 2-pass logfile.
+ *
+ * Parameters:
+ *     path: Logfile pathname.
+ * Return value:
+ *     0 on success, nonzero otherwise.
+ * Preconditions:
+ *     path != NULL
+ */
+
+static int do_2pass_bug_workaround(const char *path)
+{
+    FILE *fp;
+    char *buffer;
+    long filesize, nread, offset;
+    long nframes;
+
+    fp = fopen(path, "r+");
+    if (!fp) {
+        tc_log_warn(MOD_NAME, "Failed to open 2-pass logfile '%s': %s",
+                    path, strerror(errno));
+        goto error_return;
+    }
+
+    /* x264 treats the logfile as a single, semicolon-separated buffer
+     * rather than a series of lines, so do the same here. */
+
+    /* Read in the logfile data */
+    if (fseek(fp, 0, SEEK_END) != 0) {
+        tc_log_warn(MOD_NAME, "Seek to end of 2-pass logfile failed: %s",
+                    strerror(errno));
+        goto error_close_file;
+    }
+    filesize = ftell(fp);
+    if (filesize < 0) {
+        tc_log_warn(MOD_NAME, "Get size of 2-pass logfile failed: %s",
+                    strerror(errno));
+        goto error_close_file;
+    }
+    buffer = malloc(filesize);
+    if (!buffer) {
+        tc_log_warn(MOD_NAME, "No memory for 2-pass logfile buffer"
+                    " (%ld bytes)", filesize);
+        goto error_close_file;
+    }
+    if (fseek(fp, 0, SEEK_SET) != 0) {
+        tc_log_warn(MOD_NAME, "Seek to beginning of 2-pass logfile failed: %s",
+                    strerror(errno));
+        goto error_free_buffer;
+    }
+    nread = fread(buffer, 1, filesize, fp);
+    if (nread != filesize) {
+        tc_log_warn(MOD_NAME, "Short read on 2-pass logfile (expected %ld"
+                    " bytes, got %ld)", filesize, nread);
+        goto error_free_buffer;
+    }
+
+    /* Count the number of frames */
+    nframes = 0;
+    offset = 0;
+    if (strncmp(buffer, "#options:", 9) == 0) {  // just like x264
+        offset = strcspn(buffer, "\n") + 1;
+    }
+    for (; offset < filesize; offset++) {
+        if (buffer[offset] == ';') {
+            nframes++;
+        }
+    }
+
+    /* Go through the frame list and check for out-of-range frame numbers */
+    offset = 0;
+    if (strncmp(buffer, "#options:", 9) == 0) {
+        offset = strcspn(buffer, "\n") + 1;
+    }
+    while (offset < filesize) {
+        long framenum;
+        char *s;
+        if (strncmp(&buffer[offset], "in:", 3) != 0) {
+            tc_log_warn(MOD_NAME, "Can't parse 2-pass logfile at offset %ld,"
+                        " giving up.", offset);
+            offset = filesize;  // Don't truncate the file
+            break;
+        }
+        framenum = strtol(&buffer[offset+3], &s, 10);
+        if ((s && *s != ' ') || framenum < 0) {
+            tc_log_warn(MOD_NAME, "Can't parse 2-pass logfile at offset %ld,"
+                        " giving up.", offset+3);
+            offset = filesize;  // Don't truncate the file
+            break;
+        }
+        if (framenum >= nframes) {
+            tc_log_warn(MOD_NAME, "Truncating corrupt x264 logfile:");
+            tc_log_warn(MOD_NAME, "    in(%ld) >= nframes(%ld) at offset %ld",
+                        framenum, nframes, offset);
+            tc_log_warn(MOD_NAME, "Please report this bug to the x264"
+                        " developers.");
+            break;  // Truncate the file here
+        }
+        offset += strcspn(&buffer[offset], ";");
+        offset += strspn(&buffer[offset], ";\n");
+    }
+
+    /* Truncate the file if the bug was detected */
+    if (offset < filesize) {
+        if (ftruncate(fileno(fp), offset) != 0) {
+            tc_log_warn(MOD_NAME, "Failed to truncate 2-pass logfile: %s",
+                        strerror(errno));
+            goto error_free_buffer;
+        }
+    }
+
+    /* Successful return */
+    free(buffer);
+    fclose(fp);
+    return 0;
+
+    /* Error handling */
+  error_free_buffer:
+    free(buffer);
+  error_close_file:
+    fclose(fp);
+  error_return:
+    return -1;
 }
 
 /*************************************************************************/
@@ -618,6 +757,23 @@ static int x264_configure(TCModuleInstance *self,
                     "    brdo will be automatically applied when subq >= 7.");
     }
 
+    /* Save multipass logfile name if 2-pass bug workaround was requested */
+    if (confdata.twopass_bug_workaround
+     && (vob->divxmultipass == 1 || vob->divxmultipass == 3)
+    ) {
+        const size_t strsize = strlen(vob->divxlogfile) + 1;
+        if (strsize > sizeof(pd->twopass_log_path)) {
+            tc_log_error(MOD_NAME, "2-pass logfile path too long.\n"
+                         "    Use a shorter pathname or disable the"
+                         " 2pass_bug_workaround option.");
+            return TC_ERROR;
+        }
+        memcpy(pd->twopass_log_path, vob->divxlogfile, strsize);
+        pd->twopass_bug_workaround = 1;
+    } else {
+        pd->twopass_bug_workaround = 0;
+    }
+
     /* Apply extra settings to $x264params */
     if (0 != x264params_set_multipass(&confdata.x264params, vob->divxmultipass,
                                       vob->divxlogfile)
@@ -676,6 +832,10 @@ static int x264_stop(TCModuleInstance *self)
     if (pd->enc) {
         x264_encoder_close(pd->enc);
         pd->enc = NULL;
+    }
+
+    if (pd->twopass_bug_workaround) {
+        do_2pass_bug_workaround(pd->twopass_log_path);
     }
 
     return TC_OK;
