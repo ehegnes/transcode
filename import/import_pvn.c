@@ -503,27 +503,35 @@ static int pvn_demultiplex(TCModuleInstance *self,
                     val = inptr[x*4] ^ 0x80;
                     break;
                   case SINGLE: {
-                    float f;
                     /* Convert from big-endian to native format */
-                    *((uint32_t *)&f) = (uint32_t)(inptr[x*4  ]) << 24
-                                      | (uint32_t)(inptr[x*4+1]) << 16
-                                      | (uint32_t)(inptr[x*4+2]) <<  8
-                                      | (uint32_t)(inptr[x*4+3]);
-                    val = (int)floor(((f - single_base) / single_range) * 255 + 0.5);
+                    union {
+                        float f;
+                        uint32_t i;
+                    } u;
+                    u.i = (uint32_t)(inptr[x*4  ]) << 24
+                        | (uint32_t)(inptr[x*4+1]) << 16
+                        | (uint32_t)(inptr[x*4+2]) <<  8
+                        | (uint32_t)(inptr[x*4+3]);
+                    val = (int)floor(((u.f - single_base) / single_range)
+                                     * 255 + 0.5);
                     break;
                   } // SINGLE
                   case DOUBLE: {
-                    double d;
                     /* Convert from big-endian to native format */
-                    *((uint64_t *)&d) = (uint64_t)(inptr[x*8  ]) << 56
-                                      | (uint64_t)(inptr[x*8+1]) << 48
-                                      | (uint64_t)(inptr[x*8+2]) << 40
-                                      | (uint64_t)(inptr[x*8+3]) << 32
-                                      | (uint64_t)(inptr[x*8+4]) << 24
-                                      | (uint64_t)(inptr[x*8+5]) << 16
-                                      | (uint64_t)(inptr[x*8+6]) <<  8
-                                      | (uint64_t)(inptr[x*8+7]);
-                    val = (int)floor(((d - double_base) / double_range) * 255 + 0.5);
+                    union {
+                        float d;
+                        uint64_t i;
+                    } u;
+                    u.i = (uint64_t)(inptr[x*8  ]) << 56
+                        | (uint64_t)(inptr[x*8+1]) << 48
+                        | (uint64_t)(inptr[x*8+2]) << 40
+                        | (uint64_t)(inptr[x*8+3]) << 32
+                        | (uint64_t)(inptr[x*8+4]) << 24
+                        | (uint64_t)(inptr[x*8+5]) << 16
+                        | (uint64_t)(inptr[x*8+6]) <<  8
+                        | (uint64_t)(inptr[x*8+7]);
+                    val = (int)floor(((u.d - double_base) / double_range)
+                                     * 255 + 0.5);
                     break;
                   } // DOUBLE
                 } // switch (datatype) 
