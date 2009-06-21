@@ -77,7 +77,7 @@ pkgdir = $(MOD_PATH)
 if ENABLE_NUV
 NUV = nuv
 endif
-SUBDIRS = $(NUV) v4l
+SUBDIRS = framegen $(NUV) v4l
 
 pkg_LTLIBRARIES = \
 	$(IMPORT_A52) \

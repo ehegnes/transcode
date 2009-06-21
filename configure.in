@@ -1448,6 +1448,7 @@ AC_CONFIG_FILES([
 	filter/yuvdenoise/Makefile
 	filter/stabilize/Makefile
 	import/Makefile
+	import/framegen/Makefile
 	import/nuv/Makefile
 	import/v4l/Makefile
 	multiplex/Makefile
