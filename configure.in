@@ -1439,6 +1439,7 @@ AC_CONFIG_FILES([
 	filter/tomsmocomp/Makefile
 	filter/yuvdenoise/Makefile
 	import/Makefile
+	import/framegen/Makefile
 	import/nuv/Makefile
 	import/v4l/Makefile
 	multiplex/Makefile
