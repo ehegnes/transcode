@@ -26,6 +26,7 @@
 #include <errno.h>
 
 #include "src/transcode.h"
+#include "src/cmdline.h"  // for ex_aud_mod HACKs below
 #include "libtcutil/optstr.h"
 
 #include "libtcmodule/tcmodule-plugin.h"
@@ -83,8 +84,12 @@ static int raw_configure(TCModuleInstance *self,
     pd = self->userdata;
 
     // XXX
-    if (vob->audio_out_file == NULL
-      || !strcmp(vob->audio_out_file, "/dev/null")) {
+    // HACK: Don't append .vid for -y ...,null,raw, since there's only one
+    //       output file.  --AC
+    if ((ex_aud_mod != NULL && strcmp(ex_aud_mod, "null") != 0)
+        && (vob->audio_out_file == NULL
+            || strcmp(vob->audio_out_file, "/dev/null") == 0)
+    ) {
         /* use affine names */
         tc_snprintf(vid_name, PATH_MAX, "%s.%s",
                     vob->video_out_file, RAW_VID_EXT);
@@ -108,7 +113,10 @@ static int raw_configure(TCModuleInstance *self,
     }
 
     /* avoid fd loss in case of failed configuration */
-    if (pd->fd_aud == -1) {
+    // HACK: Don't open for -y ...,null,raw.  --AC
+    if ((ex_aud_mod != NULL && strcmp(ex_aud_mod, "null") != 0)
+     && pd->fd_aud == -1
+    ) {
         pd->fd_aud = open(aud_name,
                           O_RDWR|O_CREAT|O_TRUNC,
                           S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
