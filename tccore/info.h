@@ -8,8 +8,8 @@
  * for details.
  */
 
-#ifndef TCINFO_H
-#define TCINFO_H
+#ifndef TCCORE_INFO_H
+#define TCCORE_INFO_H
 
 #include <stdint.h>
 
@@ -212,7 +212,7 @@ struct tcexportinfo_ {
 
 /*************************************************************************/
 
-#endif  // TCINFO_H
+#endif  // TCCORE_INFO_H
 
 /*
  * Local variables:

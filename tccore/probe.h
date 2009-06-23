@@ -8,8 +8,8 @@
  * for details.
  */
 
-#ifndef PROBE_H
-#define PROBE_H
+#ifndef TCCORE_PROBE_H
+#define TCCORE_PROBE_H
 
 #include "tc_defaults.h"
 
@@ -68,7 +68,7 @@ typedef struct {
 
 } ProbeInfo;
 
-#endif  // PROBE_H
+#endif  // TCCORE_PROBE_H
 
 /*
  * Local variables:
