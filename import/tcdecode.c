@@ -24,7 +24,7 @@
 #include <limits.h>
 
 #include "src/transcode.h"
-#include "src/tcinfo.h"
+#include "tccore/tcinfo.h"
 
 #include "libtcutil/xio.h"
 

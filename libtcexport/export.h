@@ -146,7 +146,7 @@ int tc_export_open(void);
  * Parameters:
  * frame_first: sequence number of first frame in range to encode.
  *              All frames before this one will be acquired via
- *              TCEncoderBuffer routines, but will also be discarded.
+ *              TCFrameSource routines, but will also be discarded.
  *  frame_last: sequence number of last frame in range to encode.
  *              *encoding halts when this frame is acquired*, so this
  *              frame will NOT encoded.

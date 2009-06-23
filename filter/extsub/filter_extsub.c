@@ -27,7 +27,6 @@
 #define MOD_AUTHOR  "Thomas Oestreich"
 
 #include "src/transcode.h"
-#include "src/encoder.h"
 #include "src/filter.h"
 #include "libtcutil/optstr.h"
 #include "libtcvideo/tcvideo.h"

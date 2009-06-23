@@ -24,9 +24,9 @@
 //undef if you experience lock ups!
 #define USE_FIFO_LOGFILE 1
 
-#include "transcode.h"
+#include "src/transcode.h"
 #include "libtc/libtc.h"
-#include "encoder.h"
+#include "libtcexport/export.h"
 #include "clone.h"
 #include "seqinfo.h"  /* for sync_type_t */
 #include "ivtc.h"

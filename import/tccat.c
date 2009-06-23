@@ -22,7 +22,7 @@
  */
 
 #include "src/transcode.h"
-#include "src/tcinfo.h"
+#include "tccore/tcinfo.h"
 #include "libtc/libtc.h"
 #include "libtcutil/iodir.h"
 #include "libtcutil/xio.h"

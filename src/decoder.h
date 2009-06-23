@@ -26,7 +26,7 @@
 #ifndef DECODER_H
 #define DECODER_H
 
-#include "tccore/tcjob.h"
+#include "tccore/job.h"
 
 /*
  * tc_import_init (NOT thread safe):

@@ -22,7 +22,7 @@
 #ifndef EXPORT_PROFILE_H
 #define EXPORT_PROFILE_H
 
-#include "tccore/info.h"
+#include "tccore/tcinfo.h"
 #include "tccore/job.h"
 
 /*************************************************************************

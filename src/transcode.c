@@ -29,10 +29,10 @@
 #include "libtc/ratiocodes.h"
 #include "libtcutil/xio.h"
 #include "libtcutil/cfgfile.h"
+#include "libtcexport/export.h"
 
 #include "transcode.h"
 #include "decoder.h"
-#include "encoder.h"
 #include "dl_loader.h"
 #include "framebuffer.h"
 #include "counter.h"
@@ -356,7 +356,7 @@ static void load_all_filters(char *filter_list)
  *     0 on success, -1 on error.
  */
 
-static int transcode_init(vob_t *vob, TCEncoderBuffer *tc_ringbuffer)
+static int transcode_init(vob_t *vob)
 {
     /* load import modules and check capabilities */
     if (tc_import_init(vob, im_aud_mod, im_vid_mod) < 0) {

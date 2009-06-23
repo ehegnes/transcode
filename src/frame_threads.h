@@ -25,7 +25,7 @@
 #ifndef FRAME_THREADS_H
 #define FRAME_THREADS_H
 
-#include "tccore/tcjob.h"
+#include "tccore/job.h"
 
 /*
  * SUMMARY:
