@@ -1,4 +1,5 @@
-/* socket.c -- routines for controlling transcode over a socket
+/*
+ * socket.c -- routines for controlling transcode over a socket
  * Written by Andrew Church <achurch@achurch.org>
  *
  * This file is part of transcode, a video stream processing tool.
