@@ -27,10 +27,10 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include "config.h"
+# include "config.h"
 #else
-#define PACKAGE "transcode"
-#define VERSION "1.1.0"
+# define PACKAGE "transcode"
+# define VERSION "1.2.0"
 #endif
 
 #include <unistd.h>
