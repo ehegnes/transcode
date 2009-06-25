@@ -31,13 +31,13 @@
 #define MOD_FLAGS \
     TC_MODULE_FLAG_RECONFIGURABLE|TC_MODULE_FLAG_BUFFERING
 
-#include <math.h>
-
 #include "src/transcode.h"
 #include "src/filter.h"
 #include "libtc/libtc.h"
 #include "libtcutil/optstr.h"
 #include "libtcmodule/tcmodule-plugin.h"
+
+#include <math.h>
 
 
 /*************************************************************************/

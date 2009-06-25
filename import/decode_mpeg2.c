@@ -22,13 +22,12 @@
  *
  */
 
-#include "transcode.h"
-#include "tcinfo.h"
+#include "src/transcode.h"
+#include "src/tcinfo.h"
+#include "libtc/libtc.h"
 
 #include "ioaux.h"
 #include "tc.h"
-
-#include "libtc/libtc.h"
 
 #include <mpeg2dec/mpeg2.h>
 #include <mpeg2dec/mpeg2convert.h>

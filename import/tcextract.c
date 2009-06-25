@@ -21,14 +21,14 @@
  *
  */
 
-#include <limits.h>
-
 #include "src/transcode.h"
 #include "src/tcinfo.h"
 
 #include "libtcutil/xio.h"
 #include "ioaux.h"
 #include "tc.h"
+
+#include <limits.h>
 
 
 #define EXE "tcextract"

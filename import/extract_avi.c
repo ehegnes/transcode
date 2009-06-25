@@ -21,8 +21,8 @@
  *
  */
 
-#include "transcode.h"
-#include "tcinfo.h"
+#include "src/transcode.h"
+#include "src/tcinfo.h"
 
 #include "libtc/libtc.h"
 #include "libtc/ratiocodes.h"

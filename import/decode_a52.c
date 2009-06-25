@@ -21,9 +21,12 @@
  *
  */
 
-#include "transcode.h"
+#include "src/transcode.h"
+#include "src/tcinfo.h"
 #include "libtc/libtc.h"
-#include "tcinfo.h"
+
+#include "ioaux.h"
+#include "tc.h"
 
 #ifdef HAVE_DLFCN_H
 #include <dlfcn.h>
@@ -32,9 +35,6 @@
 #  include "libdldarwin/dlfcn.h"
 # endif
 #endif
-
-#include "ioaux.h"
-#include "tc.h"
 
 static char *mod_path=MOD_PATH;
 

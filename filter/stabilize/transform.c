@@ -21,10 +21,7 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif
-#include "transcode.h"
+#include "src/transcode.h"
 #include "libtc/libtc.h"
 #include <stdlib.h>
 #include <math.h>

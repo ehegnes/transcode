@@ -8,8 +8,8 @@
  * for details.
  */
 
-#include "transcode.h"
-#include "tcinfo.h"
+#include "src/transcode.h"
+#include "src/tcinfo.h"
 #include "libtcvideo/tcvideo.h"
 #include "ioaux.h"  /* for import_exit() prototype */
 #include "tc.h"  /* for function prototypes */

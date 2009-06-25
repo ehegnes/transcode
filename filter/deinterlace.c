@@ -27,13 +27,14 @@
  *
  */
 
-#include "config.h"
+#include "src/transcode.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdint.h>
+
 #include "mmx.h"
-#include "transcode.h"
 
 /*
    DeinterlaceFieldBob algorithm

@@ -23,9 +23,6 @@
  */
 
 
-#include <math.h>
-#include <stdint.h>
-
 #include "src/transcode.h"
 #include "src/filter.h"
 #include "libtc/libtc.h"
@@ -33,6 +30,9 @@
 #include "libtcutil/optstr.h"
 #include "libtcext/tc_magick.h"
 #include "libtcmodule/tcmodule-plugin.h"
+
+#include <math.h>
+#include <stdint.h>
 
 /* TODO:
    - docs

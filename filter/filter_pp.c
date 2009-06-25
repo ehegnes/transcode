@@ -31,15 +31,15 @@
 #define MOD_FLAGS \
     TC_MODULE_FLAG_RECONFIGURABLE
 
-#include <ctype.h>
-
-#include <libpostproc/postprocess.h>
-
 #include "src/transcode.h"
 #include "src/filter.h"
 #include "libtc/libtc.h"
 #include "libtcutil/optstr.h"
 #include "libtcmodule/tcmodule-plugin.h"
+
+#include <ctype.h>
+
+#include <libpostproc/postprocess.h>
 
 
 /*************************************************************************/

@@ -19,7 +19,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "src/transcode.h"
 #include "libtcutil/optstr.h"
 #include "libtc/ratiocodes.h"

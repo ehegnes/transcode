@@ -19,6 +19,13 @@
  *
  */
 
+#include "common.h"
+#include "logging.h"
+#include "ioutils.h"
+#include "memutils.h"
+#include "strutils.h"
+#include "xio.h"
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -27,13 +34,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "xio.h"
-
-#include "common.h"
-#include "logging.h"
-#include "ioutils.h"
-#include "memutils.h"
-#include "strutils.h"
 
 int tc_test_program(const char *name)
 {

@@ -21,7 +21,7 @@
  *
  */
 
-#include "transcode.h"
+#include "src/transcode.h"
 #include "seqinfo.h"
 
 pthread_mutex_t seq_list_lock=PTHREAD_MUTEX_INITIALIZER;

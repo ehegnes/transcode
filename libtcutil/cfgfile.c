@@ -10,6 +10,12 @@
 
 #define _ISOC99_SOURCE  /* needed by glibc to declare strtof() */
 
+#include "common.h"
+#include "logging.h"
+#include "memutils.h"
+#include "strutils.h"
+#include "cfgfile.h"
+
 #include <unistd.h>
 #include <errno.h>
 
@@ -18,12 +24,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
-
-#include "common.h"
-#include "logging.h"
-#include "memutils.h"
-#include "strutils.h"
-#include "cfgfile.h"
 
 
 static char *config_dir = NULL;

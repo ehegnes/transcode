@@ -21,15 +21,12 @@
  *
  */
 
-#include <ctype.h>
-#include <math.h>
-
-#include "libtc/libtc.h"
-#include "libtc/tccodecs.h"
-#include "libtc/ratiocodes.h"
-#include "libtcext/tc_ext.h"
-#include "libtcutil/xio.h"
-#include "libtcutil/cfgfile.h"
+/* IMPORTANT:  Every source file MUST include either config.h or another
+ * header that includes config.h (such as src/transcode.h) before including
+ * any other header.  Failure to do so can cause bugs such as inability to
+ * handle >2GB files, since including any system header may cause the
+ * compilation environment to be set (and thus set incorrectly if config.h
+ * has not been included). */
 
 #include "transcode.h"
 #include "decoder.h"
@@ -42,6 +39,16 @@
 #include "probe.h"
 #include "socket.h"
 #include "split.h"
+
+#include "libtc/libtc.h"
+#include "libtc/tccodecs.h"
+#include "libtc/ratiocodes.h"
+#include "libtcext/tc_ext.h"
+#include "libtcutil/xio.h"
+#include "libtcutil/cfgfile.h"
+
+#include <ctype.h>
+#include <math.h>
 
 #include "cmdline.h"
 
@@ -153,6 +160,7 @@ static int validate_source_path(const char *path)
         return 1;
     if (*path == '!' || *path == ':')  /* from transcode.c -- why? */
         return 1;
+tc_log_warn(NULL, "sz=%d",sizeof(st.st_size));
     if (xio_stat(path, &st) == 0)
         return 1;
     tc_error("Invalid filename \"%s\": %s", path, strerror(errno));

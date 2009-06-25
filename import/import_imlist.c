@@ -27,10 +27,6 @@
 #define MOD_VERSION "v0.2.0 (2009-03-07)"
 #define MOD_CODEC   "(video) RGB"
 
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif
-
 #include "src/transcode.h"
 #include "libtcext/tc_magick.h"
 

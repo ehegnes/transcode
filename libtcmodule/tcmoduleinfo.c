@@ -19,11 +19,11 @@
  */
 
 
-#include <string.h>
-
 #include "src/transcode.h"
 
 #include "tcmodule-info.h"
+
+#include <string.h>
 
 
 

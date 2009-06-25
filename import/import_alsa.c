@@ -24,8 +24,6 @@
 #include "libtcutil/optstr.h"
 #include "libtcmodule/tcmodule-plugin.h"
 
-#include "config.h"
-
 #include <alsa/asoundlib.h>
 #ifdef HAVE_GETTIMEOFDAY
 # include <sys/time.h>

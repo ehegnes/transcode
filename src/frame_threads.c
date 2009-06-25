@@ -24,8 +24,6 @@
  *
  */
 
-#include <pthread.h>
-
 #include "transcode.h"
 #include "encoder-common.h"
 #include "framebuffer.h"
@@ -35,6 +33,8 @@
 #include "filter.h"
 
 #include "frame_threads.h"
+
+#include <pthread.h>
 
 /*************************************************************************/
 

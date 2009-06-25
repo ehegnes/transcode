@@ -21,9 +21,9 @@
  *
  */
 
-#include "transcode.h"
+#include "src/transcode.h"
+#include "src/tcinfo.h"
 #include "libtc/libtc.h"
-#include "tcinfo.h"
 
 #include "aclib/imgconvert.h"
 #include "ioaux.h"

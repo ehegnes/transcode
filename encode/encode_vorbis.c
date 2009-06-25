@@ -18,13 +18,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-# include "config.h"
-#endif
-
-#include <vorbis/codec.h>
-#include <vorbis/vorbisenc.h>
-
 #include "src/transcode.h"
 #include "src/framebuffer.h"
 #include "libtcutil/optstr.h"
@@ -34,6 +27,9 @@
 
 #define TC_ENCODER 1
 #include "libtcext/tc_ogg.h"
+
+#include <vorbis/codec.h>
+#include <vorbis/vorbisenc.h>
 
 #define MOD_NAME    "encode_vorbis.so"
 #define MOD_VERSION "v0.0.6 (2007-12-30)"

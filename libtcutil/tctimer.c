@@ -19,7 +19,8 @@
  */
 
 
-#include "config.h"
+#include "common.h"
+#include "tctimer.h"
 
 #ifndef HAVE_GETTIMEOFDAY
 # error "this module REQUIRES gettimeofday presence!"
@@ -28,9 +29,6 @@
 #include <sys/time.h>
 #include <time.h>
 #include <errno.h>
-
-#include "common.h"
-#include "tctimer.h"
 
 /*
  * Internal time representation:

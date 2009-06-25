@@ -22,12 +22,12 @@
 #define MOD_CAP     "High Quality 3D Denoiser"
 #define MOD_AUTHOR  "Daniel Moreno, A'rpi"
 
-#include <math.h>
-
 #include "src/transcode.h"
 #include "src/filter.h"
 #include "libtc/libtc.h"
 #include "libtcutil/optstr.h"
+
+#include <math.h>
 
 
 #define PARAM1_DEFAULT 4.0

@@ -23,7 +23,6 @@
  *
  */
 
-
 #define MOD_NAME    "import_ffmpeg.so"
 #define MOD_VERSION "v0.2.2 (2007-11-04)"
 #define MOD_CODEC   "(video) libavformat/libavcodec"

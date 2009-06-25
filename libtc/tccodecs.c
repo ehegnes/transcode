@@ -19,8 +19,9 @@
  */
 
 
-#include "libtc.h"
 #include "src/transcode.h"
+
+#include "libtc.h"
 #include "tccodecs.h"
 
 #include <string.h>

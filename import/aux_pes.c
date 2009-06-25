@@ -21,7 +21,7 @@
  *
  */
 
-#include "transcode.h"
+#include "src/transcode.h"
 #include "libtc/libtc.h"
 #include "ioaux.h"
 #include "aux_pes.h"

@@ -26,13 +26,13 @@
 #define MOD_CAP     "apply a filter control list"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
-#include <ctype.h>
-
 #include "src/transcode.h"
 #include "src/filter.h"
 #include "src/socket.h"
 #include "libtc/libtc.h"
 #include "libtcutil/optstr.h"
+
+#include <ctype.h>
 
 
 #if 0

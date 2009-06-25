@@ -21,8 +21,6 @@
  *
  */
 
-#include <limits.h>
-
 #include "src/transcode.h"
 #include "src/tcinfo.h"
 
@@ -30,6 +28,8 @@
 
 #include "ioaux.h"
 #include "tc.h"
+
+#include <limits.h>
 
 #define EXE "tcdecode"
 

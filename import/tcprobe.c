@@ -23,12 +23,6 @@
  *
  */
 
-#include <math.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <dirent.h>
-
 #include "src/transcode.h"
 #include "src/tcinfo.h"
 #include "libtc/libtc.h"
@@ -41,6 +35,12 @@
 #include "demuxer.h"
 #include "dvd_reader.h"
 #include "x11source.h"
+
+#include <math.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <dirent.h>
 
 
 #define EXE "tcprobe"

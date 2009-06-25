@@ -21,7 +21,7 @@
  *
  */
 
-#include "transcode.h"
+#include "src/transcode.h"
 #include "ivtc.h"
 #include "libtc/libtc.h"
 

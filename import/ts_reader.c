@@ -25,12 +25,11 @@
  *
  */
 
-#include "transcode.h"
-#include "tcinfo.h"
+#include "src/transcode.h"
+#include "src/tcinfo.h"
+#include "ioaux.h"
 
 #include <sys/mman.h>
-
-#include "ioaux.h"
 
 #ifdef HAVE_IO_H
 #include <io.h>
