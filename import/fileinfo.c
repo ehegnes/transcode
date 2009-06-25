@@ -21,7 +21,14 @@
  *
  */
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
+
+#include "libtc/libtc.h"
+#include "libtcutil/xio.h"
+#include "ioaux.h"
+#include "tc.h"
 
 #ifdef HAVE_LIBDV
 #include <libdv/dv.h>
@@ -32,11 +39,6 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
-
-#include "libtc/libtc.h"
-#include "libtcutil/xio.h"
-#include "ioaux.h"
-#include "tc.h"
 
 /* forward declaration */ 
 static int scan_header_dv(const char *buf);

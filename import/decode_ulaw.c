@@ -20,13 +20,12 @@
  */
 
 
-#include <stdint.h>
-
-#include "transcode.h"
-#include "tcinfo.h"
+#include "src/transcode.h"
+#include "src/tcinfo.h"
+#include "libtc/libtc.h"
 #include "tc.h"
 
-#include "libtc/libtc.h"
+#include <stdint.h>
 
 /* from libquicktime */
 static int16_t ulaw_decode[256] =

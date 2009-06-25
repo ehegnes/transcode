@@ -9,9 +9,9 @@
   or visit http://www.gnu.org/copyleft/gpl.html
 */
 
-#include "transcode.h"
+#include "src/transcode.h"
+#include "src/tcinfo.h"
 #include "libtc/libtc.h"
-#include "tcinfo.h"
 
 #include <sys/types.h>
 

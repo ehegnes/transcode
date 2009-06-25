@@ -19,6 +19,10 @@
  *
  */
 
+#include "common.h"
+#include "strutils.h"
+#include "logging.h"
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -27,10 +31,6 @@
 #include <errno.h>
 #include <ctype.h>
 #include <sys/stat.h>
-
-#include "common.h"
-#include "strutils.h"
-#include "logging.h"
 
 
 /*************************************************************************/

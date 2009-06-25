@@ -21,19 +21,19 @@
  *
  */
 
-#include <stdint.h>
-
-#include "transcode.h"
+#include "src/transcode.h"
+#include "src/tcinfo.h"
 #include "libtc/libtc.h"
-#include "tcinfo.h"
-
-#ifdef HAVE_LIBQUICKTIME
-#include <quicktime.h>
-#endif
 
 #include "ioaux.h"
 #include "magic.h"
 #include "tc.h"
+
+#include <stdint.h>
+
+#ifdef HAVE_LIBQUICKTIME
+#include <quicktime.h>
+#endif
 
 
 /* ------------------------------------------------------------

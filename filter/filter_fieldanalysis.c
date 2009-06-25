@@ -32,13 +32,13 @@
 #define MOD_CAP     "Field analysis for detecting interlace and telecine"
 #define MOD_AUTHOR  "Matthias Hopf"
 
-#include <assert.h>
-
 #include "src/transcode.h"
 #include "src/filter.h"
 #include "libtc/libtc.h"
 #include "libtcutil/optstr.h"
 #include "libtcvideo/tcvideo.h"
+
+#include <assert.h>
 
 
 /*

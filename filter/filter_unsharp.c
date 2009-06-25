@@ -22,12 +22,12 @@
 #define MOD_CAP       "unsharp mask & gaussian blur"
 #define MOD_AUTHOR    "Rémi Guyomarch"
 
-#include <math.h>
-
 #include "src/transcode.h"
 #include "src/filter.h"
 #include "libtc/libtc.h"
 #include "libtcutil/optstr.h"
+
+#include <math.h>
 
 
 //===========================================================================//

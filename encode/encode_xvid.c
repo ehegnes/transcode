@@ -30,19 +30,15 @@
  * Includes
  ****************************************************************************/
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include <string.h>
-#include <math.h>
-
 #include "src/transcode.h"
 #include "libtcvideo/tcvideo.h"
 #include "libtcutil/cfgfile.h"
 #include "libtcutil/optstr.h"
 #include "libtcmodule/tcmodule-plugin.h"
 #include "libtc/tccodecs.h"
+
+#include <string.h>
+#include <math.h>
 
 #include <xvid.h>
 

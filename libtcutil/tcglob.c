@@ -20,14 +20,14 @@
  */
 
 
-#include <string.h>
-#include <glob.h>
-
 #include "common.h"
 #include "memutils.h"
 #include "strutils.h"
 #include "logging.h"
 #include "tcglob.h"
+
+#include <string.h>
+#include <glob.h>
 
 
 struct tcglob_ {

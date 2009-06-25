@@ -18,13 +18,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include <unistd.h>
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
 
 #include "export_profile.h"
 #include "libtc/libtc.h"
 #include "libtc/tccodecs.h"
 #include "libtcutil/cfgfile.h"
+
+#include <unistd.h>
 
 /* OK, that's quite ugly but I found nothing better, yet.*/
 #ifdef TCEXPORT_PROFILE

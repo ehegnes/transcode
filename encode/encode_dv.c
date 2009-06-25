@@ -10,15 +10,15 @@
  * for details.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <libdv/dv.h>
-
 #include "src/transcode.h"
 #include "aclib/imgconvert.h"
 #include "libtcutil/optstr.h"
 
 #include "libtcmodule/tcmodule-plugin.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <libdv/dv.h>
 
 #define MOD_NAME    "encode_dv.so"
 #define MOD_VERSION "v0.0.4 (2007-07-11)"

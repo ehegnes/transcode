@@ -24,6 +24,10 @@
  * It would be also nice to better integrate this code with framebuffer.
  */
 
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
+
 #include "aclib/ac.h"
 
 #include "synchronizer.h"

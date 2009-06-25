@@ -23,18 +23,13 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
-
-#include "transcode.h"
-#include "tcinfo.h"
+#include "src/transcode.h"
+#include "src/tcinfo.h"
+#include "libtc/libtc.h"
 
 #include "aclib/imgconvert.h"
 #include "ioaux.h"
 #include "tc.h"
-
-#include "libtc/libtc.h"
 
 #define READ_BUFFER_SIZE (10*1024*1024)
 #define MOD_NAME "decode_ffmpeg"

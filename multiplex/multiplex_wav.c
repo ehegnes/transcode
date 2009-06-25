@@ -19,8 +19,6 @@
  */
 
 
-#include "config.h"
-
 #include "src/transcode.h"
 #include "libtcutil/optstr.h"
 #include "libtc/ratiocodes.h"

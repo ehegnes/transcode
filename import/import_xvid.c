@@ -12,7 +12,7 @@
 #define MOD_VERSION "v0.1.0 (2006-03-29)"
 #define MOD_CODEC   "(video) none/obsolete"
 
-#include "transcode.h"
+#include "src/transcode.h"
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_RGB | TC_CAP_YUV | TC_CAP_VID;

@@ -21,7 +21,9 @@
  *
  */
 
-
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
 #include "ioaux.h"
 #include "libtc/libtc.h"
 #include "libtcutil/xio.h"

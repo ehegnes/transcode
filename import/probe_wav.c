@@ -19,8 +19,8 @@
  */
 
 
-#include "transcode.h"
-#include "tcinfo.h"
+#include "src/transcode.h"
+#include "src/tcinfo.h"
 #include "ioaux.h"
 #include "tc.h"
 #include "avilib/wavlib.h"

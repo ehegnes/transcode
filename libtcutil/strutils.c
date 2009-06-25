@@ -19,6 +19,11 @@
  *
  */
 
+#include "common.h"
+#include "logging.h"
+#include "memutils.h"
+#include "strutils.h"
+
 #include <stdarg.h>
 #include <string.h>
 #include <stdlib.h>
@@ -33,11 +38,6 @@
 #  include <malloc.h>
 # endif
 #endif
-
-#include "common.h"
-#include "logging.h"
-#include "memutils.h"
-#include "strutils.h"
 
 
 

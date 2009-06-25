@@ -21,14 +21,14 @@
  *
  */
 
-#include <stdint.h>
-
-#include "transcode.h"
+#include "src/transcode.h"
+#include "src/tcinfo.h"
 #include "libtc/libtc.h"
-#include "tcinfo.h"
 
 #include "ioaux.h"
 #include "tc.h"
+
+#include <stdint.h>
 
 #ifdef HAVE_LAME
 

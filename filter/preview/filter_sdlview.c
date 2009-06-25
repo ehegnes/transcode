@@ -29,8 +29,6 @@
 #define MOD_FLAGS \
     TC_MODULE_FLAG_RECONFIGURABLE
 
-#include <SDL.h>
-
 #include "src/transcode.h"
 #include "src/filter.h"
 #include "aclib/ac.h"
@@ -39,6 +37,8 @@
 #include "libtc/tccodecs.h"
 #include "libtcutil/optstr.h"
 #include "libtcmodule/tcmodule-plugin.h"
+
+#include <SDL.h>
 
 
 /*************************************************************************/

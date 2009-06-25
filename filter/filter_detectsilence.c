@@ -31,8 +31,6 @@
 #define MOD_FLAGS \
     TC_MODULE_FLAG_RECONFIGURABLE
 
-#include <math.h>
-
 #include "src/transcode.h"
 #include "src/filter.h"
 #include "libtc/libtc.h"
@@ -41,6 +39,8 @@
 #include "libtcmodule/tcmodule-plugin.h"
 
 #include "libtcaudio/tcaudio.h"
+
+#include <math.h>
 
 
 

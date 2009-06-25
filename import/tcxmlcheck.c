@@ -21,7 +21,7 @@
  *
  */
 
-#include "transcode.h"
+#include "src/transcode.h"
 
 #include <math.h>
 

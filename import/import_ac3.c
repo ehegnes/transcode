@@ -25,7 +25,7 @@
 #define MOD_VERSION "v0.3.2 (2002-02-15)"
 #define MOD_CODEC   "(audio) AC3"
 
-#include "transcode.h"
+#include "src/transcode.h"
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_PCM | TC_CAP_AC3;

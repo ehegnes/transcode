@@ -8,7 +8,7 @@
  * for details.
  */
 
-#include "transcode.h"
+#include "src/transcode.h"
 #include "libtc/libtc.h"
 #include "libtcmodule/tcmodule-plugin.h"
 #include "libtcutil/optstr.h"

@@ -18,19 +18,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "config.h"
-
-#include <string.h>
-
-#include "transcode.h"
-
-#include "magic.h"
-#include "x11source.h"
-
+#include "src/transcode.h"
 #include "libtc/ratiocodes.h"
 #include "libtc/tccodecs.h"
 #include "libtc/tcframes.h"
 #include "libtcvideo/tcvideo.h"
+
+#include <string.h>
+
+#include "magic.h"
+#include "x11source.h"
 
 /*
  * TODO:

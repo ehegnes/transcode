@@ -26,7 +26,9 @@
 #define MOD_VERSION "v0.3.0 (2006-03-03)"
 #define MOD_CODEC   "(video) YUV4MPEG2 | (audio) WAVE"
 
-#include "config.h"
+#include "src/transcode.h"
+#include "libtcvideo/tcvideo.h"
+#include "avilib/wavlib.h"
 
 #if defined(HAVE_MJPEGTOOLS_INC)
 #include "yuv4mpeg.h"
@@ -35,10 +37,6 @@
 #include "mjpegtools/yuv4mpeg.h"
 #include "mjpegtools/mpegconsts.h"
 #endif
-
-#include "src/transcode.h"
-#include "libtcvideo/tcvideo.h"
-#include "avilib/wavlib.h"
 
 static int verbose_flag = TC_QUIET;
 static int capability_flag = TC_CAP_RGB|TC_CAP_YUV|TC_CAP_PCM;
