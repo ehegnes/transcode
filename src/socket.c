@@ -7,10 +7,11 @@
  * for details.
  */
 
+
 #include "transcode.h"
-#include "encoder.h"
 #include "filter.h"
 #include "socket.h"
+#include "libtcexport/export.h"
 #include "libtc/libtc.h"
 
 #ifdef HAVE_SYS_SELECT_H

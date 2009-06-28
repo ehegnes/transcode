@@ -23,7 +23,7 @@
 
 
 #include "libtc/tcframes.h"
-#include "tccore/tcjob.h"
+#include "tccore/job.h"
 
 /*
  * transcode syncronization infrastructure.

@@ -31,9 +31,9 @@
 #include <unistd.h>
 #include <pthread.h>
 #include "libtc/libtc.h"
+#include "tccore/runcontrol.h"
+#include "tccore/tc_defaults.h" /* TC_DELAY_MIN */
 #include "counter.h"
-#include "runcontrol.h"
-#include "tc_defaults.h" /* TC_DELAY_MIN */
 
 
 /* volatile: for threadness paranoia */
@@ -129,10 +129,10 @@ static void tc_rc_progress(TCRunControl *RC,
 }
 
 static TCRunControl RC = {
-    .priv     = NULL;
-    .pause    = tc_rc_pause;
-    .status   = tc_rc_status;
-    .progress = tc_rc_progress;
+    .priv     = NULL,
+    .pause    = tc_rc_pause,
+    .status   = tc_rc_status,
+    .progress = tc_rc_progress
 };
 
 int tc_runcontrol_init(void)

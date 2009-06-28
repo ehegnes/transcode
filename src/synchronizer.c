@@ -24,6 +24,7 @@
  * It would be also nice to better integrate this code with framebuffer.
  */
 
+#include "tccore/tc_defaults.h"
 #include "aclib/ac.h"
 
 #include "synchronizer.h"

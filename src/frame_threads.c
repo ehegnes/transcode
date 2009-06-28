@@ -26,8 +26,9 @@
 
 #include <pthread.h>
 
+#include "tccore/runcontrol.h"
+
 #include "transcode.h"
-#include "encoder-common.h"
 #include "framebuffer.h"
 #include "video_trans.h"
 #include "audio_trans.h"

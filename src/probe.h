@@ -11,6 +11,7 @@
 #ifndef PROBE_H
 #define PROBE_H
 
+#include "tccore/job.h"
 #include "tccore/probe.h"
 
 /*************************************************************************/
