@@ -275,7 +275,8 @@ int main(int argc, char *argv[])
             tc_log_info(EXE, "using new module system");
         }
         if (strlen(modcfg) > 0) {
-            int ret = tc_module_configure(module, modcfg, tc_get_vob());
+            TCModuleExtraData *xdata[] = { NULL, NULL };
+            int ret = tc_module_configure(module, modcfg, tc_get_vob(), xdata);
             if (ret == TC_OK) {
                 status = STATUS_OK;
             } else {

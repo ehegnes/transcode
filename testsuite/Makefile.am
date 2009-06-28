@@ -97,8 +97,8 @@ test_tcstrdup_LDADD = $(LIBTC_LIBS) $(LIBTCUTIL_LIBS)
 test_mangle_cmdline_SOURCES = test-mangle-cmdline.c
 test_mangle_cmdline_LDADD = $(LIBTC_LIBS) $(LIBTCUTIL_LIBS)
 
-test_export_profile_SOURCES = test-export-profile.c ../src/export_profile.c
-test_export_profile_LDADD = $(LIBTC_LIBS) $(LIBTCUTIL_LIBS)
+test_export_profile_SOURCES = test-export-profile.c
+test_export_profile_LDADD = $(LIBTCEXPORT_LIBS) $(LIBTCMODULE_LIBS) $(LIBTC_LIBS) $(LIBTCUTIL_LIBS)
 
 test_pvmparser_SOURCES = test-pvmparser.c ../pvm3/pvm_parser.c
 test_pvmparser_CFLAGS = $(PVM3_CFLAGS) -I../pvm3/

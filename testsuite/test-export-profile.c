@@ -25,8 +25,9 @@
 #include <stdlib.h>
 
 #include "config.h"
-#include "transcode.h"
-#include "export_profile.h"
+
+#include "src/transcode.h"
+#include "libtcexport/export_profile.h"
 #include "libtc/libtc.h"
 
 #define VIDEO_LOG_FILE       "mpeg4.log"
@@ -102,18 +103,18 @@ int main(int argc, char *argv[])
     char *mmod = "null";
     int ret = 0;
     
-    ret = tc_setup_export_profile(&argc, &argv);
+    ret = tc_export_profile_setup_from_cmdline(&argc, &argv);
     if (ret < 0) {
         /* error, so bail out */
         return 1;
     }
     printf("parsed: %i profiles\n", ret);
 
-    info = tc_load_export_profile();
-    amod = GET_MODULE(info->audio.module);
-    vmod = GET_MODULE(info->video.module);
-    mmod = GET_MODULE(info->mplex.module);
-    tc_export_profile_to_vob(info, &vob);
+    info = tc_export_profile_load_all();
+    amod = GET_MODULE(info->audio.module.name);
+    vmod = GET_MODULE(info->video.module.name);
+    mmod = GET_MODULE(info->mplex.module.name);
+    tc_export_profile_to_job(info, &vob);
 
     PRINT(divxbitrate, "%i");
     PRINT(video_max_bitrate, "%i");
@@ -131,7 +132,7 @@ int main(int argc, char *argv[])
     printf("audio module=%s\n", amod);
     printf("mplex module=%s\n", mmod);
 
-    tc_cleanup_export_profile();
+    tc_export_profile_cleanup();
     return 0;
 }
 

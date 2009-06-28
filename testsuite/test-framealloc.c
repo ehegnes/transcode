@@ -28,7 +28,7 @@
 #include "libtc/libtc.h"
 #include "libtc/tccodecs.h"
 #include "libtc/tcframes.h"
-#include "src/tc_defaults.h"
+#include "tccore/tc_defaults.h"
 #include "src/framebuffer.h"
 
 #ifndef PACKAGE
