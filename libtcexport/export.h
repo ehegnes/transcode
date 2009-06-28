@@ -91,14 +91,18 @@ int tc_export_new(TCJob *vob, TCFactory factory,
                   TCRunControl *run_control,
 		  const TCFrameSpecs *specs);
 
-int tc_export_config(int verbose, int progress_meter, int cluster_mode);
-
 int tc_export_del(void);
 
 int tc_export_setup(const char *a_mod, const char *v_mod,
                     const char *m_mod, const char *m_mod_aux);
 
 void tc_export_shutdown(void);
+
+/*************************************************************************/
+/* optionally-called configuration functions                             */
+
+
+int tc_export_config(int verbose, int progress_meter, int cluster_mode);
 
 void tc_export_rotation_limit_frames(uint32_t frames);
 
@@ -107,58 +111,10 @@ void tc_export_rotation_limit_megabytes(uint32_t megabytes);
 
 /*************************************************************************/
 
-/*
- * tc_export_init:
- *     initialize the A/V encoders, by (re)configuring encoder modules.
- *
- * Parameters:
- *     None.
- * Return Value:
- *     -1: error configuring modules. Reason of error will be notified
- *         via tc_log*().
- *      0: succesfull.
- */
 int tc_export_init(void);
 
-/*
- * tc_export_open:
- *     open output file(s), by (re)configuring multiplexor module.
- *
- * Parameters:
- *     None.
- * Return Value:
- *     -1: error configuring module(s) or opening file(s). Reason of error will be
- *         notified via tc_log*().
- *      0: succesfull.
- */
 int tc_export_open(void);
 
-/*
- * tc_export_loop:
- *      encodes a range of frames from stream(s) using given settings.
- *      This is the main and inner encoding loop.
- *      Encoding usually halts with last frame in range is encountered, but
- *      it can also stop if some error happens when acquiring new frames,
- *      or, of course, if there is an asynchronous stop request
- *      Please note that FIRST frame in given range will be encoded, but
- *      LAST frame in given range will NOT.
- *
- * Parameters:
- * frame_first: sequence number of first frame in range to encode.
- *              All frames before this one will be acquired via
- *              TCFrameSource routines, but will also be discarded.
- *  frame_last: sequence number of last frame in range to encode.
- *              *encoding halts when this frame is acquired*, so this
- *              frame will NOT encoded.
- * Return Value:
- *      None.
- * Preconditions:
- *      encoder properly initialized. This means:
- *      tc_export_init() called succesfully;
- *      tc_export_setup() called succesfully;
- *      tc_export_init() called succesfully;
- *      tc_export_open() called succesfully;
- */
 void tc_export_loop(TCFrameSource *fs, int frame_first, int frame_last);
 
 int tc_export_frames(int frame_id,
@@ -166,28 +122,8 @@ int tc_export_frames(int frame_id,
 
 int tc_export_flush(void);
 
-/*
- * tc_export_stop:
- *      stop both the audio and the video encoders.
- *
- * Parameters:
- *      None.
- * Return Value:
- *      0: succesfull.
- *     <0: failure, reason will be notified via tc_log*().
- */
 int tc_export_stop(void);
 
-/*
- * tc_export_close:
- *      stop multiplexor and close output file.
- *
- * Parameters:
- *      None.
- * Return Value:
- *      0: succesfull.
- *     <0: failure, reason will be notified via tc_log*().
- */
 int tc_export_close(void);
 
 

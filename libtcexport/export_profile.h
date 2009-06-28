@@ -154,13 +154,13 @@ const TCExportInfo *tc_export_profile_load_single(const char *name);
  *
  * Parameters:
  *      info: pointer to TCExportInfo to translate
- *       vob: pointer to TCJob storing translated values.
+ *       job: pointer to TCJob storing translated values.
  * Return value:
  *      None
  * Side effects:
  *      tc_log*() is used internally.
  */
-void tc_export_profile_to_job(const TCExportInfo *info, TCJob *vob);
+void tc_export_profile_to_job(const TCExportInfo *info, TCJob *job);
 
 #endif /* EXPORT_PROFILE_H */
 

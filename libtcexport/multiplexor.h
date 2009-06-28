@@ -121,6 +121,8 @@ int tc_multiplexor_setup(TCMultiplexor *mux,
 
 int tc_multiplexor_shutdown(TCMultiplexor *mux);
 
+uint32_t tc_multiplexor_processed(TCMultiplexor *mux);
+
 int tc_multiplexor_open(TCMultiplexor *mux,
                         const char *sink_name,
                         const char *sink_name_aux,
