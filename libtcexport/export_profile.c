@@ -230,6 +230,10 @@ int tc_export_profile_fini(void)
     return TC_OK;
 }
 
+int tc_export_profile_count(void)
+{
+    return prof_data.profile_count;
+}
 
 int tc_export_profile_setup_from_cmdline(int *argc, char ***argv)
 {
@@ -250,7 +254,8 @@ int tc_export_profile_setup_from_cmdline(int *argc, char ***argv)
                                          &prof_data.profile_count);
         ret = (int)prof_data.profile_count;
 
-        tc_log_info(package, "E: %-16s | %i", "profiles parsed", ret);
+        tc_log_info(package, "E: %-16s | %i profile%s",
+                    "parsed", ret, (ret > 1) ?"s" :"");
     }
     return ret;
 }
