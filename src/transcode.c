@@ -160,7 +160,6 @@ static int validate_source_path(const char *path)
         return 1;
     if (*path == '!' || *path == ':')  /* from transcode.c -- why? */
         return 1;
-tc_log_warn(NULL, "sz=%d",sizeof(st.st_size));
     if (xio_stat(path, &st) == 0)
         return 1;
     tc_error("Invalid filename \"%s\": %s", path, strerror(errno));
