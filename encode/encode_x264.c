@@ -463,7 +463,8 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
     }
     params->rc.i_bitrate = vob->divxbitrate; /* what a name */
 
-    if (TC_NULL_MATCH == tc_frc_code_to_ratio(vob->ex_frc,
+    if (vob->ex_frc == 0
+     || TC_NULL_MATCH == tc_frc_code_to_ratio(vob->ex_frc,
                                               &params->i_fps_num,
                                               &params->i_fps_den)
     ) {
