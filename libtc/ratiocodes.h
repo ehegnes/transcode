@@ -153,7 +153,7 @@ int tc_frc_code_to_value(int frc_code, double *fps);
 int tc_code_from_ratio(TCRatioCode rc, int *out_code, int in_n, int in_d);
 
 /*
- * tc_frc_code_to_ratio:
+ * tc_code_to_ratio:
  *    detect the right ratio fraction in a specified domain as pair of
  *    integers given a ratio code.
  *
