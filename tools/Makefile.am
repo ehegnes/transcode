@@ -126,10 +126,11 @@ tcexport_SOURCES = tcexport.c \
 	tcstub.c \
 	rawsource.c \
 	rawsource.h \
-	../src/probe.c \
-	../src/dl_loader.c \
 	../src/counter.c \
-	../src/framebuffer.c
+	../src/dl_loader.c \
+	../src/framebuffer.c \
+	../src/probe.c \
+	../src/runcontrol.c
 tcexport_CPPFLAGS = $(AM_CPPFLAGS) \
 	$(DLDARWIN_CFLAGS)
 tcexport_LDADD = \
@@ -138,11 +139,11 @@ tcexport_LDADD = \
 	$(AVILIB_LIBS) \
 	$(WAVLIB_LIBS) \
 	$(LIBTC_LIBS) \
-	$(LIBTCMODULE_LIBS) \
 	$(LIBTCUTIL_LIBS) \
 	$(LIBTCVIDEO_LIBS) \
 	$(LIBTCAUDIO_LIBS) \
-	$(LIBTCEXPORTLIBS) \
+	$(LIBTCEXPORT_LIBS) \
+	$(LIBTCMODULE_LIBS) \
 	$(XIO_LIBS) \
 	$(PTHREAD_LIBS) \
 	-lm
