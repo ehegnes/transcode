@@ -63,23 +63,23 @@ static int tc_rotate_needed(TCRotateContext *rotor,
 
 /*************************************************************************/
 
-typedef int (*TCExportRotate)(TCRotateContext *rotor,
-                              uint32_t frames, uint32_t bytes);
+typedef int (*TCRotateNeededFn)(TCRotateContext *rotor,
+                                uint32_t frames, uint32_t bytes);
 
 
 struct tcrotatecontext_ {
-    char            path_buf[PATH_MAX+1];
-    const char      *base_name;
-    uint32_t        chunk_num;
-    int             null_flag;
+    char                path_buf[PATH_MAX+1];
+    const char          *base_name;
+    uint32_t            chunk_num;
+    int                 null_flag;
 
-    uint32_t        chunk_frames;
-    uint32_t        encoded_frames;
+    uint32_t            chunk_frames;
+    uint32_t            encoded_frames;
 
-    uint64_t        encoded_bytes;
-    uint64_t        chunk_bytes;
+    uint64_t            encoded_bytes;
+    uint64_t            chunk_bytes;
 
-    TCExportRotate  rotate_needed;
+    TCRotateNeededFn    rotate_needed;
 };
 
 /*************************************************************************/
@@ -129,6 +129,8 @@ static const char *tc_rotate_output_name(TCRotateContext *rotor)
 {
     tc_snprintf(rotor->path_buf, sizeof(rotor->path_buf),
                 "%s-%03i", rotor->base_name, rotor->chunk_num);
+    rotor->encoded_frames = 0;
+    rotor->encoded_bytes = 0;
     rotor->chunk_num++;
     return rotor->path_buf;
 }
@@ -138,10 +140,10 @@ static const char *tc_rotate_output_name(TCRotateContext *rotor)
  * real rotation policy implementations. Rotate output file(s)
  * respectively:
  *  - never (_null)
- *  - when encoded frames reach limit (_by_frames)
- *  - when encoded AND written *bytes* reach limit (_by_bytes).
+ *  - when encoded frames reach the limit (_by_frames)
+ *  - when encoded AND written *bytes* reach the limit (_by_bytes).
  *
- * For details see documentation of TCExportRotate above.
+ * For details see documentation of TCRotateContext above.
  */
 
 #define ROTATE_UPDATE_COUNTERS(bytes, frames) do { \
@@ -199,91 +201,245 @@ void tc_multiplexor_limit_megabytes(TCMultiplexor *mux, uint32_t megabytes)
     tc_rotate_set_bytes_limit(mux->rotor, megabytes * 1024 * 1024);
 }
 
-#define ROTATE_COMMON_CODE(rotor, job) do { \
-    ret = tc_multiplexor_close(); \
-    if (ret != TC_OK) { \
-        tc_log_error(__FILE__, "unable to close output stream"); \
-        ret = TC_ERROR; \
-    } else { \
-        tc_rotate_output_name((rotor), (job)); \
-        tc_log_info(__FILE__, "rotating video output stream to %s", \
-                               (rotor)->video_path_buf); \
-        tc_log_info(__FILE__, "rotating audio output stream to %s", \
-                               (rotor)->audio_path_buf); \
-        ret = tc_multiplexor_open((job)); \
-        if (ret != TC_OK) { \
-            tc_log_error(__FILE__, "unable to reopen output stream"); \
-            ret = TC_ERROR; \
-        } \
-    } \
-} while (0)
+/*************************************************************************/
 
+static int muxer_open(TCModule mux_mod, TCRotateContext *rotor,
+                      TCModuleExtraData *xdata[],
+                      const char *tag)
+{
+    int ret;
 
+    ret = tc_module_open(mux_mod,
+                         tc_rotate_output_name(rotor),
+                         xdata);
+    if (ret != TC_OK) {
+        tc_log_error(__FILE__,
+                     "%s multiplexor module error: open failed",
+                     tag);
+    }
+    return ret;
+}
+
+static int muxer_close(TCModule mux_mod, TCRotateContext **rotor,
+                       const char *tag)
+{
+    int ret = TC_ERROR;
+ 
+    ret = tc_module_close(mux_mod);
+    if (ret == TC_OK && (rotor && *rotor)) {
+        tc_free(*rotor);
+        *rotor = NULL;
+    }
+    return ret;
+}
 
 /*************************************************************************/
 
 static int mono_open(TCMultiplexor *mux)
 {
-    return TC_ERROR;
+    TCModuleExtraData *xdata[] = { mux->vid_xdata, mux->aud_xdata, NULL };
+    return muxer_open(mux->mux_main, mux->rotor, xdata, "main");
 }
 
 static int mono_close(TCMultiplexor *mux)
 {
-    return TC_ERROR;
+    return muxer_close(mux->mux_main, &(mux->rotor), "main");
 }
 
-static int mono_write(TCMultiplexor *mux,
+/* FIXME FIXME FIXME */
+static int mono_rotate(TCMultiplexor *mux)
+{
+    int ret = muxer_close(mux->mux_main, NULL, "main");
+    if (ret == TC_OK) {
+        tc_log_info(__FILE__,
+                    "rotating the main output stream to %s",
+                    mux->rotor->path_buf);
+        ret = mono_open(mux);
+    }
+    return ret;
+}
+
+static int mono_write(TCMultiplexor *mux, int can_rotate,
                       TCFrameVideo *vframe, TCFrameAudio *aframe)
 {
-    return TC_ERROR;
+    int vret = TC_ERROR, aret = TC_ERROR, need_rotate = TC_FALSE;
+
+    mux->processed = 0;
+
+    vret = tc_module_write_video(mux->mux_main, vframe);
+    if (vret >= 0) {
+        need_rotate = tc_rotate_needed(mux->rotor, 1, vret);
+        mux->processed |= TC_VIDEO;
+    }
+
+    /* in mono muxer mode, a pair of frames is an atomic unit */ 
+
+    aret = tc_module_write_audio(mux->mux_main, aframe);
+    if (aret >= 0) {
+        need_rotate = tc_rotate_needed(mux->rotor, 1, aret);
+        mux->processed |= TC_AUDIO;
+    }
+
+    if (vret < 0 || aret < 0) {
+        return TC_ERROR;
+    }
+    if (can_rotate && need_rotate) {
+        return mono_rotate(mux);
+    }
+    return TC_OK;
 }
 
-
-static int dual_open(TCMultiplexor *mux)
+static int mono_setup(TCMultiplexor *mux, const char *sink_name)
 {
-    return TC_ERROR;
-}
+    int ret;
 
-static int dual_close(TCMultiplexor *mux)
-{
-    return TC_ERROR;
-}
+    mux->rotor = tc_zalloc(sizeof(TCRotateContext));
+    if (!mux->rotor) {
+        goto alloc_failed;
+    }
+    tc_rotate_init(mux->rotor, mux->job->video_out_file);
+    
+    ret = mono_open(mux);
+    if (ret != TC_OK) {
+        goto open_failed;
+    }
+    
+    mux->rotor_aux = mux->rotor;
 
-static int dual_write(TCMultiplexor *mux,
-                      TCFrameVideo *vframe, TCFrameAudio *aframe)
-{
+    mux->open  = mono_open;
+    mux->write = mono_write;
+    mux->close = mono_close;
+
+    return TC_OK;
+
+open_failed:
+    tc_free(mux->rotor);
+    mux->rotor = NULL;
+alloc_failed:
+    tc_log_error(__FILE__,
+                 "multiplexor module error: open failed");
     return TC_ERROR;
 }
 
 
 /*************************************************************************/
 
-int tc_multiplexor_init(TCMultiplexor *mux, TCJob *job, TCFactory factory)
+static int dual_open(TCMultiplexor *mux)
 {
-    int ret = TC_ERROR;
+    int ret;
 
-    mux->job        = job;
-    mux->factory    = factory;
-    mux->mux_main   = NULL;
-    mux->mux_aux    = NULL;
+    TCModuleExtraData *vid_xdata[] = { mux->vid_xdata, NULL };
+    TCModuleExtraData *aud_xdata[] = { mux->aud_xdata, NULL };
 
-    mux->rotor      = NULL;
-    mux->rotor_aux  = NULL;
-
-    mux->vid_xdata  = NULL;
-    mux->aud_xdata  = NULL;
-
-    mux->has_aux    = TC_FALSE;
-
-    ret = TC_OK;
+    ret = muxer_open(mux->mux_main, mux->rotor, vid_xdata, "main");
+    if (ret == TC_OK) {
+        ret = muxer_open(mux->mux_aux, mux->rotor_aux, aud_xdata, "aux");
+    }
     return ret;
 }
 
-int tc_multiplexor_fini(TCMultiplexor *mux)
+static int dual_close(TCMultiplexor *mux)
 {
+    int ret = muxer_close(mux->mux_main, &(mux->rotor), "main");
+    if (ret == TC_OK) {
+        ret = muxer_close(mux->mux_aux, &(mux->rotor_aux), "aux");
+    }
+    return ret;
+}
+
+/* FIXME */
+static int stream_rotate(TCModule mux_mod, TCRotateContext *rotor,
+                         TCModuleExtraData *xdata[],
+                         const char *tag)
+{
+    int ret = muxer_close(mux_mod, NULL, tag);
+    if (ret == TC_OK) {
+        tc_log_info(__FILE__,
+                    "rotating the %s output stream to %s",
+                    tag, rotor->path_buf);
+        ret = muxer_open(mux_mod, rotor, xdata, tag);
+    }
+    return ret;
+}
+
+static int dual_write(TCMultiplexor *mux, int can_rotate,
+                      TCFrameVideo *vframe, TCFrameAudio *aframe)
+{
+    int vret = TC_ERROR, aret = TC_ERROR, need_rotate = TC_FALSE;
+    TCModuleExtraData *vid_xdata[] = { mux->vid_xdata, NULL };
+    TCModuleExtraData *aud_xdata[] = { mux->aud_xdata, NULL };
+
+    mux->processed = 0;
+
+    need_rotate = TC_FALSE;
+    vret = tc_module_write_video(mux->mux_main, vframe);
+    if (vret >= 0) {
+        need_rotate = tc_rotate_needed(mux->rotor, 1, vret);
+        mux->processed |= TC_VIDEO;
+    }
+
+    if (can_rotate && need_rotate) {
+        vret = stream_rotate(mux->mux_main, mux->rotor,
+                             vid_xdata, "video");
+    }
+
+    need_rotate = TC_FALSE;
+    aret = tc_module_write_audio(mux->mux_main, aframe);
+    if (aret >= 0) {
+        need_rotate = tc_rotate_needed(mux->rotor, 1, aret);
+        mux->processed |= TC_AUDIO;
+    }
+
+    if (can_rotate && need_rotate) {
+        vret = stream_rotate(mux->mux_aux, mux->rotor_aux,
+                             aud_xdata, "audio");
+    }
+
+    if (vret < 0 || aret < 0) {
+        return TC_ERROR;
+    }
     return TC_OK;
 }
 
+static int dual_setup(TCMultiplexor *mux,
+                      const char *sink_name, const char *sink_name_aux)
+{
+    int ret;
+
+    mux->rotor = tc_zalloc(sizeof(TCRotateContext));
+    if (!mux->rotor) {
+        goto main_alloc_failed;
+    }
+    tc_rotate_init(mux->rotor, mux->job->video_out_file);
+
+    mux->rotor_aux = tc_zalloc(sizeof(TCRotateContext));
+    if (!mux->rotor_aux) {
+        goto aux_alloc_failed;
+    }
+    tc_rotate_init(mux->rotor_aux, mux->job->audio_out_file);
+
+    ret = dual_open(mux);
+    if (ret != TC_OK) {
+        goto open_failed;
+    }
+
+    mux->open  = dual_open;
+    mux->write = dual_write;
+    mux->close = dual_close;
+
+    return TC_OK;
+
+open_failed:
+    tc_free(mux->rotor_aux);
+    mux->rotor_aux = NULL;
+aux_alloc_failed:
+    tc_free(mux->rotor);
+    mux->rotor = NULL;
+main_alloc_failed:
+    tc_log_error(__FILE__,
+                 "multiplexor module error: open failed");
+    return TC_ERROR;
+}
 
 /*************************************************************************/
 
@@ -312,6 +468,57 @@ static TCModule muxer_setup(TCMultiplexor *mux,
     return mux_mod;
 }
 
+static int muxer_shutdown(TCMultiplexor *mux, TCModule mux_mod)
+{
+    int ret = tc_module_stop(mux_mod);
+    if (ret == TC_OK) {
+        tc_del_module(mux->factory, mux_mod);
+    }
+    return ret;
+}
+
+/*************************************************************************/
+
+int tc_multiplexor_init(TCMultiplexor *mux, TCJob *job, TCFactory factory)
+{
+    int ret = TC_ERROR;
+
+    mux->processed  = 0;
+    mux->job        = job;
+    mux->factory    = factory;
+    mux->mux_main   = NULL;
+    mux->mux_aux    = NULL;
+
+    mux->rotor      = NULL;
+    mux->rotor_aux  = NULL;
+
+    mux->vid_xdata  = NULL;
+    mux->aud_xdata  = NULL;
+
+    mux->has_aux    = TC_FALSE;
+
+    mux->open       = NULL;
+    mux->close      = NULL;
+    mux->write      = NULL;
+
+    ret = TC_OK;
+    return ret;
+}
+
+int tc_multiplexor_fini(TCMultiplexor *mux)
+{
+    return TC_OK;
+}
+
+
+uint32_t tc_multiplexor_processed(TCMultiplexor *mux)
+{
+    return mux->processed;
+}
+
+/*************************************************************************/
+
+
 int tc_multiplexor_setup(TCMultiplexor *mux,
                          const char *mux_mod_name,
                          const char *mux_mod_name_aux)
@@ -339,52 +546,20 @@ int tc_multiplexor_setup(TCMultiplexor *mux,
     return ret;
 }
 
-#if 0
-void tc_export_shutdown(TCMultiplexor *mux)
+int tc_multiplexor_shutdown(TCMultiplexor *mux)
 {
-    tc_debug(TC_DEBUG_MODULES, "unloading multiplexor modules");
-
-    tc_del_module(mux->factory, mux->mux_main);
-    tc_free(mux->rotor);
-    if (mux->has_aux) {
-        tc_del_module(mux->factory, mux->mux_aux);
-    }
-}
-#endif
-
-/*************************************************************************/
-
-static int muxer_open(TCMultiplexor *mux)
-{
-    TCModuleExtraData *xdata[] = { mux->vid_xdata, mux->aud_xdata, NULL };
     int ret;
 
-    if (!mux->has_aux) {
-        xdata[1] = NULL;
-    }
+    tc_debug(TC_DEBUG_MODULES, "unloading multiplexor modules");
 
-    ret = tc_module_open(mux->mux_main,
-                         tc_rotate_output_name(mux->rotor),
-                         xdata);
-    if (ret != TC_OK) {
-        tc_log_error(__FILE__, "multiplexor module error: open failed");
-        return TC_ERROR;
-    }
-
+    ret = muxer_shutdown(mux, mux->mux_main);
     if (mux->has_aux) {
-        xdata[0] = mux->aud_xdata;
-
-        ret = tc_module_open(mux->mux_aux,
-                             tc_rotate_output_name(mux->rotor_aux),
-                             xdata);
-        if (ret != TC_OK) {
-            tc_log_error(__FILE__, "aux multiplexor module error: open failed");
-            return TC_ERROR;
-        }
+        ret = muxer_shutdown(mux, mux->mux_aux);
     }
-
-    return TC_OK;
+    return ret;
 }
+
+/*************************************************************************/
 
 int tc_multiplexor_open(TCMultiplexor *mux,
                         const char *sink_name,
@@ -392,92 +567,45 @@ int tc_multiplexor_open(TCMultiplexor *mux,
                         TCModuleExtraData *vid_xdata,
                         TCModuleExtraData *aud_xdata)
 {
-    int ret;
-
+    /* sanity checks */
+    if (mux->has_aux && !sink_name_aux) {
+        tc_log_error(__FILE__, "multiplexor: missing auxiliary file name");
+        return TC_ERROR;
+    }
     tc_debug(TC_DEBUG_MODULES, "multiplexor opened");
 
     mux->vid_xdata = vid_xdata;
     mux->aud_xdata = aud_xdata;
 
-    /* sanity checks */
-    if (mux->has_aux && !sink_name_aux) {
-        tc_log_error(__FILE__, "foobar");
-        return TC_ERROR;
-    }
-
-    /* pre allocation */
-    mux->rotor = tc_zalloc(sizeof(TCRotateContext));
-    if (!mux->rotor_aux) {
-        goto no_rotor;
-    }
-    tc_rotate_init(mux->rotor, sink_name);
-
-    if (!mux->has_aux) {
-        mux->rotor_aux = mux->rotor;
-    } else {
-        mux->rotor_aux = tc_zalloc(sizeof(TCRotateContext));
-        if (!mux->rotor_aux) {
-            goto no_rotor_aux;
-        }
-        tc_rotate_init(mux->rotor_aux, sink_name_aux);
-    }
-
-    ret = muxer_open(mux);
-    if (ret != TC_OK) {
-        goto no_rotor_aux;
-    }
-    return ret;
-
-no_rotor_aux:
-    tc_free(mux->rotor);
-no_rotor:
-    return TC_ERROR;
-}
-
-
-static int muxer_close(TCMultiplexor *mux)
-{
-    int ret;
-
-    ret = tc_module_close(mux->mux_main);
-    if (ret != TC_OK) {
-        tc_log_warn(__FILE__, "multiplexor module error: close failed");
-        return TC_ERROR;
-    }
-
     if (mux->has_aux) {
-        ret = tc_module_stop(mux->mux_aux);
-        if (ret != TC_OK) {
-            tc_log_warn(__FILE__, "aux multiplexor module error: close failed");
-            return TC_ERROR;
-        }
+        return dual_setup(mux, sink_name, sink_name_aux);
     }
-
-    tc_debug(TC_DEBUG_CLEANUP, "multiplexor closed");
-    return TC_OK;
+    return mono_setup(mux, sink_name);
 }
-
-#define MUX_FREE(FIELD) do { \
-    if (mux->FIELD) { \
-        tc_free(mux->FIELD); \
-        mux->FIELD = NULL; \
-    } \
-} while (0)
 
 int tc_multiplexor_close(TCMultiplexor *mux)
 {
-    int ret = muxer_close(mux);
+    tc_debug(TC_DEBUG_CLEANUP, "multiplexor closed");
 
-    if (ret == TC_OK) {
-        MUX_FREE(rotor);
-        if (mux->has_aux) {
-            MUX_FREE(rotor_aux);
-        }
-    }
-    return ret;
+    return mux->close(mux);
  }
 
 /*************************************************************************/
+
+/* write and rotate if needed */
+int tc_multiplexor_export(TCMultiplexor *mux,
+                          TCFrameVideo *vframe, TCFrameAudio *aframe)
+{
+    return mux->write(mux, TC_TRUE, vframe, aframe);
+}
+
+/* just write */
+int tc_multiplexor_write(TCMultiplexor *mux,
+                         TCFrameVideo *vframe, TCFrameAudio *aframe)
+{
+    return mux->write(mux, TC_FALSE, vframe, aframe);
+}
+
 /*************************************************************************/
 
 /*

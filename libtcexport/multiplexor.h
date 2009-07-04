@@ -72,7 +72,7 @@ struct tcmultiplexor_ {
 
     int (*open)(TCMultiplexor *mux);
     int (*close)(TCMultiplexor *mux);
-    int (*write)(TCMultiplexor *mux,
+    int (*write)(TCMultiplexor *mux, int can_rotate,
                  TCFrameVideo *vframe, TCFrameAudio *aframe);
 };
 
@@ -115,13 +115,13 @@ int tc_multiplexor_init(TCMultiplexor *mux, TCJob *job, TCFactory factory);
 
 int tc_multiplexor_fini(TCMultiplexor *mux);
 
+uint32_t tc_multiplexor_processed(TCMultiplexor *mux);
+
 int tc_multiplexor_setup(TCMultiplexor *mux,
                          const char *mux_mod_name,
                          const char *mux_mod_name_aux);
 
 int tc_multiplexor_shutdown(TCMultiplexor *mux);
-
-uint32_t tc_multiplexor_processed(TCMultiplexor *mux);
 
 int tc_multiplexor_open(TCMultiplexor *mux,
                         const char *sink_name,
@@ -135,7 +135,7 @@ int tc_multiplexor_close(TCMultiplexor *mux);
 int tc_multiplexor_export(TCMultiplexor *mux,
                           TCFrameVideo *vframe, TCFrameAudio *aframe);
 
-/* just write */
+/* just write, never rotate */
 int tc_multiplexor_write(TCMultiplexor *mux,
                          TCFrameVideo *vframe, TCFrameAudio *aframe);
 
