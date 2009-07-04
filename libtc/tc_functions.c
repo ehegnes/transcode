@@ -59,10 +59,10 @@ pthread_mutex_t tc_libavcodec_mutex = PTHREAD_MUTEX_INITIALIZER;
 /*************************************************************************/
 
 /* frontend for lower level libtcutil code */
-void libtc_init(int *argc, char ***argv)
+int libtc_init(int *argc, char ***argv)
 {
     tc_log_init();
-    tc_log_open(TC_LOG_TARGET_CONSOLE, TC_LOG_MARK, argc, argv);
+    return tc_log_open(TC_LOG_TARGET_CONSOLE, TC_LOG_MARK, argc, argv);
 }
 
 /*************************************************************************/

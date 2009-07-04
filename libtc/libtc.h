@@ -42,13 +42,13 @@ extern "C" {
  * Parameters:
  *     WRITEME
  * Return Value:
- *     N/A
+ *     TC_ERROR on error, TC_OK if succesfull.
  * Side effects:
  *     various. See description of flags above.
  * Preconditions:
  *     call this function BEFORE any other libtc function.
  */
-void libtc_init(int *argc, char ***argv);
+int libtc_init(int *argc, char ***argv);
 
 /*************************************************************************/
 
