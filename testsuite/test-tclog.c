@@ -34,12 +34,17 @@
 #define STD_MSG_SIZE        (64)
 #define TINY_MSG_SIZE       (4)
 
-int main(void)
+int main(int argc, char *argv[])
 {
-    int i = 0;
+    int i = 0, ret;
     char huge[HUGE_MSG_SIZE] = { '\0' };
     char std[STD_MSG_SIZE] = { '\0' };
     char tiny[TINY_MSG_SIZE] = { '\0' };
+
+    ret = libtc_init(&argc, &argv);
+    if (ret != TC_OK) {
+        exit(2);
+    }
 
     for (i = 0; i < HUGE_MSG_SIZE - 1; i++) {
         huge[i] = 'H';

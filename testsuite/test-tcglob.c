@@ -34,6 +34,8 @@ int main(int argc, char *argv[])
     TCGlob *g = NULL;
     const char *pc = NULL;
 
+    libtc_init(&argc, &argv);
+
     if (argc != 2) {
         tc_error("usage: %s pattern_to_glob", argv[0]);
     }

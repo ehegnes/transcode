@@ -135,7 +135,7 @@ static int test_alloc_memset_aud(double rate, double fps, int chans, int bits)
 
 #define LEN(a)  (sizeof(a)/sizeof((a)[0]))
 
-int main(void)
+int main(int argc, char *argv[])
 {
     int width[] = { 128, 320, 576, 640, 960, 1024, 1280, 2048 };
     int height[] = { 96, 240, 240, 480, 560, 768, 800, 1536 };
@@ -149,6 +149,8 @@ int main(void)
     int F, r, c, b;
 
     int runned = 0, succesfull = 0;
+
+    libtc_init(&argc, &argv);
 
     for (f = 0; f < LEN(format); f++) {
         for (w = 0; w < LEN(width); w++) {

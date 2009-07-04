@@ -27,6 +27,7 @@
 #include "libtcmodule/tcmodule-info.h"
 
 static const TCCodecID empty_codecs[] = { TC_CODEC_ERROR };
+static const TCFormatID empty_formats[] = { TC_FORMAT_ERROR };
 static TCModuleInfo empty = {
     TC_MODULE_FEATURE_NONE,
     TC_MODULE_FLAG_NONE,
@@ -34,7 +35,11 @@ static TCModuleInfo empty = {
     "",
     "",
     empty_codecs,
-    empty_codecs
+    empty_codecs,
+    empty_codecs,
+    empty_codecs,
+    empty_formats,
+    empty_formats
 };
 
 static const TCCodecID pass_enc_codecs[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
@@ -46,7 +51,11 @@ static TCModuleInfo pass_enc = {
     "0.0.1 (2005-11-14)",
     "accepts everything, outputs verbatim",
     pass_enc_codecs,
-    pass_enc_codecs
+    pass_enc_codecs,
+    pass_enc_codecs,
+    pass_enc_codecs,
+    empty_formats,
+    empty_formats
 };
 
 static const TCCodecID fake_pcm_codecs[] = { TC_CODEC_PCM, TC_CODEC_ERROR };
@@ -56,8 +65,12 @@ static TCModuleInfo fake_wav_mplex = {
     "mplex_wav.so",
     "0.0.1 (2006-06-11)",
     "accepts pcm, writes wav (fake!)",
+    empty_codecs,
+    empty_codecs,
     fake_pcm_codecs,
-    empty_codecs
+    empty_codecs,
+    empty_formats,
+    empty_formats
 };
 
 static const TCCodecID fake_yuv_codecs[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
@@ -68,7 +81,11 @@ static TCModuleInfo fake_y4m_mplex = {
     "0.0.1 (2006-06-11)",
     "accepts yuv420p, writes YUV4MPEG2 (fake!)",
     fake_yuv_codecs,
-    empty_codecs
+    empty_codecs,
+    empty_codecs,
+    empty_codecs,
+    empty_formats,
+    empty_formats
 };
 
 
@@ -81,7 +98,11 @@ static TCModuleInfo fake_mplex = {
     "0.0.1 (2005-11-14)",
     "accepts and discards everything",
     fake_mplex_codecs,
-    empty_codecs
+    empty_codecs,
+    fake_mplex_codecs,
+    empty_codecs,
+    empty_formats,
+    empty_formats
 };
 
 static const TCCodecID pcm_pass_codecs[] = { TC_CODEC_PCM, TC_CODEC_ERROR };
@@ -91,8 +112,12 @@ static TCModuleInfo pcm_pass = {
     "encode_pcm.so",
     "0.0.1 (2006-03-11)",
     "passthrough pcm",
+    empty_codecs,
+    empty_codecs,
     pcm_pass_codecs,
-    pcm_pass_codecs
+    pcm_pass_codecs,
+    empty_formats,
+    empty_formats
 };
 
 static const TCCodecID yuv_pass_codecs[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
@@ -103,7 +128,11 @@ static TCModuleInfo yuv_pass = {
     "0.0.1 (2006-03-11)",
     "passthrough yuv",
     yuv_pass_codecs,
-    yuv_pass_codecs
+    yuv_pass_codecs,
+    empty_codecs,
+    empty_codecs,
+    empty_formats,
+    empty_formats
 };
 
 static const TCCodecID fake_mpeg_codecs_in[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
@@ -115,7 +144,11 @@ static TCModuleInfo fake_mpeg_enc = {
     "0.0.1 (2005-11-14)",
     "fake YUV420P -> MPEG video encoder",
     fake_mpeg_codecs_in,
-    fake_mpeg_codecs_out
+    fake_mpeg_codecs_out,
+    empty_codecs,
+    empty_codecs,
+    empty_formats,
+    empty_formats
 };
 
 static const TCCodecID fake_vorbis_codecs_in[] = { TC_CODEC_PCM, TC_CODEC_ERROR };
@@ -126,12 +159,19 @@ static TCModuleInfo fake_vorbis_enc = {
     "encode_vorbis.so",
     "0.0.1 (2005-11-14)",
     "fake PCM -> Vorbis audio encoder",
+    empty_codecs,
+    empty_codecs,
     fake_vorbis_codecs_in,
-    fake_vorbis_codecs_out
+    fake_vorbis_codecs_out,
+    empty_formats,
+    empty_formats
 };
 
-static const TCCodecID fake_avi_codecs_in[] = {
+static const TCCodecID fake_avi_v_codecs_in[] = {
         TC_CODEC_MPEG1VIDEO, TC_CODEC_XVID, TC_CODEC_YUV420P,
+        TC_CODEC_ERROR
+};
+static const TCCodecID fake_avi_a_codecs_in[] = {
         TC_CODEC_MP3, TC_CODEC_PCM,
         TC_CODEC_ERROR
 };
@@ -142,8 +182,12 @@ static TCModuleInfo fake_avi_mplex = {
     "mplex_avi.so",
     "0.0.1 (2005-11-14)",
     "fakes an AVI muxer",
-    fake_avi_codecs_in,
-    empty_codecs
+    fake_avi_v_codecs_in,
+    empty_codecs,
+    fake_avi_a_codecs_in,
+    empty_codecs,
+    empty_formats,
+    empty_formats
  };
 
 
@@ -216,9 +260,13 @@ static int test_module_match(void)
     return errors;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
-    int errors = test_module_match();
+    int errors = 0;
+    
+    libtc_init(&argc, &argv);
+
+    errors = test_module_match();
 
     putchar('\n');
     tc_log_info(__FILE__, "test summary: %i error%s (%s)",

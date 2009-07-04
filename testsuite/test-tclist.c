@@ -254,6 +254,7 @@ static int test_list_all(void)
 {
     int errors = 0;
 
+
     TC_RUN_TEST(U_just_init);
     TC_RUN_TEST(U_append);
     TC_RUN_TEST(U_append_get);
@@ -270,9 +271,13 @@ static int test_list_all(void)
     return errors;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
-    int errors = test_list_all();
+    int errors = 0;
+    
+    libtc_init(&argc, &argv);
+    
+    errors = test_list_all();
 
     putchar('\n');
     tc_log_info(__FILE__, "test summary: %i error%s (%s)",

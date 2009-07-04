@@ -102,35 +102,44 @@ int main(int argc, char *argv[])
     char *vmod = "null";
     char *mmod = "null";
     int ret = 0;
-    
+  
+    ret = libtc_init(&argc, &argv);
+    if (ret != TC_OK) {
+        exit(2);
+    }
+
     ret = tc_export_profile_setup_from_cmdline(&argc, &argv);
     if (ret < 0) {
         /* error, so bail out */
         return 1;
     }
-    printf("parsed: %i profiles\n", ret);
 
-    info = tc_export_profile_load_all();
-    amod = GET_MODULE(info->audio.module.name);
-    vmod = GET_MODULE(info->video.module.name);
-    mmod = GET_MODULE(info->mplex.module.name);
-    tc_export_profile_to_job(info, &vob);
+    ret = tc_export_profile_count();
+    if (ret > 0) {
+        info = tc_export_profile_load_all();
+        if (info) {
+            amod = GET_MODULE(info->audio.module.name);
+            vmod = GET_MODULE(info->video.module.name);
+            mmod = GET_MODULE(info->mplex.module.name);
+            tc_export_profile_to_job(info, &vob);
 
-    PRINT(divxbitrate, "%i");
-    PRINT(video_max_bitrate, "%i");
-    PRINT(mp3bitrate, "%i");
-    PRINT(mp3frequency, "%i");
-    PRINT(divxkeyframes, "%i");
-    PRINT(encode_fields, "%i");
-    PRINT(ex_frc, "%i");
-    PRINT(ex_v_codec, "%x");
-    PRINT(ex_a_codec, "%x");
-    PRINT(zoom_width, "%i");
-    PRINT(zoom_height, "%i");
+            PRINT(divxbitrate, "%i");
+            PRINT(video_max_bitrate, "%i");
+            PRINT(mp3bitrate, "%i");
+            PRINT(mp3frequency, "%i");
+            PRINT(divxkeyframes, "%i");
+            PRINT(encode_fields, "%i");
+            PRINT(ex_frc, "%i");
+            PRINT(ex_v_codec, "%x");
+            PRINT(ex_a_codec, "%x");
+            PRINT(zoom_width, "%i");
+            PRINT(zoom_height, "%i");
     
-    printf("video module=%s\n", vmod);
-    printf("audio module=%s\n", amod);
-    printf("mplex module=%s\n", mmod);
+            printf("video module=%s\n", vmod);
+            printf("audio module=%s\n", amod);
+            printf("mplex module=%s\n", mmod);
+        }
+    }
 
     tc_export_profile_cleanup();
     return 0;
