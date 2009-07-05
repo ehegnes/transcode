@@ -353,15 +353,19 @@ static void load_all_filters(char *filter_list)
  * Parameters:
  *      vob: Pointer to the global vob_t data structure.
  * Return value:
- *     0 on success, -1 on error.
+ *     TC_OK on success,
+ *     TC_ERROR on error.
  */
 
-static int transcode_init(vob_t *vob)
+static int transcode_init(vob_t *vob, const TCFrameSpecs *specs)
 {
+    int ret;
+
     /* load import modules and check capabilities */
-    if (tc_import_init(vob, im_aud_mod, im_vid_mod) < 0) {
+    ret = tc_import_init(vob, im_aud_mod, im_vid_mod);
+    if (ret < 0) {
         tc_log_error(PACKAGE, "failed to init import modules");
-        return -1;
+        return TC_ERROR;
     }
 
     /* load and initialize filters */
@@ -370,19 +374,23 @@ static int transcode_init(vob_t *vob)
 
     /* load export modules and check capabilities
      * (only create a TCModule factory if a multiplex module was given) */
-    if (tc_export_init(tc_ringbuffer,
-                       ex_mplex_mod
-                          ? tc_new_module_factory(vob->mod_path,verbose)
-                          : NULL) != TC_OK
-    ) {
+    ret = tc_export_new(vob,
+                        tc_new_module_factory(vob->mod_path, verbose),
+                        tc_runcontrol_get_instance(),
+                        specs);
+    if (ret != TC_OK) {
         tc_log_error(PACKAGE, "failed to init export layer");
-        return -1;
+        return TC_ERROR;
     }
-    if (tc_export_setup(vob, ex_aud_mod, ex_vid_mod, ex_mplex_mod) != TC_OK) {
+
+    tc_export_config(verbose, 1, tc_cluster_mode);
+
+    ret = tc_export_setup(ex_aud_mod, ex_vid_mod, ex_mplex_mod, 0);
+    if (ret != TC_OK) {
         tc_log_error(PACKAGE, "failed to init export modules");
-        return -1;
+        return TC_ERROR;
     }
-    return 0;
+    return TC_OK;
 }
 
 /**
@@ -414,6 +422,7 @@ static int transcode_fini(vob_t *vob)
 static int transcode_mode_default(vob_t *vob)
 {
     struct fc_time *tstart = NULL;
+    int th_num = max_frame_threads; /* just a shortcut */
 
     tc_start();
 
@@ -429,11 +438,11 @@ static int transcode_mode_default(vob_t *vob)
     tc_import_threads_create(vob);
 
     // init encoder
-    if (tc_encoder_init(vob) != TC_OK)
+    if (tc_export_init() != TC_OK)
         tc_error("failed to init encoder");
 
     // open output files
-    if (tc_encoder_open(vob) != TC_OK)
+    if (tc_export_open() != TC_OK)
         tc_error("failed to open output");
 
     // tell counter about all encoding ranges
@@ -463,7 +472,8 @@ static int transcode_mode_default(vob_t *vob)
             frame_b = tstart->etf;
         }
         // main encoding loop, returns when done with all frames
-        tc_encoder_loop(vob, frame_a, frame_b);
+        tc_export_loop(tc_get_ringbuffer(vob, th_num, th_num),
+                       frame_a, frame_b);
 
         // check for user cancelation request
         if (tc_interrupted()) {
@@ -488,9 +498,9 @@ static int transcode_mode_default(vob_t *vob)
     tc_stop_all();
 
     // close output files
-    tc_encoder_close();
+    tc_export_close();
     // stop encoder
-    tc_encoder_stop();
+    tc_export_stop();
     // cancel import threads
     tc_import_threads_cancel();
     // stop decoder and close the source
@@ -509,6 +519,7 @@ static int transcode_mode_avi_split(vob_t *vob)
 {
     char buf[TC_BUF_MAX];
     int fa, fb, ch1 = 0;
+    int th_num = max_frame_threads; /* just a shortcut */
 
     tc_start();
 
@@ -520,7 +531,7 @@ static int transcode_mode_avi_split(vob_t *vob)
     tc_import_threads_create(vob);
 
     // encoder init
-    if (tc_encoder_init(vob) != TC_OK)
+    if (tc_export_init() != TC_OK)
         tc_error("failed to init encoder");
 
     // need to loop for ch1
@@ -536,16 +547,17 @@ static int transcode_mode_avi_split(vob_t *vob)
         vob->audio_out_file = buf;
 
         // open output
-        if (tc_encoder_open(vob) != TC_OK)
+        if (tc_export_open() != TC_OK)
             tc_error("failed to open output");
 
         fa = frame_a;
         fb = frame_a + splitavi_frames;
 
-        tc_encoder_loop(vob, fa, ((fb > frame_b) ? frame_b : fb));
+        tc_export_loop(tc_get_ringbuffer(vob, th_num, th_num),
+                       fa, ((fb > frame_b) ? frame_b : fb));
 
         // close output
-        tc_encoder_close();
+        tc_export_close();
 
         // restart
         frame_a += splitavi_frames;
@@ -563,7 +575,7 @@ static int transcode_mode_avi_split(vob_t *vob)
 
     tc_stop_all();
 
-    tc_encoder_stop();
+    tc_export_stop();
 
     // cancel import threads
     tc_import_threads_cancel();
@@ -578,6 +590,7 @@ static int transcode_mode_avi_split(vob_t *vob)
 static int transcode_mode_directory(vob_t *vob)
 {
     struct fc_time *tstart = NULL;
+    int th_num = max_frame_threads; /* just a shortcut */
     
     tc_start();
 
@@ -587,9 +600,9 @@ static int transcode_mode_directory(vob_t *vob)
 
     tc_multi_import_threads_create(vob);
 
-    if (tc_encoder_init(vob) != TC_OK)
+    if (tc_export_init() != TC_OK)
         tc_error("failed to init encoder");
-    if (tc_encoder_open(vob) != TC_OK)
+    if (tc_export_open() != TC_OK)
         tc_error("failed to open output");
 
     // tell counter about all encoding ranges
@@ -619,13 +632,14 @@ static int transcode_mode_directory(vob_t *vob)
             frame_b = tstart->etf;
         }
         // main encoding loop, returns when done with all frames
-        tc_encoder_loop(vob, frame_a, frame_b);
+        tc_export_loop(tc_get_ringbuffer(vob, th_num, th_num),
+                       frame_a, frame_b);
     }
 
     tc_stop_all();
 
-    tc_encoder_close();
-    tc_encoder_stop();
+    tc_export_close();
+    tc_export_stop();
     tc_multi_import_threads_cancel();
 
     return TC_OK;
@@ -640,14 +654,15 @@ static int transcode_mode_psu(vob_t *vob, const char *psubase)
 {
     char buf[TC_BUF_MAX];
     int fa, fb, psu_cur = vob->vob_psu_num1;
+    int th_num = max_frame_threads; /* just a shortcut */
 
-    if (tc_encoder_init(vob) != TC_OK)
+    if (tc_export_init() != TC_OK)
         tc_error("failed to init encoder");
 
     // open output
     if (no_split) {
         vob->video_out_file = psubase;
-        if (tc_encoder_open(vob) != TC_OK)
+        if (tc_export_open() != TC_OK)
             tc_error("failed to open output");
     }
 
@@ -698,11 +713,11 @@ static int transcode_mode_psu(vob_t *vob, const char *psubase)
             tc_import_threads_create(vob);
 
             // frame threads may need a reboot too.
-            tc_frame_threads_init(vob, max_frame_threads, max_frame_threads);
+            tc_frame_threads_init(vob, th_num, th_num);
 
             // open new output file
             if (!no_split) {
-                if (tc_encoder_open(vob) != TC_OK)
+                if (tc_export_open() != TC_OK)
                     tc_error("failed to open output");
             }
 
@@ -710,11 +725,12 @@ static int transcode_mode_psu(vob_t *vob, const char *psubase)
             // we try to encode more frames and let the decoder safely
             // drain the queue to avoid threads not stopping
 
-            tc_encoder_loop(vob, fa, TC_FRAME_LAST);
+            tc_export_loop(tc_get_ringbuffer(vob, th_num, th_num),
+                           fa, TC_FRAME_LAST);
 
             // close output file
             if (!no_split) {
-                if (tc_encoder_close() != TC_OK)
+                if (tc_export_close() != TC_OK)
                     tc_warn("failed to close encoder - non fatal");
             }
 
@@ -745,13 +761,13 @@ static int transcode_mode_psu(vob_t *vob, const char *psubase)
 
     // close output
     if (no_split) {
-        if (tc_encoder_close() != TC_OK)
+        if (tc_export_close() != TC_OK)
             tc_warn("failed to close encoder - non fatal");
     }
 
     tc_stop_all();
 
-    tc_encoder_stop();
+    tc_export_stop();
 
     return TC_OK;
 }
@@ -766,10 +782,11 @@ static int transcode_mode_dvd(vob_t *vob)
 #ifdef HAVE_LIBDVDREAD
     char buf[TC_BUF_MAX];
     int ch1, ch2;
+    int th_num = max_frame_threads; /* just a shortcut */
 
     tc_start();
 
-    if (tc_encoder_init(vob) != TC_OK)
+    if (tc_export_init() != TC_OK)
         tc_error("failed to init encoder");
 
     // open output
@@ -780,7 +797,7 @@ static int transcode_mode_dvd(vob_t *vob)
         vob->video_out_file = buf;
         vob->audio_out_file = buf;
 
-        if (tc_encoder_open(vob) != TC_OK)
+        if (tc_export_open() != TC_OK)
             tc_error("failed to open output");
     }
 
@@ -820,15 +837,16 @@ static int transcode_mode_dvd(vob_t *vob)
 
         // encode
         if (!no_split) {
-            if (tc_encoder_open(vob) != TC_OK)
+            if (tc_export_open() != TC_OK)
                 tc_error("failed to init encoder");
         }
 
         // main encoding loop, selecting an interval won't work
-        tc_encoder_loop(vob, frame_a, frame_b);
+        tc_export_loop(tc_get_ringbuffer(vob, th_num, th_num),
+                       frame_a, frame_b);
 
         if (!no_split) {
-            if (tc_encoder_close() != TC_OK)
+            if (tc_export_close() != TC_OK)
                 tc_warn("failed to close encoder - non fatal");
         }
 
@@ -852,12 +870,12 @@ static int transcode_mode_dvd(vob_t *vob)
     }
 
     if (no_split) {
-        if (tc_encoder_close() != TC_OK)
+        if (tc_export_close() != TC_OK)
             tc_warn("failed to close encoder - non fatal");
     }
 
     tc_stop_all();
-    tc_encoder_stop();
+    tc_export_stop();
 #endif
 
     return TC_OK;
@@ -2711,7 +2729,7 @@ int main(int argc, char *argv[])
 #endif
 
     // load import/export modules and filters plugins
-    if (transcode_init(vob, tc_get_ringbuffer(max_frame_threads, max_frame_threads)) < 0)
+    if (transcode_init(vob, &specs) != TC_OK)
         tc_error("plug-in initialization failed");
 
     // start socket stuff
