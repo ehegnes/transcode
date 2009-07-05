@@ -27,10 +27,10 @@
 #include "config.h"
 #endif
 
+#include "libtcexport/export.h"
+
 #include "transcode.h"
-#include "export.h"
 #include "decoder.h"
-#include "encoder.h"
 #include "filter.h"
 #include "framebuffer.h"
 #include "counter.h"
@@ -69,8 +69,20 @@
 /*************************************************************************/
 /*************************************************************************/
 
-static int have_aud_threads = 0;
-static int have_vid_threads = 0;
+typedef struct tcringbuffersource_ TCRingBufferSource;
+struct tcringbuffersource_ {
+    int             inited;
+
+    int             have_aud_threads;
+    int             have_vid_threads;
+
+    int             frame_id;
+
+    TCFrameVideo    *vptr;
+    TCFrameAudio    *aptr;
+};
+
+
 
 /*************************************************************************/
 
@@ -88,8 +100,10 @@ static int have_vid_threads = 0;
  *              vob: pointer to vob_t structure holding stream
  *                   parameters.
  */
-static void apply_video_filters(TCFrameVideo *vptr, vob_t *vob);
-static void apply_audio_filters(TCFrameAudio *aptr, vob_t *vob);
+static void apply_video_filters(TCRingBufferSource *buf,
+                                TCFrameVideo *vptr, TCJob *job);
+static void apply_audio_filters(TCRingBufferSource *buf,
+                                TCFrameAudio *aptr, TCJob *job);
 
 /*
  * encoder_acquire_{v,a}frame:
@@ -112,8 +126,8 @@ static void apply_audio_filters(TCFrameAudio *aptr, vob_t *vob);
  *         As for encoder_wait_{v,a}frame, this usually happens
  *         when video/audio stream ends.
  */
-static int encoder_acquire_vframe(TCEncoderBuffer *buf, vob_t *vob);
-static int encoder_acquire_aframe(TCEncoderBuffer *buf, vob_t *vob);
+static TCFrameVideo *encoder_acquire_vframe(TCFrameSource *FS);
+static TCFrameAudio *encoder_acquire_aframe(TCFrameSource *FS);
 
 /*
  * encoder_dispose_{v,a}frame:
@@ -127,15 +141,16 @@ static int encoder_acquire_aframe(TCEncoderBuffer *buf, vob_t *vob);
  * Return Value:
  *       None.
  */
-static void encoder_dispose_vframe(TCEncoderBuffer *buf);
-static void encoder_dispose_aframe(TCEncoderBuffer *buf);
+static void encoder_dispose_vframe(TCFrameSource *FS, TCFrameVideo *frame);
+static void encoder_dispose_aframe(TCFrameSource *FS, TCFrameAudio *frame);
 
 
 /*************************************************************************/
 
-static void apply_video_filters(TCFrameVideo *vptr, vob_t *vob)
+static void apply_video_filters(TCRingBufferSource *buf,
+                                TCFrameVideo *vptr, TCJob *job)
 {
-    if (!have_vid_threads) {
+    if (!buf->have_vid_threads) {
         if (TC_FRAME_NEED_PROCESSING(vptr)) {
             /* external plugin pre-processing */
             vptr->tag = TC_VIDEO|TC_PRE_M_PROCESS;
@@ -143,7 +158,7 @@ static void apply_video_filters(TCFrameVideo *vptr, vob_t *vob)
 
             /* internal processing of video */
             vptr->tag = TC_VIDEO;
-            process_vid_frame(vob, vptr);
+            process_vid_frame(job, vptr);
 
             /* external plugin post-processing */
             vptr->tag = TC_VIDEO|TC_POST_M_PROCESS;
@@ -155,17 +170,18 @@ static void apply_video_filters(TCFrameVideo *vptr, vob_t *vob)
         /* second stage post-processing - (synchronous) */
         vptr->tag = TC_VIDEO|TC_POST_S_PROCESS;
         tc_filter_process((frame_list_t *)vptr);
-        postprocess_vid_frame(vob, vptr);
+        postprocess_vid_frame(job, vptr);
         /* preview _after_ all post-processing */
         vptr->tag = TC_VIDEO|TC_PREVIEW;
         tc_filter_process((frame_list_t *)vptr);
     }
 }
 
-static void apply_audio_filters(TCFrameAudio *aptr, vob_t *vob)
+static void apply_audio_filters(TCRingBufferSource *buf,
+                                TCFrameAudio *aptr, TCJob *job)
 {
     /* now we try to process the audio frame */
-    if (!have_aud_threads) {
+    if (!buf->have_aud_threads) {
         if (TC_FRAME_NEED_PROCESSING(aptr)) {
             /* external plugin pre-processing */
             aptr->tag = TC_AUDIO|TC_PRE_M_PROCESS;
@@ -173,7 +189,7 @@ static void apply_audio_filters(TCFrameAudio *aptr, vob_t *vob)
 
             /* internal processing of audio */
             aptr->tag = TC_AUDIO;
-            process_aud_frame(vob, aptr);
+            process_aud_frame(job, aptr);
 
             /* external plugin post-processing */
             aptr->tag = TC_AUDIO|TC_POST_M_PROCESS;
@@ -191,18 +207,18 @@ static void apply_audio_filters(TCFrameAudio *aptr, vob_t *vob)
     }
 }
 
-static int encoder_acquire_vframe(TCEncoderBuffer *buf, vob_t *vob)
+static TCFrameVideo *encoder_acquire_vframe(TCFrameSource *FS)
 {
-    int got_frame = TC_TRUE;
+    TCRingBufferSource *buf = FS->privdata;
+    TCFrameVideo *frame = NULL;
 
     do {
-        buf->vptr = vframe_retrieve();
-        if (!buf->vptr) {
+        frame = vframe_retrieve();
+        if (!frame) {
             tc_debug(TC_DEBUG_THREADS, "(V) frame retrieve interrupted!");
-            return -1; /* can't acquire video frame */
+            return NULL; /* can't acquire video frame */
         }
-        got_frame = TC_TRUE;
-        buf->frame_id = buf->vptr->id + tc_get_frames_skipped_cloned();
+        buf->frame_id = frame->id + tc_get_frames_skipped_cloned();
 
         /*
          * now we do the post processing ... this way, if just a video frame is
@@ -212,19 +228,15 @@ static int encoder_acquire_vframe(TCEncoderBuffer *buf, vob_t *vob)
          * that this frame isn't out of range (if it is, and one is using
          * the "-t" split option, we'll see this frame again.
          */
-        apply_video_filters(buf->vptr, vob);
+        apply_video_filters(buf, frame, FS->job);
 
-        if (buf->vptr->attributes & TC_FRAME_IS_SKIPPED) {
-            if (buf->vptr != NULL
-              && (buf->vptr->attributes & TC_FRAME_WAS_CLONED)
-            ) {
+        if (frame->attributes & TC_FRAME_IS_SKIPPED) {
+            if (frame->attributes & TC_FRAME_WAS_CLONED) {
                 /* XXX do we want to track skipped cloned flags? */
                 tc_update_frames_cloned(1);
             }
 
-            if (buf->vptr != NULL
-              && (buf->vptr->attributes & TC_FRAME_IS_CLONED)
-            ) {
+            if (frame->attributes & TC_FRAME_IS_CLONED) {
                 /* XXX what to do when a frame is cloned and skipped? */
                 /*
                  * I'd like to say they cancel, but perhaps they will end
@@ -234,174 +246,149 @@ static int encoder_acquire_vframe(TCEncoderBuffer *buf, vob_t *vob)
 
                 tc_debug(TC_DEBUG_FLIST,  "[%i|%i] (V) pointer done. "
                          "Skipped and Cloned: (%i)",
-                         buf->vptr->id, buf->vptr->bufid,
-                         (buf->vptr->attributes));
+                         frame->id, frame->bufid,
+                         (frame->attributes));
 
                 /* update flags */
-                buf->vptr->attributes &= ~TC_FRAME_IS_CLONED;
-                buf->vptr->attributes |= TC_FRAME_WAS_CLONED;
+                frame->attributes &= ~TC_FRAME_IS_CLONED;
+                frame->attributes |= TC_FRAME_WAS_CLONED;
 
-                vframe_reinject(buf->vptr);
-                buf->vptr = NULL;
+                vframe_reinject(frame);
+                frame = NULL;
+            } else{
+                vframe_remove(frame);
+                frame = NULL;
             }
-            if (buf->vptr != NULL
-              && !(buf->vptr->attributes & TC_FRAME_IS_CLONED)
-            ) {
-                vframe_remove(buf->vptr);
-                /* reset pointer for next retrieve */
-                buf->vptr = NULL;
-            }
-            // tc_update_frames_skipped(1);
-            got_frame = TC_FALSE;
         }
-    } while (!got_frame);
+    } while (!frame);
 
     tc_debug(TC_DEBUG_FLIST, 
              "(V) acquired frame [%p] (id=%i|%i)",
-             buf->vptr, buf->vptr->id, buf->frame_id);
+             frame, frame->id, buf->frame_id);
 
-    return 0;
+    return frame;
 }
 
-static int encoder_acquire_aframe(TCEncoderBuffer *buf, vob_t *vob)
+static TCFrameAudio *encoder_acquire_aframe(TCFrameSource *FS)
 {
-    int got_frame = TC_TRUE;
+    TCRingBufferSource *buf = FS->privdata;
+    TCFrameAudio *frame = NULL;
 
     do {
-        buf->aptr = aframe_retrieve();
-        if (!buf->aptr) {
+        frame = aframe_retrieve();
+        if (!frame) {
             tc_debug(TC_DEBUG_THREADS, "(A) frame retrieve interrupted!");
-            return -1;
+            return NULL;
         }
-        got_frame = TC_TRUE;
 
-        apply_audio_filters(buf->aptr, vob);
+        apply_audio_filters(buf, frame, FS->job);
 
-        if (buf->aptr->attributes & TC_FRAME_IS_SKIPPED) {
-            if (buf->aptr != NULL
-              && !(buf->aptr->attributes & TC_FRAME_IS_CLONED)
-            ) {
-                aframe_remove(buf->aptr);
-                /* reset pointer for next retrieve */
-                buf->aptr = NULL;
-            }
-
-            if (buf->aptr != NULL
-              && (buf->aptr->attributes & TC_FRAME_IS_CLONED)
-            ) {
+        if (frame->attributes & TC_FRAME_IS_SKIPPED) {
+            if (!(frame->attributes & TC_FRAME_IS_CLONED)) {
+                aframe_remove(frame);
+                frame = NULL;
+            } else {
                 tc_debug(TC_DEBUG_FLIST,  "[%i|%i] (A) pointer done. "
                          "Skipped and Cloned: (%i)",
-                         buf->aptr->id, buf->aptr->bufid,
-                         (buf->aptr->attributes));
+                         frame->id, frame->bufid,
+                         (frame->attributes));
 
                 /* adjust clone flags */
-                buf->aptr->attributes &= ~TC_FRAME_IS_CLONED;
-                buf->aptr->attributes |= TC_FRAME_WAS_CLONED;
+                frame->attributes &= ~TC_FRAME_IS_CLONED;
+                frame->attributes |= TC_FRAME_WAS_CLONED;
 
-                aframe_reinject(buf->aptr);
-                buf->aptr = NULL;
+                aframe_reinject(frame);
+                frame = NULL;
             }
-            got_frame = TC_FALSE;
         }
-    } while (!got_frame);
+    } while (!frame);
 
     tc_debug(TC_DEBUG_FLIST, 
              "(A) acquired frame [%p] (id=%i)",
-             buf->aptr, buf->aptr->id);
+             frame, frame->id);
 
-    return 0;
+    return frame;
 }
 
 
-static void encoder_dispose_vframe(TCEncoderBuffer *buf)
+static void encoder_dispose_vframe(TCFrameSource *FS, TCFrameVideo *frame)
 {
-    if (buf->vptr != NULL
-      && (buf->vptr->attributes & TC_FRAME_WAS_CLONED)
-    ) {
-        tc_update_frames_cloned(1);
+    if (frame) {
+        if (frame->attributes & TC_FRAME_WAS_CLONED) {
+            tc_update_frames_cloned(1);
+        }
+
+        if (frame->attributes & TC_FRAME_IS_CLONED) {
+            tc_debug(TC_DEBUG_FLIST,
+                     "[%i] (V) pointer done. Cloned: (%i)",
+                     frame->id, (frame->attributes));
+
+            frame->attributes &= ~TC_FRAME_IS_CLONED;
+            frame->attributes |= TC_FRAME_WAS_CLONED;
+
+            vframe_reinject(frame);
+        } else {
+            tc_debug(TC_DEBUG_FLIST, 
+                     "(V) disposed frame [%p] (id=%i)",
+                     frame, frame->id);
+
+            vframe_remove(frame);
+        }
     }
-
-    if (buf->vptr != NULL
-      && !(buf->vptr->attributes & TC_FRAME_IS_CLONED)
-    ) {
-        tc_debug(TC_DEBUG_FLIST, 
-                 "(V) disposed frame [%p] (id=%i)",
-                 buf->vptr, buf->vptr->id);
-
-        vframe_remove(buf->vptr);
-        /* reset pointer for next retrieve */
-        buf->vptr = NULL;
-    }
-
-    if (buf->vptr != NULL
-      && (buf->vptr->attributes & TC_FRAME_IS_CLONED)
-    ) {
-        tc_debug(TC_DEBUG_FLIST,
-                 "[%i] (V) pointer done. Cloned: (%i)",
-                 buf->vptr->id, (buf->vptr->attributes));
-
-        buf->vptr->attributes &= ~TC_FRAME_IS_CLONED;
-        buf->vptr->attributes |= TC_FRAME_WAS_CLONED;
-        // update counter
-        //tc_update_frames_cloned(1);
-
-        vframe_reinject(buf->vptr);
-        /* reset pointer for next retrieve */
-        buf->vptr = NULL;
-    }
+    return;
 }
 
 
-static void encoder_dispose_aframe(TCEncoderBuffer *buf)
+static void encoder_dispose_aframe(TCFrameSource *FS, TCFrameAudio *frame)
 {
-    if (buf->aptr != NULL
-      && !(buf->aptr->attributes & TC_FRAME_IS_CLONED)
-    ) {
-        tc_debug(TC_DEBUG_FLIST, 
-                 "(A) disposed frame [%p] (id=%i)",
-                 buf->aptr, buf->aptr->id);
+    if (frame) {
+        if (frame->attributes & TC_FRAME_IS_CLONED) {
+            tc_debug(TC_DEBUG_FLIST,
+                     "[%i] (A) pointer done. Cloned: (%i)",
+                     frame->id, (frame->attributes));
 
-        aframe_remove(buf->aptr);
-        /* reset pointer for next retrieve */
-        buf->aptr = NULL;
+            frame->attributes &= ~TC_FRAME_IS_CLONED;
+            frame->attributes |= TC_FRAME_WAS_CLONED;
+
+            aframe_reinject(frame);
+        } else {
+            tc_debug(TC_DEBUG_FLIST, 
+                     "(A) disposed frame [%p] (id=%i)",
+                     frame, frame->id);
+
+            aframe_remove(frame);
+        }
     }
-
-    if (buf->aptr != NULL
-      && (buf->aptr->attributes & TC_FRAME_IS_CLONED)
-    ) {
-        tc_debug(TC_DEBUG_FLIST,
-                 "[%i] (A) pointer done. Cloned: (%i)",
-                 buf->aptr->id, (buf->aptr->attributes));
-
-        buf->aptr->attributes &= ~TC_FRAME_IS_CLONED;
-        buf->aptr->attributes |= TC_FRAME_WAS_CLONED;
-
-        aframe_reinject(buf->aptr);
-        /* reset pointer for next retrieve */
-        buf->aptr = NULL;
-    }
+    return;
 }
 
+/*************************************************************************/
 
-static TCEncoderBuffer tc_builtin_buffer = {
-    .frame_id = 0,
-
-    .vptr = NULL,
-    .aptr = NULL,
-
-    .acquire_video_frame = encoder_acquire_vframe,
-    .acquire_audio_frame = encoder_acquire_aframe,
-    .dispose_video_frame = encoder_dispose_vframe,
-    .dispose_audio_frame = encoder_dispose_aframe,
+static TCRingBufferSource ringsource = {
+    .inited             = TC_FALSE,
+    .have_aud_threads   = 0,
+    .have_vid_threads   = 0,
+    .aptr               = NULL,
+    .vptr               = NULL
+};
+static TCFrameSource framesource = {
+    .privdata           = &ringsource,
+    .job                = NULL,
+    
+    .get_video_frame    = encoder_acquire_vframe,
+    .get_audio_frame    = encoder_acquire_aframe,
+    .free_video_frame   = encoder_dispose_vframe,
+    .free_audio_frame   = encoder_dispose_aframe,
 };
 
 /* default main transcode buffer */
-TCEncoderBuffer *tc_get_ringbuffer(int aworkers, int vworkers)
+TCFrameSource *tc_get_ringbuffer(TCJob *job, int aworkers, int vworkers)
 {
-    have_aud_threads = aworkers;
-    have_vid_threads = vworkers;
+    ringsource.have_aud_threads = aworkers;
+    ringsource.have_vid_threads = vworkers;
+    framesource.job             = job;
 
-    return &tc_builtin_buffer;
+    return &framesource;
 }
 
 /*************************************************************************/

@@ -46,6 +46,7 @@
 #include "libtc/libtc.h"
 
 #include "tccore/tc_defaults.h"
+#include "tccore/frame.h"
 #include "tccore/job.h"
 
 #include "framebuffer.h"
@@ -83,7 +84,7 @@ int tc_has_more_video_in_file(vob_t *vob);
 int tc_has_more_audio_in_file(vob_t *vob);
 
 /* default main transcode buffer */
-TCFrameSource *tc_get_ringbuffer(int aworkers, int vworkers);
+TCFrameSource *tc_get_ringbuffer(TCJob *job, int aworkers, int vworkers);
 
 void version(void);
 
