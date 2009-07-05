@@ -222,10 +222,10 @@ static const TCModuleInfo *tc_module_get_info(TCModule handle)
 #ifdef HAVE_GCC_ATTRIBUTES
 __attribute__((unused))
 #endif
-static int tc_module_match(int codec,
+static int tc_module_match(int codec, int type,
                            TCModule handle, TCModule other)
 {
-    return tc_module_info_match(codec,
+    return tc_module_info_match(codec, type,
                                 handle->klass->info, other->klass->info);
 }
 

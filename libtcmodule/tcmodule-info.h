@@ -95,7 +95,9 @@ struct tcmoduleinfo_ {
  *
  * Parameters:
  *     tc_codec:
- *         codec_id to be used.
+ *         TCcodecID to be used for match.
+ *     type:
+ *         type of the codec to be matched: TC_AUDIO or TC_VIDEO.
  *     head:
  *         the first given module information structure;
  *         'head' output is supposed to fit in 'tail' input.
@@ -116,7 +118,7 @@ struct tcmoduleinfo_ {
  * Postconditions:
  *     none
  */
-int tc_module_info_match(int tc_codec,
+int tc_module_info_match(int tc_codec, int type,
                          const TCModuleInfo *head,
                          const TCModuleInfo *tail);
 

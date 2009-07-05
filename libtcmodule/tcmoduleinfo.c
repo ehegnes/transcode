@@ -18,6 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "tccore/tc_defaults.h"
 
 #include "libtc/mediainfo.h"
 #include "libtcutil/tcutil.h"
@@ -31,13 +32,13 @@
     ((info)->features & (TC_MODULE_FEATURE_ ## feat))
 
 
-int tc_module_info_match(int tc_codec,
+/* `type' is needed to properly support TC_CODEC_ANY without (too much)
+ * ugly and fragile hacks */
+int tc_module_info_match(int tc_codec, int type,
                          const TCModuleInfo *head, const TCModuleInfo *tail)
 {
-    int found = 0;
-    int i = 0, j = 0;
+    int found = 0, i = 0, j = 0;
     const TCCodecID *codecs_in = NULL, *codecs_out = NULL;
-
     /* we need a pair of valid references to go further */
     if (head == NULL || tail == NULL) {
         return 0;
@@ -51,23 +52,29 @@ int tc_module_info_match(int tc_codec,
         return 0;
     }
     /* format kind compatibility check */
-    if ((HAVE_FEATURE(head, VIDEO) && !HAVE_FEATURE(tail, VIDEO))
-     || (HAVE_FEATURE(head, AUDIO) && !HAVE_FEATURE(tail, AUDIO))) {
+    if (type == TC_VIDEO
+     && (!HAVE_FEATURE(head, VIDEO) || !HAVE_FEATURE(tail, VIDEO))) {
         return 0;
     }
-
+    if (type == TC_AUDIO
+     && (!HAVE_FEATURE(head, AUDIO) || !HAVE_FEATURE(tail, AUDIO))) {
+        return 0;
+    }
     /* 
      * we look only for the first compatible match, not for the best one.
      * Yet.
      */
-    /* yes, kinda sucks. Way too much if()s */
-    codecs_in  = (HAVE_FEATURE(tail, VIDEO))
-                    ?head->codecs_video_in
-                    :head->codecs_audio_in;
-    codecs_out = (HAVE_FEATURE(head, VIDEO))
-                    ?head->codecs_video_out
-                    :head->codecs_audio_out;
-
+    if (type == TC_VIDEO) {
+        codecs_in  = tail->codecs_video_in;
+        codecs_out = head->codecs_video_out;
+    } else if (type == TC_AUDIO) {
+        codecs_in  = tail->codecs_audio_in;
+        codecs_out = head->codecs_audio_out;
+    } else {
+        /* unsupported/unknown type (bug?) */
+        return 0;
+    }
+    /* at last, the real compatibility check */
     for (i = 0; !found && codecs_in[i] != TC_CODEC_ERROR; i++) {
         for (j = 0; !found && codecs_out[j] != TC_CODEC_ERROR; j++) {
             /* trivial case: exact match */
