@@ -191,12 +191,12 @@ static TCModuleInfo fake_avi_mplex = {
  };
 
 
-static int test_match_helper(int codec,
-                              const TCModuleInfo *m1,
-                              const TCModuleInfo *m2,
-                              int expected)
+static int test_match_helper(int seqno, int codec, int type,
+                             const TCModuleInfo *m1,
+                             const TCModuleInfo *m2,
+                             int expected)
 {
-    int match = tc_module_info_match(codec, m1, m2);
+    int match = tc_module_info_match(codec, type, m1, m2);
     int err = 0;
 #ifdef VERBOSE    
     const char *str = tc_codec_to_string(codec);
@@ -204,13 +204,15 @@ static int test_match_helper(int codec,
     tc_log_msg(__FILE__, "codec: %s (0x%x)", str, codec);
 #endif
     if (match != expected) {
-        tc_log_error(__FILE__, "'%s' <-%c-> '%s' FAILED",
+        tc_log_warn(__FILE__, "#%02i FAILED '%s' <-%c-> '%s'",
+                        seqno,
                         m1->name,
                         (expected == 1) ?'-' :'!',
                         m2->name);
         err = 1;
     } else {
-        tc_log_info(__FILE__, "'%s' <-%c-> '%s' OK",
+        tc_log_info(__FILE__, "#%02i OK    '%s' <-%c-> '%s'",
+                        seqno,
                         m1->name,
                         (expected == 1) ?'-' :'!',
                         m2->name);
@@ -218,58 +220,70 @@ static int test_match_helper(int codec,
     return err;
 }
 
-static int test_module_match(void)
+static int test_module_match(int *total)
 {
-    int errors = 0;
+    int i = 1, errors = 0;
 
-    errors += test_match_helper(TC_CODEC_ANY, &empty, &empty, 0);
-    errors += test_match_helper(TC_CODEC_ANY, &empty, &fake_mpeg_enc, 0);
-    errors += test_match_helper(TC_CODEC_ANY, &fake_mpeg_enc, &empty, 0);
+    errors += test_match_helper(i++, TC_CODEC_ANY, TC_AUDIO, &empty, &empty, 0);
+    errors += test_match_helper(i++, TC_CODEC_ANY, TC_VIDEO, &empty, &empty, 0);
+    errors += test_match_helper(i++, TC_CODEC_ANY, TC_AUDIO, &empty, &fake_mpeg_enc, 0);
+    errors += test_match_helper(i++, TC_CODEC_ANY, TC_VIDEO, &empty, &fake_mpeg_enc, 0);
+    errors += test_match_helper(i++, TC_CODEC_ANY, TC_AUDIO, &fake_mpeg_enc, &empty, 0);
+    errors += test_match_helper(i++, TC_CODEC_ANY, TC_VIDEO, &fake_mpeg_enc, &empty, 0);
 
-    errors += test_match_helper(TC_CODEC_ANY, &pass_enc, &fake_mplex, 1);
-    errors += test_match_helper(TC_CODEC_ANY, &pass_enc, &fake_avi_mplex, 1);
-    errors += test_match_helper(TC_CODEC_ANY, &pcm_pass, &fake_avi_mplex, 1);
-    errors += test_match_helper(TC_CODEC_PCM, &pass_enc, &fake_avi_mplex, 1);
+    errors += test_match_helper(i++, TC_CODEC_ANY, TC_AUDIO, &pass_enc, &fake_mplex, 1);
+    errors += test_match_helper(i++, TC_CODEC_ANY, TC_VIDEO, &pass_enc, &fake_mplex, 1);
+    errors += test_match_helper(i++, TC_CODEC_ANY, TC_AUDIO, &pass_enc, &fake_avi_mplex, 1);
+    errors += test_match_helper(i++, TC_CODEC_ANY, TC_VIDEO, &pass_enc, &fake_avi_mplex, 1);
+    errors += test_match_helper(i++, TC_CODEC_ANY, TC_AUDIO, &pcm_pass, &fake_avi_mplex, 1);
+    errors += test_match_helper(i++, TC_CODEC_PCM, TC_AUDIO, &pass_enc, &fake_avi_mplex, 1);
  
 //  this is tricky. Should fail since there are two *encoders* chained
 //  and this make no sense *in our current architecture*.
 //  but from tcmoduleinfo infrastructure POV, it make perfectly sense (yet)
-//  since encoders involved have compatible I/O capabilties, so it doesn't fail.
-//    errors += test_match_helper(TC_CODEC_ANY, &pass_enc, &fake_mpeg_enc, 0);
+//  since encoders involved have compatible I/O capabilities, so it doesn't fail.
+//    errors += test_match_helper(i++, TC_CODEC_ANY, &pass_enc, &fake_mpeg_enc, 0);
 
-    errors += test_match_helper(TC_CODEC_MPEG2VIDEO, &fake_mpeg_enc, &fake_vorbis_enc, 0);
-    errors += test_match_helper(TC_CODEC_ANY, &fake_mpeg_enc, &fake_mplex, 1);
-    errors += test_match_helper(TC_CODEC_MPEG1VIDEO, &fake_mpeg_enc, &fake_mplex, 1);
-    errors += test_match_helper(TC_CODEC_ANY, &fake_mpeg_enc, &fake_avi_mplex, 1);
-    errors += test_match_helper(TC_CODEC_MPEG1VIDEO, &fake_mpeg_enc, &fake_avi_mplex, 1);
-    errors += test_match_helper(TC_CODEC_XVID, &fake_mpeg_enc, &fake_avi_mplex, 1);
+    errors += test_match_helper(i++, TC_CODEC_MPEG2VIDEO, TC_AUDIO, &fake_mpeg_enc, &fake_vorbis_enc, 0);
+    errors += test_match_helper(i++, TC_CODEC_ANY, TC_VIDEO, &fake_mpeg_enc, &fake_mplex, 1);
+    errors += test_match_helper(i++, TC_CODEC_ANY, TC_AUDIO, &fake_mpeg_enc, &fake_mplex, 0);
+    errors += test_match_helper(i++, TC_CODEC_MPEG1VIDEO, TC_VIDEO, &fake_mpeg_enc, &fake_mplex, 1);
+    errors += test_match_helper(i++, TC_CODEC_ANY, TC_VIDEO, &fake_mpeg_enc, &fake_avi_mplex, 1);
+    errors += test_match_helper(i++, TC_CODEC_MPEG1VIDEO, TC_VIDEO, &fake_mpeg_enc, &fake_avi_mplex, 1);
+    errors += test_match_helper(i++, TC_CODEC_XVID, TC_VIDEO, &fake_mpeg_enc, &fake_avi_mplex, 1);
 
-    errors += test_match_helper(TC_CODEC_VORBIS, &fake_vorbis_enc, &fake_mpeg_enc, 0);
-    errors += test_match_helper(TC_CODEC_VORBIS, &fake_vorbis_enc, &fake_mplex, 1);
-    errors += test_match_helper(TC_CODEC_VORBIS, &fake_vorbis_enc, &fake_avi_mplex, 0);
+    errors += test_match_helper(i++, TC_CODEC_VORBIS, TC_AUDIO, &fake_vorbis_enc, &fake_mpeg_enc, 0);
+    errors += test_match_helper(i++, TC_CODEC_VORBIS, TC_AUDIO, &fake_vorbis_enc, &fake_mplex, 1);
+    errors += test_match_helper(i++, TC_CODEC_VORBIS, TC_AUDIO, &fake_vorbis_enc, &fake_avi_mplex, 0);
 
-    errors += test_match_helper(TC_CODEC_PCM, &pcm_pass, &fake_wav_mplex, 1);
-    errors += test_match_helper(TC_CODEC_PCM, &pcm_pass, &fake_y4m_mplex, 0);
-    errors += test_match_helper(TC_CODEC_MPEG1VIDEO, &fake_mpeg_enc, &fake_wav_mplex, 0);
+    errors += test_match_helper(i++, TC_CODEC_PCM, TC_AUDIO, &pcm_pass, &fake_wav_mplex, 1);
+    errors += test_match_helper(i++, TC_CODEC_PCM, TC_AUDIO, &pcm_pass, &fake_y4m_mplex, 0);
+    errors += test_match_helper(i++, TC_CODEC_PCM, TC_VIDEO, &pcm_pass, &fake_y4m_mplex, 0);
+    errors += test_match_helper(i++, TC_CODEC_MPEG1VIDEO, TC_VIDEO, &fake_mpeg_enc, &fake_wav_mplex, 0);
 
-    errors += test_match_helper(TC_CODEC_YUV420P, &yuv_pass, &fake_y4m_mplex, 1);
-    errors += test_match_helper(TC_CODEC_YUV420P, &yuv_pass, &fake_wav_mplex, 0);
-    errors += test_match_helper(TC_CODEC_YUV420P, &yuv_pass, &fake_avi_mplex, 1);
-    errors += test_match_helper(TC_CODEC_YUV420P, &yuv_pass, &fake_mplex, 1);
+    errors += test_match_helper(i++, TC_CODEC_YUV420P, TC_VIDEO, &yuv_pass, &fake_y4m_mplex, 1);
+    errors += test_match_helper(i++, TC_CODEC_YUV420P, TC_VIDEO, &yuv_pass, &fake_wav_mplex, 0);
+    errors += test_match_helper(i++, TC_CODEC_YUV420P, TC_VIDEO, &yuv_pass, &fake_avi_mplex, 1);
+    errors += test_match_helper(i++, TC_CODEC_YUV420P, TC_VIDEO, &yuv_pass, &fake_mplex, 1);
 
+    if (total) {
+        *total = i;
+    }
     return errors;
 }
 
 int main(int argc, char *argv[])
 {
-    int errors = 0;
+    int errors = 0, total = 0;;
     
     libtc_init(&argc, &argv);
 
-    errors = test_module_match();
+    errors = test_module_match(&total);
 
     putchar('\n');
-    tc_log_info(__FILE__, "test summary: %i error%s (%s)",
+    tc_log_info(__FILE__, "test summary: %i test%s %i error%s (%s)",
+                total,
+                (total > 1) ?"s" :"",
                 errors,
                 (errors > 1) ?"s" :"",
                 (errors > 0) ?"FAILED" :"PASSED");

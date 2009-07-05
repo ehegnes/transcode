@@ -575,14 +575,14 @@ int tc_export_setup(const char *a_mod, const char *v_mod,
                           tc_module_get_info(expdata.enc.vid_mod),
                           tc_module_get_info(expdata.enc.aud_mod));
 
-    match = tc_module_match(expdata.job->ex_a_codec,
+    match = tc_module_match(expdata.job->ex_a_codec, TC_AUDIO,
                             expdata.enc.aud_mod, expdata.mux.mux_main);
     if (!match) {
         tc_log_error(__FILE__, "audio encoder incompatible "
                                "with multiplexor");
         return TC_ERROR;
     }
-    match = tc_module_match(expdata.job->ex_v_codec,
+    match = tc_module_match(expdata.job->ex_v_codec, TC_VIDEO,
                             expdata.enc.vid_mod, expdata.mux.mux_main);
     if (!match) {
         tc_log_error(__FILE__, "video encoder incompatible "
