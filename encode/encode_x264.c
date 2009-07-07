@@ -702,7 +702,9 @@ static int x264_fini(TCModuleInstance *self)
  */
 
 static int x264_configure(TCModuleInstance *self,
-                         const char *options, vob_t *vob)
+                         const char *options,
+                         TCJob *vob,
+                         TCModuleExtraData *xdata[])
 {
     X264PrivateData *pd = NULL;
     char *s;
@@ -883,7 +885,7 @@ static int x264_inspect(TCModuleInstance *self,
  */
 
 static int x264_encode_video(TCModuleInstance *self,
-                            vframe_list_t *inframe, vframe_list_t *outframe)
+                            TCFrameVideo *inframe, TCFrameVideo *outframe)
 {
     X264PrivateData *pd;
     x264_nal_t *nal;
@@ -957,10 +959,13 @@ static int x264_encode_video(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const TCCodecID x264_codecs_in[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
-static const TCCodecID x264_codecs_out[] = { TC_CODEC_H264, TC_CODEC_ERROR };
-TC_MODULE_CODEC_FORMATS(x264);
-
+static const TCCodecID x264_codecs_video_in[] = { 
+    TC_CODEC_YUV420P, TC_CODEC_ERROR
+};
+static const TCCodecID x264_codecs_video_out[] = { 
+    TC_CODEC_H264, TC_CODEC_ERROR
+TC_MODULE_AUDIO_UNSUPPORTED(x264);
+};
 TC_MODULE_INFO(x264);
 
 static const TCModuleClass x264_class = {

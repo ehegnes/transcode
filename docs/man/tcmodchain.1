@@ -4,7 +4,11 @@ tcmodchain \- Query compatibily of transcode modules chains.
 .SH SYNOPSIS
 .na
 .B tcmodchain
-[
+] [
+.B -A
+] [
+.B -V
+] [
 .B -m
 .I path
 ] [
@@ -25,6 +29,14 @@ allow to inspect transcode(1) modules, as well as it's companion,
 tcmodinfo(1). While tcmodinfo(1) focus on single modules, tcmodchain
 is intended to help in exploring/experimenting module interactions.
 .SH OPTIONS
+.TP
+.B -A
+check the modules capabilities against the Audio pipeline.
+You need to specify either -A or -V.
+.TP
+.B -V
+check the modules capabilities against the Video pipeline.
+You need to specify either -A or -V.
 .TP
 \fB-m\fP \fIpath\fP
 Look in \fIPath\fP instead of the compiled-in module path while
@@ -75,7 +87,7 @@ module identifiers will lead to an error.
 
 .SH EXAMPLES
 .PP
-.B $ tcmodchain -C encode:null multiplex:null -d 1
+.B $ tcmodchain -V -C encode:null multiplex:null -d 1
 .PP
 [encode_null.so] v0.0.3 (2005-06-05) null (fake) A/V encoder
 .br
@@ -83,16 +95,12 @@ module identifiers will lead to an error.
 .br
 [tcmodchain] encode:null | multiplex:null [OK]
 .br
-[tcmodchain] module chain OK
+[tcmodchain] module chain OK type video
 
 .PP
-.B $ tcmodchain -L 'encode:*' multiplex:null
+.B $ tcmodchain -V -L 'encode:*' multiplex:null
 .PP
 copy
-.br
-faac
-.br
-lame
 .br
 lzo
 .br
@@ -107,15 +115,13 @@ xvid
 At least \fInull\fP and \fIcopy\fP modules will be showed on your output.
 
 .PP
-.B $ tcmodchain -L encode:null 'multiplex:*'
+.B $ tcmodchain -A -L encode:null 'multiplex:*'
 .PP
 avi
 .br
 null
 .br
 raw
-.br
-y4m
 
 .SH RETURN VALUES
 .B tcmodchain

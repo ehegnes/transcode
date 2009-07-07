@@ -365,6 +365,8 @@ int main(int argc, char* argv[])
 
     vob = tc_zalloc(sizeof(vob_t));
 
+    libtc_init(&argc, &argv);
+
     putchar('\n');
     test_bad_init(argv[1]);
     putchar('\n');

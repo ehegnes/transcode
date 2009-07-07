@@ -29,7 +29,7 @@
 #include <stdlib.h>
 
 #define MOD_NAME    "encode_lzo.so"
-#define MOD_VERSION "v0.0.2 (2007-10-27)"
+#define MOD_VERSION "v0.0.3 (2009-02-07)"
 #define MOD_CAP     "LZO lossless video encoder"
 
 #define MOD_FEATURES \
@@ -56,7 +56,9 @@ typedef struct {
 } LZOPrivateData;
 
 static int tc_lzo_configure(TCModuleInstance *self,
-                            const char *options, vob_t *vob)
+                            const char *options,
+                            TCJob *vob,
+                            TCModuleExtraData *xdata[])
 {
     LZOPrivateData *pd = NULL;
     int ret;
@@ -177,16 +179,8 @@ static int tc_lzo_format_translate(int tc_codec)
     return ret;
 }
 
-static int tc_lzo_flush(TCModuleInstance *self,
-                        vframe_list_t *outframe)
-{
-    outframe->video_len = 0;
-    return TC_OK;
-}
-
-
 static int tc_lzo_encode_video(TCModuleInstance *self,
-                               vframe_list_t *inframe, vframe_list_t *outframe)
+                               TCFrameVideo *inframe, TCFrameVideo *outframe)
 {
     LZOPrivateData *pd = NULL;
     lzo_uint out_len = 0;
@@ -196,10 +190,6 @@ static int tc_lzo_encode_video(TCModuleInstance *self,
     TC_MODULE_SELF_CHECK(self, "encode_video");
 
     pd = self->userdata;
-
-    if (inframe == NULL && pd->flush_flag) {
-        return tc_lzo_flush(self, outframe); // FIXME
-    }
 
     /* invariants */
     hdr.magic  = TC_CODEC_LZO2;
@@ -256,12 +246,13 @@ static int tc_lzo_encode_video(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const TCCodecID tc_lzo_codecs_in[] = {
+static const TCCodecID tc_lzo_codecs_video_in[] = {
     TC_CODEC_YUY2, TC_CODEC_RGB24, TC_CODEC_YUV420P, TC_CODEC_ERROR
 };
-static const TCCodecID tc_lzo_codecs_out[] = { 
+static const TCCodecID tc_lzo_codecs_video_out[] = { 
     TC_CODEC_LZO2, TC_CODEC_ERROR 
 };
+TC_MODULE_AUDIO_UNSUPPORTED(tc_lzo);
 TC_MODULE_CODEC_FORMATS(tc_lzo);
 
 TC_MODULE_INFO(tc_lzo);

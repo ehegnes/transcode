@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
     filename = argv[1];
     section  = argv[2];
 
-    libtc_init(NULL, NULL); /* XXX: dirty! */
+    libtc_init(&argc, &argv);
     tc_config_set_dir("");  /* XXX: dirty? */
     list = tc_config_list_read_file(filename, section, __FILE__);
     if (!list) {

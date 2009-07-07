@@ -1,7 +1,7 @@
 /*
- * test-tcframfifo.c -- testsuite for TCFrameFifo code; 
- *                      everyone feel free to add more tests and improve
- *                      existing ones.
+ * test-tcframefifo.c -- testsuite for TCFrameFifo code; 
+ *                       everyone feel free to add more tests and improve
+ *                       existing ones.
  * (C) 2008-2009 - Francesco Romani <fromani -at- gmail -dot- com>
  *
  * This file is part of transcode, a video stream processing tool.
@@ -487,6 +487,8 @@ int main(int argc, char *argv[])
 {
     int errors = 0;
     
+    libtc_init(&argc, &argv);
+
     if (argc == 2) {
         verbose = atoi(argv[1]);
     }

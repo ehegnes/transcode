@@ -28,7 +28,7 @@
  */
 
 #define MOD_NAME    "filter_msharpen.so"
-#define MOD_VERSION "(1.1) (2007-12-01)"
+#define MOD_VERSION "(1.1.1) (2009-02-07)"
 #define MOD_CAP     "VirtualDub's MSharpen Filter"
 #define MOD_AUTHOR  "Donald Graft, William Hawkins"
 
@@ -496,12 +496,13 @@ static int msharpen_filter_video(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const TCCodecID msharpen_codecs_in[] = { 
+static const TCCodecID msharpen_codecs_video_in[] = { 
     TC_CODEC_YUV420P, TC_CODEC_RGB24, TC_CODEC_ERROR
 };
-static const TCCodecID msharpen_codecs_out[] = { 
+static const TCCodecID msharpen_codecs_video_out[] = { 
     TC_CODEC_YUV420P, TC_CODEC_RGB24, TC_CODEC_ERROR
 };
+TC_MODULE_AUDIO_UNSUPPORTED(msharpen);
 TC_MODULE_FILTER_FORMATS(msharpen);
 
 TC_MODULE_INFO(msharpen);

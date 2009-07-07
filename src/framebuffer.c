@@ -20,15 +20,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <pthread.h>
+
+#include "tccore/tc_defaults.h"
+#include "tccore/runcontrol.h"
 #include "transcode.h"
-#include "tc_defaults.h"
 #include "framebuffer.h"
-#include "encoder-common.h"
 
 #include "libtc/tcframes.h"
 #include "libtc/ratiocodes.h"
-
-#include <pthread.h>
 
 /* unit testing needs this */
 #ifndef FBUF_TEST

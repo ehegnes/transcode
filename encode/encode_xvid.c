@@ -58,7 +58,7 @@
  ****************************************************************************/
 
 #define MOD_NAME    "encode_xvid.so"
-#define MOD_VERSION "v0.0.6 (2008-03-14)"
+#define MOD_VERSION "v0.0.7 (2009-02-07)"
 #define MOD_CAP     "XviD 1.1.x encoder"
 
 #define MOD_FEATURES \
@@ -151,13 +151,15 @@ static void read_config_file(XviDPrivateData *mod);
 static void dispatch_settings(XviDPrivateData *mod);
 static void set_create_struct(XviDPrivateData *mod, const vob_t *vob);
 static void set_frame_struct(XviDPrivateData *mod, vob_t *vob,
-                             const vframe_list_t *inframe,
-                             vframe_list_t *outframe);
+                             const TCFrameVideo *inframe,
+                             TCFrameVideo *outframe);
 
 /***************************************************************************/
 
 static int tc_xvid_configure(TCModuleInstance *self,
-                          const char *options, vob_t *vob)
+                             const char *options,
+                             TCJob *vob,
+                             TCModuleExtraData *xdata[])
 {
     int ret;
     XviDPrivateData *pd = NULL;
@@ -265,48 +267,50 @@ static int tc_xvid_inspect(TCModuleInstance *self,
     return TC_OK;
 }
 
-static int tc_xvid_flush(TCModuleInstance *self, vframe_list_t *outframe)
+static int tc_xvid_flush(TCModuleInstance *self, TCFrameVideo *outframe)
 {
     int bytes;
     xvid_enc_stats_t xvid_enc_stats;
     vob_t *vob = tc_get_vob();
     XviDPrivateData *pd = NULL;
 
-    TC_MODULE_SELF_CHECK(self, "encode_video");
+    TC_MODULE_SELF_CHECK(self, "flush");
 
     pd = self->userdata;
 
-    /* Init the stat structure */
-    memset(&xvid_enc_stats, 0, sizeof(xvid_enc_stats_t));
-    xvid_enc_stats.version = XVID_VERSION;
+    if (pd->flush_flag) {
+        /* Init the stat structure */
+        memset(&xvid_enc_stats, 0, sizeof(xvid_enc_stats_t));
+        xvid_enc_stats.version = XVID_VERSION;
 
-    /* Combine both the config settings with the transcode direct options
-     * into the final xvid_enc_frame_t struct */
-    set_frame_struct(pd, vob, NULL, outframe);
+        /* Combine both the config settings with the transcode direct options
+         * into the final xvid_enc_frame_t struct */
+        set_frame_struct(pd, vob, NULL, outframe);
 
-    bytes = xvid_encore(pd->instance, XVID_ENC_ENCODE,
-                        &pd->xvid_enc_frame, &xvid_enc_stats);
+        bytes = xvid_encore(pd->instance, XVID_ENC_ENCODE,
+                            &pd->xvid_enc_frame, &xvid_enc_stats);
 
-    outframe->video_len = bytes;
-    if (bytes > 0) {
-        /* Extract stats info */
-        if (xvid_enc_stats.type > 0 && pd->cfg_stats) {
-            pd->frames++;
-            pd->sse_y += xvid_enc_stats.sse_y;
-            pd->sse_u += xvid_enc_stats.sse_u;
-            pd->sse_v += xvid_enc_stats.sse_v;
+        outframe->video_len = bytes;
+        if (bytes > 0) {
+            /* Extract stats info */
+            if (xvid_enc_stats.type > 0 && pd->cfg_stats) {
+                pd->frames++;
+                pd->sse_y += xvid_enc_stats.sse_y;
+                pd->sse_u += xvid_enc_stats.sse_u;
+                pd->sse_v += xvid_enc_stats.sse_v;
+            }
+
+            if (pd->xvid_enc_frame.out_flags & XVID_KEYFRAME) {
+                outframe->attributes |= TC_FRAME_IS_KEYFRAME;
+            }
         }
-
-        if (pd->xvid_enc_frame.out_flags & XVID_KEYFRAME) {
-            outframe->attributes |= TC_FRAME_IS_KEYFRAME;
-       }
     }
     return TC_OK;
 }
 
 
 static int tc_xvid_encode_video(TCModuleInstance *self,
-                                vframe_list_t *inframe, vframe_list_t *outframe)
+                                TCFrameVideo *inframe, TCFrameVideo *outframe)
 {
     int bytes;
     xvid_enc_stats_t xvid_enc_stats;
@@ -316,10 +320,6 @@ static int tc_xvid_encode_video(TCModuleInstance *self,
     TC_MODULE_SELF_CHECK(self, "encode_video");
 
     pd = self->userdata;
-
-    if (inframe == NULL && pd->flush_flag) {
-        return tc_xvid_flush(self, outframe); // FIXME
-    }
 
     /* Init the stat structure */
     memset(&xvid_enc_stats, 0, sizeof(xvid_enc_stats_t));
@@ -451,16 +451,16 @@ static int tc_xvid_fini(TCModuleInstance *self)
 
 /*************************************************************************/
 
-static const TCCodecID tc_xvid_codecs_in[] = {
+static const TCCodecID tc_xvid_codecs_video_in[] = {
     TC_CODEC_RGB24, TC_CODEC_YUV422P, TC_CODEC_YUV420P,
     TC_CODEC_ERROR
 };
 
-static const TCCodecID tc_xvid_codecs_out[] = {
+static const TCCodecID tc_xvid_codecs_video_out[] = {
     TC_CODEC_MPEG4VIDEO,
     TC_CODEC_ERROR
 };
-
+TC_MODULE_AUDIO_UNSUPPORTED(tc_xvid);
 TC_MODULE_CODEC_FORMATS(tc_xvid);
 
 TC_MODULE_INFO(tc_xvid);
@@ -474,7 +474,8 @@ static const TCModuleClass xvid_class = {
     .stop         = tc_xvid_stop,
     .inspect      = tc_xvid_inspect,
 
-    .encode_video = tc_xvid_encode_video
+    .encode_video = tc_xvid_encode_video,
+    .flush_video  = tc_xvid_flush,
 };
 
 TC_MODULE_ENTRY_POINT(xvid)
@@ -961,7 +962,7 @@ static void set_create_struct(XviDPrivateData *mod, const vob_t *vob)
 }
 
 static void set_frame_struct(XviDPrivateData *mod, vob_t *vob,
-                             const vframe_list_t *inframe, vframe_list_t *outframe)
+                             const TCFrameVideo *inframe, TCFrameVideo *outframe)
 {
     xvid_enc_frame_t *x    = &mod->xvid_enc_frame;
     xvid_enc_frame_t *xcfg = &mod->cfg_frame;

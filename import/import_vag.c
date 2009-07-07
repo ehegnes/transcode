@@ -210,22 +210,16 @@ static int vag_inspect(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const TCCodecID vag_codecs_in[] = { TC_CODEC_VAG, TC_CODEC_ERROR };
-static const TCCodecID vag_codecs_out[] = { TC_CODEC_PCM, TC_CODEC_ERROR };
-static const TCFormatID vag_formats_in[] = { TC_FORMAT_ERROR };
-static const TCFormatID vag_formats_out[] = { TC_FORMAT_ERROR };
-
-static const TCModuleInfo vag_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = vag_codecs_in,
-    .codecs_out  = vag_codecs_out,
-    .formats_in  = vag_formats_in,
-    .formats_out = vag_formats_out
+static const TCCodecID vag_codecs_audio_in[] = { 
+    TC_CODEC_VAG, TC_CODEC_ERROR 
 };
+static const TCCodecID vag_codecs_audio_out[] = { 
+    TC_CODEC_PCM, TC_CODEC_ERROR 
+};
+TC_MODULE_VIDEO_UNSUPPORTED(vag);
+TC_MODULE_CODEC_FORMATS(vag);
+
+TC_MODULE_INFO(vag);
 
 static const TCModuleClass vag_class = {
     TC_MODULE_CLASS_HEAD(vag),

@@ -147,15 +147,17 @@ static int tc_module_cap_check(uint32_t flags)
  */
 #define TC_MODULE_INFO(PREFIX) \
 static const TCModuleInfo PREFIX ## _info = { \
-    .features    = MOD_FEATURES,          \
-    .flags       = MOD_FLAGS,             \
-    .name        = MOD_NAME,              \
-    .version     = MOD_VERSION,           \
-    .description = MOD_CAP,               \
-    .codecs_in   = PREFIX ## _codecs_in,  \
-    .codecs_out  = PREFIX ## _codecs_out, \
-    .formats_in  = PREFIX ## _formats_in, \
-    .formats_out = PREFIX ## _formats_out \
+    .features         = MOD_FEATURES,          \
+    .flags            = MOD_FLAGS,             \
+    .name             = MOD_NAME,              \
+    .version          = MOD_VERSION,           \
+    .description      = MOD_CAP,               \
+    .codecs_video_in  = PREFIX ## _codecs_video_in,  \
+    .codecs_audio_in  = PREFIX ## _codecs_audio_in,  \
+    .codecs_video_out = PREFIX ## _codecs_video_out, \
+    .codecs_audio_out = PREFIX ## _codecs_audio_out, \
+    .formats_in       = PREFIX ## _formats_in, \
+    .formats_out      = PREFIX ## _formats_out \
 }
 
 /* please note the MISSING trailing comma */
@@ -176,12 +178,23 @@ static const TCFormatID PREFIX ## _formats_in[]  = { TC_FORMAT_ERROR }; \
 static const TCFormatID PREFIX ## _formats_out[] = { TC_FORMAT_ERROR }
 
 #define TC_MODULE_MPLEX_FORMATS_CODECS(PREFIX) \
-static const TCCodecID  PREFIX ## _codecs_out[] = { TC_CODEC_ERROR }; \
+static const TCCodecID  PREFIX ## _codecs_video_out[] = { TC_CODEC_ERROR }; \
+static const TCCodecID  PREFIX ## _codecs_audio_out[] = { TC_CODEC_ERROR }; \
 static const TCFormatID PREFIX ## _formats_in[] = { TC_FORMAT_ERROR }
 
 #define TC_MODULE_DEMUX_FORMATS_CODECS(PREFIX) \
-static const TCCodecID  PREFIX ## _codecs_in = { TC_CODEC_ERROR }; \
+static const TCCodecID  PREFIX ## _codecs_video_in[] = { TC_CODEC_ERROR }; \
+static const TCCodecID  PREFIX ## _codecs_audio_in[] = { TC_CODEC_ERROR }; \
 static const TCFormatID PREFIX ## _formats_out[] = { TC_FORMAT_ERROR }
+
+#define TC_MODULE_VIDEO_UNSUPPORTED(PREFIX) \
+static const TCCodecID  PREFIX ## _codecs_video_in[]  = { TC_CODEC_ERROR }; \
+static const TCCodecID  PREFIX ## _codecs_video_out[] = { TC_CODEC_ERROR }
+
+#define TC_MODULE_AUDIO_UNSUPPORTED(PREFIX) \
+static const TCCodecID  PREFIX ## _codecs_audio_in[]  = { TC_CODEC_ERROR }; \
+static const TCCodecID  PREFIX ## _codecs_audio_out[] = { TC_CODEC_ERROR }
+
 
 /*
  * plugin entry point prototype

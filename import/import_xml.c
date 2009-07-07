@@ -26,7 +26,7 @@
 #define MOD_CODEC   "(video) * | (audio) *"
 
 #include "src/transcode.h"
-#include "src/tcinfo.h"
+#include "tccore/tcinfo.h"
 #include "libtcvideo/tcvideo.h"
 
 static int verbose_flag = TC_QUIET;

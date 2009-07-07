@@ -1,5 +1,5 @@
 /*
- * multiplex_ogg.c -- write OGG streams using libogg.
+ * write_ogg.c -- write OGG streams using libogg.
  * (C) 2007-2009 Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool
@@ -28,7 +28,7 @@
 
 #include "libtcext/tc_ogg.h"
 
-#define MOD_NAME    "multiplex_ogg.so"
+#define MOD_NAME    "write_ogg.so"
 #define MOD_VERSION "v0.1.0 (2008-01-01)"
 #ifdef HAVE_SHOUT
 #define MOD_CAP     "create an ogg stream using libogg and broadcast using libshout"
@@ -254,9 +254,13 @@ static const char tc_ogg_help[] = ""
     "    stream  enable shout streaming using given label as identifier\n"
     "    help    produce module overview and options explanations\n";
 
-static const TCCodecID tc_ogg_codecs_in[] = {
-    TC_CODEC_THEORA, TC_CODEC_VORBIS, TC_CODEC_ERROR
+static const TCCodecID tc_ogg_codecs_video_in[] = {
+    TC_CODEC_THEORA, TC_CODEC_ERROR
 };
+static const TCCodecID tc_ogg_codecs_audio_in[] = {
+    TC_CODEC_VORBIS, TC_CODEC_ERROR
+};
+
 
 typedef struct oggprivatedata_ OGGPrivateData;
 struct oggprivatedata_ {
@@ -397,9 +401,9 @@ static int tc_ogg_write(ogg_stream_state *os, FILE *f, TCShout *tcsh)
     } \
 } while (0)
 
-#define RETURN_IF_NOT_SUPPORTED(XD, MSG) do { \
+#define RETURN_IF_NOT_SUPPORTED(XD, CODECS, MSG) do { \
     if ((XD)) { \
-        if (!is_supported(tc_ogg_codecs_in, (XD)->magic)) { \
+        if (!is_supported((CODECS), (XD)->magic)) { \
             tc_log_error(MOD_NAME, (MSG)); \
             return TC_ERROR; \
         } \
@@ -409,8 +413,10 @@ static int tc_ogg_write(ogg_stream_state *os, FILE *f, TCShout *tcsh)
 static int tc_ogg_setup(OGGPrivateData *pd,
                         OGGExtraData *vxd, OGGExtraData *axd)
 {
-    RETURN_IF_NOT_SUPPORTED(vxd, "unrecognized video extradata");
-    RETURN_IF_NOT_SUPPORTED(axd, "unrecognized audio extradata");
+    RETURN_IF_NOT_SUPPORTED(vxd, tc_ogg_codecs_video_in, 
+                            "unrecognized video extradata");
+    RETURN_IF_NOT_SUPPORTED(axd, tc_ogg_codecs_audio_in,
+                            "unrecognized audio extradata");
 
     SETUP_STREAM_HEADER(&(pd->vs),   vxd, pd->outfile, &(pd->tcsh));
     SETUP_STREAM_HEADER(&(pd->as),   axd, pd->outfile, &(pd->tcsh));
@@ -441,7 +447,7 @@ static int tc_ogg_configure(TCModuleInstance *self,
 {
     char shout_id[128] = { '\0' };
     OGGPrivateData *pd = NULL;
-    int ret, aserial, vserial, streamed = 0;
+    int ret, streamed = 0;
   
     TC_MODULE_SELF_CHECK(self, "configure");
 
@@ -469,6 +475,21 @@ static int tc_ogg_configure(TCModuleInstance *self,
     }
     pd->shouting = 1;
 
+    return TC_OK;
+}
+
+
+static int tc_ogg_open(TCModuleInstance *self,
+                       const char *filename)
+{
+    int ret, vserial, aserial;
+    OGGPrivateData *pd = NULL;
+    vob_t *vob = tc_get_vob();
+
+    TC_MODULE_SELF_CHECK(self, "open");
+
+    pd = self->userdata;
+
     srand(time(NULL));
     /* need two inequal serial numbers */
     vserial = rand();
@@ -479,7 +500,7 @@ static int tc_ogg_configure(TCModuleInstance *self,
     ogg_stream_init(&(pd->vs), vserial);
     ogg_stream_init(&(pd->as), aserial);
 
-    pd->outfile = fopen(vob->video_out_file, "wb");
+    pd->outfile = fopen(filename, "wb");
     if (!pd->outfile) {
         tc_log_perror(MOD_NAME, "open output file");
         return TC_ERROR;
@@ -493,11 +514,18 @@ static int tc_ogg_configure(TCModuleInstance *self,
     return tc_ogg_setup(pd, vob->ex_v_xdata, vob->ex_a_xdata);
 }
 
+/* do nothing succesfully */
 static int tc_ogg_stop(TCModuleInstance *self)
+{
+    TC_MODULE_SELF_CHECK(self, "stop");
+    return TC_OK;
+}
+
+static int tc_ogg_close(TCModuleInstance *self)
 {
     OGGPrivateData *pd = NULL;
 
-    TC_MODULE_SELF_CHECK(self, "inspect");
+    TC_MODULE_SELF_CHECK(self, "close");
 
     pd = self->userdata;
 
@@ -519,61 +547,46 @@ static int tc_ogg_stop(TCModuleInstance *self)
     return TC_OK;
 }
 
-/* FIXME: merge */
-#define HAVE_VFRAME(VF) ((VF) && ((VF)->video_len > 0))
-#define HAVE_AFRAME(AF) ((AF) && ((AF)->audio_len > 0))
-
-static int tc_ogg_multiplex(TCModuleInstance *self,
-                            TCFrameVideo *vframe, TCFrameAudio *aframe)
+static int tc_ogg_write_video(TCModuleInstance *self,
+                              TCFrameVideo *vframe)
 {
-    int has_vid = HAVE_VFRAME(vframe), has_aud = HAVE_AFRAME(aframe);
     OGGPrivateData *pd = NULL;
     int ret = 0;
 
-    TC_MODULE_SELF_CHECK(self, "inspect");
+    TC_MODULE_SELF_CHECK(self, "write_video");
 
     pd = self->userdata;
 
-    /* yes, this stinks. It needs to be improved. */
+    tc_ogg_feed_video(&(pd->vs), vframe);
+    ret = tc_ogg_write(&(pd->vs), pd->outfile, &(pd->tcsh));
 
-    if (has_aud && !has_vid) {
-        tc_ogg_feed_audio(&(pd->as), aframe);
-        ret = tc_ogg_write(&(pd->as), pd->outfile, &(pd->tcsh));
-    } else if(has_vid && !has_aud) {
-        tc_ogg_feed_video(&(pd->vs), vframe);
-        ret = tc_ogg_write(&(pd->vs), pd->outfile, &(pd->tcsh));
-    } else if (has_vid && has_aud) {
-        /* which is earlier; the end of the audio page or the end of the
-           video page? Flush the earlier to stream */
-        double ats = TC_FRAME_GET_TIMESTAMP_DOUBLE(aframe);
-        double vts = TC_FRAME_GET_TIMESTAMP_DOUBLE(vframe);
-        int aret = 0, vret = 0;
- 
-        if (vts < ats) {
-            tc_ogg_feed_video(&(pd->vs), vframe);
-            vret = tc_ogg_write(&(pd->vs), pd->outfile, &(pd->tcsh));
-            RETURN_IF_ERROR(vret);
-
-            tc_ogg_feed_audio(&(pd->as), aframe);
-            aret = tc_ogg_write(&(pd->as), pd->outfile, &(pd->tcsh));
-            RETURN_IF_ERROR(aret);
-        } else {
-            tc_ogg_feed_audio(&(pd->as), aframe);
-            aret = tc_ogg_write(&(pd->as), pd->outfile, &(pd->tcsh));
-            RETURN_IF_ERROR(aret);
-
-            tc_ogg_feed_video(&(pd->vs), vframe);
-            vret = tc_ogg_write(&(pd->vs), pd->outfile, &(pd->tcsh));
-            RETURN_IF_ERROR(vret);
-        }
-        ret = aret + vret;
-    }
 #ifdef TC_OGG_DEBUG
-    tc_log_info(MOD_NAME, "(%s) tc_ogg_multiplex(has_vid=%i, has_aud=%i)->%i",
-                __func__, has_vid, has_aud, ret);
+    tc_log_info(MOD_NAME, "(%s) tc_ogg_write_video()->%i",
+                __func__, ret);
 #endif
     return ret;
 }
+
+static int tc_ogg_write_audio(TCModuleInstance *self,
+                              TCFrameAudio *aframe)
+{
+    OGGPrivateData *pd = NULL;
+    int ret = 0;
+
+    TC_MODULE_SELF_CHECK(self, "write_audio");
+
+    pd = self->userdata;
+
+    tc_ogg_feed_audio(&(pd->as), aframe);
+    ret = tc_ogg_write(&(pd->as), pd->outfile, &(pd->tcsh));
+
+#ifdef TC_OGG_DEBUG
+    tc_log_info(MOD_NAME, "(%s) tc_ogg_write_audio()->%i",
+                __func__, ret);
+#endif
+    return ret;
+}
+
 
 TC_MODULE_GENERIC_INIT(tc_ogg, OGGPrivateData);
 
@@ -598,7 +611,10 @@ static const TCModuleClass tc_ogg_class = {
     .stop         = tc_ogg_stop,
     .inspect      = tc_ogg_inspect,
 
-    .multiplex    = tc_ogg_multiplex,
+    .open         = tc_ogg_open,
+    .close        = tc_ogg_close,
+    .write_video  = tc_ogg_write_video,
+    .write_audio  = tc_ogg_write_audio,
 };
 
 TC_MODULE_ENTRY_POINT(tc_ogg);

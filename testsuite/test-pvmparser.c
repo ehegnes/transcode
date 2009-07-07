@@ -37,7 +37,9 @@ int main(int argc, char *argv[])
 {
     int full = TC_FALSE;
     pvm_config_env *env = NULL;
-    
+
+    libtc_init(&argc, &argv);
+
     if (argc != 2) {
         fprintf(stderr, "(%s) usage: %s pvm.cfg\n", __FILE__, argv[0]);
         exit(1);

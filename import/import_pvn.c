@@ -398,7 +398,7 @@ static int pvn_fini(TCModuleInstance *self)
 /*************************************************************************/
 
 /**
- * pvn_demultiplex:  Demultiplex a frame of data.  See tcmodule-data.h for
+ * pvn_read_video:  Demultiplex a frame of data.  See tcmodule-data.h for
  * function details.
  *
  * Notes:
@@ -419,8 +419,8 @@ static int pvn_fini(TCModuleInstance *self)
 static int decode_pvn_sse2(const PrivateData *pd, uint8_t *video_buf);
 #endif
 
-static int pvn_demultiplex(TCModuleInstance *self,
-                           vframe_list_t *vframe, aframe_list_t *aframe)
+static int pvn_read_video(TCModuleInstance *self,
+                          TCFrameVideo *vframe)
 {
     PrivateData *pd = NULL;
 
@@ -841,22 +841,21 @@ static int decode_pvn_sse2(const PrivateData *pd, uint8_t *video_buf)
 
 /*************************************************************************/
 
-static const TCCodecID pvn_codecs_in[] = { TC_CODEC_ERROR };
-static const TCCodecID pvn_codecs_out[] = { TC_CODEC_RGB24, TC_CODEC_ERROR };
-static const TCFormatID pvn_formats_in[] = { TC_FORMAT_PVN, TC_FORMAT_ERROR };
-static const TCFormatID pvn_formats_out[] = { TC_FORMAT_ERROR };
-
-static const TCModuleInfo pvn_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = pvn_codecs_in,
-    .codecs_out  = pvn_codecs_out,
-    .formats_in  = pvn_formats_in,
-    .formats_out = pvn_formats_out
+static const TCCodecID pvn_codecs_video_in[] = { 
+    TC_CODEC_ERROR 
 };
+static const TCCodecID pvn_codecs_video_out[] = { 
+    TC_CODEC_RGB24, TC_CODEC_ERROR 
+};
+static const TCFormatID pvn_formats_in[] = { 
+    TC_FORMAT_PVN, TC_FORMAT_ERROR 
+};
+static const TCFormatID pvn_formats_out[] = { 
+    TC_FORMAT_ERROR 
+};
+TC_MODULE_AUDIO_UNSUPPORTED(pvn);
+
+TC_MODULE_INFO(pvn);
 
 static const TCModuleClass pvn_class = {
     TC_MODULE_CLASS_HEAD(pvn),
@@ -867,7 +866,8 @@ static const TCModuleClass pvn_class = {
     .stop         = pvn_stop,
     .inspect      = pvn_inspect,
 
-    .demultiplex  = pvn_demultiplex,
+    /* BIG FAT FIXME */
+    .read_video   = pvn_read_video,
 };
 
 TC_MODULE_ENTRY_POINT(pvn)
@@ -945,7 +945,7 @@ MOD_close
 MOD_decode
 {
     PrivateData *pd = NULL;
-    vframe_list_t vframe;
+    TCFrameVideo vframe;
 
     if (param->flag != TC_VIDEO)
         return TC_ERROR;
@@ -957,7 +957,7 @@ MOD_decode
     }
 
     vframe.video_buf = param->buffer;
-    if (pvn_demultiplex(&mod, &vframe, NULL) < 0)
+    if (pvn_read_video(&mod, &vframe) < 0)
         return TC_ERROR;
     param->size = vframe.video_size;
     return TC_OK;

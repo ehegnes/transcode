@@ -22,8 +22,8 @@
 #define SYNCHRONIZER_H
 
 
-#include "transcode.h"
 #include "libtc/tcframes.h"
+#include "tccore/job.h"
 
 /*
  * transcode syncronization infrastructure.
@@ -63,7 +63,7 @@ typedef int (*TCFillFrameAudio)(void *ctx, TCFrameAudio *af);
  *    are mangled the less as is possible by the Synchronizer engine.
  *
  * Parameters:
- *       vob: pointer to a vob_t structure describing the import streams.
+ *       vob: pointer to a TCJob structure describing the import streams.
  *    method: sync method to use for A/V syncrhonization.
  *    master: select the master source. Only TC_AUDIO or TC_VIDEO
  *            are meaningful.
@@ -74,7 +74,7 @@ typedef int (*TCFillFrameAudio)(void *ctx, TCFrameAudio *af);
  *     TC_ERROR on error or the sync method is unknown. The exact
  *     reason of the error is tc_log()'d out.
  */
-int tc_sync_init(vob_t *vob, TCSyncMethodID method, int master);
+int tc_sync_init(TCJob *vob, TCSyncMethodID method, int master);
 
 /*
  * tc_sync_fini:

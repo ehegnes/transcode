@@ -16,7 +16,7 @@
 #include <faac.h>
 
 #define MOD_NAME    	"encode_faac.so"
-#define MOD_VERSION 	"v0.1 (2006-10-11)"
+#define MOD_VERSION 	"v0.1.1 (2009-02-07)"
 #define MOD_CAP         "Encodes audio to AAC using FAAC (currently BROKEN)"
 #define MOD_AUTHOR      "Andrew Church"
 
@@ -86,7 +86,9 @@ static int faac_init(TCModuleInstance *self, uint32_t features)
  */
 
 static int faac_configure(TCModuleInstance *self,
-                          const char *options, vob_t *vob)
+                          const char *options,
+                          TCJob *vob,
+                          TCModuleExtraData *xdata[])
 {
     PrivateData *pd;
     int samplerate = vob->mp3frequency ? vob->mp3frequency : vob->a_rate;
@@ -232,7 +234,7 @@ static int faac_fini(TCModuleInstance *self)
  */
 
 static int faac_encode(TCModuleInstance *self,
-                       aframe_list_t *in, aframe_list_t *out)
+                       TCFrameAudio *in, TCFrameAudio *out)
 {
     PrivateData *pd;
     uint8_t *inptr;
@@ -277,10 +279,21 @@ static int faac_encode(TCModuleInstance *self,
     return TC_OK;
 }
 
+/* FIXME: redo it better */
+static int faac_flush(TCModuleInstance *self, TCFrameAudio *frame)
+{
+    return faac_encode(self, NULL, frame);
+}
+
 /*************************************************************************/
 
-static const TCCodecID faac_codecs_in[] = { TC_CODEC_PCM, TC_CODEC_ERROR };
-static const TCCodecID faac_codecs_out[] = { TC_CODEC_AAC, TC_CODEC_ERROR };
+static const TCCodecID faac_codecs_audio_in[] = { 
+    TC_CODEC_PCM, TC_CODEC_ERROR
+};
+static const TCCodecID faac_codecs_audio_out[] = { 
+    TC_CODEC_AAC, TC_CODEC_ERROR 
+};
+TC_MODULE_VIDEO_UNSUPPORTED(faac);
 TC_MODULE_CODEC_FORMATS(faac);
 
 TC_MODULE_INFO(faac);
@@ -295,6 +308,7 @@ static const TCModuleClass faac_class = {
     .inspect      = faac_inspect,
 
     .encode_audio = faac_encode,
+    .flush_audio  = faac_flush,
 };
 
 TC_MODULE_ENTRY_POINT(faac);

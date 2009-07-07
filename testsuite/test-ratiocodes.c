@@ -25,7 +25,8 @@
 #include <stdlib.h>
 
 #include "config.h"
-#include "tc_defaults.h"
+
+#include "tccore/tc_defaults.h"
 #include "libtc/libtc.h"
 #include "libtc/tcframes.h"
 #include "libtc/ratiocodes.h"
@@ -223,9 +224,11 @@ static const struct fr_struct fps_pairs[] = {
 
 #define TABLE_LEN(tab) (sizeof((tab))/sizeof((tab)[0]))
 
-int main(void)
+int main(int argc, char *argv[])
 {
     int i = 0;
+
+    libtc_init(&argc, &argv);
 
     tc_log_info(PACKAGE, "testing frc <=> fps ...");
     for (i = 0; i < TABLE_LEN(fps_pairs); i++) {

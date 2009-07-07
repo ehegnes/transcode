@@ -21,10 +21,12 @@
  *
  */
 
-#include "src/transcode.h"
-#include "src/tc_defaults.h"
+#include "config.h"
 
 #include <pthread.h>
+
+#include "src/transcode.h"
+#include "tccore/tc_defaults.h"
 
 #ifndef _SUBTITLE_BUFFER_H
 #define _SUBTITLE_BUFFER_H

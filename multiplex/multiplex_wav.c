@@ -28,7 +28,7 @@
 #include "avilib/wavlib.h"
 
 #define MOD_NAME    "multiplex_wav.so"
-#define MOD_VERSION "v0.0.1 (2007-11-17)"
+#define MOD_VERSION "v0.1.0 (2009-02-08)"
 #define MOD_CAP     "write a WAV audio stream"
 
 #define MOD_FEATURES \
@@ -62,11 +62,23 @@ static int tc_wav_inspect(TCModuleInstance *self,
     return TC_OK;
 }
 
-
 static int tc_wav_configure(TCModuleInstance *self,
                             const char *options, vob_t *vob)
 {
-    const char *filename = NULL;
+    TC_MODULE_SELF_CHECK(self, "configure");
+    return TC_OK;
+}
+ 
+static int tc_wav_stop(TCModuleInstance *self)
+{
+    TC_MODULE_SELF_CHECK(self, "stop");
+    return TC_OK;
+}
+    
+
+static int tc_wav_open(TCModuleInstance *self, const char *filename)
+{
+    vob_t *vob = tc_get_vob();
     WAVError err;
     int rate;
 
@@ -74,13 +86,6 @@ static int tc_wav_configure(TCModuleInstance *self,
 
     TC_MODULE_SELF_CHECK(self, "configure");
 
-    if (vob->audio_out_file == NULL
-      || !strcmp(vob->audio_out_file, "/dev/null")) {
-        filename = vob->video_out_file;
-    } else {
-        filename = vob->audio_out_file;
-    }
- 
     wav = wav_open(filename, WAV_WRITE, &err);
     if (!wav) {
         tc_log_error(MOD_NAME, "failed to open audio stream file '%s'"
@@ -100,11 +105,11 @@ static int tc_wav_configure(TCModuleInstance *self,
     return TC_OK;
 }
 
-static int tc_wav_stop(TCModuleInstance *self)
+static int tc_wav_close(TCModuleInstance *self)
 {
     WAV wav = NULL;
 
-    TC_MODULE_SELF_CHECK(self, "stop");
+    TC_MODULE_SELF_CHECK(self, "close");
 
     wav = self->userdata;
 
@@ -121,27 +126,21 @@ static int tc_wav_stop(TCModuleInstance *self)
     return TC_OK;
 }
 
-static int tc_wav_multiplex(TCModuleInstance *self,
-                            vframe_list_t *vframe, aframe_list_t *aframe)
+static int tc_wav_write_audio(TCModuleInstance *self,
+                              TCFrameAudio *aframe)
 {
     ssize_t w_aud = 0;
     WAV wav = NULL;
 
-    TC_MODULE_SELF_CHECK(self, "multiplex");
+    TC_MODULE_SELF_CHECK(self, "write_audio");
 
     wav = self->userdata;
 
-    if (vframe != NULL && vframe->video_len > 0) {
+    w_aud = wav_write_data(wav, aframe->audio_buf, aframe->audio_len);
+    if (w_aud != aframe->audio_len) {
+        tc_log_warn(MOD_NAME, "error while writing audio frame: %s",
+                              wav_strerror(wav_last_error(wav)));
         return TC_ERROR;
-    }
-
-    if (aframe != NULL && aframe->audio_len > 0) {
-        w_aud = wav_write_data(wav, aframe->audio_buf, aframe->audio_len);
-        if (w_aud != aframe->audio_len) {
-            tc_log_warn(MOD_NAME, "error while writing audio frame: %s",
-                                  wav_strerror(wav_last_error(wav)));
-            return TC_ERROR;
-        }
     }
 
     return (int)w_aud;
@@ -171,7 +170,10 @@ static int tc_wav_fini(TCModuleInstance *self)
 
 /*************************************************************************/
 
-static const TCCodecID tc_wav_codecs_in[] = { 
+static const TCCodecID tc_wav_codecs_video_in[] = { 
+    TC_CODEC_ERROR
+};
+static const TCCodecID tc_wav_codecs_audio_in[] = { 
     TC_CODEC_PCM, TC_CODEC_ERROR
 };
 static const TCFormatID tc_wav_formats_out[] = { 
@@ -191,7 +193,9 @@ static const TCModuleClass tc_wav_class = {
     .stop         = tc_wav_stop,
     .inspect      = tc_wav_inspect,
 
-    .multiplex    = tc_wav_multiplex,
+    .open         = tc_wav_open,
+    .close        = tc_wav_close,
+    .write_audio  = tc_wav_write_audio,
 };
 
 TC_MODULE_ENTRY_POINT(tc_wav);

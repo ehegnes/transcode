@@ -117,6 +117,8 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
+    libtc_init(&argc, &argv);
+
     if (argc > 1 && !strcmp(argv[1], "strict")) {
         strict = TC_TRUE;
     }

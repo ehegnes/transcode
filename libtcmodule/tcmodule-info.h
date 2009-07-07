@@ -62,23 +62,27 @@
  */
 typedef struct tcmoduleinfo_ TCModuleInfo;
 struct tcmoduleinfo_ {
-    uint32_t features; /* what this module can do? */
-    uint32_t flags; /* quirks */
+    uint32_t        features; /* what this module can do? */
+    uint32_t        flags; /* quirks */
 
-    const char *name;
-    const char *version;
-    const char *description;
+    const char      *name;
+    const char      *version;
+    const char      *description;
 
     /*
      * the following two MUST point to an array of TC_CODEC_*
-     * terminated by a TC_CODEC_ERROR value
+     * terminated by a TC_CODEC_ERROR value.
+     * The preferred one is the first one.
      */
-    const TCCodecID *codecs_in;
-    const TCCodecID *codecs_out;
+    const TCCodecID *codecs_video_in;
+    const TCCodecID *codecs_video_out;
+    const TCCodecID *codecs_audio_in;
+    const TCCodecID *codecs_audio_out;
 
     /*
      * the following two MUST point to an array of TC_FORMAT_*
-     * terminated by a TC_FORMAT_ERROR value
+     * terminated by a TC_FORMAT_ERROR value.
+     * The preferred one is the first one.
      */
     const TCFormatID *formats_in;
     const TCFormatID *formats_out;
@@ -91,7 +95,9 @@ struct tcmoduleinfo_ {
  *
  * Parameters:
  *     tc_codec:
- *         codec_id to be used.
+ *         TCcodecID to be used for match.
+ *     type:
+ *         type of the codec to be matched: TC_AUDIO or TC_VIDEO.
  *     head:
  *         the first given module information structure;
  *         'head' output is supposed to fit in 'tail' input.
@@ -112,7 +118,7 @@ struct tcmoduleinfo_ {
  * Postconditions:
  *     none
  */
-int tc_module_info_match(int tc_codec,
+int tc_module_info_match(int tc_codec, int type,
                          const TCModuleInfo *head,
                          const TCModuleInfo *tail);
 

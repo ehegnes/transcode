@@ -16,7 +16,7 @@
 #include <lame/lame.h>
 
 #define MOD_NAME        "encode_lame.so"
-#define MOD_VERSION     "v1.2 (2008-11-30)"
+#define MOD_VERSION     "v1.2.1 (2009-02-07)"
 #define MOD_CAP         "Encodes audio to MP3 using LAME"
 #define MOD_AUTHOR      "Andrew Church"
 
@@ -164,7 +164,9 @@ static int lame_setup_preset(PrivateData *pd,
  */
 
 static int lame_configure(TCModuleInstance *self,
-                          const char *options, vob_t *vob)
+                          const char *options,
+                          TCJob *vob,
+                          TCModuleExtraData *xdata[])
 {
     char lame_preset[TC_BUF_MIN] = { '\0' };
     PrivateData *pd;
@@ -365,8 +367,50 @@ static int lame_fini(TCModuleInstance *self)
 
 #define LAME_FLUSH_BUFFER_SIZE  7200 /* from lame/lame.h */
 
+static int lame_flush(TCModuleInstance *self, TCFrameAudio *out)
+{
+    PrivateData *pd;
+    int res;
+
+    TC_MODULE_SELF_CHECK(self, "flush");
+    if (out == NULL) {
+        tc_log_error(MOD_NAME, "no output buffer supplied");
+        return TC_ERROR;
+    }
+
+    pd = self->userdata;
+
+    if (!pd->flush_flag) {
+        /* No-flush option given, so don't do anything */
+        out->audio_len = 0;
+        return TC_OK;
+    }
+    if (out->audio_size < LAME_FLUSH_BUFFER_SIZE) {
+        /* paranoia is a virtue */
+        tc_log_error(MOD_NAME, "output buffer too small for"
+                               " flushing (%i|%i)",
+                               out->audio_size,
+                               LAME_FLUSH_BUFFER_SIZE);
+        return TC_ERROR;
+    }
+
+    /*
+     * Looks like _nogap should behave better when
+     * splitting/rotating output files.
+     * Moreover, our streams should'nt contain any ID3 tag,
+     * -- FR
+     */
+    res = lame_encode_flush_nogap(pd->lgf, out->audio_buf, 0);
+    if (verbose >= TC_DEBUG) {
+        tc_log_info(MOD_NAME, "flushing %d audio bytes", res);
+    }
+ 
+    out->audio_len = res;
+    return TC_OK;
+}
+
 static int lame_encode(TCModuleInstance *self,
-                       aframe_list_t *in, aframe_list_t *out)
+                       TCFrameAudio *in, TCFrameAudio *out)
 {
     PrivateData *pd;
     int res;
@@ -379,71 +423,48 @@ static int lame_encode(TCModuleInstance *self,
 
     pd = self->userdata;
 
-    if (in == NULL) {
-        /* flush request */
-        if (!pd->flush_flag) {
-            /* No-flush option given, so don't do anything */
-            out->audio_len = 0;
-            return TC_OK;
-        }
-        if (out->audio_size < LAME_FLUSH_BUFFER_SIZE) {
-            /* paranoia is a virtue */
-            tc_log_error(MOD_NAME, "output buffer too small for"
-                                   " flushing (%i|%i)",
-                                   out->audio_size,
-                                   LAME_FLUSH_BUFFER_SIZE);
-            return TC_ERROR;
-        }
-
-        /*
-         * Looks like _nogap should behave better when
-         * splitting/rotating output files.
-         * Moreover, our streams should'nt contain any ID3 tag,
-         * -- FR
-         */
-        res = lame_encode_flush_nogap(pd->lgf, out->audio_buf, 0);
-        if (verbose >= TC_DEBUG) {
-            tc_log_info(MOD_NAME, "flushing %d audio bytes", res);
-        }
-    } else {
-        /* regular encoding */
-        if (pd->channels == 1) { /* mono */
-            res = lame_encode_buffer(pd->lgf,
-                                     (short *)(in->audio_buf),
-                                     (short *)(in->audio_buf),
-                                     in->audio_size / pd->bps,
-                                     out->audio_buf,
-                                     out->audio_size);
-        } else { /* all stereo flavours */
-            res = lame_encode_buffer_interleaved(pd->lgf,
-                                                 (short *)in->audio_buf,
-                                                 in->audio_size / pd->bps,
-                                                 out->audio_buf,
-                                                 out->audio_size);
-        }
-
-        if (res < 0) {
-            if (verbose >= TC_DEBUG) {
-                tc_log_error(MOD_NAME, "lame_encode_buffer_interleaved() failed"
-                             " (%d: %s)", res,
-                             res==-1 ? "output buffer overflow" :
-                             res==-2 ? "out of memory" :
-                             res==-3 ? "not initialized" :
-                             res==-4 ? "psychoacoustic problems" : "unknown");
-            } else {
-                tc_log_error(MOD_NAME, "Audio encoding failed!");
-            }
-            return TC_ERROR;
-        }
+    if (pd->channels == 1) { /* mono */
+        res = lame_encode_buffer(pd->lgf,
+                                 (short *)(in->audio_buf),
+                                 (short *)(in->audio_buf),
+                                 in->audio_size / pd->bps,
+                                 out->audio_buf,
+                                 out->audio_size);
+    } else { /* all stereo flavours */
+        res = lame_encode_buffer_interleaved(pd->lgf,
+                                             (short *)in->audio_buf,
+                                             in->audio_size / pd->bps,
+                                             out->audio_buf,
+                                             out->audio_size);
     }
+
+    if (res < 0) {
+        if (verbose >= TC_DEBUG) {
+            tc_log_error(MOD_NAME, "lame_encode_buffer_interleaved() failed"
+                         " (%d: %s)", res,
+                         res==-1 ? "output buffer overflow" :
+                         res==-2 ? "out of memory" :
+                         res==-3 ? "not initialized" :
+                         res==-4 ? "psychoacoustic problems" : "unknown");
+        } else {
+            tc_log_error(MOD_NAME, "Audio encoding failed!");
+        }
+        return TC_ERROR;
+    }
+
     out->audio_len = res;
     return TC_OK;
 }
 
 /*************************************************************************/
 
-static const TCCodecID lame_codecs_in[] = { TC_CODEC_PCM, TC_CODEC_ERROR };
-static const TCCodecID lame_codecs_out[] = { TC_CODEC_MP3, TC_CODEC_ERROR };
+static const TCCodecID lame_codecs_audio_in[] = { 
+    TC_CODEC_PCM, TC_CODEC_ERROR 
+};
+static const TCCodecID lame_codecs_audio_out[] = { 
+    TC_CODEC_MP3, TC_CODEC_ERROR 
+};
+TC_MODULE_VIDEO_UNSUPPORTED(lame);
 TC_MODULE_CODEC_FORMATS(lame);
 
 TC_MODULE_INFO(lame);
@@ -458,6 +479,7 @@ static const TCModuleClass lame_class = {
     .inspect      = lame_inspect,
 
     .encode_audio = lame_encode,
+    .flush_audio  = lame_flush,
 };
 
 TC_MODULE_ENTRY_POINT(lame);

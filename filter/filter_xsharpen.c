@@ -29,7 +29,7 @@
  */
 
 #define MOD_NAME    "filter_xharpen.so"
-#define MOD_VERSION "(1.0b4) (2007-07-30)"
+#define MOD_VERSION "(1.1.0) (2009-02-07)"
 #define MOD_CAP     "VirtualDub's XSharpen Filter"
 #define MOD_AUTHOR  "Donald Graft, Tilmann Bitterberg"
 
@@ -564,12 +564,13 @@ static int xsharpen_filter_video(TCModuleInstance *self, vframe_list_t *frame)
 
 /*************************************************************************/
 
-static const TCCodecID xsharpen_codecs_in[] = { 
+static const TCCodecID xsharpen_codecs_video_in[] = { 
     TC_CODEC_RGB24, TC_CODEC_YUV420P, TC_CODEC_ERROR
 };
-static const TCCodecID xsharpen_codecs_out[] = {
+static const TCCodecID xsharpen_codecs_video_out[] = {
     TC_CODEC_RGB24, TC_CODEC_YUV420P, TC_CODEC_ERROR
 };
+TC_MODULE_AUDIO_UNSUPPORTED(xsharpen);
 TC_MODULE_FILTER_FORMATS(xsharpen);
 
 TC_MODULE_INFO(xsharpen);

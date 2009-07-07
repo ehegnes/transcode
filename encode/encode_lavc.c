@@ -36,7 +36,7 @@
 #include <math.h>
 
 #define MOD_NAME    "encode_lavc.so"
-#define MOD_VERSION "v0.1.0 (2008-04-27)"
+#define MOD_VERSION "v0.1.1 (2009-02-07)"
 #define MOD_CAP     "libavcodec based encoder (" LIBAVCODEC_IDENT ")"
 
 #define MOD_FEATURES \
@@ -153,22 +153,25 @@ struct tclavcprivatedata_ {
 
 /*************************************************************************/
 
-static const TCCodecID tc_lavc_codecs_in[] = {
+static const TCCodecID tc_lavc_codecs_video_in[] = {
     TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_RGB24,
+    TC_CODEC_ERROR
+};
+
+static const TCCodecID tc_lavc_codecs_audio_in[] = {
     TC_CODEC_PCM,
     TC_CODEC_ERROR
 };
 
 
+#define FF_VCODEC_ID(pd) (tc_lavc_int_video_codecs[(pd)->vcodec_id])
+#define TC_VCODEC_ID(pd) (tc_lavc_codecs_video_out[(pd)->vcodec_id])
 
-#define FF_VCODEC_ID(pd) (tc_lavc_internal_codecs[(pd)->vcodec_id])
-#define TC_VCODEC_ID(pd) (tc_lavc_codecs_out[(pd)->vcodec_id])
+#define FF_ACODEC_ID(pd) (tc_lavc_int_audio_codecs[(pd)->acodec_id])
+#define TC_ACODEC_ID(pd) (tc_lavc_codecs_audio_out[(pd)->acodec_id])
+/* WARNING: the arrays below MUST BE KEPT SYNCHRONIZED! */
 
-#define FF_ACODEC_ID(pd) (tc_lavc_internal_codecs[(pd)->acodec_id])
-#define TC_ACODEC_ID(pd) (tc_lavc_codecs_out[(pd)->acodec_id])
-/* WARNING: the two arrays below MUST BE KEPT SYNCHRONIZED! */
-
-static const TCCodecID tc_lavc_codecs_out[] = { 
+static const TCCodecID tc_lavc_codecs_video_out[] = { 
     TC_CODEC_MPEG1VIDEO, TC_CODEC_MPEG2VIDEO, TC_CODEC_MPEG4VIDEO,
     TC_CODEC_H263I, TC_CODEC_H263P,
     TC_CODEC_H264,
@@ -179,13 +182,16 @@ static const TCCodecID tc_lavc_codecs_out[] = {
     TC_CODEC_MJPEG, TC_CODEC_LJPEG,
     TC_CODEC_MP42, TC_CODEC_MP43,
 
-    TC_CODEC_MP2,
-    TC_CODEC_AC3,
+    TC_CODEC_ERROR
+};
+
+static const TCCodecID tc_lavc_codecs_audio_out[] = { 
+    TC_CODEC_MP2, TC_CODEC_AC3,
 
     TC_CODEC_ERROR
 };
 
-static const enum CodecID tc_lavc_internal_codecs[] = {
+static const enum CodecID tc_lavc_int_video_codecs[] = {
     CODEC_ID_MPEG1VIDEO, CODEC_ID_MPEG2VIDEO, CODEC_ID_MPEG4,
     CODEC_ID_H263I, CODEC_ID_H263P,
     CODEC_ID_H264,
@@ -196,11 +202,17 @@ static const enum CodecID tc_lavc_internal_codecs[] = {
     CODEC_ID_MJPEG, CODEC_ID_LJPEG,
     CODEC_ID_MSMPEG4V2, CODEC_ID_MSMPEG4V3,
 
+    CODEC_ID_NONE
+};
+
+static const enum CodecID tc_lavc_int_audio_codecs[] = {
     CODEC_ID_MP2,
     CODEC_ID_AC3,
 
     CODEC_ID_NONE
 };
+
+
 
 TC_MODULE_CODEC_FORMATS(tc_lavc);
 
@@ -314,12 +326,12 @@ static void pre_encode_video_rgb24(TCLavcPrivateData *pd,
  *      >= 0: index of codec, if supported, in output list
  *      TC_NULL_MATCH: given codec isn't supported.
  */
-static int tc_codec_is_supported(TCCodecID codec)
+static int tc_codec_is_supported(TCCodecID codec, const TCCodecID *codec_list)
 {
     int i = 0, ret = TC_NULL_MATCH;
 
-    for (i = 0; tc_lavc_codecs_out[i] != TC_CODEC_ERROR; i++) {
-        if (codec == tc_lavc_codecs_out[i]) {
+    for (i = 0; codec_list[i] != TC_CODEC_ERROR; i++) {
+        if (codec == codec_list[i]) {
             ret = i;
             break;
         }
@@ -347,6 +359,39 @@ static double psnr(double d) {
     return -10.0 * log(d) / log(10);
 }
 
+static int list_codecs(const TCCodecID *codecs,
+                       char *buf, size_t bufsize,
+                       size_t *used)
+{
+    int i = 0, ret = 0;
+
+    for (i = 0; codecs[i] != TC_CODEC_ERROR; i++) {
+        char sbuf[TC_BUF_MIN] = { '\0' };
+        int slen = 0;
+
+        slen = tc_codec_description(codecs[i], sbuf, sizeof(sbuf) - 1);
+        /* + 1 for the final '\n' */
+        if (slen < 0) {
+            tc_log_error(MOD_NAME, "codec description too long! "
+                                   "This should'nt happen. "
+                                   "Please file a bug report.");
+            strlcpy(buf, "internal error", bufsize);
+            ret = -1;
+        } else if (*used + slen > bufsize) {
+            tc_log_error(MOD_NAME, "too much codecs! "
+                                   "This should'nt happen. "
+                                   "Please file a bug report.");
+            strlcpy(buf, "internal error", bufsize);
+            ret = -1;
+        } else {
+            sbuf[slen] = '\n';
+            strlcpy(buf + *used, sbuf, bufsize - *used);
+            *used += slen + 1; /* for the trailing newline */
+        }
+    }
+    return ret;
+}
+
 /*
  * tc_lavc_list_codecs:
  *      (NOT Thread safe. But do anybody cares since
@@ -371,30 +416,15 @@ static const char* tc_lavc_list_codecs(void)
 
     if (!ready) {
         size_t used = 0;
-        int i = 0;
+        int err;
 
-        for (i = 0; tc_lavc_codecs_out[i] != TC_CODEC_ERROR; i++) {
-            char sbuf[TC_BUF_MIN];
-            int slen = 0;
-
-            slen = tc_codec_description(tc_lavc_codecs_out[i], sbuf, sizeof(sbuf) - 1);
-            /* + 1 for the final '\n' */
-            if (slen < 0) {
-                tc_log_error(MOD_NAME, "codec description too long! "
-                                       "This should'nt happen. "
-                                       "Please file a bug report.");
-                strlcpy(buf, "internal error", sizeof(buf));
-            } else if (used + slen > sizeof(buf)) {
-                tc_log_error(MOD_NAME, "too much codecs! "
-                                       "This should'nt happen. "
-                                       "Please file a bug report.");
-                strlcpy(buf, "internal error", sizeof(buf));
-            } else {
-                sbuf[slen] = '\n';
-                strlcpy(buf + used, sbuf, sizeof(buf) - used);
-                used += slen + 1; /* for the trailing newline */
-            }
+        err = list_codecs(tc_lavc_codecs_video_out,
+                          buf, sizeof(buf), &used);
+        if (!err) {
+            err = list_codecs(tc_lavc_codecs_audio_out,
+                              buf, sizeof(buf), &used);
         }
+
         buf[used] = '\0';
         ready = TC_TRUE;
     }
@@ -1408,7 +1438,9 @@ static int tc_lavc_stop(TCModuleInstance *self)
 }
 
 static int tc_lavc_configure_video(TCModuleInstance *self,
-                                   const char *options, vob_t *vob)
+                                   const char *options,
+                                   TCJob *vob,
+                                   TCModuleExtraData *xdata)
 {
     const char *vcodec_name = tc_codec_to_string(vob->ex_v_codec);
     TCLavcPrivateData *pd = NULL;
@@ -1431,7 +1463,8 @@ static int tc_lavc_configure_video(TCModuleInstance *self,
      * we must do first since we NEED valid vcodec_name
      * ASAP to read right section of configuration file.
      */
-    pd->vcodec_id = tc_codec_is_supported(vob->ex_v_codec);
+    pd->vcodec_id = tc_codec_is_supported(vob->ex_v_codec,
+                                         tc_lavc_codecs_video_out);
     if (pd->vcodec_id == TC_NULL_MATCH) {
         tc_log_error(MOD_NAME, "unsupported codec `%s'", vcodec_name);
         return TC_ERROR;
@@ -1475,8 +1508,10 @@ static int tc_lavc_configure_video(TCModuleInstance *self,
         goto failed;
     }
     /* finally, pass up the extradata, if any */
-    self->extradata      = pd->ff_vcontext.extradata;
-    self->extradata_size = pd->ff_vcontext.extradata_size;
+    xdata->stream_id  = 0; /* FIXME */
+    xdata->codec      = pd->vcodec_id;
+    xdata->extra.data = pd->ff_vcontext.extradata;
+    xdata->extra.size = pd->ff_vcontext.extradata_size;
 
     if (PSNR_REQUESTED(pd)) {
         /* errors already logged, and they can be ignored */
@@ -1491,7 +1526,9 @@ failed:
 }
 
 static int tc_lavc_configure_audio(TCModuleInstance *self,
-                                   const char *options, vob_t *vob)
+                                   const char *options,
+                                   TCJob *vob,
+                                   TCModuleExtraData *xdata)
 {
     const char *acodec_name = tc_codec_to_string(vob->ex_a_codec);
     TCLavcPrivateData *pd = NULL;
@@ -1505,7 +1542,8 @@ static int tc_lavc_configure_audio(TCModuleInstance *self,
      * we must do first since we NEED valid vcodec_name
      * ASAP to read right section of configuration file.
      */
-    pd->acodec_id = tc_codec_is_supported(vob->ex_a_codec);
+    pd->acodec_id = tc_codec_is_supported(vob->ex_a_codec,
+                                         tc_lavc_codecs_audio_out);
     if (pd->acodec_id == TC_NULL_MATCH) {
         tc_log_error(MOD_NAME, "unsupported codec `%s'", acodec_name);
         return TC_ERROR;
@@ -1540,7 +1578,8 @@ failed:
 #undef ABORT_IF_NOT_OK
 
 static int tc_lavc_configure(TCModuleInstance *self,
-                             const char *options, vob_t *vob)
+                             const char *options,
+                             TCJob *vob, TCModuleExtraData *xdata[])
 {
     int ret = TC_OK;
 
@@ -1548,13 +1587,13 @@ static int tc_lavc_configure(TCModuleInstance *self,
 
 
     if (self->features & TC_MODULE_FEATURE_VIDEO) {
-        ret = tc_lavc_configure_video(self, options, vob);
+        ret = tc_lavc_configure_video(self, options, vob, xdata[0]);
         if (ret != TC_OK) {
             goto failure;
         }
     }
     if (self->features & TC_MODULE_FEATURE_AUDIO) {
-        ret = tc_lavc_configure_audio(self, options, vob);
+        ret = tc_lavc_configure_audio(self, options, vob, xdata[1]);
         if (ret != TC_OK) {
             goto failure;
         }
@@ -1599,10 +1638,6 @@ static int tc_lavc_encode_video(TCModuleInstance *self,
     TC_MODULE_SELF_CHECK(self, "encode_video");
 
     pd = self->userdata;
-
-    if (inframe == NULL && pd->flush_flag) {
-        return tc_lavc_flush_video(self, outframe); // FIXME
-    }
 
     pd->ff_venc_frame.interlaced_frame = pd->interlacing.active;
     pd->ff_venc_frame.top_field_first  = pd->interlacing.top_first;
@@ -1653,10 +1688,6 @@ static int tc_lavc_encode_audio(TCModuleInstance *self,
     TC_MODULE_SELF_CHECK(self, "encode_audio");
 
     pd = self->userdata;
-
-    if (inframe == NULL && pd->flush_flag) {
-        return tc_lavc_flush_audio(self, outframe); // FIXME
-    }
 
     //-- any byte in mpa-buffer left from past call ? --
     if (pd->audio_buf_pos > 0) {
@@ -1721,6 +1752,9 @@ static const TCModuleClass tc_lavc_class = {
 
     .encode_video = tc_lavc_encode_video,
     .encode_audio = tc_lavc_encode_audio,
+
+    .flush_video  = tc_lavc_flush_video,
+    .flush_audio  = tc_lavc_flush_audio,
 };
 
 TC_MODULE_ENTRY_POINT(tc_lavc);

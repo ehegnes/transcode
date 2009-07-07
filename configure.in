@@ -1332,6 +1332,12 @@ LIBTCVIDEO_LIBS="\$(top_builddir)/libtcvideo/libtcvideo.la"
 AC_SUBST(LIBTCVIDEO_LIBS)
 
 dnl
+dnl libtcexport
+dnl
+LIBTCEXPORT_LIBS="\$(top_builddir)/libtcexport/libtcexport.la"
+AC_SUBST(LIBTCEXPORT_LIBS)
+
+dnl
 dnl avilib
 dnl
 AVILIB_LIBS="\$(top_builddir)/avilib/libavi.la"
@@ -1446,12 +1452,14 @@ AC_CONFIG_FILES([
 	libdldarwin/Makefile
 	libtc/Makefile
 	libtcext/Makefile
+	libtcexport/Makefile
 	libtcmodule/Makefile
 	libtcutil/Makefile
 	libtcaudio/Makefile
 	libtcvideo/Makefile
 	pvm3/Makefile
 	src/Makefile
+	tccore/Makefile
 	testsuite/Makefile
 	tools/Makefile
 	transcode.spec

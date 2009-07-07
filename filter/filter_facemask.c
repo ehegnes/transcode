@@ -350,12 +350,13 @@ static int facemask_filter_video(TCModuleInstance *self, vframe_list_t *frame)
 
 /*************************************************************************/
 
-static const TCCodecID facemask_codecs_in[] = { 
+static const TCCodecID facemask_codecs_video_in[] = { 
     TC_CODEC_RGB24, TC_CODEC_YUV420P, TC_CODEC_ERROR
 };
-static const TCCodecID facemask_codecs_out[] = {
+static const TCCodecID facemask_codecs_video_out[] = {
     TC_CODEC_RGB24, TC_CODEC_YUV420P, TC_CODEC_ERROR
 };
+TC_MODULE_AUDIO_UNSUPPORTED(facemask);
 TC_MODULE_FILTER_FORMATS(facemask);
 
 TC_MODULE_INFO(facemask);

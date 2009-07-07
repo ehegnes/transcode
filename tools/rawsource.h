@@ -23,15 +23,11 @@
 #ifndef _FILE_SOURCE_H
 #define _FILE_SOURCE_H
 
-#include "transcode.h"
-#include "encoder.h"
+#include "tccore/frame.h"
+#include "tccore/job.h"
 
-TCEncoderBuffer *tc_rawsource_get_buffer(void);
-
-int tc_rawsource_open(vob_t *vob);
+TCFrameSource *tc_rawsource_open(TCJob *job);
+int tc_rawsource_num_sources(void);
 int tc_rawsource_close(void);
-
-int tc_rawsource_read_video(vob_t *vob, TCFrameVideo *vframe);
-int tc_rawsource_read_audio(vob_t *vob, TCFrameAudio *aframe);
 
 #endif /* _FILE_SOURCE_H */

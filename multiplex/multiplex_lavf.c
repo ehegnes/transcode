@@ -28,7 +28,7 @@
 #include "libtcext/tc_avcodec.h"
 
 #define MOD_NAME    "multiplex_lavf.so"
-#define MOD_VERSION "v0.0.4 (2008-04-28)"
+#define MOD_VERSION "v0.1.0 (2009-02-09)"
 #define MOD_CAP     "libavformat based multiplexor (" LIBAVFORMAT_IDENT ")"
 
 #define MOD_FEATURES \
@@ -49,13 +49,16 @@ static const char tc_lavf_help[] = ""
 
 /*************************************************************************/
 
-static const TCCodecID tc_lavf_codecs_in[] = {
+static const TCCodecID tc_lavf_codecs_audio_in[] = {
     TC_CODEC_PCM, TC_CODEC_LPCM,
     TC_CODEC_AC3, TC_CODEC_DTS, TC_CODEC_MP2,
     TC_CODEC_AAC,
 #ifdef LAVF_TEST    
     TC_CODEC_MP3,
 #endif
+    TC_CODEC_ERROR
+};
+static const TCCodecID tc_lavf_codecs_video_in[] = {
     TC_CODEC_MPEG2VIDEO, TC_CODEC_MPEG4VIDEO,
     TC_CODEC_H264, TC_CODEC_SVQ1, TC_CODEC_SVQ3,
     TC_CODEC_ERROR
@@ -77,69 +80,89 @@ static const TCFormatID tc_lavf_formats_out[] = {
  */
 #define MAX_FMT_CODECS      12
 struct fmt_desc {
-    TCFormatID format;
-    const char *lavf_name;
-    int lavf_flags;
-    TCCodecID  codecs[MAX_FMT_CODECS];
+    TCFormatID  format;
+    const char  *lavf_name;
+    int         lavf_flags;
+    TCCodecID   codecs_vid[MAX_FMT_CODECS];
+    TCCodecID   codecs_aud[MAX_FMT_CODECS];
 };
 static const struct fmt_desc fmt_descs[] = {
     {
-        TC_FORMAT_MPEG_PS,
-        "vob",
-        0,
-        {
-          TC_CODEC_PCM, TC_CODEC_LPCM, TC_CODEC_AC3, TC_CODEC_DTS,
-          TC_CODEC_MP2, TC_CODEC_MPEG2VIDEO,
-          TC_CODEC_ERROR
+        .format     = TC_FORMAT_MPEG_PS,
+        .lavf_name  = "vob",
+        .lavf_flags = 0,
+        .codecs_aud = {
+            TC_CODEC_PCM, TC_CODEC_LPCM, TC_CODEC_AC3, TC_CODEC_DTS,
+            TC_CODEC_MP2,
+            TC_CODEC_ERROR
+         },
+        .codecs_vid = {
+            TC_CODEC_MPEG2VIDEO,
+            TC_CODEC_ERROR
         }
     },
     {
-        TC_FORMAT_MPEG_TS,
-        "mpegts",
-        0,
-        {
-          TC_CODEC_PCM, TC_CODEC_LPCM, TC_CODEC_AC3, TC_CODEC_DTS,
-          TC_CODEC_MP2, TC_CODEC_MPEG2VIDEO,
-          TC_CODEC_ERROR
+        .format     = TC_FORMAT_MPEG_TS,
+        .lavf_name  = "mpegts",
+        .lavf_flags = 0,
+        .codecs_aud = {
+            TC_CODEC_PCM, TC_CODEC_LPCM, TC_CODEC_AC3, TC_CODEC_DTS,
+            TC_CODEC_ERROR
+        },
+        .codecs_vid = {
+            TC_CODEC_MP2, TC_CODEC_MPEG2VIDEO,
+            TC_CODEC_ERROR
         }
     },
     {
-        TC_FORMAT_MOV,
-        "mov",
-        CODEC_FLAG_GLOBAL_HEADER,
-        {
-          TC_CODEC_AAC,
-          TC_CODEC_MPEG4VIDEO, TC_CODEC_H264, TC_CODEC_SVQ1, TC_CODEC_SVQ3,
-          TC_CODEC_ERROR
+        .format     = TC_FORMAT_MOV,
+        .lavf_name  = "mov",
+        .lavf_flags = CODEC_FLAG_GLOBAL_HEADER,
+        .codecs_aud = {
+            TC_CODEC_AAC,
+            TC_CODEC_ERROR
+        },
+        .codecs_vid = {
+            TC_CODEC_MPEG4VIDEO, TC_CODEC_H264, TC_CODEC_SVQ1, TC_CODEC_SVQ3,
+            TC_CODEC_ERROR
         }
     },
     {
-        TC_FORMAT_MPEG_MP4,
-        "mp4",
-        CODEC_FLAG_GLOBAL_HEADER,
-        {
-          TC_CODEC_AAC,
-          TC_CODEC_MPEG4VIDEO,
-          TC_CODEC_ERROR
+        .format     = TC_FORMAT_MPEG_MP4,
+        .lavf_name  = "mp4",
+        .lavf_flags = CODEC_FLAG_GLOBAL_HEADER,
+        .codecs_aud = {
+            TC_CODEC_AAC,
+            TC_CODEC_ERROR
+        },
+        .codecs_vid = {
+            TC_CODEC_MPEG4VIDEO,
+            TC_CODEC_ERROR
         }
     },
 #ifdef LAVF_TEST
     {
-        TC_FORMAT_AVI,
-        "avi",
-        0,
-        {
+        .format     = TC_FORMAT_AVI,
+        .lavf_name  = "avi",
+        .lavf_flags = 0,
+        .codecs_aud = {
             TC_CODEC_MP3,
+            TC_CODEC_ERROR,
+        },
+        .codecs_vid = {
             TC_CODEC_MPEG4VIDEO,
             TC_CODEC_ERROR,
         }
     },
 #endif
     {
-        TC_FORMAT_ERROR,
-        NULL,
-        0,
-        {
+        .format     = TC_FORMAT_ERROR,
+        .lavf_name  = NULL,
+        .lavf_flags = 0,
+        .codecs_aud = {
+            TC_CODEC_ERROR
+        },
+        .codecs_aud = {
             TC_CODEC_ERROR
         }
     }
@@ -150,22 +173,22 @@ static const struct fmt_desc fmt_descs[] = {
 
 typedef struct tclavfprivatedata_ TCLavfPrivateData;
 struct tclavfprivatedata_ {
-    TCFormatID fmt_id;
-    int nstreams;
+    TCFormatID      fmt_id;
+    int             nstreams;
 
-    AVOutputFormat *mux_format;
+    AVOutputFormat  *mux_format;
     AVFormatContext *mux_context;
 
-    AVStream *astream;
-    AVStream *vstream;
+    AVStream        *astream;
+    AVStream        *vstream;
 
-    uint32_t aframes;
-    uint32_t vframes;
+    uint32_t        aframes;
+    uint32_t        vframes;
 
-    double audio_pts;
-    double video_pts;
+    double          audio_pts;
+    double          video_pts;
 
-    char fmt_name[TC_BUF_MIN];
+    char            fmt_name[TC_BUF_MIN];
 };
 
 /*************************************************************************/
@@ -200,13 +223,16 @@ static const struct fmt_desc *find_fmt_desc(cmpfn cmp, const void *data)
  * second stage compatibility check
  * FIXME: doc me up
  */
-static int tc_lavf_is_codec_compatible(TCFormatID format, TCCodecID codec)
+static int tc_lavf_is_codec_compatible(TCFormatID format, TCCodecID codec,
+                                       int is_video) /* FIXME */
 {
     int j = 0, ret = 0;
     const struct fmt_desc *des = find_fmt_desc(by_id, &format);
     if (des) {
-        for (j = 0; !ret && des->codecs[j] != TC_CODEC_ERROR; j++) {
-            if (des->codecs[j] == codec) {
+        const TCCodecID *codecs = (is_video) ?(des->codecs_vid)
+                                             :(des->codecs_aud);
+        for (j = 0; !ret && codecs[j] != TC_CODEC_ERROR; j++) {
+            if (codecs[j] == codec) {
                 ret = 1;
             }
         }
@@ -285,7 +311,7 @@ static int tc_lavf_are_codec_compatible(TCLavfPrivateData *pd, vob_t *vob)
 {
     int ret;
 
-    ret = tc_lavf_is_codec_compatible(pd->fmt_id, vob->ex_v_codec);
+    ret = tc_lavf_is_codec_compatible(pd->fmt_id, vob->ex_v_codec, 1);
     if (!ret) {
         tc_log_error(MOD_NAME, "requested video codec %s is incompatible"
                                " with format %s",
@@ -293,7 +319,7 @@ static int tc_lavf_are_codec_compatible(TCLavfPrivateData *pd, vob_t *vob)
                                tc_format_to_string(pd->fmt_id));
         return TC_ERROR;
     }
-    ret = tc_lavf_is_codec_compatible(pd->fmt_id, vob->ex_a_codec);
+    ret = tc_lavf_is_codec_compatible(pd->fmt_id, vob->ex_a_codec, 0);
     if (!ret) {
         tc_log_error(MOD_NAME, "requested audio codec %s is incompatible"
                                " with format %s",
@@ -308,7 +334,7 @@ static int tc_lavf_init_fmt_from_user(TCLavfPrivateData *pd,
                                       const char *options)
 {
     const char *fmt_tag = NULL;
-    char fmt_name[16];
+    char fmt_name[16] = { '\0' }; /* FIXME */
     int has_fmt = optstr_get(options, "format", "%15s", fmt_name);
     if (has_fmt == 1) {
         pd->fmt_id = tc_format_from_string(fmt_name);
@@ -480,12 +506,17 @@ static int tc_lavf_write(AVFormatContext *ctx, AVPacket *pkt,
 
 /*************************************************************************/
 
-static int tc_lavf_multiplex_video(TCLavfPrivateData *pd,
-                                   TCFrameVideo *frame)
+static int tc_lavf_write_video(TCModuleInstance *self,
+                               TCFrameVideo *frame)
 {
 //    AVCodecContext *c = pd->vstream->codec;
     AVPacket pkt;
+    TCLavfPrivateData *pd = NULL;
 
+    TC_MODULE_SELF_CHECK(self, "write_video");
+
+    pd = self->userdata;
+ 
     av_init_packet(&pkt);
 
     pkt.stream_index = pd->vstream->index;
@@ -501,11 +532,16 @@ static int tc_lavf_multiplex_video(TCLavfPrivateData *pd,
     return tc_lavf_write(pd->mux_context, &pkt, &(pd->vframes), "video");
 }
 
-static int tc_lavf_multiplex_audio(TCLavfPrivateData *pd,
+static int tc_lavf_write_audio(TCModuleInstance *self,
                                    TCFrameAudio *frame)
 {
 //    AVCodecContext *c = pd->astream->codec;
     AVPacket pkt;
+    TCLavfPrivateData *pd = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "write_audio");
+
+    pd = self->userdata;
 
     av_init_packet(&pkt);
 
@@ -590,11 +626,11 @@ static int tc_lavf_inspect(TCModuleInstance *self,
     return TC_OK;
 }
 
-static int tc_lavf_stop(TCModuleInstance *self)
+static int tc_lavf_close(TCModuleInstance *self)
 {
     TCLavfPrivateData *pd = NULL;
 
-    TC_MODULE_SELF_CHECK(self, "stop");
+    TC_MODULE_SELF_CHECK(self, "close");
 
     pd = self->userdata;
 
@@ -617,7 +653,20 @@ static int tc_lavf_stop(TCModuleInstance *self)
             /* close the output file */
             url_fclose(pd->mux_context->pb);
         }
+    }
 
+    return TC_OK;
+}
+
+static int tc_lavf_stop(TCModuleInstance *self)
+{
+    TCLavfPrivateData *pd = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "stop");
+
+    pd = self->userdata;
+
+    if (pd->mux_context) {
         av_free(pd->mux_context);
         pd->mux_context = NULL;
     }
@@ -636,7 +685,6 @@ static int tc_lavf_configure(TCModuleInstance *self,
                              const char *options, vob_t *vob)
 {
     int ret = 0;
-    const struct fmt_desc *des = NULL;
     TCLavfPrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "configure");
@@ -664,12 +712,25 @@ static int tc_lavf_configure(TCModuleInstance *self,
 
     ret = tc_lavf_are_codec_compatible(pd, vob);
     ABORT_IF_FAILED(ret, self);
+    return TC_OK;
+}
 
+static int tc_lavf_open(TCModuleInstance *self, const char *filename)
+{
+    int ret = 0;
+    const struct fmt_desc *des = NULL;
+    TCLavfPrivateData *pd = NULL;
+    vob_t *vob = tc_get_vob();
+
+    TC_MODULE_SELF_CHECK(self, "configure");
+
+    pd = self->userdata;
+ 
     /* now we have a valid format */
     des = find_fmt_desc(by_id, &pd->fmt_id); // ugly;
     pd->mux_context->oformat = pd->mux_format;
 
-    ret = tc_lavf_open_file(pd, vob->video_out_file);
+    ret = tc_lavf_open_file(pd, filename);
     ABORT_IF_FAILED(ret, self);
     ret = tc_lavf_init_video_stream(pd, vob, des->lavf_flags);
     ABORT_IF_FAILED(ret, self);
@@ -694,6 +755,7 @@ static int tc_lavf_configure(TCModuleInstance *self,
     return TC_OK;
 }
 
+#if 0
 static double tc_lavf_get_stream_pts(const AVStream *st)
 {
     if (!st) {
@@ -701,35 +763,7 @@ static double tc_lavf_get_stream_pts(const AVStream *st)
     }
     return (double)st->pts.val * st->time_base.num / st->time_base.den;
 }
-
-static int tc_lavf_multiplex(TCModuleInstance *self,
-                             vframe_list_t *vframe, aframe_list_t *aframe)
-{
-    TCLavfPrivateData *pd = NULL;
-    int asize = 0, vsize = 0;
-
-    TC_MODULE_SELF_CHECK(self, "multiplex");
-
-    pd = self->userdata;
-
-    if (vframe && !aframe && pd->vstream) {
-        vsize = tc_lavf_multiplex_video(pd, vframe);
-    } else if (aframe && !vframe && pd->astream) {
-        asize = tc_lavf_multiplex_audio(pd, aframe);
-    } else if (aframe && vframe) {
-        pd->audio_pts = tc_lavf_get_stream_pts(pd->astream);
-        pd->video_pts = tc_lavf_get_stream_pts(pd->vstream);
-
-        /* write interleaved audio and video frames */
-        if (!pd->vstream || (pd->vstream && pd->astream
-          && (pd->audio_pts < pd->video_pts))) {
-            vsize = tc_lavf_multiplex_video(pd, vframe);
-        } else {
-            asize = tc_lavf_multiplex_audio(pd, aframe);
-        }
-    }
-    return vsize + asize;
-}
+#endif
 
 /*************************************************************************/
 
@@ -746,7 +780,10 @@ static const TCModuleClass tc_lavf_class = {
     .stop         = tc_lavf_stop,
     .inspect      = tc_lavf_inspect,
 
-    .multiplex    = tc_lavf_multiplex,
+    .open         = tc_lavf_open,
+    .close        = tc_lavf_close,
+    .write_audio  = tc_lavf_write_audio,
+    .write_video  = tc_lavf_write_video,
 };
 
 TC_MODULE_ENTRY_POINT(tc_lavf);
