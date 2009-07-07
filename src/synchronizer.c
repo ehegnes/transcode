@@ -28,6 +28,7 @@
 # include "config.h"
 #endif
 
+#include "tccore/tc_defaults.h"
 #include "aclib/ac.h"
 
 #include "synchronizer.h"

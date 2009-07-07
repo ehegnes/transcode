@@ -356,6 +356,8 @@ int main(int argc, char *argv[])
     int failed = 0;
     int opt;
 
+    libtc_init(&argc, &argv);
+ 
     /* Option processing */
     while ((opt = getopt(argc, argv, "hqv")) != EOF) {
         if (opt == 'q') {

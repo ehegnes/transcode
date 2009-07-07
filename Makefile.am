@@ -20,6 +20,7 @@ SUBDIRS = \
 	libtc \
 	libtcaudio \
 	libtcvideo \
+	libtcexport \
 	encode \
 	export \
 	filter \
@@ -27,6 +28,7 @@ SUBDIRS = \
 	multiplex \
 	$(PVM3) \
 	src \
+	tccore \
 	testsuite \
 	tools \
 	docs

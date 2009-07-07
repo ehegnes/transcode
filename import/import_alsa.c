@@ -304,6 +304,8 @@ static int tc_alsa_source_close(TCALSASource *handle)
 typedef struct tcalsaprivatedata_ TCALSAPrivateData;
 struct tcalsaprivatedata_ {
     TCALSASource handle;
+
+    char device[256];
 };
 
 
@@ -340,26 +342,37 @@ static int tc_alsa_configure(TCModuleInstance *self,
                              const char *options, vob_t *vob)
 {
     TCALSAPrivateData *priv = NULL;
-    int ret = 0;
-    char device[1024];
 
     TC_MODULE_SELF_CHECK(self, "configure");
 
     priv = self->userdata;
 
-    strlcpy(device, "default", TC_BUF_MAX);
+    strlcpy(priv->device, "default", sizeof(priv->device));
     if (options != NULL) {
-        optstr_get(options, "device", "%1024s", device);
-        device[1024-1] = '\0';
+        optstr_get(options, "device", "%255s", priv->device);
+        priv->device[256-1] = '\0';
         /* yeah, this is pretty ugly -- FR */
     }
+    return TC_OK;
+}
+
+static int tc_alsa_open(TCModuleInstance *self,
+                        const char *filename)
+{
+    TCALSAPrivateData *priv = NULL;
+    vob_t *vob = tc_get_vob();
+    int ret = 0;
+
+    TC_MODULE_SELF_CHECK(self, "configure");
+
+    priv = self->userdata;
  
     /* it would be nice to have some more validation in here */
-    ret = tc_alsa_source_open(&(priv->handle), device,
+    ret = tc_alsa_source_open(&(priv->handle), priv->device,
                               vob->a_rate, vob->a_bits, vob->a_chan);
     if (ret != 0) {
         tc_log_error(MOD_NAME, "configure: failed to open ALSA device"
-                               "'%s'", device);
+                               "'%s'", priv->device);
         return TC_ERROR;
     }
     return TC_OK;
@@ -379,10 +392,16 @@ static int tc_alsa_inspect(TCModuleInstance *self,
 
 static int tc_alsa_stop(TCModuleInstance *self)
 {
+    TC_MODULE_SELF_CHECK(self, "stop");
+    return TC_OK;
+}
+
+static int tc_alsa_close(TCModuleInstance *self)
+{
     TCALSAPrivateData *priv = NULL;
     int ret = 0;
 
-    TC_MODULE_SELF_CHECK(self, "stop");
+    TC_MODULE_SELF_CHECK(self, "close");
 
     priv = self->userdata;
 
@@ -395,36 +414,29 @@ static int tc_alsa_stop(TCModuleInstance *self)
     return TC_OK;
 }
 
-static int tc_alsa_demultiplex(TCModuleInstance *self,
-                               vframe_list_t *vframe, aframe_list_t *aframe)
+static int tc_alsa_read_audio(TCModuleInstance *self,
+                             TCFrameAudio *aframe)
 {
     TCALSAPrivateData *priv = NULL;
     int ret = TC_OK;
     size_t len = 0;
 
-    TC_MODULE_SELF_CHECK(self, "demultiplex");
+    TC_MODULE_SELF_CHECK(self, "read_audio");
     
     priv = self->userdata;
 
-    if (vframe != NULL) {
-        vframe->video_len = 0; /* no audio from here */
-        ret = TC_OK;
-    }
-
-    if (aframe != NULL) {
-        ret = tc_alsa_source_grab(&(priv->handle), aframe->audio_buf,
-                                  aframe->audio_size, &len);
-        aframe->audio_len = (size_t)len;
-    }
+    ret = tc_alsa_source_grab(&(priv->handle), aframe->audio_buf,
+                              aframe->audio_size, &len);
+    aframe->audio_len = (size_t)len;
     return ret;
 }
 
 /*************************************************************************/
 
-static const TCCodecID tc_alsa_codecs_in[] = { TC_CODEC_ERROR };
+static const TCCodecID tc_alsa_codecs_audio_in[] = { TC_CODEC_ERROR };
 
 /* a multiplexor is at the end of pipeline */
-static const TCCodecID tc_alsa_codecs_out[] = { 
+static const TCCodecID tc_alsa_codecs_audio_out[] = { 
     TC_CODEC_PCM,
     TC_CODEC_ERROR,
 };
@@ -435,18 +447,9 @@ static const TCFormatID tc_alsa_formats_in[] = {
 };
 
 static const TCFormatID tc_alsa_formats_out[] = { TC_FORMAT_ERROR };
+TC_MODULE_VIDEO_UNSUPPORTED(tc_alsa);
 
-static const TCModuleInfo tc_alsa_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = tc_alsa_codecs_in,
-    .codecs_out  = tc_alsa_codecs_out,
-    .formats_in  = tc_alsa_formats_in,
-    .formats_out = tc_alsa_formats_out
-};
+TC_MODULE_INFO(tc_alsa);
 
 static const TCModuleClass tc_alsa_class = {
     TC_MODULE_CLASS_HEAD(tc_alsa),
@@ -457,7 +460,9 @@ static const TCModuleClass tc_alsa_class = {
     .stop         = tc_alsa_stop,
     .inspect      = tc_alsa_inspect,
 
-    .demultiplex  = tc_alsa_demultiplex,
+    .open         = tc_alsa_open,
+    .close        = tc_alsa_close,
+    .read_audio   = tc_alsa_read_audio,
 };
 
 TC_MODULE_ENTRY_POINT(tc_alsa)

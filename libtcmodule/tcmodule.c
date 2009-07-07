@@ -34,11 +34,12 @@
 #include <string.h>
 
 #include "libtc/tccodecs.h"
-
-#include "src/transcode.h"
+#include "libtcutil/tcutil.h"
+#include "tccore/tc_defaults.h"
 
 #include "tcmodule-data.h"
 #include "tcmodule-core.h"
+#include "tcmodule-plugin.h"
 
 
 #define TC_FACTORY_MAX_HANDLERS     (16)
@@ -60,35 +61,33 @@ typedef enum {
 
 typedef struct tcmoduledescriptor_ TCModuleDescriptor;
 struct tcmoduledescriptor_ {
-    const char *type;       /* packed class + name using make_modtype below */
-    void *so_handle;        /* used by dl*() stuff */
-    TCHandleStatus status;
-    TCModuleInfo info;
+    const char      *type;      /* packed class + name using make_modtype below */
+    void            *so_handle; /* used by dl*() stuff */
+    TCHandleStatus  status;
+    TCModuleInfo    info;
 
     /* main copy of module class data.
      * all instance pointers will refer to this. */
-    TCModuleClass klass;
+    TCModuleClass   klass;
 
-    int ref_count;           /* how many instances are floating around? */
+    int             ref_count;  /* how many instances are floating around? */
 };
 
 struct tcfactory_ {
-    const char *mod_path;   /* base directory for plugin search */
-    int verbose;
+    const char          *mod_path;   /* base directory for plugin search */
+    int                 verbose;
 
-    TCModuleDescriptor descriptors[TC_FACTORY_MAX_HANDLERS];
-    int descriptor_count;
+    TCModuleDescriptor  descriptors[TC_FACTORY_MAX_HANDLERS];
+    int                 descriptor_count;
 
-    int instance_count;
+    int                 instance_count;
 };
 
 /*************************************************************************
- * dummy/fake default module class. Always fails complaining loudly.     *
- * Using this as default, every module class has already valid           *
- * (but sometimes useless) pointers to every method.                     *
+ * WRITEME
  *************************************************************************/
 
-#define DUMMY_HEAVY_CHECK(self, method_name) do { \
+#define METHOD_CHECK(self, method_name) do { \
     if (self != NULL) { \
         tc_log_warn(self->type, "critical: module doesn't provide" \
                                 " %s method", method_name); \
@@ -98,157 +97,238 @@ struct tcfactory_ {
     } \
 } while (0)
 
-#define DUMMY_CHECK(self, method_name) do { \
-    if (self != NULL) { \
-        tc_log_warn(self->type, \
-                    "module doesn't provide %s method", method_name); \
-    } else { \
-        tc_log_error(__FILE__, "%s method missing AND bad" \
-                               " instance pointer", method_name); \
-    } \
-} while (0)
-
-
-static int dummy_init(TCModuleInstance *self, uint32_t features)
+static int void_init(TCModuleInstance *self, uint32_t features)
 {
-    DUMMY_HEAVY_CHECK(self, "initialization");
+    METHOD_CHECK(self, "initialization");
     return TC_ERROR;
 }
 
-static int dummy_fini(TCModuleInstance *self)
+static int void_fini(TCModuleInstance *self)
 {
-    DUMMY_HEAVY_CHECK(self, "finalization");
+    METHOD_CHECK(self, "finalization");
     return TC_ERROR;
 }
 
-static int dummy_configure(TCModuleInstance *self,
-                            const char *options, vob_t *vob)
+static int void_configure(TCModuleInstance *self,
+                          const char *options, vob_t *vob,
+                          TCModuleExtraData *xdata[])
 {
-    DUMMY_HEAVY_CHECK(self, "configuration");
+    METHOD_CHECK(self, "configuration");
     return TC_ERROR;
 }
 
-static int dummy_stop(TCModuleInstance *self)
+static int void_stop(TCModuleInstance *self)
 {
-    DUMMY_HEAVY_CHECK(self, "stopping");
+    METHOD_CHECK(self, "stopping");
     return TC_ERROR;
 }
 
-static int dummy_inspect(TCModuleInstance *self,
+static int void_inspect(TCModuleInstance *self,
                          const char *param, const char **value)
 {
-    DUMMY_HEAVY_CHECK(self, "inspect");
+    METHOD_CHECK(self, "inspect");
     return TC_ERROR;
 }
 
-static int dummy_encode_video(TCModuleInstance *self,
-                              vframe_list_t *inframe,
-                              vframe_list_t *outframe)
+#undef METHOD_CHECK
+
+/*************************************************************************/
+
+#define MOD_FEATURES TC_MODULE_FEATURE_NONE
+#define MOD_FLAGS TC_MODULE_FLAG_NONE
+#define MOD_VERSION "0.0.0"
+#define MOD_NAME "void"
+#define MOD_CAP "internal void module"
+#define MOD_DESCRIPTION "internal void module"
+
+
+static int void_open(TCModuleInstance *self,
+                     const char *filename,
+                     TCModuleExtraData *xdata[])
 {
-    DUMMY_CHECK(self, "encode_video");
-    return TC_ERROR;
+    TC_MODULE_SELF_CHECK(self,     "open");
+    TC_MODULE_SELF_CHECK(filename, "open");
+
+    return TC_OK;
 }
 
-static int dummy_encode_audio(TCModuleInstance *self,
-                              aframe_list_t *inframe,
-                              aframe_list_t *outframe)
+static int void_close(TCModuleInstance *self)
 {
-    DUMMY_CHECK(self, "encode_audio");
-    return TC_ERROR;
+    TC_MODULE_SELF_CHECK(self, "close");
+
+    return TC_OK;
 }
 
-static int dummy_decode_video(TCModuleInstance *self,
-                              vframe_list_t *inframe,
-                              vframe_list_t *outframe)
+static int void_encode_video(TCModuleInstance *self,
+                             TCFrameVideo *inframe,
+                             TCFrameVideo *outframe)
 {
-    DUMMY_CHECK(self, "decode_video");
-    return TC_ERROR;
+    TC_MODULE_SELF_CHECK(self,     "encode_video");
+    TC_MODULE_SELF_CHECK(inframe,  "encode_video");
+    TC_MODULE_SELF_CHECK(outframe, "encode_video");
+
+    outframe->video_len = 0;
+    return TC_OK;
 }
 
-static int dummy_decode_audio(TCModuleInstance *self,
-                              aframe_list_t *inframe,
-                              aframe_list_t *outframe)
+static int void_encode_audio(TCModuleInstance *self,
+                             TCFrameAudio *inframe,
+                             TCFrameAudio *outframe)
 {
-    DUMMY_CHECK(self, "decode_audio");
-    return TC_ERROR;
+    TC_MODULE_SELF_CHECK(self,     "encode_audio");
+    TC_MODULE_SELF_CHECK(inframe,  "encode_audio");
+    TC_MODULE_SELF_CHECK(outframe, "encode_audio");
+
+    outframe->audio_len = 0;
+    return TC_OK;
 }
 
-static int dummy_filter_video(TCModuleInstance *self,
-                              vframe_list_t *frame)
+static int void_decode_video(TCModuleInstance *self,
+                             TCFrameVideo *inframe,
+                             TCFrameVideo *outframe)
 {
-    DUMMY_CHECK(self, "filter_video");
-    return TC_ERROR;
+    TC_MODULE_SELF_CHECK(self,     "decode_video");
+    TC_MODULE_SELF_CHECK(inframe,  "decode_video");
+    TC_MODULE_SELF_CHECK(outframe, "decode_video");
+
+    outframe->video_len = 0;
+    return TC_OK;
 }
 
-static int dummy_filter_audio(TCModuleInstance *self,
-                              aframe_list_t *frame)
+static int void_decode_audio(TCModuleInstance *self,
+                             TCFrameAudio *inframe,
+                             TCFrameAudio *outframe)
 {
-    DUMMY_CHECK(self, "filter_audio");
-    return TC_ERROR;
+    TC_MODULE_SELF_CHECK(self,     "decode_audio");
+    TC_MODULE_SELF_CHECK(inframe,  "decode_audio");
+    TC_MODULE_SELF_CHECK(outframe, "decode_audio");
+
+    outframe->audio_len = 0;
+    return TC_OK;
 }
 
-static int dummy_multiplex(TCModuleInstance *self,
-                           vframe_list_t *vframe, aframe_list_t *aframe)
+static int void_flush_video(TCModuleInstance *self,
+                            TCFrameVideo *frame)
 {
-    DUMMY_CHECK(self, "multiplex");
-    return TC_ERROR;
+    TC_MODULE_SELF_CHECK(self,  "flush_video");
+    TC_MODULE_SELF_CHECK(frame, "flush_video");
+
+    frame->video_len = 0;
+    return TC_OK;
 }
 
-static int dummy_demultiplex(TCModuleInstance *self,
-                             vframe_list_t *vframe, aframe_list_t *aframe)
+static int void_flush_audio(TCModuleInstance *self,
+                            TCFrameAudio *frame)
 {
-    DUMMY_CHECK(self, "demultiplex");
-    return TC_ERROR;
+    TC_MODULE_SELF_CHECK(self,  "flush_audio");
+    TC_MODULE_SELF_CHECK(frame, "flush_audio");
+
+    frame->audio_len = 0;
+    return TC_OK;
 }
 
-#undef DUMMY_HEAVY_CHECK
-#undef DUMMY_CHECK
+static int void_filter_video(TCModuleInstance *self,
+                             TCFrameVideo *frame)
+{
+    TC_MODULE_SELF_CHECK(self,  "filter_video");
+    TC_MODULE_SELF_CHECK(frame, "filter_video");
+    return TC_OK;
+}
 
-static const TCCodecID dummy_codecs_in[] = { 
+static int void_filter_audio(TCModuleInstance *self,
+                             TCFrameAudio *frame)
+{
+    TC_MODULE_SELF_CHECK(self,  "filter_audio");
+    TC_MODULE_SELF_CHECK(frame, "filter_audio");
+    return TC_OK;
+}
+
+static int void_write_video(TCModuleInstance *self,
+                            TCFrameVideo *frame)
+{
+    TC_MODULE_SELF_CHECK(self,  "write_video");
+    TC_MODULE_SELF_CHECK(frame, "write_video");
+    return 0;
+}
+
+static int void_write_audio(TCModuleInstance *self,
+                            TCFrameAudio *frame)
+{
+    TC_MODULE_SELF_CHECK(self,  "write_audio");
+    TC_MODULE_SELF_CHECK(frame, "write_audio");
+    return 0;
+}
+
+
+static int void_read_video(TCModuleInstance *self,
+                           TCFrameVideo *frame)
+{
+    TC_MODULE_SELF_CHECK(self,  "read_video");
+    TC_MODULE_SELF_CHECK(frame, "read_video");
+    return 0;
+}
+
+static int void_read_audio(TCModuleInstance *self,
+                           TCFrameAudio *frame)
+{
+    TC_MODULE_SELF_CHECK(self,  "read_audio");
+    TC_MODULE_SELF_CHECK(frame, "read_audio");
+    return 0;
+}
+
+
+/*************************************************************************/
+
+static const TCCodecID void_codecs_video_in[] = { 
     TC_CODEC_ANY, TC_CODEC_ERROR 
 };
-static const TCCodecID dummy_codecs_out[] = { 
+static const TCCodecID void_codecs_video_out[] = { 
     TC_CODEC_ANY, TC_CODEC_ERROR 
 };
-static const TCFormatID dummy_formats_in[] = { 
-    TC_FORMAT_RAW, TC_FORMAT_ERROR 
+static const TCCodecID void_codecs_audio_in[] = { 
+    TC_CODEC_ANY, TC_CODEC_ERROR 
 };
-static const TCFormatID dummy_formats_out[] = { 
-    TC_FORMAT_RAW, TC_FORMAT_ERROR 
+static const TCCodecID void_codecs_audio_out[] = { 
+    TC_CODEC_ANY, TC_CODEC_ERROR 
 };
-
-static TCModuleInfo dummy_info = {
-    .features    = TC_MODULE_FEATURE_NONE,
-    .flags       = TC_MODULE_FLAG_NONE,
-    .name        = "dummy",
-    .version     = "internal fake module class",
-    .description = "can't do anyhing",
-    .codecs_in   = dummy_codecs_in,
-    .codecs_out  = dummy_codecs_out,
-    .formats_in  = dummy_formats_in,
-    .formats_out = dummy_formats_out
+static const TCFormatID void_formats_in[] = { 
+    TC_FORMAT_ANY, TC_FORMAT_ERROR 
+};
+static const TCFormatID void_formats_out[] = { 
+    TC_FORMAT_ANY, TC_FORMAT_ERROR 
 };
 
-static const TCModuleClass dummy_class = {
+TC_MODULE_INFO(void);
+
+static const TCModuleClass void_class = {
     .id           = 0,
 
-    .info         = &dummy_info,
+    .info         = &void_info,
 
-    .init         = dummy_init,
-    .fini         = dummy_fini,
-    .configure    = dummy_configure,
-    .inspect      = dummy_inspect,
-    .stop         = dummy_stop,
+    .init         = void_init,
+    .fini         = void_fini,
+    .configure    = void_configure,
+    .inspect      = void_inspect,
+    .stop         = void_stop,
 
-    .encode_audio = dummy_encode_audio,
-    .encode_video = dummy_encode_video,
-    .decode_audio = dummy_decode_audio,
-    .decode_video = dummy_decode_video,
-    .filter_audio = dummy_filter_audio,
-    .filter_video = dummy_filter_video,
+    .open         = void_open,
+    .close        = void_close,
 
-    .multiplex    = dummy_multiplex,
-    .demultiplex  = dummy_demultiplex
+    .encode_audio = void_encode_audio,
+    .encode_video = void_encode_video,
+    .decode_audio = void_decode_audio,
+    .decode_video = void_decode_video,
+    .filter_audio = void_filter_audio,
+    .filter_video = void_filter_video,
+
+    .flush_video  = void_flush_video,
+    .flush_audio  = void_flush_audio,
+
+    .read_video   = void_read_video,
+    .read_audio   = void_read_audio,
+
+    .write_video  = void_write_video,
+    .write_audio  = void_write_audio,
 };
 
 /*************************************************************************
@@ -444,7 +524,7 @@ static int descriptor_init(TCModuleDescriptor *desc, void *unused)
     }
 
     desc->status = TC_DESCRIPTOR_FREE;
-    memcpy(&(desc->info), &dummy_info, sizeof(TCModuleInfo));
+    memcpy(&(desc->info), &void_info, sizeof(TCModuleInfo));
     desc->klass.info = &(desc->info);
     desc->type = NULL;
     desc->so_handle = NULL;
@@ -575,14 +655,18 @@ static int tc_module_class_copy(const TCModuleClass *klass,
 
     nklass->info      = klass->info;
 
+    COPY_IF_NOT_NULL(open);
+    COPY_IF_NOT_NULL(close);
     COPY_IF_NOT_NULL(encode_audio);
     COPY_IF_NOT_NULL(encode_video);
     COPY_IF_NOT_NULL(decode_audio);
     COPY_IF_NOT_NULL(decode_video);
     COPY_IF_NOT_NULL(filter_audio);
     COPY_IF_NOT_NULL(filter_video);
-    COPY_IF_NOT_NULL(multiplex);
-    COPY_IF_NOT_NULL(demultiplex);
+    COPY_IF_NOT_NULL(write_video);
+    COPY_IF_NOT_NULL(write_video);
+    COPY_IF_NOT_NULL(read_video);
+    COPY_IF_NOT_NULL(read_audio);
 
     return 0;
 }
@@ -749,7 +833,7 @@ static int tc_load_module(TCFactory factory,
     desc->status = TC_DESCRIPTOR_CREATED;
 
     /* soft copy is enough here, since information will be overwritten */
-    tc_module_class_copy(&dummy_class, &(desc->klass));
+    tc_module_class_copy(&void_class, &(desc->klass));
 
     modentry = dlsym(desc->so_handle, "tc_plugin_setup");
     if (!modentry) {

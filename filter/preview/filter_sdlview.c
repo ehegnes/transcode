@@ -20,7 +20,7 @@
 
 
 #define MOD_NAME        "filter_sdlview.so"
-#define MOD_VERSION     "v1.0.2 (2007-12-08)"
+#define MOD_VERSION     "v1.0.3 (2009-02-07)"
 #define MOD_CAP         "preview video frames using SDL"
 #define MOD_AUTHOR      "Francesco Romani"
 
@@ -310,12 +310,13 @@ static int sdlview_filter_video(TCModuleInstance *self, vframe_list_t *frame)
 
 /*************************************************************************/
 
-static const TCCodecID sdlview_codecs_in[] = { 
+static const TCCodecID sdlview_codecs_video_in[] = { 
     TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_RGB24, TC_CODEC_ERROR 
 };
-static const TCCodecID sdlview_codecs_out[] = { 
+static const TCCodecID sdlview_codecs_video_out[] = { 
     TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_RGB24, TC_CODEC_ERROR 
 };
+TC_MODULE_AUDIO_UNSUPPORTED(sdlview);
 TC_MODULE_FILTER_FORMATS(sdlview);
 
 TC_MODULE_INFO(sdlview);

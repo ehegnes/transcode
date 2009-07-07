@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_invert.so"
-#define MOD_VERSION "v0.1.5 (2007-07-29)"
+#define MOD_VERSION "v0.1.6 (2009-02-07)"
 #define MOD_CAP     "invert the image"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
@@ -202,12 +202,13 @@ static int invert_filter_video(TCModuleInstance *self, vframe_list_t *frame)
 
 /*************************************************************************/
 
-static const TCCodecID invert_codecs_in[] = { 
+static const TCCodecID invert_codecs_video_in[] = { 
     TC_CODEC_RGB24, TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_ERROR
 };
-static const TCCodecID invert_codecs_out[] = {
+static const TCCodecID invert_codecs_video_out[] = {
     TC_CODEC_RGB24, TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_ERROR
 };
+TC_MODULE_AUDIO_UNSUPPORTED(invert);
 TC_MODULE_FILTER_FORMATS(invert);
 
 TC_MODULE_INFO(invert);

@@ -89,27 +89,10 @@ static int null_stop(TCModuleInstance *self)
     return TC_OK;
 }
 
-static int null_multiplex(TCModuleInstance *self,
-                         vframe_list_t *vframe, aframe_list_t *aframe)
-{
-    int asize = 0, vsize = 0;
-
-    TC_MODULE_SELF_CHECK(self, "multiplex");
-
-    if (vframe != NULL) {
-        vsize = vframe->video_len;
-    }
-
-    if (aframe != NULL) {
-        asize = aframe->audio_len;
-    }
-
-    return vsize + asize;
-}
-
 /*************************************************************************/
 
-static const TCCodecID null_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static const TCCodecID null_codecs_video_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static const TCCodecID null_codecs_audio_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
 static const TCFormatID null_formats_out[] = { TC_FORMAT_NULL, TC_FORMAT_ERROR };
 /* a multiplexor is at the end of pipeline */
 TC_MODULE_MPLEX_FORMATS_CODECS(null);
@@ -124,8 +107,6 @@ static const TCModuleClass null_class = {
     .configure    = null_configure,
     .stop         = null_stop,
     .inspect      = null_inspect,
-
-    .multiplex    = null_multiplex,
 };
 
 TC_MODULE_ENTRY_POINT(null)

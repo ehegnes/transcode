@@ -1,5 +1,5 @@
 /*
- *  encoder-common.h -- asynchronous encoder runtime control and statistics.
+ *  runcontrol.h -- asynchronous transcode runtime control.
  *
  *  Copyright (C) Thomas Oestreich - June 2001
  *  Updated and partially rewritten by
@@ -23,44 +23,8 @@
  *
  */
 
-#ifndef ENCODER_COMMON_H
-#define ENCODER_COMMON_H
-
-/*
- * MULTITHREADING NOTE:
- * It is *GUARANTEED SAFE* to call those functions from different threads.
- */
-/*************************************************************************/
-
-/*
- * tc_get_frames_{dropped,skipped,encoded,cloned,skipped_cloned}:
- *     get the current value of a frame counter.
- *
- * Parameters:
- *     None
- * Return Value:
- *     the current value of requested counter
- */
-uint32_t tc_get_frames_dropped(void);
-uint32_t tc_get_frames_skipped(void);
-uint32_t tc_get_frames_encoded(void);
-uint32_t tc_get_frames_cloned(void);
-uint32_t tc_get_frames_skipped_cloned(void);
-
-/*
- * tc_update_frames_{dropped,skipped,encoded,cloned}:
- *     update the current value of a frame counter of a given value.
- *
- * Parameters:
- *     val: value to be added to the current value of requested counter.
- *     This parameter is usually just '1' (one)
- * Return Value:
- *     None
- */
-void tc_update_frames_dropped(uint32_t val);
-void tc_update_frames_skipped(uint32_t val);
-void tc_update_frames_encoded(uint32_t val);
-void tc_update_frames_cloned(uint32_t val);
+#ifndef RUNCONTROL_H
+#define RUNCONTROL_H
 
 /*************************************************************************/
 
@@ -94,15 +58,31 @@ void tc_pause_request(void);
 void tc_pause(void);
 
 /*************************************************************************/
-/*                   encoder (core) run control                          */
+/*                         core run control                              */
 /*************************************************************************/
 
 typedef enum tcrunstatus_ TCRunStatus;
 enum tcrunstatus_  {
-    TC_STATUS_RUNNING = 0,       /* default condition                    */
-    TC_STATUS_STOPPED = 1,       /* regular stop or end of stream reched */
-    TC_STATUS_INTERRUPTED = -1,  /* forced interruption (^C)             */
+    TC_STATUS_RUNNING = 0,      /* default condition                     */
+    TC_STATUS_STOPPED = 1,      /* regular stop or end of stream reached */
+    TC_STATUS_INTERRUPTED = -1, /* forced interruption (^C)              */
 };
+
+typedef struct tcruncontrol_ TCRunControl;
+struct tcruncontrol_ {
+    void *priv;
+
+    void        (*pause)(TCRunControl *RC);
+    TCRunStatus (*status)(TCRunControl *RC); 
+    void        (*progress)(TCRunControl *RC,
+                            int encoding, int frame, int first, int last);
+};
+
+int tc_runcontrol_init(void);
+
+int tc_runcontrol_fini(void);
+
+TCRunControl *tc_runcontrol_get_instance(void);
 
 /*
  * tc_interrupt: perform an hard stop of encoder core. 
@@ -185,4 +165,4 @@ int tc_running(void);
  */
 void tc_start(void);
 
-#endif /* ENCODER_COMMON_H */
+#endif /* RUNCONTROL_H */

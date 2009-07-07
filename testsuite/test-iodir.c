@@ -118,8 +118,10 @@ static int test_expected_failures(void)
     return 0;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
+    libtc_init(&argc, &argv);
+
     test_simple_scan();
     test_sortbuf_scan();
     test_expected_failures();

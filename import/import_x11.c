@@ -120,6 +120,7 @@ struct tcx11privatedata_ {
 
     int64_t skew;       /* take in account excess of retard (ms)   */
     int64_t skew_limit; /* how much (ms) skew we can tolerate?     */
+    int codec;
 };
 
 
@@ -185,11 +186,12 @@ static int tc_x11_configure(TCModuleInstance *self,
         }
     }
 
-    priv->skew = 0;
-    priv->reftime = 0;
-    priv->expired = 0;
+    priv->skew        = 0;
+    priv->reftime     = 0;
+    priv->expired     = 0;
     priv->frame_delay = (uint64_t)(1000000.0 / vob->fps); /* microseconds */
-    priv->skew_limit = priv->frame_delay / frame_delay_divs[skew_lim];
+    priv->skew_limit  = priv->frame_delay / frame_delay_divs[skew_lim];
+    priv->codec       = vob->im_v_codec;
 
     if (verbose >= TC_DEBUG) {
         tc_log_info(MOD_NAME, "frame delay: %lu ms",
@@ -204,20 +206,31 @@ static int tc_x11_configure(TCModuleInstance *self,
         tc_log_error(MOD_NAME, "configure: can't initialize timer");
         return TC_ERROR;
     }
+    return TC_OK;
+}
 
+static int tc_x11_open(TCModuleInstance *self, const char *filename)
+{
+    TCX11PrivateData *priv = NULL;
+    int ret = 0;
+
+    TC_MODULE_SELF_CHECK(self, "configure");
+
+    priv = self->userdata;
+ 
     /* nothing to do here, yet */
-    ret = tc_x11source_is_display_name(vob->video_in_file);
+    ret = tc_x11source_is_display_name(filename);
     if (ret == TC_FALSE) {
         tc_log_error(MOD_NAME, "configure: given source doesn't look like"
                                " a DISPLAY specifier");
         return TC_ERROR;
     }
 
-    ret = tc_x11source_open(&priv->src, vob->video_in_file,
-                            TC_X11_MODE_BEST, vob->im_v_codec);
+    ret = tc_x11source_open(&priv->src, filename,
+                            TC_X11_MODE_BEST, priv->codec);
     if (ret != 0) {
         tc_log_error(MOD_NAME, "configure: failed to open X11 connection"
-                               " to '%s'", vob->video_in_file);
+                               " to '%s'", filename);
         return TC_ERROR;
     }
 
@@ -236,6 +249,27 @@ static int tc_x11_inspect(TCModuleInstance *self,
     return TC_OK;
 }
 
+static int tc_x11_close(TCModuleInstance *self)
+{
+    TCX11PrivateData *priv = NULL;
+    int ret = 0;
+
+    TC_MODULE_SELF_CHECK(self, "close");
+
+    priv = self->userdata;
+
+    ret = tc_x11source_close(&priv->src);
+    if (ret != 0) {
+        tc_log_error(MOD_NAME, "stop: failed to close X11 connection");
+        return TC_ERROR;
+    }
+    if (verbose >= TC_DEBUG) {
+        tc_log_info(MOD_NAME, "expired frames count: %lu",
+                              (unsigned long)priv->expired);
+    }
+    return TC_OK;
+}
+ 
 static int tc_x11_stop(TCModuleInstance *self)
 {
     TCX11PrivateData *priv = NULL;
@@ -245,27 +279,17 @@ static int tc_x11_stop(TCModuleInstance *self)
 
     priv = self->userdata;
 
-    ret = tc_x11source_close(&priv->src);
-    if (ret != 0) {
-        tc_log_error(MOD_NAME, "stop: failed to close X11 connection");
-        return TC_ERROR;
-    }
-
     ret = tc_timer_fini(&priv->timer);
     if (ret != 0) {
         tc_log_error(MOD_NAME, "stop: failed to stop timer");
         return TC_ERROR;
     }
 
-    if (verbose >= TC_DEBUG) {
-        tc_log_info(MOD_NAME, "expired frames count: %lu",
-                              (unsigned long)priv->expired);
-    }
-    return TC_OK;
+   return TC_OK;
 }
 
-static int tc_x11_demultiplex(TCModuleInstance *self,
-                              vframe_list_t *vframe, aframe_list_t *aframe)
+static int tc_x11_read_video(TCModuleInstance *self,
+                             vframe_list_t *vframe)
 {
     TCX11PrivateData *priv = NULL;
     uint64_t now = 0;
@@ -276,47 +300,38 @@ static int tc_x11_demultiplex(TCModuleInstance *self,
 
     priv->reftime = tc_gettime();
 
-    tdebug(priv, "begin demultiplex");
+    tdebug(priv, "  begin acquire");
 
-    if (aframe != NULL) {
-        aframe->audio_len = 0; /* no audio from here */
-    }
+    ret = tc_x11source_acquire(&priv->src, vframe->video_buf,
+                               vframe->video_size);
 
-    if (vframe != NULL) {
-        tdebug(priv, "  begin acquire");
+    tdebug(priv, "  end acquire");
 
-        ret = tc_x11source_acquire(&priv->src, vframe->video_buf,
-                                   vframe->video_size);
-
-        tdebug(priv, "  end acquire");
-
-        if (ret > 0) {
-            int64_t naptime = 0;
-            uint64_t now = 0;
+    if (ret > 0) {
+        int64_t naptime = 0;
+        uint64_t now = 0;
             
-            vframe->attributes |= TC_FRAME_IS_KEYFRAME;
-            vframe->video_len = ret;
+        vframe->attributes |= TC_FRAME_IS_KEYFRAME;
+        vframe->video_len = ret;
        
-            now = tc_gettime();
-            naptime = (priv->frame_delay - (now - priv->reftime));
+        now = tc_gettime();
+        naptime = (priv->frame_delay - (now - priv->reftime));
+        if (priv->skew >= priv->skew_limit) {
+            tc_log_info(MOD_NAME, "  skew correction (naptime was %lu)", 
+                                  (unsigned long)naptime);
+            int64_t t = naptime;
+            naptime -= priv->skew;
+            priv->skew = TC_MAX(0, priv->skew - t);
+        }
 
-            if (priv->skew >= priv->skew_limit) {
-                tc_log_info(MOD_NAME, "  skew correction (naptime was %lu)", 
-                                      (unsigned long)naptime);
-                int64_t t = naptime;
-                naptime -= priv->skew;
-                priv->skew = TC_MAX(0, priv->skew - t);
-            }
-
-            if (naptime <= 0) {
-                /* don't sleep at all if delay is already excessive */
-                tc_log_info(MOD_NAME, "%-18s", "  NO SLEEP!");
-                priv->expired++;
-            } else {
-                tc_log_info(MOD_NAME, "%-18s %lu", "  sleep time",
-                                      (unsigned long)(naptime));
-                tc_timer_sleep(&priv->timer, (uint64_t)naptime);
-            }
+        if (naptime <= 0) {
+            /* don't sleep at all if delay is already excessive */
+            tc_log_info(MOD_NAME, "%-18s", "  NO SLEEP!");
+            priv->expired++;
+        } else {
+            tc_log_info(MOD_NAME, "%-18s %lu", "  sleep time",
+                                  (unsigned long)(naptime));
+            tc_timer_sleep(&priv->timer, (uint64_t)naptime);
         }
     }
 
@@ -333,27 +348,19 @@ static int tc_x11_demultiplex(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const TCCodecID tc_x11_codecs_in[] = { TC_CODEC_ERROR };
-
-/* a multiplexor is at the end of pipeline */
-static const TCCodecID tc_x11_codecs_out[] = { 
+static const TCCodecID tc_x11_codecs_video_in[] = { 
+    TC_CODEC_ERROR 
+};
+/* a demultiplexor is at the beginning of pipeline */
+static const TCCodecID tc_x11_codecs_video_out[] = { 
     TC_CODEC_RGB24, TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_ERROR 
 };
 
 static const TCFormatID tc_x11_formats_in[] = { TC_FORMAT_X11, TC_FORMAT_ERROR };
 static const TCFormatID tc_x11_formats_out[] = { TC_FORMAT_ERROR };
+TC_MODULE_AUDIO_UNSUPPORTED(tc_x11);
 
-static const TCModuleInfo tc_x11_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = tc_x11_codecs_in,
-    .codecs_out  = tc_x11_codecs_out,
-    .formats_in  = tc_x11_formats_in,
-    .formats_out = tc_x11_formats_out
-};
+TC_MODULE_INFO(tc_x11);
 
 static const TCModuleClass tc_x11_class = {
     TC_MODULE_CLASS_HEAD(tc_x11),
@@ -364,7 +371,9 @@ static const TCModuleClass tc_x11_class = {
     .stop         = tc_x11_stop,
     .inspect      = tc_x11_inspect,
 
-    .demultiplex  = tc_x11_demultiplex,
+    .open         = tc_x11_open,
+    .close        = tc_x11_close,
+    .read_video   = tc_x11_read_video,
 };
 
 TC_MODULE_ENTRY_POINT(tc_x11)
@@ -411,6 +420,9 @@ MOD_open
     ret = tc_x11_configure(&mod_video, "", vob);
     RETURN_IF_FAILED(ret);
 
+    ret = tc_x11_open(&mod_video, vob->video_in_file);
+    RETURN_IF_FAILED(ret);
+
     return TC_OK;
 }
 
@@ -425,7 +437,7 @@ MOD_decode
     vframe.video_buf = param->buffer;
     vframe.video_size = param->size;
 
-    ret = tc_x11_demultiplex(&mod_video, &vframe, NULL);
+    ret = tc_x11_read_video(&mod_video, &vframe);
 
     if (ret <= 0) {
         /* well, frames from X11 never "ends", really :) */
@@ -442,7 +454,10 @@ MOD_close
     int ret;
 
     COMMON_CHECK(param);
-    
+
+    ret = tc_x11_close(&mod_video);
+    RETURN_IF_FAILED(ret);
+
     ret = tc_x11_stop(&mod_video);
     RETURN_IF_FAILED(ret);
 

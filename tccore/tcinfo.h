@@ -8,12 +8,12 @@
  * for details.
  */
 
-#ifndef TCINFO_H
-#define TCINFO_H
+#ifndef TCCORE_INFO_H
+#define TCCORE_INFO_H
 
-#ifndef PROBE_H
-# include "probe.h"  // for ProbeInfo
-#endif
+#include <stdint.h>
+
+#include "probe.h"  // for ProbeInfo
 
 /*************************************************************************/
 
@@ -99,6 +99,13 @@ struct tcarea_ {
     int right;
 };
 
+typedef struct tcmoduledescription_ TCModuleDescription;
+struct tcmoduledescription_ {
+    char *parm;
+    char *name;
+    char *opts;
+};
+
 typedef struct tcexportinfo_ TCExportInfo;
 struct tcexportinfo_ {
     uint32_t attributes;
@@ -120,9 +127,7 @@ struct tcexportinfo_ {
      * bitrate     : MEAN video bitrate to use (kbps) in encoding.
      */
     struct {
-        char *string;
-        char *module;
-        char *module_opts;
+	TCModuleDescription module;
         
         TCCodecID format;
         int quality;
@@ -174,9 +179,7 @@ struct tcexportinfo_ {
     } video;
 
     struct {
-        char *string;
-        char *module;
-        char *module_opts;
+	TCModuleDescription module;
 
         TCCodecID format;
         int quality;
@@ -195,9 +198,8 @@ struct tcexportinfo_ {
     } audio;
 
     struct {
-        char *string;
-        char *module;
-        char *module_opts;
+	TCModuleDescription module;
+	TCModuleDescription module_aux;
 
         char *out_file; /* self explanatory :) */
         char *out_file_aux; 
@@ -210,7 +212,7 @@ struct tcexportinfo_ {
 
 /*************************************************************************/
 
-#endif  // TCINFO_H
+#endif  // TCCORE_INFO_H
 
 /*
  * Local variables:

@@ -25,7 +25,7 @@
 #include "libtcmodule/tcmodule-plugin.h"
 
 #define MOD_NAME    "encode_null.so"
-#define MOD_VERSION "v0.0.3 (2005-06-05)"
+#define MOD_VERSION "v0.0.4 (2009-02-07)"
 #define MOD_CAP     "null (fake) A/V encoder"
 
 #define MOD_FEATURES \
@@ -63,7 +63,9 @@ static int null_fini(TCModuleInstance *self)
 }
 
 static int null_configure(TCModuleInstance *self,
-                          const char *options, vob_t *vob)
+                          const char *options,
+                          TCJob *vob,
+                          TCModuleExtraData *xdata[])
 {
     TC_MODULE_SELF_CHECK(self, "configure");
 
@@ -89,29 +91,20 @@ static int null_stop(TCModuleInstance *self)
     return TC_OK;
 }
 
-static int null_encode_video(TCModuleInstance *self,
-                              vframe_list_t *inframe, vframe_list_t *outframe)
-{
-    TC_MODULE_SELF_CHECK(self, "encode_video");
-
-    outframe->video_len = 0;
-    return TC_OK;
-}
-
-static int null_encode_audio(TCModuleInstance *self,
-                              aframe_list_t *inframe, aframe_list_t *outframe)
-{
-    TC_MODULE_SELF_CHECK(self, "encode_audio");
-
-    outframe->audio_len = 0;
-    return TC_OK;
-}
-
-
 /*************************************************************************/
 
-static const TCCodecID null_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
-static const TCCodecID null_codecs_out[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static const TCCodecID null_codecs_video_in[] = { 
+    TC_CODEC_ANY, TC_CODEC_ERROR 
+};
+static const TCCodecID null_codecs_video_out[] = { 
+    TC_CODEC_ANY, TC_CODEC_ERROR 
+};
+static const TCCodecID null_codecs_audio_in[] = { 
+    TC_CODEC_ANY, TC_CODEC_ERROR 
+};
+static const TCCodecID null_codecs_audio_out[] = { 
+    TC_CODEC_ANY, TC_CODEC_ERROR 
+};
 TC_MODULE_CODEC_FORMATS(null);
 
 TC_MODULE_INFO(null);
@@ -124,9 +117,6 @@ static const TCModuleClass null_class = {
     .configure    = null_configure,
     .stop         = null_stop,
     .inspect      = null_inspect,
-
-    .encode_video = null_encode_video,
-    .encode_audio = null_encode_audio,
 };
 
 TC_MODULE_ENTRY_POINT(null)

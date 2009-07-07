@@ -99,8 +99,10 @@ static int test_strndup(size_t n)
     return 0;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
+    libtc_init(&argc, &argv);
+
     test_strdup();
 
     test_strndup(0);

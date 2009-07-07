@@ -23,6 +23,8 @@
  *
  */
 
+#include "libtcexport/export.h"
+
 #include "transcode.h"
 #include "dl_loader.h"
 #include "filter.h"
@@ -30,7 +32,6 @@
 #include "video_trans.h"
 #include "audio_trans.h"
 #include "decoder.h"
-#include "encoder.h"
 #include "frame_threads.h"
 #include "cmdline.h"
 #include "probe.h"

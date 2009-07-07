@@ -24,7 +24,7 @@
  */
 
 #define MOD_NAME    "filter_lowpass.so"
-#define MOD_VERSION "v0.5.0 (2007-12-02)"
+#define MOD_VERSION "v0.5.1 (2009-02-07)"
 #define MOD_CAP     "High and low pass filter"
 #define MOD_AUTHOR  "Tilmann Bitterberg"
 
@@ -261,12 +261,13 @@ static int lowpass_filter_audio(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const TCCodecID lowpass_codecs_in[] = { 
+static const TCCodecID lowpass_codecs_audio_in[] = { 
     TC_CODEC_PCM, TC_CODEC_ERROR
 };
-static const TCCodecID lowpass_codecs_out[] = { 
+static const TCCodecID lowpass_codecs_audio_out[] = { 
     TC_CODEC_PCM, TC_CODEC_ERROR
 };
+TC_MODULE_VIDEO_UNSUPPORTED(lowpass);
 TC_MODULE_FILTER_FORMATS(lowpass);
 
 TC_MODULE_INFO(lowpass);

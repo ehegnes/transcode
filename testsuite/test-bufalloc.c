@@ -68,8 +68,10 @@ static int test_alloc_memset(int size)
     return ret;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
+    libtc_init(&argc, &argv);
+
     test_alloc(0);
     test_alloc(1);
     test_alloc(MY_PAGE_SZ);

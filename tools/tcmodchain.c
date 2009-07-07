@@ -23,6 +23,8 @@
 #include "tcstub.h"
 #include "libtcext/tc_ext.h"
 
+#include "libtcext/tc_avcodec.h"
+
 #define EXE "tcmodchain"
 
 /*************************************************************************/
@@ -275,11 +277,12 @@ static int modrequest_fill(TCFactory factory, ModRequest *mods,
 
 typedef struct cmdletdata_ CmdLetData;
 struct cmdletdata_ {
-    ModRequest mods[MAX_MODS];
-    size_t modsnum;
+    ModRequest  mods[MAX_MODS];
+    size_t      modsnum;
 
-    const char *modpath;
-    TCFactory factory;
+    const char  *modpath;
+    TCFactory   factory;
+    int         type;
 };
 
 typedef  int (*CmdLet)(CmdLetData *cdata, int argc, char **argv);
@@ -297,6 +300,7 @@ typedef  int (*CmdLet)(CmdLetData *cdata, int argc, char **argv);
 static int check_module_pair(const ModRequest *head,
                              const ModRequest *tail,
                              const ModRequest *ref,
+                             int type,
                              int verbose)
 {
     int ret = 0;
@@ -306,7 +310,7 @@ static int check_module_pair(const ModRequest *head,
         return -1;
     }
 
-    ret = tc_module_info_match(TC_CODEC_ANY,
+    ret = tc_module_info_match(TC_CODEC_ANY, type,
                                tc_module_get_info(head->module),
                                tc_module_get_info(tail->module));
     if (verbose >= TC_DEBUG) {
@@ -326,6 +330,8 @@ static int cmdlet_usage(CmdLetData *unused, int ac, char **av)
     version();
     printf("Usage: %s [options] module [module... [module...]]\n",
            EXE);
+    printf("    -A                check against audio capabilities\n");
+    printf("    -V                check against video capabilities\n");
     printf("    -L                list mode (see manpage for details)\n");
     printf("    -C                check mode (see manpage for details)\n");
     printf("    -d verbosity      verbosity mode [1 == TC_INFO]\n");
@@ -356,7 +362,7 @@ static int cmdlet_check(CmdLetData *cdata, int ac, char **av)
         /* N modules, so N - 1 interfaces */
         for (i = 0; i < cdata->modsnum - 1; i++) {
             int ret = check_module_pair(&cdata->mods[i], &cdata->mods[i + 1],
-                                        &cdata->mods[i],
+                                        &cdata->mods[i], cdata->type,
                                         (verbose >= TC_INFO) ?TC_DEBUG :TC_QUIET);
             if (ret != -1) { /* no error */
                 matches += ret;
@@ -369,11 +375,9 @@ static int cmdlet_check(CmdLetData *cdata, int ac, char **av)
     }
 
     if (verbose) {
-        if (status == STATUS_OK) {
-            tc_log_info(EXE, "module chain OK");
-        } else {
-            tc_log_info(EXE, "module chain ILLEGAL");
-        }
+        tc_log_info(EXE, "module chain %s type %s",
+                    (status == STATUS_OK) ?"OK" :"ILLEGAL",
+                    (cdata->type == TC_VIDEO) ?"video" :"audio");
     }
 
     CLEANUP(cdata);
@@ -436,7 +440,7 @@ static int cmdlet_list(CmdLetData *cdata, int ac, char **av)
     for (i = 0; i < cdata->modsnum; i++) {
         const ModRequest *H = (tid == 0) ?(&cdata->mods[i]) :(&fixed);
         const ModRequest *T = (tid == 1) ?(&cdata->mods[i]) :(&fixed);
-        check_module_pair(H, T, &(cdata->mods[i]),
+        check_module_pair(H, T, &(cdata->mods[i]), cdata->type,
                           (verbose == 0) ?TC_INFO :verbose);
     }
 
@@ -462,6 +466,7 @@ int main(int argc, char *argv[])
         .modpath = MOD_PATH,
         .factory = NULL,
         .modsnum = 0,
+        .type    = 0,
     };
 
     ac_init(AC_ALL);
@@ -475,12 +480,18 @@ int main(int argc, char *argv[])
     }
 
     while (1) {
-        ch = getopt(argc, argv, "LCd:?vhm:");
+        ch = getopt(argc, argv, "AVLCd:?vhm:");
         if (ch == -1) {
             break;
         }
 
         switch (ch) {
+          case 'A':
+            cdata.type = TC_AUDIO;
+            break;
+          case 'V':
+            cdata.type = TC_VIDEO;
+            break;
           case 'L':
             cmdlet = cmdlet_list;
             break;
@@ -506,6 +517,11 @@ int main(int argc, char *argv[])
             cmdlet_usage(&cdata, argc, argv);
             return STATUS_OK;
         }
+    }
+
+    if (cdata.type == 0) {
+        tc_log_error(EXE, "unknown/unsupported media type");
+        return STATUS_BAD_PARAM;
     }
 
     /* XXX: watch out here */

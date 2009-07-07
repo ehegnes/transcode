@@ -34,12 +34,14 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "framebuffer.h"
-#include "transcode.h"
 #include "tcmodule-info.h"
 
-#define TC_MODULE_VERSION_MAJOR     2
-#define TC_MODULE_VERSION_MINOR     0
+#include "libtcutil/memutils.h"
+#include "libtc/tcframes.h"
+#include "tccore/job.h"
+
+#define TC_MODULE_VERSION_MAJOR     3
+#define TC_MODULE_VERSION_MINOR     2
 #define TC_MODULE_VERSION_MICRO     0
 
 #define TC_MAKE_MOD_VERSION(MAJOR, MINOR, MICRO) \
@@ -52,6 +54,9 @@
         TC_MAKE_MOD_VERSION(TC_MODULE_VERSION_MAJOR, \
                             TC_MODULE_VERSION_MINOR, \
                             TC_MODULE_VERSION_MICRO)
+
+#define TC_MODULE_EXTRADATA_SIZE    1024
+#define TC_MODULE_EXTRADATA_MAX	    16
 
 /*
  * allowed status transition chart:
@@ -73,6 +78,14 @@
  *
  */
 
+
+typedef struct tcmoduleextradata_ TCModuleExtraData;
+struct tcmoduleextradata_ {
+    int         stream_id; /* container ordering */
+    TCCodecID   codec;
+    TCMemChunk  extra;
+};
+
 /*
  * Data structure private for each instance.
  * This is an almost-opaque structure.
@@ -88,95 +101,106 @@
  */
 typedef struct tcmoduleinstance_ TCModuleInstance;
 struct tcmoduleinstance_ {
-    int id; /* instance id; */
-    const char *type; /* packed class + name of module */
-    uint32_t features; /* subset of enabled features for this instance */
+    int         id;       /* instance id */
+    const char  *type;    /* packed class + name of module */
+    uint32_t    features; /* subset of enabled features for this instance */
 
-    void *userdata; /* opaque to factory, used by each module */
+    void        *userdata; /* opaque to factory, used by each module */
 
-    void *extradata;
-    size_t extradata_size;
-    /*
-     * extradata:
-     * opaque data needed by a module that should'nt be private.
-     * Used mainly into encoder->multiplexor communication.
-     * NOTE:
-     * I'don't see a better way to handle extradata (see encode_ffmpeg
-     * module) in current architecture. I don't want to stack modules
-     * (if encoder drives multiplexor can handle itself the extradata)
-     * nor add more operations and/or accessors. This way looks as the
-     * cleanest and cheapest to me. Suggestions welcome. -- FRomani.
-     */
     // FIXME: add status to enforce correct operation sequence?
 };
+
+/*
+ * Extradata ordering notice (especially for demuxers)
+ * - first all video tracks.
+ * - then all audio tracks.
+ * - then any other track, if any.
+ */
 
 /* can be shared between _all_ instances */
 typedef struct tcmoduleclass_ TCModuleClass;
 struct tcmoduleclass_ {
-    uint32_t version;
+    uint32_t    version;
 
-    int id; /* opaque internal handle */
+    int         id; /* opaque internal handle */
 
-    const TCModuleInfo *info;
+    const       TCModuleInfo *info;
 
     /* mandatory operations: */
     int (*init)(TCModuleInstance *self, uint32_t features);
     int (*fini)(TCModuleInstance *self);
-    int (*configure)(TCModuleInstance *self, const char *options, vob_t *vob);
+    int (*configure)(TCModuleInstance *self, const char *options,
+                     TCJob *vob, TCModuleExtraData *xdata[]);
     int (*stop)(TCModuleInstance *self);
-    int (*inspect)(TCModuleInstance *self, const char *param, const char **value);
+    int (*inspect)(TCModuleInstance *self,
+                   const char *param, const char **value);
 
     /*
      * not-mandatory operations, a module doing something useful implements
      * at least one of following.
      */
+    int (*open)(TCModuleInstance *self, const char *filename,
+                TCModuleExtraData *xdata[]);
+    int (*close)(TCModuleInstance *self);
+
     int (*encode_audio)(TCModuleInstance *self,
-                        aframe_list_t *inframe, aframe_list_t *outframe);
+                        TCFrameAudio *inframe, TCFrameAudio *outframe);
     int (*encode_video)(TCModuleInstance *self,
-                        vframe_list_t *inframe, vframe_list_t *outframe);
+                        TCFrameVideo *inframe, TCFrameVideo *outframe);
+
     int (*decode_audio)(TCModuleInstance *self,
-                        aframe_list_t *inframe, aframe_list_t *outframe);
+                        TCFrameAudio *inframe, TCFrameAudio *outframe);
     int (*decode_video)(TCModuleInstance *self,
-                        vframe_list_t *inframe, vframe_list_t *outframe);
-    int (*filter_audio)(TCModuleInstance *self, aframe_list_t *frame);
-    int (*filter_video)(TCModuleInstance *self, vframe_list_t *frame);
-    int (*multiplex)(TCModuleInstance *self,
-                     vframe_list_t *vframe, aframe_list_t *aframe);
-    int (*demultiplex)(TCModuleInstance *self,
-                       vframe_list_t *vframe, aframe_list_t *aframe);
+                        TCFrameVideo *inframe, TCFrameVideo *outframe);
+
+    int (*filter_audio)(TCModuleInstance *self, TCFrameAudio *frame);
+    int (*filter_video)(TCModuleInstance *self, TCFrameVideo *frame);
+
+    int (*flush_audio)(TCModuleInstance *self, TCFrameAudio *outframe);
+    int (*flush_video)(TCModuleInstance *self, TCFrameVideo *outframe);
+
+    int (*write_video)(TCModuleInstance *self, TCFrameVideo *frame);
+    int (*write_audio)(TCModuleInstance *self, TCFrameAudio *frame);
+
+    int (*read_video)(TCModuleInstance *self, TCFrameVideo *frame);
+    int (*read_audio)(TCModuleInstance *self, TCFrameAudio *frame);
 };
 
 /**************************************************************************
  * TCModuleClass operations documentation:                                *
  **************************************************************************
  *
+ * For all the following, until specified:
+ * Return Value:
+ *      TC_OK: succesfull.
+ *      TC_ERROR:
+ *         error occurred. A proper message should be sent to user using
+ *         tc_log*().
+ *
+ *
  * init:
  *      initialize a module, acquiring all needed resources.
  *      A module must also be configure()d before to be used.
  *      An initialized, but unconfigured, module CAN'T DELIVER
  *      a proper result when a specific operation (encode, demultiplex)
- *      is requested. Request an operation in a initialized but unconfigured
- *      module will result in an undefined behaviour.
+ *      is requested. To request an operation in a initialized but 
+ *      unconfigured module will result in an undefined behaviour.
  * Parameters:
- *          self: pointer to module instance to initialize.
+ *          self: pointer to the module instance to initialize.
  *      features: select feature of this module to initialize.
  * Return Value:
- *      0  succesfull.
- *      -1 error occurred. A proper message should be sent to user using
- *         tc_log*()
+ *      See the initial note above.
  * Postconditions:
- *      Given module is ready to be configured.
+ *      The given module instance is ready to be configured.
  *
  *
  * fini:
  *      finalize an initialized module, releasing all acquired resources.
  *      A finalized module MUST be re-initialized before any new usage.
  * Parameters:
- *      self: pointer to module instance to finalize.
+ *      self: pointer to the module instance to finalize.
  * Return Value:
- *      0  succesfull.
- *      -1 error occurred. A proper message should be sent to user using
- *         tc_log*()
+ *      See the initial note above.
  * Preconditions:
  *      module was already initialized. To finalize a uninitialized module
  *      will cause an undefined behaviour.
@@ -192,21 +216,25 @@ struct tcmoduleclass_ {
  *      Trying to configure a non-initialized module will cause an
  *      undefined behaviour.
  * Parameters:
- *      self: pointer to module instance to configure.
+ *      self: pointer to the module instance to configure.
  *      options: string contaning module options.
  *               Syntax is fixed (see optstr),
  *               semantic is module-dependent.
- *      vob: pointer to vob structure.
+ *      vob: pointer to a TCJob structure.
+ *      xdata: array of extradata pointer, one for each stream.
+ *             decoders can use this array as input source, while
+ *             encoders can use it as output source.
+ *             In both cases, the content of the array must be valid (or,
+ *             respectively, it is guaranteed valid) until the first stop()
+ *             done on this module.
  * Return Value:
- *      0  succesfull.
- *      -1 error occurred. A proper message should be sent to user using
- *         tc_log*()
+ *      See the initial note above.
  * Preconditions:
- *      Given module was already initialized AND stopped.
+ *      The given module instance was already initialized AND stopped.
  *      A module MUST be stop()ped before to be configured again, otherwise
  *      an undefined behaviour will occur (expect at least resource leaks).
  * Postconditions:
- *      Given module is ready to perform any supported operation.
+ *      The given module instance is ready to perform any supported operation.
  *
  *
  * stop:
@@ -216,19 +244,17 @@ struct tcmoduleclass_ {
  *      Please note that this operation can do actions similar, but
  *      not equal, to `fini'. Also note that `stop' can be invoked
  *      zero or multiple times during the module lifetime, but
- *      `fini' WILL be invkoed one and only one time.
+ *      `fini' WILL be invoked one and only one time.
  * Parameters:
- *      self: pointer to module instance to stop.
+ *      self: pointer to the module instance to stop.
  * Return Value:
- *      0  succesfull.
- *      -1 error occurred. A proper message should be sent to user using
- *         tc_log*()
+ *      See the initial note above.
  * Preconditions:
- *      Given module was already initialized. Try to (re)stop
+ *      The given module instance was already initialized. Try to (re)stop
  *      an unitialized module will cause an undefined behaviour.
  *      It's safe to stop an unconfigured module.
  * Postconditions:
- *      Given module is ready to be reconfigured safely.
+ *      The given module instance is ready to be reconfigured safely.
  *
  *
  * inspect:
@@ -243,7 +269,7 @@ struct tcmoduleclass_ {
  *      'help': will return a formatted, human-readable string
  *              with module overview, tunable options and explanation.
  * Parameters:
- *      self: pointer to module instance to inspect.
+ *      self: pointer to the module instance to inspect.
  *      param: name of parameter to inspect
  *      value: when method succesfully returns, will point to a constant
  *             string (that MUST NOT be *free()d by calling code)
@@ -251,13 +277,55 @@ struct tcmoduleclass_ {
  *             PLEASE NOTE that this value CAN change between
  *             invocations of this method.
  * Return value:
- *      0  succesfull. That means BOTH the request was honoured OR
+ *      TC_OK:
+ *         succesfull. That means BOTH the request was honoured OR
  *         the requested parameter isn't known and was silently ignored.
- *      -1 INTERNAL error, reason will be tc_log*()'d out.
+ *      TC_ERROR:
+ *         INTERNAL error, reason will be tc_log*()'d out.
  * Preconditions:
  *      module was already initialized.
  *      Inspecting a uninitialized module will cause an
  *      undefined behaviour.
+ *
+ *
+ * open:
+ *      open the file for processing.
+ *      This method shall be implemented only by demuxer and muxer modules,
+ *      otherwise it will be useless (e.g. never called by the core).
+ *      Please note that this method can (and usually is) called multiple times
+ *      during the processing.
+ *      It is *NOT SAFE* to assume that
+ *      number of calls to configure() == number of calls to open().
+ * Parameters:
+ *      self: pointer to a module instance.
+ *      filename: path of the file to open. Always provided by the core.
+ *                It is NOT SAFE to change or ignore it.
+ *      xdata: array of extradata pointer, one for each stream.
+ *             muxers can use this array as input source, while
+ *             demuxers can use it as output source.
+ *             In both cases, the content of the array must be valid (or,
+ *             respectively, it is guaranteed valid) until the first close()
+ *             done on this module.
+ * Return Value:
+ *      See the initial note above.
+ * Preconditions:
+ *      The given module instance was already initialized *AND* configured.
+ *
+ *
+ * close:
+ *      This method shall be implemented only by demuxer and muxer modules,
+ *      otherwise it will be useless (e.g. never called by the core).
+ *      Please note that this method can (and usually is) called multiple times
+ *      during the processing.
+ *      It is *NOT SAFE* to assume that
+ *      number of calls to close() == number of calls to stop().
+ * Parameters:
+ *      self: pointer to a module instance.
+ * Return Value:
+ *      See the initial note above.
+ * Postconditions:
+ *      The given module instance has closed any file opened through a former
+ *      open() method call.
  *
  *
  * decode_{audio,video}:
@@ -266,25 +334,30 @@ struct tcmoduleclass_ {
  *      (de)compressed data into another frame.
  *      Specific module loaded implements various codecs.
  * Parameters:
- *      self: pointer to module instance to use.
+ *      self: pointer to a module instance.
  *      inframe: pointer to {audio,video} frame data to decode/encode.
- *      outframe: pointer to {audio,videp} frame which will hold
- *                (un)compressed data. Must be != NULL
+ *      outframe: pointer to {audio,video} frame which will hold
+ *                (un)compressed data.
  * Return Value:
- *      0  succesfull.
- *      -1 error occurred. A proper message should be sent to user using
- *         tc_log*()
+ *      See the initial note above.
  * Preconditions:
  *      module was already initialized AND configured.
  *      To use a uninitialized and/or unconfigured module
  *      for decoding/encoding will cause an undefined behaviour.
- *      outframe != NULL.
+ *      inframe != NULL && outframe != NULL.
  *
- * SPECIAL NOTE FOR encode_audio operation:
- * if a NULL input frame pointer is given, but a VALID (not NULL)
- * output frame pointer is given as well, a flush operation will performed.
- * This means that encoder will emit all buffered audio data, in order
- * to complete an audio frame and avoid data truncation/loss in output.
+ *
+ * flush_{audio,video}:
+ *      flush the internal module buffer. This method is called by
+ *      the encoder core just after the encoder loop stopped.
+ *      The encoder module should release any buffered data.
+ * Parameters:
+ *      self: pointer to a module instance. 
+ *      frame: pointer to an {audio,video} frame to be filled (if needed).
+ * Return Value:
+ *      See the initial note above.
+ * Preconditions:
+ *      As per encode_{audio,video}.
  *
  *
  * filter_{audio,video}:
@@ -292,57 +365,48 @@ struct tcmoduleclass_ {
  *      Specific module loaded determines the action performend on
  *      given frame.
  * Parameters:
- *      self: pointer to module instance to use.
+ *      self: pointer to a module instance.
  *      frame: pointer to {audio,video} frame data to elaborate.
  * Return Value:
- *      0  succesfull.
- *      -1 error occurred. A proper message should be sent to user using
- *         tc_log*()
+ *      See the initial note above.
  * Preconditions:
  *      module was already initialized AND configured.
  *      To use a uninitialized and/or unconfigured module
  *      for filter will cause an undefined behaviour.
  *
  *
- * multiplex:
- *      merge given encoded frames in output stream.
+ * write_{audio,video}:
+ *      merge a given encoded {audio,video} frame in the output stream.
  * Parameters:
- *      self: pointer to module instance to use.
- *      vframe: pointer to video frame to multiplex.
- *              if NULL, don't multiplex video for this invokation.
- *      aframe: pointer to audio frame to multiplex
- *              if NULL, don't multiplex audio for this invokation.
+ *      self: pointer to a module instance.
+ *      frame: pointer to {audio,video} frame to multiplex.
+ *             if NULL, don't multiplex anything for this invokation.
  * Return value:
- *      -1 error occurred. A proper message should be sent to user using
+ *      TC_ERROR:
+ *         an error occurred. A proper message should be sent to user using
  *         tc_log*().
- *      >0 number of bytes writed for multiplexed frame(s). Can be
- *         (and usually is) different from the plain sum of sizes of
- *         encoded frames.
+ *      >0 number of bytes writed for multiplexed frame.
  * Preconditions:
  *      module was already initialized AND configured.
  *      To use a uninitialized and/or unconfigured module
  *      for multiplex will cause an undefined behaviour.
  *
  *
- * demultiplex:
- *      extract given encoded frames from input stream.
+ * read_{audio,video}:
+ *      extract given encode {audio,video} frame from the input stream.
  * Parameters:
- *      self: pointer to module instance to use.
- *      vframe: if not NULL, extract next video frame from input stream
- *              and store it here.
- *      aframe: if not NULL, extract next audio frame from input strema
- *              and store it here.
+ *      self: pointer to a module instance.
+ *      frame: pointer to a {audio,video} frame to be filled with the one
+ *             extracted from the stream.
  * Return value:
- *      -1 error occurred. A proper message should be sent to user using
+ *      TC_ERROR:
+ *         error occurred. A proper message should be sent to user using
  *         tc_log*().
- *      >0 number of bytes readed for demultiplexed frame(s). Can be
- *         (and usually is) different from the plain sum of sizes of
- *         encoded frames.
+ *      >0 number of bytes read for demultiplexed frame.
  * Preconditions:
  *      module was already initialized AND configured.
  *      To use a uninitialized and/or unconfigured module
  *      for demultiplex will cause an undefined behaviour.
- *
  */
 
 #endif /* TCMODULE_DATA_H */

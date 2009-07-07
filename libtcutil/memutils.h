@@ -32,6 +32,14 @@ extern "C" {
 
 /*************************************************************************/
 
+typedef struct tcmemchunk_ TCMemChunk;
+struct tcmemchunk_ {
+    void  *data;
+    size_t size;
+};
+
+/*************************************************************************/
+
 /*
  * tc_malloc: just a simple wrapper on libc's malloc(), with emits
  *            an additional warning, specifying calling context,

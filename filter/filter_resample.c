@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_resample.so"
-#define MOD_VERSION "v0.1.6 (2007-06-02)"
+#define MOD_VERSION "v0.1.7 (2009-02-07)"
 #define MOD_CAP     "audio resampling filter plugin using libavcodec"
 #define MOD_AUTHOR  "Thomas Oestreich, Stefan Scheffler"
 
@@ -203,12 +203,13 @@ static int resample_filter_audio(TCModuleInstance *self, aframe_list_t *frame)
 
 /**************************************************************************/
 
-static const TCCodecID resample_codecs_in[] = { 
+static const TCCodecID resample_codecs_audio_in[] = { 
     TC_CODEC_PCM, TC_CODEC_ERROR
 };
-static const TCCodecID resample_codecs_out[] = { 
+static const TCCodecID resample_codecs_audio_out[] = { 
     TC_CODEC_PCM, TC_CODEC_ERROR
 };
+TC_MODULE_VIDEO_UNSUPPORTED(resample);
 TC_MODULE_FILTER_FORMATS(resample);
 
 TC_MODULE_INFO(resample);

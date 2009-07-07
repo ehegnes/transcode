@@ -13,6 +13,6 @@
 
 #include "framebuffer.h"
 
-int process_aud_frame(vob_t *vob, aframe_list_t *ptr);
+int process_aud_frame(TCJob *vob, TCFrameAudio *ptr);
 
 #endif

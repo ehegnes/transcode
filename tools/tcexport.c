@@ -30,21 +30,21 @@
 #include <unistd.h>
 #include <string.h>
 
+#include "src/probe.h"
 #include "src/transcode.h"
-#include "src/export_profile.h"
 #include "src/framebuffer.h"
 #include "src/counter.h"
-#include "src/probe.h"
-#include "src/encoder.h"
 #include "src/filter.h"
 #include "src/socket.h"
 
 #include "libtcmodule/tcmodule-core.h"
+#include "libtcutil/cfgfile.h"
 #include "libtc/libtc.h"
 #include "libtc/tccodecs.h"
 #include "libtc/tcframes.h"
-#include "libtcext/tc_ext.h"
-#include "libtcutil/cfgfile.h"
+
+#include "libtcexport/export.h"
+#include "libtcexport/export_profile.h"
 
 #include "rawsource.h"
 #include "tcstub.h"
@@ -71,27 +71,31 @@ enum {
 
 #define RANGE_STR_SEP        ","
 
+enum {
+    LOG_FILE_NAME_LEN = 32,
+    MOD_BUF_NAME_LEN  = 64
+};
+
 typedef  struct tcencconf_ TCEncConf;
-
 struct tcencconf_ {
-    int dry_run; /* flag */
-    vob_t *vob;
+    int     dry_run; /* flag */
+    TCJob   *job;
 
-    char *video_codec;
-    char *audio_codec;
+    char    *video_codec;
+    char    *audio_codec;
 
-    char vlogfile[32];
-    char alogfile[32];
+    char    vlogfile[LOG_FILE_NAME_LEN];
+    char    alogfile[LOG_FILE_NAME_LEN];
 
-    char video_mod_buf[64];
-    char audio_mod_buf[64];
-    char mplex_mod_buf[64];
+    char    video_mod_buf[MOD_BUF_NAME_LEN];
+    char    audio_mod_buf[MOD_BUF_NAME_LEN];
+    char    mplex_mod_buf[MOD_BUF_NAME_LEN];
     
-    char *video_mod;
-    char *audio_mod;
-    char *mplex_mod;
+    char    *video_mod;
+    char    *audio_mod;
+    char    *mplex_mod;
 
-    char *range_str;
+    char    *range_str;
 };
 
 
@@ -132,10 +136,10 @@ static void usage(void)
            " (0-3) [%d,mpeg4.log,pcm.log]\n", VMULTIPASS);
 }
 
-static void config_init(TCEncConf *conf, vob_t *vob)
+static void config_init(TCEncConf *conf, TCJob *job)
 {
-    conf->dry_run = TC_FALSE;
-    conf->vob = vob;
+    conf->dry_run   = TC_FALSE;
+    conf->job       = job;
 
     conf->range_str = NULL;
 
@@ -179,7 +183,7 @@ static int parse_options(int argc, char** argv, TCEncConf *conf)
 {
     int ch, n;
     char acodec[32], vcodec[32];
-    vob_t *vob = conf->vob;
+    TCJob *job = conf->job;
 
     if (argc == 1) {
         usage();
@@ -201,7 +205,7 @@ static int parse_options(int argc, char** argv, TCEncConf *conf)
             break;
           case 'd':
             VALIDATE_OPTION;
-            vob->verbose = atoi(optarg);
+            job->verbose = atoi(optarg);
             break;
           case 'c':
             VALIDATE_OPTION;
@@ -210,24 +214,24 @@ static int parse_options(int argc, char** argv, TCEncConf *conf)
           case 'b':
             VALIDATE_OPTION;
             n = sscanf(optarg, "%i,%i,%f,%i",
-                       &vob->mp3bitrate, &vob->a_vbr, &vob->mp3quality,
-                       &vob->mp3mode);
+                       &job->mp3bitrate, &job->a_vbr, &job->mp3quality,
+                       &job->mp3mode);
             if (n < 0
-              || vob->mp3bitrate < 0
-              || vob->a_vbr < 0
-              || vob->mp3quality < -1.00001
-              || vob->mp3mode < 0) {
+              || job->mp3bitrate < 0
+              || job->a_vbr < 0
+              || job->mp3quality < -1.00001
+              || job->mp3mode < 0) {
                 tc_log_error(EXE, "invalid parameter for -b");
                 return STATUS_BAD_PARAM;
             }
             break;
           case 'i':
             VALIDATE_OPTION;
-            vob->video_in_file = optarg;
+            job->video_in_file = optarg;
             break;
           case 'm':
             VALIDATE_OPTION;
-            vob->mod_path = optarg;
+            job->mod_path = optarg;
             break;
           case 'N':
             VALIDATE_OPTION;
@@ -238,51 +242,51 @@ static int parse_options(int argc, char** argv, TCEncConf *conf)
                 return STATUS_BAD_PARAM;
             }
 
-            vob->ex_v_codec = tc_codec_from_string(vcodec);
-            vob->ex_a_codec = tc_codec_from_string(acodec);
+            job->ex_v_codec = tc_codec_from_string(vcodec);
+            job->ex_a_codec = tc_codec_from_string(acodec);
 
-            if (vob->ex_v_codec == TC_CODEC_ERROR
-             || vob->ex_a_codec == TC_CODEC_ERROR) {
+            if (job->ex_v_codec == TC_CODEC_ERROR
+             || job->ex_a_codec == TC_CODEC_ERROR) {
                 tc_log_error(EXE, "unknown A/V format");
                 return STATUS_BAD_PARAM;
             }
             break;
           case 'p':
             VALIDATE_OPTION;
-            vob->audio_in_file = optarg;
+            job->audio_in_file = optarg;
             break;
           case 'R':
             VALIDATE_OPTION;
             n = sscanf(optarg,"%d,%64[^,],%64s",
-                       &vob->divxmultipass, conf->vlogfile, conf->alogfile);
+                       &job->divxmultipass, conf->vlogfile, conf->alogfile);
 
             if (n == 3) {
-                vob->audiologfile = conf->alogfile;
-                vob->divxlogfile = conf->vlogfile;
+                job->audiologfile = conf->alogfile;
+                job->divxlogfile = conf->vlogfile;
             } else if (n == 2) {
-                vob->divxlogfile = conf->vlogfile;
+                job->divxlogfile = conf->vlogfile;
             } else if (n != 1) {
                 tc_log_error(EXE, "invalid parameter for option -R");
                 return STATUS_BAD_PARAM;
             }
 
-            if (vob->divxmultipass < 0 || vob->divxmultipass > 3) {
+            if (job->divxmultipass < 0 || job->divxmultipass > 3) {
                 tc_log_error(EXE, "invalid multi-pass in option -R");
                 return STATUS_BAD_PARAM;
             }
             break;
           case 'o':
             VALIDATE_OPTION;
-            vob->video_out_file = optarg;
+            job->video_out_file = optarg;
             break;
           case 'w':
             VALIDATE_OPTION;
             sscanf(optarg,"%d,%d,%d",
-                   &vob->divxbitrate, &vob->divxkeyframes,
-                   &vob->divxcrispness);
+                   &job->divxbitrate, &job->divxkeyframes,
+                   &job->divxcrispness);
 
-            if (vob->divxcrispness < 0 || vob->divxcrispness > 100
-              || vob->divxbitrate <= 0 || vob->divxkeyframes < 0) {
+            if (job->divxcrispness < 0 || job->divxcrispness > 100
+              || job->divxbitrate <= 0 || job->divxkeyframes < 0) {
                 tc_log_error(EXE, "invalid parameter for option -w");
                 return STATUS_BAD_PARAM;
             }
@@ -301,9 +305,9 @@ static int parse_options(int argc, char** argv, TCEncConf *conf)
             conf->audio_mod = conf->audio_mod_buf;
             conf->mplex_mod = conf->mplex_mod_buf;
 
-            vob->ex_v_string = setup_mod_string(conf->video_mod);
-            vob->ex_a_string = setup_mod_string(conf->audio_mod);
-            vob->ex_m_string = setup_mod_string(conf->mplex_mod);
+            job->ex_v_string = setup_mod_string(conf->video_mod);
+            job->ex_a_string = setup_mod_string(conf->audio_mod);
+            job->ex_m_string = setup_mod_string(conf->mplex_mod);
             break;
           case 'v':
             version();
@@ -318,76 +322,76 @@ static int parse_options(int argc, char** argv, TCEncConf *conf)
     return STATUS_OK;
 }
 
-static void setup_im_size(vob_t *vob)
+static void setup_im_size(TCJob *job)
 {
     double fch;
     int leap_bytes1, leap_bytes2;
 
-    /* update vob structure */
+    /* update job structure */
     /* assert(YUV420P source) */
-    vob->im_v_size = (3 * vob->im_v_width * vob->im_v_height) / 2;
+    job->im_v_size = (3 * job->im_v_width * job->im_v_height) / 2;
     /* borrowed from transcode.c */
     /* samples per audio frame */
-    // fch = vob->a_rate/vob->ex_fps;
+    // fch = job->a_rate/job->ex_fps;
     /* 
      * XXX I still have to understand why we
      * doing like this in transcode.c, so I'll simplify things here
      */
-    fch = vob->a_rate/vob->fps;
+    fch = job->a_rate/job->fps;
     /* bytes per audio frame */
-    vob->im_a_size = (int)(fch * (vob->a_bits/8) * vob->a_chan);
-    vob->im_a_size =  (vob->im_a_size>>2)<<2;
+    job->im_a_size = (int)(fch * (job->a_bits/8) * job->a_chan);
+    job->im_a_size =  (job->im_a_size>>2)<<2;
 
-    fch *= (vob->a_bits/8) * vob->a_chan;
+    fch *= (job->a_bits/8) * job->a_chan;
 
-    leap_bytes1 = TC_LEAP_FRAME * (fch - vob->im_a_size);
-    leap_bytes2 = - leap_bytes1 + TC_LEAP_FRAME * (vob->a_bits/8) * vob->a_chan;
+    leap_bytes1 = TC_LEAP_FRAME * (fch - job->im_a_size);
+    leap_bytes2 = - leap_bytes1 + TC_LEAP_FRAME * (job->a_bits/8) * job->a_chan;
     leap_bytes1 = (leap_bytes1 >>2)<<2;
     leap_bytes2 = (leap_bytes2 >>2)<<2;
 
     if (leap_bytes1 < leap_bytes2) {
-    	vob->a_leap_bytes = leap_bytes1;
+    	job->a_leap_bytes = leap_bytes1;
     } else {
-	    vob->a_leap_bytes = -leap_bytes2;
-    	vob->im_a_size += (vob->a_bits/8) * vob->a_chan;
+	    job->a_leap_bytes = -leap_bytes2;
+    	job->im_a_size += (job->a_bits/8) * job->a_chan;
     }
 }
 
-static void setup_ex_params(vob_t *vob)
+static void setup_ex_params(TCJob *job)
 {
     /* common */
-    vob->ex_fps = vob->fps;
-    vob->ex_frc = vob->im_frc;
+    job->ex_fps       = job->fps;
+    job->ex_frc       = job->im_frc;
     /* video */
-    vob->ex_v_width = vob->im_v_width;
-    vob->ex_v_height = vob->im_v_height;
-    vob->ex_v_size = vob->im_v_size;
+    job->ex_v_width   = job->im_v_width;
+    job->ex_v_height  = job->im_v_height;
+    job->ex_v_size    = job->im_v_size;
     /* audio */
-    vob->ex_a_size = vob->im_a_size;
+    job->ex_a_size    = job->im_a_size;
     /* a_rate already correctly setup */
-    vob->mp3frequency = vob->a_rate;
-    vob->dm_bits = vob->a_bits;
-    vob->dm_chan = vob->a_chan;
+    job->mp3frequency = job->a_rate;
+    job->dm_bits      = job->a_bits;
+    job->dm_chan      = job->a_chan;
 }
 
 static int setup_ranges(TCEncConf *conf)
 {
-    vob_t *vob = conf->vob;
+    TCJob *job = conf->job;
     int ret = 0;
 
     if (conf->range_str != NULL) {
-        ret = parse_fc_time_string(conf->range_str, vob->fps,
-                                   RANGE_STR_SEP, vob->verbose,
-                                   &vob->ttime);
+        ret = parse_fc_time_string(conf->range_str, job->fps,
+                                   RANGE_STR_SEP, job->verbose,
+                                   &job->ttime);
     } else {
-        vob->ttime = new_fc_time();
-        if (vob->ttime == NULL) {
+        job->ttime = new_fc_time();
+        if (job->ttime == NULL) {
             ret = -1;
         } else {
-            vob->ttime->stf = TC_FRAME_FIRST;
-            vob->ttime->etf = TC_FRAME_LAST;
-            vob->ttime->vob_offset = 0;
-            vob->ttime->next = NULL;
+            job->ttime->stf = TC_FRAME_FIRST;
+            job->ttime->etf = TC_FRAME_LAST;
+            job->ttime->vob_offset = 0;
+            job->ttime->next = NULL;
         }
     }
     return ret;
@@ -397,38 +401,39 @@ static int setup_ranges(TCEncConf *conf)
 #define MOD_OPTS(opts) (((opts) != NULL) ?((opts)) :"none")
 static void print_summary(TCEncConf *conf, int verbose)
 {
-    vob_t *vob = conf->vob;
+    TCJob *job = conf->job;
 
     version();
     if (verbose >= TC_INFO) {
         tc_log_info(EXE, "M: %-16s | %s", "destination",
-                    vob->video_out_file);
+                    job->video_out_file);
         tc_log_info(EXE, "E: %-16s | %i,%i kbps", "bitrate(A,V)",
-                    vob->divxbitrate, vob->mp3bitrate);
+                    job->divxbitrate, job->mp3bitrate);
         tc_log_info(EXE, "E: %-16s | %s,%s", "logfile (A,V)",
-                    vob->divxlogfile, vob->audiologfile);
+                    job->divxlogfile, job->audiologfile);
         tc_log_info(EXE, "V: %-16s | %s (options=%s)", "encoder",
-                    conf->video_mod, MOD_OPTS(vob->ex_v_string));
+                    conf->video_mod, MOD_OPTS(job->ex_v_string));
         tc_log_info(EXE, "A: %-16s | %s (options=%s)", "encoder",
-                    conf->audio_mod, MOD_OPTS(vob->ex_a_string));
+                    conf->audio_mod, MOD_OPTS(job->ex_a_string));
         tc_log_info(EXE, "M: %-16s | %s (options=%s)", "format",
-                    conf->mplex_mod, MOD_OPTS(vob->ex_m_string));
-        tc_log_info(EXE, "M: %-16s | %.3f", "fps", vob->fps);
+                    conf->mplex_mod, MOD_OPTS(job->ex_m_string));
+        tc_log_info(EXE, "M: %-16s | %.3f", "fps", job->fps);
         tc_log_info(EXE, "V: %-16s | %ix%i", "picture size",
-                    vob->im_v_width, vob->im_v_height);
+                    job->im_v_width, job->im_v_height);
         tc_log_info(EXE, "V: %-16s | %i", "bytes per frame",
-                    vob->im_v_size);
-        tc_log_info(EXE, "V: %-16s | %i", "pass", vob->divxmultipass);
+                    job->im_v_size);
+        tc_log_info(EXE, "V: %-16s | %i", "pass", job->divxmultipass);
         tc_log_info(EXE, "A: %-16s | %i,%i,%i", "rate,chans,bits",
-                    vob->a_rate, vob->a_chan, vob->a_bits);
+                    job->a_rate, job->a_chan, job->a_bits);
         tc_log_info(EXE, "A: %-16s | %i", "bytes per frame",
-                    vob->im_a_size);
+                    job->im_a_size);
         tc_log_info(EXE, "A: %-16s | %i@%i", "adjustement",
-                         vob->a_leap_bytes, vob->a_leap_frame);
+                         job->a_leap_bytes, job->a_leap_frame);
     }
 }
 #undef MOD_OPTS
 
+/************************************************************************/
 /************************************************************************/
 
 #define EXIT_IF(cond, msg, status) \
@@ -446,57 +451,58 @@ int main(int argc, char *argv[])
     /* needed by some modules */
     TCFactory factory = NULL;
     const TCExportInfo *info = NULL;
-    TCVHandle tcv_handle = tcv_init();
+    TCFrameSource *framesource = NULL;
     TCEncConf config;
-    vob_t *vob = tc_get_vob();
-    TCEncoderBuffer *rawsource_buffer = NULL;
+    TCVHandle tcv_handle = tcv_init();
+    TCJob *job = tc_get_vob();
 
     /* reset some fields */
-    vob->audiologfile = AUDIO_LOG_FILE;
-    vob->divxlogfile  = VIDEO_LOG_FILE;
+    job->audiologfile = AUDIO_LOG_FILE;
+    job->divxlogfile  = VIDEO_LOG_FILE;
 
     ac_init(AC_ALL);
     tc_config_set_dir(NULL);
-    config_init(&config, vob);
+    config_init(&config, job);
     counter_on();
 
     filter[0].id = 0; /* to make gcc happy */
 
     /* we want to modify real argc/argv pair */
-    ret = tc_setup_export_profile(&argc, &argv);
+    ret = tc_export_profile_setup_from_cmdline(&argc, &argv);
     if (ret < 0) {
         /* error, so bail out */
         return STATUS_BAD_PARAM;
     }
-    info = tc_load_export_profile();
-    config.audio_mod = GET_MODULE(info->audio.module);
-    config.video_mod = GET_MODULE(info->video.module);
-    config.mplex_mod = GET_MODULE(info->mplex.module);
-    tc_export_profile_to_vob(info, vob);
+
+    info = tc_export_profile_load_all();
+    config.audio_mod = GET_MODULE(info->audio.module.name);
+    config.video_mod = GET_MODULE(info->video.module.name);
+    config.mplex_mod = GET_MODULE(info->mplex.module.name);
+    tc_export_profile_to_job(info, job);
 
     ret = parse_options(argc, argv, &config);
     if (ret != STATUS_OK) {
         return (ret == STATUS_DONE) ?STATUS_OK :ret;
     }
-    if (vob->ex_v_codec == TC_CODEC_ERROR
-     || vob->ex_a_codec == TC_CODEC_ERROR) {
+    if (job->ex_v_codec == TC_CODEC_ERROR
+     || job->ex_a_codec == TC_CODEC_ERROR) {
         tc_log_error(EXE, "bad export codec/format (use -N)");
         return STATUS_BAD_PARAM;
     }
-    verbose = vob->verbose;
-    ret = probe_source(vob->video_in_file, vob->audio_in_file,
-                       1, 0, vob);
+    verbose = job->verbose;
+    ret = probe_source(job->video_in_file, job->audio_in_file,
+                       1, 0, job);
     if (!ret) {
         return STATUS_PROBE_FAILED;
     }
 
-    samples = TC_AUDIO_SAMPLES_IN_FRAME(vob->a_rate, vob->ex_fps);
-    vob->im_a_size = tc_audio_frame_size(samples, vob->a_chan, vob->a_bits,
-                                         &vob->a_leap_bytes);
-    vob->im_v_size = tc_video_frame_size(vob->im_v_width, vob->im_v_height,
-                                         vob->im_v_codec);
-    setup_im_size(vob);
-    setup_ex_params(vob);
+    samples = TC_AUDIO_SAMPLES_IN_FRAME(job->a_rate, job->ex_fps);
+    job->im_a_size = tc_audio_frame_size(samples, job->a_chan, job->a_bits,
+                                         &job->a_leap_bytes);
+    job->im_v_size = tc_video_frame_size(job->im_v_width, job->im_v_height,
+                                         job->im_v_codec);
+    setup_im_size(job);
+    setup_ex_params(job);
     ret = setup_ranges(&config);
     if (ret != 0) {
         tc_log_error(EXE, "error using -c option."
@@ -505,35 +511,37 @@ int main(int argc, char *argv[])
     }
     print_summary(&config, verbose);
 
-    factory = tc_new_module_factory(vob->mod_path, vob->verbose);
+    factory = tc_new_module_factory(job->mod_path, job->verbose);
     EXIT_IF(!factory, "can't setup module factory", STATUS_MODULE_ERROR);
 
     /* open the A/V source */
-    ret = tc_rawsource_open(vob);
-    EXIT_IF(ret != 2, "can't open input sources", STATUS_IO_ERROR);
+    framesource = tc_rawsource_open(job);
+    EXIT_IF(framesource == NULL, "can't get rawsource handle", STATUS_IO_ERROR);
+    ret = tc_rawsource_num_sources();
+    EXIT_IF(ret != 2, "can't open both input source", STATUS_IO_ERROR);
 
-    rawsource_buffer = tc_rawsource_get_buffer();
-    EXIT_IF(rawsource_buffer == NULL, "can't get rawsource handle",
-            STATUS_IO_ERROR);
-    ret = tc_export_init(rawsource_buffer, factory);
+    ret = tc_export_new(job, factory,
+                        tc_runcontrol_get_instance(),
+                        tc_framebuffer_get_specs());
     EXIT_IF(ret != 0, "can't setup export subsystem", STATUS_MODULE_ERROR);
 
-    ret = tc_export_setup(vob,
-                       config.audio_mod, config.video_mod, config.mplex_mod);
+    ret = tc_export_setup(config.audio_mod, config.video_mod,
+                          config.mplex_mod, NULL);
     EXIT_IF(ret != 0, "can't setup export modules", STATUS_MODULE_ERROR);
 
     if (!config.dry_run) {
         struct fc_time *tstart = NULL;
         int last_etf = 0;
-        ret = tc_encoder_init(vob);
+
+        ret = tc_export_init();
         EXIT_IF(ret != 0, "can't initialize encoder", STATUS_INTERNAL_ERROR);
 
-        ret = tc_encoder_open(vob);
+        ret = tc_export_open();
         EXIT_IF(ret != 0, "can't open encoder files", STATUS_IO_ERROR);
 
         /* first setup counter ranges */
         counter_reset_ranges();
-    	for (tstart = vob->ttime; tstart != NULL; tstart = tstart->next) {
+    	for (tstart = job->ttime; tstart != NULL; tstart = tstart->next) {
 	        if (tstart->etf == TC_FRAME_LAST) {
                 // variable length range, oh well
                 counter_reset_ranges();
@@ -547,32 +555,33 @@ int main(int argc, char *argv[])
     	}
 
         /* ok, now we can do the real (ranged) encoding */
-        for (tstart = vob->ttime; tstart != NULL; tstart = tstart->next) {
-            tc_encoder_loop(vob, tstart->stf, tstart->etf);
-            printf("\n"); /* dont' mess (too much) counter output */
+        for (tstart = job->ttime; tstart != NULL; tstart = tstart->next) {
+            tc_export_loop(framesource, tstart->stf, tstart->etf);
+            printf("\n"); /* dont' mess (too much) the counter output */
         }
 
-        ret = tc_encoder_stop();
-        ret = tc_encoder_close();
+        ret = tc_export_close();
+        ret = tc_export_stop();
 
     }
 
     tc_export_shutdown();
+    tc_export_del();
 
     ret = tc_rawsource_close();
     ret = tc_del_module_factory(factory);
     tcv_free(tcv_handle);
-    free_fc_time(vob->ttime);
-    tc_cleanup_export_profile();
+    free_fc_time(job->ttime);
+    tc_export_profile_cleanup();
 
     if(verbose >= TC_INFO) {
-        long encoded = tc_get_frames_encoded();
+        long encoded =   tc_get_frames_encoded();
         long dropped = - tc_get_frames_dropped();
-    	long cloned  = tc_get_frames_cloned();
+    	long cloned  =   tc_get_frames_cloned();
 
         tc_log_info(EXE, "encoded %ld frames (%ld dropped, %ld cloned),"
                          " clip length %6.2f s",
-                    encoded, dropped, cloned, encoded/vob->fps);
+                    encoded, dropped, cloned, encoded/job->fps);
     }
     return status;
 }

@@ -31,7 +31,7 @@
 #include <theora/theora.h>
 
 #define MOD_NAME    "encode_theora.so"
-#define MOD_VERSION "v0.1.1 (2008-04-20)"
+#define MOD_VERSION "v0.1.2 (2009-02-07)"
 #define MOD_CAP     "theora video encoder using libtheora"
 
 #define MOD_FEATURES \
@@ -100,7 +100,7 @@ static int tc_frame_video_add_ogg_packet(TheoraPrivateData *pd,
     int needed = sizeof(*op) + op->bytes;
     int avail = f->video_size - f->video_len;
 
-    TC_FRAME_SET_TIMESTAMP_DOUBLE(f, ts);
+    f->timestamp = (uint64_t)ts;
     if (avail < needed) {
         tc_log_error(__FILE__, "(%s) no buffer in frame: (avail=%i|needed=%i)",
                      __func__, avail, needed);
@@ -165,7 +165,9 @@ static int tc_ogg_new_extradata(TheoraPrivateData *pd)
 
 
 static int tc_theora_configure(TCModuleInstance *self,
-                               const char *options, vob_t *vob)
+                               const char *options,
+                               TCJob *vob,
+                               TCModuleExtraData *xdata[])
 {
     uint32_t x_off = 0, y_off = 0, w = 0, h = 0;
     TheoraPrivateData *pd = NULL;
@@ -216,8 +218,8 @@ static int tc_theora_configure(TCModuleInstance *self,
     ti.offset_x                     = x_off;
     ti.offset_y                     = y_off;
     ret = tc_frc_code_to_ratio(vob->ex_frc,
-                                    &ti.fps_numerator,
-                                    &ti.fps_denominator);
+                                &ti.fps_numerator,
+                                &ti.fps_denominator);
                                /* watch out here */
     if (ret == TC_NULL_MATCH) {
         ti.fps_numerator            = 25;
@@ -368,9 +370,7 @@ static int tc_theora_encode_video(TCModuleInstance *self,
     tc_log_info(MOD_NAME, "(%s) START ENCODE VIDEO FRAME", __func__);
     tc_log_info(MOD_NAME, "(%s) invoked in=%p out=%p", __func__, inframe, outframe);
 #endif
-    if (inframe == NULL && pd->flush_flag) {
-        return tc_theora_flush(self, outframe); // FIXME
-    }
+
     return tc_theora_encode(self, inframe, outframe);
 }
 
@@ -385,7 +385,7 @@ static int tc_theora_encode_video(TCModuleInstance *self,
 } while (0)
 
 static int tc_theora_inspect(TCModuleInstance *self,
-                          const char *param, const char **value)
+                             const char *param, const char **value)
 {
     TheoraPrivateData *pd = NULL;
 
@@ -412,12 +412,13 @@ TC_MODULE_GENERIC_FINI(tc_theora);
 
 /*************************************************************************/
 
-static const TCCodecID tc_theora_codecs_in[] = {
+static const TCCodecID tc_theora_codecs_video_in[] = {
     TC_CODEC_YUV420P, TC_CODEC_ERROR
 };
-static const TCCodecID tc_theora_codecs_out[] = { 
+static const TCCodecID tc_theora_codecs_video_out[] = { 
     TC_CODEC_THEORA, TC_CODEC_ERROR
 };
+TC_MODULE_AUDIO_UNSUPPORTED(tc_theora);
 TC_MODULE_CODEC_FORMATS(tc_theora);
 
 TC_MODULE_INFO(tc_theora);
@@ -432,6 +433,7 @@ static const TCModuleClass tc_theora_class = {
     .inspect      = tc_theora_inspect,
 
     .encode_video = tc_theora_encode_video,
+    .flush_video  = tc_theora_flush,
 };
 
 TC_MODULE_ENTRY_POINT(tc_theora);

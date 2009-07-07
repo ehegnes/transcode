@@ -40,7 +40,7 @@
 
 
 #define MOD_NAME    "filter_transform.so"
-#define MOD_VERSION "v0.4.4 (2008-12-06)"
+#define MOD_VERSION "v0.4.5 (2009-02-07)"
 #define MOD_CAP     "transforms each frame according to transformations\n\
  given in an input file (e.g. translation, rotate) see also filter stabilize"
 #define MOD_AUTHOR  "Georg Martius"
@@ -828,12 +828,13 @@ static int transform_inspect(TCModuleInstance *self,
 };
 
 
-static const TCCodecID transform_codecs_in[] = { 
+static const TCCodecID transform_codecs_video_in[] = { 
     TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_RGB24, TC_CODEC_ERROR 
 };
-static const TCCodecID transform_codecs_out[] = { 
+static const TCCodecID transform_codecs_video_out[] = { 
     TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_RGB24, TC_CODEC_ERROR 
 };
+TC_MODULE_AUDIO_UNSUPPORTED(transform);
 TC_MODULE_FILTER_FORMATS(transform);
 
 TC_MODULE_INFO(transform);

@@ -74,12 +74,12 @@ uint64_t tc_gettime(void);
 
 typedef struct tctimer_ TCTimer;
 struct tctimer_ {
-    uint64_t last_time;
+    uint64_t    last_time;
     /* timestamp of last timer reading */
 
-    int (*fini)(TCTimer *timer);
-    uint64_t (*elapsed)(TCTimer *timer);
-    int (*sleep)(TCTimer *timer, uint64_t amount);
+    int         (*fini)(TCTimer *timer);
+    uint64_t    (*elapsed)(TCTimer *timer);
+    int         (*sleep)(TCTimer *timer, uint64_t amount);
 };
 
 int tc_timer_init_soft(TCTimer *timer, uint16_t frequency);

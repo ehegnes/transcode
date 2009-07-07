@@ -46,20 +46,20 @@
 
 #include "xio.h"
 #include "libtc.h"
-#include "tc_defaults.h"
-
-#include "transcode.h"
-
 #include "ratiocodes.h"
+
+#include "tccore/tc_defaults.h"
+#include "src/transcode.h"
+
 
 
 /*************************************************************************/
 
 /* frontend for lower level libtcutil code */
-void libtc_init(int *argc, char ***argv)
+int libtc_init(int *argc, char ***argv)
 {
     tc_log_init();
-    tc_log_open(TC_LOG_TARGET_CONSOLE, TC_LOG_MARK, argc, argv);
+    return tc_log_open(TC_LOG_TARGET_CONSOLE, TC_LOG_MARK, argc, argv);
 }
 
 /*************************************************************************/

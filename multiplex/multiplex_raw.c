@@ -56,8 +56,9 @@ static const char raw_help[] = ""
     "    help    produce module overview and options explanations\n";
 
 typedef struct {
-    int fd_aud;
-    int fd_vid;
+    int 	 fd_aud;
+    int 	 fd_vid;
+    uint32_t features;
 } RawPrivateData;
 
 static int raw_inspect(TCModuleInstance *self,
@@ -166,32 +167,40 @@ static int raw_stop(TCModuleInstance *self)
     return TC_OK;
 }
 
-static int raw_multiplex(TCModuleInstance *self,
-                         vframe_list_t *vframe, aframe_list_t *aframe)
+static int raw_write_video(TCModuleInstance *self, TCFrameVideo *frame)
 {
-    ssize_t w_aud = 0, w_vid = 0;
+    ssize_t w_vid = 0;
 
     RawPrivateData *pd = NULL;
 
-    TC_MODULE_SELF_CHECK(self, "multiplex");
+    TC_MODULE_SELF_CHECK(self, "write_video");
 
     pd = self->userdata;
 
-    if (vframe != NULL && vframe->video_len > 0) {
-        w_vid = tc_pwrite(pd->fd_vid, vframe->video_buf, vframe->video_len);
-        if(w_vid < 0) {
-            return TC_ERROR;
-        }
+    w_vid = tc_pwrite(pd->fd_vid, frame->video_buf, frame->video_len);
+    if(w_vid < 0) {
+        return TC_ERROR;
     }
 
-    if (aframe != NULL && aframe->audio_len > 0) {
-        w_aud = tc_pwrite(pd->fd_aud, aframe->audio_buf, aframe->audio_len);
- 		if (w_aud < 0) {
-			return TC_ERROR;
-		}
+    return (int)(w_vid);
+}
+
+static int raw_write_audio(TCModuleInstance *self, TCFrameAudio *frame)
+{
+    ssize_t w_aud = 0;
+
+    RawPrivateData *pd = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "write_audio");
+
+    pd = self->userdata;
+
+    w_aud = tc_pwrite(pd->fd_aud, frame->audio_buf, frame->audio_len);
+ 	if (w_aud < 0) {
+	    return TC_ERROR;
     }
 
-    return (int)(w_vid + w_aud);
+    return (int)(w_aud);
 }
 
 static int raw_init(TCModuleInstance *self, uint32_t features)
@@ -206,8 +215,9 @@ static int raw_init(TCModuleInstance *self, uint32_t features)
         return TC_ERROR;
     }
 
-    pd->fd_aud = -1;
-    pd->fd_vid = -1;
+    pd->fd_aud   = -1;
+    pd->fd_vid   = -1;
+    pd->features = features;
 
     if (verbose) {
         tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
@@ -221,8 +231,6 @@ static int raw_fini(TCModuleInstance *self)
 {
     TC_MODULE_SELF_CHECK(self, "fini");
 
-    raw_stop(self);
-
     tc_free(self->userdata);
     self->userdata = NULL;
 
@@ -232,7 +240,12 @@ static int raw_fini(TCModuleInstance *self)
 
 /*************************************************************************/
 
-static const TCCodecID raw_codecs_in[] = { TC_CODEC_ANY, TC_CODEC_ERROR };
+static const TCCodecID raw_codecs_video_in[] = { 
+    TC_CODEC_ANY, TC_CODEC_ERROR 
+};
+static const TCCodecID raw_codecs_audio_in[] = { 
+    TC_CODEC_ANY, TC_CODEC_ERROR 
+};
 static const TCFormatID raw_formats_out[] = { TC_FORMAT_RAW, TC_FORMAT_ERROR };
 /* a multiplexor is at the end of pipeline */
 TC_MODULE_MPLEX_FORMATS_CODECS(raw);
@@ -248,7 +261,10 @@ static const TCModuleClass raw_class = {
     .stop         = raw_stop,
     .inspect      = raw_inspect,
 
-    .multiplex    = raw_multiplex,
+    .open         = raw_open,
+    .close        = raw_close,
+    .write_video  = raw_write_video,
+    .write_audio  = raw_write_audio,
 };
 
 TC_MODULE_ENTRY_POINT(raw)
