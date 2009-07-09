@@ -172,7 +172,9 @@ TC_MODULE_GENERIC_FINI(facemask)
  */
 
 static int facemask_configure(TCModuleInstance *self,
-                          const char *options, vob_t *vob)
+                              const char *options,
+                              TCJob *vob,
+                              TCModuleExtraData *xdata[])
 {
     FacemaskPrivateData *fpd = NULL;
 

@@ -22,8 +22,9 @@
  *
  */
 
+#include "tccore/tcinfo.h"
+
 #include "src/transcode.h"
-#include "src/tcinfo.h"
 
 #include "ioaux.h"
 #include "magic.h"

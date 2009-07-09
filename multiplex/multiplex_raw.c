@@ -32,7 +32,7 @@
 #include <errno.h>
 
 #define MOD_NAME    "multiplex_raw.so"
-#define MOD_VERSION "v0.0.3 (2006-03-06)"
+#define MOD_VERSION "v0.1.0 (2009-07-09)"
 #define MOD_CAP     "write each stream in a separate file"
 
 #define MOD_FEATURES \
@@ -56,8 +56,8 @@ static const char raw_help[] = ""
     "    help    produce module overview and options explanations\n";
 
 typedef struct {
-    int 	 fd_aud;
-    int 	 fd_vid;
+    int      fd_aud;
+    int      fd_vid;
     uint32_t features;
 } RawPrivateData;
 
@@ -74,11 +74,31 @@ static int raw_inspect(TCModuleInstance *self,
 }
 
 static int raw_configure(TCModuleInstance *self,
-                         const char *options, vob_t *vob)
+                         const char *options,
+                         TCJob *vob,
+                         TCModuleExtraData *xdata[])
 {
-    char vid_name[PATH_MAX];
-    char aud_name[PATH_MAX];
+    TC_MODULE_SELF_CHECK(self, "configure");
+    return TC_OK;
+}
+
+static int raw_stop(TCModuleInstance *self)
+{
+    TC_MODULE_SELF_CHECK(self, "stop");
+    return TC_OK;
+}
+
+
+#define HAS_VIDEO(PD)   ((PD)->features & TC_MODULE_FEATURE_VIDEO) 
+#define HAS_AUDIO(PD)   ((PD)->features & TC_MODULE_FEATURE_AUDIO) 
+
+static int raw_open(TCModuleInstance *self, const char *filename,
+                    TCModuleExtraData *xdata[])
+{
+    char vid_name[PATH_MAX] = { '\0' };
+    char aud_name[PATH_MAX] = { '\0' };
     RawPrivateData *pd = NULL;
+    TCJob *vob = tc_get_vob();
 
     TC_MODULE_SELF_CHECK(self, "configure");
 
@@ -90,20 +110,25 @@ static int raw_configure(TCModuleInstance *self,
     if ((ex_aud_mod != NULL && strcmp(ex_aud_mod, "null") != 0)
         && (vob->audio_out_file == NULL
             || strcmp(vob->audio_out_file, "/dev/null") == 0)
+        && (HAS_VIDEO(pd) && HAS_AUDIO(pd))
     ) {
         /* use affine names */
         tc_snprintf(vid_name, PATH_MAX, "%s.%s",
-                    vob->video_out_file, RAW_VID_EXT);
+					filename, RAW_VID_EXT);
         tc_snprintf(aud_name, PATH_MAX, "%s.%s",
-                    vob->video_out_file, RAW_AUD_EXT);
+                    filename, RAW_AUD_EXT);
+    } else if (HAS_VIDEO(pd)) {
+        strlcpy(vid_name, filename, PATH_MAX);
+    } else if (HAS_AUDIO(pd)) {
+        strlcpy(aud_name, filename, PATH_MAX);
     } else {
-        /* copy names verbatim */
-        strlcpy(vid_name, vob->video_out_file, PATH_MAX);
-        strlcpy(aud_name, vob->audio_out_file, PATH_MAX);
+        /* cannot happen */
+        tc_log_error(MOD_NAME, "missing filename!");
+        return TC_ERROR;
     }
     
     /* avoid fd loss in case of failed configuration */
-    if (pd->fd_vid == -1) {
+    if (HAS_VIDEO(pd) && pd->fd_vid == -1) {
         pd->fd_vid = open(vid_name,
                           O_RDWR|O_CREAT|O_TRUNC,
                           S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH);
@@ -116,7 +141,7 @@ static int raw_configure(TCModuleInstance *self,
     /* avoid fd loss in case of failed configuration */
     // HACK: Don't open for -y ...,null,raw.  --AC
     if ((ex_aud_mod != NULL && strcmp(ex_aud_mod, "null") != 0)
-     && pd->fd_aud == -1
+     && (HAS_AUDIO(pd) && pd->fd_aud == -1)
     ) {
         pd->fd_aud = open(aud_name,
                           O_RDWR|O_CREAT|O_TRUNC,
@@ -126,7 +151,7 @@ static int raw_configure(TCModuleInstance *self,
             return TC_ERROR;
         }
     }
-    if (vob->verbose >= TC_DEBUG) {
+    if (verbose >= TC_DEBUG) {
         tc_log_info(MOD_NAME, "video output: %s (%s)",
                     vid_name, (pd->fd_vid == -1) ?"FAILED" :"OK");
         tc_log_info(MOD_NAME, "audio output: %s (%s)",
@@ -135,7 +160,7 @@ static int raw_configure(TCModuleInstance *self,
     return TC_OK;
 }
 
-static int raw_stop(TCModuleInstance *self)
+static int raw_close(TCModuleInstance *self)
 {
     RawPrivateData *pd = NULL;
     int verr, aerr;
@@ -202,6 +227,7 @@ static int raw_write_audio(TCModuleInstance *self, TCFrameAudio *frame)
 
     return (int)(w_aud);
 }
+
 
 static int raw_init(TCModuleInstance *self, uint32_t features)
 {

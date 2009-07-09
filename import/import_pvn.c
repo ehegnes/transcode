@@ -317,7 +317,9 @@ static int pvn_init(TCModuleInstance *self, uint32_t features)
  */
 
 static int pvn_configure(TCModuleInstance *self,
-                         const char *options, vob_t *vob)
+                         const char *options,
+                         TCJob *vob,
+                         TCModuleExtraData *xdata[])
 {
     TC_MODULE_SELF_CHECK(self, "configure");
 

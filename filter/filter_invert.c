@@ -91,7 +91,9 @@ TC_MODULE_GENERIC_FINI(invert)
  */
 
 static int invert_configure(TCModuleInstance *self,
-                            const char *options, vob_t *vob)
+                            const char *options,
+                            TCJob *vob,
+                            TCModuleExtraData *xdata[])
 {
     InvertPrivateData *mfd = NULL;
 

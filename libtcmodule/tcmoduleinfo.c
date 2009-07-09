@@ -101,6 +101,7 @@ int tc_module_info_match(int tc_codec, int type,
 
 #undef HAVE_FEATURE
 
+
 static void codecs_to_string(const TCCodecID *codecs, char *buffer,
                              size_t bufsize, const char *fallback_string)
 {
@@ -207,33 +208,23 @@ void tc_module_info_log(const TCModuleInfo *info, int verbose)
     if (verbose >= TC_INFO) {
         const char *str = (info->features & TC_MODULE_FEATURE_MULTIPLEX)
                                     ?"a media stream" :"nothing";
-        codecs_to_string(info->codecs_in, buffer, sizeof(buffer), str);
-        tc_log_info(info->name, "accepts    : %s", buffer);
+        codecs_to_string(info->codecs_video_in, buffer, sizeof(buffer), str);
+        tc_log_info(info->name, "accepts video: %s", buffer);
+        codecs_to_string(info->codecs_audio_in, buffer, sizeof(buffer), str);
+        tc_log_info(info->name, "accepts audio: %s", buffer);
 
         if (info->features & TC_MODULE_FEATURE_MULTIPLEX) {
             formats_to_string(info->formats_out, buffer, sizeof(buffer));
             tc_log_info(info->name, "muxes in   : %s", buffer);
         } else {
-            codecs_to_string(info->codecs_out, buffer, sizeof(buffer), str);
-            tc_log_info(info->name, "encodes in : %s", buffer);
+            codecs_to_string(info->codecs_video_out, buffer, sizeof(buffer), str);
+            tc_log_info(info->name, "encodes in video: %s", buffer);
+            codecs_to_string(info->codecs_audio_out, buffer, sizeof(buffer), str);
+            tc_log_info(info->name, "encodes in audio: %s", buffer);
         }
     }
 }
 
-void tc_module_info_free(TCModuleInfo *info)
-{
-    if (info != NULL) {
-        /*
-         * void* casts to silence warning from gcc 4.x (free requires void*,
-         * argument is const something*
-         */
-        tc_free((void*)info->name);
-        tc_free((void*)info->version);
-        tc_free((void*)info->description);
-        tc_free((void*)info->codecs_in);
-        tc_free((void*)info->codecs_out);
-    }
-}
 
 /*************************************************************************/
 

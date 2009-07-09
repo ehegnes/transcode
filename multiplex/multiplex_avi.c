@@ -70,12 +70,14 @@ static int avi_inspect(TCModuleInstance *self,
 }
 
 static int avi_configure(TCModuleInstance *self,
-                          const char *options, vob_t *vob)
+                          const char *options,
+                          TCJob *vob,
+                          TCModuleExtraData *xdata[])
 {
     AVIPrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "configure");
-    TC_MODULE_SELF_CHECK(vob, "configure"); /* hackish? */
+    TC_MODULE_SELF_CHECK(vob,  "configure"); /* hackish? */
 
     pd = self->userdata;
     pd->vob      = vob;
@@ -102,7 +104,8 @@ static int avi_configure(TCModuleInstance *self,
 }
 
 static int avi_open(TCModuleInstance *self,
-                    const char *filename)
+                    const char *filename,
+                    TCModuleExtraData *xdata[])
 {
     AVIPrivateData *pd = NULL;
     vob_t *vob = NULL;

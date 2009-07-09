@@ -168,7 +168,9 @@ static int tc_x11_fini(TCModuleInstance *self)
 }
 
 static int tc_x11_configure(TCModuleInstance *self,
-                            const char *options, vob_t *vob)
+                            const char *options,
+                            TCJob *vob,
+                            TCModuleExtraData *xdata[])
 {
     TCX11PrivateData *priv = NULL;
     int ret = 0, skew_lim = SKEW_LIM_DEFAULT;
@@ -209,7 +211,8 @@ static int tc_x11_configure(TCModuleInstance *self,
     return TC_OK;
 }
 
-static int tc_x11_open(TCModuleInstance *self, const char *filename)
+static int tc_x11_open(TCModuleInstance *self, const char *filename,
+                       TCModuleExtraData *xdata[])
 {
     TCX11PrivateData *priv = NULL;
     int ret = 0;
@@ -410,6 +413,7 @@ static int capability_flag = TC_CAP_YUV|TC_CAP_RGB|TC_CAP_YUV422|TC_CAP_VID;
 
 MOD_open
 {
+    TCModuleExtraData *xdata[] = { NULL, NULL };
     int ret;
 
     COMMON_CHECK(param);
@@ -417,10 +421,10 @@ MOD_open
     ret = tc_x11_init(&mod_video, TC_MODULE_FEATURE_DEMULTIPLEX);
     RETURN_IF_FAILED(ret);
 
-    ret = tc_x11_configure(&mod_video, "", vob);
+    ret = tc_x11_configure(&mod_video, "", vob, xdata);
     RETURN_IF_FAILED(ret);
 
-    ret = tc_x11_open(&mod_video, vob->video_in_file);
+    ret = tc_x11_open(&mod_video, vob->video_in_file, xdata);
     RETURN_IF_FAILED(ret);
 
     return TC_OK;

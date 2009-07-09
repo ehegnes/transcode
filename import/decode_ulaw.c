@@ -19,9 +19,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "tccore/tcinfo.h"
 
 #include "src/transcode.h"
-#include "src/tcinfo.h"
 #include "libtc/libtc.h"
 #include "tc.h"
 

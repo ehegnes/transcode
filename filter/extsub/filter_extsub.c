@@ -30,6 +30,7 @@
 #include "src/filter.h"
 #include "libtcutil/optstr.h"
 #include "libtcvideo/tcvideo.h"
+#include "libtcexport/export.h"
 
 #include <stdint.h>
 

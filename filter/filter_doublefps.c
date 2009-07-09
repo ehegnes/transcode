@@ -124,7 +124,9 @@ static int doublefps_fini(TCModuleInstance *self)
  */
 
 static int doublefps_configure(TCModuleInstance *self,
-                               const char *options, vob_t *vob)
+                               const char *options,
+                               TCJob *vob,
+                               TCModuleExtraData *xdata[])
 {
     DfpsPrivateData *pd;
     int new_topfirst = -1;

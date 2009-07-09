@@ -102,7 +102,9 @@ TC_MODULE_GENERIC_FINI(null)
  */
 
 static int null_configure(TCModuleInstance *self,
-                          const char *options, vob_t *vob)
+                          const char *options,
+                          TCJob *vob,
+                          TCModuleExtraData *xdata[])
 {
     NullPrivateData *pd = NULL;
 

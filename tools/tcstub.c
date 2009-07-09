@@ -111,24 +111,6 @@ uint32_t vbuffer_ex_fill_ctr = 0;
 pthread_mutex_t vbuffer_xx_fill_lock = PTHREAD_MUTEX_INITIALIZER;
 uint32_t vbuffer_xx_fill_ctr = 0;
 
-/* (ugly) libtcext stubs */
-void tc_ogg_del_packet(void *op);
-void tc_ogg_del_packet(void *op)
-{
-    return;
-}
-
-void tc_ogg_del_extradata(void *oxd);
-void tc_ogg_del_extradata(void *oxd)
-{
-    return;
-}
-
-int tc_ogg_dup_packet(void *dst, const void *src);
-int tc_ogg_dup_packet(void *dst, const void *src)
-{
-    return TC_OK;
-}
 
 #ifdef TC_FRAMEBUFFER_STUBS
 void vframe_copy(vframe_list_t *dst, const vframe_list_t *src, int copy_data)

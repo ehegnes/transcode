@@ -63,7 +63,9 @@ static int tc_wav_inspect(TCModuleInstance *self,
 }
 
 static int tc_wav_configure(TCModuleInstance *self,
-                            const char *options, vob_t *vob)
+                            const char *options,
+                            TCJob *vob,
+                            TCModuleExtraData *xdata[])
 {
     TC_MODULE_SELF_CHECK(self, "configure");
     return TC_OK;
@@ -76,7 +78,8 @@ static int tc_wav_stop(TCModuleInstance *self)
 }
     
 
-static int tc_wav_open(TCModuleInstance *self, const char *filename)
+static int tc_wav_open(TCModuleInstance *self, const char *filename,
+                       TCModuleExtraData *xdata[])
 {
     vob_t *vob = tc_get_vob();
     WAVError err;

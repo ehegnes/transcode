@@ -81,7 +81,8 @@ static int tc_y4m_inspect(TCModuleInstance *self,
     return TC_OK;
 }
 
-static int tc_y4m_open(TCModuleInstance *self, const char *filename)
+static int tc_y4m_open(TCModuleInstance *self, const char *filename,
+                       TCModuleExtraData *xdata[])
 {
     int asr, ret;
     y4m_ratio_t framerate;
@@ -150,7 +151,9 @@ static int tc_y4m_open(TCModuleInstance *self, const char *filename)
 }
 
 static int tc_y4m_configure(TCModuleInstance *self,
-                         const char *options, vob_t *vob)
+                            const char *options,
+                            TCJob *vob,
+                            TCModuleExtraData *xdata[])
 {
     Y4MPrivateData *pd = NULL;
 

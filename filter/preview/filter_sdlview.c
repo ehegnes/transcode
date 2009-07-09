@@ -177,7 +177,9 @@ static int configure_colorspace(SDLPrivateData *pd, int fmt, int verbose)
  * tcmodule-data.h for function details.
  */
 static int sdlview_configure(TCModuleInstance *self,
-                             const char *options, vob_t *vob)
+                             const char *options,
+                             TCJob *vob,
+                             TCModuleExtraData *xdata[])
 {
     SDLPrivateData *pd = NULL;
     int ret;

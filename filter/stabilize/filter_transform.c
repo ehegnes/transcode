@@ -610,7 +610,9 @@ static int transform_init(TCModuleInstance *self, uint32_t features)
  * tcmodule-data.h for function details.
  */
 static int transform_configure(TCModuleInstance *self, 
-			       const char *options, vob_t *vob)
+                		       const char *options,
+                               TCJob *vob,
+                               TCModuleExtraData *xdata[])
 {
     TransformData *td = NULL;
     char* filenamecopy, *filebasename;

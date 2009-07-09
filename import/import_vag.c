@@ -132,7 +132,9 @@ static int vag_fini(TCModuleInstance *self)
  */
 
 static int vag_configure(TCModuleInstance *self,
-                         const char *options, vob_t *vob)
+                         const char *options,
+                         TCJob *vob,
+                         TCModuleExtraData *xdata[])
 {
     TC_MODULE_SELF_CHECK(self, "configure");
 
