@@ -337,6 +337,14 @@ struct _vob_t {
     mpeg_profile_t mpeg_profile;
 
     unsigned int export_attributes;
+
+    int rgbswap;
+    int pcmswap;
+    int dgamma;
+    int keepasr;
+    int fast_resize;
+    int flip;
+    int mirror;
 };
 typedef struct _vob_t TCJob;
 

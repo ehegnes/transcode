@@ -7,9 +7,9 @@
  * General Public License (version 2 or later).  See the file COPYING
  * for details.
  */
+#include "tccore/tcinfo.h"
 
 #include "src/transcode.h"
-#include "src/tcinfo.h"
 #include "libtcvideo/tcvideo.h"
 #include "ioaux.h"  /* for import_exit() prototype */
 #include "tc.h"  /* for function prototypes */

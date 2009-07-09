@@ -682,7 +682,9 @@ static int tc_lavf_stop(TCModuleInstance *self)
 } while (0)
 
 static int tc_lavf_configure(TCModuleInstance *self,
-                             const char *options, vob_t *vob)
+                             const char *options,
+                             TCJob *vob,
+                             TCModuleExtraData *xdata[])
 {
     int ret = 0;
     TCLavfPrivateData *pd = NULL;
@@ -715,7 +717,8 @@ static int tc_lavf_configure(TCModuleInstance *self,
     return TC_OK;
 }
 
-static int tc_lavf_open(TCModuleInstance *self, const char *filename)
+static int tc_lavf_open(TCModuleInstance *self, const char *filename,
+                        TCModuleExtraData *xdata[])
 {
     int ret = 0;
     const struct fmt_desc *des = NULL;

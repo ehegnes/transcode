@@ -117,7 +117,9 @@ TC_MODULE_GENERIC_FINI(msharpen)
  */
 
 static int msharpen_configure(TCModuleInstance *self,
-                            const char *options, vob_t *vob)
+                              const char *options,
+                              TCJob *vob,
+                              TCModuleExtraData *xdata[])
 {
     MsharpenPrivateData *pd = NULL;
     int width = vob->ex_v_width, height = vob->ex_v_height;

@@ -178,7 +178,7 @@ void xv_display_event (xv_display_t *dv_dpy)
 		preview_cache_draw(-cache_long_skip);
 		break;
 	    case TC_SOCK_PV_ROTATE:
-		tc_outstream_rotate_request();
+		//tc_outstream_rotate_request(); // FIXME
 		break;
 	    case TC_SOCK_PV_FASTER:
 		dec_preview_delay();
@@ -302,7 +302,7 @@ void xv_display_event (xv_display_t *dv_dpy)
 
       case XK_R:
       case XK_r:
-	tc_outstream_rotate_request();
+//	tc_outstream_rotate_request(); // FIXME
 	break;
 
       case XK_s:

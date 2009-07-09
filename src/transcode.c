@@ -34,13 +34,13 @@
 #include "libtc/libtc.h"
 #include "libtc/tccodecs.h"
 #include "libtc/ratiocodes.h"
+#include "libtcext/tc_ext.h"
 #include "libtcutil/xio.h"
 #include "libtcutil/cfgfile.h"
 #include "libtcexport/export.h"
 
 #include "transcode.h"
 #include "decoder.h"
-#include "encoder.h"
 #include "dl_loader.h"
 #include "framebuffer.h"
 #include "counter.h"
@@ -2741,7 +2741,7 @@ int main(int argc, char *argv[])
 #endif
 
     // load import/export modules and filters plugins
-    if (transcode_init(vob, tc_get_ringbuffer(max_frame_threads, max_frame_threads)) < 0)
+    if (transcode_init(vob, &specs) != TC_OK)
         tc_error("plug-in initialization failed");
 
     // start socket stuff

@@ -216,10 +216,11 @@ const TCModuleClass *tc_plugin_setup(void);
     int tc_filter(frame_list_t *frame, char *options) \
     { \
         if (frame->tag & TC_FILTER_INIT) { \
+            TCModuleExtraData *xdata[] = { NULL, NULL }; \
             if (name ## _init(&mod, TC_MODULE_FEATURE_FILTER) < 0) { \
                 return TC_ERROR; \
             } \
-            return name ## _configure(&mod, options, tc_get_vob()); \
+            return name ## _configure(&mod, options, tc_get_vob(), xdata); \
         \
         } else if (frame->tag & TC_FILTER_GET_CONFIG) { \
             return name ## _get_config(&mod, options); \
@@ -251,11 +252,12 @@ const TCModuleClass *tc_plugin_setup(void);
 	TCModuleInstance *mod = &mods[frame->filter_id]; \
 	\
         if (frame->tag & TC_FILTER_INIT) { \
+            TCModuleExtraData *xdata[] = { NULL, NULL }; \
             tc_log_info(MOD_NAME, "instance #%i", frame->filter_id); \
             if (name ## _init(mod, TC_MODULE_FEATURE_FILTER) < 0) { \
                 return TC_ERROR; \
             } \
-            return name ## _configure(mod, options, tc_get_vob()); \
+            return name ## _configure(mod, options, tc_get_vob(), xdata); \
         \
         } else if (frame->tag & TC_FILTER_GET_CONFIG) { \
             return name ## _get_config(mod, options); \

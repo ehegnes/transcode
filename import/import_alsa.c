@@ -339,7 +339,9 @@ static int tc_alsa_fini(TCModuleInstance *self)
 }
 
 static int tc_alsa_configure(TCModuleInstance *self,
-                             const char *options, vob_t *vob)
+                             const char *options,
+                             TCJob *vob,
+                             TCModuleExtraData *xdata[])
 {
     TCALSAPrivateData *priv = NULL;
 
@@ -357,7 +359,8 @@ static int tc_alsa_configure(TCModuleInstance *self,
 }
 
 static int tc_alsa_open(TCModuleInstance *self,
-                        const char *filename)
+                        const char *filename,
+                        TCModuleExtraData *xdata[])
 {
     TCALSAPrivateData *priv = NULL;
     vob_t *vob = tc_get_vob();

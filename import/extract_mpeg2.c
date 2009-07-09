@@ -22,8 +22,8 @@
  *
  */
 
+#include "tccore/tcinfo.h"
 #include "src/transcode.h"
-#include "src/tcinfo.h"
 #include "libtc/libtc.h"
 
 #include "ioaux.h"

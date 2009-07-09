@@ -24,7 +24,7 @@
 #ifndef _PVM_PARSER_H
 #define _PVM_PARSER_H
 
-#include "tc_defaults.h"    /*TC_xxxx variables*/
+#include "tccore/tc_defaults.h"    /*TC_xxxx variables*/
 
 #define PVM_MAX_CODEC_PARAMS    3
 

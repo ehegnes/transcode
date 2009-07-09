@@ -56,7 +56,8 @@ typedef struct {
 /* the needed forward declarations                                       */
 
 int pvn_init(TCModuleInstance *self, uint32_t features);
-int pvn_configure(TCModuleInstance *self, const char *options, vob_t *vob);
+int pvn_configure(TCModuleInstance *self, const char *options, TCJob *vob,
+                  TCModuleExtraData *xdata[]);
 int pvn_fini(TCModuleInstance *self);
 int pvn_write_video(TCModuleInstance *self,
                     TCFrameVideo *vframe);
@@ -115,7 +116,9 @@ static int pvn_close(TCModuleInstance *self)
  */
 
 METHOD int pvn_configure(TCModuleInstance *self,
-                         const char *options, vob_t *vob)
+                         const char *options,
+                         TCJob *vob,
+                         TCModuleExtraData *xdata[])
 {
     PrivateData *pd = NULL;
 
@@ -129,7 +132,8 @@ METHOD int pvn_configure(TCModuleInstance *self,
     return TC_OK;
 }
 
-METHOD int pvn_open(TCModuleInstance *self, const char *filename)
+METHOD int pvn_open(TCModuleInstance *self, const char *filename,
+                    TCModuleExtraData *xdata[])
 {
     char buf[TC_BUF_MAX] = { '\0' };
     int len = 0;

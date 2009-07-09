@@ -152,7 +152,9 @@ TC_MODULE_GENERIC_FINI(detectsilence)
  */
 
 static int detectsilence_configure(TCModuleInstance *self,
-                                   const char *options, vob_t *vob)
+                                   const char *options,
+                                   TCJob *vob,
+                                   TCModuleExtraData *xdata[])
 {
     DSPrivateData *pd = NULL;
     int i;

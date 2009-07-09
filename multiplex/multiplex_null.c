@@ -63,7 +63,9 @@ static int null_fini(TCModuleInstance *self)
 }
 
 static int null_configure(TCModuleInstance *self,
-                          const char *options, vob_t *vob)
+                          const char *options,
+                          TCJob *vob,
+                          TCModuleExtraData *xdata[])
 {
     TC_MODULE_SELF_CHECK(self, "configure");
     

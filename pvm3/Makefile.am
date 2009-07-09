@@ -5,6 +5,7 @@ AM_CPPFLAGS = \
 	-DMOD_PATH=\"$(MOD_PATH)\" \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
+	-I$(top_srcdir)/tccore \
 	$(PVM3_CFLAGS)
 
 AM_LDFLAGS = -export-dynamic

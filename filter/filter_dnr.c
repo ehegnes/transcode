@@ -394,7 +394,9 @@ static int dnr_stop(TCModuleInstance *self)
  */
 
 static int dnr_configure(TCModuleInstance *self,
-                         const char *options, vob_t *vob)
+                         const char *options,
+                         TCJob *vob,
+                         TCModuleExtraData *xdata[])
 {
     DNRPrivateData *pd = NULL;
     double low1, low2;

@@ -27,7 +27,7 @@
 #include "config.h"
 #endif
 
-port/export.h"
+#include "libtcexport/export.h"
 
 #include "transcode.h"
 #include "decoder.h"

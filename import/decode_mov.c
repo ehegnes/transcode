@@ -20,9 +20,9 @@
  *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
+#include "tccore/tcinfo.h"
 
 #include "src/transcode.h"
-#include "src/tcinfo.h"
 #include "libtc/libtc.h"
 
 #include "ioaux.h"

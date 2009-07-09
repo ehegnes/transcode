@@ -22,9 +22,9 @@
  *
  */
 
+#include "tccore/tcinfo.h"
 #include "src/transcode.h"
 #include "src/framebuffer.h"
-#include "src/tcinfo.h"
 #include "libtc/libtc.h"
 #include "libtc/ratiocodes.h"
 #include "libtc/tcframes.h"

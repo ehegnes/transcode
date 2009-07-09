@@ -61,7 +61,9 @@ static const char resample_help[] = ""
 TC_MODULE_GENERIC_INIT(resample, ResamplePrivateData)
 
 static int resample_configure(TCModuleInstance *self,
-                              const char *options, vob_t *vob)
+                              const char *options,
+                              TCJob *vob,
+                              TCModuleExtraData *xdata[])
 {
     double samples_per_frame, ratio;
     ResamplePrivateData *pd = NULL;

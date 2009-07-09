@@ -24,8 +24,8 @@
 #undef DDBUG
 //#define DDBUG
 
+#include "tccore/tcinfo.h"
 #include "src/transcode.h"
-#include "src/tcinfo.h"
 
 #include "ioaux.h"
 #include "aux_pes.h"

@@ -646,7 +646,9 @@ static int stabilize_fini(TCModuleInstance *self)
  * tcmodule-data.h for function details.
  */
 static int stabilize_configure(TCModuleInstance *self,
-            			       const char *options, vob_t *vob)
+            			       const char *options,
+                               TCJob *vob,
+                               TCModuleExtraData *xdata[])
 {
     int field_setup;
 

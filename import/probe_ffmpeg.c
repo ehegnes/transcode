@@ -18,8 +18,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "tccore/tcinfo.h"
 #include "src/transcode.h"
-#include "src/tcinfo.h"
 #include "ioaux.h"
 #include "tc.h"
 #include "libtc/libtc.h"

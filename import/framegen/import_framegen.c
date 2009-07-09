@@ -141,7 +141,7 @@ static int framegen_pink_noise_get_data(TCFrameGenSource *handle,
     return TC_OK;
 }
 
-static int framegen_pink_noise_init(PinkNoiseData *PN, vob_t *vob)
+static int framegen_pink_noise_init(PinkNoiseData *PN, TCJob *vob)
 {
     int ret = TC_ERROR;
     if (vob->a_bits == 16) {
@@ -153,7 +153,7 @@ static int framegen_pink_noise_init(PinkNoiseData *PN, vob_t *vob)
     return ret;
 }
 
-static TCFrameGenSource *tc_framegen_source_open_audio_pink_noise(vob_t *vob,
+static TCFrameGenSource *tc_framegen_source_open_audio_pink_noise(TCJob *vob,
                                                                   int32_t seed)
 {
     void *p = tc_zalloc(sizeof(TCFrameGenSource) + sizeof(PinkNoiseData));
@@ -222,7 +222,7 @@ static int framegen_color_wave_get_data(TCFrameGenSource *handle,
     return TC_OK;
 }
 
-static int framegen_color_wave_init(ColorWaveData *CW, vob_t *vob)
+static int framegen_color_wave_init(ColorWaveData *CW, TCJob *vob)
 {
     int ret = TC_ERROR;
     if (vob->im_v_codec == TC_CODEC_YUV420P) {
@@ -234,7 +234,7 @@ static int framegen_color_wave_init(ColorWaveData *CW, vob_t *vob)
     return ret;
 }
 
-static TCFrameGenSource *tc_framegen_source_open_video_color_wave(vob_t *vob,
+static TCFrameGenSource *tc_framegen_source_open_video_color_wave(TCJob *vob,
                                                                   int32_t seed)
 {
     void *p = tc_zalloc(sizeof(TCFrameGenSource) + sizeof(ColorWaveData));
@@ -259,6 +259,13 @@ static TCFrameGenSource *tc_framegen_source_open_video_color_wave(vob_t *vob,
 }
 
 /*************************************************************************/
+
+#define RETURN_IF_FAILED(RET, MSG) do { \
+    if ((RET) < 0) { \
+        tc_log_error(MOD_NAME, "%s", (MSG)); \
+        return TC_ERROR; \
+    } \
+} while (0)
 
 #define RETURN_IF_ERROR(RET, MSG) do { \
     if ((RET) != TC_OK) { \
@@ -299,7 +306,9 @@ TC_MODULE_GENERIC_INIT(tc_framegen, TCFrameGenPrivateData)
 TC_MODULE_GENERIC_FINI(tc_framegen)
 
 static int tc_framegen_configure(TCModuleInstance *self,
-                                 const char *options, vob_t *vob)
+                                 const char *options,
+                                 TCJob *vob,
+                                 TCModuleExtraData *xdata[])
 {
     TCFrameGenPrivateData *priv = NULL;
 
@@ -350,62 +359,60 @@ static int tc_framegen_stop(TCModuleInstance *self)
     return TC_OK;
 }
 
-static int tc_framegen_demultiplex(TCModuleInstance *self,
-                                   TCFrameVideo *vframe, TCFrameAudio *aframe)
+static int tc_framegen_read_video(TCModuleInstance *self,
+                                  TCFrameVideo *frame)
 {
     int ret;
     TCFrameGenPrivateData *priv = NULL;
 
-    TC_MODULE_SELF_CHECK(self, "demultiplex");
+    TC_MODULE_SELF_CHECK(self, "read_video");
     
     priv = self->userdata;
 
-    if (vframe != NULL) {
-        ret = tc_framegen_source_get_data(priv->video_gen,
-                                          vframe->video_buf,
-                                          vframe->video_size,
-                                          &vframe->video_len);
-        RETURN_IF_ERROR(ret, "demux: failed to pull a new video frame");
-    }
+    ret = tc_framegen_source_get_data(priv->video_gen,
+                                      frame->video_buf,
+                                      frame->video_size,
+                                      &frame->video_len);
+    RETURN_IF_FAILED(ret, "demux: failed to pull a new video frame");
+    return frame->video_len;
+}
 
-    if (aframe != NULL) {
-        ret = tc_framegen_source_get_data(priv->audio_gen,
-                                          aframe->audio_buf,
-                                          aframe->audio_size,
-                                          &aframe->audio_len);
-        RETURN_IF_ERROR(ret, "demux: failed to pull a new audio frame");
-    }
-    return TC_OK;
+static int tc_framegen_read_audio(TCModuleInstance *self,
+                                  TCFrameAudio *frame)
+{
+    int ret;
+    TCFrameGenPrivateData *priv = NULL;
+
+    TC_MODULE_SELF_CHECK(self, "read_audio");
+    
+    priv = self->userdata;
+
+    ret = tc_framegen_source_get_data(priv->audio_gen,
+                                      frame->audio_buf,
+                                      frame->audio_size,
+                                      &frame->audio_len);
+    RETURN_IF_ERROR(ret, "demux: failed to pull a new audio frame");
+    return frame->audio_len;
 }
 
 /*************************************************************************/
 
-static const TCCodecID tc_framegen_codecs_in[] = { TC_CODEC_ERROR };
-
 /* a demultiplexor is at the begin of the pipeline */
-static const TCCodecID tc_framegen_codecs_out[] = { 
-    TC_CODEC_YUV420P,
-    TC_CODEC_PCM,
-    TC_CODEC_ERROR,
+TC_MODULE_DEMUX_FORMATS_CODECS(tc_framegen);
+
+static const TCCodecID tc_framegen_codecs_video_out[] = { 
+    TC_CODEC_YUV420P, TC_CODEC_ERROR,
+};
+
+static const TCCodecID tc_framegen_codecs_audio_out[] = { 
+    TC_CODEC_PCM, TC_CODEC_ERROR,
 };
 
 static const TCFormatID tc_framegen_formats_in[] = {
     TC_FORMAT_ERROR, 
 };
 
-static const TCFormatID tc_framegen_formats_out[] = { TC_FORMAT_ERROR };
-
-static const TCModuleInfo tc_framegen_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = tc_framegen_codecs_in,
-    .codecs_out  = tc_framegen_codecs_out,
-    .formats_in  = tc_framegen_formats_in,
-    .formats_out = tc_framegen_formats_out
-};
+TC_MODULE_INFO(tc_framegen);
 
 static const TCModuleClass tc_framegen_class = {
     TC_MODULE_CLASS_HEAD(tc_framegen),
@@ -416,7 +423,8 @@ static const TCModuleClass tc_framegen_class = {
     .stop         = tc_framegen_stop,
     .inspect      = tc_framegen_inspect,
 
-    .demultiplex  = tc_framegen_demultiplex,
+    .read_video   = tc_framegen_read_video,
+    .read_audio   = tc_framegen_read_audio,
 };
 
 TC_MODULE_ENTRY_POINT(tc_framegen)

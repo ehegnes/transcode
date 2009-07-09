@@ -23,8 +23,6 @@
 #include "tcstub.h"
 #include "libtcext/tc_ext.h"
 
-#include "libtcext/tc_avcodec.h"
-
 #define EXE "tcmodchain"
 
 /*************************************************************************/

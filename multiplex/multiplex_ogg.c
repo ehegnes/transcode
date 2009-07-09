@@ -443,7 +443,9 @@ static int tc_ogg_inspect(TCModuleInstance *self,
 }
 
 static int tc_ogg_configure(TCModuleInstance *self,
-                            const char *options, vob_t *vob)
+                            const char *options,
+                            TCJob *vob,
+                            TCModuleExtraData *xdata[])
 {
     char shout_id[128] = { '\0' };
     OGGPrivateData *pd = NULL;
@@ -480,7 +482,8 @@ static int tc_ogg_configure(TCModuleInstance *self,
 
 
 static int tc_ogg_open(TCModuleInstance *self,
-                       const char *filename)
+                       const char *filename,
+                       TCModuleExtraData *xdata[])
 {
     int ret, vserial, aserial;
     OGGPrivateData *pd = NULL;

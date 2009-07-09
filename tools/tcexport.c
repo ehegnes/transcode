@@ -39,6 +39,7 @@
 
 #include "libtcmodule/tcmodule-core.h"
 #include "libtcutil/cfgfile.h"
+#include "libtcext/tc_ext.h"
 #include "libtc/libtc.h"
 #include "libtc/tccodecs.h"
 #include "libtc/tcframes.h"

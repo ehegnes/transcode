@@ -898,11 +898,6 @@ static int x264_encode_video(TCModuleInstance *self,
 
     pd->framenum++;
 
-    if (inframe == NULL) {
-        outframe->video_len = 0;
-        return TC_OK;
-    }
-
     pic.img.i_csp = X264_CSP_I420;
     pic.img.i_plane = 3;
 
@@ -964,8 +959,10 @@ static const TCCodecID x264_codecs_video_in[] = {
 };
 static const TCCodecID x264_codecs_video_out[] = { 
     TC_CODEC_H264, TC_CODEC_ERROR
-TC_MODULE_AUDIO_UNSUPPORTED(x264);
 };
+TC_MODULE_AUDIO_UNSUPPORTED(x264);
+TC_MODULE_CODEC_FORMATS(x264);
+
 TC_MODULE_INFO(x264);
 
 static const TCModuleClass x264_class = {

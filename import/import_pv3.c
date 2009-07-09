@@ -515,7 +515,9 @@ static int pv3_fini(TCModuleInstance *self)
  */
 
 static int pv3_configure(TCModuleInstance *self,
-                         const char *options, vob_t *vob)
+                         const char *options,
+                         TCJob *vob,
+                         TCModuleExtraData *xdata[])
 {
     PrivateData *pd = NULL;
 
