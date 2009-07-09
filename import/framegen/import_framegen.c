@@ -260,6 +260,13 @@ static TCFrameGenSource *tc_framegen_source_open_video_color_wave(vob_t *vob,
 
 /*************************************************************************/
 
+#define RETURN_IF_FAILED(RET, MSG) do { \
+    if ((RET) < 0) { \
+        tc_log_error(MOD_NAME, "%s", (MSG)); \
+        return TC_ERROR; \
+    } \
+} while (0)
+
 #define RETURN_IF_ERROR(RET, MSG) do { \
     if ((RET) != TC_OK) { \
         tc_log_error(MOD_NAME, "%s", (MSG)); \
@@ -353,7 +360,7 @@ static int tc_framegen_stop(TCModuleInstance *self)
 static int tc_framegen_demultiplex(TCModuleInstance *self,
                                    TCFrameVideo *vframe, TCFrameAudio *aframe)
 {
-    int ret;
+    int vret = 0, aret = 0;
     TCFrameGenPrivateData *priv = NULL;
 
     TC_MODULE_SELF_CHECK(self, "demultiplex");
@@ -361,21 +368,21 @@ static int tc_framegen_demultiplex(TCModuleInstance *self,
     priv = self->userdata;
 
     if (vframe != NULL) {
-        ret = tc_framegen_source_get_data(priv->video_gen,
-                                          vframe->video_buf,
-                                          vframe->video_size,
-                                          &vframe->video_len);
-        RETURN_IF_ERROR(ret, "demux: failed to pull a new video frame");
+        vret = tc_framegen_source_get_data(priv->video_gen,
+                                           vframe->video_buf,
+                                           vframe->video_size,
+                                           &vframe->video_len);
+        RETURN_IF_FAILED(vret, "demux: failed to pull a new video frame");
     }
 
     if (aframe != NULL) {
-        ret = tc_framegen_source_get_data(priv->audio_gen,
-                                          aframe->audio_buf,
-                                          aframe->audio_size,
-                                          &aframe->audio_len);
-        RETURN_IF_ERROR(ret, "demux: failed to pull a new audio frame");
+        aret = tc_framegen_source_get_data(priv->audio_gen,
+                                           aframe->audio_buf,
+                                           aframe->audio_size,
+                                           &aframe->audio_len);
+        RETURN_IF_FAILED(aret, "demux: failed to pull a new audio frame");
     }
-    return TC_OK;
+    return (vret + aret);
 }
 
 /*************************************************************************/
