@@ -65,3 +65,5 @@
 ^transcode\.spec$
 ^filter/filter_list.awk$
 ^filter/parse_csv.awk$
+^tags$
+^ctags$
