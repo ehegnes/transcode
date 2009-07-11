@@ -53,6 +53,9 @@ struct tcrawsource_ {
     int             eof_flag;
     int             sources;
 
+    int             vframe_id;
+    int             aframe_id;
+
     TCFrameVideo    *vframe;
     TCFrameAudio    *aframe;
     int             acount;
@@ -97,6 +100,7 @@ static TCFrameVideo *rawsource_read_video(TCFrameSource *FS)
     }
     rawsource->vframe->video_size = im_para.size;
     rawsource->vframe->attributes = im_para.attributes;
+    rawsource->vframe->id         = rawsource->vframe_id++;
 
     return rawsource->vframe;
 }
@@ -143,6 +147,7 @@ static TCFrameAudio *rawsource_read_audio(TCFrameSource *FS)
     rawsource->acount++;
     rawsource->aframe->audio_size = im_para.size;
     rawsource->aframe->attributes = im_para.attributes;
+    rawsource->aframe->id         = rawsource->aframe_id++;
 
     return rawsource->aframe;
 }
@@ -192,6 +197,8 @@ static int tc_rawsource_do_open(TCFrameSource *FS, TCJob *job)
     int ret = 0;
 
     rawsource->num_sources = 0;
+    rawsource->vframe_id   = 0;
+    rawsource->aframe_id   = 0;
 
     if (!job) {
         goto vframe_failed;
