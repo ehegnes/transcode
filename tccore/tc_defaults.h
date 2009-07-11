@@ -63,12 +63,15 @@
 #define AMODE            0
 
 //import/export/filter frame buffer status flag
-#define TC_NONE                  0
-#define TC_VIDEO                 1
-#define TC_AUDIO                 2
-#define TC_SUBEX                 4
-#define TC_RESERVED              8
-#define TC_EXTRA                16
+typedef enum tcmediatype_ TCMediaType;
+enum tcmediatype_ {
+    TC_NONE     = 0,
+    TC_VIDEO    = 1,
+    TC_AUDIO    = 2,
+    TC_SUBEX    = 4,
+    TC_RESERVED = 8,
+    TC_EXTRA    = 16
+};
 
 #define TC_FILTER_INIT          16
 #define TC_PRE_S_PROCESS        32
