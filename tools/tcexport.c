@@ -33,7 +33,6 @@
 #include "src/probe.h"
 #include "src/transcode.h"
 #include "src/framebuffer.h"
-#include "src/counter.h"
 #include "src/filter.h"
 #include "src/socket.h"
 
@@ -151,6 +150,22 @@ static void config_init(TCEncConf *conf, TCJob *job)
     conf->audio_mod = TC_DEFAULT_EXPORT_AUDIO;
     conf->mplex_mod = TC_DEFAULT_EXPORT_MPLEX;
 }
+
+static void specs_init(TCFrameSpecs *specs, TCJob *job)
+{
+    /* 
+     * comform to static largest values as in framebuffer.c
+     * for the sake of simplicity
+     */
+    specs->frc      = 3; // PAL, why not
+    specs->width    = TC_MAX_V_FRAME_WIDTH;
+    specs->height   = TC_MAX_V_FRAME_HEIGHT;
+    specs->format   = TC_CODEC_RGB24;
+    specs->rate     = RATE;
+    specs->channels = CHANNELS;
+    specs->bits     = BITS;
+    specs->samples  = 48000.0;
+};
 
 /* split up module string (=options) to module name */
 static char *setup_mod_string(char *mod)
@@ -453,6 +468,7 @@ int main(int argc, char *argv[])
     TCFactory factory = NULL;
     const TCExportInfo *info = NULL;
     TCFrameSource *framesource = NULL;
+    TCFrameSpecs specs;
     TCEncConf config;
     TCVHandle tcv_handle = tcv_init();
     TCJob *job = tc_get_vob();
@@ -464,7 +480,6 @@ int main(int argc, char *argv[])
     ac_init(AC_ALL);
     tc_config_set_dir(NULL);
     config_init(&config, job);
-    counter_on();
 
     filter[0].id = 0; /* to make gcc happy */
 
@@ -512,6 +527,8 @@ int main(int argc, char *argv[])
     }
     print_summary(&config, verbose);
 
+    specs_init(&specs, job);
+
     factory = tc_new_module_factory(job->mod_path, job->verbose);
     EXIT_IF(!factory, "can't setup module factory", STATUS_MODULE_ERROR);
 
@@ -523,8 +540,10 @@ int main(int argc, char *argv[])
 
     ret = tc_export_new(job, factory,
                         tc_runcontrol_get_instance(),
-                        tc_framebuffer_get_specs());
+                        &specs);
     EXIT_IF(ret != 0, "can't setup export subsystem", STATUS_MODULE_ERROR);
+
+    tc_export_config(verbose, 1, 0);
 
     ret = tc_export_setup(config.audio_mod, config.video_mod,
                           config.mplex_mod, NULL);
@@ -532,28 +551,12 @@ int main(int argc, char *argv[])
 
     if (!config.dry_run) {
         struct fc_time *tstart = NULL;
-        int last_etf = 0;
 
         ret = tc_export_init();
         EXIT_IF(ret != 0, "can't initialize encoder", STATUS_INTERNAL_ERROR);
 
         ret = tc_export_open();
         EXIT_IF(ret != 0, "can't open encoder files", STATUS_IO_ERROR);
-
-        /* first setup counter ranges */
-        counter_reset_ranges();
-    	for (tstart = job->ttime; tstart != NULL; tstart = tstart->next) {
-	        if (tstart->etf == TC_FRAME_LAST) {
-                // variable length range, oh well
-                counter_reset_ranges();
-                break;
-            }
-            if (tstart->stf > last_etf) {
-                counter_add_range(last_etf, tstart->stf-1, 0);
-            }
-            counter_add_range(tstart->stf, tstart->etf-1, 1);
-            last_etf = tstart->etf;
-    	}
 
         /* ok, now we can do the real (ranged) encoding */
         for (tstart = job->ttime; tstart != NULL; tstart = tstart->next) {
