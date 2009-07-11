@@ -129,12 +129,9 @@ tcexport_SOURCES = tcexport.c \
 	tcstub.c \
 	rawsource.c \
 	rawsource.h \
-	../src/counter.c \
+	runcontrol.c \
 	../src/dl_loader.c \
-	../src/framebuffer.c \
-	../src/probe.c \
-	../src/runcontrol.c
-
+	../src/probe.c
 tcexport_CPPFLAGS = $(AM_CPPFLAGS) \
 	$(DLDARWIN_CFLAGS)
 tcexport_LDADD = \
