@@ -657,16 +657,22 @@ static int tc_module_class_copy(const TCModuleClass *klass,
 
     COPY_IF_NOT_NULL(open);
     COPY_IF_NOT_NULL(close);
+
     COPY_IF_NOT_NULL(encode_audio);
     COPY_IF_NOT_NULL(encode_video);
     COPY_IF_NOT_NULL(decode_audio);
     COPY_IF_NOT_NULL(decode_video);
     COPY_IF_NOT_NULL(filter_audio);
     COPY_IF_NOT_NULL(filter_video);
-    COPY_IF_NOT_NULL(write_video);
-    COPY_IF_NOT_NULL(write_video);
+
+    COPY_IF_NOT_NULL(flush_video);
+    COPY_IF_NOT_NULL(flush_audio);
+
     COPY_IF_NOT_NULL(read_video);
     COPY_IF_NOT_NULL(read_audio);
+
+    COPY_IF_NOT_NULL(write_video);
+    COPY_IF_NOT_NULL(write_audio);
 
     return 0;
 }
