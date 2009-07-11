@@ -112,6 +112,8 @@ static TCFrameAudio *rawsource_read_audio(TCFrameSource *FS)
         return NULL;
     }
 
+    rawsource = FS->privdata;
+
     abytes = FS->job->im_a_size;
     // audio adjustment for non PAL frame rates:
     if (rawsource->acount != 0 && rawsource->acount % TC_LEAP_FRAME == 0) {
@@ -185,9 +187,11 @@ static TCFrameSource framesource = {
 static int tc_rawsource_do_open(TCFrameSource *FS, TCJob *job)
 {
     TCRawSource *rawsource = FS->privdata;
-    int ret = 0, num_sources = 0;
     transfer_t im_para;
     double samples = 0.0;
+    int ret = 0;
+
+    rawsource->num_sources = 0;
 
     if (!job) {
         goto vframe_failed;
@@ -225,20 +229,24 @@ static int tc_rawsource_do_open(TCFrameSource *FS, TCJob *job)
 	memset(&im_para, 0, sizeof(transfer_t));
     im_para.flag = TC_AUDIO;
     ret = tca_import(TC_IMPORT_OPEN, &im_para, job);
-    if (TC_IMPORT_OK == ret) {
+    if (TC_IMPORT_OK != ret) {
+        tc_log_warn(__FILE__, "audio open failed (ret=%i)", ret);
+    } else {
         rawsource->sources |= TC_AUDIO;
-        num_sources++;
+        rawsource->num_sources++;
     }
 
 	memset(&im_para, 0, sizeof(transfer_t));
     im_para.flag = TC_VIDEO;
     ret = tcv_import(TC_IMPORT_OPEN, &im_para, job);
-    if (TC_IMPORT_OK == ret) {
+    if (TC_IMPORT_OK != ret) {
+        tc_log_warn(__FILE__, "video open failed (ret=%i)", ret);
+    } else {
         rawsource->sources |= TC_VIDEO;
-        num_sources++;
+        rawsource->num_sources++;
     }
 
-    return num_sources;
+    return rawsource->num_sources;
 
 load_failed:
     tc_del_audio_frame(rawsource->aframe);
