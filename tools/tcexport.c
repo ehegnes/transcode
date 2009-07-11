@@ -519,7 +519,7 @@ int main(int argc, char *argv[])
     framesource = tc_rawsource_open(job);
     EXIT_IF(framesource == NULL, "can't get rawsource handle", STATUS_IO_ERROR);
     ret = tc_rawsource_num_sources();
-    EXIT_IF(ret != 2, "can't open both input source", STATUS_IO_ERROR);
+    EXIT_IF(ret != 2, "can't open both input sources", STATUS_IO_ERROR);
 
     ret = tc_export_new(job, factory,
                         tc_runcontrol_get_instance(),
