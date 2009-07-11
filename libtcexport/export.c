@@ -1,26 +1,23 @@
 /*
- *  encoder-common.c -- asynchronous encoder runtime control and statistics.
+ * export.c -- libtcexport common high-level interface.
+ * (C) 2009 Francesco Romani <fromani at gmail dot com>
+ * based on and derived from the code
+ * Copyright (C) Thomas Oestreich - June 2001
  *
- *  Copyright (C) Thomas Oestreich - June 2001
- *  Updated and partially rewritten by
- *  Francesco Romani - January 2006
+ * This file is part of transcode, a video stream processing tool.
  *
- *  This file is part of transcode, a video stream processing tool
+ * transcode is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
- *  transcode is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2, or (at your option)
- *  any later version.
+ * transcode is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- *  transcode is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with GNU Make; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
- *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -212,7 +209,23 @@ struct tcexportdata_ {
     int                 cluster_mode;
 };
 
-static TCExportData expdata;
+/* for the remaining fields, we're fine with 0/NULL */
+static TCExportData expdata = {
+    .error_flag         = 0,
+    .fill_flag          = 0,
+
+    .frame_first        = 0,
+    .frame_last         = -1,
+
+    .saved_frame_last   = 0,
+    .this_frame_last    = 0,
+    .old_frame_last     = 0,
+
+    .frame_id           = 0,
+    .has_aux            = 0,
+    .progress_meter     = 1,
+    .cluster_mode       = 0,
+};
 
 
 /*************************************************************************/
@@ -382,6 +395,21 @@ int tc_export_frames(int frame_id, TCFrameVideo *vframe, TCFrameAudio *aframe)
     } \
 } while (0)
 
+#define RETURN_IF_ERROR(RET, MSG) do { \
+    if ((RET) != TC_OK) { \
+        tc_log_error(__FILE__, "%s", (MSG)); \
+        return TC_ERROR; \
+    } \
+} while (0)
+
+#define RETURN_IF_FALSE(COND, MSG) do { \
+    if (!(COND)) { \
+        tc_log_error(__FILE__, "%s", (MSG)); \
+        return TC_ERROR; \
+    } \
+} while (0)
+
+
 /*************************************************************************/
 
 /*
@@ -440,7 +468,7 @@ void tc_export_loop(TCFrameSource *fs, int frame_first, int frame_last)
 
     while (!eos && !need_stop(&expdata)) {
         /* stop here if pause requested */
-        tc_pause();
+        expdata.run_control->pause(expdata.run_control);
 
         expdata.input.video = fs->get_video_frame(fs);
         if (!expdata.input.video) {
@@ -512,13 +540,6 @@ void tc_export_rotation_limit_megabytes(uint32_t megabytes)
     tc_multiplexor_limit_megabytes(&expdata.mux, megabytes);
 }
 
-#define RETURN_IF_ERROR(RET, MSG) do { \
-    if ((RET) != TC_OK) { \
-        tc_log_error(__FILE__, "%s", (MSG)); \
-        return TC_ERROR; \
-    } \
-} while (0)
-
 int tc_export_config(int verbose, int progress_meter, int cluster_mode)
 {
     expdata.progress_meter = progress_meter;
@@ -563,13 +584,15 @@ int tc_export_del(void)
 int tc_export_setup(const char *a_mod, const char *v_mod,
                     const char *m_mod, const char *m_mod_aux)
 {
-    int match = 0;
+    int ret, match = 0;
 
     expdata.has_aux = TC_FALSE;
 
-    tc_encoder_setup(&expdata.enc, v_mod, a_mod);
+    ret = tc_encoder_setup(&expdata.enc, v_mod, a_mod);
+    RETURN_IF_ERROR(ret, "encoder setup failed");
 
-    tc_multiplexor_setup(&expdata.mux, m_mod, m_mod_aux);
+    ret = tc_multiplexor_setup(&expdata.mux, m_mod, m_mod_aux);
+    RETURN_IF_ERROR(ret, "multiplexor setup failed");
 
     export_update_formats(expdata.job,
                           tc_module_get_info(expdata.enc.vid_mod),
@@ -577,18 +600,14 @@ int tc_export_setup(const char *a_mod, const char *v_mod,
 
     match = tc_module_match(expdata.job->ex_a_codec, TC_AUDIO,
                             expdata.enc.aud_mod, expdata.mux.mux_main);
-    if (!match) {
-        tc_log_error(__FILE__, "audio encoder incompatible "
-                               "with multiplexor");
-        return TC_ERROR;
-    }
+    RETURN_IF_FALSE(match, "audio encoder incompatible "
+                           "with multiplexor");
+
     match = tc_module_match(expdata.job->ex_v_codec, TC_VIDEO,
                             expdata.enc.vid_mod, expdata.mux.mux_main);
-    if (!match) {
-        tc_log_error(__FILE__, "video encoder incompatible "
-                               "with multiplexor");
-        return TC_ERROR;
-    }
+    RETURN_IF_FALSE(match, "video encoder incompatible "
+                           "with multiplexor");
+
     return TC_OK; 
 }
 
