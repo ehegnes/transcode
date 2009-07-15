@@ -890,8 +890,9 @@ static int tc_v4l2_video_set_tuner_frequency(V4L2Source *vs)
             /* End of the config file */
             { NULL, 0, 0, 0, 0, 0 }
         };
+        const char *dirs[] = { ".", NULL };
 
-        ret = tc_config_read_file(TC_V4L2_CHANNELS_FILE,
+        ret = tc_config_read_file(dirs, TC_V4L2_CHANNELS_FILE,
                                   vs->channel_name,
                                   chan_conf, MOD_NAME);
         if (!ret) {

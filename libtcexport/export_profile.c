@@ -380,45 +380,25 @@ const TCExportInfo *tc_export_profile_load_single(const char *name)
 
     int found = 0, ret = 0;
     char path_buf[PATH_MAX+1];
-    const char *basedir   = NULL;
+    const char *dirs[] = { prof_data.home_path, PROF_PATH, NULL };
+    char prof_name[TC_BUF_MIN];
 
-    tc_snprintf(path_buf, sizeof(path_buf), "%s/%s.cfg",
-                prof_data.home_path, name);
-    ret = access(path_buf, R_OK);
+    cleanup_strings(&prof_data.info);
+    tc_snprintf(prof_name, sizeof(prof_name), "%s.cfg", name);
+
+    ret = tc_config_read_file(dirs, prof_name, NULL, profile_conf, package);
     if (ret == 0) {
-        found = 1;
-        basedir = prof_data.home_path;
-    } else {
-        tc_snprintf(path_buf, sizeof(path_buf), "%s/%s.cfg",
-                    PROF_PATH, name);
-        ret = access(path_buf, R_OK);
-        if (ret == 0) {
-            found = 1;
-            basedir = PROF_PATH;
-        }
-    }
-
-    if (found) {
-        char prof_name[TC_BUF_MIN];
-        cleanup_strings(&prof_data.info);
-        tc_snprintf(prof_name, sizeof(prof_name), "%s.cfg", name);
-
-        tc_config_set_dir(basedir); /* FIXME */
-        ret = tc_config_read_file(prof_name, NULL, profile_conf, package);
-        if (ret == 0) {
-            found = 0; /* tc_config_read_file() failed */
-        } else {
-            tc_log_info(package, "E: %-16s | %s", "loaded profile",
-                        path_buf);
-
-            SETUP_CODEC(video);
-            SETUP_CODEC(audio);
-            SETUP_CLIPPING(pre);
-            SETUP_CLIPPING(post);
-        }
-    } else {
+        found = 0; /* tc_config_read_file() failed */
         tc_log_warn(package, "E: %-16s | %s (skipped)", "unable to load",
                     path_buf);
+    } else {
+        tc_log_info(package, "E: %-16s | %s", "loaded profile",
+                    path_buf);
+
+        SETUP_CODEC(video);
+        SETUP_CODEC(audio);
+        SETUP_CLIPPING(pre);
+        SETUP_CLIPPING(post);
     }
 
     if (!found) {

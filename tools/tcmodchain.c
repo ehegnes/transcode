@@ -468,7 +468,6 @@ int main(int argc, char *argv[])
     };
 
     ac_init(AC_ALL);
-    tc_config_set_dir(NULL);
     libtc_init(&argc, &argv);
     tc_ext_init();
 

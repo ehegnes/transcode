@@ -1280,10 +1280,11 @@ static int tc_lavc_read_config(TCLavcPrivateData *pd,
         /* End of the config file */
         { NULL, 0, 0, 0, 0, 0 }
     };
+    const char *dirs[] = { ".", NULL };
 
-    tc_config_read_file(LAVC_CONFIG_FILE,
-                       tc_codec_to_string(vob->ex_v_codec),
-                       lavc_conf, MOD_NAME);
+    tc_config_read_file(dirs, LAVC_CONFIG_FILE,
+                        tc_codec_to_string(vob->ex_v_codec),
+                        lavc_conf, MOD_NAME);
 
     if (options && strlen(options) > 0) {
         size_t i = 0, n = 0;
