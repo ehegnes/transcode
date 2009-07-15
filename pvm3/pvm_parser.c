@@ -480,9 +480,10 @@ static void parse_config(char *p_hostfile, int full)
 
 static void parse_filelist(char *p_hostfile)
 {
+    const char *dirs[] = { ".", NULL };
     int i = 0;
     for (i = 0; pvm_filelist[i].name != NULL; i++) {
-        TCList *list = tc_config_list_read_file(p_hostfile,
+        TCList *list = tc_config_list_read_file(dirs, p_hostfile,
                                                 pvm_filelist[i].name, 
                                                 __FILE__);
         if (list) {

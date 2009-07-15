@@ -478,7 +478,6 @@ int main(int argc, char *argv[])
     job->divxlogfile  = VIDEO_LOG_FILE;
 
     ac_init(AC_ALL);
-    tc_config_set_dir(NULL);
     config_init(&config, job);
 
     filter[0].id = 0; /* to make gcc happy */

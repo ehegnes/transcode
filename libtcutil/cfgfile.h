@@ -44,7 +44,8 @@ typedef struct {
 void tc_config_set_dir(const char *dir);
 
 /* Read module configuration data from the given file. */
-int tc_config_read_file(const char *filename, const char *section,
+int tc_config_read_file(const char **dirs,
+                        const char *filename, const char *section,
                         TCConfigEntry *conf, const char *tag);
 
 /* Process a string as if it were a line from a configuration file. */
@@ -57,8 +58,9 @@ void tc_config_print(const TCConfigEntry *conf, const char *tag);
 /*************************************************************************/
 
 /* Read a List section of a configuration file. Triggered by PVM module. */
-TCList *tc_config_list_read_file(const char *filename,
-                                 const char *section, const char *tag);
+TCList *tc_config_list_read_file(const char **dirs,
+                                 const char *filename, const char *section,
+                                 const char *tag);
 
 /* Print module configuration list for a given section */
 void tc_config_list_print(const TCList *list,

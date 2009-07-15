@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
 {
     TCList *list = NULL;
     const char *filename = NULL, *section = NULL;
+    const char *dirs[] = { ".", NULL };
     
     if (argc != 3) {
         fprintf(stderr, "(%s) usage: %s cfgfile section\n", __FILE__, argv[0]);
@@ -43,8 +44,7 @@ int main(int argc, char *argv[])
     section  = argv[2];
 
     libtc_init(&argc, &argv);
-    tc_config_set_dir("");  /* XXX: dirty? */
-    list = tc_config_list_read_file(filename, section, __FILE__);
+    list = tc_config_list_read_file(dirs, filename, section, __FILE__);
     if (!list) {
         fprintf(stderr, "unable to scan '%s'\n", filename);
         exit(1);

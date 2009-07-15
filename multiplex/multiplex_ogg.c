@@ -1,5 +1,5 @@
 /*
- * write_ogg.c -- write OGG streams using libogg.
+ * multiplex_ogg.c -- multiplex OGG streams using libogg.
  * (C) 2007-2009 Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool
@@ -99,6 +99,7 @@ static int tc_shout_configure(TCShout *tcsh, const char *id)
     };
 
     if (tcsh->sh) {
+        const char *dirs[] = { ".", NULL };
         shout_t *shout =  tcsh->sh;
         int ret = SHOUTERR_SUCCESS;
 
@@ -106,7 +107,7 @@ static int tc_shout_configure(TCShout *tcsh, const char *id)
             tc_log_info(MOD_NAME,
                         "reading configuration data for stream '%s'...", id);
         }
-        tc_config_read_file(TC_SHOUT_CONFIG_FILE, id, shout_conf, MOD_NAME);
+        tc_config_read_file(dirs, TC_SHOUT_CONFIG_FILE, id, shout_conf, MOD_NAME);
 
 	    shout_set_format(shout, SHOUT_FORMAT_VORBIS); /* always true in here */
 	    shout_set_public(shout, public); /* first the easy stuff */

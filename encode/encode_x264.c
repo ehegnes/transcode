@@ -706,6 +706,7 @@ static int x264_configure(TCModuleInstance *self,
                          TCJob *vob,
                          TCModuleExtraData *xdata[])
 {
+    const char *dirs[] = { ".", NULL };
     X264PrivateData *pd = NULL;
     char *s;
 
@@ -729,7 +730,7 @@ static int x264_configure(TCModuleInstance *self,
     confdata.dummy_brdo = -1;
 
     /* Read settings from configuration file */
-    tc_config_read_file(X264_CONFIG_FILE, NULL, conf, MOD_NAME);
+    tc_config_read_file(dirs, X264_CONFIG_FILE, NULL, conf, MOD_NAME);
 
     /* Parse options given in -y option string (format:
      * "name1=value1:name2=value2:...") */

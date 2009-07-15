@@ -26,6 +26,7 @@
 #include <ctype.h>
 
 
+
 static char *config_dir = NULL;
 
 static int parse_line(const char *buf, TCConfigEntry *conf, const char *tag,
@@ -60,7 +61,6 @@ __attribute__((format(printf,5,6)))
  * Return value:
  *     Read-only FILE pointer to configuration file, NULL if failed.
  */
-
 
 static FILE *fopen_verbose(const char *name, const char *tag)
 {
@@ -110,6 +110,32 @@ static int lookup_section(FILE *f, const char *section, const char *tag)
     return line;
 }
 
+/**
+ * FIXME
+ */
+static FILE *fopen_fallback(const char **dirs, const char *filename,
+                            char *path_buf,
+                            const char *tag)
+{
+    FILE *f = NULL;
+    int i;
+
+    if (dirs) {
+        for (i = 0; !f && dirs[i]; i++) {
+            tc_snprintf(path_buf, sizeof(path_buf),
+                        "%s/%s", dirs[i], filename);
+            f = fopen_verbose(path_buf, tag);
+        }
+    }
+    /* global is now a fallback */
+    if (!f && config_dir) {
+        tc_snprintf(path_buf, sizeof(path_buf),
+                    "%s/%s", config_dir, filename);
+        f = fopen_verbose(path_buf, tag);
+    }
+    return f;
+}
+
 /*************************************************************************/
 
 /**
@@ -127,16 +153,15 @@ void tc_config_set_dir(const char *dir)
 {
     tc_free(config_dir);
     config_dir = dir ? tc_strdup(dir) : NULL;
-}
+ }
 
-
-/*************************************************************************/
 
 /**
  * tc_config_read_file:  Reads in configuration information from an external
  * file.
  *
  * Parameters:
+ *          dir: XXX
  *     filename: Name of the configuration file to read.
  *      section: Section to read within the file, or NULL to read the
  *               entire file regardless of sections.
@@ -146,8 +171,10 @@ void tc_config_set_dir(const char *dir)
  *     Nonzero on success, zero on failure.
  */
 
-int tc_config_read_file(const char *filename, const char *section,
-                       TCConfigEntry *conf, const char *tag)
+int tc_config_read_file(const char **dirs,
+                        const char *filename, const char *section,
+                        TCConfigEntry *conf,
+                        const char *tag)
 {
     char buf[TC_BUF_MAX], path_buf[PATH_MAX+1];
     FILE *f = NULL;
@@ -162,10 +189,7 @@ int tc_config_read_file(const char *filename, const char *section,
         return 0;
     }
 
-    /* Open the file */
-    tc_snprintf(path_buf, sizeof(path_buf), "%s/%s",
-                config_dir ? config_dir : ".", filename);
-    f = fopen_verbose(path_buf, tag);
+    f = fopen_fallback(dirs, filename, path_buf, tag);
     if (!f) {
         return 0;
     }
@@ -505,8 +529,9 @@ static void parse_line_error(const char *buf, const char *filename, int line,
  *     NULL otherwise.
  */
 
-TCList *tc_config_list_read_file(const char *filename,
-                                 const char *section, const char *tag)
+TCList *tc_config_list_read_file(const char **dirs,
+                                 const char *filename, const char *section,
+                                 const char *tag)
 {
     char buf[TC_BUF_MAX], path_buf[PATH_MAX+1];
     TCList *list = tc_malloc(sizeof(TCList));
@@ -529,13 +554,11 @@ TCList *tc_config_list_read_file(const char *filename,
     }
     tc_list_init(list, 0);
 
-    /* Open the file */
-    tc_snprintf(path_buf, sizeof(path_buf), "%s/%s",
-                config_dir ? config_dir : ".", filename);
-    f = fopen_verbose(path_buf, tag);
+    f = fopen_fallback(dirs, filename, path_buf, tag);
     if (!f) {
         return NULL;
     }
+
     line = lookup_section(f, section, tag);
     if (line == -1) {
         /* error */

@@ -673,9 +673,10 @@ static void read_config_file(XviDPrivateData *mod)
             /* End of the config file */
             {NULL, 0, 0, 0, 0, 0}
     };
+    const char *dirs[] = { ".", NULL };
 
     /* Read the values */
-    tc_config_read_file(XVID_CONFIG_FILE, NULL, xvid_config, MOD_NAME);
+    tc_config_read_file(dirs, XVID_CONFIG_FILE, NULL, xvid_config, MOD_NAME);
 
     /* Print the values */
     if (verbose & TC_DEBUG) {
