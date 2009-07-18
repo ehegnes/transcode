@@ -30,14 +30,6 @@
 
 /* internal usage only ***************************************************/
 
-typedef struct {
-    TCFormatID id;            /* a TC_FORMAT_* value */
-    const char *name;    
-    int flags;
-    const char *comment;
-} TCFormatInfo;
-
-
 /*
  * this table is *always* accessed in RO mode, so there is no need
  * to protect it with threading locks.
@@ -45,131 +37,162 @@ typedef struct {
 static const TCFormatInfo tc_formats_info[] = {
     /* audio only */
     {
-      TC_FORMAT_WAV, "wav", TC_AUDIO, 
+      TC_FORMAT_WAV, "wav",
       "WAV audio, PCM format",
+      TC_AUDIO, 
     },
     { 
-      TC_FORMAT_CDXA, "cdxa", TC_AUDIO,
+      TC_FORMAT_CDXA, "cdxa",
       "CDXA audio format",
+      TC_AUDIO,
     },
     /* video only */
     { 
-      TC_FORMAT_YUV4MPEG, "yuv4mpeg", TC_VIDEO, 
+      TC_FORMAT_YUV4MPEG, "yuv4mpeg",
       "YUV4MPEG lightweight container (from mjpegtools)",
+      TC_VIDEO, 
     },
     {
-      TC_FORMAT_PVN, "pvn", TC_VIDEO,
-      "PVN video format"
+      TC_FORMAT_PVN, "pvn",
+      "PVN video format",
+      TC_VIDEO,
     },
     /* audio + video */
     { 
-      TC_FORMAT_AVI, "avi", TC_AUDIO|TC_VIDEO,
+      TC_FORMAT_AVI, "avi",
       "Audio Video Interleaved",
+      TC_AUDIO|TC_VIDEO,
     },
     { 
-      TC_FORMAT_ASF, "asf", TC_AUDIO|TC_VIDEO,
+      TC_FORMAT_ASF, "asf",
       "Advanced Streaming Format",
+      TC_AUDIO|TC_VIDEO,
     },
     { 
-      TC_FORMAT_MOV, "mov", TC_AUDIO|TC_VIDEO,
+      TC_FORMAT_MOV, "mov",
       "Quicktime's MOV format",
+      TC_AUDIO|TC_VIDEO,
     },
     { 
-      TC_FORMAT_OGG, "ogg", TC_AUDIO|TC_VIDEO|TC_EXTRA,
-      "Xiph's ogg encapsulation",
+      TC_FORMAT_OGG, "ogg",
+      "Xiph's ogg container",
+      TC_AUDIO|TC_VIDEO|TC_EXTRA,
     },
     { 
-      TC_FORMAT_MPEG_PS, "mpeg-ps", TC_AUDIO|TC_VIDEO|TC_EXTRA,
+      TC_FORMAT_MPEG_PS, "mpeg-ps",
       "MPEG Program Stream",
+      TC_AUDIO|TC_VIDEO|TC_EXTRA,
     },
     { 
-      TC_FORMAT_MPEG_TS, "mpeg-ts", TC_AUDIO|TC_VIDEO|TC_EXTRA,
+      TC_FORMAT_MPEG_TS, "mpeg-ts",
       "MPEG Transport Stream",
+      TC_AUDIO|TC_VIDEO|TC_EXTRA,
     },
     { 
-      TC_FORMAT_MPEG_VOB, "vob", TC_AUDIO|TC_VIDEO|TC_EXTRA,
-      "MPEG VOB encapsulation",
+      TC_FORMAT_MPEG_VOB, "vob",
+      "MPEG VOB container",
+      TC_AUDIO|TC_VIDEO|TC_EXTRA,
     },
     { 
-      TC_FORMAT_MPEG_VDR, "vdr", TC_AUDIO|TC_VIDEO|TC_EXTRA,
+      TC_FORMAT_MPEG_VDR, "vdr",
       "VDR MPEG format",
+      TC_AUDIO|TC_VIDEO|TC_EXTRA,
     },
     { 
-      TC_FORMAT_MPEG_MP4, "mp4", TC_AUDIO|TC_VIDEO|TC_EXTRA,
+      TC_FORMAT_MPEG_MP4, "mp4",
       "MP4 container (system) format",
+      TC_AUDIO|TC_VIDEO|TC_EXTRA,
     },
     { 
-      TC_FORMAT_MXF, "mxf", TC_AUDIO|TC_VIDEO,
+      TC_FORMAT_MXF, "mxf",
       "Media eXchangeFormat",
+      TC_AUDIO|TC_VIDEO,
     },
     {
-      TC_FORMAT_PV3, "pv3", TC_AUDIO|TC_VIDEO,
-      "Earth soft PV3"
+      TC_FORMAT_PV3, "pv3",
+      "Earth soft PV3",
+      TC_AUDIO|TC_VIDEO
     },
     { 
-      TC_FORMAT_VAG, "vag", TC_AUDIO,
-      "(PS) VAG format audio"
+      TC_FORMAT_VAG, "vag",
+      "(PS) VAG format audio",
+      TC_AUDIO
     },
     { 
-      TC_FORMAT_NUV, "nuv", TC_AUDIO|TC_VIDEO,
+      TC_FORMAT_NUV, "nuv",
       "NuppelVideo format",
+      TC_AUDIO|TC_VIDEO,
     },
     { 
-      TC_FORMAT_FLV, "flv", TC_AUDIO|TC_VIDEO,
+      TC_FORMAT_FLV, "flv",
       "standalone Flash Video",
+      TC_AUDIO|TC_VIDEO,
     },
     /* pseudo-formats */
-    { TC_FORMAT_RAW, "raw", TC_AUDIO|TC_VIDEO,
+    { TC_FORMAT_RAW, "raw",
       "raw (unpacked) A/V stream",
+      TC_AUDIO|TC_VIDEO,
     },
     {
-      TC_FORMAT_ALSA, "alsa", TC_AUDIO,
-      "ALSA device audio source"
+      TC_FORMAT_ALSA, "alsa",
+      "ALSA device audio source",
+      TC_AUDIO
     },
     { 
-      TC_FORMAT_X11, "x11", TC_VIDEO,
-      "X11 frame grabbing source"
+      TC_FORMAT_X11, "x11",
+      "X11 frame grabbing source",
+      TC_VIDEO
     },
     { 
-      TC_FORMAT_XML, "xml", TC_AUDIO|TC_VIDEO,
-      "XML custom stream representation" 
+      TC_FORMAT_XML, "xml",
+      "XML custom stream representation",
+      TC_AUDIO|TC_VIDEO
     },
     {
-      TC_FORMAT_VIDEO4LINUX, "v4l", TC_VIDEO,
-      "video4linux device source"
+      TC_FORMAT_VIDEO4LINUX, "v4l",
+      "video4linux device source",
+      TC_VIDEO
     },
     {
-      TC_FORMAT_OSS, "oss", TC_AUDIO,
-      "Open Sound System audio"
+      TC_FORMAT_OSS, "oss",
+      "Open Sound System audio",
+      TC_AUDIO
     },
     {
-      TC_FORMAT_BKTR, "bktr", TC_VIDEO,
-      "BSD brooktree caputre devices"
+      TC_FORMAT_BKTR, "bktr",
+      "BSD brooktree caputre devices",
+      TC_VIDEO
     },
     {
-      TC_FORMAT_VNC, "vnc", TC_VIDEO,
-      "VNC frame grabbing source"
+      TC_FORMAT_VNC, "vnc",
+      "VNC frame grabbing source",
+      TC_VIDEO
     },
     { 
-      TC_FORMAT_DVD, "dvd", TC_AUDIO|TC_VIDEO|TC_EXTRA,
-      "dvd device data source"
+      TC_FORMAT_DVD, "dvd",
+      "dvd device data source",
+      TC_AUDIO|TC_VIDEO|TC_EXTRA
     },
     /* special formats */
     { 
-      TC_FORMAT_UNKNOWN, "unknown", 0, 
+      TC_FORMAT_UNKNOWN, "unknown",
       "format (yet) unknown",
+      0, 
     },
     { 
-      TC_FORMAT_NULL, "null", TC_AUDIO|TC_VIDEO,
+      TC_FORMAT_NULL, "null",
       "discard frames",
+      TC_AUDIO|TC_VIDEO,
     }, 
     { 
-      TC_FORMAT_ANY, "everything", TC_AUDIO|TC_VIDEO|TC_EXTRA,
+      TC_FORMAT_ANY, "everything",
       "anything is fine",
+      TC_AUDIO|TC_VIDEO|TC_EXTRA,
     },
     { 
-      TC_FORMAT_ERROR, "error", 0,
+      TC_FORMAT_ERROR, "error",
       "erroneous fake format",
+      0,
     },
     /* this MUST be the last one */
 };
@@ -365,6 +388,19 @@ int tc_format_description(TCFormatID format, char *buf, size_t bufsize)
                       storage,
                       tc_formats_info[idx].comment);
     return ret;
+}
+
+/*************************************************************************/
+
+int tc_format_foreach(TCFormatVisitorFn visitor, void *userdata)
+{
+    const TCFormatInfo *info = tc_formats_info;
+    int i, ret = TC_TRUE;
+
+    for (i = 0; ret == TC_TRUE && info[i].id != TC_FORMAT_ERROR; i++) {
+        ret = visitor(&(info[i]), userdata);
+    }
+    return i;
 }
 
 /*************************************************************************/

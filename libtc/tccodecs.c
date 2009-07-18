@@ -28,16 +28,6 @@
 
 /* internal usage only ***************************************************/
 
-typedef struct {
-    TCCodecID id;        /* a TC_CODEC_* value */
-    const char *name;    /* usually != fourcc */
-    const char *fourcc;  /* real-world fourcc */
-    const char *comment;
-    int multipass;       /* multipass capable */
-    int flags;
-} TCCodecInfo;
-
-
 /*
  * this table is *always* accessed in RO mode, so there is no need
  * to protect it with threading locks
@@ -337,6 +327,19 @@ int tc_codec_is_multipass(TCCodecID codec)
         return TC_FALSE;
     }
     return tc_codecs_info[idx].multipass;
+}
+
+/*************************************************************************/
+
+int tc_codec_foreach(TCCodecVisitorFn visitor, void *userdata)
+{
+    const TCCodecInfo *info = tc_codecs_info;
+    int i, ret = TC_TRUE;
+
+    for (i = 0; ret == TC_TRUE && info[i].id != TC_CODEC_ERROR; i++) {
+        ret = visitor(&(info[i]), userdata);
+    }
+    return i;
 }
 
 /*************************************************************************/
