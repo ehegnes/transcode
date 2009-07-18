@@ -4,11 +4,10 @@ AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
 	-DMOD_PATH=\"$(MOD_PATH)\" \
 	-DPROF_PATH=\"$(PROF_PATH)\" \
+	-DREGISTRY_PATH=\"$(REGISTRY_PATH)\" \
 	-DTCEXPORT_PROFILE=1 \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src
-
-NMS_PROGS = tcexport tcmodchain
 
 bin_PROGRAMS = \
 	avifix \
@@ -16,10 +15,12 @@ bin_PROGRAMS = \
 	avimerge \
 	avisplit \
 	avisync \
+	tccfgshow \
+	tcexport \
+	tcmodchain \
 	tcmodinfo \
 	tcmp3cut \
-	tcyait \
-	$(NMS_PROGS)
+	tcyait
 
 avisync_SOURCES = \
 	avisync.c \
@@ -84,6 +85,13 @@ avisplit_LDADD = \
 	$(AVILIB_LIBS) \
 	$(XIO_LIBS) \
 	$(ACLIB_LIBS) \
+	$(LIBTC_LIBS) \
+	$(LIBTCUTIL_LIBS)
+
+tccfgshow_SOURCES = tccfgshow.c
+tccfgshow_CPPFLAGS = $(AM_CPPFLAGS) \
+	$(DLDARWIN_CFLAGS)
+tccfgshow_LDADD = \
 	$(LIBTC_LIBS) \
 	$(LIBTCUTIL_LIBS)
 
