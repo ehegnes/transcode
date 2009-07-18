@@ -34,9 +34,9 @@ extern "C" {
 #include "tccodecs.h"
 #include "tcformats.h"
 
-/*************************************************************************/
+/**************************************************************************/
 
-/* codec helpers ***********************************************************/
+/* codec helpers **********************************************************/
 
 /*
  * tc_codec_to_comment:
@@ -188,6 +188,36 @@ int tc_format_description(TCFormatID format, char *buf, size_t bufsize);
  *     value isn't known.
  */
 int tc_magic_to_format(int magic);
+
+/**************************************************************************/
+
+typedef struct tccodecinfo_ TCCodecInfo;
+struct tccodecinfo_ {
+    TCCodecID   id;         /* a TC_CODEC_* value */
+    const char  *name;      /* usually != fourcc */
+    const char  *fourcc;    /* real-world fourcc */
+    const char  *comment;
+    int         multipass;  /* multipass capable */
+    int         flags;      /* audio/video/subex... */
+};
+
+typedef struct tcformatinfo_ TCFormatInfo;
+struct tcformatinfo_ {
+    TCFormatID  id;            /* a TC_FORMAT_* value */
+    const char  *name;    
+    const char  *comment;
+    int         flags;         /* audio/video/subex... */
+};
+
+typedef int (*TCCodecVisitorFn)(const TCCodecInfo *info, void *userdata);
+typedef int (*TCFormatVisitorFn)(const TCFormatInfo *info, void *userdata);
+
+int tc_codec_foreach(TCCodecVisitorFn visitor, void *userdata);
+int tc_format_foreach(TCFormatVisitorFn visitor, void *userdata);
+
+
+/**************************************************************************/
+
 
 
 #ifdef __cplusplus
