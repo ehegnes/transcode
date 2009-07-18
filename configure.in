@@ -1408,6 +1408,15 @@ AC_ARG_WITH(prof-path,
   PROF_PATH=$withval)
 AC_SUBST(PROF_PATH)
 
+dnl module registry data path
+dnl
+REGISTRY_PATH="\${datadir}/transcode"
+AC_ARG_WITH(registry-path,
+  AC_HELP_STRING([--with-registry-path],
+    [where the module registry is installed (${datadir}/transcode)]),
+  REGISTRY_PATH=$withval)
+AC_SUBST(REGISTRY_PATH)
+
 
 X_CFLAGS=`echo $X_CFLAGS | sed -e 's/  */ /g'`
 X_PRE_LIBS=`echo $X_PRE_LIBS | sed -e 's/  */ /g'`
