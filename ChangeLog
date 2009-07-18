@@ -23,4 +23,6 @@ transcode-1.2.0
 [*] Allow to build without FFmpeg.
 [!] Remove outdated libav* information from the FAQ.
 [+] Add support for CubicKeys4 and Sinc8 zoom algorithms.
+[+] Introduced module registry to automatically select a module given a format
+[+] Introduced `tccfgshow' to inspect the transcode internal capabilities.
 ===========================================================================
