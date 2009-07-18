@@ -10,6 +10,7 @@ man_MANS = \
 	tcexport.1 \
 	tcextract.1 \
 	tcdecode.1 \
+	tccfgshow.1 \
 	tcmodinfo.1 \
 	tcmodchain.1 \
 	tcxmlcheck.1 \
