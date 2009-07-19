@@ -75,7 +75,7 @@ static int show_format(const TCFormatInfo *info, void *userdata)
 
 int main(int argc, char *argv[])
 {
-    int ch, ret = 0;
+    int ch;
     int status = STATUS_OK;
     int show =  SHOW_NONE;
 
@@ -119,6 +119,7 @@ int main(int argc, char *argv[])
         }
     }
 
+    /* FIXME: should we switch to the *default_path() functions? */
     if (show & SHOW_MOD_PATH) {
         printf("%s\n", MOD_PATH);
     }

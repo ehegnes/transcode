@@ -79,25 +79,21 @@ enum {
 
 typedef  struct tcencconf_ TCEncConf;
 struct tcencconf_ {
-    int     dry_run; /* flag */
-    TCJob   *job;
+    int         dry_run; /* flag */
+    TCJob       *job;
 
-    char    *video_codec;
-    char    *audio_codec;
+    char        *video_codec;
+    char        *audio_codec;
 
-    char    vlogfile[LOG_FILE_NAME_LEN];
-    char    alogfile[LOG_FILE_NAME_LEN];
+    char        vlogfile[LOG_FILE_NAME_LEN];
+    char        alogfile[LOG_FILE_NAME_LEN];
 
-    char    video_mod_buf[MOD_BUF_NAME_LEN];
-    char    audio_mod_buf[MOD_BUF_NAME_LEN];
-    char    mplex_mod_buf[MOD_BUF_NAME_LEN];
-    
-    char    *video_mod;
-    char    *audio_mod;
-    char    *mplex_mod;
-    char    *mplex_mod_aux;
+    const char  *video_mod;
+    const char  *audio_mod;
+    const char  *mplex_mod;
+    const char  *mplex_mod_aux;
 
-    char    *range_str;
+    char        *range_str;
 };
 
 
@@ -171,7 +167,7 @@ static void specs_init(TCFrameSpecs *specs, TCJob *job)
 };
 
 /* split up module string (=options) to module name */
-static char *setup_mod_string(char *mod)
+static char *setup_mod_string(const char *mod)
 {
     size_t modlen = strlen(mod);
     char *sep = strchr(mod, '=');
@@ -191,7 +187,7 @@ static char *setup_mod_string(char *mod)
     return opts;
 }
 
-static void setup_codecs(TCJob *job, const char **args)
+static void setup_codecs(TCJob *job, char **args)
 {
     int i = 0;
 
@@ -206,7 +202,7 @@ static void setup_codecs(TCJob *job, const char **args)
 }
 
 
-static void setup_user_mods(TCEncConf *conf, TCJob *job, const char **args)
+static void setup_user_mods(TCEncConf *conf, TCJob *job, char **args)
 {
     int i = 0;
 
@@ -448,7 +444,7 @@ static int setup_ranges(TCEncConf *conf)
     return ret;
 }
 
-static int setup_modnames(TCEncConf *conf, TCRegistry registry)
+static int setup_modnames(TCEncConf *conf, TCJob *job, TCRegistry registry)
 {
     const char *fmtname = NULL;
 
@@ -629,7 +625,7 @@ int main(int argc, char *argv[])
 
     tc_export_config(verbose, 1, 0);
 
-    setup_modnames(&config, registry);
+    setup_modnames(&config, job, registry);
 
     ret = tc_export_setup(config.audio_mod, config.video_mod,
                           config.mplex_mod, config.mplex_mod_aux);

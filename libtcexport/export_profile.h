@@ -164,5 +164,7 @@ void tc_export_profile_to_job(const TCExportInfo *info, TCJob *job);
 
 int tc_export_profile_count(void);
 
+const char *tc_export_profile_default_path(void);
+
 #endif /* EXPORT_PROFILE_H */
 

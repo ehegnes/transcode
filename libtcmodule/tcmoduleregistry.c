@@ -48,7 +48,7 @@ struct tcregistry_ {
     const char      *reg_path;
 
     FormatModules   fmt_mods[REGISTRY_MAX_ENTRIES];
-    int             fmt_last
+    int             fmt_last;
 };
 
 #define RETURN_IF_NULL(ptr, msg, errval) do { \
@@ -93,7 +93,7 @@ static void fmt_mods_init(FormatModules *fm)
 
 static void fmt_mods_fini(FormatModules *fm)
 {
-    FREE_IF_SET((char*)&(fm->name));
+    FREE_IF_SET(((char**)&(fm->name))); /* fixme: that's too ugly */
     FREE_IF_SET(&(fm->demuxer));
     FREE_IF_SET(&(fm->decoder));
     FREE_IF_SET(&(fm->encoder));
