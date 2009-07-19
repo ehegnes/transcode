@@ -52,6 +52,23 @@ __attribute__((format(printf,5,6)))
 } while (0)
 
 /**
+ * FIXME
+ */
+static void print_error(const char *name, const char *tag)
+{
+    if (errno == EEXIST) {
+        tc_log_warn(tag, "Configuration file %s does not exist!",
+                    name);
+    } else if (errno == EACCES) {
+        tc_log_warn(tag, "Configuration file %s cannot be read!",
+                    name);
+    } else {
+        tc_log_warn(tag, "Error opening configuration file %s: %s",
+                    name, strerror(errno));
+    }
+}
+
+/**
  * fopen_verbose:  Opens a configuration file in read only mode, printing
  * meaningful error messages in case of failure.
  *
@@ -66,16 +83,7 @@ static FILE *fopen_verbose(const char *name, const char *tag)
 {
     FILE *f = fopen(name, "r");
     if (!f) {
-        if (errno == EEXIST) {
-            tc_log_warn(tag, "Configuration file %s does not exist!",
-                        name);
-        } else if (errno == EACCES) {
-            tc_log_warn(tag, "Configuration file %s cannot be read!",
-                        name);
-        } else {
-            tc_log_warn(tag, "Error opening configuration file %s: %s",
-                        name, strerror(errno));
-        }
+        print_error(name, tag);
     }
     return f;
 }
@@ -114,7 +122,7 @@ static int lookup_section(FILE *f, const char *section, const char *tag)
  * FIXME
  */
 static FILE *fopen_fallback(const char **dirs, const char *filename,
-                            char *path_buf,
+                            char *path_buf, size_t len,
                             const char *tag)
 {
     FILE *f = NULL;
@@ -122,16 +130,19 @@ static FILE *fopen_fallback(const char **dirs, const char *filename,
 
     if (dirs) {
         for (i = 0; !f && dirs[i]; i++) {
-            tc_snprintf(path_buf, sizeof(path_buf),
+            tc_snprintf(path_buf, len,
                         "%s/%s", dirs[i], filename);
-            f = fopen_verbose(path_buf, tag);
+            f = fopen(path_buf, "r");
         }
     }
-    /* global is now a fallback */
+    /* the global is now a last-resort fallback */
     if (!f && config_dir) {
-        tc_snprintf(path_buf, sizeof(path_buf),
+        tc_snprintf(path_buf, len,
                     "%s/%s", config_dir, filename);
         f = fopen_verbose(path_buf, tag);
+    }
+    if (!f) {
+        print_error(filename, tag);
     }
     return f;
 }
@@ -189,7 +200,7 @@ int tc_config_read_file(const char **dirs,
         return 0;
     }
 
-    f = fopen_fallback(dirs, filename, path_buf, tag);
+    f = fopen_fallback(dirs, filename, path_buf, PATH_MAX, tag);
     if (!f) {
         return 0;
     }
@@ -554,7 +565,7 @@ TCList *tc_config_list_read_file(const char **dirs,
     }
     tc_list_init(list, 0);
 
-    f = fopen_fallback(dirs, filename, path_buf, tag);
+    f = fopen_fallback(dirs, filename, path_buf, PATH_MAX, tag);
     if (!f) {
         return NULL;
     }

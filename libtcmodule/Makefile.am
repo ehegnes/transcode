@@ -22,5 +22,5 @@ EXTRA_DIST = \
 	tcmodule-plugin.h \
 	tcmodule-registry.h
 
-pkgdir = REGISTRY_PATH 
+pkgdir = $(REGISTRY_PATH)
 pkg_DATA = modules.cfg
