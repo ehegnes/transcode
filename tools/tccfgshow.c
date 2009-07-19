@@ -22,6 +22,8 @@
 #include "config.h"
 #include "tcstub.h"
 #include "libtc/mediainfo.h"
+#include "libtcmodule/tcmodule-registry.h"
+#include "libtcexport/export_profile.h"
 
 #define EXE "tccfgshow"
 
@@ -121,13 +123,13 @@ int main(int argc, char *argv[])
 
     /* FIXME: should we switch to the *default_path() functions? */
     if (show & SHOW_MOD_PATH) {
-        printf("%s\n", MOD_PATH);
+        printf("%s\n", tc_module_default_path());
     }
     if (show & SHOW_PROF_PATH) {
-        printf("%s\n", PROF_PATH);
+        printf("%s\n", tc_export_profile_default_path());
     }
     if (show & SHOW_REG_PATH) {
-        printf ("%s\n", REGISTRY_PATH);
+        printf ("%s\n", tc_module_registry_default_path());
     }
     if (show & SHOW_CODEC_LIST) {
         tc_codec_foreach(show_codec, stdout);
