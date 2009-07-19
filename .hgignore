@@ -44,6 +44,7 @@
 ^tools/avisplit$
 ^tools/avisync$
 ^tools/tcexport$
+^tools/tccfgshow$
 ^tools/tcmodchain$
 ^tools/tcmodinfo$
 ^tools/tcmp3cut$
