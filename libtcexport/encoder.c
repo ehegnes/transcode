@@ -77,7 +77,8 @@ int tc_encoder_setup(TCEncoder *enc,
     tc_debug(TC_DEBUG_MODULES, "loading export modules");
 
     mod_name = (aud_mod_name) ?aud_mod_name :TC_DEFAULT_EXPORT_AUDIO;
-    enc->aud_mod = tc_new_module(enc->factory, "encode", mod_name, TC_AUDIO);
+    enc->aud_mod = tc_new_module_from_names(enc->factory,
+                                            "encode", mod_name, TC_AUDIO);
     if (enc->aud_mod) {
         SETOK(enc, TC_AUDIO);
     } else {
@@ -85,7 +86,8 @@ int tc_encoder_setup(TCEncoder *enc,
         return TC_ERROR;
     }
     mod_name = (vid_mod_name) ?vid_mod_name :TC_DEFAULT_EXPORT_VIDEO;
-    enc->vid_mod = tc_new_module(enc->factory, "encode", mod_name, TC_VIDEO);
+    enc->vid_mod = tc_new_module_from_names(enc->factory,
+                                            "encode", mod_name, TC_VIDEO);
     if (enc->vid_mod) {
         SETOK(enc, TC_VIDEO);
     } else {

@@ -452,7 +452,8 @@ static TCModule muxer_setup(TCMultiplexor *mux,
     TCModule mux_mod = NULL;
     int ret;
 
-    mux_mod = tc_new_module(mux->factory, "multiplex", mux_mod_name, mtype);
+    mux_mod = tc_new_module_from_names(mux->factory,
+                                       "multiplex", mux_mod_name, mtype);
     if (!mux_mod) {
         tc_log_error(__FILE__, "can't load %s module ", mux_mod_name);
         return NULL;

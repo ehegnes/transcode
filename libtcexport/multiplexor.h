@@ -24,6 +24,7 @@
 #define MULTIPLEXOR_H
 
 #include "libtcmodule/tcmodule-core.h"
+#include "libtcmodule/tcmodule-registry.h"
 #include "libtc/tcframes.h"
 #include "tccore/job.h"
 
