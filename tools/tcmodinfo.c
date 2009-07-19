@@ -260,7 +260,7 @@ int main(int argc, char *argv[])
     libtc_init(&argc, &argv);
 
     while (1) {
-        ch = getopt(argc, argv, "C:d:i:?vhpm:M:s:t:");
+        ch = getopt(argc, argv, "C:F:d:i:?vhpm:M:r:s:t:");
         if (ch == -1) {
             break;
         }
@@ -340,7 +340,7 @@ int main(int argc, char *argv[])
         return STATUS_OK;
     }
 
-    if (!filename) {
+    if (!filename && !fmtname) {
         usage();
         return STATUS_BAD_PARAM;
     }
@@ -371,7 +371,9 @@ int main(int argc, char *argv[])
             const char *modnames = tc_get_module_name_for_format(registry,
                                                                  modtype,
                                                                  fmtname);
-            puts(modnames);
+            if (modnames) {
+                puts(modnames);
+            }
         }
     } else {
         module = tc_new_module(factory, modtype, filename, TC_NONE);
