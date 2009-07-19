@@ -93,7 +93,9 @@ tccfgshow_CPPFLAGS = $(AM_CPPFLAGS) \
 	$(DLDARWIN_CFLAGS)
 tccfgshow_LDADD = \
 	$(LIBTC_LIBS) \
-	$(LIBTCUTIL_LIBS)
+	$(LIBTCEXPORT_LIBS) \
+	$(LIBTCUTIL_LIBS) \
+	$(LIBTCMODULE_LIBS)
 
 tcmodinfo_SOURCES = tcmodinfo.c tcstub.c
 tcmodinfo_CPPFLAGS = $(AM_CPPFLAGS) \
@@ -106,9 +108,9 @@ tcmodinfo_LDADD = \
 	$(GRAPHICSMAGICK_LIBS) \
 	$(LIBTC_LIBS) \
 	$(LIBTCEXT_LIBS) \
-	$(LIBTCUTIL_LIBS) \
 	$(LIBTCMODULE_LIBS) \
 	$(LIBTCVIDEO_LIBS) \
+	$(LIBTCUTIL_LIBS) \
 	$(PTHREAD_LIBS) \
 	$(WAVLIB_LIBS) \
 	-lm

@@ -25,7 +25,9 @@
 
 #include "config.h"
 #include "tcstub.h"
+#include "libtc/mediainfo.h"
 #include "libtcext/tc_ext.h"
+#include "libtcmodule/tcmodule-registry.h"
 
 #define EXE "tcmodinfo"
 
@@ -54,9 +56,11 @@ static void usage(void)
     fprintf(stderr, "    -p                Print the compiled-in module path\n");
     fprintf(stderr, "    -d verbosity      Verbosity mode [1 == TC_INFO]\n");
     fprintf(stderr, "    -m path           Use PATH as module path\n");
+    fprintf(stderr, "    -r path           Use PATH as registry path\n");
     fprintf(stderr, "    -M element        Request to module informations about <element>\n");
     fprintf(stderr, "    -C string         Request to configure module using configuration <string>\n");
     fprintf(stderr, "    -t type           Type of module (filter, encode, multiplex)\n");
+    fprintf(stderr, "    -F format         Print which module will be used for `format'\n");
     fprintf(stderr, "    -s socket         Connect to transcode socket\n");
     fprintf(stderr, "\n");
 }
@@ -86,68 +90,154 @@ static int do_connect_socket(const char *socketfile)
     }
 
     while (1) {
-    /* Watch stdin (fd 0) to see when it has input. */
-    FD_ZERO(&rfds);
-    FD_SET(0, &rfds); // stdin
-    FD_SET(sock, &rfds);
-    /* Wait up to five seconds. */
-    tv.tv_sec = 5;
-    tv.tv_usec = 0;
+        /* Watch stdin (fd 0) to see when it has input. */
+        FD_ZERO(&rfds);
+        FD_SET(0, &rfds); // stdin
+        FD_SET(sock, &rfds);
+        /* Wait up to five seconds. */
+        tv.tv_sec = 5;
+        tv.tv_usec = 0;
 
-    retval = select(sock+1, &rfds, NULL, NULL, NULL);
-    /* Don't rely on the value of tv now! */
+        retval = select(sock+1, &rfds, NULL, NULL, NULL);
+        /* Don't rely on the value of tv now! */
 
-    memset(buf, 0, sizeof (buf));  // null-termination in advance, slowly
+        memset(buf, 0, sizeof (buf));  // null-termination in advance, slowly
 
-    if (retval>0) {
-        if (FD_ISSET(0, &rfds)) {
-            if (!fgets(buf, OPTS_SIZE, stdin)) {
-                perror("reading on stdin");
-                break;
+        if (retval>0) {
+            if (FD_ISSET(0, &rfds)) {
+                if (!fgets(buf, OPTS_SIZE, stdin)) {
+                    perror("reading on stdin");
+                    break;
+                }
+            }
+            if (FD_ISSET(sock, &rfds)) {
+                if ( (n = read(sock, buf, OPTS_SIZE)) < 0) {
+                    perror("reading on stream socket");
+                    break;
+                } else if (n == 0) { // EOF
+                    fprintf (stderr, "Server closed connection\n");
+                    break;
+                }
+                printf("%s", buf);
+                continue;
             }
         }
-        if (FD_ISSET(sock, &rfds)) {
-            if ( (n = read(sock, buf, OPTS_SIZE)) < 0) {
-                perror("reading on stream socket");
-                break;
-            } else if (n == 0) { // EOF
-                fprintf (stderr, "Server closed connection\n");
-                break;
-            }
-            printf("%s", buf);
-            continue;
+
+        if (write(sock, buf, strlen(buf)) < 0) {
+            perror("writing on stream socket");
         }
-    }
 
-    if (write(sock, buf, strlen(buf)) < 0) {
-        perror("writing on stream socket");
-    }
+        memset(buf, 0, sizeof (buf));
 
-    memset(buf, 0, sizeof (buf));
+        if (read(sock, buf, OPTS_SIZE) < 0)
+            perror("reading on stream socket");
 
-    if (read(sock, buf, OPTS_SIZE) < 0)
-        perror("reading on stream socket");
+        printf("%s", buf);
 
-    printf("%s", buf);
-
-    if (!isatty(0))
-        break;
+        if (!isatty(0))
+            break;
     }
 
     close(sock);
     return STATUS_OK;
 }
 
+static int query_new_module(TCModule module,
+                            const char *modcfg, const char *modarg)
+{
+    const char *answer = NULL;
+    int status = STATUS_OK;
+
+    if (verbose >= TC_DEBUG) {
+        tc_log_info(EXE, "using new module system");
+    }
+    if (strlen(modcfg) > 0) {
+        TCModuleExtraData *xdata[] = { NULL, NULL };
+        int ret = tc_module_configure(module, modcfg, tc_get_vob(), xdata);
+        if (ret == TC_OK) {
+            status = STATUS_OK;
+        } else {
+            status = STATUS_MODULE_FAILED;
+            tc_log_error(EXE, "configure returned error");
+        }
+        tc_module_stop(module);
+    } else {
+        if (verbose >= TC_INFO) {
+            /* overview and options */
+            tc_module_inspect(module, "help", &answer);
+            puts(answer);
+            /* module capabilities */
+            tc_module_show_info(module, verbose);
+        }
+        if (strlen(modarg) > 0) {
+            tc_log_info(EXE, "informations about '%s' for "
+                             "module:", modarg);
+            tc_module_inspect(module, modarg, &answer);
+            puts(answer);
+        }
+        status = STATUS_OK;
+    }
+
+    return status;
+}
+
+static int query_old_module(const char *filename, const char *modpath)
+{
+    int ret, status = STATUS_OK;
+    char namebuf[NAME_LEN] = { '\0' };
+    char options[OPTS_SIZE] = { '\0' };
+
+    vframe_list_t ptr;
+
+    memset(&ptr, 0, sizeof(ptr));
+
+    /* compatibility support only for filters */
+    if (verbose >= TC_DEBUG) {
+        tc_log_info(EXE, "using old module system");
+    }
+    /* ok, fallback to old module system */
+    strlcpy(namebuf, filename, NAME_LEN);
+    filter[0].name = namebuf;
+    
+    ret = load_plugin(modpath, 0, verbose);
+    if (ret != 0) {
+        tc_log_error(__FILE__, "unable to load filter `%s' (path=%s)",
+                               filter[0].name, modpath);
+        status = STATUS_NO_MODULE;
+    } else {
+        strlcpy(options, "help", OPTS_SIZE);
+        ptr.tag = TC_FILTER_INIT;
+        if ((ret = filter[0].entry(&ptr, options)) != 0) {
+            status = STATUS_MODULE_ERROR;
+        } else {
+            memset(options, 0, OPTS_SIZE);
+            ptr.tag = TC_FILTER_GET_CONFIG;
+            ret = filter[0].entry(&ptr, options);
+
+            if (ret == 0) {
+                if (verbose >= TC_INFO) {
+                    fputs("START\n", stdout);
+                    fputs(options, stdout);
+                    fputs("END\n", stdout);
+                }
+                status = STATUS_OK;
+            }
+        }
+    }
+    return status;
+}
+
 int main(int argc, char *argv[])
 {
     int ch;
     const char *filename = NULL;
-    const char *modpath = MOD_PATH;
+    const char *modpath = tc_module_default_path();
+    const char *regpath = tc_module_registry_default_path();
     const char *modtype = "filter";
     const char *modarg = ""; /* nothing */
     const char *modcfg = ""; /* nothing */
     const char *socketfile = NULL;
-    char options[OPTS_SIZE] = { '\0', };
+    const char *fmtname = NULL;
     int print_mod = 0;
     int connect_socket = 0;
     int ret = 0;
@@ -155,12 +245,9 @@ int main(int argc, char *argv[])
 
     /* needed by filter modules */
     TCVHandle tcv_handle = tcv_init();
+    TCRegistry registry = NULL;
     TCFactory factory = NULL;
     TCModule module = NULL;
-
-    vframe_list_t ptr;
-
-    memset(&ptr, 0, sizeof(ptr));
 
     ac_init(AC_ALL);
     tc_ext_init();
@@ -196,11 +283,17 @@ int main(int argc, char *argv[])
           case 'C':
             modcfg = optarg;
             break;
+          case 'F':
+            fmtname = optarg;
+            break;
           case 'm':
             modpath = optarg;
             break;
           case 'M':
             modarg = optarg;
+            break;
+          case 'r':
+            regpath = optarg;
             break;
           case 't':
             if (!optarg) {
@@ -266,82 +359,35 @@ int main(int argc, char *argv[])
      * we can't distinguish from OMS and NMS modules at glance, so try
      * first using new module system
      */
-    factory = tc_new_module_factory(modpath, TC_MAX(verbose - 4, 0));
-    module = tc_new_module(factory, modtype, filename, TC_NONE);
+    factory = tc_new_module_factory(modpath, TC_MAX(verbose - 4, 0)); /* FIXME */
+    registry = tc_new_module_registry(factory, regpath, TC_MAX(verbose - 4, 0)); /* FIXME */
 
-    if (module != NULL) {
-        const char *answer = NULL;
-
-        if (verbose >= TC_DEBUG) {
-            tc_log_info(EXE, "using new module system");
-        }
-        if (strlen(modcfg) > 0) {
-            TCModuleExtraData *xdata[] = { NULL, NULL };
-            int ret = tc_module_configure(module, modcfg, tc_get_vob(), xdata);
-            if (ret == TC_OK) {
-                status = STATUS_OK;
-            } else {
-                status = STATUS_MODULE_FAILED;
-                tc_log_error(EXE, "configure returned error");
-            }
-            tc_module_stop(module);
+    if (fmtname) {
+        TCCodecID codec = tc_codec_from_string(fmtname);
+        TCFormatID format = tc_format_from_string(fmtname);
+        if (codec == TC_CODEC_ERROR && format == TC_FORMAT_ERROR) {
+            tc_log_error(EXE, "unrecognized format `%s'", fmtname);
         } else {
-            if (verbose >= TC_INFO) {
-                /* overview and options */
-                tc_module_inspect(module, "help", &answer);
-                puts(answer);
-                /* module capabilities */
-                tc_module_show_info(module, verbose);
-            }
-            if (strlen(modarg) > 0) {
-                tc_log_info(EXE, "informations about '%s' for "
-                                 "module:", modarg);
-                tc_module_inspect(module, modarg, &answer);
-                puts(answer);
-            }
-            status = STATUS_OK;
+            const char *modnames = tc_get_module_name_for_format(registry,
+                                                                 modtype,
+                                                                 fmtname);
+            puts(modnames);
         }
-        tc_del_module(factory, module);
-    } else if (!strcmp(modtype, "filter")) {
-        char namebuf[NAME_LEN];
-        /* compatibility support only for filters */
-        if (verbose >= TC_DEBUG) {
-            tc_log_info(EXE, "using old module system");
-        }
-        /* ok, fallback to old module system */
-        strlcpy(namebuf, filename, NAME_LEN);
-        filter[0].name = namebuf;
-    
-        ret = load_plugin(modpath, 0, verbose);
-        if (ret != 0) {
-            tc_log_error(__FILE__, "unable to load filter `%s' (path=%s)",
-                                   filter[0].name, modpath);
-            status = STATUS_NO_MODULE;
-        } else {
-            strlcpy(options, "help", OPTS_SIZE);
-            ptr.tag = TC_FILTER_INIT;
-            if ((ret = filter[0].entry(&ptr, options)) != 0) {
-                status = STATUS_MODULE_ERROR;
-            } else {
-                memset(options, 0, OPTS_SIZE);
-                ptr.tag = TC_FILTER_GET_CONFIG;
-                ret = filter[0].entry(&ptr, options);
+    } else {
+        module = tc_new_module(factory, modtype, filename, TC_NONE);
 
-                if (ret == 0) {
-                    if (verbose >= TC_INFO) {
-                        fputs("START\n", stdout);
-                        fputs(options, stdout);
-                        fputs("END\n", stdout);
-                    }
-                    status = STATUS_OK;
-                }
-            }
+        if (module != NULL) {
+            status = query_new_module(module, modcfg, modarg);
+            tc_del_module(factory, module);
+        } else if (!strcmp(modtype, "filter")) {
+            status = query_old_module(filename, modpath);
         }
-   }
+    }
 
-   ret = tc_del_module_factory(factory);
-   tcv_free(tcv_handle);
-   return status;
+    ret = tc_del_module_registry(registry);
+    ret = tc_del_module_factory(factory);
+    tcv_free(tcv_handle);
+    return status;
 }
 
 /*************************************************************************/
