@@ -27,9 +27,10 @@
 #define ENCODER_H
 
 
-#include "tccore/job.h"
-#include "libtc/tcframes.h"
 #include "libtcmodule/tcmodule-core.h"
+#include "libtcmodule/tcmodule-registry.h"
+#include "libtc/tcframes.h"
+#include "tccore/job.h"
 
 /*************************************************************************
  * MULTITHREADING WARNING:                                               *
