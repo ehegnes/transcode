@@ -424,9 +424,8 @@ MOD_decode
                 tc_log_info(MOD_NAME, "read bytes=%i", packet.size);
 #endif
                 TC_LOCK_LIBAVCODEC;
-                len = avcodec_decode_video(vff_data.dec_context, picture,
-                                           &got_picture,
-                                           packet.data, packet.size);
+                len = avcodec_decode_video2(vff_data.dec_context, picture,
+                                            &got_picture, &packet);
                 TC_UNLOCK_LIBAVCODEC;
 #ifdef TC_LAVC_DEBUG
                 tc_log_info(MOD_NAME, "decode_video: size=%i, len=%i, got_picture=%i",
