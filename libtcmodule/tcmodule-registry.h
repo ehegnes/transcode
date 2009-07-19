@@ -42,6 +42,7 @@ TCRegistry tc_new_module_registry(TCFactory factory,
 
 int tc_del_module_registry(TCRegistry registry);
 
+
 TCModule tc_new_module_for_format(TCRegistry registry,
                                   const char *modclass,
                                   const char *format,
@@ -52,8 +53,17 @@ TCModule tc_new_module_most_fit(TCRegistry registry,
                                 const char *fmtname, const char *modname,
                                 int media);
 
+const char *tc_get_module_name_for_format(TCRegistry registry,
+                                          const char *modclass,
+                                          const char *fmtname);
+
 const char *tc_module_registry_default_path(void);
 
+
+TCModule tc_new_module_from_names(TCFactory factory,
+                                  const char *modclass,
+                                  const char *modnames,
+                                  int media);
 
 /*************************************************************************/
 
