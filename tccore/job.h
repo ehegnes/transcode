@@ -321,6 +321,8 @@ struct _vob_t {
     int encoder_flush;          // flush encoders on close (yes)
 
     const char *mod_path;
+    const char *reg_path;
+    const char *prof_path;
 
     struct fc_time *ttime;      // For framecode parsing (list of structs)
 

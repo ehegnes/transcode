@@ -34,14 +34,15 @@
 #include "src/transcode.h"
 #include "src/framebuffer.h"
 #include "src/filter.h"
-#include "src/socket.h"
 
 #include "libtcmodule/tcmodule-core.h"
+#include "libtcmodule/tcmodule-registry.h"
 #include "libtcutil/cfgfile.h"
 #include "libtcext/tc_ext.h"
 #include "libtc/libtc.h"
 #include "libtc/tccodecs.h"
 #include "libtc/tcframes.h"
+#include "libtc/mediainfo.h"
 
 #include "libtcexport/export.h"
 #include "libtcexport/export_profile.h"
@@ -94,6 +95,7 @@ struct tcencconf_ {
     char    *video_mod;
     char    *audio_mod;
     char    *mplex_mod;
+    char    *mplex_mod_aux;
 
     char    *range_str;
 };
@@ -124,10 +126,10 @@ static void usage(void)
     printf("    -P profile        select export profile."
            " if you want to use more than one profile,\n"
            "                      provide a comma separated list.\n");
-    printf("    -N V,A            Video,Audio output format"
+    printf("    -N V=v,A=a        Video,Audio output format (any order)"
            " (encoder) [%s,%s]\n", VIDEO_CODEC, AUDIO_CODEC);
-    printf("    -y V,A,M          Video,Audio,Multiplexor export"
-           " modules [%s,%s,%s]\n", TC_DEFAULT_EXPORT_VIDEO,
+    printf("    -y V=v,A=a,M=m    Video,Audio,Multiplexor export"
+           " modules (any order) [%s,%s,%s]\n", TC_DEFAULT_EXPORT_VIDEO,
            TC_DEFAULT_EXPORT_AUDIO, TC_DEFAULT_EXPORT_MPLEX);
     printf("    -w b[,k[,c]]      encoder"
            " bitrate[,keyframes[,crispness]] [%d,%d,%d]\n",
@@ -146,9 +148,10 @@ static void config_init(TCEncConf *conf, TCJob *job)
     strlcpy(conf->vlogfile, VIDEO_LOG_FILE, sizeof(conf->vlogfile));
     strlcpy(conf->alogfile, AUDIO_LOG_FILE, sizeof(conf->alogfile));
 
-    conf->video_mod = TC_DEFAULT_EXPORT_VIDEO;
-    conf->audio_mod = TC_DEFAULT_EXPORT_AUDIO;
-    conf->mplex_mod = TC_DEFAULT_EXPORT_MPLEX;
+    conf->video_mod     = NULL;
+    conf->audio_mod     = NULL;
+    conf->mplex_mod     = NULL;
+    conf->mplex_mod_aux = NULL;
 }
 
 static void specs_init(TCFrameSpecs *specs, TCJob *job)
@@ -188,6 +191,41 @@ static char *setup_mod_string(char *mod)
     return opts;
 }
 
+static void setup_codecs(TCJob *job, const char **args)
+{
+    int i = 0;
+
+    for (i = 0; args[i]; i++) {
+        if (!strncmp(args[i], "A=", 2)) {
+            job->ex_a_codec = tc_codec_from_string(args[i] + 2);
+        }
+        if (!strncmp(args[i], "V=", 2)) {
+            job->ex_v_codec = tc_codec_from_string(args[i] + 2);
+        }
+    }
+}
+
+
+static void setup_user_mods(TCEncConf *conf, TCJob *job, const char **args)
+{
+    int i = 0;
+
+    for (i = 0; args[i]; i++) {
+        if (!strncmp(args[i], "A=", 2)) {
+            conf->audio_mod = args[i] + 2;
+            job->ex_a_string = setup_mod_string(conf->audio_mod);
+        }
+        if (!strncmp(args[i], "V=", 2)) {
+            conf->video_mod = args[i] + 2;
+            job->ex_v_string = setup_mod_string(conf->video_mod);
+        }
+        if (!strncmp(args[i], "M=", 2)) {
+            conf->mplex_mod = args[i] + 2;
+            job->ex_m_string = setup_mod_string(conf->mplex_mod);
+        }
+    }
+}
+
 /* basic sanity check */
 #define VALIDATE_OPTION \
         if (optarg[0] == '-') { \
@@ -198,7 +236,8 @@ static char *setup_mod_string(char *mod)
 static int parse_options(int argc, char** argv, TCEncConf *conf)
 {
     int ch, n;
-    char acodec[32], vcodec[32];
+    size_t num = 0;
+    char **pieces = NULL;
     TCJob *job = conf->job;
 
     if (argc == 1) {
@@ -251,15 +290,16 @@ static int parse_options(int argc, char** argv, TCEncConf *conf)
             break;
           case 'N':
             VALIDATE_OPTION;
-	        n = sscanf(optarg,"%32[^,],%32s", vcodec, acodec);
-            if (n != 2) {
+            pieces = tc_strsplit(optarg, ',', &num);
+            if (num != 2) {
                 tc_log_error(EXE, "invalid parameter for option -N"
                                   " (you must specify ALL parameters)");
                 return STATUS_BAD_PARAM;
             }
 
-            job->ex_v_codec = tc_codec_from_string(vcodec);
-            job->ex_a_codec = tc_codec_from_string(acodec);
+            setup_codecs(job, pieces);
+
+            tc_strfreev(pieces);
 
             if (job->ex_v_codec == TC_CODEC_ERROR
              || job->ex_a_codec == TC_CODEC_ERROR) {
@@ -309,21 +349,16 @@ static int parse_options(int argc, char** argv, TCEncConf *conf)
             break;
           case 'y':
             VALIDATE_OPTION;
-	        n = sscanf(optarg,"%64[^,],%64[^,],%64s",
-                       conf->video_mod_buf, conf->audio_mod_buf,
-                       conf->mplex_mod_buf);
-            if (n != 3) {
+            pieces = tc_strsplit(optarg, ',', &num);
+            if (num == 0) {
                 tc_log_error(EXE, "invalid parameter for option -y"
-                                  " (you must specify ALL parameters)");
+                                  " (you must specify at least one parameter)");
                 return STATUS_BAD_PARAM;
             }
-            conf->video_mod = conf->video_mod_buf;
-            conf->audio_mod = conf->audio_mod_buf;
-            conf->mplex_mod = conf->mplex_mod_buf;
 
-            job->ex_v_string = setup_mod_string(conf->video_mod);
-            job->ex_a_string = setup_mod_string(conf->audio_mod);
-            job->ex_m_string = setup_mod_string(conf->mplex_mod);
+            setup_user_mods(conf, job, pieces);
+
+            tc_strfreev(pieces);
             break;
           case 'v':
             version();
@@ -413,6 +448,53 @@ static int setup_ranges(TCEncConf *conf)
     return ret;
 }
 
+static int setup_modnames(TCEncConf *conf, TCRegistry registry)
+{
+    const char *fmtname = NULL;
+
+    if (!conf->video_mod) {
+        fmtname = tc_codec_to_string(job->ex_v_codec);
+        conf->video_mod = tc_get_module_name_for_format(registry,
+                                                        "encode",
+                                                        fmtname);
+    }
+    if (!conf->video_mod) {
+        tc_log_error(EXE, "unable to find the video encoder module"
+                          "and none specified");
+        return TC_ERROR;
+    }
+
+    if (!conf->audio_mod) {
+        fmtname = tc_codec_to_string(job->ex_a_codec);
+        conf->audio_mod = tc_get_module_name_for_format(registry,
+                                                        "encode",
+                                                        fmtname);
+    }
+    if (!conf->audio_mod) {
+        tc_log_error(EXE, "unable to find the audio encoder module"
+                          "and none specified");
+        return TC_ERROR;
+    }
+
+    if (!conf->mplex_mod) {
+        /* try by outfile extension */
+        fmtname = strrchr(job->video_out_file, '.');
+        if (fmtname) {
+            conf->mplex_mod = tc_get_module_name_for_format(registry,
+                                                            "multiplex",
+                                                            fmtname);
+        }
+    }
+    if (!conf->mplex_mod) {
+        tc_log_error(EXE, "unable to find the multiplexor module"
+                          "and none specified");
+        return TC_ERROR;
+    }
+
+    /* double muxer not (yet?) supported */
+    conf->mplex_mod_aux = NULL;
+    return TC_OK;
+}
 
 #define MOD_OPTS(opts) (((opts) != NULL) ?((opts)) :"none")
 static void print_summary(TCEncConf *conf, int verbose)
@@ -466,6 +548,7 @@ int main(int argc, char *argv[])
     double samples = 0;
     /* needed by some modules */
     TCFactory factory = NULL;
+    TCRegistry registry = NULL;
     const TCExportInfo *info = NULL;
     TCFrameSource *framesource = NULL;
     TCFrameSpecs specs;
@@ -530,6 +613,8 @@ int main(int argc, char *argv[])
 
     factory = tc_new_module_factory(job->mod_path, job->verbose);
     EXIT_IF(!factory, "can't setup module factory", STATUS_MODULE_ERROR);
+    registry = tc_new_module_registry(factory, job->reg_path, verbose);
+    EXIT_IF(!registry, "can't setup module registry", STATUS_MODULE_ERROR);
 
     /* open the A/V source */
     framesource = tc_rawsource_open(job);
@@ -544,8 +629,10 @@ int main(int argc, char *argv[])
 
     tc_export_config(verbose, 1, 0);
 
+    setup_modnames(&config, registry);
+
     ret = tc_export_setup(config.audio_mod, config.video_mod,
-                          config.mplex_mod, NULL);
+                          config.mplex_mod, config.mplex_mod_aux);
     EXIT_IF(ret != 0, "can't setup export modules", STATUS_MODULE_ERROR);
 
     if (!config.dry_run) {
@@ -573,6 +660,7 @@ int main(int argc, char *argv[])
 
     ret = tc_rawsource_close();
     ret = tc_del_module_factory(factory);
+    ret = tc_del_module_registry(registry);
     tcv_free(tcv_handle);
     free_fc_time(job->ttime);
     tc_export_profile_cleanup();

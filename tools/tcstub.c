@@ -57,6 +57,8 @@ static vob_t vob = {
     .a_vbr = AVBR,
 
     .mod_path = MOD_PATH,
+    .reg_path = REGISTRY_PATH,
+    .prof_path = PROF_PATH,
 
     .video_in_file = "/dev/zero",
     .audio_in_file = "/dev/zero",
