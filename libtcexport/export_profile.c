@@ -233,6 +233,11 @@ int tc_export_profile_fini(void)
     return TC_OK;
 }
 
+const char *tc_export_profile_default_path(void)
+{
+    return PROF_PATH;
+}
+
 int tc_export_profile_count(void)
 {
     return prof_data.profile_count;
