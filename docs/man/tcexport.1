@@ -100,11 +100,15 @@ excludes the last frame specified.
 That means that "-c 0-100" will encoded 100 frames starting at frame \fI0\fP up
 to frame \fI99\fP
 .TP
-\fB-N\fP \fIvideo_format,audio_format\fP
+\fB-N\fP \fIV=video_format,A=audio_format\fP
 Setup the desired \fIencoded\fP video and audio format respectively. You \fImust\fP
 always use this option since there is some encoder modules (notably encode_ffmpeg)
 that support a lot of codecs, and tcexport nor modules can automatically choose a
 sane one not have defaults (yet).
+The order of the arguments is not important. tcexport determine the format to
+use for the stream thanks to the `A= ' or `V=' prefix. The prefix is case sensitive,
+and must NOT contain whitespaces (`A = xxx' or `A =xxx' or `A= xxx' will lead to
+undefined behaviour).
 .TP
 .B \-R \fIn\fP[\fI,video_log\fP[\fI,audio_log\fP]]
 enable multi-pass encoding (0-3) [0,divx4.log,pcm.log].
@@ -155,11 +159,14 @@ export profiles are stackable, just requesting to load multiple profiles
 separated by commas; if some options are set by more than one profile, the last
 profile determine their value.
 .TP
-.B \-y \fIvideo_mod\fP,\fIaudio_mod\fP,\fImplex_mod\fP
+.B \-y \fIV=video_mod\fP,\fIA=audio_mod\fP,\fIM=mplex_mod\fP
 Select export modules: video and audio encoders, and multiplexor module.
-You \fIalways must\fP select both the encoders and multiplexor, there isn't
-implicit modules. The only exception to this rule is if this option isn't
-used at all: in this case tcexport will use \fInull\fP modules.
+Use this option to override the modules automatically chosen from the argument
+of the -N option.
+The order of the arguments is not important. tcexport determine the format to
+use for the stream thanks to the `A= ', `V=' or `M=' prefix. The prefix is case sensitive,
+and must NOT contain whitespaces (`A = xxx' or `A =xxx' or `A= xxx' will lead to
+undefined behaviour).
 .TP
 .B \-w \fIbitrate\fP[,\fIkeyint\fP[,\fIcrisp\fP]]
 encoder bitrate[,keyframes[,crispness]] [(6000 for MPEG 1/2, 1800 for others),250,100].
