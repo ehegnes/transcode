@@ -1053,6 +1053,11 @@ int tc_del_module(TCFactory factory, TCModule module)
     return ret;
 }
 
+const char *tc_module_default_path(void)
+{
+    return MOD_PATH;
+}
+
 /*************************************************************************
  * Debug helpers.                                                        *
  *************************************************************************/

@@ -474,4 +474,6 @@ int tc_instance_count(const TCFactory factory);
  */
 int tc_compare_modules(const TCModule amod, const TCModule bmod);
 
+const char *tc_module_default_path(void);
+
 #endif /* TCMODULE_CORE_H */
