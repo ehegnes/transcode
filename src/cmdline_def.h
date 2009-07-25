@@ -117,6 +117,7 @@
 # define TC_OPTION(name,shortopt,argname,helptext,code) \
     { #name, (argname) ? required_argument : no_argument, NULL, OPT_##name },
 # define TC_HEADER(name)  /* nothing */
+# define _TCO_FINI {0,0,0,0}
 #endif
 
 #ifdef TC_OPTIONS_TO_SHORTOPTS
