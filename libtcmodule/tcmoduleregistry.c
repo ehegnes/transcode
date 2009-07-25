@@ -198,7 +198,15 @@ static FormatModules *fmt_mods_get_for_format(TCRegistry registry,
     };
     int ret = tc_config_read_file(dirs, REGISTRY_CONFIG_FILE,
                                   fmtname, registry_conf, __FILE__);
-    if (ret) {
+    if (!ret) {
+        tc_log_debug(TC_DEBUG_MODULES, __FILE__,
+                     "missing an entry for '%s' into registry file",
+                     fmtname);
+    } else {
+        tc_log_debug(TC_DEBUG_MODULES, __FILE__,
+                     "found an entry for '%s' into registry file",
+                     fmtname);
+
         fm->name = tc_strdup(fmtname);
         if (!fm->name) {
             ret = 0;
@@ -215,19 +223,35 @@ const char *tc_get_module_name_for_format(TCRegistry registry,
                                           const char *fmtname)
 {
     const char *modname = NULL;
+    const char *where = "N/A";
 
     RETURN_IF_INVALID_STRING(modclass, "empty module class", NULL);
     RETURN_IF_INVALID_STRING(fmtname, "empty format name", NULL);
     RETURN_IF_NULL(registry, "invalid registry reference", NULL);
 
+    tc_log_debug(TC_DEBUG_MODULES, __FILE__,
+                 "searching modules for class '%s', format '%s'",
+                 modclass, fmtname);
+
+    where = "cache";
     modname = lookup_by_name(registry, modclass, fmtname);
+
     if (!modname) {
         if (registry->fmt_last < REGISTRY_MAX_ENTRIES) {
             FormatModules *fm = fmt_mods_get_for_format(registry, fmtname);
             if (fm) {
+                where = "registry file";
                 modname = fmt_mods_for_class(fm, modclass);
             }
+        } else {
+            tc_log_debug(TC_DEBUG_MODULES, __FILE__,
+                         "module registry full (please file a bug report)");
         }
+    }
+    if (modname) {
+        tc_log_debug(TC_DEBUG_MODULES, __FILE__,
+                     "found in %s, module='%s'",
+                     where, modname);
     }
     return modname;
 }
@@ -249,8 +273,16 @@ TCModule tc_new_module_from_names(TCFactory factory,
     RETURN_IF_NULL(factory, "invalid factory reference", NULL);
     
     names = tc_strsplit(modnames, MOD_NAME_LIST_SEP, &num);
-    if (names) {
+    if (!names) {
+        tc_log_debug(TC_DEBUG_MODULES, __FILE__,
+                     "error splitting the name sequence '%s'",
+                     modnames);
+    } else {
         for (i = 0; !mod && names[i]; i++) {
+            tc_log_debug(TC_DEBUG_MODULES, __FILE__,
+                         "loading from names: '%s'",
+                         names[i]);
+
             mod = tc_new_module(factory, modclass, names[i], media);
         }
 
