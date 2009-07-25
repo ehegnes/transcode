@@ -456,7 +456,7 @@ static int setup_modnames(TCEncConf *conf, TCJob *job, TCRegistry registry)
     }
     if (!conf->video_mod) {
         tc_log_error(EXE, "unable to find the video encoder module"
-                          "and none specified");
+                          " and none specified");
         return TC_ERROR;
     }
 
@@ -536,7 +536,6 @@ static void print_summary(TCEncConf *conf, int verbose)
         return status; \
     }
 
-#define GET_MODULE(mod) ((mod) != NULL) ?(mod) :"null"
 
 int main(int argc, char *argv[])
 {
@@ -569,9 +568,6 @@ int main(int argc, char *argv[])
     }
 
     info = tc_export_profile_load_all();
-    config.audio_mod = GET_MODULE(info->audio.module.name);
-    config.video_mod = GET_MODULE(info->video.module.name);
-    config.mplex_mod = GET_MODULE(info->mplex.module.name);
     tc_export_profile_to_job(info, job);
 
     ret = parse_options(argc, argv, &config);
@@ -603,7 +599,6 @@ int main(int argc, char *argv[])
                           " Recheck your frame ranges!");
         return STATUS_BAD_PARAM;
     }
-    print_summary(&config, verbose);
 
     specs_init(&specs, job);
 
@@ -626,6 +621,8 @@ int main(int argc, char *argv[])
     tc_export_config(verbose, 1, 0);
 
     setup_modnames(&config, job, registry);
+
+    print_summary(&config, verbose);
 
     ret = tc_export_setup(config.audio_mod, config.video_mod,
                           config.mplex_mod, config.mplex_mod_aux);
