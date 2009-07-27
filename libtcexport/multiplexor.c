@@ -46,7 +46,8 @@ static void tc_rotate_set_frames_limit(TCRotateContext *rotor,
 static void tc_rotate_set_bytes_limit(TCRotateContext *rotor,
                                       uint64_t bytes);
 
-static const char *tc_rotate_output_name(TCRotateContext *rotor);
+static const char *tc_rotate_output_name_add_id(TCRotateContext *rotor);
+static const char *tc_rotate_output_name_null(TCRotateContext *rotor);
 
 static int tc_rotate_needed_never(TCRotateContext *rotor,
                                   uint32_t frames,
@@ -63,10 +64,6 @@ static int tc_rotate_needed(TCRotateContext *rotor,
 
 /*************************************************************************/
 
-typedef int (*TCRotateNeededFn)(TCRotateContext *rotor,
-                                uint32_t frames, uint32_t bytes);
-
-
 struct tcrotatecontext_ {
     char                path_buf[PATH_MAX+1];
     const char          *base_name;
@@ -79,7 +76,9 @@ struct tcrotatecontext_ {
     uint64_t            encoded_bytes;
     uint64_t            chunk_bytes;
 
-    TCRotateNeededFn    rotate_needed;
+    int                 (*rotate_needed)(TCRotateContext *rotor,
+                                         uint32_t frames, uint32_t bytes);
+    const char*         (*output_name)(TCRotateContext *rotor);
 };
 
 /*************************************************************************/
@@ -89,6 +88,12 @@ static int tc_rotate_needed(TCRotateContext *rotor,
 {
     return rotor->rotate_needed(rotor, frames, bytes);
 }
+
+static const char *tc_rotate_output_name(TCRotateContext *rotor)
+{
+    return rotor->output_name(rotor);
+}
+
 
 static void tc_rotate_init(TCRotateContext *rotor, const char *base_name)
 {
@@ -104,7 +109,23 @@ static void tc_rotate_init(TCRotateContext *rotor, const char *base_name)
             strlcpy(rotor->path_buf, base_name, sizeof(rotor->path_buf));
         }
         rotor->rotate_needed = tc_rotate_needed_never;
+        rotor->output_name   = tc_rotate_output_name_null;
     }
+}
+
+static const char *tc_rotate_output_name_null(TCRotateContext *rotor)
+{
+    return rotor->base_name;
+}
+
+static const char *tc_rotate_output_name_add_id(TCRotateContext *rotor)
+{
+    tc_snprintf(rotor->path_buf, sizeof(rotor->path_buf),
+                "%s-%03i", rotor->base_name, rotor->chunk_num);
+    rotor->encoded_frames = 0;
+    rotor->encoded_bytes = 0;
+    rotor->chunk_num++;
+    return rotor->path_buf;
 }
 
 static void tc_rotate_set_frames_limit(TCRotateContext *rotor,
@@ -113,6 +134,7 @@ static void tc_rotate_set_frames_limit(TCRotateContext *rotor,
     if (rotor != NULL && !rotor->null_flag) {
         rotor->chunk_frames  = frames;
         rotor->rotate_needed = tc_rotate_needed_by_frames;
+        rotor->output_name   = tc_rotate_output_name_add_id;
     }
 }
 
@@ -122,17 +144,8 @@ static void tc_rotate_set_bytes_limit(TCRotateContext *rotor,
     if (rotor != NULL && !rotor->null_flag) {
         rotor->chunk_bytes   = bytes;
         rotor->rotate_needed = tc_rotate_needed_by_bytes;
+        rotor->output_name   = tc_rotate_output_name_add_id;
     }
-}
-
-static const char *tc_rotate_output_name(TCRotateContext *rotor)
-{
-    tc_snprintf(rotor->path_buf, sizeof(rotor->path_buf),
-                "%s-%03i", rotor->base_name, rotor->chunk_num);
-    rotor->encoded_frames = 0;
-    rotor->encoded_bytes = 0;
-    rotor->chunk_num++;
-    return rotor->path_buf;
 }
 
 /*************************************************************************/
