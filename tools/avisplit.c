@@ -555,7 +555,7 @@ int main(int argc, char *argv[])
 	  byte_count_audio[ k ] = AVI_get_audio_position_index(in);
 
 	  if (!didread) {
-	    sync_audio_video_avi2avi_ro (vid_ms, &aud_ms[k], in);
+	    sync_audio_video_avi2avi (vid_ms, &aud_ms[k], in, NULL);
 	  }
 
 	  /*

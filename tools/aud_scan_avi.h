@@ -31,4 +31,4 @@
 // ------------------------
 
 int sync_audio_video_avi2avi (double vid_ms, double *aud_ms, avi_t *in, avi_t *out);
-int sync_audio_video_avi2avi_ro (double vid_ms, double *aud_ms, avi_t *in);
+
