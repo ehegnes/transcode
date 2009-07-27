@@ -57,12 +57,12 @@ struct avidata_ {
 static void init_avi_data(AVIData *data, avi_t *AVI)
 {
     if (AVI && data) {
-        data->vbr     = AVI_get_audio_vbr(out);
-        data->mp3rate = AVI_audio_mp3rate(out);
-        data->format  = AVI_audio_format(out);
-        data->chan    = AVI_audio_channels(out);
-        data->rate    = AVI_audio_rate(out);
-        data->bits    = AVI_audio_bits(out);
+        data->vbr     = AVI_get_audio_vbr(AVI);
+        data->mp3rate = AVI_audio_mp3rate(AVI);
+        data->format  = AVI_audio_format(AVI);
+        data->chan    = AVI_audio_channels(AVI);
+        data->rate    = AVI_audio_rate(AVI);
+        data->bits    = AVI_audio_bits(AVI);
 
         data->bits = (data->bits == 0) ?16 :data->bits;
 
