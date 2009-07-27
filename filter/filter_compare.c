@@ -263,7 +263,9 @@ TC_MODULE_GENERIC_FINI(compare)
  * tcmodule-data.h for function details.
  */
 static int compare_configure(TCModuleInstance *self,
-                             const char *options, vob_t *vob)
+                             const char *options,
+                             vob_t *vob,
+                             TCModuleExtraData *xdata[])
 {
     ComparePrivateData *pd = NULL;
     char pattern_name[PATH_MAX + 1] = { '\0' };
@@ -439,12 +441,13 @@ static int compare_filter_video(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const TCCodecID compare_codecs_in[] = { 
+static const TCCodecID compare_codecs_video_in[] = { 
     TC_CODEC_RGB24, TC_CODEC_ERROR
 };
-static const TCCodecID compare_codecs_out[] = { 
+static const TCCodecID compare_codecs_video_out[] = { 
     TC_CODEC_RGB24, TC_CODEC_ERROR
 };
+TC_MODULE_AUDIO_UNSUPPORTED(compare);
 TC_MODULE_FILTER_FORMATS(compare);
 
 TC_MODULE_INFO(compare);

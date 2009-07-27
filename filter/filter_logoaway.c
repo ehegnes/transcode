@@ -838,7 +838,9 @@ TC_MODULE_GENERIC_FINI(logoaway)
  */
 
 static int logoaway_configure(TCModuleInstance *self,
-                              const char *options, vob_t *vob)
+                              const char *options,
+                              vob_t *vob,
+                              TCModuleExtraData *xdata[])
 {
     LogoAwayPrivateData *pd = NULL;
     int ret = TC_OK;
@@ -996,12 +998,13 @@ static int logoaway_filter_video(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const TCCodecID logoaway_codecs_in[] = {
+static const TCCodecID logoaway_codecs_video_in[] = {
     TC_CODEC_RGB24, TC_CODEC_YUV420P, TC_CODEC_ERROR
 };
-static const TCCodecID logoaway_codecs_out[] = { 
+static const TCCodecID logoaway_codecs_video_out[] = { 
     TC_CODEC_RGB24, TC_CODEC_YUV420P, TC_CODEC_ERROR
 };
+TC_MODULE_AUDIO_UNSUPPORTED(logoaway);
 TC_MODULE_FILTER_FORMATS(logoaway);
 
 TC_MODULE_INFO(logoaway);

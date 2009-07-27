@@ -714,7 +714,9 @@ TC_MODULE_GENERIC_FINI(logo)
  * tcmodule-data.h for function details.
  */
 static int logo_configure(TCModuleInstance *self,
-                          const char *options, vob_t *vob)
+                          const char *options,
+                          vob_t *vob,
+                          TCModuleExtraData *xdata[])
 {
     char file[PATH_MAX + 1] = { '\0' }; /* input filename */
     LogoPrivateData *pd = NULL;
@@ -852,12 +854,13 @@ static int logo_filter_video(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const TCCodecID logo_codecs_in[] = { 
+static const TCCodecID logo_codecs_video_in[] = { 
     TC_CODEC_RGB24, TC_CODEC_YUV420P, TC_CODEC_ERROR
 };
-static const TCCodecID logo_codecs_out[] = {
+static const TCCodecID logo_codecs_video_out[] = {
     TC_CODEC_RGB24, TC_CODEC_YUV420P, TC_CODEC_ERROR
 };
+TC_MODULE_AUDIO_UNSUPPORTED(logo);
 TC_MODULE_FILTER_FORMATS(logo);
 
 TC_MODULE_INFO(logo);
