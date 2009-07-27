@@ -140,6 +140,7 @@ tcexport_SOURCES = tcexport.c \
 	rawsource.c \
 	rawsource.h \
 	runcontrol.c \
+	../src/framebuffer.c \
 	../src/dl_loader.c \
 	../src/probe.c
 tcexport_CPPFLAGS = $(AM_CPPFLAGS) \

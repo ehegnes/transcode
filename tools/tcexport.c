@@ -92,6 +92,7 @@ struct tcencconf_ {
     const char  *audio_mod;
     const char  *mplex_mod;
     const char  *mplex_mod_aux;
+    char        **mod_args; /* to avoid memleaks */
 
     char        *range_str;
 };
@@ -148,23 +149,9 @@ static void config_init(TCEncConf *conf, TCJob *job)
     conf->audio_mod     = NULL;
     conf->mplex_mod     = NULL;
     conf->mplex_mod_aux = NULL;
-}
 
-static void specs_init(TCFrameSpecs *specs, TCJob *job)
-{
-    /* 
-     * comform to static largest values as in framebuffer.c
-     * for the sake of simplicity
-     */
-    specs->frc      = 3; // PAL, why not
-    specs->width    = TC_MAX_V_FRAME_WIDTH;
-    specs->height   = TC_MAX_V_FRAME_HEIGHT;
-    specs->format   = TC_CODEC_RGB24;
-    specs->rate     = RATE;
-    specs->channels = CHANNELS;
-    specs->bits     = BITS;
-    specs->samples  = 48000.0;
-};
+    conf->mod_args      = NULL;
+}
 
 /* split up module string (=options) to module name */
 static char *setup_mod_string(const char *mod)
@@ -220,6 +207,7 @@ static void setup_user_mods(TCEncConf *conf, TCJob *job, char **args)
             job->ex_m_string = setup_mod_string(conf->mplex_mod);
         }
     }
+    return;
 }
 
 /* basic sanity check */
@@ -345,16 +333,20 @@ static int parse_options(int argc, char** argv, TCEncConf *conf)
             break;
           case 'y':
             VALIDATE_OPTION;
-            pieces = tc_strsplit(optarg, ',', &num);
+
+            if (conf->mod_args) {
+                tc_strfreev(conf->mod_args);
+            }
+
+            conf->mod_args = tc_strsplit(optarg, ',', &num);
             if (num == 0) {
                 tc_log_error(EXE, "invalid parameter for option -y"
                                   " (you must specify at least one parameter)");
                 return STATUS_BAD_PARAM;
             }
 
-            setup_user_mods(conf, job, pieces);
+            setup_user_mods(conf, job, conf->mod_args);
 
-            tc_strfreev(pieces);
             break;
           case 'v':
             version();
@@ -546,7 +538,6 @@ int main(int argc, char *argv[])
     TCRegistry registry = NULL;
     const TCExportInfo *info = NULL;
     TCFrameSource *framesource = NULL;
-    TCFrameSpecs specs;
     TCEncConf config;
     TCVHandle tcv_handle = tcv_init();
     TCJob *job = tc_get_vob();
@@ -600,8 +591,6 @@ int main(int argc, char *argv[])
         return STATUS_BAD_PARAM;
     }
 
-    specs_init(&specs, job);
-
     factory = tc_new_module_factory(job->mod_path, job->verbose);
     EXIT_IF(!factory, "can't setup module factory", STATUS_MODULE_ERROR);
     registry = tc_new_module_registry(factory, job->reg_path, verbose);
@@ -615,7 +604,7 @@ int main(int argc, char *argv[])
 
     ret = tc_export_new(job, factory,
                         tc_runcontrol_get_instance(),
-                        &specs);
+                        tc_framebuffer_get_specs());
     EXIT_IF(ret != 0, "can't setup export subsystem", STATUS_MODULE_ERROR);
 
     tc_export_config(verbose, 1, 0);
