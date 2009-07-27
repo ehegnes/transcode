@@ -32,6 +32,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <libtcutil/memutils.h>
+
 #include "aud_scan_avi.h"
 #include "aud_scan.h"
 
@@ -40,150 +42,131 @@
 // the AVI file out must be filled with correct values.
 // ------------------------
 
-int sync_audio_video_avi2avi (double vid_ms, double *aud_ms, avi_t *in, avi_t *out)
+typedef struct avidata_ AVIData;
+struct avidata_ {
+    int     vbr;
+    int     mp3rate;
+    int     format;
+    int     chan;
+    long    rate;
+    int     bits;
+
+    uint8_t data[48000 * 16 * 4];
+};
+
+static void init_avi_data(AVIData *data, avi_t *AVI)
 {
-    static char *data = NULL;
-    int  vbr     = AVI_get_audio_vbr(out);
-    int  mp3rate = AVI_audio_mp3rate(out);
-    int  format  = AVI_audio_format(out);
-    int  chan    = AVI_audio_channels(out);
-    long rate    = AVI_audio_rate(out);
-    int  bits    = AVI_audio_bits(out);
-    long bytes   = 0;
+    if (AVI && data) {
+        data->vbr     = AVI_get_audio_vbr(out);
+        data->mp3rate = AVI_audio_mp3rate(out);
+        data->format  = AVI_audio_format(out);
+        data->chan    = AVI_audio_channels(out);
+        data->rate    = AVI_audio_rate(out);
+        data->bits    = AVI_audio_bits(out);
 
-    bits = (bits == 0)?16:bits;
+        data->bits = (data->bits == 0) ?16 :data->bits;
 
-    if (!data) data = malloc(48000*16*4);
-    if (!data) fprintf (stderr, "Malloc failed at %s:%d\n", __FILE__, __LINE__);
-
-    if (format == 0x1) {
-	mp3rate = rate*chan*bits;
-    } else {
-	mp3rate *= 1000;
+        if (data->format == 0x1) { /* FIXME */
+            data->mp3rate = data->rate * data->chan * data->bits;
+        } else {
+            data->mp3rate *= 1000; /* FIXME */
+        }
     }
+    return;
+}
 
-    if (tc_format_ms_supported(format)) {
-
-	while (*aud_ms < vid_ms) {
-
-	    if( (bytes = AVI_read_audio_chunk(in, data)) < 0) {
-		AVI_print_error("AVI audio read frame");
-		//*aud_ms = vid_ms;
-		return(-2);
-	    }
-	    //fprintf(stderr, "len (%ld)\n", bytes);
-
-	    if(AVI_write_audio(out, data, bytes)<0) {
-		AVI_print_error("AVI write audio frame");
-		return(-1);
-	    }
-
-	    // pass-through null frames
-	    if (bytes == 0) {
-		*aud_ms = vid_ms;
-		break;
-	    }
-
-	    if ( vbr && tc_get_audio_header(data, bytes, format, NULL, NULL, &mp3rate)<0) {
-		// if this is the last frame of the file, slurp in audio chunks
-		//if (n == frames-1) continue;
-		*aud_ms = vid_ms;
-	    } else  {
-		if (vbr) mp3rate *= 1000;
-		*aud_ms += (bytes*8.0*1000.0)/(double)mp3rate;
-	    }
-	    /*
-	       fprintf(stderr, "%s track (%d) %8.0lf->%8.0lf len (%ld) rate (%ld)\n",
-	       format==0x55?"MP3":format==0x1?"PCM":"AC3",
-	       j, vid_ms, aud_ms[j], bytes, mp3rate);
-	     */
-	}
-
-    } else { // fallback for not supported audio format
-
-	do {
-	    if ( (bytes = AVI_read_audio_chunk(in, data) ) < 0) {
-		AVI_print_error("AVI audio read frame");
-		return -2;
-	    }
-
-	    if(AVI_write_audio(out, data, bytes)<0) {
-		AVI_print_error("AVI write audio frame");
-		return(-1);
-	    }
-	} while (AVI_can_read_audio(in));
+static AVIData *new_avi_data(avi_t *AVI)
+{
+    AVIData *data = tc_zalloc(sizeof(AVIData));
+    if (data) {
+        init_avi_data(data, AVI);
     }
+    return data;
+}
 
+/* for supported audio formats */
+static int AV_synch_avi2avi(AVIData *data,
+                            double vid_ms, double *aud_ms,
+                            avi_t *in, avi_t *out)
+{
+    long bytes = 0;
+
+    while (*aud_ms < vid_ms) {
+        bytes = AVI_read_audio_chunk(in, data->data);
+        if (bytes < 0) {
+            AVI_print_error("AVI audio read frame");
+            return -2;
+        }
+
+        if (out) {
+            if (AVI_write_audio(out, data->data, bytes) < 0) {
+                AVI_print_error("AVI write audio frame");
+                return -1;
+            }
+        }
+
+        // pass-through null frames (!?)
+        if (bytes == 0) {
+            *aud_ms = vid_ms;
+            break; // !?
+        }
+
+        if (data->vbr
+         && tc_get_audio_header(data->data, bytes, data->format,
+                                NULL, NULL, &(data->mp3rate)) < 0) {
+            // if this is the last frame of the file, slurp in audio chunks
+            //if (n == frames-1) continue;
+            *aud_ms = vid_ms;
+        } else  {
+            if (data->vbr)
+                data->mp3rate *= 1000;
+            *aud_ms += (bytes*8.0*1000.0)/(double)data->mp3rate;
+        }
+    }
+    return 0;
+}
+
+/* for UNsupported audio formats */
+static int AV_synch_avi2avi_raw(AVIData *data,
+                                avi_t *in, avi_t *out)
+{
+    long bytes = 0;
+
+    do {
+        bytes = AVI_read_audio_chunk(in, data->data);
+        if (bytes < 0) {
+            AVI_print_error("AVI audio read frame");
+            return -2;
+        }
+
+        if (out) {
+            if (AVI_write_audio(out, data->data, bytes) < 0) {
+                AVI_print_error("AVI write audio frame");
+                return -1;
+            }
+        }
+    } while (AVI_can_read_audio(in));
 
     return 0;
 }
 
-int sync_audio_video_avi2avi_ro (double vid_ms, double *aud_ms, avi_t *in)
+int sync_audio_video_avi2avi(double vid_ms, double *aud_ms, avi_t *in, avi_t *out)
 {
-    static char *data = NULL;
-    int  vbr     = AVI_get_audio_vbr(in);
-    int  mp3rate = AVI_audio_mp3rate(in);
-    int  format  = AVI_audio_format(in);
-    int  chan    = AVI_audio_channels(in);
-    long rate    = AVI_audio_rate(in);
-    int  bits    = AVI_audio_bits(in);
-    long bytes   = 0;
-
-    bits = (bits == 0)?16:bits;
-
-    if (!data) data = malloc(48000*16*4);
-    if (!data) fprintf (stderr, "Malloc failed at %s:%d\n", __FILE__, __LINE__);
-
-    if (format == 0x1) {
-	mp3rate = rate*chan*bits;
+    int ret = 0;
+    static AVIData *data = NULL;
+    if (!data) {
+        data = new_avi_data(out);
     } else {
-	mp3rate *= 1000;
+        init_avi_data(data, out);
     }
 
-    if (tc_format_ms_supported(format)) {
-
-	while (*aud_ms < vid_ms) {
-
-	    if( (bytes = AVI_read_audio_chunk(in, data)) < 0) {
-		AVI_print_error("AVI audio read frame");
-		//*aud_ms = vid_ms;
-		return(-2);
-	    }
-	    //fprintf(stderr, "len (%ld)\n", bytes);
-
-	    // pass-through null frames
-	    if (bytes == 0) {
-		*aud_ms = vid_ms;
-		break;
-	    }
-
-	    if ( vbr && tc_get_audio_header(data, bytes, format, NULL, NULL, &mp3rate)<0) {
-		// if this is the last frame of the file, slurp in audio chunks
-		//if (n == frames-1) continue;
-		*aud_ms = vid_ms;
-	    } else  {
-		if (vbr) mp3rate *= 1000;
-		*aud_ms += (bytes*8.0*1000.0)/(double)mp3rate;
-	    }
-	    /*
-	       fprintf(stderr, "%s track (%d) %8.0lf->%8.0lf len (%ld) rate (%ld)\n",
-	       format==0x55?"MP3":format==0x1?"PCM":"AC3",
-	       j, vid_ms, aud_ms[j], bytes, mp3rate);
-	     */
-	}
-
+    if (tc_format_ms_supported(data->format)) {
+        ret = AV_synch_avi2avi(data, vid_ms, aud_ms, in, out);
     } else { // fallback for not supported audio format
-
-	do {
-	    if ( (bytes = AVI_read_audio_chunk(in, data) ) < 0) {
-		AVI_print_error("AVI audio read frame");
-		return -2;
-	    }
-	} while (AVI_can_read_audio(in));
+        ret = AV_synch_avi2avi_raw(data, in, out);
     }
 
-
-    return 0;
+    return ret;
 }
 
 /*************************************************************************/
