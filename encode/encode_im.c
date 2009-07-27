@@ -63,7 +63,7 @@ struct tcimprivatedata_ {
 
 
 
-static const TCCodecID tc_im_codecs_out[] = {
+static const TCCodecID tc_im_codecs_video_out[] = {
     TC_CODEC_JPEG, TC_CODEC_TIFF, TC_CODEC_PNG,
     TC_CODEC_PPM,  TC_CODEC_PGM,  TC_CODEC_GIF,
     TC_CODEC_ERROR
@@ -75,8 +75,8 @@ static const TCCodecID tc_im_codecs_out[] = {
 static int is_supported(TCCodecID codec)
 {
     int i, found = TC_FALSE;
-    for (i = 0; !found && tc_im_codecs_out[i] != TC_CODEC_ERROR; i++) {
-        if (codec == tc_im_codecs_out[i]) {
+    for (i = 0; !found && tc_im_codecs_video_out[i] != TC_CODEC_ERROR; i++) {
+        if (codec == tc_im_codecs_video_out[i]) {
             found = TC_TRUE;
         }
     }
@@ -84,7 +84,9 @@ static int is_supported(TCCodecID codec)
 }
 
 static int tc_im_configure(TCModuleInstance *self,
-                          const char *options, vob_t *vob)
+                          const char *options,
+                          vob_t *vob,
+                          TCModuleExtraData *xdata[])
 {
     TCCodecID id = TC_CODEC_ERROR;
     TCIMPrivateData *pd = NULL;
@@ -197,9 +199,10 @@ static int tc_im_encode_video(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const TCCodecID tc_im_codecs_in[] = { 
+static const TCCodecID tc_im_codecs_video_in[] = { 
     TC_CODEC_RGB24, TC_CODEC_ERROR
 };
+TC_MODULE_AUDIO_UNSUPPORTED(tc_im);
 TC_MODULE_CODEC_FORMATS(tc_im);
 
 TC_MODULE_INFO(tc_im);
