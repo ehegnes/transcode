@@ -37,11 +37,11 @@
 int tc_module_info_match(int tc_codec, int type,
                          const TCModuleInfo *head, const TCModuleInfo *tail)
 {
-    int found = 0, i = 0, j = 0;
+    int found = TC_FALSE, i = 0, j = 0;
     const TCCodecID *codecs_in = NULL, *codecs_out = NULL;
     /* we need a pair of valid references to go further */
     if (head == NULL || tail == NULL) {
-        return 0;
+        return TC_FALSE;
     }
     /*
      * a multiplexor module can be chained with nothing,
@@ -49,16 +49,16 @@ int tc_module_info_match(int tc_codec, int type,
      * for demulitplexor module.
      */
     if (HAVE_FEATURE(head, MULTIPLEX) || HAVE_FEATURE(tail, DEMULTIPLEX)) {
-        return 0;
+        return TC_FALSE;
     }
     /* format kind compatibility check */
     if (type == TC_VIDEO
      && (!HAVE_FEATURE(head, VIDEO) || !HAVE_FEATURE(tail, VIDEO))) {
-        return 0;
+        return TC_FALSE;
     }
     if (type == TC_AUDIO
      && (!HAVE_FEATURE(head, AUDIO) || !HAVE_FEATURE(tail, AUDIO))) {
-        return 0;
+        return TC_FALSE;
     }
     /* 
      * we look only for the first compatible match, not for the best one.
@@ -72,7 +72,7 @@ int tc_module_info_match(int tc_codec, int type,
         codecs_out = head->codecs_audio_out;
     } else {
         /* unsupported/unknown type (bug?) */
-        return 0;
+        return TC_FALSE;
     }
     /* at last, the real compatibility check */
     for (i = 0; !found && codecs_in[i] != TC_CODEC_ERROR; i++) {
@@ -80,19 +80,19 @@ int tc_module_info_match(int tc_codec, int type,
             /* trivial case: exact match */
             if (tc_codec == codecs_out[j] && codecs_out[j] == codecs_in[i]) {
                 /* triple fit */
-                found = 1;
+                found = TC_TRUE;
             }
             if ((codecs_out[j] == codecs_in[i] || codecs_out[j] == TC_CODEC_ANY)
                && TC_CODEC_ANY == tc_codec) {
-                found = 1;
+                found = TC_TRUE;
             }
             if ((tc_codec == codecs_out[j] || tc_codec == TC_CODEC_ANY)
                && TC_CODEC_ANY == codecs_in[i]) {
-                found = 1;
+                found = TC_TRUE;
             }
             if ((codecs_in[i] == tc_codec || codecs_in[i] == TC_CODEC_ANY)
                && TC_CODEC_ANY == codecs_out[j]) {
-                found = 1;
+                found = TC_TRUE;
             }
         }
     }

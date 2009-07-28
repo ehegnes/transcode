@@ -295,8 +295,8 @@ TCFactory tc_new_module_factory(const char *modpath, int verbose);
  *     factory: factory handle to finalize.
  *
  * Return Value:
- *     0  succesfull.
- *     -1 an error occurred (notified via tc_log*).
+ *     TC_OK    if succesfull.
+ *     TC_ERROR an error occurred (notified via tc_log*).
  *
  * Side effects:
  *     uses tc_log*() internally.
@@ -374,8 +374,8 @@ TCModule tc_new_module(TCFactory factory,
  *      module: module instance to destroy.
  *
  * Return Value:
- *      0  succesfull
- *      -1 an error occurred (notified via tc_log*).
+ *      TC_OK    if succesfull
+ *      TC_ERROR an error occurred (notified via tc_log*).
  *
  * Side effects:
  *      uses tc_log*() internally.
