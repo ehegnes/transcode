@@ -42,7 +42,7 @@
 #include "tcmodule-plugin.h"
 
 
-#define TC_FACTORY_MAX_HANDLERS     (16)
+#define TC_FACTORY_MAX_HANDLERS     (32)
 #define MOD_TYPE_MAX_LEN            (TC_BUF_MIN * 2)
 
 #define tc_module_init(module, features) \
@@ -301,9 +301,8 @@ static const TCFormatID void_formats_out[] = {
 TC_MODULE_INFO(void);
 
 static const TCModuleClass void_class = {
-    .id           = 0,
-
-    .info         = &void_info,
+    TC_MODULE_CLASS_HEAD(void),
+    .id           = 0,  /* has to be zero */
 
     .init         = void_init,
     .fini         = void_fini,
@@ -898,8 +897,8 @@ failed_dlopen:
  *     factory: a module factory
  *          id: id of plugin to unload
  * Return Value:
- *     0      plugin unloaded correctly
- *     != 0   error occcurred (and notified via tc_log*())
+ *     TC_OK      plugin unloaded correctly
+ *     TC_ERROR   error occcurred (and notified via tc_log*())
  * Side effects:
  *     a plugin (.so) is UNloaded from process
  * Preconditions:
@@ -921,15 +920,15 @@ static int tc_unload_module(TCFactory factory, int id)
         TC_LOG_DEBUG(factory, TC_DEBUG, "can't unload a module with active"
                      " ref_count (id=%i, ref_count=%i)",
                      desc->klass.id, desc->ref_count);
-        return 1;
+        return TC_ERROR;
     }
 
     ret = descriptor_fini(desc, NULL);
     if (ret == 0) {
         factory->descriptor_count--;
-        return 0;
+        return TC_OK;
     }
-    return ret;
+    return TC_ERROR;
 }
 
 /*************************************************************************
@@ -964,11 +963,11 @@ int tc_del_module_factory(TCFactory factory)
         /* should'nt happpen */
         tc_log_warn(__FILE__, "left out %i module descriptors",
                               factory->descriptor_count);
-        return -1;
+        return TC_ERROR;
     }
 
     tc_free(factory);
-    return 0;
+    return TC_OK;
 }
 
 TCModule tc_new_module(TCFactory factory,

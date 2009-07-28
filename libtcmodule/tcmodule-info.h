@@ -106,8 +106,8 @@ struct tcmoduleinfo_ {
  *         tail' input is supposed to be given by 'head' output.
  *
  * Return value:
- *     1 if 'head' can feed 'tail' safely,
- *     0 otherwise
+ *     TC_TRUE  if 'head' can feed 'tail' safely,
+ *     TC_FALSE otherwise
  *
  * Side effects:
  *     none
@@ -147,60 +147,6 @@ int tc_module_info_match(int tc_codec, int type,
  *     none
  */
 void tc_module_info_log(const TCModuleInfo *info, int verbose);
-
-/*
- * tc_module_info_copy:
- *     create an exact copy of 'src' in 'dst', allocating new fields.
- *     PLEASE NOTE: this is an 'hard' (real) copy, which makes two
- *     TCModuleInfo identical but indipendent.
- *     For a 'soft' (reference) copy, just memcpy() the two structures.
- *
- * Parameters:
- *     src: TCModuleInfo structure to be copied
- *     dst: pointer to structure that will hold the copy.
- *
- * Return value:
- *     0  successfull
- *     -1 given (at least) a bad TCModuleInfo reference
- *     1  not enough memory to perform a full copy
- *
- * Side effects:
- *     memory in 'dst' is allocated, usinc tc_* helpers, to hold data
- *     provided by 'src'.
- *
- * Preconditions:
- *     'src' and 'dst' must point to valid TCModuleInfo structures.
- *
- * Postconditions:
- *     'dst' is an exact copy of 'src'.
- */
-int tc_module_info_copy(const TCModuleInfo *src, TCModuleInfo *dst);
-
-/*
- * tc_module_info_free:
- *     free all resources (memory) acquired when copying a TCModuleInfo
- *     structure into another one.
- *
- * Parameters:
- *     info: structure copied to be freed
- *
- * Return value:
- *     none
- *
- * Side effects:
- *     none
- *
- * Preconditions:
- *     'info' must be obtained as result of 'tc_module_info_copy' function,
- *     as 'dst' parameter. Applying this function to a structure obtained
- *     in a different way will cause an undefined behaviour, most likely
- *     a memory corruption or a crash
- *
- * Postconditions:
- *     all resources (memory) acquired by 'info' are released.
- *
- */
-void tc_module_info_free(TCModuleInfo *info);
 
 /*************************************************************************/
 
