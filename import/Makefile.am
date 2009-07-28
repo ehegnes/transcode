@@ -2,7 +2,7 @@
 
 AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
-	-DMOD_PATH=\"$(MOD_PATH)\" \
+	-DMODULE_PATH=\"$(MODULE_PATH)\" \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/tccore
@@ -73,7 +73,7 @@ if HAVE_MJPEGTOOLS
 IMPORT_YUV4MPEG = import_yuv4mpeg.la
 endif
 
-pkgdir = $(MOD_PATH)
+pkgdir = $(MODULE_PATH)
 
 if ENABLE_NUV
 NUV = nuv

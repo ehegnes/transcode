@@ -2,11 +2,11 @@
 
 AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
-	-DMOD_PATH=\"$(MOD_PATH)\" \
 	-I$(top_srcdir) \
-	-I$(top_srcdir)/src
+	-I$(top_srcdir)/src \
+	-I$(top_srcdir)/tccore
 
-pkgdir = $(MOD_PATH)
+pkgdir = $(MODULE_PATH)
 
 if HAVE_LIBDV
 ENCODE_DV = encode_dv.la

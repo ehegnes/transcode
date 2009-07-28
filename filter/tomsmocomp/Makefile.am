@@ -7,7 +7,7 @@ AM_CPPFLAGS = \
 
 AM_CFLAGS = -fno-omit-frame-pointer
 
-pkgdir = $(MOD_PATH)
+pkgdir = $(MODULE_PATH)
 
 pkg_LTLIBRARIES = filter_tomsmocomp.la
 

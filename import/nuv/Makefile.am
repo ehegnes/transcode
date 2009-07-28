@@ -2,12 +2,11 @@
 
 AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
-	-DMOD_PATH=\"$(MOD_PATH)\" \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/import \
 	-I$(top_srcdir)/src
 
-pkgdir = $(MOD_PATH)
+pkgdir = $(MODULE_PATH)
 
 if ENABLE_NUV
 MOD = import_nuv.la

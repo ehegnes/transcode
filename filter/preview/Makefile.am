@@ -2,7 +2,7 @@
 
 AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
-	-DMOD_PATH=\"$(MOD_PATH)\" \
+	-DMODULE_PATH=\"$(MODULE_PATH)\" \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
 	$(DLDARWIN_CFLAGS) \
@@ -22,7 +22,7 @@ LIBS = \
 	$(LIBS_XV) \
 	$(LIBS_SDL)
 
-pkgdir = $(MOD_PATH)
+pkgdir = $(MODULE_PATH)
 
 if HAVE_LIBXV
 MOD_PV = filter_pv.la

@@ -105,7 +105,7 @@ static void usage(int status)
 int f_init_func(char *p_option,char *p_mod)
 {
 	const char *p_error;
-	char *p_modpath=MOD_PATH;
+	char *p_modpath=MODULE_PATH;
 	char s_module[MAX_BUF];
 
 	if(!strcasecmp(p_option,"open-external"))

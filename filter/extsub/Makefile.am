@@ -5,7 +5,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src
 
-pkgdir = $(MOD_PATH)
+pkgdir = $(MODULE_PATH)
 
 pkg_LTLIBRARIES = filter_extsub.la filter_extsub2.la
 

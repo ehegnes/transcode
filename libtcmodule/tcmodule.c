@@ -1054,7 +1054,7 @@ int tc_del_module(TCFactory factory, TCModule module)
 
 const char *tc_module_default_path(void)
 {
-    return MOD_PATH;
+    return MODULE_PATH;
 }
 
 /*************************************************************************

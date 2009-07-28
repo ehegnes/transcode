@@ -2,7 +2,7 @@
 
 AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
-	-DMOD_PATH=\"$(MOD_PATH)\" \
+	-DMODULE_PATH=\"$(MODULE_PATH)\" \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/tccore \
@@ -10,7 +10,7 @@ AM_CPPFLAGS = \
 
 AM_LDFLAGS = -export-dynamic
 
-pkgdir = $(MOD_PATH)
+pkgdir = $(MODULE_PATH)
 
 bin_PROGRAMS = tcpvmexportd
 pkg_LTLIBRARIES	= pvm_functions.la
