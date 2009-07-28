@@ -296,6 +296,8 @@ TCModule tc_new_module_from_names(TCFactory factory,
     return mod;
 }
 
+#ifdef SOMEDAY_THOSE_WILL_BE_USEFUL
+
 TCModule tc_new_module_for_format(TCRegistry registry,
                                   const char *modclass,
                                   const char *format,
@@ -344,7 +346,7 @@ TCModule tc_new_module_most_fit(TCRegistry registry,
     return mod;
 }
 
-
+#endif /* SOMEDAY_THOSE_WILL_BE_USEFUL */
 
 /*************************************************************************/
 
