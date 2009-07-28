@@ -38,9 +38,9 @@
 #include "tcmodule-data.h" /* pulls framebuffer.h and transcode.h */
 
 /*
- * this structure will hold all data needed to use a module by client code:
- * module operations and capabilities (given by module class, so shared
- * between all modules) and private data.
+ * this structure will hold all the data needed by client code to use a module:
+ * the module operations and the capabilities (given by module class, so shared
+ * between all the modules) and the private data.
  */
 typedef struct tcmodule_ *TCModule;
 struct tcmodule_ {
@@ -48,11 +48,11 @@ struct tcmodule_ {
     /* pointer to class data shared between all instances */
 
     TCModuleInstance 	instance;
-    /* each module has it's private instance data, it's embedded here */
+    /* private instance data for each module, embedded here */
 };
 
 /*************************************************************************
- * interface helpers, using shortened notation                           *
+ * interface helpers, using static inline wrappers                       *
  *************************************************************************/
 
 #ifdef HAVE_GCC_ATTRIBUTES
@@ -268,9 +268,6 @@ typedef struct tcfactory_ *TCFactory;
  *     succesfully, NULL otherwise. In latter case, a informative
  *     message is sent through tc_log*().
  *
- * Side effects:
- *     uses tc_log*() internally.
- *
  * Preconditions:
  *     modpath NOT NULL; giving a NULL parameter will cause a
  *     graceful failure.
@@ -298,12 +295,9 @@ TCFactory tc_new_module_factory(const char *modpath, int verbose);
  *     TC_OK    if succesfull.
  *     TC_ERROR an error occurred (notified via tc_log*).
  *
- * Side effects:
- *     uses tc_log*() internally.
- *
  * Preconditions:
- *     given factory was already initialized. Trying to finalize a
- *     non-initialized factory causes undefined behaviour.
+ *     The given factory was already initialized. Trying to finalize a
+ *     non-initialized factory will cause an undefined behaviour.
  *
  * Postconditions:
  *     all resources acquired by factory are released; no modules are
@@ -315,7 +309,7 @@ int tc_del_module_factory(TCFactory factory);
  * tc_new_module:
  *      using given factory, create a new module instance of the given type,
  *      belonging to given class, and initialize it with reasonnable
- *      defaults values.
+ *      default values.
  *      This function may load a plugin implicitely to fullfill the request,
  *      since plugins are loaded on demand of client code.
  *      The returned instance pointer must be released using
@@ -338,11 +332,10 @@ int tc_del_module_factory(TCFactory factory);
  *      valid handle to a new module instance otherwise.
  *
  * Side effects:
- *      uses tc_log*() internally.
  *      a plugin can be loaded (except for errors!) implicitely.
  *
  * Preconditions:
- *      given factory was already intialized.
+ *      the given factory was already intialized.
  *
  * Postconditions:
  *       if succeeded, module ready to use by client code.
@@ -378,7 +371,6 @@ TCModule tc_new_module(TCFactory factory,
  *      TC_ERROR an error occurred (notified via tc_log*).
  *
  * Side effects:
- *      uses tc_log*() internally.
  *      a plugin could be unloaded implicitely.
  *
  * Preconditions:
@@ -409,16 +401,10 @@ int tc_del_module(TCFactory factory, TCModule module);
  * Return Value:
  *      the number of plugins loaded at the moment.
  *
- * Side effects:
- *      None
- *
  * Preconditions:
  *      Given factory was already initialized.
  *      To apply this function to an unitialized factory will cause
  *      an undefine dbehaviour
- *
- * Postconditions:
- *      None
  */
 int tc_plugin_count(const TCFactory factory);
 
@@ -433,16 +419,10 @@ int tc_plugin_count(const TCFactory factory);
  * Return Value:
  *      the number of module created and not yet destroyed at the moment.
  *
- * Side effects:
- *      None
- *
  * Preconditions:
  *      Given factory was already initialized.
  *      To apply this function to an unitialized factory will cause
- *      an undefine dbehaviour
- *
- * Postconditions:
- *      None
+ *      an undefined behaviour
  */
 int tc_instance_count(const TCFactory factory);
 
@@ -468,12 +448,21 @@ int tc_instance_count(const TCFactory factory);
  *
  * Preconditions:
  *      both module handles must refer to valid modules.
- *
- * Postconditions:
- *      None
  */
 int tc_compare_modules(const TCModule amod, const TCModule bmod);
 
+/*
+ * tc_module_default_path:
+ *       provides the libtcmodule default, compiled-in
+ *       search path for the modules.
+ *
+ * Parameters:
+ *       None.
+ *
+ * Return Value:
+ *       The compiled-in default module search path as constant string.
+ *       There is no need to free it.
+ */
 const char *tc_module_default_path(void);
 
 #endif /* TCMODULE_CORE_H */
