@@ -11,7 +11,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/src
 	-C99
 
-pkgdir = $(MOD_PATH)
+pkgdir = $(MODULE_PATH)
 
 pkg_LTLIBRARIES = filter_stabilize.la filter_transform.la
 

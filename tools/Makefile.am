@@ -2,9 +2,7 @@
 
 AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
-	-DMOD_PATH=\"$(MOD_PATH)\" \
-	-DPROF_PATH=\"$(PROF_PATH)\" \
-	-DREGISTRY_PATH=\"$(REGISTRY_PATH)\" \
+	-DMODULE_PATH=\"$(MODULE_PATH)\" \
 	-DTCEXPORT_PROFILE=1 \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src

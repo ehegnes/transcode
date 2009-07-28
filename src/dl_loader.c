@@ -33,7 +33,7 @@
 
 #include "dl_loader.h"
 
-const char *mod_path = MOD_PATH;
+const char *mod_path = MODULE_PATH;
 
 char module[TC_BUF_MAX];
 
@@ -129,7 +129,7 @@ void *load_module(const char *mod_name, int mode)
     void *handle;
 
     if (mode & TC_EXPORT) {
-        tc_snprintf(module, sizeof(module), "%s/export_%s.so", ((mod_path==NULL)? TC_DEFAULT_MOD_PATH:mod_path), mod_name);
+        tc_snprintf(module, sizeof(module), "%s/export_%s.so", ((mod_path==NULL)? MODULE_PATH:mod_path), mod_name);
 
         tc_debug(TC_DEBUG_MODULES,
                  "loading %s export module %s",
@@ -166,7 +166,7 @@ void *load_module(const char *mod_name, int mode)
 
 
     if (mode & TC_IMPORT) {
-        tc_snprintf(module, sizeof(module), "%s/import_%s.so", ((mod_path==NULL)? TC_DEFAULT_MOD_PATH:mod_path), mod_name);
+        tc_snprintf(module, sizeof(module), "%s/import_%s.so", ((mod_path==NULL)? MODULE_PATH:mod_path), mod_name);
 
         tc_debug(TC_DEBUG_MODULES,
                  "loading %s import module %s",

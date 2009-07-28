@@ -2,7 +2,7 @@
 
 AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
-	-DMOD_PATH=\"$(MOD_PATH)\" \
+	-DMODULE_PATH=\"$(MODULE_PATH)\" \
 	-DREGISTRY_PATH=\"$(REGISTRY_PATH)\" \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \

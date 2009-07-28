@@ -235,7 +235,7 @@ int tc_export_profile_fini(void)
 
 const char *tc_export_profile_default_path(void)
 {
-    return PROF_PATH;
+    return PROFILE_PATH;
 }
 
 int tc_export_profile_count(void)
@@ -385,7 +385,7 @@ const TCExportInfo *tc_export_profile_load_single(const char *name)
 
     int found = 0, ret = 0;
     char path_buf[PATH_MAX+1];
-    const char *dirs[] = { prof_data.home_path, PROF_PATH, NULL };
+    const char *dirs[] = { prof_data.home_path, PROFILE_PATH, NULL };
     char prof_name[TC_BUF_MIN];
 
     cleanup_strings(&prof_data.info);

@@ -2,8 +2,7 @@
 
 AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
-	-DMOD_PATH=\"$(MOD_PATH)\" \
-	-DPROF_PATH=\"$(PROF_PATH)\" \
+	-DPROFILE_PATH=\"$(PROFILE_PATH)\" \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/libtc \

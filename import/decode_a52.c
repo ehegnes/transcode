@@ -37,7 +37,7 @@
 # endif
 #endif
 
-static char *mod_path=MOD_PATH;
+static char *mod_path=MODULE_PATH;
 
 #define MODULE "a52_decore.so"
 

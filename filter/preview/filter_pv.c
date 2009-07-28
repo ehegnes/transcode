@@ -822,7 +822,7 @@ int preview_grab_jpeg(void)
     if(!cache_enabled) return 1;
 
     if (jpeg_vhandle == NULL) {
-	tc_snprintf(module, sizeof(module), "%s/export_%s.so", MOD_PATH, "jpg");
+	tc_snprintf(module, sizeof(module), "%s/export_%s.so", MODULE_PATH, "jpg");
 	jpeg_vhandle = dlopen(module, RTLD_GLOBAL| RTLD_LAZY);
 	if (!jpeg_vhandle) {
 	    tc_log_error(MOD_NAME, "%s", dlerror());

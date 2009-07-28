@@ -8,7 +8,7 @@ AM_CPPFLAGS = \
 	$(FREETYPE2_CFLAGS) \
 	$(ICONV_CFLAGS)
 
-pkgdir = $(MOD_PATH)
+pkgdir = $(MODULE_PATH)
 
 pkg_LTLIBRARIES = filter_subtitler.la
 

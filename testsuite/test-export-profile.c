@@ -65,8 +65,6 @@ static vob_t vob = {
     .a_bits = BITS,
     .a_vbr = AVBR,
 
-    .mod_path = MOD_PATH,
-
     .video_in_file = "/dev/zero",
     .audio_in_file = "/dev/zero",
     .video_out_file = "/dev/null",

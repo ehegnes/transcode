@@ -30,8 +30,6 @@
 #ifndef TC_DEFAULTS_H
 #define TC_DEFAULTS_H
 
-#define TC_DEFAULT_MOD_PATH "/usr/local/lib/transcode"
-
 #define TC_DEFAULT_IN_FILE  "/dev/zero"
 #define TC_DEFAULT_OUT_FILE "/dev/null"
 

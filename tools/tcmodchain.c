@@ -461,7 +461,7 @@ int main(int argc, char *argv[])
     int ch, ret, status, i = 0;
 
     CmdLetData cdata = {
-        .modpath = MOD_PATH,
+        .modpath = tc_module_default_path(),
         .factory = NULL,
         .modsnum = 0,
         .type    = 0,

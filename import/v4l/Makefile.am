@@ -6,7 +6,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/import
 
-pkgdir = $(MOD_PATH)
+pkgdir = $(MODULE_PATH)
 
 if HAVE_V4L
 MOD = import_v4l.la import_v4l2.la

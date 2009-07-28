@@ -57,10 +57,10 @@ make
 
 %install
 #------------- ab hier bald unnuetz -------------
-perl -pi -e "s|MOD_PATH = /|MOD_PATH = $RPM_BUILD_ROOT|" */Makefile
+perl -pi -e "s|MODULE_PATH = /|MODULE_PATH = $RPM_BUILD_ROOT|" */Makefile
 #------------- bis hier bald unnuetz ------------
 make install prefix=$RPM_BUILD_ROOT%{_prefix} \
-    MOD_PATH=$RPM_BUILD_ROOT%{_libdir}/%{name} \
+    MODULE_PATH=$RPM_BUILD_ROOT%{_libdir}/%{name} \
     pkgdir=$RPM_BUILD_ROOT%{_libdir}/%{name} \
     mandir=$RPM_BUILD_ROOT%{_mandir} \
     docsdir=$RPM_BUILD_ROOT%{_defaultdocdir}/%{name}

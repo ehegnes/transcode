@@ -10,7 +10,7 @@ PROFILES = \
 	xvcd-pal.cfg \
 	xvcd-ntsc.cfg
 
-pkgdir = $(PROF_PATH)
+pkgdir = $(PROFILE_PATH)
 pkg_DATA = $(PROFILES)
 
 

@@ -6,7 +6,7 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/src \
 	-I$(top_srcdir)/import
 
-pkgdir = $(MOD_PATH)
+pkgdir = $(MODULE_PATH)
 
 pkg_LTLIBRARIES = import_framegen.la
 

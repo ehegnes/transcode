@@ -989,7 +989,7 @@ static vob_t *new_vob(void)
     vob->decolor             = 0;
     vob->im_a_codec          = TC_CODEC_PCM;
     vob->im_v_codec          = TC_CODEC_YUV420P;
-    vob->mod_path            = MOD_PATH;
+    vob->mod_path            = tc_module_default_path();
     vob->audiologfile        = NULL;
     vob->divxlogfile         = NULL;
     vob->ps_unit             = 0;
