@@ -147,6 +147,10 @@ TCRegistry tc_new_module_registry(TCFactory factory,
     registry->verbose  = verbose;
     registry->factory  = factory; /* soft reference */
 
+    tc_log_debug(TC_DEBUG_MODULES, __FILE__,
+                 "verbose=%i registry path='%s'",
+                 registry->verbose, registry->reg_path);
+
     for (i = 0; i < REGISTRY_MAX_ENTRIES; i++) {
         fmt_mods_init(&(registry->fmt_mods[i]));
     }
