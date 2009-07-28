@@ -56,9 +56,9 @@ static TCRunStatus tc_rc_status(TCRunControl *RC)
 static void tc_rc_progress(TCRunControl *RC,
                            int encoding, int frame, int first, int last)
 {
-    fprintf(stderr, "%s frame [%d/%d]\r",
+    fprintf(stderr, "%s frame %d\r",
             encoding ? "encoding" : "skipping",
-            frame, last+1);
+            frame);
 }
 
 static TCRunControl RC = {
