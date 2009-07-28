@@ -181,9 +181,11 @@ static void setup_codecs(TCJob *job, char **args)
     for (i = 0; args[i]; i++) {
         if (!strncmp(args[i], "A=", 2)) {
             job->ex_a_codec = tc_codec_from_string(args[i] + 2);
+            job->export_attributes |= TC_EXPORT_ATTRIBUTE_ACODEC;
         }
         if (!strncmp(args[i], "V=", 2)) {
             job->ex_v_codec = tc_codec_from_string(args[i] + 2);
+            job->export_attributes |= TC_EXPORT_ATTRIBUTE_VCODEC;
         }
     }
 }
@@ -233,7 +235,7 @@ static int parse_options(int argc, char** argv, TCEncConf *conf)
     libtc_init(&argc, &argv);
 
     job->mod_path = tc_module_default_path();
-    job->reg_path = tc_export_profile_default_path();
+    job->reg_path = tc_module_registry_default_path();
 
     while (1) {
         ch = getopt(argc, argv, "b:c:Dd:hi:m:N:o:p:R:y:w:v?");
@@ -463,7 +465,7 @@ static int setup_modnames(TCEncConf *conf, TCJob *job, TCRegistry registry)
     }
     if (!conf->audio_mod) {
         tc_log_error(EXE, "unable to find the audio encoder module"
-                          "and none specified");
+                          " and none specified");
         return TC_ERROR;
     }
 
@@ -478,7 +480,7 @@ static int setup_modnames(TCEncConf *conf, TCJob *job, TCRegistry registry)
     }
     if (!conf->mplex_mod) {
         tc_log_error(EXE, "unable to find the multiplexor module"
-                          "and none specified");
+                          " and none specified");
         return TC_ERROR;
     }
 
@@ -612,7 +614,8 @@ int main(int argc, char *argv[])
 
     tc_export_config(verbose, 1, 0);
 
-    setup_modnames(&config, job, registry);
+    ret = setup_modnames(&config, job, registry);
+    EXIT_IF(ret != 0, "can't setup export modules", STATUS_MODULE_ERROR);
 
     print_summary(&config, verbose);
 
