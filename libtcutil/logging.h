@@ -34,7 +34,7 @@ extern "C" {
 #endif
 
 /*
- * Note: User messages VS debug messages.
+ * Rationale: User messages VS debug messages.
  * WRITEME
  */
 
