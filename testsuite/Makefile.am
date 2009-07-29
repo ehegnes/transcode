@@ -26,7 +26,6 @@ noinst_PROGRAMS = \
 	test-framecode \
 	test-framealloc \
 	test-imgconvert \
-	test-iodir \
 	test-mangle-cmdline \
 	$(PVM3_TEST) \
 	test-ratiocodes \
@@ -63,9 +62,6 @@ test_imgconvert_LDADD = $(ACLIB_LIBS)
 
 test_cfg_filelist_SOURCES = test-cfg-filelist.c
 test_cfg_filelist_LDADD = $(LIBTC_LIBS) $(LIBTCUTIL_LIBS)
-
-test_iodir_SOURCES = test-iodir.c
-test_iodir_LDADD = $(LIBTC_LIBS) $(LIBTCUTIL_LIBS)
 
 test_ratiocodes_SOURCES = test-ratiocodes.c
 test_ratiocodes_LDADD = $(LIBTC_LIBS) $(LIBTCUTIL_LIBS)
@@ -120,7 +116,7 @@ test-tclog$(EXEEXT): $(test_tclog_OBJECTS) $(test_tclog_DEPENDENCIES)
 
 # Low-level tests for specific routines or functionality
 LOWTESTS = test-acmemcpy test-bufalloc test-average test-framealloc \
-           test-framecode test-imgconvert test-iodir test-ratiocodes \
+           test-framecode test-imgconvert test-ratiocodes \
            test-resize-values test-tcmoduleinfo test-tcstrdup
 test-low: $(LOWTESTS)
 	./test-acmemcpy
@@ -129,7 +125,6 @@ test-low: $(LOWTESTS)
 	./test-framealloc
 	./test-framecode
 	./test-imgconvert -C -v
-	./test-iodir
 	./test-mangle-cmdline
 	./test-ratiocodes
 	./test-resize-values
