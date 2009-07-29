@@ -84,7 +84,18 @@ struct tcfactory_ {
 };
 
 /*************************************************************************
- * WRITEME
+ * API 3.x (transcode 1.2.0)                                             *
+ *                                                                       *
+ * Now the default class is turned upside down.                          *
+ * The module are now supposed to `inherit' from this default class.     *
+ * This means that the modules *MUST* override the mandatory, checked    *
+ * method below, which will always fail complaining loudly when invoked, *
+ * and should/could override only the methods that actually implement.   *
+ *                                                                       *
+ * This change was made because with the API3 additions the number of    *
+ * methods grewsignificantly, and it is pointless to force a bunch of    *
+ * modules to provide empty stubs for required, while optional, methods. *
+ * Moreover, the module code is now simpler and leaner.                  *
  *************************************************************************/
 
 #define METHOD_CHECK(self, method_name) do { \
@@ -683,7 +694,7 @@ static int tc_module_class_copy(const TCModuleClass *klass,
  *************************************************************************/
 
 struct tcmodver {
-    int reserved;
+    int reserved; /* future expansion */
     int major;
     int minor;
     int micro;
