@@ -14,7 +14,9 @@ transcode-1.2.0
 [!] Fix crash when using transformations (-Z, -j).
 [!] Fix compilation error with x264 version 66.
 [*] Improved internal buffering system.
+[*] Added basic A/V synchronization module.
 [!] Fix misuse of configuration files which leads to crash.
+[*] Added the capability to handle fallback directories for configuration files.
 [*] Improved debug messages handling and internal debug API.
 [-] The import_imlist module is deprecated. Use --multi_input -x im instead.
 [*] Big YAIT update by Allan Snider.
