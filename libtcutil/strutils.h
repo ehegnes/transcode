@@ -34,7 +34,7 @@ extern "C" {
 #endif
 
 /*
- * Safer string functions from OpenBSD, because these are not in all
+ * Safer string functions from OpenBSD, because these are not in every
  * libc implementations.
  */
 

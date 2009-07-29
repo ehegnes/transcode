@@ -32,6 +32,7 @@ extern "C" {
 
 /*************************************************************************/
 
+/* this represent just an opaque piece of memory */
 typedef struct tcmemchunk_ TCMemChunk;
 struct tcmemchunk_ {
     void  *data;
