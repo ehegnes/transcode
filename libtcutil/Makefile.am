@@ -19,7 +19,6 @@ endif
 libtcutil_la_SOURCES = \
 	cfgfile.c \
 	tcglob.c \
-	iodir.c \
 	ioutils.c \
 	tclist.c \
 	logging.c \
@@ -37,7 +36,6 @@ EXTRA_DIST = \
 	common.h \
 	getopt.h \
 	tcglob.h \
-	iodir.h \
 	ioutils.h \
 	tclist.h \
 	logging.h \
