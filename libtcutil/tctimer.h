@@ -27,14 +27,6 @@
 #include <stdint.h>
 
 
-
-typedef union tctimestamp_ TCTimestamp;
-union tctimestamp_ {
-    uint64_t u;
-    double   d;
-};
-
-
 /*
  * Quick Summary:
  *
