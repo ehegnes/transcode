@@ -24,7 +24,6 @@
 
 #include "common.h"
 #include "cfgfile.h"
-#include "iodir.h"
 #include "ioutils.h"
 #include "logging.h"
 #include "memutils.h"

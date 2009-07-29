@@ -24,7 +24,6 @@
 #include "src/transcode.h"
 #include "tccore/tcinfo.h"
 #include "libtc/libtc.h"
-#include "libtcutil/iodir.h"
 #include "libtcutil/xio.h"
 #include "ioaux.h"
 #include "tc.h"
@@ -72,8 +71,7 @@ static void tccat_thread(info_t *ipipe)
     int found = 0, itype = TC_MAGIC_UNKNOWN, type = TC_MAGIC_UNKNOWN;
     int verbose_flag = ipipe->verbose;
     int vob_offset = ipipe->vob_offset;
-    info_t ipipe_avi;
-    TCDirList tcdir;
+    int error = TC_FALSE;
 
     switch(ipipe->magic) {
       case TC_MAGIC_DVD_PAL: /* fallthrough */
@@ -101,151 +99,18 @@ static void tccat_thread(info_t *ipipe)
             if (off != (vob_offset * (off_t)DVD_VIDEO_LB_LEN)) {
                 tc_log_warn(__FILE__, "unable to seek to block %d",
                             vob_offset); /* drop this chunk/file */
-                goto vob_skip2;
+                error = TC_TRUE;
             }
         }
-        tc_preadwrite(ipipe->fd_in, ipipe->fd_out);
-vob_skip2:
+        if (!error) {
+            tc_preadwrite(ipipe->fd_in, ipipe->fd_out);
+        }
         break;
 
       case TC_MAGIC_DIR:
-        /* PASS 1: check file type - file order not important */
-        if (tc_dirlist_open(&tcdir, ipipe->name, 0) < 0) {
-            tc_log_error(__FILE__, "unable to open directory \"%s\"",
-                         ipipe->name);
-            exit(1);
-        } else if (verbose_flag & TC_DEBUG) {
-            tc_log_msg(__FILE__, "scanning directory \"%s\"", ipipe->name);
-        }
-
-        while ((name = tc_dirlist_scan(&tcdir)) != NULL) {
-            if ((ipipe->fd_in = open(name, O_RDONLY)) < 0) {
-                tc_log_perror(__FILE__, "file open");
-                exit(1);
-            }
-            /*
-             * first valid magic must be the same for all
-             * files to follow
-             */
-            itype = fileinfo(ipipe->fd_in, 0);
-            close(ipipe->fd_in);
-
-            if (itype == TC_MAGIC_UNKNOWN || itype == TC_MAGIC_PIPE
-             || itype == TC_MAGIC_ERROR) {
-                tc_log_error(__FILE__, "this version of transcode"
-                                       " supports only");
-                tc_log_error(__FILE__, "directories containing files of"
-                                       " identical file type.");
-                tc_log_error(__FILE__, "Please clean up directory %s and"
-                                       " restart.", ipipe->name);
-
-                tc_log_error(__FILE__, "file %s with filetype %s is invalid"
-                                       " for directory mode.",
-                             name, filetype(itype));
-
-                exit(1);
-            } /* bad magic */
-
-            switch(itype) { /* supported file types, global fallthrough */
-              case TC_MAGIC_VOB:
-              case TC_MAGIC_DV_PAL:
-              case TC_MAGIC_DV_NTSC:
-              case TC_MAGIC_AC3:
-              case TC_MAGIC_YUV4MPEG:
-              case TC_MAGIC_AVI:
-              case TC_MAGIC_MPEG:
-                if (!found) { /* very first time only */
-                    type = itype;
-                }
-                if (itype!=type) {
-                    tc_log_error(__FILE__,"multiple filetypes not valid for"
-                                          " directory mode.");
-                    exit(1);
-                }
-                found = 1;
-                break;
-              default:
-                tc_log_error(__FILE__, "invalid filetype %s for directory"
-                                       " mode.", filetype(type));
-                exit(1);
-            } /* check itype */
-        } /* process files */
-        tc_dirlist_close(&tcdir);
-
-        if (!found) {
-            tc_log_error(__FILE__, "no valid files found in %s", name);
-            exit(1);
-        } else if (verbose_flag & TC_DEBUG) {
-            tc_log_msg(__FILE__, "%s", filetype(type));
-        }
-
-        /* PASS 2: dump files in correct order */
-        if (tc_dirlist_open(&tcdir, ipipe->name, 1) < 0) {
-            tc_log_error(__FILE__, "unable to sort directory entries\"%s\"",
-                         name);
-            exit(1);
-        }
-
-        while ((name = tc_dirlist_scan(&tcdir)) != NULL) {
-            if ((ipipe->fd_in = open(name, O_RDONLY)) < 0) {
-                tc_log_perror(__FILE__, "file open");
-                exit(1);
-            } else if(verbose_flag & TC_STATS) {
-                tc_log_msg(__FILE__, "processing %s", name);
-            }
-
-            /* type determined in pass 1 */
-            switch (type) {
-              case TC_MAGIC_VOB:
-                if (vob_offset > 0) {
-	                /* get filesize in units of packs (2kB) */
-                    off_t off;
-                    off_t size = lseek(ipipe->fd_in, 0, SEEK_END);
-                    lseek(ipipe->fd_in, 0, SEEK_SET);
-
-                    if (size > vob_offset * (off_t)DVD_VIDEO_LB_LEN) {
-                        /* offset within current file */
-                        off = lseek(ipipe->fd_in,
-                                    vob_offset * (off_t)DVD_VIDEO_LB_LEN,
-                                    SEEK_SET);
-                        vob_offset = 0;
-                    } else {
-                        vob_offset -= size/DVD_VIDEO_LB_LEN;
-                        goto vob_skip;
-                    }
-                }
-                tc_preadwrite(ipipe->fd_in, ipipe->fd_out);
-vob_skip:
-                break;
-              /*
-               * all following (fallthrough stream typeas are all handlead in
-               * the same way since they can be viewd as concatenation of
-               * frames (no header or other things
-               */
-              case TC_MAGIC_DV_PAL: /* fallthrough */
-              case TC_MAGIC_DV_NTSC: /* fallthrough */
-              case TC_MAGIC_AC3: /* fallthrough */
-              case TC_MAGIC_YUV4MPEG: /* fallthrough */
-              case TC_MAGIC_MPEG: /* fallthrough */
-                tc_preadwrite(ipipe->fd_in, ipipe->fd_out);
-                break;
-
-              case TC_MAGIC_AVI:
-                /* extract and concatenate streams. avilib must do it. */
-                ac_memcpy(&ipipe_avi, ipipe, sizeof(info_t));
-	            ipipe_avi.name = (char *)name; /* real AVI file name */
-                ipipe_avi.magic = TC_MAGIC_AVI;
-                extract_avi(&ipipe_avi);
-                break;
-
-              default:
-                tc_log_error(__FILE__, "invalid filetype %s for directory"
-                                       " mode.", filetype(type));
-                exit(1);
-            }
-            close(ipipe->fd_in);
-        } /* process files */
-        tc_dirlist_close(&tcdir);
+        tc_log_error(__FILE__, "directory mode no longer support");
+        tc_log_error(__FILE__, "please use the multi input mode");
+        exit(1);
         break;
     }
 }

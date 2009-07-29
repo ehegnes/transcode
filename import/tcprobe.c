@@ -27,7 +27,6 @@
 #include "tccore/tcinfo.h"
 #include "libtc/libtc.h"
 #include "libtc/ratiocodes.h"
-#include "libtcutil/iodir.h"
 #include "libtcutil/xio.h"
 
 #include "ioaux.h"
