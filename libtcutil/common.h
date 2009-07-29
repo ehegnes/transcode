@@ -34,21 +34,26 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+/* 
+ * this header is ONLY FOR INTERNAL USAGE.
+ * DO NOT INCLUDE IT DIRECTLY!
+ */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 enum {
-    TC_FALSE,
-    TC_TRUE
+    TC_NULL_MATCH = -1, /* kind of boolean... */
+    TC_FALSE      =  0,
+    TC_TRUE       =  1
 };
 
-#define TC_NULL_MATCH           -1
-
-#define TC_BUF_MAX            1024
-#define TC_BUF_LINE            256
-#define TC_BUF_MIN             128
+enum {
+    TC_BUF_MAX  = 1024,
+    TC_BUF_LINE =  256,
+    TC_BUF_MIN  =  128
+};
 
 #define TC_MAX(a, b)		(((a) > (b)) ?(a) :(b))
 #define TC_MIN(a, b)		(((a) < (b)) ?(a) :(b))
