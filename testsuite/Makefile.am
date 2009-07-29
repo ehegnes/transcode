@@ -2,7 +2,8 @@
 
 EXTRA_DIST = \
 	newtest.pl test.pl \
-	test-tcmodchain.sh test-cfg-filelist.sh
+	test-tcmodchain.sh test-cfg-filelist.sh \
+	modules.cfg
 
 AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
@@ -37,6 +38,7 @@ noinst_PROGRAMS = \
 	test-tclist \
 	test-tcmodule \
 	test-tcmoduleinfo \
+	test-tcmoduleregistry \
 	test-tcstrdup
 
 test_acmemcpy_SOURCES = test-acmemcpy.c
@@ -84,6 +86,9 @@ test_tcmodule_LDFLAGS = -export-dynamic
 
 test_tcmoduleinfo_SOURCES = test-tcmoduleinfo.c
 test_tcmoduleinfo_LDADD = $(LIBTCMODULE_LIBS) $(LIBTC_LIBS) $(LIBTCUTIL_LIBS) 
+
+test_tcmoduleregistry_SOURCES = test-tcmoduleregistry.c
+test_tcmoduleregistry_LDADD = $(LIBTCMODULE_LIBS) $(LIBTC_LIBS) $(LIBTCUTIL_LIBS) 
 
 test_tcstrdup_SOURCES = test-tcstrdup.c
 test_tcstrdup_LDADD = $(LIBTC_LIBS) $(LIBTCUTIL_LIBS)
