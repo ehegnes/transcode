@@ -6,10 +6,6 @@ if USE_DLDARWIN
 LIBDLDARWIN = libdldarwin
 endif
 
-if HAVE_PVM3
-PVM3 = pvm3
-endif
-
 SUBDIRS = \
 	aclib \
 	avilib \
@@ -26,7 +22,6 @@ SUBDIRS = \
 	filter \
 	import \
 	multiplex \
-	$(PVM3) \
 	src \
 	tccore \
 	testsuite \

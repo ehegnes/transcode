@@ -134,14 +134,6 @@ S: +
 I: Writes an image sequence of PGM or PPM files. PPM is an old format and there are several tools around to manipulate such files.
 P: audio - RAW (pass-through) PCM AC3, video - RGB YUV
 
-M: export_pvm.c
-D: (video) * | (audio) *
-C: libpvm3
-R: pvm
-S: +
-I: Meta module. It allows transcode to be used in a PVM cluster. See docs/export_pvm.txt
-P: audio - RAW (pass-through) PCM AC3, video - RAW (pass-through) RGB YUV DV YUV422 YUY2
-
 M: export_raw.c
 D: (video) * | (audio) MPEG/AC3/PCM
 C: none
