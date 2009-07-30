@@ -14,7 +14,6 @@ man_MANS = \
 	tcmodinfo.1 \
 	tcmodchain.1 \
 	tcxmlcheck.1 \
-	tcpvmexportd.1 \
 	avisplit.1 \
 	avimerge.1 \
 	avifix.1 \

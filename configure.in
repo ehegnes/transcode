@@ -1004,45 +1004,6 @@ fi
 TC_PKG_HAVE(libdvdread, LIBDVDREAD)
 
 dnl
-dnl PVM3
-dnl
-PVM3_EXTRA_LIBS="$PVM3_EXTRA_LIBS -lgpvm3"
-TC_PKG_CHECK(pvm3, no, PVM3, no, pvm3.h, pvm3, pvm_initsend,
-  pvm3, [])
-if test x"$have_pvm3" = x"yes" ; then
-  save_CPPFLAGS="$CPPFLAGS"
-  CPPFLAGS="$CPPFLAGS $PVM3_CFLAGS"
-  AC_RUN_IFELSE([AC_LANG_SOURCE([[
-#include <stdio.h>
-#include <pvm3.h>
-int main ()
-{
-  if ((PVM_MAJOR_VERSION == 3) && (PVM_MINOR_VERSION < 4))
-  {
-	printf("You need to upgrade pvm3 to version > 3.4\n");
-	return(1);
-  }
-  if (PVM_MAJOR_VERSION < 3)
-  {
-	printf("You need to upgrade pvm3 to version > 3.4\n");
-	return(1);
-  }
-  return 0;
-}
-]])],
-  [have_pvm3="yes"],
-  [have_pvm3="no"],
-  [AC_MSG_RESULT([cross compiling; assumed OK...])
-   have_pvm3="yes"])
-  CPPFLAGS="$save_CPPFLAGS"
-  # also include the in-tree pvm3 headers
-  PVM3_CFLAGS="$PVM3_CFLAGS -I\$(top_srcdir)/pvm3"
-  PVM3_PVMGS="$w_pvm3_l/pvmgs"
-fi
-AC_SUBST(PVM3_PVMGS)
-TC_PKG_HAVE(pvm3, PVM3)
-
-dnl
 dnl libdv
 dnl
 TC_PKG_CONFIG_CHECK(libdv, no, LIBDV, libdv, [http://libdv.sourceforge.net/])
@@ -1440,7 +1401,6 @@ AC_CONFIG_FILES([
 	docs/Makefile
 	docs/html/Makefile
 	docs/man/Makefile
-	docs/pvm3/Makefile
 	docs/tech/Makefile
 	docs/tech/html/Makefile
 	encode/Makefile
@@ -1466,7 +1426,6 @@ AC_CONFIG_FILES([
 	libtcutil/Makefile
 	libtcaudio/Makefile
 	libtcvideo/Makefile
-	pvm3/Makefile
 	src/Makefile
 	tccore/Makefile
 	testsuite/Makefile
@@ -1527,13 +1486,4 @@ X11                            $USE_X11
 ])
 
 TC_PKG_REPORT
-
-if test x"yes" = x"$have_pvm3"; then
-    AC_MSG_WARN([PVM3 support is yet untested, unsupported and may be BROKEN!.])
-    AC_MSG_WARN([Please be careful and be prepared for bugs or nasty behaviours.])
-    AC_MSG_WARN([Report problems on transcode-devel mailing list.])
-    # ugly -- has anyone a better idea?
-    echo
-    echo
-fi
 
