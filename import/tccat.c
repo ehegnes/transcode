@@ -67,8 +67,6 @@ void import_exit(int code)
 
 static void tccat_thread(info_t *ipipe)
 {
-    const char *name = NULL;
-    int found = 0, itype = TC_MAGIC_UNKNOWN, type = TC_MAGIC_UNKNOWN;
     int verbose_flag = ipipe->verbose;
     int vob_offset = ipipe->vob_offset;
     int error = TC_FALSE;
