@@ -424,8 +424,15 @@ MOD_decode
                 tc_log_info(MOD_NAME, "read bytes=%i", packet.size);
 #endif
                 TC_LOCK_LIBAVCODEC;
+#if LIBAVCODEC_VERSION_MAJOR >= 53 \
+ || (LIBAVCODEC_VERSION_MAJOR == 52 && LIBAVCODEC_VERSION_MINOR >= 25)
                 len = avcodec_decode_video2(vff_data.dec_context, picture,
                                             &got_picture, &packet);
+#else
+                len = avcodec_decode_video(vff_data.dec_context, picture,
+                                           &got_picture, packet.data,
+                                           packet.size);
+#endif
                 TC_UNLOCK_LIBAVCODEC;
 #ifdef TC_LAVC_DEBUG
                 tc_log_info(MOD_NAME, "decode_video: size=%i, len=%i, got_picture=%i",
