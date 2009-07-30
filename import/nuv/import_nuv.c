@@ -120,8 +120,8 @@ static int nuv_fini(TCModuleInstance *self)
  * tcmodule-data.h for function details.
  */
 
-static int nuv_configure(TCModuleInstance *self,
-                         const char *options, vob_t *vob)
+static int nuv_configure(TCModuleInstance *self, const char *options,
+                         TCJob *vob, TCModuleExtraData *xdata[])
 {
     PrivateData *pd;
     struct rtfileheader hdr;
@@ -531,20 +531,23 @@ static int nuv_decode_video(TCModuleInstance *self,
 
 static const TCCodecID nuv_codecs_in[] = { TC_CODEC_NUV, TC_CODEC_ERROR };
 static const TCCodecID nuv_codecs_out[] = { TC_CODEC_YUV420P, TC_CODEC_ERROR };
+static const TCCodecID nuv_audio_codecs[] = { TC_CODEC_ERROR };
 
 static const TCFormatID nuv_formats_in[] = { TC_FORMAT_NUV, TC_FORMAT_ERROR };
 static const TCFormatID nuv_formats_out[] = { TC_FORMAT_ERROR };
 
 static const TCModuleInfo nuv_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = nuv_codecs_in,
-    .codecs_out  = nuv_codecs_out,
-    .formats_in  = nuv_formats_in,
-    .formats_out = nuv_formats_out
+    .features         = MOD_FEATURES,
+    .flags            = MOD_FLAGS,
+    .name             = MOD_NAME,
+    .version          = MOD_VERSION,
+    .description      = MOD_CAP,
+    .codecs_video_in  = nuv_codecs_in,
+    .codecs_video_out = nuv_codecs_out,
+    .codecs_audio_in  = nuv_audio_codecs,
+    .codecs_audio_out = nuv_audio_codecs,
+    .formats_in       = nuv_formats_in,
+    .formats_out      = nuv_formats_out
 };
 
 static const TCModuleClass nuv_class = {
@@ -557,7 +560,7 @@ static const TCModuleClass nuv_class = {
     .inspect      = nuv_inspect,
 
     .decode_video = nuv_decode_video,
-    .demultiplex  = nuv_demultiplex,
+    //.demultiplex  = nuv_demultiplex,  // FIXME: needs conversion to API3
 };
 
 TC_MODULE_ENTRY_POINT(nuv)
@@ -596,7 +599,7 @@ MOD_open
     /* XXX */
     if (nuv_init(mod, TC_MODULE_FEATURE_VIDEO) < 0)
         return TC_ERROR;
-    if (nuv_configure(mod, "", vob) < 0) {
+    if (nuv_configure(mod, "", vob, NULL) < 0) {
         nuv_fini(mod);
         return TC_ERROR;
     }
