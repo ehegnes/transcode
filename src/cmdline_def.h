@@ -609,47 +609,8 @@ TC_OPTION(no_audio_adjust,    0,   0,
 /********/ TC_HEADER("Output stream format options") /********/
 
 TC_OPTION(export_prof,        0,   "profile",
-                "export profile: {vcd|svcd|xvcd|dvd}[-pal|-ntsc|-secam]"
-                " [none]",
-                if            (strncasecmp(optarg, "vcd", 3) == 0) {
-                    vob->mpeg_profile = VCD;  // need to guess NTSC/PAL later
-                    if        (strncasecmp(optarg, "vcd-pal", 7) == 0) {
-                        vob->mpeg_profile = VCD_PAL;
-                    } else if (strncasecmp(optarg, "vcd-ntsc", 8) == 0) {
-                        vob->mpeg_profile = VCD_NTSC;
-                    } else if (strncasecmp(optarg, "vcd-secam", 9) == 0) {
-                        vob->mpeg_profile = VCD_PAL;
-                    }
-                } else if     (strncasecmp(optarg, "svcd", 4) == 0) {
-                    vob->mpeg_profile = SVCD;
-                    if        (strncasecmp(optarg, "svcd-pal", 8) == 0) {
-                        vob->mpeg_profile = SVCD_PAL;
-                    } else if (strncasecmp(optarg, "svcd-ntsc", 9) == 0) {
-                        vob->mpeg_profile = SVCD_NTSC;
-                    } else if (strncasecmp(optarg, "svcd-secam", 10) == 0) {
-                        vob->mpeg_profile = SVCD_PAL;
-                    }
-                } else if     (strncasecmp(optarg, "dvd", 3) == 0) {
-                    vob->mpeg_profile = DVD;
-                    if        (strncasecmp(optarg, "dvd-pal", 7) == 0) {
-                        vob->mpeg_profile = DVD_PAL;
-                    } else if (strncasecmp(optarg, "dvd-ntsc", 8) == 0) {
-                        vob->mpeg_profile = DVD_NTSC;
-                    } else if (strncasecmp(optarg, "dvd-secam", 9) == 0) {
-                        vob->mpeg_profile = DVD_PAL;
-                    }
-                } else if     (strncasecmp(optarg, "xvcd", 4) == 0) {
-                    vob->mpeg_profile = XVCD;
-                    if        (strncasecmp(optarg, "xvcd-pal", 8) == 0) {
-                        vob->mpeg_profile = XVCD_PAL;
-                    } else if (strncasecmp(optarg, "xvcd-ntsc", 9) == 0) {
-                        vob->mpeg_profile = XVCD_NTSC;
-                    } else if (strncasecmp(optarg, "xvcd-secam", 10) == 0) {
-                        vob->mpeg_profile = XVCD_PAL;
-                    }
-                } else {
-                    tc_error("Invalid argument for --export_prof");
-                }
+                "export profile name [none]",
+                vob->ex_prof_name = optarg;
 )
 TC_OPTION(export_with,        'y', "module string",
                 "export modules",

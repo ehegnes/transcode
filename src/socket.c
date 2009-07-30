@@ -299,7 +299,6 @@ static void dump_vob(int sock)
     SEND(ex_a_string, "%s");
     SEND(ex_m_string, "%s");
     SEND(m2v_requant, "%f");
-    SEND(mpeg_profile, "%d");
     SEND(export_attributes, "%u");
 
 #undef SEND

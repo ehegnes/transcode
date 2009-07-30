@@ -53,30 +53,6 @@ typedef unsigned int uint32_t;
 
 /*************************************************************************/
 
-/* ----------------------------
- *
- * MPEG profiles for setting
- * sensible defaults
- *
- * ----------------------------*/
-
-typedef enum {
-    PROF_NONE = 0,
-    VCD,
-    VCD_PAL,
-    VCD_NTSC,
-    SVCD,
-    SVCD_PAL,
-    SVCD_NTSC,
-    XVCD,
-    XVCD_PAL,
-    XVCD_NTSC,
-    DVD,
-    DVD_PAL,
-    DVD_NTSC
-} mpeg_profile_t;
-
-
 typedef struct _transfer_t {
     int flag;
     FILE *fd;
@@ -338,9 +314,9 @@ struct _vob_t {
 
     float m2v_requant;          // Requantize factor for mpeg2 video streams
 
-    mpeg_profile_t mpeg_profile;
-
     unsigned int export_attributes;
+
+    const char *ex_prof_name;
 
     int rgbswap;
     int pcmswap;
