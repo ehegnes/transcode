@@ -31,6 +31,7 @@
 #include "libtcutil/optstr.h"
 
 #include "libtcext/tc_magick.h"
+#include "libtcvideo/tcvideo.h"
 
 /*%*
  *%* DESCRIPTION 
@@ -62,7 +63,7 @@
  *%*/
 
 static int verbose_flag = TC_QUIET;
-static int capability_flag = TC_CAP_RGB|TC_CAP_VID;
+static int capability_flag = TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;
 
 #define MOD_PRE im
 #include "import_def.h"
@@ -75,6 +76,7 @@ static int capability_flag = TC_CAP_RGB|TC_CAP_VID;
 typedef struct tcimprivatedata_ TCIMPrivateData;
 struct tcimprivatedata_ {
     TCMagickContext magick;
+    TCVHandle       tcvhandle;  // For colorspace conversion
 
     int             width;
     int             height;
@@ -137,6 +139,22 @@ MOD_open
     if (param->flag == TC_VIDEO) {
         tc_im_defaults(&IM);
 
+        if (vob->im_v_codec == TC_CODEC_YUV420P
+         && (vob->im_v_width % 2 != 0 || vob->im_v_height % 2 != 0)
+        ) {
+            tc_log_error(MOD_NAME, "Width and height must be even for YUV420P");
+            return TC_ERROR;
+        }
+        if (vob->im_v_codec == TC_CODEC_YUV422P && vob->im_v_width % 2 != 0) {
+            tc_log_error(MOD_NAME, "Width must be even for YUV422P");
+            return TC_ERROR;
+        }
+
+        IM.tcvhandle = tcv_init();
+        if (!IM.tcvhandle) {
+            return TC_ERROR;
+        }
+
         param->fd = NULL;
 
         // get the frame name and range
@@ -144,6 +162,8 @@ MOD_open
         err = regcomp(&preg, regex, 0);
         if (err) {
             tc_log_perror(MOD_NAME, "ERROR:  Regex compile failed.\n");
+            tcv_free(IM.tcvhandle);
+            IM.tcvhandle = 0;
             return TC_ERROR;
         }
 
@@ -154,6 +174,8 @@ MOD_open
             IM.head = tc_malloc(slen);
             if (IM.head == NULL) {
                 tc_log_perror(MOD_NAME, "filename head");
+                tcv_free(IM.tcvhandle);
+                IM.tcvhandle = 0;
                 return TC_ERROR;
             }
             strlcpy(IM.head, vob->video_in_file, slen);
@@ -166,6 +188,8 @@ MOD_open
             IM.head = tc_malloc(slen);
             if (IM.head == NULL) {
                 tc_log_perror(MOD_NAME, "filename head");
+                tcv_free(IM.tcvhandle);
+                IM.tcvhandle = 0;
                 return TC_ERROR;
             }
             strlcpy(IM.head, vob->video_in_file, slen);
@@ -174,6 +198,8 @@ MOD_open
             frame = tc_malloc(slen);
             if (frame == NULL) {
                 tc_log_perror(MOD_NAME, "filename frame");
+                tcv_free(IM.tcvhandle);
+                IM.tcvhandle = 0;
                 return TC_ERROR;
             }
             strlcpy(frame, vob->video_in_file + pmatch[2].rm_so, slen);
@@ -189,6 +215,8 @@ MOD_open
             IM.tail = tc_malloc(slen);
             if (IM.tail == NULL) {
                 tc_log_perror(MOD_NAME, "filename tail");
+                tcv_free(IM.tcvhandle);
+                IM.tcvhandle = 0;
                 return TC_ERROR;
             }
             strlcpy(IM.tail, vob->video_in_file + pmatch[3].rm_so, slen);
@@ -215,6 +243,8 @@ MOD_open
             int ret = tc_magick_init(&IM.magick, TC_MAGICK_QUALITY_DEFAULT);
             if (ret != TC_OK) {
                 tc_log_error(MOD_NAME, "cannot create magick context");
+                tcv_free(IM.tcvhandle);
+                IM.tcvhandle = 0;
                 return ret;
             }
         }
@@ -282,6 +312,20 @@ MOD_decode
             return ret;
         }
 
+        if (vob->im_v_codec == TC_CODEC_YUV420P) {
+            tcv_convert(IM.tcvhandle, param->buffer, param->buffer,
+                        vob->im_v_width, vob->im_v_height,
+                        IMG_RGB24, IMG_YUV420P);
+            param->size = vob->im_v_width * vob->im_v_height
+                        + 2 * (vob->im_v_width/2) * (vob->im_v_height/2);
+        } else if (vob->im_v_codec == TC_CODEC_YUV422P) {
+            tcv_convert(IM.tcvhandle, param->buffer, param->buffer,
+                        vob->im_v_width, vob->im_v_height,
+                        IMG_RGB24, IMG_YUV422P);
+            param->size = vob->im_v_width * vob->im_v_height
+                        + 2 * (vob->im_v_width/2) * vob->im_v_height;
+        }
+
         param->attributes |= TC_FRAME_IS_KEYFRAME;
 
         IM.total_frame++;
@@ -315,14 +359,12 @@ MOD_close
             pclose(param->fd);
             param->fd = NULL;
         }
-        if (IM.head != NULL) {
-            tc_free(IM.head);
-            IM.head = NULL;
-        }
-        if (IM.tail != NULL) {
-            tc_free(IM.tail);
-            IM.tail = NULL;
-        }
+        tcv_free(IM.tcvhandle);
+        IM.tcvhandle = 0;
+        tc_free(IM.head);
+        IM.head = NULL;
+        tc_free(IM.tail);
+        IM.tail = NULL;
 
         if (!tc_has_more_video_in_file(vob)) {
             /* ...can you hear this? it's the sound of the ugliness... */
