@@ -52,6 +52,10 @@ if HAVE_XVID
 ENCODE_XVID = encode_xvid.la
 endif
 
+if HAVE_MJPEGTOOLS
+ENCODE_YUV4MPEG = encode_yuv4mpeg.la
+endif
+
 pkg_LTLIBRARIES = \
 	encode_copy.la \
 	$(ENCODE_DV) \
@@ -64,7 +68,8 @@ pkg_LTLIBRARIES = \
 	$(ENCODE_THEORA) \
 	$(ENCODE_VORBIS) \
 	$(ENCODE_X264) \
-	$(ENCODE_XVID)
+	$(ENCODE_XVID) \
+	$(ENCODE_YUV4MPEG)
 
 encode_copy_la_SOURCES = encode_copy.c
 encode_copy_la_LDFLAGS = -module -avoid-version
@@ -120,6 +125,11 @@ encode_x264_la_LIBADD = $(X264_LIBS)
 encode_xvid_la_SOURCES = encode_xvid.c
 encode_xvid_la_LDFLAGS = -module -avoid-version
 encode_xvid_la_LIBADD = $(XVID_LIBS)
+
+encode_yuv4mpeg_la_SOURCES = encode_yuv4mpeg.c
+encode_yuv4mpeg_la_CPPFLAGS = $(AM_CPPFLAGS) $(MJPEGTOOLS_CFLAGS)
+encode_yuv4mpeg_la_LDFLAGS = -module -avoid-version
+encode_yuv4mpeg_la_LIBADD = $(MJPEGTOOLS_LIBS)
 
 EXTRA_DIST = \
 	lavc.cfg \
