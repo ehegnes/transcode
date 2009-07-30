@@ -136,6 +136,7 @@ void tcv_free(TCVHandle handle)
             if (handle->zoominfo_cache[i].zi)
                 zoom_free(handle->zoominfo_cache[i].zi);
         }
+        free(handle->convert_buffer);
         free(handle);
     }
 }
