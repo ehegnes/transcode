@@ -30,7 +30,8 @@
 /* Global variables from transcode.c that should eventually go away. */
 int core_mode=TC_MODE_DEFAULT;
 char *im_aud_mod = NULL, *im_vid_mod = NULL;
-char *ex_aud_mod = NULL, *ex_vid_mod = NULL, *ex_mplex_mod = NULL;
+char *ex_aud_mod = NULL, *ex_vid_mod = NULL,
+     *ex_mplex_mod = NULL, *ex_mplex_mod_aux = NULL;
 char *plugins_string = NULL;
 char
     *nav_seek_file=NULL, *socket_file=NULL,
