@@ -19,7 +19,7 @@ extern int parse_cmdline(int argc, char **argv, vob_t *vob);
 /* Global variables from transcode.c that should eventually go away. */
 extern int core_mode;
 extern char *im_aud_mod, *im_vid_mod;
-extern char *ex_aud_mod, *ex_vid_mod, *ex_mplex_mod;
+extern char *ex_aud_mod, *ex_vid_mod, *ex_mplex_mod, *ex_mplex_mod_aux;
 extern char *plugins_string;
 extern char *nav_seek_file, *socket_file, *chbase, //*dirbase,
             base[TC_BUF_MIN];

@@ -651,57 +651,69 @@ TC_OPTION(export_prof,        0,   "profile",
                     tc_error("Invalid argument for --export_prof");
                 }
 )
-TC_OPTION(export_with,        'y', "vm[,am[,mm]]",
-                "video[,audio[,mplex]] export modules [null]",
-                static char vbuf[1001];
-                static char abuf[1001];
-                static char mbuf[1001];
-                char *s;
-                int n;
-                /* FIXME: handle embedded quotes like -x? */
-                if ((n = sscanf(optarg, "%1000[^,],%1000[^,],%1000[^,]",
-                                vbuf, abuf, mbuf)) < 1
-                ) {
+TC_OPTION(export_with,        'y', "module string",
+                "export modules",
+                static char **ex_mod_args = NULL;
+                size_t i = 0;
+                size_t num = 0;
+                char *s = NULL;
+                if (ex_mod_args) { /* avoid memleak with multiple -y */
+                    tc_strfreev(ex_mod_args);
+                }
+                ex_mod_args = tc_strsplit(optarg, ',', &num);
+                if (num == 0) {
                     tc_error("Invalid argument for -y/--export_with");
                     goto short_usage;
                 }
-                ex_vid_mod = vbuf;
-                no_v_out_codec = 0;
-                vob->export_attributes |= TC_EXPORT_ATTRIBUTE_VMODULE;
-                if ((s = strchr(ex_vid_mod, '=')) != NULL) {
-                    *s++ = 0;
-                    if (!*s) {
-                        tc_error("Invalid option string for video encoder"
-                                 " module");
-                        goto short_usage;
-                    }
-                    vob->ex_v_string = s;
-                }
-                if (n >= 2) {
-                    ex_aud_mod = abuf;
-                    no_a_out_codec = 0;
-                    if ((s = strchr(ex_aud_mod, '=')) != NULL) {
-                        *s++ = 0;
-                        if (!*s) {
-                            tc_error("Invalid option string for audio encoder"
-                                     " module");
-                            goto short_usage;
+                for (i = 0; i < num; i++) {
+                    if (!strncmp(ex_mod_args[i], "A=", 2)) {
+                        ex_aud_mod = ex_mod_args[i] + 2;
+                        no_a_out_codec = 0;
+                        if ((s = strchr(ex_aud_mod, '=')) != NULL) {
+                            *s++ = 0;
+                            if (!*s) {
+                                tc_error("Invalid option string for audio encoder"
+                                         " module");
+                                goto short_usage;
+                            }
+                            vob->ex_a_string = s;
                         }
-                        vob->ex_a_string = s;
                     }
-                } else {
-                    ex_aud_mod = ex_vid_mod;
-                }
-                if (n >= 3) {
-                    ex_mplex_mod = mbuf;
-                    if ((s = strchr(ex_mplex_mod, '=')) != NULL) {
-                        *s++ = 0;
-                        if (!*s) {
-                            tc_error("Invalid option string for multiplex"
-                                     " module");
-                            goto short_usage;
+                    if (!strncmp(ex_mod_args[i], "V=", 2)) {
+                        ex_vid_mod = ex_mod_args[i] + 2;
+                        no_v_out_codec = 0;
+                        vob->export_attributes |= TC_EXPORT_ATTRIBUTE_VMODULE;
+                        if ((s = strchr(ex_vid_mod, '=')) != NULL) {
+                            *s++ = 0;
+                            if (!*s) {
+                                tc_error("Invalid option string for video encoder"
+                                         " module");
+                                goto short_usage;
+                            }
+                            vob->ex_v_string = s;
                         }
-                        vob->ex_m_string = s;
+                    }
+                    if (!strncmp(ex_mod_args[i], "M=", 2)) {
+                        ex_mplex_mod = ex_mod_args[i] + 2;
+                        if ((s = strchr(ex_mplex_mod, '=')) != NULL) {
+                            *s++ = 0;
+                            if (!*s) {
+                                tc_error("Invalid option string for multiplexor");
+                                goto short_usage;
+                            }
+                            vob->ex_m_string = s;
+                        }
+                    }
+                    if (!strncmp(ex_mod_args[i], "X=", 2)) {
+                        ex_mplex_mod_aux = ex_mod_args[i] + 2;
+                        if ((s = strchr(ex_mplex_mod_aux, '=')) != NULL) {
+                            *s++ = 0;
+                            if (!*s) {
+                                tc_error("Invalid option string for auxiliary multiplexor");
+                                goto short_usage;
+                            }
+                            vob->ex_mx_string = s;
+                        }
                     }
                 }
 )
@@ -720,38 +732,29 @@ TC_OPTION(export_param,       'F', "string",
                 vob->ex_v_fcc = optarg;
                 vob->export_attributes |= TC_EXPORT_ATTRIBUTE_VCODEC;
 )
-TC_OPTION(export_codec,       'N', "format",
-                "export audio codec [mp3]",
-                char acodec[33];
-                char vcodec[33];
-                int n;
-                if (*optarg == '-')
-                    goto short_usage;
-                n = sscanf(optarg, "%32[^,],%32[^,]", vcodec, acodec);
-                /* codecs in reversed order for backward compatibility */
-                switch (n) {
-                  case 2: /* audio AND video codec */
-                    vob->ex_v_codec = tc_codec_from_string(vcodec);
-                    if (vob->ex_v_codec == TC_CODEC_ERROR) {
-                        tc_error("Unknown video format for"
-                                 " -N/--export_format");
-                        goto short_usage;
-                    }
-                    vob->export_attributes |= TC_EXPORT_ATTRIBUTE_VCODEC;
-                    /* move acodec to vcodec */
-                    memcpy(vcodec, acodec, sizeof(vcodec));
-                    /* fallthrough */
-                  case 1: /* audio codec */
-                    vob->ex_a_codec = tc_codec_from_string(acodec);
-                    if (vob->ex_a_codec == TC_CODEC_ERROR) {
-                        tc_error("Unknown audio format for"
-                                 " -N/--export_format");
-                        goto short_usage;
-                    }
-                    vob->export_attributes |= TC_EXPORT_ATTRIBUTE_ACODEC;
-                    break;
-                  default:
+TC_OPTION(export_codec,       'N', "format string",
+                "export codecs",
+                size_t i = 0;
+                size_t num = 0;
+                char **pieces = tc_strsplit(optarg, ',', &num);
+                if (num < 1 || num > 2) {
                     tc_error("Invalid argument for -N/--export_format");
+                    goto short_usage;
+                }
+                for (i = 0; i < num; i++) {
+                    if (!strncmp(pieces[i], "A=", 2)) {
+                        vob->ex_a_codec = tc_codec_from_string(pieces[i] + 2);
+                        vob->export_attributes |= TC_EXPORT_ATTRIBUTE_ACODEC;
+                    }
+                    if (!strncmp(pieces[i], "V=", 2)) {
+                        vob->ex_v_codec = tc_codec_from_string(pieces[i] + 2);
+                        vob->export_attributes |= TC_EXPORT_ATTRIBUTE_VCODEC;
+                    }
+                }
+                tc_strfreev(pieces);
+                if (vob->ex_v_codec == TC_CODEC_ERROR
+                 || vob->ex_a_codec == TC_CODEC_ERROR) {
+                    tc_error("unknown A/V format for -N/--export_format");
                     goto short_usage;
                 }
 )
