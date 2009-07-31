@@ -74,6 +74,15 @@ TC_TEST_failure: \
     } \
 } while (0)
 
+#define TC_TEST_IS_TRUE2(EXPR, MSG) do { \
+    int err = (EXPR); \
+    if (!err) { \
+        TC_TEST_errmsg = (MSG); \
+        goto TC_TEST_failure; \
+    } \
+} while (0)
+
+
 
 #define TC_RUN_TEST(NAME) \
     errors += tcregistry_ ## NAME ## _test()
@@ -83,10 +92,27 @@ TC_TEST_failure: \
 
 static TCFactory factory = NULL;
 
-/* kids, DO NOT try those (N_*) at home! */
-TC_TEST_BEGIN(N_create_destroy, factory)
+TC_TEST_BEGIN(create_destroy, factory)
     TC_TEST_IS_TRUE(Reg != NULL);
 TC_TEST_END
+
+TC_TEST_BEGIN(lookup_existent1, factory)
+    const char *pc = NULL;
+    pc = tc_get_module_name_for_format(Reg, "mplex", "aac");
+    TC_TEST_IS_TRUE2(pc != NULL, "muxer");
+    pc = tc_get_module_name_for_format(Reg, "encode", "aac");
+    TC_TEST_IS_TRUE2(pc != NULL, "encoder");
+TC_TEST_END
+
+TC_TEST_BEGIN(lookup_inexistent1, factory)
+    const char *pc = NULL;
+    pc = tc_get_module_name_for_format(Reg, "decode", "aac");
+    TC_TEST_IS_TRUE(pc == NULL);
+    pc = tc_get_module_name_for_format(Reg, "demux", "aac");
+    TC_TEST_IS_TRUE(pc == NULL);
+TC_TEST_END
+
+
 
 /*************************************************************************/
 
@@ -100,7 +126,9 @@ static int test_registry_all(void)
         errors = 1;
     } else {
 
-        TC_RUN_TEST(N_create_destroy);
+        TC_RUN_TEST(create_destroy);
+        TC_RUN_TEST(lookup_existent1);
+        TC_RUN_TEST(lookup_inexistent1);
 
         tc_del_module_factory(factory);
     }
