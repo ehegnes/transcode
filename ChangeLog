@@ -1,0 +1,31 @@
+Key:
+[+] feature added
+[!] bugfix of an existing feature
+[*] change/improvement (not bugfix) of an existing feature
+[-] feature dropped
+
+===========================================================================
+transcode-1.2.0
+---------------
+[+] Brand new export layer with new-style, separated encoder and multiplexor modules.
+[+] Support for new encoders: theora, vorbis, faac, x264.
+[+] Support for new multiplexors: ogg, libavformat, yuv4mpeg2.
+[+] ShoutCast support using ogg multiplexor.
+[!] Fix crash when using transformations (-Z, -j).
+[!] Fix compilation error with x264 version 66.
+[*] Improved internal buffering system.
+[*] Added basic A/V synchronization module.
+[!] Fix misuse of configuration files which leads to crash.
+[*] Added the capability to handle fallback directories for configuration files.
+[*] Improved debug messages handling and internal debug API.
+[-] The import_imlist module is deprecated. Use --multi_input -x im instead.
+[*] Big YAIT update by Allan Snider.
+[!] Make the -W option work again like 1.0.x branch.
+[*] Switch from ImageMagick to GraphicsMagick.
+[*] Allow to build without FFmpeg.
+[!] Remove outdated libav* information from the FAQ.
+[+] Add support for CubicKeys4 and Sinc8 zoom algorithms.
+[+] Introduced module registry to automatically select a module given a format
+[+] Introduced `tccfgshow' to inspect the transcode internal capabilities.
+[-] Removed the unmantained PVM code.
+===========================================================================
