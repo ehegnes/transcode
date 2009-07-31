@@ -37,6 +37,7 @@
 ^testsuite/test-tclog$
 ^testsuite/test-tcmodule$
 ^testsuite/test-tcmoduleinfo$
+^testsuite/test-tcmoduleregistry$
 ^testsuite/test-tcstrdup$
 ^tools/avifix$
 ^tools/aviindex$

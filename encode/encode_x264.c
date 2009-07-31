@@ -17,14 +17,6 @@
  */
 
 
-/* TODO: 
-
-- Various smaller things -> search for "TODO" and for "QUESTIONS" in
-  the rest of the code
-
-*/
-
-
 #include "src/transcode.h"
 #include "libtc/libtc.h"
 #include "libtc/ratiocodes.h"
@@ -39,7 +31,7 @@
 
 
 #define MOD_NAME    "encode_x264.so"
-#define MOD_VERSION "v0.3.1 (2009-06-17)"
+#define MOD_VERSION "v0.3.2 (2009-07-31)"
 #define MOD_CAP     "x264 encoder"
 
 #define MOD_FEATURES \
@@ -177,8 +169,17 @@ static TCConfigEntry conf[] ={
     /* Initial data for CABAC? */
     OPT_RANGE(i_cabac_init_idc,           "cabac_init_idc", 0,     2)
 
+#ifdef HAVE_X264_NAL_HRD
+    /* Add NAL HRD parameters to the bitstream */
+    OPT_FLAG (b_nal_hrd,                  "nal_hrd")
+#endif
+
     /* Enable interlaced encoding (--encode_fields) */
     OPT_NONE (b_interlaced)
+#ifdef HAVE_X264_NAL_HRD
+    /* First field (1=top, 0=bottom) (--encode_fields) */
+    OPT_NONE (b_tff)
+#endif
 
     /* Quantization matrix selection: 0=flat 1=JVT 2=custom */
     OPT_RANGE(i_cqm_preset,               "cqm",            0,     2)
@@ -455,6 +456,9 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
     params->i_height = vob->ex_v_height;
     params->b_interlaced = (vob->encode_fields==TC_ENCODE_FIELDS_TOP_FIRST
                          || vob->encode_fields==TC_ENCODE_FIELDS_BOTTOM_FIRST);
+#ifdef HAVE_X264_NAL_HRD
+    params->b_tff        = (vob->encode_fields==TC_ENCODE_FIELDS_TOP_FIRST);
+#endif
 
     if (params->rc.f_rf_constant != 0) {
         params->rc.i_rc_method = X264_RC_CRF;
@@ -886,7 +890,7 @@ static int x264_inspect(TCModuleInstance *self,
  */
 
 static int x264_encode_video(TCModuleInstance *self,
-                            TCFrameVideo *inframe, TCFrameVideo *outframe)
+                             TCFrameVideo *inframe, TCFrameVideo *outframe)
 {
     X264PrivateData *pd;
     x264_nal_t *nal;
@@ -915,7 +919,7 @@ static int x264_encode_video(TCModuleInstance *self,
 
     pic.i_type = X264_TYPE_AUTO;
     pic.i_qpplus1 = 0;
-    /* QUESTION: Is this pts-handling ok? I don't have a clue how
+    /* FIXME: Is this pts-handling ok? I don't have a clue how
      * PTS/DTS handling works. Does it matter, when no muxing is
      * done? */
     pic.i_pts = (int64_t) pd->framenum * pd->x264params.i_fps_den;

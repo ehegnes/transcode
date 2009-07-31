@@ -193,6 +193,10 @@ int tc_magick_RGBin(TCMagickContext *ctx,
 {
     int ret = TC_OK;
 
+    if (ctx->image != NULL) {
+        DestroyImage(ctx->image);
+    }
+
     ctx->image = ConstituteImage(width, height,
                                  "RGB", CharPixel, data,
                                  &ctx->exception_info);
@@ -207,6 +211,11 @@ int tc_magick_RGBin(TCMagickContext *ctx,
 int tc_magick_filein(TCMagickContext *ctx, const char *filename)
 {
     int ret = TC_OK;
+
+    if (ctx->image != NULL) {
+        DestroyImage(ctx->image);
+    }
+
     strlcpy(ctx->image_info->filename, filename, MaxTextExtent);
     ctx->image = ReadImage(ctx->image_info, &ctx->exception_info);
 

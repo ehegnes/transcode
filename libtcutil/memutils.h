@@ -54,7 +54,7 @@ struct tcmemchunk_ {
 #define tc_malloc(size)    _tc_malloc(__FILE__, __LINE__, size)
 #define tc_zalloc(size)    _tc_zalloc(__FILE__, __LINE__, size)
 #define tc_realloc(p,size) _tc_realloc(__FILE__, __LINE__, p, size)
-#define tc_free(ptr)       free(ptr);
+#define tc_free(ptr)       free(ptr)
 
 /*
  * _tc_malloc:
