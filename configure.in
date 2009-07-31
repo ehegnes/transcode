@@ -937,6 +937,25 @@ int main() {
                  [x264 version too old (must be at least 65)])
   fi
 fi
+if test x"$have_x264" = "xyes"; then
+  AC_MSG_CHECKING([for x264 hrd_pulldown_interlace patch])
+  AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+#include <stdio.h>
+#include <stdint.h>  /* required by x264.h */
+#include <x264.h>
+
+int main() {
+	x264_param_t x264params;
+	x264params.b_nal_hrd = 1;
+	x264params.b_tff = 1;
+	return 0;
+}
+]])],
+    [AC_MSG_RESULT([found])
+     AC_DEFINE([HAVE_X264_NAL_HRD], [1],
+               [x264 is built with the hrd_pulldown_interlace patch])],
+    [AC_MSG_RESULT([not found])])
+fi
 TC_PKG_HAVE(x264, X264)
 
 dnl
