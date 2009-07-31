@@ -29,9 +29,10 @@
 
 #include "src/transcode.h"
 #include "libtcext/tc_magick.h"
+#include "libtcvideo/tcvideo.h"
 
 static int verbose_flag = TC_QUIET;
-static int capability_flag = TC_CAP_RGB|TC_CAP_VID;
+static int capability_flag = TC_CAP_RGB|TC_CAP_YUV|TC_CAP_VID;
 
 #define MOD_PRE imlist
 #include "import_def.h"
@@ -40,6 +41,7 @@ static int capability_flag = TC_CAP_RGB|TC_CAP_VID;
 typedef struct tcimprivatedata_ TCIMPrivateData;
 struct tcimprivatedata_ {
     TCMagickContext magick;
+    TCVHandle       tcvhandle;  // For colorspace conversion
 
     int             width;
     int             height;
@@ -66,6 +68,17 @@ MOD_open
 
         param->fd = NULL;
 
+        if (vob->im_v_codec == TC_CODEC_YUV420P
+         && (vob->im_v_width % 2 != 0 || vob->im_v_height % 2 != 0)
+        ) {
+            tc_log_error(MOD_NAME, "Width and height must be even for YUV420P");
+            return TC_ERROR;
+        }
+        if (vob->im_v_codec == TC_CODEC_YUV422P && vob->im_v_width % 2 != 0) {
+            tc_log_error(MOD_NAME, "Width must be even for YUV422P");
+            return TC_ERROR;
+        }
+
         IM.width  = vob->im_v_width;
         IM.height = vob->im_v_height;
 
@@ -77,13 +90,24 @@ MOD_open
         tc_log_warn(MOD_NAME,
                     "(e.g.) transcode --multi_input -x im ...");
 
+        IM.tcvhandle = tcv_init();
+        if (!IM.tcvhandle) {
+            return TC_ERROR;
+        }
+
         IM.fd = fopen(vob->video_in_file, "r");
         if (IM.fd == NULL) {
+            tcv_free(IM.tcvhandle);
+            IM.tcvhandle = 0;
             return TC_ERROR;
         }
 
         ret = tc_magick_init(&IM.magick, TC_MAGICK_QUALITY_DEFAULT);
         if (ret != TC_OK) {
+            fclose(IM.fd);
+            IM.fd = NULL;
+            tcv_free(IM.tcvhandle);
+            IM.tcvhandle = 0;
             tc_log_error(MOD_NAME, "cannot create magick context");
             return ret;
         }
@@ -129,6 +153,20 @@ MOD_decode
             return ret;
         }
 
+        if (vob->im_v_codec == TC_CODEC_YUV420P) {
+            tcv_convert(IM.tcvhandle, param->buffer, param->buffer,
+                        vob->im_v_width, vob->im_v_height,
+                        IMG_RGB24, IMG_YUV420P);
+            param->size = vob->im_v_width * vob->im_v_height
+                        + 2 * (vob->im_v_width/2) * (vob->im_v_height/2);
+        } else if (vob->im_v_codec == TC_CODEC_YUV422P) {
+            tcv_convert(IM.tcvhandle, param->buffer, param->buffer,
+                        vob->im_v_width, vob->im_v_height,
+                        IMG_RGB24, IMG_YUV422P);
+            param->size = vob->im_v_width * vob->im_v_height
+                        + 2 * (vob->im_v_width/2) * vob->im_v_height;
+        }
+
         param->attributes |= TC_FRAME_IS_KEYFRAME;
 
         return TC_OK;
@@ -153,6 +191,9 @@ MOD_close
             fclose(IM.fd);
             IM.fd = NULL;
         }
+
+        tcv_free(IM.tcvhandle);
+        IM.tcvhandle = 0;
 
         return tc_magick_fini(&IM.magick);
     }
