@@ -37,7 +37,7 @@
  *%*
  *%* OPTION
  *%*   dllpath (string)
- *%*     set path/filename to load dv.dll from
+ *%*     path/filename to load dv.dll from
  *%*/
 
 #define MOD_FEATURES \
@@ -766,19 +766,22 @@ static int pv3_decode_video(TCModuleInstance *self,
 static const TCCodecID pv3_codecs_in[] = { TC_CODEC_PV3, TC_CODEC_ERROR };
 static const TCCodecID pv3_codecs_out[] = { TC_CODEC_YUV420P, TC_CODEC_YUV422P,
                                             TC_CODEC_ERROR };
+static const TCCodecID pv3_audio_codecs[] = { TC_CODEC_ERROR };
 static const TCFormatID pv3_formats_in[] = { TC_FORMAT_PV3, TC_FORMAT_ERROR };
 static const TCFormatID pv3_formats_out[] = { TC_FORMAT_ERROR };
 
 static const TCModuleInfo pv3_info = {
-    .features    = MOD_FEATURES,
-    .flags       = MOD_FLAGS,
-    .name        = MOD_NAME,
-    .version     = MOD_VERSION,
-    .description = MOD_CAP,
-    .codecs_in   = pv3_codecs_in,
-    .codecs_out  = pv3_codecs_out,
-    .formats_in  = pv3_formats_in,
-    .formats_out = pv3_formats_out
+    .features         = MOD_FEATURES,
+    .flags            = MOD_FLAGS,
+    .name             = MOD_NAME,
+    .version          = MOD_VERSION,
+    .description      = MOD_CAP,
+    .codecs_video_in  = pv3_codecs_in,
+    .codecs_video_out = pv3_codecs_out,
+    .codecs_audio_in  = pv3_audio_codecs,
+    .codecs_audio_out = pv3_audio_codecs,
+    .formats_in       = pv3_formats_in,
+    .formats_out      = pv3_formats_out
 };
 
 static const TCModuleClass pv3_class = {
@@ -791,7 +794,7 @@ static const TCModuleClass pv3_class = {
     .inspect      = pv3_inspect,
 
     .decode_video = pv3_decode_video,
-    .demultiplex  = pv3_demultiplex,
+    //.demultiplex  = pv3_demultiplex,  // FIXME: needs conversion to API3
 };
 
 TC_MODULE_ENTRY_POINT(pv3)

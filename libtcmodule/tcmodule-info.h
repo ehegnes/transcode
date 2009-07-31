@@ -70,7 +70,7 @@ struct tcmoduleinfo_ {
     const char      *description;
 
     /*
-     * the following two MUST point to an array of TC_CODEC_*
+     * the following four MUST point to an array of TC_CODEC_*
      * terminated by a TC_CODEC_ERROR value.
      * The preferred one is the first one.
      */
