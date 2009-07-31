@@ -53,6 +53,7 @@ pkg_LTLIBRARIES = \
 	filter_aclip.la \
 	filter_ascii.la \
 	filter_astat.la \
+	filter_barrel.la \
 	$(FILTER_COMPARE) \
 	filter_control.la \
 	filter_cpaudio.la \
@@ -110,6 +111,9 @@ filter_ascii_la_LDFLAGS = -module -avoid-version
 
 filter_astat_la_SOURCES = filter_astat.c
 filter_astat_la_LDFLAGS = -module -avoid-version
+
+filter_barrel_la_SOURCES = filter_barrel.c
+filter_barrel_la_LDFLAGS = -module -avoid-version
 
 filter_compare_la_SOURCES = filter_compare.c
 filter_compare_la_CPPFLAGS = $(AM_CPPFLAGS) $(GRAPHICSMAGICK_CFLAGS)

@@ -101,6 +101,7 @@ typedef enum {
     TC_CODEC_MPEG4VIDEO,
     TC_CODEC_LJPEG,	/* lossless (motion) JPEG */
     TC_CODEC_VP6,
+    TC_CODEC_YUV4MPEG,
     /* image formats (IM modules) */
     TC_CODEC_JPEG,
     TC_CODEC_TIFF,
