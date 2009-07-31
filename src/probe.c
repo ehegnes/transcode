@@ -243,7 +243,7 @@ int probe_source_xml(vob_t *vob, int which)
         // XML forced resize, clear command line parameters
         resize1 = TC_FALSE;
         resize2 = TC_FALSE;
-        zoom = TC_FALSE;
+        vob->zoom_flag    = TC_FALSE;
         vob->resize1_mult = 32;
         vob->vert_resize1 = 0;
         vob->hori_resize1 = 0;

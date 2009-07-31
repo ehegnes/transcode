@@ -28,16 +28,10 @@
 
 
 /* Global variables from transcode.c that should eventually go away. */
-int core_mode=TC_MODE_DEFAULT;
-char *im_aud_mod = NULL, *im_vid_mod = NULL;
-char *ex_aud_mod = NULL, *ex_vid_mod = NULL,
-     *ex_mplex_mod = NULL, *ex_mplex_mod_aux = NULL;
-char *plugins_string = NULL;
 char
     *nav_seek_file=NULL, *socket_file=NULL,
     *chbase=NULL, //*dirbase=NULL,
     base[TC_BUF_MIN];
-int psu_frame_threshold=12; //psu with less/equal frames are skipped.
 int
     no_vin_codec=1, no_ain_codec=1,
     no_v_out_codec=1, no_a_out_codec=1;
@@ -48,9 +42,6 @@ int
     psu_mode=TC_FALSE;
 int preset_flag=0, auto_probe=1, seek_range=1;
 int no_audio_adjust=TC_FALSE, no_split=TC_FALSE;
-char *fc_ttime_string = NULL;
-int sync_seconds=0;
-pid_t writepid = 0;
 
 
 /*************************************************************************/
@@ -190,7 +181,8 @@ static void usage(void)
  *     Nonzero on success, zero on error.
  */
 
-int parse_cmdline(int argc, char **argv, vob_t *vob)
+int parse_cmdline(int argc, char **argv, vob_t *vob,
+                  TCSession *session)
 {
     const char *shortopts;
     int option;

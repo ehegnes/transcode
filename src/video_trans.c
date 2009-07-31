@@ -298,7 +298,7 @@ static int do_process_frame(vob_t *vob, vframe_list_t *ptr)
 
     /**** -Z: zoom frame (slow resize) ****/
 
-    if (zoom) {
+    if (vob->zoom_flag) {
         preadjust_frame_size(&vtd, vob->zoom_width, vob->zoom_height);
         if (vob->zoom_interlaced) {
             /* In YUV mode, only handle the first place as interlaced;

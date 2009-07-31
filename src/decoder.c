@@ -464,6 +464,7 @@ static int video_import_loop(vob_t *vob)
     TCFrameStatus next = (tc_frame_threads_have_video_workers())
                             ?TC_FRAME_WAIT :TC_FRAME_READY;
     int im_ret = TC_IM_THREAD_UNKNOWN;
+    TCSession *session = tc_get_session(); /* FIXME: bandaid */
 
     tc_debug(TC_DEBUG_THREADS, "video thread id=%ld", (unsigned long)pthread_self());
 
@@ -498,7 +499,7 @@ static int video_import_loop(vob_t *vob)
 
             ptr->video_len  = 0;
             ptr->video_size = 0;
-            if (!tc_has_more_video_in_file(vob)) {
+            if (!tc_has_more_video_in_file(session)) {
                 ptr->attributes = TC_FRAME_IS_END_OF_STREAM;
             } else {
                 ptr->attributes = TC_FRAME_IS_SKIPPED;
@@ -578,6 +579,7 @@ static int audio_import_loop(vob_t *vob)
     TCFrameStatus next = (tc_frame_threads_have_audio_workers())
                             ?TC_FRAME_WAIT :TC_FRAME_READY;
     int im_ret = TC_IM_THREAD_UNKNOWN;
+    TCSession *session = tc_get_session(); /* FIXME: bandaid */
 
     tc_debug(TC_DEBUG_THREADS, "audio thread id=%ld",
             (unsigned long)pthread_self());
@@ -619,7 +621,7 @@ static int audio_import_loop(vob_t *vob)
 
             ptr->audio_len  = 0;
             ptr->audio_size = 0;
-            if (!tc_has_more_audio_in_file(vob)) {
+            if (!tc_has_more_audio_in_file(session)) {
                 ptr->attributes = TC_FRAME_IS_END_OF_STREAM;
             } else {
                 ptr->attributes = TC_FRAME_IS_SKIPPED;

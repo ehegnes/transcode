@@ -66,6 +66,63 @@ typedef struct subtitle_header_s {
 
 } subtitle_header_t;
 
+/* anyone with a better naming? */
+/* FIXME: for starter, that's just a repack of the bunch of globals formerly
+ * found on transcode.c/cmdline.c. We need a serious cleanup/redesign ASAP.
+ */
+typedef struct tcsession_ TCSession;
+struct tcsession_ {
+    int core_mode;
+
+    int acceleration;
+
+    TCJob *job;
+
+    char *im_aud_mod;
+    char *im_vid_mod;
+
+    char *ex_aud_mod;
+    char *ex_vid_mod;
+    char *ex_mplex_mod;
+    char *ex_mplex_mod_aux;
+
+    char *plugins_string;
+
+    char *nav_seek_file;
+    char *socket_file;
+    char *chbase;
+    char base[TC_BUF_MIN];
+
+    int psu_frame_threshold;
+    
+    // FIXME: those must go away soon
+    // begin
+    int no_vin_codec;
+    int no_ain_codec;
+    int no_v_out_codec;
+    int no_a_out_codec;
+    // end
+    
+    int frame_a; /* processing interval: start frame */
+    int frame_b; /* processing interval: stop frame */
+
+    int splitavi_frames;
+    int psu_mode;
+
+    int preset_flag;
+    int auto_probe;
+    int seek_range;
+
+    int audio_adjust;
+    int split; /* XXX */
+
+    char *fc_ttime_string;
+
+    int sync_seconds;
+
+    pid_t tc_pid;
+};
+
 /*************************************************************************/
 
 // Module functions
@@ -75,13 +132,15 @@ int tc_export(int opt, void *para1, void *para2);
 
 // Some functions exported by transcode
 
+TCSession *tc_get_session(void);
+
 vob_t *tc_get_vob(void);
 
 int tc_next_video_in_file(vob_t *vob);
 int tc_next_audio_in_file(vob_t *vob);
 
-int tc_has_more_video_in_file(vob_t *vob);
-int tc_has_more_audio_in_file(vob_t *vob);
+int tc_has_more_video_in_file(TCSession *session);
+int tc_has_more_audio_in_file(TCSession *session);
 
 /* default main transcode buffer */
 TCFrameSource *tc_get_ringbuffer(TCJob *job, int aworkers, int vworkers);
@@ -89,22 +148,14 @@ TCFrameSource *tc_get_ringbuffer(TCJob *job, int aworkers, int vworkers);
 void version(void);
 
 extern int verbose;
-extern int pcmswap;
 extern int rescale;
 extern int im_clip;
 extern int ex_clip;
 extern int pre_im_clip;
 extern int post_ex_clip;
-extern int flip;
-extern int mirror;
-extern int rgbswap;
 extern int resize1;
 extern int resize2;
 extern int decolor;
-extern int zoom;
-extern int dgamma;
-extern int keepasr;
-extern int fast_resize;
 
 // Core parameters
 

@@ -225,7 +225,7 @@ TC_OPTION(input,              'i', "file",
 
 TC_OPTION(multi_input,     0,   0,
                 "enable EXPERIMENTAL multiple input mode (see manpage)",
-                core_mode = TC_MODE_DIRECTORY;
+                session->core_mode = TC_MODE_DIRECTORY;
 )
 TC_OPTION(output,             'o', "file",
                 "output file name",
@@ -266,7 +266,7 @@ TC_OPTION(split,              't', "n,base",
                     goto short_usage;
                 }
                 memcpy(base, buf, strlen(buf)+1);
-                core_mode = TC_MODE_AVI_SPLIT;
+                session->core_mode = TC_MODE_AVI_SPLIT;
 )
 TC_OPTION(audio_input,        'p', "file",
                 "read audio stream from separate file [off]",
@@ -299,7 +299,7 @@ TC_OPTION(write_pid,          0,   "file",
                     goto short_usage;
                 f = fopen(optarg, "w");
                 if (f) {
-                    fprintf(f, "%d\n", writepid);
+                    fprintf(f, "%d\n", session->tc_pid);
                     fclose(f);
                 }
 )
@@ -328,7 +328,7 @@ TC_OPTION(frames,             'c', "f1-f2[,f3-f4...]",
                 " f2,f4,... are *not* encoded [all]",
                 if (*optarg == '-')
                     goto short_usage;
-                fc_ttime_string = optarg;
+                session->fc_ttime_string = optarg;
 )
 TC_OPTION(frame_interval,     0,   "N",
                 "select only every Nth frame to be exported [1]",
@@ -468,10 +468,10 @@ TC_OPTION(import_with,        'x', "vmod[,amod]",
                 }
                 s[n] = 0;
                 n = (s==vbuf ? 1 : 2);
-                im_vid_mod = vbuf;
+                session->im_vid_mod = vbuf;
                 // FIXME: vin -> v_in to match no_v_out_codec (same w/audio)
                 no_vin_codec = 0;
-                if ((s = strchr(im_vid_mod, '=')) != NULL) {
+                if ((s = strchr(session->im_vid_mod, '=')) != NULL) {
                     *s++ = 0;
                     if (!*s) {
                         tc_error("Invalid option string for video import"
@@ -481,9 +481,9 @@ TC_OPTION(import_with,        'x', "vmod[,amod]",
                     vob->im_v_string = s;
                 }
                 if (n >= 2) {
-                    im_aud_mod = abuf;
+                    session->im_aud_mod = abuf;
                     no_ain_codec = 0;
-                    if ((s = strchr(im_aud_mod, '=')) != NULL) {
+                    if ((s = strchr(session->im_aud_mod, '=')) != NULL) {
                         *s++ = 0;
                         if (!*s) {
                             tc_error("Invalid option string for audio import"
@@ -493,15 +493,15 @@ TC_OPTION(import_with,        'x', "vmod[,amod]",
                         vob->im_a_string = s;
                     }
                 } else {
-                    im_aud_mod = im_vid_mod;
+                    session->im_aud_mod = session->im_vid_mod;
                 }
                 /* "auto" checks have to come here, to catch "auto=..." */
-                if (strcmp(im_vid_mod, "auto") == 0) {
-                    im_vid_mod = NULL;
+                if (strcmp(session->im_vid_mod, "auto") == 0) {
+                    session->im_vid_mod = NULL;
                     no_vin_codec = 1;
                 }
-                if (strcmp(im_aud_mod, "auto") == 0) {
-                    im_aud_mod = NULL;
+                if (strcmp(session->im_aud_mod, "auto") == 0) {
+                    session->im_aud_mod = NULL;
                     no_ain_codec = 1;
                 }
 )
@@ -610,6 +610,8 @@ TC_OPTION(no_audio_adjust,    0,   0,
 
 TC_OPTION(export_prof,        0,   "profile",
                 "export profile name [none]",
+                if (*optarg == '-')
+                    goto short_usage;
                 vob->ex_prof_name = optarg;
 )
 TC_OPTION(export_with,        'y', "module string",
@@ -628,9 +630,9 @@ TC_OPTION(export_with,        'y', "module string",
                 }
                 for (i = 0; i < num; i++) {
                     if (!strncmp(ex_mod_args[i], "A=", 2)) {
-                        ex_aud_mod = ex_mod_args[i] + 2;
+                        session->ex_aud_mod = ex_mod_args[i] + 2;
                         no_a_out_codec = 0;
-                        if ((s = strchr(ex_aud_mod, '=')) != NULL) {
+                        if ((s = strchr(session->ex_aud_mod, '=')) != NULL) {
                             *s++ = 0;
                             if (!*s) {
                                 tc_error("Invalid option string for audio encoder"
@@ -641,10 +643,10 @@ TC_OPTION(export_with,        'y', "module string",
                         }
                     }
                     if (!strncmp(ex_mod_args[i], "V=", 2)) {
-                        ex_vid_mod = ex_mod_args[i] + 2;
+                        session->ex_vid_mod = ex_mod_args[i] + 2;
                         no_v_out_codec = 0;
                         vob->export_attributes |= TC_EXPORT_ATTRIBUTE_VMODULE;
-                        if ((s = strchr(ex_vid_mod, '=')) != NULL) {
+                        if ((s = strchr(session->ex_vid_mod, '=')) != NULL) {
                             *s++ = 0;
                             if (!*s) {
                                 tc_error("Invalid option string for video encoder"
@@ -655,8 +657,8 @@ TC_OPTION(export_with,        'y', "module string",
                         }
                     }
                     if (!strncmp(ex_mod_args[i], "M=", 2)) {
-                        ex_mplex_mod = ex_mod_args[i] + 2;
-                        if ((s = strchr(ex_mplex_mod, '=')) != NULL) {
+                        session->ex_mplex_mod = ex_mod_args[i] + 2;
+                        if ((s = strchr(session->ex_mplex_mod, '=')) != NULL) {
                             *s++ = 0;
                             if (!*s) {
                                 tc_error("Invalid option string for multiplexor");
@@ -666,8 +668,8 @@ TC_OPTION(export_with,        'y', "module string",
                         }
                     }
                     if (!strncmp(ex_mod_args[i], "X=", 2)) {
-                        ex_mplex_mod_aux = ex_mod_args[i] + 2;
-                        if ((s = strchr(ex_mplex_mod_aux, '=')) != NULL) {
+                        session->ex_mplex_mod_aux = ex_mod_args[i] + 2;
+                        if ((s = strchr(session->ex_mplex_mod_aux, '=')) != NULL) {
                             *s++ = 0;
                             if (!*s) {
                                 tc_error("Invalid option string for auxiliary multiplexor");
@@ -1056,7 +1058,7 @@ TC_OPTION(zoom,               'Z', "[W]x[H][,mode]",
                 } else {
                     vob->zoom_height = 0;
                 }
-                zoom = TC_TRUE;
+                vob->zoom_flag = TC_TRUE;
                 if (*s == ',') {
                     s++;
                     if (strncmp(s, "fast", strlen(s)) == 0)
@@ -1237,10 +1239,10 @@ TC_OPTION(filter,             'J', "f1[,f2...]",
                 newlen = size_plugstr + strlen(optarg) + 1;  // \0
                 if (size_plugstr) // it's an append...
                     newlen++; // ... so add the and ',' separator
-                plugins_string = tc_realloc(plugins_string, newlen);
-                if (!plugins_string)
+                session->plugins_string = tc_realloc(session->plugins_string, newlen);
+                if (!session->plugins_string)
                     return 0;
-                snprintf(plugins_string + size_plugstr,
+                snprintf(session->plugins_string + size_plugstr,
                          newlen - size_plugstr,
                          "%s%s", size_plugstr ? "," : "", optarg);
                 size_plugstr = newlen - 1;
@@ -1271,7 +1273,7 @@ TC_OPTION(sync_frame,         'D', "N",
                     tc_error("Invalid argument for -D/--sync_frame");
                     goto short_usage;
                 }
-                sync_seconds = vob->sync;
+                session->sync_seconds = vob->sync;
                 preset_flag |= TC_PROBE_NO_AVSHIFT;
 )
 TC_OPTION(av_fine_ms,         0,   "time",
@@ -1358,14 +1360,14 @@ TC_OPTION(cluster_chunks,     0,   "a-b",
 TC_OPTION(psu_mode,           0,   0,
                 "process VOB in PSU, -o is a filemask incl. %d [off]",
                 psu_mode = TC_TRUE;
-                core_mode = TC_MODE_PSU;
+                session->core_mode = TC_MODE_PSU;
                 tc_cluster_mode = TC_TRUE;
 )
 TC_OPTION(psu_chunks,         0,   "a-b",
                 "process only units a-b for PSU mode [all]",
                 if (sscanf(optarg, "%d-%d,%d",
                            &vob->vob_psu_num1, &vob->vob_psu_num2,
-                           &psu_frame_threshold) < 2
+                           &session->psu_frame_threshold) < 2
                  || vob->vob_psu_num1 < 0
                  || vob->vob_psu_num2 <= 0
                  || vob->vob_psu_num1 >= vob->vob_psu_num2
@@ -1383,7 +1385,7 @@ TC_OPTION(chapter_mode,       'U', "base",
                 if (*optarg == '-')
                     goto short_usage;
                 chbase = optarg;
-                core_mode = TC_MODE_DVD_CHAPTER;
+                session->core_mode = TC_MODE_DVD_CHAPTER;
 )
 
 /********/ TC_HEADER("Synchronization options") /********/
@@ -1474,35 +1476,35 @@ TC_OPTION(accel,              0,   "type[,type...]",
                 "override CPU acceleration flags (for debugging)",
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
                 char *accel = optarg;
-                tc_accel = 0;
+                session->acceleration = 0;
                 while (accel) {
                     char *comma = strchr(accel, ',');
                     if (comma)
                         *comma++ = 0;
                     if (strcasecmp(accel, "C") == 0)  // dummy for "no accel"
-                        tc_accel |= 0;
+                        session->acceleration |= 0;
 #ifdef ARCH_X86
                     else if (strcasecmp(accel, "asm"     ) == 0)
-                        tc_accel |= AC_IA32ASM;
+                        session->acceleration |= AC_IA32ASM;
 #endif
 #ifdef ARCH_X86_64
                     else if (strcasecmp(accel, "asm"     ) == 0)
-                        tc_accel |= AC_AMD64ASM;
+                        session->acceleration |= AC_AMD64ASM;
 #endif
                     else if (strcasecmp(accel, "mmx"     ) == 0)
-                        tc_accel |= AC_MMX;
+                        session->acceleration |= AC_MMX;
                     else if (strcasecmp(accel, "mmxext"  ) == 0)
-                        tc_accel |= AC_MMXEXT;
+                        session->acceleration |= AC_MMXEXT;
                     else if (strcasecmp(accel, "3dnow"   ) == 0)
-                        tc_accel |= AC_3DNOW;
+                        session->acceleration |= AC_3DNOW;
                     else if (strcasecmp(accel, "3dnowext") == 0)
-                        tc_accel |= AC_3DNOWEXT;
+                        session->acceleration |= AC_3DNOWEXT;
                     else if (strcasecmp(accel, "sse"     ) == 0)
-                        tc_accel |= AC_SSE;
+                        session->acceleration |= AC_SSE;
                     else if (strcasecmp(accel, "sse2"    ) == 0)
-                        tc_accel |= AC_SSE2;
+                        session->acceleration |= AC_SSE2;
                     else if (strcasecmp(accel, "sse3"    ) == 0)
-                        tc_accel |= AC_SSE3;
+                        session->acceleration |= AC_SSE3;
                     else {
                         tc_error("bad --accel type, valid types: C asm"
                                  " mmx mmxext 3dnow 3dnowext sse sse2 sse3");
@@ -1519,7 +1521,7 @@ TC_OPTION(accel,              0,   "type[,type...]",
 #if 0
 TC_OPTION(debug,              0,   0,
                 "enable debugging mode [disabled]",
-                core_mode = TC_MODE_DEBUG;
+                session->core_mode = TC_MODE_DEBUG;
 )
 #endif
 

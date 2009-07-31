@@ -79,11 +79,20 @@ static vob_t vob = {
     .export_attributes= TC_EXPORT_ATTRIBUTE_NONE,
 };
 
+static TCSession session = {
+    .acceleration = AC_ALL,
+};
+
 // dependencies
 // Yeah, this sucks
-vob_t *tc_get_vob()
+vob_t *tc_get_vob(void)
 {
     return &vob;
+}
+
+TCSession *tc_get_session(void)
+{
+    return &session;
 }
 
 int tc_filter_add(const char *name, const char *options)

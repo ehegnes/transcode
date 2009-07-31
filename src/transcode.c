@@ -71,6 +71,7 @@ int zoom        = TC_FALSE;
 
 // global information structure
 static vob_t *vob = NULL;
+static TCSession *session = NULL;
 int verbose = TC_INFO;
 
 //-------------------------------------------------------------
@@ -82,7 +83,6 @@ int tc_cluster_mode      =  0;
 int tc_decoder_delay     =  0;
 int tc_progress_meter    =  -1;  // so we know whether it's set by the user
 int tc_progress_rate     =  1;
-int tc_accel             = AC_ALL;    //acceleration code
 unsigned int tc_avi_limit = (unsigned int)-1;
 pid_t tc_probe_pid       = 0;
 int tc_niceness          = 0;
@@ -132,6 +132,23 @@ vob_t *tc_get_vob()
 {
     return vob;
 }
+
+/*************************************************************************/
+
+/**
+ * tc_get_session:  Return a pointer to the global TCSession data structure.
+ *
+ * Parameters:
+ *     None.
+ * Return value:
+ *     A pointer to the global TCSession data structure.
+ */
+
+TCSession *tc_get_session()
+{
+    return session;
+}
+
 
 /*************************************************************************/
 
@@ -186,22 +203,22 @@ int tc_next_audio_in_file(vob_t *vob)
     return TC_ERROR;
 }
 
-int tc_has_more_video_in_file(vob_t *vob)
+int tc_has_more_video_in_file(TCSession *session)
 {
     int ret = TC_FALSE;
 
-    if (core_mode == TC_MODE_DIRECTORY) {
-        ret = tc_glob_has_more(vob->video_in_files);
+    if (session->core_mode == TC_MODE_DIRECTORY) {
+        ret = tc_glob_has_more(session->job->video_in_files);
     }
     return ret;
 }
 
-int tc_has_more_audio_in_file(vob_t *vob)
+int tc_has_more_audio_in_file(TCSession *session)
 {
     int ret = TC_FALSE;
 
-    if (core_mode == TC_MODE_DIRECTORY) {
-        ret = tc_glob_has_more(vob->audio_in_files);
+    if (session->core_mode == TC_MODE_DIRECTORY) {
+        ret = tc_glob_has_more(session->job->audio_in_files);
     }
     return ret;
 }
@@ -357,12 +374,13 @@ static void load_all_filters(char *filter_list)
  *     TC_ERROR on error.
  */
 
-static int transcode_init(vob_t *vob, const TCFrameSpecs *specs)
+static int transcode_init(TCSession *session, const TCFrameSpecs *specs)
 {
     int ret;
+    TCJob *vob = session->job;
 
     /* load import modules and check capabilities */
-    ret = tc_import_init(vob, im_aud_mod, im_vid_mod);
+    ret = tc_import_init(vob, session->im_aud_mod, session->im_vid_mod);
     if (ret < 0) {
         tc_log_error(PACKAGE, "failed to init import modules");
         return TC_ERROR;
@@ -370,7 +388,7 @@ static int transcode_init(vob_t *vob, const TCFrameSpecs *specs)
 
     /* load and initialize filters */
     tc_filter_init();
-    load_all_filters(plugins_string);
+    load_all_filters(session->plugins_string);
 
     /* load export modules and check capabilities
      * (only create a TCModule factory if a multiplex module was given) */
@@ -385,7 +403,8 @@ static int transcode_init(vob_t *vob, const TCFrameSpecs *specs)
 
     tc_export_config(verbose, 1, tc_cluster_mode);
 
-    ret = tc_export_setup(ex_aud_mod, ex_vid_mod, ex_mplex_mod, 0);
+    ret = tc_export_setup(session->ex_aud_mod, session->ex_vid_mod,
+                          session->ex_mplex_mod, session->ex_mplex_mod_aux);
     if (ret != TC_OK) {
         tc_log_error(PACKAGE, "failed to init export modules");
         return TC_ERROR;
@@ -489,7 +508,7 @@ static int transcode_mode_default(vob_t *vob)
             tc_import_close();
             tc_framebuffer_flush();
             vob->vob_offset = tstart->vob_offset;
-            vob->sync = sync_seconds;
+            vob->sync = session->sync_seconds;
             if (tc_import_open(vob) < 0)
                 tc_error("failed to open input source");
             tc_import_threads_create(vob);
@@ -702,7 +721,7 @@ static int transcode_mode_psu(vob_t *vob, const char *psubase)
             break;
     
         // do not process units with a small frame number, assume it is junk
-        if ((fb-fa) > psu_frame_threshold) {
+        if ((fb-fa) > session->psu_frame_threshold) {
             tc_start();
 
             // start new decoding session with updated vob structure
@@ -1044,6 +1063,7 @@ static vob_t *new_vob(void)
     vob->reduce_w            = 1;
 
     //-Z
+    vob->zoom_flag           = TC_FALSE;
     vob->zoom_width          = 0;
     vob->zoom_height         = 0;
     vob->zoom_filter         = TCV_ZOOM_LANCZOS3;
@@ -1086,6 +1106,82 @@ static vob_t *new_vob(void)
     return vob;
 }
 
+/*************************************************************************/
+
+/**
+ * new_session:  Create a new TCSession structure and fill it with appropriate
+ * values.
+ *
+ * Parameters:
+ *     None.
+ * Return value:
+ *     A pointer to the newly-created TCSession structure, or NULL on error.
+ * Notes:
+ *     On error, errno is valid.
+ */
+
+static TCSession *new_session(TCJob *job)
+{
+    TCSession *session = tc_malloc(sizeof(vob_t));
+    if (!session)
+        return NULL;
+
+    session->core_mode           = TC_MODE_DEFAULT;
+
+    session->acceleration        = AC_ALL;
+
+    session->job                 = job;
+
+    session->im_aud_mod          = NULL;
+    session->im_vid_mod          = NULL;
+
+    session->ex_aud_mod          = NULL;
+    session->ex_vid_mod          = NULL;
+    session->ex_mplex_mod        = NULL;
+    session->ex_mplex_mod_aux    = NULL;
+
+    session->plugins_string      = NULL;
+
+    session->nav_seek_file       = NULL;
+    session->socket_file         = NULL;
+    session->chbase              = NULL;
+    memset(session->base, 0, sizeof(session->base));
+
+    session->psu_frame_threshold = 12;
+    /* FIXME: magic number */
+    
+    // FIXME: those must go away soon
+    // begin
+    session->no_vin_codec        = 1;
+    session->no_ain_codec        = 1;
+    session->no_v_out_codec      = 1;
+    session->no_a_out_codec      = 1;
+    // end
+    
+    session->frame_a             = TC_FRAME_FIRST;
+    /* processing interval: start frame */
+    session->frame_b             = TC_FRAME_LAST;
+    /* processing interval: stop frame */
+
+    session->splitavi_frames     = 0;
+    session->psu_mode            = TC_FALSE;
+
+    session->preset_flag         = 0;
+    session->auto_probe          = 1;
+    session->seek_range          = 1;
+
+    session->audio_adjust        = TC_TRUE;
+    session->split               = TC_TRUE;
+
+    session->fc_ttime_string     = NULL;
+
+    session->sync_seconds        = 0;
+
+    session->tc_pid              = getpid();
+
+    return session;
+}
+ 
 /*************************************************************************/
 
 /*
@@ -1360,9 +1456,6 @@ int main(int argc, char *argv[])
 
     TCFrameSpecs specs;
 
-    //main thread id
-    writepid = getpid();
-
     /* ------------------------------------------------------------
      *
      *  (I) set transcode defaults:
@@ -1372,7 +1465,12 @@ int main(int argc, char *argv[])
     // create global vob structure
     vob = new_vob();
     if (!vob) {
-        tc_error("data initialization failed");
+        tc_error("job data initialization failed");
+    }
+
+    session = new_session(vob);
+    if (!session) {
+        tc_error("session data initialization failed");
     }
 
     // prepare for signal catching
@@ -1400,7 +1498,7 @@ int main(int argc, char *argv[])
      */
     libtc_init(&argc, &argv);
 
-    if (!parse_cmdline(argc, argv, vob))
+    if (!parse_cmdline(argc, argv, vob, session))
         exit(EXIT_FAILURE);
 
     setup_input_sources(vob);
@@ -1465,7 +1563,7 @@ int main(int argc, char *argv[])
                         "import format",
                         tc_codec_to_comment(vob->v_codec_flag),
                         tc_format_to_comment(vob->v_format_flag),
-                        no_vin_codec == 0 ? im_vid_mod : vob->vmod_probed);
+                        session->no_vin_codec == 0 ? session->im_vid_mod : vob->vmod_probed);
             tc_log_info(PACKAGE, "A: %-16s | %s (%s)", "auto-probing",
                         (vob->audio_in_file != NULL) ?vob->audio_in_file :"N/A",
                         result ? "OK" : "FAILED");
@@ -1473,7 +1571,7 @@ int main(int argc, char *argv[])
                         "import format",
                         tc_codec_to_comment(vob->a_codec_flag),
                         tc_format_to_comment(vob->a_format_flag),
-                        no_ain_codec==0 ? im_aud_mod : vob->amod_probed);
+                        session->no_ain_codec==0 ? session->im_aud_mod : vob->amod_probed);
         }
     }
 
@@ -1497,10 +1595,10 @@ int main(int argc, char *argv[])
      * ------------------------------------------------------------*/
 
     // set up ttime from -c or default
-    if (fc_ttime_string) {
+    if (session->fc_ttime_string) {
         // FIXME: should be in -c handler, but we need to know vob->fps first
         free_fc_time(vob->ttime);
-        if (parse_fc_time_string(fc_ttime_string, vob->fps, ",",
+        if (parse_fc_time_string(session->fc_ttime_string, vob->fps, ",",
                                  (verbose>1 ? 1 : 0), &vob->ttime) == -1)
             tc_error("error parsing time specifications");
     } else {
@@ -1551,36 +1649,36 @@ int main(int argc, char *argv[])
         vob->ex_v_codec = TC_CODEC_RAW;
 
         // suggestion:
-        if (no_v_out_codec)
-            ex_vid_mod = "raw";
-        no_v_out_codec = 0;
+        if (session->no_v_out_codec)
+            session->ex_vid_mod = "raw";
+        session->no_v_out_codec = 0;
 
-        if (no_a_out_codec)
-            ex_aud_mod = "raw";
-        no_a_out_codec = 0;
+        if (session->no_a_out_codec)
+            session->ex_aud_mod = "raw";
+        session->no_a_out_codec = 0;
 
         if (verbose >= TC_INFO)
             tc_log_info(PACKAGE, "V: %-16s | yes", "pass-through");
     }
 
     // -x
-    if (no_vin_codec && vob->video_in_file != NULL && vob->vmod_probed == NULL)
+    if (session->no_vin_codec && vob->video_in_file != NULL && vob->vmod_probed == NULL)
         tc_error("module autoprobe failed, no option -x found");
 
 
     //overwrite results of autoprobing if modules are provided
-    if (no_vin_codec && vob->vmod_probed!=NULL) {
-        im_vid_mod = (char *)vob->vmod_probed_xml;
+    if (session->no_vin_codec && vob->vmod_probed!=NULL) {
+        session->im_vid_mod = (char *)vob->vmod_probed_xml;
         //need to load the correct module if the input file type is xml
     }
 
-    if (no_ain_codec && vob->amod_probed!=NULL) {
-        im_aud_mod = (char *)vob->amod_probed_xml;
+    if (session->no_ain_codec && vob->amod_probed!=NULL) {
+        session->im_aud_mod = (char *)vob->amod_probed_xml;
         //need to load the correct module if the input file type is xml
     }
 
     // make zero frame size default for no video
-    if (im_vid_mod != NULL && strcmp(im_vid_mod, "null") == 0) {
+    if (session->im_vid_mod != NULL && strcmp(session->im_vid_mod, "null") == 0) {
         vob->im_v_width = 0;
         vob->im_v_height = 0;
     }
@@ -2134,7 +2232,7 @@ int main(int argc, char *argv[])
         vob->audio_out_file = vob->video_out_file;
 
     // -n
-    if (no_ain_codec == 1 && vob->has_audio == 0
+    if (session->no_ain_codec == 1 && vob->has_audio == 0
      && vob->a_codec_flag == TC_CODEC_AC3) {
         if (vob->amod_probed == NULL || strcmp(vob->amod_probed,"null") == 0) {
             if (verbose >= TC_DEBUG)
@@ -2157,7 +2255,7 @@ int main(int argc, char *argv[])
     if (vob->a_codec_flag == 0) {
         if (verbose >= TC_INFO)
             tc_log_info(PACKAGE, "A: %-16s | disabled", "import");
-        im_aud_mod = "null";
+        session->im_aud_mod = "null";
     } else {
         //audio format, if probed sucessfully
         if (verbose >= TC_INFO) {
@@ -2191,21 +2289,11 @@ int main(int argc, char *argv[])
     }
 
     if (vob->ex_a_codec == 0 || vob->a_codec_flag == 0
-     || ex_aud_mod == NULL || strcmp(ex_aud_mod, "null") == 0) {
+     || session->ex_aud_mod == NULL || strcmp(session->ex_aud_mod, "null") == 0) {
         if (verbose >= TC_INFO)
             tc_log_info(PACKAGE, "A: %-16s | disabled", "export");
-        ex_aud_mod = "null";
+        session->ex_aud_mod = "null";
     } else {
-        // audio format
-        if (ex_aud_mod && strlen(ex_aud_mod) != 0) {
-            if (strcmp(ex_aud_mod, "mpeg") == 0)
-                vob->ex_a_codec = TC_CODEC_MP2;
-            if (strcmp(ex_aud_mod, "mp2enc") == 0)
-                vob->ex_a_codec = TC_CODEC_MP2;
-            if (strcmp(ex_aud_mod, "mp1e") == 0)
-                vob->ex_a_codec = TC_CODEC_MP2;
-        }
-
         // calc export bitrate
         switch (vob->ex_a_codec) {
           case 0x1: // PCM
@@ -2388,18 +2476,19 @@ int main(int argc, char *argv[])
         vob->im_a_codec = TC_CODEC_RAW;
         vob->ex_a_codec = TC_CODEC_RAW;
         //suggestion:
-        if (no_a_out_codec)
-            ex_aud_mod = "raw";
-        no_a_out_codec = 0;
+        if (session->no_a_out_codec)
+            session->ex_aud_mod = "raw";
+        session->no_a_out_codec = 0;
 
         if (verbose >= TC_INFO)
             tc_log_info(PACKAGE, "A: %-16s | yes", "pass-through");
     }
 
+    // FIXME: no longer true
     // -m
     // different audio/video output files need two export modules
-    if (no_a_out_codec == 0 && vob->audio_out_file == NULL
-     && strcmp(ex_vid_mod, ex_aud_mod) != 0)
+    if (session->no_a_out_codec == 0 && vob->audio_out_file == NULL
+     && strcmp(session->ex_vid_mod, session->ex_aud_mod) != 0)
         tc_error("different audio/export modules require use of option -m");
 
 
@@ -2407,10 +2496,10 @@ int main(int argc, char *argv[])
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
     if (verbose >= TC_INFO)
         tc_log_info(PACKAGE, "V: IA32/AMD64 accel | %s ",
-                    ac_flagstotext(tc_accel & ac_cpuinfo()));
+                    ac_flagstotext(session->acceleration & ac_cpuinfo()));
 #endif
 
-    ac_init(tc_accel);
+    ac_init(session->acceleration);
     tc_ext_init();
 
     // more checks with warnings
@@ -2418,7 +2507,7 @@ int main(int argc, char *argv[])
     if (verbose >= TC_INFO) {
         // -o
         if (vob->video_out_file == NULL && vob->audio_out_file == NULL
-         && core_mode == TC_MODE_DEFAULT) {
+         && session->core_mode == TC_MODE_DEFAULT) {
             vob->video_out_file = TC_DEFAULT_OUT_FILE;
             vob->audio_out_file = TC_DEFAULT_OUT_FILE;
             tc_warn("no option -o found, encoded frames send to \"%s\"",
@@ -2426,11 +2515,11 @@ int main(int argc, char *argv[])
         }
 
         // -y
-        if (core_mode == TC_MODE_DEFAULT
-         && vob->video_out_file != NULL && no_v_out_codec)
+        if (session->core_mode == TC_MODE_DEFAULT
+         && vob->video_out_file != NULL && session->no_v_out_codec)
             tc_warn("no option -y found, option -o ignored, writing to \"/dev/null\"");
 
-        if (core_mode == TC_MODE_AVI_SPLIT && no_v_out_codec)
+        if (session->core_mode == TC_MODE_AVI_SPLIT && session->no_v_out_codec)
             tc_warn("no option -y found, option -t ignored, writing to \"/dev/null\"");
 
         if (vob->im_v_codec == TC_CODEC_YUV420P
@@ -2446,18 +2535,18 @@ int main(int argc, char *argv[])
 
     // -u
     if (tc_buffer_delay_dec == -1) //adjust core parameter
-        tc_buffer_delay_dec = (vob->pass_flag & TC_VIDEO || ex_vid_mod==NULL || strcmp(ex_vid_mod, "null") == 0)
+        tc_buffer_delay_dec = (vob->pass_flag & TC_VIDEO || session->ex_vid_mod==NULL || strcmp(session->ex_vid_mod, "null") == 0)
                                 ?TC_DELAY_MIN :TC_DELAY_MAX;
 
     if (tc_buffer_delay_enc == -1) //adjust core parameter
-        tc_buffer_delay_enc = (vob->pass_flag & TC_VIDEO || ex_vid_mod==NULL || strcmp(ex_vid_mod, "null") == 0)
+        tc_buffer_delay_enc = (vob->pass_flag & TC_VIDEO || session->ex_vid_mod==NULL || strcmp(session->ex_vid_mod, "null") == 0)
                                 ?TC_DELAY_MIN :TC_DELAY_MAX;
 
     if (verbose >= TC_DEBUG)
         tc_log_msg(PACKAGE, "encoder delay = decode=%d encode=%d usec",
                    tc_buffer_delay_dec, tc_buffer_delay_enc);
 
-    if (core_mode == TC_MODE_AVI_SPLIT && !strlen(base) && !vob->video_out_file)
+    if (session->core_mode == TC_MODE_AVI_SPLIT && !strlen(base) && !vob->video_out_file)
         tc_error("no option -o found, no base for -t given, so what?");
 
     /* -------------------------------------------------------------
@@ -2512,7 +2601,7 @@ int main(int argc, char *argv[])
 #endif
 
     // load import/export modules and filters plugins
-    if (transcode_init(vob, &specs) != TC_OK)
+    if (transcode_init(session, &specs) != TC_OK)
         tc_error("plug-in initialization failed");
 
     // start socket stuff
@@ -2535,7 +2624,7 @@ int main(int argc, char *argv[])
      *
      * ------------------------------------------------------------*/
 
-    switch (core_mode) {
+    switch (session->core_mode) {
       case TC_MODE_DEFAULT:
         transcode_mode_default(vob);
         break;

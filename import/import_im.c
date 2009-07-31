@@ -308,7 +308,7 @@ MOD_close
     }
 
     if (param->flag == TC_VIDEO) {
-        vob_t *vob = tc_get_vob();
+        TCSession *session = tc_get_session(); /* bandaid */
         int ret = TC_OK;
 
         if (param->fd != NULL) {
@@ -324,8 +324,9 @@ MOD_close
             IM.tail = NULL;
         }
 
-        if (!tc_has_more_video_in_file(vob)) {
-            /* ...can you hear this? it's the sound of the ugliness... */
+        if (!tc_has_more_video_in_file(session)) {
+            /* FIXME FIXME FIXME: outrageous layering violation */
+            /* Can you hear this? It's the sound of the uglinesssssss */
             ret = tc_magick_fini(&IM.magick);
         }
         return ret;

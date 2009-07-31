@@ -99,6 +99,7 @@ static int raw_open(TCModuleInstance *self, const char *filename,
     char aud_name[PATH_MAX] = { '\0' };
     RawPrivateData *pd = NULL;
     TCJob *vob = tc_get_vob();
+    TCSession *S = tc_get_session();
 
     TC_MODULE_SELF_CHECK(self, "configure");
 
@@ -107,7 +108,7 @@ static int raw_open(TCModuleInstance *self, const char *filename,
     // XXX
     // HACK: Don't append .vid for -y ...,null,raw, since there's only one
     //       output file.  --AC
-    if ((ex_aud_mod != NULL && strcmp(ex_aud_mod, "null") != 0)
+    if ((S->ex_aud_mod != NULL && strcmp(S->ex_aud_mod, "null") != 0)
         && (vob->audio_out_file == NULL
             || strcmp(vob->audio_out_file, "/dev/null") == 0)
         && (HAS_VIDEO(pd) && HAS_AUDIO(pd))
@@ -140,7 +141,7 @@ static int raw_open(TCModuleInstance *self, const char *filename,
 
     /* avoid fd loss in case of failed configuration */
     // HACK: Don't open for -y ...,null,raw.  --AC
-    if ((ex_aud_mod != NULL && strcmp(ex_aud_mod, "null") != 0)
+    if ((S->ex_aud_mod != NULL && strcmp(S->ex_aud_mod, "null") != 0)
      && (HAS_AUDIO(pd) && pd->fd_aud == -1)
     ) {
         pd->fd_aud = open(aud_name,

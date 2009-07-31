@@ -215,6 +215,7 @@ struct _vob_t {
     int vert_resize2;           // Height resize amount (expand)
     int hori_resize2;           // Width resize amount (expand)
 
+    int zoom_flag;              // Zoom enabled or not?
     int zoom_width;             // Zoom width
     int zoom_height;            // Zoom height
     int zoom_interlaced;        // Zoom in interlaced mode?
