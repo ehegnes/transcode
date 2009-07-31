@@ -65,8 +65,9 @@ void counter_on(void)
 
 void counter_off(void)
 {
+    TCSession *session = tc_get_session();
     if (printed) {
-        if (tc_progress_meter == 1)
+        if (session->progress_meter == 1)
             fprintf(stderr, "\n");
         printed = 0;
     }
@@ -138,7 +139,8 @@ void counter_reset_ranges(void)
 
 void counter_print(int encoding, int frame, int first, int last)
 {
-    vob_t *vob = tc_get_vob();
+    TCSession *session = tc_get_session();
+    vob_t *vob = session->job;
     struct timeval tv;
     struct timezone dummy_tz = {0,0};
     double now, timediff, fps, time;
@@ -150,10 +152,10 @@ void counter_print(int encoding, int frame, int first, int last)
     /* Time of last call */
     static double old_time = 0;
 
-    if (!tc_progress_meter
-     || !tc_progress_rate
+    if (!session->progress_meter
+     || !session->progress_rate
      || !counter_active
-     || frame % tc_progress_rate != 0
+     || frame % session->progress_rate != 0
     ) {
         return;
     }
@@ -186,7 +188,7 @@ void counter_print(int encoding, int frame, int first, int last)
     if (old_first != first || old_last != last) {
         /* In human-readable mode, start a new counter line for each range
          * if we don't know the total number of frames to be encoded. */
-        if (tc_progress_meter == 1 && old_first != -1 && frames_to_encode == 0)
+        if (session->progress_meter == 1 && old_first != -1 && frames_to_encode == 0)
             fprintf(stderr, "\n");
         start_time = now;
         old_first = first;
@@ -310,7 +312,8 @@ static void print_counter_line(int encoding, int frame, int first, int last,
                                int secleft, int decodebuf, int filterbuf,
                                int encodebuf)
 {
-    if (tc_progress_meter == 2) {
+    TCSession *session = tc_get_session();
+    if (session->progress_meter == 2) {
         /* Raw data format */
         printf("encoding=%d frame=%d first=%d last=%d fps=%.3f done=%.6f"
                " timestamp=%.3f timeleft=%d decodebuf=%d filterbuf=%d"

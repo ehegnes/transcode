@@ -20,7 +20,6 @@ extern int parse_cmdline(int argc, char **argv, vob_t *vob,
 /* Global variables from transcode.c that should eventually go away. */
 extern char *nav_seek_file, *socket_file, *chbase, //*dirbase,
             base[TC_BUF_MIN];
-extern int frame_a, frame_b, splitavi_frames, psu_mode;
 extern int preset_flag, auto_probe, seek_range;
 extern int no_audio_adjust, no_split;
 

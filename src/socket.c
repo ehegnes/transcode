@@ -587,6 +587,7 @@ static int handle_preview(char *params)
 
 static int handle(char *buf)
 {
+    TCSession *session = tc_get_session();
     char *cmd, *params;
     int len, retval;
 
@@ -627,7 +628,7 @@ static int handle(char *buf)
     } else if (strncasecmp(cmd, "preview", 3) == 0) {
         retval = handle_preview(params);
     } else if (strncasecmp(cmd, "progress", 5) == 0) {
-        tc_progress_meter = !tc_progress_meter;
+        session->progress_meter = !session->progress_meter;
         retval = 1;
     } else if (strncasecmp(cmd, "processing", 10) == 0) {
         dump_processing(client_sock);

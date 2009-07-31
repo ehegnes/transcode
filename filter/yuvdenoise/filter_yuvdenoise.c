@@ -526,7 +526,7 @@ void turn_on_accels(void)
 {
 /* XXX: very weird effects, #undef'ed in global.h -- tibit */
 #ifdef HAVE_ASM_MMX
-  uint32_t CPU_CAP = tc_accel;
+  uint32_t CPU_CAP = tc_get_session()->acceleration; /* XXX ugly */
 
   if( (CPU_CAP & AC_MMXEXT)!=0 ||
       (CPU_CAP & AC_SSE   )!=0

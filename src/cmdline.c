@@ -32,14 +32,6 @@ char
     *nav_seek_file=NULL, *socket_file=NULL,
     *chbase=NULL, //*dirbase=NULL,
     base[TC_BUF_MIN];
-int
-    no_vin_codec=1, no_ain_codec=1,
-    no_v_out_codec=1, no_a_out_codec=1;
-int
-    frame_a=TC_FRAME_FIRST,   // defaults to all frames
-    frame_b=TC_FRAME_LAST,
-    splitavi_frames=0,
-    psu_mode=TC_FALSE;
 int preset_flag=0, auto_probe=1, seek_range=1;
 int no_audio_adjust=TC_FALSE, no_split=TC_FALSE;
 

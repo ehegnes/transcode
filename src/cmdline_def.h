@@ -233,13 +233,12 @@ TC_OPTION(output,             'o', "file",
 )
 TC_OPTION(avi_limit,          0,   "size",
                 "split output AVI file after \"size\" MB [2048]",
-                tc_avi_limit = strtol(optarg, &optarg, 10);
+//                int tc_avi_limit = strtol(optarg, &optarg, 10);
                 if (*optarg) {
                     tc_error("Invalid argument for --avi_limit");
                     goto short_usage;
                 }
-                if (tc_avi_limit <= 0)
-                    tc_avi_limit = (unsigned int)-1;
+		/* FIXME FIXME FIXME */
 )
 TC_OPTION(avi_comments,       0,   "file",
                 "read AVI header comments from file [off]",
@@ -255,8 +254,8 @@ TC_OPTION(split,              't', "n,base",
                  * 1000 characters--EXCLUDING the trailing null, so a
                  * buffer of 1001 bytes is needed! */
                 char buf[1001] = "";
-                if (sscanf(optarg, "%d,%1000[^,]", &splitavi_frames, buf) != 2
-                 || splitavi_frames <= 0
+                if (sscanf(optarg, "%d,%1000[^,]", &session->splitavi_frames, buf) != 2
+                 || session->splitavi_frames <= 0
                 ) {
                     tc_error("Invalid argument for -t/--split");
                     goto short_usage;
@@ -470,7 +469,7 @@ TC_OPTION(import_with,        'x', "vmod[,amod]",
                 n = (s==vbuf ? 1 : 2);
                 session->im_vid_mod = vbuf;
                 // FIXME: vin -> v_in to match no_v_out_codec (same w/audio)
-                no_vin_codec = 0;
+                session->no_vin_codec = 0;
                 if ((s = strchr(session->im_vid_mod, '=')) != NULL) {
                     *s++ = 0;
                     if (!*s) {
@@ -482,7 +481,7 @@ TC_OPTION(import_with,        'x', "vmod[,amod]",
                 }
                 if (n >= 2) {
                     session->im_aud_mod = abuf;
-                    no_ain_codec = 0;
+                    session->no_ain_codec = 0;
                     if ((s = strchr(session->im_aud_mod, '=')) != NULL) {
                         *s++ = 0;
                         if (!*s) {
@@ -498,11 +497,11 @@ TC_OPTION(import_with,        'x', "vmod[,amod]",
                 /* "auto" checks have to come here, to catch "auto=..." */
                 if (strcmp(session->im_vid_mod, "auto") == 0) {
                     session->im_vid_mod = NULL;
-                    no_vin_codec = 1;
+                    session->no_vin_codec = 1;
                 }
                 if (strcmp(session->im_aud_mod, "auto") == 0) {
                     session->im_aud_mod = NULL;
-                    no_ain_codec = 1;
+                    session->no_ain_codec = 1;
                 }
 )
 TC_OPTION(frame_size,         'g', "WxH",
@@ -631,7 +630,7 @@ TC_OPTION(export_with,        'y', "module string",
                 for (i = 0; i < num; i++) {
                     if (!strncmp(ex_mod_args[i], "A=", 2)) {
                         session->ex_aud_mod = ex_mod_args[i] + 2;
-                        no_a_out_codec = 0;
+                        session->no_a_out_codec = 0;
                         if ((s = strchr(session->ex_aud_mod, '=')) != NULL) {
                             *s++ = 0;
                             if (!*s) {
@@ -644,7 +643,7 @@ TC_OPTION(export_with,        'y', "module string",
                     }
                     if (!strncmp(ex_mod_args[i], "V=", 2)) {
                         session->ex_vid_mod = ex_mod_args[i] + 2;
-                        no_v_out_codec = 0;
+                        session->no_v_out_codec = 0;
                         vob->export_attributes |= TC_EXPORT_ATTRIBUTE_VMODULE;
                         if ((s = strchr(session->ex_vid_mod, '=')) != NULL) {
                             *s++ = 0;
@@ -1339,7 +1338,7 @@ TC_OPTION(autosplit,          'W', "n,m[,file]",
                 }
                 if (*vob_logfile)
                     vob->vob_info_file = vob_logfile;
-                tc_cluster_mode = TC_TRUE;
+                session->cluster_mode = TC_TRUE;
 )
 TC_OPTION(cluster_percentage, 0,   0,
                 "use percentage mode for cluster encoding [off]",
@@ -1359,9 +1358,9 @@ TC_OPTION(cluster_chunks,     0,   "a-b",
 )
 TC_OPTION(psu_mode,           0,   0,
                 "process VOB in PSU, -o is a filemask incl. %d [off]",
-                psu_mode = TC_TRUE;
-                session->core_mode = TC_MODE_PSU;
-                tc_cluster_mode = TC_TRUE;
+                session->psu_mode     = TC_TRUE;
+                session->core_mode    = TC_MODE_PSU;
+                session->cluster_mode = TC_TRUE;
 )
 TC_OPTION(psu_chunks,         0,   "a-b",
                 "process only units a-b for PSU mode [all]",
@@ -1421,28 +1420,28 @@ TC_OPTION(buffers,            'u', "N",
                 "use N framebuffers for AV processing [10]",
                 /* FIXME: threads ought to be a separate option */
                 int threads_dummy = 0;
-                if (sscanf(optarg, "%d,%d,%d,%d", &max_frame_buffer,
-                           &threads_dummy, &tc_buffer_delay_dec,
-                           &tc_buffer_delay_enc) < 1
-                 || max_frame_buffer < 0
+                if (sscanf(optarg, "%d,%d,%d,%d", &session->max_frame_buffer,
+                           &threads_dummy, &session->buffer_delay_dec,
+                           &session->buffer_delay_enc) < 1
+                 || session->max_frame_buffer < 0
                 ) {
                     tc_error("Invalid argument for -u/--buffers");
                     goto short_usage;
                 }
-                if (threads_dummy != 0 && threads_dummy != max_frame_threads) {
+                if (threads_dummy != 0 && threads_dummy != session->max_frame_threads) {
                     tc_warn("Use --threads to specify number of threads,"
                             " not -u");
                     /* FIXME: deprecated in 1.1.0, remove later */
-                    max_frame_threads = threads_dummy;
+                    session->max_frame_threads = threads_dummy;
                 }
                 preset_flag |= TC_PROBE_NO_BUFFER;
 )
 TC_OPTION(threads,            0,   "N",
                 "use N threads for AV processing [1]",
-                max_frame_threads = strtol(optarg, &optarg, 10);
+                session->max_frame_threads = strtol(optarg, &optarg, 10);
                 if (*optarg
-                 || max_frame_threads < 0
-                 || max_frame_threads > TC_FRAME_THREADS_MAX
+                 || session->max_frame_threads < 0
+                 || session->max_frame_threads > TC_FRAME_THREADS_MAX
                 ) {
                     tc_error("Invalid argument for -u/--threads");
                     goto short_usage;
@@ -1450,23 +1449,23 @@ TC_OPTION(threads,            0,   "N",
 )
 TC_OPTION(progress_meter,     0,   "N",
                 "select type of progress meter [1]",
-                tc_progress_meter = strtol(optarg, &optarg, 0);
-                if (*optarg || tc_progress_meter < 0) {
+                session->progress_meter = strtol(optarg, &optarg, 0);
+                if (*optarg || session->progress_meter < 0) {
                     tc_error("Invalid argument for --progress_meter");
                     goto short_usage;
                 }
 )
 TC_OPTION(progress_rate,      0,   "N",
                 "print progress every N frames [1]",
-                tc_progress_rate = strtol(optarg, &optarg, 0);
-                if (*optarg || tc_progress_rate <= 0) {
+                session->progress_rate = strtol(optarg, &optarg, 0);
+                if (*optarg || session->progress_rate <= 0) {
                     tc_error("Invalid argument for --progress_rate");
                     goto short_usage;
                 }
 )
 TC_OPTION(nice,               0,   "N",
                 "set niceness to N [off]",
-                tc_niceness = strtol(optarg, &optarg, 0);
+                session->niceness = strtol(optarg, &optarg, 0);
                 if (*optarg) {
                     tc_error("Invalid argument for --nice");
                     goto short_usage;

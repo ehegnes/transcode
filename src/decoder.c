@@ -706,6 +706,7 @@ int tc_import_audio_status(void)
 
 void tc_import_threads_cancel(void)
 {
+    TCSession *session = tc_get_session();
     void *status = NULL;
     int vret, aret;
 
@@ -713,10 +714,11 @@ void tc_import_threads_cancel(void)
     tc_import_thread_stop(&audio_decdata);
     tc_framebuffer_interrupt_stage(TC_FRAME_NULL);
 
-    if (tc_decoder_delay)
+    if (session->decoder_delay)
         tc_log_info(__FILE__,
-                    "sleeping for %i seconds to cool down", tc_decoder_delay);
-    sleep(tc_decoder_delay);
+                    "sleeping for %i seconds to cool down",
+                    session->decoder_delay);
+    sleep(session->decoder_delay);
 
     vret = pthread_join(video_decdata.thread_id, &status);
     if (verbose >= TC_DEBUG) {

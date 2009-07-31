@@ -337,19 +337,20 @@ static int do_probe(const char *file, const char *nav_seek_file, int title,
                     int range, int mplayer_flag, int verbose_flag,
                     ProbeInfo *info_ret)
 {
+    TCSession *session = tc_get_session();
     char cmdbuf[PATH_MAX+1000];
     FILE *pipe;
 
     if (mplayer_flag) {
-	if (tc_snprintf(cmdbuf, sizeof(cmdbuf),
-			"tcprobe -B -M -i \"%s\" -d %d",
-			file, verbose_flag) < 0)
-	    return 0;
+    	if (tc_snprintf(cmdbuf, sizeof(cmdbuf),
+	    		"tcprobe -B -M -i \"%s\" -d %d",
+		    	file, verbose_flag) < 0)
+    	    return 0;
     } else {
-	if (tc_snprintf(cmdbuf, sizeof(cmdbuf),
-			"tcprobe -B -i \"%s\" -T %d -H %d -d %d",
-			file, title, range, verbose_flag) < 0)
-	    return 0;
+	    if (tc_snprintf(cmdbuf, sizeof(cmdbuf),
+		    	"tcprobe -B -i \"%s\" -T %d -H %d -d %d",
+			    file, title, range, verbose_flag) < 0)
+    	    return 0;
         if (nav_seek_file
          && tc_snprintf(cmdbuf+strlen(cmdbuf), sizeof(cmdbuf)-strlen(cmdbuf),
                         " -f \"%s\"", nav_seek_file) < 0)
@@ -357,14 +358,14 @@ static int do_probe(const char *file, const char *nav_seek_file, int title,
     }
     pipe = popen(cmdbuf, "r");
     if (!pipe)
-	return 0;
-    if (fread(&tc_probe_pid, sizeof(pid_t), 1, pipe) != 1) {
+	    return 0;
+    if (fread(&session->tc_probe_pid, sizeof(pid_t), 1, pipe) != 1) {
         pclose(pipe);
-	return 0;
+    	return 0;
     }
     if (fread(info_ret, sizeof(*info_ret), 1, pipe) != 1) {
         pclose(pipe);
-	return 0;
+	    return 0;
     }
     pclose(pipe);
     return 1;

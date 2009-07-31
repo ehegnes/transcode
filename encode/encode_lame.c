@@ -171,6 +171,7 @@ static int lame_configure(TCModuleInstance *self,
     char lame_preset[TC_BUF_MIN] = { '\0' };
     PrivateData *pd;
     int samplerate = vob->mp3frequency ? vob->mp3frequency : vob->a_rate;
+    int tc_accel = tc_get_session()->acceleration; /* XXX ugly */
     int ret, quality;
     MPEG_mode mode;
 

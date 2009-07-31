@@ -93,6 +93,18 @@ struct tcsession_ {
     char *chbase;
     char base[TC_BUF_MIN];
 
+    int buffer_delay_dec;
+    int buffer_delay_enc;
+    int cluster_mode;
+    int decoder_delay;
+    int progress_meter;
+    int progress_rate;
+
+    int niceness;
+
+    int max_frame_buffer;
+    int max_frame_threads;
+
     int psu_frame_threshold;
     
     // FIXME: those must go away soon
@@ -121,6 +133,7 @@ struct tcsession_ {
     int sync_seconds;
 
     pid_t tc_pid;
+    pid_t tc_probe_pid;
 };
 
 /*************************************************************************/
@@ -159,22 +172,7 @@ extern int decolor;
 
 // Core parameters
 
-extern int tc_buffer_delay_dec;
-extern int tc_buffer_delay_enc;
-extern int tc_cluster_mode;
-extern int tc_decoder_delay;
-extern int tc_progress_meter;
-extern int tc_progress_rate;
-extern int tc_accel;
-extern unsigned int tc_avi_limit;
-extern pid_t tc_probe_pid;
-extern int tc_niceness;
-
-extern int max_frame_buffer;
-extern int max_frame_threads;
-
 // Various constants
-
 enum {
     TC_EXPORT_NAME = 10,
     TC_EXPORT_OPEN,

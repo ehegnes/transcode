@@ -449,6 +449,7 @@ static int x264params_check(x264_param_t *params)
 
 static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
 {
+    int tc_accel = tc_get_session()->acceleration; /* XXX ugly */
     /* Set video/bitstream parameters */
 
     params->i_width = vob->ex_v_width;

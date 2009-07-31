@@ -75,22 +75,6 @@ static TCSession *session = NULL;
 int verbose = TC_INFO;
 
 //-------------------------------------------------------------
-// core parameter
-
-int tc_buffer_delay_dec  = -1;
-int tc_buffer_delay_enc  = -1;
-int tc_cluster_mode      =  0;
-int tc_decoder_delay     =  0;
-int tc_progress_meter    =  -1;  // so we know whether it's set by the user
-int tc_progress_rate     =  1;
-unsigned int tc_avi_limit = (unsigned int)-1;
-pid_t tc_probe_pid       = 0;
-int tc_niceness          = 0;
-
-int max_frame_buffer  = TC_FRAME_BUFFER;
-int max_frame_threads = TC_FRAME_THREADS;
-
-//-------------------------------------------------------------
 
 
 /*************************************************************************/
@@ -270,6 +254,7 @@ static void event_handler(int sig)
 
 static void *event_thread(void* blocked_)
 {
+    TCSession *session = tc_get_session();
     struct sigaction handler;
     sigset_t *blocked = blocked_;
 
@@ -297,8 +282,8 @@ static void *event_thread(void* blocked_)
                 tc_log_info(PACKAGE, "(sighandler) %s received", signame);
 
             /* Kill the tcprobe process if it's running */
-            if (tc_probe_pid > 0)
-                kill(tc_probe_pid, SIGTERM);
+            if (session->tc_probe_pid > 0)
+                kill(session->tc_probe_pid, SIGTERM);
         }
         pthread_testcancel();
     }
@@ -401,7 +386,7 @@ static int transcode_init(TCSession *session, const TCFrameSpecs *specs)
         return TC_ERROR;
     }
 
-    tc_export_config(verbose, 1, tc_cluster_mode);
+    tc_export_config(verbose, 1, session->cluster_mode);
 
     ret = tc_export_setup(session->ex_aud_mod, session->ex_vid_mod,
                           session->ex_mplex_mod, session->ex_mplex_mod_aux);
@@ -441,7 +426,7 @@ static int transcode_fini(vob_t *vob)
 static int transcode_mode_default(vob_t *vob)
 {
     struct fc_time *tstart = NULL;
-    int th_num = max_frame_threads; /* just a shortcut */
+    int th_num = session->max_frame_threads; /* just a shortcut */
 
     tc_start();
 
@@ -466,7 +451,7 @@ static int transcode_mode_default(vob_t *vob)
 
     // tell counter about all encoding ranges
     counter_reset_ranges();
-    if (!tc_cluster_mode) {
+    if (!session->cluster_mode) {
         int last_etf = 0;
         for (tstart = vob->ttime; tstart; tstart = tstart->next) {
             if (tstart->etf == TC_FRAME_LAST) {
@@ -486,13 +471,13 @@ static int transcode_mode_default(vob_t *vob)
 
     while (tstart) {
         // set frame range (in cluster mode these will already be set)
-        if (!tc_cluster_mode) {
-            frame_a = tstart->stf;
-            frame_b = tstart->etf;
+        if (!session->cluster_mode) {
+            session->frame_a = tstart->stf;
+            session->frame_b = tstart->etf;
         }
         // main encoding loop, returns when done with all frames
         tc_export_loop(tc_get_ringbuffer(vob, th_num, th_num),
-                       frame_a, frame_b);
+                       session->frame_a, session->frame_b);
 
         // check for user cancelation request
         if (tc_interrupted()) {
@@ -503,7 +488,7 @@ static int transcode_mode_default(vob_t *vob)
         tstart = tstart->next;
         // see if we're using vob_offset
         if ((tstart != NULL) && (tstart->vob_offset != 0)) {
-            tc_decoder_delay = 3;
+            session->decoder_delay = 3;
             tc_import_threads_cancel();
             tc_import_close();
             tc_framebuffer_flush();
@@ -538,7 +523,7 @@ static int transcode_mode_avi_split(vob_t *vob)
 {
     char buf[TC_BUF_MAX];
     int fa, fb, ch1 = 0;
-    int th_num = max_frame_threads; /* just a shortcut */
+    int th_num = session->max_frame_threads; /* just a shortcut */
 
     tc_start();
 
@@ -569,18 +554,18 @@ static int transcode_mode_avi_split(vob_t *vob)
         if (tc_export_open() != TC_OK)
             tc_error("failed to open output");
 
-        fa = frame_a;
-        fb = frame_a + splitavi_frames;
+        fa = session->frame_a;
+        fb = session->frame_a + session->splitavi_frames;
 
         tc_export_loop(tc_get_ringbuffer(vob, th_num, th_num),
-                       fa, ((fb > frame_b) ? frame_b : fb));
+                       fa, ((fb > session->frame_b) ? session->frame_b : fb));
 
         // close output
         tc_export_close();
 
         // restart
-        frame_a += splitavi_frames;
-        if (frame_a >= frame_b)
+        session->frame_a += session->splitavi_frames;
+        if (session->frame_a >= session->frame_b)
             break;
 
         if (verbose >= TC_DEBUG)
@@ -609,7 +594,7 @@ static int transcode_mode_avi_split(vob_t *vob)
 static int transcode_mode_directory(vob_t *vob)
 {
     struct fc_time *tstart = NULL;
-    int th_num = max_frame_threads; /* just a shortcut */
+    int th_num = session->max_frame_threads; /* just a shortcut */
     
     tc_start();
 
@@ -626,7 +611,7 @@ static int transcode_mode_directory(vob_t *vob)
 
     // tell counter about all encoding ranges
     counter_reset_ranges();
-    if (!tc_cluster_mode) {
+    if (!session->cluster_mode) {
         int last_etf = 0;
         for (tstart = vob->ttime; tstart; tstart = tstart->next) {
             if (tstart->etf == TC_FRAME_LAST) {
@@ -646,13 +631,13 @@ static int transcode_mode_directory(vob_t *vob)
          tstart != NULL && !tc_interrupted();
          tstart = tstart->next) {
         // set frame range (in cluster mode these will already be set)
-        if (!tc_cluster_mode) {
-            frame_a = tstart->stf;
-            frame_b = tstart->etf;
+        if (!session->cluster_mode) {
+            session->frame_a = tstart->stf;
+            session->frame_b = tstart->etf;
         }
         // main encoding loop, returns when done with all frames
         tc_export_loop(tc_get_ringbuffer(vob, th_num, th_num),
-                       frame_a, frame_b);
+                       session->frame_a, session->frame_b);
 
     }
 
@@ -674,7 +659,7 @@ static int transcode_mode_psu(vob_t *vob, const char *psubase)
 {
     char buf[TC_BUF_MAX];
     int fa, fb, psu_cur = vob->vob_psu_num1;
-    int th_num = max_frame_threads; /* just a shortcut */
+    int th_num = session->max_frame_threads; /* just a shortcut */
 
     if (tc_export_init() != TC_OK)
         tc_error("failed to init encoder");
@@ -686,7 +671,7 @@ static int transcode_mode_psu(vob_t *vob, const char *psubase)
             tc_error("failed to open output");
     }
 
-    tc_decoder_delay = 3;
+    session->decoder_delay = 3;
 
     counter_on();
 
@@ -802,7 +787,7 @@ static int transcode_mode_dvd(vob_t *vob)
 #ifdef HAVE_LIBDVDREAD
     char buf[TC_BUF_MAX];
     int ch1, ch2;
-    int th_num = max_frame_threads; /* just a shortcut */
+    int th_num = session->max_frame_threads; /* just a shortcut */
 
     tc_start();
 
@@ -822,7 +807,7 @@ static int transcode_mode_dvd(vob_t *vob)
     }
 
     // 1 sec delay after decoder closing
-    tc_decoder_delay = 1;
+    session->decoder_delay = 1;
 
     // loop each chapter
     ch1 = vob->dvd_chapter1;
@@ -862,8 +847,8 @@ static int transcode_mode_dvd(vob_t *vob)
         }
 
         // main encoding loop, selecting an interval won't work
-    tc_export_loop(tc_get_ringbuffer(vob, th_num, th_num),
-                       frame_a, frame_b);
+        tc_export_loop(tc_get_ringbuffer(vob, th_num, th_num),
+                       session->frame_a, session->frame_b);
 
         if (!no_split) {
             if (tc_export_close() != TC_OK)
@@ -1235,8 +1220,8 @@ static void parse_navigation_file(vob_t *vob, const char *nav_seek_file)
                     if (2 == sscanf(buf, "%*d %*d %*d %*d %d %d ", &L, &new_frame_a)) {
                         if (line_count == tmptime->stf) {
                             int len = tmptime->etf - tmptime->stf;
-                            tmptime->stf = frame_a = new_frame_a;
-                            tmptime->etf = frame_b = new_frame_a + len;
+                            tmptime->stf = session->frame_a = new_frame_a;
+                            tmptime->etf = session->frame_b = new_frame_a + len;
                             tmptime->vob_offset = L;
                             flag = 1;
                             line_count++;
@@ -1279,8 +1264,8 @@ static void parse_navigation_file(vob_t *vob, const char *nav_seek_file)
                                 lenf += (chunkptype - last_keyframe);
                             }
 
-                            tmptime->stf = frame_a = new_frame_a;
-                            tmptime->etf = frame_b = new_frame_a + lenf;
+                            tmptime->stf = session->frame_a = new_frame_a;
+                            tmptime->etf = session->frame_b = new_frame_a + lenf;
                             tmptime->vob_offset = last_keyframe;
                             flag = 1;
                             line_count++;
@@ -1296,7 +1281,7 @@ static void parse_navigation_file(vob_t *vob, const char *nav_seek_file)
         if (!flag) {
             //frame not found
             tc_warn("%s: frame %d out of range (%d frames found)",
-                    nav_seek_file, frame_a, line_count);
+                    nav_seek_file, session->frame_a, line_count);
             tc_error("invalid option parameter for -c / --nav_seek");
         }
     }
@@ -1503,16 +1488,16 @@ int main(int argc, char *argv[])
 
     setup_input_sources(vob);
 
-    if (tc_progress_meter < 0) {
+    if (session->progress_meter < 0) {
         // if we have verbosity disabled, default to no progress meter.
         if (verbose) {
-            tc_progress_meter = 1;
+            session->progress_meter = 1;
         } else {
-            tc_progress_meter = 0;
+            session->progress_meter = 0;
         }
     }
 
-    if (psu_mode) {
+    if (session->psu_mode) {
         if (vob->video_out_file == NULL)
             tc_error("please specify output file name for psu mode");
         if (!strchr(vob->video_out_file, '%') && !no_split) {
@@ -1539,9 +1524,9 @@ int main(int argc, char *argv[])
     if (verbose)
         version();
 
-    if (tc_niceness) {
-        if (nice(tc_niceness) < 0) {
-            tc_warn("setting nice to %d failed", tc_niceness);
+    if (session->niceness) {
+        if (nice(session->niceness) < 0) {
+            tc_warn("setting nice to %d failed", session->niceness);
         }
     }
 
@@ -1608,8 +1593,8 @@ int main(int argc, char *argv[])
         vob->ttime->etf = TC_FRAME_LAST;
         vob->ttime->next = NULL;
     }
-    frame_a = vob->ttime->stf;
-    frame_b = vob->ttime->etf;
+    session->frame_a = vob->ttime->stf;
+    session->frame_b = vob->ttime->etf;
     vob->ttime->vob_offset = 0;
     tstart = vob->ttime;
     counter_on(); //activate
@@ -1624,7 +1609,8 @@ int main(int argc, char *argv[])
         if (preset_flag & TC_PROBE_NO_SEEK)
             this_unit = vob->ps_unit;
 
-        if (split_stream(vob, vob->vob_info_file, this_unit, &frame_a, &frame_b, 1) < 0)
+        if (split_stream(vob, vob->vob_info_file, this_unit,
+                         &session->frame_a, &session->frame_b, 1) < 0)
             tc_error("cluster mode option -W error");
     }
 
@@ -2534,17 +2520,17 @@ int main(int argc, char *argv[])
     }
 
     // -u
-    if (tc_buffer_delay_dec == -1) //adjust core parameter
-        tc_buffer_delay_dec = (vob->pass_flag & TC_VIDEO || session->ex_vid_mod==NULL || strcmp(session->ex_vid_mod, "null") == 0)
+    if (session->buffer_delay_dec == -1) //adjust core parameter
+        session->buffer_delay_dec = (vob->pass_flag & TC_VIDEO || session->ex_vid_mod==NULL || strcmp(session->ex_vid_mod, "null") == 0)
                                 ?TC_DELAY_MIN :TC_DELAY_MAX;
 
-    if (tc_buffer_delay_enc == -1) //adjust core parameter
-        tc_buffer_delay_enc = (vob->pass_flag & TC_VIDEO || session->ex_vid_mod==NULL || strcmp(session->ex_vid_mod, "null") == 0)
+    if (session->buffer_delay_enc == -1) //adjust core parameter
+        session->buffer_delay_enc = (vob->pass_flag & TC_VIDEO || session->ex_vid_mod==NULL || strcmp(session->ex_vid_mod, "null") == 0)
                                 ?TC_DELAY_MIN :TC_DELAY_MAX;
 
     if (verbose >= TC_DEBUG)
         tc_log_msg(PACKAGE, "encoder delay = decode=%d encode=%d usec",
-                   tc_buffer_delay_dec, tc_buffer_delay_enc);
+                   session->buffer_delay_dec, session->buffer_delay_enc);
 
     if (session->core_mode == TC_MODE_AVI_SPLIT && !strlen(base) && !vob->video_out_file)
         tc_error("no option -o found, no base for -t given, so what?");
@@ -2557,7 +2543,7 @@ int main(int argc, char *argv[])
 
     //this will speed up in pass-through mode
     if(vob->pass_flag && !(preset_flag & TC_PROBE_NO_BUFFER))
-        max_frame_buffer = 50;
+        session->max_frame_buffer = 50;
 
     if (vob->fps >= vob->ex_fps) {
         /* worst case -> lesser fps (more audio samples for second) */
@@ -2578,26 +2564,26 @@ int main(int argc, char *argv[])
 
     if (verbose >= TC_INFO) {
         tc_log_info(PACKAGE, "V: video buffer     | %i @ %ix%i [0x%x]",
-                    max_frame_buffer, specs.width, specs.height, specs.format);
+                    session->max_frame_buffer, specs.width, specs.height, specs.format);
         tc_log_info(PACKAGE, "A: audio buffer     | %i @ %ix%ix%i",
-                    max_frame_buffer, specs.rate, specs.channels, specs.bits);
+                    session->max_frame_buffer, specs.rate, specs.channels, specs.bits);
     }
 
 #ifdef STATBUFFER
     // allocate buffer
     if (verbose >= TC_DEBUG)
         tc_log_msg(PACKAGE, "allocating %d framebuffers (static)",
-                   max_frame_buffer);
+                   session->max_frame_buffer);
 
-    if (vframe_alloc(max_frame_buffer) < 0)
+    if (vframe_alloc(session->max_frame_buffer) < 0)
         tc_error("static framebuffer allocation failed");
-    if (aframe_alloc(max_frame_buffer) < 0)
+    if (aframe_alloc(session->max_frame_buffer) < 0)
         tc_error("static framebuffer allocation failed");
 
 #else
     if(verbose >= TC_DEBUG)
         tc_log_msg(PACKAGE, "%d framebuffers (dynamic) requested",
-                   max_frame_buffer);
+                   session->max_frame_buffer);
 #endif
 
     // load import/export modules and filters plugins
@@ -2615,7 +2601,9 @@ int main(int argc, char *argv[])
 
 
     // start frame processing threads
-    tc_frame_threads_init(vob, max_frame_threads, max_frame_threads);
+    tc_frame_threads_init(vob,
+                          session->max_frame_threads,
+                          session->max_frame_threads);
 
 
     /* ------------------------------------------------------------

@@ -206,6 +206,7 @@ static int pp_configure(TCModuleInstance *self,
                         TCJob *vob,
                         TCModuleExtraData *xdata[])
 {
+    int tc_accel = tc_get_session()->acceleration; /* XXX ugly */
     PPPrivateData *pd = NULL;
     int len = strlen(options); // XXX
     char *c = NULL, opts[TC_BUF_LINE];

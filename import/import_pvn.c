@@ -424,6 +424,7 @@ static int decode_pvn_sse2(const PrivateData *pd, uint8_t *video_buf);
 static int pvn_read_video(TCModuleInstance *self,
                           TCFrameVideo *vframe)
 {
+    int tc_accel = tc_get_session()->acceleration; /* XXX ugly */
     PrivateData *pd = NULL;
 
     TC_MODULE_SELF_CHECK(self, "demultiplex");
