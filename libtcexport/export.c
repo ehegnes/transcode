@@ -650,8 +650,6 @@ int tc_export_stop(void)
 
 int tc_export_close(void)
 {
-    tc_export_flush();
-
     return tc_multiplexor_close(&expdata.mux);
 }
 
