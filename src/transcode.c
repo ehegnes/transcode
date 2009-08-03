@@ -38,6 +38,8 @@
 #include "libtcutil/xio.h"
 #include "libtcutil/cfgfile.h"
 #include "libtcexport/export.h"
+#include "libtcexport/export_profile.h"
+
 
 #include "transcode.h"
 #include "decoder.h"
@@ -349,6 +351,71 @@ static void load_all_filters(char *filter_list)
 
 /*************************************************************************/
 
+#define RETURN_IF(cond, msg, status) do { \
+    if ((cond)) { \
+        tc_log_error(PACKAGE, msg); \
+        return status; \
+    } \
+} while (0)
+
+/*************************************************************************/
+
+static int transcode_find_modules(TCSession *S)
+{
+    const char *fmtname = NULL;
+    TCRegistry registry = S->registry; /* shortcut */
+    TCJob *job = S->job; /* shortcut */
+
+    if (S->ex_vid_mod == NULL) {
+        fmtname = tc_codec_to_string(job->ex_v_codec);
+        S->ex_vid_mod = tc_get_module_name_for_format(registry, "encode",
+                                                      fmtname);
+    }
+    RETURN_IF(S->ex_vid_mod == NULL,
+              "unable to find the video encoder module and none specified",
+              TC_ERROR);
+
+    if (S->ex_aud_mod == NULL) {
+        fmtname = tc_codec_to_string(job->ex_a_codec);
+        S->ex_aud_mod = tc_get_module_name_for_format(registry, "encode",
+                                                      fmtname);
+    }
+    RETURN_IF(S->ex_aud_mod == NULL,
+              "unable to find the audio encoder module and none specified",
+              TC_ERROR);
+
+    if (S->ex_mplex_mod == NULL) {
+        /* try by outfile extension */
+        fmtname = strrchr(job->video_out_file, '.');
+        if (fmtname) {
+            S->ex_mplex_mod = tc_get_module_name_for_format(registry,
+                                                            "multiplex",
+                                                            fmtname);
+        }
+    }
+    RETURN_IF(S->ex_mplex_mod == NULL,
+              "unable to find the multiplexor module and none specified",
+              TC_ERROR);
+
+    if (job->audio_out_file != NULL) {
+        if (S->ex_mplex_mod_aux == NULL) {
+            /* try by outfile extension */
+            fmtname = strrchr(job->audio_out_file, '.');
+            if (fmtname) {
+                S->ex_mplex_mod_aux = tc_get_module_name_for_format(registry,
+                                                                    "multiplex",
+                                                                    fmtname);
+            }
+        }
+        RETURN_IF(S->ex_mplex_mod_aux == NULL,
+                  "unable to find the aux multiplexor module and none specified",
+                  TC_ERROR);
+    }
+
+    return TC_OK;
+}
+
+
 /**
  * transcode_init:  initialize the transcoding engine.
  *
@@ -362,38 +429,40 @@ static void load_all_filters(char *filter_list)
 static int transcode_init(TCSession *session, const TCFrameSpecs *specs)
 {
     int ret;
+    TCRunControl *runcontrol = tc_runcontrol_get_instance();
     TCJob *vob = session->job;
 
     /* load import modules and check capabilities */
     ret = tc_import_init(vob, session->im_aud_mod, session->im_vid_mod);
-    if (ret < 0) {
-        tc_log_error(PACKAGE, "failed to init import modules");
-        return TC_ERROR;
-    }
+    RETURN_IF(ret < 0, "failed to init the import modules", TC_ERROR);
 
     /* load and initialize filters */
     tc_filter_init();
     load_all_filters(session->plugins_string);
 
+    session->factory = tc_new_module_factory(vob->mod_path, verbose);
+    RETURN_IF(session->factory == NULL,
+              "failed to init the module factory", TC_ERROR);
+
+    session->registry = tc_new_module_registry(session->factory,
+                                               vob->reg_path, verbose);
+    RETURN_IF(session->registry == NULL,
+              "failed to init the module registry", TC_ERROR);
+
     /* load export modules and check capabilities
      * (only create a TCModule factory if a multiplex module was given) */
-    ret = tc_export_new(vob,
-                        tc_new_module_factory(vob->mod_path, verbose),
-                        tc_runcontrol_get_instance(),
-                        specs);
-    if (ret != TC_OK) {
-        tc_log_error(PACKAGE, "failed to init export layer");
-        return TC_ERROR;
-    }
+    ret = tc_export_new(vob, session->factory, runcontrol, specs);
+    RETURN_IF(ret != TC_OK, "failed to init the export layer", TC_ERROR);
 
     tc_export_config(verbose, 1, session->cluster_mode);
 
+    ret = transcode_find_modules(session);
+    RETURN_IF(ret != TC_OK, "can't setup export modules", TC_ERROR);
+
     ret = tc_export_setup(session->ex_aud_mod, session->ex_vid_mod,
                           session->ex_mplex_mod, session->ex_mplex_mod_aux);
-    if (ret != TC_OK) {
-        tc_log_error(PACKAGE, "failed to init export modules");
-        return TC_ERROR;
-    }
+    RETURN_IF(ret != TC_OK, "failed to init the export modules", TC_ERROR);
+
     return TC_OK;
 }
 
@@ -401,12 +470,13 @@ static int transcode_init(TCSession *session, const TCFrameSpecs *specs)
  * transcode_fini:  finalize (shutdown) the transcoding engine.
  *
  * Parameters:
- *      vob: Pointer to the global vob_t data structure.
+ *      session: Pointer to the transcode session to be finalized.
  * Return value:
  *     0 on success, -1 on error.
  */
 
-static int transcode_fini(vob_t *vob)
+/* FIXME: cleanup factory, registry */
+static int transcode_fini(TCSession *session)
 {
     /* unload import modules */
     tc_import_shutdown();
@@ -414,6 +484,7 @@ static int transcode_fini(vob_t *vob)
     tc_filter_fini();
     /* unload export modules */
     tc_export_shutdown();
+    tc_export_del();
 
     return 0;
 }
@@ -1111,11 +1182,16 @@ static TCSession *new_session(TCJob *job)
     if (!session)
         return NULL;
 
-    session->core_mode           = TC_MODE_DEFAULT;
+    session->job                 = job;
 
     session->acceleration        = AC_ALL;
 
-    session->job                 = job;
+    session->tc_pid              = getpid();
+
+    session->factory             = NULL;
+    session->registry            = NULL;
+
+    session->core_mode           = TC_MODE_DEFAULT;
 
     session->im_aud_mod          = NULL;
     session->im_vid_mod          = NULL;
@@ -1161,8 +1237,6 @@ static TCSession *new_session(TCJob *job)
     session->fc_ttime_string     = NULL;
 
     session->sync_seconds        = 0;
-
-    session->tc_pid              = getpid();
 
     return session;
 }
@@ -1431,14 +1505,11 @@ static const char *deinterlace_desc[] = {
 int main(int argc, char *argv[])
 {
     sigset_t sigs_to_block;
-
     const char *psubase = NULL;
-
     double fch, asr;
-    int leap_bytes1, leap_bytes2;
-
+    int ret, leap_bytes1, leap_bytes2;
     struct fc_time *tstart = NULL;
-
+    const TCExportInfo *info = NULL;
     TCFrameSpecs specs;
 
     /* ------------------------------------------------------------
@@ -1483,6 +1554,13 @@ int main(int argc, char *argv[])
      */
     libtc_init(&argc, &argv);
 
+    ret = tc_export_profile_setup_from_cmdline(&argc, &argv);
+    if (ret < 0)
+        tc_error("failed to setup export profile");
+
+    info = tc_export_profile_load_all();
+    tc_export_profile_to_job(info, vob);
+ 
     if (!parse_cmdline(argc, argv, vob, session))
         exit(EXIT_FAILURE);
 
@@ -2662,7 +2740,7 @@ int main(int argc, char *argv[])
     SHUTDOWN_MARK("frame threads");
 
     // unload all external modules
-    transcode_fini(NULL);
+    transcode_fini(session);
     SHUTDOWN_MARK("unload modules");
 
     // cancel no longer used internal signal handler threads
