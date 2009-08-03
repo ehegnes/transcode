@@ -2355,49 +2355,42 @@ int main(int argc, char *argv[])
         vob->a_chan = 2;
     }
 
-    if (vob->ex_a_codec == 0 || vob->a_codec_flag == 0
-     || session->ex_aud_mod == NULL || strcmp(session->ex_aud_mod, "null") == 0) {
-        if (verbose >= TC_INFO)
-            tc_log_info(PACKAGE, "A: %-16s | disabled", "export");
-        session->ex_aud_mod = "null";
-    } else {
-        // calc export bitrate
-        switch (vob->ex_a_codec) {
-          case 0x1: // PCM
-            vob->mp3bitrate = ((vob->mp3frequency > 0) ?vob->mp3frequency :vob->a_rate) *
-                               ((vob->dm_bits > 0) ?vob->dm_bits :vob->a_bits) *
-                                ((vob->dm_chan > 0) ?vob->dm_chan :vob->a_chan) / 1000;
-            break;
-          case 0x2000: // PCM
-            if (vob->im_a_codec == TC_CODEC_AC3) {
-                vob->mp3bitrate = vob->a_stream_bitrate;
-            }
-            break;
+    // calc export bitrate
+    switch (vob->ex_a_codec) {
+      case 0x1: // PCM
+        vob->mp3bitrate = ((vob->mp3frequency > 0) ?vob->mp3frequency :vob->a_rate) *
+                           ((vob->dm_bits > 0) ?vob->dm_bits :vob->a_bits) *
+                            ((vob->dm_chan > 0) ?vob->dm_chan :vob->a_chan) / 1000;
+        break;
+      case 0x2000: // PCM
+        if (vob->im_a_codec == TC_CODEC_AC3) {
+            vob->mp3bitrate = vob->a_stream_bitrate;
         }
+        break;
+    }
 
-        if (verbose >= TC_INFO) {
-            if (vob->pass_flag & TC_AUDIO)
-                tc_log_info(PACKAGE,
-                            "A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps",
-                            "export format",
-                            vob->im_a_codec,
-                            tc_codec_to_comment(vob->im_a_codec),
-                            vob->a_rate, vob->a_bits, vob->a_chan,
-                            vob->a_stream_bitrate);
-            else
-                tc_log_info(PACKAGE,
-                            "A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps",
-                            "export format",
-                            vob->ex_a_codec,
-                            tc_codec_to_comment(vob->ex_a_codec),
-                             ((vob->mp3frequency > 0) ?vob->mp3frequency :vob->a_rate),
-                             ((vob->dm_bits > 0) ?vob->dm_bits :vob->a_bits),
-                             ((vob->dm_chan > 0) ?vob->dm_chan :vob->a_chan),
-                            vob->mp3bitrate);
-            tc_log_info(PACKAGE, "V: %-16s | %s%s", "export format",
-                        tc_codec_to_string(vob->ex_v_codec),
-                        (vob->ex_v_codec == 0) ?" (module dependant)" :"");
-        }
+    if (verbose >= TC_INFO) {
+        if (vob->pass_flag & TC_AUDIO)
+            tc_log_info(PACKAGE,
+                        "A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps",
+                        "export format",
+                        vob->im_a_codec,
+                        tc_codec_to_comment(vob->im_a_codec),
+                        vob->a_rate, vob->a_bits, vob->a_chan,
+                        vob->a_stream_bitrate);
+        else
+            tc_log_info(PACKAGE,
+                        "A: %-16s | 0x%-5x %-12s [%4d,%2d,%1d] %4d kbps",
+                        "export format",
+                        vob->ex_a_codec,
+                        tc_codec_to_comment(vob->ex_a_codec),
+                         ((vob->mp3frequency > 0) ?vob->mp3frequency :vob->a_rate),
+                         ((vob->dm_bits > 0) ?vob->dm_bits :vob->a_bits),
+                         ((vob->dm_chan > 0) ?vob->dm_chan :vob->a_chan),
+                        vob->mp3bitrate);
+        tc_log_info(PACKAGE, "V: %-16s | %s%s", "export format",
+                    tc_codec_to_string(vob->ex_v_codec),
+                    (vob->ex_v_codec == 0) ?" (module dependant)" :"");
     }
 
     // Do not run out of audio-data
@@ -2558,7 +2551,7 @@ int main(int argc, char *argv[])
     // --accel
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
     if (verbose >= TC_INFO)
-        tc_log_info(PACKAGE, "V: IA32/AMD64 accel | %s ",
+        tc_log_info(PACKAGE, "H: IA32/AMD64 accel | %s ",
                     ac_flagstotext(session->acceleration & ac_cpuinfo()));
 #endif
 
