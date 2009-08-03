@@ -266,6 +266,7 @@ TC_OPTION(split,              't', "n,base",
                 }
                 memcpy(base, buf, strlen(buf)+1);
                 session->core_mode = TC_MODE_AVI_SPLIT;
+		/* FIXME FIXME FIXME */
 )
 TC_OPTION(audio_input,        'p', "file",
                 "read audio stream from separate file [off]",
