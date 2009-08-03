@@ -19,10 +19,10 @@
  */
 
 
-#include "src/transcode.h"
-
 #include "libtc.h"
 #include "tccodecs.h"
+
+#include "tccore/tc_defaults.h"
 
 #include <string.h>
 

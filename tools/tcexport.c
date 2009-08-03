@@ -615,7 +615,7 @@ int main(int argc, char *argv[])
     tc_export_config(verbose, 1, 0);
 
     ret = setup_modnames(&config, job, registry);
-    EXIT_IF(ret != 0, "can't setup export modules", STATUS_MODULE_ERROR);
+    EXIT_IF(ret != TC_OK, "can't setup export modules", STATUS_MODULE_ERROR);
 
     print_summary(&config, verbose);
 

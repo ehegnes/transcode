@@ -19,10 +19,10 @@
  */
 
 
-#include "src/transcode.h"
-
 #include "libtc.h"
 #include "tcformats.h"
+
+#include "tccore/tc_defaults.h"
 
 #include "import/magic.h"
 
