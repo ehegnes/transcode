@@ -1418,21 +1418,13 @@ TC_OPTION(no_log_color,      0,  0,
 
 TC_OPTION(buffers,            'u', "N",
                 "use N framebuffers for AV processing [10]",
-                /* FIXME: threads ought to be a separate option */
-                int threads_dummy = 0;
-                if (sscanf(optarg, "%d,%d,%d,%d", &session->max_frame_buffer,
-                           &threads_dummy, &session->buffer_delay_dec,
+                if (sscanf(optarg, "%d,%d,%d", &session->max_frame_buffers,
+                           &session->buffer_delay_dec,
                            &session->buffer_delay_enc) < 1
-                 || session->max_frame_buffer < 0
+                 || session->max_frame_buffers < 0
                 ) {
                     tc_error("Invalid argument for -u/--buffers");
                     goto short_usage;
-                }
-                if (threads_dummy != 0 && threads_dummy != session->max_frame_threads) {
-                    tc_warn("Use --threads to specify number of threads,"
-                            " not -u");
-                    /* FIXME: deprecated in 1.1.0, remove later */
-                    session->max_frame_threads = threads_dummy;
                 }
                 preset_flag |= TC_PROBE_NO_BUFFER;
 )
@@ -1443,7 +1435,7 @@ TC_OPTION(threads,            0,   "N",
                  || session->max_frame_threads < 0
                  || session->max_frame_threads > TC_FRAME_THREADS_MAX
                 ) {
-                    tc_error("Invalid argument for -u/--threads");
+                    tc_error("Invalid argument for --threads");
                     goto short_usage;
                 }
 )

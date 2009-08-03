@@ -1162,6 +1162,11 @@ static TCSession *new_session(TCJob *job)
 
     session->sync_seconds        = 0;
 
+    session->max_frame_buffers   = 10; /* FIXME magic number */
+    session->hw_threads          = 1;  /* sane fallback */
+    tc_sys_get_hw_threads(&(session->hw_threads));
+    session->max_frame_threads   = session->hw_threads;
+
     session->tc_pid              = getpid();
 
     return session;
@@ -2478,6 +2483,10 @@ int main(int argc, char *argv[])
         tc_error("different audio/export modules require use of option -m");
 
 
+    if (verbose >= TC_INFO)
+        tc_log_info(PACKAGE, "H: worker threads   | %i (%i hardware)",
+                    session->max_frame_threads, session->hw_threads);
+
     // --accel
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
     if (verbose >= TC_INFO)
@@ -2543,7 +2552,7 @@ int main(int argc, char *argv[])
 
     //this will speed up in pass-through mode
     if(vob->pass_flag && !(preset_flag & TC_PROBE_NO_BUFFER))
-        session->max_frame_buffer = 50;
+        session->max_frame_buffers = 50;
 
     if (vob->fps >= vob->ex_fps) {
         /* worst case -> lesser fps (more audio samples for second) */
@@ -2564,26 +2573,26 @@ int main(int argc, char *argv[])
 
     if (verbose >= TC_INFO) {
         tc_log_info(PACKAGE, "V: video buffer     | %i @ %ix%i [0x%x]",
-                    session->max_frame_buffer, specs.width, specs.height, specs.format);
+                    session->max_frame_buffers, specs.width, specs.height, specs.format);
         tc_log_info(PACKAGE, "A: audio buffer     | %i @ %ix%ix%i",
-                    session->max_frame_buffer, specs.rate, specs.channels, specs.bits);
+                    session->max_frame_buffers, specs.rate, specs.channels, specs.bits);
     }
 
 #ifdef STATBUFFER
     // allocate buffer
     if (verbose >= TC_DEBUG)
         tc_log_msg(PACKAGE, "allocating %d framebuffers (static)",
-                   session->max_frame_buffer);
+                   session->max_frame_buffers);
 
-    if (vframe_alloc(session->max_frame_buffer) < 0)
+    if (vframe_alloc(session->max_frame_buffers) < 0)
         tc_error("static framebuffer allocation failed");
-    if (aframe_alloc(session->max_frame_buffer) < 0)
+    if (aframe_alloc(session->max_frame_buffers) < 0)
         tc_error("static framebuffer allocation failed");
 
 #else
     if(verbose >= TC_DEBUG)
         tc_log_msg(PACKAGE, "%d framebuffers (dynamic) requested",
-                   session->max_frame_buffer);
+                   session->max_frame_buffers);
 #endif
 
     // load import/export modules and filters plugins
