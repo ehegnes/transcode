@@ -10,7 +10,8 @@
 
 #include "tcaudio.h"
 
-#include "src/transcode.h"
+#include "libtc/libtc.h"
+
 #include <math.h>
 
 /*************************************************************************/
