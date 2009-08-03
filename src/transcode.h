@@ -44,6 +44,7 @@
 #include "aclib/ac.h"
 
 #include "libtc/libtc.h"
+#include "libtcmodule/tcmodule-registry.h"
 
 #include "tccore/tc_defaults.h"
 #include "tccore/frame.h"
@@ -72,19 +73,26 @@ typedef struct subtitle_header_s {
  */
 typedef struct tcsession_ TCSession;
 struct tcsession_ {
-    int core_mode;
+/* those belongs to a session (aka: are here by purpose) */
+    TCJob *job;
+
+    pid_t tc_pid;
 
     int acceleration;
 
-    TCJob *job;
+    TCFactory factory;
+    TCRegistry registry;
+
+/* reorganize the following */
+    int core_mode;
 
     char *im_aud_mod;
     char *im_vid_mod;
 
-    char *ex_aud_mod;
-    char *ex_vid_mod;
-    char *ex_mplex_mod;
-    char *ex_mplex_mod_aux;
+    const char *ex_aud_mod;
+    const char *ex_vid_mod;
+    const char *ex_mplex_mod;
+    const char *ex_mplex_mod_aux;
 
     char *plugins_string;
 
@@ -132,7 +140,6 @@ struct tcsession_ {
 
     int sync_seconds;
 
-    pid_t tc_pid;
     pid_t tc_probe_pid;
 };
 
