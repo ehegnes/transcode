@@ -27,6 +27,7 @@ noinst_PROGRAMS = \
 	test-ratiocodes \
 	test-resize-values \
 	test-tcframefifo \
+	test-tcfunctions \
 	test-tclist \
 	test-tclog \
 	test-tcglob \
@@ -65,6 +66,9 @@ test_ratiocodes_LDADD = $(LIBTC_LIBS) $(LIBTCUTIL_LIBS)
 
 test_tcframefifo_SOURCES = test-tcframefifo.c ../src/framebuffer.c
 test_tcframefifo_LDADD = $(LIBTC_LIBS) $(LIBTCUTIL_LIBS) $(ACLIB_LIBS)
+
+test_tcfunctions_SOURCES = test-tcfunctions.c
+test_tcfunctions_LDADD = $(LIBTC_LIBS) $(LIBTCUTIL_LIBS) $(ACLIB_LIBS)
 
 test_tclog_SOURCES = test-tclog.c
 test_tclog_LDADD = $(LIBTC_LIBS) $(LIBTCUTIL_LIBS)
