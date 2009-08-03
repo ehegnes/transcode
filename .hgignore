@@ -32,6 +32,7 @@
 ^testsuite/test-ratiocodes$
 ^testsuite/test-resize-values$
 ^testsuite/test-tcframefifo$
+^testsuite/test-tcfunctions$
 ^testsuite/test-tcglob$
 ^testsuite/test-tclist$
 ^testsuite/test-tclog$

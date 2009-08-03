@@ -195,6 +195,51 @@ int tc_find_best_aspect_ratio(const void *_vob,
 }
 
 /*************************************************************************/
+/* system support (someday will be moved in a separate file)             */
+
+#define PROCINFO_FILE       "/proc/cpuinfo"
+#define PROCINFO_TAG        "processor"
+#define PROCINFO_TAG_LEN    9
+
+static int tc_sys_get_hw_threads_linux(int *nthreads)
+{
+    int ret = TC_ERROR;
+    int procs = 0;
+
+    FILE *f = fopen(PROCINFO_FILE, "r");
+    if (f) {
+        char buf[TC_BUF_MAX];
+        while (fgets(buf, sizeof(buf), f)) {
+            if(strncmp(buf, PROCINFO_TAG, PROCINFO_TAG_LEN) == 0) {
+                procs++;
+                ret = TC_OK;
+                /* we declare success only if we found
+                 * at least  one processor entry
+                 */
+            }
+        }
+        fclose(f);
+    }
+    if (ret == TC_OK) {
+        *nthreads = procs;
+    }
+    return ret;
+}
+
+int tc_sys_get_hw_threads(int *nthreads)
+{
+    if (nthreads != NULL) {
+#if defined OS_LINUX
+        return tc_sys_get_hw_threads_linux(nthreads);
+#else
+        /* add here more platform-specific checks */
+        return TC_ERROR;
+#endif
+    }
+    return TC_ERROR;
+}
+
+/*************************************************************************/
 
 /*
  * Local variables:
