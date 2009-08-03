@@ -99,7 +99,7 @@ TC_TEST_END
 
 /*************************************************************************/
 
-static int test_registry_all(void)
+static int test_tcfunctions_all(void)
 {
     int errors = 0;
 
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
     
     libtc_init(&argc, &argv);
     
-    errors = test_registry_all();
+    errors = test_tcfunctions_all();
 
     putchar('\n');
     tc_log_info(__FILE__, "test summary: %i error%s (%s)",

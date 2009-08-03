@@ -110,8 +110,10 @@ struct tcsession_ {
 
     int niceness;
 
-    int max_frame_buffer;
+    int max_frame_buffers;
     int max_frame_threads;
+    int hw_threads;
+    /* how many threads the HW can do in parallel? */
 
     int psu_frame_threshold;
     
