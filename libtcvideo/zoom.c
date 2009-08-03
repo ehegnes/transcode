@@ -11,7 +11,11 @@
 #include "tcvideo.h"
 #include "zoom.h"
 
-#include "src/transcode.h"
+#include "tccore/tc_defaults.h"
+#include "tccore/frame.h"
+#include "tccore/job.h"
+#include "libtc/libtc.h"
+#include "aclib/ac.h"
 #include <math.h>
 
 /*************************************************************************/

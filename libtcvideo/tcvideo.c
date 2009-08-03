@@ -14,7 +14,11 @@
 #include "zoom.h"
 
 #define zoom zoom_  // temp to avoid name conflict
-#include "src/transcode.h"
+#include "tccore/tc_defaults.h"
+#include "tccore/frame.h"
+#include "tccore/job.h"
+#include "libtc/libtc.h"
+#include "aclib/ac.h"
 #undef zoom
 #include <math.h>
 
@@ -958,7 +962,12 @@ static void antialias_line(TCVHandle handle,
                              + handle->aa_table_y[D [i]]
                              + handle->aa_table_d[DR[i]]
                              + 32768;
+                /*
                 dest[x*Bpp+i] = (verbose & TC_DEBUG) ? 255 : tmp>>16;
+                                ^^^^^^^^^^^^^^^^^^^^
+                FIXME: I don't get this -- FR
+                */
+                dest[x*Bpp+i] = tmp>>16; // to make it compile (see above)
             }
         } else {
             for (i = 0; i < Bpp; i++)
