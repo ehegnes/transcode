@@ -619,7 +619,7 @@ static int transcode_mode_avi_split(vob_t *vob)
         // create new filename
         tc_snprintf(buf, sizeof(buf), "%s%03d.avi", base, ch1++);
         vob->video_out_file = buf;
-        vob->audio_out_file = buf;
+        //vob->audio_out_file = buf; // FIXME
 
         // open output
         if (tc_export_open() != TC_OK)
@@ -871,7 +871,7 @@ static int transcode_mode_dvd(vob_t *vob)
         tc_snprintf(buf, sizeof(buf), "%s.avi", chbase);
         // update vob structure
         vob->video_out_file = buf;
-        vob->audio_out_file = buf;
+        //vob->audio_out_file = buf; // FIXME
 
         if (tc_export_open() != TC_OK)
             tc_error("failed to open output");
@@ -897,7 +897,7 @@ static int transcode_mode_dvd(vob_t *vob)
             tc_snprintf(buf, sizeof(buf), "%s-ch%02d.avi", chbase, ch1);
             // update vob structure
             vob->video_out_file = buf;
-            vob->audio_out_file = buf;
+            //vob->audio_out_file = buf; // FIXME
         }
 
         // start decoding with updated vob structure
@@ -1242,6 +1242,9 @@ static TCSession *new_session(TCJob *job)
     session->hw_threads          = 1;  /* sane fallback */
     tc_sys_get_hw_threads(&(session->hw_threads));
     session->max_frame_threads   = session->hw_threads;
+
+    session->progress_meter      = -1;
+    session->progress_rate       = 1;
 
     return session;
 }
@@ -2295,11 +2298,6 @@ int main(int argc, char *argv[])
                         "video format");
     }
 
-    // -m
-    // different audio/video output files not yet supported
-    if (vob->audio_out_file == NULL)
-        vob->audio_out_file = vob->video_out_file;
-
     // -n
     if (session->no_ain_codec == 1 && vob->has_audio == 0
      && vob->a_codec_flag == TC_CODEC_AC3) {
@@ -2553,14 +2551,6 @@ int main(int argc, char *argv[])
             tc_log_info(PACKAGE, "A: %-16s | yes", "pass-through");
     }
 
-    // FIXME: no longer true
-    // -m
-    // different audio/video output files need two export modules
-    if (session->no_a_out_codec == 0 && vob->audio_out_file == NULL
-     && strcmp(session->ex_vid_mod, session->ex_aud_mod) != 0)
-        tc_error("different audio/export modules require use of option -m");
-
-
     if (verbose >= TC_INFO)
         tc_log_info(PACKAGE, "H: worker threads   | %i (%i hardware)",
                     session->max_frame_threads, session->hw_threads);
@@ -2579,19 +2569,13 @@ int main(int argc, char *argv[])
 
     if (verbose >= TC_INFO) {
         // -o
-        if (vob->video_out_file == NULL && vob->audio_out_file == NULL
-         && session->core_mode == TC_MODE_DEFAULT) {
+        if (vob->video_out_file == NULL && session->core_mode == TC_MODE_DEFAULT) {
             vob->video_out_file = TC_DEFAULT_OUT_FILE;
-            vob->audio_out_file = TC_DEFAULT_OUT_FILE;
             tc_warn("no option -o found, encoded frames send to \"%s\"",
                     vob->video_out_file);
         }
 
         // -y
-        if (session->core_mode == TC_MODE_DEFAULT
-         && vob->video_out_file != NULL && session->no_v_out_codec)
-            tc_warn("no option -y found, option -o ignored, writing to \"/dev/null\"");
-
         if (session->core_mode == TC_MODE_AVI_SPLIT && session->no_v_out_codec)
             tc_warn("no option -y found, option -t ignored, writing to \"/dev/null\"");
 
