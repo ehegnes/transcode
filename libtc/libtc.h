@@ -79,7 +79,7 @@ int libtc_init(int *argc, char ***argv);
  *                                   computed parameters (Out)
  *    strict: if !0, allow only enlarging and shrinking of frame in
  *            both dimensions, and fail otherwise.
- * Return value:
+ * Return Value:
  *      0 succesfull
  *     -1 error, computation failed 
  *        (i.e. width or height not multiple of 8)
@@ -107,12 +107,35 @@ int tc_compute_fast_resize_values(void *_vob, int strict);
  *     sar_den: integer to store SAR-denominator in.
  *         tag: tag to use in log messages (if any).
  *
- * Returns:
+ * Return Value:
  *     0 on success, nonzero otherwise (this means bad parameters).
  */
 int tc_find_best_aspect_ratio(const void *_vob,
                               int *sar_num, int *sar_den,
 			      const char *tag);
+
+/*************************************************************************/
+
+/**
+ * tc_sys_get_hw_threads:
+ *       get the number of thread that the system can run in parallel
+ *       in hardware (aka real concurrency, aka number of CPUs|cores).
+ *
+ * Parameters:
+ *       nthreads: pointer to integer. If succesfull, store here the
+ *                 number of threads.
+ *
+ * Return Value:
+ *       TC_OK if succesfull
+ *       TC_ERROR otherwise, or if `nthreads' is NULL.
+ *
+ * Postconditions:
+ *       `nthreads' is changed only if succesfull.
+ */
+int tc_sys_get_hw_threads(int *nthreads);
+
+
+/*************************************************************************/
 
 #ifdef __cplusplus
 }
