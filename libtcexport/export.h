@@ -104,9 +104,9 @@ void tc_export_shutdown(void);
 
 int tc_export_config(int verbose, int progress_meter, int cluster_mode);
 
-void tc_export_rotation_limit_frames(uint32_t frames);
+void tc_export_rotation_limit_frames(int frames);
 
-void tc_export_rotation_limit_megabytes(uint32_t megabytes);
+void tc_export_rotation_limit_megabytes(int megabytes);
 
 
 /*************************************************************************/

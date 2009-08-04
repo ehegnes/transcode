@@ -128,7 +128,8 @@ struct tcsession_ {
     int frame_a; /* processing interval: start frame */
     int frame_b; /* processing interval: stop frame */
 
-    int splitavi_frames;
+    int split_time; /* frames */
+    int split_size; /* megabytes */
     int psu_mode;
 
     int preset_flag;
