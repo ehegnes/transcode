@@ -496,7 +496,6 @@ static int transcode_fini(TCSession *session)
  * single file continuous or interval mode
  * ------------------------------------------------------------*/
 
-/* globals: frame_a, frame_b */
 static int transcode_mode_default(vob_t *vob)
 {
     struct fc_time *tstart = NULL;
@@ -587,85 +586,10 @@ static int transcode_mode_default(vob_t *vob)
     return TC_OK;
 }
 
-
-/* ------------------------------------------------------------
- * split output AVI file
+/* -------------------------------------------------------------
+ * directory mode
  * ------------------------------------------------------------*/
 
-#if 0 /* obsoleted by new output rotation */
-/* globals: frame_a, frame_b, splitavi_frames, base */
-static int transcode_mode_avi_split(vob_t *vob)
-{
-    char buf[TC_BUF_MAX];
-    int fa, fb, ch1 = 0;
-    int th_num = session->max_frame_threads; /* just a shortcut */
-
-    tc_start();
-
-    // init decoder and open the source
-    if (tc_import_open(vob) < 0)
-        tc_error("failed to open input source");
-
-    // start the AV import threads that load the frames into transcode
-    tc_import_threads_create(vob);
-
-    // encoder init
-    if (tc_export_init() != TC_OK)
-        tc_error("failed to init encoder");
-
-    // need to loop for ch1
-    ch1 = 0;
-
-    do {
-        if (!strlen(base))
-            strlcpy(base, vob->video_out_file, TC_BUF_MIN);
-
-        // create new filename
-        tc_snprintf(buf, sizeof(buf), "%s%03d.avi", base, ch1++);
-        vob->video_out_file = buf;
-        //vob->audio_out_file = buf; // FIXME
-
-        // open output
-        if (tc_export_open() != TC_OK)
-            tc_error("failed to open output");
-
-        fa = session->frame_a;
-        fb = session->frame_a + session->splitavi_frames;
-
-        tc_export_loop(tc_get_ringbuffer(vob, th_num, th_num),
-                       fa, ((fb > session->frame_b) ? session->frame_b : fb));
-
-        // close output
-        tc_export_close();
-
-        // restart
-        session->frame_a += session->splitavi_frames;
-        if (session->frame_a >= session->frame_b)
-            break;
-
-        if (verbose >= TC_DEBUG)
-            tc_log_msg(PACKAGE, "import status=%d", tc_import_status());
-
-        // check for user cancelation request
-        if (tc_interrupted())
-            break;
-
-    } while (tc_import_status());
-
-    tc_stop_all();
-
-    tc_export_stop();
-
-    // cancel import threads
-    tc_import_threads_cancel();
-    // stop decoder and close the source
-    tc_import_close();
-
-    return TC_OK;
-}
-#endif
-
-/* globals: frame_a, frame_b */
 static int transcode_mode_directory(vob_t *vob)
 {
     struct fc_time *tstart = NULL;
@@ -729,7 +653,6 @@ static int transcode_mode_directory(vob_t *vob)
  * VOB PSU mode: transcode and split based on program stream units
  * --------------------------------------------------------------*/
 
-/* globals: frame_a, frame_b */
 static int transcode_mode_psu(vob_t *vob, const char *psubase)
 {
     char buf[TC_BUF_MAX];
@@ -856,7 +779,6 @@ static int transcode_mode_psu(vob_t *vob, const char *psubase)
  * DVD chapter mode
  * ------------------------------------------------------------*/
 
-/* globals: frame_a, frame_b, chbase */
 static int transcode_mode_dvd(vob_t *vob)
 {
 #ifdef HAVE_LIBDVDREAD
@@ -2573,12 +2495,6 @@ int main(int argc, char *argv[])
                     vob->video_out_file);
         }
 
-#if 0 /* obsoleted by new output rotation */
-        // -y
-        if (session->core_mode == TC_MODE_AVI_SPLIT && session->no_v_out_codec)
-            tc_warn("no option -y found, option -t ignored, writing to \"/dev/null\"");
-#endif
-
         if (vob->im_v_codec == TC_CODEC_YUV420P
          && (vob->im_clip_left % 2 != 0 || vob->im_clip_right % 2
          || vob->im_clip_top % 2 != 0 || vob->im_clip_bottom % 2 != 0))
@@ -2602,11 +2518,6 @@ int main(int argc, char *argv[])
     if (verbose >= TC_DEBUG)
         tc_log_msg(PACKAGE, "encoder delay = decode=%d encode=%d usec",
                    session->buffer_delay_dec, session->buffer_delay_enc);
-
-#if 0 /* obsoleted by new output rotation */
-    if (session->core_mode == TC_MODE_AVI_SPLIT && !strlen(base) && !vob->video_out_file)
-        tc_error("no option -o found, no base for -t given, so what?");
-#endif
 
     /* -------------------------------------------------------------
      *
@@ -2689,12 +2600,6 @@ int main(int argc, char *argv[])
       case TC_MODE_DEFAULT:
         transcode_mode_default(vob);
         break;
-
-#if 0 /* obsoleted by new output rotation */
-      case TC_MODE_AVI_SPLIT:
-        transcode_mode_avi_split(vob);
-        break;
-#endif
 
       case TC_MODE_PSU:
         transcode_mode_psu(vob, psubase);
