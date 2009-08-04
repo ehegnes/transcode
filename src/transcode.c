@@ -69,7 +69,6 @@ int pre_im_clip = TC_FALSE;
 int post_ex_clip= TC_FALSE;
 int resize1     = TC_FALSE;
 int resize2     = TC_FALSE;
-int zoom        = TC_FALSE;
 
 // global information structure
 static vob_t *vob = NULL;
@@ -496,8 +495,9 @@ static int transcode_fini(TCSession *session)
  * single file continuous or interval mode
  * ------------------------------------------------------------*/
 
-static int transcode_mode_default(vob_t *vob)
+static int transcode_mode_default(TCSession *session)
 {
+    TCJob *vob = session->job;
     struct fc_time *tstart = NULL;
     int th_num = session->max_frame_threads; /* just a shortcut */
 
@@ -590,8 +590,9 @@ static int transcode_mode_default(vob_t *vob)
  * directory mode
  * ------------------------------------------------------------*/
 
-static int transcode_mode_directory(vob_t *vob)
+static int transcode_mode_directory(TCSession *session)
 {
+    TCJob *vob = session->job;
     struct fc_time *tstart = NULL;
     int th_num = session->max_frame_threads; /* just a shortcut */
     
@@ -653,8 +654,9 @@ static int transcode_mode_directory(vob_t *vob)
  * VOB PSU mode: transcode and split based on program stream units
  * --------------------------------------------------------------*/
 
-static int transcode_mode_psu(vob_t *vob, const char *psubase)
+static int transcode_mode_psu(TCSession *session, const char *psubase)
 {
+    TCJob *vob = session->job;
     char buf[TC_BUF_MAX];
     int fa, fb, psu_cur = vob->vob_psu_num1;
     int th_num = session->max_frame_threads; /* just a shortcut */
@@ -779,9 +781,10 @@ static int transcode_mode_psu(vob_t *vob, const char *psubase)
  * DVD chapter mode
  * ------------------------------------------------------------*/
 
-static int transcode_mode_dvd(vob_t *vob)
+static int transcode_mode_dvd(TCSession *session)
 {
 #ifdef HAVE_LIBDVDREAD
+    TCJob *vob = session->job;
     char buf[TC_BUF_MAX];
     int ch1, ch2;
     int th_num = session->max_frame_threads; /* just a shortcut */
@@ -1298,6 +1301,108 @@ static void parse_navigation_file(vob_t *vob, const char *nav_seek_file)
 
 /*************************************************************************/
 
+static void handle_keep_asr(vob_t *vob)
+{
+    int clip, zoomto;
+    double asr_out = (double)vob->ex_v_width/(double)vob->ex_v_height;
+    double asr_in  = (double)vob->im_v_width/(double)vob->im_v_height;
+    double delta   = 0.01;
+    double asr_cor = 1.0;
+
+
+    if (vob->im_asr) {
+        switch (vob->im_asr) {
+          case 1:
+            asr_cor = (1.0);
+            break;
+          case 2:
+            asr_cor = (4.0/3.0);
+            break;
+          case 3:
+            asr_cor = (16.0/9.0);
+            break;
+          case 4:
+            asr_cor = (2.21);
+            break;
+        }
+    }
+
+    if (!vob->zoom_flag)
+        tc_error ("keep_asr only works with -Z");
+
+    if (asr_in-delta < asr_out && asr_out < asr_in+delta)
+        tc_error ("Aspect ratios are too similar, don't use --keep_asr ");
+
+    if (asr_in > asr_out) {
+        /* adjust height */
+        int clipV = (vob->im_clip_top +vob->im_clip_bottom);
+        int clipH = (vob->im_clip_left+vob->im_clip_right);
+        int clip1 = 0;
+        int clip2 = 0;
+
+        zoomto = (int)((double)(vob->ex_v_width) /
+                   ( ((double)(vob->im_v_width -clipH) / (vob->im_v_width/asr_cor/vob->im_v_height) )/
+                    (double)(vob->im_v_height-clipV))+.5);
+        clip = vob->ex_v_height - zoomto;
+        if (zoomto % 2 != 0)
+            (clip>0?zoomto--:zoomto++); // XXX
+        clip = vob->ex_v_height - zoomto;
+        clip /= 2;
+        clip1 = clip2 = clip;
+
+        if (clip & 1) {
+            clip1--;
+            clip2++;
+        }
+        ex_clip = TC_TRUE;
+        vob->ex_clip_top = -clip1;
+        vob->ex_clip_bottom = -clip2;
+
+        vob->zoom_height = zoomto;
+    } else {
+        /* adjust width */
+        int clipV = (vob->im_clip_top +vob->im_clip_bottom);
+        int clipH = (vob->im_clip_left+vob->im_clip_right);
+        int clip1 = 0;
+        int clip2 = 0;
+        zoomto = (int)((double)vob->ex_v_height * (
+                  ( ((double)(vob->im_v_width-clipH)) / (vob->im_v_width/asr_cor/vob->im_v_height) ) /
+                    (double)(vob->im_v_height-clipV)) +.5);
+
+        clip = vob->ex_v_width - zoomto;
+
+        if (zoomto % 2 != 0)
+            (clip>0?zoomto--:zoomto++); // XXX
+        clip = vob->ex_v_width - zoomto;
+        clip /= 2;
+        clip1 = clip2 = clip;
+
+        if (clip & 1) {
+            clip1--;
+            clip2++;
+        }
+        ex_clip = TC_TRUE;
+        vob->ex_clip_left = -clip1;
+        vob->ex_clip_right = -clip2;
+
+        vob->zoom_width = zoomto;
+    }
+
+    /* sanity checks at last -- DON'T REMOVE THEM! */
+    if (vob->ex_v_height - vob->ex_clip_top - vob->ex_clip_bottom <= 0)
+        tc_error("invalid top/bottom clip parameter calculated from --keep_asr");
+
+    if (vob->ex_v_width - vob->ex_clip_left - vob->ex_clip_right <= 0)
+        tc_error("invalid left/right clip parameter calculated from --keep_asr");
+
+    if (verbose >= TC_INFO)
+        tc_log_info(PACKAGE, "V: %-16s | yes (%d,%d,%d,%d)", "keep aspect",
+                    vob->ex_clip_top, vob->ex_clip_left,
+                    vob->ex_clip_bottom, vob->ex_clip_right);
+}
+
+/*************************************************************************/
+
 static void setup_input_sources(vob_t *vob)
 {
     if (vob->video_in_file == NULL && vob->audio_in_file == NULL)
@@ -1758,7 +1863,7 @@ int main(int argc, char *argv[])
         vob->ex_v_height /= 2;
 
     // Calculate the missing w or h based on the ASR
-    if (zoom && (vob->zoom_width == 0 || vob->zoom_height == 0)) {
+    if (vob->zoom_flag && (vob->zoom_width == 0 || vob->zoom_height == 0)) {
         enum missing_t { NONE, CALC_W, CALC_H, ALL } missing = ALL;
         ratio_t asr = asrs[0];
         float oldr;
@@ -1830,7 +1935,7 @@ int main(int argc, char *argv[])
                             vob->vert_resize1, vob->hori_resize1,
                             vob->vert_resize2, vob->hori_resize2);
             }
-            zoom = TC_FALSE;
+            vob->zoom_flag = TC_FALSE;
         } else {
             if(verbose >= TC_INFO) {
                 tc_log_info(PACKAGE,
@@ -1916,7 +2021,7 @@ int main(int argc, char *argv[])
     }
 
     // -Z
-    if (zoom) {
+    if (vob->zoom_flag) {
         // new aspect ratio:
         asr *= (double) vob->zoom_width*vob->ex_v_height/(vob->ex_v_width * vob->zoom_height);
 
@@ -1966,105 +2071,10 @@ int main(int argc, char *argv[])
 
     // --keep_asr
     if (vob->keepasr) {
-        int clip, zoomto;
-        double asr_out = (double)vob->ex_v_width/(double)vob->ex_v_height;
-        double asr_in  = (double)vob->im_v_width/(double)vob->im_v_height;
-        double delta   = 0.01;
-        double asr_cor = 1.0;
-
-
-        if (vob->im_asr) {
-            switch (vob->im_asr) {
-              case 1:
-                asr_cor = (1.0);
-                break;
-              case 2:
-                asr_cor = (4.0/3.0);
-                break;
-              case 3:
-                asr_cor = (16.0/9.0);
-                break;
-              case 4:
-                asr_cor = (2.21);
-                break;
-            }
-        }
-
-        if (!zoom)
-            tc_error ("keep_asr only works with -Z");
-
-        if (asr_in-delta < asr_out && asr_out < asr_in+delta)
-            tc_error ("Aspect ratios are too similar, don't use --keep_asr ");
-
-        if (asr_in > asr_out) {
-            /* adjust height */
-            int clipV = (vob->im_clip_top +vob->im_clip_bottom);
-            int clipH = (vob->im_clip_left+vob->im_clip_right);
-            int clip1 = 0;
-            int clip2 = 0;
-
-            zoomto = (int)((double)(vob->ex_v_width) /
-                       ( ((double)(vob->im_v_width -clipH) / (vob->im_v_width/asr_cor/vob->im_v_height) )/
-                        (double)(vob->im_v_height-clipV))+.5);
-            clip = vob->ex_v_height - zoomto;
-            if (zoomto % 2 != 0)
-                (clip>0?zoomto--:zoomto++); // XXX
-            clip = vob->ex_v_height - zoomto;
-            clip /= 2;
-            clip1 = clip2 = clip;
-
-            if (clip & 1) {
-                clip1--;
-                clip2++;
-            }
-            ex_clip = TC_TRUE;
-            vob->ex_clip_top = -clip1;
-            vob->ex_clip_bottom = -clip2;
-
-            vob->zoom_height = zoomto;
-        } else {
-            /* adjust width */
-            int clipV = (vob->im_clip_top +vob->im_clip_bottom);
-            int clipH = (vob->im_clip_left+vob->im_clip_right);
-            int clip1 = 0;
-            int clip2 = 0;
-            zoomto = (int)((double)vob->ex_v_height * (
-                      ( ((double)(vob->im_v_width-clipH)) / (vob->im_v_width/asr_cor/vob->im_v_height) ) /
-                        (double)(vob->im_v_height-clipV)) +.5);
-
-            clip = vob->ex_v_width - zoomto;
-
-            if (zoomto % 2 != 0)
-                (clip>0?zoomto--:zoomto++); // XXX
-            clip = vob->ex_v_width - zoomto;
-            clip /= 2;
-            clip1 = clip2 = clip;
-
-            if (clip & 1) {
-                clip1--;
-                clip2++;
-            }
-            ex_clip = TC_TRUE;
-            vob->ex_clip_left = -clip1;
-            vob->ex_clip_right = -clip2;
-
-            vob->zoom_width = zoomto;
-        }
-
-       if (vob->ex_v_height - vob->ex_clip_top - vob->ex_clip_bottom <= 0)
-            tc_error("invalid top/bottom clip parameter calculated from --keep_asr");
-
-        if (vob->ex_v_width - vob->ex_clip_left - vob->ex_clip_right <= 0)
-            tc_error("invalid left/right clip parameter calculated from --keep_asr");
-
-        if (verbose >= TC_INFO)
-            tc_log_info(PACKAGE, "V: %-16s | yes (%d,%d,%d,%d)", "keep aspect",
-                        vob->ex_clip_top, vob->ex_clip_left,
-                        vob->ex_clip_bottom, vob->ex_clip_right);
+        handle_keep_asr(vob);
     }
 
     // -z
-
     if (vob->flip && verbose >= TC_INFO)
         tc_log_info(PACKAGE, "V: %-16s | yes", "flip frame");
 
@@ -2128,8 +2138,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    // --POST_CLIP
-
+    // --post_clip
     if (post_ex_clip) {
         CLIP_CHECK(post_ex_clip, "post_clip", "--post_clip");
 
@@ -2353,7 +2362,6 @@ int main(int argc, char *argv[])
         vob->ex_frc = 0;
 
     // --export_fps
-
     if(verbose >= TC_INFO)
         tc_log_info(PACKAGE,
                     "V: %-16s | %.3f,%d",
@@ -2362,7 +2370,6 @@ int main(int argc, char *argv[])
 
 
     // --a52_demux
-
     if ((vob->a52_mode & TC_A52_DEMUX) && (verbose >= TC_INFO))
         tc_log_info(PACKAGE,
                     "A: %-16s | %s", "A52 demuxing",
@@ -2486,7 +2493,6 @@ int main(int argc, char *argv[])
     tc_ext_init();
 
     // more checks with warnings
-
     if (verbose >= TC_INFO) {
         // -o
         if (vob->video_out_file == NULL && session->core_mode == TC_MODE_DEFAULT) {
@@ -2591,26 +2597,24 @@ int main(int argc, char *argv[])
 
 
     /* ------------------------------------------------------------
-     *
      * transcoder core modes
-     *
      * ------------------------------------------------------------*/
 
     switch (session->core_mode) {
       case TC_MODE_DEFAULT:
-        transcode_mode_default(vob);
+        transcode_mode_default(session);
         break;
 
       case TC_MODE_PSU:
-        transcode_mode_psu(vob, psubase);
+        transcode_mode_psu(session, psubase);
         break;
 
       case TC_MODE_DIRECTORY:
-        transcode_mode_directory(vob);
+        transcode_mode_directory(session);
         break;
 
       case TC_MODE_DVD_CHAPTER:
-        transcode_mode_dvd(vob);
+        transcode_mode_dvd(session);
         break;
 
       case TC_MODE_DEBUG:
