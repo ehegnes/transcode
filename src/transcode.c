@@ -463,6 +463,9 @@ static int transcode_init(TCSession *session, const TCFrameSpecs *specs)
                           session->ex_mplex_mod, session->ex_mplex_mod_aux);
     RETURN_IF(ret != TC_OK, "failed to init the export modules", TC_ERROR);
 
+    tc_export_rotation_limit_megabytes(session->split_size);
+    tc_export_rotation_limit_frames(session->split_time);
+
     return TC_OK;
 }
 
@@ -589,6 +592,7 @@ static int transcode_mode_default(vob_t *vob)
  * split output AVI file
  * ------------------------------------------------------------*/
 
+#if 0 /* obsoleted by new output rotation */
 /* globals: frame_a, frame_b, splitavi_frames, base */
 static int transcode_mode_avi_split(vob_t *vob)
 {
@@ -659,7 +663,7 @@ static int transcode_mode_avi_split(vob_t *vob)
 
     return TC_OK;
 }
-
+#endif
 
 /* globals: frame_a, frame_b */
 static int transcode_mode_directory(vob_t *vob)
@@ -1224,7 +1228,8 @@ static TCSession *new_session(TCJob *job)
     session->frame_b             = TC_FRAME_LAST;
     /* processing interval: stop frame */
 
-    session->splitavi_frames     = 0;
+    session->split_time          = 0; /* disabled*/
+    session->split_size          = 0; /* disabled*/
     session->psu_mode            = TC_FALSE;
 
     session->preset_flag         = 0;
@@ -2568,9 +2573,11 @@ int main(int argc, char *argv[])
                     vob->video_out_file);
         }
 
+#if 0 /* obsoleted by new output rotation */
         // -y
         if (session->core_mode == TC_MODE_AVI_SPLIT && session->no_v_out_codec)
             tc_warn("no option -y found, option -t ignored, writing to \"/dev/null\"");
+#endif
 
         if (vob->im_v_codec == TC_CODEC_YUV420P
          && (vob->im_clip_left % 2 != 0 || vob->im_clip_right % 2
@@ -2596,8 +2603,10 @@ int main(int argc, char *argv[])
         tc_log_msg(PACKAGE, "encoder delay = decode=%d encode=%d usec",
                    session->buffer_delay_dec, session->buffer_delay_enc);
 
+#if 0 /* obsoleted by new output rotation */
     if (session->core_mode == TC_MODE_AVI_SPLIT && !strlen(base) && !vob->video_out_file)
         tc_error("no option -o found, no base for -t given, so what?");
+#endif
 
     /* -------------------------------------------------------------
      *
@@ -2681,9 +2690,11 @@ int main(int argc, char *argv[])
         transcode_mode_default(vob);
         break;
 
+#if 0 /* obsoleted by new output rotation */
       case TC_MODE_AVI_SPLIT:
         transcode_mode_avi_split(vob);
         break;
+#endif
 
       case TC_MODE_PSU:
         transcode_mode_psu(vob, psubase);

@@ -231,14 +231,13 @@ TC_OPTION(output,             'o', "file",
                 "output file name",
                 vob->video_out_file = optarg;
 )
-TC_OPTION(avi_limit,          0,   "size",
-                "split output AVI file after \"size\" MB [2048]",
-//                int tc_avi_limit = strtol(optarg, &optarg, 10);
+TC_OPTION(split_size,            0,   "size",
+                "split output file after \"size\" MB [off]",
+                session->split_size = strtol(optarg, &optarg, 10);
                 if (*optarg) {
-                    tc_error("Invalid argument for --avi_limit");
+                    tc_error("Invalid argument for --split_size");
                     goto short_usage;
                 }
-		/* FIXME FIXME FIXME */
 )
 TC_OPTION(avi_comments,       0,   "file",
                 "read AVI header comments from file [off]",
@@ -248,25 +247,13 @@ TC_OPTION(avi_comments,       0,   "file",
                     goto short_usage;
                 }
 )
-TC_OPTION(split,              't', "n,base",
-                "split output to base%03d.avi with n frames [off]",
-                /* DANGER WILL ROBINSON!  scanf("%1000s") will read up to
-                 * 1000 characters--EXCLUDING the trailing null, so a
-                 * buffer of 1001 bytes is needed! */
-                char buf[1001] = "";
-                if (sscanf(optarg, "%d,%1000[^,]", &session->splitavi_frames, buf) != 2
-                 || session->splitavi_frames <= 0
-                ) {
-                    tc_error("Invalid argument for -t/--split");
+TC_OPTION(split_time,         't', "frames",
+                "split output file after n frames [off]",
+                session->split_time = strtol(optarg, &optarg, 10);
+                if (*optarg) {
+                    tc_error("Invalid argument for --split_time");
                     goto short_usage;
                 }
-                if (strlen(buf) > sizeof(base)-1) {
-                    tc_error("Base name too long for -t/--split");
-                    goto short_usage;
-                }
-                memcpy(base, buf, strlen(buf)+1);
-                session->core_mode = TC_MODE_AVI_SPLIT;
-		/* FIXME FIXME FIXME */
 )
 TC_OPTION(audio_input,        'p', "file",
                 "read audio stream from separate file [off]",

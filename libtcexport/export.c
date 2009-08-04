@@ -530,14 +530,16 @@ void tc_export_loop(TCFrameSource *fs, int frame_first, int frame_last)
  */
 
 /* FIXME: uint32_t VS int */
-void tc_export_rotation_limit_frames(uint32_t frames)
+void tc_export_rotation_limit_frames(int frames)
 {
-    tc_multiplexor_limit_frames(&expdata.mux, frames);
+    if (frames > 0)
+        tc_multiplexor_limit_frames(&expdata.mux, frames);
 }
 
-void tc_export_rotation_limit_megabytes(uint32_t megabytes)
+void tc_export_rotation_limit_megabytes(int megabytes)
 {
-    tc_multiplexor_limit_megabytes(&expdata.mux, megabytes);
+    if (megabytes > 0)
+        tc_multiplexor_limit_megabytes(&expdata.mux, megabytes);
 }
 
 int tc_export_config(int verbose, int progress_meter, int cluster_mode)
