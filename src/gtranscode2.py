@@ -1,0 +1,687 @@
+#!/usr/bin/python
+# 
+# Copyright (c) 2009 Francesco Romani <fromani at gmail dot com>
+#
+# This software is provided 'as-is', without any express or implied
+# warranty. In no event will the authors be held liable for any damages
+# arising from the use of this software.
+#
+# Permission is granted to anyone to use this software for any purpose,
+# including commercial applications, and to alter it and redistribute it
+# freely, subject to the following restrictions:
+#
+# 1. The origin of this software must not be misrepresented; you must not
+#    claim that you wrote the original software. If you use this software
+#    in a product, an acknowledgment in the product documentation would be
+#    appreciated but is not required.
+#
+# 2. Altered source versions must be plainly marked as such, and must not be
+#    misrepresented as being the original software.
+#
+# 3. This notice may not be removed or altered from any source
+#    distribution.
+#
+
+import sys
+import logging
+import getopt # must learn optparse
+import subprocess
+import os.path
+import os
+import glob
+import logging
+
+import gtk
+import pygtk
+pygtk.require('2.0')
+
+
+EXE = "gtranscode2"
+VER = "0.0.2" 
+_LICENSE = \
+"""
+This software is provided 'as-is', without any express
+or implied warranty. In no event will the authors be
+held liable for any damages arising from the use of 
+this software.
+
+Permission is granted to anyone to use this software
+for any purpose, including commercial applications, 
+and to 
+alter it and redistribute it freely, subject to the
+following restrictions:
+
+1. The origin of this software must not be
+   misrepresented; you must not claim that you wrote
+   the original software. If you use this software
+   in a product, an acknowledgment in the product
+   documentation would be appreciated but is not
+   required.
+
+2. Altered source versions must be plainly marked 
+   as such, and must not be misrepresented as being
+   the original software.
+
+3. This notice may not be removed or altered from any
+   source distribution.
+"""
+
+class TranscodeError(Exception):
+    def __init__(self, msg=""):
+        super(TranscodeError, self).__init__()
+        self._reason = msg
+    def __str__(self):
+        return str(self._reason)
+
+
+class MissingExecutableError(TranscodeError):
+    def __init__(self, exe):
+        msg = \
+"""
+The requested executable `%s' was not found into the executable PATH.\n
+Please check your settings and/or your transcode installation.
+""" % (exe)
+        super(MissingExecutableError, self).__init__(msg)
+
+
+class MissingOptionError(TranscodeError):
+    def __init__(self, optname):
+        msg = \
+"""
+FIXME: %s
+""" % (optname)
+        super(MissingOptionError, self).__init__(msg)
+
+
+class ProbeError(TranscodeError):
+    def __init__(self, filename, reason="unsupported format"):
+        msg = \
+"""
+Error while probing the input source `%s':\n
+%s
+""" %(filename, reason)
+        super(ProbeError, self).__init__(msg)
+    
+
+
+def _cmd_output(cmd_args):
+    p = subprocess.Popen(cmd_args, stdout=subprocess.PIPE)
+    output = p.communicate()[0]
+    retval = p.wait()
+    return retval, output.strip()
+    
+
+
+class TCConfigManager(object):
+    def _get_profiles(self):
+        ret, out = _cmd_output([self._bins.tccfgshow, "-P"])
+        self._profile_path = out
+        pattern = os.path.join(self._profile_path, "*.cfg")
+        def _getname(p):
+            p = os.path.basename(p)
+            n, e = os.path.splitext(p)
+            return n
+        return [ _getname(p) for p in glob.glob(pattern) ]
+
+    def __init__(self, binaries):
+        self._bins    = binaries
+        self.profiles = self._get_profiles()
+        
+
+# FIXME: hard to test
+class TCSourceProbe(object):
+    _remap = {
+        "ID_FILENAME"      : "stream path",
+        "ID_FILETYPE"      : "stream media",
+        "ID_VIDEO_WIDTH"   : "video width",
+        "ID_VIDEO_HEIGHT"  : "video height",
+        "ID_VIDEO_FPS"     : "video fps",
+        "ID_VIDEO_FRC"     : "video frc",
+        "ID_VIDEO_ASR"     : "video asr",
+        "ID_VIDEO_FORMAT"  : "video format",
+        "ID_VIDEO_BITRATE" : "video bitrate (kbps)",
+        "ID_AUDIO_CODEC"   : "audio format",
+        "ID_AUDIO_BITRATE" : "audio bitrate (kbps)",
+        "ID_AUDIO_RATE"    : "audio sample rate",
+        "ID_AUDIO_NCH"     : "audio channels",
+        "ID_AUDIO_BITS"    : "audio bits per sample",
+        "ID_LENGTH"        : "stream length (frames)"
+            }
+    def _parse(self, probe_data):
+        res = {}
+        for line in probe_data.split('\n'):
+            k, v = line.strip().split('=')
+            try:
+                k = TCSourceProbe._remap[k.strip()]
+            except KeyError:
+                continue
+            res[k] = v.strip()
+        return res
+    def _get_info(self):
+        ret, out = _cmd_output(["tcprobe", "-i", self.path, "-R"])
+        if ret != 0:
+            raise ProbeError(self.path)
+        return self._parse(out)
+    def __init__(self, path):
+        self.path = path # FIXME!
+        self.info = self._get_info()
+
+
+class TCSourceFakeProbe(TCSourceProbe):
+    def __init__(self, path="N/A"): # FIXME
+        self.path = path
+        self.info = {} # FIXME
+        for v in TCSourceProbe._remap.values():
+            self.info[v] = ""
+
+
+class TCCmdlineProvider(object):
+    def cmd_options(self):
+        raise NotImplementedError
+        return {}
+
+class TCCmdlineBuilder(object):
+    def __init__(self, binaries):
+        self._bins = binaries
+        self._providers = []
+    def add_provider(self, prov):
+        self._providers.append(prov)
+    def command(self):
+        return self._bins.transcode
+    def cmdline(self):
+        opts = " ".join(str(o) for o in self.options())
+        return "%s %s" %(self.command(), opts)
+    def options(self):
+        opts = {}
+        for p in self._providers:
+            opts.update(p.cmd_options())
+        res = [] # FIXME
+        for k, v in opts.items():
+            res.append(k)
+            res.append(v)
+        return res
+
+
+class TCExecutionManager(object):
+    def __init__(self, binaries):
+        pass
+    def start(self, opts, exe=""):
+        pass
+    def stop(self):
+        pass
+    def status(self):
+        pass
+
+
+# FIXME
+class TCBinaries(object):
+    def __init__(self):
+        # defaults
+        self.transcode = "transcode"
+        self.tccfgshow = "tccfgshow"
+        self.tcmodinfo = "tcmodinfo"
+        self.tcprobe   = "tcprobe"
+    def _find_exe(self, exe):
+        # FIXME: must found something (package) better
+        pathdirs = [ d.strip() for d in os.getenv("PATH").split(':') ]
+        for dir in pathdirs:
+            fname = os.path.join(dir, exe)
+            if os.access(fname, os.X_OK):
+                return fname
+        raise MissingExecutableError(exe)
+        
+    def discover(self):
+        self.transcode = self._find_exe("transcode")        
+        self.tccfgshow = self._find_exe("tccfgshow")        
+
+
+
+###########################################################################
+# utils
+###########################################################################
+
+# FIXME: looks fragile. Find something better?
+def _set_button_label(btn, text):
+    align = btn.get_children()[0]
+    box   = align.get_children()[0]
+    for child in box.get_children():
+        if isinstance(child, gtk.Label):
+            child.set_text(text)
+            return True
+    return False
+
+def _stock_button(text, stock):
+    btn = gtk.Button(text, stock)
+    _set_button_label(btn, text)
+    return btn    
+
+
+
+class TCBaseFileChooserButton(gtk.Button):
+    def __init__(self, label="(None)", stock=gtk.STOCK_OPEN):
+        super(TCBaseFileChooserButton, self).__init__(label, stock)
+        self.set_label(label)
+        self._res_callback = None # FIXME
+        self._res_cb_data  = None
+        self._res_filename = None
+        self.connect("clicked", self._on_input_open, self)
+    def get_filename(self):
+        return self._res_filename
+    def set_label(self, text):
+        _set_button_label(self, text)
+    def set_response_callback(self, callback, data):
+        self._res_callback = callback
+        self._res_cb_data  = data
+    def _on_input_open(self, widget, data):
+        dialog = self._build_dialog()
+        response = dialog.run()
+        if response == gtk.RESPONSE_OK:
+            self._res_filename = dialog.get_filename()
+            _set_button_label(widget, self._res_filename)
+        if self._res_callback: # FIXME
+            self._res_callback(response, dialog, self._res_cb_data)
+        dialog.destroy()
+
+class TCOpenFileChooserButton(TCBaseFileChooserButton):
+    def _build_dialog(self):
+        dialog = gtk.FileChooserDialog(title="Select the input source",
+                                       action=gtk.FILE_CHOOSER_ACTION_OPEN,
+                                       buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, 
+                                                gtk.STOCK_OPEN,   gtk.RESPONSE_OK))
+        return dialog
+
+class TCSaveFileChooserButton(TCBaseFileChooserButton):
+    def _build_dialog(self):
+        dialog = gtk.FileChooserDialog(title="Select the output destination",
+                                       action=gtk.FILE_CHOOSER_ACTION_SAVE,
+                                       buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, 
+                                                gtk.STOCK_SAVE,   gtk.RESPONSE_OK))
+        return dialog
+
+
+###########################################################################
+# logging
+###########################################################################
+
+class NullHandler(logging.Handler):
+    def emit(self, record):
+        pass
+
+class AppNotifyHandler(logging.Handler):
+    def emit(self, record):
+        pass
+
+
+###########################################################################
+# configuration panels (aka: the real work)
+###########################################################################
+
+class ConfigPanel(gtk.VBox, TCCmdlineProvider):
+    def __init__(self, border=10):
+        super(ConfigPanel, self).__init__(False, 0)
+        self.set_border_width(border)
+    
+    def cmd_options(self):
+        raise NotImplementedError
+        return {}
+
+
+class ImportPanel(ConfigPanel):
+    def _on_input_response(self, response, dialog, data):
+         if response == gtk.RESPONSE_OK:
+            fname = dialog.get_filename()
+            try:
+                self._tcsource = TCSourceProbe(fname)
+                self.reset(self._tcsource)
+            except ProbeError, ex:
+                print "open exception: " + str(ex)
+        
+    def __init__(self, tcsource, select_source=False):
+        super(ImportPanel, self).__init__()
+
+        self._import_props = None
+        if not select_source:
+            self._input_chooser = None
+        else:
+            label = gtk.Label("Select the input source")
+            self._input_chooser = TCOpenFileChooserButton()
+            self._input_chooser.set_response_callback(self._on_input_response, None)
+            self.pack_start(label, False, False, 5)
+            self.pack_start(self._input_chooser, False, False, 5)
+
+        self._input_props = gtk.TreeView()
+        self._tcsource = tcsource
+
+        self.reset(tcsource)
+
+        tvcol = gtk.TreeViewColumn("property")
+        cell = gtk.CellRendererText()
+        tvcol.pack_start(cell, True)
+        self._input_props.append_column(tvcol)
+        tvcol.add_attribute(cell, "text", 0)
+
+        tvcol = gtk.TreeViewColumn("value")
+        cell = gtk.CellRendererText()
+        tvcol.pack_start(cell, True)
+        tvcol.add_attribute(cell, "text", 1)
+        self._input_props.append_column(tvcol)
+
+        self._input_props.set_reorderable(False)
+
+        self._input_props.set_headers_visible(False)
+        self._input_props.set_enable_tree_lines(True)
+        self._input_props.columns_autosize()
+
+        sc_win = gtk.ScrolledWindow()
+        sc_win.set_border_width(10)
+        sc_win.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        sc_win.add_with_viewport(self._input_props)
+
+        props = gtk.Frame("Import properties")
+        props.add(sc_win)
+        self.pack_start(props, True, True, 0)
+
+        self.set_size_request(300, 200) # FIXME: until I get better with pygtk
+
+    def reset(self, tcsource):
+        # MEGA FIXME
+        ts = gtk.TreeStore(str, str)
+        paudio = ts.append(None, ("audio",""))
+        pvideo = ts.append(None, ("video",""))
+        pmedia = ts.append(None, ("media",""))
+        remap = { "audio":paudio, "video":pvideo, "stream":pmedia }
+        for k, v in tcsource.info.items():
+            p = remap[k[:6].strip()]
+            n = k[6:].strip()
+            ts.append(p, (n, v))
+        self._import_props = ts
+        self._input_props.set_model(self._import_props)
+
+    def cmd_options(self):
+        if self._tcsource.path == "N/A": # FIXME
+            raise MissingOptionError("input source")
+        return { "-i":"\'%s\'" %(self._tcsource.path) }
+
+class ExportPanel(ConfigPanel):
+    def _on_input_response(self, response, dialog, data):
+        if response == gtk.RESPONSE_OK:
+            self._output_name = dialog.get_filename()
+ 
+    def _on_toggle_profile(self, cell, path, model):
+        # FIXME
+        model[path][1] = not model[path][1]
+        active  = model[path][1]
+        profile = model[path][0]
+        if active:
+            self._active_profiles.append(profile)
+        else:
+            self._active_profiles.remove(profile)
+        self._update_active_profiles()
+
+    def __init__(self, config_manager):
+        super(ExportPanel, self).__init__()
+
+        self._output_name = None
+        self.reset(config_manager)
+
+        label = gtk.Label("Select the output destination")
+        self.pack_start(label, False, False, 5)
+        self._output_chooser = TCSaveFileChooserButton()
+        self._output_chooser.set_response_callback(self._on_input_response, None)
+        self.pack_start(self._output_chooser, False, False, 5)
+        prof = gtk.Frame("Export profile")
+        prof.set_border_width(10)
+
+        self._output_profile = gtk.TreeView(self._profiles)
+        self._output_profile.set_headers_visible(False)
+        self._output_profile.set_grid_lines(gtk.TREE_VIEW_GRID_LINES_HORIZONTAL)
+
+        tvcol = gtk.TreeViewColumn("Name")
+        cell = gtk.CellRendererText()
+        tvcol.pack_start(cell, True)
+        tvcol.add_attribute(cell, "text", 0)
+        tvcol.set_sort_column_id(0)
+        self._output_profile.append_column(tvcol)
+
+        self._prof_renderer = gtk.CellRendererToggle()
+        self._prof_renderer.set_property("activatable", True)
+        self._prof_renderer.connect("toggled", self._on_toggle_profile, self._profiles)
+        tvcol = gtk.TreeViewColumn("Active", self._prof_renderer)
+        tvcol.add_attribute(self._prof_renderer, "active", 1)
+        self._output_profile.append_column(tvcol)
+
+        self._output_profile.set_search_column(0)
+        self._output_profile.set_reorderable(True)
+        prof.add(self._output_profile)
+        self.pack_start(prof, False, False)
+
+        self._profiles_string = gtk.Label()
+        self._profiles_string.set_width_chars(40)
+        self._profiles_string.set_line_wrap(True)
+        self._update_active_profiles()
+        self.pack_start(self._profiles_string, False, False)
+
+    def _update_active_profiles(self):
+        # FIXME: DRY violation?
+        if self._active_profiles:
+            profs = "Profile order: %s" %(','.join(self._active_profiles))
+        else:
+            profs = "No profile selected"
+        self._profiles_string.set_text(profs)
+
+    def reset(self, config_manager):
+        self._active_profiles = []
+        self._profiles = gtk.TreeStore(str, bool)
+        for p in config_manager.profiles:
+            self._profiles.append(None, (p, False))
+
+    def cmd_options(self):
+        if self._output_name is None:
+            raise MissingOptionError("output destination")
+        opts = { "-o":"\'%s\'" %(self._output_name) }
+        if self._active_profiles:
+            opts["-P"] = ','.join(self._active_profiles)
+        return opts    
+
+
+###########################################################################
+# the main app (which glue eveything together)
+###########################################################################
+
+class GTranscode2(gtk.Window):
+    def _setup_win(self):
+        self._main_vbox = gtk.VBox()
+        
+        self._buttons = gtk.HButtonBox()
+        self._buttons.set_layout(gtk.BUTTONBOX_START)
+        self._buttons.set_border_width(5)
+
+        self._start_btn  = _stock_button("Transcode",  gtk.STOCK_MEDIA_PLAY)
+        self._stop_btn   = gtk.Button("Stop",   gtk.STOCK_MEDIA_STOP)
+        self._about_btn  = gtk.Button("About",  gtk.STOCK_ABOUT)
+
+        self._buttons.pack_start(self._start_btn,  False, False)
+        self._buttons.pack_start(self._stop_btn,   False, False)
+        self._buttons.pack_end(self._about_btn,  False, False)
+
+        self._main_vbox.pack_start(self._buttons, False, False, 1)
+
+        self._progress_bar = gtk.ProgressBar()
+        self._progress_bar.set_text("idle")
+
+        self._main_vbox.pack_start(self._progress_bar, True, False, 1)
+
+        hbox = gtk.HBox()
+        
+        self._import = ImportPanel(TCSourceFakeProbe(),
+                                   select_source=True)
+        self._cmdline_builder.add_provider(self._import)
+        hbox.pack_start(self._import, True, True)
+
+        self._cfg_notebook = gtk.Notebook()
+        self._cfg_notebook.set_tab_pos(gtk.POS_TOP)
+        self._cfg_notebook.set_border_width(5)
+       
+        self._cfg_table = gtk.Table(1, 6, True)
+        self._cfg_table.attach(self._cfg_notebook, 0,6, 0,1)
+
+        # the frames
+        label = gtk.Label("_Export")
+        label.set_use_underline(True)
+        panel = ExportPanel(self._config_manager)
+        self._cmdline_builder.add_provider(panel)
+        self._cfg_notebook.append_page(panel, label)
+
+        hbox.pack_start(self._cfg_table, True, True, 10)
+        self._main_vbox.pack_start(hbox, True, True, 10)
+
+        self._status_bar = gtk.Statusbar()
+
+        self._main_vbox.pack_start(self._status_bar, True, False, 1)
+
+        self.add(self._main_vbox)
+
+    def __init__(self, name, version, config_manager, cmdline_builder):
+        super(GTranscode2, self).__init__(gtk.WINDOW_TOPLEVEL)
+        self.set_border_width(4)
+        self.set_gravity(gtk.gdk.GRAVITY_CENTER)
+        self.set_title(name)
+
+        self._name            = name
+        self._version         = version
+        self._config_manager  = config_manager
+        self._cmdline_builder = cmdline_builder
+
+        self._setup_win()
+
+    def run(self):
+        self.connect_signals()
+        self.show_all()
+        gtk.main()
+
+    def _on_debug_cb(self, widget, data=None):
+        print "%s clicked" % data
+
+    def _on_about_cb(self, widget, data=None):
+        about = gtk.AboutDialog()
+        infos = {
+                "name"          : self._name,
+                "version"       : self._version,
+                "comments"      : "The transcode GUI",
+                "copyright"     : "Copyright (C) 2009 Francesco Romani <fromani@gmail.com>.",
+                "website"       : "http://tcforge.berlios.de",
+                "website-label" : "Transcode Website",
+                "authors"       : ("Francesco Romani <fromani@gmail.com>",),
+                "license"       : _LICENSE,
+                "wrap-license"  : True
+        }
+
+        for prop, val in infos.items():
+            about.set_property(prop, val)
+
+        # FIXME
+        about.connect("response", lambda self, *args: self.destroy())
+        about.show_all()
+        about.run()
+        about.destroy()
+
+    def _on_start_cb(self, widget, data=None):
+        print self._cmdline_builder.cmdline()
+
+    def connect_signals(self):
+        self.connect("delete_event", self.delete)
+        self._about_btn.connect("clicked", self._on_about_cb, "about button")
+        self._start_btn.connect("clicked", self._on_start_cb, "start button")
+        self._stop_btn.connect( "clicked", self._on_debug_cb, "stop button")
+
+    def delete(self, widget, event=None):
+        gtk.main_quit()
+        return False
+
+
+###########################################################################
+
+# FIXME: properly integrate into the error logging
+class CriticalErrorNotification(object):
+    def __init__(self, name, error):
+        self._name = name
+        self._text = str(error)
+
+    def setup(self):
+        self._msg = gtk.MessageDialog(flags=gtk.DIALOG_MODAL,
+                                      type=gtk.MESSAGE_ERROR,
+                                      buttons=gtk.BUTTONS_CLOSE,
+                                      message_format=self._text)
+        self._msg.set_title("%s - critical error" % self._name)
+
+        self._msg.connect("delete_event", self.delete)
+        self._msg.connect("response",     self.response)
+
+    def preannotate(self, text):
+        self._text = text + self._text
+
+    def response(self, dialog, response, data=None):
+        gtk.main_quit()
+        return False
+    def delete(self, widget, event=None):
+        gtk.main_quit()
+        return False
+
+    def run(self):
+        self.setup()
+        self._msg.show_all()
+        gtk.main()
+
+
+
+def _usage(exe=EXE):
+    pass
+
+def _version(ver=VER):
+    pass
+
+def _gui(opts, exe=EXE, ver=VER):
+    try:
+        bins = TCBinaries()
+        if "--defaults" not in opts:
+            bins.discover()
+
+        cmd_builder = TCCmdlineBuilder(bins)
+        exe_manager = TCExecutionManager(bins)
+        cfg_manager = TCConfigManager(bins)
+
+        app = GTranscode2(exe, ver,
+                             cfg_manager,
+                             cmd_builder)
+    except MissingExecutableError, missing:
+        app = CriticalErrorNotification(exe, error=missing)
+        app.preannotate("Can't startup %s:\n" % (exe))
+
+    app.run()
+
+   
+
+def _main():
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "", ["debug=", "defaults", "help"])
+    except getopt.GetoptError, err:
+        sys.stderr.write("%s\n" % str(err))
+        _usage()
+        sys.exit(1)
+
+    if args:
+        sys.stderr.write("unused arguments: %s\n" %(','.join(args)))
+
+    opts = dict(opts)
+
+    if "--help" in opts:
+        _version()
+        _usage()
+        sys.exit(0)
+
+    _gui(opts)
+
+
+if __name__ == "__main__":
+    _main()
+

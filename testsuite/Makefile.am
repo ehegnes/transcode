@@ -3,6 +3,7 @@
 EXTRA_DIST = \
 	newtest.pl test.pl \
 	test-tcmodchain.sh test-cfg-filelist.sh \
+	test-tcinterface.py \
 	modules.cfg
 
 AM_CPPFLAGS = \
