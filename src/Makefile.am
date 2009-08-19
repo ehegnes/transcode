@@ -11,6 +11,7 @@ AM_CPPFLAGS = \
 AM_LDFLAGS = -export-dynamic
 
 bin_PROGRAMS = transcode
+bin_SCRIPTS = gtranscode2.py
 
 if HAVE_X11
 TC_X_LIBS = $(X_LIBS) $(X_PRE_LIBS) -lXext -lX11 $(X_EXTRA_LIBS)
