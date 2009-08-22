@@ -22,14 +22,20 @@
 #    distribution.
 #
 
-import sys
+# The little Dilemma: should we follow transcode's STYLE guide or the PEP8?
+# or the common subset (if any)? The interesting part is there isn't so much
+# distance between the twos guidelines.
+#
+# While in doubt, we'll follow the PEP8.
+
+
+import subprocess
 import logging
 import getopt # must learn optparse
-import subprocess
+import glob
+import sys
 import os.path
 import os
-import glob
-import logging
 
 import gtk
 import pygtk
@@ -38,7 +44,7 @@ pygtk.require('2.0')
 
 EXE = "gtranscode2"
 VER = "0.0.2" 
-_LICENSE = \
+LICENSE = \
 """
 This software is provided 'as-is', without any express
 or implied warranty. In no event will the authors be
@@ -67,6 +73,10 @@ following restrictions:
 """
 
 class TranscodeError(Exception):
+    """The root of the (g)transcode exception hierarhcy.
+       Should never be used directly, and most important,
+       should never be caught directly.
+    """
     def __init__(self, msg=""):
         super(TranscodeError, self).__init__()
         self._reason = msg
@@ -75,6 +85,10 @@ class TranscodeError(Exception):
 
 
 class MissingExecutableError(TranscodeError):
+    """gtranscode depends on the transcode toolset to work.
+       If one or more of the needed tools is missing, this exception
+       is raised.
+    """
     def __init__(self, exe):
         msg = \
 """
@@ -85,15 +99,22 @@ Please check your settings and/or your transcode installation.
 
 
 class MissingOptionError(TranscodeError):
+    """gtranscode is a frontend for transcode, which in turns requires some
+       mandatory options. If the user doesn't specify one of those option,
+       this exception is raised
+    """
     def __init__(self, optname):
         msg = \
 """
-FIXME: %s
+The mandaotory setting `%s' was not specified.
 """ % (optname)
         super(MissingOptionError, self).__init__(msg)
 
 
 class ProbeError(TranscodeError):
+    """This exception is raised when the probing (via tcprobe)
+       of an input source fails for any reason.
+    """
     def __init__(self, filename, reason="unsupported format"):
         msg = \
 """
@@ -104,16 +125,51 @@ Error while probing the input source `%s':\n
     
 
 
-def _cmd_output(cmd_args):
-    p = subprocess.Popen(cmd_args, stdout=subprocess.PIPE)
+def _cmd_output(cmdline):
+    """cmd_output(cmdline) -> (return code, output)
+
+    tiny wrapper around subprocess.
+    run a command (given as list of tokens) in a subshell
+    and returns back the command's exit code and its output.
+    """
+    p = subprocess.Popen(cmdline, stdout=subprocess.PIPE)
     output = p.communicate()[0]
     retval = p.wait()
     return retval, output.strip()
     
+# FIXME
+class TCBinaries(object):
+    def __init__(self):
+        # defaults
+        self.transcode = "transcode"
+        self.tccfgshow = "tccfgshow"
+        self.tcmodinfo = "tcmodinfo"
+        self.tcprobe   = "tcprobe"
+    def _find_exe(self, exe):
+        """finds a given executable into the user's PATH and
+           returns the full path if found.
+           Raises MissingExecutableError otherwise.
+        """
+        # FIXME: must found something (package) better
+        pathdirs = [ d.strip() for d in os.getenv("PATH").split(':') ]
+        for dir in pathdirs:
+            fname = os.path.join(dir, exe)
+            if os.access(fname, os.X_OK):
+                return fname
+        raise MissingExecutableError(exe)
+        
+    def discover(self):
+        self.transcode = self._find_exe("transcode")        
+        self.tccfgshow = self._find_exe("tccfgshow")        
 
 
 class TCConfigManager(object):
+    """This class represents the configuration of the local
+       underlying transcode installation.
+    """
     def _get_profiles(self):
+        """retrieves the profile list from tccfgshow
+        """
         ret, out = _cmd_output([self._bins.tccfgshow, "-P"])
         self._profile_path = out
         pattern = os.path.join(self._profile_path, "*.cfg")
@@ -213,28 +269,6 @@ class TCExecutionManager(object):
         pass
 
 
-# FIXME
-class TCBinaries(object):
-    def __init__(self):
-        # defaults
-        self.transcode = "transcode"
-        self.tccfgshow = "tccfgshow"
-        self.tcmodinfo = "tcmodinfo"
-        self.tcprobe   = "tcprobe"
-    def _find_exe(self, exe):
-        # FIXME: must found something (package) better
-        pathdirs = [ d.strip() for d in os.getenv("PATH").split(':') ]
-        for dir in pathdirs:
-            fname = os.path.join(dir, exe)
-            if os.access(fname, os.X_OK):
-                return fname
-        raise MissingExecutableError(exe)
-        
-    def discover(self):
-        self.transcode = self._find_exe("transcode")        
-        self.tccfgshow = self._find_exe("tccfgshow")        
-
-
 
 ###########################################################################
 # utils
@@ -284,18 +318,20 @@ class TCBaseFileChooserButton(gtk.Button):
 
 class TCOpenFileChooserButton(TCBaseFileChooserButton):
     def _build_dialog(self):
+        btn_map = (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, 
+                   gtk.STOCK_OPEN,   gtk.RESPONSE_OK)
         dialog = gtk.FileChooserDialog(title="Select the input source",
                                        action=gtk.FILE_CHOOSER_ACTION_OPEN,
-                                       buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, 
-                                                gtk.STOCK_OPEN,   gtk.RESPONSE_OK))
+                                       buttons=btn_map)
         return dialog
 
 class TCSaveFileChooserButton(TCBaseFileChooserButton):
     def _build_dialog(self):
+        btn_map = (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, 
+                   gtk.STOCK_SAVE,   gtk.RESPONSE_OK)
         dialog = gtk.FileChooserDialog(title="Select the output destination",
                                        action=gtk.FILE_CHOOSER_ACTION_SAVE,
-                                       buttons=(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, 
-                                                gtk.STOCK_SAVE,   gtk.RESPONSE_OK))
+                                       buttons=btn_map)
         return dialog
 
 
@@ -496,13 +532,13 @@ class GTranscode2(gtk.Window):
         self._buttons.set_layout(gtk.BUTTONBOX_START)
         self._buttons.set_border_width(5)
 
-        self._start_btn  = _stock_button("Transcode",  gtk.STOCK_MEDIA_PLAY)
-        self._stop_btn   = gtk.Button("Stop",   gtk.STOCK_MEDIA_STOP)
-        self._about_btn  = gtk.Button("About",  gtk.STOCK_ABOUT)
+        self._start_btn = _stock_button("Transcode", gtk.STOCK_MEDIA_PLAY)
+        self._stop_btn = gtk.Button("Stop", gtk.STOCK_MEDIA_STOP)
+        self._about_btn = gtk.Button("About", gtk.STOCK_ABOUT)
 
-        self._buttons.pack_start(self._start_btn,  False, False)
-        self._buttons.pack_start(self._stop_btn,   False, False)
-        self._buttons.pack_end(self._about_btn,  False, False)
+        self._buttons.pack_start(self._start_btn, False, False)
+        self._buttons.pack_start(self._stop_btn, False, False)
+        self._buttons.pack_end(self._about_btn, False, False)
 
         self._main_vbox.pack_start(self._buttons, False, False, 1)
 
@@ -547,9 +583,9 @@ class GTranscode2(gtk.Window):
         self.set_gravity(gtk.gdk.GRAVITY_CENTER)
         self.set_title(name)
 
-        self._name            = name
-        self._version         = version
-        self._config_manager  = config_manager
+        self._name = name
+        self._version = version
+        self._config_manager = config_manager
         self._cmdline_builder = cmdline_builder
 
         self._setup_win()
@@ -565,15 +601,15 @@ class GTranscode2(gtk.Window):
     def _on_about_cb(self, widget, data=None):
         about = gtk.AboutDialog()
         infos = {
-                "name"          : self._name,
-                "version"       : self._version,
-                "comments"      : "The transcode GUI",
-                "copyright"     : "Copyright (C) 2009 Francesco Romani <fromani@gmail.com>.",
-                "website"       : "http://tcforge.berlios.de",
+                "name" : self._name,
+                "version" : self._version,
+                "comments" : "The transcode GUI",
+                "copyright" : "Copyright (C) 2009 Francesco Romani <fromani@gmail.com>.",
+                "website" : "http://tcforge.berlios.de",
                 "website-label" : "Transcode Website",
-                "authors"       : ("Francesco Romani <fromani@gmail.com>",),
-                "license"       : _LICENSE,
-                "wrap-license"  : True
+                "authors" : ("Francesco Romani <fromani@gmail.com>",),
+                "license" : LICENSE,
+                "wrap-license" : True
         }
 
         for prop, val in infos.items():
@@ -592,7 +628,7 @@ class GTranscode2(gtk.Window):
         self.connect("delete_event", self.delete)
         self._about_btn.connect("clicked", self._on_about_cb, "about button")
         self._start_btn.connect("clicked", self._on_start_cb, "start button")
-        self._stop_btn.connect( "clicked", self._on_debug_cb, "stop button")
+        self._stop_btn.connect("clicked", self._on_debug_cb, "stop button")
 
     def delete(self, widget, event=None):
         gtk.main_quit()
@@ -646,9 +682,9 @@ def _gui(opts, exe=EXE, ver=VER):
         if "--defaults" not in opts:
             bins.discover()
 
+        cfg_manager = TCConfigManager(bins)
         cmd_builder = TCCmdlineBuilder(bins)
         exe_manager = TCExecutionManager(bins)
-        cfg_manager = TCConfigManager(bins)
 
         app = GTranscode2(exe, ver,
                              cfg_manager,
