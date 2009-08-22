@@ -146,9 +146,9 @@ AM_CONDITIONAL(HAVE_GETTIMEOFDAY, test x"$ac_cv_func_gettimeofday" = x"yes")
 
 dnl Special check for sysconf() to ensure _SC_PAGESIZE is also available.
 AC_CACHE_CHECK([for sysconf(_SC_PAGESIZE)], ac_cv_sysconf_with_sc_pagesize,
-    [AC_COMPILE_IFELSE(AC_LANG_PROGRAM([#include <unistd.h>], [sysconf(_SC_PAGESIZE)])],
-        [ac_cv_sysconf_with_sc_pagesize=yes],
-        [ac_cv_sysconf_with_sc_pagesize=no])])
+               [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <unistd.h>]],[[sysconf(_SC_PAGESIZE);]])],
+                                  [ac_cv_sysconf_with_sc_pagesize=yes],
+                                  [ac_cv_sysconf_with_sc_pagesize=no])])
 if test x"$ac_cv_sysconf_with_sc_pagesize" = x"yes"; then
     AC_DEFINE([HAVE_SYSCONF_WITH_SC_PAGESIZE], 1,
               [Define to 1 if you have sysconf(_SC_PAGESIZE).])
