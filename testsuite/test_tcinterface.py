@@ -30,6 +30,15 @@ import subprocess
 import unittest
 import os.path
 
+import sys
+# hack to make the testing easier.
+where = os.path.abspath(os.path.dirname(sys.argv[0]))
+src   = os.path.join(where, '..', 'src')
+sys.path.append(src)
+del where
+del src
+# hack ends here
+
 import gtranscode2 as tci
 
 class ConfigManagerProfilesTest(unittest.TestCase):
