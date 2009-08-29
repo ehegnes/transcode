@@ -943,7 +943,7 @@ static int tc_v4l2_parse_options(V4L2Source *vs, int layout, const char *options
         break;
       default:
         tc_log_error(MOD_NAME,
-                     "colorspace (%d) must be one of RGB, YUV 4:2:0 or YUV 4:2:2",
+                     "colorspace (0x%X) must be one of RGB, YUV 4:2:0 or YUV 4:2:2",
                      layout);
         return TC_ERROR;
     }
