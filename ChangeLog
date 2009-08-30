@@ -30,4 +30,5 @@ transcode-1.2.0
 [+] Introduced module registry to automatically select a module given a format
 [+] Introduced `tccfgshow' to inspect the transcode internal capabilities.
 [-] Removed the unmantained PVM code.
+[+] Add a special-crafted import module targeting webcams using libv4l.
 ===========================================================================
