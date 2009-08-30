@@ -339,7 +339,7 @@ static void tc_v4l2_video_save_frame(V4L2Source *vs, const uint8_t *source, size
 
 static int tc_v4l2_video_grab_frame(V4L2Source *vs, uint8_t *dest, size_t length)
 {
-    static struct v4l2_buffer buffer;
+    static struct v4l2_buffer buffer; /* FIXME */
     int ix, err = 0, eio = 0;
 
     // get buffer
@@ -943,7 +943,8 @@ static int tc_v4l2_parse_options(V4L2Source *vs, int layout, const char *options
         break;
       default:
         tc_log_error(MOD_NAME,
-                     "colorspace (0x%X) must be one of RGB, YUV 4:2:0 or YUV 4:2:2",
+                     "colorspace (0x%X) must be one of"
+                     " RGB24, YUV 4:2:0 or YUV 4:2:2",
                      layout);
         return TC_ERROR;
     }
