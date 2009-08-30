@@ -8,7 +8,7 @@ Key:
 transcode-1.1.5
 ---------------
 [*] Add a special-crafted import module targeting webcams using libv4l.
-[!] Fixed the colorspace detection into import_v4l2.
+[+] Fixed the colorspace detection into import_v4l2.
 ===========================================================================
 
 ===========================================================================
