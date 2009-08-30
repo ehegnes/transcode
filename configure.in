@@ -686,6 +686,19 @@ dnl
 dnl setup layout define once
 dnl
 
+dnl
+dnl libv4l toolkit
+dnl
+TC_PKG_CONFIG_CHECK(libv4l1, no, LIBV4L1, libv4l1,
+                    [http://hansdegoede.livejournal.com/3636.html])
+TC_PKG_CONFIG_CHECK(libv4l2, no, LIBV4L2, libv4l2,
+                    [http://hansdegoede.livejournal.com/3636.html])
+TC_PKG_CONFIG_CHECK(libv4lconvert, no, LIBV4LCONVERT,
+                    libv4lconvert,
+                    [http://hansdegoede.livejournal.com/3636.html])
+TC_PKG_HAVE(libv4l1, LIBV4L1)
+TC_PKG_HAVE(libv4l2, LIBV4L2)
+TC_PKG_HAVE(libv4lconvert, LIBV4LCONVERT)
 
 dnl
 dnl libmpeg2
