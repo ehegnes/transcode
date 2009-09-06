@@ -81,12 +81,19 @@ class TranscodeError(Exception):
     should never be caught directly.
     """
 
-    def __init__(self, msg=""):
+    def __init__(self, user_msg="", log_msg=""):
         super(TranscodeError, self).__init__()
-        self._reason = msg
+        self._user_msg = user_msg
+        self._log_msg = log_msg
 
     def __str__(self):
-        return str(self._reason)
+        return str(self._user_msg)
+
+    def to_user(self):
+        return self._user_msg
+
+    def to_log(self):
+        return self._log_msg
 
 
 class MissingExecutableError(TranscodeError):
@@ -97,13 +104,14 @@ class MissingExecutableError(TranscodeError):
     """
 
     def __init__(self, exe):
-        msg = \
+        user_msg = \
 """
 The requested executable `%s' was not found into the executable PATH.\n
 Please check your settings and/or your transcode installation.
 """ \
 % (exe)
-        super(MissingExecutableError, self).__init__(msg)
+        log_msg = "missing executable `%s'" %(exe)
+        super(MissingExecutableError, self).__init__(user_msg, log_msg)
 
 
 class MissingOptionError(TranscodeError):
@@ -114,12 +122,13 @@ class MissingOptionError(TranscodeError):
     """
 
     def __init__(self, optname):
-        msg = \
+        user_msg = \
 """
 The mandatory setting `%s' was not specified.
 """ \
 % (optname)
-        super(MissingOptionError, self).__init__(msg)
+        log_msg = "missing mandatory option `%s'" %(optname)
+        super(MissingOptionError, self).__init__(user_msg, log_msg)
 
 
 class ProbeError(TranscodeError):
@@ -129,13 +138,14 @@ class ProbeError(TranscodeError):
     """
 
     def __init__(self, filename, reason="unsupported format"):
-        msg = \
+        user_msg = \
 """
 Error while probing the input source `%s':\n
 %s
 """ \
 %(filename, reason)
-        super(ProbeError, self).__init__(msg)
+        log_msg = "error probing `%s': %s" %(filename, reason.strip())
+        super(ProbeError, self).__init__(user_msg, log_msg)
     
 
 ###########################################################################
@@ -382,30 +392,25 @@ class TCSaveFileChooserButton(TCBaseFileChooserButton):
 # logging
 ###########################################################################
 
+
 class NullHandler(logging.Handler):
     def emit(self, record):
         pass
 
-class AppNotifyHandler(logging.Handler):
-    def __init__(self, log_win):
-        pass
-    def emit(self, record):
-        pass
 
-def setup_logging(logname="~/.gtranscode2.log"):
-    logname = os.path.expanduser(logname)
-    logging.basicConfig(level=logging.DEBUG,
-                       format="%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
-                        datefmt="%m-%d %H:%M",
-                        filename=logname,
-                        filemode="w")
-#    formatter = logging.Formatter("%(name)-12s: %(levelname)-8s %(message)s")
-    console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
-#    console.setFormatter(formatter)
-    logger = logging.getLogger('')
-    logger.addHandler(console)
-    return logger
+# glue code
+class WinNotifyHandler(logging.Handler):
+    def __init__(self, log_win):
+#        super(WinNotifyHandler, self).__init__()
+        logging.Handler.__init__(self)
+        self._win = log_win
+
+    def emit(self, record):
+        msg = self.format(record)
+        if record.levelno == logging.CRITICAL:
+            self._win.notify_error(msg)
+        else:
+            self._win.notify_info(msg)
 
 
 ###########################################################################
@@ -585,7 +590,29 @@ class ExportPanel(ConfigPanel):
 # the main app (which glue eveything together)
 ###########################################################################
 
-class GTranscode2(gtk.Window):
+class GTKNotifyWindow(gtk.Window):
+    def __init__(self, log_name):
+        super(GTKNotifyWindow, self).__init__(gtk.WINDOW_TOPLEVEL)
+        self._status_bar = gtk.Statusbar()
+        self._log_name = log_name
+
+    def notify_info(self, msg):
+        pass
+
+    def notify_error(self, msg):
+        notify = gtk.MessageDialog(flags=gtk.DIALOG_MODAL,
+                                   type=gtk.MESSAGE_ERROR,
+                                   buttons=gtk.BUTTONS_CLOSE,
+                                   message_format=msg)
+        notify.set_title("%s - critical error" % self._log_name)
+        # FIXME
+        notify.connect("response", lambda self, *args: self.destroy())
+        notify.show_all()
+        notify.run()
+        notify.destroy()
+
+
+class GTranscode2(GTKNotifyWindow):
     def _setup_win(self):
         self._main_vbox = gtk.VBox()
         
@@ -632,14 +659,13 @@ class GTranscode2(gtk.Window):
         hbox.pack_start(self._cfg_table, True, True, 10)
         self._main_vbox.pack_start(hbox, True, True, 10)
 
-        self._status_bar = gtk.Statusbar()
-
+        # _status_bar come from GTKNotifyWindow
         self._main_vbox.pack_start(self._status_bar, True, False, 1)
 
         self.add(self._main_vbox)
 
     def __init__(self, name, version, config_manager, cmdline_builder):
-        super(GTranscode2, self).__init__(gtk.WINDOW_TOPLEVEL)
+        super(GTranscode2, self).__init__(name)
         self.set_border_width(4)
         self.set_gravity(gtk.gdk.GRAVITY_CENTER)
         self.set_title(name)
@@ -651,10 +677,19 @@ class GTranscode2(gtk.Window):
 
         self._setup_win()
 
+        console = WinNotifyHandler(self)
+        console.setLevel(logging.INFO)
+#        console.setFormatter(formatter)
+        logger = logging.getLogger('')
+        logger.addHandler(console)
+
+
     def run(self):
+        logging.debug("GUI start.")
         self.connect_signals()
         self.show_all()
         gtk.main()
+        logging.debug("GUI stop.")
 
     def _on_debug_cb(self, widget, data=None):
         print "%s clicked" % data
@@ -687,7 +722,7 @@ class GTranscode2(gtk.Window):
             cmdline = self._cmdline_builder.cmdline()
             logging.info("%s" %(cmdline))
         except MissingOptionError, ex:
-            logging.critical("%s" %(str(ex)))
+            logging.critical("%s" %(ex.to_log()))
 
     def connect_signals(self):
         self.connect("delete_event", self.delete)
@@ -749,7 +784,14 @@ def _gui(opts, exe=EXE, ver=VER):
         elif "--log-file" in opts:
             newname = opts["--log-file"]
             logname = newname if newname else logname
-        setup_logging(logname)
+        logging.basicConfig(level=logging.DEBUG,
+                            format="%(asctime)s %(levelname)-8s %(message)s",
+                            datefmt="%m-%d %H:%M",
+                            filename=os.path.expanduser(logname),
+                            filemode="w")
+
+        logging.debug("%s v%s starts" %(exe, ver))
+        logging.debug("options: %s" %(str(opts)))
 
         cfg_manager = TCConfigManager()
         if "--defaults" not in opts:
@@ -762,6 +804,7 @@ def _gui(opts, exe=EXE, ver=VER):
         app = GTranscode2(exe, ver,
                           cfg_manager,
                           cmd_builder)
+
     except MissingExecutableError, missing:
         app = CriticalErrorNotification(exe, error=missing)
         app.preannotate("Can't startup %s:\n" % (exe))
