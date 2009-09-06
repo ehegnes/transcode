@@ -72,61 +72,78 @@ following restrictions:
    source distribution.
 """
 
+###########################################################################
+
 class TranscodeError(Exception):
-    """The root of the (g)transcode exception hierarhcy.
-       Should never be used directly, and most important,
-       should never be caught directly.
     """
+    The root of the (g)transcode exception hierarhcy.
+    Should never be used directly, and most important,
+    should never be caught directly.
+    """
+
     def __init__(self, msg=""):
         super(TranscodeError, self).__init__()
         self._reason = msg
+
     def __str__(self):
         return str(self._reason)
 
 
 class MissingExecutableError(TranscodeError):
-    """gtranscode depends on the transcode toolset to work.
-       If one or more of the needed tools is missing, this exception
-       is raised.
     """
+    gtranscode depends on the transcode toolset to work.
+    If one or more of the needed tools is missing, this exception
+    is raised.
+    """
+
     def __init__(self, exe):
         msg = \
 """
 The requested executable `%s' was not found into the executable PATH.\n
 Please check your settings and/or your transcode installation.
-""" % (exe)
+""" \
+% (exe)
         super(MissingExecutableError, self).__init__(msg)
 
 
 class MissingOptionError(TranscodeError):
-    """gtranscode is a frontend for transcode, which in turns requires some
-       mandatory options. If the user doesn't specify one of those option,
-       this exception is raised
     """
+    gtranscode is a frontend for transcode, which in turns requires some
+    mandatory options. If the user doesn't specify one of those option,
+    this exception is raised
+    """
+
     def __init__(self, optname):
         msg = \
 """
-The mandaotory setting `%s' was not specified.
-""" % (optname)
+The mandatory setting `%s' was not specified.
+""" \
+% (optname)
         super(MissingOptionError, self).__init__(msg)
 
 
 class ProbeError(TranscodeError):
-    """This exception is raised when the probing (via tcprobe)
-       of an input source fails for any reason.
     """
+    This exception is raised when the probing (via tcprobe)
+    of an input source fails for any reason.
+    """
+
     def __init__(self, filename, reason="unsupported format"):
         msg = \
 """
 Error while probing the input source `%s':\n
 %s
-""" %(filename, reason)
+""" \
+%(filename, reason)
         super(ProbeError, self).__init__(msg)
     
 
+###########################################################################
+
 
 def _cmd_output(cmdline):
-    """cmd_output(cmdline) -> (return code, output)
+    """
+    cmd_output(cmdline) -> (return code, output)
 
     tiny wrapper around subprocess.
     run a command (given as list of tokens) in a subshell
@@ -137,18 +154,20 @@ def _cmd_output(cmdline):
     retval = p.wait()
     return retval, output.strip()
     
-# FIXME
-class TCBinaries(object):
-    def __init__(self):
-        # defaults
-        self.transcode = "transcode"
-        self.tccfgshow = "tccfgshow"
-        self.tcmodinfo = "tcmodinfo"
-        self.tcprobe   = "tcprobe"
+
+class TCConfigManager(object):
+    """
+    This class represents the configuration of the local
+    underlying transcode installation.
+    """
+
     def _find_exe(self, exe):
-        """finds a given executable into the user's PATH and
-           returns the full path if found.
-           Raises MissingExecutableError otherwise.
+        """
+        _find_exe(exe) -> path of the exe
+
+        finds a given executable into the user's PATH and
+        returns the full path if found.
+        Raises MissingExecutableError otherwise.
         """
         # FIXME: must found something (package) better
         pathdirs = [ d.strip() for d in os.getenv("PATH").split(':') ]
@@ -158,19 +177,13 @@ class TCBinaries(object):
                 return fname
         raise MissingExecutableError(exe)
         
-    def discover(self):
-        self.transcode = self._find_exe("transcode")        
-        self.tccfgshow = self._find_exe("tccfgshow")        
-
-
-class TCConfigManager(object):
-    """This class represents the configuration of the local
-       underlying transcode installation.
-    """
     def _get_profiles(self):
-        """retrieves the profile list from tccfgshow
         """
-        ret, out = _cmd_output([self._bins.tccfgshow, "-P"])
+        _get_profiles() -> [profile, profile,...]
+
+        retrieves the profile list from tccfgshow
+        """
+        ret, out = _cmd_output([self.tccfgshow, "-P"])
         self._profile_path = out
         pattern = os.path.join(self._profile_path, "*.cfg")
         def _getname(p):
@@ -179,10 +192,26 @@ class TCConfigManager(object):
             return n
         return [ _getname(p) for p in glob.glob(pattern) ]
 
-    def __init__(self, binaries):
-        self._bins    = binaries
+    def setup(self):
         self.profiles = self._get_profiles()
         
+    def discover(self):
+        """
+        discover() -> None
+
+        find the actual path of the transcode binaries
+        and update the members accordingly.
+        """
+        self.transcode = self._find_exe("transcode")        
+        self.tccfgshow = self._find_exe("tccfgshow")        
+
+    def __init__(self):
+        self.transcode = "transcode"
+        self.tccfgshow = "tccfgshow"
+        self.tcmodinfo = "tcmodinfo"
+        self.tcprobe   = "tcprobe"
+        self.profiles  = []
+
 
 # FIXME: hard to test
 class TCSourceProbe(object):
@@ -203,6 +232,7 @@ class TCSourceProbe(object):
         "ID_AUDIO_BITS"    : "audio bits per sample",
         "ID_LENGTH"        : "stream length (frames)"
             }
+
     def _parse(self, probe_data):
         res = {}
         for line in probe_data.split('\n'):
@@ -213,11 +243,13 @@ class TCSourceProbe(object):
                 continue
             res[k] = v.strip()
         return res
+
     def _get_info(self):
         ret, out = _cmd_output(["tcprobe", "-i", self.path, "-R"])
         if ret != 0:
             raise ProbeError(self.path)
         return self._parse(out)
+
     def __init__(self, path):
         self.path = path # FIXME!
         self.info = self._get_info()
@@ -240,13 +272,17 @@ class TCCmdlineBuilder(object):
     def __init__(self, binaries):
         self._bins = binaries
         self._providers = []
+
     def add_provider(self, prov):
         self._providers.append(prov)
+
     def command(self):
         return self._bins.transcode
+
     def cmdline(self):
         opts = " ".join(str(o) for o in self.options())
         return "%s %s" %(self.command(), opts)
+
     def options(self):
         opts = {}
         for p in self._providers:
@@ -274,6 +310,7 @@ class TCExecutionManager(object):
 # utils
 ###########################################################################
 
+
 # FIXME: looks fragile. Find something better?
 def _set_button_label(btn, text):
     align = btn.get_children()[0]
@@ -299,13 +336,17 @@ class TCBaseFileChooserButton(gtk.Button):
         self._res_cb_data  = None
         self._res_filename = None
         self.connect("clicked", self._on_input_open, self)
+
     def get_filename(self):
         return self._res_filename
+
     def set_label(self, text):
         _set_button_label(self, text)
+
     def set_response_callback(self, callback, data):
         self._res_callback = callback
         self._res_cb_data  = data
+
     def _on_input_open(self, widget, data):
         dialog = self._build_dialog()
         response = dialog.run()
@@ -316,6 +357,7 @@ class TCBaseFileChooserButton(gtk.Button):
             self._res_callback(response, dialog, self._res_cb_data)
         dialog.destroy()
 
+
 class TCOpenFileChooserButton(TCBaseFileChooserButton):
     def _build_dialog(self):
         btn_map = (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL, 
@@ -324,6 +366,7 @@ class TCOpenFileChooserButton(TCBaseFileChooserButton):
                                        action=gtk.FILE_CHOOSER_ACTION_OPEN,
                                        buttons=btn_map)
         return dialog
+
 
 class TCSaveFileChooserButton(TCBaseFileChooserButton):
     def _build_dialog(self):
@@ -344,8 +387,25 @@ class NullHandler(logging.Handler):
         pass
 
 class AppNotifyHandler(logging.Handler):
+    def __init__(self, log_win):
+        pass
     def emit(self, record):
         pass
+
+def setup_logging(logname="~/.gtranscode2.log"):
+    logname = os.path.expanduser(logname)
+    logging.basicConfig(level=logging.DEBUG,
+                       format="%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
+                        datefmt="%m-%d %H:%M",
+                        filename=logname,
+                        filemode="w")
+#    formatter = logging.Formatter("%(name)-12s: %(levelname)-8s %(message)s")
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+#    console.setFormatter(formatter)
+    logger = logging.getLogger('')
+    logger.addHandler(console)
+    return logger
 
 
 ###########################################################################
@@ -437,6 +497,7 @@ class ImportPanel(ConfigPanel):
         if self._tcsource.path == "N/A": # FIXME
             raise MissingOptionError("input source")
         return { "-i":"\'%s\'" %(self._tcsource.path) }
+
 
 class ExportPanel(ConfigPanel):
     def _on_input_response(self, response, dialog, data):
@@ -622,7 +683,11 @@ class GTranscode2(gtk.Window):
         about.destroy()
 
     def _on_start_cb(self, widget, data=None):
-        print self._cmdline_builder.cmdline()
+        try:
+            cmdline = self._cmdline_builder.cmdline()
+            logging.info("%s" %(cmdline))
+        except MissingOptionError, ex:
+            logging.critical("%s" %(str(ex)))
 
     def connect_signals(self):
         self.connect("delete_event", self.delete)
@@ -637,7 +702,7 @@ class GTranscode2(gtk.Window):
 
 ###########################################################################
 
-# FIXME: properly integrate into the error logging
+# FIXME: properly integrate into the error logging machinery
 class CriticalErrorNotification(object):
     def __init__(self, name, error):
         self._name = name
@@ -678,17 +743,25 @@ def _version(ver=VER):
 
 def _gui(opts, exe=EXE, ver=VER):
     try:
-        bins = TCBinaries()
-        if "--defaults" not in opts:
-            bins.discover()
+        logname = "~/.gtranscode2.log"
+        if "--no-log" in opts:
+            logname = "/dev/null"
+        elif "--log-file" in opts:
+            newname = opts["--log-file"]
+            logname = newname if newname else logname
+        setup_logging(logname)
 
-        cfg_manager = TCConfigManager(bins)
-        cmd_builder = TCCmdlineBuilder(bins)
-        exe_manager = TCExecutionManager(bins)
+        cfg_manager = TCConfigManager()
+        if "--defaults" not in opts:
+            cfg_manager.discover()
+        cfg_manager.setup()
+
+        cmd_builder = TCCmdlineBuilder(cfg_manager)
+        exe_manager = TCExecutionManager(cfg_manager)
 
         app = GTranscode2(exe, ver,
-                             cfg_manager,
-                             cmd_builder)
+                          cfg_manager,
+                          cmd_builder)
     except MissingExecutableError, missing:
         app = CriticalErrorNotification(exe, error=missing)
         app.preannotate("Can't startup %s:\n" % (exe))
