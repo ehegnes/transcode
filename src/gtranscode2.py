@@ -389,31 +389,6 @@ class TCSaveFileChooserButton(TCBaseFileChooserButton):
 
 
 ###########################################################################
-# logging
-###########################################################################
-
-
-class NullHandler(logging.Handler):
-    def emit(self, record):
-        pass
-
-
-# glue code
-class WinNotifyHandler(logging.Handler):
-    def __init__(self, log_win):
-#        super(WinNotifyHandler, self).__init__()
-        logging.Handler.__init__(self)
-        self._win = log_win
-
-    def emit(self, record):
-        msg = self.format(record)
-        if record.levelno == logging.CRITICAL:
-            self._win.notify_error(msg)
-        else:
-            self._win.notify_info(msg)
-
-
-###########################################################################
 # configuration panels (aka: the real work)
 ###########################################################################
 
@@ -599,17 +574,28 @@ class GTKNotifyWindow(gtk.Window):
     def notify_info(self, msg):
         pass
 
-    def notify_error(self, msg):
-        notify = gtk.MessageDialog(flags=gtk.DIALOG_MODAL,
+    def notify_error(self, msg, autodestroy=False):
+        flag = gtk.DIALOG_DESTROY_WITH_PARENT if autodestroy else gtk.DIALOG_MODAL
+        notify = gtk.MessageDialog(flags=flag,
                                    type=gtk.MESSAGE_ERROR,
                                    buttons=gtk.BUTTONS_CLOSE,
                                    message_format=msg)
         notify.set_title("%s - critical error" % self._log_name)
         # FIXME
         notify.connect("response", lambda self, *args: self.destroy())
+        if autodestroy:
+            self.connect("delete_event", self.delete)
+            
         notify.show_all()
         notify.run()
         notify.destroy()
+
+        return autodestroy
+
+    def delete(self, widget, event=None):
+        gtk.main_quit()
+        return False
+
 
 
 class GTranscode2(GTKNotifyWindow):
@@ -677,13 +663,6 @@ class GTranscode2(GTKNotifyWindow):
 
         self._setup_win()
 
-        console = WinNotifyHandler(self)
-        console.setLevel(logging.INFO)
-#        console.setFormatter(formatter)
-        logger = logging.getLogger('')
-        logger.addHandler(console)
-
-
     def run(self):
         logging.debug("GUI start.")
         self.connect_signals()
@@ -720,8 +699,9 @@ class GTranscode2(GTKNotifyWindow):
     def _on_start_cb(self, widget, data=None):
         try:
             cmdline = self._cmdline_builder.cmdline()
-            logging.info("%s" %(cmdline))
+            logging.info("running: [%s]" %(cmdline))
         except MissingOptionError, ex:
+            self.notify_error(ex.to_user())
             logging.critical("%s" %(ex.to_log()))
 
     def connect_signals(self):
@@ -737,37 +717,24 @@ class GTranscode2(GTKNotifyWindow):
 
 ###########################################################################
 
-# FIXME: properly integrate into the error logging machinery
-class CriticalErrorNotification(object):
+class StartupErrorWindow(GTKNotifyWindow):
     def __init__(self, name, error):
+        super(StartupErrorWindow, self).__init__(name)
         self._name = name
         self._text = str(error)
 
-    def setup(self):
-        self._msg = gtk.MessageDialog(flags=gtk.DIALOG_MODAL,
-                                      type=gtk.MESSAGE_ERROR,
-                                      buttons=gtk.BUTTONS_CLOSE,
-                                      message_format=self._text)
-        self._msg.set_title("%s - critical error" % self._name)
-
-        self._msg.connect("delete_event", self.delete)
-        self._msg.connect("response",     self.response)
-
-    def preannotate(self, text):
-        self._text = text + self._text
-
-    def response(self, dialog, response, data=None):
-        gtk.main_quit()
-        return False
     def delete(self, widget, event=None):
         gtk.main_quit()
         return False
 
-    def run(self):
-        self.setup()
-        self._msg.show_all()
-        gtk.main()
+    def preannotate(self, text):
+        self._text = text + self._text
 
+    def run(self):
+        logging.debug("GUI start.")
+        self.notify_error(self._text, True)
+        self.connect("delete_event", self.delete)
+        logging.debug("GUI stop.")
 
 
 def _usage(exe=EXE):
@@ -806,7 +773,7 @@ def _gui(opts, exe=EXE, ver=VER):
                           cmd_builder)
 
     except MissingExecutableError, missing:
-        app = CriticalErrorNotification(exe, error=missing)
+        app = StartupErrorWindow(exe, error=missing)
         app.preannotate("Can't startup %s:\n" % (exe))
 
     app.run()
