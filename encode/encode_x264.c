@@ -18,6 +18,7 @@
 
 
 #include "src/transcode.h"
+#include "aclib/ac.h"
 #include "libtc/libtc.h"
 #include "libtc/ratiocodes.h"
 #include "libtcutil/cfgfile.h"
@@ -42,7 +43,9 @@
 
 
 /* Module configuration file */
-#define X264_CONFIG_FILE "x264.cfg"
+#define X264_CONFIG_FILE        "x264.cfg"
+#define X264_HEADER_LEN_MAX     1024
+/* just try something "big enough" */
 
 /* Private data for this module */
 typedef struct {
@@ -55,6 +58,10 @@ typedef struct {
     x264_t *enc;
     int twopass_bug_workaround;  // Work around x264 logfile generation bug?
     char twopass_log_path[4096]; // Logfile path (for 2-pass bug workaround)
+
+    /* extradata (header) support */
+    uint8_t hdr_buf[X264_HEADER_LEN_MAX];
+    size_t hdr_len;
 } X264PrivateData;
 
 /* Static structure to provide pointers for configuration entries */
@@ -184,7 +191,7 @@ static TCConfigEntry conf[] ={
     /* Quantization matrix selection: 0=flat 1=JVT 2=custom */
     OPT_RANGE(i_cqm_preset,               "cqm",            0,     2)
     /* Custom quant matrix filename */
-    OPT_STR  (psz_cqm_file,               "cqm_file")
+    OPT_STR  (pl_cqm_file,               "cqm_file")
     /* Quant matrix arrays set up by library */
 
     /* Logging */
@@ -271,7 +278,7 @@ static TCConfigEntry conf[] ={
     OPT_NONE (rc.zones)
     OPT_NONE (rc.i_zones)
     /* Alternate method of specifying zones */
-    OPT_STR  (rc.psz_zones,               "zones")
+    OPT_STR  (rc.pl_zones,               "zones")
 
     /* Other parameters */
 
@@ -369,8 +376,8 @@ static int x264params_set_multipass(x264_param_t *params,
                                     int pass, const char *statsfilename)
 {
     /* Drop the const and hope that x264 treats it as const anyway */
-    params->rc.psz_stat_in  = (char *)statsfilename;
-    params->rc.psz_stat_out = (char *)statsfilename;
+    params->rc.pl_stat_in  = (char *)statsfilename;
+    params->rc.pl_stat_out = (char *)statsfilename;
 
     switch (pass) {
       default:
@@ -701,6 +708,108 @@ static int x264_fini(TCModuleInstance *self)
 
 /*************************************************************************/
 
+enum {
+    H264_NAL_TYPE_SEI       = 0x6,
+    H264_NAL_TYPE_SEQ_PARAM = 0x7,
+    H264_NAL_TYPE_PIC_PARAM = 0x8
+};
+
+#define RETURN_ERROR_IF_BAD_LEN(LEN, MSG) do { \
+    if ((LEN) <= 0) { \
+        tc_log_error(MOD_NAME, (MSG)); \
+        return TC_ERROR; \
+    } \
+} while (0)
+
+#define HDR_BUF_ADD_XPS(PD, XPS, LEN) do { \
+    (PD)->hdr_buf[(PD)->hdr_len    ] = ((LEN) >> 8); \
+    (PD)->hdr_buf[(PD)->hdr_len + 1] = ((LEN)     ) & 0xff; \
+    (PD)->hdr_len += 2; \
+    ac_memcpy((PD)->hdr_buf + (PD)->hdr_len, (XPS), (LEN)); \
+    (PD)->hdr_len += (LEN); \`:s
+} while (0)
+
+static int tc_x264_setup_extradata(X264PrivateData *pd)
+{
+    x264_nal_t *nal = NULL;
+    int i = 0, ret = 0, nal_count = 0;
+    uint8_t buf[X264_HEADER_LEN_MAX] = { 0 };
+    uint8_t pps[X264_HEADER_LEN_MAX] = { 0 };
+    uint8_t sps[X264_HEADER_LEN_MAX] = { 0 };
+    uint8_t sei[X264_HEADER_LEN_MAX] = { 0 };
+    int buf_len = 0, pps_len = 0, sps_len = 0, sei_len = 0;
+
+    memset(&(pd->hdr_buf), 0, X264_HEADER_LEN_MAX);
+    pd->hdr_len = 0;
+
+    ret = x264_encoder_headers(pd->enc, &nal, &nal_count);
+    if (ret != 0) {
+        tc_log_error(MOD_NAME, "error encoding the headers");
+        return TC_ERROR;
+    }
+    tc_debug(TC_DEBUG_PRIVATE, "header nal count=%i", nal_count);
+
+    for (i = 0; i < nal_count; i++) {
+        switch (nal[i].i_type) {
+           case H264_NAL_TYPE_SEQ_PARAM:
+		    ret = x264_nal_encode(sps, &sps_len, 0, &nal[i]);
+            break;
+          case H264_NAL_TYPE_PIC_PARAM:
+		    ret = x264_nal_encode(pps, &pps_len, 0, &nal[i]);
+            break;
+          case H264_NAL_TYPE_SEI:
+            ret = x264_nal_encode(sei, &sei_len, 0, &nal[i]);
+		  	break;
+          default:
+            tc_log_warn(MOD_NAME, "unexpected type 0x%X nal #%i",
+                        nal[i].i_type, i);
+            ret = x264_nal_encode(buf, &buf_len, 0, &nal[i]);
+        }
+        RETURN_ERROR_IF_BAD_LEN(ret, "error encoding nal header");
+    }
+
+    RETURN_ERROR_IF_BAD_LEN(sps_len, "missing SPS");
+    RETURN_ERROR_IF_BAD_LEN(pps_len, "missing PPS");
+
+    tc_debug(TC_DEBUG_PRIVATE, "SPS length=%i", sps_len);
+    tc_debug(TC_DEBUG_PRIVATE, "PPS length=%i", pps_len);
+
+    /* filling, at last */
+    pd->hdr_buf[0] = 1;         // Version
+    pd->hdr_buf[1] = sps[1];    // AVCProfileIndication
+    pd->hdr_buf[2] = sps[2];    // profile_compatibility
+    pd->hdr_buf[3] = sps[3];    // AVCLevelIndication
+    pd->hdr_buf[4] = 0xFC + 3;  // lengthSizeMinusOne 
+    pd->hdr_buf[5] = 0xE0 + 1;  // nonReferenceDegredationPriorityLow        
+    pd->hdr_len = 6;
+    HDR_BUF_ADD_XPS(pd, sps, sps_len);
+    pd->hdr_buf[pd->hdr_len] = 1;   // numOfPictureParameterSets
+    pd->hdr_len++;
+    HDR_BUF_ADD_XPS(pd, pps, pps_len);
+
+    tc_debug(TC_DEBUG_PRIVATE, "header length=%i", buf->hdr_len);
+
+    return TC_OK;
+}
+
+static int tc_x264_free_extradata(X264PrivateData *pd)
+{
+    /* do nothing (yet) */
+    return TC_OK;
+}
+
+static int tc_x264_export_extradata(X264PrivateData *pd,
+                                    TCModuleExtraData *xdata[])
+{
+    if (xdata && xdata[0]) {
+        xdata[0]->stream_id  = 0; /* ignored by export core */
+        xdata[0]->codec      = TC_CODEC_H264;
+        xdata[0]->extra.data = pd->hdr_buf;
+        xdata[0]->extra.size = pd->hdr_len;
+    }
+    return TC_OK;
+}
+
 /**
  * x264_configure:  Configure this instance of the module.  See
  * tcmodule-data.h for function details.
@@ -713,7 +822,8 @@ static int x264_configure(TCModuleInstance *self,
 {
     const char *dirs[] = { ".", NULL };
     X264PrivateData *pd = NULL;
-    char *s;
+    char *s = NULL;
+    int ret;
 
     TC_MODULE_SELF_CHECK(self, "configure");
 
@@ -819,8 +929,12 @@ static int x264_configure(TCModuleInstance *self,
         tc_log_error(MOD_NAME, "x264_encoder_open() returned NULL - sorry.");
         return TC_ERROR;
     }
+    ret = tc_x264_setup_extradata(pd);
+    if (ret != TC_OK) {
+        return ret;
+    }
 
-    return TC_OK;
+    return tc_x264_export_extradata(pd, xdata);
 }
 
 /*************************************************************************/
@@ -837,6 +951,8 @@ static int x264_stop(TCModuleInstance *self)
     TC_MODULE_SELF_CHECK(self, "stop");
 
     pd = self->userdata;
+
+    tc_x264_free_extradata(pd); /* mostly a placeholder */
 
     if (pd->enc) {
         x264_encoder_close(pd->enc);
