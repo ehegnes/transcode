@@ -97,3 +97,4 @@ void decode_a52(decode_t *decode)
   dlclose(handle);
   import_exit(0);
 }
+

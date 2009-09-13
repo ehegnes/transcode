@@ -30,6 +30,8 @@
 #include "ioaux.h"
 #include "tc.h"
 
+#if defined(HAVE_LIBMPEG2) && defined(HAVE_LIBMPEG2CONVERT)
+
 #include <mpeg2dec/mpeg2.h>
 #include <mpeg2dec/mpeg2convert.h>
 
@@ -149,6 +151,18 @@ void decode_mpeg2(decode_t *decode)
     mpeg2_close(decoder);
     import_exit(0);
 }
+
+#else /* defined(HAVE_LIBMPEG2) && defined(HAVE_LIBMPEG2CONVERT) */
+
+void decode_mpeg2(decode_t *decode)
+{
+    tc_log_error(__FILE__, "No support for MPEG2 configured -- exiting");
+    import_exit(1);
+}
+
+
+#endif /* defined(HAVE_LIBMPEG2) && defined(HAVE_LIBMPEG2CONVERT) */
+
 
 /*************************************************************************/
 
