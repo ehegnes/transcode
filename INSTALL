@@ -115,34 +115,6 @@ Mandatory packages:
   pkg-config
     (these generally come with any and all OSes)
 
-  libavcodec from FFmpeg SVN (snapshot >= 20080706)  http://ffmpeg.mplayerhq.hu/
-    related options:
-      --with-libavcodec-prefix=PFX (/usr)
-          prefix where libavcodec is installed
-      --with-libavcodec-includes=DIR (/usr/include)
-          directory where libavcodec headers [ffmpeg/avcodec.h] are installed
-      --with-libavcodec-libs=DIR (/usr/lib)
-          prefix where libavcodec libraries [libavcodec.so] are installed
-
-  libavformat from FFmpeg >= 20080706 (SVN)  http://ffmpeg.mplayerhq.hu/
-    related options:
-      --with-libavformat-prefix=PFX (/usr)
-          prefix where libavformat is installed
-      --with-libavformat-includes=DIR (/usr/include)
-          directory where libavformat headers [ffmpeg/avformat.h] are installed
-      --with-libavformat-libs=DIR (/usr/lib)
-          prefix where libavformat libraries [libavformat.so] are installed
-
-  libmpeg2 from mpeg2dec >= 0.4.0b  http://libmpeg2.sourceforge.net/
-  libmpeg2convert is needed as well (shipped in the same package of libmpeg2)
-    related options:
-      --with-libmpeg2-prefix=PFX (/usr)
-          prefix where libmpeg2 is installed
-      --with-libmpeg2-includes=DIR (/usr/include)
-          directory where libmpeg2 headers [mpeg2dec/mpeg2.h] are installed
-      --with-libmpeg2-libs=DIR (/usr/lib)
-          prefix where libmpeg2 libraries [libmpeg2.so] are installed
-
 OS dependent packages:
 
   v4l
@@ -176,6 +148,23 @@ OS dependent packages:
     affected modules: import_sunau.so
 
 Optional packages:
+  libavcodec from FFmpeg SVN (snapshot >= 20080706)  http://ffmpeg.mplayerhq.hu/
+    related options:
+      --with-libavcodec-prefix=PFX (/usr)
+          prefix where libavcodec is installed
+      --with-libavcodec-includes=DIR (/usr/include)
+          directory where libavcodec headers [ffmpeg/avcodec.h] are installed
+      --with-libavcodec-libs=DIR (/usr/lib)
+          prefix where libavcodec libraries [libavcodec.so] are installed
+
+  libavformat from FFmpeg >= 20080706 (SVN)  http://ffmpeg.mplayerhq.hu/
+    related options:
+      --with-libavformat-prefix=PFX (/usr)
+          prefix where libavformat is installed
+      --with-libavformat-includes=DIR (/usr/include)
+          directory where libavformat headers [ffmpeg/avformat.h] are installed
+      --with-libavformat-libs=DIR (/usr/lib)
+          prefix where libavformat libraries [libavformat.so] are installed
 
   libpostproc (part of FFmpeg) http://ffmpeg.mplayerhq.hu/
     related options:
@@ -203,6 +192,16 @@ Optional packages:
       --with-freetype2-libs=DIR (/usr/lib)
           directory where FreeType libraries [libfreetype.so] are installed
     affected modules: filter_text.so, filter_subtitler.so
+
+  libmpeg2 from mpeg2dec >= 0.4.0b  http://libmpeg2.sourceforge.net/
+  libmpeg2convert is needed as well (shipped in the same package of libmpeg2)
+    related options:
+      --with-libmpeg2-prefix=PFX (/usr)
+          prefix where libmpeg2 is installed
+      --with-libmpeg2-includes=DIR (/usr/include)
+          directory where libmpeg2 headers [mpeg2dec/mpeg2.h] are installed
+      --with-libmpeg2-libs=DIR (/usr/lib)
+          prefix where libmpeg2 libraries [libmpeg2.so] are installed
 
   liba52  http://liba52.sourceforge.net/
     related options:
