@@ -23,7 +23,8 @@
  *
  */
 
-#include "libtcexport/export.h"
+
+#include "tccore/runcontrol.h"
 
 #include "transcode.h"
 #include "dl_loader.h"
