@@ -43,7 +43,7 @@
 #define FRBUF_NAME  "framebuffer"
 #define MOD_NAME    FRBUF_NAME
 
-#define PTHREAD_ID  ((long)pthread_self())
+#define PTHREAD_ID  ((unsigned)pthread_self())
 
 /*
  * Summary:
@@ -490,7 +490,7 @@ STATIC void tc_frame_pool_put_frame(TCFramePool *P, TCFramePtr ptr)
     wakeup = tc_frame_queue_put(P->queue, ptr);
 
     tc_debug(TC_DEBUG_FLIST,
-             "(%s|put_frame|%s|%s|%li) wakeup=%i waiting=%i",
+             "(%s|put_frame|%s|%s|0x%X) wakeup=%i waiting=%i",
              FPOOL_NAME,
              P->tag, P->ptag, PTHREAD_ID, wakeup, P->waiting);
 
@@ -509,21 +509,21 @@ STATIC TCFramePtr tc_frame_pool_get_frame(TCFramePool *P)
     pthread_mutex_lock(&P->lock);
 
     tc_debug(TC_DEBUG_FLIST,
-             "(%s|get_frame|%s|%s|%li) requesting frame",
+             "(%s|get_frame|%s|%s|0x%X) requesting frame",
              FPOOL_NAME,
              P->tag, P->ptag, PTHREAD_ID);
 
     P->waiting++;
     while (!interrupted && tc_frame_queue_empty(P->queue)) {
         tc_debug(TC_DEBUG_THREADS,
-                 "(%s|get_frame|%s|%s|%li) blocking (no frames in pool)",
+                 "(%s|get_frame|%s|%s|0x%X) blocking (no frames in pool)",
                  FPOOL_NAME,
                  P->tag, P->ptag, PTHREAD_ID);
 
         pthread_cond_wait(&P->empty, &P->lock);
 
         tc_debug(TC_DEBUG_FLIST,
-                 "(%s|get_frame|%s|%s|%li) UNblocking",
+                 "(%s|get_frame|%s|%s|0x%X) UNblocking",
                  FPOOL_NAME,
                  P->tag, P->ptag, PTHREAD_ID);
 
@@ -536,7 +536,7 @@ STATIC TCFramePtr tc_frame_pool_get_frame(TCFramePool *P)
     }
 
     tc_debug(TC_DEBUG_FLIST,
-             "(%s|got_frame|%s|%s|%li) frame=%p #%i",
+             "(%s|got_frame|%s|%s|0x%X) frame=%p #%i",
              FPOOL_NAME,
              P->tag, P->ptag, PTHREAD_ID,
              ptr.generic,
@@ -645,7 +645,7 @@ static void tc_frame_ring_dump_status(TCFrameRing *rfb,
                                       const char *id)
 {
     tc_debug(TC_DEBUG_FLIST,
-             "(%s|%s|%s|%li) frame status: null=%i empty=%i wait=%i"
+             "(%s|%s|%s|0x%X) frame status: null=%i empty=%i wait=%i"
              " locked=%i ready=%i",
              FRBUF_NAME, id, rfb->tag, PTHREAD_ID,
              tc_frame_ring_get_pool_size(rfb, TC_FRAME_NULL,   TC_FALSE),
@@ -806,7 +806,7 @@ static TCFramePtr tc_frame_ring_register_frame(TCFrameRing *rfb,
     TCFramePtr ptr;
 
     tc_debug(TC_DEBUG_FLIST,
-             "(%s|register_frame|%s|%li) registering frame id=[%i]",
+            "(%s|register_frame|%s|0x%X) registering frame id=[%i]",
              FRING_NAME, rfb->tag, PTHREAD_ID, id);
 
     ptr = tc_frame_ring_get_frame(rfb, TC_FRAME_NULL);
@@ -925,7 +925,7 @@ static void tc_frame_ring_wakeup(TCFrameRing *rfb, int stage)
     for (i = 0; i < TC_FRAME_STAGE_NUM; i++) {
         if (stage == TC_FRAME_STAGE_ALL || stage == i) {
             tc_debug(TC_DEBUG_CLEANUP,
-                     "(%s|wakeup|%s|%li) waking up pool [%s]",
+                     "(%s|wakeup|%s|0x%x) waking up pool [%s]",
                      FRING_NAME, rfb->tag, PTHREAD_ID,
                      frame_stages[i].name);
 
@@ -938,7 +938,7 @@ static void tc_frame_ring_push_next(TCFrameRing *rfb,
                                     TCFramePtr ptr, int status)
 {
     tc_debug(TC_DEBUG_FLIST,
-             "(%s|push_next|%s|%li) frame=[%p] bufid=[%i] [%s] -> [%s]",
+             "(%s|push_next|%s|0x%X) frame=[%p] bufid=[%i] [%s] -> [%s]",
              FRBUF_NAME, rfb->tag, PTHREAD_ID,
              ptr.generic,
              ptr.generic->bufid,

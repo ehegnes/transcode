@@ -733,6 +733,7 @@ void tc_import_threads_cancel(void)
         tc_log_msg(__FILE__, "audio thread exit (ret_code=%i)"
                              " (status_code=%i)", aret, *pst);
     }
+
     return;
 }
 
