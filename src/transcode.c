@@ -1485,10 +1485,7 @@ static void teardown_input_sources(vob_t *vob)
 
 
 #define SHUTDOWN_MARK(STAGE) do { \
-    if (verbose >= TC_DEBUG) { \
-        fprintf(stderr, " %s |", (STAGE)); \
-        fflush(stderr); \
-    } \
+    tc_debug(TC_DEBUG_CLEANUP, "shutdown: %s", (STAGE)); \
 } while (0)
 
 
@@ -2637,17 +2634,16 @@ int main(int argc, char *argv[])
      * ------------------------------------------------------------*/
 
     // turn counter off
+    SHUTDOWN_MARK("counter");
     counter_off();
 
-    SHUTDOWN_MARK("clean up");
-
     // stop and cancel frame processing threads
-    tc_frame_threads_close();
     SHUTDOWN_MARK("frame threads");
+    tc_frame_threads_close();
 
     // unload all external modules
-    transcode_fini(session);
     SHUTDOWN_MARK("unload modules");
+    transcode_fini(session);
 
     // cancel no longer used internal signal handler threads
     if (event_thread_id) {
@@ -2656,15 +2652,12 @@ int main(int argc, char *argv[])
         event_thread_id = (pthread_t)0;
     }
 
-    SHUTDOWN_MARK("internal threads");
-
     // shut down control socket, if active
-    tc_socket_fini();
     SHUTDOWN_MARK("control socket");
+    tc_socket_fini();
 
     // all done
-    if (verbose >= TC_DEBUG)
-        fprintf(stderr, " done\n");
+    SHUTDOWN_MARK("completed");
 
  summary:
     // print a summary
