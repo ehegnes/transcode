@@ -31,7 +31,7 @@
 #include <theora/theora.h>
 
 #define MOD_NAME    "encode_theora.so"
-#define MOD_VERSION "v0.1.2 (2009-02-07)"
+#define MOD_VERSION "v0.1.3 (2009-09-20)"
 #define MOD_CAP     "theora video encoder using libtheora"
 
 #define MOD_FEATURES \
@@ -85,17 +85,9 @@ struct theoraprivatedata_ {
 
 /*************************************************************************/
 
-static void tc_frame_video_setup(TCFrameVideo *f)
-{
-    int16_t *pkt_num = (int16_t*)f->video_buf;
-    f->video_len = sizeof(*pkt_num);
-    *pkt_num = 0;
-}
-
 static int tc_frame_video_add_ogg_packet(TheoraPrivateData *pd, 
                                          TCFrameVideo *f, ogg_packet *op)
 {
-    int16_t *pkt_num = (int16_t*)f->video_buf;
     double ts = theora_granule_time(&(pd->td), op->granulepos);
     int needed = sizeof(*op) + op->bytes;
     int avail = f->video_size - f->video_len;
@@ -110,7 +102,6 @@ static int tc_frame_video_add_ogg_packet(TheoraPrivateData *pd,
     f->video_len += sizeof(*op);
     ac_memcpy(f->video_buf + f->video_len, op->packet, op->bytes);
     f->video_len += op->bytes;
-    *pkt_num += 1;
 
     if (op->e_o_s) {
         f->attributes |= TC_FRAME_IS_END_OF_STREAM; // useless?
@@ -304,8 +295,6 @@ static int tc_theora_encode_internal(TheoraPrivateData *pd, int eos,
     yuv.v         = yuv.u + yuv.uv_width * yuv.uv_height;
 
     theora_encode_YUVin(&(pd->td), &yuv);
-
-    tc_frame_video_setup(outframe);
 
     do {
         ret = theora_encode_packetout(&(pd->td), eos, &op);
