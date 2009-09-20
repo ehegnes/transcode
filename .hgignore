@@ -14,6 +14,7 @@
 ^import/tcdemux$
 ^import/tcextract$
 ^import/tcprobe$
+^import/tcrequant$
 ^import/tcscan$
 ^import/tcxmlcheck$
 ^import/tcxpm2rgb$
