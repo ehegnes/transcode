@@ -28,8 +28,8 @@
 
 #include "libtcext/tc_ogg.h"
 
-#define MOD_NAME    "write_ogg.so"
-#define MOD_VERSION "v0.1.0 (2008-01-01)"
+#define MOD_NAME    "multiplex_ogg.so"
+#define MOD_VERSION "v0.1.1 (2009-09-20)"
 #ifdef HAVE_SHOUT
 #define MOD_CAP     "create an ogg stream using libogg and broadcast using libshout"
 #else  /* not HAVE_SHOUT */
@@ -277,38 +277,40 @@ struct oggprivatedata_ {
 
 static int tc_ogg_feed_video(ogg_stream_state *os, TCFrameVideo *f)
 {
-    int16_t *pkt_num = (int16_t*)f->video_buf;
-    int i, packets = *pkt_num;
-    uint8_t *data = f->video_buf + sizeof(*pkt_num);
+    uint8_t *data = f->video_buf;
+    int packets = 0, used = 0;
     ogg_packet op;
-    
-    for (i = 0; i < packets; i++) {
-        ac_memcpy(&op, data, sizeof(op));
-        data += sizeof(op);
-        op.packet = data;
-        data += op.bytes;
+   
+    while (used < f->video_len) {
+        ac_memcpy(&op, data + used, sizeof(op));
+        used += sizeof(op);
+        op.packet = data + used;
+        used += op.bytes;
         
         ogg_stream_packetin(os, &op);
+
+        packets++;
     }
-    return i;
+    return packets;
 }
 
 static int tc_ogg_feed_audio(ogg_stream_state *os, TCFrameAudio *f)
 {
-    int16_t *pkt_num = (int16_t*)f->audio_buf;
-    int i, packets = *pkt_num;
-    uint8_t *data = f->audio_buf + sizeof(*pkt_num);
+    int packets = 0, used = 0;
+    uint8_t *data = f->audio_buf;
     ogg_packet op;
-    
-    for (i = 0; i < packets; i++) {
-        ac_memcpy(&op, data, sizeof(op));
-        data += sizeof(op);
-        op.packet = data;
-        data += op.bytes;
+
+    while (used < f->audio_len) {
+        ac_memcpy(&op, data + used, sizeof(op));
+        used += sizeof(op);
+        op.packet = data + used;
+        used += op.bytes;
         
         ogg_stream_packetin(os, &op);
+
+        packets++;
     }
-    return i;
+    return packets;
 }
 
 /*************************************************************************/

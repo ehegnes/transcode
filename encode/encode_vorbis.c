@@ -32,7 +32,7 @@
 #include <vorbis/vorbisenc.h>
 
 #define MOD_NAME    "encode_vorbis.so"
-#define MOD_VERSION "v0.0.7 (2009-02-07)"
+#define MOD_VERSION "v0.0.8 (2009-09-20)"
 #define MOD_CAP     "vorbis audio encoder using libvorbis"
 
 #define MOD_FEATURES \
@@ -76,24 +76,16 @@ struct vorbisprivatedata_ {
 /*************************************************************************/
 
 
-static void tc_frame_audio_setup(TCFrameAudio *f)
-{
-    int16_t *pkt_num = (int16_t*)f->audio_buf;
-    f->audio_len = sizeof(*pkt_num);
-    *pkt_num = 0;
-}
-
 static int tc_frame_audio_add_ogg_packet(VorbisPrivateData *pd, 
                                          TCFrameAudio *f, ogg_packet *op)
 {
-    int16_t *pkt_num = (int16_t*)f->audio_buf;
     double ts = vorbis_granule_time(&(pd->vd), op->granulepos);
     int needed = sizeof(*op) + op->bytes;
     int avail = f->audio_size - f->audio_len;
 
     f->timestamp = (uint64_t)ts;
     if (avail < needed) {
-        tc_log_error(__FILE__, "(%s) no buffer in frame: (avail=%i|needed=%i)",
+        tc_log_error(__FILE__, "(%s) no space left for packet: (avail=%i|needed=%i)",
                      __func__, avail, needed);
         return TC_ERROR;
     }
@@ -101,7 +93,6 @@ static int tc_frame_audio_add_ogg_packet(VorbisPrivateData *pd,
     f->audio_len += sizeof(*op);
     ac_memcpy(f->audio_buf + f->audio_len, op->packet, op->bytes);
     f->audio_len += op->bytes;
-    *pkt_num += 1;
 
     if (op->e_o_s) {
         f->attributes |= TC_FRAME_IS_END_OF_STREAM; // useless?
@@ -224,8 +215,6 @@ static int tc_vorbis_outframe(VorbisPrivateData *pd, TCFrameAudio *f)
     int has_block = TC_FALSE;
     ogg_packet op;
 
-    tc_frame_audio_setup(f);
-    
     do {
         has_block = vorbis_analysis_blockout(&pd->vd, &pd->vb);
         if (has_block == 1) {
@@ -238,6 +227,10 @@ static int tc_vorbis_outframe(VorbisPrivateData *pd, TCFrameAudio *f)
             do {
                 has_pkt = vorbis_bitrate_flushpacket(&pd->vd, &op);
                 if (has_pkt) {
+#ifdef TC_VORBIS_DEBUG
+                    tc_log_info(MOD_NAME, "(%s) frame=%u packet=%u",
+                                __func__, pd->frames, pd->packets);
+#endif
                     tc_frame_audio_add_ogg_packet(pd, f, &op);
                     pd->packets++;
                 }
@@ -267,6 +260,9 @@ static int tc_vorbis_flush(TCModuleInstance *self, TCFrameAudio *frame)
 #ifdef TC_VORBIS_DEBUG
     tc_log_info(MOD_NAME, "(%s) START FLUSH AUDIO FRAME", __func__);
     tc_log_info(MOD_NAME, "(%s) invoked out=%p", __func__, frame);
+    tc_log_info(MOD_NAME,
+                "(%s) invoked out->len=%i out->size=%i",
+                __func__, frame->audio_len, frame->audio_size);
 #endif
 
      if (pd->flush_flag && !pd->end_of_stream) {
@@ -279,6 +275,12 @@ static int tc_vorbis_flush(TCModuleInstance *self, TCFrameAudio *frame)
      }
     ret = tc_vorbis_outframe(pd, frame);
     pd->end_of_stream = TC_TRUE; /* this must be set AFTER last frame processed */
+
+#ifdef TC_VORBIS_DEBUG
+    tc_log_info(MOD_NAME,
+                "(%s) finished out->len=%i out->size=%i",
+                __func__, frame->audio_len, frame->audio_size);
+#endif
     return ret;
 }
 
@@ -288,7 +290,7 @@ static int tc_vorbis_encode_audio(TCModuleInstance *self,
                                   TCFrameAudio *outframe)
 {
     VorbisPrivateData *pd = NULL;
-    int bps, samples, i = 0;
+    int ret, bps, samples, i = 0;
     int16_t *aptr = NULL;
     float **buffer;
 
@@ -299,8 +301,13 @@ static int tc_vorbis_encode_audio(TCModuleInstance *self,
     pd = self->userdata;
 
 #ifdef TC_VORBIS_DEBUG
-    tc_log_info(MOD_NAME, "(%s) START ENCODE AUDIO FRAME", __func__);
-    tc_log_info(MOD_NAME, "(%s) invoked in=%p out=%p", __func__, inframe, outframe);
+    tc_log_info(MOD_NAME,
+                "(%s) START ENCODE AUDIO FRAME", __func__);
+    tc_log_info(MOD_NAME, "(%s) invoked in=%p out=%p",
+                __func__, inframe, outframe);
+    tc_log_info(MOD_NAME,
+                "(%s) invoked out->len=%i out->size=%i",
+                __func__, outframe->audio_len, outframe->audio_size);
 #endif
 
     aptr = (int16_t*)inframe->audio_buf;
@@ -320,7 +327,14 @@ static int tc_vorbis_encode_audio(TCModuleInstance *self,
     }
 
     vorbis_analysis_wrote(&pd->vd, samples);
-    return tc_vorbis_outframe(pd, outframe);
+    ret = tc_vorbis_outframe(pd, outframe);
+
+#ifdef TC_VORBIS_DEBUG
+    tc_log_info(MOD_NAME,
+                "(%s) finished out->len=%i out->size=%i",
+                __func__, outframe->audio_len, outframe->audio_size);
+#endif
+    return ret;
 }
 
 
