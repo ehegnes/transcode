@@ -2538,14 +2538,18 @@ int main(int argc, char *argv[])
     } else {
         specs.frc = vob->ex_frc;
     }
-    specs.width = TC_MAX(vob->im_v_width, vob->ex_v_width);
+    specs.width  = TC_MAX(vob->im_v_width, vob->ex_v_width);
     specs.height = TC_MAX(vob->im_v_height, vob->ex_v_height);
     specs.format = vob->im_v_codec;
 
     /* XXX: explain me up */
-    specs.rate = TC_MAX(vob->a_rate, vob->mp3frequency);
+    specs.rate     = TC_MAX(vob->a_rate, vob->mp3frequency);
     specs.channels = TC_MAX(vob->a_chan, vob->dm_chan);
-    specs.bits = TC_MAX(vob->a_bits, vob->dm_bits);
+    specs.bits     = TC_MAX(vob->a_bits, vob->dm_bits);
+
+fprintf(stderr, "[%s] specs.rate=%i specs.chans=%i specs.bits=%i\n",
+__FILE__,
+specs.rate, specs.channels, specs.bits);
 
     tc_framebuffer_set_specs(&specs);
 
@@ -2574,7 +2578,7 @@ int main(int argc, char *argv[])
 #endif
 
     // load import/export modules and filters plugins
-    if (transcode_init(session, &specs) != TC_OK)
+    if (transcode_init(session, tc_framebuffer_get_specs()) != TC_OK)
         tc_error("plug-in initialization failed");
 
     // start socket stuff
