@@ -188,7 +188,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
 	tmc->width     = vob->im_v_width;
 	tmc->height    = vob->im_v_height;
 	tmc->size      = vob->im_v_width * vob->im_v_height * 2;
-	tmc->cpuflags  = tc_accel;
+	tmc->cpuflags  = tc_get_session()->acceleration; /* XXX ugly */
 
 	tmc->rowsize   = vob->im_v_width * 2;
 
