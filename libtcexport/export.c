@@ -316,6 +316,7 @@ static int alloc_buffers(TCExportData *data)
     if (data->priv.video == NULL) {
         goto no_vframe;
     }
+
     data->priv.audio = tc_new_audio_frame(data->specs->samples,
                                           data->specs->channels,
                                           data->specs->bits);
@@ -359,9 +360,14 @@ static void free_buffers(TCExportData *data)
  */
 int tc_export_frames(int frame_id, TCFrameVideo *vframe, TCFrameAudio *aframe)
 {
-    int ret = tc_encoder_process(&expdata.enc,
-                                 expdata.input.video, expdata.priv.video,
-                                 expdata.input.audio, expdata.priv.audio);
+    int ret = TC_ERROR;
+    
+    tc_reset_video_frame(expdata.priv.video);
+    tc_reset_audio_frame(expdata.priv.audio);
+
+    ret = tc_encoder_process(&expdata.enc,
+                             expdata.input.video, expdata.priv.video,
+                             expdata.input.audio, expdata.priv.audio);
     if (ret != TC_OK) {
         expdata.error_flag = 1;
     } else {
