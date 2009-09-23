@@ -250,5 +250,20 @@ void tc_del_audio_frame(TCFrameAudio *aptr);
 void tc_blank_video_frame(TCFrameVideo *ptr);
 void tc_blank_audio_frame(TCFrameAudio *ptr);
 
+/*
+ * tc_reset_{video,audio}_frame:
+ *      reset the frame attributes. Lightweight reinitialization.
+ *      Pulled by libtcexport needs.
+ *      It will probably be merged into tc_init_{video,audio}_frame
+ *      in a future release.
+ *
+ * Parameters:
+ *     ptr: pointer to frame to fill.
+ * Return Value:
+ *     None.
+ */
+void tc_reset_video_frame(TCFrameVideo *ptr);
+void tc_reset_audio_frame(TCFrameAudio *ptr);
+
 
 #endif  /* TCFRAMES_H */
