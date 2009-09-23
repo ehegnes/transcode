@@ -137,7 +137,7 @@ void tc_init_audio_frame(TCFrameAudio *aptr,
     aptr->audio_size = tc_audio_frame_size(samples, channels, bits,
                                            &unused);
     aptr->audio_buf = aptr->internal_audio_buf;
-    tc_reset_audio_frame(vptr);
+    tc_reset_audio_frame(aptr);
 }
 
 
