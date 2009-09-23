@@ -88,10 +88,25 @@ size_t tc_audio_frame_size(double samples, int channels,
 
 #undef TRUNC_VALUE
 
-void tc_init_video_frame(vframe_list_t *vptr,
+void tc_reset_video_frame(TCFrameVideo *ptr)
+{
+    ptr->attributes = 0;
+    ptr->timestamp  = 0;
+    ptr->video_len  = 0;
+}
+
+void tc_reset_audio_frame(TCFrameAudio *ptr)
+{
+    ptr->attributes = 0;
+    ptr->timestamp  = 0;
+    ptr->audio_len  = 0;
+}
+
+
+void tc_init_video_frame(TCFrameVideo *vptr,
                          int width, int height, int format)
 {
-    size_t psizes[3];
+    size_t psizes[3] = { 0, 0, 0 };
 
     tc_video_planes_size(psizes, width, height, format);
 
@@ -111,10 +126,10 @@ void tc_init_video_frame(vframe_list_t *vptr,
     vptr->free = 1;
 
     vptr->video_size = psizes[0] + psizes[1] + psizes[2];
-    vptr->video_len = vptr->video_size; /* default */
+    tc_reset_video_frame(vptr);
 }
 
-void tc_init_audio_frame(aframe_list_t *aptr,
+void tc_init_audio_frame(TCFrameAudio *aptr,
                          double samples, int channels, int bits)
 {
     int unused = 0;
@@ -122,13 +137,14 @@ void tc_init_audio_frame(aframe_list_t *aptr,
     aptr->audio_size = tc_audio_frame_size(samples, channels, bits,
                                            &unused);
     aptr->audio_buf = aptr->internal_audio_buf;
+    tc_reset_audio_frame(vptr);
 }
 
 
-vframe_list_t *tc_new_video_frame(int width, int height, int format,
+TCFrameVideo *tc_new_video_frame(int width, int height, int format,
                                   int partial)
 {
-    vframe_list_t *vptr = NULL;
+    TCFrameVideo *vptr = NULL;
     size_t psizes[3] = { 0, 0, 0 };
 
     int ret = tc_video_planes_size(psizes, width, height, format);
@@ -143,9 +159,9 @@ vframe_list_t *tc_new_video_frame(int width, int height, int format,
     return vptr;
 }
 
-aframe_list_t *tc_new_audio_frame(double samples, int channels, int bits)
+TCFrameAudio *tc_new_audio_frame(double samples, int channels, int bits)
 {
-    aframe_list_t *aptr = NULL;
+    TCFrameAudio *aptr = NULL;
     int unused = 0;
     size_t asize = tc_audio_frame_size(samples, channels, bits, &unused);
 
@@ -185,9 +201,9 @@ aframe_list_t *tc_new_audio_frame(double samples, int channels, int bits)
  * allocating them on-demand isn't a viable alternative.
  */
 
-vframe_list_t *tc_alloc_video_frame(size_t size, int partial)
+TCFrameVideo *tc_alloc_video_frame(size_t size, int partial)
 {
-    vframe_list_t *vptr = tc_zalloc(sizeof(vframe_list_t));
+    TCFrameVideo *vptr = tc_zalloc(sizeof(TCFrameVideo));
 
 #ifdef TC_FRAME_EXTRA_SIZE
     size += TC_FRAME_EXTRA_SIZE;
@@ -217,9 +233,9 @@ vframe_list_t *tc_alloc_video_frame(size_t size, int partial)
 
 }
 
-aframe_list_t *tc_alloc_audio_frame(size_t size)
+TCFrameAudio *tc_alloc_audio_frame(size_t size)
 {
-    aframe_list_t *aptr = tc_zalloc(sizeof(aframe_list_t));
+    TCFrameAudio *aptr = tc_zalloc(sizeof(TCFrameAudio));
 
 #ifdef TC_FRAME_EXTRA_SIZE
     size += TC_FRAME_EXTRA_SIZE;
@@ -238,7 +254,7 @@ aframe_list_t *tc_alloc_audio_frame(size_t size)
     return aptr;
 }
 
-void tc_del_video_frame(vframe_list_t *vptr)
+void tc_del_video_frame(TCFrameVideo *vptr)
 {
     if (vptr != NULL) {
 #ifdef STATBUFFER
@@ -251,7 +267,7 @@ void tc_del_video_frame(vframe_list_t *vptr)
     }
 }
 
-void tc_del_audio_frame(aframe_list_t *aptr)
+void tc_del_audio_frame(TCFrameAudio *aptr)
 {
     if (aptr != NULL) {
 #ifdef STATBUFFER
