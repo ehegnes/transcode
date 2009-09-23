@@ -1244,6 +1244,12 @@ if test x"$have_iconv" = x"yes" ; then
 fi
 TC_PKG_HAVE(iconv, ICONV)
 
+dnl
+dnl libmkv
+dnl
+TC_PKG_CHECK(libmkv, no, LIBMKV, no, libmkv.h, mkv,
+  mk_close, libmkv, [http://repo.or.cz/w/libmkv.git])
+TC_PKG_HAVE(libmkv, LIBMKV)
 
 dnl
 dnl Other modules
