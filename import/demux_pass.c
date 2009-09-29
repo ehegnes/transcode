@@ -44,9 +44,9 @@ static int gop, gop_pts, gop_cnt;
  *
  * ------------------------------------------------------------*/
 
-void tcdemux_pass_through(info_t *ipipe, int *pass)
+void tcdemux_pass_through(info_t *ipipe, int *pass, int npass)
 {
-    int bytes, id = 0;
+    int bytes, p, id = 0;
     int i = 0; // packet counter
     int j = 0; // skipped packets counter
     int k = 0; // unit counter
@@ -69,11 +69,11 @@ void tcdemux_pass_through(info_t *ipipe, int *pass)
     int flag_sync_reset   = 0;
     int flag_sync_active  = 0;
     const char *logfile;
-    unsigned int packet_size = VOB_PACKET_SIZE;
+    unsigned int pkt_size = VOB_PACKET_SIZE;
     double fps;
 
     // allocate space
-    buffer = tc_zalloc(packet_size);
+    buffer = tc_zalloc(pkt_size);
     if (!buffer) {
         tc_log_perror(__FILE__, "out of memory");
         exit(1);
@@ -101,9 +101,8 @@ void tcdemux_pass_through(info_t *ipipe, int *pass)
     ++unit_seek;
     ++seq_seek;
 
-    tc_log_msg(__FILE__,
-               "0=0x%x 1=0x%x 2=0x%x 3=0x%x 4=0x%x",
-               pass[0], pass[1], pass[2], pass[3], pass[4]);
+    for (p = 0; p < npass; p++)
+        tc_log_msg(__FILE__, "pass[%i]=0x%x", p, pass[p]);
 
     for (;;) {
         /* ------------------------------------------------------------
@@ -112,8 +111,8 @@ void tcdemux_pass_through(info_t *ipipe, int *pass)
          *
          * ------------------------------------------------------------*/
 
-        bytes = tc_pread(ipipe->fd_in, buffer, packet_size);
-        if (bytes != packet_size) {
+        bytes = tc_pread(ipipe->fd_in, buffer, pkt_size);
+        if (bytes != pkt_size) {
             // program end code?
             if (bytes == 4) {
                 if (scan_pack_header(buffer, MPEG_PROGRAM_END_CODE)) {
@@ -128,7 +127,7 @@ void tcdemux_pass_through(info_t *ipipe, int *pass)
             if (bytes)
                 tc_log_warn(__FILE__,
                             "invalid program stream packet size (%i/%i)",
-                            bytes, packet_size);
+                            bytes, pkt_size);
             break;
         }
 
@@ -263,15 +262,16 @@ void tcdemux_pass_through(info_t *ipipe, int *pass)
          * ------------------------------------------------------------*/
 
 flush_packet:
-        if (is_track == pass[0] || is_track == pass[1] || is_track == pass[2]
-         || is_track == pass[3] || is_track == pass[4] ) {
-
-            if (tc_pwrite(ipipe->fd_out, buffer, packet_size) != packet_size) {
-                tc_log_perror(__FILE__, "write program stream packet");
-                exit(1);
+        for (p = 0; p < npass; p++) {
+            if (is_track == pass[p]) {
+                if (tc_pwrite(ipipe->fd_out, buffer, pkt_size) != pkt_size) {
+                    tc_log_perror(__FILE__, "write program stream packet");
+                    exit(1);
+                }
+                break;
             }
         }
-
+        
         // aborting?
         if (flag_eos)
             break;

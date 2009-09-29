@@ -33,7 +33,7 @@
 
 #define MAX_BUF     1024
 
-void tcdemux_pass_through(info_t *ipipe, int *pass);
+void tcdemux_pass_through(info_t *ipipe, int *pass, int npas);
 int verbose = TC_QUIET;
 
 /* ------------------------------------------------------------
@@ -98,20 +98,19 @@ static void usage(int status)
 int main(int argc, char *argv[])
 {
     info_t ipipe;
-    int n, user = 0, demux_mode = TC_DEMUX_SEQ_ADJUST;
-    int pass_mode = 0, pass[5] = { 0, 0, 0, 0, 0 };
-    double fps = PAL_FPS;
-    long stream_stype = TC_STYPE_UNKNOWN, stream_codec = TC_CODEC_UNKNOWN,
-         stream_magic = TC_MAGIC_UNKNOWN;
-    int ch;
-    char *magic = "", *codec = NULL, *name = NULL;
-    int keep_initial_seq = 0;
-    int hard_fps_flag = 0;
-    char *logfile = SYNC_LOGFILE;
-    int pack_sl = PACKAGE_ALL;
-    int a_track = 0, v_track = 0, subid = 0x80;
-    //defaults:
+    int ch, n, user = 0, demux_mode = TC_DEMUX_SEQ_ADJUST;
+    int npass = 0, *pass = NULL, *new_pass = NULL;
+    int keep_initial_seq = 0, hard_fps_flag = 0, pack_sl = PACKAGE_ALL;
     int unit_seek = 0, resync_seq1 = 0, resync_seq2 = INT_MAX;
+    int a_track = 0, v_track = 0, subid = 0x80;
+    double fps = PAL_FPS;
+    long stream_stype = TC_STYPE_UNKNOWN;
+    long stream_codec = TC_CODEC_UNKNOWN;
+    long stream_magic = TC_MAGIC_UNKNOWN;
+    long x;
+    char *magic = "", *codec = NULL, *name = NULL;
+    char *logfile = SYNC_LOGFILE, *str = NULL, *end = NULL;
+    //defaults:
     //proper initialization
     memset(&ipipe, 0, sizeof(info_t));
 
@@ -216,13 +215,29 @@ int main(int argc, char *argv[])
 
           case 'A':
             if (optarg[0] == '-') usage(EXIT_FAILURE);
-            n = sscanf(optarg, "%x,%x,%x,%x,%x",
-                       &pass[0], &pass[1], &pass[2], &pass[3], &pass[4]);
-            if (n <= 0) {
-                tc_log_error(EXE, "invalid parameter for option -A");
-                exit(1);
+            while (1) {
+                x = strtol(str, &end, 0);
+                if ((end == str) || (x < 1) || (x > 0xff)) {
+                    tc_log_error(EXE, "invalid parameter for option -A");
+                    exit(1);
+                }
+
+                if (*end == '\0') {
+                    break;
+                }
+                if (*end != ',') {
+                    tc_log_error(EXE, "invalid parameter for option -A");
+                    exit(1);
+                }
+                str = end + 1;
+                new_pass = realloc(pass, (npass + 1) * sizeof (int));
+                if (new_pass == NULL) {
+                    tc_log_error(EXE, "out of memory");
+                    exit(1);
+                }
+                pass = new_pass;
+                pass[npass++] = (int)x;
             }
-            pass_mode=1;
             break;
 
           case 'M':
@@ -322,8 +337,8 @@ int main(int argc, char *argv[])
      * main processing mode
      * ------------------------------------------------------------*/
 
-    if(pass_mode)
-        tcdemux_pass_through(&ipipe, pass);
+    if (npass > 0)
+        tcdemux_pass_through(&ipipe, pass, npass);
     else
         tcdemux_thread(&ipipe);
 
