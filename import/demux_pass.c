@@ -31,7 +31,12 @@
 #include "demuxer.h"
 #include "packets.h"
 
-int gop, gop_pts, gop_cnt;
+static int gop, gop_pts, gop_cnt;
+
+/* if you listen carefully, then you can hear the desesperate
+ * whisper of this code calling for a rewrite. Or for a redesign.
+ * Or both. --  FR
+ */
 
 /* ------------------------------------------------------------
  *
@@ -41,44 +46,40 @@ int gop, gop_pts, gop_cnt;
 
 void tcdemux_pass_through(info_t *ipipe, int *pass)
 {
-
-    int k, id=0;
-
-    int j, i, bytes;
-    char *buffer=NULL;
-
-    int payload_id=0, select=PACKAGE_ALL;
-
-    int unit_seek=0, unit, track=0, is_track=0;
-
-    int resync_seq1=0, resync_seq2=INT_MAX, seq_dump, seq_seek;
-    int keep_seq = 0;
-
-    int has_pts_dts=0;
-
+    int bytes, id = 0;
+    int i = 0; // packet counter
+    int j = 0; // skipped packets counter
+    int k = 0; // unit counter
+    char *buffer = NULL;
+    int payload_id = 0, select = PACKAGE_ALL;
+    int unit, unit_seek = 0, track = 0, is_track = 0;
+    int resync_seq1       = 0;
+    int resync_seq2       = INT_MAX;
+    int seq_dump          = 0;
+    int seq_seek          = 0;
+    int keep_seq          = 0;
+    int has_pts_dts       = 0;
     int flag_flush        = 0;
+    // will be switched on as soon start of sequences to flush is reached
     int flag_eos          = 0;
     int flag_append_audio = 0;
     int flag_notify       = 1;
-    int flag_avsync       = 1;
+    int flag_avsync       = 0;
     int flag_skip         = 0;
     int flag_sync_reset   = 0;
     int flag_sync_active  = 0;
-
     const char *logfile;
-
-    unsigned int packet_size=VOB_PACKET_SIZE;
-
+    unsigned int packet_size = VOB_PACKET_SIZE;
     double fps;
 
     // allocate space
-    if((buffer = tc_zalloc(packet_size))==NULL) {
-      tc_log_perror(__FILE__, "out of memory");
-      exit(1);
+    buffer = tc_zalloc(packet_size);
+    if (!buffer) {
+        tc_log_perror(__FILE__, "out of memory");
+        exit(1);
     }
 
     // copy info parameter to local variables
-
     verbose     = ipipe->verbose;
     unit_seek   = ipipe->ps_unit;
     resync_seq1 = ipipe->ps_seq1;
@@ -89,21 +90,10 @@ void tcdemux_pass_through(info_t *ipipe, int *pass)
     logfile     = ipipe->name;
     keep_seq    = ipipe->keep_seq;
 
-    j=0;  //packet counter
-    i=0;  //skipped packets counter
-    k=0;  //unit counter
+    if (keep_seq)
+        flag_sync_active=1;
 
-    // will be switched on as soon start of sequences to flush is reached
-    flag_flush=0;
-
-    flag_notify=1;
-
-    flag_avsync=0;
-    flag_append_audio=0;
-
-    if(keep_seq) flag_sync_active=1;
-
-    unit=unit_seek;
+    unit = unit_seek;
 
     seq_seek = resync_seq1;
     seq_dump = resync_seq2 - resync_seq1;
@@ -111,191 +101,190 @@ void tcdemux_pass_through(info_t *ipipe, int *pass)
     ++unit_seek;
     ++seq_seek;
 
-    tc_log_msg(__FILE__, "0=0x%x 1=0x%x 2=0x%x 3=0x%x 4=0x%x",
-	       pass[0], pass[1], pass[2], pass[3], pass[4]);
+    tc_log_msg(__FILE__,
+               "0=0x%x 1=0x%x 2=0x%x 3=0x%x 4=0x%x",
+               pass[0], pass[1], pass[2], pass[3], pass[4]);
 
-    for(;;) {
+    for (;;) {
+        /* ------------------------------------------------------------
+         *
+         * (I) read a 2048k block
+         *
+         * ------------------------------------------------------------*/
 
+        bytes = tc_pread(ipipe->fd_in, buffer, packet_size);
+        if (bytes != packet_size) {
+            // program end code?
+            if (bytes == 4) {
+                if (scan_pack_header(buffer, MPEG_PROGRAM_END_CODE)) {
+                    if (verbose & TC_DEBUG)
+                        tc_log_msg(__FILE__,
+                                   "(pid=%i) program stream end code found",
+                                   getpid());
+                    break;
+                }
+            }
 
-      /* ------------------------------------------------------------
-       *
-       * (I) read a 2048k block
-       *
-       * ------------------------------------------------------------*/
+            if (bytes)
+                tc_log_warn(__FILE__,
+                            "invalid program stream packet size (%i/%i)",
+                            bytes, packet_size);
+            break;
+        }
 
-      if((bytes=tc_pread(ipipe->fd_in, buffer, packet_size)) != packet_size) {
+        /* ------------------------------------------------------------
+         *
+         * (II) packet header ok?
+         *
+         * ------------------------------------------------------------*/
 
-	//program end code?
-	if(bytes==4) {
-	  if(scan_pack_header(buffer, MPEG_PROGRAM_END_CODE)) {
-	    if(verbose & TC_DEBUG)
-	      tc_log_msg(__FILE__, "(pid=%d) program stream end code detected",
-			 getpid());
-	    break;
-	  }
-	}
+        if (!scan_pack_header(buffer, TC_MAGIC_VOB)) {
+            if (flag_notify && (verbose & TC_DEBUG))
+                tc_log_warn(__FILE__,
+                            "(pid=%i) invalid packet header detected",
+                            getpid());
 
-	if(bytes)
-	  tc_log_warn(__FILE__, "invalid program stream packet size (%d/%d)",
-		      bytes, packet_size);
+            // something else?
+            if (scan_pack_header(buffer, MPEG_VIDEO)
+              | scan_pack_header(buffer, MPEG_AUDIO)) {
+              /* CAUTION: bitwise OR */
 
-	break;
-      }
+                if (verbose & TC_STATS)
+                    tc_log_msg(__FILE__,
+                               "(pid=%i) MPEG system stream detected",
+                               getpid());
 
-      /* ------------------------------------------------------------
-       *
-       * (II) packet header ok?
-       *
-       * ------------------------------------------------------------*/
+                if (scan_pack_header(buffer, MPEG_VIDEO))
+                    payload_id = PACKAGE_VIDEO;
+                if (scan_pack_header(buffer, MPEG_AUDIO))
+                    payload_id = PACKAGE_AUDIO_MP3;
 
+                // no further processing
+                goto flush_packet; /* UGHly */
+            } else {
+                tc_log_warn(__FILE__,
+                            "(pid=%i) '0x%02x%02x%02x%02x' not yet supported",
+                            getpid(), buffer[0] & 0xff, buffer[1] & 0xff,
+                            buffer[2] & 0xff, buffer[3] & 0xff);
+                break;
+            }
+        } else {
+            //MPEG1?
+            if ((buffer[4] & 0xf0) == 0x20) {
+                payload_id = PACKAGE_MPEG1;
+                flag_flush = 1;
 
-      if(!scan_pack_header(buffer, TC_MAGIC_VOB)) {
+                if (verbose & TC_STATS)
+                    tc_log_msg(__FILE__,
+                               "(pid=%i) MPEG-1 video stream detected",
+                               getpid());
 
-	if(flag_notify && (verbose & TC_DEBUG))
-	  tc_log_warn(__FILE__, "(pid=%d) invalid packet header detected",
-		      getpid());
-
-	// something else?
-
-	if(scan_pack_header(buffer, MPEG_VIDEO) | scan_pack_header(buffer, MPEG_AUDIO)) {
-
-	    if(verbose & TC_STATS)
-		tc_log_msg(__FILE__, "(pid=%d) MPEG system stream detected",
-			   getpid());
-
-	    if(scan_pack_header(buffer, MPEG_VIDEO)) payload_id=PACKAGE_VIDEO;
-	    if(scan_pack_header(buffer, MPEG_AUDIO)) payload_id=PACKAGE_AUDIO_MP3;
-
-	    // no further processing
-	    goto flush_packet;
-	} else {
-
-	    tc_log_warn(__FILE__, "(pid=%d) '0x%02x%02x%02x%02x' not yet supported",
-			getpid(), buffer[0] & 0xff, buffer[1] & 0xff,
-			buffer[2] & 0xff, buffer[3] & 0xff);
-	    break;
-	}
-      } else {
-
-	//MPEG1?
-	if ((buffer[4] & 0xf0) == 0x20) {
-
-	  payload_id=PACKAGE_MPEG1;
-	  flag_flush=1;
-
-	  if(verbose & TC_STATS)
-	    tc_log_msg(__FILE__, "(pid=%d) MPEG-1 video stream detected",
-		       getpid());
-
-	  // no further processing
-	  goto flush_packet;
-	}
-      }
-
-
-      /* ------------------------------------------------------------
-       *
-       * (III) analyze packet contents
-       *
-       * ------------------------------------------------------------*/
+                // no further processing
+                goto flush_packet;
+            }
+        }
 
 
-      // proceed with a valid package, assume defaults
+        /* ------------------------------------------------------------
+         *
+         * (III) analyze packet contents
+         *
+         * ------------------------------------------------------------*/
 
-      flag_skip=0;          //do not skip
-      has_pts_dts=0;        //no pts_dts stamp
-      payload_id=0;         //payload unknown
-      flag_sync_reset=0;    //no reset of syncinfo
+        // proceed with a valid package, assume defaults
+        flag_skip       = 0; // do not skip
+        has_pts_dts     = 0; // no pts_dts stamp
+        payload_id      = 0; // payload unknown
+        flag_sync_reset = 0; // no reset of syncinfo
 
-      id = buffer[17] & 0xff;  //payload id byte
+        id = buffer[17] & 0xff;  //payload id byte
+        //MPEG 2?
+        if ((buffer[4] & 0xc0) == 0x40) {
+            // do not change any flags
+            if (verbose & TC_STATS) {
+                //display info only once
+                tc_log_msg(__FILE__,
+                           "(pid=%i) MPEG-2 video stream detected",
+                           getpid());
+            }
+        } else {
+            // MPEG1
+            if ((buffer[4] & 0xf0) == 0x20) {
+                payload_id = PACKAGE_MPEG1;
 
-      //MPEG 2?
-      if ((buffer[4] & 0xc0) == 0x40) {
+                if (verbose & TC_STATS) {
+                    // display info only once
+                    tc_log_msg(__FILE__,
+                               "(pid=%i) MPEG-1 video stream detected",
+                               getpid());
+                }
+            } else {
+                payload_id = PACKAGE_PASS;
 
-	// do not change any flags
+                if (verbose & TC_DEBUG)
+                    tc_log_warn(__FILE__,
+                                "(pid=%i) unknown stream packet id detected",
+                                getpid());
+            }
 
-	if(verbose & TC_STATS) {
-	  //display info only once
-	  tc_log_msg(__FILE__, "(pid=%d) MPEG-2 video stream detected",
-		     getpid());
-	}
-      } else {
+            //flush all MPEG1 stuff
+            goto flush_packet;
+        }
 
-	//MPEG1
-	if ((buffer[4] & 0xf0) == 0x20) {
+        /* ------------------------------------------------------------
+         *
+         * (IV) audio payload
+         *
+         * ------------------------------------------------------------*/
 
-	  payload_id=PACKAGE_MPEG1;
+        // check payload id
+        // process this audio packet?
 
-	  if(verbose & TC_STATS) {
-	    //display info only once
-	    tc_log_msg(__FILE__, "(pid=%d) MPEG-1 video stream detected",
-		       getpid());
-	  }
-	} else {
+        // sync to AC3 audio mode?
+        if (id == P_ID_AC3)
+            payload_id = PACKAGE_PRIVATE_STREAM;
 
-	  payload_id=PACKAGE_PASS;
+        // check for subid here:
 
-	  if(verbose & TC_DEBUG)
-	    tc_log_warn(__FILE__, "(pid=%d) unknown stream packet id detected",
-			getpid());
-	}
+        is_track = id;
 
-	//flush all MPEG1 stuff
-	goto flush_packet;
-      }
+        if (payload_id == PACKAGE_PRIVATE_STREAM) {
+            //position of track code
+            uint8_t *_buf=buffer + 14;
+            uint8_t *_tmp=_buf + 9 + _buf[8];
 
-      /* ------------------------------------------------------------
-       *
-       * (IV) audio payload
-       *
-       * ------------------------------------------------------------*/
+            is_track = (*_tmp);
+        }
 
-      // check payload id
-      // process this audio packet?
+        /* ------------------------------------------------------------
+         *
+         * (VII) evaluate scan results - flush packet
+         *
+         * ------------------------------------------------------------*/
 
-      // sync to AC3 audio mode?
-      if(id == P_ID_AC3) payload_id = PACKAGE_PRIVATE_STREAM;
+flush_packet:
+        if (is_track == pass[0] || is_track == pass[1] || is_track == pass[2]
+         || is_track == pass[3] || is_track == pass[4] ) {
 
-      // check for subid here:
+            if (tc_pwrite(ipipe->fd_out, buffer, packet_size) != packet_size) {
+                tc_log_perror(__FILE__, "write program stream packet");
+                exit(1);
+            }
+        }
 
-      is_track = id;
+        // aborting?
+        if (flag_eos)
+            break;
 
-      if(payload_id == PACKAGE_PRIVATE_STREAM) {
-
-	  //position of track code
-	  uint8_t *_buf=buffer+14;
-	  uint8_t *_tmp=_buf + 9 + _buf[8];
-
-	  is_track = (*_tmp);
-      }
-
-      /* ------------------------------------------------------------
-       *
-       * (VII) evaluate scan results - flush packet
-       *
-       * ------------------------------------------------------------*/
-
-    flush_packet:
-
-      if(is_track == pass[0] || is_track == pass[1] || is_track == pass[2]
-	 || is_track == pass[3] || is_track == pass[4] ) {
-
-	  if(tc_pwrite(ipipe->fd_out, buffer, packet_size) != packet_size) {
-	      tc_log_perror(__FILE__, "write program stream packet");
-	      exit(1);
-	  }
-      }
-
-      //aborting?
-      if(flag_eos) break;
-
-      //total packs (2k each) counter
-      ++j;
+        //total packs (2k each) counter
+        ++j;
 
     } // process next packet/block
 
-    if(buffer!=NULL) free(buffer);
+    if (buffer != NULL)
+        tc_free(buffer);
 
     return;
 }
+
 
