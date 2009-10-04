@@ -94,7 +94,7 @@ typedef struct tcalsasource_ TCALSASource;
 struct tcalsasource_ {
     snd_pcm_t *pcm;
 
-    int rate;
+    uint32_t rate;
     int channels;
     int precision;
 };
@@ -177,9 +177,10 @@ static int alsa_source_xrun(TCALSASource *handle)
 } while (0) 
 
 static int tc_alsa_source_open(TCALSASource *handle, const char *dev,
-                               int rate, int precision, int channels)
+                               uint32_t rate, int precision, int channels)
 {
-    int ret = 0, alsa_rate = rate;
+    int ret = 0;
+    uint32_t alsa_rate = rate;
     snd_pcm_hw_params_t *hwparams = NULL;
 
     TC_MODULE_SELF_CHECK(handle, "alsa_source_open");
@@ -232,7 +233,9 @@ static int tc_alsa_source_open(TCALSASource *handle, const char *dev,
     RETURN_IF_ALSA_FAIL(ret, "cannot setup PCM rate");
 
     if (rate != alsa_rate) {
-        tc_log_warn(__FILE__, "rate %d Hz unsupported by hardware, using %d Hz instead",
+        tc_log_warn(__FILE__,
+                    "rate %"PRIu32" Hz unsupported by hardware,"
+                    " using %"PRIu32" Hz instead",
                     rate, alsa_rate);
     }
 
@@ -242,8 +245,8 @@ static int tc_alsa_source_open(TCALSASource *handle, const char *dev,
     ret = snd_pcm_hw_params(handle->pcm, hwparams);
     RETURN_IF_ALSA_FAIL(ret, "cannot setup hardware parameters");
 
-    tc_log_info(__FILE__, "ALSA audio capture: "
-                          "%i Hz, %i bps, %i channels",
+    tc_log_info(__FILE__, "ALSA audio capture: %"PRIu32" Hz, "
+                          "%i bps, %i channels",
                           alsa_rate, precision, channels);
 
     return TC_OK;
