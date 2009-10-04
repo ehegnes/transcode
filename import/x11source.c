@@ -136,7 +136,9 @@ static int tc_x11source_acquire_image_plain(TCX11Source *handle,
                                         handle->image->height,
                                         handle->out_fmt);
         if (size <= maxdata) {
-            tcv_convert(handle->tcvhandle, handle->image->data, data,
+            /* to make gcc happy */
+            tcv_convert(handle->tcvhandle,
+                        (uint8_t*)handle->image->data, data,
                         handle->image->width, handle->image->height,
                         IMG_BGRA32, handle->conv_fmt);
         } else {
