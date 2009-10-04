@@ -721,7 +721,8 @@ static int tc_v4l2_video_setup_TV_standard(V4L2Source *vs)
                 return TC_ERROR;
             }
 
-            if (!strcasecmp(standard.name, vs->format_name)) {
+            if (!strcasecmp((char*)standard.name, vs->format_name)) {
+                /* to make gcc happy */
                 found = 1;
                 if (standard.id & vs->input.std) {
                     supported = 1;
@@ -1047,7 +1048,8 @@ static int tc_v4l2_video_setup_input_source(V4L2Source *vs)
             vs->input.index = i;
             err = ioctl(vs->video_fd, VIDIOC_ENUMINPUT, &(vs->input));
             if (!err) {
-                if (strcasecmp(vs->input.name, vs->input_name) == 0) {
+                if (strcasecmp((char*)vs->input.name, vs->input_name) == 0) {
+                    /* to make gcc happy */
                     found = 1;
                 }
             }
