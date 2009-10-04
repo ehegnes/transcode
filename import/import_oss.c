@@ -48,7 +48,7 @@ static int capability_flag = TC_CAP_PCM;
 static int oss_fd = -1;
 
 static int oss_init(const char *, int, int, int);
-static int oss_grab(size_t, char *);
+static int oss_grab(size_t, uint8_t *);
 static int oss_stop(void);
 
 
@@ -97,7 +97,7 @@ static int oss_init(const char *audio_device,
     return TC_IMPORT_OK;
 }
 
-static int oss_grab(size_t size, char *buffer)
+static int oss_grab(size_t size, uint8_t *buffer)
 {
     int left;
     int offset;
