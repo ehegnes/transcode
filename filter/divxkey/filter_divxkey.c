@@ -22,7 +22,7 @@
  */
 
 #define MOD_NAME    "filter_divxkey.so"
-#define MOD_VERSION "v0.1 (2002-01-15)"
+#define MOD_VERSION "v0.1.1 (2009-10-04)"
 #define MOD_CAP     "check for DivX 4.xx / OpenDivX / DivX;-) keyframe"
 #define MOD_AUTHOR  "Thomas Oestreich"
 
@@ -33,8 +33,6 @@
 #include "import/magic.h"
 #include "bitstream.h"
 
-static char buffer[128];
-
 static DECODER dec;
 static BITSTREAM bs;
 
@@ -42,52 +40,48 @@ uint32_t rounding;
 uint32_t quant;
 uint32_t fcode;
 
-inline static int stream_read_char(char *d)
+inline static int8_t stream_read_char(uint8_t *d)
 {
     return (*d & 0xff);
 }
 
-inline static unsigned int stream_read_dword(char *s)
+inline static uint32_t stream_read_dword(uint8_t *s)
 {
-    unsigned int y;
-    y=stream_read_char(s);
-    y=(y<<8)|stream_read_char(s+1);
-    y=(y<<8)|stream_read_char(s+2);
-    y=(y<<8)|stream_read_char(s+3);
+    uint32_t y = 0;
+    y =            stream_read_char(s    );
+    y = (y << 8) | stream_read_char(s + 1);
+    y = (y << 8) | stream_read_char(s + 2);
+    y = (y << 8) | stream_read_char(s + 3);
     return y;
 }
 
 // Determine of the compressed frame is a keyframe for direct copy
-static int quicktime_divx4_is_key(unsigned char *data, long size)
+static int quicktime_divx4_is_key(uint8_t *data, long size)
 {
-        int result = 0;
-        int i;
+    int result = 0;
+    int i;
 
-        for(i = 0; i < size - 5; i++)
-        {
-                if( data[i]     == 0x00 &&
-                        data[i + 1] == 0x00 &&
-                        data[i + 2] == 0x01 &&
-                        data[i + 3] == 0xb6)
-                {
-                        if((data[i + 4] & 0xc0) == 0x0)
-                                return 1;
-                        else
-                                return 0;
-                }
+    for(i = 0; i < size - 5; i++) {
+        if (data[i]     == 0x00
+         && data[i + 1] == 0x00
+         && data[i + 2] == 0x01
+         && data[i + 3] == 0xb6) {
+            if ((data[i + 4] & 0xc0) == 0x0)
+                return 1;
+            else
+                return 0;
         }
+    }
 
-        return result;
+    return result;
 }
 
-static int quicktime_divx3_is_key(char *d)
+static int quicktime_divx3_is_key(uint8_t *d)
 {
-    int32_t c=0;
-
-    c=stream_read_dword(d);
-    if(c&0x40000000) return(0);
-
-    return(1);
+    uint32_t c = stream_read_dword(d);
+    if (c & 0x40000000)
+        return 0;
+    return 1;
 }
 
 /*-------------------------------------------------
@@ -98,100 +92,77 @@ static int quicktime_divx3_is_key(char *d)
 
 int tc_filter(frame_list_t *ptr_, char *options)
 {
-  vframe_list_t *ptr = (vframe_list_t *)ptr_;
-  vob_t *vob=NULL;
+    vframe_list_t *ptr = (vframe_list_t *)ptr_;
+    vob_t *vob = NULL;
 
-  int pre=0, vid=0;
+    int pre = 0, vid = 0;
+    int vol = 0, vop = 0, is_key = 0;
 
-  int cc0=0, cc1=0, cc2=0, cc3=0;
+    if (ptr->tag & TC_FILTER_GET_CONFIG) {
+        optstr_filter_desc(options, MOD_NAME, MOD_CAP, MOD_VERSION,
+                           "Thomas Oestreich", "VE", "1");
+        return 0;
+    }
 
+    if (ptr->tag & TC_FILTER_INIT) {
+        vob = tc_get_vob();
+        if (vob == NULL)
+            return -1;
 
-  if(ptr->tag & TC_FILTER_GET_CONFIG) {
-      optstr_filter_desc (options, MOD_NAME, MOD_CAP, MOD_VERSION, "Thomas Oestreich", "VE", "1");
-      return 0;
-  }
+        if (verbose) {
+            tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
+            tc_log_info(MOD_NAME, "options=%s", options);
+            tc_log_info(MOD_NAME, "divxkey");
+        }
 
-  //----------------------------------
-  //
-  // filter init
-  //
-  //----------------------------------
+        return 0;
+    }
 
-  if(ptr->tag & TC_FILTER_INIT) {
+    if (ptr->tag & TC_FILTER_CLOSE) {
+        return 0;
+    } 
 
-    if((vob = tc_get_vob())==NULL) return(-1);
+    if (verbose & TC_STATS)
+        tc_log_info(MOD_NAME, "%s/%s %s %s",
+                    vob->mod_path, MOD_NAME, MOD_VERSION, MOD_CAP);
 
-    // filter init ok.
+    // tag variable indicates, if we are called before
+    // transcodes internal video/audo frame processing routines
+    // or after and determines video/audio context
 
-    if(verbose) tc_log_info(MOD_NAME, "%s %s", MOD_VERSION, MOD_CAP);
+    pre = (ptr->tag & TC_PRE_M_PROCESS)? 1:0;
+    vid = (ptr->tag & TC_VIDEO)? 1:0;
 
-    if(verbose) tc_log_info(MOD_NAME, "options=%s", options);
+    if(pre && vid) {
+        bs_init_tc(&bs, (char*)ptr->video_buf);
 
-    tc_snprintf(buffer, sizeof(buffer), "%s-%s", PACKAGE, VERSION);
+        vol = bs_vol(&bs, &dec);
+        vop = bs_vop(&bs, &dec, &rounding, &quant, &fcode);
 
-    //init filter
+        if (verbose & TC_STATS)
+            tc_log_info(MOD_NAME, "frame=%d vop=%d vol=%d (%d %d %d)",
+                        ptr->id, vop, vol, rounding, quant, fcode);
 
-    if(verbose) tc_log_info(MOD_NAME, "divxkey");
+         // DivX ;-)
+         if (vob->v_codec_flag == TC_CODEC_DIVX3) {
+            if (ptr->video_size > 4)
+                is_key = quicktime_divx3_is_key(ptr->video_buf);
+            if (is_key)
+                ptr->attributes |= TC_FRAME_IS_KEYFRAME;
+        }
 
-    return(0);
-  }
+        // DivX
+        if (vob->v_codec_flag == TC_CODEC_DIVX4 || vob->v_codec_flag == TC_CODEC_DIVX5) {
+            is_key = quicktime_divx4_is_key(ptr->video_buf, (long)ptr->video_size);
+            if (is_key  && vop == I_VOP)
+                ptr->attributes |= TC_FRAME_IS_KEYFRAME;
+        }
 
-  //----------------------------------
-  //
-  // filter close
-  //
-  //----------------------------------
+        if ((verbose >= TC_DEBUG) && (ptr->attributes & TC_FRAME_IS_KEYFRAME)) {
+            tc_log_info(MOD_NAME, "key (intra) @ %d", ptr->id);
+        }
+    }
 
-    if(ptr->tag & TC_FILTER_CLOSE) {
-
-    return(0);
-  }
-
-  //----------------------------------
-  //
-  // filter frame routine
-  //
-  //----------------------------------
-
-  if(verbose & TC_STATS) tc_log_info(MOD_NAME, "%s/%s %s %s", vob->mod_path, MOD_NAME, MOD_VERSION, MOD_CAP);
-
-  // tag variable indicates, if we are called before
-  // transcodes internal video/audo frame processing routines
-  // or after and determines video/audio context
-
-  pre = (ptr->tag & TC_PRE_M_PROCESS)? 1:0;
-  vid = (ptr->tag & TC_VIDEO)? 1:0;
-
-  if(pre && vid) {
-
-      bs_init_tc(&bs, (char*) ptr->video_buf);
-
-      cc0 = bs_vol(&bs, &dec);
-      cc1 = bs_vop(&bs, &dec, &rounding, &quant, &fcode);
-
-      if(verbose & TC_STATS) tc_log_info(MOD_NAME, "frame=%d vop=%d vol=%d (%d %d %d)", ptr->id, cc1, cc0, rounding, quant, fcode);
-
-
-      // DivX ;-)
-
-      if(vob->v_codec_flag == TC_CODEC_DIVX3) {
-
-	  if(ptr->video_size>4) cc3=quicktime_divx3_is_key((unsigned char *)ptr->video_buf);
-
-	  if(cc3) ptr->attributes |= TC_FRAME_IS_KEYFRAME;
-	  if((verbose & TC_DEBUG) && cc3) tc_log_info(MOD_NAME, "key (intra) @ %d", ptr->id);
-
-      }
-
-      // DivX
-
-      if(vob->v_codec_flag == TC_CODEC_DIVX4 || vob->v_codec_flag == TC_CODEC_DIVX5) {
-
-	  cc2=quicktime_divx4_is_key((unsigned char *)ptr->video_buf, (long) ptr->video_size);
-	  if(cc2  && cc1 == I_VOP) ptr->attributes |= TC_FRAME_IS_KEYFRAME;
-	  if((verbose & TC_DEBUG) && cc2 && cc1 == I_VOP) tc_log_info(MOD_NAME, "key (intra) @ %d", ptr->id);
-      }
-  }
-
-  return(0);
+    return 0;
 }
+
