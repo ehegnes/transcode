@@ -326,8 +326,8 @@ void AVI_set_video(avi_t *AVI, int width, int height, double fps,
                    const char *compressor);
 void AVI_set_audio(avi_t *AVI, int channels, long rate, int bits, int format,
                    long mp3rate);
-int  AVI_write_frame(avi_t *AVI, const char *data, long bytes, int keyframe);
-int  AVI_write_audio(avi_t *AVI, const char *data, long bytes);
+int  AVI_write_frame(avi_t *AVI, const uint8_t *data, long bytes, int keyframe);
+int  AVI_write_audio(avi_t *AVI, const uint8_t *data, long bytes);
 long AVI_bytes_remain(avi_t *AVI);
 int  AVI_close(avi_t *AVI);
 long AVI_bytes_written(avi_t *AVI);
