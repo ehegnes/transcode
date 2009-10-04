@@ -214,7 +214,7 @@ int a52_decore(decode_t *decode) {
       //tc_log_msg(__FILE__, "write (%d) bytes", pcm_size);
       (decode->a52_mode & TC_A52_DEMUX) ? float2s16((float *)samples, (int16_t *)&pcm_buf) : float2s16_2((float *)samples, (int16_t *)&pcm_buf);
 
-	if((bytes_wrote=tc_pwrite(decode->fd_out, (char*) pcm_buf, pcm_size)) < pcm_size) {
+	if((bytes_wrote=tc_pwrite(decode->fd_out, (uint8_t*)pcm_buf, pcm_size)) < pcm_size) {
 	  if(decode->verbose & TC_DEBUG)
 	    tc_log_error(__FILE__, "write error (%d/%d)", bytes_wrote, pcm_size);
 	  return(-1);
