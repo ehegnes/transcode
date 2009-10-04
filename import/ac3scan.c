@@ -36,7 +36,7 @@
 #include <unistd.h>
 
 #define MAX_BUF 4096
-static char sbuffer[MAX_BUF];
+static uint8_t sbuffer[MAX_BUF];
 
 /*************************************************************************/
 
@@ -47,125 +47,126 @@ static char sbuffer[MAX_BUF];
 static int get_ac3_bitrate(uint8_t *ptr)
 {
     static const int bitrates[] = {
-	32, 40, 48, 56,
-	64, 80, 96, 112,
-	128, 160, 192, 224,
-	256, 320, 384, 448,
-	512, 576, 640
+    	32,  40,  48,  56,
+	    64,  80,  96,  112,
+    	128, 160, 192, 224,
+	    256, 320, 384, 448,
+    	512, 576, 640
     };
+
     int ratecode = (ptr[2] & 0x3E) >> 1;
     if (ratecode < sizeof(bitrates)/sizeof(*bitrates))
-	return bitrates[ratecode];
+    	return bitrates[ratecode];
     return -1;
 }
 
 static int get_ac3_samplerate(uint8_t *ptr)
 {
-    static const int samplerates[] = {48000, 44100, 32000, -1};
+    static const int samplerates[] = {
+        48000, 44100, 32000, -1
+    };
     return samplerates[ptr[2]>>6];
 }
 
 static int get_ac3_nfchans(uint8_t *ptr)
 {
-    static const int nfchans[] = {2, 1, 2, 3, 3, 4, 4, 5};
+    static const int nfchans[] = {
+        2, 1, 2, 3, 3, 4, 4, 5
+    };
     return nfchans[ptr[6]>>5];
 }
 
 static int get_ac3_framesize(uint8_t *ptr)
 {
-    int bitrate = get_ac3_bitrate(ptr);
+    int bitrate    = get_ac3_bitrate(ptr);
     int samplerate = get_ac3_samplerate(ptr);
     if (bitrate < 0 || samplerate < 0)
-	return -1;
+    	return -1;
     return bitrate * 96000 / samplerate + (samplerate==44100 ? ptr[2]&1 : 0);
 }
 
 /*************************************************************************/
 
-int ac3scan(FILE *fd, char *buffer, int size, int *ac_off, int *ac_bytes, int *pseudo_size, int *real_size, int verbose)
+int ac3scan(FILE *fd, uint8_t *buffer, int size, int *ac_off, int *ac_bytes, int *pseudo_size, int *real_size, int verbose)
 {
-  int bitrate;
+    int bitrate, frame_size, pseudo_frame_size;
+    float rbytes;
 
-  float rbytes;
+    if (fread(buffer, 5, 1, fd) !=1)
+        return TC_ERROR;
 
-  int frame_size, pseudo_frame_size;
+    frame_size = 2 * get_ac3_framesize(buffer+2);
+    if (frame_size < 1) {
+        tc_log_error(__FILE__, "AC3 framesize=%d invalid", frame_size);
+        return TC_ERROR;
+    }
 
-  if (fread(buffer, 5, 1, fd) !=1)
-    return(TC_IMPORT_ERROR);
+    // A single AC3 frame produces exactly 1536 samples
+    // and for 2 channels and 16bit 6kB bytes PCM audio
+    rbytes = (float) (size)/1024/6 * frame_size;
+    pseudo_frame_size = (int) (rbytes+0.5); // XXX
+    bitrate = get_ac3_bitrate(buffer+2);
 
-  if((frame_size = 2*get_ac3_framesize(buffer+2)) < 1) {
-    tc_log_error(__FILE__, "AC3 framesize=%d invalid", frame_size);
-    return(TC_IMPORT_ERROR);
-  }
+    if(verbose) {
+        tc_log_msg(__FILE__,
+                   "AC3 frame %d (%d) bytes | bitrate %d kBits/s | depsize %d | rbytes %f",
+	               frame_size, pseudo_frame_size, bitrate, size, rbytes);
+    }
 
-  // A single AC3 frame produces exactly 1536 samples
-  // and for 2 channels and 16bit 6kB bytes PCM audio
+    // return information
 
-  rbytes = (float) (size)/1024/6 * frame_size;
-  pseudo_frame_size = (int) (rbytes+0.5); // XXX
-  bitrate = get_ac3_bitrate(buffer+2);
+    *ac_off=5;
+    *ac_bytes = pseudo_frame_size-(*ac_off);
+    *pseudo_size = pseudo_frame_size;
+    *real_size = frame_size;
 
-  if(verbose) {
-    tc_log_msg(__FILE__, "AC3 frame %d (%d) bytes | bitrate %d kBits/s | depsize %d | rbytes %f",
-	       frame_size, pseudo_frame_size, bitrate, size, rbytes);
-  }
-
-  // return information
-
-  *ac_off=5;
-  *ac_bytes = pseudo_frame_size-(*ac_off);
-  *pseudo_size = pseudo_frame_size;
-  *real_size = frame_size;
-
-  return(0);
+    return TC_OK;
 }
 
-static int verbose_flag=TC_QUIET;
+static int verbose_flag = TC_QUIET;
 
-int buf_probe_ac3(unsigned char *_buf, int len, ProbeTrackInfo *pcm)
+int buf_probe_ac3(uint8_t *_buf, int len, ProbeTrackInfo *pcm)
 {
+    int j = 0, i = 0, bitrate, fsize, nfchans;
+    uint8_t *buffer;
+    uint16_t sync_word = 0;
+    // need to find syncframe:
+    buffer = _buf;
 
-  int j=0, i=0, bitrate, fsize, nfchans;
+    for (i = 0; i < len-4; ++i) {
+        sync_word = (sync_word << 8) + (uint8_t) buffer[i];
 
-  char *buffer;
+        if (sync_word == 0x0b77)
+            break;
+    }
 
-  uint16_t sync_word = 0;
+    if (verbose_flag & TC_DEBUG)
+        tc_log_msg(__FILE__, "AC3 syncbyte @ %d", i);
 
-  // need to find syncframe:
+    if(sync_word != 0x0b77)
+        return -1;
 
-  buffer=_buf;
+    j       = get_ac3_samplerate(&buffer[i+1]);
+    bitrate = get_ac3_bitrate(&buffer[i+1]);
+    fsize   = get_ac3_framesize(&buffer[i+1]) * 2;
+    nfchans = get_ac3_nfchans(&buffer[i+1]);
 
-  for(i=0; i<len-4; ++i) {
+    if (j < 0 || bitrate < 0)
+        return -1;
 
-    sync_word = (sync_word << 8) + (uint8_t) buffer[i];
+    pcm->samplerate = j;
+    pcm->chan       = (nfchans<2?2:nfchans);
+    pcm->bits       = 16;
+    pcm->format     = TC_CODEC_AC3;
+    pcm->bitrate    = bitrate;
 
-    if(sync_word == 0x0b77) break;
-  }
+    if(verbose_flag & TC_DEBUG) {
+        tc_log_msg(__FILE__,
+                   "samplerate=%d Hz, bitrate=%d kbps, size=%d bytes",
+	               pcm->samplerate, bitrate, fsize);
+    }
 
-  if(verbose_flag & TC_DEBUG)
-    tc_log_msg(__FILE__, "AC3 syncbyte @ %d", i);
-
-  if(sync_word != 0x0b77) return(-1);
-
-  j = get_ac3_samplerate(&buffer[i+1]);
-  bitrate = get_ac3_bitrate(&buffer[i+1]);
-  fsize = 2*get_ac3_framesize(&buffer[i+1]);
-  nfchans = get_ac3_nfchans(&buffer[i+1]);
-
-  if(j<0 || bitrate <0) return(-1);
-
-  pcm->samplerate = j;
-  pcm->chan = (nfchans<2?2:nfchans);
-  pcm->bits = 16;
-  pcm->format = TC_CODEC_AC3;
-  pcm->bitrate = bitrate;
-
-  if(verbose_flag & TC_DEBUG) {
-    tc_log_msg(__FILE__, "samplerate=%d Hz, bitrate=%d kbps, size=%d bytes",
-	       pcm->samplerate, bitrate, fsize);
-  }
-
-  return(0);
+    return 0;
 }
 
 void probe_ac3(info_t *ipipe)
