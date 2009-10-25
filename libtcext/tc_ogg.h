@@ -57,7 +57,6 @@
 
 typedef struct oggextradata_ OGGExtraData;
 struct oggextradata_ {
-    uint32_t magic;
     int32_t granule_shift;
     ogg_packet header;
     ogg_packet comment;

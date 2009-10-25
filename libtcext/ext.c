@@ -83,7 +83,7 @@ void tc_ogg_del_packet(ogg_packet *op)
 
 void tc_ogg_del_extradata(OGGExtraData *oxd)
 {
-    oxd->magic = TC_CODEC_ERROR;
+    oxd->granule_shift = 0;
     tc_ogg_del_packet(&oxd->header);
     tc_ogg_del_packet(&oxd->comment);
     tc_ogg_del_packet(&oxd->code);
