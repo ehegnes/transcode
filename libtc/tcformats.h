@@ -56,6 +56,7 @@ typedef enum {
     TC_FORMAT_VAG,
     TC_FORMAT_NUV,
     TC_FORMAT_FLV,
+    TC_FORMAT_MKV,
 
     /* special */
     TC_FORMAT_RAW,      /* no container */
