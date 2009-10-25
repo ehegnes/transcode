@@ -31,7 +31,7 @@
 #include <theora/theora.h>
 
 #define MOD_NAME    "encode_theora.so"
-#define MOD_VERSION "v0.1.3 (2009-09-20)"
+#define MOD_VERSION "v0.1.5 (2009-10-04)"
 #define MOD_CAP     "theora video encoder using libtheora"
 
 #define MOD_FEATURES \
@@ -43,10 +43,14 @@
 //#define TC_THEORA_DEBUG 1 // until 0.x.y at least
 
 enum {
-    TC_THEORA_QUALITY = 24,
-    TC_THEORA_NSENS   = 0,
-    TC_THEORA_QUICK   = 0,
-    TC_THEORA_SHARP   = 0,
+    TC_THEORA_QUALITY       = 24,
+    TC_THEORA_NOISE_SENS    = 0,
+    TC_THEORA_QUICK         = 0,
+    TC_THEORA_SHARP         = 0,
+    TC_THEORA_DROPFRAMES_P  = 0,
+    TC_THEORA_KF_AUTO_P     = 1,
+    TC_THEORA_KF_AUTO_THR   = 80,
+    TC_THEORA_KF_MIN_DIST   = 8
 };
 
 static const char tc_theora_help[] = ""
@@ -62,24 +66,30 @@ static const char tc_theora_help[] = ""
 
 /*************************************************************************/
 
+
 typedef struct theoraprivatedata_ TheoraPrivateData;
 struct theoraprivatedata_ {
-    int flush_flag;
+    int                 flush_flag;
 
-    OGGExtraData xdata;
+    OGGExtraData        xdata;    /* real xdata */
 
-    theora_state td;
-    TCFrameVideo *tbuf;
-  
-    int quality;
-    int nsens;
-    int sharp;
-    int quick;
+    theora_state        td;
+    TCFrameVideo        *tbuf;
 
-    uint32_t frames;
-    uint32_t packets;
+    /* module configuration options */
+    int                 quality;
+    int                 nsens;
+    int                 sharp;
+    int                 quick;
+    int                 dropframes_p;
+    int                 kf_auto_p;
+    int                 kf_auto_thr;
+    int                 kf_min_dist;
 
-    char conf_str[TC_BUF_MIN];
+    uint32_t            frames;
+    uint32_t            packets;
+
+    char                conf_str[TC_BUF_MIN];
 };
 
 
@@ -139,7 +149,6 @@ static int tc_ogg_new_extradata(TheoraPrivateData *pd)
     if (ret == TC_ERROR) {
         goto no_code;
     }
-    pd->xdata.magic = TC_CODEC_THEORA; // XXX
 
     return TC_OK;
 
@@ -151,6 +160,17 @@ static int tc_ogg_new_extradata(TheoraPrivateData *pd)
     return TC_ERROR;
 }
 
+/* FIXME: move into libtcext? */
+static int tc_ogg_publish_extradata(TheoraPrivateData *pd,
+                                    TCModuleExtraData *xdata[])
+{
+    xdata[0]->stream_id  = 0; /* not significant for us */
+    xdata[0]->codec      = TC_CODEC_THEORA;
+    xdata[0]->extra.size = sizeof(OGGExtraData);
+    xdata[0]->extra.data = &(pd->xdata);
+
+    return TC_OK;
+}
 
 /*************************************************************************/
 
@@ -163,6 +183,8 @@ static int tc_theora_configure(TCModuleInstance *self,
     uint32_t x_off = 0, y_off = 0, w = 0, h = 0;
     TheoraPrivateData *pd = NULL;
     theora_info ti;
+    TCPair fps_ratio = { 1, 1 };
+    TCPair asr_ratio = { 1, 1 };
     int ret = TC_ERROR;
 
     TC_MODULE_SELF_CHECK(self, "configure");
@@ -170,12 +192,17 @@ static int tc_theora_configure(TCModuleInstance *self,
     pd = self->userdata;
 
     pd->flush_flag = vob->encoder_flush;
-    pd->packets    = 0;
-    pd->frames     = 0;
-    pd->quality    = TC_THEORA_QUALITY;
-    pd->nsens      = TC_THEORA_NSENS;
-    pd->sharp      = TC_THEORA_SHARP;
-    pd->quick      = TC_THEORA_QUICK;
+    pd->packets      = 0;
+    pd->frames       = 0;
+
+    pd->quality      = TC_THEORA_QUALITY;
+    pd->nsens        = TC_THEORA_NOISE_SENS;
+    pd->sharp        = TC_THEORA_SHARP;
+    pd->quick        = TC_THEORA_QUICK;
+    pd->dropframes_p = TC_THEORA_DROPFRAMES_P;
+    pd->kf_auto_p    = TC_THEORA_KF_AUTO_P;
+    pd->kf_auto_thr  = TC_THEORA_KF_AUTO_THR;
+    pd->kf_min_dist  = TC_THEORA_KF_MIN_DIST;
 
     if (options) {
         optstr_get(options, "quality",  "%i", &pd->quality);
@@ -189,6 +216,11 @@ static int tc_theora_configure(TCModuleInstance *self,
         if (optstr_lookup(options, "quick")) {
             pd->quick = 1;
         }
+        /* FIXME: clamping */
+        optstr_get(options, "dropfp",    "%i", &pd->dropframes_p);
+        optstr_get(options, "kfautop",   "%i", &pd->kf_auto_p);
+        optstr_get(options, "kfautothr", "%i", &pd->kf_auto_thr);
+        optstr_get(options, "kfmindist", "%i", &pd->kf_min_dist);
     }
  
     /* Theora has a divisible-by-sixteen restriction for the encoded video size */
@@ -201,6 +233,22 @@ static int tc_theora_configure(TCModuleInstance *self,
     x_off = ((w - vob->ex_v_width ) /2) & ~1;
     y_off = ((h - vob->ex_v_height) /2) & ~1;
 
+    ret = tc_frc_code_to_ratio(vob->ex_frc, &fps_ratio.a, &fps_ratio.b);
+    if (ret == TC_NULL_MATCH) { /* watch out here */
+        fps_ratio.a = 25;
+        fps_ratio.b = 1;
+    }
+
+    ret = tc_find_best_aspect_ratio(vob,
+                                    &asr_ratio.a,
+                                    &asr_ratio.b,
+                                    MOD_NAME);
+    if (ret != TC_OK) {
+        tc_log_error(MOD_NAME, "unable to find sane value for SAR");
+        return TC_ERROR;
+    }
+
+
     theora_info_init(&ti);
     ti.width                        = w;
     ti.height                       = h;
@@ -208,36 +256,22 @@ static int tc_theora_configure(TCModuleInstance *self,
     ti.frame_height                 = vob->ex_v_height;
     ti.offset_x                     = x_off;
     ti.offset_y                     = y_off;
-    ret = tc_frc_code_to_ratio(vob->ex_frc,
-                                &ti.fps_numerator,
-                                &ti.fps_denominator);
-                               /* watch out here */
-    if (ret == TC_NULL_MATCH) {
-        ti.fps_numerator            = 25;
-        ti.fps_denominator          = 1;
-    }
-//    ti.aspect_numerator             = 1; // XXX
-//    ti.aspect_denominator           = 1; // XXX
-    ret = tc_find_best_aspect_ratio(vob,
-                                    &ti.aspect_numerator,
-                                    &ti.aspect_denominator,
-                                    MOD_NAME);
-    if (ret != TC_OK) {
-        tc_log_error(MOD_NAME, "unable to find sane value for SAR");
-        return TC_ERROR;
-    }
+    ti.fps_numerator                = fps_ratio.a;
+    ti.fps_denominator              = fps_ratio.b;
+    ti.aspect_numerator             = asr_ratio.a;
+    ti.aspect_denominator           = asr_ratio.b;
     ti.colorspace                   = OC_CS_UNSPECIFIED;
     ti.pixelformat                  = OC_PF_420;
     ti.target_bitrate               = vob->divxbitrate;
     ti.quality                      = pd->quality;
-    ti.dropframes_p                 = 0; // XXX
+    ti.dropframes_p                 = pd->dropframes_p;
     ti.quick_p                      = pd->quick;
-    ti.keyframe_auto_p              = 1; // XXX
+    ti.keyframe_auto_p              = pd->kf_auto_p;
     ti.keyframe_frequency           = vob->divxkeyframes;
     ti.keyframe_frequency_force     = vob->divxkeyframes;
-    ti.keyframe_data_target_bitrate = vob->divxbitrate * 1.5;
-    ti.keyframe_auto_threshold      = 80; // XXX
-    ti.keyframe_mindistance         = 8;  // XXX
+    ti.keyframe_data_target_bitrate = vob->divxbitrate * 1.5; // XXX
+    ti.keyframe_auto_threshold      = pd->kf_auto_thr;
+    ti.keyframe_mindistance         = pd->kf_min_dist;
     ti.noise_sensitivity            = pd->nsens;
     ti.sharpness                    = pd->sharp;
 
@@ -248,8 +282,7 @@ static int tc_theora_configure(TCModuleInstance *self,
     if (pd->tbuf) {
         ret = tc_ogg_new_extradata(pd);
         if (ret == TC_OK) {
-            /* publish it */
-            vob->ex_v_xdata = &(pd->xdata);
+            ret = tc_ogg_publish_extradata(pd, xdata);
         }
     }
     return ret;
@@ -277,7 +310,9 @@ static int tc_theora_encode_internal(TheoraPrivateData *pd, int eos,
     int ret;
 
 #ifdef TC_THEORA_DEBUG
-    tc_log_info(MOD_NAME, "(%s) invoked eos=%i in=%p out=%p", __func__, eos, inframe, outframe);
+    tc_log_info(MOD_NAME,
+                "(%s) invoked eos=%i in=%p out=%p",
+                __func__, eos, inframe, outframe);
 #endif
     // FIXME
     yuv.y_width   = pd->tbuf->v_width;
@@ -327,10 +362,9 @@ static int tc_theora_encode(TCModuleInstance *self,
     vframe_copy(pd->tbuf, inframe, 1);
     pd->frames++;
 #ifdef TC_THEORA_DEBUG
-    tc_log_info(MOD_NAME, "(%s) after encoding: packets=%lu frames=%lu",
-                          __func__,
-                          (unsigned long)pd->packets,
-                          (unsigned long)pd->frames);
+    tc_log_info(MOD_NAME, "(%s) after encoding: "
+                          "packets=%"PRIu32" frames=%"PRIu32,
+                          __func__, pd->packets, pd->frames);
 #endif
     return TC_OK;
 }
@@ -385,10 +419,14 @@ static int tc_theora_inspect(TCModuleInstance *self,
     if (optstr_lookup(param, "help")) {
         *value = tc_theora_help;
     }
-    INSPECT_PARAM(quality, "%i");
-    INSPECT_PARAM(nsens,   "%i");
-    INSPECT_PARAM(sharp,   "%i");
-    INSPECT_PARAM(quick,   "%i");
+    INSPECT_PARAM(quality,      "%i");
+    INSPECT_PARAM(nsens,        "%i");
+    INSPECT_PARAM(sharp,        "%i");
+    INSPECT_PARAM(quick,        "%i");
+    INSPECT_PARAM(dropframes_p, "%i");
+    INSPECT_PARAM(kf_auto_p,    "%i");
+    INSPECT_PARAM(kf_auto_thr,  "%i");
+    INSPECT_PARAM(kf_min_dist,  "%i");
 
     return TC_OK;
 }

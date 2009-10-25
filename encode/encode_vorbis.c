@@ -55,21 +55,21 @@ static const char tc_vorbis_help[] = ""
 
 typedef struct vorbisprivatedata_ VorbisPrivateData;
 struct vorbisprivatedata_ {
-    int flush_flag;
+    int                 flush_flag;
 
-    vorbis_info vi;
-    vorbis_comment vc;
-    vorbis_dsp_state vd; 
-    vorbis_block vb;
+    vorbis_info         vi;
+    vorbis_comment      vc;
+    vorbis_dsp_state    vd; 
+    vorbis_block        vb;
 
-    OGGExtraData xdata;
+    OGGExtraData        xdata;    /* real extradata */
 
-    int bits;
-    int channels;
-    int end_of_stream;
+    int                 bits;
+    int                 channels;
+    int                 end_of_stream;
 
-    uint32_t frames;
-    uint32_t packets;
+    uint32_t            frames;
+    uint32_t            packets;
 };
 
 
@@ -120,8 +120,6 @@ static int tc_ogg_new_extradata(VorbisPrivateData *pd)
     DUP_PACKET(comment);
     DUP_PACKET(code);
 
-    pd->xdata.magic = TC_CODEC_VORBIS;
-
     return TC_OK;
 
   no_code:
@@ -133,6 +131,18 @@ static int tc_ogg_new_extradata(VorbisPrivateData *pd)
 }
 
 #undef DUP_PACKET
+
+/* FIXME: move into libtcext? */
+static int tc_ogg_publish_extradata(VorbisPrivateData *pd,
+                                    TCModuleExtraData *xdata[])
+{
+    xdata[0]->stream_id  = 0; /* not significant for us */
+    xdata[0]->codec      = TC_CODEC_VORBIS;
+    xdata[0]->extra.size = sizeof(OGGExtraData);
+    xdata[0]->extra.data = &(pd->xdata);
+
+    return TC_OK;
+}
 
 /*************************************************************************/
 
@@ -185,8 +195,7 @@ static int tc_vorbis_configure(TCModuleInstance *self,
 
         ret = tc_ogg_new_extradata(pd);
         if (ret == TC_OK) {
-            /* publish it */
-            vob->ex_a_xdata = &(pd->xdata);
+            tc_ogg_publish_extradata(pd, xdata);
         }
     }
     return ret;

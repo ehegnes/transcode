@@ -634,8 +634,15 @@ int tc_export_init(void)
         return TC_ERROR;
     }
 
-    return tc_encoder_open(&expdata.enc,
-                           &expdata.vid_xdata, &expdata.aud_xdata);
+    ret = tc_encoder_open(&expdata.enc,
+                          &expdata.vid_xdata, &expdata.aud_xdata);
+
+    tc_debug(TC_DEBUG_PRIVATE,
+             "Video extradata codec = 0x%X", expdata.vid_xdata.codec);
+    tc_debug(TC_DEBUG_PRIVATE,
+             "Audio extradata codec = 0x%X", expdata.aud_xdata.codec);
+
+     return ret;
 }
 
 int tc_export_open(void)
