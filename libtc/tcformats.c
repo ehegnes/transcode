@@ -128,6 +128,11 @@ static const TCFormatInfo tc_formats_info[] = {
       "standalone Flash Video",
       TC_AUDIO|TC_VIDEO,
     },
+    { 
+      TC_FORMAT_MKV, "mkv",
+      "Matroska container format",
+      TC_AUDIO|TC_VIDEO,
+    },
     /* pseudo-formats */
     { TC_FORMAT_RAW, "raw",
       "raw (unpacked) A/V stream",
