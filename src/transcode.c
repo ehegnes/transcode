@@ -1041,8 +1041,6 @@ static vob_t *new_vob(void)
     vob->ex_a_string         = NULL;
     vob->ex_v_string         = NULL;
     vob->ex_m_string         = NULL;
-    vob->ex_a_xdata          = NULL;
-    vob->ex_v_xdata          = NULL;
 
     vob->reduce_h            = 1;
     vob->reduce_w            = 1;
@@ -2546,10 +2544,6 @@ int main(int argc, char *argv[])
     specs.rate     = TC_MAX(vob->a_rate, vob->mp3frequency);
     specs.channels = TC_MAX(vob->a_chan, vob->dm_chan);
     specs.bits     = TC_MAX(vob->a_bits, vob->dm_bits);
-
-fprintf(stderr, "[%s] specs.rate=%i specs.chans=%i specs.bits=%i\n",
-__FILE__,
-specs.rate, specs.channels, specs.bits);
 
     tc_framebuffer_set_specs(&specs);
 

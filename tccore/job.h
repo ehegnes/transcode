@@ -196,10 +196,6 @@ struct _vob_t {
     double ac3_gain[3];         // Audio amplitude rescale parameter for ac3
     int clip_count;             // # of bytes clipped after volume adjustment
 
-    // Video frame manipulation info
-    void *ex_v_xdata;
-    void *ex_a_xdata;
-
     int ex_v_width;             // Export picture width
     int ex_v_height;            // Export picture height
     int ex_v_size;              // Total number of bytes per frame
