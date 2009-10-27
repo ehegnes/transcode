@@ -14,7 +14,7 @@ transcode-1.2.0
 [+] New filter: barrel.
 [+] ShoutCast support using ogg multiplexor.
 [!] Fix crash when using transformations (-Z, -j).
-[!] Fix compilation error with x264 version 66.
+[!] Fix compilation error with x264 version 76.
 [*] Improved internal buffering system.
 [*] Added basic A/V synchronization module.
 [!] Fix misuse of configuration files which leads to crash.
