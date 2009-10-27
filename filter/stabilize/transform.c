@@ -38,18 +38,21 @@ int myround(double x)
         return (int)x_;
 }
 
+
 /***********************************************************************
  * helper functions to create and operate with transforms.
  * all functions are non-destructive
  */
 
 /* create an initialized transform*/
-Transform new_transform(double x, double y, double alpha, int extra)
+Transform new_transform(double x, double y, double alpha, 
+                        double zoom, int extra)
 { 
     Transform t;
     t.x     = x;
     t.y     = y;
     t.alpha = alpha;
+    t.zoom  = zoom;
     t.extra = extra;
     return t;
 }
@@ -57,7 +60,7 @@ Transform new_transform(double x, double y, double alpha, int extra)
 /* create a zero initialized transform*/
 Transform null_transform(void)
 { 
-    return new_transform(0, 0, 0, 0);
+    return new_transform(0, 0, 0, 0, 0);
 }
 
 /* adds two transforms */
@@ -67,6 +70,7 @@ Transform add_transforms(const Transform* t1, const Transform* t2)
     t.x     = t1->x + t2->x;
     t.y     = t1->y + t2->y;
     t.alpha = t1->alpha + t2->alpha;
+    t.zoom  = t1->zoom + t2->zoom;
     t.extra = 0;
     return t;
 }
@@ -84,6 +88,7 @@ Transform sub_transforms(const Transform* t1, const Transform* t2)
     t.x     = t1->x - t2->x;
     t.y     = t1->y - t2->y;
     t.alpha = t1->alpha - t2->alpha;
+    t.zoom  = t1->zoom - t2->zoom;
     t.extra = 0;
     return t;
 }
@@ -95,6 +100,7 @@ Transform mult_transform(const Transform* t1, double f)
     t.x     = t1->x * f;
     t.y     = t1->y * f;
     t.alpha = t1->alpha * f;
+    t.zoom  = t1->zoom * f;
     t.extra = 0;
     return t;
 }
@@ -162,6 +168,7 @@ Transform median_xy_transform(const Transform* transforms, int len)
     qsort(ts, len, sizeof(Transform), cmp_trans_y);
     t.y = len % 2 == 0 ? ts[half].y : (ts[half].y + ts[half+1].y)/2;
     t.alpha = 0;
+    t.zoom = 0;
     t.extra = 0;
     tc_free(ts);
     return t;
@@ -199,6 +206,40 @@ Transform cleanmean_xy_transform(const Transform* transforms, int len)
     }
     tc_free(ts);
     return mult_transform(&t, 1.0 / (len - (2.0 * cut)));
+}
+
+
+/** 
+ * calulcates the cleaned maximum and minimum of an array of transforms,
+ * considerung only x and y
+ * It cuts off the upper and lower x-th percentil
+ *
+ * Parameters:
+ *    transforms: array of transforms.
+ *           len: length  of array
+ *     percentil: the x-th percentil to cut off
+ *           min: pointer to min (return value)
+ *           max: pointer to max (return value)
+ * Return value:
+ *     call by reference in min and max
+ * Preconditions:
+ *     len>0, 0<=percentil<50
+ * Side effects:
+ *     only on min and max
+ */
+void cleanmaxmin_xy_transform(const Transform* transforms, int len, 
+                              int percentil, 
+                              Transform* min, Transform* max){
+    Transform* ts = tc_malloc(sizeof(Transform) * len);
+    int i, cut = len * percentil / 100;
+    memcpy(ts, transforms, sizeof(Transform) * len); 
+    qsort(ts,len, sizeof(Transform), cmp_trans_x);
+    min->x = ts[cut].x;
+    max->x = ts[len-cut-1].x;
+    qsort(ts, len, sizeof(Transform), cmp_trans_y);
+    min->y = ts[cut].y;
+    max->y = ts[len-cut-1].y;
+    tc_free(ts);
 }
 
 
