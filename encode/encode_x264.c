@@ -162,7 +162,11 @@ static TCConfigEntry conf[] ={
     /* How often B-frames are used */
     OPT_RANGE(i_bframe_bias,              "b_bias",       -90,   100)
     /* Keep some B-frames as references */
+#if X264_BUILD >= 78
+    OPT_RANGE(i_bframe_pyramid,           "b_pyramid",      0,     2)
+#else
     OPT_FLAG (b_bframe_pyramid,           "b_pyramid")
+#endif
 
     /* Use deblocking filter */
     OPT_FLAG (b_deblocking_filter,        "deblock")
@@ -887,7 +891,7 @@ static int x264_configure(TCModuleInstance *self,
                          " 2pass_bug_workaround option.");
             return TC_ERROR;
         }
-        memcpy(pd->twopass_log_path, vob->divxlogfile, strsize);
+        ac_memcpy(pd->twopass_log_path, vob->divxlogfile, strsize);
         pd->twopass_bug_workaround = 1;
     } else {
         pd->twopass_bug_workaround = 0;
@@ -1041,7 +1045,11 @@ static int x264_encode_video(TCModuleInstance *self,
      * done? */
     pic.i_pts = (int64_t) pd->framenum * pd->x264params.i_fps_den;
 
+#if X264_BUILD >= 76
+    if (x264_encoder_encode(pd->enc, &nal, &nnal, &pic, &pic_out) < 0) {
+#else
     if (x264_encoder_encode(pd->enc, &nal, &nnal, &pic, &pic_out) != 0) {
+#endif
         return TC_ERROR;
     }
 
@@ -1054,6 +1062,10 @@ static int x264_encode_video(TCModuleInstance *self,
             tc_log_error(MOD_NAME, "output buffer overflow");
             return TC_ERROR;
         }
+#if X264_BUILD >= 76
+	    ac_memcpy(outframe->video_buf + outframe->video_len, nal[i].p_payload, nal[i].i_payload); 
+	    outframe->video_len += nal[i].i_payload;
+#else
         ret = x264_nal_encode(outframe->video_buf + outframe->video_len,
                               &size, 1, &nal[i]);
         if (ret < 0 || size > outframe->video_size - outframe->video_len) {
@@ -1061,6 +1073,7 @@ static int x264_encode_video(TCModuleInstance *self,
             break;
         }
         outframe->video_len += size;
+#endif
     }
 
     /* FIXME: ok, that sucks. How to reformat it ina better way? -- fromani */
