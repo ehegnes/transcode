@@ -21,26 +21,11 @@
  *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
  *
  * Typical call:
- * transcode -J transform="crop=0" -i inp.m2v -y xdiv,pcm inp_stab.avi
-*/
-
-/* TODO:
- * o [georg] allow comments in transforms file 
- *
- * o [georg] When keep pixels from last frame for the border, also transform it by
- *  the estimated camera speed, this should give much better results
- *
- * * Sharpen the image after rotation. (now quadratic interpolation done)
- * 
- * * When possible with transcode then resize the image while
- *    rotating. This will provide better results, because now we do
- *    simple interpolation which makes the movie smoother.
- * 
+ * transcode -J transform -i inp.m2v -y xdiv,tcaud inp_stab.avi
  */
 
-
 #define MOD_NAME    "filter_transform.so"
-#define MOD_VERSION "v0.4.5 (2009-02-07)"
+#define MOD_VERSION "v0.61 (2009-10-25)"
 #define MOD_CAP     "transforms each frame according to transformations\n\
  given in an input file (e.g. translation, rotate) see also filter stabilize"
 #define MOD_AUTHOR  "Georg Martius"
@@ -99,7 +84,10 @@ typedef struct {
     /* constants */
     /* threshhold below which no rotation is performed */
     double rotation_threshhold; 
-    
+    double zoom;      // percentage to zoom: 0->no zooming 10:zoom in 10%
+    int optzoom;      // 1: determine optimal zoom, 0: nothing
+    double sharpen;   // amount of sharpening
+
     char input[TC_BUF_LINE];
     FILE* f;
 
@@ -111,16 +99,23 @@ static const char transform_help[] = ""
     "    Reads a file with transform information for each frame\n"
     "     and applies them. See also stabilize.\n" 
     "Options\n"
-    "    'input'     path to the file used to read the transforms\n\
-                (def: inputfile.stab)\n"
-    "    'maxshift'  maximal number of pixels to translate image\n\
-                (def: -1 no limit)\n"
+    "    'input'     path to the file used to read the transforms\n"
+    "                (def: inputfile.stab)\n"
+    "    'smoothing' number of frames*2 + 1 used for lowpass filtering \n"
+    "                used for stabilizing (def: 10)\n"
+    "    'maxshift'  maximal number of pixels to translate image\n"
+    "                (def: -1 no limit)\n"
     "    'maxangle'  maximal angle in rad to rotate image (def: -1 no limit)\n"
     "    'crop'      0: keep border (def), 1: black backgr\n"
     "    'invert'    1: invert transforms(def: 0)\n"
     "    'relative'  consider transforms as 0: absolute, 1: relative (def)\n"
-    "    'smoothing' number of frames*2 + 1 used for lowpass filtering \n"
-    "                used for stabilizing (def: 10)\n"
+    "    'zoom'      percentage to zoom >0: zoom in, <0 zoom out (def: 0)\n"
+    "    'optzoom'   0: nothing, 1: determine optimal zoom (def)\n"
+    "                i.e. no (or only little) border should be visible.\n"
+    "                Note that the value given at 'zoom' is added to the \n"
+    "                here calculated one\n"
+    "    'sharpen'   amount of sharpening: 0: no sharpening (def: 0.8)\n"
+    "                uses filter unsharp with 5x5 matrix\n"
     "    'help'      print this help message\n";
 
 /* forward deklarations, please look below for documentation*/
@@ -310,25 +305,29 @@ int transformYUV(TransformData* td)
     float c_s_y = td->height_src/2.0;
     float c_d_x = td->width_dest/2.0;
     float c_d_y = td->height_dest/2.0;    
+    
+    float z = 1.0-t.zoom/100;
+    float zcos_a = z*cos(-t.alpha); // scaled cos
+    float zsin_a = z*sin(-t.alpha); // scaled sin
 
     /* for each pixel in the destination image we calc the source
      * coordinate and make an interpolation: 
      *      p_d = c_d + M(p_s - c_s) + t 
      * where p are the points, c the center coordinate, 
      *  _s source and _d destination, 
-     *  t the translation, and M the rotation matrix
+     *  t the translation, and M the rotation and scaling matrix
      *      p_s = M^{-1}(p_d - c_d - t) + c_s
      */
     /* Luminance channel */
-    if (fabs(t.alpha) > td->rotation_threshhold) {
+    if (fabs(t.alpha) > td->rotation_threshhold || t.zoom != 0) {
         for (x = 0; x < td->width_dest; x++) {
             for (y = 0; y < td->height_dest; y++) {
                 float x_d1 = (x - c_d_x);
                 float y_d1 = (y - c_d_y);
-                float x_s  =  cos(-t.alpha) * x_d1 
-                    + sin(-t.alpha) * y_d1 + c_s_x -t.x;
-                float y_s  = -sin(-t.alpha) * x_d1 
-                    + cos(-t.alpha) * y_d1 + c_s_y -t.y;
+                float x_s  =  zcos_a * x_d1 
+                    + zsin_a * y_d1 + c_s_x -t.x;
+                float y_s  = -zsin_a * x_d1 
+                    + zcos_a * y_d1 + c_s_y -t.y;
                 unsigned char* dest = &Y_2[x + y * td->width_dest];
                 interpolate(dest, x_s, y_s, Y_1, 
                             td->width_src, td->height_src, 
@@ -336,8 +335,8 @@ int transformYUV(TransformData* td)
             }
         }
      }else { 
-        /* no rotation, just translation 
-         *(also no interpolation, since no size change (so far) 
+        /* no rotation, no zooming, just translation 
+         *(also no interpolation, since no size change (so far)) 
          */
         int round_tx = myround(t.x);
         int round_ty = myround(t.y);
@@ -360,15 +359,15 @@ int transformYUV(TransformData* td)
     int wd2 = td->width_dest/2;
     int hs2 = td->height_src/2;
     int hd2 = td->height_dest/2;
-    if (fabs(t.alpha) > td->rotation_threshhold) {
+    if (fabs(t.alpha) > td->rotation_threshhold || t.zoom != 0) {
         for (x = 0; x < wd2; x++) {
             for (y = 0; y < hd2; y++) {
                 float x_d1 = x - (c_d_x)/2;
                 float y_d1 = y - (c_d_y)/2;
-                float x_s  =  cos(-t.alpha) * x_d1 
-                    + sin(-t.alpha) * y_d1 + (c_s_x -t.x)/2;
-                float y_s  = -sin(-t.alpha) * x_d1 
-                    + cos(-t.alpha) * y_d1 + (c_s_y -t.y)/2;
+                float x_s  =  zcos_a * x_d1 
+                    + zsin_a * y_d1 + (c_s_x -t.x)/2;
+                float y_s  = -zsin_a * x_d1 
+                    + zcos_a * y_d1 + (c_s_y -t.y)/2;
                 unsigned char* dest = &Cr_2[x + y * wd2];
                 interpolate(dest, x_s, y_s, Cr_1, ws2, hs2, 
                             td->crop ? 128 : *dest);
@@ -377,7 +376,7 @@ int transformYUV(TransformData* td)
                             td->crop ? 128 : *dest);      	
             }
         }
-    } else { // no rotation, no interpolation, just translation 
+    } else { // no rotation, no zoom, no interpolation, just translation 
         int round_tx2 = myround(t.x/2.0);
         int round_ty2 = myround(t.y/2.0);        
         for (x = 0; x < wd2; x++) {
@@ -424,17 +423,21 @@ int read_input_file(TransformData* td)
     int i = 0;
     int ti; // time (ignored)
     Transform t;
-
+    
     while (fgets(l, sizeof(l), td->f)) {
         if (l[0] == '#')
             continue;    //  ignore comments
         if (strlen(l) == 0)
             continue; //  ignore empty lines
-    
-        if (sscanf(l, "%i %lf %lf %lf %i", &ti, &t.x, &t.y, &t.alpha, 
-                  &t.extra) != 5) {
-            tc_log_error(MOD_NAME, "Cannot parse line: %s", l);
-            return 0;
+        // try new format
+        if (sscanf(l, "%i %lf %lf %lf %lf %i", &ti, &t.x, &t.y, &t.alpha, 
+                   &t.zoom, &t.extra) != 6) {
+            if (sscanf(l, "%i %lf %lf %lf %i", &ti, &t.x, &t.y, &t.alpha, 
+                       &t.extra) != 5) {                
+                tc_log_error(MOD_NAME, "Cannot parse line: %s", l);
+                return 0;
+            }
+            t.zoom=0;
         }
     
         if (i>=s) { // resize transform array
@@ -576,7 +579,28 @@ int preprocess_transforms(TransformData* td)
     if (td->maxangle != - 1.0)
         for (i = 0; i < td->trans_len; i++)
             ts[i].alpha = TC_CLAMP(ts[i].alpha, -td->maxangle, td->maxangle);
-  
+
+    /* Calc optimal zoom 
+     *  cheap algo is to only consider transformations
+     *  uses cleaned max and min 
+     */
+    if (td->optzoom != 0 && td->trans_len > 1){    
+        Transform min_t, max_t;
+        cleanmaxmin_xy_transform(ts, td->trans_len, 10, &min_t, &max_t); 
+        // the zoom value only for x
+        double zx = 2*TC_MAX(max_t.x,fabs(min_t.x))/td->width_src;
+        // the zoom value only for y
+        double zy = 2*TC_MAX(max_t.y,fabs(min_t.y))/td->height_src;
+        td->zoom += 100* TC_MAX(zx,zy); // use maximum
+        tc_log_info(MOD_NAME, "Final zoom: %lf\n", td->zoom);
+    }
+        
+    /* apply global zoom */
+    if (td->zoom != 0){
+        for (i = 0; i < td->trans_len; i++)
+            ts[i].zoom += td->zoom;       
+    }
+
     return 1;
 }
 
@@ -591,7 +615,7 @@ static int transform_init(TCModuleInstance *self, uint32_t features)
     TC_MODULE_SELF_CHECK(self, "init");
     TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
     
-    td = tc_malloc(sizeof(TransformData));
+    td = tc_zalloc(sizeof(TransformData));
     if (td == NULL) {
         tc_log_error(MOD_NAME, "init: out of memory!");
         return TC_ERROR;
@@ -669,6 +693,10 @@ static int transform_configure(TCModuleInstance *self,
     td->smoothing = 10;
   
     td->rotation_threshhold = 0.25/(180/M_PI);
+
+    td->zoom    = 0;
+    td->optzoom = 1;
+    td->sharpen = 0.8;
   
     if (options != NULL) {
         optstr_get(options, "input", "%[^:]", (char*)&td->input);
@@ -684,25 +712,37 @@ static int transform_configure(TCModuleInstance *self,
 
     /* process remaining options */
     if (options != NULL) {    
+        // We support also the help option.
+        if(optstr_lookup(options, "help")) {
+            tc_log_info(MOD_NAME,transform_help);
+            return(TC_IMPORT_ERROR);
+        }
         optstr_get(options, "maxshift",  "%d", &td->maxshift);
         optstr_get(options, "maxangle",  "%lf", &td->maxangle);
         optstr_get(options, "smoothing", "%d", &td->smoothing);
         optstr_get(options, "crop"     , "%d", &td->crop);
         optstr_get(options, "invert"   , "%d", &td->invert);
         optstr_get(options, "relative" , "%d", &td->relative);
+        optstr_get(options, "zoom"     , "%lf",&td->zoom);
+        optstr_get(options, "optzoom"      , "%d", &td->optzoom);
+        optstr_get(options, "sharpen"  , "%lf",&td->sharpen);
     }
     if (verbose) {
         tc_log_info(MOD_NAME, "Image Transformation/Stabilization Settings:");
+        tc_log_info(MOD_NAME, "    input     = %s", td->input);
+        tc_log_info(MOD_NAME, "    smoothing = %d", td->smoothing);
         tc_log_info(MOD_NAME, "    maxshift  = %d", td->maxshift);
         tc_log_info(MOD_NAME, "    maxangle  = %f", td->maxangle);
-        tc_log_info(MOD_NAME, "    smoothing = %d", td->smoothing);
         tc_log_info(MOD_NAME, "    crop      = %s", 
                         td->crop ? "Black" : "Keep");
         tc_log_info(MOD_NAME, "    relative  = %s", 
                     td->relative ? "True": "False");
         tc_log_info(MOD_NAME, "    invert    = %s", 
                     td->invert ? "True" : "False");
-        tc_log_info(MOD_NAME, "    input     = %s", td->input);
+        tc_log_info(MOD_NAME, "    zoom      = %f", td->zoom);
+        tc_log_info(MOD_NAME, "    optzoom   = %s", 
+                    td->optzoom ? "True" : "False");
+        tc_log_info(MOD_NAME, "    sharpen   = %f", td->sharpen);
     }
   
     if (td->maxshift > td->width_dest/2
@@ -713,8 +753,20 @@ static int transform_configure(TCModuleInstance *self,
     if (!preprocess_transforms(td)) {
         tc_log_error(MOD_NAME, "error while preprocessing transforms!");
         return TC_ERROR;            
+    }  
+
+    /* TODO: is this the right point to add the filter?*/
+    if(td->sharpen>0){
+        /* load unsharp filter */
+        char unsharp_param[256];
+        sprintf(unsharp_param,"luma=%f:%s:chroma=%f:%s", 
+                td->sharpen, "luma_matrix=5x5", 
+                td->sharpen/2, "chroma_matrix=5x5");
+        if (!tc_filter_add("unsharp", unsharp_param)) {
+            tc_log_warn(MOD_NAME, "cannot load unsharp filter!");
+        }
     }
-  
+
     return TC_OK;
 }
 
@@ -796,7 +848,7 @@ static int transform_stop(TCModuleInstance *self)
 #define CHECKPARAM(paramname, formatstring, variable)       \
     if (optstr_lookup(param, paramname)) {                \
         tc_snprintf(td->conf_str, sizeof(td->conf_str),   \
-                    "maxshift=%i", td->maxshift);         \
+                    formatstring, variable);              \
         *value = td->conf_str;                            \
     }
 
@@ -808,7 +860,6 @@ static int transform_inspect(TCModuleInstance *self,
             			     const char *param, const char **value)
 {
     TransformData *td = NULL;
-    
     TC_MODULE_SELF_CHECK(self,  "inspect");
     TC_MODULE_SELF_CHECK(param, "inspect");
     TC_MODULE_SELF_CHECK(value, "inspect");
@@ -825,6 +876,9 @@ static int transform_inspect(TCModuleInstance *self,
     CHECKPARAM("relative", "relative=%d",  td->relative);
     CHECKPARAM("invert",   "invert=%i",    td->invert);
     CHECKPARAM("input",    "input=%s",     td->input);
+    CHECKPARAM("optzoom",  "optzoom=%i",   td->optzoom);
+    CHECKPARAM("zoom",     "zoom=%f",      td->zoom);
+    CHECKPARAM("sharpen",  "sharpen=%f",   td->sharpen);
         
     return TC_OK;
 };

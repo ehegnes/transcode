@@ -26,18 +26,18 @@
 #define DEFAULT_TRANS_FILE_NAME     "transforms.dat"
 
 /* structure to hold information about frame transformations 
-   x,y are translations' alpha is a rotation around the center in RAD
-   and extra is for additional information (unused)
+   x,y are translations, alpha is a rotation around the center in RAD,
+   zoom is a percentage to zoom in and
+   extra is for additional information like scene cut (unused)
  */
 typedef struct _transform {
     double x;
     double y;
     double alpha;
-    int extra;    // 0 for normal trans; 1 for inter scene cut 
+    double zoom;
+    int extra;    /* -1: ignore transform (only internal use);
+                     0 for normal trans; 1 for inter scene cut (unused) */
 } Transform;
-
-/* normal round function */
-int myround(double x);
 
 /* helper functions to create and operate with transforms.
  * all functions are non-destructive
@@ -46,7 +46,8 @@ int myround(double x);
  * add_transforms_(mult_transform(&t1, 5.0), &t2) 
  */
 Transform null_transform(void);
-Transform new_transform(double x, double y, double alpha, int extra);
+Transform new_transform(double x, double y, double alpha, 
+                        double zoom, int extra);
 Transform add_transforms(const Transform* t1, const Transform* t2);
 Transform add_transforms_(const Transform t1, const Transform t2);
 Transform sub_transforms(const Transform* t1, const Transform* t2);
@@ -77,6 +78,18 @@ double cleanmean(double* ds, int len);
  */
 Transform cleanmean_xy_transform(const Transform* transforms, int len);
 
+/* calculates the cleaned (cutting of x-th percentil) 
+ * maximum and minimum of an array of transforms,
+ * considerung only x and y
+ */
+void cleanmaxmin_xy_transform(const Transform* transforms, int len,
+                              int percentil, 
+                              Transform* min, Transform* max);
+
+/* helper functions that should be in math.h! */
+
+/* normal round function */
+int myround(double x);
 
 #endif
 
