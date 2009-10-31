@@ -1513,7 +1513,6 @@ sunau                          $have_sunau
 
 optional module support
 ----------------------------------------
-PV3                            $enable_pv3
 NuppelVideo                    $enable_nuv
 
 optional package support
