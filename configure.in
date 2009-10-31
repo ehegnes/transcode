@@ -700,9 +700,9 @@ TC_PKG_HAVE(libv4lconvert, LIBV4LCONVERT)
 dnl
 dnl libmpeg2
 dnl
-TC_PKG_CONFIG_CHECK(libmpeg2, required, LIBMPEG2, libmpeg2,
+TC_PKG_CONFIG_CHECK(libmpeg2, no, LIBMPEG2, libmpeg2,
                     [http://libmpeg2.sf.net/])
-TC_PKG_CONFIG_CHECK(libmpeg2convert, required, LIBMPEG2CONVERT,
+TC_PKG_CONFIG_CHECK(libmpeg2convert, no, LIBMPEG2CONVERT,
                     libmpeg2convert, [http://libmpeg2.sf.net/])
 TC_PKG_HAVE(libmpeg2, LIBMPEG2)
 TC_PKG_HAVE(libmpeg2convert, LIBMPEG2CONVERT)
