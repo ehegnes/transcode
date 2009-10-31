@@ -12,6 +12,7 @@ transcode-1.1.5
 [*] tcdemux: drop the builtin limit of streams selectable for passthrough.
 [*] Fixed the x264 module to work with libx264 >= 76.
 [*] Update the video stabilization plugins to version 0.61.
+[*] Made libmpeg2 an optional dependency (libmpeg2convert is needed too).
 ===========================================================================
 
 ===========================================================================
