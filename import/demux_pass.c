@@ -31,7 +31,8 @@
 #include "demuxer.h"
 #include "packets.h"
 
-static int gop, gop_pts, gop_cnt;
+
+int gop, gop_pts, gop_cnt;
 
 /* if you listen carefully, then you can hear the desesperate
  * whisper of this code calling for a rewrite. Or for a redesign.
