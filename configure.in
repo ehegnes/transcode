@@ -634,18 +634,9 @@ else
   dnl
   dnl libavformat
   dnl
-  ffmpeg_lavf_inc="ffmpeg"
   LIBAVFORMAT_EXTRA_LIBS="$LIBAVFORMAT_EXTRA_LIBS $($PKG_CONFIG --libs libavformat)"
   TC_PKG_CHECK(libavformat, optional, LIBAVFORMAT, no, [libavformat/avformat.h],
    avformat, av_register_all, libavformat, [http://www.ffmpeg.org/])
-  if test x"$have_libavformat" = x"yes" ; then
-    ffmpeg_headers_layout="new"
-    ffmpeg_lavf_inc="libavformat"
-  else
-  # second try, old include path
-    TC_PKG_CHECK(libavformat, required, LIBAVFORMAT, no, [ffmpeg/avformat.h],
-     avformat, av_register_all, libavformat, [http://www.ffmpeg.org/])
-  fi
   if test x"$have_libavformat" = x"yes" ; then
     save_CPPFLAGS="$CPPFLAGS"
     CPPFLAGS="$CPPFLAGS $LIBAVFORMAT_CFLAGS"
