@@ -166,17 +166,6 @@ OS dependent packages:
     affected modules: import_sunau.so
 
 Optional packages:
-  libmpeg2 from mpeg2dec >= 0.4.0b  http://libmpeg2.sourceforge.net/
-  libmpeg2convert is needed as well (shipped in the same package of libmpeg2)
-    related options:
-      --with-libmpeg2-prefix=PFX (/usr)
-          prefix where libmpeg2 is installed
-      --with-libmpeg2-includes=DIR (/usr/include)
-          directory where libmpeg2 headers [mpeg2dec/mpeg2.h] are installed
-      --with-libmpeg2-libs=DIR (/usr/lib)
-          prefix where libmpeg2 libraries [libmpeg2.so] are installed
-
-
   libpostproc (part of FFmpeg) http://ffmpeg.mplayerhq.hu/
     related options:
       --enable-libpostproc (disabled)
@@ -203,6 +192,16 @@ Optional packages:
       --with-freetype2-libs=DIR (/usr/lib)
           directory where FreeType libraries [libfreetype.so] are installed
     affected modules: filter_text.so, filter_subtitler.so
+
+  libmpeg2 from mpeg2dec >= 0.4.0b  http://libmpeg2.sourceforge.net/
+  libmpeg2convert is needed as well (shipped in the same package of libmpeg2)
+    related options:
+      --with-libmpeg2-prefix=PFX (/usr)
+          prefix where libmpeg2 is installed
+      --with-libmpeg2-includes=DIR (/usr/include)
+          directory where libmpeg2 headers [mpeg2dec/mpeg2.h] are installed
+      --with-libmpeg2-libs=DIR (/usr/lib)
+          prefix where libmpeg2 libraries [libmpeg2.so] are installed
 
   liba52  http://liba52.sourceforge.net/
     related options:
