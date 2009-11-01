@@ -639,7 +639,7 @@ Transform calcTransFields(StabData* sd, calcFieldTransFunc fieldfunc)
  * draws the field and the transform data into the frame 
  */
 void drawFieldAndTrans(StabData* sd, const Field* field, const Transform* t){
-    if(!sd->vob->im_v_codec == CODEC_YUV)
+    if(!sd->vob->im_v_codec == TC_CODEC_YUV420P)
         return;
     // draw field with shift
     drawBox(sd->curr, sd->width, sd->height, 1, field->x, field->y, 
