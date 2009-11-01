@@ -55,16 +55,16 @@ void tc_pause(void)
 
 /*************************************************************************/
 
-pthread_mutex_t run_status_lock = PTHREAD_MUTEX_INITIALIZER;
+static TCMutex run_status_lock;
 static volatile int tc_run_status = TC_STATUS_RUNNING;
 /* `volatile' is for threading paranoia */
 
 static TCRunStatus tc_get_run_status(void)
 {
     TCRunStatus rs;
-    pthread_mutex_lock(&run_status_lock);
+    tc_mutex_lock(&run_status_lock);
     rs = tc_run_status;
-    pthread_mutex_unlock(&run_status_lock);
+    tc_mutex_unlock(&run_status_lock);
     return rs;
 }
 
@@ -85,29 +85,29 @@ int tc_running(void)
 
 void tc_start(void)
 {
-    pthread_mutex_lock(&run_status_lock);
+    tc_mutex_lock(&run_status_lock);
     tc_run_status = TC_STATUS_RUNNING;
-    pthread_mutex_unlock(&run_status_lock);
+    tc_mutex_unlock(&run_status_lock);
 }
 
 void tc_stop(void)
 {
-    pthread_mutex_lock(&run_status_lock);
+    tc_mutex_lock(&run_status_lock);
     /* no preemption, be polite */
     if (tc_run_status == TC_STATUS_RUNNING) {
         tc_run_status = TC_STATUS_STOPPED;
     }
-    pthread_mutex_unlock(&run_status_lock);
+    tc_mutex_unlock(&run_status_lock);
 }
 
 void tc_interrupt(void)
 {
-    pthread_mutex_lock(&run_status_lock);
+    tc_mutex_lock(&run_status_lock);
     /* preempt and don't care of politeness. */
     if (tc_run_status != TC_STATUS_INTERRUPTED) {
         tc_run_status = TC_STATUS_INTERRUPTED;
     }
-    pthread_mutex_unlock(&run_status_lock);
+    tc_mutex_unlock(&run_status_lock);
 }
 
 /*************************************************************************/
@@ -137,6 +137,9 @@ static TCRunControl RC = {
 
 int tc_runcontrol_init(void)
 {
+    tc_mutex_init(&run_status_lock);
+    tc_run_status = TC_STATUS_RUNNING;
+
     return TC_OK;
 }
 

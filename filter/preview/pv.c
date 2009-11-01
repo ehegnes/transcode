@@ -143,24 +143,19 @@ void xv_display_event (xv_display_t *dv_dpy)
   char buf[16];
   XButtonEvent *but_event;
   static int x1, y1, x2, y2;
-  enum tc_socket_msg_cmd_enum sockcmd;
-  int arg;
+  TCSockPVCmd pvcmd;
 
-  pthread_mutex_lock(&tc_socket_msg_lock);
-  sockcmd = tc_socket_msg_cmd;
-  arg = tc_socket_msg_arg;
-  tc_socket_msg_cmd = TC_SOCK_PV_NONE;
-  pthread_mutex_unlock(&tc_socket_msg_lock);
+  tc_socket_get_pv_cmd(&pvcmd);
 
-  while ( sockcmd || XPending(dv_dpy->dpy) )  {
+  while ( pvcmd.cmd || XPending(dv_dpy->dpy) )  {
 
     // tibit: Poll for a socket message
-    if (sockcmd) {
-	//tc_log_msg(__FILE__, "Got char (%c)", sockcmd);
+    if (pvcmd.cmd) {
+	//tc_log_msg(__FILE__, "Got char (%c)", pvcmd.cmd);
 	//tc_log_msg(__FILE__, "FILTER: (%d)", arg);
-	switch (sockcmd) {
+	switch (pvcmd.cmd) {
 	    case TC_SOCK_PV_DRAW:
-		preview_filter_buffer(arg?arg:1);
+		preview_filter_buffer(pvcmd.arg?pvcmd.arg:1);
 		break;
 	    case TC_SOCK_PV_UNDO:
 		preview_cache_undo();
@@ -206,7 +201,7 @@ void xv_display_event (xv_display_t *dv_dpy)
 	    default:
 		break;
 	} // switch msg
-	sockcmd = TC_SOCK_PV_NONE;
+	pvcmd.cmd = TC_SOCK_PV_NONE;
     } else {
 
     // remove Event

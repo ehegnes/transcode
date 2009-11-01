@@ -20,7 +20,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <pthread.h>
+#include "libtcutil/tcthread.h"
 
 #include "tccore/tc_defaults.h"
 #include "tccore/runcontrol.h"
@@ -438,14 +438,14 @@ STATIC TCFrameQueue *tc_frame_queue_new(int size, int priority)
 typedef struct tcframepool_ TCFramePool;
 #endif
 struct tcframepool_ {
-    const char      *ptag;      /* given from ringbuffer */
-    const char      *tag;
+    const char   *ptag;      /* given from ringbuffer */
+    const char   *tag;
 
-    pthread_mutex_t lock;
-    pthread_cond_t  empty;
-    int             waiting;    /* how many thread blocked here? */
+    TCMutex      lock;
+    TCCondition  empty;
+    int          waiting;    /* how many thread blocked here? */
 
-    TCFrameQueue   *queue;
+    TCFrameQueue *queue;
 };
 
 STATIC int tc_frame_pool_init(TCFramePool *P, int size, int priority,
@@ -453,8 +453,8 @@ STATIC int tc_frame_pool_init(TCFramePool *P, int size, int priority,
 {
     int ret = TC_ERROR;
     if (P) {
-        pthread_mutex_init(&P->lock, NULL);
-        pthread_cond_init(&P->empty, NULL);
+        tc_mutex_init(&P->lock);
+        tc_condition_init(&P->empty);
 
         P->ptag     = (ptag) ?ptag :"unknown";
         P->tag      = (tag)  ?tag  :"unknown";
@@ -486,7 +486,7 @@ STATIC void tc_frame_pool_dump_status(TCFramePool *P)
 STATIC void tc_frame_pool_put_frame(TCFramePool *P, TCFramePtr ptr)
 {
     int wakeup = 0;
-    pthread_mutex_lock(&P->lock);
+    tc_mutex_lock(&P->lock);
     wakeup = tc_frame_queue_put(P->queue, ptr);
 
     tc_debug(TC_DEBUG_FLIST,
@@ -495,10 +495,10 @@ STATIC void tc_frame_pool_put_frame(TCFramePool *P, TCFramePtr ptr)
              P->tag, P->ptag, PTHREAD_ID, wakeup, P->waiting);
 
     if (P->waiting && wakeup) {
-        pthread_cond_signal(&P->empty);
+        tc_condition_signal(&P->empty);
     }
 
-    pthread_mutex_unlock(&P->lock);
+    tc_mutex_unlock(&P->lock);
 }
 
 STATIC TCFramePtr tc_frame_pool_get_frame(TCFramePool *P)
@@ -506,7 +506,7 @@ STATIC TCFramePtr tc_frame_pool_get_frame(TCFramePool *P)
     int interrupted = TC_FALSE;
 
     TCFramePtr ptr = { .generic = NULL };
-    pthread_mutex_lock(&P->lock);
+    tc_mutex_lock(&P->lock);
 
     tc_debug(TC_DEBUG_FLIST,
              "(%s|get_frame|%s|%s|0x%X) requesting frame",
@@ -520,7 +520,7 @@ STATIC TCFramePtr tc_frame_pool_get_frame(TCFramePool *P)
                  FPOOL_NAME,
                  P->tag, P->ptag, PTHREAD_ID);
 
-        pthread_cond_wait(&P->empty, &P->lock);
+        tc_condition_wait(&P->empty, &P->lock);
 
         tc_debug(TC_DEBUG_FLIST,
                  "(%s|get_frame|%s|%s|0x%X) UNblocking",
@@ -542,7 +542,7 @@ STATIC TCFramePtr tc_frame_pool_get_frame(TCFramePool *P)
              ptr.generic,
              (ptr.generic) ?ptr.generic->bufid :(-1));
 
-    pthread_mutex_unlock(&P->lock);
+    tc_mutex_unlock(&P->lock);
     return ptr;
 }
 
@@ -560,13 +560,13 @@ STATIC void tc_frame_pool_push_frame(TCFramePool *P, TCFramePtr ptr)
 
 STATIC void tc_frame_pool_wakeup(TCFramePool *P, int broadcast)
 {
-    pthread_mutex_lock(&P->lock);
+    tc_mutex_lock(&P->lock);
     if (broadcast) {
-        pthread_cond_broadcast(&P->empty);
+        tc_condition_broadcast(&P->empty);
     } else {
-        pthread_cond_signal(&P->empty);
+        tc_condition_signal(&P->empty);
     }
-    pthread_mutex_unlock(&P->lock);
+    tc_mutex_unlock(&P->lock);
 }
 
 /*************************************************************************
@@ -615,11 +615,11 @@ static int tc_frame_ring_get_pool_size(TCFrameRing *rfb,
     int size;
     TCFramePool *P = tc_frame_ring_get_pool(rfb, S);
     if (locked) {
-        pthread_mutex_lock(&P->lock);
+        tc_mutex_lock(&P->lock);
     }
     size = tc_frame_queue_size(P->queue);
     if (locked) {
-        pthread_mutex_unlock(&P->lock);
+        tc_mutex_unlock(&P->lock);
     }
     return size;
 }

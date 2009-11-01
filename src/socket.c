@@ -14,6 +14,7 @@
 #include "socket.h"
 #include "libtcexport/export.h"
 #include "libtc/libtc.h"
+#include "libtcutil/tcthread.h"
 
 #ifdef HAVE_SYS_SELECT_H
 # include <sys/select.h>
@@ -33,9 +34,8 @@ static int server_sock = -1;
 static int client_sock = -1;
 
 /* For communicating with "pv" module (FIXME: should go away) */
-pthread_mutex_t tc_socket_msg_lock = PTHREAD_MUTEX_INITIALIZER;
-enum tc_socket_msg_cmd_enum tc_socket_msg_cmd;
-int tc_socket_msg_arg = 0;
+static TCMutex tc_socket_msg_lock;
+static TCSockPVCmd sock_cmd = { .arg = 0 };
 
 /*************************************************************************/
 /*************************************************************************/
@@ -566,10 +566,10 @@ static int handle_preview(char *params)
         return 0;
     }
 
-    pthread_mutex_lock(&tc_socket_msg_lock);
-    tc_socket_msg_cmd = cmd;
-    tc_socket_msg_arg = arg;
-    pthread_mutex_unlock(&tc_socket_msg_lock);
+    tc_mutex_lock(&tc_socket_msg_lock);
+    sock_cmd.cmd = cmd;
+    sock_cmd.arg = arg;
+    tc_mutex_unlock(&tc_socket_msg_lock);
 
     return 1;
 }
@@ -679,6 +679,8 @@ int tc_socket_init(const char *socket_path_)
     client_sock = -1;
     server_sock = -1;
 
+    tc_mutex_init(&tc_socket_msg_lock);
+
     if (tc_snprintf(socket_path, sizeof(socket_path), "%s", socket_path_) < 0){
         tc_log_error(__FILE__, "Socket pathname too long (1)");
         *socket_path = 0;
@@ -747,6 +749,20 @@ void tc_socket_fini(void)
         unlink(socket_path);
     }
 }
+
+/*************************************************************************/
+
+int tc_socket_get_pv_cmd(TCSockPVCmd *pvcmd)
+{
+    tc_mutex_lock(&tc_socket_msg_lock);
+    pvcmd->cmd = sock_cmd.cmd;
+    pvcmd->arg = sock_cmd.arg;
+    sock_cmd.cmd = TC_SOCK_PV_NONE;
+    tc_mutex_unlock(&tc_socket_msg_lock);
+
+    return TC_OK;
+}
+
 
 /*************************************************************************/
 

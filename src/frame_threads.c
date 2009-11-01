@@ -24,8 +24,8 @@
  *
  */
 
-#include <pthread.h>
 
+#include "libtcutil/tcthread.h"
 #include "tccore/runcontrol.h"
 
 #include "transcode.h"
@@ -41,24 +41,28 @@
 
 typedef struct tcframethreaddata_ TCFrameThreadData;
 struct tcframethreaddata_ {
-    pthread_t threads[TC_FRAME_THREADS_MAX];    /* thread pool           */
-    int count;                                  /* how many workers?     */
+    TCThread     threads[TC_FRAME_THREADS_MAX]; /* thread pool        */
+    int          count;                         /* how many workers?  */
 
-    pthread_mutex_t lock;
-    volatile int running;                       /* _pool_ running flag   */
+    TCMutex      lock;
+    volatile int running;                       /* POOL running flag  */
 };
 
 TCFrameThreadData audio_threads = {
     .count   = 0,
-    .lock    = PTHREAD_MUTEX_INITIALIZER,
     .running = TC_FALSE,
 };
 
 TCFrameThreadData video_threads = {
     .count   = 0,
-    .lock    = PTHREAD_MUTEX_INITIALIZER,
     .running = TC_FALSE,
 };
+
+static void init_data(void)
+{
+    tc_mutex_init(&audio_threads.lock);
+    tc_mutex_init(&video_threads.lock);
+}
 
 /*************************************************************************/
 
@@ -73,9 +77,9 @@ TCFrameThreadData video_threads = {
  */
 static void tc_frame_threads_stop(TCFrameThreadData *data)
 {
-    pthread_mutex_lock(&data->lock);
+    tc_mutex_lock(&data->lock);
     data->running = TC_FALSE;
-    pthread_mutex_unlock(&data->lock);
+    tc_mutex_unlock(&data->lock);
 }
 
 /*
@@ -91,9 +95,9 @@ static void tc_frame_threads_stop(TCFrameThreadData *data)
 static int tc_frame_threads_are_active(TCFrameThreadData *data)
 {
     int ret;
-    pthread_mutex_lock(&data->lock);
+    tc_mutex_lock(&data->lock);
     ret = data->running;
-    pthread_mutex_unlock(&data->lock);
+    tc_mutex_unlock(&data->lock);
     return ret;
 }
 
@@ -121,7 +125,7 @@ static int stop_requested(TCFrameThreadData *data)
 
 #define DUP_vptr_if_cloned(vptr) do { \
     if(vptr->attributes & TC_FRAME_IS_CLONED) { \
-        vframe_list_t *tmptr = vframe_dup(vptr); \
+        TCFrameVideo *tmptr = vframe_dup(vptr); \
         \
         /* ptr was successfully cloned */ \
         /* delete clone flag */ \
@@ -142,7 +146,7 @@ static int stop_requested(TCFrameThreadData *data)
 
 #define DUP_aptr_if_cloned(aptr) do { \
     if(aptr->attributes & TC_FRAME_IS_CLONED) {  \
-        aframe_list_t *tmptr = aframe_dup(aptr);  \
+        TCFrameAudio *tmptr = aframe_dup(aptr);  \
         \
         /* ptr was successfully cloned */ \
         \
@@ -166,11 +170,12 @@ static int stop_requested(TCFrameThreadData *data)
     tc_frame_threads_stop((DATAP)); \
 } while (0)
 
-static void *process_video_frame(void *_vob)
+
+static int process_video_frame(TCThreadData *td, void *_vob)
 {
-    static int res = 0; // XXX
-    vframe_list_t *ptr = NULL;
+    TCFrameVideo *ptr = NULL;
     vob_t *vob = _vob;
+    int res = 0;
 
     while (!stop_requested(&video_threads)) {
         ptr = vframe_reserve();
@@ -219,16 +224,15 @@ static void *process_video_frame(void *_vob)
     }
     tc_debug(TC_DEBUG_CLEANUP, "video stream end: got, so exiting!");
 
-    pthread_exit(&res);
-    return NULL;
+    return res;
 }
 
 
-static void *process_audio_frame(void *_vob)
+static int process_audio_frame(TCThreadData *td, void *_vob)
 {
-    static int res = 0; // XXX
-    aframe_list_t *ptr = NULL;
+    TCFrameAudio *ptr = NULL;
     vob_t *vob = _vob;
+    int res = 0;
 
     while (!stop_requested(&audio_threads)) {
         ptr = aframe_reserve();
@@ -276,8 +280,7 @@ static void *process_audio_frame(void *_vob)
     }
     tc_debug(TC_DEBUG_CLEANUP, "audio stream end: got, so exiting!");
 
-    pthread_exit(&res);
-    return NULL;
+    return res;
 }
 
 /*************************************************************************/
@@ -298,6 +301,8 @@ void tc_frame_threads_init(vob_t *vob, int vworkers, int aworkers)
 {
     int n = 0;
 
+    init_data();
+
     if (vworkers > 0 && !video_threads.running) {
         video_threads.count   = vworkers;
         video_threads.running = TC_TRUE; /* enforce, needed when restarting */
@@ -308,8 +313,8 @@ void tc_frame_threads_init(vob_t *vob, int vworkers, int aworkers)
 
         // start the thread pool
         for (n = 0; n < vworkers; n++) {
-            if (pthread_create(&video_threads.threads[n], NULL,
-                               process_video_frame, vob) != 0)
+            if (tc_thread_start(&(video_threads.threads[n]),
+                                process_video_frame, vob) != 0)
                 tc_error("failed to start video frame processing thread");
         }
     }
@@ -324,8 +329,8 @@ void tc_frame_threads_init(vob_t *vob, int vworkers, int aworkers)
 
         // start the thread pool
         for (n = 0; n < aworkers; n++) {
-            if (pthread_create(&audio_threads.threads[n], NULL,
-                               process_audio_frame, vob) != 0)
+            if (tc_thread_start(&(audio_threads.threads[n]),
+                                process_audio_frame, vob) != 0)
                 tc_error("failed to start audio frame processing thread");
         }
     }
@@ -334,8 +339,7 @@ void tc_frame_threads_init(vob_t *vob, int vworkers, int aworkers)
 
 void tc_frame_threads_close(void)
 {
-    void *status = NULL;
-    int n = 0;
+    int ret = 0, n = 0;
 
     if (audio_threads.count > 0) {
         tc_frame_threads_stop(&audio_threads);
@@ -345,7 +349,7 @@ void tc_frame_threads_close(void)
                      audio_threads.count);
 
         for (n = 0; n < audio_threads.count; n++)
-            pthread_join(audio_threads.threads[n], &status);
+            tc_thread_wait(&audio_threads.threads[n], &ret);
 
         tc_debug(TC_DEBUG_CLEANUP,
                      "audio frame processing threads canceled");
@@ -359,11 +363,13 @@ void tc_frame_threads_close(void)
                      video_threads.count);
 
         for (n = 0; n < video_threads.count; n++)
-            pthread_join(video_threads.threads[n], &status);
+            tc_thread_wait(&video_threads.threads[n], &ret);
 
         tc_debug(TC_DEBUG_CLEANUP,
                      "video frame processing threads canceled");
     }
+
+    return;
 }
 
 

@@ -23,13 +23,16 @@
 # include "config.h"
 #endif
 
-#include <pthread.h>
 
+#include "libtcutil/tcthread.h"
 #include "libtcutil/tcutil.h"
 #include "libtc/libtc.h"
 #include "aclib/ac.h"
 
 #include "tc_ext.h"
+#ifdef HAVE_FFMPEG
+#include "tc_avcodec.h"
+#endif
 #ifdef HAVE_OGG
 #include "tc_ogg.h"
 #endif
@@ -42,22 +45,30 @@
 
 
 
-int tc_ext_init(void)
-{
-    /* 
-     * do nothing succesfully.
-     * Just a linkage helper in disguise.
-     */
-    return TC_OK;
-}
-
 #ifdef HAVE_FFMPEG
 
 /*************************************************************************/
 /* libav* support                                                        */
 /*************************************************************************/
 
-pthread_mutex_t tc_libavcodec_mutex = PTHREAD_MUTEX_INITIALIZER;
+/*
+ * libavcodec lock. Used for serializing initialization/open of library.
+ * Other libavcodec routines (avcodec_{encode,decode}_* should be thread
+ * safe (as ffmpeg crew said) if each thread uses it;s own AVCodecContext,
+ * as we do.
+ */
+static TCMutex tc_libavcodec_mutex;
+
+void tc_lock_libavcodec(void)
+{
+    tc_mutex_lock(&tc_libavcodec_mutex);
+}
+
+void tc_unlock_libavcodec(void)
+{
+    tc_mutex_unlock(&tc_libavcodec_mutex);
+}
+
 
 #endif
 
@@ -112,7 +123,7 @@ int tc_ogg_dup_packet(ogg_packet *dst, const ogg_packet *src)
 /* GraphicsMagick support                                                */
 /*************************************************************************/
 
-pthread_mutex_t tc_magick_mutex = PTHREAD_MUTEX_INITIALIZER;
+static TCMutex tc_magick_mutex;
 static int magick_usecount = 0;
 
 
@@ -146,7 +157,7 @@ static void tc_magick_fatal_handler(const ExceptionType ex,
 int tc_magick_init(TCMagickContext *ctx, int quality)
 {
     int ret = TC_OK;
-    pthread_mutex_lock(&tc_magick_mutex);
+    tc_mutex_lock(&tc_magick_mutex);
 
     if (magick_usecount == 0) {
         InitializeMagick("");
@@ -157,7 +168,7 @@ int tc_magick_init(TCMagickContext *ctx, int quality)
         SetFatalErrorHandler(tc_magick_fatal_handler);
     }
     magick_usecount++;
-    pthread_mutex_unlock(&tc_magick_mutex);
+    tc_mutex_unlock(&tc_magick_mutex);
 
     GetExceptionInfo(&ctx->exception_info);
     ctx->image_info = CloneImageInfo(NULL);
@@ -178,12 +189,12 @@ int tc_magick_fini(TCMagickContext *ctx)
     }
     DestroyExceptionInfo(&ctx->exception_info);
 
-    pthread_mutex_lock(&tc_magick_mutex);
+    tc_mutex_lock(&tc_magick_mutex);
     magick_usecount--;
     if (magick_usecount == 0) {
         DestroyMagick();
     }
-    pthread_mutex_unlock(&tc_magick_mutex);
+    tc_mutex_unlock(&tc_magick_mutex);
 
     return ret;
 }
@@ -269,6 +280,20 @@ int tc_magick_RGBout(TCMagickContext *ctx,
 }
 
 #endif
+
+
+int tc_ext_init(void)
+{
+#ifdef HAVE_FFMPEG
+    tc_mutex_init(&tc_libavcodec_mutex);
+#endif
+#ifdef HAVE_GRAPHICSMAGICK
+    tc_mutex_init(&tc_magick_mutex);
+    magick_usecount = 0;
+#endif
+    return TC_OK;
+}
+
 
 /*************************************************************************/
 

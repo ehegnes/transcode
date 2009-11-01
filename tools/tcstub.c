@@ -105,18 +105,6 @@ int tc_filter_find(const char *name)
     return 0;
 }
 
-pthread_mutex_t abuffer_im_fill_lock = PTHREAD_MUTEX_INITIALIZER;
-uint32_t abuffer_im_fill_ctr = 0;
-pthread_mutex_t abuffer_ex_fill_lock = PTHREAD_MUTEX_INITIALIZER;
-uint32_t abuffer_ex_fill_ctr = 0;
-pthread_mutex_t abuffer_xx_fill_lock = PTHREAD_MUTEX_INITIALIZER;
-uint32_t abuffer_xx_fill_ctr = 0;
-pthread_mutex_t vbuffer_im_fill_lock = PTHREAD_MUTEX_INITIALIZER;
-uint32_t vbuffer_im_fill_ctr = 0;
-pthread_mutex_t vbuffer_ex_fill_lock = PTHREAD_MUTEX_INITIALIZER;
-uint32_t vbuffer_ex_fill_ctr = 0;
-pthread_mutex_t vbuffer_xx_fill_lock = PTHREAD_MUTEX_INITIALIZER;
-uint32_t vbuffer_xx_fill_ctr = 0;
 
 
 #ifdef TC_FRAMEBUFFER_STUBS
