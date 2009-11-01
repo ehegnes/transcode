@@ -8,7 +8,7 @@ Key:
 transcode-1.1.5
 ---------------
 [*] Add a special-crafted import module targeting webcams using libv4l.
-[+] Fixed the colorspace detection into import_v4l2.
+[!] Fixed the colorspace detection into import_v4l2.
 [*] tcdemux: drop the builtin limit of streams selectable for passthrough.
 [*] Fixed the x264 module to work with libx264 >= 76.
 [*] Update the video stabilization plugins to version 0.61.
