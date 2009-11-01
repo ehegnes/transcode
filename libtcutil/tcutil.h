@@ -32,5 +32,6 @@
 #include "tcglob.h"
 #include "tclist.h"
 #include "tctimer.h"
+#include "tcthread.h"
 
 #endif /* TCUTIL_H */

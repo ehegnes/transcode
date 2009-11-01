@@ -26,7 +26,8 @@
 
 #include <stdint.h>
 #include <unistd.h>
-#include <pthread.h>
+
+#include "libtcutil/tcthread.h"
 
 #include "libtc/libtc.h"
 #include "libtc/tcframes.h"
@@ -47,89 +48,99 @@ static uint32_t frames_dropped = 0;
 static uint32_t frames_skipped = 0;
 static uint32_t frames_cloned  = 0;
 /* counters can be accessed by other (ex: import) threads */
-static pthread_mutex_t frame_counter_lock = PTHREAD_MUTEX_INITIALIZER;
+static TCMutex frame_counter_lock;
+
+static void init_counters(void)
+{
+    frames_encoded = 0;
+    frames_dropped = 0;
+    frames_skipped = 0;
+    frames_cloned  = 0;
+
+    tc_mutex_init(&frame_counter_lock);
+}
 
 
 uint32_t tc_get_frames_encoded(void)
 {
     uint32_t val;
 
-    pthread_mutex_lock(&frame_counter_lock);
+    tc_mutex_lock(&frame_counter_lock);
     val = frames_encoded;
-    pthread_mutex_unlock(&frame_counter_lock);
+    tc_mutex_unlock(&frame_counter_lock);
 
     return val;
 }
 
 void tc_update_frames_encoded(uint32_t val)
 {
-    pthread_mutex_lock(&frame_counter_lock);
+    tc_mutex_lock(&frame_counter_lock);
     frames_encoded += val;
-    pthread_mutex_unlock(&frame_counter_lock);
+    tc_mutex_unlock(&frame_counter_lock);
 }
 
 uint32_t tc_get_frames_dropped(void)
 {
     uint32_t val;
 
-    pthread_mutex_lock(&frame_counter_lock);
+    tc_mutex_lock(&frame_counter_lock);
     val = frames_dropped;
-    pthread_mutex_unlock(&frame_counter_lock);
+    tc_mutex_unlock(&frame_counter_lock);
 
     return val;
 }
 
 void tc_update_frames_dropped(uint32_t val)
 {
-    pthread_mutex_lock(&frame_counter_lock);
+    tc_mutex_lock(&frame_counter_lock);
     frames_dropped += val;
-    pthread_mutex_unlock(&frame_counter_lock);
+    tc_mutex_unlock(&frame_counter_lock);
 }
 
 uint32_t tc_get_frames_skipped(void)
 {
     uint32_t val;
 
-    pthread_mutex_lock(&frame_counter_lock);
+    tc_mutex_lock(&frame_counter_lock);
     val = frames_skipped;
-    pthread_mutex_unlock(&frame_counter_lock);
+    tc_mutex_unlock(&frame_counter_lock);
 
     return val;
 }
 
 void tc_update_frames_skipped(uint32_t val)
 {
-    pthread_mutex_lock(&frame_counter_lock);
+    tc_mutex_lock(&frame_counter_lock);
     frames_skipped += val;
-    pthread_mutex_unlock(&frame_counter_lock);
+    tc_mutex_unlock(&frame_counter_lock);
 }
 
 uint32_t tc_get_frames_cloned(void)
 {
     uint32_t val;
 
-    pthread_mutex_lock(&frame_counter_lock);
+    tc_mutex_lock(&frame_counter_lock);
     val = frames_cloned;
-    pthread_mutex_unlock(&frame_counter_lock);
+    tc_mutex_unlock(&frame_counter_lock);
 
     return val;
 }
 
 void tc_update_frames_cloned(uint32_t val)
 {
-    pthread_mutex_lock(&frame_counter_lock);
+    tc_mutex_lock(&frame_counter_lock);
     frames_cloned += val;
-    pthread_mutex_unlock(&frame_counter_lock);
+    tc_mutex_unlock(&frame_counter_lock);
 }
 
 uint32_t tc_get_frames_skipped_cloned(void)
 {
     uint32_t s, c;
 
-    pthread_mutex_lock(&frame_counter_lock);
+    tc_mutex_lock(&frame_counter_lock);
     s = frames_skipped;
     c = frames_cloned;
-    pthread_mutex_unlock(&frame_counter_lock);
+    tc_mutex_unlock(&frame_counter_lock);
 
     return (c - s);
 }
@@ -140,8 +151,8 @@ uint32_t tc_get_frames_skipped_cloned(void)
 
 typedef struct tcframepair_ TCFramePair;
 struct tcframepair_ {
-    TCFrameVideo    *video;
-    TCFrameAudio    *audio;
+    TCFrameVideo *video;
+    TCFrameAudio *audio;
 };
 
 /*************************************************************************/
@@ -563,9 +574,11 @@ int tc_export_new(TCJob *job, TCFactory factory,
 {
     int ret;
 
-    expdata.specs          = specs;
-    expdata.run_control    = run_control;
-    expdata.job            = job;
+    expdata.specs       = specs;
+    expdata.run_control = run_control;
+    expdata.job         = job;
+
+    init_counters();
 
     ret = tc_encoder_init(&expdata.enc, job, factory);
     RETURN_IF_ERROR(ret, "failed to initialize encoder");

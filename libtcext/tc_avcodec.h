@@ -35,34 +35,30 @@
 
 /*************************************************************************/
 
-/*
- * libavcodec lock. Used for serializing initialization/open of library.
- * Other libavcodec routines (avcodec_{encode,decode}_* should be thread
- * safe (as ffmpeg crew said) if each thread uses it;s own AVCodecContext,
- * as we do.
- */
-extern pthread_mutex_t tc_libavcodec_mutex;
+void tc_lock_libavcodec(void);
+void tc_unlock_libavcodec(void);
 
 /*
  *  libavcodec locking goodies. It's preferred and encouraged  to use
  *  macros below, but accessing libavcodec mutex will work too.
  */
-#define TC_LOCK_LIBAVCODEC	(pthread_mutex_lock(&tc_libavcodec_mutex))
-#define TC_UNLOCK_LIBAVCODEC	(pthread_mutex_unlock(&tc_libavcodec_mutex))
+/* backward compatibility */
+#define TC_LOCK_LIBAVCODEC	tc_lock_libavcodec()
+#define TC_UNLOCK_LIBAVCODEC	tc_unlock_libavcodec()
 
 
 #define TC_INIT_LIBAVCODEC do { \
-    TC_LOCK_LIBAVCODEC;     \
+    tc_lock_libavcodec();   \
     avcodec_init();         \
     avcodec_register_all(); \
-    TC_UNLOCK_LIBAVCODEC;   \
+    tc_unlock_libavcodec(); \
 } while (0)
 
 /* FIXME: not sure that locks are needed */
 #define TC_INIT_LIBAVFORMAT do { \
-    TC_LOCK_LIBAVCODEC;   \
-    av_register_all();    \
-    TC_UNLOCK_LIBAVCODEC; \
+    tc_lock_libavcodec();   \
+    av_register_all();      \
+    tc_unlock_libavcodec(); \
 } while (0)
 
 #endif  /* TC_AVCODEC_H */

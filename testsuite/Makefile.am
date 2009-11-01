@@ -66,7 +66,7 @@ test_ratiocodes_SOURCES = test-ratiocodes.c
 test_ratiocodes_LDADD = $(LIBTC_LIBS) $(LIBTCUTIL_LIBS)
 
 test_tcframefifo_SOURCES = test-tcframefifo.c ../src/framebuffer.c
-test_tcframefifo_LDADD = $(LIBTC_LIBS) $(LIBTCUTIL_LIBS) $(ACLIB_LIBS)
+test_tcframefifo_LDADD = $(LIBTC_LIBS) $(LIBTCUTIL_LIBS) $(ACLIB_LIBS) $(PTHREAD_LIBS)
 
 test_tcfunctions_SOURCES = test-tcfunctions.c
 test_tcfunctions_LDADD = $(LIBTC_LIBS) $(LIBTCUTIL_LIBS) $(ACLIB_LIBS)

@@ -27,6 +27,8 @@ libtcutil_la_SOURCES = \
 	strlcat.c \
 	strlcpy.c \
 	strutils.c \
+	tctimer.c \
+	tcthread.c \
 	$(GETOPT_FILES) \
 	$(TIMER_FILES) \
 	$(XIO_FILES)
@@ -48,5 +50,6 @@ EXTRA_DIST = \
 	strutils.h \
 	tcutil.h \
 	tctimer.h \
+	tcthread.h \
 	xio.h
 

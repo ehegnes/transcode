@@ -23,8 +23,6 @@ void tc_socket_submit(const char *str);
 
 /* Variables and constants for communicating with the "pv" module
  * (FIXME: these should go away) */
-extern pthread_mutex_t tc_socket_msg_lock;
-extern int tc_socket_msg_arg;
 enum tc_socket_msg_cmd_enum {
     TC_SOCK_PV_NONE = 0,
     TC_SOCK_PV_PAUSE,
@@ -41,7 +39,14 @@ enum tc_socket_msg_cmd_enum {
     TC_SOCK_PV_DISPLAY,
     TC_SOCK_PV_SAVE_JPG,
 };
-extern enum tc_socket_msg_cmd_enum tc_socket_msg_cmd;
+
+typedef struct tcsockpvcmd_ TCSockPVCmd;
+struct tcsockpvcmd_ {
+    enum tc_socket_msg_cmd_enum cmd;
+    int                         arg;
+};
+
+int tc_socket_get_pv_cmd(TCSockPVCmd *pvcmd);
 
 
 /*************************************************************************/
