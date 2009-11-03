@@ -189,7 +189,7 @@ if test x"$enable_v4l" = x"yes" ; then
 #include <linux/videodev2.h>
 ],   [
 struct v4l2_buffer buf;
-buffer.memory = V4L2_MEMORY_MMAP
+buf.memory = V4L2_MEMORY_MMAP
 ],    [AC_DEFINE([HAVE_STRUCT_V4L2_BUFFER], 1,
         [define if your videodev2 header has struct v4l2_buffer])
         AC_MSG_RESULT([yes])],
