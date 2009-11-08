@@ -68,6 +68,11 @@ struct tcthread_ {
     int             retvalue;
 };
 
+/*
+ * TCThread API in a nutshell:
+ *
+ *
+ */
 
 int tc_thread_init(TCThread *th, const char *name);
 int tc_thread_start(TCThread *th, TCThreadBodyFn body, void *arg);
