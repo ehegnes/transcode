@@ -93,7 +93,8 @@ static FILE *fd;
 #define CMD_BUF 256
 MOD_open
 {
-  const char *logfile="sync.log";
+  const char *tag = "";
+  const char *logfile = "sync.log";
   /* command buffers */
   char seq_buf[CMD_BUF];
   char demux_buf[CMD_BUF];
@@ -179,7 +180,7 @@ MOD_open
           tc_log_perror(MOD_NAME, "command buffer overflow");
 	      return(TC_IMPORT_ERROR);
         }
-        if(verbose_flag & TC_DEBUG) tc_log_info(MOD_NAME, "AC3->PCM");
+        if(verbose_flag & TC_DEBUG) tag = "AC3->PCM : ";
       }
       
       if(vob->a_codec_flag==TC_CODEC_MP3) {
@@ -193,7 +194,7 @@ MOD_open
           tc_log_perror(MOD_NAME, "command buffer overflow");
           return(TC_IMPORT_ERROR);
         }
-        if(verbose_flag & TC_DEBUG) tc_log_info(MOD_NAME, "MP3->PCM");
+        if(verbose_flag & TC_DEBUG) tag = "MP3->PCM : ";
       }
 
       if(vob->a_codec_flag==TC_CODEC_MP2) {
@@ -207,7 +208,7 @@ MOD_open
           tc_log_perror(MOD_NAME, "command buffer overflow");
 	      return(TC_IMPORT_ERROR);
         }
-        if(verbose_flag & TC_DEBUG) tc_log_info(MOD_NAME, "MP2->PCM");
+        if(verbose_flag & TC_DEBUG) tag = "MP2->PCM : ";
       }
 
       if(vob->a_codec_flag==TC_CODEC_PCM || vob->a_codec_flag==TC_CODEC_LPCM) {
@@ -219,7 +220,7 @@ MOD_open
           tc_log_perror(MOD_NAME, "command buffer overflow");
           return(TC_IMPORT_ERROR);
         }
-        if(verbose_flag & TC_DEBUG) tc_log_info(MOD_NAME, "LPCM->PCM");
+        if(verbose_flag & TC_DEBUG) tag = "LPCM->PCM : ";
       }
       break;
 
@@ -229,7 +230,7 @@ MOD_open
     }
 
     // print out
-    if(verbose_flag) tc_log_info(MOD_NAME, "%s", import_cmd_buf);
+    if(verbose_flag) tc_log_info(MOD_NAME, "%s%s", tag, import_cmd_buf);
 
     // set to NULL if we handle read
     param->fd = NULL;
