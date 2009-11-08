@@ -53,6 +53,7 @@ static int ac3_bytes_to_go=0;
 
 MOD_open
 {
+    const char *tag = "";
     long sret;
 
     // audio only
@@ -90,7 +91,8 @@ MOD_open
             if (sret < 0)
 	        return(TC_IMPORT_ERROR);
 
-	    if(verbose_flag) tc_log_info(MOD_NAME, "AC3->PCM");
+	    if (verbose_flag)
+            tag = "AC3->PCM : ";
 	}
 
 	break;
@@ -103,7 +105,7 @@ MOD_open
 
     // print out
     if(verbose_flag)
-        tc_log_info(MOD_NAME, "%s", import_cmd_buf);
+        tc_log_info(MOD_NAME, "%s%s", tag, import_cmd_buf);
 
     // set to NULL if we handle read
     param->fd = NULL;

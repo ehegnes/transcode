@@ -111,6 +111,7 @@ static char seq_buf[TMP_BUF_SIZE], dem_buf[TMP_BUF_SIZE],
 
 MOD_open
 {
+  const char *tag = "";
   char *logfile = "sync.log";
   long sret;
 
@@ -198,7 +199,7 @@ MOD_open
 	  return(TC_IMPORT_ERROR);
 
 	if(verbose_flag & TC_DEBUG && !a_re_entry)
-          tc_log_info(MOD_NAME, "AC3->PCM");
+          tag = "AC3->PCM : ";
       }
 
       if(vob->a_codec_flag==TC_CODEC_MP3) {
@@ -216,7 +217,7 @@ MOD_open
 	  return(TC_IMPORT_ERROR);
 
 	if(verbose_flag & TC_DEBUG && !a_re_entry)
-          tc_log_info(MOD_NAME, "MP3->PCM");
+          tag = "MP3->PCM : ";
       }
 
       if(vob->a_codec_flag==TC_CODEC_MP2) {
@@ -234,7 +235,7 @@ MOD_open
 	  return(TC_IMPORT_ERROR);
 
 	if(verbose_flag & TC_DEBUG && !a_re_entry)
-          tc_log_info(MOD_NAME, "MP2->PCM");
+          tag = "MP2->PCM : ";
       }
 
       if(vob->a_codec_flag==TC_CODEC_PCM || vob->a_codec_flag==TC_CODEC_LPCM) {
@@ -250,7 +251,7 @@ MOD_open
 	  return(TC_IMPORT_ERROR);
 
 	if(verbose_flag & TC_DEBUG && !a_re_entry)
-          tc_log_info(MOD_NAME, "LPCM->PCM");
+          tag = "LPCM->PCM : ";
       }
 
       break;
@@ -263,7 +264,7 @@ MOD_open
 
     // print out
     if(verbose_flag && !a_re_entry)
-      tc_log_info(MOD_NAME, "%s", import_cmd_buf);
+      tc_log_info(MOD_NAME, "%s%s", tag, import_cmd_buf);
 
     // set to NULL if we handle read
     param->fd = NULL;
