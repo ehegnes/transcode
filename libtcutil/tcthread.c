@@ -23,6 +23,10 @@
 #include "logging.h"
 #include "tcthread.h"
 
+
+
+/*************************************************************************/
+// FIXME: doc
 static void *tc_thread_wrapper(void *arg)
 {
     TCThread *th = arg;
@@ -44,7 +48,7 @@ int tc_thread_init(TCThread *th, const char *name)
 {
     int ret = TC_ERROR;
 
-    if (th) {
+    if (th && name) {
         strlcpy(th->data.name, name, sizeof(th->data.name));
         ret = TC_OK;
     }
@@ -90,6 +94,8 @@ int tc_thread_wait(TCThread *th, int *th_ret)
     return ret;
 }
 
+/*************************************************************************/
+
 int tc_mutex_init(TCMutex *m)
 {
     return pthread_mutex_init(&(m->m), NULL);
@@ -104,6 +110,8 @@ int tc_mutex_unlock(TCMutex *m)
 {
     return pthread_mutex_unlock(&(m->m));
 }
+
+/*************************************************************************/
 
 int tc_condition_init(TCCondition *c)
 {
