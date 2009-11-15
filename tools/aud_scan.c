@@ -74,7 +74,7 @@ int tc_get_mp3_header(uint8_t* hbuf, int* chans, int* srate, int *bitrate){
     }
 
     if (newhead & ((long)1 << 20)) {
-        lsf = (newhead & ((long)1 << 19));
+        lsf = (newhead & ((long)1 << 19)) ?0x0 :0x1;
         mpeg25 = 0;
     } else {
         lsf = 1;
