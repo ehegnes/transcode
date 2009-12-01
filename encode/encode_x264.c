@@ -195,7 +195,7 @@ static TCConfigEntry conf[] ={
     /* Quantization matrix selection: 0=flat 1=JVT 2=custom */
     OPT_RANGE(i_cqm_preset,               "cqm",            0,     2)
     /* Custom quant matrix filename */
-    OPT_STR  (pl_cqm_file,               "cqm_file")
+    OPT_STR  (psz_cqm_file,               "cqm_file")
     /* Quant matrix arrays set up by library */
 
     /* Logging */
@@ -282,7 +282,7 @@ static TCConfigEntry conf[] ={
     OPT_NONE (rc.zones)
     OPT_NONE (rc.i_zones)
     /* Alternate method of specifying zones */
-    OPT_STR  (rc.pl_zones,               "zones")
+    OPT_STR  (rc.psz_zones,               "zones")
 
     /* Other parameters */
 
@@ -380,8 +380,8 @@ static int x264params_set_multipass(x264_param_t *params,
                                     int pass, const char *statsfilename)
 {
     /* Drop the const and hope that x264 treats it as const anyway */
-    params->rc.pl_stat_in  = (char *)statsfilename;
-    params->rc.pl_stat_out = (char *)statsfilename;
+    params->rc.psz_stat_in  = (char *)statsfilename;
+    params->rc.psz_stat_out = (char *)statsfilename;
 
     switch (pass) {
       default:
@@ -730,7 +730,7 @@ enum {
     (PD)->hdr_buf[(PD)->hdr_len + 1] = ((LEN)     ) & 0xff; \
     (PD)->hdr_len += 2; \
     ac_memcpy((PD)->hdr_buf + (PD)->hdr_len, (XPS), (LEN)); \
-    (PD)->hdr_len += (LEN); \`:s
+    (PD)->hdr_len += (LEN); \
 } while (0)
 
 static int tc_x264_setup_extradata(X264PrivateData *pd)
