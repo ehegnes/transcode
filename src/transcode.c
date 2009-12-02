@@ -2700,6 +2700,7 @@ int main(int argc, char *argv[])
 #include "libtcutil/static_tctimer.h"
 #include "avilib/static_avilib.h"
 #include "avilib/static_wavlib.h"
+#include "mpeglib/static_mpeglib.h"
 
 /*************************************************************************/
 

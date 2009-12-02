@@ -48,6 +48,10 @@ if HAVE_LIBQUICKTIME
 IMPORT_MOV = import_mov.la
 endif
 
+if HAVE_LIBMPEG2
+IMPORT_MPG = import_mpg.la
+endif
+
 if HAVE_OSS
 IMPORT_OSS = import_oss.la
 endif
@@ -96,6 +100,7 @@ pkg_LTLIBRARIES = \
 	$(IMPORT_MOV) \
 	import_mp3.la \
 	import_mpeg2.la \
+	$(IMPORT_MPG) \
 	import_mplayer.la \
 	import_null.la \
 	import_ogg.la \
@@ -175,6 +180,11 @@ import_mp3_la_LDFLAGS = -module -avoid-version
 import_mpeg2_la_SOURCES = import_mpeg2.c
 import_mpeg2_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBMPEG2_CFLAGS) $(LIBMPEG2CONVERT_CFLAGS)
 import_mpeg2_la_LDFLAGS = -module -avoid-version
+
+import_mpg_la_SOURCES = import_mpg.c
+import_mpg_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBMPEG2_CFLAGS) $(LIBMPEG2CONVERT_CFLAGS)
+import_mpg_la_LDFLAGS = -module -avoid-version
+import_mpg_la_LIBADD = $(LIBMPEG2_LIBS) $(LIBMPEG2CONVERT_LIBS)
 
 import_mplayer_la_SOURCES = import_mplayer.c
 import_mplayer_la_LDFLAGS = -module -avoid-version
