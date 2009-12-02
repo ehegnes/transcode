@@ -91,6 +91,68 @@ const char *ac_flagstotext(int accel)
     return *retbuf ? retbuf+1 : retbuf;  /* skip initial space */
 }
 
+/* Utility routine to parse a comma-separate descriptive string to the
+   corrisponding flag. The reverse of ac_flagstotext.
+   Returns 1 on success, 0 on failure */
+
+#define AC_FLAG_LEN     16
+
+int ac_parseflags(const char *text, int *accel)
+{
+    int parsed = 1, done = 0;
+    if (!text || !accel)
+        return 0;
+#if defined(ARCH_X86) || defined(ARCH_X86_64)
+    *accel = 0;
+
+    while (parsed && !done) {
+        char buf[AC_FLAG_LEN + 1] = { '\0' };
+        const char *comma = strchr(text, ',');
+        if (!comma) {
+            strncpy(buf, text, AC_FLAG_LEN);
+            done = 1;
+        } else {
+            /* parse the remaining and exit*/
+            size_t len = (comma - text);
+            if (len > AC_FLAG_LEN)
+                len = AC_FLAG_LEN;
+            strncpy(buf, text, len);
+        }
+//fprintf(stderr, "(%s) buf=[%s]\n", __func__, buf);
+        if (strcasecmp(buf, "C") == 0)  // dummy for "no accel"
+            *accel |= 0;
+#ifdef ARCH_X86
+        else if (strcasecmp(buf, "asm"     ) == 0)
+            *accel |= AC_IA32ASM;
+#endif
+#ifdef ARCH_X86_64
+        else if (strcasecmp(buf, "asm"     ) == 0)
+            *accel |= AC_AMD64ASM;
+#endif
+        else if (strcasecmp(buf, "mmx"     ) == 0)
+            *accel |= AC_MMX;
+        else if (strcasecmp(buf, "mmxext"  ) == 0)
+            *accel |= AC_MMXEXT;
+        else if (strcasecmp(buf, "3dnow"   ) == 0)
+            *accel |= AC_3DNOW;
+        else if (strcasecmp(buf, "3dnowext") == 0)
+            *accel |= AC_3DNOWEXT;
+        else if (strcasecmp(buf, "sse"     ) == 0)
+            *accel |= AC_SSE;
+        else if (strcasecmp(buf, "sse2"    ) == 0)
+            *accel |= AC_SSE2;
+        else if (strcasecmp(buf, "sse3"    ) == 0)
+            *accel |= AC_SSE3;
+        else
+            parsed = 0;
+        text = comma + 1;
+    }
+#endif
+    return parsed;
+}
+
+#undef AC_FLAG_LEN
+
 /*************************************************************************/
 /*************************************************************************/
 

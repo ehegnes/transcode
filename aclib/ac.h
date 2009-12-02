@@ -63,6 +63,11 @@ extern int ac_endian(void);
  * string is stored in a static buffer overwritten each call. */
 extern const char *ac_flagstotext(int accel);
 
+/* Utility routine to parse a comma-separate descriptive string to the
+   corrisponding flag. The reverse of ac_flagstotext.
+   Returns 1 on success, 0 on failure */
+extern int ac_parseflags(const char *text, int *accel);
+
 /*************************************************************************/
 
 /* Acceleration-enabled functions: */
