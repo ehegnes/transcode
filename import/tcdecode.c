@@ -21,6 +21,7 @@
  *
  */
 
+#include "aclib/ac.h"
 #include "src/transcode.h"
 #include "tccore/tcinfo.h"
 
@@ -119,6 +120,7 @@ static void usage(int status)
     fprintf(stderr,"    -C s,e            decode only from start to end ((V) frames/(A) bytes) [all]\n");
     fprintf(stderr,"    -Y                use libdv YUY2 decoder mode\n");
     fprintf(stderr,"    -z r              convert zero padding to silence\n");
+    fprintf(stderr,"    -X type[,type]    override CPU acceleration flags (for debugging)\n");
     fprintf(stderr,"    -v                print version\n");
 
     exit(status);
@@ -150,10 +152,11 @@ int main(int argc, char *argv[])
     decode.ac3_gain[2]    = 1.0;
     decode.frame_limit[0] = 0;
     decode.frame_limit[1] = LONG_MAX;
+    decode.accel   = AC_ALL;
 
     libtc_init(&argc, &argv);
 
-    while ((ch = getopt(argc, argv, "Q:t:d:x:i:a:g:vy:s:YC:A:z:?h")) != -1) {
+    while ((ch = getopt(argc, argv, "Q:t:d:x:i:a:g:vy:s:YC:A:X:z:?h")) != -1) {
         switch (ch) {
           case 'i':
             CHECK_OPT;
@@ -211,6 +214,13 @@ int main(int argc, char *argv[])
                 usage(EXIT_FAILURE);
 	        }
 	        break;
+          case 'X':
+            CHECK_OPT;
+            int parsed = ac_parseflags(optarg, &(decode.accel));
+            if (!parsed) {
+                tc_log_error(EXE, "Invalid -X options");
+                usage(EXIT_FAILURE);
+            }
           case 'z':
             CHECK_OPT;
 	        decode.padrate = atoi(optarg);
@@ -222,7 +232,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    ac_init(AC_ALL);
+    ac_init(decode.accel);
 
     /* ------------------------------------------------------------
      * fill out defaults for info structure

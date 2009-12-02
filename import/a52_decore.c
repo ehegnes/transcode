@@ -95,12 +95,12 @@ int a52_decore(decode_t *decode) {
 
 
 #ifdef HAVE_ASM_MMX
-  if (ac_cpuinfo() & AC_MMX)
+  if (decode->accel & AC_MMX)
     accel |= MM_ACCEL_X86_MMX;
 #endif
 
 #ifdef HAVE_ASM_3DNOW
-  if (ac_cpuinfo() & AC_3DNOW)
+  if (decode->accel & AC_3DNOW)
     accel |= MM_ACCEL_X86_3DNOW;
 #endif
 

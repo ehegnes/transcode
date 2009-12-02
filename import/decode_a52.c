@@ -46,35 +46,37 @@ static int (*p_a52_decore)(decode_t *decode);
 static void *handle;
 static char module[TC_BUF_MAX];
 
-static int a52_do_init(char *path) {
+static int a52_do_init(char *path)
+{
     const char *error;
 
     tc_snprintf(module, sizeof(module), "%s/%s", path, MODULE);
 
     if(verbose & TC_DEBUG)
-	tc_log_msg(__FILE__, "loading external module %s", module);
+        tc_log_msg(__FILE__, "loading external module %s", module);
 
     // try transcode's module directory
     handle = dlopen(module, RTLD_NOW);
     if (!handle) {
-      //try the default:
-      //      handle = dlopen(MODULE, RTLD_GLOBAL| RTLD_LAZY);
-      if (!handle) {
-	error = dlerror();
-	fputs (error, stderr);
-	fputs("\n", stderr);
-	return(-1);
-      }
+        //try the default:
+        //      handle = dlopen(MODULE, RTLD_GLOBAL| RTLD_LAZY);
+        if (!handle) {
+            error = dlerror();
+            fputs (error, stderr);
+            fputs("\n", stderr);
+            return -1;
+        }
     }
 
     p_a52_decore = dlsym(handle, "a52_decore");
-    if ((error = dlerror()) != NULL)  {
-      fputs(error, stderr);
-      fputs("\n", stderr);
-      return(-1);
+    error = dlerror();
+    if (error != NULL)  {
+        fputs(error, stderr);
+        fputs("\n", stderr);
+        return -1;
     }
 
-    return(0);
+    return 0;
 }
 
 /* ------------------------------------------------------------
@@ -85,16 +87,17 @@ static int a52_do_init(char *path) {
 
 void decode_a52(decode_t *decode)
 {
-  verbose = decode->verbose;
+    verbose = decode->verbose;
 
-  //load the codec
-  if(a52_do_init(mod_path)<0) {
-    tc_log_error(__FILE__, "failed to init ATSC A-52 stream decoder");
-    import_exit(1);
-  }
+    // load the codec
+    if(a52_do_init(mod_path)<0) {
+        tc_log_error(__FILE__, "failed to init ATSC A-52 stream decoder");
+        import_exit(1);
+    }
 
-  (*p_a52_decore)(decode);
-  dlclose(handle);
-  import_exit(0);
+    p_a52_decore(decode);
+    dlclose(handle);
+    import_exit(0);
 }
+
 

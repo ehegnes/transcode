@@ -32,4 +32,5 @@ transcode-1.2.0
 [-] Removed the unmantained PVM code.
 [+] Added a special-crafted import module targeting webcams using libv4l.
 [*] Update the video stabilization plugins to version 0.61.
+[*] Added the -X option to tcdecode (let the user specify the acceleration)
 ===========================================================================
