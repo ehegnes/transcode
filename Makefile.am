@@ -9,6 +9,7 @@ endif
 SUBDIRS = \
 	aclib \
 	avilib \
+	mpeglib \
 	$(LIBDLDARWIN) \
 	libtcutil \
 	libtcmodule \

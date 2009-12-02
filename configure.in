@@ -1350,6 +1350,11 @@ dnl
 WAVLIB_LIBS="\$(top_builddir)/avilib/libwav.la"
 AC_SUBST(WAVLIB_LIBS)
 
+dnl
+dnl mpeglib
+dnl
+MPEGLIB_LIBS="\$(top_builddir)/mpeglib/libmpeg.la"
+AC_SUBST(MPEGLIB_LIBS)
 
 dnl
 dnl aclib
@@ -1438,6 +1443,7 @@ AC_CONFIG_FILES([
 	Makefile
 	aclib/Makefile
 	avilib/Makefile
+	mpeglib/Makefile
 	docs/Makefile
 	docs/html/Makefile
 	docs/man/Makefile
