@@ -30,6 +30,7 @@ transcode_LDADD = \
 	$(ACLIB_LIBS) \
 	$(AVILIB_LIBS) \
 	$(WAVLIB_LIBS) \
+	$(MPEGLIB_LIBS) \
 	$(XIO_LIBS) \
 	$(LIBXML2_LIBS) \
 	$(PTHREAD_LIBS) \
