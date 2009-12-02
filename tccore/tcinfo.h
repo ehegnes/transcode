@@ -85,6 +85,7 @@ typedef struct {
     int a52_mode;
     long format;        // Specifies raw stream format for output
     int select;         // Selected packet payload type
+    int accel; 
 } decode_t;
 
 /*************************************************************************/

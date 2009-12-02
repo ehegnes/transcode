@@ -54,6 +54,22 @@ static void show_accel(uint32_t mp_ac)
                                                    "none (plain C)");
 }
 
+static uint32_t conv_accel(int ac)
+{
+    uint32_t mp_ac = 0;
+    if (ac == AC_ALL) {
+        mp_ac = MPEG2_ACCEL_DETECT;
+    } else {
+        if (ac & AC_MMX)
+            mp_ac |= MPEG2_ACCEL_X86_MMX;
+        if (ac & AC_MMXEXT)
+            mp_ac |= MPEG2_ACCEL_X86_MMXEXT;
+        if (ac & AC_3DNOW)
+            mp_ac |= MPEG2_ACCEL_X86_3DNOW;
+    }
+    return mp_ac;
+}
+
 #define WRITE_DATA(PBUF, LEN, TAG) do { \
     int ret = tc_pwrite(decode->fd_out, PBUF, LEN); \
     if(LEN != ret) { \
@@ -101,8 +117,8 @@ void decode_mpeg2(decode_t *decode)
     const mpeg2_info_t *info = NULL;
     const mpeg2_sequence_t *sequence = NULL;
     mpeg2_state_t state;
-    size_t size;
-    uint32_t ac = 0;
+    size_t size = 0;
+    uint32_t ac = 0, mp_ac = 0;
 
     WriteDataFn writer = write_yuv420p;
     if (decode->format == TC_CODEC_RGB24) {
@@ -111,7 +127,8 @@ void decode_mpeg2(decode_t *decode)
         writer = write_rgb24;
     }
 
-    ac = mpeg2_accel(MPEG2_ACCEL_DETECT);
+    mp_ac = conv_accel(decode->accel);
+    ac = mpeg2_accel(mp_ac);
     show_accel(ac);
 
     decoder = mpeg2_init();

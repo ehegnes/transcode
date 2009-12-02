@@ -142,6 +142,22 @@ PRIVATE	256
 .IP "\fB-v\fP"
 Print version information and exit.
 
+.IP "\fB-X\fP \fItype\fP"
+enforce experimental IA32/AMD64 acceleration using a comma-separated list of types [autodetect].
+\fItype\fR may any one of
+.RS 8
+.TS
+lI c l.
+C	No acceleration
+asm	plain x86 assembly
+mmx	MMX instruction set
+3dnow	3DNow! instruction set
+sse	SSE instruction set
+sse2	SSE2 instruction set
+.TE
+.RE
+.RE
+
 .SH NOTES
 \fBtcdecode\fP is a front end for decoding various sources and is used in \fBtranscode(1)\fP's import modules.
 .SH EXAMPLES
