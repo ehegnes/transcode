@@ -1454,42 +1454,11 @@ TC_OPTION(nice,               0,   "N",
 TC_OPTION(accel,              0,   "type[,type...]",
                 "override CPU acceleration flags (for debugging)",
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
-                char *accel = optarg;
-                session->acceleration = 0;
-                while (accel) {
-                    char *comma = strchr(accel, ',');
-                    if (comma)
-                        *comma++ = 0;
-                    if (strcasecmp(accel, "C") == 0)  // dummy for "no accel"
-                        session->acceleration |= 0;
-#ifdef ARCH_X86
-                    else if (strcasecmp(accel, "asm"     ) == 0)
-                        session->acceleration |= AC_IA32ASM;
-#endif
-#ifdef ARCH_X86_64
-                    else if (strcasecmp(accel, "asm"     ) == 0)
-                        session->acceleration |= AC_AMD64ASM;
-#endif
-                    else if (strcasecmp(accel, "mmx"     ) == 0)
-                        session->acceleration |= AC_MMX;
-                    else if (strcasecmp(accel, "mmxext"  ) == 0)
-                        session->acceleration |= AC_MMXEXT;
-                    else if (strcasecmp(accel, "3dnow"   ) == 0)
-                        session->acceleration |= AC_3DNOW;
-                    else if (strcasecmp(accel, "3dnowext") == 0)
-                        session->acceleration |= AC_3DNOWEXT;
-                    else if (strcasecmp(accel, "sse"     ) == 0)
-                        session->acceleration |= AC_SSE;
-                    else if (strcasecmp(accel, "sse2"    ) == 0)
-                        session->acceleration |= AC_SSE2;
-                    else if (strcasecmp(accel, "sse3"    ) == 0)
-                        session->acceleration |= AC_SSE3;
-                    else {
-                        tc_error("bad --accel type, valid types: C asm"
-                                 " mmx mmxext 3dnow 3dnowext sse sse2 sse3");
-                        goto short_usage;
-                    }
-                    accel = comma;
+                int parsed = ac_parseflags(optarg, &(session->acceleration));
+                if (!parsed) {		
+                    tc_error("bad --accel type, valid types: C %s",
+                             ac_flagstotext(AC_ALL));			
+                    goto short_usage;
                 }
 #else
                 /* Not supported--leave a statement in so the macro doesn't
