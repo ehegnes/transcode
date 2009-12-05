@@ -169,7 +169,7 @@ static int tc_export_skip(int frame_id,
                           int out_of_range);
 
 /* misc helpers */
-static int need_stop(TCExportData *expdata);
+static int need_stop(TCRunControl *rc, TCExportData *expdata);
 static int is_last_frame(TCExportData *expdata);
 static int is_in_range(TCExportData *expdata);
 static void export_update_formats(TCJob *job,
@@ -454,9 +454,15 @@ static int tc_export_skip(int frame_id,
     return TC_OK;
 }
 
-static int need_stop(TCExportData *expdata)
+static int is_running(TCRunControl *rc)
 {
-    return (!tc_running() || expdata->error_flag);
+    TCRunStatus S = rc->status(rc);
+    return (S == TC_STATUS_RUNNING); 
+}
+
+static int need_stop(TCRunControl *rc, TCExportData *expdata)
+{
+    return (!is_running(rc) || expdata->error_flag);
 }
 
 static int get_frame_id(TCFramePair *input)
@@ -468,6 +474,7 @@ void tc_export_loop(TCFrameSource *fs, int frame_first, int frame_last)
 {
     int eos  = 0; /* End Of Stream flag */
     int skip = 0; /* Frames to skip before next frame to encode */
+    TCRunControl *RC = expdata.run_control; /* shortcut */
 
     tc_log_debug(TC_DEBUG_PRIVATE, __FILE__,
                     "encoder loop started [%i/%i)",
@@ -483,9 +490,9 @@ void tc_export_loop(TCFrameSource *fs, int frame_first, int frame_last)
     expdata.frame_last  = frame_last;
     expdata.saved_frame_last = expdata.old_frame_last;
 
-    while (!eos && !need_stop(&expdata)) {
+    while (!eos && !need_stop(RC, &expdata)) {
         /* stop here if pause requested */
-        expdata.run_control->pause(expdata.run_control);
+        RC->pause(RC);
 
         expdata.input.video = fs->get_video_frame(fs);
         if (!expdata.input.video) {
