@@ -27,7 +27,6 @@ libtcutil_la_SOURCES = \
 	strlcat.c \
 	strlcpy.c \
 	strutils.c \
-	tctimer.c \
 	tcthread.c \
 	$(GETOPT_FILES) \
 	$(TIMER_FILES) \
