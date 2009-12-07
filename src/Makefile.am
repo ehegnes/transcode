@@ -13,9 +13,6 @@ AM_LDFLAGS = -export-dynamic
 bin_PROGRAMS = transcode
 bin_SCRIPTS = gtranscode2.py
 
-if HAVE_X11
-TC_X_LIBS = $(X_LIBS) $(X_PRE_LIBS) -lXext -lX11 $(X_EXTRA_LIBS)
-endif
 
 transcode_LDADD = \
 	$(DLDARWIN_LIBS) \
@@ -34,7 +31,6 @@ transcode_LDADD = \
 	$(XIO_LIBS) \
 	$(LIBXML2_LIBS) \
 	$(PTHREAD_LIBS) \
-	$(TC_X_LIBS) \
 	-lm
 
 EXTRA_DIST = \
