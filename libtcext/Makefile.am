@@ -10,7 +10,10 @@ AM_CPPFLAGS = \
 
 noinst_LTLIBRARIES = libtcext.la
 
-libtcext_la_SOURCES = ext.c
+libtcext_la_SOURCES = \
+	ext.c \
+	ext_gm.c \
+	ext_ogg.c
 
 EXTRA_DIST = \
 	tc_avcodec.h \
