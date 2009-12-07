@@ -87,7 +87,7 @@ encode_faac_la_LIBADD = $(FAAC_LIBS)
 encode_im_la_SOURCES = encode_im.c
 encode_im_la_CPPFLAGS = $(AM_CPPFLAGS) $(GRAPHICSMAGICK_CFLAGS)
 encode_im_la_LDFLAGS = -module -avoid-version
-encode_im_la_LIBADD = $(GRAPHICSMAGICK_LIBS) -lm
+encode_im_la_LIBADD = $(GRAPHICSMAGICK_LIBS) $(LIBTCEXT_LIBS) -lm
 
 encode_lavc_la_SOURCES = encode_lavc.c
 encode_lavc_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBAVCODEC_CFLAGS)

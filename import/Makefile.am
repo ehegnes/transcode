@@ -159,12 +159,12 @@ import_ffmpeg_la_LIBADD = $(LIBAVFORMAT_LIBS)
 import_im_la_SOURCES = import_im.c
 import_im_la_CPPFLAGS = $(AM_CPPFLAGS) $(GRAPHICSMAGICK_CFLAGS)
 import_im_la_LDFLAGS = -module -avoid-version
-import_im_la_LIBADD = $(GRAPHICSMAGICK_LIBS) -lm
+import_im_la_LIBADD = $(GRAPHICSMAGICK_LIBS) $(LIBTCEXT_LIBS) -lm
 
 import_imlist_la_SOURCES = import_imlist.c
 import_imlist_la_CPPFLAGS = $(AM_CPPFLAGS) $(GRAPHICSMAGICK_CFLAGS)
 import_imlist_la_LDFLAGS = -module -avoid-version
-import_imlist_la_LIBADD = $(GRAPHICSMAGICK_LIBS) -lm
+import_imlist_la_LIBADD = $(GRAPHICSMAGICK_LIBS) $(LIBTCEXT_LIBS) -lm
 
 import_lzo_la_SOURCES = import_lzo.c
 import_lzo_la_CPPFLAGS = $(AM_CPPFLAGS) $(LZO_CFLAGS)
