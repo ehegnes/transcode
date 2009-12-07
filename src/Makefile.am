@@ -15,7 +15,6 @@ bin_SCRIPTS = gtranscode2.py
 
 transcode_LDADD = \
 	$(DLDARWIN_LIBS) \
-	$(GRAPHICSMAGICK_LIBS) \
 	$(LIBTC_LIBS) \
 	$(LIBTCUTIL_LIBS) \
 	$(LIBTCEXT_LIBS) \

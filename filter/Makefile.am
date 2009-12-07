@@ -118,7 +118,7 @@ filter_barrel_la_LDFLAGS = -module -avoid-version
 filter_compare_la_SOURCES = filter_compare.c
 filter_compare_la_CPPFLAGS = $(AM_CPPFLAGS) $(GRAPHICSMAGICK_CFLAGS)
 filter_compare_la_LDFLAGS = -module -avoid-version
-filter_compare_la_LIBADD = $(GRAPHICSMAGICK_LIBS)
+filter_compare_la_LIBADD = $(GRAPHICSMAGICK_LIBS) $(LIBTCEXT_LIBS)
 
 filter_control_la_SOURCES = filter_control.c
 filter_control_la_LDFLAGS = -module -avoid-version
@@ -173,12 +173,12 @@ filter_levels_la_LDFLAGS = -module -avoid-version
 filter_logo_la_SOURCES = filter_logo.c
 filter_logo_la_CPPFLAGS = $(AM_CPPFLAGS) $(GRAPHICSMAGICK_CFLAGS)
 filter_logo_la_LDFLAGS = -module -avoid-version
-filter_logo_la_LIBADD = $(GRAPHICSMAGICK_LIBS)
+filter_logo_la_LIBADD = $(GRAPHICSMAGICK_LIBS) $(LIBTCEXT_LIBS)
 
 filter_logoaway_la_SOURCES = filter_logoaway.c
 filter_logoaway_la_CPPFLAGS = $(AM_CPPFLAGS) $(GRAPHICSMAGICK_CFLAGS)
 filter_logoaway_la_LDFLAGS = -module -avoid-version
-filter_logoaway_la_LIBADD = $(GRAPHICSMAGICK_LIBS)
+filter_logoaway_la_LIBADD = $(GRAPHICSMAGICK_LIBS) $(LIBTCEXT_LIBS)
 
 filter_lowpass_la_SOURCES = filter_lowpass.c
 filter_lowpass_la_LDFLAGS = -module -avoid-version
