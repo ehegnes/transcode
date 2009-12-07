@@ -5,8 +5,7 @@ AM_CPPFLAGS = \
 	-DMODULE_PATH=\"$(MODULE_PATH)\" \
 	-I$(top_srcdir) \
 	$(LIBAVCODEC_CFLAGS) \
-	$(DLDARWIN_CFLAGS) \
-	$(X_CFLAGS)
+	$(DLDARWIN_CFLAGS)
 
 AM_LDFLAGS = -export-dynamic
 
