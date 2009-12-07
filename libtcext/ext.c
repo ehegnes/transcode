@@ -72,211 +72,33 @@ void tc_unlock_libavcodec(void)
 
 #endif
 
-#ifdef HAVE_OGG
-
-/*************************************************************************/
-/* OGG support                                                           */
-/*************************************************************************/
-
-/* watch out the 'n' here */
-/* FIXME */
-#ifndef TC_ENCODER
-void tc_ogg_del_packet(ogg_packet *op);
-void tc_ogg_del_extradata(OGGExtraData *oxd);
-int tc_ogg_dup_packet(ogg_packet *dst, const ogg_packet *src);
-#endif /* TC_ENCODER */
-
-void tc_ogg_del_packet(ogg_packet *op)
-{
-    tc_free(op->packet);
-    memset(op, 0, sizeof(*op));
-}
-
-void tc_ogg_del_extradata(OGGExtraData *oxd)
-{
-    oxd->granule_shift = 0;
-    tc_ogg_del_packet(&oxd->header);
-    tc_ogg_del_packet(&oxd->comment);
-    tc_ogg_del_packet(&oxd->code);
-}
-
-int tc_ogg_dup_packet(ogg_packet *dst, const ogg_packet *src)
-{
-    int ret = TC_ERROR;
-
-    ac_memcpy(dst, src, sizeof(ogg_packet));
-    dst->packet = tc_malloc(src->bytes);
-    if (dst->packet) {
-        ac_memcpy(dst->packet, src->packet, src->bytes);
-        ret = TC_OK;
-    }
-    return ret;
-}
-
-#endif
-
-
 #ifdef HAVE_GRAPHICSMAGICK
 
 
 /*************************************************************************/
-/* GraphicsMagick support                                                */
+/* GraphicsMagick support / core                                         */
 /*************************************************************************/
 
 static TCMutex tc_magick_mutex;
-static int magick_usecount = 0;
+static int magick_refcount = 0;
 
-
-/* GraphicsMagick exception handlers */
-
-static void tc_magick_warning_handler(const ExceptionType ex,
-                                      const char *reason,
-                                      const char *description)
+int tc_ref_graphicsmagick(void)
 {
-    tc_log_warn("tc_magick", "[%i] %s (%s)", ex, description, reason);
-}
-
-
-static void tc_magick_error_handler(const ExceptionType ex,
-                                    const char *reason,
-                                    const char *description)
-{
-    tc_log_error("tc_magick", "[%i] %s (%s)", ex, description, reason);
-}
-
-static void tc_magick_fatal_handler(const ExceptionType ex,
-                                    const char *reason,
-                                    const char *description)
-{
-    tc_log_error("tc_magick", "[%i] %s (%s)", ex, description, reason);
-}
-
-
-
-
-int tc_magick_init(TCMagickContext *ctx, int quality)
-{
-    int ret = TC_OK;
+    int ref = 0;
     tc_mutex_lock(&tc_magick_mutex);
-
-    if (magick_usecount == 0) {
-        InitializeMagick("");
-
-        /* once for everyone */
-        SetWarningHandler(tc_magick_warning_handler);
-        SetErrorHandler(tc_magick_error_handler);
-        SetFatalErrorHandler(tc_magick_fatal_handler);
-    }
-    magick_usecount++;
+    ref = ++magick_refcount;
     tc_mutex_unlock(&tc_magick_mutex);
-
-    GetExceptionInfo(&ctx->exception_info);
-    ctx->image_info = CloneImageInfo(NULL);
-
-    if (quality != TC_MAGICK_QUALITY_DEFAULT) {
-        ctx->image_info->quality = quality;
-    }
-
-    return ret;
+    return ref;
 }
 
-int tc_magick_fini(TCMagickContext *ctx)
-{
-    int ret = TC_OK;
-    if (ctx->image != NULL) {
-        DestroyImage(ctx->image);
-        DestroyImageInfo(ctx->image_info);
-    }
-    DestroyExceptionInfo(&ctx->exception_info);
 
+int tc_unref_graphicsmagick(void)
+{
+    int ref = 0;
     tc_mutex_lock(&tc_magick_mutex);
-    magick_usecount--;
-    if (magick_usecount == 0) {
-        DestroyMagick();
-    }
+    ref = --magick_refcount;
     tc_mutex_unlock(&tc_magick_mutex);
-
-    return ret;
-}
-
-int tc_magick_RGBin(TCMagickContext *ctx,
-                    int width, int height, const uint8_t *data)
-{
-    int ret = TC_OK;
-
-    if (ctx->image != NULL) {
-        DestroyImage(ctx->image);
-    }
-
-    ctx->image = ConstituteImage(width, height,
-                                 "RGB", CharPixel, data,
-                                 &ctx->exception_info);
-
-    if (ctx->image == NULL) {
-        CatchException(&ctx->exception_info);
-        ret = TC_ERROR;
-    }
-    return ret;
-}
-
-int tc_magick_filein(TCMagickContext *ctx, const char *filename)
-{
-    int ret = TC_OK;
-
-    if (ctx->image != NULL) {
-        DestroyImage(ctx->image);
-    }
-
-    strlcpy(ctx->image_info->filename, filename, MaxTextExtent);
-    ctx->image = ReadImage(ctx->image_info, &ctx->exception_info);
-
-    if (ctx->image == NULL) {
-        CatchException(&ctx->exception_info);
-        ret = TC_ERROR;
-    }
-    return ret;
-}
-
-int tc_magick_frameout(TCMagickContext *ctx, const char *format,
-                       TCFrameVideo *frame)
-{
-    int ret = TC_ERROR;
-    size_t len = 0;
-    uint8_t *data = NULL;
-    
-    strlcpy(ctx->image_info->magick, format, MaxTextExtent);
-
-    data = ImageToBlob(ctx->image_info, ctx->image, &len,
-                       &ctx->exception_info);
-    if (!data || len <= 0) {
-        CatchException(&ctx->exception_info);
-    } else {
-        /* FIXME: can we use some kind of direct rendering? */
-       ac_memcpy(frame->video_buf, data, len);
-       frame->video_len = (int)len;
-       ret = TC_OK;
-    }
-    return ret;
-}
-
-
-int tc_magick_RGBout(TCMagickContext *ctx, 
-                     int width, int height, uint8_t *data)
-{
-    unsigned int status = 0;
-    int ret = TC_OK;
-
-    status = DispatchImage(ctx->image,
-                           0, 0, width, height,
-                           "RGB", CharPixel,
-                           data,
-                           &ctx->exception_info);
-
-    if (status != MagickPass) {
-        CatchException(&ctx->exception_info);
-        ret = TC_ERROR;
-    }
-    return ret;
+    return ref;
 }
 
 #endif
@@ -289,7 +111,7 @@ int tc_ext_init(void)
 #endif
 #ifdef HAVE_GRAPHICSMAGICK
     tc_mutex_init(&tc_magick_mutex);
-    magick_usecount = 0;
+    magick_refcount = 0;
 #endif
     return TC_OK;
 }
