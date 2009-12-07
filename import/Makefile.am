@@ -129,9 +129,11 @@ import_alsa_la_SOURCES = import_alsa.c
 import_alsa_la_CPPFLAGS = $(AM_CPPFLAGS) -DOMS_COMPATIBLE=1
 import_alsa_la_LDFLAGS = -module -avoid-version
 import_alsa_la_LIBADD = -lasound
+# FIXME
 
 import_avi_la_SOURCES = import_avi.c
 import_avi_la_LDFLAGS = -module -avoid-version
+import_avi_la_LIBADD = $(AVILIB_LIBS)
 
 import_bktr_la_SOURCES = import_bktr.c
 import_bktr_la_LDFLAGS = -module -avoid-version
@@ -167,7 +169,7 @@ import_imlist_la_LIBADD = $(GRAPHICSMAGICK_LIBS) -lm
 import_lzo_la_SOURCES = import_lzo.c
 import_lzo_la_CPPFLAGS = $(AM_CPPFLAGS) $(LZO_CFLAGS)
 import_lzo_la_LDFLAGS = -module -avoid-version
-import_lzo_la_LIBADD  = $(LZO_LIBS) -lm
+import_lzo_la_LIBADD  = $(LZO_LIBS) $(AVILIB_LIBS) -lm
 
 import_mov_la_SOURCES = import_mov.c
 import_mov_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBQUICKTIME_CFLAGS)
