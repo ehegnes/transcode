@@ -33,6 +33,7 @@ pkg_LTLIBRARIES = \
 
 multiplex_avi_la_SOURCES = multiplex_avi.c
 multiplex_avi_la_LDFLAGS = -module -avoid-version
+multiplex_avi_la_LIBADD = $(AVILIB_LIBS)
 
 multiplex_lavf_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBAVFORMAT_CFLAGS)
 multiplex_lavf_la_LDFLAGS = -module -avoid-version
