@@ -186,7 +186,7 @@ import_mpeg2_la_LDFLAGS = -module -avoid-version
 import_mpg_la_SOURCES = import_mpg.c
 import_mpg_la_CPPFLAGS = $(AM_CPPFLAGS) $(LIBMPEG2_CFLAGS) $(LIBMPEG2CONVERT_CFLAGS)
 import_mpg_la_LDFLAGS = -module -avoid-version
-import_mpg_la_LIBADD = $(LIBMPEG2_LIBS) $(LIBMPEG2CONVERT_LIBS)
+import_mpg_la_LIBADD = $(LIBMPEG2_LIBS) $(LIBMPEG2CONVERT_LIBS) $(MPEGLIB_LIBS)
 
 import_mplayer_la_SOURCES = import_mplayer.c
 import_mplayer_la_LDFLAGS = -module -avoid-version
