@@ -24,7 +24,6 @@ transcode_LDADD = \
 	$(LIBTCMODULE_LIBS) \
 	$(ACLIB_LIBS) \
 	$(XIO_LIBS) \
-	$(LIBXML2_LIBS) \
 	$(PTHREAD_LIBS) \
 	-lm
 
