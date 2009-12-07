@@ -25,7 +25,6 @@ transcode_LDADD = \
 	$(LIBTCEXPORT_LIBS) \
 	$(LIBTCMODULE_LIBS) \
 	$(ACLIB_LIBS) \
-	$(WAVLIB_LIBS) \
 	$(XIO_LIBS) \
 	$(LIBXML2_LIBS) \
 	$(PTHREAD_LIBS) \
