@@ -2698,7 +2698,6 @@ int main(int argc, char *argv[])
 
 #include "libtcutil/static_tcutil.h"
 #include "libtcutil/static_tctimer.h"
-#include "avilib/static_wavlib.h"
 
 /*************************************************************************/
 

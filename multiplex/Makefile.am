@@ -60,6 +60,7 @@ multiplex_y4m_la_LIBADD = $(MJPEGTOOLS_LIBS)
 
 multiplex_wav_la_SOURCES = multiplex_wav.c
 multiplex_wav_la_LDFLAGS = -module -avoid-version
+multiplex_wav_la_LIBADD = $(WAVLIB_LIBS)
 
 EXTRA_DIST = \
 	shout.cfg

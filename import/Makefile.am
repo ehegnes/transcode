@@ -239,7 +239,7 @@ import_x11_la_LIBADD = $(X11SOURCE_LIBS)
 import_yuv4mpeg_la_SOURCES = import_yuv4mpeg.c
 import_yuv4mpeg_la_CPPFLAGS = $(AM_CPPFLAGS) $(MJPEGTOOLS_CFLAGS)
 import_yuv4mpeg_la_LDFLAGS = -module -avoid-version
-import_yuv4mpeg_la_LIBADD = $(MJPEGTOOLS_LIBS)
+import_yuv4mpeg_la_LIBADD = $(MJPEGTOOLS_LIBS) $(WAVLIB_LIBS)
 
 
 EXTRA_DIST = \
