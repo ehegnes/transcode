@@ -5,7 +5,8 @@ AM_CPPFLAGS = \
 	$(XIO_CFLAGS) \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
-	-I$(top_srcdir)/libtcutil
+	-I$(top_srcdir)/libtcutil \
+	-fPIC -DPIC
 
 noinst_LTLIBRARIES = libavi.la libwav.la
 
