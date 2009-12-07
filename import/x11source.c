@@ -371,6 +371,9 @@ int tc_x11source_open(TCX11Source *handle, const char *display,
     if (handle == NULL) {
         return 1;
     }
+
+    XInitThreads();
+
     err = tc_x11source_map_format(handle, format);
     if (err != 0) {
         return err;
