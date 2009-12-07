@@ -6,7 +6,8 @@ AM_CPPFLAGS = \
 	-DMPEG_LITTLE_ENDIAN=1 \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/src \
-	-I$(top_srcdir)/libtcutil
+	-I$(top_srcdir)/libtcutil \
+	-fPIC -DPIC
 
 noinst_LTLIBRARIES = libmpeg.la
 
