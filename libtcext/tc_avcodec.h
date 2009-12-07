@@ -33,7 +33,6 @@
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 
-#include "ext/tc_ext.h"
 
 /*************************************************************************/
 

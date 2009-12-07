@@ -110,8 +110,6 @@ int tc_magick_fini(TCMagickContext *ctx)
     if (ref == 0) {
         DestroyMagick();
     }
-    tc_mutex_unlock(&tc_magick_mutex);
-
     return ret;
 }
 
