@@ -263,8 +263,6 @@ void dummy_tcformat(void)
 
 
 #include "libtcutil/static_tcutil.h"
-#include "avilib/static_avilib.h"
-#include "avilib/static_wavlib.h"
 
 /*************************************************************************/
 
