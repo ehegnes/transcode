@@ -33,10 +33,10 @@
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 
+#include "ext/tc_ext.h"
+
 /*************************************************************************/
 
-void tc_lock_libavcodec(void);
-void tc_unlock_libavcodec(void);
 
 /*
  *  libavcodec locking goodies. It's preferred and encouraged  to use
