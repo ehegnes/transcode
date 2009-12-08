@@ -214,6 +214,7 @@ int main(int argc, char *argv[])
 
           case 'A':
             if (optarg[0] == '-') usage(EXIT_FAILURE);
+            str = optarg;
             while (1) {
                 x = strtol(str, &end, 0);
                 if ((end == str) || (x < 1) || (x > 0xff)) {
@@ -229,13 +230,14 @@ int main(int argc, char *argv[])
                     exit(1);
                 }
                 str = end + 1;
-                new_pass = realloc(pass, (npass + 1) * sizeof (int));
+                new_pass = tc_realloc(pass, (npass + 1) * sizeof (int));
                 if (new_pass == NULL) {
                     tc_log_error(EXE, "out of memory");
                     exit(1);
                 }
                 pass = new_pass;
-                pass[npass++] = (int)x;
+                pass[npass] = (int)x;
+                npass++;
             }
             break;
 
