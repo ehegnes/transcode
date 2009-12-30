@@ -40,7 +40,7 @@ int gop, gop_pts, gop_cnt;
  *
  * ------------------------------------------------------------*/
 
-void tcdemux_pass_through(info_t *ipipe, int *pass)
+void tcdemux_pass_through(info_t *ipipe, int *pass, int npass)
 {
 
     int k, id=0;
@@ -113,7 +113,11 @@ void tcdemux_pass_through(info_t *ipipe, int *pass)
     ++seq_seek;
 
     tc_log_msg(__FILE__, "0=0x%x 1=0x%x 2=0x%x 3=0x%x 4=0x%x",
-	       pass[0], pass[1], pass[2], pass[3], pass[4]);
+	       npass>0 ? pass[0] : 0,
+	       npass>1 ? pass[1] : 0,
+	       npass>2 ? pass[2] : 0,
+	       npass>3 ? pass[3] : 0,
+	       npass>4 ? pass[4] : 0);
 
     for(;;) {
 
