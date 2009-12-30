@@ -95,7 +95,7 @@ static const mpeg_pkt_t* mpeg_es_read_packet(mpeg_t *MPEG, int stream_id)
 
 #define MPEG_ES_PROBE_BUFSIZE                   256
 
-mpeg_res_t mpeg_es_probe(mpeg_t *MPEG)
+static mpeg_res_t mpeg_es_probe(mpeg_t *MPEG)
 {
     int ret = MPEG_OK, i = 0;
     uint8_t data[MPEG_ES_PROBE_BUFSIZE];
