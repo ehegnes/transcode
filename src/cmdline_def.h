@@ -702,8 +702,11 @@ TC_OPTION(export_codec,       'N', "format string",
                     }
                 }
                 tc_strfreev(pieces);
-                if (vob->ex_v_codec == TC_CODEC_ERROR
-                 || vob->ex_a_codec == TC_CODEC_ERROR) {
+                if (((vob->export_attributes & TC_EXPORT_ATTRIBUTE_VCODEC)
+                     && vob->ex_v_codec == TC_CODEC_ERROR)
+                 || ((vob->export_attributes & TC_EXPORT_ATTRIBUTE_ACODEC)
+                     && vob->ex_a_codec == TC_CODEC_ERROR)
+                ) {
                     tc_error("unknown A/V format for -N/--export_format");
                     goto short_usage;
                 }
