@@ -41,6 +41,10 @@
  *  libavcodec locking goodies. It's preferred and encouraged  to use
  *  macros below, but accessing libavcodec mutex will work too.
  */
+
+void tc_lock_libavcodec(void);
+void tc_unlock_libavcodec(void);
+
 /* backward compatibility */
 #define TC_LOCK_LIBAVCODEC	tc_lock_libavcodec()
 #define TC_UNLOCK_LIBAVCODEC	tc_unlock_libavcodec()

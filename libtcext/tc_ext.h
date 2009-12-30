@@ -24,9 +24,6 @@
 
 int tc_ext_init(void);
 
-void tc_lock_libavcodec(void);
-void tc_unlock_libavcodec(void);
-
 int tc_ref_graphicsmagick(void);
 int tc_unref_graphicsmagick(void);
 
