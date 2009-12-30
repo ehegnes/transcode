@@ -38,6 +38,8 @@
  * Or both. --  FR
  */
 
+int gop, gop_pts, gop_cnt;
+
 /* ------------------------------------------------------------
  *
  * demuxer pass_through mode
