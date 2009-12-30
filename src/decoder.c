@@ -921,7 +921,7 @@ struct tcmultiimportdata_ {
     ProbeInfo       infos;
 
     int             (*open)(TCImportData *data);
-    int             (*import_loop)(TCThreadData *td, TCImportData *data);
+    int             (*import_loop)(TCThreadData *td, void *datum);
     int             (*close)(TCImportData *data);
 
     int             (*next)(vob_t *vob);
