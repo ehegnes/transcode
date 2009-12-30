@@ -9,7 +9,7 @@
  */
 
 #define MOD_NAME        "import_vag.so"
-#define MOD_VERSION     "v1.0.0 (2006-04-18)"
+#define MOD_VERSION     "v1.1.0 (2009-12-30)"
 #define MOD_CAP         "Imports PlayStation VAG-format audio"
 #define MOD_AUTHOR      "Andrew Church"
 
@@ -59,21 +59,22 @@
 
 /* Private data used by this module. */
 typedef struct {
-    int blocksize;      /* Stereo block size */
+    enum {VAG,PCM} type; /* bits==1 in SShd block indicates 16-bit PCM data */
+    int blocksize;       /* Stereo block size */
     uint8_t databuf[MAX_STEREO_BLOCK];  /* For accumulating data */
     int datalen;
     int datapos;
-    int nclip;          /* Number of sampled clipped */
-    int prevsamp[2][2]; /* prevsamp[ch][0] is the immediately previous sample;
-                         * prevsamp[ch][1] is the sample before that */
-    int totalread;      /* For statistics */
+    int nclip;           /* Number of sampled clipped */
+    int prevsamp[2][2];  /* prevsamp[ch][0] is the immediately previous sample;
+                          * prevsamp[ch][1] is the sample before that */
+    int totalread;       /* For statistics */
 } PrivateData;
 
 /* Local routine declarations. */
 static int vag_decode(TCModuleInstance *self,
                       aframe_list_t *inframe, aframe_list_t *outframe);
-static void do_decode(const uint8_t *inbuf, int16_t *outbuf, int chan,
-                      PrivateData *pd);
+static int do_decode(const uint8_t *inbuf, int16_t *outbuf, int chan,
+                     PrivateData *pd);
 
 /*************************************************************************/
 /*************************************************************************/
@@ -89,7 +90,7 @@ static void do_decode(const uint8_t *inbuf, int16_t *outbuf, int chan,
 
 static int vag_init(TCModuleInstance *self, uint32_t features)
 {
-    PrivateData *pd = NULL;
+    PrivateData *pd;
 
     TC_MODULE_SELF_CHECK(self, "init");
     TC_MODULE_INIT_CHECK(self, MOD_FEATURES, features);
@@ -99,6 +100,7 @@ static int vag_init(TCModuleInstance *self, uint32_t features)
         tc_log_error(MOD_NAME, "init: out of memory!");
         return TC_ERROR;
     }
+    pd->type = VAG;
     pd->blocksize = DEF_STEREO_BLOCK;
     self->userdata = pd;
 
@@ -150,7 +152,7 @@ static int vag_configure(TCModuleInstance *self,
 
 static int vag_stop(TCModuleInstance *self)
 {
-    PrivateData *pd = NULL;
+    PrivateData *pd;
 
     TC_MODULE_SELF_CHECK(self, "stop");
 
@@ -183,7 +185,7 @@ static int vag_stop(TCModuleInstance *self)
 static int vag_inspect(TCModuleInstance *self,
                        const char *param, const char **value)
 {
-    PrivateData *pd = NULL;
+    PrivateData *pd;
     static char buf[TC_BUF_MAX];
 
     TC_MODULE_SELF_CHECK(self, "inspect");
@@ -212,12 +214,10 @@ static int vag_inspect(TCModuleInstance *self,
 
 /*************************************************************************/
 
-static const TCCodecID vag_codecs_audio_in[] = { 
-    TC_CODEC_VAG, TC_CODEC_ERROR 
-};
-static const TCCodecID vag_codecs_audio_out[] = { 
-    TC_CODEC_PCM, TC_CODEC_ERROR 
-};
+static const TCCodecID vag_codecs_audio_in[] =
+    { TC_CODEC_VAG, TC_CODEC_ERROR };
+static const TCCodecID vag_codecs_audio_out[] =
+    { TC_CODEC_PCM, TC_CODEC_ERROR };
 TC_MODULE_VIDEO_UNSUPPORTED(vag);
 TC_MODULE_CODEC_FORMATS(vag);
 
@@ -301,16 +301,17 @@ static int vag_decode(TCModuleInstance *self,
 /*************************************************************************/
 
 /**
- * do_decode:  Decode a single block of 16 bytes into 28 samples.
+ * do_decode:  Decode a single block of 16 bytes into 28 samples (VAG mode)
+ * or 8 samples (PCM mode).
  *
  * Parameters:
  *      inbuf: Pointer to 16 input bytes.
- *     outbuf: Pointer to buffer of 56 bytes (28 samples).
+ *     outbuf: Pointer to buffer of at least 56 bytes (28 samples).
  *       chan: Channel selector (0 or 1); controls which previous-sample
  *             data is used.
  *         pd: Pointer to module instance's PrivateData structure.
  * Return value:
- *     None.
+ *     The number of samples decoded.
  * Preconditions:
  *     inbuf != NULL
  *     outbuf != NULL
@@ -318,8 +319,8 @@ static int vag_decode(TCModuleInstance *self,
  *     pd != NULL
  */
 
-static void do_decode(const uint8_t *inbuf, int16_t *outbuf, int chan,
-                      PrivateData *pd)
+static int do_decode(const uint8_t *inbuf, int16_t *outbuf, int chan,
+                     PrivateData *pd)
 {
     static const int predict[16][2] = {
         {  0,  0},
@@ -335,6 +336,11 @@ static void do_decode(const uint8_t *inbuf, int16_t *outbuf, int chan,
     int prev0 = pd->prevsamp[chan][0];  /* Pull into variables for speed */
     int prev1 = pd->prevsamp[chan][1];
     int i;
+
+    if (pd->type == PCM) {
+        memcpy(outbuf, inbuf, 16);
+        return 8;
+    }
 
     for (i = 0; i < 28; i++) {
         int val;
@@ -377,6 +383,9 @@ static void do_decode(const uint8_t *inbuf, int16_t *outbuf, int chan,
     pd->prevsamp[chan][0] = prev0;
     pd->prevsamp[chan][1] = prev1;
     pd->totalread += 16;
+
+    /* 28 samples decoded */
+    return 28;
 }
 
 /*************************************************************************/
@@ -525,12 +534,14 @@ MOD_close
 /**
  * xread:  Read data like fread(), but if `mpeg_mode' is nonzero, extract
  * the data from the MPEG stream.  Parameters and return value are as for
- * fread() (except that the buffer is of type uint8_t * for simplicity).
+ * fread(), except that the buffer is of type uint8_t * for simplicity, and
+ * the PrivateData parameter is passed so internal state can be referenced.
  * This is a really ugly hack; I hope the new module system gets moving
  * soon...
  */
 
-static size_t xread(uint8_t *buf, size_t elsize, size_t els, FILE *f)
+static size_t xread(uint8_t *buf, size_t elsize, size_t els, FILE *f,
+                    PrivateData *pd)
 {
     int nread;  /* Total bytes read */
     uint8_t readbuf[2048];
@@ -637,18 +648,9 @@ static size_t xread(uint8_t *buf, size_t elsize, size_t els, FILE *f)
                 if (fread(readbuf, 1, 1, f) != 1)
                     break;
                 packetlen -= 1;
-                if (packetlen > 1) {
-                    if (fread(readbuf+1, 1, 1, f) != 1)
-                        break;
-                    packetlen -= 1;
-                } else {
-                    readbuf[1] = 0;  // anything but 0xA1
-                }
-                if (verbose & TC_DEBUG) {
-                    tc_log_msg(MOD_NAME, "... stream code %02X %02X",
-                               readbuf[0], readbuf[1]);
-                }
-                if (readbuf[0] != 0xFF || readbuf[1] != 0xA1) {
+                if (verbose & TC_DEBUG)
+                    tc_log_msg(MOD_NAME, "... stream code 0x%02X", readbuf[0]);
+                if (readbuf[0] != 0xFF) {
                     while (packetlen > 0) {
                         int toread = sizeof(readbuf);
                         if (toread > packetlen)
@@ -659,17 +661,18 @@ static size_t xread(uint8_t *buf, size_t elsize, size_t els, FILE *f)
                     }
                     if (packetlen > 0)  /* i.e. read failed */
                         break;
-                } else if (packetlen < 2) {
-                    /* okay, enough is enough */
-                    tc_log_error(MOD_NAME,
-                                 "private stream 1 packet too small!!");
-                    return TC_OK;
                 } else {
                     /* A desired data packet, at last */
                     int toread;
-                    if (fread(readbuf, 2, 1, f) != 1)
+                    if (packetlen < 3) {
+                        /* okay, enough is enough */
+                        tc_log_error(MOD_NAME,
+                                     "private stream 1 packet too small!!");
+                        return TC_OK;
+                    }
+                    if (fread(readbuf, 3, 1, f) != 1)
                         break;
-                    packetlen -= 2;
+                    packetlen -= 3;
                     /* FIXME: this won't work if we read 1 byte at a time */
                     if (mpeg_check_for_header
                      && packetlen >= 4
@@ -694,9 +697,14 @@ static size_t xread(uint8_t *buf, size_t elsize, size_t els, FILE *f)
                                   | readbuf[22]<<16 | readbuf[23]<<24;
                             size  = readbuf[36]     | readbuf[37]<<8
                                   | readbuf[38]<<16 | readbuf[39]<<24;
+                            if (bits == 1) {
+                                pd->type = PCM;
+                                bits = 16;
+                            }
                             tc_log_info(MOD_NAME,
-                                        "MPEG-embedded audio: %d/%d/%d,"
+                                        "MPEG-embedded %s audio: %d/%d/%d,"
                                         " stereo blocksize %d, %d data bytes",
+                                        pd->type==PCM ? "PCM" : "VAG",
                                         rate, bits, chans, block, size);
                         } else {
                             memcpy(buf+nread, readbuf, 4);
@@ -749,7 +757,7 @@ MOD_decode
         /* Now read the next block of data and decode it to the output buffer*/
         if (vob->a_chan == 2 && static_pd.datapos >= static_pd.datalen) {
             /* Finished the previous stereo block, read a new one */
-            if (xread(static_pd.databuf, static_pd.blocksize, 1, file) != 1) {
+            if (xread(static_pd.databuf, static_pd.blocksize, 1, file, &static_pd) != 1) {
                 if (verbose & TC_DEBUG)
                     tc_log_msg(MOD_NAME, "EOF reached");
                 break;
@@ -757,24 +765,25 @@ MOD_decode
             static_pd.datalen = static_pd.blocksize;
             static_pd.datapos = 0;
         }
-        if (xread(inbuf, 16, 1, file) != 1) {
+        if (xread(inbuf, 16, 1, file, &static_pd) != 1) {
             if (verbose & TC_DEBUG)
                 tc_log_msg(MOD_NAME, "EOF reached");
             break;
         }
         if (vob->a_chan == 1) {
-            do_decode(inbuf, saved_samples, 0, &static_pd);
-            saved_samples_count = 28;
+            saved_samples_count =
+                do_decode(inbuf, saved_samples, 0, &static_pd);
         } else {
             uint16_t outbuf0[28], outbuf1[28];
-            int i;
-            do_decode(inbuf, outbuf0, 0, &static_pd);
-            do_decode(inbuf, outbuf1, 1, &static_pd);
-            for (i = 0; i < 28; i++) {
+            int i, nsamp;
+            nsamp = do_decode(static_pd.databuf + static_pd.datapos,
+                                     outbuf0, 0, &static_pd);
+            (void)  do_decode(inbuf, outbuf1, 1, &static_pd);
+            for (i = 0; i < nsamp; i++) {
                 saved_samples[i*2  ] = outbuf0[i];
                 saved_samples[i*2+1] = outbuf1[i];
             }
-            saved_samples_count = 56;
+            saved_samples_count = nsamp*2;
             static_pd.datapos += 16;
         }
     }
