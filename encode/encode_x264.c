@@ -737,17 +737,25 @@ static int tc_x264_setup_extradata(X264PrivateData *pd)
 {
     x264_nal_t *nal = NULL;
     int i = 0, ret = 0, nal_count = 0;
-    uint8_t buf[X264_HEADER_LEN_MAX] = { 0 };
     uint8_t pps[X264_HEADER_LEN_MAX] = { 0 };
     uint8_t sps[X264_HEADER_LEN_MAX] = { 0 };
     uint8_t sei[X264_HEADER_LEN_MAX] = { 0 };
-    int buf_len = 0, pps_len = 0, sps_len = 0, sei_len = 0;
+    int pps_len = 0, sps_len = 0, sei_len = 0;
+#if X264_BUILD < 76
+    uint8_t buf[X264_HEADER_LEN_MAX] = { 0 };
+    int buf_len = 0;
+#endif
 
     memset(&(pd->hdr_buf), 0, X264_HEADER_LEN_MAX);
     pd->hdr_len = 0;
 
     ret = x264_encoder_headers(pd->enc, &nal, &nal_count);
-    if (ret != 0) {
+#if X264_BUILD >= 76
+    if (ret < 0)
+#else
+    if (ret != 0)
+#endif
+    {
         tc_log_error(MOD_NAME, "error encoding the headers");
         return TC_ERROR;
     }
@@ -755,21 +763,40 @@ static int tc_x264_setup_extradata(X264PrivateData *pd)
 
     for (i = 0; i < nal_count; i++) {
         switch (nal[i].i_type) {
-           case H264_NAL_TYPE_SEQ_PARAM:
-		    ret = x264_nal_encode(sps, &sps_len, 0, &nal[i]);
+          case H264_NAL_TYPE_SEQ_PARAM:
+#if X264_BUILD >= 76
+            sps_len = nal[i].i_payload;
+            memcpy(sps, nal[i].p_payload, sps_len);
+#else
+            ret = x264_nal_encode(sps, &sps_len, 0, &nal[i]);
+#endif
             break;
           case H264_NAL_TYPE_PIC_PARAM:
-		    ret = x264_nal_encode(pps, &pps_len, 0, &nal[i]);
+#if X264_BUILD >= 76
+            pps_len = nal[i].i_payload;
+            memcpy(pps, nal[i].p_payload, pps_len);
+#else
+            ret = x264_nal_encode(pps, &pps_len, 0, &nal[i]);
+#endif
             break;
           case H264_NAL_TYPE_SEI:
+#if X264_BUILD >= 76
+            sei_len = nal[i].i_payload;
+            memcpy(sei, nal[i].p_payload, sei_len);
+#else
             ret = x264_nal_encode(sei, &sei_len, 0, &nal[i]);
-		  	break;
+#endif
+            break;
           default:
             tc_log_warn(MOD_NAME, "unexpected type 0x%X nal #%i",
                         nal[i].i_type, i);
+#if X264_BUILD < 76
             ret = x264_nal_encode(buf, &buf_len, 0, &nal[i]);
+#endif
         }
+#if X264_BUILD < 76
         RETURN_ERROR_IF_BAD_LEN(ret, "error encoding nal header");
+#endif
     }
 
     RETURN_ERROR_IF_BAD_LEN(sps_len, "missing SPS");
@@ -791,7 +818,7 @@ static int tc_x264_setup_extradata(X264PrivateData *pd)
     pd->hdr_len++;
     HDR_BUF_ADD_XPS(pd, pps, pps_len);
 
-    tc_debug(TC_DEBUG_PRIVATE, "header length=%i", buf->hdr_len);
+    tc_debug(TC_DEBUG_PRIVATE, "header length=%i", pd->hdr_len);
 
     return TC_OK;
 }
@@ -1055,7 +1082,10 @@ static int x264_encode_video(TCModuleInstance *self,
 
     outframe->video_len = 0;
     for (i = 0; i < nnal; i++) {
-        int size, ret;
+        int size;
+#if X264_BUILD < 76
+        int ret;
+#endif
 
         size = outframe->video_size - outframe->video_len;
         if (size <= 0) {
@@ -1063,8 +1093,8 @@ static int x264_encode_video(TCModuleInstance *self,
             return TC_ERROR;
         }
 #if X264_BUILD >= 76
-	    ac_memcpy(outframe->video_buf + outframe->video_len, nal[i].p_payload, nal[i].i_payload); 
-	    outframe->video_len += nal[i].i_payload;
+        ac_memcpy(outframe->video_buf + outframe->video_len, nal[i].p_payload, nal[i].i_payload); 
+        outframe->video_len += nal[i].i_payload;
 #else
         ret = x264_nal_encode(outframe->video_buf + outframe->video_len,
                               &size, 1, &nal[i]);
