@@ -1087,18 +1087,14 @@ static int x264_encode_video(TCModuleInstance *self,
 
     outframe->video_len = 0;
     for (i = 0; i < nnal; i++) {
-        int size;
-#if X264_BUILD < 76
-        int ret;
-#endif
-
-        size = outframe->video_size - outframe->video_len;
+        int size = outframe->video_size - outframe->video_len;
         if (size <= 0) {
             tc_log_error(MOD_NAME, "output buffer overflow");
             return TC_ERROR;
         }
 #if X264_BUILD >= 76
-        ac_memcpy(outframe->video_buf + outframe->video_len, nal[i].p_payload, nal[i].i_payload); 
+        ac_memcpy(outframe->video_buf + outframe->video_len,
+                  nal[i].p_payload, nal[i].i_payload); 
         outframe->video_len += nal[i].i_payload;
 #else
         ret = x264_nal_encode(outframe->video_buf + outframe->video_len,
