@@ -1,7 +1,7 @@
 /*
  * tcglob.h -- simple iterator over a path collection expressed through
  *             glob (7) semantic.
- * (C) 2007-2009 - Francesco Romani <fromani -at- gmail -dot- com>
+ * (C) 2007-2010 - Francesco Romani <fromani -at- gmail -dot- com>
  *
  * This file is part of transcode, a video stream processing tool.
  *
