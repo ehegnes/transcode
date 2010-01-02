@@ -17,15 +17,8 @@
  */
 
 
-/* TODO: 
-
-- Various smaller things -> search for "TODO" and for "QUESTIONS" in
-  the rest of the code
-
-*/
-
-
 #include "transcode.h"
+#include "aclib/ac.h"
 #include "libtc/libtc.h"
 #include "libtc/cfgfile.h"
 #include "libtc/optstr.h"
@@ -33,10 +26,13 @@
 #include "libtc/ratiocodes.h"
 
 #include <x264.h>
+#if X264_BUILD < 65
+# error x264 version 65 or later is required
+#endif
 
 
 #define MOD_NAME    "encode_x264.so"
-#define MOD_VERSION "v0.2.6 (2009-06-17)"
+#define MOD_VERSION "v0.3.2s (2010-01-02)"
 #define MOD_CAP     "x264 encoder"
 
 #define MOD_FEATURES \
@@ -67,10 +63,8 @@ static struct confdata_struct {
     x264_param_t x264params;
     /* Dummy fields for obsolete options */
     int dummy_direct_8x8;
-#if X264_BUILD >= 65
     int dummy_bidir_me;
     int dummy_brdo;
-#endif
     /* Local parameters */
     int twopass_bug_workaround;
 } confdata;
@@ -158,11 +152,8 @@ static TCConfigEntry conf[] ={
     /* How many B-frames between 2 reference pictures */
     OPT_RANGE(i_bframe,                   "bframes",        0,    16)
     /* Use adaptive B-frame encoding */
-#if X264_BUILD < 64
-    OPT_FLAG (b_bframe_adaptive,          "b_adapt")
-#else
     OPT_FLAG (i_bframe_adaptive,          "b_adapt")
-#endif
+
     /* How often B-frames are used */
     OPT_RANGE(i_bframe_bias,              "b_bias",       -90,   100)
     /* Keep some B-frames as references */
@@ -184,8 +175,17 @@ static TCConfigEntry conf[] ={
     /* Initial data for CABAC? */
     OPT_RANGE(i_cabac_init_idc,           "cabac_init_idc", 0,     2)
 
+#ifdef HAVE_X264_NAL_HRD
+    /* Add NAL HRD parameters to the bitstream */
+    OPT_FLAG (b_nal_hrd,                  "nal_hrd")
+#endif
+
     /* Enable interlaced encoding (--encode_fields) */
     OPT_NONE (b_interlaced)
+#ifdef HAVE_X264_NAL_HRD
+    /* First field (1=top, 0=bottom) (--encode_fields) */
+    OPT_NONE (b_tff)
+#endif
 
     /* Quantization matrix selection: 0=flat 1=JVT 2=custom */
     OPT_RANGE(i_cqm_preset,               "cqm",            0,     2)
@@ -296,21 +296,10 @@ static TCConfigEntry conf[] ={
 
     {"direct_8x8",   &confdata.dummy_direct_8x8, TCCONF_TYPE_FLAG, 0, 0, 1},
     {"nodirect_8x8", &confdata.dummy_direct_8x8, TCCONF_TYPE_FLAG, 0, 1, 0},
-#if X264_BUILD < 65
-    /* Bidirectional motion estimation */
-    OPT_FLAG (analyse.b_bidir_me,         "bidir_me")
-    /* RD based mode decision for B-frames */
-    OPT_FLAG (analyse.b_bframe_rdo,       "brdo")
-#else
-    {"bidir_me",   &confdata.dummy_bidir_me, TCCONF_TYPE_FLAG, 0, 0, 1},
-    {"nobidir_me", &confdata.dummy_bidir_me, TCCONF_TYPE_FLAG, 0, 1, 0},
-    {"brdo",       &confdata.dummy_brdo,     TCCONF_TYPE_FLAG, 0, 0, 1},
-    {"nobrdo",     &confdata.dummy_brdo,     TCCONF_TYPE_FLAG, 0, 1, 0},
-#endif
-#if X264_BUILD < 64
-    /* Rate control equation for 2-pass encoding (like FFmpeg) */
-    OPT_STR  (rc.psz_rc_eq,               "rc_eq")
-#endif
+    {"bidir_me",     &confdata.dummy_bidir_me,   TCCONF_TYPE_FLAG, 0, 0, 1},
+    {"nobidir_me",   &confdata.dummy_bidir_me,   TCCONF_TYPE_FLAG, 0, 1, 0},
+    {"brdo",         &confdata.dummy_brdo,       TCCONF_TYPE_FLAG, 0, 0, 1},
+    {"nobrdo",       &confdata.dummy_brdo,       TCCONF_TYPE_FLAG, 0, 1, 0},
 
     {NULL}
 };
@@ -472,6 +461,9 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
     params->i_height = vob->ex_v_height;
     params->b_interlaced = (vob->encode_fields==TC_ENCODE_FIELDS_TOP_FIRST
                          || vob->encode_fields==TC_ENCODE_FIELDS_BOTTOM_FIRST);
+#ifdef HAVE_X264_NAL_HRD
+    params->b_tff        = (vob->encode_fields==TC_ENCODE_FIELDS_TOP_FIRST);
+#endif
 
     if (params->rc.f_rf_constant != 0) {
         params->rc.i_rc_method = X264_RC_CRF;
@@ -516,10 +508,6 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
     if (tc_accel & AC_MMXEXT)   params->cpu |= X264_CPU_MMXEXT;
     if (tc_accel & AC_SSE)      params->cpu |= X264_CPU_SSE;
     if (tc_accel & AC_SSE2)     params->cpu |= X264_CPU_SSE2;
-#if X264_BUILD < 60
-    if (tc_accel & AC_3DNOW)    params->cpu |= X264_CPU_3DNOW;
-    if (tc_accel & AC_3DNOWEXT) params->cpu |= X264_CPU_3DNOWEXT;
-#endif
 
     return TC_OK;
 }
@@ -743,10 +731,8 @@ static int x264_configure(TCModuleInstance *self,
 
     /* Watch for obsolete options being set */
     confdata.dummy_direct_8x8 = -1;
-#if X264_BUILD >= 65
     confdata.dummy_bidir_me = -1;
     confdata.dummy_brdo = -1;
-#endif
 
     /* Read settings from configuration file */
     module_read_config(X264_CONFIG_FILE, NULL, conf, MOD_NAME);
@@ -768,7 +754,6 @@ static int x264_configure(TCModuleInstance *self,
         tc_log_warn(MOD_NAME, "Option direct_8x8 is obsolete, and is now"
                     " always active.");
     }
-#if X264_BUILD >= 65
     if (confdata.dummy_bidir_me != -1) {
         tc_log_warn(MOD_NAME,
                     "Option bidir_me is obsolete in x264 version 65.\n"
@@ -780,14 +765,6 @@ static int x264_configure(TCModuleInstance *self,
                     "Option bidir_me is obsolete in x264 version 65.\n"
                     "    brdo will be automatically applied when subq >= 7.");
     }
-#endif
-
-#if X264_BUILD < 65
-    /* subq values are different in old x264 builds */
-    if (confdata.x264params.analyse.i_subpel_refine > 7) {
-        confdata.x264params.analyse.i_subpel_refine = 7;
-    }
-#endif
 
     /* Save multipass logfile name if 2-pass bug workaround was requested */
     if (confdata.twopass_bug_workaround
@@ -800,7 +777,7 @@ static int x264_configure(TCModuleInstance *self,
                          " 2pass_bug_workaround option.");
             return TC_ERROR;
         }
-        memcpy(pd->twopass_log_path, vob->divxlogfile, strsize);
+        ac_memcpy(pd->twopass_log_path, vob->divxlogfile, strsize);
         pd->twopass_bug_workaround = 1;
     } else {
         pd->twopass_bug_workaround = 0;
@@ -914,12 +891,12 @@ static int x264_inspect(TCModuleInstance *self,
  */
 
 static int x264_encode_video(TCModuleInstance *self,
-                            vframe_list_t *inframe, vframe_list_t *outframe)
+                             vframe_list_t *inframe, vframe_list_t *outframe)
 {
     X264PrivateData *pd;
     x264_nal_t *nal;
     x264_picture_t pic, pic_out;
-    int nnal, i;
+    int nnal, i, ret;
 
     TC_MODULE_SELF_CHECK(self, "encode_video");
 
@@ -927,52 +904,55 @@ static int x264_encode_video(TCModuleInstance *self,
 
     pd->framenum++;
 
+    memset(&pic,     0, sizeof(pic));
+    memset(&pic_out, 0, sizeof(pic_out));
+
     if (inframe == NULL) {
         outframe->video_len = 0;
         return TC_OK;
     }
 
     pic.img.i_csp = X264_CSP_I420;
-    pic.img.i_plane = 3;
+    pic.img.i_plane     = 3;
 
-    pic.img.plane[0] = inframe->video_buf;
+    pic.img.plane[0]    = inframe->video_buf;
     pic.img.i_stride[0] = inframe->v_width;
 
-    pic.img.plane[1] = pic.img.plane[0] + inframe->v_width*inframe->v_height;
+    pic.img.plane[1]    = pic.img.plane[0]
+                          + inframe->v_width*inframe->v_height;
     pic.img.i_stride[1] = inframe->v_width / 2;
 
-    pic.img.plane[2] = pic.img.plane[1]
-                     + (inframe->v_width/2)*(inframe->v_height/2);
+    pic.img.plane[2]    = pic.img.plane[1]
+                          + (inframe->v_width/2)*(inframe->v_height/2);
     pic.img.i_stride[2] = inframe->v_width / 2;
 
 
     pic.i_type = X264_TYPE_AUTO;
     pic.i_qpplus1 = 0;
-    /* QUESTION: Is this pts-handling ok? I don't have a clue how
+    /* FIXME: Is this pts-handling ok? I don't have a clue how
      * PTS/DTS handling works. Does it matter, when no muxing is
      * done? */
     pic.i_pts = (int64_t) pd->framenum * pd->x264params.i_fps_den;
 
+    ret = x264_encoder_encode(pd->enc, &nal, &nnal, &pic, &pic_out);
 #if X264_BUILD >= 76
-    if (x264_encoder_encode(pd->enc, &nal, &nnal, &pic, &pic_out) < 0) {
+    if (ret < 0) {
 #else
-    if (x264_encoder_encode(pd->enc, &nal, &nnal, &pic, &pic_out) != 0) {
+    if (ret != 0) {
 #endif
         return TC_ERROR;
     }
 
     outframe->video_len = 0;
     for (i = 0; i < nnal; i++) {
-        int size, ret;
-
-        size = outframe->video_size - outframe->video_len;
+        int size = outframe->video_size - outframe->video_len;
         if (size <= 0) {
             tc_log_error(MOD_NAME, "output buffer overflow");
             return TC_ERROR;
         }
 #if X264_BUILD >= 76
-	memcpy(outframe->video_buf + outframe->video_len, nal[i].p_payload, nal[i].i_payload); 
-	outframe->video_len += nal[i].i_payload;
+        ac_memcpy(outframe->video_buf + outframe->video_len, nal[i].p_payload, nal[i].i_payload); 
+        outframe->video_len += nal[i].i_payload;
 #else
         ret = x264_nal_encode(outframe->video_buf + outframe->video_len,
                               &size, 1, &nal[i]);
