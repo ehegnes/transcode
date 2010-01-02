@@ -2,7 +2,7 @@
  *  libtc.h - include file for utilities library for transcode
  *
  *  Copyright (C) Thomas Oestreich - August 2003
- *  Copyright (C) Transcode Team - 2005-2009
+ *  Copyright (C) Transcode Team - 2005-2010
  *
  *  This file is part of transcode, a video stream processing tool
  *

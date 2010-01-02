@@ -1,7 +1,7 @@
 /*
  *  import_framegen.c -- generate an infinite stream of synthetic frames
  *                       for testing purposes.
- *  (C) 2009 Francesco Romani <fromani at gmail dot com>
+ *  (C) 2009-2010 Francesco Romani <fromani at gmail dot com>
  *  using some video frame filling code which is
  *  Copyright (C) Thomas Oestreich - June 2001
  *  some code derived by alsa-utils/speakertest, which is
