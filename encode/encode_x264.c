@@ -818,7 +818,7 @@ static int tc_x264_setup_extradata(X264PrivateData *pd)
     pd->hdr_len++;
     HDR_BUF_ADD_XPS(pd, pps, pps_len);
 
-    tc_debug(TC_DEBUG_PRIVATE, "header length=%i", pd->hdr_len);
+    tc_debug(TC_DEBUG_PRIVATE, "header length=%i", (int)pd->hdr_len);
 
     return TC_OK;
 }
@@ -1043,7 +1043,7 @@ static int x264_encode_video(TCModuleInstance *self,
     X264PrivateData *pd;
     x264_nal_t *nal;
     x264_picture_t pic, pic_out;
-    int nnal, i;
+    int nnal, i, ret;
 
     TC_MODULE_SELF_CHECK(self, "encode_video");
 
@@ -1051,17 +1051,21 @@ static int x264_encode_video(TCModuleInstance *self,
 
     pd->framenum++;
 
-    pic.img.i_csp = X264_CSP_I420;
-    pic.img.i_plane = 3;
+    memset(&pic,     0, sizeof(pic));
+    memset(&pic_out, 0, sizeof(pic_out));
 
-    pic.img.plane[0] = inframe->video_buf;
+    pic.img.i_csp = X264_CSP_I420;
+    pic.img.i_plane     = 3;
+
+    pic.img.plane[0]    = inframe->video_buf;
     pic.img.i_stride[0] = inframe->v_width;
 
-    pic.img.plane[1] = pic.img.plane[0] + inframe->v_width*inframe->v_height;
+    pic.img.plane[1]    = pic.img.plane[0]
+                          + inframe->v_width*inframe->v_height;
     pic.img.i_stride[1] = inframe->v_width / 2;
 
-    pic.img.plane[2] = pic.img.plane[1]
-                     + (inframe->v_width/2)*(inframe->v_height/2);
+    pic.img.plane[2]    = pic.img.plane[1]
+                          + (inframe->v_width/2)*(inframe->v_height/2);
     pic.img.i_stride[2] = inframe->v_width / 2;
 
 
@@ -1072,10 +1076,11 @@ static int x264_encode_video(TCModuleInstance *self,
      * done? */
     pic.i_pts = (int64_t) pd->framenum * pd->x264params.i_fps_den;
 
+    ret = x264_encoder_encode(pd->enc, &nal, &nnal, &pic, &pic_out);
 #if X264_BUILD >= 76
-    if (x264_encoder_encode(pd->enc, &nal, &nnal, &pic, &pic_out) < 0) {
+    if (ret < 0) {
 #else
-    if (x264_encoder_encode(pd->enc, &nal, &nnal, &pic, &pic_out) != 0) {
+    if (ret != 0) {
 #endif
         return TC_ERROR;
     }
