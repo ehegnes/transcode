@@ -29,7 +29,7 @@ SUBDIRS = \
 	tools \
 	docs
 
-EXTRA_DIST = STYLE transcode.spec
+EXTRA_DIST = STYLE transcode.spec hgversion.sh
 
 docsdir = $(datadir)/doc/transcode
 docs_DATA = ChangeLog
