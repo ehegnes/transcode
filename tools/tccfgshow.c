@@ -1,6 +1,6 @@
 /*
  * tccfgshow.c -- inspect the transcode internal settings and constants.
- * (C) 2009 - Francesco Romani <fromani at gmail dot com>
+ * (C) 2009-2010 - Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
  *
@@ -34,7 +34,7 @@ enum {
 
 void version(void)
 {
-    printf("%s (%s v%s) (C) 2009 Transcode Team\n", EXE, PACKAGE, VERSION);
+    printf("%s (%s v%s) (C) 2009-2010 Transcode Team\n", EXE, PACKAGE, VERSION);
 }
 
 static void usage(void)

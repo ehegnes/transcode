@@ -1,7 +1,7 @@
 /*
  * import_v4lcam.c -- imports video frames from v4l2 using libv4l*
  *                    with special focus on webcams.
- * (C) 2009 Francesco Romani <fromani at gmail dot com>
+ * (C) 2009-2010 Francesco Romani <fromani at gmail dot com>
  * based on import_v4l2.c code, which is
  * (C) Erik Slagter <erik@slagter.name> Sept 2003
  *

@@ -3,7 +3,7 @@
  *
  *  Copyright (C) Thomas Oestreich - June 2001
  *  port to GraphicsMagick API:
- *  Copyright (C) Francesco Romani - March 2009
+ *  Copyright (C) Francesco Romani - 2009-2010
  *
  *  This file is part of transcode, a video stream processing tool
  *

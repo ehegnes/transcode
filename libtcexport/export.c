@@ -1,6 +1,6 @@
 /*
  * export.c -- libtcexport common high-level interface.
- * (C) 2009 Francesco Romani <fromani at gmail dot com>
+ * (C) 2009-2010 Francesco Romani <fromani at gmail dot com>
  * based on and derived from the code
  * Copyright (C) Thomas Oestreich - June 2001
  *

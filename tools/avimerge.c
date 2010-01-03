@@ -38,7 +38,7 @@
 void version(void)
 {
   printf("%s (%s v%s) (C) 2001-2004 Thomas Oestreich, T. Bitterberg"
-                        " 2004-2009 Transcode Team\n",
+                        " 2004-2010 Transcode Team\n",
                       EXE, PACKAGE, VERSION);
 }
 

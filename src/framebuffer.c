@@ -1,6 +1,6 @@
 /*
  * framebuffer.c -- audio/video frame ringbuffers, reloaded. Again.
- * (C) 2005-2009 - Francesco Romani <fromani -at- gmail -dot- com>
+ * (C) 2005-2010 - Francesco Romani <fromani -at- gmail -dot- com>
  * Based on code
  * (C) 2001-2006 - Thomas Oestreich.
  *
