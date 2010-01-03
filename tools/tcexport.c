@@ -1,6 +1,6 @@
 /*
  * tcexport.c -- standalone encoder frontend for transcode
- * (C) 2006-2009 - Francesco Romani <fromani at gmail dot com>
+ * (C) 2006-2010 - Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
  *
@@ -100,7 +100,7 @@ struct tcencconf_ {
 
 void version(void)
 {
-    printf("%s v%s (C) 2006-2009 Transcode Team\n",
+    printf("%s v%s (C) 2006-2010 Transcode Team\n",
            EXE, VERSION);
 }
 

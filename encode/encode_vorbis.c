@@ -1,6 +1,6 @@
 /*
  *  encode_vorbis.c -- produces a vorbis stream using libvorbis.
- *  (C) 2007-2009 Francesco Romani <fromani at gmail dot com>
+ *  (C) 2007-2010 Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
  *

@@ -5,7 +5,7 @@
  *  filter updates, enhancements and cleanup:
  *  Copyright (C) Sebastian Kun <seb at sarolta dot com> - March 2006
  *  NMS support:
- *  Copyright (C) Francesco Romani <fromani at gmail dot com> - March 2009
+ *  Copyright (C) Francesco Romani <fromani at gmail dot com> - 2009-2010
  *
  *  This file is part of transcode, a video stream rendering tool
  *

@@ -1,7 +1,7 @@
 /*
  *  import_mpg.c
  *
- *  Copyright (C) Francesco Romani - October 2005/December 2009
+ *  Copyright (C) Francesco Romani - 2005-2010
  *
  *  This file would be part of transcode, a linux video stream  processing tool
  *      

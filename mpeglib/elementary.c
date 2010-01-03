@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2005/2009 Francesco Romani <fromani@gmail.com>
+ *  Copyright (C) 2005/2010 Francesco Romani <fromani@gmail.com>
  * 
  *  This Software is heavily based on tcvp's (http://tcvp.sf.net) 
  *  mpeg muxer/demuxer, which is

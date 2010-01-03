@@ -1,7 +1,7 @@
 /*
  *  filter_barrel.c -- barrel filter: applies or removes barrel distortion
  *
- *  Copyright (C) 2009 Andrew Church; based on filter_invert.c, with
+ *  Copyright (C) 2009-2010 Andrew Church; based on filter_invert.c, with
  *      concept taken from GIMP lens distortion filter
  *  This file is part of transcode, a video stream processing tool
  *

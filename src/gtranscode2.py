@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # 
-# Copyright (c) 2009 Francesco Romani <fromani at gmail dot com>
+# Copyright (c) 2009-2010 Francesco Romani <fromani at gmail dot com>
 #
 # This software is provided 'as-is', without any express or implied
 # warranty. In no event will the authors be held liable for any damages
@@ -679,7 +679,7 @@ class GTranscode2(GTKNotifyWindow):
                 "name" : self._name,
                 "version" : self._version,
                 "comments" : "The transcode GUI",
-                "copyright" : "Copyright (C) 2009 Francesco Romani <fromani@gmail.com>.",
+                "copyright" : "Copyright (C) 2009-2010 Francesco Romani <fromani@gmail.com>.",
                 "website" : "http://tcforge.berlios.de",
                 "website-label" : "Transcode Website",
                 "authors" : ("Francesco Romani <fromani@gmail.com>",),

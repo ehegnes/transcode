@@ -1,6 +1,6 @@
 /*
  * tcmodchain.c -- simple module system explorer frontend
- * (C) 2006-2009 - Francesco Romani <fromani at gmail dot com>
+ * (C) 2006-2010 - Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
  *
@@ -30,7 +30,7 @@
 
 void version(void)
 {
-    printf("%s v%s (C) 2006-2009 Transcode Team\n", EXE, VERSION);
+    printf("%s v%s (C) 2006-2010 Transcode Team\n", EXE, VERSION);
 }
 
 enum {

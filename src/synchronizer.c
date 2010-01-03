@@ -1,6 +1,6 @@
 /*
  * synchronizer.c -- transcode A/V synchronization code - implementation
- * (C) 2008-2009 - Francesco Romani <fromani at gmail dot com>
+ * (C) 2008-2010 - Francesco Romani <fromani at gmail dot com>
  *
  * This file is part of transcode, a video stream processing tool.
  *
