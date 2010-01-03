@@ -71,5 +71,8 @@
 ^filter/parse_csv.awk$
 ^tags$
 ^ctags$
+
+# Scripts
 ^src/gtranscode2.pyc$
+^hgversion.sh$
 
