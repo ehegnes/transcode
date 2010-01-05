@@ -1426,7 +1426,7 @@ AC_SUBST(CFLAGS)
 
 dnl import/export module path
 dnl
-MODULE_PATH="\${libdir}/transcode"
+MODULE_PATH="\${libdir}/transcode\${TC_VERSUFFIX}"
 AC_ARG_WITH(module-path,
   AC_HELP_STRING([--with-module-path],
     [where transcode plugins are installed (${libdir}/transcode)]),
@@ -1435,7 +1435,7 @@ AC_SUBST(MODULE_PATH)
 
 dnl export profiles data path
 dnl
-PROFILE_PATH="\${datadir}/transcode/profiles"
+PROFILE_PATH="\${datadir}/transcode\${TC_VERSUFFIX}/profiles"
 AC_ARG_WITH(profile-path,
   AC_HELP_STRING([--with-profile-path],
     [where export profiles data are installed (${datadir}/transcode/profiles)]),
@@ -1444,7 +1444,7 @@ AC_SUBST(PROFILE_PATH)
 
 dnl module registry data path
 dnl
-REGISTRY_PATH="\${datadir}/transcode"
+REGISTRY_PATH="\${datadir}/transcode\${TC_VERSUFFIX}"
 AC_ARG_WITH(registry-path,
   AC_HELP_STRING([--with-registry-path],
     [where the module registry is installed (${datadir}/transcode)]),
