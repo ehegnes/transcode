@@ -2,7 +2,7 @@ EXTRA_DIST = \
 	$(docs_DATA)
 
 docsdir = \
-	$(datadir)/doc/transcode/html
+	$(datadir)/doc/transcode@TC_VERSUFFIX@/html
 
 docs_DATA =  \
 	dv.html \
