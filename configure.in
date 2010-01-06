@@ -1507,6 +1507,7 @@ AC_CONFIG_FILES([
 	transcode.spec
 	filter/parse_csv.awk
 	filter/filter_list.awk
+	src/gtranscode2.py
 ])
 AC_OUTPUT
 

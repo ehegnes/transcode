@@ -13,12 +13,12 @@ bin_PROGRAMS = \
 	avimerge \
 	avisplit \
 	avisync \
-	tccfgshow \
-	tcexport \
-	tcmodchain \
-	tcmodinfo \
-	tcmp3cut \
-	tcyait
+	tccfgshow@TC_VERSUFFIX@ \
+	tcexport@TC_VERSUFFIX@ \
+	tcmodchain@TC_VERSUFFIX@ \
+	tcmodinfo@TC_VERSUFFIX@ \
+	tcmp3cut@TC_VERSUFFIX@ \
+	tcyait@TC_VERSUFFIX@
 
 avisync_SOURCES = \
 	avisync.c \
@@ -86,20 +86,20 @@ avisplit_LDADD = \
 	$(LIBTC_LIBS) \
 	$(LIBTCUTIL_LIBS)
 
-tccfgshow_SOURCES = tccfgshow.c
-tccfgshow_CPPFLAGS = $(AM_CPPFLAGS) \
+tccfgshow@TC_VERSUFFIX@_SOURCES = tccfgshow.c
+tccfgshow@TC_VERSUFFIX@_CPPFLAGS = $(AM_CPPFLAGS) \
 	$(DLDARWIN_CFLAGS)
-tccfgshow_LDADD = \
+tccfgshow@TC_VERSUFFIX@_LDADD = \
 	$(LIBTC_LIBS) \
 	$(LIBTCEXPORT_LIBS) \
 	$(LIBTCUTIL_LIBS) \
 	$(LIBTCMODULE_LIBS)
 
-tcmodinfo_SOURCES = tcmodinfo.c tcstub.c
-tcmodinfo_CPPFLAGS = $(AM_CPPFLAGS) \
+tcmodinfo@TC_VERSUFFIX@_SOURCES = tcmodinfo.c tcstub.c
+tcmodinfo@TC_VERSUFFIX@_CPPFLAGS = $(AM_CPPFLAGS) \
 	$(DLDARWIN_CFLAGS) \
 	-DTC_FRAMEBUFFER_STUBS=1
-tcmodinfo_LDADD = \
+tcmodinfo@TC_VERSUFFIX@_LDADD = \
 	$(DLDARWIN_LIBS) \
 	$(ACLIB_LIBS) \
 	$(AVILIB_LIBS) \
@@ -112,13 +112,13 @@ tcmodinfo_LDADD = \
 	$(PTHREAD_LIBS) \
 	$(WAVLIB_LIBS) \
 	-lm
-tcmodinfo_LDFLAGS = -export-dynamic
+tcmodinfo@TC_VERSUFFIX@_LDFLAGS = -export-dynamic
 
-tcmodchain_SOURCES = tcmodchain.c tcstub.c
-tcmodchain_CPPFLAGS = $(AM_CPPFLAGS) \
+tcmodchain@TC_VERSUFFIX@_SOURCES = tcmodchain.c tcstub.c
+tcmodchain@TC_VERSUFFIX@_CPPFLAGS = $(AM_CPPFLAGS) \
 	$(DLDARWIN_CFLAGS) \
 	-DTC_FRAMEBUFFER_STUBS=1
-tcmodchain_LDADD = \
+tcmodchain@TC_VERSUFFIX@_LDADD = \
 	$(DLDARWIN_LIBS) \
 	$(ACLIB_LIBS) \
 	$(AVILIB_LIBS) \
@@ -131,9 +131,9 @@ tcmodchain_LDADD = \
 	$(PTHREAD_LIBS) \
 	$(WAVLIB_LIBS) \
 	-lm
-tcmodchain_LDFLAGS = -export-dynamic
+tcmodchain@TC_VERSUFFIX@_LDFLAGS = -export-dynamic
 
-tcexport_SOURCES = tcexport.c \
+tcexport@TC_VERSUFFIX@_SOURCES = tcexport.c \
 	tcstub.c \
 	rawsource.c \
 	rawsource.h \
@@ -141,9 +141,9 @@ tcexport_SOURCES = tcexport.c \
 	../src/framebuffer.c \
 	../src/dl_loader.c \
 	../src/probe.c
-tcexport_CPPFLAGS = $(AM_CPPFLAGS) \
+tcexport@TC_VERSUFFIX@_CPPFLAGS = $(AM_CPPFLAGS) \
 	$(DLDARWIN_CFLAGS)
-tcexport_LDADD = \
+tcexport@TC_VERSUFFIX@_LDADD = \
 	$(DLDARWIN_LIBS) \
 	$(ACLIB_LIBS) \
 	$(AVILIB_LIBS) \
@@ -159,19 +159,18 @@ tcexport_LDADD = \
 	$(PTHREAD_LIBS) \
 	$(WAVLIB_LIBS) \
 	-lm
-tcexport_LDFLAGS = -export-dynamic
+tcexport@TC_VERSUFFIX@_LDFLAGS = -export-dynamic
 
-tcmp3cut_SOURCES = \
+tcmp3cut@TC_VERSUFFIX@_SOURCES = \
 	tcmp3cut.c \
 	aud_scan.c \
 	aud_scan.h
-tcmp3cut_LDADD = \
+tcmp3cut@TC_VERSUFFIX@_LDADD = \
 	$(LIBTC_LIBS) \
 	$(LIBTCUTIL_LIBS)
 
-tcyait_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/filter
-tcyait_SOURCES = \
-	tcyait.c
-tcyait_LDADD = \
-	-lm
+tcyait@TC_VERSUFFIX@_CPPFLAGS = $(AM_CPPFLAGS) -I$(top_srcdir)/filter
+tcyait@TC_VERSUFFIX@_SOURCES = tcyait.c
+tcyait@TC_VERSUFFIX@_LDADD = -lm
+
 

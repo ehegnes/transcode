@@ -9,11 +9,11 @@ AM_CPPFLAGS = \
 
 AM_LDFLAGS = -export-dynamic
 
-bin_PROGRAMS = transcode
+bin_PROGRAMS = transcode@TC_VERSUFFIX@
 bin_SCRIPTS = gtranscode2.py
 
 
-transcode_LDADD = \
+transcode@TC_VERSUFFIX@_LDADD = \
 	$(DLDARWIN_LIBS) \
 	$(LIBTC_LIBS) \
 	$(LIBTCUTIL_LIBS) \
@@ -46,7 +46,7 @@ EXTRA_DIST = \
 	transcode.h \
 	video_trans.h 
 
-transcode_SOURCES = \
+transcode@TC_VERSUFFIX@_SOURCES = \
 	transcode.c \
 	audio_trans.c \
 	cmdline.c \
@@ -63,3 +63,4 @@ transcode_SOURCES = \
 	synchronizer.c \
 	split.c \
 	video_trans.c
+
