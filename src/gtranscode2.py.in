@@ -43,7 +43,7 @@ pygtk.require('2.0')
 
 
 EXE = "gtranscode2"
-VER = "0.0.2" 
+VER = "0.0.3"
 LICENSE = \
 """
 This software is provided 'as-is', without any express
@@ -216,10 +216,10 @@ class TCConfigManager(object):
         self.tccfgshow = self._find_exe("tccfgshow")        
 
     def __init__(self):
-        self.transcode = "transcode"
-        self.tccfgshow = "tccfgshow"
-        self.tcmodinfo = "tcmodinfo"
-        self.tcprobe   = "tcprobe"
+        self.transcode = "transcode@TC_VERSUFFIX@"
+        self.tccfgshow = "tccfgshow@TC_VERSUFFIX@"
+        self.tcmodinfo = "tcmodinfo@TC_VERSUFFIX@"
+        self.tcprobe   = "tcprobe@TC_VERSUFFIX@"
         self.profiles  = []
 
 
