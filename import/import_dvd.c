@@ -165,16 +165,16 @@ MOD_open
     case TC_CODEC_AC3:
 
       sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-			 "tccat -T %s -i \"%s\" -t dvd -d %d |"
-			 " tcdemux -a %d -x ac3 %s %s -d %d |"
-			 " tcextract -t vob -x ac3 -a %d -d %d |"
-			 " tcextract -t raw -x ac3 -d %d",
-			 cha_buf, vob->audio_in_file, vob->verbose,
-			 vob->a_track, seq_buf, dem_buf,
-			 vob->verbose, vob->a_track, vob->verbose,
-			 vob->verbose);
+			 "%s -T %s -i \"%s\" -t dvd -d %d |"
+			 " %s -a %d -x ac3 %s %s -d %d |"
+			 " %s -t vob -x ac3 -a %d -d %d |"
+			 " %s -t raw -x ac3 -d %d",
+			 TCCAT_EXE, cha_buf, vob->audio_in_file, vob->verbose,
+             TCDEMUX_EXE, vob->a_track, seq_buf, dem_buf, vob->verbose,
+             TCEXTRACT_EXE, vob->a_track, vob->verbose,
+             TCEXTRACT_EXE, vob->verbose);
       if (sret < 0)
-	return(TC_IMPORT_ERROR);
+        return(TC_IMPORT_ERROR);
 
       if(verbose_flag & TC_DEBUG && !a_re_entry)
         tc_log_info(MOD_NAME, "AC3->AC3");
@@ -186,14 +186,14 @@ MOD_open
       if(vob->a_codec_flag==TC_CODEC_AC3) {
 
 	sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-			   "tccat -T %s -i \"%s\" -t dvd -d %d |"
-			   " tcdemux -a %d -x ac3 %s %s -d %d |"
-			   " tcextract -t vob -x ac3 -a %d -d %d |"
-			   " tcdecode -x ac3 -d %d -s %f,%f,%f -A %d",
-			   cha_buf, vob->audio_in_file, vob->verbose,
-			   vob->a_track, seq_buf, dem_buf,
-			   vob->verbose, vob->a_track, vob->verbose,
-			   vob->verbose, vob->ac3_gain[0], vob->ac3_gain[1],
+			   "%s -T %s -i \"%s\" -t dvd -d %d |"
+			   " %s -a %d -x ac3 %s %s -d %d |"
+			   " %s -t vob -x ac3 -a %d -d %d |"
+			   " %s -x ac3 -d %d -s %f,%f,%f -A %d",
+			   TCCAT_EXE, cha_buf, vob->audio_in_file, vob->verbose,
+               TCDEMUX_EXE, vob->a_track, seq_buf, dem_buf, vob->verbose,
+               TCEXTRACT_EXE, vob->a_track, vob->verbose,
+			   TCDECODE_EXE, vob->verbose, vob->ac3_gain[0], vob->ac3_gain[1],
 			   vob->ac3_gain[2], vob->a52_mode);
 	if (sret < 0)
 	  return(TC_IMPORT_ERROR);
@@ -205,14 +205,14 @@ MOD_open
       if(vob->a_codec_flag==TC_CODEC_MP3) {
 
         sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-			   "tccat -T %s -i \"%s\" -t dvd -d %d |"
-			   " tcdemux -a %d -x mp3 %s %s -d %d |"
-			   " tcextract -t vob -x mp3 -a %d -d %d |"
+			   "%s -T %s -i \"%s\" -t dvd -d %d |"
+			   " %s -a %d -x mp3 %s %s -d %d |"
+			   " %s -t vob -x mp3 -a %d -d %d |"
 			   " tcdecode -x mp3 -d %d",
-			   cha_buf, vob->audio_in_file, vob->verbose,
-			   vob->a_track, seq_buf, dem_buf,
-			   vob->verbose, vob->a_track, vob->verbose,
-			   vob->verbose);
+			   TCCAT_EXE, cha_buf, vob->audio_in_file, vob->verbose,
+               TCDEMUX_EXE, vob->a_track, seq_buf, dem_buf, vob->verbose,
+               TCEXTRACT_EXE, vob->a_track, vob->verbose,
+			   TCDECODE_EXE, vob->verbose);
 	if (sret < 0)
 	  return(TC_IMPORT_ERROR);
 
@@ -223,14 +223,14 @@ MOD_open
       if(vob->a_codec_flag==TC_CODEC_MP2) {
 
 	sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-			   "tccat -T %s -i \"%s\" -t dvd -d %d |"
-			   " tcdemux -a %d -x mp3 %s %s -d %d |"
-			   " tcextract -t vob -x mp2 -a %d -d %d |"
-			   " tcdecode -x mp2 -d %d",
-			   cha_buf, vob->audio_in_file, vob->verbose,
-			   vob->a_track, seq_buf, dem_buf,
-			   vob->verbose, vob->a_track, vob->verbose,
-			   vob->verbose);
+			   "%s -T %s -i \"%s\" -t dvd -d %d |"
+			   " %s -a %d -x mp3 %s %s -d %d |"
+			   " %s -t vob -x mp2 -a %d -d %d |"
+			   " %s -x mp2 -d %d",
+			   TCCAT_EXE, cha_buf, vob->audio_in_file, vob->verbose,
+               TCDEMUX_EXE, vob->a_track, seq_buf, dem_buf, vob->verbose,
+               TCEXTRACT_EXE, vob->a_track, vob->verbose,
+			   TCDECODE_EXE, vob->verbose);
 	if (sret < 0)
 	  return(TC_IMPORT_ERROR);
 
@@ -241,12 +241,12 @@ MOD_open
       if(vob->a_codec_flag==TC_CODEC_PCM || vob->a_codec_flag==TC_CODEC_LPCM) {
 
 	sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-			   "tccat -T %s -i \"%s\" -t dvd -d %d |"
-			   " tcdemux -a %d -x pcm %s %s -d %d |"
-			   " tcextract -t vob -x pcm -a %d -d %d",
-			   cha_buf, vob->audio_in_file, vob->verbose,
-			   vob->a_track, seq_buf, dem_buf,
-			   vob->verbose, vob->a_track, vob->verbose);
+			   "%s -T %s -i \"%s\" -t dvd -d %d |"
+			   " %s -a %d -x pcm %s %s -d %d |"
+			   " %s -t vob -x pcm -a %d -d %d",
+			   TCCAT_EXE, cha_buf, vob->audio_in_file, vob->verbose,
+               TCDEMUX_EXE, vob->a_track, seq_buf, dem_buf, vob->verbose,
+               TCEXTRACT_EXE, vob->a_track, vob->verbose);
 	if (sret < 0)
 	  return(TC_IMPORT_ERROR);
 
@@ -287,12 +287,12 @@ MOD_open
     codec = vob->im_a_codec;
     syncf = vob->sync;
     sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-		       "tccat -T %s -i \"%s\" -t dvd -d %d -S %d |"
-		       " tcdemux -a %d -x ps1 %s %s -d %d |"
-		       " tcextract -t vob -a 0x%x -x ps1 -d %d",
-		       cha_buf, vob->audio_in_file, vob->verbose,
-		       vob->vob_offset, vob->s_track, seq_buf, dem_buf,
-		       vob->verbose, (vob->s_track + 0x20), vob->verbose);
+		       "%s -T %s -i \"%s\" -t dvd -d %d -S %d |"
+		       " %s -a %d -x ps1 %s %s -d %d |"
+		       " %s -t vob -a 0x%x -x ps1 -d %d",
+		       TCCAT_EXE, cha_buf, vob->audio_in_file, vob->verbose, vob->vob_offset,
+               TCDEMUX_EXE, vob->s_track, seq_buf, dem_buf, vob->verbose,
+               TCEXTRACT_EXE, (vob->s_track + 0x20), vob->verbose);
     if (sret < 0)
       return(TC_IMPORT_ERROR);
 
@@ -373,12 +373,12 @@ MOD_open
       m2v_passthru=1;
 
       sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-			 "tccat -T %s -i \"%s\" -t dvd -d %d"
-			 " | tcdemux -s 0x%x -x mpeg2 %s %s -d %d"
-			 " | tcextract -t vob -a %d -x mpeg2 -d %d%s",
-			 cha_buf, vob->video_in_file, vob->verbose,
-			 (vob->a_track + off), seq_buf, dem_buf, vob->verbose,
-			 vob->v_track, vob->verbose, requant_buf);
+			 "%s -T %s -i \"%s\" -t dvd -d %d"
+			 " | %s -s 0x%x -x mpeg2 %s %s -d %d"
+			 " | %s -t vob -a %d -x mpeg2 -d %d%s",
+			 TCCAT_EXE, cha_buf, vob->video_in_file, vob->verbose,
+             TCDEMUX_EXE, (vob->a_track + off), seq_buf, dem_buf, vob->verbose,
+			 TCEXTRACT_EXE, vob->v_track, vob->verbose, requant_buf);
       if (sret < 0)
 	  return(TC_IMPORT_ERROR);
 
@@ -387,14 +387,14 @@ MOD_open
     case TC_CODEC_RGB24:
 
       sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-			 "tccat -T %s -i \"%s\" -t dvd -d %d |"
-			 " tcdemux -s 0x%x -x mpeg2 %s %s -d %d |"
-			 " tcextract -t vob -a %d -x mpeg2 -d %d |"
-			 " tcdecode -x mpeg2 -d %d",
-			 cha_buf, vob->video_in_file, vob->verbose,
-			 (vob->a_track + off), seq_buf, dem_buf,
-			 vob->verbose, vob->v_track, vob->verbose,
-			 vob->verbose);
+			 "%s -T %s -i \"%s\" -t dvd -d %d |"
+			 " %s -s 0x%x -x mpeg2 %s %s -d %d |"
+			 " %s -t vob -a %d -x mpeg2 -d %d |"
+			 " %s -x mpeg2 -d %d",
+			 TCCAT_EXE, cha_buf, vob->video_in_file, vob->verbose,
+             TCDEMUX_EXE, (vob->a_track + off), seq_buf, dem_buf, vob->verbose,
+             TCEXTRACT_EXE, vob->v_track, vob->verbose,
+			 TCDECODE_EXE, vob->verbose);
       if (sret < 0)
 	return(TC_IMPORT_ERROR);
 
@@ -403,14 +403,14 @@ MOD_open
     case TC_CODEC_YUV420P:
 
       sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-			 "tccat -T %s -i \"%s\" -t dvd -d %d |"
-			 " tcdemux -s 0x%x -x mpeg2 %s %s -d %d |"
-			 " tcextract -t vob -a %d -x mpeg2 -d %d |"
-			 " tcdecode -x mpeg2 -d %d -y yuv420p",
-			 cha_buf, vob->video_in_file, vob->verbose,
-			 (vob->a_track + off), seq_buf, dem_buf,
-			 vob->verbose, vob->v_track, vob->verbose,
-			 vob->verbose);
+			 "%s -T %s -i \"%s\" -t dvd -d %d |"
+			 " %s -s 0x%x -x mpeg2 %s %s -d %d |"
+			 " %s -t vob -a %d -x mpeg2 -d %d |"
+			 " %s -x mpeg2 -d %d -y yuv420p",
+			 TCCAT_EXE, cha_buf, vob->video_in_file, vob->verbose,
+             TCDEMUX_EXE, (vob->a_track + off), seq_buf, dem_buf, vob->verbose,
+             TCEXTRACT_EXE, vob->v_track, vob->verbose,
+			 TCDECODE_EXE, vob->verbose);
       if (sret < 0)
 	return(TC_IMPORT_ERROR);
 

@@ -96,13 +96,15 @@ static int tc_mplayer_open_video(vob_t *vob, transfer_t *param)
 
     if (vob->im_v_codec == TC_CODEC_YUV420P) {
         sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-                           "tcextract -i %s -x yuv420p -t yuv4mpeg", videopipe);
+                           "%s -i %s -x yuv420p -t yuv4mpeg",
+                           TCEXTRACT_EXE, videopipe);
         RETURN_IF_BAD_SRET(sret, videopipe);
     } else {
         sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-                           "tcextract -i %s -x yuv420p -t yuv4mpeg |"
-                           " tcdecode -x yuv420p -g %dx%d",
-                           videopipe, vob->im_v_width, vob->im_v_height);
+                           "%s -i %s -x yuv420p -t yuv4mpeg |"
+                           " %s -x yuv420p -g %dx%d",
+                           TCEXTRACT_EXE, videopipe,
+                           TCDECODE_EXE, vob->im_v_width, vob->im_v_height);
         RETURN_IF_BAD_SRET(sret, videopipe);
     }
 
@@ -152,7 +154,8 @@ static int tc_mplayer_open_audio(vob_t *vob, transfer_t *param)
      * better this moment.
      */
     sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-                       "tcextract -i %s -x pcm -t raw", audiopipe);
+                       "%s -i %s -x pcm -t raw",
+                       TCEXTRACT_EXE, audiopipe);
     RETURN_IF_BAD_SRET(sret, audiopipe);
 
     // print out

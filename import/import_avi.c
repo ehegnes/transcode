@@ -107,8 +107,8 @@ MOD_open
         /* directory content should really be handled by upper levels... -- FR */
         if ((xio_stat(vob->audio_in_file, &fbuf)) == 0 && S_ISDIR(fbuf.st_mode)) {
             sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-                                "tccat -a -i \"%s\" -d %d",
-                                vob->video_in_file, vob->verbose);
+                                "%s -a -i \"%s\" -d %d",
+                                TCCAT_EXE, vob->video_in_file, vob->verbose);
             if (sret < 0)
                 return TC_ERROR;
             if (verbose_flag)

@@ -70,9 +70,10 @@ MOD_open
     case TC_CODEC_RGB24:
 
       sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-			 "tcextract -x mpeg2 -i \"%s\" -d %d |"
-			 " tcdecode -x mpeg2 -d %d",
-			 vob->video_in_file, vob->verbose, vob->verbose);
+			 "%s -x mpeg2 -i \"%s\" -d %d |"
+			 " %s -x mpeg2 -d %d",
+             TCEXTRACT_EXE, vob->video_in_file, vob->verbose,
+             TCDECODE_EXE, vob->verbose);
       if (sret < 0)
 	return(TC_IMPORT_ERROR);
 
@@ -81,9 +82,10 @@ MOD_open
     case TC_CODEC_YUV420P:
 
       sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-			 "tcextract -x mpeg2 -i \"%s\" -d %d |"
-			 " tcdecode -x mpeg2 -d %d -y yuv420p",
-			 vob->video_in_file, vob->verbose, vob->verbose);
+			 "%s -x mpeg2 -i \"%s\" -d %d |"
+			 " %s -x mpeg2 -d %d -y yuv420p",
+             TCEXTRACT_EXE, vob->video_in_file, vob->verbose,
+             TCDECODE_EXE, vob->verbose);
       if (sret < 0)
 	return(TC_IMPORT_ERROR);
 
@@ -99,7 +101,8 @@ MOD_open
 	m2v_passthru=1;
 
         sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-			   "tcextract -x mpeg2 -i \"%s\" -d %d%s",
+			   "%s -x mpeg2 -i \"%s\" -d %d%s",
+               TCEXTRACT_EXE,
 			   vob->video_in_file, vob->verbose, requant_buf);
         if (sret < 0)
 	  return(TC_IMPORT_ERROR);
@@ -114,11 +117,12 @@ MOD_open
     case TC_CODEC_RGB24:
 
       sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-			 "tccat -i \"%s\" -d %d -n 0x%x |"
-			 " tcextract -x mpeg2 -t m2v -d %d |"
-			 " tcdecode -x mpeg2 -d %d",
-			 vob->video_in_file, vob->verbose, vob->ts_pid1,
-			 vob->verbose, vob->verbose);
+			 "%s -i \"%s\" -d %d -n 0x%x |"
+			 " %s -x mpeg2 -t m2v -d %d |"
+			 " %s -x mpeg2 -d %d",
+             TCCAT_EXE, vob->video_in_file, vob->verbose, vob->ts_pid1,
+             TCEXTRACT_EXE, vob->verbose,
+             TCDECODE_EXE, vob->verbose);
       if (sret < 0)
 	return(TC_IMPORT_ERROR);
 
@@ -127,11 +131,12 @@ MOD_open
     case TC_CODEC_YUV420P:
 
       sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-			 "tccat -i \"%s\" -d %d -n 0x%x |"
-			 " tcextract -x mpeg2 -t m2v -d %d |"
-			 " tcdecode -x mpeg2 -d %d -y yuv420p",
-			 vob->video_in_file, vob->verbose,vob->ts_pid1,
-			 vob->verbose, vob->verbose);
+			 "%s -i \"%s\" -d %d -n 0x%x |"
+			 " %s -x mpeg2 -t m2v -d %d |"
+			 " %s -x mpeg2 -d %d -y yuv420p",
+             TCCAT_EXE, vob->video_in_file, vob->verbose,vob->ts_pid1,
+             TCEXTRACT_EXE, vob->verbose,
+             TCDECODE_EXE, vob->verbose);
       if (sret < 0)
 	return(TC_IMPORT_ERROR);
 

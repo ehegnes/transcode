@@ -52,16 +52,16 @@ MOD_open
 
         /* multiple inputs? */
         if (tc_file_check(vob->audio_in_file) == 1) {
-            tc_snprintf(cat_buf, sizeof(cat_buf), "tccat -a");
+            tc_snprintf(cat_buf, sizeof(cat_buf), "%s -a", TCCAT_EXE);
         } else {
             tc_snprintf(cat_buf, sizeof(cat_buf),
-                        "tcextract -x %s %s", co,
+                        "%s -x %s %s", TCEXTRACT_EXE, co,
                         (vob->im_a_string) ?vob->im_v_string :"");
         }
         if (tc_snprintf(import_cmd_buf, TC_BUF_MAX, 
-                        "%s -i \"%s\" -d %d | tcextract -a %d -x %s -d %d -t raw",
-                        cat_buf, vob->audio_in_file, vob->verbose, vob->a_track,
-                        co, vob->verbose) < 0) {
+                        "%s -i \"%s\" -d %d | %s -a %d -x %s -d %d -t raw",
+                        cat_buf, vob->audio_in_file, vob->verbose,
+                        TCEXTRACT_EXE, vob->a_track, co, vob->verbose) < 0) {
             tc_log_perror(MOD_NAME, "cmd buffer overflow");
             return TC_IMPORT_ERROR;
         }
@@ -96,17 +96,18 @@ MOD_open
 
         /* multiple inputs? */
         if (tc_file_check(vob->video_in_file) == 1) {
-            tc_snprintf(cat_buf, sizeof(cat_buf), "tccat");
+            tc_snprintf(cat_buf, sizeof(cat_buf), "%s", TCCAT_EXE);
         } else {
             tc_snprintf(cat_buf, sizeof(cat_buf),
-                        "tcextract %s",
+                        "%s %s",
+                        TCEXTRACT_EXE,
                         (vob->im_v_string) ?vob->im_v_string :"");
         }
 
 	    if (tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-                        "%s -i \"%s\" -d %d -x %s | tcextract -a %d -x %s -d %d",
+                        "%s -i \"%s\" -d %d -x %s | %s -a %d -x %s -d %d",
                         cat_buf, vob->video_in_file, vob->verbose, co,
-                        vob->v_track, co, vob->verbose) < 0) {
+                        TCEXTRACT_EXE, vob->v_track, co, vob->verbose) < 0) {
             tc_log_perror(MOD_NAME, "cmd buffer overflow");
             return TC_IMPORT_ERROR;
         }
@@ -164,3 +165,4 @@ MOD_close
  *
  * vim: expandtab shiftwidth=4:
  */
+
