@@ -255,7 +255,8 @@ class TCSourceProbe(object):
         return res
 
     def _get_info(self):
-        ret, out = _cmd_output(["tcprobe", "-i", self.path, "-R"])
+        # FIXME
+        ret, out = _cmd_output(["tcprobe@TC_VERSUFFIX@", "-i", self.path, "-R"])
         if ret != 0:
             raise ProbeError(self.path)
         return self._parse(out)
