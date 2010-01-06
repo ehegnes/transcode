@@ -275,7 +275,7 @@ bin_PROGRAMS = \
 	tcdecode \
 	tcdemux \
 	tcextract \
-	tcprobe \
+	tcprobe@TC_VERSUFFIX@ \
 	$(TCREQUANT) \
 	tcscan \
 	tcxmlcheck \
@@ -453,7 +453,7 @@ tcextract_CFLAGS = $(AM_CFLAGS) \
 # T C P R O B E #
 # ------------- #
 
-tcprobe_SOURCES = \
+tcprobe@TC_VERSUFFIX@_SOURCES = \
 	tcprobe.c \
 	ac3scan.c \
 	aux_pes.c \
@@ -488,7 +488,7 @@ tcprobe_SOURCES = \
 	x11source.c \
 	probe_pvn.c
 
-tcprobe_LDADD = \
+tcprobe@TC_VERSUFFIX@_LDADD = \
 	$(LIBAVFORMAT_LIBS) \
 	$(LIBAVCODEC_LIBS) \
 	$(AVILIB_LIBS) \
@@ -514,7 +514,7 @@ tcprobe_LDADD = \
 	$(LIBTCUTIL_LIBS) \
 	-lm
 
-tcprobe_CFLAGS = $(AM_CFLAGS) \
+tcprobe@TC_VERSUFFIX@_CFLAGS = $(AM_CFLAGS) \
 	$(LIBAVFORMAT_CFLAGS) \
 	$(LIBAVCODEC_CFLAGS) \
 	$(LIBDV_CFLAGS) \

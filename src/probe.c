@@ -234,7 +234,7 @@ int probe_source_xml(vob_t *vob, int which)
         goto reapchild;
     }
     if (read(fromchild[0], &resize, sizeof(int)) != sizeof(int)) {
-	tc_log_error(PACKAGE, "Error reading data from tcxmlcheck 2");
+    tc_log_error(PACKAGE, "Error reading data from tcxmlcheck 2");
         close(fromchild[0]);
         goto reapchild;
     }
@@ -342,15 +342,17 @@ static int do_probe(const char *file, const char *nav_seek_file, int title,
     FILE *pipe;
 
     if (mplayer_flag) {
-    	if (tc_snprintf(cmdbuf, sizeof(cmdbuf),
-	    		"tcprobe -B -M -i \"%s\" -d %d",
-		    	file, verbose_flag) < 0)
-    	    return 0;
+        if (tc_snprintf(cmdbuf, sizeof(cmdbuf),
+                "%s -B -M -i \"%s\" -d %d",
+                TCPROBE_EXE,
+                file, verbose_flag) < 0)
+            return 0;
     } else {
-	    if (tc_snprintf(cmdbuf, sizeof(cmdbuf),
-		    	"tcprobe -B -i \"%s\" -T %d -H %d -d %d",
-			    file, title, range, verbose_flag) < 0)
-    	    return 0;
+        if (tc_snprintf(cmdbuf, sizeof(cmdbuf),
+                "%s -B -i \"%s\" -T %d -H %d -d %d",
+                TCPROBE_EXE,
+                file, title, range, verbose_flag) < 0)
+            return 0;
         if (nav_seek_file
          && tc_snprintf(cmdbuf+strlen(cmdbuf), sizeof(cmdbuf)-strlen(cmdbuf),
                         " -f \"%s\"", nav_seek_file) < 0)
@@ -358,14 +360,14 @@ static int do_probe(const char *file, const char *nav_seek_file, int title,
     }
     pipe = popen(cmdbuf, "r");
     if (!pipe)
-	    return 0;
+        return 0;
     if (fread(&session->tc_probe_pid, sizeof(pid_t), 1, pipe) != 1) {
         pclose(pipe);
-    	return 0;
+        return 0;
     }
     if (fread(info_ret, sizeof(*info_ret), 1, pipe) != 1) {
         pclose(pipe);
-	    return 0;
+        return 0;
     }
     pclose(pipe);
     return 1;

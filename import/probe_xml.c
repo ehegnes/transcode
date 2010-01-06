@@ -146,7 +146,7 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,ProbeInfo *p_first
 	{
 		if (p_audio_video->p_nome_video != NULL)
 		{
-			if(tc_snprintf(s_probe_cmd_buf, MAX_BUF, "tcprobe -i %s -d %d ",p_audio_video->p_nome_video,ipipe->verbose) < 0)
+			if(tc_snprintf(s_probe_cmd_buf, MAX_BUF, "%s -i %s -d %d",TCPROBE_EXE,p_audio_video->p_nome_video,ipipe->verbose) < 0)
 			{
 	                	tc_log_error(__FILE__,"Buffer overflow");
 				ipipe->error=1;
@@ -230,7 +230,7 @@ int f_build_xml_tree(info_t *ipipe,audiovideo_t *p_audiovideo,ProbeInfo *p_first
 		}
 		if (p_audio_video->p_nome_audio != NULL)
 		{
-			if(tc_snprintf(s_probe_cmd_buf, MAX_BUF, "tcprobe -i %s -d %d ",p_audio_video->p_nome_audio,ipipe->verbose) < 0)
+			if(tc_snprintf(s_probe_cmd_buf, MAX_BUF, "%s -i %s -d %d",TCPROBE_EXE,p_audio_video->p_nome_audio,ipipe->verbose) < 0)
 			{
 	                	tc_log_error(__FILE__,"Buffer overflow");
 				ipipe->error=1;

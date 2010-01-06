@@ -1395,7 +1395,10 @@ AC_ARG_ENABLE([x86-textrels],
 ACLIB_LIBS="\$(top_builddir)/aclib/libac.la"
 AC_SUBST(ACLIB_LIBS)
 
-
+dnl
+dnl versioned executables
+dnl
+AC_DEFINE_UNQUOTED([TCPROBE_EXE], "tcprobe$TC_VERSUFFIX", [tcprobe executable name])
 
 dnl
 dnl warning flags; always add -Wall -Wstrict-prototypes -Wmissing-prototypes
