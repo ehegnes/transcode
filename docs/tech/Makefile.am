@@ -7,7 +7,7 @@ SUBDIRS = \
 	html
 
 docsdir = \
-	$(datadir)/doc/transcode/tech
+	$(datadir)/doc/transcode@TC_VERSUFFIX@/tech
 
 
 docs_DATA = \

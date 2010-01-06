@@ -15,7 +15,7 @@ SUBDIRS = \
 	html \
 	tech
 
-docsdir = $(datadir)/doc/transcode
+docsdir = $(datadir)/doc/transcode@TC_VERSUFFIX@
 
 docs_DATA = \
 	DV-to-DVD-HOWTO.txt \

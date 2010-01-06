@@ -31,5 +31,5 @@ SUBDIRS = \
 
 EXTRA_DIST = STYLE transcode.spec hgversion.sh
 
-docsdir = $(datadir)/doc/transcode
+docsdir = $(datadir)/doc/transcode@TC_VERSUFFIX@
 docs_DATA = ChangeLog

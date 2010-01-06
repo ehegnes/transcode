@@ -5,7 +5,7 @@ EXTRA_DIST = \
 	tc_template_page.html
 
 docsdir = \
-	$(datadir)/doc/transcode/tech/html
+	$(datadir)/doc/transcode@TC_VERSUFFIX@/tech/html
 
 docs_DATA =  \
 	index.html \
