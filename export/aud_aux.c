@@ -357,7 +357,8 @@ static int tc_audio_init_ffmpeg(vob_t *vob, int o_codec)
     ret = avcodec_open(&mpa_ctx, mpa_codec);
     TC_UNLOCK_LIBAVCODEC;
     if (ret < 0) {
-        tc_warn("tc_audio_init_ffmpeg: could not open mpa codec !");
+        tc_warn("tc_audio_init_ffmpeg: could not open %s codec !",
+                (codeid == CODEC_ID_MP2) ?"mpa" :"ac3");
         return(TC_EXPORT_ERROR);
     }
 
