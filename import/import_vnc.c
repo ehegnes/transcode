@@ -16,7 +16,6 @@ static int capability_flag = TC_CAP_VID | TC_CAP_RGB | TC_CAP_YUV;
 #define TIMEOUT 5
 /* seconds */
 
-#define PROGTOCALL "tcxpm2rgb"
 
 static int pid;
 static char fifo[256];
@@ -35,7 +34,7 @@ MOD_open
 
 	tc_snprintf (fifo, 256, "%s-%d", "/tmp/tc-vncfifo", getpid());
 	tc_snprintf (fps, 32, "%f", vob->fps);
-	tc_snprintf (cmdbuf, 1024, "%s -o %s", PROGTOCALL, fifo);
+	tc_snprintf (cmdbuf, 1024, "%s -o %s", TCXPM2RGB_EXE, fifo);
 
 	mkfifo (fifo, 0600);
 

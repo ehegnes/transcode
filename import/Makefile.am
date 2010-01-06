@@ -271,15 +271,15 @@ TCREQUANT = tcrequant
 endif
 
 bin_PROGRAMS = \
-	tccat \
-	tcdecode \
-	tcdemux \
-	tcextract \
+	tccat@TC_VERSUFFIX@ \
+	tcdecode@TC_VERSUFFIX@ \
+	tcdemux@TC_VERSUFFIX@ \
+	tcextract@TC_VERSUFFIX@ \
 	tcprobe@TC_VERSUFFIX@ \
 	$(TCREQUANT) \
-	tcscan \
-	tcxmlcheck \
-	tcxpm2rgb
+	tcscan@TC_VERSUFFIX@ \
+	tcxmlcheck@TC_VERSUFFIX@ \
+	tcxpm2rgb@TC_VERSUFFIX@
 
 
 #  The _CFLAGS lines below keep libtool from overwriting
@@ -290,7 +290,7 @@ bin_PROGRAMS = \
 # T C C A T #
 # --------- #
 
-tccat_SOURCES = \
+tccat@TC_VERSUFFIX@_SOURCES = \
 	tccat.c \
 	dvd_reader.c \
 	extract_avi.c \
@@ -299,7 +299,7 @@ tccat_SOURCES = \
 	ioxml.c \
 	ts_reader.c
 
-tccat_LDADD = \
+tccat@TC_VERSUFFIX@_LDADD = \
 	$(AVILIB_LIBS) \
 	$(LIBDV_LIBS) \
 	$(LIBDVDREAD_LIBS) \
@@ -311,7 +311,7 @@ tccat_LDADD = \
 	$(LIBTCUTIL_LIBS) \
 	-lm
 
-tccat_CFLAGS = $(AM_CFLAGS) \
+tccat@TC_VERSUFFIX@_CFLAGS = $(AM_CFLAGS) \
 	$(LIBDV_CFLAGS) \
 	$(LIBDVDREAD_CFLAGS) \
 	$(LIBXML2_CFLAGS)
@@ -321,7 +321,7 @@ tccat_CFLAGS = $(AM_CFLAGS) \
 # T C D E C O D E #
 # --------------- #
 
-tcdecode_SOURCES = \
+tcdecode@TC_VERSUFFIX@_SOURCES = \
 	tcdecode.c \
 	fileinfo.c \
 	ioaux.c \
@@ -337,7 +337,7 @@ tcdecode_SOURCES = \
 	decode_ulaw.c \
 	decode_yuv.c
 
-tcdecode_LDADD = \
+tcdecode@TC_VERSUFFIX@_LDADD = \
 	$(GRAPHICSMAGICK_LIBS) \
 	$(LIBAVCODEC_LIBS) \
 	$(LIBDV_LIBS) \
@@ -358,7 +358,7 @@ tcdecode_LDADD = \
 	$(LIBTCEXT_LIBS) \
 	$(LIBTCUTIL_LIBS)
 
-tcdecode_CFLAGS = $(AM_CFLAGS) \
+tcdecode@TC_VERSUFFIX@_CFLAGS = $(AM_CFLAGS) \
 	$(LIBAVCODEC_CFLAGS) \
 	$(LIBDV_CFLAGS) \
 	$(LAME_CFLAGS) \
@@ -370,14 +370,14 @@ tcdecode_CFLAGS = $(AM_CFLAGS) \
 	$(THEORA_CFLAGS) \
 	$(VORBIS_CFLAGS)
 
-tcdecode_LDFLAGS = -export-dynamic
+tcdecode@TC_VERSUFFIX@_LDFLAGS = -export-dynamic
 
 
 # ------------- #
 # T C D E M U X #
 # ------------- #
 
-tcdemux_SOURCES = \
+tcdemux@TC_VERSUFFIX@_SOURCES = \
 	aux_pes.c \
 	tcdemux.c \
 	demux_pass.c \
@@ -389,7 +389,7 @@ tcdemux_SOURCES = \
 	scan_pack.c \
 	seqinfo.c
 
-tcdemux_LDADD = \
+tcdemux@TC_VERSUFFIX@_LDADD = \
 	$(AVILIB_LIBS) \
 	$(LIBDV_LIBS) \
 	$(LIBDVDREAD_LIBS) \
@@ -401,7 +401,7 @@ tcdemux_LDADD = \
 	$(PTHREAD_LIBS) \
 	-lm
 
-tcdemux_CFLAGS = $(AM_CFLAGS) \
+tcdemux@TC_VERSUFFIX@_CFLAGS = $(AM_CFLAGS) \
 	$(LIBDV_CFLAGS) \
 	$(LIBDVDREAD_CFLAGS)
 
@@ -410,7 +410,7 @@ tcdemux_CFLAGS = $(AM_CFLAGS) \
 # T C E X T R A C T #
 # ----------------- #
 
-tcextract_SOURCES = \
+tcextract@TC_VERSUFFIX@_SOURCES = \
 	tcextract.c \
 	aux_pes.c \
 	fileinfo.c \
@@ -427,7 +427,7 @@ tcextract_SOURCES = \
 	extract_rgb.c \
 	extract_yuv.c
 
-tcextract_LDADD = \
+tcextract@TC_VERSUFFIX@_LDADD = \
 	$(AVILIB_LIBS) \
 	$(WAVLIB_LIBS) \
 	$(LIBDV_LIBS) \
@@ -441,7 +441,7 @@ tcextract_LDADD = \
 	$(LIBTCUTIL_LIBS) \
 	-lm
 
-tcextract_CFLAGS = $(AM_CFLAGS) \
+tcextract@TC_VERSUFFIX@_CFLAGS = $(AM_CFLAGS) \
 	$(LIBDV_CFLAGS) \
 	$(MJPEGTOOLS_CFLAGS) \
 	$(OGG_CFLAGS) \
@@ -549,7 +549,7 @@ tcrequant_CFLAGS = $(AM_CFLAGS)
 # T C S C A N #
 # ----------- #
 
-tcscan_SOURCES = \
+tcscan@TC_VERSUFFIX@_SOURCES = \
 	tcscan.c \
 	ac3scan.c \
 	aux_pes.c \
@@ -558,7 +558,7 @@ tcscan_SOURCES = \
 	mpg123.c \
 	scan_pes.c
 
-tcscan_LDADD = \
+tcscan@TC_VERSUFFIX@_LDADD = \
 	$(AVILIB_LIBS) \
 	$(LIBDV_LIBS) \
 	$(LAME_LIBS) \
@@ -568,7 +568,7 @@ tcscan_LDADD = \
 	$(LIBTCUTIL_LIBS) \
 	-lm
 
-tcscan_CFLAGS = $(AM_CFLAGS) \
+tcscan@TC_VERSUFFIX@_CFLAGS = $(AM_CFLAGS) \
 	$(LIBDV_CFLAGS) \
 	$(LAME_CFLAGS)
 
@@ -577,14 +577,14 @@ tcscan_CFLAGS = $(AM_CFLAGS) \
 # T C X M L C H E C K #
 # ------------------- #
 
-tcxmlcheck_SOURCES = \
+tcxmlcheck@TC_VERSUFFIX@_SOURCES = \
 	tcxmlcheck.c \
 	fileinfo.c \
 	ioaux.c \
 	ioxml.c \
 	probe_xml.c
 
-tcxmlcheck_LDADD = \
+tcxmlcheck@TC_VERSUFFIX@_LDADD = \
 	$(LIBDV_LIBS) \
 	$(XIO_LIBS) \
 	$(LIBXML2_LIBS) \
@@ -593,7 +593,7 @@ tcxmlcheck_LDADD = \
 	$(LIBTCUTIL_LIBS) \
 	-lm
 
-tcxmlcheck_CFLAGS = $(AM_CFLAGS) \
+tcxmlcheck@TC_VERSUFFIX@_CFLAGS = $(AM_CFLAGS) \
 	$(LIBDV_CFLAGS) \
 	$(LIBXML2_CFLAGS)
 
@@ -602,9 +602,9 @@ tcxmlcheck_CFLAGS = $(AM_CFLAGS) \
 # T C X P M 2 R G B #
 # ----------------- #
 
-tcxpm2rgb_SOURCES = tcxpm2rgb.c
+tcxpm2rgb@TC_VERSUFFIX@_SOURCES = tcxpm2rgb.c
 
-tcxpm2rgb_LDADD = $(LIBTC_LIBS) $(LIBTCUTIL_LIBS)
+tcxpm2rgb@TC_VERSUFFIX@_LDADD = $(LIBTC_LIBS) $(LIBTCUTIL_LIBS)
 
-tcxpm2rgb_CFLAGS = $(AM_CFLAGS)
+tcxpm2rgb@TC_VERSUFFIX@_CFLAGS = $(AM_CFLAGS)
 

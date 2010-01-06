@@ -78,11 +78,13 @@ MOD_open
       case TC_CODEC_PCM:
         if (offset && vob->nav_seek_file) {
             sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-                               "tcextract -a %d -i \"%s\" -x %s -d %d -f %s -C %d-%d |"
-                               " tcdecode -x %s -d %d -z %d",
+                               "%s -a %d -i \"%s\" -x %s -d %d -f %s -C %d-%d |"
+                               " %s -x %s -d %d -z %d",
+                               TCEXTRACT_EXE,
                                vob->a_track, vob->audio_in_file,
                                (vob->a_codec_flag==TC_CODEC_MP2 ? "mp2" : "mp3"),
                                vob->verbose, vob->nav_seek_file, offset, offset + 1,
+                               TCDECODE_EXE,
                                (vob->a_codec_flag==TC_CODEC_MP2 ? "mp2" : "mp3"),
                                vob->verbose, vob->a_padrate);
             if (sret < 0)
@@ -91,11 +93,15 @@ MOD_open
         } else {
             if (is_dir) {
                 sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-                                   "tccat -a -i %s | tcextract -a %d -x %s -d %d |"
-                                   " tcdecode -x %s -d %d -z %d",
-                                   vob->audio_in_file, vob->a_track,
+                                   "%s -a -i %s | %s -a %d -x %s -d %d |"
+                                   " %s -x %s -d %d -z %d",
+                                   TCCAT_EXE,
+                                   vob->audio_in_file,
+                                   TCEXTRACT_EXE,
+                                   vob->a_track,
                                    (vob->a_codec_flag==TC_CODEC_MP2 ? "mp2" : "mp3"),
                                    vob->verbose,
+                                   TCDECODE_EXE,
                                    (vob->a_codec_flag==TC_CODEC_MP2 ? "mp2" : "mp3"),
                                    vob->verbose,
                                    vob->a_padrate);
@@ -103,11 +109,13 @@ MOD_open
                     return TC_ERROR;
             } else {
                 sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-                                   "tcextract -a %d -i \"%s\" -x %s -d %d |"
-                                   " tcdecode -x %s -d %d -z %d",
+                                   "%s -a %d -i \"%s\" -x %s -d %d |"
+                                   " %s -x %s -d %d -z %d",
+                                   TCEXTRACT_EXE,
                                    vob->a_track, vob->audio_in_file,
                                    (vob->a_codec_flag==TC_CODEC_MP2 ? "mp2" : "mp3"),
                                    vob->verbose,
+                                   TCDECODE_EXE,
                                    (vob->a_codec_flag==TC_CODEC_MP2 ? "mp2" : "mp3"),
                                    vob->verbose, vob->a_padrate);
                 if (sret < 0)

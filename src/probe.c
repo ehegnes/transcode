@@ -205,13 +205,13 @@ int probe_source_xml(vob_t *vob, int which)
             }
             close(fromchild[1]);
         }
-        new_argv[0] = "tcxmlcheck";
+        new_argv[0] = TCXMLCHECK_EXE;
         new_argv[1] = "-i";
         new_argv[2] = vob->video_in_file;
         new_argv[3] = "-B";
         new_argv[4] = (which==PROBE_XML_VIDEO ? "-V" : "-A");
         new_argv[5] = NULL;
-        execvp("tcxmlcheck", (char **)new_argv);
+        execvp(TCXMLCHECK_EXE, (char **)new_argv);
         tc_log_perror(PACKAGE, "probe_source_xml(): exec(tcxmlcheck) failed");
         exit(-1);
     }
@@ -234,7 +234,7 @@ int probe_source_xml(vob_t *vob, int which)
         goto reapchild;
     }
     if (read(fromchild[0], &resize, sizeof(int)) != sizeof(int)) {
-    tc_log_error(PACKAGE, "Error reading data from tcxmlcheck 2");
+        tc_log_error(PACKAGE, "Error reading data from tcxmlcheck 2");
         close(fromchild[0]);
         goto reapchild;
     }

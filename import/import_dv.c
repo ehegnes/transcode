@@ -67,13 +67,14 @@ MOD_open
         return(TC_IMPORT_ERROR);
     }
     if (sret == 1) {
-        tc_snprintf(cat_buf, TC_BUF_MAX, "tccat");
+        tc_snprintf(cat_buf, TC_BUF_MAX, "%s", TCCAT_EXE);
     } else {
         if(vob->im_v_string) {
-            tc_snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv %s",
+            tc_snprintf(cat_buf, TC_BUF_MAX, "%s -x dv %s",
+                        TCEXTRACT_EXE,
 			            vob->im_v_string);
         } else {
-            tc_snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv");
+            tc_snprintf(cat_buf, TC_BUF_MAX, "%s -x dv", TCEXTRACT_EXE);
         }
     }
 
@@ -90,9 +91,9 @@ MOD_open
     case TC_CODEC_RGB24:
 
       sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-                      "%s -i \"%s\" -d %d | tcdecode -x dv -y rgb -d %d -Q %d",
-                      cat_buf, vob->video_in_file, vob->verbose, vob->verbose,
-                      vob->quality);
+                      "%s -i \"%s\" -d %d | %s -x dv -y rgb -d %d -Q %d",
+                      cat_buf, vob->video_in_file, vob->verbose,
+                      TCDECODE_EXE, vob->verbose, vob->quality);
       if (sret < 0)
           return(TC_IMPORT_ERROR);
 
@@ -106,9 +107,9 @@ MOD_open
     case TC_CODEC_YUV420P:
 
       sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-			 "%s -i \"%s\" -d %d | tcdecode -x dv %s -d %d -Q %d",
-			 cat_buf, vob->video_in_file, vob->verbose, yuv_buf,
-			 vob->verbose, vob->quality);
+			 "%s -i \"%s\" -d %d | %s -x dv %s -d %d -Q %d",
+			 cat_buf, vob->video_in_file, vob->verbose,
+             TCDECODE_EXE, yuv_buf, vob->verbose, vob->quality);
       if (sret < 0)
 	return(TC_IMPORT_ERROR);
 
@@ -128,19 +129,19 @@ MOD_open
 
       sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
 			 "%s -i \"%s\" -d %d |"
-			 " tcdecode -x dv -y yuy2 -d %d -Q %d",
+			 " %s -x dv -y yuy2 -d %d -Q %d",
 			 cat_buf, vob->video_in_file, vob->verbose,
-			 vob->verbose, vob->quality);
+             TCDECODE_EXE, vob->verbose, vob->quality);
       if (sret < 0)
-	return(TC_IMPORT_ERROR);
+        return(TC_IMPORT_ERROR);
 
       // for reading
       frame_size = vob->im_v_width * vob->im_v_height * 2;
 
       tmpbuf = tc_malloc(frame_size);
       if (!tmpbuf) {
-	tc_log_error(MOD_NAME, "out of memory");
-	return(TC_IMPORT_ERROR);
+    	tc_log_error(MOD_NAME, "out of memory");
+	    return(TC_IMPORT_ERROR);
       }
 
       tcvhandle = tcv_init();
@@ -201,20 +202,20 @@ MOD_open
 
     //directory mode?
     if(tc_file_check(vob->audio_in_file)) {
-        tc_snprintf(cat_buf, TC_BUF_MAX, "tccat");
+        tc_snprintf(cat_buf, TC_BUF_MAX, "%s", TCCAT_EXE);
     } else {
         if(vob->im_a_string) {
-            tc_snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv %s",
-            			vob->im_a_string);
+            tc_snprintf(cat_buf, TC_BUF_MAX, "%s -x dv %s",
+                        TCEXTRACT_EXE, vob->im_a_string);
         } else {
-            tc_snprintf(cat_buf, TC_BUF_MAX, "tcextract -x dv");
+            tc_snprintf(cat_buf, TC_BUF_MAX, "%s -x dv", TCEXTRACT_EXE);
         }
     }
 
     sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-		       "%s -i \"%s\" -d %d | tcdecode -x dv -y pcm -d %d",
-		       cat_buf, vob->audio_in_file, vob->verbose,
-		       vob->verbose);
+		       "%s -i \"%s\" -d %d | %s -x dv -y pcm -d %d",
+               cat_buf, vob->audio_in_file, vob->verbose,
+               TCDECODE_EXE, vob->verbose);
     if (sret < 0)
       return(TC_IMPORT_ERROR);
 

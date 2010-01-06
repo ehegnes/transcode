@@ -1398,7 +1398,14 @@ AC_SUBST(ACLIB_LIBS)
 dnl
 dnl versioned executables
 dnl
-AC_DEFINE_UNQUOTED([TCPROBE_EXE], "tcprobe$TC_VERSUFFIX", [tcprobe executable name])
+AC_DEFINE_UNQUOTED([TCCAT_EXE],      "tccat$TC_VERSUFFIX",      [tccat executable name])
+AC_DEFINE_UNQUOTED([TCSCAN_EXE],     "tcscan$TC_VERSUFFIX",     [tcscan executable name])
+AC_DEFINE_UNQUOTED([TCDEMUX_EXE],    "tcdemux$TC_VERSUFFIX",    [tcdemux executable name])
+AC_DEFINE_UNQUOTED([TCPROBE_EXE],    "tcprobe$TC_VERSUFFIX",    [tcprobe executable name])
+AC_DEFINE_UNQUOTED([TCDECODE_EXE],   "tcdecode$TC_VERSUFFIX",   [tcdecode executable name])
+AC_DEFINE_UNQUOTED([TCEXTRACT_EXE],  "tcextract$TC_VERSUFFIX",  [tcextract executable name])
+AC_DEFINE_UNQUOTED([TCXPM2RGB_EXE],  "tcxpm2rgb$TC_VERSUFFIX",  [tcxpm2rgb executable name])
+AC_DEFINE_UNQUOTED([TCXMLCHECK_EXE], "tcxmlcheck$TC_VERSUFFIX", [tcxmlcheck executable name])
 
 dnl
 dnl warning flags; always add -Wall -Wstrict-prototypes -Wmissing-prototypes

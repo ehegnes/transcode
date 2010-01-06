@@ -95,10 +95,10 @@ MOD_open
         }
 
         if (tc_snprintf(import_cmd_buf, sizeof(import_cmd_buf),
-                        "tcextract -i \"%s\" -x raw -d %d | "
-                        "tcdecode %s -g %dx%d -x %s -y %s -d %d",
-                        vob->video_in_file, vob->verbose,
-                        magic, vob->im_v_width, vob->im_v_height,
+                        "%s -i \"%s\" -x raw -d %d |"
+                        " %s %s -g %dx%d -x %s -y %s -d %d",
+                        TCEXTRACT_EXE, vob->video_in_file, vob->verbose,
+                        TCDECODE_EXE, magic, vob->im_v_width, vob->im_v_height,
                         codec, color, vob->verbose) < 0
            ) {
             tc_log_perror(MOD_NAME, "command buffer overflow");
@@ -127,16 +127,16 @@ MOD_open
         }
 
         if (tc_snprintf(import_cmd_buf, sizeof(import_cmd_buf),
-                        "tcextract -i \"%s\" -x %s -a %d -d %d",
-                        vob->audio_in_file, codec,
+                        "%s -i \"%s\" -x %s -a %d -d %d",
+                        TCEXTRACT_EXE, vob->audio_in_file, codec,
                         vob->a_track, vob->verbose) < 0) {
             tc_log_perror(MOD_NAME, "command buffer overflow");
             return TC_ERROR;
 
             if (vob->a_codec_flag != TC_CODEC_PCM) {
                 char buf[TC_BUF_MAX];
-                if (tc_snprintf(buf, sizeof(buf), " | tcdecode -x %s -d %i",
-                                codec, vob->verbose) < 0) {
+                if (tc_snprintf(buf, sizeof(buf), " | %s -x %s -d %i",
+                                TCDECODE_EXE, codec, vob->verbose) < 0) {
                     tc_log_perror(MOD_NAME, "command buffer overflow");
                     return TC_ERROR;
                 }

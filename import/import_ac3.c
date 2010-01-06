@@ -68,11 +68,12 @@ MOD_open
 
 	// produce a clean sequence of AC3 frames
 	sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-		"tcextract -a %d -i \"%s\" -x ac3 -d %d |"
-		" tcextract -t raw -x ac3 -d %d",
-		vob->a_track, vob->audio_in_file, vob->verbose, vob->verbose);
+		"%s -a %d -i \"%s\" -x ac3 -d %d |"
+		" %s -t raw -x ac3 -d %d",
+        TCEXTRACT_EXE, vob->a_track, vob->audio_in_file, vob->verbose,
+        TCEXTRACT_EXE, vob->verbose);
         if (sret < 0)
-	    return(TC_IMPORT_ERROR);
+    	    return(TC_IMPORT_ERROR);
 
 	if(verbose_flag) tc_log_info(MOD_NAME, "AC3->AC3");
 
@@ -83,13 +84,13 @@ MOD_open
 	if(vob->a_codec_flag==TC_CODEC_AC3) {
 
 	    sret = tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-			"tcextract -a %d -i \"%s\" -x ac3 -d %d |"
-			" tcdecode -x ac3 -d %d -s %f,%f,%f -A %d",
-			vob->a_track, vob->audio_in_file, vob->verbose,
-			vob->verbose, vob->ac3_gain[0], vob->ac3_gain[1],
+			"%s -a %d -i \"%s\" -x ac3 -d %d |"
+			" %s -x ac3 -d %d -s %f,%f,%f -A %d",
+            TCEXTRACT_EXE, vob->a_track, vob->audio_in_file, vob->verbose,
+            TCDECODE_EXE, vob->verbose, vob->ac3_gain[0], vob->ac3_gain[1],
 			vob->ac3_gain[2], vob->a52_mode);
             if (sret < 0)
-	        return(TC_IMPORT_ERROR);
+    	        return(TC_IMPORT_ERROR);
 
 	    if (verbose_flag)
             tag = "AC3->PCM : ";
@@ -112,8 +113,8 @@ MOD_open
 
     // popen
     if((fd = popen(import_cmd_buf, "r"))== NULL) {
-	tc_log_perror(MOD_NAME, "popen pcm stream");
-	return(TC_IMPORT_ERROR);
+	    tc_log_perror(MOD_NAME, "popen pcm stream");
+    	return(TC_IMPORT_ERROR);
     }
 
     return(TC_IMPORT_OK);

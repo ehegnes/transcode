@@ -114,8 +114,8 @@ MOD_open
   if(param->flag == TC_AUDIO) {
     /* common part */
     if(tc_snprintf(input_buf, sizeof(input_buf), 
-                   "tccat -i \"%s\" -t vob -d %d -S %d",
-                   vob->audio_in_file, vob->verbose, vob->vob_offset) < 0) {
+                   "%s -i \"%s\" -t vob -d %d -S %d",
+                   TCCAT_EXE, vob->audio_in_file, vob->verbose, vob->vob_offset) < 0) {
       tc_log_perror(MOD_NAME, "command buffer overflow (input)");
       return(TC_IMPORT_ERROR);
     }
@@ -140,7 +140,8 @@ MOD_open
         }
       }
       if(tc_snprintf(demux_buf, sizeof(demux_buf),
-                    "| tcdemux -M %d -a %d -x %s %s -d %d",
+                    "| %s -M %d -a %d -x %s %s -d %d",
+                    TCDEMUX_EXE,
                     vob->demuxer, vob->a_track, codec, seq_buf,
                     vob->verbose) < 0) {
         tc_log_perror(MOD_NAME, "command buffer overflow (demux)");
@@ -155,11 +156,11 @@ MOD_open
     case TC_CODEC_AC3:
       if (tc_snprintf(import_cmd_buf, sizeof(import_cmd_buf),
                       "%s %s"
-                      " | tcextract -t vob -a %d -x ac3 -d %d"
-                      " | tcextract -t raw -x ac3 -d %d",
+                      " | %s -t vob -a %d -x ac3 -d %d"
+                      " | %s -t raw -x ac3 -d %d",
                       input_buf, demux_buf,
-                      vob->verbose, vob->a_track, vob->verbose,
-                      vob->verbose) < 0) {
+                      TCEXTRACT_EXE, vob->verbose, vob->a_track, vob->verbose,
+                      TCEXTRACT_EXE, vob->verbose) < 0) {
         tc_log_perror(MOD_NAME, "command buffer overflow");
         return(TC_IMPORT_ERROR);
       }
@@ -170,11 +171,11 @@ MOD_open
       if(vob->a_codec_flag==TC_CODEC_AC3) {
         if(tc_snprintf(import_cmd_buf, sizeof(import_cmd_buf),
                        "%s %s"
-                       " | tcextract -t vob -a %d -x ac3 -d %d"
-                       " | tcdecode -x ac3 -d %d -s %f,%f,%f -A %d",
+                       " | %s -t vob -a %d -x ac3 -d %d"
+                       " | %s -x ac3 -d %d -s %f,%f,%f -A %d",
                        input_buf, demux_buf,
-                       vob->a_track, vob->verbose,
-                       vob->verbose,
+                       TCEXTRACT_EXE, vob->a_track, vob->verbose,
+                       TCDECODE_EXE, vob->verbose,
                        vob->ac3_gain[0], vob->ac3_gain[1], vob->ac3_gain[2],
                        vob->a52_mode) < 0) {
           tc_log_perror(MOD_NAME, "command buffer overflow");
@@ -186,11 +187,11 @@ MOD_open
       if(vob->a_codec_flag==TC_CODEC_MP3) {
         if(tc_snprintf(import_cmd_buf, sizeof(import_cmd_buf),
                        "%s %s"
-                       " | tcextract -t vob -a %d -x mp3 -d %d"
-                       " | tcdecode -x mp3 -d %d",
+                       " | %s -t vob -a %d -x mp3 -d %d"
+                       " | %s -x mp3 -d %d",
                        input_buf, demux_buf,
-                       vob->a_track, vob->verbose,
-                      vob->verbose) < 0) {
+                       TCEXTRACT_EXE, vob->a_track, vob->verbose,
+                       TCDECODE_EXE, vob->verbose) < 0) {
           tc_log_perror(MOD_NAME, "command buffer overflow");
           return(TC_IMPORT_ERROR);
         }
@@ -200,11 +201,11 @@ MOD_open
       if(vob->a_codec_flag==TC_CODEC_MP2) {
         if(tc_snprintf(import_cmd_buf, sizeof(import_cmd_buf),
                        "%s %s"
-                       " | tcextract -t vob -a %d -x mp2 -d %d"
-                       " | tcdecode -x mp2 -d %d",
+                       " | %s -t vob -a %d -x mp2 -d %d"
+                       " | %s -x mp2 -d %d",
                        input_buf, demux_buf,
-                       vob->a_track, vob->verbose,
-                       vob->verbose) < 0) {
+                       TCEXTRACT_EXE, vob->a_track, vob->verbose,
+                       TCDECODE_EXE, vob->verbose) < 0) {
           tc_log_perror(MOD_NAME, "command buffer overflow");
 	      return(TC_IMPORT_ERROR);
         }
@@ -214,9 +215,9 @@ MOD_open
       if(vob->a_codec_flag==TC_CODEC_PCM || vob->a_codec_flag==TC_CODEC_LPCM) {
         if(tc_snprintf(import_cmd_buf, sizeof(import_cmd_buf),
                        "%s %s"
-                       " | tcextract -t vob -a %d -x pcm -d %d",
+                       " | %s -t vob -a %d -x pcm -d %d",
                        input_buf, demux_buf,
-                       vob->a_track, vob->verbose) < 0) {
+                       TCEXTRACT_EXE, vob->a_track, vob->verbose) < 0) {
           tc_log_perror(MOD_NAME, "command buffer overflow");
           return(TC_IMPORT_ERROR);
         }
@@ -250,9 +251,15 @@ MOD_open
     codec = vob->im_a_codec;
     syncf = vob->sync;
 
-    if(tc_snprintf(import_cmd_buf, TC_BUF_MAX, "tccat -i \"%s\" -t vob -d %d -S %d | tcdemux -a %d -x ps1 %s %s -d %d | tcextract -t vob -a 0x%x -x ps1 -d %d", vob->audio_in_file, vob->verbose, vob->vob_offset, vob->s_track, seq_buf, demux_buf, vob->verbose, (vob->s_track+0x20), vob->verbose) < 0) {
-      tc_log_perror(MOD_NAME, "command buffer overflow");
-	  return(TC_IMPORT_ERROR);
+    if(tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+                   "%s -i \"%s\" -t vob -d %d -S %d"
+                   " | %s -a %d -x ps1 %s %s -d %d"
+                   " | %s -t vob -a 0x%x -x ps1 -d %d",
+      TCCAT_EXE, vob->audio_in_file, vob->verbose, vob->vob_offset,
+      TCDEMUX_EXE, vob->s_track, seq_buf, demux_buf, vob->verbose,
+      TCEXTRACT_EXE, (vob->s_track+0x20), vob->verbose) < 0) {
+        tc_log_perror(MOD_NAME, "command buffer overflow");
+	    return(TC_IMPORT_ERROR);
     }
 
     if(verbose_flag & TC_DEBUG) tc_log_info(MOD_NAME, "subtitle extraction");
@@ -304,13 +311,14 @@ MOD_open
 	m2v_passthru=1;
 
 	if (tc_snprintf(import_cmd_buf, TC_BUF_MAX,
-		"tccat -i \"%s\" -t vob -d %d -S %d"
-		" | tcdemux -s 0x%x -x mpeg2 %s %s -d %d"
-		" | tcextract -t vob -a %d -x mpeg2 -d %d"
+		"%s -i \"%s\" -t vob -d %d -S %d"
+		" | %s -s 0x%x -x mpeg2 %s %s -d %d"
+		" | %s -t vob -a %d -x mpeg2 -d %d"
 		"%s",
-		vob->video_in_file, vob->verbose, vob->vob_offset,
+		TCCAT_EXE, vob->video_in_file, vob->verbose, vob->vob_offset,
+        TCDEMUX_EXE,
 		(vob->a_track+off), seq_buf, demux_buf, vob->verbose,
-		vob->v_track, vob->verbose,
+		TCEXTRACT_EXE, vob->v_track, vob->verbose,
 		requant_buf) < 0) {
 	  tc_log_perror(MOD_NAME, "command buffer overflow");
 	  return(TC_IMPORT_ERROR);
@@ -318,7 +326,15 @@ MOD_open
 	break;
       case TC_CODEC_RGB24:
 
-	if (tc_snprintf(import_cmd_buf, TC_BUF_MAX, "tccat -i \"%s\" -t vob -d %d -S %d | tcdemux -s 0x%x -x mpeg2 %s %s -d %d | tcextract -t vob -a %d -x mpeg2 -d %d | tcdecode -x mpeg2 -d %d", vob->video_in_file, vob->verbose, vob->vob_offset, (vob->a_track+off), seq_buf, demux_buf, vob->verbose, vob->v_track, vob->verbose, vob->verbose) < 0) {
+	if (tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+                    "%s -i \"%s\" -t vob -d %d -S %d"
+                    " | %s -s 0x%x -x mpeg2 %s %s -d %d"
+                    " | %s -t vob -a %d -x mpeg2 -d %d"
+                    " | %s -x mpeg2 -d %d",
+                    TCCAT_EXE, vob->video_in_file, vob->verbose, vob->vob_offset,
+                    TCDEMUX_EXE, (vob->a_track+off), seq_buf, demux_buf, vob->verbose,
+                    TCEXTRACT_EXE, vob->v_track, vob->verbose,
+                    TCDECODE_EXE, vob->verbose) < 0) {
 	  tc_log_perror(MOD_NAME, "command buffer overflow");
 	  return(TC_IMPORT_ERROR);
 	}
@@ -327,7 +343,15 @@ MOD_open
 
       case TC_CODEC_YUV420P:
 
-	if (tc_snprintf(import_cmd_buf, TC_BUF_MAX, "tccat -i \"%s\" -t vob -d %d -S %d | tcdemux -s 0x%x -x mpeg2 %s %s -d %d | tcextract -t vob -a %d -x mpeg2 -d %d | tcdecode -x mpeg2 -d %d -y yuv420p", vob->video_in_file, vob->verbose, vob->vob_offset, (vob->a_track+off), seq_buf, demux_buf, vob->verbose, vob->v_track, vob->verbose, vob->verbose) < 0) {
+	if (tc_snprintf(import_cmd_buf, TC_BUF_MAX,
+                    "%s -i \"%s\" -t vob -d %d -S %d"
+                    " | %s -s 0x%x -x mpeg2 %s %s -d %d"
+                    " | %s -t vob -a %d -x mpeg2 -d %d"
+                    " | %s -x mpeg2 -d %d -y yuv420p",
+                    TCCAT_EXE, vob->video_in_file, vob->verbose, vob->vob_offset,
+                    TCDEMUX_EXE, (vob->a_track+off), seq_buf, demux_buf, vob->verbose,
+                    TCEXTRACT_EXE, vob->v_track, vob->verbose,
+                    TCDECODE_EXE, vob->verbose) < 0) {
 	  tc_log_perror(MOD_NAME, "command buffer overflow");
 	  return(TC_IMPORT_ERROR);
 	}
