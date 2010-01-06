@@ -7,14 +7,13 @@ Key:
 ===========================================================================
 transcode-1.2.0
 ---------------
-[+] Added a default GUI: gtranscode2
 [+] Brand new export layer with new-style, separate encoders and muxers.
 [+] New encoders: theora, vorbis, faac, x264.
 [+] New multiplexors: ogg, libavformat, yuv4mpeg2.
 [+] New filter: barrel.
 [+] ShoutCast support using ogg multiplexor.
 [!] Fix crash when using transformations (-Z, -j).
-[!] Fix compilation error with x264 version 76.
+[!] Fix compilation error with x264 version 78.
 [*] Improved internal buffering system.
 [*] Added basic A/V synchronization module.
 [!] Fix misuse of configuration files which leads to crash.
@@ -33,4 +32,5 @@ transcode-1.2.0
 [+] Added a special-crafted import module targeting webcams using libv4l.
 [*] Update the video stabilization plugins to version 0.61.
 [*] Added the -X option to tcdecode (let the user specify the acceleration)
+[+] Enable versioned, parallel installation.
 ===========================================================================
