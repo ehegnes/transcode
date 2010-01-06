@@ -19,6 +19,7 @@
 ^import/tcxmlcheck$
 ^import/tcxpm2rgb$
 ^src/transcode$
+^src/gtranscode2.py$
 ^testsuite/test-acmemcpy$
 ^testsuite/test-acmemcpy-speed$
 ^testsuite/test-average$
