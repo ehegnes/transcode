@@ -718,13 +718,13 @@ dnl
 dnl support for version embedded into installed files name
 dnl
 AC_MSG_CHECKING([enable version in installed files])
-AC_ARG_ENABLE(versioned-install,
-  AC_HELP_STRING([--enable-versioned-install],
+AC_ARG_ENABLE(versioned,
+  AC_HELP_STRING([--enable-versioned],
     [enable the embedding of the package version into the installed files (yes)]),
   [case "${enableval}" in
     yes) ;;
     no)  ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-versioned-install) ;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --enable-versioned) ;;
   esac],
   [enable_versioned=yes])
 AC_MSG_RESULT($enable_versioned)
@@ -735,6 +735,8 @@ if test x"$enable_versioned" = x"yes" ; then
   AC_DEFINE_UNQUOTED(TC_VERSUFFIX, "$TC_VERSUFFIX",
                      [package suffix for versioned installation])
   report_versioned="($TC_VERSUFFIX)"
+else
+  enable_versioned="no"
 fi
 AM_CONDITIONAL(ENABLE_VERSIONED, test x"$enable_versioned" = x"yes")
 
