@@ -32,6 +32,8 @@
 #ifndef EXPORT_H
 #define EXPORT_H
 
+/* DOCME */
+
 /*
  * MULTITHREADING NOTE:
  * It is *GUARANTEED SAFE* to call the following functions 
