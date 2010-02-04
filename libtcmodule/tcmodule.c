@@ -379,19 +379,18 @@ static uint32_t translate_modclass(const char *modclass)
 /* FIXME: writeme */
 static uint32_t translate_media(int media)
 {
-    uint32_t ret = TC_MODULE_FEATURE_NONE;
+    uint32_t ret = 0;
 
-    switch (media) {
-      case TC_VIDEO:
-        ret = TC_MODULE_FEATURE_VIDEO;
-        break;
-      case TC_AUDIO:
-        ret = TC_MODULE_FEATURE_AUDIO;
-        break;
-      case TC_EXTRA:
-        ret = TC_MODULE_FEATURE_EXTRA;
-        break;
+    if (media & TC_VIDEO) {
+        ret |= TC_MODULE_FEATURE_VIDEO;
     }
+    if (media & TC_AUDIO) {
+        ret |= TC_MODULE_FEATURE_AUDIO;
+    }
+    if (media & TC_EXTRA) {
+        ret |= TC_MODULE_FEATURE_EXTRA;
+    }
+
     return ret;
 }
 
