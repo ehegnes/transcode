@@ -187,7 +187,7 @@ if(pa -> data[0] == '*')
 					po -> ydest = po -> ypos;
 					}
 
-				if(! po -> status & OBJECT_STATUS_HAVE_Z_DEST)
+				if(po -> status & OBJECT_STATUS_HAVE_Z_DEST)
 					{
 					po -> zdest = dgz;
 					}
