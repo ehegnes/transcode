@@ -49,9 +49,7 @@ int gop, gop_pts, gop_cnt;
 void tcdemux_pass_through(info_t *ipipe, int *pass, int npass)
 {
     int bytes, p, id = 0;
-    int i = 0; // packet counter
     int j = 0; // skipped packets counter
-    int k = 0; // unit counter
     char *buffer = NULL;
     int payload_id = 0, select = PACKAGE_ALL;
     int unit, unit_seek = 0, track = 0, is_track = 0;
@@ -64,9 +62,7 @@ void tcdemux_pass_through(info_t *ipipe, int *pass, int npass)
     int flag_flush        = 0;
     // will be switched on as soon start of sequences to flush is reached
     int flag_eos          = 0;
-    int flag_append_audio = 0;
     int flag_notify       = 1;
-    int flag_avsync       = 0;
     int flag_skip         = 0;
     int flag_sync_reset   = 0;
     int flag_sync_active  = 0;
