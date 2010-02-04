@@ -203,7 +203,10 @@ static int cpuinfo_x86(void)
 {
     uint32_t eax, ebx, ecx, edx;
     uint32_t cpuid_max, cpuid_ext_max;  /* Maximum CPUID function numbers */
-    char cpu_vendor[13];  /* 12-byte CPU vendor string + trailing null */
+    union {
+        char string[13];
+        struct { uint32_t ebx, edx, ecx; } regs;
+    } cpu_vendor;  /* 12-byte CPU vendor string + trailing null */
     uint32_t cpuid_1D, cpuid_1C, cpuid_X1D;
     int accel;
 
@@ -226,10 +229,10 @@ static int cpuinfo_x86(void)
     /* Determine the maximum function number available, and save the vendor
      * string */
     CPUID(0, cpuid_max, ebx, ecx, edx);
-    *((uint32_t *)(cpu_vendor  )) = ebx;
-    *((uint32_t *)(cpu_vendor+4)) = edx;
-    *((uint32_t *)(cpu_vendor+8)) = ecx;
-    cpu_vendor[12] = 0;
+    cpu_vendor.regs.ebx = ebx;
+    cpu_vendor.regs.ecx = ecx;
+    cpu_vendor.regs.edx = edx;
+    cpu_vendor.string[12] = 0;
     cpuid_ext_max = 0;  /* FIXME: how do early CPUs respond to 0x80000000? */
     CPUID(0x80000000, cpuid_ext_max, ebx, ecx, edx);
 
@@ -256,14 +259,14 @@ static int cpuinfo_x86(void)
         accel |= AC_SSE2;
     if (cpuid_1C & CPUID_1C_SSE3)
         accel |= AC_SSE3;
-    if (strcmp(cpu_vendor, "AuthenticAMD") == 0) {
+    if (strcmp(cpu_vendor.string, "AuthenticAMD") == 0) {
         if (cpuid_X1D & CPUID_X1D_AMD_MMXEXT)
             accel |= AC_MMXEXT;
         if (cpuid_X1D & CPUID_X1D_AMD_3DNOW)
             accel |= AC_3DNOW;
         if (cpuid_X1D & CPUID_X1D_AMD_3DNOWEXT)
             accel |= AC_3DNOWEXT;
-    } else if (strcmp(cpu_vendor, "CyrixInstead") == 0) {
+    } else if (strcmp(cpu_vendor.string, "CyrixInstead") == 0) {
         if (cpuid_X1D & CPUID_X1D_CYRIX_MMXEXT)
             accel |= AC_MMXEXT;
     }
