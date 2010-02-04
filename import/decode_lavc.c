@@ -256,8 +256,13 @@ void decode_lavc(decode_t *decode)
 
       //tc_log_msg(__FILE__, "SIZE: (%d) MP4(%d) blen(%d) BUF(%d) read(%ld)", len, mp4_size, buf_len, READ_BUFFER_SIZE, bytes_read);
       do {
-	  len = avcodec_decode_video(lavc_dec_context, &picture,
-		  &got_picture, buffer+buf_len, mp4_size-buf_len);
+          AVPacket avpkt;
+          av_init_packet(&avpkt);
+          avpkt.data = buffer+buf_len;
+          avpkt.size = mp4_size-buf_len;
+          avpkt.flags = AV_PKT_FLAG_KEY;
+	  len = avcodec_decode_video2(lavc_dec_context, &picture,
+		  &got_picture, &avpkt);
 
 	  if (len < 0) {
 	      tc_log_error(__FILE__, "frame decoding failed");
