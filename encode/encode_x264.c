@@ -155,6 +155,10 @@ static TCConfigEntry conf[] ={
     OPT_RANGE(i_keyint_min,               "keyint_min",     1,999999)
     /* How aggressively to insert extra I frames */
     OPT_RANGE(i_scenecut_threshold,       "scenecut",      -1,   100)
+#if X264_BUILD >= 82
+    /* Whether to use periodic intra refresh instead of IDR frames */
+    OPT_NONE (b_intra_refresh)
+#endif
     /* How many B-frames between 2 reference pictures */
     OPT_RANGE(i_bframe,                   "bframes",        0,    16)
     /* Use adaptive B-frame encoding */
@@ -289,6 +293,14 @@ static TCConfigEntry conf[] ={
     OPT_FLAG (b_aud,                      "aud")
     OPT_NONE (b_repeat_headers)
     OPT_NONE (i_sps_id)
+#if X264_BUILD >= 81
+    OPT_NONE (b_vfr_input)
+    OPT_NONE (i_timebase_num)
+    OPT_NONE (i_timebase_den)
+#endif
+#if X264_BUILD >= 84
+    OPT_NONE (b_dts_compress)
+#endif
 
     /* Module configuration options (which do not affect encoding) */
 
