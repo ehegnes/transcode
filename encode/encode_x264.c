@@ -162,14 +162,14 @@ static TCConfigEntry conf[] ={
     /* How many B-frames between 2 reference pictures */
     OPT_RANGE(i_bframe,                   "bframes",        0,    16)
     /* Use adaptive B-frame encoding */
-    OPT_FLAG (i_bframe_adaptive,          "b_adapt")
+    OPT_RANGE(i_bframe_adaptive,          "b_adapt",        0,     2)
     /* How often B-frames are used */
     OPT_RANGE(i_bframe_bias,              "b_bias",       -90,   100)
     /* Keep some B-frames as references */
 #if X264_BUILD >= 78
     OPT_RANGE(i_bframe_pyramid,           "b_pyramid",      0,     2)
 #else
-    OPT_FLAG (b_bframe_pyramid,           "b_pyramid")
+    OPT_RANGE(b_bframe_pyramid,           "b_pyramid",      0,     1)
 #endif
 
     /* Use deblocking filter */
