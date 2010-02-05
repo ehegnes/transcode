@@ -491,6 +491,29 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
         params->rc.i_bitrate = vob->divxbitrate; /* what a name */
     }
 
+#if X264_BUILD >= 81
+    params->b_vfr_input = 0;
+    if (vob->im_frc == 0
+     || TC_NULL_MATCH == tc_frc_code_to_ratio(vob->im_frc,
+                                              &params->i_timebase_den,
+                                              &params->i_timebase_num)
+    ) {
+        if (vob->fps > 29.9 && vob->fps < 30) {
+            params->i_timebase_den = 30000;
+            params->i_timebase_num = 1001;
+        } else if (vob->fps > 23.9 && vob->fps < 24) {
+            params->i_timebase_den = 24000;
+            params->i_timebase_num = 1001;
+        } else if (vob->fps > 59.9 && vob->fps < 60) {
+            params->i_timebase_den = 60000;
+            params->i_timebase_num = 1001;
+        } else {
+            params->i_timebase_den = vob->fps * 1000;
+            params->i_timebase_num = 1000;
+        }
+    }
+#endif
+
     if (vob->ex_frc == 0
      || TC_NULL_MATCH == tc_frc_code_to_ratio(vob->ex_frc,
                                               &params->i_fps_num,
