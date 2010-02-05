@@ -476,8 +476,8 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
         params->rc.i_rc_method = X264_RC_CRF;
     } else {
         params->rc.i_rc_method = X264_RC_ABR;
+        params->rc.i_bitrate = vob->divxbitrate; /* what a name */
     }
-    params->rc.i_bitrate = vob->divxbitrate; /* what a name */
 
     if (vob->ex_frc == 0
      || TC_NULL_MATCH == tc_frc_code_to_ratio(vob->ex_frc,
@@ -865,6 +865,7 @@ static int x264_configure(TCModuleInstance *self,
     /* Initialize parameter block */
     memset(&confdata, 0, sizeof(confdata));
     x264_param_default(&confdata.x264params);
+    confdata.x264params.rc.f_rf_constant = 0;  // Default to VBR
 
     /* Parameters not (yet) settable via options: */
     confdata.x264params.analyse.intra = ~0;
