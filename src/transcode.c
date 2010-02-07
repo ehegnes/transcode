@@ -2481,10 +2481,11 @@ int main(int argc, char *argv[])
                     session->max_frame_threads, session->hw_threads);
 
     // --accel
+    session->acceleration &= ac_cpuinfo();
 #if defined(ARCH_X86) || defined(ARCH_X86_64)
     if (verbose >= TC_INFO)
         tc_log_info(PACKAGE, "H: IA32/AMD64 accel | %s ",
-                    ac_flagstotext(session->acceleration & ac_cpuinfo()));
+                    ac_flagstotext(session->acceleration));
 #endif
 
     ac_init(session->acceleration);
