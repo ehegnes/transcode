@@ -546,11 +546,24 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
     /* Set logging function and acceleration flags */
     params->pf_log = x264_log;
     params->p_log_private = NULL;
-    params->cpu = 0;
+    params->cpu &= ~(X264_CPU_MMX
+                   | X264_CPU_MMXEXT
+                   | X264_CPU_SSE
+                   | X264_CPU_SSE2
+                   | X264_CPU_SSE3
+                   | X264_CPU_SSSE3
+                   | X264_CPU_SSE4
+                   | X264_CPU_SSE42
+                   | X264_CPU_LZCNT);
     if (tc_accel & AC_MMX)      params->cpu |= X264_CPU_MMX;
     if (tc_accel & AC_MMXEXT)   params->cpu |= X264_CPU_MMXEXT;
     if (tc_accel & AC_SSE)      params->cpu |= X264_CPU_SSE;
     if (tc_accel & AC_SSE2)     params->cpu |= X264_CPU_SSE2;
+    if (tc_accel & AC_SSE3)     params->cpu |= X264_CPU_SSE3;
+    if (tc_accel & AC_SSSE3)    params->cpu |= X264_CPU_SSSE3;
+    if (tc_accel & AC_SSE41)    params->cpu |= X264_CPU_SSE4;
+    if (tc_accel & AC_SSE42)    params->cpu |= X264_CPU_SSE42;
+    if (tc_accel & AC_SSE4A)    params->cpu |= X264_CPU_LZCNT;
 
     return TC_OK;
 }

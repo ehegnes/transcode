@@ -33,6 +33,11 @@
 #define AC_SSE          0x0080  /* x86: SSE instructions */
 #define AC_SSE2         0x0100  /* x86: SSE2 instructions */
 #define AC_SSE3         0x0200  /* x86: SSE3 instructions */
+#define AC_SSSE3        0x0400  /* x86: SSSE3 instructions */
+#define AC_SSE41        0x0800  /* x86: SSE4.1 instructions */
+#define AC_SSE42        0x1000  /* x86: SSE4.2 instructions (Intel) */
+#define AC_SSE4A        0x2000  /* x86: SSE4a instructions (AMD) */
+#define AC_SSE5         0x4000  /* x86: SSE5 instructions (AMD) */
 
 #define AC_NONE         0       /* No acceleration (vanilla C functions) */
 #define AC_ALL          (~0)    /* All available acceleration */
