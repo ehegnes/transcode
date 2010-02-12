@@ -1187,11 +1187,6 @@ TC_OPTION(video_format,       'V', "fmt",
                     goto short_usage;
                 }
 )
-TC_OPTION(keep_asr,           0,   0,
-                "try to keep aspect ratio (broken)",
-                tc_error("--keep_asr is unavailable, calculate frame"
-                         " parameters manually");
-)
 
 /********/ TC_HEADER("Audio processing options") /********/
 
