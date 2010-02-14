@@ -28,19 +28,6 @@
  * compilation environment to be set (and thus set incorrectly if config.h
  * has not been included). */
 
-#include <ctype.h>
-#include <math.h>
-
-#include "libtc/libtc.h"
-#include "libtc/tccodecs.h"
-#include "libtc/ratiocodes.h"
-#include "libtcext/tc_ext.h"
-#include "libtcutil/xio.h"
-#include "libtcutil/cfgfile.h"
-#include "libtcexport/export.h"
-#include "libtcexport/export_profile.h"
-
-
 #include "transcode.h"
 #include "decoder.h"
 #include "dl_loader.h"
@@ -53,6 +40,18 @@
 #include "split.h"
 
 #include "cmdline.h"
+
+#include "libtc/libtc.h"
+#include "libtc/tccodecs.h"
+#include "libtc/ratiocodes.h"
+#include "libtcext/tc_ext.h"
+#include "libtcutil/xio.h"
+#include "libtcutil/cfgfile.h"
+#include "libtcexport/export.h"
+#include "libtcexport/export_profile.h"
+
+#include <ctype.h>
+#include <math.h>
 
 
 /* ------------------------------------------------------------
@@ -162,6 +161,10 @@ static int validate_source_path(const char *path)
         return 1;
     if (*path == '!' || *path == ':')  /* from transcode.c -- why? */
         return 1;
+#if _FILE_OFFSET_BITS != 64
+//#ifndef __USE_FILE_OFFSET64
+#error foo
+#endif
     if (xio_stat(path, &st) == 0)
         return 1;
     tc_error("Invalid filename \"%s\": %s", path, strerror(errno));

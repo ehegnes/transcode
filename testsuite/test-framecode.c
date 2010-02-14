@@ -21,6 +21,7 @@
 #include <limits.h>
 #include <math.h>
 
+#include "libtc/libtc.h"
 #include "libtc/framecode.h"
 
 /* Global verbosity level (0: silent, 1: test list, 2: debug info) */
