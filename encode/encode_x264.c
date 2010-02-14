@@ -155,17 +155,21 @@ static TCConfigEntry conf[] ={
     OPT_RANGE(i_keyint_min,               "keyint_min",     1,999999)
     /* How aggressively to insert extra I frames */
     OPT_RANGE(i_scenecut_threshold,       "scenecut",      -1,   100)
+#if X264_BUILD >= 82
+    /* Whether to use periodic intra refresh instead of IDR frames */
+    OPT_NONE (b_intra_refresh)
+#endif
     /* How many B-frames between 2 reference pictures */
     OPT_RANGE(i_bframe,                   "bframes",        0,    16)
     /* Use adaptive B-frame encoding */
-    OPT_FLAG (i_bframe_adaptive,          "b_adapt")
+    OPT_RANGE(i_bframe_adaptive,          "b_adapt",        0,     2)
     /* How often B-frames are used */
     OPT_RANGE(i_bframe_bias,              "b_bias",       -90,   100)
     /* Keep some B-frames as references */
 #if X264_BUILD >= 78
     OPT_RANGE(i_bframe_pyramid,           "b_pyramid",      0,     2)
 #else
-    OPT_FLAG (b_bframe_pyramid,           "b_pyramid")
+    OPT_RANGE(b_bframe_pyramid,           "b_pyramid",      0,     1)
 #endif
 
     /* Use deblocking filter */
@@ -289,6 +293,14 @@ static TCConfigEntry conf[] ={
     OPT_FLAG (b_aud,                      "aud")
     OPT_NONE (b_repeat_headers)
     OPT_NONE (i_sps_id)
+#if X264_BUILD >= 81
+    OPT_NONE (b_vfr_input)
+    OPT_NONE (i_timebase_num)
+    OPT_NONE (i_timebase_den)
+#endif
+#if X264_BUILD >= 84
+    OPT_NONE (b_dts_compress)
+#endif
 
     /* Module configuration options (which do not affect encoding) */
 
@@ -476,8 +488,31 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
         params->rc.i_rc_method = X264_RC_CRF;
     } else {
         params->rc.i_rc_method = X264_RC_ABR;
+        params->rc.i_bitrate = vob->divxbitrate; /* what a name */
     }
-    params->rc.i_bitrate = vob->divxbitrate; /* what a name */
+
+#if X264_BUILD >= 81
+    params->b_vfr_input = 0;
+    if (vob->im_frc == 0
+     || TC_NULL_MATCH == tc_frc_code_to_ratio(vob->im_frc,
+                                              &params->i_timebase_den,
+                                              &params->i_timebase_num)
+    ) {
+        if (vob->fps > 29.9 && vob->fps < 30) {
+            params->i_timebase_den = 30000;
+            params->i_timebase_num = 1001;
+        } else if (vob->fps > 23.9 && vob->fps < 24) {
+            params->i_timebase_den = 24000;
+            params->i_timebase_num = 1001;
+        } else if (vob->fps > 59.9 && vob->fps < 60) {
+            params->i_timebase_den = 60000;
+            params->i_timebase_num = 1001;
+        } else {
+            params->i_timebase_den = vob->fps * 1000;
+            params->i_timebase_num = 1000;
+        }
+    }
+#endif
 
     if (vob->ex_frc == 0
      || TC_NULL_MATCH == tc_frc_code_to_ratio(vob->ex_frc,
@@ -865,6 +900,7 @@ static int x264_configure(TCModuleInstance *self,
     /* Initialize parameter block */
     memset(&confdata, 0, sizeof(confdata));
     x264_param_default(&confdata.x264params);
+    confdata.x264params.rc.f_rf_constant = 0;  // Default to VBR
 
     /* Parameters not (yet) settable via options: */
     confdata.x264params.analyse.intra = ~0;

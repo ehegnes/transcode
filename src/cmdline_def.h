@@ -601,7 +601,7 @@ TC_OPTION(export_prof,        0,   "profile",
                     goto short_usage;
                 vob->ex_prof_name = optarg;
 )
-TC_OPTION(export_with,        'y', "module string",
+TC_OPTION(export_with,        'y', "module-string",
                 "export modules",
                 static char **ex_mod_args = NULL;
                 size_t i = 0;
@@ -682,7 +682,7 @@ TC_OPTION(export_param,       'F', "string",
                 vob->ex_v_fcc = optarg;
                 vob->export_attributes |= TC_EXPORT_ATTRIBUTE_VCODEC;
 )
-TC_OPTION(export_codec,       'N', "format string",
+TC_OPTION(export_codec,       'N', "format-string",
                 "export codecs",
                 size_t i = 0;
                 size_t num = 0;
