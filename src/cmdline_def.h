@@ -251,7 +251,7 @@ TC_OPTION(split_time,         't', "frames",
                 "split output file after n frames [off]",
                 session->split_time = strtol(optarg, &optarg, 10);
                 if (*optarg) {
-                    tc_error("Invalid argument for --split_time");
+                    tc_error("Invalid argument for -t/--split_time");
                     goto short_usage;
                 }
 )
@@ -261,29 +261,37 @@ TC_OPTION(audio_input,        'p', "file",
 )
 TC_OPTION(audio_output,       'm', "file",
                 "write audio stream to separate file [off]",
-                if (*optarg == '-')
+                if (*optarg == '-') {
+                    tc_error("Missing argument for -m/--audio_output");
                     goto short_usage;
+                }
                 vob->audio_out_file = optarg;
                 vob->audio_file_flag = 1;
 )
 TC_OPTION(nav_seek,           0,   "file",
                 "use VOB navigation file [off]",
-                if (*optarg == '-')
+                if (*optarg == '-') {
+                    tc_error("Missing argument for --nav_seek");
                     goto short_usage;
+                }
                 vob->nav_seek_file = optarg;
                 nav_seek_file = optarg;
 )
 TC_OPTION(socket,             0,   "file",
                 "socket file for run-time control [off]",
-                if (*optarg == '-')
+                if (*optarg == '-') {
+                    tc_error("Missing argument for --socket");
                     goto short_usage;
+                }
                 socket_file = optarg;
 )
 TC_OPTION(write_pid,          0,   "file",
                 "write pid of transcode process to \"file\" [off]",
                 FILE *f;
-                if (*optarg == '-')
+                if (*optarg == '-') {
+                    tc_error("Missing argument for --write_pid");
                     goto short_usage;
+                }
                 f = fopen(optarg, "w");
                 if (f) {
                     fprintf(f, "%d\n", session->tc_pid);
@@ -292,8 +300,10 @@ TC_OPTION(write_pid,          0,   "file",
 )
 TC_OPTION(config_dir,         0,   "dir",
                 "assume config files are in this dir [off]",
-                if (*optarg == '-')
+                if (*optarg == '-') {
+                    tc_error("Missing argument for --config_dir");
                     goto short_usage;
+                }
                 tc_config_set_dir(optarg);
 )
 
@@ -313,8 +323,10 @@ TC_OPTION(extract_track,      'a', "a[,v]",
 TC_OPTION(frames,             'c', "f1-f2[,f3-f4...]",
                 "encode only given range (frames or HH:MM:SS),"
                 " f2,f4,... are *not* encoded [all]",
-                if (*optarg == '-')
+                if (*optarg == '-') {
+                    tc_error("Missing argument for -c/--frames");
                     goto short_usage;
+                }
                 session->fc_ttime_string = optarg;
 )
 TC_OPTION(frame_interval,     0,   "N",
@@ -597,8 +609,10 @@ TC_OPTION(no_audio_adjust,    0,   0,
 
 TC_OPTION(export_prof,        0,   "profile",
                 "export profile name [none]",
-                if (*optarg == '-')
+                if (*optarg == '-') {
+                    tc_error("Missing argument for --export_prof");
                     goto short_usage;
+                }
                 vob->ex_prof_name = optarg;
 )
 TC_OPTION(export_with,        'y', "module-string",
@@ -1219,8 +1233,10 @@ TC_OPTION(filter,             'J', "f1[,f2...]",
                 "apply external audio/video filters [none]",
                 static int size_plugstr = 0;
                 int newlen;
-                if (*optarg == '-')
+                if (*optarg == '-') {
+                    tc_error("Missing argument for -J/--filter");
                     goto short_usage;
+                }
                 newlen = size_plugstr + strlen(optarg) + 1;  // \0
                 if (size_plugstr) // it's an append...
                     newlen++; // ... so add the and ',' separator
@@ -1367,8 +1383,10 @@ TC_OPTION(no_split,           0,   0,
 )
 TC_OPTION(chapter_mode,       'U', "base",
                 "process DVD in chapter mode to base-ch%02d.avi [off]",
-                if (*optarg == '-')
+                if (*optarg == '-') {
+                    tc_error("Missing argument for -U/--base");
                     goto short_usage;
+                }
                 chbase = optarg;
                 session->core_mode = TC_MODE_DVD_CHAPTER;
 )
