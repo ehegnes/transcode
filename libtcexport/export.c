@@ -669,7 +669,7 @@ int tc_export_open(void)
 {
     return tc_multiplexor_open(&expdata.mux,
                                expdata.job->video_out_file,
-                               NULL, /* FIXME */
+                               expdata.job->audio_out_file,
                                &expdata.vid_xdata,
                                (expdata.has_aux) ?NULL :&expdata.aud_xdata);
 }
