@@ -343,7 +343,7 @@ static void print_counter_line(int encoding, int frame, int first, int last,
                 encoding ? "encoding" : "skipping",
                 frame, last+1,
                 fps,
-                100*done,
+                floor(1000*done)/10,  // Round down to tenths of a percent
                 eta_buf,
                 decodebuf, filterbuf, encodebuf
         );

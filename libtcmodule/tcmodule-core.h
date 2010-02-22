@@ -197,17 +197,21 @@ static int tc_module_read_audio(TCModule handle, TCFrameAudio *frame)
 #ifdef HAVE_GCC_ATTRIBUTES
 __attribute__((unused))
 #endif
-static int tc_module_flush_video(TCModule handle, TCFrameVideo *frame)
+static int tc_module_flush_video(TCModule handle, TCFrameVideo *frame,
+				 int *frame_returned)
 {
-    return handle->klass->flush_video(&(handle->instance), frame);
+    return handle->klass->flush_video(&(handle->instance), frame,
+				      frame_returned);
 }
 
 #ifdef HAVE_GCC_ATTRIBUTES
 __attribute__((unused))
 #endif
-static int tc_module_flush_audio(TCModule handle, TCFrameAudio *frame)
+static int tc_module_flush_audio(TCModule handle, TCFrameAudio *frame,
+				 int *frame_returned)
 {
-    return handle->klass->flush_audio(&(handle->instance), frame);
+    return handle->klass->flush_audio(&(handle->instance), frame,
+				      frame_returned);
 }
 
 

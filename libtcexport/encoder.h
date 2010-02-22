@@ -32,6 +32,8 @@
 #include "libtc/tcframes.h"
 #include "tccore/job.h"
 
+/* DOCME */
+
 /*************************************************************************
  * MULTITHREADING WARNING:                                               *
  * It is *NOT SAFE* to call functions declared on this header from       *
@@ -76,6 +78,22 @@ int tc_encoder_process(TCEncoder *enc,
                        TCFrameVideo *vin, TCFrameVideo *vout,
                        TCFrameAudio *ain, TCFrameAudio *aout);
 
+/*
+ * tc_encoder_flush:
+ *      Flush any frames buffered internally by the encoder to the output
+ *      stream.
+ * Parameters:
+ *      enc: Pointer to an encoder instance.
+ *      vout: Pointer to a video frame buffer to receive video data.
+ *      aout: Pointer to a video frame buffer to receive audio data.
+ * Return Value:
+ *      Bitmask containing zero or more of TC_VIDEO and TC_AUDIO,
+ *      indicating respectively whether a video or audio frame was returned,
+ *      or -1 on error.
+ * Notes:
+ *      To ensure that all data has been flushed, the caller must
+ *      repeatedly call this function until it returns zero (or error).
+ */
 int tc_encoder_flush(TCEncoder *enc,
                      TCFrameVideo *vout, TCFrameAudio *aout);
 

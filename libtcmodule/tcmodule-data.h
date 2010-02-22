@@ -156,8 +156,10 @@ struct tcmoduleclass_ {
     int (*filter_audio)(TCModuleInstance *self, TCFrameAudio *frame);
     int (*filter_video)(TCModuleInstance *self, TCFrameVideo *frame);
 
-    int (*flush_audio)(TCModuleInstance *self, TCFrameAudio *outframe);
-    int (*flush_video)(TCModuleInstance *self, TCFrameVideo *outframe);
+    int (*flush_audio)(TCModuleInstance *self, TCFrameAudio *outframe,
+                       int *frame_returned);
+    int (*flush_video)(TCModuleInstance *self, TCFrameVideo *outframe,
+                       int *frame_returned);
 
     int (*write_video)(TCModuleInstance *self, TCFrameVideo *frame);
     int (*write_audio)(TCModuleInstance *self, TCFrameAudio *frame);
@@ -170,7 +172,7 @@ struct tcmoduleclass_ {
  * TCModuleClass operations documentation:                                *
  **************************************************************************
  *
- * For all the following, until specified:
+ * For all the following, unless specified:
  * Return Value:
  *      TC_OK: succesfull.
  *      TC_ERROR:
@@ -350,14 +352,17 @@ struct tcmoduleclass_ {
  * flush_{audio,video}:
  *      flush the internal module buffer. This method is called by
  *      the encoder core just after the encoder loop stopped.
- *      The encoder module should release any buffered data.
+ *      If multiple frames are buffered, this function should return
+ *      only the first such frame; the function will be called multiple
+ *      times to obtain subsequent frames.
  * Parameters:
  *      self: pointer to a module instance. 
  *      frame: pointer to an {audio,video} frame to be filled (if needed).
+ *      frame_returned: on return, set to 1 if a frame was returned, else 0.
  * Return Value:
  *      See the initial note above.
  * Preconditions:
- *      As per encode_{audio,video}.
+ *      As per encode_{audio,video}; also frame_returned != NULL.
  *
  *
  * filter_{audio,video}:

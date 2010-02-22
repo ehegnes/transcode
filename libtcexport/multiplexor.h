@@ -112,6 +112,8 @@ void tc_multiplexor_limit_megabytes(TCMultiplexor *mux, uint32_t megabytes);
 
 /*************************************************************************/
 
+/* DOCME */
+
 int tc_multiplexor_init(TCMultiplexor *mux, TCJob *job, TCFactory factory);
 
 int tc_multiplexor_fini(TCMultiplexor *mux);

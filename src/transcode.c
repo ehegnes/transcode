@@ -577,6 +577,8 @@ static int transcode_mode_default(TCSession *session)
     }
     tc_stop_all();
 
+    // flush buffered data
+    tc_export_flush();
     // close output files
     tc_export_close();
     // stop encoder
@@ -646,6 +648,7 @@ static int transcode_mode_directory(TCSession *session)
 
     tc_stop_all();
 
+    tc_export_flush();
     tc_export_close();
     tc_export_stop();
     tc_multi_import_threads_cancel();
@@ -735,6 +738,7 @@ static int transcode_mode_psu(TCSession *session, const char *psubase)
 
             tc_export_loop(tc_get_ringbuffer(vob, th_num, th_num),
                            fa, TC_FRAME_LAST);
+            tc_export_flush();
 
             // close output file
             if (!no_split) {
@@ -852,6 +856,7 @@ static int transcode_mode_dvd(TCSession *session)
         // main encoding loop, selecting an interval won't work
         tc_export_loop(tc_get_ringbuffer(vob, th_num, th_num),
                        session->frame_a, session->frame_b);
+        tc_export_flush();
 
         if (!no_split) {
             if (tc_export_close() != TC_OK)

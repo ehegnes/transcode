@@ -1082,7 +1082,7 @@ static int x264_inspect(TCModuleInstance *self,
 /*************************************************************************/
 
 /**
- * x264_encode_video:  Decode a frame of data.  See tcmodule-data.h for
+ * x264_encode_video:  Encode a video frame.  See tcmodule-data.h for
  * function details.
  */
 
@@ -1103,29 +1103,33 @@ static int x264_encode_video(TCModuleInstance *self,
     memset(&pic,     0, sizeof(pic));
     memset(&pic_out, 0, sizeof(pic_out));
 
-    pic.img.i_csp = X264_CSP_I420;
-    pic.img.i_plane     = 3;
+    /* inframe will always be non-NULL on an interface call, but will be
+     * NULL when called by x264_flush_video() to encode buffered frames. */
+    if (inframe) {
+        pic.img.i_csp       = X264_CSP_I420;
+        pic.img.i_plane     = 3;
 
-    pic.img.plane[0]    = inframe->video_buf;
-    pic.img.i_stride[0] = inframe->v_width;
+        pic.img.plane[0]    = inframe->video_buf;
+        pic.img.i_stride[0] = inframe->v_width;
 
-    pic.img.plane[1]    = pic.img.plane[0]
-                          + inframe->v_width*inframe->v_height;
-    pic.img.i_stride[1] = inframe->v_width / 2;
+        pic.img.plane[1]    = pic.img.plane[0]
+                              + inframe->v_width*inframe->v_height;
+        pic.img.i_stride[1] = inframe->v_width / 2;
 
-    pic.img.plane[2]    = pic.img.plane[1]
-                          + (inframe->v_width/2)*(inframe->v_height/2);
-    pic.img.i_stride[2] = inframe->v_width / 2;
+        pic.img.plane[2]    = pic.img.plane[1]
+                              + (inframe->v_width/2)*(inframe->v_height/2);
+        pic.img.i_stride[2] = inframe->v_width / 2;
 
+        pic.i_type = X264_TYPE_AUTO;
+        pic.i_qpplus1 = 0;
+        /* FIXME: Is this pts-handling ok? I don't have a clue how
+         * PTS/DTS handling works. Does it matter, when no muxing is
+         * done? */
+        pic.i_pts = (int64_t) pd->framenum * pd->x264params.i_fps_den;
+    }
 
-    pic.i_type = X264_TYPE_AUTO;
-    pic.i_qpplus1 = 0;
-    /* FIXME: Is this pts-handling ok? I don't have a clue how
-     * PTS/DTS handling works. Does it matter, when no muxing is
-     * done? */
-    pic.i_pts = (int64_t) pd->framenum * pd->x264params.i_fps_den;
-
-    ret = x264_encoder_encode(pd->enc, &nal, &nnal, &pic, &pic_out);
+    ret = x264_encoder_encode(pd->enc, &nal, &nnal,
+                              inframe ? &pic : NULL, &pic_out);
 #if X264_BUILD >= 76
     if (ret < 0) {
 #else
@@ -1169,6 +1173,46 @@ static int x264_encode_video(TCModuleInstance *self,
 
 /*************************************************************************/
 
+/**
+ * x264_flush_video:  Flush a video frame from x264's internal buffer.
+ * See tcmodule-data.h for function details.
+ */
+
+static int x264_flush_video(TCModuleInstance *self,
+                            TCFrameVideo *outframe, int *frame_returned)
+{
+    X264PrivateData *pd;
+
+    TC_MODULE_SELF_CHECK(self, "encode_video");
+
+    pd = self->userdata;
+
+    *frame_returned = 0;
+
+    if (!pd->flush_flag) {
+        /* Flushing disabled by the user, which is not a good idea with x264
+         * since it can buffer several dozen frames before encoding anything.
+         * Add a warning just to make sure the user knows what they're doing. */
+        tc_log_warn(MOD_NAME, "Using -O (--encoder_noflush) with x264 can"
+                    " cause frames to be lost from the output file!");
+        return TC_OK;
+    }
+
+    if (x264_encoder_delayed_frames(pd->enc) == 0) {
+        /* No buffered frames left to encode */
+        return TC_OK;
+    }
+
+    if (x264_encode_video(self, NULL, outframe) == TC_ERROR) {
+        return TC_ERROR;
+    }
+
+    *frame_returned = 1;
+    return TC_OK;
+}
+
+/*************************************************************************/
+
 static const TCCodecID x264_codecs_video_in[] = { 
     TC_CODEC_YUV420P, TC_CODEC_ERROR
 };
@@ -1190,6 +1234,7 @@ static const TCModuleClass x264_class = {
     .inspect      = x264_inspect,
 
     .encode_video = x264_encode_video,
+    .flush_video  = x264_flush_video,
 };
 
 TC_MODULE_ENTRY_POINT(x264)
