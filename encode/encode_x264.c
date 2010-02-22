@@ -1069,7 +1069,7 @@ static int x264_inspect(TCModuleInstance *self,
 /*************************************************************************/
 
 /**
- * x264_encode_video:  Decode a frame of data.  See tcmodule-data.h for
+ * x264_encode_video:  Encode a video frame.  See tcmodule-data.h for
  * function details.
  */
 
