@@ -1623,9 +1623,10 @@ static int tc_lavc_inspect(TCModuleInstance *self,
 }
 
 static int tc_lavc_flush_video(TCModuleInstance *self,
-                               TCFrameVideo *outframe)
+                               TCFrameVideo *outframe,
+                               int *frame_returned)
 {
-    outframe->video_len = 0;
+    *frame_returned = 0;
     return TC_OK;
 }
 
@@ -1666,10 +1667,11 @@ static int tc_lavc_encode_video(TCModuleInstance *self,
 }
 
 static int tc_lavc_flush_audio(TCModuleInstance *self,
-                               TCFrameAudio *outframe)
+                               TCFrameAudio *outframe,
+                               int *frame_returned)
 {
-    outframe->audio_len = 0; /* FIXME */
-    return TC_OK;
+    *frame_returned = 0;
+    return TC_OK; /* FIXME */
 }
 
 #define INT_BUF_GET(PD)    ((PD)->aframe_buf->audio_buf)
