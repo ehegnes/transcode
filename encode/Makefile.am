@@ -61,8 +61,8 @@ pkg_LTLIBRARIES = \
 	$(ENCODE_DV) \
 	$(ENCODE_FAAC) \
 	$(ENCODE_IM) \
-	$(ENCODE_LAVC) \
 	$(ENCODE_LAME) \
+	$(ENCODE_LAVC) \
 	$(ENCODE_LZO) \
 	encode_null.la \
 	$(ENCODE_THEORA) \
