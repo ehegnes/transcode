@@ -37,6 +37,7 @@ typedef struct {
     /* FAAC only takes complete frames as input, so we buffer as needed. */
     uint8_t *audiobuf;
     int audiobuf_len;  // in samples
+    int need_flush;  // 1 if there may be unflushed data
 } PrivateData;
 
 /*************************************************************************/
@@ -65,6 +66,7 @@ static int faac_init(TCModuleInstance *self, uint32_t features)
     }
     pd->handle = 0;
     pd->audiobuf = NULL;
+    pd->need_flush = TC_FALSE;
 
     /* FIXME: shouldn't this test a specific flag? */
     if (verbose) {
@@ -157,6 +159,8 @@ static int faac_configure(TCModuleInstance *self,
         return TC_ERROR;
     }
 
+    pd->need_flush = TC_FALSE;
+
     return TC_OK;
 }
 
@@ -205,6 +209,7 @@ static int faac_stop(TCModuleInstance *self)
         faacEncClose(pd->handle);
         pd->handle = NULL;
     }
+    pd->need_flush = TC_FALSE;
 
     return TC_OK;
 }
@@ -276,13 +281,30 @@ static int faac_encode(TCModuleInstance *self,
                   nsamples*pd->bps);
         pd->audiobuf_len += nsamples;
     }
+    pd->need_flush = TC_TRUE;
     return TC_OK;
 }
 
 /* FIXME: redo it better */
-static int faac_flush(TCModuleInstance *self, TCFrameAudio *frame)
+static int faac_flush(TCModuleInstance *self, TCFrameAudio *frame,
+                      int *frame_returned)
 {
-    return faac_encode(self, NULL, frame);
+    PrivateData *pd;
+
+    TC_MODULE_SELF_CHECK(self, "flush");
+
+    pd = self->userdata;
+
+    *frame_returned = 0;
+    if (pd->need_flush) {
+        pd->need_flush = TC_FALSE;
+        if (TC_OK == faac_encode(self, NULL, frame)) {
+            *frame_returned = 1;
+        } else {
+            return TC_ERROR;
+        }
+    }
+    return TC_OK;
 }
 
 /*************************************************************************/

@@ -219,22 +219,26 @@ static int void_decode_audio(TCModuleInstance *self,
 }
 
 static int void_flush_video(TCModuleInstance *self,
-                            TCFrameVideo *frame)
+                            TCFrameVideo *frame,
+                            int *frame_returned)
 {
     TC_MODULE_SELF_CHECK(self,  "flush_video");
     TC_MODULE_SELF_CHECK(frame, "flush_video");
+    TC_MODULE_SELF_CHECK(frame_returned, "flush_video");
 
-    frame->video_len = 0;
+    *frame_returned = 0;
     return TC_OK;
 }
 
 static int void_flush_audio(TCModuleInstance *self,
-                            TCFrameAudio *frame)
+                            TCFrameAudio *frame,
+                            int *frame_returned)
 {
     TC_MODULE_SELF_CHECK(self,  "flush_audio");
     TC_MODULE_SELF_CHECK(frame, "flush_audio");
+    TC_MODULE_SELF_CHECK(frame_returned, "flush_audio");
 
-    frame->audio_len = 0;
+    *frame_returned = 0;
     return TC_OK;
 }
 

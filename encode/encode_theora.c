@@ -70,6 +70,7 @@ static const char tc_theora_help[] = ""
 typedef struct theoraprivatedata_ TheoraPrivateData;
 struct theoraprivatedata_ {
     int                 flush_flag;
+    int                 need_flush;
 
     OGGExtraData        xdata;    /* real xdata */
 
@@ -191,7 +192,8 @@ static int tc_theora_configure(TCModuleInstance *self,
 
     pd = self->userdata;
 
-    pd->flush_flag = vob->encoder_flush;
+    pd->flush_flag   = vob->encoder_flush;
+    pd->need_flush   = TC_FALSE;
     pd->packets      = 0;
     pd->frames       = 0;
 
@@ -299,6 +301,7 @@ static int tc_theora_stop(TCModuleInstance *self)
     tc_ogg_del_extradata(&pd->xdata);
     tc_del_video_frame(pd->tbuf);
     theora_clear(&(pd->td));
+    pd->need_flush = TC_FALSE;
     return TC_OK;
 }
 
@@ -361,6 +364,7 @@ static int tc_theora_encode(TCModuleInstance *self,
     }
     vframe_copy(pd->tbuf, inframe, 1);
     pd->frames++;
+    pd->need_flush = TC_TRUE;
 #ifdef TC_THEORA_DEBUG
     tc_log_info(MOD_NAME, "(%s) after encoding: "
                           "packets=%"PRIu32" frames=%"PRIu32,
@@ -369,7 +373,8 @@ static int tc_theora_encode(TCModuleInstance *self,
     return TC_OK;
 }
 
-static int tc_theora_flush(TCModuleInstance *self, TCFrameVideo *frame)
+static int tc_theora_flush(TCModuleInstance *self, TCFrameVideo *frame,
+                           int *frame_returned)
 {
     TheoraPrivateData *pd = NULL;
 
@@ -377,7 +382,17 @@ static int tc_theora_flush(TCModuleInstance *self, TCFrameVideo *frame)
 
     pd = self->userdata;
 
-    return tc_theora_encode_internal(pd, 1, pd->tbuf, frame);
+    *frame_returned = 0;
+    if (pd->need_flush) {
+        pd->need_flush = TC_FALSE;
+        if (TC_OK == tc_theora_encode_internal(pd, 1, pd->tbuf, frame)) {
+            *frame_returned = 1;
+        } else {
+            return TC_ERROR;
+        }
+    }
+
+    return TC_OK;
 }
 
 static int tc_theora_encode_video(TCModuleInstance *self,

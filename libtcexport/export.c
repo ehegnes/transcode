@@ -691,19 +691,22 @@ int tc_export_close(void)
 /* DO NOT rotate here, this data belongs to current chunk */
 int tc_export_flush(void)
 {
-    int ret = TC_ERROR, bytes = 0, has_more = TC_FALSE;
+    int ret;
 
-    do {
-        ret = tc_encoder_flush(&expdata.enc,
-                               expdata.priv.video, expdata.priv.audio);
-                               /* FIXME */
-        RETURN_IF_NOT_OK(ret, "flush failed");
+    while ((ret = tc_encoder_flush(&expdata.enc,
+                                   expdata.priv.video,
+                                   expdata.priv.audio)) > 0) {
+        if (tc_multiplexor_write(&expdata.mux,
+                                 (ret & TC_VIDEO) ? expdata.priv.video : NULL,
+                                 (ret & TC_AUDIO) ? expdata.priv.audio : NULL)
+            == TC_ERROR)
+        {
+            tc_log_error(__FILE__, "write error while flushing data");
+            return TC_ERROR;
+        }
+    }
 
-        bytes = tc_multiplexor_write(&expdata.mux,
-                                     expdata.priv.video, expdata.priv.audio);
-    } while (has_more || bytes > 0);
-
-    return TC_OK;
+    return ret < 0 ? TC_ERROR : TC_OK;
 }
 
 /*************************************************************************/

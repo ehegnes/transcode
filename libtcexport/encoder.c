@@ -213,23 +213,29 @@ int tc_encoder_process(TCEncoder *enc,
 int tc_encoder_flush(TCEncoder *enc,
                      TCFrameVideo *vout, TCFrameAudio *aout)
 {
-    int ret, result = TC_OK;
+    int ret, frame_returned, result = 0;
 
     /* step 1: flush video */
-    ret = tc_module_flush_video(enc->vid_mod, vout);
-    if (ret == TC_OK) {
-        SETOK(enc, TC_VIDEO);
-    } else {
+    ret = tc_module_flush_video(enc->vid_mod, vout, &frame_returned);
+    if (ret == TC_ERROR) {
         tc_log_error(__FILE__, "error flushing video encoder");
-        result = TC_ERROR;
+        result = -1;
+    } else {
+        SETOK(enc, TC_VIDEO);
+        if (frame_returned) {
+            result |= TC_VIDEO;
+        }
     }
     
-    ret = tc_module_flush_audio(enc->aud_mod, aout);
-    if (ret == TC_OK) {
-        SETOK(enc, TC_AUDIO);
-    } else {
+    ret = tc_module_flush_audio(enc->aud_mod, aout, &frame_returned);
+    if (ret == TC_ERROR) {
         tc_log_error(__FILE__, "error flushing audio encoder");
-        result = TC_ERROR;
+        result = -1;
+    } else {
+        SETOK(enc, TC_AUDIO);
+        if (frame_returned) {
+            result |= TC_AUDIO;  // Won't change an error (-1) return value
+        }
     }
 
     return result;
