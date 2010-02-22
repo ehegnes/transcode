@@ -36,6 +36,7 @@ typedef struct {
     int bps;  /* bytes per sample */
     int channels;
     int flush_flag;
+    int need_flush;
 } PrivateData;
 
 /*************************************************************************/
@@ -179,6 +180,7 @@ static int lame_configure(TCModuleInstance *self,
     pd = self->userdata;
 
     pd->flush_flag = vob->encoder_flush;
+    pd->need_flush = TC_FALSE;
     /* Save bytes per sample */
     pd->bps = (vob->dm_chan * vob->dm_bits) / 8;
     /* And audio channels */
@@ -339,6 +341,8 @@ static int lame_stop(TCModuleInstance *self)
         pd->lgf = NULL;
     }
 
+    pd->need_flush = TC_FALSE;
+
     return TC_OK;
 }
 
@@ -368,7 +372,8 @@ static int lame_fini(TCModuleInstance *self)
 
 #define LAME_FLUSH_BUFFER_SIZE  7200 /* from lame/lame.h */
 
-static int lame_flush(TCModuleInstance *self, TCFrameAudio *out)
+static int lame_flush(TCModuleInstance *self, TCFrameAudio *out,
+                      int *frame_returned)
 {
     PrivateData *pd;
     int res;
@@ -381,11 +386,16 @@ static int lame_flush(TCModuleInstance *self, TCFrameAudio *out)
 
     pd = self->userdata;
 
+    *frame_returned = 0;
+
     if (!pd->flush_flag) {
         /* No-flush option given, so don't do anything */
-        out->audio_len = 0;
         return TC_OK;
     }
+    if (!pd->need_flush) {
+        return TC_OK;
+    }
+
     if (out->audio_size < LAME_FLUSH_BUFFER_SIZE) {
         /* paranoia is a virtue */
         tc_log_error(MOD_NAME, "output buffer too small for"
@@ -394,6 +404,8 @@ static int lame_flush(TCModuleInstance *self, TCFrameAudio *out)
                                LAME_FLUSH_BUFFER_SIZE);
         return TC_ERROR;
     }
+
+    pd->need_flush = TC_FALSE;
 
     /*
      * Looks like _nogap should behave better when
@@ -405,8 +417,11 @@ static int lame_flush(TCModuleInstance *self, TCFrameAudio *out)
     if (verbose >= TC_DEBUG) {
         tc_log_info(MOD_NAME, "flushing %d audio bytes", res);
     }
- 
     out->audio_len = res;
+
+    if (res > 0) {
+        *frame_returned = 1;
+    }
     return TC_OK;
 }
 
@@ -454,6 +469,7 @@ static int lame_encode(TCModuleInstance *self,
     }
 
     out->audio_len = res;
+    pd->need_flush = TC_TRUE;
     return TC_OK;
 }
 

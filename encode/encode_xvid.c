@@ -142,6 +142,7 @@ typedef struct {
     TCVHandle tcvhandle;
 
     int flush_flag;
+    int need_flush;
 } XviDPrivateData;
 
 static const char *errorstring(int err);
@@ -170,6 +171,7 @@ static int tc_xvid_configure(TCModuleInstance *self,
     pd = self->userdata;
 
     pd->flush_flag = vob->encoder_flush;
+    pd->need_flush = TC_FALSE;
 
     /* Load the config file settings */
     read_config_file(pd);
@@ -267,7 +269,8 @@ static int tc_xvid_inspect(TCModuleInstance *self,
     return TC_OK;
 }
 
-static int tc_xvid_flush(TCModuleInstance *self, TCFrameVideo *outframe)
+static int tc_xvid_flush(TCModuleInstance *self, TCFrameVideo *outframe,
+                         int *frame_returned)
 {
     int bytes;
     xvid_enc_stats_t xvid_enc_stats;
@@ -278,7 +281,10 @@ static int tc_xvid_flush(TCModuleInstance *self, TCFrameVideo *outframe)
 
     pd = self->userdata;
 
-    if (pd->flush_flag) {
+    *frame_returned = 0;
+    if (pd->flush_flag && pd->need_flush) {
+        pd->need_flush = TC_FALSE;
+
         /* Init the stat structure */
         memset(&xvid_enc_stats, 0, sizeof(xvid_enc_stats_t));
         xvid_enc_stats.version = XVID_VERSION;
@@ -292,6 +298,7 @@ static int tc_xvid_flush(TCModuleInstance *self, TCFrameVideo *outframe)
 
         outframe->video_len = bytes;
         if (bytes > 0) {
+            *frame_returned = 0;
             /* Extract stats info */
             if (xvid_enc_stats.type > 0 && pd->cfg_stats) {
                 pd->frames++;
@@ -305,6 +312,7 @@ static int tc_xvid_flush(TCModuleInstance *self, TCFrameVideo *outframe)
             }
         }
     }
+
     return TC_OK;
 }
 
@@ -349,6 +357,9 @@ static int tc_xvid_encode_video(TCModuleInstance *self,
         return TC_ERROR;
     }
     outframe->video_len = bytes;
+
+    /* There may now be data that needs flushing */
+    pd->need_flush = TC_TRUE;
 
     /* Extract stats info */
     if (xvid_enc_stats.type > 0 && pd->cfg_stats) {
@@ -422,6 +433,8 @@ static int tc_xvid_stop(TCModuleInstance *self)
         }
         pd->instance = NULL;
     }
+
+    pd->need_flush = TC_FALSE;
     return TC_OK;
 }
 #undef SSE2PSNR

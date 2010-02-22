@@ -279,21 +279,29 @@ static int mono_write(TCMultiplexor *mux, int can_rotate,
 
     mux->processed = 0;
 
-    vret = tc_module_write_video(mux->mux_main, vframe);
-    if (vret >= 0) {
-        need_rotate = tc_rotate_needed(mux->rotor, 1, vret);
-        mux->processed |= TC_VIDEO;
+    if (vframe) {
+        vret = tc_module_write_video(mux->mux_main, vframe);
+        if (vret >= 0) {
+            need_rotate = tc_rotate_needed(mux->rotor, 1, vret);
+            mux->processed |= TC_VIDEO;
+        }
+    } else {
+        vret = TC_OK;
     }
 
     /* in mono muxer mode, a pair of frames is an atomic unit */ 
 
-    aret = tc_module_write_audio(mux->mux_main, aframe);
-    if (aret >= 0) {
-        need_rotate = tc_rotate_needed(mux->rotor, 1, aret);
-        mux->processed |= TC_AUDIO;
+    if (aframe) {
+        aret = tc_module_write_audio(mux->mux_main, aframe);
+        if (aret >= 0) {
+            need_rotate = tc_rotate_needed(mux->rotor, 1, aret);
+            mux->processed |= TC_AUDIO;
+        }
+    } else {
+        aret = TC_OK;
     }
 
-    if (vret < 0 || aret < 0) {
+    if (vret == TC_ERROR || aret == TC_ERROR) {
         return TC_ERROR;
     }
     if (can_rotate && need_rotate) {
@@ -385,10 +393,14 @@ static int dual_write(TCMultiplexor *mux, int can_rotate,
     mux->processed = 0;
 
     need_rotate = TC_FALSE;
-    vret = tc_module_write_video(mux->mux_main, vframe);
-    if (vret >= 0) {
-        need_rotate = tc_rotate_needed(mux->rotor, 1, vret);
-        mux->processed |= TC_VIDEO;
+    if (vframe) {
+        vret = tc_module_write_video(mux->mux_main, vframe);
+        if (vret >= 0) {
+            need_rotate = tc_rotate_needed(mux->rotor, 1, vret);
+            mux->processed |= TC_VIDEO;
+        }
+    } else {
+        vret = TC_OK;
     }
 
     if (can_rotate && need_rotate) {
@@ -397,10 +409,14 @@ static int dual_write(TCMultiplexor *mux, int can_rotate,
     }
 
     need_rotate = TC_FALSE;
-    aret = tc_module_write_audio(mux->mux_main, aframe);
-    if (aret >= 0) {
-        need_rotate = tc_rotate_needed(mux->rotor, 1, aret);
-        mux->processed |= TC_AUDIO;
+    if (aframe) {
+        aret = tc_module_write_audio(mux->mux_main, aframe);
+        if (aret >= 0) {
+            need_rotate = tc_rotate_needed(mux->rotor, 1, aret);
+            mux->processed |= TC_AUDIO;
+        }
+    } else {
+        aret = TC_OK;
     }
 
     if (can_rotate && need_rotate) {
@@ -408,7 +424,7 @@ static int dual_write(TCMultiplexor *mux, int can_rotate,
                              aud_xdata, "audio");
     }
 
-    if (vret < 0 || aret < 0) {
+    if (vret == TC_ERROR || aret == TC_ERROR) {
         return TC_ERROR;
     }
     return TC_OK;

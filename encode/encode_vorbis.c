@@ -56,6 +56,7 @@ static const char tc_vorbis_help[] = ""
 typedef struct vorbisprivatedata_ VorbisPrivateData;
 struct vorbisprivatedata_ {
     int                 flush_flag;
+    int                 need_flush;
 
     vorbis_info         vi;
     vorbis_comment      vc;
@@ -169,7 +170,7 @@ static int tc_vorbis_configure(TCModuleInstance *self,
     }
  
     pd->flush_flag    = vob->encoder_flush;
-    pd->end_of_stream = TC_FALSE;
+    pd->need_flush    = TC_FALSE;
     pd->channels      = vob->dm_chan;
     pd->bits          = vob->dm_bits;
     pd->packets       = 0;
@@ -213,6 +214,7 @@ static int tc_vorbis_stop(TCModuleInstance *self)
     vorbis_dsp_clear(&pd->vd);
     vorbis_comment_clear(&pd->vc);
     vorbis_info_clear(&pd->vi);
+    pd->need_flush = TC_FALSE;
 
     tc_ogg_del_extradata(&pd->xdata);
     return TC_OK;
@@ -274,7 +276,7 @@ static int tc_vorbis_flush(TCModuleInstance *self, TCFrameAudio *frame)
                 __func__, frame->audio_len, frame->audio_size);
 #endif
 
-     if (pd->flush_flag && !pd->end_of_stream) {
+     if (pd->flush_flag && !pd->need_flush) {
         /* 
          * End of file. Tell the library we're at end of stream so that it 
          * can handle the  last frame and mark end of stream in the output 
@@ -283,7 +285,7 @@ static int tc_vorbis_flush(TCModuleInstance *self, TCFrameAudio *frame)
         vorbis_analysis_wrote(&pd->vd, 0);
      }
     ret = tc_vorbis_outframe(pd, frame);
-    pd->end_of_stream = TC_TRUE; /* this must be set AFTER last frame processed */
+    pd->need_flush = TC_FALSE;
 
 #ifdef TC_VORBIS_DEBUG
     tc_log_info(MOD_NAME,
@@ -337,6 +339,7 @@ static int tc_vorbis_encode_audio(TCModuleInstance *self,
 
     vorbis_analysis_wrote(&pd->vd, samples);
     ret = tc_vorbis_outframe(pd, outframe);
+    pd->need_flush = TC_TRUE;
 
 #ifdef TC_VORBIS_DEBUG
     tc_log_info(MOD_NAME,
