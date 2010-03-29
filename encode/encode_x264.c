@@ -26,13 +26,13 @@
 #include "libtcmodule/tcmodule-plugin.h"
 
 #include <x264.h>
-#if X264_BUILD < 65
-# error x264 version 65 or later is required
+#if X264_BUILD < 89
+# error x264 version 89 or later is required
 #endif
 
 
 #define MOD_NAME    "encode_x264.so"
-#define MOD_VERSION "v0.3.2 (2009-07-31)"
+#define MOD_VERSION "v0.4.0 (2010-03-29)"
 #define MOD_CAP     "x264 encoder"
 
 #define MOD_FEATURES \
@@ -67,10 +67,6 @@ typedef struct {
 /* Static structure to provide pointers for configuration entries */
 static struct confdata_struct {
     x264_param_t x264params;
-    /* Dummy fields for obsolete options */
-    int dummy_direct_8x8;
-    int dummy_bidir_me;
-    int dummy_brdo;
     /* Local parameters */
     int twopass_bug_workaround;
 } confdata;
@@ -110,8 +106,14 @@ static TCConfigEntry conf[] ={
 
     /* CPU acceleration flags (we leave the x264 default alone) */
     OPT_NONE (cpu)
-    /* Divide each frame into multiple slices, encode in parallel */
-    OPT_RANGE(i_threads,                  "threads",        1,     4)
+    /* Number of parallel encoding threads to use */
+    OPT_RANGE(i_threads,                  "threads",        0,     4)
+    /* Whether to use slice-based threading */
+    OPT_FLAG (b_sliced_threads,           "sliced_threads")
+    /* Whether to avoid non-deterministic optimizations when threaded */
+    OPT_FLAG (b_deterministic,            "deterministic")
+    /* Threaded lookahead buffer */
+    OPT_NONE (i_sync_lookahead)
 
     /* Video Properties */
 
@@ -121,6 +123,11 @@ static TCConfigEntry conf[] ={
     /* H.264 level (1.0 ... 5.1) */
     OPT_RANGE(i_level_idc,                "level_idc",     10,    51)
     OPT_NONE (i_frame_total) /* number of frames to encode if known, else 0 */
+
+    /* Add NAL HRD parameters to the bitstream */
+    /* OPT_FLAG is intentional here; we don't currently support CBR encoding
+     * (FIXME) */
+    OPT_FLAG (i_nal_hrd,                  "nal_hrd")
 
     /* they will be reduced to be 0 < x <= 65535 and prime */
     OPT_NONE (vui.i_sar_height)
@@ -155,10 +162,9 @@ static TCConfigEntry conf[] ={
     OPT_RANGE(i_keyint_min,               "keyint_min",     1,999999)
     /* How aggressively to insert extra I frames */
     OPT_RANGE(i_scenecut_threshold,       "scenecut",      -1,   100)
-#if X264_BUILD >= 82
     /* Whether to use periodic intra refresh instead of IDR frames */
-    OPT_NONE (b_intra_refresh)
-#endif
+    OPT_FLAG (b_intra_refresh,            "intra_refresh")
+
     /* How many B-frames between 2 reference pictures */
     OPT_RANGE(i_bframe,                   "bframes",        0,    16)
     /* Use adaptive B-frame encoding */
@@ -166,11 +172,7 @@ static TCConfigEntry conf[] ={
     /* How often B-frames are used */
     OPT_RANGE(i_bframe_bias,              "b_bias",       -90,   100)
     /* Keep some B-frames as references */
-#if X264_BUILD >= 78
     OPT_RANGE(i_bframe_pyramid,           "b_pyramid",      0,     2)
-#else
-    OPT_RANGE(b_bframe_pyramid,           "b_pyramid",      0,     1)
-#endif
 
     /* Use deblocking filter */
     OPT_FLAG (b_deblocking_filter,        "deblock")
@@ -184,23 +186,16 @@ static TCConfigEntry conf[] ={
     /* Initial data for CABAC? */
     OPT_RANGE(i_cabac_init_idc,           "cabac_init_idc", 0,     2)
 
-#ifdef HAVE_X264_NAL_HRD
-    /* Add NAL HRD parameters to the bitstream */
-    OPT_FLAG (b_nal_hrd,                  "nal_hrd")
-#endif
-
     /* Enable interlaced encoding (--encode_fields) */
     OPT_NONE (b_interlaced)
-#ifdef HAVE_X264_NAL_HRD
-    /* First field (1=top, 0=bottom) (--encode_fields) */
-    OPT_NONE (b_tff)
-#endif
+
+    OPT_NONE (constrained_intra)
 
     /* Quantization matrix selection: 0=flat 1=JVT 2=custom */
     OPT_RANGE(i_cqm_preset,               "cqm",            0,     2)
-    /* Custom quant matrix filename */
+    /* Custom quantization matrix filename */
     OPT_STR  (psz_cqm_file,               "cqm_file")
-    /* Quant matrix arrays set up by library */
+    /* Quantization matrix arrays set up by library */
 
     /* Logging */
 
@@ -216,6 +211,8 @@ static TCConfigEntry conf[] ={
     OPT_NONE (analyse.inter)
     /* Allow integer 8x8 DCT transforms */
     OPT_FLAG (analyse.b_transform_8x8,    "8x8dct")
+    /* Weighting for P-frames */
+    OPT_RANGE(analyse.i_weighted_pred,    "weight_p",       0,     2)
     /* Implicit weighting for B-frames */
     OPT_FLAG (analyse.b_weighted_bipred,  "weight_b")
     /* Spatial vs temporal MV prediction, 0=none 1=spatial 2=temporal 3=auto */
@@ -229,8 +226,10 @@ static TCConfigEntry conf[] ={
     OPT_RANGE(analyse.i_me_range,         "me_range",       4,    64)
     /* Maximum length of a MV (in pixels), 32-2048 or -1=auto */
     OPT_RANGE(analyse.i_mv_range,         "mv_range",      -1,  2048)
-    /* Subpixel motion estimation quality: 1=fast, 9=best */
-    OPT_RANGE(analyse.i_subpel_refine,    "subq",           1,     9)
+    /* Maximum length of a MV (in pixels), 32-2048 or -1=auto */
+    OPT_RANGE(analyse.i_mv_range_thread,  "mv_range_thread",-1, 2048)
+    /* Subpixel motion estimation quality: 1=fast, 11=best */
+    OPT_RANGE(analyse.i_subpel_refine,    "subq",           1,    11)
     /* Chroma ME for subpel and mode decision in P-frames */
     OPT_FLAG (analyse.b_chroma_me,        "chroma_me")
     /* Allow each MB partition in P-frames to have its own reference number */
@@ -243,12 +242,23 @@ static TCConfigEntry conf[] ={
     OPT_FLAG (analyse.b_dct_decimate,     "dct_decimate")
     /* Noise reduction */
     OPT_RANGE(analyse.i_noise_reduction,  "nr",             0, 65536)
-    /* Compute PSNR stats, at the cost of a few % of CPU time */
+    /* Psychovisual optimization parameters */
+    OPT_FLOAT(analyse.f_psy_rd,           "psy_rd")
+    OPT_FLOAT(analyse.f_psy_trellis,      "psy_trellis")
+    /* Psychovisual optimization enable/disable */
+    OPT_FLAG (analyse.b_psy,              "psy")
+    /* Luma dead zone size */
+    OPT_RANGE(analyse.i_luma_deadzone[0], "luma_deadzone_inter", 0, 99)
+    OPT_RANGE(analyse.i_luma_deadzone[1], "luma_deadzone_intra", 0, 99)
+    /* Compute and print PSNR stats */
     OPT_FLAG (analyse.b_psnr,             "psnr")
-    /* Compute SSIM stats, at the cost of a few % of CPU time */
+    /* Compute and print SSIM stats */
     OPT_FLAG (analyse.b_ssim,             "ssim")
 
     /* Rate control parameters */
+
+    /* X264_RC_* (set automatically) */
+    OPT_NONE (rc.i_rc_method)
 
     /* QP value for constant-quality encoding (to be a transcode option,
      * eventually--FIXME) */
@@ -259,6 +269,7 @@ static TCConfigEntry conf[] ={
     OPT_RANGE(rc.i_qp_max,                "qp_max",         0,    51)
     /* Maximum QP difference between frames */
     OPT_RANGE(rc.i_qp_step,               "qp_step",        0,    50)
+
     /* Bitrate (transcode -w) */
     OPT_NONE (rc.i_bitrate)
     /* Nominal QP for 1-pass VBR */
@@ -276,31 +287,54 @@ static TCConfigEntry conf[] ={
     /* QP ratio between P and B frames */
     OPT_FLOAT(rc.f_pb_factor,             "pb_ratio")
 
-    /* Complexity blurring before QP compression */
-    OPT_RANGF(rc.f_complexity_blur,       "cplx_blur",    0.0, 999.0)
+    /* Psychovisual adaptive QP mode */
+    OPT_RANGE(rc.i_aq_mode,               "aq_mode",        0,     3)
+    /* Adaptive QP strength */
+    OPT_FLOAT(rc.f_aq_strength,           "aq_strength")
+    /* Macroblock-tree rate control */
+    OPT_FLAG (rc.b_mb_tree,               "mbtree")
+    /* Number of lookahead frames to buffer for rate control */
+    OPT_RANGE(rc.i_lookahead,             "lookahead",      0,   999)
+
+    /* 2-pass logfile parameters (set automatically) */
+    OPT_NONE (rc.b_stat_write)
+    OPT_NONE (rc.psz_stat_out)
+    OPT_NONE (rc.b_stat_reg)
+    OPT_NONE (rc.psz_stat_in)
+
     /* QP curve compression: 0.0 = constant bitrate, 1.0 = constant quality */
     OPT_RANGF(rc.f_qcompress,             "qcomp",        0.0,   1.0)
     /* QP blurring after compression */
-    OPT_RANGF(rc.f_qblur,                 "qblur",        0.0,  99.0)
+    OPT_FLOAT(rc.f_qblur,                 "qblur")
+    /* Complexity blurring before QP compression */
+    OPT_FLOAT(rc.f_complexity_blur,       "cplx_blur")
     /* Rate control override zones (not supported by transcode) */
     OPT_NONE (rc.zones)
     OPT_NONE (rc.i_zones)
     /* Alternate method of specifying zones */
     OPT_STR  (rc.psz_zones,               "zones")
 
-    /* Other parameters */
+    /* Rate control parameters */
 
     OPT_FLAG (b_aud,                      "aud")
     OPT_NONE (b_repeat_headers)
     OPT_NONE (i_sps_id)
-#if X264_BUILD >= 81
     OPT_NONE (b_vfr_input)
     OPT_NONE (i_timebase_num)
     OPT_NONE (i_timebase_den)
-#endif
-#if X264_BUILD >= 84
     OPT_NONE (b_dts_compress)
-#endif
+
+    /* First field (1=top, 0=bottom) (--encode_fields) */
+    OPT_NONE (b_tff)
+
+    /* Pulldown flag (not currently used) */
+    OPT_NONE (b_pic_struct)
+
+    /* Slicing parameters */
+
+    OPT_RANGE(i_slice_max_size,           "slice_max_size", 0,999999)
+    OPT_RANGE(i_slice_max_mbs,            "slice_max_mbs",  0,999999)
+    OPT_RANGE(i_slice_count,              "slices",         0,   999)
 
     /* Module configuration options (which do not affect encoding) */
 
@@ -308,15 +342,6 @@ static TCConfigEntry conf[] ={
                                                  TCCONF_TYPE_FLAG, 0, 0, 1},
     {"no2pass_bug_workaround", &confdata.twopass_bug_workaround,
                                                  TCCONF_TYPE_FLAG, 0, 1, 0},
-
-    /* Obsolete options (scheduled for future removal) */
-
-    {"direct_8x8",   &confdata.dummy_direct_8x8, TCCONF_TYPE_FLAG, 0, 0, 1},
-    {"nodirect_8x8", &confdata.dummy_direct_8x8, TCCONF_TYPE_FLAG, 0, 1, 0},
-    {"bidir_me",     &confdata.dummy_bidir_me,   TCCONF_TYPE_FLAG, 0, 0, 1},
-    {"nobidir_me",   &confdata.dummy_bidir_me,   TCCONF_TYPE_FLAG, 0, 1, 0},
-    {"brdo",         &confdata.dummy_brdo,       TCCONF_TYPE_FLAG, 0, 0, 1},
-    {"nobrdo",       &confdata.dummy_brdo,       TCCONF_TYPE_FLAG, 0, 1, 0},
 
     {NULL}
 };
@@ -491,7 +516,6 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
         params->rc.i_bitrate = vob->divxbitrate; /* what a name */
     }
 
-#if X264_BUILD >= 81
     params->b_vfr_input = 0;
     if (vob->im_frc == 0
      || TC_NULL_MATCH == tc_frc_code_to_ratio(vob->im_frc,
@@ -512,7 +536,6 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
             params->i_timebase_num = 1000;
         }
     }
-#endif
 
     if (vob->ex_frc == 0
      || TC_NULL_MATCH == tc_frc_code_to_ratio(vob->ex_frc,
@@ -789,21 +812,12 @@ static int tc_x264_setup_extradata(X264PrivateData *pd)
     uint8_t sps[X264_HEADER_LEN_MAX] = { 0 };
     uint8_t sei[X264_HEADER_LEN_MAX] = { 0 };
     int pps_len = 0, sps_len = 0, sei_len = 0;
-#if X264_BUILD < 76
-    uint8_t buf[X264_HEADER_LEN_MAX] = { 0 };
-    int buf_len = 0;
-#endif
 
     memset(&(pd->hdr_buf), 0, X264_HEADER_LEN_MAX);
     pd->hdr_len = 0;
 
     ret = x264_encoder_headers(pd->enc, &nal, &nal_count);
-#if X264_BUILD >= 76
-    if (ret < 0)
-#else
-    if (ret != 0)
-#endif
-    {
+    if (ret < 0) {
         tc_log_error(MOD_NAME, "error encoding the headers");
         return TC_ERROR;
     }
@@ -812,39 +826,21 @@ static int tc_x264_setup_extradata(X264PrivateData *pd)
     for (i = 0; i < nal_count; i++) {
         switch (nal[i].i_type) {
           case H264_NAL_TYPE_SEQ_PARAM:
-#if X264_BUILD >= 76
             sps_len = nal[i].i_payload;
             memcpy(sps, nal[i].p_payload, sps_len);
-#else
-            ret = x264_nal_encode(sps, &sps_len, 0, &nal[i]);
-#endif
             break;
           case H264_NAL_TYPE_PIC_PARAM:
-#if X264_BUILD >= 76
             pps_len = nal[i].i_payload;
             memcpy(pps, nal[i].p_payload, pps_len);
-#else
-            ret = x264_nal_encode(pps, &pps_len, 0, &nal[i]);
-#endif
             break;
           case H264_NAL_TYPE_SEI:
-#if X264_BUILD >= 76
             sei_len = nal[i].i_payload;
             memcpy(sei, nal[i].p_payload, sei_len);
-#else
-            ret = x264_nal_encode(sei, &sei_len, 0, &nal[i]);
-#endif
             break;
           default:
             tc_log_warn(MOD_NAME, "unexpected type 0x%X nal #%i",
                         nal[i].i_type, i);
-#if X264_BUILD < 76
-            ret = x264_nal_encode(buf, &buf_len, 0, &nal[i]);
-#endif
         }
-#if X264_BUILD < 76
-        RETURN_ERROR_IF_BAD_LEN(ret, "error encoding nal header");
-#endif
     }
 
     RETURN_ERROR_IF_BAD_LEN(sps_len, "missing SPS");
@@ -919,11 +915,6 @@ static int x264_configure(TCModuleInstance *self,
     confdata.x264params.analyse.intra = ~0;
     confdata.x264params.analyse.inter = ~0;
 
-    /* Watch for obsolete options being set */
-    confdata.dummy_direct_8x8 = -1;
-    confdata.dummy_bidir_me = -1;
-    confdata.dummy_brdo = -1;
-
     /* Read settings from configuration file */
     tc_config_read_file(dirs, X264_CONFIG_FILE, NULL, conf, MOD_NAME);
 
@@ -937,23 +928,6 @@ static int x264_configure(TCModuleInstance *self,
             tc_log_error(MOD_NAME, "Error parsing module options");
             return TC_ERROR;
         }
-    }
-
-    /* Complain about obsolete options being set */
-    if (confdata.dummy_direct_8x8 != -1) {
-        tc_log_warn(MOD_NAME, "Option direct_8x8 is obsolete, and is now"
-                    " always active.");
-    }
-    if (confdata.dummy_bidir_me != -1) {
-        tc_log_warn(MOD_NAME,
-                    "Option bidir_me is obsolete in x264 version 65.\n"
-                    "    bidir_me will be automatically applied when"
-                    " subq >= 5.");
-    }
-    if (confdata.dummy_brdo != -1) {
-        tc_log_warn(MOD_NAME,
-                    "Option bidir_me is obsolete in x264 version 65.\n"
-                    "    brdo will be automatically applied when subq >= 7.");
     }
 
     /* Save multipass logfile name if 2-pass bug workaround was requested */
@@ -1130,11 +1104,7 @@ static int x264_encode_video(TCModuleInstance *self,
 
     ret = x264_encoder_encode(pd->enc, &nal, &nnal,
                               inframe ? &pic : NULL, &pic_out);
-#if X264_BUILD >= 76
     if (ret < 0) {
-#else
-    if (ret != 0) {
-#endif
         return TC_ERROR;
     }
 
@@ -1145,19 +1115,9 @@ static int x264_encode_video(TCModuleInstance *self,
             tc_log_error(MOD_NAME, "output buffer overflow");
             return TC_ERROR;
         }
-#if X264_BUILD >= 76
         ac_memcpy(outframe->video_buf + outframe->video_len,
                   nal[i].p_payload, nal[i].i_payload); 
         outframe->video_len += nal[i].i_payload;
-#else
-        ret = x264_nal_encode(outframe->video_buf + outframe->video_len,
-                              &size, 1, &nal[i]);
-        if (ret < 0 || size > outframe->video_size - outframe->video_len) {
-            tc_log_error(MOD_NAME, "output buffer overflow");
-            break;
-        }
-        outframe->video_len += size;
-#endif
     }
 
     /* FIXME: ok, that sucks. How to reformat it ina better way? -- fromani */
