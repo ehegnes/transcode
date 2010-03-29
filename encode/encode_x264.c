@@ -175,14 +175,14 @@ static TCConfigEntry conf[] ={
     /* Initial data for CABAC? */
     OPT_RANGE(i_cabac_init_idc,           "cabac_init_idc", 0,     2)
 
-#ifdef HAVE_X264_NAL_HRD
+#if X264_BUILD >= 89
     /* Add NAL HRD parameters to the bitstream */
-    OPT_FLAG (b_nal_hrd,                  "nal_hrd")
+    OPT_FLAG (i_nal_hrd,                  "nal_hrd")
 #endif
 
     /* Enable interlaced encoding (--encode_fields) */
     OPT_NONE (b_interlaced)
-#ifdef HAVE_X264_NAL_HRD
+#if X264_BUILD >= 89
     /* First field (1=top, 0=bottom) (--encode_fields) */
     OPT_NONE (b_tff)
 #endif
@@ -461,7 +461,7 @@ static int x264params_set_by_vob(x264_param_t *params, const vob_t *vob)
     params->i_height = vob->ex_v_height;
     params->b_interlaced = (vob->encode_fields==TC_ENCODE_FIELDS_TOP_FIRST
                          || vob->encode_fields==TC_ENCODE_FIELDS_BOTTOM_FIRST);
-#ifdef HAVE_X264_NAL_HRD
+#if X264_BUILD >= 89
     params->b_tff        = (vob->encode_fields==TC_ENCODE_FIELDS_TOP_FIRST);
 #endif
 
