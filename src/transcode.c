@@ -161,9 +161,8 @@ static int validate_source_path(const char *path)
         return 1;
     if (*path == '!' || *path == ':')  /* from transcode.c -- why? */
         return 1;
-#if _FILE_OFFSET_BITS != 64
-//#ifndef __USE_FILE_OFFSET64
-#error foo
+#if defined(__GLIBC__) && defined(__SIZEOF_SIZE_T__) && __SIZEOF_SIZE_T__ < 8 && !defined(__USE_FILE_OFFSET64)
+#error __USE_FILE_OFFSET64 is not defined -- please check order of #includes
 #endif
     if (xio_stat(path, &st) == 0)
         return 1;
