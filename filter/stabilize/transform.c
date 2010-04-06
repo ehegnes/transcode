@@ -234,7 +234,7 @@ void cleanmaxmin_xy_transform(const Transform* transforms, int len,
                               int percentil, 
                               Transform* min, Transform* max){
     Transform* ts = tc_malloc(sizeof(Transform) * len);
-    int i, cut = len * percentil / 100;
+    int cut = len * percentil / 100;
     memcpy(ts, transforms, sizeof(Transform) * len); 
     qsort(ts,len, sizeof(Transform), cmp_trans_x);
     min->x = ts[cut].x;
