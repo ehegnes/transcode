@@ -1,8 +1,15 @@
+0.62     
+	different interpolation functions. No interpolation is default and
+	 seems fine in most applications.
+	field placement changed. Now they fill the frame better.
+	"compress" option moves them more to the center (vertically)
+	fields and their areas and transforms can be drawn on the frame.
+	
 0.6    
 	new field placement allows for any number of fields 
 	 and respects aspect ratio
 	fields with low contrast are ignored
-	non-symmetric field setups are possible
+	non-symmetric field setups are possible	
 
 0.5    
 	global and per-frame zooming supported
@@ -12,7 +19,7 @@
 
 0.44	
 	bugfixing
-	finished RGB support
+	finished RGB #support
 	transforms file format supports comments
 
 0.42

@@ -29,11 +29,18 @@
 */
 
 #define MOD_NAME    "filter_stabilize.so"
-#define MOD_VERSION "v0.61 (2009-10-25)"
+#define MOD_VERSION "v0.62 (2009-10-31)"
 #define MOD_CAP     "extracts relative transformations of \n\
     subsequent frames (used for stabilization together with the\n\
     transform filter in a second pass)"
 #define MOD_AUTHOR  "Georg Martius"
+
+/* Ideas:
+ - Try OpenCL/Cuda, this should work great
+ - stepsize could be adapted (maybe to check only one field with large
+   stepsize and use the maximally required for the other fields
+
+*/
 
 #define MOD_FEATURES \
     TC_MODULE_FEATURE_FILTER|TC_MODULE_FEATURE_VIDEO
@@ -86,7 +93,10 @@ typedef struct _stab_data {
     int algo;     // algorithm to use
     int field_num;   // number of measurement fields
     int field_size; // size    = min(sd->width, sd->height)/10;
-    int show; // if 1 then the fields and transforms are shown in the frames;
+    /* of 1 then fields are more compressed in the center (vertically)*/
+    int compressed;
+    /* if 1 and 2 then the fields and transforms are shown in the frames */
+    int show; 
     /* measurement fields with lower contrast are discarded */
     double contrast_threshold;            
   
@@ -111,17 +121,18 @@ static const char stabilize_help[] = ""
     "                  (def:inputfile.stab)\n"
     "    'maxshift'    maximal number of pixels to search for a translation\n"
     "                  (def:height/12, preferably a multiple of stepsize)\n"
-    "    'stepsize'    stepsize of search process, \n"
-    "                  region around minimum is scanned with 1 pixel\n"
-    "                  resolution (def:2)\n"
-    "    'allowmax'    0: maximal shift is not applied (prob. error)\n"
-    "                  1: maximal shift is allowed (def:1)\n"
+    "    'stepsize'    stepsize of search process, region around minimum \n"
+    "                  is scanned with 1 pixel resolution (def:2)\n"
+    "    'allowmax'    0: maximal shift is not applied (probably. error)\n"
+    "                  1: maximal shift is allowed (def)\n"
     "    'algo'        0: brute force (translation only);\n"
     "                  1: small measurement fields(def)\n"
     "    'fieldnum'    number of measurement fields (def: 20)\n"
     "    'fieldsize'   size of measurement field (def: height/15)\n"
+    "    'compressed'  0: fields cover whole frame (def);\n"
+    "                  1: more concentrated in the center (vertically)\n"
     "    'mincontrast' below this contrast a field is discarded (def: 0.15)\n"
-    "    'show'        0: do nothing (def); 1: show fields and transforms\n"
+    "    'show'        0: do nothing (def); 1/2: show fields and transforms\n"
     "    'help'        print this help message\n";
 
 int initFields(StabData* sd);
@@ -141,7 +152,9 @@ Transform calcFieldTransYUV(StabData* sd, const Field* field,
 Transform calcFieldTransRGB(StabData* sd, const Field* field, 
                             int fieldnum);
 Transform calcTransFields(StabData* sd, calcFieldTransFunc fieldfunc);
-void drawFieldAndTrans(StabData* sd, const Field* field, const Transform* t);
+void drawFieldScanArea(StabData* sd, const Field* field, const Transform* t);
+void drawField(StabData* sd, const Field* field, const Transform* t);
+void drawFieldTrans(StabData* sd, const Field* field, const Transform* t);
 void drawBox(unsigned char* I, int width, int height, int bytesPerPixel, 
              int x, int y, int sizex, int sizey, unsigned char color);
 void addTrans(StabData* sd, Transform sl);
@@ -176,16 +189,21 @@ int initFields(StabData* sd)
         int i, j;
         int f=0;
         int size     = sd->field_size;
-        int border   = size + 2*sd->maxshift + sd->stepsize;
-        int step_y   = (sd->height - border)/(rows);
+        // the border is the amount by which the field centers
+        // have to be away from the image boundary
+        // (stepsize added in case shift is increased through stepsize)
+        int border   = size/2 + sd->maxshift + sd->stepsize;
+        int step_y   = (sd->height - 2*border) / 
+            (sd->compressed ? rows : TC_MAX(rows-1,1));
+        int yoffset = (rows==1 || sd->compressed  ? step_y/2 : 0);
         for (j = 0; j < rows; j++) {
             int cols = (j==long_row) ? max_cols : min_cols;
             tc_log_msg(MOD_NAME, "field setup: row %i with %i fields", 
                        j+1, cols);
-            int step_x  = (sd->width  - border)/(cols); 
+            int step_x  = (sd->width  - 2*border)/TC_MAX(cols-1,1); 
             for (i = 0; i < cols; i++) {
-                sd->fields[f].x = border/2 + i*step_x + step_x/2;
-                sd->fields[f].y = border/2 + j*step_y + step_y/2;
+                sd->fields[f].x = border + i*step_x + (cols==1 ? step_x/2 : 0);
+                sd->fields[f].y = border + j*step_y + yoffset;
                 sd->fields[f].size = size;
 #ifdef STABVERBOSE
                 tc_log_msg(MOD_NAME, "field %2i: %i, %i\n", 
@@ -581,7 +599,7 @@ Transform calcTransFields(StabData* sd, calcFieldTransFunc fieldfunc)
     t = null_transform();
     num_trans = index; // amount of transforms we actually have    
     if (num_trans < 1) {
-        tc_log_warn(MOD_NAME, "too low contrast! No field remains. Use larger fild size.");
+        tc_log_warn(MOD_NAME, "too low contrast! No field remains. (no translations are detected in frame %i)", sd->t);
         return t;
     }
         
@@ -595,10 +613,16 @@ Transform calcTransFields(StabData* sd, calcFieldTransFunc fieldfunc)
     center_x /= num_trans;
     center_y /= num_trans;        
     
-    if (sd->show){ // draw fields and transforms into frame
-        for (i = 0; i < num_trans; i++) {
-            drawFieldAndTrans(sd, fs[i], &ts[i]);            
+    if (sd->show){ // draw fields and transforms into frame.
+        // this has to be done one after another to handle possible overlap 
+        if (sd->show > 1) {
+            for (i = 0; i < num_trans; i++)
+                drawFieldScanArea(sd, fs[i], &ts[i]);            
         }
+        for (i = 0; i < num_trans; i++)
+            drawField(sd, fs[i], &ts[i]);            
+        for (i = 0; i < num_trans; i++)
+            drawFieldTrans(sd, fs[i], &ts[i]);            
     } 
     /* median over all transforms
        t= median_xy_transform(ts, sd->field_num);*/
@@ -634,22 +658,30 @@ Transform calcTransFields(StabData* sd, calcFieldTransFunc fieldfunc)
     return t;
 }
 
-/**
- * draws the field and the transform data into the frame 
- */
-void drawFieldAndTrans(StabData* sd, const Field* field, const Transform* t){
+/** draws the field scanning area */
+void drawFieldScanArea(StabData* sd, const Field* field, const Transform* t){
     if(!sd->vob->im_v_codec == CODEC_YUV)
         return;
-    // draw field with shift
     drawBox(sd->curr, sd->width, sd->height, 1, field->x, field->y, 
-            field->size+2*sd->maxshift, field->size+2*sd->maxshift, 80);
+            field->size+2*sd->maxshift, field->size+2*sd->maxshift, 80);   
+}
+
+/** draws the field */
+void drawField(StabData* sd, const Field* field, const Transform* t){
+    if(!sd->vob->im_v_codec == CODEC_YUV)
+        return;
     drawBox(sd->curr, sd->width, sd->height, 1, field->x, field->y, 
             field->size, field->size, t->extra == -1 ? 100 : 40);
-    // draw center
-    drawBox(sd->curr, sd->width, sd->height, 1, field->x, field->y, 5, 5, 128);
-    // draw translation
+}
+
+/** draws the transform data of this field */
+void drawFieldTrans(StabData* sd, const Field* field, const Transform* t){
+    if(!sd->vob->im_v_codec == CODEC_YUV)
+        return;
     drawBox(sd->curr, sd->width, sd->height, 1, 
-            field->x + t->x, field->y + t->y, 8, 8, 250);    
+            field->x, field->y, 5, 5, 128);     // draw center
+    drawBox(sd->curr, sd->width, sd->height, 1, 
+            field->x + t->x, field->y + t->y, 8, 8, 250); // draw translation
 }
 
 /**
@@ -773,8 +805,9 @@ static int stabilize_configure(TCModuleInstance *self,
     sd->transs = 0;
     
     // Options
-    sd->stepsize = 2;
-    sd->allowmax = 1;
+    sd->stepsize   = 2;
+    sd->allowmax   = 1;
+    sd->compressed = 1;
     sd->result = tc_malloc(TC_BUF_LINE);
     filenamecopy = tc_strdup(sd->vob->video_in_file);
     filebasename = basename(filenamecopy);
@@ -807,17 +840,21 @@ static int stabilize_configure(TCModuleInstance *self,
         optstr_get(options, "algo",       "%d", &sd->algo);
         optstr_get(options, "fieldnum",   "%d", &sd->field_num);
         optstr_get(options, "fieldsize",  "%d", &sd->field_size);
-        optstr_get(options, "mincontrast","%lf", &sd->contrast_threshold);
+        optstr_get(options, "compressed", "%d", &sd->compressed);
+        optstr_get(options, "mincontrast","%lf",&sd->contrast_threshold);
         optstr_get(options, "show",       "%d", &sd->show);
     }
     if (verbose) {
         tc_log_info(MOD_NAME, "Image Stabilization Settings:");
         tc_log_info(MOD_NAME, "      maxshift = %d", sd->maxshift);
         tc_log_info(MOD_NAME, "      stepsize = %d", sd->stepsize);
-        tc_log_info(MOD_NAME, "      allowmax = %d", sd->allowmax);
+        tc_log_info(MOD_NAME, "      allowmax = %s", 
+                    sd->allowmax ? "True" : "False");
         tc_log_info(MOD_NAME, "          algo = %d", sd->algo);
         tc_log_info(MOD_NAME, "      fieldnum = %d", sd->field_num);
         tc_log_info(MOD_NAME, "     fieldsize = %d", sd->field_size);
+        tc_log_info(MOD_NAME, "    compressed = %s", 
+                    sd->compressed ? "On" : "Off");
         tc_log_info(MOD_NAME, "   mincontrast = %f", sd->contrast_threshold);
         tc_log_info(MOD_NAME, "          show = %d", sd->show);
         tc_log_info(MOD_NAME, "        result = %s", sd->result);
@@ -917,6 +954,8 @@ static int stabilize_stop(TCModuleInstance *self)
         fprintf(sd->f, "#          algo = %d\n", sd->algo);
         fprintf(sd->f, "#      fieldnum = %d\n", sd->field_num);
         fprintf(sd->f, "#     fieldsize = %d\n", sd->field_size);
+        fprintf(sd->f, "#    compressed = %d\n", sd->compressed);
+        fprintf(sd->f, "#   mincontrast = %f\n", sd->contrast_threshold);
         fprintf(sd->f, "#        result = %s\n", sd->result);
         // write header line
         fprintf(sd->f, "# Transforms\n#C FrameNr x y alpha zoom extra\n");
