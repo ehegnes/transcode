@@ -21,11 +21,11 @@
  *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
  *
  * Typical call:
- * transcode -J transform -i inp.m2v -y xdiv,tcaud inp_stab.avi
+ * transcode -J transform -i inp.mpeg -y xdiv,tcaud inp_stab.avi
 */
 
 #define MOD_NAME    "filter_transform.so"
-#define MOD_VERSION "v0.62 (2009-10-31)"
+#define MOD_VERSION "v0.75 (2009-10-31)"
 #define MOD_CAP     "transforms each frame according to transformations\n\
  given in an input file (e.g. translation, rotate) see also filter stabilize"
 #define MOD_AUTHOR  "Georg Martius"
@@ -109,7 +109,7 @@ static const char transform_help[] = ""
     "    'maxshift'  maximal number of pixels to translate image\n"
     "                (def: -1 no limit)\n"
     "    'maxangle'  maximal angle in rad to rotate image (def: -1 no limit)\n"
-    "    'crop'      0: keep border (def), 1: black backgr\n"
+    "    'crop'      0: keep border (def), 1: black background\n"
     "    'invert'    1: invert transforms(def: 0)\n"
     "    'relative'  consider transforms as 0: absolute, 1: relative (def)\n"
     "    'zoom'      percentage to zoom >0: zoom in, <0 zoom out (def: 0)\n"
@@ -117,8 +117,8 @@ static const char transform_help[] = ""
     "                i.e. no (or only little) border should be visible.\n"
     "                Note that the value given at 'zoom' is added to the \n"
     "                here calculated one\n"
-    "    'interpol'  type of interpolation: 0: no interpolation (def), \n"
-    "                1: linear (only horizontal), 2: bi-linear 3: quadratic\n"
+    "    'interpol'  type of interpolation: 0: no interpolation, \n"
+    "                1: linear (horizontal) (def), 2: bi-linear 3: quadratic\n"
     "    'sharpen'   amount of sharpening: 0: no sharpening (def: 0.8)\n"
     "                uses filter unsharp with 5x5 matrix\n"
     "    'help'      print this help message\n";
@@ -767,7 +767,7 @@ static int transform_configure(TCModuleInstance *self,
 
     td->zoom    = 0;
     td->optzoom = 1;
-    td->interpoltype = 0;
+    td->interpoltype = 1;
     td->sharpen = 0.8;
   
     if (options != NULL) {
@@ -839,7 +839,7 @@ static int transform_configure(TCModuleInstance *self,
       default: interpolate = &interpolateZero;
     }
 
-    /* TODO: is this the right point to add the filter?*/
+    /* Is this the right point to add the filter? Seems to be the case.*/
     if(td->sharpen>0){
         /* load unsharp filter */
         char unsharp_param[256];
