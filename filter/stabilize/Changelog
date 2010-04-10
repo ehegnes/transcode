@@ -1,3 +1,16 @@
+0.75    two meta parameter introduces: shakiness and accuracy and
+	removal of fieldnum, fielsize, maxshift, maxfieldnum
+	field placement changed: Now they fill the frame perfectly
+	added bluring such that stepsize can be much larger: much faster now!
+        linear interpolation is now the default
+	uncertain angles are set to 0 (more robustness)
+
+0.70    selects a maximal number of fields according to their contrast
+	nicely distributed over the frame
+	Todo: remove fieldnum, allowmax (now false), and compressed parameter
+	Todo: add accuracy parameter instead of maxfields
+        Bugfix of contrast routine (error in the calculation of maxi)
+	
 0.62     
 	different interpolation functions. No interpolation is default and
 	 seems fine in most applications.
