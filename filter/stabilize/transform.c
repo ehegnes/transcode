@@ -21,6 +21,9 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
 #include "src/transcode.h"
 #include "libtc/libtc.h"
 #include <stdlib.h>
@@ -286,21 +289,30 @@ double mean(const double* ds, int len)
  * Parameters:
  *            ds: array of values
  *           len: length  of array
+ *           len: length of array
+ *       minimum: minimal value (after cleaning) if not NULL
+ *       maximum: maximal value (after cleaning) if not NULL
  * Return value:
  *     the mean value of the array without the upper 
  *     and lower pentile (20% each)
+ *     and lower pentile (20% each) 
+ *     and minimum and maximum without the pentiles
  * Preconditions: len>0
  * Side effects:  ds will be sorted!
  */
-double cleanmean(double* ds, int len)
+double cleanmean(double* ds, int len, double* minimum, double* maximum)
 {
     int cut    = len / 5;
     double sum = 0;
     int i      = 0;
     qsort(ds, len, sizeof(double), cmp_double);
-    for( i = cut; i < len - cut; i++){ // all but first and last
+    for (i = cut; i < len - cut; i++) { // all but first and last
         sum += ds[i];
     }
+    if (minimum)
+        *minimum = ds[cut];
+    if (maximum)
+        *maximum = ds[len-cut-1];
     return sum / (len - (2.0 * cut));
 }
 

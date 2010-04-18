@@ -21,11 +21,11 @@
  *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
  *
  * Typical call:
- * transcode -J transform -i inp.m2v -y xdiv,tcaud inp_stab.avi
+ * transcode -J transform -i inp.mpeg -y xdiv,tcaud inp_stab.avi
  */
 
 #define MOD_NAME    "filter_transform.so"
-#define MOD_VERSION "v0.61 (2009-10-25)"
+#define MOD_VERSION "v0.75 (2009-10-31)"
 #define MOD_CAP     "transforms each frame according to transformations\n\
  given in an input file (e.g. translation, rotate) see also filter stabilize"
 #define MOD_AUTHOR  "Georg Martius"
@@ -86,6 +86,7 @@ typedef struct {
     double rotation_threshhold; 
     double zoom;      // percentage to zoom: 0->no zooming 10:zoom in 10%
     int optzoom;      // 1: determine optimal zoom, 0: nothing
+    int interpoltype; // type of interpolation: 0->Zero,1->Lin,2->BiLin,3->Sqr
     double sharpen;   // amount of sharpening
 
     char input[TC_BUF_LINE];
@@ -94,10 +95,12 @@ typedef struct {
     char conf_str[TC_BUF_MIN];
 } TransformData;
 
+static const char* interpoltypes[4] = {"No", "Linear", "Bi-Linear", "Quadratic"};
+
 static const char transform_help[] = ""
     "Overview\n"
     "    Reads a file with transform information for each frame\n"
-    "     and applies them. See also stabilize.\n" 
+    "     and applies them. See also filter stabilize.\n" 
     "Options\n"
     "    'input'     path to the file used to read the transforms\n"
     "                (def: inputfile.stab)\n"
@@ -106,7 +109,7 @@ static const char transform_help[] = ""
     "    'maxshift'  maximal number of pixels to translate image\n"
     "                (def: -1 no limit)\n"
     "    'maxangle'  maximal angle in rad to rotate image (def: -1 no limit)\n"
-    "    'crop'      0: keep border (def), 1: black backgr\n"
+    "    'crop'      0: keep border (def), 1: black background\n"
     "    'invert'    1: invert transforms(def: 0)\n"
     "    'relative'  consider transforms as 0: absolute, 1: relative (def)\n"
     "    'zoom'      percentage to zoom >0: zoom in, <0 zoom out (def: 0)\n"
@@ -114,13 +117,21 @@ static const char transform_help[] = ""
     "                i.e. no (or only little) border should be visible.\n"
     "                Note that the value given at 'zoom' is added to the \n"
     "                here calculated one\n"
+    "    'interpol'  type of interpolation: 0: no interpolation, \n"
+    "                1: linear (horizontal) (def), 2: bi-linear 3: quadratic\n"
     "    'sharpen'   amount of sharpening: 0: no sharpening (def: 0.8)\n"
     "                uses filter unsharp with 5x5 matrix\n"
     "    'help'      print this help message\n";
 
-/* forward deklarations, please look below for documentation*/
-void interpolate(unsigned char *rv, float x, float y, 
-                 unsigned char* img, int width, int height, unsigned char def);
+/* forward declarations, please look below for documentation*/
+void interpolateSqr(unsigned char *rv, float x, float y, 
+                    unsigned char* img, int w, int h, unsigned char def);
+void interpolateBiLin(unsigned char *rv, float x, float y, 
+                      unsigned char* img, int w, int h, unsigned char def);
+void interpolateLin(unsigned char *rv, float x, float y, 
+                      unsigned char* img, int w, int h, unsigned char def);
+void interpolateZero(unsigned char *rv, float x, float y, 
+                     unsigned char* img, int w, int h, unsigned char def);
 void interpolateN(unsigned char *rv, float x, float y, 
                   unsigned char* img, int width, int height, 
                   unsigned char N, unsigned char channel, unsigned char def);
@@ -131,7 +142,7 @@ int preprocess_transforms(TransformData* td);
 
 
 /** 
- * interpolate: quatratic interpolation function. 
+ * interpolate: general interpolation function pointer for one channel image data
  *
  * Parameters:
  *             rv: destination pixel (call by reference)
@@ -142,8 +153,13 @@ int preprocess_transforms(TransformData* td);
  *            def: default value if coordinates are out of range
  * Return value:  None
  */
-void interpolate(unsigned char *rv, float x, float y, 
-		 unsigned char* img, int width, int height, unsigned char def)
+void (*interpolate)(unsigned char *rv, float x, float y, 
+                    unsigned char* img, int width, int height, 
+                    unsigned char def) = 0;
+
+/** interpolateSqr: bi-quatratic interpolation function, see interpolate */
+void interpolateSqr(unsigned char *rv, float x, float y, 
+                    unsigned char* img, int width, int height, unsigned char def)
 {
     if (x < - 1 || x > width || y < -1 || y > height) {
         *rv = def;    
@@ -164,6 +180,63 @@ void interpolate(unsigned char *rv, float x, float y,
         *rv = (unsigned char)s;
     }
 }
+
+/** interpolateBiLin: bi-linear interpolation function, see interpolate */
+void interpolateBiLin(unsigned char *rv, float x, float y, 
+                      unsigned char* img, int width, int height, 
+                      unsigned char def)
+{
+    if (x < - 1 || x > width || y < -1 || y > height) {
+        *rv = def;    
+    } else {
+        int x_c = (int)ceilf(x);
+        int x_f = (int)floorf(x);
+        if(x_f==x_c) x_c++;
+        int y_c = (int)ceilf(y);
+        int y_f = (int)floorf(y);
+        if(y_f==y_c) y_c++;
+        short v1 = PIXEL(img, x_c, y_c, width, height, def);
+        short v2 = PIXEL(img, x_c, y_f, width, height, def);
+        short v3 = PIXEL(img, x_f, y_c, width, height, def);
+        short v4 = PIXEL(img, x_f, y_f, width, height, def);        
+        float s  = (v1*(x - x_f)*(y - y_f) + v2*((x - x_f)*(y_c - y)) + 
+                    v3*(x_c - x)*(y - y_f) + v4*((x_c - x)*(y_c - y)));
+        *rv = (unsigned char)s;
+    }
+}
+
+/** interpolateLin: linear (only x) interpolation function, see interpolate */
+void interpolateLin(unsigned char *rv, float x, float y, 
+                    unsigned char* img, int width, int height, 
+                    unsigned char def)
+{
+    if (x < - 1 || x > width || y < -1 || y > height) {
+        *rv = def;    
+    } else {
+        int x_c = (int)ceilf(x);
+        int x_f = (int)floorf(x);
+        if(x_f==x_c) x_c++;
+        int y_n = myround(y);
+        float v1 = PIXEL(img, x_c, y_n, width, height, def);
+        float v2 = PIXEL(img, x_f, y_n, width, height, def);
+        float s  = v1*(x - x_f) + v2*(x_c - x);
+        *rv = (unsigned char)s;
+    }
+}
+
+/** interpolateZero: nearest neighbor interpolation function, see interpolate */
+void interpolateZero(unsigned char *rv, float x, float y, 
+                   unsigned char* img, int width, int height, unsigned char def)
+{
+    if (x < - 1 || x > width || y < -1 || y > height) {
+        *rv = def;    
+    } else {
+        int x_n = myround(x);
+        int y_n = myround(y);
+        *rv = (unsigned char) PIXEL(img, x_n, y_n, width, height, def);
+    }
+}
+
 
 /** 
  * interpolateN: quatratic interpolation function for N channel image. 
@@ -336,7 +409,7 @@ int transformYUV(TransformData* td)
         }
      }else { 
         /* no rotation, no zooming, just translation 
-         *(also no interpolation, since no size change (so far)) 
+         *(also no interpolation, since no size change) 
          */
         int round_tx = myround(t.x);
         int round_ty = myround(t.y);
@@ -696,6 +769,7 @@ static int transform_configure(TCModuleInstance *self,
 
     td->zoom    = 0;
     td->optzoom = 1;
+    td->interpoltype = 1;
     td->sharpen = 0.8;
   
     if (options != NULL) {
@@ -724,9 +798,11 @@ static int transform_configure(TCModuleInstance *self,
         optstr_get(options, "invert"   , "%d", &td->invert);
         optstr_get(options, "relative" , "%d", &td->relative);
         optstr_get(options, "zoom"     , "%lf",&td->zoom);
-        optstr_get(options, "optzoom"      , "%d", &td->optzoom);
+        optstr_get(options, "optzoom"  , "%d", &td->optzoom);
+        optstr_get(options, "interpol" , "%d", &td->interpoltype);
         optstr_get(options, "sharpen"  , "%lf",&td->sharpen);
     }
+    td->interpoltype = TC_MIN(td->interpoltype,3);
     if (verbose) {
         tc_log_info(MOD_NAME, "Image Transformation/Stabilization Settings:");
         tc_log_info(MOD_NAME, "    input     = %s", td->input);
@@ -741,7 +817,9 @@ static int transform_configure(TCModuleInstance *self,
                     td->invert ? "True" : "False");
         tc_log_info(MOD_NAME, "    zoom      = %f", td->zoom);
         tc_log_info(MOD_NAME, "    optzoom   = %s", 
-                    td->optzoom ? "True" : "False");
+                    td->optzoom ? "On" : "Off");
+        tc_log_info(MOD_NAME, "    interpol  = %s", 
+                    interpoltypes[td->interpoltype]);
         tc_log_info(MOD_NAME, "    sharpen   = %f", td->sharpen);
     }
   
@@ -755,7 +833,15 @@ static int transform_configure(TCModuleInstance *self,
         return TC_ERROR;            
     }  
 
-    /* TODO: is this the right point to add the filter?*/
+    switch(td->interpoltype){
+      case 0:  interpolate = &interpolateZero; break;
+      case 1:  interpolate = &interpolateLin; break;
+      case 2:  interpolate = &interpolateBiLin; break;
+      case 3:  interpolate = &interpolateSqr; break;
+      default: interpolate = &interpolateZero;
+    }
+
+    /* Is this the right point to add the filter? Seems to be the case.*/
     if(td->sharpen>0){
         /* load unsharp filter */
         char unsharp_param[256];
@@ -936,6 +1022,11 @@ static int transform_process(TCModuleInstance *self, frame_list_t *frame)
 TC_FILTER_OLDINTERFACE(transform)
 
 /*************************************************************************/
+/*
+  TODO:
+  - add also linear interapolation
+  - check for optimization, e.g. mmx stuff
+*/
 
 /*
  * Local variables:
