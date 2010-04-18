@@ -865,7 +865,7 @@ int tc_filter(frame_list_t *ptr_, char *options)
     if (data[instance]->dumpimage != (Image *)NULL) {
       DestroyImage(data[instance]->dumpimage);
       DestroyImageInfo(data[instance]->dumpimage_info);
-      DestroyConstitute();
+      ConstituteComponentTerminus();
     }
     DestroyExceptionInfo(&data[instance]->exception_info);
     DestroyMagick();

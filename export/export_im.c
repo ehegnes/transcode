@@ -220,7 +220,7 @@ MOD_stop
 
   if(param->flag == TC_VIDEO) {
     DestroyImageInfo(image_info);
-    DestroyConstitute();
+    ConstituteComponentTerminus();
     DestroyMagick();
 
     free(tmp_buffer);
