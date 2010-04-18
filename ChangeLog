@@ -7,9 +7,11 @@ Key:
 ===========================================================================
 transcode-1.1.6
 ---------------
-[!] Fixed bugs: #16452
+[!] Fixed bugs: #16452, #16703, #16648, #16611
 [!] tcdemux: fixed crash when using the new -A mode.
 [*] x264: fix to work properly with libx264 >= 78; require libx264 >= 66.
+[*] Update the video stabilization plugins to version 0.75.
+[!] Backported various minor bugfixes from HEAD/default.
 ===========================================================================
 
 ===========================================================================
