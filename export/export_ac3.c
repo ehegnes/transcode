@@ -85,7 +85,7 @@ MOD_open
 	tc_log_warn(MOD_NAME, "*** Use -N 0x2000 instead of -y ...,ac3 (faster) ***");
 
         result = tc_snprintf (buf, PATH_MAX,
-                              "ffmpeg -y -f s%dle -ac %d -ar %d -i - -ab %d -acodec ac3 %s%s",
+                              "ffmpeg -y -f s%dle -ac %d -ar %d -i - -ab %dk -acodec ac3 %s%s",
                               vob->dm_bits,
                               vob->dm_chan,
                               vob->mp3frequency,
