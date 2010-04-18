@@ -132,7 +132,7 @@ MOD_open
 	}
 
     result = tc_snprintf (ptr, PATH_MAX - strlen(buf),
-                           "ffmpeg -y -f s%d%s -ac %d -ar %d -i - -ab %d -ar %d -f mp2 %s%s",
+                           "ffmpeg -y -f s%d%s -ac %d -ar %d -i - -ab %dk -ar %d -f mp2 %s%s",
                            vob->dm_bits,
                            ((vob->dm_bits > 8) ? "le" : ""),
                            vob->dm_chan,
