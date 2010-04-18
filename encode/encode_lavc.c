@@ -919,11 +919,12 @@ static int tc_lavc_video_settings_from_vob(TCLavcPrivateData *pd, const vob_t *v
 {
     int ret = 0;
 
-    pd->ff_vcontext.bit_rate = vob->divxbitrate * 1000;
-    pd->ff_vcontext.width    = vob->ex_v_width;
-    pd->ff_vcontext.height   = vob->ex_v_height;
-    pd->ff_vcontext.qmin     = vob->min_quantizer;
-    pd->ff_vcontext.qmax     = vob->max_quantizer;
+    pd->ff_vcontext.codec_type = CODEC_TYPE_VIDEO;
+    pd->ff_vcontext.bit_rate   = vob->divxbitrate * 1000;
+    pd->ff_vcontext.width      = vob->ex_v_width;
+    pd->ff_vcontext.height     = vob->ex_v_height;
+    pd->ff_vcontext.qmin       = vob->min_quantizer;
+    pd->ff_vcontext.qmax       = vob->max_quantizer;
 
     if (vob->export_attributes & TC_EXPORT_ATTRIBUTE_GOP) {
         pd->ff_vcontext.gop_size = vob->divxkeyframes;
@@ -984,12 +985,14 @@ static int tc_lavc_video_settings_from_vob(TCLavcPrivateData *pd, const vob_t *v
 
 static int tc_lavc_audio_settings_from_vob(TCLavcPrivateData *pd, const vob_t *vob)
 {
-    pd->ff_acontext.bit_rate = vob->mp3bitrate * 1000;  // bitrate dest.
-    pd->ff_acontext.channels = vob->dm_chan;             // channels
+    pd->ff_vcontext.codec_type  = CODEC_TYPE_AUDIO;
+    pd->ff_acontext.bit_rate    = vob->mp3bitrate * 1000;  // bitrate dest.
+    pd->ff_acontext.channels    = vob->dm_chan;            // channels
     pd->ff_acontext.sample_rate = vob->a_rate;
-    pd->audio_bps = vob->dm_chan * vob->dm_bits/8;
-    pd->audio_bpf = pd->ff_acontext.frame_size * pd->audio_bps; // FIXME
-    pd->audio_buf_pos = 0;
+    pd->audio_bps               = vob->dm_chan * vob->dm_bits/8;
+    pd->audio_bpf               = pd->ff_acontext.frame_size * pd->audio_bps;
+    // FIXME
+    pd->audio_buf_pos           = 0;
     return TC_OK;
 }
 
@@ -997,21 +1000,21 @@ static int tc_lavc_audio_settings_from_vob(TCLavcPrivateData *pd, const vob_t *v
 #define PAUX(field) &(pd->confdata.field)
 
 /*
- * tc_lavc_config_defaults:
+ * tc_lavc_config_defaults_video:
  *      setup sane values for auxiliary config, and setup *transcode's*
- *      AVCodecContext default settings.
+ *      AVCodecContext default settings for video.
  *
  * Parameters:
  *        pd: pointer to private module data.
  * Return Value:
  *      None
  */
-static void tc_lavc_config_defaults(TCLavcPrivateData *pd)
+static void tc_lavc_config_defaults_video(TCLavcPrivateData *pd)
 {
     /* first of all reinitialize lavc data */
     avcodec_get_context_defaults(&pd->ff_vcontext);
 
-    pd->confdata.thread_count = 1;
+    pd->confdata.thread_count    = 1;
 
     pd->confdata.vrate_tolerance = 8 * 1000;
     pd->confdata.rc_min_rate     = 0;
@@ -1458,7 +1461,7 @@ static int tc_lavc_configure_video(TCModuleInstance *self,
      * auxiliary config data needs to be blanked too
      * before any other operation
      */
-    tc_lavc_config_defaults(pd);
+    tc_lavc_config_defaults_video(pd);
 
     /* 
      * we must do first since we NEED valid vcodec_name
