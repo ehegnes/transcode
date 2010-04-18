@@ -91,7 +91,9 @@ static void write_yuv_JPEG_file(char *filename, int quality,
 
   jpeg_set_quality(&encinfo, quality, TRUE);
   encinfo.raw_data_in = TRUE;
+#if JPEG_LIB_VERSION >= 70
   encinfo.do_fancy_downsampling = FALSE;
+#endif
   encinfo.in_color_space = JCS_YCbCr;
 
   encinfo.comp_info[0].h_samp_factor = 2;
