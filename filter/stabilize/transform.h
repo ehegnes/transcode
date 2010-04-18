@@ -71,10 +71,12 @@ Transform median_xy_transform(const Transform* transforms, int len);
 double median(double* ds, int len);
 /* mean of a double array */
 double mean(const double* ds, int len);
-/* mean with cutted upper and lower pentile */
-double cleanmean(double* ds, int len);
-/* calulcates the cleaned mean of an array of transforms,
- * considerung only x and y
+/* mean with cutted upper and lower pentile 
+ * (min and max are optionally returned)
+ */
+double cleanmean(double* ds, int len, double* minimum, double* maximum);
+/* calculates the cleaned mean of an array of transforms,
+ * considering only x and y
  */
 Transform cleanmean_xy_transform(const Transform* transforms, int len);
 
