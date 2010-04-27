@@ -28,8 +28,8 @@ static int printed = 0;           /* Have we printed a line? */
 
 static void print_counter_line(int encoding, int frame, int first, int last,
                                double fps, double done, double timestamp,
-                               int secleft, int decodebuf, int filterbuf,
-                               int encodebuf);
+                               int secleft, int decodebuf[2], int filterbuf[2],
+                               int encodebuf[2]);
 
 /*************************************************************************/
 /*************************************************************************/
@@ -142,7 +142,7 @@ void counter_print(int encoding, int frame, int first, int last)
     struct timeval tv;
     struct timezone dummy_tz = {0,0};
     double now, timediff, fps, time;
-    int buf_im, buf_fl, buf_ex;
+    int buf_im[2], buf_fl[2], buf_ex[2];
     /* Values of 'first' and `last' during last call (-1 = not called yet) */
     static int old_first = -1, old_last = -1;
     /* Time of first call for this range */
@@ -210,7 +210,8 @@ void counter_print(int encoding, int frame, int first, int last)
         fps = 0;
     }
 
-    tc_framebuffer_get_counters(&buf_im, &buf_fl, &buf_ex);
+    vframe_get_counters(&buf_im[0], &buf_fl[0], &buf_ex[0]);
+    aframe_get_counters(&buf_im[1], &buf_fl[1], &buf_ex[1]);
 
     time = (double)frame / ((vob->ex_fps<1.0) ? 1.0 : vob->ex_fps);
 
@@ -298,17 +299,17 @@ void counter_print(int encoding, int frame, int first, int last)
  *     timestamp: Timestamp of current frame, in seconds.
  *       secleft: Estimated time remaining to completion, in seconds (-1 if
  *                unknown).
- *     decodebuf: Number of buffered frames awaiting decoding.
- *     filterbuf: Number of buffered frames awaiting filtering.
- *     encodebuf: Number of buffered frames awaiting encoding.
+ *     decodebuf: Number of buffered frames awaiting decoding [V, A].
+ *     filterbuf: Number of buffered frames awaiting filtering [V, A].
+ *     encodebuf: Number of buffered frames awaiting encoding [V, A].
  * Return value:
  *     None.
  */
 
 static void print_counter_line(int encoding, int frame, int first, int last,
                                double fps, double done, double timestamp,
-                               int secleft, int decodebuf, int filterbuf,
-                               int encodebuf)
+                               int secleft,
+                               int decodebuf[2], int filterbuf[2], int encodebuf[2])
 {
     if (tc_progress_meter == 2) {
         /* Raw data format */
@@ -316,16 +317,18 @@ static void print_counter_line(int encoding, int frame, int first, int last,
                " timestamp=%.3f timeleft=%d decodebuf=%d filterbuf=%d"
                " encodebuf=%d\n",
                encoding, frame, first, last, fps, done,
-               timestamp, secleft, decodebuf, filterbuf, encodebuf);
+               timestamp, secleft, decodebuf[0] + decodebuf[1],
+               filterbuf[0] + filterbuf[1], encodebuf[0] + encodebuf[1]);
     } else if (last < 0 || done < 0 || secleft < 0) {
         int timeint = floor(timestamp);
         fprintf(stderr, "%s frames [%d-%d], %6.2f fps, CFT: %d:%02d:%02d,"
-                        "  (%2d|%2d|%2d) \r",
+                        "  (%2d,%2d|%2d,%2d|%2d,%2d) \r",
                 encoding ? "encoding" : "skipping",
                 first, frame,
                 fps,
                 timeint/3600, (timeint/60) % 60, timeint % 60,
-                decodebuf, filterbuf, encodebuf
+                decodebuf[0], decodebuf[1], filterbuf[0], filterbuf[1],
+                encodebuf[0], encodebuf[1]
         );
     } else {
         char eta_buf[100];
@@ -336,13 +339,14 @@ static void print_counter_line(int encoding, int frame, int first, int last,
                      secleft/3600, (secleft/60) % 60, secleft % 60);
         }
         fprintf(stderr, "%s frame [%d/%d], %6.2f fps, %5.1f%%, ETA: %s,"
-                        " (%2d|%2d|%2d)  \r",
+                        "  (%2d,%2d|%2d,%2d|%2d,%2d) \r",
                 encoding ? "encoding" : "skipping",
                 frame, last+1,
                 fps,
                 100*done,
                 eta_buf,
-                decodebuf, filterbuf, encodebuf
+                decodebuf[0], decodebuf[1], filterbuf[0], filterbuf[1],
+                encodebuf[0], encodebuf[1]
         );
     }
     printed = 1;
