@@ -721,12 +721,12 @@ int tc_import_audio_running(void)
 
 int tc_import_video_status(void)
 {
-    return (tc_import_thread_is_active(&video_decdata) || vframe_have_more());
+    return vframe_have_more() || tc_import_thread_is_active(&video_decdata);
 }
 
 int tc_import_audio_status(void)
 {
-    return (tc_import_thread_is_active(&video_decdata) || aframe_have_more());
+    return aframe_have_more() || tc_import_thread_is_active(&audio_decdata);
 }
 
 

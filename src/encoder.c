@@ -1336,7 +1336,7 @@ static void encoder_skip(TCEncoderData *data)
 
 static int need_stop(TCEncoderData *encdata)
 {
-    return (!tc_running() || encdata->error_flag);
+    return !tc_running() || !tc_import_status() || encdata->error_flag;
 }
 
 /* ------------------------------------------------------------

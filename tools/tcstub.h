@@ -83,6 +83,8 @@ int load_plugin(const char *path, int id, int verbose);
 int tc_import_video_running(void);
 int tc_import_audio_running(void);
 
+int tc_import_status();
+
 #endif /* TC_STUB_H */
 
 /* vim: sw=4
