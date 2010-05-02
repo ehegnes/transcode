@@ -1,3 +1,10 @@
+0.77    transform plugin uses last transform for the remaining frames 
+	 -> this enables to use the transform plugin for constant transformations
+
+0.76    interpolation routines improved a lot, thanks to hints on ffmpeg list
+	added bicubic interpolation that uses 4x4 pixel (useful for large zoom values)
+	bilinear interpolation is now the default
+	
 0.75    two meta parameter introduces: shakiness and accuracy and
 	removal of fieldnum, fielsize, maxshift, maxfieldnum
 	field placement changed: Now they fill the frame perfectly
