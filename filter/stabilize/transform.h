@@ -88,10 +88,28 @@ void cleanmaxmin_xy_transform(const Transform* transforms, int len,
                               int percentil, 
                               Transform* min, Transform* max);
 
-/* helper functions that should be in math.h! */
+/* helper functions */
 
-/* normal round function */
-int myround(double x);
+/* optimized round function */
+inline static int myround(float x) {
+    if(x>0)
+        return x + 0.5;
+    else
+        return x - 0.5;
+}
+
+
+/* optimized floor function 
+   This does not give the correct value for negative integer values like -1.0. In this case
+   it will produce -2.0.
+*/
+inline static int myfloor(float x) {
+    if(x<0)
+        return x - 1;
+    else
+        return x;
+}
+
 
 #endif
 
