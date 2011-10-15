@@ -29,7 +29,7 @@
 */
 
 #define MOD_NAME    "filter_stabilize.so"
-#define MOD_VERSION "v0.75 (2010-04-07)"
+#define MOD_VERSION "v0.76 (2011-02-01)"
 #define MOD_CAP     "extracts relative transformations of \n\
     subsequent frames (used for stabilization together with the\n\
     transform filter in a second pass)"
@@ -469,7 +469,8 @@ double calcAngle(StabData* sd, Field* field, Transform* t,
  */
 Transform calcFieldTransYUV(StabData* sd, const Field* field, int fieldnum)
 {
-    Transform t = null_transform();
+    int tx = 0;
+    int ty = 0;
     uint8_t *Y_c = sd->curr, *Y_p = sd->prev;
     // we only use the luminance part of the image
     int i, j;
@@ -500,27 +501,29 @@ Transform calcFieldTransYUV(StabData* sd, const Field* field, int fieldnum)
 #endif 
             if (error < minerror) {
                 minerror = error;
-                t.x = i;
-                t.y = j;
+                tx = i;
+                ty = j;
             }	
         }
     }
 
     if (sd->stepsize > 1) {    // make fine grain check around the best match
+        int txc=tx; // save the shifts
+        int tyc=ty;    
         int r = sd->stepsize - 1;
-        for (i = t.x - r; i <= t.x + r; i += 1) {
-            for (j = -t.y - r; j <= t.y + r; j += 1) {
-                if (i == t.x && j == t.y) 
+        for (i = txc - r; i <= txc + r; i += 1) {
+            for (j = tyc - r; j <= tyc + r; j += 1) {
+                if (i == txc && j == tyc) 
                     continue; //no need to check this since already done
                 error = compareSubImg(Y_c, Y_p, field, 
                                       sd->width, sd->height, 1, i, j);
-#ifdef STABVERBOSE
+#ifdef STABVERBOSE                
                 fprintf(f, "%i %i %f\n", i, j, error);
 #endif 	
                 if (error < minerror){
                     minerror = error;
-                    t.x = i;
-                    t.y = j;
+                    tx = i;
+                    ty = j;
                 }	
             }
         }
@@ -530,18 +533,21 @@ Transform calcFieldTransYUV(StabData* sd, const Field* field, int fieldnum)
     tc_log_msg(MOD_NAME, "Minerror: %f\n", minerror);
 #endif
 
-    if (!sd->allowmax && fabs(t.x) == sd->maxshift) {
+    if (!sd->allowmax && fabs(tx) >= sd->maxshift+sd->stepsize) {
 #ifdef STABVERBOSE 
         tc_log_msg(MOD_NAME, "maximal x shift ");
 #endif
-        t.x = 0;
+        tx = 0;
     }
-    if (!sd->allowmax && fabs(t.y) == sd->maxshift) {
+    if (!sd->allowmax && fabs(ty) == sd->maxshift+sd->stepsize) {
 #ifdef STABVERBOSE 
         tc_log_msg(MOD_NAME, "maximal y shift ");
 #endif
-        t.y = 0;
+        ty = 0;
     }
+    Transform t = null_transform();
+    t.x=tx;
+    t.y=ty;
     return t;
 }
 
@@ -686,11 +692,11 @@ Transform calcTransFields(StabData* sd, calcFieldTransFunc fieldfunc,
     int i, index=0, num_trans;
     Transform t;
 #ifdef STABVERBOSE
-    FILE *f = NULL;
+    FILE *file = NULL;
     char buffer[32];
     tc_snprintf(buffer, sizeof(buffer), "k%04i.dat", sd->t);
-    f = fopen(buffer, "w");
-    fprintf(f, "# plot \"%s\" w l, \"\" every 2:1:0\n", buffer);
+    file = fopen(buffer, "w");
+    fprintf(file, "# plot \"%s\" w l, \"\" every 2:1:0\n", buffer);
 #endif
     
     TCList* goodflds = selectfields(sd, contrastfunc);
@@ -701,7 +707,7 @@ Transform calcTransFields(StabData* sd, calcFieldTransFunc fieldfunc,
         int i = f->index;
         t =  fieldfunc(sd, &sd->fields[i], i); // e.g. calcFieldTransYUV
 #ifdef STABVERBOSE
-        fprintf(f, "%i %i\n%f %f %i\n \n\n", sd->fields[i].x, sd->fields[i].y, 
+        fprintf(file, "%i %i\n%f %f %i\n \n\n", sd->fields[i].x, sd->fields[i].y, 
                 sd->fields[i].x + t.x, sd->fields[i].y + t.y, t.extra);
 #endif
         if (t.extra != -1){ // ignore if extra == -1 (unused at the moment)
@@ -773,7 +779,7 @@ Transform calcTransFields(StabData* sd, calcFieldTransFunc fieldfunc,
     t.y += sin(t.alpha)*p_x  + (cos(t.alpha)-1)*p_y;    
     
 #ifdef STABVERBOSE
-    fclose(f);
+    fclose(file);
 #endif
     return t;
 }
@@ -963,7 +969,12 @@ static int stabilize_configure(TCModuleInstance *self,
         optstr_get(options, "show",       "%d", &sd->show);
     }
     sd->shakiness = TC_MIN(10,TC_MAX(1,sd->shakiness));
-    sd->accuracy  = TC_MAX(sd->shakiness,TC_MIN(15,TC_MAX(1,sd->accuracy)));
+    sd->accuracy  = TC_MIN(15,TC_MAX(1,sd->accuracy));
+    if(sd->accuracy < sd->shakiness/2){
+        tc_log_info(MOD_NAME, "accuracy should not be lower than shakiness/2");
+        sd->accuracy = sd->shakiness/2; 
+    }
+    
     if (verbose) {
         tc_log_info(MOD_NAME, "Image Stabilization Settings:");
         tc_log_info(MOD_NAME, "     shakiness = %d", sd->shakiness);
@@ -976,8 +987,8 @@ static int stabilize_configure(TCModuleInstance *self,
     }
 
     // shift and size: shakiness 1: height/40; 10: height/4
-    sd->maxshift    = TC_MIN(sd->width, sd->height)*sd->shakiness/40;
-    sd->field_size   = TC_MIN(sd->width, sd->height)*sd->shakiness/40;
+    sd->maxshift     = TC_MAX(4,(TC_MIN(sd->width, sd->height)*sd->shakiness)/40);
+    sd->field_size   = TC_MAX(4,(TC_MIN(sd->width, sd->height)*sd->shakiness)/40);
   
     tc_log_info(MOD_NAME, "Fieldsize: %i, Maximal translation: %i pixel", 
                 sd->field_size, sd->maxshift);
