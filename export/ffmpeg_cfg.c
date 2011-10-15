@@ -126,6 +126,9 @@ int lavc_param_gmc = 0;
 //int lavc_param_atag = 0;
 //int lavc_param_abitrate = 224;
 
+char *lavc_param_video_preset = "medium";
+char *lavc_param_ffmpeg_datadir = "/usr/share/ffmpeg";
+
 TCConfigEntry lavcopts_conf[]={
 //    {"acodec", &lavc_param_acodec, TCCONF_TYPE_STRING, 0, 0, 0},
 //    {"abitrate", &lavc_param_abitrate, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 1, 1000},
@@ -234,5 +237,7 @@ TCConfigEntry lavcopts_conf[]={
     {"skip_top", &lavc_param_skip_top, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 1000},
     {"skip_bottom", &lavc_param_skip_bottom, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 1000},
     {"fps_code", &lavc_param_fps_code, TCCONF_TYPE_INT, TCCONF_FLAG_RANGE, 0, 9},
+    {"vpre", &lavc_param_video_preset, TCCONF_TYPE_STRING, 0, 0, 0},
+    {"ffmpeg_datadir", &lavc_param_ffmpeg_datadir, TCCONF_TYPE_STRING, 0, 0, 0},
     {NULL, NULL, 0, 0, 0, 0}
 };

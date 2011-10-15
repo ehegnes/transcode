@@ -168,6 +168,191 @@ static double psnr(double d) {
     return -10.0 * log(d) / log(10);
 }
 
+
+// Could be using GNU extension 'strchrnul' instead:
+static char *tc_strchrnul(const char *s, int c) {
+	char *tmp = strchr(s, c);
+	if (tmp == NULL) {
+		tmp = s + strlen(s);
+	}
+	return tmp;
+}
+
+
+/* START: COPIED FROM ffmpeg-0.5_p22846(ffmpeg.c, cmdutils.c) */
+#include <libavcodec/opt.h>
+#include <libavutil/avstring.h>
+#include <libswscale/swscale.h>
+
+/* GLUE: */
+#define FFMPEG_DATADIR lavc_param_ffmpeg_datadir
+
+/* GLUE: */
+static AVCodecContext *avcodec_opts[AVMEDIA_TYPE_NB] = {NULL};
+
+static // GLUE
+const char **opt_names;
+static int opt_name_count;
+
+static char  *audio_codec_name = NULL;
+static char *subtitle_codec_name = NULL;
+static char *video_codec_name = NULL;
+static int audio_stream_copy = 0;
+static int video_stream_copy = 0;
+static int subtitle_stream_copy = 0;
+
+static int av_exit(int ret)
+{
+    av_free(opt_names);
+
+    av_free(video_codec_name);
+    av_free(audio_codec_name);
+    av_free(subtitle_codec_name);
+
+    exit(ret); /* not all OS-es handle main() return value */
+    return ret;
+}
+
+static void opt_codec(int *pstream_copy, char **pcodec_name,
+                      int codec_type, const char *arg)
+{
+    av_freep(pcodec_name);
+    if (!strcmp(arg, "copy")) {
+        *pstream_copy = 1;
+    } else {
+        *pcodec_name = av_strdup(arg);
+    }
+}
+
+static void opt_audio_codec(const char *arg)
+{
+    opt_codec(&audio_stream_copy, &audio_codec_name, AVMEDIA_TYPE_AUDIO, arg);
+}
+
+static void opt_video_codec(const char *arg)
+{
+    opt_codec(&video_stream_copy, &video_codec_name, AVMEDIA_TYPE_VIDEO, arg);
+}
+
+static void opt_subtitle_codec(const char *arg)
+{
+    opt_codec(&subtitle_stream_copy, &subtitle_codec_name, AVMEDIA_TYPE_SUBTITLE, arg);
+}
+
+static
+int opt_default(const char *opt, const char *arg){
+    int type;
+    int ret= 0;
+    const AVOption *o= NULL;
+    int opt_types[]={AV_OPT_FLAG_VIDEO_PARAM, AV_OPT_FLAG_AUDIO_PARAM, 0, AV_OPT_FLAG_SUBTITLE_PARAM, 0};
+
+    for(type=0; type<AVMEDIA_TYPE_NB && ret>= 0; type++){
+		/* GLUE: +if */
+		if (type == AVMEDIA_TYPE_VIDEO) {
+        const AVOption *o2 = av_find_opt(avcodec_opts[0], opt, NULL, opt_types[type], opt_types[type]);
+        if(o2)
+            ret = av_set_string3(avcodec_opts[type], opt, arg, 1, &o);
+		/* GLUE: +if */
+		}
+    }
+    /* GLUE: disabling
+    if(!o)
+        ret = av_set_string3(avformat_opts, opt, arg, 1, &o);
+    if(!o && sws_opts)
+        ret = av_set_string3(sws_opts, opt, arg, 1, &o);
+	*/
+    if(!o){
+		/* GLUE: disabling
+        if(opt[0] == 'a')
+            ret = av_set_string3(avcodec_opts[AVMEDIA_TYPE_AUDIO], opt+1, arg, 1, &o);
+        else */ if(opt[0] == 'v')
+            ret = av_set_string3(avcodec_opts[AVMEDIA_TYPE_VIDEO], opt+1, arg, 1, &o);
+		/* GLUE: disabling
+        else if(opt[0] == 's')
+            ret = av_set_string3(avcodec_opts[AVMEDIA_TYPE_SUBTITLE], opt+1, arg, 1, &o);
+		*/
+    }
+    if (o && ret < 0) {
+        fprintf(stderr, "Invalid value '%s' for option '%s'\n", arg, opt);
+        exit(1);
+    }
+    if (!o) {
+        fprintf(stderr, "Unrecognized option '%s'\n", opt);
+        exit(1);
+    }
+
+//    av_log(NULL, AV_LOG_ERROR, "%s:%s: %f 0x%0X\n", opt, arg, av_get_double(avcodec_opts, opt, NULL), (int)av_get_int(avcodec_opts, opt, NULL));
+
+    //FIXME we should always use avcodec_opts, ... for storing options so there will not be any need to keep track of what i set over this
+    opt_names= av_realloc(opt_names, sizeof(void*)*(opt_name_count+1));
+    opt_names[opt_name_count++]= o->name;
+
+	/* GLUE: disabling
+    if(avcodec_opts[0]->debug || avformat_opts->debug)
+        av_log_set_level(AV_LOG_DEBUG);
+	*/
+    return 0;
+}
+
+static int opt_preset(const char *opt, const char *arg)
+{
+    FILE *f=NULL;
+    char filename[1000], tmp[1000], tmp2[1000], line[1000];
+    int i;
+    const char *base[2]= { getenv("HOME"),
+                           FFMPEG_DATADIR,
+                         };
+
+    if (*opt != 'f') {
+        for(i=!base[0]; i<2 && !f; i++){
+            snprintf(filename, sizeof(filename), "%s%s/%s.ffpreset", base[i], i ? "" : "/.ffmpeg", arg);
+            f= fopen(filename, "r");
+            if(!f){
+                char *codec_name= *opt == 'v' ? video_codec_name :
+                                  *opt == 'a' ? audio_codec_name :
+                                                subtitle_codec_name;
+                snprintf(filename, sizeof(filename), "%s%s/%s-%s.ffpreset", base[i],  i ? "" : "/.ffmpeg", codec_name, arg);
+                f= fopen(filename, "r");
+            }
+        }
+    } else {
+        av_strlcpy(filename, arg, sizeof(filename));
+        f= fopen(filename, "r");
+    }
+
+    if(!f){
+        fprintf(stderr, "File for preset '%s' not found\n", arg);
+        av_exit(1);
+    }
+
+    while(!feof(f)){
+        int e= fscanf(f, "%999[^\n]\n", line) - 1;
+        if(line[0] == '#' && !e)
+            continue;
+        e|= sscanf(line, "%999[^=]=%999[^\n]\n", tmp, tmp2) - 2;
+        if(e){
+            fprintf(stderr, "%s: Invalid syntax: '%s'\n", filename, line);
+            av_exit(1);
+        }
+        if(!strcmp(tmp, "acodec")){
+            opt_audio_codec(tmp2);
+        }else if(!strcmp(tmp, "vcodec")){
+            opt_video_codec(tmp2);
+        }else if(!strcmp(tmp, "scodec")){
+            opt_subtitle_codec(tmp2);
+        }else if(opt_default(tmp, tmp2) < 0){
+            fprintf(stderr, "%s: Invalid option or argument: '%s', parsed as '%s' = '%s'\n", filename, line, tmp, tmp2);
+            av_exit(1);
+        }
+    }
+
+    fclose(f);
+
+    return 0;
+}
+/* END: COPIED FROM ffmpeg-0.5_p22846(ffmpeg.c, cmdutils.c) */
+
+
 /* ------------------------------------------------------------
  *
  * init codec
@@ -1019,6 +1204,45 @@ MOD_init
     }
 
     lavc_venc_context->me_method = ME_ZERO + lavc_param_vme;
+
+
+	/* FIXME: transcode itself contains "broken ffmpeg default settings", thus we need to override them! */
+	if (lavc_param_video_preset) {
+		avcodec_opts[AVMEDIA_TYPE_VIDEO] = lavc_venc_context;
+		video_codec_name = ffmpeg_codec_name(codec->name);
+
+		const char *preset_start = lavc_param_video_preset;
+		while (preset_start) {
+			const char *preset_end = tc_strchrnul(preset_start, ',');
+			char preset_name[255] = {'\0'};
+
+			if (strncpy(preset_name, preset_start, preset_end-preset_start) != preset_name) {
+				tc_log_warn(MOD_NAME, "Extracting preset name failed");
+				return TC_EXPORT_ERROR;
+			}
+
+			if (verbose) {
+				tc_log_info(MOD_NAME, "Parsing ffmpeg preset '%s'", preset_name);
+			}
+			if (opt_preset("vpre", preset_name) != 0) {
+				tc_log_warn(MOD_NAME, "Parsing ffmpeg preset '%s' failed", preset_name);
+			}
+			if (verbose) {
+				int i;
+				tc_log_info(MOD_NAME, "After parsing preset '%s', %i options are overridden:", preset_name, opt_name_count);
+				for (i=0; i < opt_name_count; i++)
+					tc_log_info(MOD_NAME, "-- %s", opt_names[i]);
+			}
+
+			if (*preset_end != '\0') {
+				preset_start = preset_end+1;
+			}
+			else {
+				preset_start = NULL;
+			}
+		}
+	}
+
 
     //-- open codec --
     //----------------
