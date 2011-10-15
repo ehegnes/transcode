@@ -7,9 +7,15 @@ endif
 AM_CPPFLAGS = \
 	$(PTHREAD_CFLAGS) \
 	$(BG) \
+	$(SIMD_FLAGS) \
 	-I$(top_srcdir) \
-	-I$(top_srcdir)/src
-	-C99
+	-I$(top_srcdir)/src 
+
+# SIMD_FLAGS shouls contain them, but they are empty
+if HAVE_ASM_SSE2	
+AM_CPPFLAGS += -msse2 
+endif
+
 
 pkgdir = $(MOD_PATH)
 
@@ -23,4 +29,3 @@ filter_transform_la_LDFLAGS = -module -avoid-version
 
 EXTRA_DIST = \
         transform.h 
-        
