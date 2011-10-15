@@ -828,8 +828,6 @@ MOD_init
 
     lavc_venc_context->bit_rate           = vob->divxbitrate * 1000;
     lavc_venc_context->bit_rate_tolerance = lavc_param_vrate_tolerance * 1000;
-    lavc_venc_context->mb_qmin            = lavc_param_mb_qmin;
-    lavc_venc_context->mb_qmax            = lavc_param_mb_qmax;
     lavc_venc_context->lmin= (int)(FF_QP2LAMBDA * lavc_param_lmin + 0.5);
     lavc_venc_context->lmax= (int)(FF_QP2LAMBDA * lavc_param_lmax + 0.5);
     lavc_venc_context->max_qdiff          = lavc_param_vqdiff;

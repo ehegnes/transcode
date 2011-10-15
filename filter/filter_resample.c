@@ -110,8 +110,10 @@ static int resample_configure(TCModuleInstance *self,
         goto abort;
     }
 
-    pd->resample_ctx = audio_resample_init(vob->a_chan, vob->a_chan,
-                                           vob->mp3frequency, vob->a_rate);
+    pd->resample_ctx = av_audio_resample_init(vob->a_chan, vob->a_chan,
+                                           vob->mp3frequency, vob->a_rate,
+                                           AV_SAMPLE_FMT_S16, AV_SAMPLE_FMT_S16,
+                                           16, 10, 0, 0.8);
     if (pd->resample_ctx == NULL) {
         tc_log_error(MOD_NAME, "can't get a resample context");
         goto abort;

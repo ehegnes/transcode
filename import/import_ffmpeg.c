@@ -543,8 +543,12 @@ MOD_decode {
 retry:
     do {
       TC_LOCK_LIBAVCODEC;
-      len = avcodec_decode_video(lavc_dec_context, &picture,
-			         &got_picture, buffer, bytes_read);
+      AVPacket avpkt;
+      av_init_packet(&avpkt);
+      avpkt.data = NULL;
+      avpkt.size = 0;
+      len = avcodec_decode_video2(lavc_dec_context, &picture,
+			         &got_picture, &avpkt);
       TC_UNLOCK_LIBAVCODEC;
 
       if (len < 0) {
