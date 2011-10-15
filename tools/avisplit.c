@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
 
   char *in_file=NULL;
 
-  long i, frames, bytes;
+  long i, frames, bytes, bytes_to_key, tmpreturn;
 
   uint64_t size=0;
 
@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
 
   char *codec;
 
-  int j, n, key, k;
+  int j, n, m, key, k;
 
   int key_boundary=1;
 
@@ -285,10 +285,28 @@ int main(int argc, char *argv[])
 
       if(key && is_open && n && split_next) {
 
+        // loop through from this keyframe to the next to find out this chunks real size
+        // save bytes from first query
+        bytes_to_key = bytes;
+
+        //Loop until next keyframe
+        for(m=0; (!key || m==0); ++m) {
+          //video
+          tmpreturn = AVI_audio_size(in, n+m);
+          if (tmpreturn == -1) break;
+          bytes_to_key += tmpreturn;
+          //audio
+          tmpreturn =  AVI_read_frame(in, NULL, &key);
+          if (tmpreturn == -1) break;
+          bytes_to_key += tmpreturn;
+        }
+        //rewind to correct position, the last keyframe.
+        AVI_set_video_position(in, n);
+
         size = AVI_bytes_written(out);
         fsize = ((double) size)/MBYTE;
 
-        if((size + MBYTE) > (uint64_t)(chunk*MBYTE)) {
+        if((size + bytes_to_key) > (uint64_t)(chunk*MBYTE)) {
 
           // limit exceeded, close file
 
