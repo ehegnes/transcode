@@ -100,6 +100,9 @@ extern int lavc_param_intra_dc_precision;
 extern int lavc_param_skip_top;
 extern int lavc_param_skip_bottom;
 
+extern char *lavc_param_video_preset;
+extern char *lavc_param_ffmpeg_datadir;
+
 extern TCConfigEntry lavcopts_conf[];
 
 #endif
