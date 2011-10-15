@@ -47,7 +47,7 @@ static void translate_info(const AVFormatContext *ctx, ProbeInfo *info)
     for (i = 0; i < ctx->nb_streams; i++) {
         st = ctx->streams[i];
 
-        if (st->codec->codec_type == CODEC_TYPE_VIDEO) {
+        if (st->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
             info->bitrate = st->codec->bit_rate / 1000;
             info->width = st->codec->width;
             info->height = st->codec->height;
@@ -65,7 +65,7 @@ static void translate_info(const AVFormatContext *ctx, ProbeInfo *info)
     for (i = 0; i < ctx->nb_streams; i++) {
         st = ctx->streams[i];
 
-        if (st->codec->codec_type == CODEC_TYPE_AUDIO
+        if (st->codec->codec_type == AVMEDIA_TYPE_AUDIO
          && j < TC_MAX_AUD_TRACKS) {
             info->track[j].format = 0x1; /* known wrong */
             info->track[j].chan = st->codec->channels;

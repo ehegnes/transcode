@@ -24,7 +24,7 @@
  *
  */
 
-#define MOD_NAME    "export_toolame.so"
+#define MOD_NAME    "export_twolame.so"
 #define MOD_VERSION "v1.0.6 (2004-01-26)"
 #define MOD_CODEC   "(audio) MPEG 1/2"
 
@@ -39,7 +39,7 @@
 static int 			verbose_flag	= TC_QUIET;
 static int 			capability_flag	= TC_CAP_PCM;
 
-#define MOD_PRE toolame
+#define MOD_PRE twolame
 #include "export_def.h"
 
 static FILE* 			pFile 		= NULL;
@@ -85,8 +85,8 @@ MOD_open
     char chan;
     char *ptr;
 
-    /* check for toolame */
-    if (tc_test_program("toolame") != 0) return (TC_EXPORT_ERROR);
+    /* check for twolame */
+    if (tc_test_program("twolame") != 0) return (TC_EXPORT_ERROR);
 
     /* verbose? */
     verb = (verbose & TC_DEBUG) ? 2:0;
@@ -123,10 +123,10 @@ MOD_open
     ofreq_dec = ofreq-ofreq_int*1000;
     */
 
-    /* toolame command line */
+    /* twolame command line */
     /* ptr is a pointer into buf */
     tc_snprintf(ptr, sizeof(buf) - (ptr-buf),
-		"toolame -s %0.3f -b %d -m %c - \"%s\" 2>/dev/null %s",
+		"twolame -s %0.3f -b %d -m %c - \"%s\" 2>/dev/null %s",
 		(double)ofreq/1000.0, orate, chan, vob->audio_out_file,
 		(vob->ex_a_string?vob->ex_a_string:""));
 
