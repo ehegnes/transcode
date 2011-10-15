@@ -1,7 +1,7 @@
 /*
  *  filter_transform.c
  *
- *  Copyright (C) Georg Martius - June 2007
+ *  Copyright (C) Georg Martius - 2007 -- 2011
  *   georg dot martius at web dot de  
  *
  *  This file is part of transcode, a video stream processing tool
@@ -25,7 +25,7 @@
 */
 
 #define MOD_NAME    "filter_transform.so"
-#define MOD_VERSION "v0.75 (2009-10-31)"
+#define MOD_VERSION "v0.79 (2011-10-12)"
 #define MOD_CAP     "transforms each frame according to transformations\n\
  given in an input file (e.g. translation, rotate) see also filter stabilize"
 #define MOD_AUTHOR  "Georg Martius"
