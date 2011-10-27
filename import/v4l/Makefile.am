@@ -15,10 +15,13 @@ endif
 endif
 
 if HAVE_V4L
-MOD_V4LDEV = import_v4l.la import_v4l2.la
+MOD_V4LDEV = import_v4l.la
+endif
+if HAVE_V4L2
+MOD_V4L2DEV = import_v4l2.la
 endif
 
-pkg_LTLIBRARIES = $(MOD_V4LDEV) $(MOD_V4LCAM)
+pkg_LTLIBRARIES = $(MOD_V4LDEV) $(MOD_V4L2DEV) $(MOD_V4LCAM)
 
 import_v4l_la_SOURCES = import_v4l.c
 import_v4l_la_LDFLAGS = -module -avoid-version

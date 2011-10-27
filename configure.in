@@ -777,6 +777,7 @@ dnl v4l
 dnl
 TC_CHECK_V4L(AC_DEFINE([HAVE_V4L], 1, [Have video4linux(2)]))
 AM_CONDITIONAL(HAVE_V4L, test x"$have_v4l" = x"yes")
+AM_CONDITIONAL(HAVE_V4L2, test x"$have_v4l2" = x"yes")
 
 dnl
 dnl bktr
@@ -1483,7 +1484,8 @@ FFmpeg support                 $enable_ffmpeg
 $FFMPEG_OUTPUT
 hardware support
 ----------------------------------------
-v4l/v4l2                       $have_v4l
+v4l (legacy)                   $have_v4l
+v4l2                           $have_v4l2
 ALSA                           $have_alsa
 OSS                            $have_oss
 bktr                           $have_bktr

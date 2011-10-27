@@ -176,6 +176,7 @@ AC_ARG_ENABLE(v4l,
 AC_MSG_RESULT($enable_v4l)
 
 have_v4l=no
+have_v4l2=no
 if test x"$enable_v4l" = x"yes" ; then
   AC_CHECK_HEADERS([linux/videodev.h], [v4l=yes], [v4l=no])
   AC_CHECK_HEADERS([linux/videodev2.h], [v4l2=yes], [v4l2=no],
@@ -189,7 +190,7 @@ if test x"$enable_v4l" = x"yes" ; then
 #include <linux/videodev2.h>
 ],   [
 struct v4l2_buffer buf;
-buffer.memory = V4L2_MEMORY_MMAP
+buf.memory = V4L2_MEMORY_MMAP
 ],    [AC_DEFINE([HAVE_STRUCT_V4L2_BUFFER], 1,
         [define if your videodev2 header has struct v4l2_buffer])
         AC_MSG_RESULT([yes])],
@@ -197,7 +198,13 @@ buffer.memory = V4L2_MEMORY_MMAP
   fi
 
   if test x"$v4l" = x"yes" -o x"$v4l2" = x"yes" ; then
-    have_v4l=yes
+    if test x"$v4l" = x"yes" ; then
+      have_v4l=yes
+    fi
+    if test x"$v4l2" = x"yes" ; then
+      have_v4l2=yes
+    fi
+    dnl yes, this is pure cargo cult.
     ifelse([$1], , :, [$1])
   else
     AC_MSG_ERROR([v4l is requested, but cannot find headers])
