@@ -347,7 +347,11 @@ static int tc_audio_init_ffmpeg(vob_t *vob, int o_codec)
     //-- set parameters (bitrate, channels and sample-rate) --
     //--------------------------------------------------------
     avcodec_get_context_defaults(&mpa_ctx);
+#if LIBAVCODEC_VERSION_MAJOR < 53
     mpa_ctx.codec_type  = CODEC_TYPE_AUDIO;
+#else
+    mpa_ctx.codec_type  = AVMEDIA_TYPE_AUDIO;
+#endif
     mpa_ctx.bit_rate    = vob->mp3bitrate * 1000;  // bitrate dest.
     mpa_ctx.channels    = vob->dm_chan;            // channels
     mpa_ctx.sample_rate = vob->a_rate;
