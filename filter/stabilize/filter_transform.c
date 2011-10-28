@@ -1,7 +1,7 @@
 /*
  *  filter_transform.c
  *
- *  Copyright (C) Georg Martius - June 2007
+ *  Copyright (C) Georg Martius - 2007 -- 2011
  *   georg dot martius at web dot de  
  *
  *  This file is part of transcode, a video stream processing tool
@@ -22,10 +22,10 @@
  *
  * Typical call:
  * transcode -J transform -i inp.mpeg -y xdiv,tcaud inp_stab.avi
- */
+*/
 
 #define MOD_NAME    "filter_transform.so"
-#define MOD_VERSION "v0.77 (2010-05-02)"
+#define MOD_VERSION "v0.79 (2011-10-12)"
 #define MOD_CAP     "transforms each frame according to transformations\n\
  given in an input file (e.g. translation, rotate) see also filter stabilize"
 #define MOD_AUTHOR  "Georg Martius"
@@ -35,13 +35,13 @@
 #define MOD_FLAGS \
     TC_MODULE_FLAG_RECONFIGURABLE
   
-#include "src/transcode.h"
-#include "src/filter.h"
-#include "libtc/libtc.h"
-#include "libtc/tccodecs.h"
-#include "libtcutil/optstr.h"
-#include "libtcmodule/tcmodule-plugin.h"
+#include "transcode.h"
+#include "filter.h"
 
+#include "libtc/libtc.h"
+#include "libtc/optstr.h"
+#include "libtc/tccodecs.h"
+#include "libtc/tcmodule-plugin.h"
 #include "transform.h"
 
 #include <math.h>
@@ -51,7 +51,6 @@
 
 #define PIXEL(img, x, y, w, h, def) ((x) < 0 || (y) < 0) ? def       \
     : (((x) >=w || (y) >= h) ? def : img[(x) + (y) * w]) 
-#define PIX(img, x, y, w, h) (img[(x) + (y) * w]) 
 // gives Pixel in N-channel image. channel in {0..N-1}
 #define PIXELN(img, x, y, w, h, N,channel , def) ((x) < 0 || (y) < 0) ? def  \
     : (((x) >=w || (y) >= h) ? def : img[((x) + (y) * w)*N + channel]) 
@@ -68,7 +67,6 @@ typedef struct {
     Transform* trans;    // array of transformations
     int current_trans;   // index to current transformation
     int trans_len;       // length of trans array
-    short warned_transform_end; // whether we warned that there is no transform left
  
     /* Options */
     int maxshift;        // maximum number of pixels we will shift
@@ -97,8 +95,7 @@ typedef struct {
     char conf_str[TC_BUF_MIN];
 } TransformData;
 
-static const char* interpoltypes[5] = {"No (0)", "Linear (1)", "Bi-Linear (2)", 
-                                       "Quadratic (3)", "Bi-Cubic (4)"};
+static const char* interpoltypes[4] = {"No", "Linear", "Bi-Linear", "Quadratic"};
 
 static const char transform_help[] = ""
     "Overview\n"
@@ -121,17 +118,12 @@ static const char transform_help[] = ""
     "                Note that the value given at 'zoom' is added to the \n"
     "                here calculated one\n"
     "    'interpol'  type of interpolation: 0: no interpolation, \n"
-    "                1: linear (horizontal), 2: bi-linear (def), \n"
-    "                3: quadratic 4: bi-cubic\n"
+    "                1: linear (horizontal) (def), 2: bi-linear 3: quadratic\n"
     "    'sharpen'   amount of sharpening: 0: no sharpening (def: 0.8)\n"
     "                uses filter unsharp with 5x5 matrix\n"
     "    'help'      print this help message\n";
 
-/* forward declarations, please look below for documentation*/
-void interpolateBiLinBorder(unsigned char *rv, float x, float y, 
-                            unsigned char* img, int w, int h, unsigned char def);
-void interpolateBiCub(unsigned char *rv, float x, float y, 
-                      unsigned char* img, int width, int height, unsigned char def);
+/* forward deklarations, please look below for documentation*/
 void interpolateSqr(unsigned char *rv, float x, float y, 
                     unsigned char* img, int w, int h, unsigned char def);
 void interpolateBiLin(unsigned char *rv, float x, float y, 
@@ -165,94 +157,27 @@ void (*interpolate)(unsigned char *rv, float x, float y,
                     unsigned char* img, int width, int height, 
                     unsigned char def) = 0;
 
-/** interpolateBiLinBorder: bi-linear interpolation function that also works at the border.
-    This is used by many other interpolation methods at and outsize the border, see interpolate */
-void interpolateBiLinBorder(unsigned char *rv, float x, float y, 
-                            unsigned char* img, int width, int height, 
-                            unsigned char def)
-{
-    int x_f = myfloor(x);
-    int x_c = x_f+1;
-    int y_f = myfloor(y);
-    int y_c = y_f+1;
-    short v1 = PIXEL(img, x_c, y_c, width, height, def);
-    short v2 = PIXEL(img, x_c, y_f, width, height, def);
-    short v3 = PIXEL(img, x_f, y_c, width, height, def);
-    short v4 = PIXEL(img, x_f, y_f, width, height, def);        
-    float s  = (v1*(x - x_f)+v3*(x_c - x))*(y - y_f) + 
-        (v2*(x - x_f) + v4*(x_c - x))*(y_c - y);
-    *rv = (unsigned char)s;
-}
-
-/* taken from http://en.wikipedia.org/wiki/Bicubic_interpolation for alpha=-0.5
-   in matrix notation: 
-   a0-a3 are the neigthboring points where the target point is between a1 and a2
-   t is the point of interpolation (position between a1 and a2) value between 0 and 1
-                 | 0, 2, 0, 0 |  |a0|
-                 |-1, 0, 1, 0 |  |a1|
-   (1,t,t^2,t^3) | 2,-5, 4,-1 |  |a2|
-                 |-1, 3,-3, 1 |  |a3|              
-*/
-static short bicub_kernel(float t, short a0, short a1, short a2, short a3){ 
-    return (2*a1 + t*((-a0+a2) + t*((2*a0-5*a1+4*a2-a3) + t*(-a0+3*a1-3*a2+a3) )) ) / 2;
-}
-
-/** interpolateBiCub: bi-cubic interpolation function using 4x4 pixel, see interpolate */
-void interpolateBiCub(unsigned char *rv, float x, float y, 
-                      unsigned char* img, int width, int height, unsigned char def)
-{
-    // do a simple linear interpolation at the border
-    if (x < 1 || x > width-2 || y < 1 || y > height - 2) { 
-        interpolateBiLinBorder(rv, x,y,img,width,height,def);    
-    } else {
-        int x_f = myfloor(x);
-        int y_f = myfloor(y);
-        float tx = x-x_f;
-        short v1 = bicub_kernel(tx,
-                                PIX(img, x_f-1, y_f-1, width, height),
-                                PIX(img, x_f,   y_f-1, width, height),
-                                PIX(img, x_f+1, y_f-1, width, height),
-                                PIX(img, x_f+2, y_f-1, width, height));
-        short v2 = bicub_kernel(tx,
-                                PIX(img, x_f-1, y_f, width, height),
-                                PIX(img, x_f,   y_f, width, height),
-                                PIX(img, x_f+1, y_f, width, height),
-                                PIX(img, x_f+2, y_f, width, height));
-        short v3 = bicub_kernel(tx,
-                                PIX(img, x_f-1, y_f+1, width, height),
-                                PIX(img, x_f,   y_f+1, width, height),
-                                PIX(img, x_f+1, y_f+1, width, height),
-                                PIX(img, x_f+2, y_f+1, width, height));
-        short v4 = bicub_kernel(tx,
-                                PIX(img, x_f-1, y_f+2, width, height),
-                                PIX(img, x_f,   y_f+2, width, height),
-                                PIX(img, x_f+1, y_f+2, width, height),
-                                PIX(img, x_f+2, y_f+2, width, height));
-        *rv = (unsigned char)bicub_kernel(y-y_f, v1, v2, v3, v4);
-    }
-}
-
 /** interpolateSqr: bi-quatratic interpolation function, see interpolate */
 void interpolateSqr(unsigned char *rv, float x, float y, 
                     unsigned char* img, int width, int height, unsigned char def)
 {
-    if (x < 0 || x > width-1 || y < 0 || y > height - 1) { 
-        interpolateBiLinBorder(rv, x, y, img, width, height, def);    
+    if (x < - 1 || x > width || y < -1 || y > height) {
+        *rv = def;    
     } else {
-        int x_f = myfloor(x);
-        int x_c = x_f+1;
-        int y_f = myfloor(y);
-        int y_c = y_f+1;
-        short v1 = PIX(img, x_c, y_c, width, height);
-        short v2 = PIX(img, x_c, y_f, width, height);
-        short v3 = PIX(img, x_f, y_c, width, height);
-        short v4 = PIX(img, x_f, y_f, width, height);
-        float f1 = 1 - sqrt((x_c - x) * (y_c - y));
-        float f2 = 1 - sqrt((x_c - x) * (y - y_f));
-        float f3 = 1 - sqrt((x - x_f) * (y_c - y));
-        float f4 = 1 - sqrt((x - x_f) * (y - y_f));
+        int x_c = (int)ceilf(x);
+        int x_f = (int)floorf(x);
+        int y_c = (int)ceilf(y);
+        int y_f = (int)floorf(y);
+        short v1 = PIXEL(img, x_c, y_c, width, height, def);
+        short v2 = PIXEL(img, x_c, y_f, width, height, def);
+        short v3 = PIXEL(img, x_f, y_c, width, height, def);
+        short v4 = PIXEL(img, x_f, y_f, width, height, def);
+        float f1 = 1 - sqrt(fabs(x_c - x) * fabs(y_c - y));
+        float f2 = 1 - sqrt(fabs(x_c - x) * fabs(y_f - y));
+        float f3 = 1 - sqrt(fabs(x_f - x) * fabs(y_c - y));
+        float f4 = 1 - sqrt(fabs(x_f - x) * fabs(y_f - y));
         float s  = (v1*f1 + v2*f2 + v3*f3+ v4*f4)/(f1 + f2 + f3 + f4);
-        *rv = (unsigned char)s;   
+        *rv = (unsigned char)s;
     }
 }
 
@@ -261,50 +186,60 @@ void interpolateBiLin(unsigned char *rv, float x, float y,
                       unsigned char* img, int width, int height, 
                       unsigned char def)
 {
-    if (x < 0 || x > width-1 || y < 0 || y > height - 1) { 
-        interpolateBiLinBorder(rv, x, y, img, width, height, def);    
+    if (x < - 1 || x > width || y < -1 || y > height) {
+        *rv = def;    
     } else {
-        int x_f = myfloor(x);
-        int x_c = x_f+1;
-        int y_f = myfloor(y);
-        int y_c = y_f+1;
-        short v1 = PIX(img, x_c, y_c, width, height);
-        short v2 = PIX(img, x_c, y_f, width, height);
-        short v3 = PIX(img, x_f, y_c, width, height);
-        short v4 = PIX(img, x_f, y_f, width, height);        
-        float s  = (v1*(x - x_f)+v3*(x_c - x))*(y - y_f) +  
-            (v2*(x - x_f) + v4*(x_c - x))*(y_c - y);
+        int x_c = (int)ceilf(x);
+        int x_f = (int)floorf(x);
+        if(x_f==x_c) x_c++;
+        int y_c = (int)ceilf(y);
+        int y_f = (int)floorf(y);
+        if(y_f==y_c) y_c++;
+        short v1 = PIXEL(img, x_c, y_c, width, height, def);
+        short v2 = PIXEL(img, x_c, y_f, width, height, def);
+        short v3 = PIXEL(img, x_f, y_c, width, height, def);
+        short v4 = PIXEL(img, x_f, y_f, width, height, def);        
+        float s  = (v1*(x - x_f)*(y - y_f) + v2*((x - x_f)*(y_c - y)) + 
+                    v3*(x_c - x)*(y - y_f) + v4*((x_c - x)*(y_c - y)));
         *rv = (unsigned char)s;
     }
 }
-
 
 /** interpolateLin: linear (only x) interpolation function, see interpolate */
 void interpolateLin(unsigned char *rv, float x, float y, 
                     unsigned char* img, int width, int height, 
                     unsigned char def)
 {
-    int x_f = myfloor(x);
-    int x_c = x_f+1;
-    int y_n = myround(y);
-    float v1 = PIXEL(img, x_c, y_n, width, height, def);
-    float v2 = PIXEL(img, x_f, y_n, width, height, def);
-    float s  = v1*(x - x_f) + v2*(x_c - x);
-    *rv = (unsigned char)s;
+    if (x < - 1 || x > width || y < -1 || y > height) {
+        *rv = def;    
+    } else {
+        int x_c = (int)ceilf(x);
+        int x_f = (int)floorf(x);
+        if(x_f==x_c) x_c++;
+        int y_n = myround(y);
+        float v1 = PIXEL(img, x_c, y_n, width, height, def);
+        float v2 = PIXEL(img, x_f, y_n, width, height, def);
+        float s  = v1*(x - x_f) + v2*(x_c - x);
+        *rv = (unsigned char)s;
+    }
 }
 
 /** interpolateZero: nearest neighbor interpolation function, see interpolate */
 void interpolateZero(unsigned char *rv, float x, float y, 
                    unsigned char* img, int width, int height, unsigned char def)
 {
-    int x_n = myround(x);
-    int y_n = myround(y);
-    *rv = (unsigned char) PIXEL(img, x_n, y_n, width, height, def);
+    if (x < - 1 || x > width || y < -1 || y > height) {
+        *rv = def;    
+    } else {
+        int x_n = myround(x);
+        int y_n = myround(y);
+        *rv = (unsigned char) PIXEL(img, x_n, y_n, width, height, def);
+    }
 }
 
 
 /** 
- * interpolateN: Bi-linear interpolation function for N channel image. 
+ * interpolateN: quatratic interpolation function for N channel image. 
  *
  * Parameters:
  *             rv: destination pixel (call by reference)
@@ -325,17 +260,20 @@ void interpolateN(unsigned char *rv, float x, float y,
     if (x < - 1 || x > width || y < -1 || y > height) {
         *rv = def;    
     } else {
-        int x_f = myfloor(x);
-        int x_c = x_f+1;
-        int y_f = myfloor(y);
-        int y_c = y_f+1;
+        int x_c = (int)ceilf(x);
+        int x_f = (int)floorf(x);
+        int y_c = (int)ceilf(y);
+        int y_f = (int)floorf(y);
         short v1 = PIXELN(img, x_c, y_c, width, height, N, channel, def);
         short v2 = PIXELN(img, x_c, y_f, width, height, N, channel, def);
         short v3 = PIXELN(img, x_f, y_c, width, height, N, channel, def);
-        short v4 = PIXELN(img, x_f, y_f, width, height, N, channel, def);        
-        float s  = (v1*(x - x_f)+v3*(x_c - x))*(y - y_f) + 
-            (v2*(x - x_f) + v4*(x_c - x))*(y_c - y);
-        *rv = (unsigned char)s;        
+        short v4 = PIXELN(img, x_f, y_f, width, height, N, channel, def);
+        float f1 = 1 - sqrt(fabs(x_c - x) * fabs(y_c - y));
+        float f2 = 1 - sqrt(fabs(x_c - x) * fabs(y_f - y));
+        float f3 = 1 - sqrt(fabs(x_f - x) * fabs(y_c - y));
+        float f4 = 1 - sqrt(fabs(x_f - x) * fabs(y_f - y));
+        float s  = (v1*f1 + v2*f2 + v3*f3+ v4*f4)/(f1 + f2 + f3 + f4);
+        *rv = (unsigned char)s;
     }
 }
 
@@ -769,9 +707,7 @@ static int transform_init(TCModuleInstance *self, uint32_t features)
  * tcmodule-data.h for function details.
  */
 static int transform_configure(TCModuleInstance *self, 
-                		       const char *options,
-                               TCJob *vob,
-                               TCModuleExtraData *xdata[])
+			       const char *options, vob_t *vob)
 {
     TransformData *td = NULL;
     char* filenamecopy, *filebasename;
@@ -807,8 +743,7 @@ static int transform_configure(TCModuleInstance *self,
     td->trans = 0;
     td->trans_len = 0;
     td->current_trans = 0;
-    td->warned_transform_end = 0;  
-
+  
     /* Options */
     td->maxshift = -1;
     td->maxangle = -1;
@@ -832,7 +767,7 @@ static int transform_configure(TCModuleInstance *self,
 
     td->zoom    = 0;
     td->optzoom = 1;
-    td->interpoltype = 2; // bi-linear
+    td->interpoltype = 1;
     td->sharpen = 0.8;
   
     if (options != NULL) {
@@ -865,7 +800,7 @@ static int transform_configure(TCModuleInstance *self,
         optstr_get(options, "interpol" , "%d", &td->interpoltype);
         optstr_get(options, "sharpen"  , "%lf",&td->sharpen);
     }
-    td->interpoltype = TC_MIN(td->interpoltype,4);
+    td->interpoltype = TC_MIN(td->interpoltype,3);
     if (verbose) {
         tc_log_info(MOD_NAME, "Image Transformation/Stabilization Settings:");
         tc_log_info(MOD_NAME, "    input     = %s", td->input);
@@ -901,8 +836,7 @@ static int transform_configure(TCModuleInstance *self,
       case 1:  interpolate = &interpolateLin; break;
       case 2:  interpolate = &interpolateBiLin; break;
       case 3:  interpolate = &interpolateSqr; break;
-      case 4:  interpolate = &interpolateBiCub; break;
-      default: interpolate = &interpolateBiLin;
+      default: interpolate = &interpolateZero;
     }
 
     /* Is this the right point to add the filter? Seems to be the case.*/
@@ -916,7 +850,7 @@ static int transform_configure(TCModuleInstance *self,
             tc_log_warn(MOD_NAME, "cannot load unsharp filter!");
         }
     }
-    
+
     return TC_OK;
 }
 
@@ -936,21 +870,24 @@ static int transform_filter_video(TCModuleInstance *self,
     td = self->userdata;
 
     td->dest = frame->video_buf;
-    memcpy(td->src, frame->video_buf, td->framesize_src);
-    if (td->current_trans >= td->trans_len) {        
-        td->current_trans = td->trans_len-1;
-        if(!td->warned_transform_end)
-            tc_log_warn(MOD_NAME, "not enough transforms found, use last transformation!\n");
-        td->warned_transform_end = 1;        
+    if (frame->id == 0 || td->crop == 1) {
+        memcpy(td->src, frame->video_buf, td->framesize_src);
+    }
+    if (td->current_trans >= td->trans_len) {
+        tc_log_error(MOD_NAME, "not enough transforms found!\n");
+        return TC_ERROR;
     }
   
-    if (td->vob->im_v_codec == TC_CODEC_RGB24) {
+    if (td->vob->im_v_codec == CODEC_RGB) {
         transformRGB(td);
-    } else if (td->vob->im_v_codec == TC_CODEC_YUV420P) {
+    } else if (td->vob->im_v_codec == CODEC_YUV) {
         transformYUV(td);
     } else {
         tc_log_error(MOD_NAME, "unsupported Codec: %i\n", td->vob->im_v_codec);
         return TC_ERROR;
+    }
+    if (td->crop == 0) {
+        memcpy(td->src, frame->video_buf, td->framesize_src);
     }
     td->current_trans++;
     return TC_OK;
@@ -1036,13 +973,12 @@ static int transform_inspect(TCModuleInstance *self,
 };
 
 
-static const TCCodecID transform_codecs_video_in[] = { 
-    TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_RGB24, TC_CODEC_ERROR 
+static const TCCodecID transform_codecs_in[] = { 
+    TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_RGB, TC_CODEC_ERROR 
 };
-static const TCCodecID transform_codecs_video_out[] = { 
-    TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_RGB24, TC_CODEC_ERROR 
+static const TCCodecID transform_codecs_out[] = { 
+    TC_CODEC_YUV420P, TC_CODEC_YUV422P, TC_CODEC_RGB, TC_CODEC_ERROR 
 };
-TC_MODULE_AUDIO_UNSUPPORTED(transform);
 TC_MODULE_FILTER_FORMATS(transform);
 
 TC_MODULE_INFO(transform);
