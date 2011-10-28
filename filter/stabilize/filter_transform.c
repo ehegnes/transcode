@@ -870,7 +870,9 @@ static int transform_filter_video(TCModuleInstance *self,
     td = self->userdata;
 
     td->dest = frame->video_buf;
-    memcpy(td->src, frame->video_buf, td->framesize_src);
+    if (frame->id == 0 || td->crop == 1) {
+        memcpy(td->src, frame->video_buf, td->framesize_src);
+    }
     if (td->current_trans >= td->trans_len) {
         tc_log_error(MOD_NAME, "not enough transforms found!\n");
         return TC_ERROR;
@@ -883,6 +885,9 @@ static int transform_filter_video(TCModuleInstance *self,
     } else {
         tc_log_error(MOD_NAME, "unsupported Codec: %i\n", td->vob->im_v_codec);
         return TC_ERROR;
+    }
+    if (td->crop == 0) {
+        memcpy(td->src, frame->video_buf, td->framesize_src);
     }
     td->current_trans++;
     return TC_OK;
