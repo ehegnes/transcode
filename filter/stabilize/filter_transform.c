@@ -716,9 +716,9 @@ static int transform_configure(TCModuleInstance *self,
     td = self->userdata;
 
     td->vob = vob;
-    if (!td->vob)
+    if (!td->vob) {
         return TC_ERROR; /* cannot happen */
-
+    }
     /**** Initialise private data structure */
 
     /* td->framesize = td->vob->im_v_width *
@@ -849,7 +849,7 @@ static int transform_configure(TCModuleInstance *self,
     }
 
     /* Is this the right point to add the filter? Seems to be the case.*/
-    if(td->sharpen>0){
+    if (td->sharpen > 0) {
         /* load unsharp filter */
         char unsharp_param[256];
         sprintf(unsharp_param,"luma=%f:%s:chroma=%f:%s", 
@@ -957,12 +957,13 @@ static int transform_stop(TCModuleInstance *self)
 }
 
 /* checks for parameter in function _inspect */
-#define CHECKPARAM(paramname, formatstring, variable)       \
-    if (optstr_lookup(param, paramname)) {                \
-        tc_snprintf(td->conf_str, sizeof(td->conf_str),   \
-                    formatstring, variable);              \
-        *value = td->conf_str;                            \
-    }
+#define CHECKPARAM(paramname, formatstring, variable) do { \
+    if (optstr_lookup(param, paramname)) {                 \
+        tc_snprintf(td->conf_str, sizeof(td->conf_str),    \
+                    formatstring, variable);               \
+        *value = td->conf_str;                             \
+    }                                                      \
+} while (0)
 
 /**
  * stabilize_inspect:  Return the value of an option in this instance of
