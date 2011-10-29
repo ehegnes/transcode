@@ -725,7 +725,7 @@ static int transform_configure(TCModuleInstance *self,
      *  MAX_PLANES * sizeof(char) * 2 * td->vob->im_v_height * 2;    
      */
     td->framesize_src = td->vob->im_v_size;    
-    td->src = tc_zalloc(td->framesize_src); /* FIXME */
+    td->src = tc_malloc(td->framesize_src); /* FIXME */
     if (td->src == NULL) {
         tc_log_error(MOD_NAME, "tc_malloc failed\n");
         return TC_ERROR;
@@ -831,6 +831,15 @@ static int transform_configure(TCModuleInstance *self,
         return TC_ERROR;            
     }  
 
+    /* if we keep the borders, we need a second buffer to store
+       the previous stabilized frame. */
+    if (td->crop == 0) {
+        td->dest = tc_malloc(td->framesize_dest);
+        if (td->dest == NULL) {
+            return TC_ERROR;
+        }
+    }
+
     switch(td->interpoltype){
       case 0:  interpolate = &interpolateZero; break;
       case 1:  interpolate = &interpolateLin; break;
@@ -869,9 +878,15 @@ static int transform_filter_video(TCModuleInstance *self,
   
     td = self->userdata;
 
-    td->dest = frame->video_buf;
-    if (frame->id == 0 || td->crop == 1) {
-        memcpy(td->src, frame->video_buf, td->framesize_src);
+    memcpy(td->src, frame->video_buf, td->framesize_src);
+    if (td->crop == 0) {
+        if (frame->id == 0) {
+            /* if we keep borders, then save the first frame into the
+               background buffer (dest) */
+            memcpy(td->dest, frame->video_buf, td->framesize_src);
+        }
+    } else { /* otherwise we directly operate on the framebuffer */
+        td->dest = frame->video_buf;
     }
     if (td->current_trans >= td->trans_len) {
         tc_log_error(MOD_NAME, "not enough transforms found!\n");
@@ -887,7 +902,9 @@ static int transform_filter_video(TCModuleInstance *self,
         return TC_ERROR;
     }
     if (td->crop == 0) {
-        memcpy(td->src, frame->video_buf, td->framesize_src);
+        /* note: dest stores the stabilized frame to be the default
+           for the next frame */
+        memcpy(frame->video_buf, td->dest, td->framesize_src);
     }
     td->current_trans++;
     return TC_OK;
@@ -921,6 +938,12 @@ static int transform_stop(TCModuleInstance *self)
     if (td->src) {
         tc_free(td->src);
         td->src = NULL;
+    }
+    if (td->crop == 0) {
+        /* if we keep the borders, we need a second buffer to store
+           the previous stabilized frame. */
+        tc_free(td->dest);
+        td->dest = NULL;
     }
     if (td->trans) {
         tc_free(td->trans);
