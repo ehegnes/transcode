@@ -30,18 +30,6 @@
 #include <math.h>
 #include "transform.h"
 
-/* normal round function */
-int myround(double x)
-{
-    double x_;
-    x_ = floor(x);
-    if (x - x_ >= 0.5)
-        return ((int)x_) + 1;
-    else
-        return (int)x_;
-}
-
-
 /***********************************************************************
  * helper functions to create and operate with transforms.
  * all functions are non-destructive
