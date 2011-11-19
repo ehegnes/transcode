@@ -1,3 +1,6 @@
+0.80
+	keep border mode in transform plugin improved
+
 0.79
 	speed optimizations using SSE by Alexey Osipov
 	search tree cut, spiral search and sse:
